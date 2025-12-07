@@ -20,88 +20,138 @@ import {
 import { flock } from "../flock.js";
 
 function createSceneColorBlock(config) {
-        return {
-                init: function () {
-                        const args0 = [];
+  return {
+    init: function () {
+      const args0 = [];
 
-                        if (config.hasDropdown) {
-                                args0.push({
-                                        type: "field_dropdown",
-                                        name: "MAP_NAME",
-                                        options: [[getOption("FLAT"), "NONE"]].concat(mapNames()),
-                                });
-                        }
+      if (config.hasDropdown) {
+        args0.push({
+          type: "field_dropdown",
+          name: "MAP_NAME",
+          options: [[getOption("FLAT"), "NONE"]].concat(mapNames()),
+        });
+      }
 
-                        args0.push({
-                                type: "input_value",
-                                name: config.inputName || "COLOR",
-                                colour: config.inputColor,
-                                check: config.check || ["Colour", "Array", "Material"],
-                        });
+      args0.push({
+        type: "input_value",
+        name: config.inputName || "COLOR",
+        colour: config.inputColor,
+        check: config.check || ["Colour", "Array", "Material"],
+      });
 
-                        this.jsonInit({
-                                type: config.type,
-                                message0: translate(config.type),
-                                args0: args0,
-                                previousStatement: null,
-                                nextStatement: null,
-                                inputsInline: true,
-                                colour: categoryColours["Scene"],
-                                tooltip: getTooltip(config.type),
-                        });
+      this.jsonInit({
+        type: config.type,
+        message0: translate(config.type),
+        args0: args0,
+        previousStatement: null,
+        nextStatement: null,
+        inputsInline: true,
+        colour: categoryColours["Scene"],
+        tooltip: getTooltip(config.type),
+      });
 
-                        this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle("scene_blocks");
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("scene_blocks");
 
-                                        this.setOnChange((changeEvent) => {
-                                if (flock.eventDebug && config.debugEvents) {
-                                        console.log(changeEvent.type);
-                                }
+      // --- NEW onChange logic modelled on create_map ---
 
-                                const eventTypes = config.listenToMove
-                                        ? [
-                                                        Blockly.Events.BLOCK_CREATE,
-                                                        Blockly.Events.BLOCK_CHANGE,
-                                                        Blockly.Events.BLOCK_MOVE,
-                                        ]
-                                        : [
-                                                        Blockly.Events.BLOCK_CREATE,
-                                                        Blockly.Events.BLOCK_CHANGE,
-                                        ];
+      let debounceTimer = null;
+      const ws = this.workspace;
 
-                                if (eventTypes.includes(changeEvent.type)) {
-                                        const workspace = Blockly.getMainWorkspace();
-                                        const changedBlocks = Array.isArray(changeEvent.ids)
-                                                ? changeEvent.ids
-                                                                .map((id) => workspace.getBlockById(id))
-                                                                .filter(Boolean)
-                                                : [workspace.getBlockById(changeEvent.blockId)].filter(Boolean);
+      const runtimeReady = () =>
+        typeof window !== "undefined" &&
+        window.flock &&
+        flock.BABYLON &&
+        flock.scene;
 
-                                        const parents = changedBlocks
-                                                .map((block) => findCreateBlock(block))
-                                                .filter(Boolean);
+      const inSubtree = (rootBlock, id) => {
+        if (!id) return false;
+        const b = ws.getBlockById(id);
+        if (!b) return false;
+        if (b === rootBlock) return true;
+        return rootBlock.getDescendants(false).some((x) => x.id === b.id);
+      };
 
-                                        if (parents.includes(this)) {
-                                                const blockInWorkspace =
-                                                                Blockly.getMainWorkspace().getBlockById(this.id);
+      const runAfterLayout = (evt) => {
+        // Let Blockly finalise connections first
+        Promise.resolve().then(() => {
+          requestAnimationFrame(() => {
+            if (!runtimeReady()) return;
 
-                                                if (blockInWorkspace) {
-                                                        if (config.useMeshLifecycle) {
-                                                                if (
-                                                                        handleMeshLifecycleChange(this, changeEvent)
-                                                                )
-                                                                        return;
-                                                                if (handleFieldOrChildChange(this, changeEvent))
-                                                                        return;
-                                                        } else {
-                                                                updateOrCreateMeshFromBlock(this, changeEvent);
-                                                        }
-                                                }
-                                        }
-                                }
-                        });
-                },
+            const colorInputName = config.inputName || "COLOR";
+            const colorBlock = this.getInputTargetBlock(colorInputName);
+
+            // (No de-shadowing logic here unless you want colour shadows too)
+
+            if (config.useMeshLifecycle) {
+              if (typeof handleMeshLifecycleChange === "function") {
+                if (handleMeshLifecycleChange(this, evt)) return;
+              }
+              if (typeof handleFieldOrChildChange === "function") {
+                if (handleFieldOrChildChange(this, evt)) return;
+              }
+            }
+
+            if (typeof updateOrCreateMeshFromBlock === "function") {
+              updateOrCreateMeshFromBlock(this, evt);
+            }
+          });
+        });
+      };
+
+      this.setOnChange((evt) => {
+        const eventTypes = config.listenToMove
+          ? [
+              Blockly.Events.BLOCK_CREATE,
+              Blockly.Events.BLOCK_CHANGE,
+              Blockly.Events.BLOCK_MOVE,
+              Blockly.Events.BLOCK_DELETE,
+              Blockly.Events.UI, // dragStop path
+            ]
+          : [
+              Blockly.Events.BLOCK_CREATE,
+              Blockly.Events.BLOCK_CHANGE,
+              Blockly.Events.BLOCK_DELETE,
+              Blockly.Events.UI,
+            ];
+
+        if (!eventTypes.includes(evt.type)) return;
+
+        if (flock.eventDebug && config.debugEvents) {
+          console.log("scene color onchange", {
+            sceneBlockType: this.type,
+            evtType: evt.type,
+            blockId: evt.blockId,
+            element: evt.element,
+          });
+        }
+
+        const colorInputName = config.inputName || "COLOR";
+
+        const touchesScene = (id) => {
+          if (!id) return false;
+          if (id === this.id) return true; // direct change to this block
+
+          const colorBlock = this.getInputTargetBlock(colorInputName);
+          if (!colorBlock) return false;
+
+          return inSubtree(colorBlock, id);
         };
+
+        const relevant =
+          touchesScene(evt.blockId) ||
+          (Array.isArray(evt.ids) && evt.ids.some((id) => touchesScene(id))) ||
+          touchesScene(evt.newParentId) ||
+          touchesScene(evt.oldParentId) ||
+          (evt.type === Blockly.Events.UI && evt.element === "dragStop");
+
+        if (!relevant) return;
+
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => runAfterLayout(evt), 30);
+      });
+    },
+  };
 }
 
 export function defineSceneBlocks() {
