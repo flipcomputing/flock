@@ -81,6 +81,7 @@ export const flock = {
         performanceOverlay: false,
         maxMeshes: 5000,
         console: console,
+        havokAbortHandled: false,
         triggerHandlingDebug: false,
         modelPath: "./models/",
         soundPath: "./sounds/",
@@ -117,6 +118,7 @@ export const flock = {
                 pressedKeys: null,
         },
         abortController: null,
+        _renderLoop: null,
         document: document,
         disposed: null,
         events: {},
@@ -294,6 +296,62 @@ export const flock = {
                                 flock.memoryMonitorInterval = null;
                         }
                 });
+        },
+        isPhysicsMemoryAbort(error) {
+                const message = `${error?.message ?? error}`.toLowerCase();
+                const isWasmRuntimeError =
+                        typeof WebAssembly !== "undefined" &&
+                        error instanceof WebAssembly.RuntimeError;
+                return (
+                        message.includes("out of memory") ||
+                        (isWasmRuntimeError && message.includes("abort"))
+                );
+        },
+        handlePhysicsOutOfMemory(error) {
+                if (flock.havokAbortHandled) {
+                        return;
+                }
+
+                flock.havokAbortHandled = true;
+                console.error(translate("physics_out_of_memory_log"), error);
+
+                try {
+                        if (flock._renderLoop) {
+                                flock.engine?.stopRenderLoop(flock._renderLoop);
+                        } else {
+                                flock.engine?.stopRenderLoop();
+                        }
+                        flock.abortController?.abort();
+                } catch {}
+
+                try {
+                        flock.hk?.dispose?.();
+                } catch {}
+
+                const doc = flock.document;
+                if (!doc?.body) return;
+
+                const warningId = "havok-oom-warning";
+                if (doc.getElementById(warningId)) return;
+
+                const banner = doc.createElement("div");
+                banner.id = warningId;
+                banner.textContent = translate("physics_out_of_memory_banner_ui");
+                banner.style.position = "fixed";
+                banner.style.top = "0";
+                banner.style.left = "0";
+                banner.style.right = "0";
+                banner.style.padding = "12px";
+                banner.style.background = "#3b0b0b";
+                banner.style.color = "#ffb3b3";
+                banner.style.fontSize = "16px";
+                banner.style.fontFamily = "'Asap', sans-serif";
+                banner.style.zIndex = "10000";
+                banner.style.textAlign = "center";
+                banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.4)";
+                banner.style.borderBottom = "2px solid #d33";
+
+                doc.body.prepend(banner);
         },
         validateCode(code) {
                 if (typeof code !== "string") {
@@ -1839,10 +1897,28 @@ export const flock = {
                 flock._nameRegistry = new Map();
                 flock._animationFileCache = {};
                 flock.materialCache = {};
+                flock.havokAbortHandled = false;
                 flock.disposed = false;
+
+                const existingOomBanner = flock.document?.getElementById(
+                        "havok-oom-warning",
+                );
+                existingOomBanner?.remove?.();
 
                 // Create the new scene
                 flock.scene = new flock.BABYLON.Scene(flock.engine);
+
+                flock._renderLoop = () => {
+                        try {
+                                flock.scene.render();
+                        } catch (error) {
+                                if (flock.isPhysicsMemoryAbort(error)) {
+                                        flock.handlePhysicsOutOfMemory(error);
+                                        return;
+                                }
+                                throw error;
+                        }
+                };
 
                 // Apply and remember the app's default clear colour so it can be
                 // restored if the user removes their sky/background blocks later.
@@ -1858,9 +1934,7 @@ export const flock = {
                 flock.abortController = new AbortController();
 
                 // Start the render loop
-                flock.engine.runRenderLoop(() => {
-                        flock.scene.render();
-                });
+                flock.engine.runRenderLoop(flock._renderLoop);
 
                 // Enable physics
                 flock.hk = new flock.BABYLON.HavokPlugin(

@@ -1027,6 +1027,10 @@ export default {
   max_mesh_limit_reached:
     "⚠️ Limite alcançado: você só pode ter {max} malhas no seu mundo.",
   high_memory_usage_warning: "Aviso: uso de memória alto ({percent}%)",
+  physics_out_of_memory_log:
+    "A física Havok foi abortada, provavelmente por falta de memória.", // AI-generated; needs validation
+  physics_out_of_memory_banner_ui:
+    "O motor de física ficou sem memória. Tente reduzir o número de objetos físicos ou recarregar o projeto.", // AI-generated; needs validation
   runtime_error_message: "Erro: {message}",
   xr_mode_message: "Modo XR!",
   fly_camera_instructions:

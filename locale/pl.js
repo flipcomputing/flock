@@ -910,6 +910,10 @@ export default {
   max_mesh_limit_reached:
     "⚠️ Osiągnięto limit: możesz mieć tylko {max} siatek w swoim świecie.",
   high_memory_usage_warning: "Ostrzeżenie: wysokie użycie pamięci ({percent}%)",
+  physics_out_of_memory_log:
+    "Silnik fizyki Havok został przerwany, prawdopodobnie z powodu braku pamięci.", // AI-generated; needs validation
+  physics_out_of_memory_banner_ui:
+    "Silnik fizyczny zabrakło pamięci. Spróbuj zmniejszyć liczbę obiektów fizycznych lub ponownie wczytać projekt.", // AI-generated; needs validation
   runtime_error_message: "Błąd: {message}",
   xr_mode_message: "Tryb XR!",
   fly_camera_instructions:
