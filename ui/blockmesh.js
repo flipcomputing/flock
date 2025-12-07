@@ -649,6 +649,10 @@ function handleMaterialOrColorChange(
 }
 
 function updateGroundFromBlock(mesh, block, changeEvent) {
+  // Track ownership so deletions can dispose the ground mesh
+  meshMap["ground"] = block;
+  meshBlockIdMap["ground"] = block.id;
+
   const colorInput = block.getInputTargetBlock("COLOR");
 
   if (colorInput && colorInput.type === "material") {
@@ -695,6 +699,10 @@ function updateGroundFromBlock(mesh, block, changeEvent) {
 }
 
 function updateMapFromBlock(mesh, block, changeEvent) {
+  // Track ownership so deletions can dispose the ground mesh
+  meshMap["ground"] = block;
+  meshBlockIdMap["ground"] = block.id;
+
   const mapName = block.getFieldValue("MAP_NAME");
   const materialBlock = block.getInputTargetBlock("MATERIAL");
 
