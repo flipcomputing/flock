@@ -893,11 +893,50 @@ export const flockMesh = {
   ) {
     return flock.whenModelReady(parentModelName, (parentMesh) => {
       flock.whenModelReady(childModelName, (childMesh) => {
-        // Set the parent-child relationship
-        childMesh.parent = parentMesh;
+        if (!parentMesh || !childMesh) return;
 
-        // Apply the offset to the child's position relative to the parent
-        childMesh.position.set(offsetX, offsetY, offsetZ);
+        const BABYLON = flock.BABYLON;
+
+        // Local helper: get pivot offset in *mesh local* space
+        function getLocalPivotOffset(mesh) {
+          const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
+            x: "CENTER",
+            y: "MIN",    // default Y is base
+            z: "CENTER",
+          };
+
+          const ext = mesh.getBoundingInfo().boundingBox.extendSize;
+
+          function axisOffset(axis) {
+            const half = ext[axis];
+            const setting = pivotSettings[axis];
+            if (setting === "MIN") return -half;
+            if (setting === "MAX") return  half;
+            // CENTER (default)
+            return 0;
+          }
+
+          return new BABYLON.Vector3(
+            axisOffset("x"),
+            axisOffset("y"),
+            axisOffset("z"),
+          );
+        }
+
+        // Offsets in parent local space
+        const offsetLocal = new BABYLON.Vector3(offsetX, offsetY, offsetZ);
+
+        // Parent/child pivot offsets in their own local spaces
+        const parentPivotLocal = getLocalPivotOffset(parentMesh);
+        const childPivotLocal  = getLocalPivotOffset(childMesh);
+
+        const desiredChildLocalPos = parentPivotLocal
+          .add(offsetLocal)
+          .subtract(childPivotLocal);
+
+        // Now actually parent and apply the computed local position
+        childMesh.parent = parentMesh;
+        childMesh.position.copyFrom(desiredChildLocalPos);
       });
     });
   },
