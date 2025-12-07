@@ -442,7 +442,6 @@ export const flockTransform = {
       flock.whenModelReady(meshName),
       flock.whenModelReady(target),
     ]);
-
     const scene = mesh1.getScene?.() ?? mesh2.getScene?.();
     if (!scene) return;
 
@@ -473,21 +472,23 @@ export const flockTransform = {
     const dir = p2.subtract(p1);
     if (!useY) dir.y = 0;
     if (dir.lengthSquared() === 0) return; // already at target horizontally
-
     dir.normalize();
 
     // Babylon is left-handed; FromLookDirectionLH expects a forward (toward target) and up.
     const up = flock.BABYLON.Axis.Y; // world up
     const q = flock.BABYLON.Quaternion.FromLookDirectionLH(dir, up);
 
-    // Ensure we’re using quaternions for rotation (safer with physics)
-    if (!mesh1.rotationQuaternion) {
-      mesh1.rotationQuaternion = new flock.BABYLON.Quaternion();
-    }
-    mesh1.rotationQuaternion.copyFrom(q);
-    mesh1.computeWorldMatrix(true);
+    // Convert quaternion to Euler angles
+    const euler = q.toEulerAngles();
 
-    // Wait one tick so transforms “stick” before returning.
+    // Use rotateTo with the Euler angles (convert from radians to degrees)
+    await this.rotateTo(meshName, {
+      x: flock.BABYLON.Tools.ToDegrees(euler.x),
+      y: flock.BABYLON.Tools.ToDegrees(euler.y),
+      z: flock.BABYLON.Tools.ToDegrees(euler.z)
+    });
+
+    // Wait one tick so transforms "stick" before returning.
     if (mesh1.physics) {
       await new Promise(resolve => {
         const cb = () => { scene.onAfterPhysicsObservable.removeCallback(cb); resolve(); };
@@ -499,7 +500,6 @@ export const flockTransform = {
         scene.onAfterRenderObservable.add(cb);
       });
     }
-
     mesh1.computeWorldMatrix(true);
   },
   scale(
