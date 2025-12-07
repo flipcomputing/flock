@@ -169,7 +169,7 @@ export function defineAnimateBlocks() {
         Blockly.Blocks["glide_to_object"] = {
                 init: function () {
                         this.jsonInit({
-                                type0: "glide_to_object",
+                                type: "glide_to_object",
                                 message0: translate("glide_to_object"),
                                 args0: [
                                         {
@@ -244,6 +244,21 @@ export function defineAnimateBlocks() {
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("animate_blocks");
+
+                        const addZeroShadow = (inputName) => {
+                                const input = this.getInput(inputName);
+                                if (!input || !input.connection) return;
+
+                                const shadowDom = Blockly.utils.xml.textToDom(`
+                                  <shadow type="math_number">
+                                    <field name="NUM">0</field>
+                                  </shadow>
+                                `);
+                                input.connection.setShadowDom(shadowDom);
+                                input.connection.respawnShadow_();
+                        };
+
+                        ["X_OFFSET", "Y_OFFSET", "Z_OFFSET"].forEach(addZeroShadow);
                 },
         };
 

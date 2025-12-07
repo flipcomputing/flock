@@ -145,7 +145,7 @@ export default {
   glide_to_seconds:
     "deslizar %1 para x %2 y %3 z %4 em %5 segundos\n%6 voltar? %7 repetir? %8 %9",
   glide_to_object:
-    "deslizar %1 até %2 deslocamento x: %3 y: %4 z: %5 em %6 segundos\n%7 voltar? %8 repetir? %9 %10",
+    "deslizar %1 até %2 em %6 segundos\ndeslocamento x: %3 y: %4 z: %5\n%7 voltar? %8 repetir? %9 %10",
   rotate_anim:
     "girar %1 para x %2 y %3 z %4 em %5 ms\n%6 inverter? %7 repetir? %8 %9",
   rotate_anim_seconds:

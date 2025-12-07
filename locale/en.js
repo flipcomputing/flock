@@ -145,7 +145,7 @@ export default {
   // Custom block translations - Animate blocks
   glide_to: "glide %1 to x: %2 y: %3 z: %4 in %5 ms\n%6 return? %7 loop? %8 %9",
   glide_to_seconds: "glide %1 to x: %2 y: %3 z: %4 in %5 seconds \n%6 return? %7 loop? %8 %9",
-  glide_to_object: "glide %1 to %2 offset x: %3 y: %4 z: %5 in %6 seconds \n%7 return? %8 loop? %9 %10",
+  glide_to_object: "glide %1 to %2 in %6 seconds \noffset x: %3 y: %4 z: %5\n%7 return? %8 loop? %9 %10",
   rotate_anim: "rotate %1 to x: %2 y: %3 z: %4 in %5 ms\n%6 reverse? %7 loop? %8  %9",
   rotate_anim_seconds: "rotate %1 to x: %2 y: %3 z: %4 in %5 seconds\n%6 reverse? %7 loop? %8  %9",
   animate_property: "animate %1 %2 to %3 in %4 ms reverse? %5 loop? %6 %7",

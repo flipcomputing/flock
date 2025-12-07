@@ -145,7 +145,7 @@ export default {
       glide_to_seconds:
             "glid %1 till x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9",
       glide_to_object:
-            "glid %1 till %2 förskjutning x: %3 y: %4 z: %5 på %6 sekunder\n%7 återvända? %8 loop? %9 %10",
+            "glid %1 till %2 på %6 sekunder\nförskjutning x: %3 y: %4 z: %5\n%7 återvända? %8 loop? %9 %10",
       rotate_anim:
             "rotera %1 till x %2 y %3 z %4 på %5 ms\n%6 omvänd? %7 loop? %8  %9",
       rotate_anim_seconds:

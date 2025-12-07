@@ -150,7 +150,7 @@ export default {
   glide_to_seconds:
     "scivola %1 a x %2 y %3 z %4 in %5 secondi \n%6 ritorna? %7 ripeti? %8 %9",
   glide_to_object:
-    "scivola %1 verso %2 offset x: %3 y: %4 z: %5 in %6 secondi \n%7 ritorna? %8 ripeti? %9 %10",
+    "scivola %1 verso %2 in %6 secondi\noffset x: %3 y: %4 z: %5\n%7 ritorna? %8 ripeti? %9 %10",
   rotate_anim:
     "ruota %1 a x %2 y %3 z %4 in %5 ms\n%6 inverti? %7 ripeti? %8  %9",
   rotate_anim_seconds:

@@ -140,7 +140,7 @@ export default {
   // Custom block translations - Animate blocks
   glide_to: "przesuń %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 powrót? %7 pętla? %8 %9",
   glide_to_seconds: "przesuń %1 do x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 powrót? %7 pętla? %8 %9",
-  glide_to_object: "przesuń %1 do %2 przesunięcie x: %3, y: %4, z: %5 w czasie %6 sekund\n%7 powrót? %8 pętla? %9 %10",
+  glide_to_object: "przesuń %1 do %2 w czasie %6 sekund\nprzesunięcie x: %3, y: %4, z: %5\n%7 powrót? %8 pętla? %9 %10",
   rotate_anim: "obróć %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 odwróć? %7 pętla? %8 %9",
   rotate_anim_seconds: "obróć %1 do x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 odwróć? %7 pętla? %8 %9",
   animate_property: "animuj %1: %2 do %3 w czasie %4 ms, odwróć? %5, pętla? %6 %7",
