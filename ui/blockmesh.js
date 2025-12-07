@@ -278,7 +278,7 @@ export function clearSkyMesh({ preserveClearColor = true } = {}) {
 
   if (!preserveClearColor) {
     const clearColor = flock.initialClearColor
-      ? flock.initialClearColor.clone?.() ?? flock.initialClearColor
+      ? (flock.initialClearColor.clone?.() ?? flock.initialClearColor)
       : new flock.BABYLON.Color3(0, 0, 0);
 
     flock.scene.clearColor = clearColor;
@@ -305,7 +305,9 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
       changeEvent.type,
     );
   const inFlyout =
-    typeof block.isInFlyout === "function" ? block.isInFlyout() : block.isInFlyout;
+    typeof block.isInFlyout === "function"
+      ? block.isInFlyout()
+      : block.isInFlyout;
   if (inFlyout) return;
   if (
     [
@@ -649,6 +651,9 @@ function handleMaterialOrColorChange(
 }
 
 function updateGroundFromBlock(mesh, block, changeEvent) {
+  meshMap["ground"] = block;
+  meshBlockIdMap["ground"] = block.id;
+
   const colorInput = block.getInputTargetBlock("COLOR");
 
   if (colorInput && colorInput.type === "material") {
@@ -695,6 +700,10 @@ function updateGroundFromBlock(mesh, block, changeEvent) {
 }
 
 function updateMapFromBlock(mesh, block, changeEvent) {
+  // Track ownership so deletions can dispose the ground mesh
+  meshMap["ground"] = block;
+  meshBlockIdMap["ground"] = block.id;
+
   const mapName = block.getFieldValue("MAP_NAME");
   const materialBlock = block.getInputTargetBlock("MATERIAL");
 
@@ -986,9 +995,7 @@ function getXYZFromBlock(block) {
   };
 }
 
-
 export function updateMeshFromBlock(mesh, block, changeEvent) {
-  
   if (flock.meshDebug) {
     console.log("=== UPDATE MESH FROM BLOCK ===");
     console.log("Block type:", block.type);
@@ -1097,7 +1104,9 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     ) {
       if (changeEvent.type === Blockly.Events.BLOCK_MOVE) {
         if (flock.meshDebug)
-          console.log("Ignoring BLOCK_MOVE for scene block with no input change");
+          console.log(
+            "Ignoring BLOCK_MOVE for scene block with no input change",
+          );
         return;
       }
       changed = "COLOR";
@@ -1171,8 +1180,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     // - rotate_to / resize child (nested inside DO)
     // - otherwise the root block itself
     const contextBlock =
-      parent &&
-      (parent.type === "rotate_to" || parent.type === "resize")
+      parent && (parent.type === "rotate_to" || parent.type === "resize")
         ? parent
         : block;
 
@@ -1249,7 +1257,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
   if (flock.meshDebug) console.log("=== UPDATE COMPLETE ===");
 }
-
 
 function moveMeshToOrigin(mesh) {
   mesh.position = flock.BABYLON.Vector3.Zero();
@@ -1981,14 +1988,16 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   // Special case: background/sky fallback
   if (!mesh || mesh.type === "set_sky_color") {
     const ws = Blockly.getMainWorkspace();
-    const backgroundBlock = ws
-      ?.getAllBlocks(false)
-      .find((b) => b.type === "set_background_color" && b.isEnabled())
-      ?? ws?.getAllBlocks(false).find((b) => b.type === "set_background_color");
-    const skyBlock = ws
-      ?.getAllBlocks(false)
-      .find((b) => b.type === "set_sky_color" && b.isEnabled())
-      ?? ws?.getAllBlocks(false).find((b) => b.type === "set_sky_color");
+    const backgroundBlock =
+      ws
+        ?.getAllBlocks(false)
+        .find((b) => b.type === "set_background_color" && b.isEnabled()) ??
+      ws?.getAllBlocks(false).find((b) => b.type === "set_background_color");
+    const skyBlock =
+      ws
+        ?.getAllBlocks(false)
+        .find((b) => b.type === "set_sky_color" && b.isEnabled()) ??
+      ws?.getAllBlocks(false).find((b) => b.type === "set_sky_color");
 
     block = backgroundBlock || skyBlock || meshMap?.["sky"];
 
