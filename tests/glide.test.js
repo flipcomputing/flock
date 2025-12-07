@@ -3,13 +3,34 @@
 import { expect } from "chai";
 
 function checkXPosition(box, pos) {
-	return Math.abs(box.position.x - pos) <= 0.1
+        return Math.abs(box.position.x - pos) <= 0.1
+}
+
+function getMeshPivotPosition(mesh, axis) {
+        const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
+                x: "CENTER",
+                y: "MIN",
+                z: "CENTER",
+        };
+
+        const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
+        const halfSize = bounding[axis] * mesh.scaling[axis];
+        const pivotSetting = pivotSettings[axis];
+
+        if (pivotSetting === "CENTER") {
+                return mesh.position[axis];
+        } else if (pivotSetting === "MIN") {
+                return mesh.position[axis] - halfSize;
+        } else if (pivotSetting === "MAX") {
+                return mesh.position[axis] + halfSize;
+        }
 }
 
 // Test suite for glideTo function
 export function runGlideToTests(flock) {
-	describe("glideTo function tests @slow", function () {
-		let box1;
+        describe("glideTo function tests @slow", function () {
+                let box1;
+                let box2;
 
 		// Set up the box before each test
 		beforeEach(async function () {
@@ -23,11 +44,15 @@ export function runGlideToTests(flock) {
 			});
 		});
 
-		// Clean up after each test
-		afterEach(function () {
-			// Dispose of the box after each test to avoid memory leaks and ensure clean state
-			flock.dispose(box1);
-		});
+                // Clean up after each test
+                afterEach(function () {
+                        // Dispose of the boxes after each test to avoid memory leaks and ensure clean state
+                        flock.dispose(box1);
+                        if (box2) {
+                                flock.dispose(box2);
+                                box2 = undefined;
+                        }
+                });
 
 		it("should move the box to the correct position @slow", function (done) {
 			this.timeout(15000); // Increase the timeout forthis test
@@ -162,18 +187,67 @@ export function runGlideToTests(flock) {
 				});
 		});
 
-		it("should complete within the given duration", function (done) {
-			this.timeout(10000); // Increase the timeout for this test
-			const startTime = Date.now();
+                it("should complete within the given duration", function (done) {
+                        this.timeout(10000); // Increase the timeout for this test
+                        const startTime = Date.now();
 
 			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 2 }).then(() => {
 				const endTime = Date.now();
 				const duration = (endTime - startTime) / 1000; // Convert to seconds
 
 				// Assert the movement took approximately the specified duration
-				expect(duration).to.be.closeTo(2, 0.5); // Within 0.5 seconds tolerance
-				done();
-			});
-		});
-	});
+                                expect(duration).to.be.closeTo(2, 0.5); // Within 0.5 seconds tolerance
+                                done();
+                        });
+                });
+
+                it("should glide to another object with default offsets", async function () {
+                        this.timeout(5000);
+
+                        box2 = flock.createBox("box2", {
+                                width: 2,
+                                height: 2,
+                                depth: 2,
+                                position: [3, 2, 1],
+                        });
+
+                        await flock.glideToObject(box1, box2, { duration: 0.2 });
+
+                        const targetMesh = flock.scene.getMeshByName(box2);
+                        const expectedX = getMeshPivotPosition(targetMesh, "x");
+                        const expectedY = getMeshPivotPosition(targetMesh, "y");
+                        const expectedZ = getMeshPivotPosition(targetMesh, "z");
+
+                        const movedMesh = flock.scene.getMeshByName(box1);
+
+                        expect(movedMesh.position.x).to.be.closeTo(expectedX, 0.1);
+                        expect(movedMesh.position.y).to.be.closeTo(expectedY, 0.1);
+                        expect(movedMesh.position.z).to.be.closeTo(expectedZ, 0.1);
+                });
+
+                it("should apply x/y/z offsets when gliding to another object", async function () {
+                        this.timeout(5000);
+
+                        box2 = flock.createBox("box2", {
+                                width: 1,
+                                height: 1,
+                                depth: 1,
+                                position: [1, 1, 1],
+                        });
+
+                        const offsets = { offsetX: 0.5, offsetY: -1, offsetZ: 2 };
+                        await flock.glideToObject(box1, box2, { ...offsets, duration: 0.2 });
+
+                        const targetMesh = flock.scene.getMeshByName(box2);
+                        const expectedX = getMeshPivotPosition(targetMesh, "x") + offsets.offsetX;
+                        const expectedY = getMeshPivotPosition(targetMesh, "y") + offsets.offsetY;
+                        const expectedZ = getMeshPivotPosition(targetMesh, "z") + offsets.offsetZ;
+
+                        const movedMesh = flock.scene.getMeshByName(box1);
+
+                        expect(movedMesh.position.x).to.be.closeTo(expectedX, 0.1);
+                        expect(movedMesh.position.y).to.be.closeTo(expectedY, 0.1);
+                        expect(movedMesh.position.z).to.be.closeTo(expectedZ, 0.1);
+                });
+        });
 }
