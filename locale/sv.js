@@ -994,6 +994,7 @@ export default {
       unmute_audio_aria: "Slå på ljud.",
       focused_main_content: "Huvudinnehållet har fokus.",
       toolbox_search_results_aria: "Verktygslådans sökresultat.",
+      context_delete_option: "Radera",
       context_copy_option: "Kopiera",
       context_paste_option: "Klistra in",
       context_cut_option: "Klipp ut",

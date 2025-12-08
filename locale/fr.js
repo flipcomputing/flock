@@ -869,6 +869,7 @@ export default {
                                       unmute_audio_aria: "Activer le son.",
                                       focused_main_content: "Contenu principal ciblé.",
                                       toolbox_search_results_aria: "Résultats de recherche de la boîte à outils.",
+                                      context_delete_option: "Supprimer",
                                       context_copy_option: "Copier",
                                       context_paste_option: "Coller",
                                       context_cut_option: "Couper",
