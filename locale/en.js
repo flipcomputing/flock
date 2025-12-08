@@ -814,6 +814,7 @@ export default {
   tent_lights_ui: "⛺ Festival tent",
   my_place_ui: "🏠 My place",
   microbit_monkey_ui: "🐵 micro:bit monkey",
+  TreeJump_ui: "🌳 tree jump",
   
   main_menu_ui: "Main menu",
   menu_button_sr_label_ui: "Menu",
