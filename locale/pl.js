@@ -283,7 +283,7 @@ export default {
   rotate_to: "obróć %1 do x: %2, y: %3, z: %4",
   look_at: "spójrz %1 na %2 y? %3",
   move_forward: "przesuń %1 %2 prędkość: %3",
-  set_pivot: "ustaw punkt obrotu %1 x: %2, y: %3, z: %4",
+  set_pivot: "ustaw punkt kotwiczenia %1\nx: %2, y: %3, z: %4",
   min_centre_max: "%1",
 
   // Custom block translations - XR blocks
@@ -473,7 +473,7 @@ export default {
   rotate_to_tooltip: "Obróć siatkę, by wskazywała na dane współrzędne.\nSłowo kluczowe: rotateto",
   look_at_tooltip: "Obróć pierwszą siatkę w stronę pozycji drugiej.\nSłowo kluczowe: look",
   move_forward_tooltip: "Przesuń siatkę: 'forward' = w kierunku, 'sideways' = względem kamery, 'strafe' = bocznie.\nSłowo kluczowe: push",
-  set_pivot_tooltip: "Ustaw punkt obrotu siatki na osiach X, Y i Z.\nSłowo kluczowe: pivot",
+  set_pivot_tooltip: "Ustaw punkt kotwiczenia siatki na osiach X, Y i Z.\nSłowo kluczowe: kotwica",
   min_centre_max_tooltip: "Wybierz min, centre lub max jako punkt obrotu.\nSłowo kluczowe: minmax",
 
   // Tooltip translations - XR blocks

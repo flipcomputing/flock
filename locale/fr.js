@@ -283,7 +283,7 @@ export default {
                                       rotate_to: "pivoter %1 vers x: %2 y: %3 z: %4",
                                       look_at: "regarder %1 vers %2 y ? %3",
                                       move_forward: "avancer %1 %2 vitesse %3",
-                                      set_pivot: "définir le pivot de %1 x: %2 y: %3 z: %4",
+                                      set_pivot: "définir l’ancre de %1\nx: %2 y: %3 z: %4",
                                       min_centre_max: "%1",
 
                                       // Custom block translations - XR blocks
@@ -471,7 +471,7 @@ export default {
                                       rotate_to_tooltip: "Fait tourner le maillage pour pointer vers les coordonnées.\nMot-clé: rotateto",
                                       look_at_tooltip: "Fait pivoter le premier maillage pour regarder vers la position du second.\nMot-clé: look",
                                       move_forward_tooltip: "Déplace le maillage dans la direction spécifiée. 'Forward' le fait avancer, 'sideways' le fait se déplacer par rapport à la caméra, 'strafe' le fait se déplacer latéralement.\nMot-clé: push",
-                                      set_pivot_tooltip: "Définit le point de pivot d’un maillage selon les axes X, Y et Z\nMot-clé: pivot",
+                                      set_pivot_tooltip: "Définit le point d’ancrage d’un maillage selon les axes X, Y et Z\nMot-clé: ancre",
                                       min_centre_max_tooltip: "Choisit min, centre ou max comme point de pivot\nMot-clé: minmax",
 
                                       // Tooltip translations - XR blocks

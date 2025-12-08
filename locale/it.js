@@ -313,7 +313,7 @@ export default {
   rotate_to: "ruota %1 a x: %2 y: %3 z: %4",
   look_at: "fai guardare %1 a %2 y? %3",
   move_forward: "muovi %1 %2 velocità %3",
-  set_pivot: "imposta perno di %1 x: %2 y: %3 z: %4",
+  set_pivot: "imposta ancoraggio di %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
 
   // Custom block translations - XR blocks
@@ -596,7 +596,7 @@ export default {
   move_forward_tooltip:
     "Muove la mesh nella direzione specificata. 'Avanti' segue la direzione in cui punta; 'laterale' si muove rispetto alla camera; 'strafe' si muove di lato rispetto alla camera.\nParola chiave: push",
   set_pivot_tooltip:
-    "Imposta il punto di perno di una mesh sugli assi X, Y e Z\nParola chiave: pivot",
+    "Imposta il punto di ancoraggio di una mesh sugli assi X, Y e Z\nParola chiave: ancora",
   min_centre_max_tooltip:
     "Scegli min, centro o max per il punto di perno\nParola chiave: minmax",
 

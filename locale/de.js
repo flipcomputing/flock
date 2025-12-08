@@ -287,7 +287,7 @@ export default {
   rotate_to: "Rotiere %1 zu x: %2 y: %3 z: %4",
   look_at: "Lass %1 auf %2 sehen y? %3",
   move_forward: "Bewege %1 %2 Geschwindigkeit %3",
-  set_pivot: "Setze Pivot von %1 x: %2 y: %3 z: %4",
+  set_pivot: "Setze Anker von %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
 
   _0_option: "0",
@@ -598,7 +598,7 @@ export default {
   rotate_to_tooltip: "Drehe das Objekt in Richtung der angegebenen Koordinaten.\nSchlüsselwort: rotateto",
   look_at_tooltip: "Dreht das erste Objekt so, dass es auf die Position des zweiten zeigt.\nSchlüsselwort: look",
   move_forward_tooltip: "Bewegt das Objekt in die gewählte Richtung: 'Vorwärts' entlang Blickrichtung, 'Seitlich' relativ zur Kamera, 'Strafe' quer zur Kamerarichtung.\nSchlüsselwort: push",
-  set_pivot_tooltip: "Setze den Pivotpunkt eines Objekts in X-, Y- und Z-Richtung.\nSchlüsselwort: pivot",
+  set_pivot_tooltip: "Setze den Ankerpunkt eines Objekts in X-, Y- und Z-Richtung.\nSchlüsselwort: Anker",
   min_centre_max_tooltip: "Wähle min, center oder max als Pivotpunkt.\nSchlüsselwort: minmax",
 
   // XR tooltips

@@ -283,7 +283,7 @@ export default {
   rotate_to: "rotar %1 a x: %2 y: %3 z: %4",
   look_at: "hacer que %1 mire a %2 ¿eje y? %3",
   move_forward: "mover %1 %2 velocidad %3",
-  set_pivot: "establecer pivote de %1 x: %2 y: %3 z: %4",
+  set_pivot: "establecer ancla de %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
 
   // Custom block translations - XR blocks
@@ -471,7 +471,7 @@ export default {
   rotate_to_tooltip: "Rota la malla para apuntar hacia las coordenadas.\nPalabra clave: rotateto",
   look_at_tooltip: "Rota la primera malla hacia la posición de la segunda.\nPalabra clave: look",
   move_forward_tooltip: "Mueve la malla en la dirección especificada. 'Forward' sigue su dirección, 'sideways' y 'strafe' se basan en la cámara.\nPalabra clave: push",
-  set_pivot_tooltip: "Establece el punto de pivote para una malla en los ejes X, Y y Z.\nPalabra clave: pivot",
+  set_pivot_tooltip: "Establece el punto de anclaje para una malla en los ejes X, Y y Z.\nPalabra clave: ancla",
   min_centre_max_tooltip: "Elige min, centro o max para el punto de pivote.\nPalabra clave: minmax",
 
   // Tooltip translations - XR blocks
