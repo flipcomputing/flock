@@ -278,9 +278,9 @@ export default {
   create_3d_text: "Füge 3D‑Text hinzu %1: %2 Schrift: %3 Größe: %4 Farbe: %5\nTiefe: %6 x: %7 y: %8 z: %9",
 
   // Transform blocks
-  move_by_xyz: "Bewege %1 um x: %2 y: %3 z: %4",
-  move_to_xyz: "Bewege %1 zu x: %2 y: %3 z: %4 y? %5",
-  move_to: "Bewege %1 zu %2 y? %3",
+  move_by_xyz: "Position von %1 ändern um x: %2 y: %3 z: %4",
+  move_to_xyz: "Position von %1 setzen auf x: %2 y: %3 z: %4 y? %5",
+  move_to: "Position von %1 setzen auf %2 y? %3",
   scale: "Skaliere %1 x: %2 y: %3 z: %4\nUrsprung x: %5 y: %6 z: %7",
   resize: "Größe ändern %1 x: %2 y: %3 z: %4\nUrsprung x: %5 y: %6 z: %7",
   rotate_model_xyz: "Rotiere %1 um x: %2 y: %3 z: %4",

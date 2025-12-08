@@ -304,9 +304,9 @@ export default {
     "aggiungi %1 testo 3D: %2 font: %3 dimensione: %4 colore: %5\nprofondità: %6 x: %7 y: %8 z: %9 ",
 
   // Custom block translations - Transform blocks
-  move_by_xyz: "muovi %1 di x: %2 y: %3 z: %4",
-  move_to_xyz: "muovi %1 a x: %2 y: %3 z: %4 y? %5",
-  move_to: "muovi %1 a %2 y? %3",
+  move_by_xyz: "cambia posizione di %1 di x: %2 y: %3 z: %4",
+  move_to_xyz: "imposta la posizione di %1 su x: %2 y: %3 z: %4 y? %5",
+  move_to: "imposta la posizione di %1 su %2 y? %3",
   scale: "scala %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7",
   resize: "ridimensiona %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7",
   rotate_model_xyz: "ruota %1 di x: %2 y: %3 z: %4",

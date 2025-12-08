@@ -274,9 +274,9 @@ export default {
                                       create_3d_text: "ajouter texte 3D %1: %2 police: %3 taille: %4 couleur: %5\nprofondeur: %6 x: %7 y: %8 z: %9",
 
                                       // Custom block translations - Transform blocks
-                                      move_by_xyz: "déplacer %1 de x: %2 y: %3 z: %4",
-                                      move_to_xyz: "déplacer %1 à x: %2 y: %3 z: %4 y ? %5",
-                                      move_to: "déplacer %1 vers %2 y ? %3",
+                                      move_by_xyz: "changer la position de %1 de x: %2 y: %3 z: %4",
+                                      move_to_xyz: "définir la position de %1 à x: %2 y: %3 z: %4 y ? %5",
+                                      move_to: "définir la position de %1 à %2 y ? %3",
                                       scale: "échelle %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7",
                                       resize: "redimensionner %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7",
                                       rotate_model_xyz: "pivoter %1 de x: %2 y: %3 z: %4",
