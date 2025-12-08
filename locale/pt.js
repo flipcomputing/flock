@@ -297,9 +297,9 @@ export default {
     "adicionar texto 3D %1: %2 fonte: %3 tamanho: %4 cor: %5\nprofundidade: %6 x: %7 y: %8 z: %9",
 
   // Custom block translations - Transform blocks
-  move_by_xyz: "mover %1 por x: %2 y: %3 z: %4",
-  move_to_xyz: "mover %1 para x: %2 y: %3 z: %4 y? %5",
-  move_to: "mover %1 para %2 y? %3",
+  move_by_xyz: "alterar posição de %1 em x: %2 y: %3 z: %4",
+  move_to_xyz: "definir posição de %1 para x: %2 y: %3 z: %4 y? %5",
+  move_to: "definir posição de %1 para %2 y? %3",
   scale: "escalar %1 x: %2 y: %3 z: %4\norigem x: %5 y: %6 z: %7",
   resize: "redimensionar %1 x: %2 y: %3 z: %4\norigem x: %5 y: %6 z: %7",
   rotate_model_xyz: "girar %1 por x: %2 y: %3 z: %4",
