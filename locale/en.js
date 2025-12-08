@@ -765,8 +765,9 @@ export default {
         Dance2_option: "Dance2",
         Dance3_option: "Dance3",
         Dance4_option: "Dance4",
-        Jump_Idle_option: "Jump Idle",
-        Jump_Land_option: "Jump Land",
+        JumpUp_option: "Jump Up",      
+        JumpIdle_option: "Jump Idle",
+        JumpLand_option: "Jump Land",
         Punch_option: "Punch",
         HitReact_option: "Hit React",
         Idle_Hold_option: "Idle Hold",
@@ -780,6 +781,7 @@ export default {
         Stand_Up_option: "Stand Up",
         Wobble_option: "Wobble",
         Clap_option: "Clap",
+        Climb_rope_option: "Climb rope",
 
   // HTML translations
   loading_ui: "Loading Flock XR...",
