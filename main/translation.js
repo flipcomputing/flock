@@ -489,5 +489,7 @@ export async function initializeSavedLanguage() {
     Object.keys(translations.en).forEach((key) => {
       Blockly.Msg[key] = translations.en[key];
     });
+
+    applyContextMenuShortcutTranslations();
   }
 }
