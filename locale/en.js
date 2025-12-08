@@ -290,7 +290,7 @@ export default {
   rotate_to: "rotate %1 to x: %2 y: %3 z: %4",
   look_at: "look %1 at %2 y? %3",
   move_forward: "move %1 %2 speed: %3",
-  set_pivot: "set pivot of %1 x: %2 y: %3 z: %4",
+  set_pivot: "set anchor of %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
   
   // Custom block translations - XR blocks
@@ -480,7 +480,7 @@ export default {
   rotate_to_tooltip: "Rotate the mesh to point towards the  coordinates.\nKeyword: rotateto",
   look_at_tooltip: "Rotate the first mesh towards the position of the second mesh.\nKeyword: look",
   move_forward_tooltip: "Move the mesh in the specified direction. 'Forward' moves it in the direction it's pointing, 'sideways' moves it relative to the camera's direction, and 'strafe' moves it sideways relative to the camera's direction.\nKeyword: push",
-  set_pivot_tooltip: "Set the pivot point for a mesh on the X, Y, and Z axes\nKeyword: pivot",
+  set_pivot_tooltip: "Set the anchor point for a mesh on the X, Y, and Z axes\nKeyword: anchor",
   min_centre_max_tooltip: "Choose min, center, or max for the pivot point\nKeyword: minmax",
   
   // Tooltip translations - XR blocks

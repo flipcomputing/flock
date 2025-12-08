@@ -306,7 +306,7 @@ export default {
   rotate_to: "girar %1 para x: %2 y: %3 z: %4",
   look_at: "fazer %1 olhar para %2 y? %3",
   move_forward: "mover %1 %2 velocidade %3",
-  set_pivot: "definir pivô de %1 x: %2 y: %3 z: %4",
+  set_pivot: "definir âncora de %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
 
   // Custom block translations - XR blocks
@@ -591,7 +591,7 @@ export default {
   move_forward_tooltip:
     "Move o mesh na direção especificada. 'Frente' o move na direção que está apontando, 'lateral' move em relação à câmera e 'deslocamento' move lateralmente em relação à câmera.\nPalavra-chave: empurrar",
   set_pivot_tooltip:
-    "Define o ponto de pivô de um mesh nos eixos X, Y e Z.\nPalavra-chave: pivô",
+    "Define o ponto de âncora de um mesh nos eixos X, Y e Z.\nPalavra-chave: âncora",
   min_centre_max_tooltip:
     "Escolhe mínimo, centro ou máximo como ponto de pivô.\nPalavra-chave: minmax",
 

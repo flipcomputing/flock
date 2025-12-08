@@ -306,7 +306,7 @@ export default {
       rotate_to: "rotera %1 till x: %2 y: %3 z: %4",
       look_at: "titta %1 på %2 y? %3",
       move_forward: "flytta %1 %2 hastighet %3",
-      set_pivot: "ställ in pivot för %1 x: %2 y: %3 z: %4",
+      set_pivot: "ställ in ankare för %1\nx: %2 y: %3 z: %4",
       min_centre_max: "%1",
 
       // Custom block translations - XR blocks
@@ -592,8 +592,8 @@ export default {
             "Rotera det första mesh-objektet mot det andra objektets position.\nKeyword: look",
       move_forward_tooltip:
             "Flytta mesh-objektet i angiven riktning. 'Framåt' flyttar det i riktningen det pekar, 'sida' i kamerans riktning och 'strafe' i sidled relativt kameran.\nKeyword: push",
-      set_pivot_tooltip:
-            "Ställ in pivotpunkten för ett mesh längs X-, Y- och Z-axeln\nKeyword: pivot",
+  set_pivot_tooltip:
+        "Ställ in ankarpunkten för ett mesh längs X-, Y- och Z-axeln\nKeyword: ankare",
       min_centre_max_tooltip:
             "Välj min, center eller max som pivotpunkt\nKeyword: minmax",
 
