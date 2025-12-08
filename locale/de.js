@@ -856,6 +856,7 @@ export default {
   unmute_audio_aria: "Audio einschalten.",
   focused_main_content: "Hauptinhalt fokussiert.",
   toolbox_search_results_aria: "Toolbox-Suchergebnisse.",
+  context_delete_option: "Löschen",
   context_copy_option: "Kopieren",
   context_paste_option: "Einfügen",
   context_cut_option: "Ausschneiden",

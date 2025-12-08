@@ -992,6 +992,7 @@ export default {
   unmute_audio_aria: "Ativar som.",
   focused_main_content: "Conteúdo principal focalizado.",
   toolbox_search_results_aria: "Resultados de pesquisa da caixa de ferramentas.",
+  context_delete_option: "Excluir",
   context_copy_option: "Copiar",
   context_paste_option: "Colar",
   context_cut_option: "Cortar",
