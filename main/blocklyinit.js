@@ -1261,6 +1261,32 @@ function applyTransparentDisabledPattern(ws) {
         const constants = renderer?.getConstants?.();
         const sourcePatternId = constants?.disabledPatternId;
 
+        // Stop the renderer from swapping in a greyscale style when blocks are
+        // disabled. We still add our own overlay below, but keep the base fill
+        // untouched by short-circuiting the path object's disabled styling.
+        const pathProto =
+                Blockly.blockRendering?.PathObject?.prototype ||
+                Blockly.zelos?.PathObject?.prototype;
+        if (
+                pathProto &&
+                pathProto.updateDisabled_ &&
+                !pathProto.__flockSkipDisabledStyling
+        ) {
+                pathProto.__flockSkipDisabledStyling = true;
+                const origPathUpdateDisabled = pathProto.updateDisabled_;
+                pathProto.updateDisabled_ = function flockDisableNoGrey(disabled) {
+                        // Do nothing to the fill/stroke; just keep the class off
+                        // so colours remain unchanged.
+                        this.setClass_?.("blocklyDisabled", false);
+
+                        // Preserve any other renderer-side bookkeeping the
+                        // original method performs when re-enabling.
+                        if (!disabled && origPathUpdateDisabled) {
+                                origPathUpdateDisabled.call(this, disabled);
+                        }
+                };
+        }
+
         const SVG_NS = "http://www.w3.org/2000/svg";
         let defs = svg.querySelector("defs");
         if (!defs) {
