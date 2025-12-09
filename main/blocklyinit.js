@@ -1363,6 +1363,14 @@ function applyTransparentDisabledPattern(ws) {
                                 origUpdateDisabled.call(this);
                         }
 
+                        // Remove the default disabled class so Blockly's CSS
+                        // doesn't overwrite the restored colours.
+                        group?.classList?.remove("blocklyDisabled");
+                        this.pathObject?.svgRoot?.classList?.remove(
+                                "blocklyDisabled",
+                        );
+                        path?.classList?.remove("blocklyDisabled");
+
                         // Restore the live block colours that Blockly's default
                         // implementation overwrites when a block is disabled.
                         if (path && original) {
