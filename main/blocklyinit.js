@@ -1327,8 +1327,8 @@ function applyTransparentDisabledPattern(ws) {
                 BlockSvgProto.__flockPatchedDisabledPattern = true;
 
                 BlockSvgProto.updateDisabled = function flockUpdateDisabled() {
-                        const path = this.svgPath_;
-                        const group = this.svgGroup_;
+                        const path = this.pathObject?.svgPath;
+                        const group = this.svgGroup;
 
                         // Capture current colour information so we can restore it after
                         // Blockly's default updateDisabled mutates the path.
