@@ -1415,12 +1415,28 @@ function applyTransparentDisabledPattern(ws) {
          *
          * @param {Blockly.BlockSvg} block
          */
+        const ensureOverlayLater = new WeakSet();
+
         function ensureOverlay(block) {
                 if (!block) return;
 
                 const group = block.svgGroup || block.getSvgRoot?.();
                 const path = block.pathObject?.svgPath;
-                if (!group || !path) return;
+
+                // If the SVG isn't ready yet (common immediately after load),
+                // try again on the next frame so disabled blocks get their
+                // overlay once rendering finishes.
+                if (!group || !path) {
+                        const isDisabled = block.isEnabled?.() === false || block.disabled;
+                        if (isDisabled && !ensureOverlayLater.has(block)) {
+                                ensureOverlayLater.add(block);
+                                requestAnimationFrame(() => {
+                                        ensureOverlayLater.delete(block);
+                                        ensureOverlay(block);
+                                });
+                        }
+                        return;
+                }
 
                 const isDisabled = block.isEnabled?.() === false || block.disabled;
                 let overlay = group.querySelector?.(`.${overlayClass}`);
@@ -1473,7 +1489,9 @@ function applyTransparentDisabledPattern(ws) {
         // state on load (covers cases where no FINISHED_LOADING fires).
         sweepAllBlocks();
 
-        // Also run a deferred sweep so overlays are applied once blocks finish
-        // rendering on initial load.
+        // Also run deferred sweeps so overlays are applied once blocks finish
+        // rendering on initial load, even if their SVG paths were not yet
+        // available on the first pass.
         requestAnimationFrame(() => sweepAllBlocks());
+        requestAnimationFrame(() => requestAnimationFrame(() => sweepAllBlocks()));
 }
