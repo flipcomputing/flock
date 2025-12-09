@@ -1422,9 +1422,10 @@ function applyTransparentDisabledPattern(ws) {
                 const path = block.pathObject?.svgPath;
                 if (!group || !path) return;
 
+                const isDisabled = block.isEnabled?.() === false || block.disabled;
                 let overlay = group.querySelector?.(`.${overlayClass}`);
 
-                if (block.disabled) {
+                if (isDisabled) {
                         if (!overlay) {
                                 overlay = path.cloneNode(true);
                                 overlay.classList.add(overlayClass);
