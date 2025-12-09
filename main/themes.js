@@ -214,7 +214,7 @@ function getThemeBaseStyles(themeName) {
                         variables: { colourPrimary: "#002c2b" },
                         text: { colourPrimary: "#5545be" },
                         lists: { colourPrimary: "#002c2b" },
-                        math: { colourPrimary: "#3f51ad" },
+                        math: { colourPrimary: "#3f0000" },
                         procedures: { colourPrimary: "#8a24a5" },
                         components: {
                                 workspaceBackgroundColour: "#1e1e1e",
@@ -247,7 +247,7 @@ function getThemeBaseStyles(themeName) {
                         variables: { colourPrimary: "#002c2b" },
                         text: { colourPrimary: "#5545be" },
                         lists: { colourPrimary: "#002c2b" },
-                        math: { colourPrimary: "#3f51ad" },
+                        math: { colourPrimary: "#3f0000" },
                         procedures: { colourPrimary: "#8a24a5" },
                         components: {
                                 workspaceBackgroundColour: "#1e1e1e",
