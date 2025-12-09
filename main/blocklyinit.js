@@ -1329,8 +1329,21 @@ function applyTransparentDisabledPattern(ws) {
                 BlockSvgProto.updateDisabled = function flockUpdateDisabled() {
                         const path = this.svgPath_;
                         const group = this.svgGroup_;
-                        const originalFill = path?.getAttribute("fill");
-                        const originalStroke = path?.getAttribute("stroke");
+
+                        // Capture current colour information so we can restore it after
+                        // Blockly's default updateDisabled mutates the path.
+                        const original = path
+                                ? {
+                                          fillAttr: path.getAttribute("fill"),
+                                          strokeAttr: path.getAttribute("stroke"),
+                                          fillStyle: path.style?.fill || "",
+                                          strokeStyle: path.style?.stroke || "",
+                                          computedFill:
+                                                  getComputedStyle(path).fill || "",
+                                          computedStroke:
+                                                  getComputedStyle(path).stroke || "",
+                                  }
+                                : null;
 
                         if (origUpdateDisabled) {
                                 origUpdateDisabled.call(this);
@@ -1338,10 +1351,22 @@ function applyTransparentDisabledPattern(ws) {
 
                         // Restore the live block colours that Blockly's default
                         // implementation overwrites when a block is disabled.
-                        if (path) {
-                                if (originalFill) path.setAttribute("fill", originalFill);
-                                if (originalStroke)
-                                        path.setAttribute("stroke", originalStroke);
+                        if (path && original) {
+                                if (original.fillAttr !== null) {
+                                        path.setAttribute("fill", original.fillAttr);
+                                } else {
+                                        path.removeAttribute("fill");
+                                        path.style.fill =
+                                                original.fillStyle || original.computedFill;
+                                }
+
+                                if (original.strokeAttr !== null) {
+                                        path.setAttribute("stroke", original.strokeAttr);
+                                } else {
+                                        path.removeAttribute("stroke");
+                                        path.style.stroke =
+                                                original.strokeStyle || original.computedStroke;
+                                }
                         }
 
                         const overlayClass = "flock-disabled-overlay";
