@@ -1259,11 +1259,10 @@ function applyTransparentDisabledPattern(ws) {
 
         const renderer = ws?.getRenderer?.();
         const constants = renderer?.getConstants?.();
-        const sourcePatternId = constants?.disabledPatternId;
 
-        // Stop the renderer from swapping in a greyscale style when blocks are
-        // disabled. We still add our own overlay below, but keep the base fill
-        // untouched by short-circuiting the path object's disabled styling.
+        // Keep Blockly from swapping in greyscale colours when a block is
+        // disabled. We short-circuit the renderer hook so the base fill/stroke
+        // stay exactly as-is.
         const pathProto =
                 Blockly.blockRendering?.PathObject?.prototype ||
                 Blockly.zelos?.PathObject?.prototype;
@@ -1273,43 +1272,16 @@ function applyTransparentDisabledPattern(ws) {
                 !pathProto.__flockSkipDisabledStyling
         ) {
                 pathProto.__flockSkipDisabledStyling = true;
-                const origPathUpdateDisabled = pathProto.updateDisabled_;
-                pathProto.updateDisabled_ = function flockDisableNoGrey(disabled) {
-                        // Do nothing to the fill/stroke; just keep the class off
-                        // so colours remain unchanged.
-                        this.setClass_?.("blocklyDisabled", false);
-
-                        // Preserve any other renderer-side bookkeeping the
-                        // original method performs when re-enabling.
-                        if (!disabled && origPathUpdateDisabled) {
-                                origPathUpdateDisabled.call(this, disabled);
-                        }
-                };
+                pathProto.updateDisabled_ = function flockSkipDisabled() {};
         }
 
+        // Build a simple transparent crosshatch pattern and point Blockly's
+        // disabled fill at it.
         const SVG_NS = "http://www.w3.org/2000/svg";
         let defs = svg.querySelector("defs");
         if (!defs) {
                 defs = document.createElementNS(SVG_NS, "defs");
                 svg.insertBefore(defs, svg.firstChild);
-        }
-
-        // Use a neutral grey crosshatch to avoid the yellow tint of the
-        // default renderer pattern while keeping stroke sizing consistent.
-        let stroke = "#7a7a7a";
-        let strokeWidth = "1";
-        let strokeOpacity = "0.6";
-        if (sourcePatternId) {
-                const sourcePattern =
-                        document.getElementById(sourcePatternId) ||
-                        defs.querySelector(`#${sourcePatternId}`);
-                const path = sourcePattern?.querySelector("path");
-                if (path) {
-                        strokeWidth = path.getAttribute("stroke-width") || strokeWidth;
-                        strokeOpacity =
-                                path.getAttribute("stroke-opacity") ||
-                                strokeOpacity;
-                }
         }
 
         const patternId = "flockDisabledPattern";
@@ -1323,16 +1295,14 @@ function applyTransparentDisabledPattern(ws) {
         pattern.setAttribute("patternUnits", "userSpaceOnUse");
         pattern.setAttribute("width", "30");
         pattern.setAttribute("height", "30");
-
-        // Rebuild the pattern with transparent background and the existing crosshatch strokes.
         pattern.replaceChildren();
 
         const drawLine = (d) => {
                 const path = document.createElementNS(SVG_NS, "path");
                 path.setAttribute("d", d);
-                path.setAttribute("stroke", stroke);
-                path.setAttribute("stroke-width", strokeWidth);
-                path.setAttribute("stroke-opacity", strokeOpacity);
+                path.setAttribute("stroke", "#7a7a7a");
+                path.setAttribute("stroke-width", "1");
+                path.setAttribute("stroke-opacity", "0.6");
                 path.setAttribute("stroke-linecap", "square");
                 pattern.appendChild(path);
         };
@@ -1340,158 +1310,62 @@ function applyTransparentDisabledPattern(ws) {
         drawLine("M 0 0 L 30 30");
         drawLine("M 30 0 L 0 30");
 
-        // Point Blockly's styling to the transparent pattern.
         if (constants) {
                 constants.disabledPatternId = patternId;
         }
         svg.style.setProperty("--blocklyDisabledPattern", `url(#${patternId})`);
 
-        // Keep the block's original colours when disabled and layer the
-        // transparent hatch on top instead of replacing the fill.
-        const BlockSvgProto = Blockly.BlockSvg?.prototype;
-        const origUpdateDisabled = BlockSvgProto?.updateDisabled;
-        const origApplyColour = BlockSvgProto?.applyColour;
-        const origSetDisabledReason = BlockSvgProto?.setDisabledReason;
-
-        if (
-                BlockSvgProto &&
-                !BlockSvgProto.__flockPatchedDisabledPattern
-        ) {
-                BlockSvgProto.__flockPatchedDisabledPattern = true;
-
-                BlockSvgProto.updateDisabled = function flockUpdateDisabled() {
-                        const path = this.pathObject?.svgPath;
-                        const group = this.svgGroup;
-
-                        if (origUpdateDisabled) {
-                                origUpdateDisabled.call(this);
-                        }
-
-                        // Re-apply the block's normal colours after Blockly's
-                        // default greyscale styling runs.
-                        if (origApplyColour) {
-                                origApplyColour.call(this);
-                        }
-
-                        // Clear any opacity changes introduced by the disabled
-                        // styling so inputs and inline colour chips stay visible.
-                        if (path) {
-                                path.removeAttribute("fill-opacity");
-                                path.removeAttribute("stroke-opacity");
-                                path.style.fillOpacity = "";
-                                path.style.strokeOpacity = "";
-                        }
-
-                        // Remove the default disabled class so Blockly's CSS
-                        // doesn't overwrite the restored colours.
-                        group?.classList?.remove("blocklyDisabled");
-                        this.pathObject?.svgRoot?.classList?.remove(
-                                "blocklyDisabled",
-                        );
-                        path?.classList?.remove("blocklyDisabled");
-
-                        ensureOverlay(this);
-                };
-
-                // Ensure toggling disabled via API paths (including
-                // setDisabledReason) still refreshes the overlay when Blockly's
-                // own change listeners short-circuit visual updates.
-                if (origSetDisabledReason) {
-                        BlockSvgProto.setDisabledReason = function flockSetDisabledReason(
-                                disabled,
-                                reason,
-                        ) {
-                                origSetDisabledReason.call(this, disabled, reason);
-                                ensureOverlay(this);
-                        };
-                }
-        }
-
         const overlayClass = "flock-disabled-overlay";
 
-        /**
-         * Ensure a transparent crosshatch overlay is present (or removed) for a
-         * given block based on its disabled state.
-         *
-         * @param {Blockly.BlockSvg} block
-         */
-        const ensureOverlayLater = new WeakSet();
+        const addOrUpdateOverlay = (block) => {
+                if (!block?.getSvgRoot) return;
 
-        function ensureOverlay(block) {
-                if (!block) return;
-
-                const group = block.svgGroup || block.getSvgRoot?.();
+                const root = block.getSvgRoot();
                 const path = block.pathObject?.svgPath;
-
-                // If the SVG isn't ready yet (common immediately after load),
-                // try again on the next frame so disabled blocks get their
-                // overlay once rendering finishes.
-                if (!group || !path) {
-                        const isDisabled = block.isEnabled?.() === false || block.disabled;
-                        if (isDisabled && !ensureOverlayLater.has(block)) {
-                                ensureOverlayLater.add(block);
-                                requestAnimationFrame(() => {
-                                        ensureOverlayLater.delete(block);
-                                        ensureOverlay(block);
-                                });
-                        }
-                        return;
-                }
+                if (!root || !path) return;
 
                 const isDisabled = block.isEnabled?.() === false || block.disabled;
-                let overlay = group.querySelector?.(`.${overlayClass}`);
+                let overlay = root.querySelector?.(`.${overlayClass}`);
 
-                if (isDisabled) {
-                        if (!overlay) {
-                                overlay = path.cloneNode(true);
-                                overlay.classList.add(overlayClass);
-                                overlay.removeAttribute("filter");
-                                overlay.setAttribute("pointer-events", "none");
-                                overlay.setAttribute("stroke", "none");
-                                overlay.setAttribute("fill", `url(#${patternId})`);
-                                overlay.setAttribute("fill-opacity", "1");
-                                overlay.style.opacity = "1";
-                                overlay.style.mixBlendMode = "normal";
-                                group.appendChild(overlay);
-                        } else {
-                                overlay.setAttribute("fill", `url(#${patternId})`);
-                                overlay.setAttribute("fill-opacity", "1");
-                                overlay.style.opacity = "1";
-                                overlay.style.mixBlendMode = "normal";
-                                group.appendChild(overlay); // keep on top
-                        }
-                } else if (overlay) {
-                        overlay.remove();
-                }
-        }
-
-        // Keep overlays in sync even if the renderer skips updateDisabled logic
-        // (e.g. bulk enable/disable operations or future changes upstream).
-        const sweepAllBlocks = () =>
-                ws.getAllBlocks(false).forEach((block) => ensureOverlay(block));
-
-        ws.addChangeListener((evt) => {
-                if (evt?.type === Blockly.Events.FINISHED_LOADING) {
-                        // Workspace just finished loading (events were likely
-                        // disabled during import), so sweep all blocks now.
-                        sweepAllBlocks();
+                if (!isDisabled) {
+                        overlay?.remove();
                         return;
                 }
 
-                if (!evt?.blockId) return;
-                if (evt.type === Blockly.Events.BLOCK_DELETE) return;
+                if (!overlay) {
+                        overlay = path.cloneNode(true);
+                        overlay.classList.add(overlayClass);
+                        overlay.removeAttribute("filter");
+                        overlay.setAttribute("pointer-events", "none");
+                        overlay.setAttribute("stroke", "none");
+                }
 
-                const block = ws.getBlockById(evt.blockId);
-                ensureOverlay(block);
+                overlay.setAttribute("fill", `url(#${patternId})`);
+                overlay.setAttribute("fill-opacity", "1");
+                overlay.style.opacity = "1";
+                overlay.style.mixBlendMode = "normal";
+                root.appendChild(overlay);
+        };
+
+        const refreshOverlays = () => {
+                ws.getAllBlocks(false).forEach((block) => addOrUpdateOverlay(block));
+        };
+
+        let overlayQueued = false;
+        const queueOverlayRefresh = () => {
+                if (overlayQueued) return;
+                overlayQueued = true;
+                requestAnimationFrame(() => {
+                        overlayQueued = false;
+                        refreshOverlays();
+                });
+        };
+
+        ws.addChangeListener((evt) => {
+                if (evt?.type === Blockly.Events.BLOCK_DELETE) return;
+                queueOverlayRefresh();
         });
 
-        // Ensure all existing blocks are initialized with the correct overlay
-        // state on load (covers cases where no FINISHED_LOADING fires).
-        sweepAllBlocks();
-
-        // Also run deferred sweeps so overlays are applied once blocks finish
-        // rendering on initial load, even if their SVG paths were not yet
-        // available on the first pass.
-        requestAnimationFrame(() => sweepAllBlocks());
-        requestAnimationFrame(() => requestAnimationFrame(() => sweepAllBlocks()));
+        queueOverlayRefresh();
+        setTimeout(queueOverlayRefresh, 0);
 }
