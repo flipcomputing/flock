@@ -1317,11 +1317,12 @@ function applyTransparentDisabledPattern(ws) {
         if (!pattern) {
                 pattern = document.createElementNS(SVG_NS, "pattern");
                 pattern.setAttribute("id", patternId);
-                pattern.setAttribute("patternUnits", "userSpaceOnUse");
-                pattern.setAttribute("width", "10");
-                pattern.setAttribute("height", "10");
                 defs.appendChild(pattern);
         }
+
+        pattern.setAttribute("patternUnits", "userSpaceOnUse");
+        pattern.setAttribute("width", "30");
+        pattern.setAttribute("height", "30");
 
         // Rebuild the pattern with transparent background and the existing crosshatch strokes.
         pattern.replaceChildren();
@@ -1336,8 +1337,8 @@ function applyTransparentDisabledPattern(ws) {
                 pattern.appendChild(path);
         };
 
-        drawLine("M 0 0 L 10 10");
-        drawLine("M 10 0 L 0 10");
+        drawLine("M 0 0 L 30 30");
+        drawLine("M 30 0 L 0 30");
 
         // Point Blockly's styling to the transparent pattern.
         if (constants) {
@@ -1450,11 +1451,14 @@ function applyTransparentDisabledPattern(ws) {
 
         // Keep overlays in sync even if the renderer skips updateDisabled logic
         // (e.g. bulk enable/disable operations or future changes upstream).
+        const sweepAllBlocks = () =>
+                ws.getAllBlocks(false).forEach((block) => ensureOverlay(block));
+
         ws.addChangeListener((evt) => {
                 if (evt?.type === Blockly.Events.FINISHED_LOADING) {
                         // Workspace just finished loading (events were likely
                         // disabled during import), so sweep all blocks now.
-                        ws.getAllBlocks(false).forEach((block) => ensureOverlay(block));
+                        sweepAllBlocks();
                         return;
                 }
 
@@ -1467,5 +1471,9 @@ function applyTransparentDisabledPattern(ws) {
 
         // Ensure all existing blocks are initialized with the correct overlay
         // state on load (covers cases where no FINISHED_LOADING fires).
-        ws.getAllBlocks(false).forEach((block) => ensureOverlay(block));
+        sweepAllBlocks();
+
+        // Also run a deferred sweep so overlays are applied once blocks finish
+        // rendering on initial load.
+        requestAnimationFrame(() => sweepAllBlocks());
 }
