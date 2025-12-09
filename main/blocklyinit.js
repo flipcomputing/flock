@@ -1314,4 +1314,61 @@ function applyTransparentDisabledPattern(ws) {
                 constants.disabledPatternId = patternId;
         }
         svg.style.setProperty("--blocklyDisabledPattern", `url(#${patternId})`);
+
+        // Keep the block's original colours when disabled and layer the
+        // transparent hatch on top instead of replacing the fill.
+        const BlockSvgProto = Blockly.BlockSvg?.prototype;
+        const origUpdateDisabled = BlockSvgProto?.updateDisabled;
+
+        if (
+                BlockSvgProto &&
+                !BlockSvgProto.__flockPatchedDisabledPattern
+        ) {
+                BlockSvgProto.__flockPatchedDisabledPattern = true;
+
+                BlockSvgProto.updateDisabled = function flockUpdateDisabled() {
+                        const path = this.svgPath_;
+                        const group = this.svgGroup_;
+                        const originalFill = path?.getAttribute("fill");
+                        const originalStroke = path?.getAttribute("stroke");
+
+                        if (origUpdateDisabled) {
+                                origUpdateDisabled.call(this);
+                        }
+
+                        // Restore the live block colours that Blockly's default
+                        // implementation overwrites when a block is disabled.
+                        if (path) {
+                                if (originalFill) path.setAttribute("fill", originalFill);
+                                if (originalStroke)
+                                        path.setAttribute("stroke", originalStroke);
+                        }
+
+                        const overlayClass = "flock-disabled-overlay";
+                        let overlay = group?.querySelector?.(`.${overlayClass}`);
+
+                        if (this.disabled) {
+                                if (!overlay && path && group) {
+                                        overlay = path.cloneNode(true);
+                                        overlay.classList.add(overlayClass);
+                                        overlay.removeAttribute("filter");
+                                        overlay.setAttribute("pointer-events", "none");
+                                        overlay.setAttribute("stroke", "none");
+                                        overlay.setAttribute(
+                                                "fill",
+                                                `url(#${patternId})`,
+                                        );
+                                        overlay.setAttribute("fill-opacity", "1");
+                                        group.appendChild(overlay);
+                                } else if (overlay) {
+                                        overlay.setAttribute(
+                                                "fill",
+                                                `url(#${patternId})`,
+                                        );
+                                }
+                        } else if (overlay) {
+                                overlay.remove();
+                        }
+                };
+        }
 }
