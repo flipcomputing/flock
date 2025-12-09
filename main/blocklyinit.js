@@ -1296,9 +1296,9 @@ function applyTransparentDisabledPattern(ws) {
 
         // Pull stroke styling from the renderer's default disabled pattern so
         // the crosshatch colours stay consistent with the theme.
-        let stroke = "#d0d0d0";
+        let stroke = "#7a7a7a";
         let strokeWidth = "1";
-        let strokeOpacity = "0.35";
+        let strokeOpacity = "0.6";
         if (sourcePatternId) {
                 const sourcePattern =
                         document.getElementById(sourcePatternId) ||
@@ -1433,12 +1433,14 @@ function applyTransparentDisabledPattern(ws) {
                                 overlay.setAttribute("stroke", "none");
                                 overlay.setAttribute("fill", `url(#${patternId})`);
                                 overlay.setAttribute("fill-opacity", "1");
-                                overlay.style.mixBlendMode = "multiply";
+                                overlay.style.opacity = "1";
+                                overlay.style.mixBlendMode = "normal";
                                 group.appendChild(overlay);
                         } else {
                                 overlay.setAttribute("fill", `url(#${patternId})`);
                                 overlay.setAttribute("fill-opacity", "1");
-                                overlay.style.mixBlendMode = "multiply";
+                                overlay.style.opacity = "1";
+                                overlay.style.mixBlendMode = "normal";
                                 group.appendChild(overlay); // keep on top
                         }
                 } else if (overlay) {
