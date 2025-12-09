@@ -1294,8 +1294,8 @@ function applyTransparentDisabledPattern(ws) {
                 svg.insertBefore(defs, svg.firstChild);
         }
 
-        // Pull stroke styling from the renderer's default disabled pattern so
-        // the crosshatch colours stay consistent with the theme.
+        // Use a neutral grey crosshatch to avoid the yellow tint of the
+        // default renderer pattern while keeping stroke sizing consistent.
         let stroke = "#7a7a7a";
         let strokeWidth = "1";
         let strokeOpacity = "0.6";
@@ -1305,7 +1305,6 @@ function applyTransparentDisabledPattern(ws) {
                         defs.querySelector(`#${sourcePatternId}`);
                 const path = sourcePattern?.querySelector("path");
                 if (path) {
-                        stroke = path.getAttribute("stroke") || stroke;
                         strokeWidth = path.getAttribute("stroke-width") || strokeWidth;
                         strokeOpacity =
                                 path.getAttribute("stroke-opacity") ||
@@ -1452,6 +1451,13 @@ function applyTransparentDisabledPattern(ws) {
         // Keep overlays in sync even if the renderer skips updateDisabled logic
         // (e.g. bulk enable/disable operations or future changes upstream).
         ws.addChangeListener((evt) => {
+                if (evt?.type === Blockly.Events.FINISHED_LOADING) {
+                        // Workspace just finished loading (events were likely
+                        // disabled during import), so sweep all blocks now.
+                        ws.getAllBlocks(false).forEach((block) => ensureOverlay(block));
+                        return;
+                }
+
                 if (!evt?.blockId) return;
                 if (evt.type === Blockly.Events.BLOCK_DELETE) return;
 
@@ -1460,6 +1466,6 @@ function applyTransparentDisabledPattern(ws) {
         });
 
         // Ensure all existing blocks are initialized with the correct overlay
-        // state on load.
+        // state on load (covers cases where no FINISHED_LOADING fires).
         ws.getAllBlocks(false).forEach((block) => ensureOverlay(block));
 }
