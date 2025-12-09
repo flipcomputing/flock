@@ -1319,6 +1319,7 @@ function applyTransparentDisabledPattern(ws) {
         // transparent hatch on top instead of replacing the fill.
         const BlockSvgProto = Blockly.BlockSvg?.prototype;
         const origUpdateDisabled = BlockSvgProto?.updateDisabled;
+        const origApplyColour = BlockSvgProto?.applyColour;
 
         if (
                 BlockSvgProto &&
@@ -1330,37 +1331,23 @@ function applyTransparentDisabledPattern(ws) {
                         const path = this.pathObject?.svgPath;
                         const group = this.svgGroup;
 
-                        // Capture current colour information so we can restore it after
-                        // Blockly's default updateDisabled mutates the path.
-                        const original = path
-                                ? {
-                                          fillAttr: path.getAttribute("fill"),
-                                          strokeAttr: path.getAttribute("stroke"),
-                                          fillOpacityAttr:
-                                                  path.getAttribute("fill-opacity"),
-                                          strokeOpacityAttr:
-                                                  path.getAttribute(
-                                                          "stroke-opacity",
-                                                  ),
-                                          fillStyle: path.style?.fill || "",
-                                          strokeStyle: path.style?.stroke || "",
-                                          fillOpacityStyle:
-                                                  path.style?.fillOpacity || "",
-                                          strokeOpacityStyle:
-                                                  path.style?.strokeOpacity || "",
-                                          computedFill:
-                                                  getComputedStyle(path).fill || "",
-                                          computedStroke:
-                                                  getComputedStyle(path).stroke || "",
-                                          computedFillOpacity:
-                                                  getComputedStyle(path).fillOpacity || "",
-                                          computedStrokeOpacity:
-                                                  getComputedStyle(path).strokeOpacity || "",
-                                  }
-                                : null;
-
                         if (origUpdateDisabled) {
                                 origUpdateDisabled.call(this);
+                        }
+
+                        // Re-apply the block's normal colours after Blockly's
+                        // default greyscale styling runs.
+                        if (origApplyColour) {
+                                origApplyColour.call(this);
+                        }
+
+                        // Clear any opacity changes introduced by the disabled
+                        // styling so inputs and inline colour chips stay visible.
+                        if (path) {
+                                path.removeAttribute("fill-opacity");
+                                path.removeAttribute("stroke-opacity");
+                                path.style.fillOpacity = "";
+                                path.style.strokeOpacity = "";
                         }
 
                         // Remove the default disabled class so Blockly's CSS
@@ -1370,50 +1357,6 @@ function applyTransparentDisabledPattern(ws) {
                                 "blocklyDisabled",
                         );
                         path?.classList?.remove("blocklyDisabled");
-
-                        // Restore the live block colours that Blockly's default
-                        // implementation overwrites when a block is disabled.
-                        if (path && original) {
-                                if (original.fillAttr !== null) {
-                                        path.setAttribute("fill", original.fillAttr);
-                                } else {
-                                        path.removeAttribute("fill");
-                                        path.style.fill =
-                                                original.fillStyle || original.computedFill;
-                                }
-
-                                if (original.fillOpacityAttr !== null) {
-                                        path.setAttribute(
-                                                "fill-opacity",
-                                                original.fillOpacityAttr,
-                                        );
-                                } else {
-                                        path.removeAttribute("fill-opacity");
-                                        path.style.fillOpacity =
-                                                original.fillOpacityStyle ||
-                                                original.computedFillOpacity;
-                                }
-
-                                if (original.strokeAttr !== null) {
-                                        path.setAttribute("stroke", original.strokeAttr);
-                                } else {
-                                        path.removeAttribute("stroke");
-                                        path.style.stroke =
-                                                original.strokeStyle || original.computedStroke;
-                                }
-
-                                if (original.strokeOpacityAttr !== null) {
-                                        path.setAttribute(
-                                                "stroke-opacity",
-                                                original.strokeOpacityAttr,
-                                        );
-                                } else {
-                                        path.removeAttribute("stroke-opacity");
-                                        path.style.strokeOpacity =
-                                                original.strokeOpacityStyle ||
-                                                original.computedStrokeOpacity;
-                                }
-                        }
 
                         const overlayClass = "flock-disabled-overlay";
                         let overlay = group?.querySelector?.(`.${overlayClass}`);
