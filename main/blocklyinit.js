@@ -1384,31 +1384,58 @@ function applyTransparentDisabledPattern(ws) {
                         );
                         path?.classList?.remove("blocklyDisabled");
 
-                        const overlayClass = "flock-disabled-overlay";
-                        let overlay = group?.querySelector?.(`.${overlayClass}`);
-
-                        if (this.disabled) {
-                                if (!overlay && path && group) {
-                                        overlay = path.cloneNode(true);
-                                        overlay.classList.add(overlayClass);
-                                        overlay.removeAttribute("filter");
-                                        overlay.setAttribute("pointer-events", "none");
-                                        overlay.setAttribute("stroke", "none");
-                                        overlay.setAttribute(
-                                                "fill",
-                                                `url(#${patternId})`,
-                                        );
-                                        overlay.setAttribute("fill-opacity", "1");
-                                        group.appendChild(overlay);
-                                } else if (overlay) {
-                                        overlay.setAttribute(
-                                                "fill",
-                                                `url(#${patternId})`,
-                                        );
-                                }
-                        } else if (overlay) {
-                                overlay.remove();
-                        }
+                        ensureOverlay(this);
                 };
         }
+
+        const overlayClass = "flock-disabled-overlay";
+
+        /**
+         * Ensure a transparent crosshatch overlay is present (or removed) for a
+         * given block based on its disabled state.
+         *
+         * @param {Blockly.BlockSvg} block
+         */
+        function ensureOverlay(block) {
+                if (!block) return;
+
+                const group = block.svgGroup || block.getSvgRoot?.();
+                const path = block.pathObject?.svgPath;
+                if (!group || !path) return;
+
+                let overlay = group.querySelector?.(`.${overlayClass}`);
+
+                if (block.disabled) {
+                        if (!overlay) {
+                                overlay = path.cloneNode(true);
+                                overlay.classList.add(overlayClass);
+                                overlay.removeAttribute("filter");
+                                overlay.setAttribute("pointer-events", "none");
+                                overlay.setAttribute("stroke", "none");
+                                overlay.setAttribute("fill", `url(#${patternId})`);
+                                overlay.setAttribute("fill-opacity", "1");
+                                group.appendChild(overlay);
+                        } else {
+                                overlay.setAttribute("fill", `url(#${patternId})`);
+                                overlay.setAttribute("fill-opacity", "1");
+                                group.appendChild(overlay); // keep on top
+                        }
+                } else if (overlay) {
+                        overlay.remove();
+                }
+        }
+
+        // Keep overlays in sync even if the renderer skips updateDisabled logic
+        // (e.g. bulk enable/disable operations or future changes upstream).
+        ws.addChangeListener((evt) => {
+                if (!evt?.blockId) return;
+                if (evt.type === Blockly.Events.BLOCK_DELETE) return;
+
+                const block = ws.getBlockById(evt.blockId);
+                ensureOverlay(block);
+        });
+
+        // Ensure all existing blocks are initialized with the correct overlay
+        // state on load.
+        ws.getAllBlocks(false).forEach((block) => ensureOverlay(block));
 }
