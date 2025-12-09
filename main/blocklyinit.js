@@ -1298,6 +1298,7 @@ function applyTransparentDisabledPattern(ws) {
         // the crosshatch colours stay consistent with the theme.
         let stroke = "#d0d0d0";
         let strokeWidth = "1";
+        let strokeOpacity = "0.35";
         if (sourcePatternId) {
                 const sourcePattern =
                         document.getElementById(sourcePatternId) ||
@@ -1306,6 +1307,9 @@ function applyTransparentDisabledPattern(ws) {
                 if (path) {
                         stroke = path.getAttribute("stroke") || stroke;
                         strokeWidth = path.getAttribute("stroke-width") || strokeWidth;
+                        strokeOpacity =
+                                path.getAttribute("stroke-opacity") ||
+                                strokeOpacity;
                 }
         }
 
@@ -1328,6 +1332,7 @@ function applyTransparentDisabledPattern(ws) {
                 path.setAttribute("d", d);
                 path.setAttribute("stroke", stroke);
                 path.setAttribute("stroke-width", strokeWidth);
+                path.setAttribute("stroke-opacity", strokeOpacity);
                 path.setAttribute("stroke-linecap", "square");
                 pattern.appendChild(path);
         };
@@ -1346,6 +1351,7 @@ function applyTransparentDisabledPattern(ws) {
         const BlockSvgProto = Blockly.BlockSvg?.prototype;
         const origUpdateDisabled = BlockSvgProto?.updateDisabled;
         const origApplyColour = BlockSvgProto?.applyColour;
+        const origSetDisabledReason = BlockSvgProto?.setDisabledReason;
 
         if (
                 BlockSvgProto &&
@@ -1386,6 +1392,19 @@ function applyTransparentDisabledPattern(ws) {
 
                         ensureOverlay(this);
                 };
+
+                // Ensure toggling disabled via API paths (including
+                // setDisabledReason) still refreshes the overlay when Blockly's
+                // own change listeners short-circuit visual updates.
+                if (origSetDisabledReason) {
+                        BlockSvgProto.setDisabledReason = function flockSetDisabledReason(
+                                disabled,
+                                reason,
+                        ) {
+                                origSetDisabledReason.call(this, disabled, reason);
+                                ensureOverlay(this);
+                        };
+                }
         }
 
         const overlayClass = "flock-disabled-overlay";
@@ -1414,10 +1433,12 @@ function applyTransparentDisabledPattern(ws) {
                                 overlay.setAttribute("stroke", "none");
                                 overlay.setAttribute("fill", `url(#${patternId})`);
                                 overlay.setAttribute("fill-opacity", "1");
+                                overlay.style.mixBlendMode = "multiply";
                                 group.appendChild(overlay);
                         } else {
                                 overlay.setAttribute("fill", `url(#${patternId})`);
                                 overlay.setAttribute("fill-opacity", "1");
+                                overlay.style.mixBlendMode = "multiply";
                                 group.appendChild(overlay); // keep on top
                         }
                 } else if (overlay) {
