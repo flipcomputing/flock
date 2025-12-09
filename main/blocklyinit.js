@@ -1336,12 +1336,26 @@ function applyTransparentDisabledPattern(ws) {
                                 ? {
                                           fillAttr: path.getAttribute("fill"),
                                           strokeAttr: path.getAttribute("stroke"),
+                                          fillOpacityAttr:
+                                                  path.getAttribute("fill-opacity"),
+                                          strokeOpacityAttr:
+                                                  path.getAttribute(
+                                                          "stroke-opacity",
+                                                  ),
                                           fillStyle: path.style?.fill || "",
                                           strokeStyle: path.style?.stroke || "",
+                                          fillOpacityStyle:
+                                                  path.style?.fillOpacity || "",
+                                          strokeOpacityStyle:
+                                                  path.style?.strokeOpacity || "",
                                           computedFill:
                                                   getComputedStyle(path).fill || "",
                                           computedStroke:
                                                   getComputedStyle(path).stroke || "",
+                                          computedFillOpacity:
+                                                  getComputedStyle(path).fillOpacity || "",
+                                          computedStrokeOpacity:
+                                                  getComputedStyle(path).strokeOpacity || "",
                                   }
                                 : null;
 
@@ -1360,12 +1374,36 @@ function applyTransparentDisabledPattern(ws) {
                                                 original.fillStyle || original.computedFill;
                                 }
 
+                                if (original.fillOpacityAttr !== null) {
+                                        path.setAttribute(
+                                                "fill-opacity",
+                                                original.fillOpacityAttr,
+                                        );
+                                } else {
+                                        path.removeAttribute("fill-opacity");
+                                        path.style.fillOpacity =
+                                                original.fillOpacityStyle ||
+                                                original.computedFillOpacity;
+                                }
+
                                 if (original.strokeAttr !== null) {
                                         path.setAttribute("stroke", original.strokeAttr);
                                 } else {
                                         path.removeAttribute("stroke");
                                         path.style.stroke =
                                                 original.strokeStyle || original.computedStroke;
+                                }
+
+                                if (original.strokeOpacityAttr !== null) {
+                                        path.setAttribute(
+                                                "stroke-opacity",
+                                                original.strokeOpacityAttr,
+                                        );
+                                } else {
+                                        path.removeAttribute("stroke-opacity");
+                                        path.style.strokeOpacity =
+                                                original.strokeOpacityStyle ||
+                                                original.computedStrokeOpacity;
                                 }
                         }
 
