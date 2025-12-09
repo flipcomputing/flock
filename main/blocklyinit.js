@@ -212,6 +212,9 @@ export function createBlocklyWorkspace() {
 
         workspace = Blockly.inject("blocklyDiv", options);
 
+        // Swap the default disabled-block pattern for a transparent-backed version.
+        applyTransparentDisabledPattern(workspace);
+
         // --- Blockly search flyout accessibility fix ---
         // Makes the visible search flyout tabbable and allows Tab/↓ from the search input to reach it.
 
@@ -1238,4 +1241,29 @@ export function initBlocklyPerfOverlay(
 
         // Return a tiny control API
         return { destroy, toggle };
+}
+
+/**
+ * Remove the opaque background from Blockly's default disabled-block pattern.
+ *
+ * Blockly builds an SVG pattern in <defs> and stores its id on the renderer
+ * constants. We re-use that pattern (so we don't have to change any CSS) but
+ * swap the background <rect> fill to "transparent" so only the cross-hatch
+ * strokes remain.
+ *
+ * @param {Blockly.WorkspaceSvg} ws
+ */
+function applyTransparentDisabledPattern(ws) {
+        const renderer = ws?.getRenderer?.();
+        const constants = renderer?.getConstants?.();
+        const patternId = constants?.disabledPatternId;
+        if (!patternId) return;
+
+        const pattern = document.getElementById(patternId);
+        if (!pattern) return;
+
+        const backgroundRect = pattern.querySelector("rect");
+        if (backgroundRect) {
+                backgroundRect.setAttribute("fill", "transparent");
+        }
 }
