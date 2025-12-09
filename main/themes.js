@@ -54,16 +54,19 @@ function switchTheme(themeName) {
 
         if (!workspace) return;
 
-        // Set HSV values based on theme
-        if (["light", "dark"].includes(themeName)) {
-                // For dark theme, use same saturation/value as light theme
-                Blockly.utils.colour.setHsvSaturation(0.3);
-                Blockly.utils.colour.setHsvValue(0.85);
-        } else if (["contrast", "dark-contrast"].includes(themeName)) {
-                // Contrast theme now uses more saturated colors like the old dark theme
-                Blockly.utils.colour.setHsvSaturation(0.525);
-                Blockly.utils.colour.setHsvValue(0.65);
-        }
+        Blockly.utils.colour.setHsvSaturation(0.3);
+        Blockly.utils.colour.setHsvValue(0.85);
+
+        // // Set HSV values based on theme
+        // if (["light", "dark"].includes(themeName)) {
+        //         // For dark theme, use same saturation/value as light theme
+        //         Blockly.utils.colour.setHsvSaturation(0.3);
+        //         Blockly.utils.colour.setHsvValue(0.85);
+        // } else if (["contrast", "dark-contrast"].includes(themeName)) {
+        //         // Contrast theme now uses more saturated colors like the old dark theme
+        //         Blockly.utils.colour.setHsvSaturation(0.525);
+        //         Blockly.utils.colour.setHsvValue(0.65);
+        // }
 
         setLogos(themeName);
 
