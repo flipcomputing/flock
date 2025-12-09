@@ -1254,41 +1254,64 @@ export function initBlocklyPerfOverlay(
  * @param {Blockly.WorkspaceSvg} ws
  */
 function applyTransparentDisabledPattern(ws) {
-        const renderer = ws?.getRenderer?.();
-        const constants = renderer?.getConstants?.();
-        const patternId = constants?.disabledPatternId;
-        if (!patternId) return;
-
         const svg = ws?.getParentSvg?.();
         if (!svg) return;
 
-        const defs = svg.querySelector("defs");
-        let observer = null;
+        const renderer = ws?.getRenderer?.();
+        const constants = renderer?.getConstants?.();
+        const sourcePatternId = constants?.disabledPatternId;
 
-        const updatePattern = () => {
-                const pattern =
-                        document.getElementById(patternId) ||
-                        defs?.querySelector(`#${patternId}`);
-                if (!pattern) return false;
+        const SVG_NS = "http://www.w3.org/2000/svg";
+        let defs = svg.querySelector("defs");
+        if (!defs) {
+                defs = document.createElementNS(SVG_NS, "defs");
+                svg.insertBefore(defs, svg.firstChild);
+        }
 
-                const backgroundRect = pattern.querySelector("rect");
-                if (backgroundRect) {
-                        backgroundRect.setAttribute("fill", "transparent");
+        // Pull stroke styling from the renderer's default disabled pattern so
+        // the crosshatch colours stay consistent with the theme.
+        let stroke = "#d0d0d0";
+        let strokeWidth = "1";
+        if (sourcePatternId) {
+                const sourcePattern =
+                        document.getElementById(sourcePatternId) ||
+                        defs.querySelector(`#${sourcePatternId}`);
+                const path = sourcePattern?.querySelector("path");
+                if (path) {
+                        stroke = path.getAttribute("stroke") || stroke;
+                        strokeWidth = path.getAttribute("stroke-width") || strokeWidth;
                 }
+        }
 
-                observer?.disconnect?.();
-                observer = null;
-                return true;
+        const patternId = "flockDisabledPattern";
+        let pattern = defs.querySelector(`#${patternId}`);
+        if (!pattern) {
+                pattern = document.createElementNS(SVG_NS, "pattern");
+                pattern.setAttribute("id", patternId);
+                pattern.setAttribute("patternUnits", "userSpaceOnUse");
+                pattern.setAttribute("width", "10");
+                pattern.setAttribute("height", "10");
+                defs.appendChild(pattern);
+        }
+
+        // Rebuild the pattern with transparent background and the existing crosshatch strokes.
+        pattern.replaceChildren();
+
+        const drawLine = (d) => {
+                const path = document.createElementNS(SVG_NS, "path");
+                path.setAttribute("d", d);
+                path.setAttribute("stroke", stroke);
+                path.setAttribute("stroke-width", strokeWidth);
+                path.setAttribute("stroke-linecap", "square");
+                pattern.appendChild(path);
         };
 
-        // Try immediately in case Blockly already built the pattern.
-        if (updatePattern()) return;
+        drawLine("M 0 0 L 10 10");
+        drawLine("M 10 0 L 0 10");
 
-        // Otherwise observe <defs> for the pattern to be added and patch it once.
-        observer = new MutationObserver(() => {
-                updatePattern();
-        });
-
-        const target = defs || svg;
-        observer.observe(target, { childList: true, subtree: true });
+        // Point Blockly's styling to the transparent pattern.
+        if (constants) {
+                constants.disabledPatternId = patternId;
+        }
+        svg.style.setProperty("--blocklyDisabledPattern", `url(#${patternId})`);
 }
