@@ -1259,11 +1259,36 @@ function applyTransparentDisabledPattern(ws) {
         const patternId = constants?.disabledPatternId;
         if (!patternId) return;
 
-        const pattern = document.getElementById(patternId);
-        if (!pattern) return;
+        const svg = ws?.getParentSvg?.();
+        if (!svg) return;
 
-        const backgroundRect = pattern.querySelector("rect");
-        if (backgroundRect) {
-                backgroundRect.setAttribute("fill", "transparent");
-        }
+        const defs = svg.querySelector("defs");
+        let observer = null;
+
+        const updatePattern = () => {
+                const pattern =
+                        document.getElementById(patternId) ||
+                        defs?.querySelector(`#${patternId}`);
+                if (!pattern) return false;
+
+                const backgroundRect = pattern.querySelector("rect");
+                if (backgroundRect) {
+                        backgroundRect.setAttribute("fill", "transparent");
+                }
+
+                observer?.disconnect?.();
+                observer = null;
+                return true;
+        };
+
+        // Try immediately in case Blockly already built the pattern.
+        if (updatePattern()) return;
+
+        // Otherwise observe <defs> for the pattern to be added and patch it once.
+        observer = new MutationObserver(() => {
+                updatePattern();
+        });
+
+        const target = defs || svg;
+        observer.observe(target, { childList: true, subtree: true });
 }
