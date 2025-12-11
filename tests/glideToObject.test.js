@@ -122,7 +122,7 @@ export function runGlideToObjectTests(flock) {
 			const targetId = "targetCylinder";
 
 			// Custom pivot for source box
-			flock.setPivotPoint(sourceId, {
+			flock.setAnchor(sourceId, {
 				xPivot: "MAX",
 				yPivot: "MAX",
 				zPivot: "CENTER",
@@ -137,7 +137,7 @@ export function runGlideToObjectTests(flock) {
 			});
 
 			// Custom pivot for target cylinder
-			flock.setPivotPoint(targetId, {
+			flock.setAnchor(targetId, {
 				xPivot: "MIN",
 				yPivot: "CENTER",
 				zPivot: "MAX",

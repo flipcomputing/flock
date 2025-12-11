@@ -686,7 +686,7 @@ export const flockTransform = {
       flock.updatePhysics(mesh);
     });
   },
-  setPivotPoint(
+  setAnchor(
     meshName,
     {
       xPivot = "CENTER",
@@ -802,7 +802,7 @@ export const flockTransform = {
     const minW = bb.minimumWorld;
     const maxW = bb.maximumWorld;
 
-    // Same defaults as setPivotPoint: X/Z CENTER, Y MIN (BASE)
+    // Same defaults as setAnchor: X/Z CENTER, Y MIN (BASE)
     const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
       x: "CENTER",
       y: "MIN",

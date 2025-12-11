@@ -316,7 +316,7 @@ export function runScaleTests(flock) {
 		});
 	});
 
-	describe("setPivotPoint function tests @scale", function () {
+	describe("setAnchor function tests @scale", function () {
 		const testBoxIds = [];
 		const testColors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"];
 		const pivotPositions = ["MIN", "CENTER", "MAX"];
@@ -350,7 +350,7 @@ export function runScaleTests(flock) {
 			});
 			testBoxIds.push(boxId);
 
-			await flock.setPivotPoint(boxId);
+			await flock.setAnchor(boxId);
 			const mesh = flock.scene.getMeshByID(boxId);
 
 			expect(mesh.metadata.pivotSettings.x).to.equal("CENTER");
@@ -368,7 +368,7 @@ export function runScaleTests(flock) {
 			});
 			testBoxIds.push(boxId);
 
-			await flock.setPivotPoint(boxId, {
+			await flock.setAnchor(boxId, {
 				xPivot: "MIN",
 				yPivot: "MAX",
 				zPivot: "CENTER",
@@ -390,7 +390,7 @@ export function runScaleTests(flock) {
 			});
 			testBoxIds.push(boxId);
 
-			await flock.setPivotPoint(boxId, {
+			await flock.setAnchor(boxId, {
 				xPivot: 1.5,
 				yPivot: -0.5,
 				zPivot: 2.0,
@@ -412,7 +412,7 @@ export function runScaleTests(flock) {
 			});
 			testBoxIds.push(boxId);
 
-			await flock.setPivotPoint(boxId, {
+			await flock.setAnchor(boxId, {
 				xPivot: "MIN",
 				yPivot: 1.0,
 				zPivot: "MAX",
@@ -434,7 +434,7 @@ export function runScaleTests(flock) {
 			});
 			testBoxIds.push(boxId);
 
-			await flock.setPivotPoint(boxId, { xPivot: "MIN" });
+			await flock.setAnchor(boxId, { xPivot: "MIN" });
 
 			const mesh = flock.scene.getMeshByID(boxId);
 			expect(mesh.metadata.pivotSettings.x).to.equal("MIN");
@@ -452,7 +452,7 @@ export function runScaleTests(flock) {
 			});
 			testBoxIds.push(boxId);
 
-			await flock.setPivotPoint(boxId, {
+			await flock.setAnchor(boxId, {
 				xPivot: "INVALID_VALUE",
 				yPivot: "ANOTHER_INVALID",
 				zPivot: "CENTER",
@@ -475,7 +475,7 @@ export function runScaleTests(flock) {
 			testBoxIds.push(boxId);
 
 			// Assuming there's a way to add child meshes or they exist
-			await flock.setPivotPoint(boxId, {
+			await flock.setAnchor(boxId, {
 				xPivot: "MIN",
 				yPivot: "MIN",
 				zPivot: "MIN",
@@ -506,7 +506,7 @@ export function runScaleTests(flock) {
 						);
 						testBoxIds.push(boxId);
 
-						await flock.setPivotPoint(boxId, {
+						await flock.setAnchor(boxId, {
 							xPivot: xPos,
 							yPivot: yPos,
 							zPivot: zPos,
@@ -535,7 +535,7 @@ export function runScaleTests(flock) {
 			mesh.metadata = mesh.metadata || {};
 			mesh.metadata.customProperty = "test-value";
 
-			await flock.setPivotPoint(boxId, { xPivot: "MAX" });
+			await flock.setAnchor(boxId, { xPivot: "MAX" });
 
 			expect(mesh.metadata.customProperty).to.equal("test-value");
 			expect(mesh.metadata.pivotSettings.x).to.equal("MAX");

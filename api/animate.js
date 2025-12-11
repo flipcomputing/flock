@@ -251,7 +251,7 @@ export const flockAnimate = {
   },
   // Helper: Get the MIN position of a mesh on a given axis, accounting for its pivot
   getMeshPivotPosition(mesh, axis) {
-    // Match setPivotPoint defaults: x=CENTER, y=MIN, z=CENTER
+    // Match setAnchor defaults: x=CENTER, y=MIN, z=CENTER
     const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
       x: "CENTER",
       y: "MIN",
