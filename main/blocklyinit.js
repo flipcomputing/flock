@@ -185,8 +185,8 @@ export function initializeWorkspace() {
         const workspaceSearch = new WorkspaceSearch(workspace);
         workspaceSearch.init();
 
-        
-       
+
+
         // Set up auto value behavior
         setupAutoValueBehavior(workspace);
 
@@ -281,7 +281,7 @@ export function createBlocklyWorkspace() {
         const keyboardNav = new KeyboardNavigation(workspace);
 
 
-        
+
         // Keep scrolling; remove only the obvious flyout-width bump.
         (function simpleNoBumpTranslate() {
                 const ws = Blockly.getMainWorkspace();
