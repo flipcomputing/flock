@@ -135,17 +135,25 @@ export const flockAnimate = {
     return new Promise(async (resolve) => {
       await flock.whenModelReady(meshName, async function (mesh) {
         if (mesh) {
-          const startPosition = mesh.position.clone(); // Capture start position
+          // Where is this mesh’s anchor right now?
+          const startAnchor = flock._getAnchor(mesh); // { x, y, z }
 
-          const addY =
-            meshName === "__active_camera__"
-              ? 0
-              : mesh.getBoundingInfo().boundingBox.extendSize.y *
-                mesh.scaling.y;
+          // Where do we want the anchor to be?
+          const targetAnchor = new flock.BABYLON.Vector3(x, y, z);
 
-          let targetY = y + addY;
+          // How far does the anchor need to move?
+          const anchorDelta = targetAnchor.subtract(
+            new flock.BABYLON.Vector3(
+              startAnchor.x,
+              startAnchor.y,
+              startAnchor.z,
+            ),
+          );
 
-          const endPosition = new flock.BABYLON.Vector3(x, targetY, z);
+          // Mesh.position must move by the same delta (pure translation)
+          const startPosition = mesh.position.clone();
+          const endPosition = startPosition.add(anchorDelta);
+
           const fps = 30;
           const frames = fps * duration;
 
@@ -257,12 +265,11 @@ export const flockAnimate = {
     if (pivotSetting === "CENTER") {
       return mesh.position[axis]; // No adjustment for CENTER
     } else if (pivotSetting === "MIN") {
-      return mesh.position[axis] - halfSize; 
+      return mesh.position[axis] - halfSize;
     } else if (pivotSetting === "MAX") {
       return mesh.position[axis] + halfSize;
     }
   },
-
   async glideToObject(
     meshName1,
     meshName2,
@@ -278,30 +285,32 @@ export const flockAnimate = {
   ) {
     return new Promise(async (resolve) => {
       await flock.whenModelReady(meshName1, async function (mesh1) {
-        if (mesh1) {
-          flock.whenModelReady(meshName2, async function (mesh2) {
-            if (mesh2) {
-              const baseX = flockAnimate.getMeshPivotPosition(mesh2, "x");
-              const baseY = flockAnimate.getMeshPivotPosition(mesh2, "y");
-              const baseZ = flockAnimate.getMeshPivotPosition(mesh2, "z");
-
-              await flockAnimate.glideTo(meshName1, {
-                x: baseX + offsetX,
-                y: baseY + offsetY,
-                z: baseZ + offsetZ,
-                duration,
-                reverse,
-                loop,
-                easing,
-              });
-              resolve();
-            } else {
-              resolve();
-            }
-          });
-        } else {
+        if (!mesh1) {
           resolve();
+          return;
         }
+
+        flock.whenModelReady(meshName2, async function (mesh2) {
+          if (!mesh2) {
+            resolve();
+            return;
+          }
+
+          // Use the new anchor helper instead of getMeshPivotPosition
+          const { x: baseX, y: baseY, z: baseZ } = flock._getAnchor(mesh2);
+
+          await flockAnimate.glideTo(meshName1, {
+            x: baseX + offsetX,
+            y: baseY + offsetY,
+            z: baseZ + offsetZ,
+            duration,
+            reverse,
+            loop,
+            easing,
+          });
+
+          resolve();
+        });
       });
     });
   },
