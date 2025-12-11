@@ -161,5 +161,99 @@ export function runGlideToObjectTests(flock) {
 			const TIME_EPS = 0.2;
 			expect(elapsedSeconds).to.be.closeTo(0.4, TIME_EPS);
 		});
+
+		it("should treat offsets as local-space by default", async function () {
+			this.timeout(7000);
+
+			const BABYLON = flock.BABYLON;
+			const sourceId = box1;
+			const targetId = "rotatedTargetLocal";
+
+			// Create a target and rotate it so local != world axes
+			box2 = flock.createBox(targetId, {
+				width: 1,
+				height: 1,
+				depth: 1,
+				position: [2, 0, 0],
+			});
+
+			const targetMesh = flock.scene.getMeshByName(targetId);
+			targetMesh.rotation.y = Math.PI / 2; // 90 degrees around Y
+
+			const offsets = { offsetX: 1, offsetY: 0, offsetZ: 0 };
+
+			// Default behaviour: offset is interpreted in the target's LOCAL space
+			await flock.glideToObject(sourceId, targetId, {
+				...offsets,
+				duration: 0.3,
+			});
+
+			targetMesh.computeWorldMatrix(true);
+
+			const targetAnchor = flock._getAnchor(targetMesh);
+			const localOffset = new BABYLON.Vector3(
+				offsets.offsetX,
+				offsets.offsetY,
+				offsets.offsetZ,
+			);
+			const worldOffset = BABYLON.Vector3.TransformNormal(
+				localOffset,
+				targetMesh.getWorldMatrix(),
+			);
+
+			const expected = {
+				x: targetAnchor.x + worldOffset.x,
+				y: targetAnchor.y + worldOffset.y,
+				z: targetAnchor.z + worldOffset.z,
+			};
+
+			const movedMesh = flock.scene.getMeshByName(sourceId);
+			const actual = flock._getAnchor(movedMesh);
+
+			const EPS = 0.1;
+			expect(actual.x).to.be.closeTo(expected.x, EPS);
+			expect(actual.y).to.be.closeTo(expected.y, EPS);
+			expect(actual.z).to.be.closeTo(expected.z, EPS);
+		});
+
+		it("should support world-space offsets when offsetSpace is 'world'", async function () {
+			this.timeout(7000);
+
+			const sourceId = box1;
+			const targetId = "rotatedTargetWorld";
+
+			box2 = flock.createBox(targetId, {
+				width: 1,
+				height: 1,
+				depth: 1,
+				position: [2, 0, 0],
+			});
+
+			const targetMesh = flock.scene.getMeshByName(targetId);
+			flock.rotate(targetId, { y: 90 }); // Rotate 90 degrees around Y
+
+			const offsets = { offsetX: 1, offsetY: 0.5, offsetZ: -0.25 };
+
+			await flock.glideToObject(sourceId, targetId, {
+				...offsets,
+				offsetSpace: "world",
+				duration: 0.3,
+			});
+
+			const targetAnchor = flock._getAnchor(targetMesh);
+			const expected = {
+				x: targetAnchor.x + offsets.offsetX,
+				y: targetAnchor.y + offsets.offsetY,
+				z: targetAnchor.z + offsets.offsetZ,
+			};
+
+			const movedMesh = flock.scene.getMeshByName(sourceId);
+			const actual = flock._getAnchor(movedMesh);
+
+			const EPS = 0.1;
+			expect(actual.x).to.be.closeTo(expected.x, EPS);
+			expect(actual.y).to.be.closeTo(expected.y, EPS);
+			expect(actual.z).to.be.closeTo(expected.z, EPS);
+		});
 	});
 }

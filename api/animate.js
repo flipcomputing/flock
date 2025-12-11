@@ -277,6 +277,7 @@ export const flockAnimate = {
       offsetX = 0,
       offsetY = 0,
       offsetZ = 0,
+      offsetSpace = "local", // "local" (default) or "world"
       duration = 1,
       reverse = false,
       loop = false,
@@ -296,13 +297,45 @@ export const flockAnimate = {
             return;
           }
 
-          // Use the new anchor helper instead of getMeshPivotPosition
+          const BABYLON = flock.BABYLON;
+
+          // Anchor (pivot) of the target in world space
           const { x: baseX, y: baseY, z: baseZ } = flock._getAnchor(mesh2);
 
+          // Compute offset in world space
+          let worldOffsetX = 0;
+          let worldOffsetY = 0;
+          let worldOffsetZ = 0;
+
+          if (
+            offsetX !== 0 ||
+            offsetY !== 0 ||
+            offsetZ !== 0
+          ) {
+            if (offsetSpace === "world") {
+              // Offsets are already in world space
+              worldOffsetX = offsetX;
+              worldOffsetY = offsetY;
+              worldOffsetZ = offsetZ;
+            } else {
+              // Default: offsets are in the *local* space of the target mesh
+              mesh2.computeWorldMatrix(true);
+              const localOffset = new BABYLON.Vector3(offsetX, offsetY, offsetZ);
+              const worldOffset = BABYLON.Vector3.TransformNormal(
+                localOffset,
+                mesh2.getWorldMatrix(),
+              );
+
+              worldOffsetX = worldOffset.x;
+              worldOffsetY = worldOffset.y;
+              worldOffsetZ = worldOffset.z;
+            }
+          }
+
           await flockAnimate.glideTo(meshName1, {
-            x: baseX + offsetX,
-            y: baseY + offsetY,
-            z: baseZ + offsetZ,
+            x: baseX + worldOffsetX,
+            y: baseY + worldOffsetY,
+            z: baseZ + worldOffsetZ,
             duration,
             reverse,
             loop,
