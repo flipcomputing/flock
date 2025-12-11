@@ -18,7 +18,7 @@ export const categoryColours = {
         Procedures: "%{BKY_PROCEDURES_HUE}",
 };
 
-export const contrastCategoryColours = {
+export const contrastCategoryColoursAAA = {
         Events: "#734a4e",
         Scene: "#0d5c00",
         Transform: "#343ddb",
@@ -34,6 +34,24 @@ export const contrastCategoryColours = {
         Lists: "%{BKY_VARIABLES_HUE}",
         Math: "#3f0000",
         Procedures: "#8a24a5",
+};
+
+export const contrastCategoryColours = {
+        Events: "#913a34",
+        Scene: "#5e7b33",
+        Transform: "#77792e",
+        Animate: "#8b7234",
+        Materials: "#793298",
+        Sound: "#995f3a",
+        Sensing: "#2d787c",
+        Snippets: "#387091",
+        Control: "#308332",
+        Logic: "#0000ff",
+        Variables: "#963065",
+        Text: "#30826b",
+        Lists: "%{BKY_VARIABLES_HUE}",
+        Math: "#2e3987",
+        Procedures: "#83398f",
 };
 
 function setLogos(themeName) {
