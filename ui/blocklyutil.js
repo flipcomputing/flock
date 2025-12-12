@@ -20,6 +20,24 @@ function clearAddMenuHighlight(workspace, newSelectedId) {
 	lastAddMenuHighlighted = null;
 }
 
+export function appendWithUndo(spec, ws, groupId) {
+	let block;
+	try {
+		block = Blockly.serialization.blocks.append(spec, ws, {
+			recordUndo: true,
+		});
+	} catch {
+		block = Blockly.serialization.blocks.append(spec, ws);
+		const ev = new Blockly.Events.BlockCreate(block);
+		ev.group = groupId;
+		ev.recordUndo = true;
+		Blockly.Events.fire(ev);
+	}
+	block?.initSvg?.();
+	block?.render?.();
+	return block;
+}
+
 export function highlightBlockById(workspace, block) {
 	if (!workspace || !block || block.workspace !== workspace) return;
 

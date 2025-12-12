@@ -7,7 +7,11 @@ import {
   objectColours,
 } from "../config.js";
 import { getCanvasXAndCanvasYValues } from "./gizmos.js";
-import { highlightBlockById, setPositionValues } from "./blocklyutil.js";
+import {
+  highlightBlockById,
+  setPositionValues,
+  appendWithUndo,
+} from "./blocklyutil.js";
 import {
   roundPositionValue,
   addNumberShadow,
@@ -226,24 +230,6 @@ function selectCharacter(characterName) {
     flock.activePickHandler = null;
   }
 
-  function appendWithUndo(spec, ws, groupId) {
-    let block;
-    try {
-      block = Blockly.serialization.blocks.append(spec, ws, {
-        recordUndo: true,
-      });
-    } catch {
-      block = Blockly.serialization.blocks.append(spec, ws);
-      const ev = new Blockly.Events.BlockCreate(block);
-      ev.group = groupId;
-      ev.recordUndo = true;
-      Blockly.Events.fire(ev);
-    }
-    block?.initSvg?.();
-    block?.render?.();
-    return block;
-  }
-
   function cleanup() {
     document.body.style.cursor = "default";
     if (flock.activePickHandler) {
@@ -386,24 +372,6 @@ function selectObjectWithCommand(objectName, menu, command) {
   if (flock.activePickHandler) {
     window.removeEventListener("click", flock.activePickHandler, true);
     flock.activePickHandler = null;
-  }
-
-  function appendWithUndo(spec, ws, groupId) {
-    let block;
-    try {
-      block = Blockly.serialization.blocks.append(spec, ws, {
-        recordUndo: true,
-      });
-    } catch {
-      block = Blockly.serialization.blocks.append(spec, ws);
-      const ev = new Blockly.Events.BlockCreate(block);
-      ev.group = groupId;
-      ev.recordUndo = true;
-      Blockly.Events.fire(ev);
-    }
-    block?.initSvg?.();
-    block?.render?.();
-    return block;
   }
 
   function cleanup() {
