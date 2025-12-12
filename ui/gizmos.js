@@ -2,13 +2,12 @@ import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators/generators.js";
 import { flock } from "../flock.js";
 import { translate } from "../main/translation.js";
-import { setPositionValues } from "./addmeshes.js";
 import {
   getMeshFromBlockKey,
   getRootMesh,
   updateBlockColorAndHighlight,
 } from "./blockmesh.js";
-import { highlightBlockById } from "./blocklyutil.js";
+import { highlightBlockById, setPositionValues } from "./blocklyutil.js";
 export let gizmoManager;
 
 const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis

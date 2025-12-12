@@ -6,9 +6,8 @@ import {
   characterNames,
   objectColours,
 } from "../config.js";
-import { setPositionValues } from "./addmeshes.js";
 import { getCanvasXAndCanvasYValues } from "./gizmos.js";
-import { highlightBlockById } from "./blocklyutil.js";
+import { highlightBlockById, setPositionValues } from "./blocklyutil.js";
 import {
   roundPositionValue,
   addNumberShadow,
