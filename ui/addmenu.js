@@ -6,11 +6,11 @@ import {
   characterNames,
   objectColours,
 } from "../config.js";
-import { getCanvasXAndCanvasYValues } from "./gizmos.js";
 import {
   highlightBlockById,
   setPositionValues,
   appendWithUndo,
+  getCanvasXAndCanvasYValues,
 } from "./blocklyutil.js";
 import {
   roundPositionValue,

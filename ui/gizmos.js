@@ -7,7 +7,11 @@ import {
   getRootMesh,
   updateBlockColorAndHighlight,
 } from "./blockmesh.js";
-import { highlightBlockById, setPositionValues } from "./blocklyutil.js";
+import {
+  highlightBlockById,
+  setPositionValues,
+  getCanvasXAndCanvasYValues,
+} from "./blocklyutil.js";
 export let gizmoManager;
 
 const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
@@ -448,9 +452,6 @@ function eventIsOutOfCanvasBounds(event, canvasRect) {
   );
 }
 
-export function getCanvasXAndCanvasYValues(event, canvasRect) {
-  return [event.clientX - canvasRect.left, event.clientY - canvasRect.top];
-}
 function getCanvasXYFromEvent(ev, canvas, rect) {
   const rw = canvas.width; // render/backing width
   const rh = canvas.height; // render/backing height
