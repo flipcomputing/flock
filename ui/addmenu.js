@@ -9,18 +9,11 @@ import {
 import {
   highlightBlockById,
   setPositionValues,
-  appendWithUndo,
   getCanvasXAndCanvasYValues,
+  createBlockForObject,
+  createBlockForCharacter,
 } from "./blocklyutil.js";
-import {
-  roundPositionValue,
-  addNumberShadow,
-  addXYZShadows,
-  addColourShadow,
-  addPositionShadows,
-  addColourShadowSpec,
-  buildColorsListShadowSpec,
-} from "./blocklyshadowutil.js";
+import { roundPositionValue } from "./blocklyshadowutil.js";
 
 const colorFields = {
   HAIR_COLOR: "#000000", // Hair: black
@@ -240,6 +233,7 @@ function selectCharacter(characterName) {
 
   flock.activePickHandler = function onPick(event) {
     if (!canvas) return cleanup();
+
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -248,6 +242,7 @@ function selectCharacter(characterName) {
       return cleanup();
     }
 
+    // Uses scene.pick(x, y) for raycasting
     const pick = flock.scene.pick(x, y);
     if (!pick?.hit) {
       return cleanup();
@@ -255,57 +250,14 @@ function selectCharacter(characterName) {
 
     const pickedPosition = pick.pickedPoint;
 
-    const prevGroup = Blockly.Events.getGroup();
-    const startTempGroup = !prevGroup;
-    if (startTempGroup) Blockly.Events.setGroup(true);
-    const groupId = Blockly.Events.getGroup();
-
-    const eventsWereEnabled = Blockly.Events.isEnabled();
-    if (!eventsWereEnabled) Blockly.Events.enable();
-
-    try {
-      Blockly.Events.setGroup(groupId);
-
-      const spec = {
-        type: "load_character",
-        fields: { MODELS: characterName },
-        inputs: {},
-      };
-      addPositionShadows(spec, pickedPosition);
-      addNumberShadow(spec, "SCALE", 1);
-
-      if (typeof colorFields === "object" && colorFields) {
-        for (const [inputName, hex] of Object.entries(colorFields)) {
-          const shadowType =
-            inputName === "SKIN_COLOR" ? "skin_colour" : "colour";
-          addColourShadow(spec, inputName, shadowType, hex);
-        }
-      }
-
-      const charBlock = appendWithUndo(spec, workspace, groupId);
-
-      try {
-        setPositionValues?.(charBlock, pickedPosition, "load_character");
-      } catch {}
-
-      const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
-      const conn = startBlock?.getInput("DO")?.connection;
-      if (conn && charBlock?.previousConnection) {
-        try {
-          conn.connect(charBlock.previousConnection);
-        } catch (e) {
-          console.error(e);
-        }
-      }
-
-      try {
-        highlightBlockById?.(workspace, charBlock);
-      } catch {}
-    } finally {
-      if (startTempGroup) Blockly.Events.setGroup(false);
-      else Blockly.Events.setGroup(prevGroup);
-      if (!eventsWereEnabled) Blockly.Events.disable();
-    }
+    createBlockForCharacter(
+      workspace,
+      characterName,
+      pickedPosition,
+      colorFields,
+      setPositionValues,
+      highlightBlockById,
+    );
 
     cleanup();
   };
@@ -384,7 +336,6 @@ function selectObjectWithCommand(objectName, menu, command) {
 
   flock.activePickHandler = function onPickMesh(event) {
     const rect = canvas.getBoundingClientRect();
-    // Outside canvas? cancel
     if (
       event.clientX < rect.left ||
       event.clientX > rect.right ||
@@ -396,7 +347,6 @@ function selectObjectWithCommand(objectName, menu, command) {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Ray pick with isPickable filter
     const pickRay = flock.scene.createPickingRay(
       x,
       y,
@@ -408,73 +358,15 @@ function selectObjectWithCommand(objectName, menu, command) {
 
     const pickedPosition = pick.pickedPoint;
 
-    // --- single undo/redo group for everything ---
-    const prevGroup = Blockly.Events.getGroup();
-    const startTempGroup = !prevGroup;
-    if (startTempGroup) Blockly.Events.setGroup(true);
-    const groupId = Blockly.Events.getGroup();
-
-    const eventsWereEnabled = Blockly.Events.isEnabled();
-    if (!eventsWereEnabled) Blockly.Events.enable();
-
-    try {
-      Blockly.Events.setGroup(groupId);
-
-      // 1) Build base spec for requested command
-      const spec = { type: command, fields: {}, inputs: {} };
-
-      // MODELS for load_* commands
-      if (
-        command === "load_object" ||
-        command === "load_multi_object" ||
-        command === "load_model" ||
-        command === "load_character"
-      ) {
-        spec.fields.MODELS = objectName;
-      }
-
-      // Position + scale shadows
-      addXYZShadows(spec, pickedPosition);
-      addNumberShadow(spec, "SCALE", 1);
-
-      // Single-object default colour
-      if (command === "load_object") {
-        const configColors = objectColours?.[objectName];
-        const color = Array.isArray(configColors)
-          ? configColors[0]
-          : configColors || "#FFD700";
-        addColourShadowSpec(spec, "COLOR", color, "colour");
-      }
-
-      // Multi-object: embed full COLORS list as a shadow so redo restores it
-      if (command === "load_multi_object") {
-        spec.inputs.COLORS = { shadow: buildColorsListShadowSpec(objectName) };
-      }
-
-      const block = appendWithUndo(spec, workspace, groupId);
-
-      try {
-        setPositionValues?.(block, pickedPosition, command);
-      } catch {}
-
-      const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
-      const conn = startBlock?.getInput("DO")?.connection;
-      if (conn && block?.previousConnection) {
-        try {
-          conn.connect(block.previousConnection);
-        } catch (e) {
-          console.error("connect error:", e);
-        }
-      }
-
-      try {
-        highlightBlockById?.(workspace, block);
-      } catch {}
-    } finally {
-      if (startTempGroup) Blockly.Events.setGroup(false);
-      else Blockly.Events.setGroup(prevGroup);
-      if (!eventsWereEnabled) Blockly.Events.disable();
-    }
+    createBlockForObject(
+      workspace,
+      command,
+      objectName,
+      pickedPosition,
+      objectColours,
+      setPositionValues,
+      highlightBlockById,
+    );
 
     cleanup();
   };

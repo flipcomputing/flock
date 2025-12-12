@@ -1,4 +1,12 @@
 import * as Blockly from "blockly";
+import {
+	addNumberShadow,
+	addXYZShadows,
+	addColourShadowSpec,
+	buildColorsListShadowSpec,
+	addPositionShadows,
+	addColourShadow,
+} from "./blocklyshadowutil.js";
 let lastAddMenuHighlighted = null;
 
 function trackAddMenuHighlight(workspace, blockId) {
@@ -159,6 +167,153 @@ export function setPositionValues(block, position, blockType) {
 }
 
 export function getCanvasXAndCanvasYValues(event, canvasRect) {
-  return [event.clientX - canvasRect.left, event.clientY - canvasRect.top];
+	return [event.clientX - canvasRect.left, event.clientY - canvasRect.top];
 }
 
+export function createBlockForObject(
+	workspace,
+	command,
+	objectName,
+	pickedPosition,
+	objectColours,
+	setPositionValues,
+	highlightBlockById,
+) {
+	const prevGroup = Blockly.Events.getGroup();
+	const startTempGroup = !prevGroup;
+	if (startTempGroup) Blockly.Events.setGroup(true);
+	const groupId = Blockly.Events.getGroup();
+
+	const eventsWereEnabled = Blockly.Events.isEnabled();
+	if (!eventsWereEnabled) Blockly.Events.enable();
+
+	try {
+		Blockly.Events.setGroup(groupId);
+
+		const spec = { type: command, fields: {}, inputs: {} };
+
+		if (
+			command === "load_object" ||
+			command === "load_multi_object" ||
+			command === "load_model" ||
+			command === "load_character"
+		) {
+			spec.fields.MODELS = objectName;
+		}
+
+		addXYZShadows(spec, pickedPosition);
+		addNumberShadow(spec, "SCALE", 1);
+
+		if (command === "load_object") {
+			const configColors = objectColours?.[objectName];
+			const color = Array.isArray(configColors)
+				? configColors[0]
+				: configColors || "#FFD700";
+			addColourShadowSpec(spec, "COLOR", color, "colour");
+		}
+
+		if (command === "load_multi_object") {
+			spec.inputs.COLORS = {
+				shadow: buildColorsListShadowSpec(objectName),
+			};
+		}
+
+		const block = appendWithUndo(spec, workspace, groupId);
+
+		try {
+			setPositionValues?.(block, pickedPosition, command);
+		} catch {}
+
+		const startBlock = appendWithUndo(
+			{ type: "start" },
+			workspace,
+			groupId,
+		);
+		const conn = startBlock?.getInput("DO")?.connection;
+		if (conn && block?.previousConnection) {
+			try {
+				conn.connect(block.previousConnection);
+			} catch (e) {
+				console.error("connect error:", e);
+			}
+		}
+
+		try {
+			highlightBlockById?.(workspace, block);
+		} catch {}
+	} finally {
+		if (startTempGroup) Blockly.Events.setGroup(false);
+		else Blockly.Events.setGroup(prevGroup);
+		if (!eventsWereEnabled) Blockly.Events.disable();
+	}
+}
+
+/**
+ * Handles the creation of the "load_character" Blockly block
+ * and connects it to the 'start' block.
+ */
+export function createBlockForCharacter(
+	workspace,
+	characterName,
+	pickedPosition,
+	colorFields,
+	setPositionValues,
+	highlightBlockById,
+) {
+	const prevGroup = Blockly.Events.getGroup();
+	const startTempGroup = !prevGroup;
+	if (startTempGroup) Blockly.Events.setGroup(true);
+	const groupId = Blockly.Events.getGroup();
+
+	const eventsWereEnabled = Blockly.Events.isEnabled();
+	if (!eventsWereEnabled) Blockly.Events.enable();
+
+	try {
+		Blockly.Events.setGroup(groupId);
+
+		const spec = {
+			type: "load_character",
+			fields: { MODELS: characterName },
+			inputs: {},
+		};
+
+		addPositionShadows(spec, pickedPosition);
+		addNumberShadow(spec, "SCALE", 1);
+
+		if (typeof colorFields === "object" && colorFields) {
+			for (const [inputName, hex] of Object.entries(colorFields)) {
+				const shadowType =
+					inputName === "SKIN_COLOR" ? "skin_colour" : "colour";
+				addColourShadow(spec, inputName, shadowType, hex);
+			}
+		}
+
+		const charBlock = appendWithUndo(spec, workspace, groupId);
+
+		try {
+			setPositionValues?.(charBlock, pickedPosition, "load_character");
+		} catch {}
+
+		const startBlock = appendWithUndo(
+			{ type: "start" },
+			workspace,
+			groupId,
+		);
+		const conn = startBlock?.getInput("DO")?.connection;
+		if (conn && charBlock?.previousConnection) {
+			try {
+				conn.connect(charBlock.previousConnection);
+			} catch (e) {
+				console.error(e);
+			}
+		}
+
+		try {
+			highlightBlockById?.(workspace, charBlock);
+		} catch {}
+	} finally {
+		if (startTempGroup) Blockly.Events.setGroup(false);
+		else Blockly.Events.setGroup(prevGroup);
+		if (!eventsWereEnabled) Blockly.Events.disable();
+	}
+}
