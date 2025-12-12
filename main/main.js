@@ -11,7 +11,7 @@ import { meshMap } from "../generators/generators.js";
 import { enableGizmos } from "../ui/gizmos.js";
 import { executeCode, stopCode } from "./execution.js";
 import "../ui/addmeshes.js";
-import "../ui/colourpicker-compact.js";
+import "../ui/colourpicker.js";
 import {
         initializeBlocks,
         initializeWorkspace,
