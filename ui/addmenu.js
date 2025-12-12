@@ -13,7 +13,6 @@ import {
   getCanvasXAndCanvasYValues,
 } from "./blocklyutil.js";
 import {
-  roundPositionValue,
   addNumberShadow,
   addXYZShadows,
   addColourShadow,
@@ -37,9 +36,9 @@ export function createBlockWithShadows(shapeType, position, colour) {
   if (!spec) return null;
 
   const c = colour ? colour : flock.randomColour();
-  const posX = position?.x !== undefined ? roundPos(position.x) : 0;
-  const posY = position?.y !== undefined ? roundPos(position.y) : 0;
-  const posZ = position?.z !== undefined ? roundPos(position.z) : 0;
+  const posX = position?.x !== undefined ? roundPositionValue(position.x) : 0;
+  const posY = position?.y !== undefined ? roundPositionValue(position.y) : 0;
+  const posZ = position?.z !== undefined ? roundPositionValue(position.z) : 0;
 
   const defaults = { ...spec.defaults({ c }), X: posX, Y: posY, Z: posZ };
 
@@ -95,9 +94,6 @@ export function createBlockWithShadows(shapeType, position, colour) {
 
 function makeShadowSpec(type, fields) {
   return { type, fields };
-}
-function roundPos(v) {
-  return typeof roundPositionValue === "function" ? roundPositionValue(v) : v;
 }
 
 const __CREATE_SPEC = {
@@ -733,6 +729,7 @@ let placementCircle = null;
 let placementCirclePosition = { x: 0, y: 0 };
 
 function showShapes() {
+  console.log("Showing add menu");
   cancelPlacement(); // Always remove all placement modes when menu is opened/closed
 
   const dropdown = document.getElementById("shapes-dropdown");

@@ -161,3 +161,4 @@ export function setPositionValues(block, position, blockType) {
 export function getCanvasXAndCanvasYValues(event, canvasRect) {
   return [event.clientX - canvasRect.left, event.clientY - canvasRect.top];
 }
+
