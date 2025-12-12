@@ -14,6 +14,9 @@ import {
   addNumberShadow,
   addXYZShadows,
   addColourShadow,
+  addPositionShadows,
+  addColourShadowSpec,
+  buildColorsListShadowSpec,
 } from "./blocklyshadowutil.js";
 
 const colorFields = {
@@ -242,13 +245,6 @@ function selectCharacter(characterName) {
     return block;
   }
 
-  function addPositionShadows(spec, pos) {
-    const rx =
-      typeof roundPositionValue === "function" ? roundPositionValue : (v) => v;
-    addNumberShadow(spec, "X", rx(pos?.x ?? 0));
-    addNumberShadow(spec, "Y", rx(pos?.y ?? 0));
-    addNumberShadow(spec, "Z", rx(pos?.z ?? 0));
-  }
   function cleanup() {
     document.body.style.cursor = "default";
     if (flock.activePickHandler) {
@@ -409,39 +405,6 @@ function selectObjectWithCommand(objectName, menu, command) {
     block?.initSvg?.();
     block?.render?.();
     return block;
-  }
-
-  function addColourShadowSpec(spec, name, hex, shadowType = "colour") {
-    spec.inputs ||= {};
-    spec.inputs[name] = {
-      shadow: { type: shadowType, fields: { COLOR: hex } },
-    };
-  }
-
-  function buildColorsListShadowSpec(objectName) {
-    const colours = objectColours?.[objectName] || [
-      "#000000",
-      "#FFFFFF",
-      "#CCCCCC",
-    ];
-
-    const listSpec = {
-      type: "lists_create_with",
-      // Modern serializer:
-      extraState: { itemCount: colours.length },
-      // Older builds read mutation for count:
-      mutation: { items: colours.length },
-      inline: true,
-      inputs: {},
-    };
-
-    colours.forEach((hex, i) => {
-      listSpec.inputs["ADD" + i] = {
-        shadow: { type: "colour", fields: { COLOR: hex } },
-      };
-    });
-
-    return listSpec;
   }
 
   function cleanup() {
