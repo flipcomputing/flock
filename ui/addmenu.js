@@ -9,6 +9,12 @@ import {
 import { setPositionValues } from "./addmeshes.js";
 import { getCanvasXAndCanvasYValues } from "./gizmos.js";
 import { highlightBlockById } from "./blocklyutil.js";
+import {
+  roundPositionValue,
+  addNumberShadow,
+  addXYZShadows,
+  addColourShadow,
+} from "./blocklyshadowutil.js";
 
 const colorFields = {
   HAIR_COLOR: "#000000", // Hair: black
@@ -18,10 +24,6 @@ const colorFields = {
   SHORTS_COLOR: "#00008B", // Shorts: dark blue
   TSHIRT_COLOR: "#FF8F60", // T-Shirt: light orange
 };
-
-function roundPositionValue(value) {
-  return Math.round(value * 10) / 10; // 1 decimal place
-}
 
 export function createBlockWithShadows(shapeType, position, colour) {
   const workspace = Blockly.getMainWorkspace();
@@ -239,18 +241,7 @@ function selectCharacter(characterName) {
     block?.render?.();
     return block;
   }
-  function addNumberShadow(spec, inputName, value) {
-    spec.inputs ||= {};
-    spec.inputs[inputName] = {
-      shadow: { type: "math_number", fields: { NUM: value } },
-    };
-  }
-  function addColourShadow(spec, inputName, shadowType, hex) {
-    spec.inputs ||= {};
-    spec.inputs[inputName] = {
-      shadow: { type: shadowType, fields: { COLOR: hex } },
-    };
-  }
+
   function addPositionShadows(spec, pos) {
     const rx =
       typeof roundPositionValue === "function" ? roundPositionValue : (v) => v;
@@ -419,19 +410,7 @@ function selectObjectWithCommand(objectName, menu, command) {
     block?.render?.();
     return block;
   }
-  function addNumShadow(spec, name, value) {
-    spec.inputs ||= {};
-    spec.inputs[name] = {
-      shadow: { type: "math_number", fields: { NUM: value } },
-    };
-  }
-  function addXYZShadows(spec, pos) {
-    const round =
-      typeof roundPositionValue === "function" ? roundPositionValue : (v) => v;
-    addNumShadow(spec, "X", round(pos?.x ?? 0));
-    addNumShadow(spec, "Y", round(pos?.y ?? 0));
-    addNumShadow(spec, "Z", round(pos?.z ?? 0));
-  }
+
   function addColourShadowSpec(spec, name, hex, shadowType = "colour") {
     spec.inputs ||= {};
     spec.inputs[name] = {
@@ -526,7 +505,7 @@ function selectObjectWithCommand(objectName, menu, command) {
 
       // Position + scale shadows
       addXYZShadows(spec, pickedPosition);
-      addNumShadow(spec, "SCALE", 1);
+      addNumberShadow(spec, "SCALE", 1);
 
       // Single-object default colour
       if (command === "load_object") {
