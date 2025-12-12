@@ -18,6 +18,7 @@ export const categoryColours = {
         Procedures: "%{BKY_PROCEDURES_HUE}",
 };
 
+// Original AAA palette (Zishan Rahman)
 export const contrastCategoryColoursAAA = {
         Events: "#734a4e",
         Scene: "#0d5c00",
@@ -36,6 +37,7 @@ export const contrastCategoryColoursAAA = {
         Procedures: "#8a24a5",
 };
 
+// Becky's AA palette (Rebecca Franks)
 export const contrastCategoryColoursAA = {
         Events: "#913a34",
         Scene: "#5e7b33",
@@ -54,6 +56,7 @@ export const contrastCategoryColoursAA = {
         Procedures: "#83398f",
 };
 
+// Revised Becky's palette to also pass AAA tests (Rebecca Franks, Zishan Rahman)
 export const contrastCategoryColours = {
         Events: "#913a34",
         Scene: "#315f3a",
