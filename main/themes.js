@@ -36,7 +36,7 @@ export const contrastCategoryColoursAAA = {
         Procedures: "#8a24a5",
 };
 
-export const contrastCategoryColours = {
+export const contrastCategoryColoursAA = {
         Events: "#913a34",
         Scene: "#5e7b33",
         Transform: "#77792e",
@@ -49,6 +49,24 @@ export const contrastCategoryColours = {
         Logic: "#0000ff",
         Variables: "#963065",
         Text: "#30826b",
+        Lists: "%{BKY_VARIABLES_HUE}",
+        Math: "#2e3987",
+        Procedures: "#83398f",
+};
+
+export const contrastCategoryColours = {
+        Events: "#913a34",
+        Scene: "#315f3a",
+        Transform: "#8b4700",
+        Animate: "#734a4e",
+        Materials: "#793298",
+        Sound: "#99303a",
+        Sensing: "#2d5896",
+        Snippets: "#385891",
+        Control: "#135f17",
+        Logic: "#18387b",
+        Variables: "#963065",
+        Text: "#5545be",
         Lists: "%{BKY_VARIABLES_HUE}",
         Math: "#2e3987",
         Procedures: "#83398f",
