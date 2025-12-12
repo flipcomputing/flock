@@ -380,64 +380,6 @@ function selectShape(shapeType) {
   }, 300);
 }
 
-function selectModel(modelName) {
-  document.getElementById("shapes-dropdown").style.display = "none";
-
-  const onPick = function (event) {
-    const canvasRect = flock.canvas.getBoundingClientRect();
-    const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
-
-    const pickResult = flock.scene.pick(canvasX, canvasY);
-    if (pickResult.hit) {
-      const pickedPosition = pickResult.pickedPoint;
-
-      // Start a Blockly event group to ensure undo/redo tracks all changes
-      Blockly.Events.setGroup(true);
-
-      try {
-        // Add the load_model block to the workspace at the picked location
-        const block = Blockly.getMainWorkspace().newBlock("load_model");
-        block.setFieldValue(modelName, "MODELS"); // Set the selected model
-
-        setPositionValues(block, pickedPosition, "load_model"); // Set X, Y, Z
-
-        // Create shadow block for SCALE using the addShadowBlock helper function
-        const scale = 1; // Default scale value
-        addShadowBlock(block, "SCALE", "math_number", scale);
-
-        block.initSvg();
-        block.render();
-
-        highlightBlockById(Blockly.getMainWorkspace(), block);
-
-        // Create a new start block and connect the model block to it
-        const startBlock = Blockly.getMainWorkspace().newBlock("start");
-        startBlock.initSvg();
-        startBlock.render();
-        const connection = startBlock.getInput("DO").connection;
-        if (connection) {
-          connection.connect(block.previousConnection);
-        }
-      } finally {
-        // End the event group to ensure undo/redo works properly
-        Blockly.Events.setGroup(false);
-      }
-    }
-
-    document.body.style.cursor = "default"; // Reset cursor after picking
-    window.removeEventListener("click", onPick); // Remove the click listener after pick
-  };
-
-  // Start keyboard placement mode
-  startKeyboardPlacementMode(onPick);
-
-  // Also set up mouse click as fallback
-  document.body.style.cursor = "crosshair";
-  setTimeout(() => {
-    window.addEventListener("click", onPick);
-  }, 300);
-}
-
 function selectObject(objectName) {
   selectObjectWithCommand(objectName, "shapes-dropdown", "load_object");
 }
@@ -1244,7 +1186,6 @@ function triggerPlacement() {
 // Export functions to be used globally
 window.selectCharacter = selectCharacter;
 window.selectShape = selectShape;
-window.selectModel = selectModel;
 window.selectObject = selectObject;
 window.selectMultiObject = selectMultiObject;
 window.scrollObjects = scrollObjects;
