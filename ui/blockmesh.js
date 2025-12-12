@@ -718,6 +718,7 @@ function updateMapFromBlock(mesh, block, changeEvent) {
   };
 
   const material = flock.createMaterial(materialOptions);
+  console.log("Updating map from block");
   flock.createMap(mapName, material);
 }
 

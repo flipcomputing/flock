@@ -1,5 +1,9 @@
 import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap, generateUniqueId } from "../generators/generators.js";
+import {
+  meshMap,
+  meshBlockIdMap,
+  generateUniqueId,
+} from "../generators/generators.js";
 import { flock } from "../flock.js";
 import {
   extractMaterialInfo,
@@ -8,7 +12,6 @@ import {
 } from "./blockmesh.js";
 
 export function createMeshOnCanvas(block) {
-
   const mesh = getMeshFromBlock(block);
   if (mesh) {
     console.warn("Mesh already exists for block", block.id);
@@ -136,6 +139,7 @@ export function createMeshOnCanvas(block) {
         alpha,
       });
 
+      console.log("Create mesh on canvas");
       flock.createMap(mapName, material);
 
       break;
@@ -633,6 +637,3 @@ function createShapeInternal(block) {
     meshBlockIdMap[block.id] = block.id;
   }
 }
-
-
-

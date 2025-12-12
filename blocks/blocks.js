@@ -128,6 +128,15 @@ export function handleBlockDelete(event) {
 }
 
 export function handleMeshLifecycleChange(block, changeEvent) {
+  if (
+    !block ||
+    block.disposed ||
+    !block.workspace ||
+    block.workspace.isFlyout
+  ) {
+    return false;
+  }
+
   const mesh = getMeshFromBlock(block);
 
   if (
