@@ -13,6 +13,7 @@ import {
   getCanvasXAndCanvasYValues,
 } from "./blocklyutil.js";
 import {
+  roundPositionValue,
   addNumberShadow,
   addXYZShadows,
   addColourShadow,
@@ -35,12 +36,11 @@ export function createBlockWithShadows(shapeType, position, colour) {
   const spec = __CREATE_SPEC[shapeType];
   if (!spec) return null;
 
-  const c = colour ? colour : flock.randomColour();
   const posX = position?.x !== undefined ? roundPositionValue(position.x) : 0;
   const posY = position?.y !== undefined ? roundPositionValue(position.y) : 0;
   const posZ = position?.z !== undefined ? roundPositionValue(position.z) : 0;
 
-  const defaults = { ...spec.defaults({ c }), X: posX, Y: posY, Z: posZ };
+  const defaults = { ...spec.defaults({ colour }), X: posX, Y: posY, Z: posZ };
 
   let allInputs;
   if (shapeType === "set_sky_color") {
@@ -159,7 +159,11 @@ function addShapeToWorkspace(shapeType, position) {
 
   try {
     Blockly.Events.setGroup(groupId);
-    const block = createBlockWithShadows(shapeType, position);
+    const block = createBlockWithShadows(
+      shapeType,
+      position,
+      flock.randomColour(),
+    );
     if (!block) {
       console.error(`Failed to create block of type: ${shapeType}`);
       return null;
