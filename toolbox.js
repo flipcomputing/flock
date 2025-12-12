@@ -4313,7 +4313,7 @@ const toolboxFunctions = {
         name: "%{BKY_CATEGORY_FUNCTIONS}",
         icon: "./images/functions.svg",
         custom: "PROCEDURE",
-        colour: "%{BKY_PROCEDURES_HUE}",
+        categorystyle: "procedures_category",
 };
 
 export const toolbox = {
