@@ -3,6 +3,7 @@ import * as Blockly from "blockly";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { toolbox } from "../toolbox.js";
 import { getOption, translate } from "../main/translation.js";
+import { flock } from "../flock.js";
 
 import {
   deleteMeshFromBlock,
@@ -157,16 +158,16 @@ export function handleMeshLifecycleChange(block, changeEvent) {
           updateOrCreateMeshFromBlock(block, changeEvent);
         }
       }, 0);
-      } else {
-        deleteMeshFromBlock(block.id);
-        if (block.type === "set_background_color") {
-          clearSkyMesh();
-          setClearSkyToBlack();
-        } else if (block.type === "set_sky_color") {
-          clearSkyMesh();
-          setClearSkyToBlack();
-        }
+    } else {
+      deleteMeshFromBlock(block.id);
+      if (block.type === "set_background_color") {
+        clearSkyMesh();
+        setClearSkyToBlack();
+      } else if (block.type === "set_sky_color") {
+        clearSkyMesh();
+        setClearSkyToBlack();
       }
+    }
     return true;
   }
 

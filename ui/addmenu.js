@@ -6,8 +6,9 @@ import {
   characterNames,
   objectColours,
 } from "../config.js";
-import {setPositionValues} from "./addmeshes.js";
-import {getCanvasXAndCanvasYValues} from "./gizmos.js";
+import { setPositionValues } from "./addmeshes.js";
+import { getCanvasXAndCanvasYValues } from "./gizmos.js";
+import { highlightBlockById } from "./blocklyutil.js";
 
 const colorFields = {
   HAIR_COLOR: "#000000", // Hair: black
@@ -19,50 +20,9 @@ const colorFields = {
 };
 
 function roundPositionValue(value) {
- return Math.round(value * 10) / 10; // 1 decimal place
+  return Math.round(value * 10) / 10; // 1 decimal place
 }
 
-// --- helpers (local to this file) ---
-function makeShadowSpec(type, fields) { return { type, fields }; }
-function roundPos(v) { return typeof roundPositionValue === 'function' ? roundPositionValue(v) : v; }
-
-// Per-shape defaults + inputs
-const __CREATE_SPEC = {
-  create_box: {
-    defaults: ({ c }) => ({ COLOR: c, WIDTH: 1, HEIGHT: 1, DEPTH: 1 }),
-    inputs: ['COLOR','WIDTH','HEIGHT','DEPTH'],
-  },
-  create_sphere: {
-    defaults: ({ c }) => ({ COLOR: c, DIAMETER_X: 1, DIAMETER_Y: 1, DIAMETER_Z: 1 }),
-    inputs: ['COLOR','DIAMETER_X','DIAMETER_Y','DIAMETER_Z'],
-  },
-  create_cylinder: {
-    defaults: ({ c }) => ({
-      COLOR: c, HEIGHT: 1, DIAMETER_TOP: 1, DIAMETER_BOTTOM: 1, TESSELLATIONS: 24
-    }),
-    inputs: ['COLOR','HEIGHT','DIAMETER_TOP','DIAMETER_BOTTOM','TESSELLATIONS'],
-  },
-  create_capsule: {
-    defaults: ({ c }) => ({ COLOR: c, DIAMETER: 1, HEIGHT: 2 }),
-    inputs: ['COLOR','DIAMETER','HEIGHT'],
-  },
-  create_plane: {
-    defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 2 }),
-    inputs: ['COLOR','WIDTH','HEIGHT'],
-  },
-  set_sky_color: {
-    defaults: ({ c }) => ({ COLOR: c }),
-    inputs: ['COLOR'],
-  },
-};
-
-function __metaFor(name) {
-  return name === 'COLOR'
-    ? { type: 'colour', field: 'COLOR' }     // your deliberate colour shadow
-    : { type: 'math_number', field: 'NUM' };
-}
-
-// --- DROP-IN REPLACEMENT ---
 export function createBlockWithShadows(shapeType, position, colour) {
   const workspace = Blockly.getMainWorkspace();
   const spec = __CREATE_SPEC[shapeType];
@@ -74,24 +34,22 @@ export function createBlockWithShadows(shapeType, position, colour) {
   const posZ = position?.z !== undefined ? roundPos(position.z) : 0;
 
   const defaults = { ...spec.defaults({ c }), X: posX, Y: posY, Z: posZ };
-  
+
   let allInputs;
   if (shapeType === "set_sky_color") {
     allInputs = [...spec.inputs];
   } else {
-    allInputs = [...spec.inputs, 'X','Y','Z'];
+    allInputs = [...spec.inputs, "X", "Y", "Z"];
   }
 
-  // Build serializer JSON with shadows populated
   const data = { type: shapeType, inputs: {} };
   for (const name of allInputs) {
     const { type, field } = __metaFor(name);
-    data.inputs[name] = { shadow: makeShadowSpec(type, { [field]: defaults[name] }) };
+    data.inputs[name] = {
+      shadow: makeShadowSpec(type, { [field]: defaults[name] }),
+    };
   }
 
-  // --- Undo grouping semantics ---
-  // If a group already exists (e.g., your START block just created it), reuse it.
-  // Otherwise, create a temporary one so this call is a single undo step on its own.
   const existingGroup = Blockly.Events.getGroup();
   const startTempGroup = !existingGroup;
   if (startTempGroup) Blockly.Events.setGroup(true);
@@ -101,15 +59,15 @@ export function createBlockWithShadows(shapeType, position, colour) {
   if (!eventsWereEnabled) Blockly.Events.enable();
 
   try {
-    // Pin the same group around the append so it joins the START block's group when present.
     Blockly.Events.setGroup(groupId);
 
     let block;
     try {
       // Modern signature
-      block = Blockly.serialization.blocks.append(data, workspace, { recordUndo: true });
+      block = Blockly.serialization.blocks.append(data, workspace, {
+        recordUndo: true,
+      });
     } catch {
-      // Older signature: ensure it's recorded on the undo stack
       block = Blockly.serialization.blocks.append(data, workspace);
       const ev = new Blockly.Events.BlockCreate(block);
       ev.group = groupId;
@@ -120,13 +78,68 @@ export function createBlockWithShadows(shapeType, position, colour) {
     block?.initSvg?.();
     block?.render?.();
     return block;
-
   } finally {
-    // Close temp group only if we opened it here; otherwise leave caller's group intact.
     if (startTempGroup) Blockly.Events.setGroup(false);
     else Blockly.Events.setGroup(existingGroup);
     if (!eventsWereEnabled) Blockly.Events.disable();
   }
+}
+
+function makeShadowSpec(type, fields) {
+  return { type, fields };
+}
+function roundPos(v) {
+  return typeof roundPositionValue === "function" ? roundPositionValue(v) : v;
+}
+
+const __CREATE_SPEC = {
+  create_box: {
+    defaults: ({ c }) => ({ COLOR: c, WIDTH: 1, HEIGHT: 1, DEPTH: 1 }),
+    inputs: ["COLOR", "WIDTH", "HEIGHT", "DEPTH"],
+  },
+  create_sphere: {
+    defaults: ({ c }) => ({
+      COLOR: c,
+      DIAMETER_X: 1,
+      DIAMETER_Y: 1,
+      DIAMETER_Z: 1,
+    }),
+    inputs: ["COLOR", "DIAMETER_X", "DIAMETER_Y", "DIAMETER_Z"],
+  },
+  create_cylinder: {
+    defaults: ({ c }) => ({
+      COLOR: c,
+      HEIGHT: 1,
+      DIAMETER_TOP: 1,
+      DIAMETER_BOTTOM: 1,
+      TESSELLATIONS: 24,
+    }),
+    inputs: [
+      "COLOR",
+      "HEIGHT",
+      "DIAMETER_TOP",
+      "DIAMETER_BOTTOM",
+      "TESSELLATIONS",
+    ],
+  },
+  create_capsule: {
+    defaults: ({ c }) => ({ COLOR: c, DIAMETER: 1, HEIGHT: 2 }),
+    inputs: ["COLOR", "DIAMETER", "HEIGHT"],
+  },
+  create_plane: {
+    defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 2 }),
+    inputs: ["COLOR", "WIDTH", "HEIGHT"],
+  },
+  set_sky_color: {
+    defaults: ({ c }) => ({ COLOR: c }),
+    inputs: ["COLOR"],
+  },
+};
+
+function __metaFor(name) {
+  return name === "COLOR"
+    ? { type: "colour", field: "COLOR" }
+    : { type: "math_number", field: "NUM" };
 }
 
 function addShapeToWorkspace(shapeType, position) {
@@ -141,9 +154,6 @@ function addShapeToWorkspace(shapeType, position) {
   if (!eventsWereEnabled) Blockly.Events.enable();
 
   try {
-    // --- 1) Shape block (your JSON-based creator) ---
-    // Assumes createBlockWithShadows uses serialization.append internally and
-    // respects the current event group (from earlier messages).
     Blockly.Events.setGroup(groupId);
     const block = createBlockWithShadows(shapeType, position);
     if (!block) {
@@ -151,18 +161,18 @@ function addShapeToWorkspace(shapeType, position) {
       return null;
     }
 
-    // Optional: set fields explicitly (still in same group)
     try {
       setPositionValues(block, position, shapeType);
     } catch (e) {
-      console.error('Error setting position values:', e);
+      console.error("Error setting position values:", e);
     }
 
-    // --- 2) Start block via JSON, same group & undo ---
-    const startSpec = { type: 'start' };
+    const startSpec = { type: "start" };
     let startBlock;
     try {
-      startBlock = Blockly.serialization.blocks.append(startSpec, workspace, { recordUndo: true });
+      startBlock = Blockly.serialization.blocks.append(startSpec, workspace, {
+        recordUndo: true,
+      });
     } catch {
       startBlock = Blockly.serialization.blocks.append(startSpec, workspace);
       const ev = new Blockly.Events.BlockCreate(startBlock);
@@ -173,177 +183,51 @@ function addShapeToWorkspace(shapeType, position) {
     startBlock?.initSvg?.();
     startBlock?.render?.();
 
-    // --- 3) Connect shape under start (same group) ---
-    const connection = startBlock?.getInput('DO')?.connection;
+    const connection = startBlock?.getInput("DO")?.connection;
     if (connection && block.previousConnection) {
       try {
         connection.connect(block.previousConnection);
       } catch (e) {
-        console.error('Error connecting to start block:', e);
+        console.error("Error connecting to start block:", e);
       }
     }
 
-    // --- 4) Highlight (UI-only; not on undo stack) ---
     try {
       highlightBlockById(workspace, block);
     } catch (e) {
-      console.error('Error highlighting block:', e);
+      console.error("Error highlighting block:", e);
     }
 
     return block;
   } catch (error) {
-    console.error('Error in addShapeToWorkspace:', error);
+    console.error("Error in addShapeToWorkspace:", error);
     return null;
   } finally {
-    // Close temp group only if we opened it here
     if (startTempGroup) Blockly.Events.setGroup(false);
     else Blockly.Events.setGroup(existingGroup);
     if (!eventsWereEnabled) Blockly.Events.disable();
   }
 }
 
-function scrollToBlockTopParentLeft(workspace, blockId) {
-  if (!workspace.isMovable()) {
-    console.warn(
-      "Tried to move a non-movable workspace. This could result" +
-        " in blocks becoming inaccessible.",
-    );
-    return;
-  }
-
-  const block = blockId ? workspace.getBlockById(blockId) : null;
-  if (!block) {
-    return;
-  }
-
-  // Find the ultimate parent block
-  let ultimateParent = block;
-  while (ultimateParent.getParent()) {
-    ultimateParent = ultimateParent.getParent();
-  }
-
-  // Get the position of the target block (for top positioning)
-  const blockXY = block.getRelativeToSurfaceXY();
-
-  // Get the position of the ultimate parent (for left positioning)
-  const parentXY = ultimateParent.getRelativeToSurfaceXY();
-
-  // Workspace scale, used to convert from workspace coordinates to pixels
-  const scale = workspace.scale;
-
-  // Convert block positions to pixels
-  const pixelBlockY = blockXY.y * scale;
-  const pixelParentX = parentXY.x * scale;
-
-  // Get metrics to determine padding
-  const metrics = workspace.getMetrics();
-
-  // Calculate desired scroll position
-  // For Y: position block at top with some padding (20px)
-  // For X: position parent at left with some padding (20px)
-  const padding = 20;
-  const scrollToY = pixelBlockY - padding;
-  const scrollToX = pixelParentX - padding;
-
-  // Convert to canvas directions (negative values)
-  const x = -scrollToX;
-  const y = -scrollToY;
-
-  // Scroll the workspace
-  workspace.scroll(x, y);
-}
-
-export function highlightBlockById(workspace, block) {
-  if (!workspace || !block || block.workspace !== workspace) return;
-
-  // Select and scroll only when the code view is visible
-  if (window.codeMode === "both") {
-    ensureAddMenuSelectionCleanup(workspace);
-
-    // Proactively clear any lingering add-menu highlight so repeated add-menu
-    // creations don't leave multiple blocks highlighted when Blockly doesn't
-    // emit a UI select event.
-    clearAddMenuHighlight(workspace, block.id);
-
-    const currentlySelected = Blockly.selected;
-    if (
-      currentlySelected &&
-      currentlySelected !== block &&
-      currentlySelected.workspace === workspace
-    ) {
-      currentlySelected.unselect();
-    }
-
-    if (typeof workspace.setSelected === "function") {
-      workspace.setSelected(block);
-    } else if (typeof block.select === "function") {
-      block.select();
-    }
-
-    trackAddMenuHighlight(workspace, block.id);
-
-    // Scroll to position the block at the top and its parent at the left
-    scrollToBlockTopParentLeft(workspace, block.id);
-  }
-}
-
-let lastAddMenuHighlighted = null;
-
-function trackAddMenuHighlight(workspace, blockId) {
-  lastAddMenuHighlighted = { workspace, blockId };
-}
-
-function clearAddMenuHighlight(workspace, newSelectedId) {
-  if (
-    !lastAddMenuHighlighted ||
-    lastAddMenuHighlighted.workspace !== workspace ||
-    lastAddMenuHighlighted.blockId === newSelectedId
-  ) {
-    return;
-  }
-
-  const block = workspace.getBlockById(lastAddMenuHighlighted.blockId);
-  block?.unselect?.();
-
-  lastAddMenuHighlighted = null;
-}
-
-function ensureAddMenuSelectionCleanup(workspace) {
-  if (!workspace || workspace.__addMenuSelectionCleanupAttached) return;
-
-  const listener = (event) => {
-    const isSelectEvent =
-      event.type === Blockly.Events.SELECTED ||
-      (event.type === Blockly.Events.UI && event.element === "selected");
-
-    if (isSelectEvent) {
-      clearAddMenuHighlight(workspace, event.newElementId);
-    }
-  };
-
-  workspace.addChangeListener(listener);
-  workspace.__addMenuSelectionCleanupAttached = true;
-}
-
 function selectCharacter(characterName) {
-  // Hide dropdown if present
   const dd = document.getElementById("shapes-dropdown");
   if (dd) dd.style.display = "none";
 
   const workspace = Blockly.getMainWorkspace();
-  const canvas = flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
+  const canvas =
+    flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
 
-  // Remove any previous handler
   if (flock.activePickHandler) {
     window.removeEventListener("click", flock.activePickHandler, true);
     flock.activePickHandler = null;
   }
 
-  // ---- helpers (scoped) ----
   function appendWithUndo(spec, ws, groupId) {
     let block;
     try {
-      block = Blockly.serialization.blocks.append(spec, ws, { recordUndo: true });
+      block = Blockly.serialization.blocks.append(spec, ws, {
+        recordUndo: true,
+      });
     } catch {
       block = Blockly.serialization.blocks.append(spec, ws);
       const ev = new Blockly.Events.BlockCreate(block);
@@ -357,14 +241,19 @@ function selectCharacter(characterName) {
   }
   function addNumberShadow(spec, inputName, value) {
     spec.inputs ||= {};
-    spec.inputs[inputName] = { shadow: { type: "math_number", fields: { NUM: value } } };
+    spec.inputs[inputName] = {
+      shadow: { type: "math_number", fields: { NUM: value } },
+    };
   }
   function addColourShadow(spec, inputName, shadowType, hex) {
     spec.inputs ||= {};
-    spec.inputs[inputName] = { shadow: { type: shadowType, fields: { COLOR: hex } } };
+    spec.inputs[inputName] = {
+      shadow: { type: shadowType, fields: { COLOR: hex } },
+    };
   }
   function addPositionShadows(spec, pos) {
-    const rx = typeof roundPositionValue === "function" ? roundPositionValue : (v) => v;
+    const rx =
+      typeof roundPositionValue === "function" ? roundPositionValue : (v) => v;
     addNumberShadow(spec, "X", rx(pos?.x ?? 0));
     addNumberShadow(spec, "Y", rx(pos?.y ?? 0));
     addNumberShadow(spec, "Z", rx(pos?.z ?? 0));
@@ -383,7 +272,6 @@ function selectCharacter(characterName) {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Ignore clicks outside canvas
     if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
       return cleanup();
     }
@@ -395,7 +283,6 @@ function selectCharacter(characterName) {
 
     const pickedPosition = pick.pickedPoint;
 
-    // --- single undo/redo group for everything ---
     const prevGroup = Blockly.Events.getGroup();
     const startTempGroup = !prevGroup;
     if (startTempGroup) Blockly.Events.setGroup(true);
@@ -407,38 +294,41 @@ function selectCharacter(characterName) {
     try {
       Blockly.Events.setGroup(groupId);
 
-      // 1) Build character block spec with fields + shadows
       const spec = {
         type: "load_character",
         fields: { MODELS: characterName },
-        inputs: {}
+        inputs: {},
       };
       addPositionShadows(spec, pickedPosition);
       addNumberShadow(spec, "SCALE", 1);
 
-      // Colour inputs per your map; SKIN_COLOR uses 'skin_colour'
       if (typeof colorFields === "object" && colorFields) {
         for (const [inputName, hex] of Object.entries(colorFields)) {
-          const shadowType = inputName === "SKIN_COLOR" ? "skin_colour" : "colour";
+          const shadowType =
+            inputName === "SKIN_COLOR" ? "skin_colour" : "colour";
           addColourShadow(spec, inputName, shadowType, hex);
         }
       }
 
       const charBlock = appendWithUndo(spec, workspace, groupId);
 
-      // Optional extra: keep parity with your existing behaviour
-      try { setPositionValues?.(charBlock, pickedPosition, "load_character"); } catch {}
+      try {
+        setPositionValues?.(charBlock, pickedPosition, "load_character");
+      } catch {}
 
-      // 2) Create start block and connect character under it
       const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
       const conn = startBlock?.getInput("DO")?.connection;
       if (conn && charBlock?.previousConnection) {
-        try { conn.connect(charBlock.previousConnection); } catch (e) { console.error(e); }
+        try {
+          conn.connect(charBlock.previousConnection);
+        } catch (e) {
+          console.error(e);
+        }
       }
 
-      // 3) Highlight for UX (UI-only)
-      try { highlightBlockById?.(workspace, charBlock); } catch {}
-
+      try {
+        highlightBlockById?.(workspace, charBlock);
+      } catch {}
     } finally {
       if (startTempGroup) Blockly.Events.setGroup(false);
       else Blockly.Events.setGroup(prevGroup);
@@ -448,21 +338,19 @@ function selectCharacter(characterName) {
     cleanup();
   };
 
-  // Start keyboard placement (shares same handler)
-  try { startKeyboardPlacementMode?.(flock.activePickHandler); } catch {}
+  try {
+    startKeyboardPlacementMode?.(flock.activePickHandler);
+  } catch {}
 
-  // Mouse fallback (capture=true so we win over other listeners)
   document.body.style.cursor = "crosshair";
   setTimeout(() => {
     window.addEventListener("click", flock.activePickHandler, true);
   }, 0);
 }
 
-
 function selectShape(shapeType) {
   document.getElementById("shapes-dropdown").style.display = "none";
 
-  // Remove any previous handler before adding a new one!
   if (flock.activePickHandler) {
     window.removeEventListener("click", flock.activePickHandler);
     flock.activePickHandler = null;
@@ -493,7 +381,6 @@ function selectShape(shapeType) {
 }
 
 function selectModel(modelName) {
-  // Close the shapes menu after selecting a model
   document.getElementById("shapes-dropdown").style.display = "none";
 
   const onPick = function (event) {
@@ -559,11 +446,12 @@ function selectMultiObject(objectName) {
   selectObjectWithCommand(objectName, "shapes-dropdown", "load_multi_object");
 }
 
-// --- tiny helpers used below ---
 function __appendWithUndo(spec, workspace, groupId) {
   let block;
   try {
-    block = Blockly.serialization.blocks.append(spec, workspace, { recordUndo: true });
+    block = Blockly.serialization.blocks.append(spec, workspace, {
+      recordUndo: true,
+    });
   } catch {
     block = Blockly.serialization.blocks.append(spec, workspace);
     const ev = new Blockly.Events.BlockCreate(block);
@@ -580,28 +468,36 @@ function __shadowSpec(type, fieldName, value) {
   return { type, fields: { [fieldName]: value } };
 }
 
-// Add a numeric shadow to an input in a JSON spec
 function __addNumberShadow(spec, inputName, value) {
   spec.inputs ||= {};
-  spec.inputs[inputName] = { shadow: __shadowSpec('math_number', 'NUM', value) };
-  return spec;
-}
-// Add colour shadow (your deliberate custom shadow: type 'colour', field 'COLOR')
-function __addColourShadow(spec, inputName, hex) {
-  spec.inputs ||= {};
-  spec.inputs[inputName] = { shadow: __shadowSpec('colour', 'COLOR', hex) };
+  spec.inputs[inputName] = {
+    shadow: __shadowSpec("math_number", "NUM", value),
+  };
   return spec;
 }
 
-// Set X/Y/Z shadows from a Vector3 (or object with x,y,z)
+function __addColourShadow(spec, inputName, hex) {
+  spec.inputs ||= {};
+  spec.inputs[inputName] = { shadow: __shadowSpec("colour", "COLOR", hex) };
+  return spec;
+}
+
 function __withPositionShadows(spec, pos, command) {
-  const px = typeof roundPositionValue === 'function' ? roundPositionValue(pos?.x ?? 0) : (pos?.x ?? 0);
-  const py = typeof roundPositionValue === 'function' ? roundPositionValue(pos?.y ?? 0) : (pos?.y ?? 0);
-  const pz = typeof roundPositionValue === 'function' ? roundPositionValue(pos?.z ?? 0) : (pos?.z ?? 0);
-  // Many of your blocks share X/Y/Z input names; if some differ per command, patch here.
-  __addNumberShadow(spec, 'X', px);
-  __addNumberShadow(spec, 'Y', py);
-  __addNumberShadow(spec, 'Z', pz);
+  const px =
+    typeof roundPositionValue === "function"
+      ? roundPositionValue(pos?.x ?? 0)
+      : (pos?.x ?? 0);
+  const py =
+    typeof roundPositionValue === "function"
+      ? roundPositionValue(pos?.y ?? 0)
+      : (pos?.y ?? 0);
+  const pz =
+    typeof roundPositionValue === "function"
+      ? roundPositionValue(pos?.z ?? 0)
+      : (pos?.z ?? 0);
+  __addNumberShadow(spec, "X", px);
+  __addNumberShadow(spec, "Y", py);
+  __addNumberShadow(spec, "Z", pz);
   return spec;
 }
 
@@ -619,11 +515,12 @@ function selectObjectWithCommand(objectName, menu, command) {
     flock.activePickHandler = null;
   }
 
-  // --- helpers ---
   function appendWithUndo(spec, ws, groupId) {
     let block;
     try {
-      block = Blockly.serialization.blocks.append(spec, ws, { recordUndo: true });
+      block = Blockly.serialization.blocks.append(spec, ws, {
+        recordUndo: true,
+      });
     } catch {
       block = Blockly.serialization.blocks.append(spec, ws);
       const ev = new Blockly.Events.BlockCreate(block);
@@ -637,43 +534,49 @@ function selectObjectWithCommand(objectName, menu, command) {
   }
   function addNumShadow(spec, name, value) {
     spec.inputs ||= {};
-    spec.inputs[name] = { shadow: { type: "math_number", fields: { NUM: value } } };
+    spec.inputs[name] = {
+      shadow: { type: "math_number", fields: { NUM: value } },
+    };
   }
   function addXYZShadows(spec, pos) {
-    const round = typeof roundPositionValue === "function" ? roundPositionValue : (v) => v;
+    const round =
+      typeof roundPositionValue === "function" ? roundPositionValue : (v) => v;
     addNumShadow(spec, "X", round(pos?.x ?? 0));
     addNumShadow(spec, "Y", round(pos?.y ?? 0));
     addNumShadow(spec, "Z", round(pos?.z ?? 0));
   }
   function addColourShadowSpec(spec, name, hex, shadowType = "colour") {
     spec.inputs ||= {};
-    spec.inputs[name] = { shadow: { type: shadowType, fields: { COLOR: hex } } };
+    spec.inputs[name] = {
+      shadow: { type: shadowType, fields: { COLOR: hex } },
+    };
   }
 
-  // INLINE lists_create_with + per-item colour shadows for COLORS
   function buildColorsListShadowSpec(objectName) {
-    const colours = objectColours?.[objectName] || ["#000000", "#FFFFFF", "#CCCCCC"];
+    const colours = objectColours?.[objectName] || [
+      "#000000",
+      "#FFFFFF",
+      "#CCCCCC",
+    ];
 
     const listSpec = {
       type: "lists_create_with",
       // Modern serializer:
       extraState: { itemCount: colours.length },
       // Older builds read mutation for count:
-      mutation:   { items: colours.length },
-      // ✅ Correct flag for JSON serializer:
+      mutation: { items: colours.length },
       inline: true,
-      inputs: {}
+      inputs: {},
     };
 
     colours.forEach((hex, i) => {
       listSpec.inputs["ADD" + i] = {
-        shadow: { type: "colour", fields: { COLOR: hex } }
+        shadow: { type: "colour", fields: { COLOR: hex } },
       };
     });
 
     return listSpec;
   }
-
 
   function cleanup() {
     document.body.style.cursor = "default";
@@ -687,16 +590,22 @@ function selectObjectWithCommand(objectName, menu, command) {
     const rect = canvas.getBoundingClientRect();
     // Outside canvas? cancel
     if (
-      event.clientX < rect.left || event.clientX > rect.right ||
-      event.clientY < rect.top  || event.clientY > rect.bottom
-    ) return cleanup();
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom
+    )
+      return cleanup();
 
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
     // Ray pick with isPickable filter
     const pickRay = flock.scene.createPickingRay(
-      x, y, flock.BABYLON.Matrix.Identity(), flock.scene.activeCamera
+      x,
+      y,
+      flock.BABYLON.Matrix.Identity(),
+      flock.scene.activeCamera,
     );
     const pick = flock.scene.pickWithRay(pickRay, (m) => m.isPickable);
     if (!pick?.hit) return cleanup();
@@ -719,8 +628,12 @@ function selectObjectWithCommand(objectName, menu, command) {
       const spec = { type: command, fields: {}, inputs: {} };
 
       // MODELS for load_* commands
-      if (command === "load_object" || command === "load_multi_object" ||
-          command === "load_model"  || command === "load_character") {
+      if (
+        command === "load_object" ||
+        command === "load_multi_object" ||
+        command === "load_model" ||
+        command === "load_character"
+      ) {
         spec.fields.MODELS = objectName;
       }
 
@@ -731,7 +644,9 @@ function selectObjectWithCommand(objectName, menu, command) {
       // Single-object default colour
       if (command === "load_object") {
         const configColors = objectColours?.[objectName];
-        const color = Array.isArray(configColors) ? configColors[0] : (configColors || "#FFD700");
+        const color = Array.isArray(configColors)
+          ? configColors[0]
+          : configColors || "#FFD700";
         addColourShadowSpec(spec, "COLOR", color, "colour");
       }
 
@@ -740,22 +655,25 @@ function selectObjectWithCommand(objectName, menu, command) {
         spec.inputs.COLORS = { shadow: buildColorsListShadowSpec(objectName) };
       }
 
-      // 2) Create the command block atomically
       const block = appendWithUndo(spec, workspace, groupId);
 
-      // Keep parity with your existing per-block field logic
-      try { setPositionValues?.(block, pickedPosition, command); } catch {}
+      try {
+        setPositionValues?.(block, pickedPosition, command);
+      } catch {}
 
-      // 3) Create start block and connect (same group)
       const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
       const conn = startBlock?.getInput("DO")?.connection;
       if (conn && block?.previousConnection) {
-        try { conn.connect(block.previousConnection); } catch (e) { console.error("connect error:", e); }
+        try {
+          conn.connect(block.previousConnection);
+        } catch (e) {
+          console.error("connect error:", e);
+        }
       }
 
-      // 4) UX highlight (UI-only)
-      try { highlightBlockById?.(workspace, block); } catch {}
-
+      try {
+        highlightBlockById?.(workspace, block);
+      } catch {}
     } finally {
       if (startTempGroup) Blockly.Events.setGroup(false);
       else Blockly.Events.setGroup(prevGroup);
@@ -765,14 +683,17 @@ function selectObjectWithCommand(objectName, menu, command) {
     cleanup();
   };
 
-  // Keyboard placement shares same handler
-  try { startKeyboardPlacementMode?.(flock.activePickHandler); } catch {}
+  try {
+    startKeyboardPlacementMode?.(flock.activePickHandler);
+  } catch {}
 
   // Mouse click fallback (capture=true)
   document.body.style.cursor = "crosshair";
-  setTimeout(() => window.addEventListener("click", flock.activePickHandler, true), 0);
+  setTimeout(
+    () => window.addEventListener("click", flock.activePickHandler, true),
+    0,
+  );
 }
-
 
 // Scroll function to move the object row left or right
 function scrollObjects(direction) {
@@ -822,25 +743,21 @@ function getAllNavigableItems() {
   // Get all clickable items from all rows
   const items = [];
 
-  // Shape row items
   const shapeRow = dropdown.querySelector("#shape-row");
   if (shapeRow) {
     items.push(...Array.from(shapeRow.querySelectorAll("li")));
   }
 
-  // Object row items
   const objectRow = dropdown.querySelector("#object-row");
   if (objectRow) {
     items.push(...Array.from(objectRow.querySelectorAll("li")));
   }
 
-  // Model row items
   const modelRow = dropdown.querySelector("#model-row");
   if (modelRow) {
     items.push(...Array.from(modelRow.querySelectorAll("li")));
   }
 
-  // Character row items
   const characterRow = dropdown.querySelector("#character-row");
   if (characterRow) {
     items.push(...Array.from(characterRow.querySelectorAll("li")));
@@ -1003,17 +920,14 @@ function loadImages(rowId, namesArray, selectCallback) {
   });
 }
 
-// Refactored loadModelImages using the shared function
 function loadMultiImages() {
   loadImages("model-row", multiObjectNames, "selectMultiObject");
 }
 
-// Refactored loadObjectImages using the shared function
 function loadObjectImages() {
   loadImages("object-row", objectNames, "selectObject");
 }
 
-// --- Placement & Navigation State (Globals) ---
 if (!window.flock) window.flock = {};
 flock.activePickHandler = null; // Mouse handler singleton
 
@@ -1021,8 +935,6 @@ let placementCallback = null; // Keyboard placement callback singleton
 let keyboardPlacementMode = false;
 let placementCircle = null;
 let placementCirclePosition = { x: 0, y: 0 };
-
-// --- Menu Show/Hide ---
 
 function showShapes() {
   cancelPlacement(); // Always remove all placement modes when menu is opened/closed
@@ -1319,13 +1231,13 @@ function triggerPlacement() {
   };
 
   placementCallback(syntheticEvent);
-  
+
   // Clean up the active handler to match mouse behavior
   if (flock.activePickHandler) {
     window.removeEventListener("click", flock.activePickHandler);
     flock.activePickHandler = null;
   }
-  
+
   cancelPlacement();
 }
 
