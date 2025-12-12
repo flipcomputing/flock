@@ -388,61 +388,6 @@ function selectMultiObject(objectName) {
   selectObjectWithCommand(objectName, "shapes-dropdown", "load_multi_object");
 }
 
-function __appendWithUndo(spec, workspace, groupId) {
-  let block;
-  try {
-    block = Blockly.serialization.blocks.append(spec, workspace, {
-      recordUndo: true,
-    });
-  } catch {
-    block = Blockly.serialization.blocks.append(spec, workspace);
-    const ev = new Blockly.Events.BlockCreate(block);
-    ev.group = groupId;
-    ev.recordUndo = true;
-    Blockly.Events.fire(ev);
-  }
-  block?.initSvg?.();
-  block?.render?.();
-  return block;
-}
-
-function __shadowSpec(type, fieldName, value) {
-  return { type, fields: { [fieldName]: value } };
-}
-
-function __addNumberShadow(spec, inputName, value) {
-  spec.inputs ||= {};
-  spec.inputs[inputName] = {
-    shadow: __shadowSpec("math_number", "NUM", value),
-  };
-  return spec;
-}
-
-function __addColourShadow(spec, inputName, hex) {
-  spec.inputs ||= {};
-  spec.inputs[inputName] = { shadow: __shadowSpec("colour", "COLOR", hex) };
-  return spec;
-}
-
-function __withPositionShadows(spec, pos, command) {
-  const px =
-    typeof roundPositionValue === "function"
-      ? roundPositionValue(pos?.x ?? 0)
-      : (pos?.x ?? 0);
-  const py =
-    typeof roundPositionValue === "function"
-      ? roundPositionValue(pos?.y ?? 0)
-      : (pos?.y ?? 0);
-  const pz =
-    typeof roundPositionValue === "function"
-      ? roundPositionValue(pos?.z ?? 0)
-      : (pos?.z ?? 0);
-  __addNumberShadow(spec, "X", px);
-  __addNumberShadow(spec, "Y", py);
-  __addNumberShadow(spec, "Z", pz);
-  return spec;
-}
-
 function selectObjectWithCommand(objectName, menu, command) {
   // Hide menu
   const menuEl = document.getElementById(menu);
