@@ -508,7 +508,6 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
   mesh.refreshBoundingInfo();
   const ext = mesh.getBoundingInfo().boundingBox.extendSizeWorld;
 
-  // read Y (robustly)
   const getNumInput = (blk, name, def = 0) => {
     const inp = blk.getInput && blk.getInput(name);
     const tgt =
@@ -518,7 +517,6 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
       inp.connection.targetBlock();
     const v = tgt ? Number(tgt.getFieldValue("NUM")) : def;
     return Number.isFinite(v) ? v : def;
-    // add inline fallback if your Y is inline
   };
   const baseY = getNumInput(block, "Y", 0);
   mesh.position.y = baseY + ext.y;
@@ -718,7 +716,6 @@ function updateMapFromBlock(mesh, block, changeEvent) {
   };
 
   const material = flock.createMaterial(materialOptions);
-  console.log("Updating map from block");
   flock.createMap(mapName, material);
 }
 

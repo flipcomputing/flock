@@ -33,7 +33,12 @@ export function createBlockWithShadows(shapeType, position, colour) {
   const posY = position?.y !== undefined ? roundPositionValue(position.y) : 0;
   const posZ = position?.z !== undefined ? roundPositionValue(position.z) : 0;
 
-  const defaults = { ...spec.defaults({ colour }), X: posX, Y: posY, Z: posZ };
+  const defaults = {
+    ...spec.defaults({ c: colour }),
+    X: posX,
+    Y: posY,
+    Z: posZ,
+  };
 
   let allInputs;
   if (shapeType === "set_sky_color") {
@@ -625,7 +630,6 @@ let placementCircle = null;
 let placementCirclePosition = { x: 0, y: 0 };
 
 function showShapes() {
-  console.log("Showing add menu");
   cancelPlacement(); // Always remove all placement modes when menu is opened/closed
 
   const dropdown = document.getElementById("shapes-dropdown");
