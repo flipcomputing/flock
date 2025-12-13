@@ -7,14 +7,6 @@ export function setFlockReference(ref) {
 }
 
 export const flockAnimate = {
-  switchAnimation(
-    meshName,
-    { animationName, loop = true, restart = false } = {},
-  ) {
-    return flock.whenModelReady(meshName, (mesh) => {
-      flock.switchToAnimation(flock.scene, mesh, animationName, loop, restart);
-    });
-  },
   async playAnimation(
     meshName,
     { animationName, loop = false, restart = true } = {},
@@ -30,24 +22,148 @@ export const flockAnimate = {
 
     // Check if model should use playAnimationModel based on configuration
     if (modelAnimationNames.includes(modelName)) {
-      return flock.playAnimationModel(meshName, {
+      return flock._playAnimationModel(meshName, {
         animationName,
         loop,
         restart,
       });
     } else if (flock.separateAnimations) {
-      return flock.playAnimationLoad(meshName, {
+      return flock._playAnimationLoad(meshName, {
         animationName,
         loop,
         restart,
       });
     } else {
-      return flock.playAnimationModel(meshName, {
+      return flock._playAnimationModel(meshName, {
         animationName,
         loop,
         restart,
       });
     }
+  },
+  switchAnimation(
+    meshName,
+    { animationName, loop = true, restart = false } = {},
+  ) {
+    return flock.whenModelReady(meshName, (mesh) => {
+      flock.switchToAnimation(flock.scene, mesh, animationName, loop, restart);
+    });
+  },
+  async rotateAnim(
+    meshName,
+    {
+      x = 0,
+      y = 0,
+      z = 0,
+      duration = 1,
+      reverse = false,
+      loop = false,
+      easing = "Linear",
+    } = {},
+  ) {
+    return new Promise(async (resolve) => {
+      // Check if mesh exists immediately first
+      const existingMesh = flock.scene?.getMeshByName(meshName);
+      if (!existingMesh) {
+        console.warn(`Mesh '${meshName}' not found for rotateAnim.`);
+        resolve();
+        return;
+      }
+
+      await flock.whenModelReady(meshName, async function (mesh) {
+        if (mesh) {
+          // Store the original rotation
+          const startRotation = mesh.rotation.clone();
+
+          // Convert degrees to radians
+          const targetRotation = new flock.BABYLON.Vector3(
+            x * (Math.PI / 180), // X-axis in radians
+            y * (Math.PI / 180), // Y-axis in radians
+            z * (Math.PI / 180), // Z-axis in radians
+          );
+
+          const fps = 30;
+          const frames = fps * duration;
+
+          // Determine the loop mode based on reverse and loop
+          let loopMode;
+          if (reverse) {
+            loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO;
+          } else if (loop) {
+            loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+          } else {
+            loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
+          }
+
+          // Create animation for rotation only
+          const rotateAnimation = new flock.BABYLON.Animation(
+            "rotateTo",
+            "rotation",
+            fps,
+            flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+            loopMode,
+          );
+
+          // Define keyframes for rotation
+          const rotateKeys = [
+            { frame: 0, value: startRotation },
+            { frame: frames, value: targetRotation },
+          ];
+
+          rotateAnimation.setKeys(rotateKeys);
+
+          // Apply easing if needed
+          if (easing !== "Linear") {
+            let easingFunction;
+            switch (easing) {
+              case "SineEase":
+                easingFunction = new flock.BABYLON.SineEase();
+                break;
+              case "CubicEase":
+                easingFunction = new flock.BABYLON.CubicEase();
+                break;
+              case "QuadraticEase":
+                easingFunction = new flock.BABYLON.QuadraticEase();
+                break;
+              case "ExponentialEase":
+                easingFunction = new flock.BABYLON.ExponentialEase();
+                break;
+              case "BounceEase":
+                easingFunction = new flock.BABYLON.BounceEase();
+                break;
+              case "ElasticEase":
+                easingFunction = new flock.BABYLON.ElasticEase();
+                break;
+              case "BackEase":
+                easingFunction = new flock.BABYLON.BackEase();
+                break;
+              default:
+                easingFunction = new flock.BABYLON.SineEase();
+            }
+            easingFunction.setEasingMode(
+              flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
+            );
+            rotateAnimation.setEasingFunction(easingFunction);
+          }
+
+          // Use beginDirectAnimation to apply ONLY the rotation animation
+          // This ensures we don't interfere with any other properties
+          const animatable = flock.scene.beginDirectAnimation(
+            mesh,
+            [rotateAnimation],
+            0,
+            frames,
+            loop,
+          );
+
+          animatable.onAnimationEndObservable.add(() => {
+            resolve();
+          });
+        } else {
+          resolve(); // Resolve immediately if the mesh is not available
+        }
+      });
+    });
   },
   async glideTo(
     meshName,
@@ -253,137 +369,6 @@ export const flockAnimate = {
           resolve();
         });
       });
-    });
-  },
-  async rotateAnim(
-    meshName,
-    {
-      x = 0,
-      y = 0,
-      z = 0,
-      duration = 1,
-      reverse = false,
-      loop = false,
-      easing = "Linear",
-    } = {},
-  ) {
-    return new Promise(async (resolve) => {
-      // Check if mesh exists immediately first
-      const existingMesh = flock.scene?.getMeshByName(meshName);
-      if (!existingMesh) {
-        console.warn(`Mesh '${meshName}' not found for rotateAnim.`);
-        resolve();
-        return;
-      }
-
-      await flock.whenModelReady(meshName, async function (mesh) {
-        if (mesh) {
-          // Store the original rotation
-          const startRotation = mesh.rotation.clone();
-
-          // Convert degrees to radians
-          const targetRotation = new flock.BABYLON.Vector3(
-            x * (Math.PI / 180), // X-axis in radians
-            y * (Math.PI / 180), // Y-axis in radians
-            z * (Math.PI / 180), // Z-axis in radians
-          );
-
-          const fps = 30;
-          const frames = fps * duration;
-
-          // Determine the loop mode based on reverse and loop
-          let loopMode;
-          if (reverse) {
-            loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO;
-          } else if (loop) {
-            loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
-          } else {
-            loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
-          }
-
-          // Create animation for rotation only
-          const rotateAnimation = new flock.BABYLON.Animation(
-            "rotateTo",
-            "rotation",
-            fps,
-            flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-            loopMode,
-          );
-
-          // Define keyframes for rotation
-          const rotateKeys = [
-            { frame: 0, value: startRotation },
-            { frame: frames, value: targetRotation },
-          ];
-
-          rotateAnimation.setKeys(rotateKeys);
-
-          // Apply easing if needed
-          if (easing !== "Linear") {
-            let easingFunction;
-            switch (easing) {
-              case "SineEase":
-                easingFunction = new flock.BABYLON.SineEase();
-                break;
-              case "CubicEase":
-                easingFunction = new flock.BABYLON.CubicEase();
-                break;
-              case "QuadraticEase":
-                easingFunction = new flock.BABYLON.QuadraticEase();
-                break;
-              case "ExponentialEase":
-                easingFunction = new flock.BABYLON.ExponentialEase();
-                break;
-              case "BounceEase":
-                easingFunction = new flock.BABYLON.BounceEase();
-                break;
-              case "ElasticEase":
-                easingFunction = new flock.BABYLON.ElasticEase();
-                break;
-              case "BackEase":
-                easingFunction = new flock.BABYLON.BackEase();
-                break;
-              default:
-                easingFunction = new flock.BABYLON.SineEase();
-            }
-            easingFunction.setEasingMode(
-              flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
-            );
-            rotateAnimation.setEasingFunction(easingFunction);
-          }
-
-          // Use beginDirectAnimation to apply ONLY the rotation animation
-          // This ensures we don't interfere with any other properties
-          const animatable = flock.scene.beginDirectAnimation(
-            mesh,
-            [rotateAnimation],
-            0,
-            frames,
-            loop,
-          );
-
-          animatable.onAnimationEndObservable.add(() => {
-            resolve();
-          });
-        } else {
-          resolve(); // Resolve immediately if the mesh is not available
-        }
-      });
-    });
-  },
-  stopAnimations(modelName) {
-    return flock.whenModelReady(modelName, (mesh) => {
-      if (mesh && mesh.animations) {
-        // Stop all animations directly on the mesh
-        flock.scene.stopAnimation(mesh);
-      }
-
-      // Alternatively, if using animation groups:
-      if (mesh.animationGroups) {
-        mesh.animationGroups.forEach((group) => {
-          group.stop();
-        });
-      }
     });
   },
   animateKeyFrames(
@@ -620,12 +605,12 @@ export const flockAnimate = {
             : [mesh]; // Only the root mesh for other properties
 
         for (const targetMesh of meshesToAnimate) {
-          const propertyToAnimate = flock.resolvePropertyToAnimate(
+          const propertyToAnimate = flock._resolvePropertyToAnimate(
               property,
               targetMesh,
             ),
             fps = 30, // Frames per second
-            animationType = flock.determineAnimationType(property),
+            animationType = flock._determineAnimationType(property),
             loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE; // Always use cycle mode for looping
 
           const keyframeAnimation = new flock.BABYLON.Animation(
@@ -639,7 +624,7 @@ export const flockAnimate = {
           // Convert keyframes (with absolute time in seconds) to Babylon.js frames
           const forwardKeyframes = keyframes.map((keyframe) => ({
             frame: Math.round((keyframe.duration || 0) * fps), // Convert seconds to frames
-            value: flock.parseKeyframeValue(
+            value: flock._parseKeyframeValue(
               property,
               keyframe.value,
               targetMesh,
@@ -707,11 +692,10 @@ export const flockAnimate = {
             continue; // Skip this mesh
           }
 
-          // Apply easing function
-          flock.applyEasing(keyframeAnimation, easing);
+          flock._applyEasing(keyframeAnimation, easing);
 
           // Add the animation to the group
-          flock.addAnimationToGroup(
+          flock._addAnimationToGroup(
             animationGroup,
             keyframeAnimation,
             targetMesh,
@@ -887,6 +871,193 @@ export const flockAnimate = {
       console.warn(`Animation group '${groupName}' not found.`);
     }
   },
+  // Helper: Get the MIN position of a mesh on a given axis, accounting for its pivot
+  _getMeshPivotPosition(mesh, axis) {
+    // Match setAnchor defaults: x=CENTER, y=MIN, z=CENTER
+    const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
+      x: "CENTER",
+      y: "MIN",
+      z: "CENTER",
+    };
+    const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
+    const halfSize = bounding[axis] * mesh.scaling[axis];
+
+    const pivotSetting = pivotSettings[axis];
+
+    if (pivotSetting === "CENTER") {
+      return mesh.position[axis]; // No adjustment for CENTER
+    } else if (pivotSetting === "MIN") {
+      return mesh.position[axis] - halfSize;
+    } else if (pivotSetting === "MAX") {
+      return mesh.position[axis] + halfSize;
+    }
+  },
+  _resolvePropertyToAnimate(property, mesh) {
+    if (!mesh) {
+      console.warn("Mesh not found.");
+      return null;
+    }
+
+    switch (property) {
+      case "color":
+        flock.ensureUniqueMaterial(mesh);
+        return mesh.material?.diffuseColor !== undefined
+          ? "material.diffuseColor"
+          : "material.albedoColor";
+
+      case "alpha":
+        if (mesh.material) {
+          mesh.material.transparencyMode =
+            flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+        }
+        return "material.alpha";
+
+      default:
+        // Handle rotation.x, rotation.y, rotation.z with quaternions
+        if (
+          ["rotation.x", "rotation.y", "rotation.z"].includes(property) &&
+          mesh.rotationQuaternion // Only applies if using quaternions
+        ) {
+          return "rotationQuaternion"; // Map to rotationQuaternion
+        }
+
+        // Leave everything else unchanged
+        return property;
+    }
+  },
+  _determineAnimationType(property) {
+    // Handle rotation.x, rotation.y, rotation.z with quaternions
+    if (["rotation.x", "rotation.y", "rotation.z"].includes(property)) {
+      return flock.BABYLON.Animation.ANIMATIONTYPE_QUATERNION; // Quaternion type
+    }
+
+    switch (property) {
+      case "color":
+        return flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3;
+
+      case "position":
+      case "rotation":
+      case "scaling":
+        return flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3; // Full Vector3 properties
+
+      default:
+        return flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT; // Scalars like position.x and scaling.x
+    }
+  },
+  _parseKeyframeValue(property, value, mesh) {
+    // Handle quaternion rotation for rotation.x, rotation.y, and rotation.z
+    if (
+      ["rotation.x", "rotation.y", "rotation.z"].includes(property) &&
+      mesh.rotationQuaternion // Only applies if using quaternions
+    ) {
+      // Ensure the quaternion exists
+      if (!mesh.rotationQuaternion) {
+        mesh.rotationQuaternion = flock.BABYLON.Quaternion.FromEulerVector(
+          mesh.rotation || flock.BABYLON.Vector3.Zero(),
+        );
+      }
+
+      // Convert quaternion to Euler angles
+      const euler = mesh.rotationQuaternion.toEulerAngles();
+
+      // Update the specified axis (convert degrees to radians)
+      const radians = flock.BABYLON.Tools.ToRadians(value); // Degrees → Radians
+      switch (property) {
+        case "rotation.x":
+          euler.x = radians;
+          break;
+        case "rotation.y":
+          euler.y = radians;
+          break;
+        case "rotation.z":
+          euler.z = radians;
+          break;
+      }
+
+      // Return the updated quaternion
+      return flock.BABYLON.Quaternion.RotationYawPitchRoll(
+        euler.y,
+        euler.x,
+        euler.z,
+      );
+    }
+
+    // Handle full Vector3 rotations
+    if (property.startsWith("rotation")) {
+      if (value instanceof flock.BABYLON.Vector3) {
+        return new flock.BABYLON.Vector3(
+          flock.BABYLON.Tools.ToRadians(value.x || 0),
+          flock.BABYLON.Tools.ToRadians(value.y || 0),
+          flock.BABYLON.Tools.ToRadians(value.z || 0),
+        );
+      } else if (typeof value === "string") {
+        const vectorValues = value.match(/-?\d+(\.\d+)?/g).map(Number);
+        return new flock.BABYLON.Vector3(
+          flock.BABYLON.Tools.ToRadians(vectorValues[0] || 0),
+          flock.BABYLON.Tools.ToRadians(vectorValues[1] || 0),
+          flock.BABYLON.Tools.ToRadians(vectorValues[2] || 0),
+        );
+      }
+    }
+
+    // Colors remain unchanged
+    if (property === "color") {
+      return flock.BABYLON.Color3.FromHexString(value);
+    }
+
+    // Handle position and scaling as Vector3
+    if (["position", "scaling"].some((p) => property.startsWith(p))) {
+      if (value instanceof flock.BABYLON.Vector3) {
+        return value;
+      } else if (typeof value === "string") {
+        const vectorValues = value.match(/-?\d+(\.\d+)?/g).map(Number);
+        return new flock.BABYLON.Vector3(
+          vectorValues[0] || 0,
+          vectorValues[1] || 0,
+          vectorValues[2] || 0,
+        );
+      }
+    }
+
+    // Scalar values for properties like position.x, scaling.x
+    if (/\.(x|y|z)$/.test(property)) {
+      return parseFloat(value); // Scalar values remain unchanged
+    }
+
+    return parseFloat(value); // Default for scalar properties
+  },
+  _findFirstDescendantWithMaterial(mesh) {
+    if (mesh.material) return mesh;
+    const descendants = mesh.getDescendants();
+    return descendants.find((descendant) => descendant.material) || null;
+  },
+  _addAnimationToGroup(animationGroup, animation, target) {
+    // Add the animation to the group
+    animationGroup.addTargetedAnimation(animation, target);
+
+    if (animationGroup.isStarted) {
+      // Get the current frame of the first animation in the group
+      const currentFrame =
+        animationGroup.targetedAnimations[0]?.animation.runtimeAnimations[0]
+          ?.currentFrame;
+
+      if (currentFrame !== undefined) {
+        // Find the RuntimeAnimation for the newly added animation
+        const runtimeAnimation = animation.runtimeAnimations.find(
+          (ra) => ra.target === target,
+        );
+
+        if (runtimeAnimation) {
+          runtimeAnimation.goToFrame(currentFrame);
+          //console.log(`New animation synchronised to frame ${currentFrame}.`);
+        }
+      } else {
+        console.warn(
+          "Could not retrieve the current frame for synchronisation.",
+        );
+      }
+    }
+  },
   animateFrom(groupName, timeInSeconds) {
     const animationGroup = flock.scene.getAnimationGroupByName(groupName);
     if (animationGroup) {
@@ -905,47 +1076,81 @@ export const flockAnimate = {
       console.warn(`Animation group '${groupName}' not found.`);
     }
   },
+  _applyEasing(animation, easing) {
+    let easingFunction;
 
-  switchToAnimation(
-    scene,
-    meshOrGroup,
-    animationName,
-    loop = true,
-    restart = false,
-    play = true,
-  ) {
-    const modelName = meshOrGroup.metadata.modelName;
+    switch (easing.toLowerCase()) {
+      case "ease-in":
+        easingFunction = new flock.BABYLON.QuadraticEase();
+        easingFunction.setEasingMode(
+          flock.BABYLON.EasingFunction.EASINGMODE_EASEIN,
+        );
+        break;
+      case "ease-out":
+        easingFunction = new flock.BABYLON.QuadraticEase();
+        easingFunction.setEasingMode(
+          flock.BABYLON.EasingFunction.EASINGMODE_EASEOUT,
+        );
+        break;
+      case "ease-in-out":
+        easingFunction = new flock.BABYLON.QuadraticEase();
+        easingFunction.setEasingMode(
+          flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
+        );
+        break;
+      case "linear":
+      default:
+        easingFunction = null; // No easing for linear
+        break;
+    }
 
-    if (modelAnimationNames.includes(modelName)) {
-      return flock.switchToAnimationModel(
-        scene,
-        meshOrGroup,
-        animationName,
-        loop,
-        restart,
-      );
-    } else if (flock.separateAnimations) {
-      // || meshOrGroup.name.includes('ANIMTEST'))
-
-      return flock.switchToAnimationLoad(
-        scene,
-        meshOrGroup,
-        animationName,
-        loop,
-        restart,
-        play,
-      );
-    } else {
-      return flock.switchToAnimationModel(
-        scene,
-        meshOrGroup,
-        animationName,
-        loop,
-        restart,
-      );
+    if (easingFunction) {
+      animation.setEasingFunction(easingFunction);
+      //console.log(`Applied easing: ${easing}`);
     }
   },
-  activateAnimation(
+  stopAnimations(modelName) {
+    return flock.whenModelReady(modelName, (mesh) => {
+      if (mesh && mesh.animations) {
+        // Stop all animations directly on the mesh
+        flock.scene.stopAnimation(mesh);
+      }
+
+      // Alternatively, if using animation groups:
+      if (mesh.animationGroups) {
+        mesh.animationGroups.forEach((group) => {
+          group.stop();
+        });
+      }
+    });
+  },
+  stopAnimationsTargetingMesh(scene, mesh) {
+    scene.animationGroups.forEach(function (animationGroup) {
+      let targets = animationGroup.targetedAnimations.map(
+        function (targetedAnimation) {
+          return targetedAnimation.target;
+        },
+      );
+
+      if (
+        targets.includes(mesh) ||
+        flock._animationGroupTargetsDescendant(animationGroup, mesh)
+      ) {
+        animationGroup.stop();
+      }
+    });
+  },
+  _animationGroupTargetsDescendant(animationGroup, parentMesh) {
+    let descendants = parentMesh.getDescendants();
+    for (let targetedAnimation of animationGroup.targetedAnimations) {
+      let target = targetedAnimation.target;
+      if (descendants.includes(target)) {
+        return true;
+      }
+    }
+    return false;
+  },
+  _activateAnimation(
     mesh,
     meshOrGroup,
     retargetedGroup,
@@ -1041,8 +1246,7 @@ export const flockAnimate = {
       retargetedGroup.start(loop);
     }
   },
-
-  getCurrentAnimationInfo(meshOrGroup) {
+  _getCurrentAnimationInfo(meshOrGroup) {
     // Find mesh with skeleton
     const findMeshWithSkeleton = (rootMesh) => {
       if (rootMesh?.skeleton) return rootMesh;
@@ -1067,8 +1271,7 @@ export const flockAnimate = {
 
     return { name: animName, isLooping };
   },
-
-  async switchToAnimationLoad(
+  async _switchToAnimationLoad(
     scene,
     meshOrGroup,
     animationName,
@@ -1076,23 +1279,6 @@ export const flockAnimate = {
     restart = false,
     play = true,
   ) {
-    // Validate critical dependencies
-    if (!scene || !meshOrGroup || !animationName) {
-      console.warn("switchToAnimationLoad: Missing required parameters");
-      return null;
-    }
-
-    if (
-      !flock?.BABYLON ||
-      !flock?.scene ||
-      typeof flock.activateAnimation !== "function"
-    ) {
-      console.error(
-        "switchToAnimationLoad: Required flock dependencies not available",
-      );
-      return null;
-    }
-
     const findMeshWithSkeleton = (rootMesh) => {
       if (rootMesh?.skeleton) return rootMesh;
       if (rootMesh?.getChildMeshes) {
@@ -1104,90 +1290,31 @@ export const flockAnimate = {
     };
 
     const mesh = findMeshWithSkeleton(meshOrGroup);
-    if (!mesh || !mesh.skeleton) {
-      console.warn("switchToAnimationLoad: No skeleton found on mesh");
-      return null;
-    }
+    if (!mesh || !mesh.skeleton) return null;
 
-    // Initialize metadata structure
     if (!mesh.metadata) mesh.metadata = {};
     if (!mesh.metadata.animationGroups) mesh.metadata.animationGroups = {};
-    if (!mesh.metadata.inflightLoads) mesh.metadata.inflightLoads = {};
-
     const cache = mesh.metadata.animationGroups;
-    const inflight = mesh.metadata.inflightLoads;
 
-    // Always initialize request counter, even if not playing
-    mesh.metadata.requestCounter = (mesh.metadata.requestCounter || 0) + 1;
-    const currentRequest = mesh.metadata.requestCounter;
-
-    // Record intent when we plan to play
+    // Only record "intent" when we actually plan to play something now.
     if (play) {
       mesh.metadata.requestedAnimationName = animationName;
     }
 
-    // Check cache atomically - get reference once
-    const cachedEntry = cache[animationName];
-
-    // Handle promise (still loading)
-    if (cachedEntry && typeof cachedEntry.then === "function") {
-      return null; // Already loading, don't block
-    }
-
-    // Handle error state (previous load failed)
-    if (cachedEntry && cachedEntry._loadError) {
-      console.warn(`Animation ${animationName} previously failed to load`);
-      return null;
-    }
-
-    // Handle loaded animation group
-    if (cachedEntry && cachedEntry instanceof flock.BABYLON.AnimationGroup) {
-      if (!play) {
-        return cachedEntry;
-      }
-
-      // Check if this is still the requested animation
-      if (mesh.metadata.requestedAnimationName !== animationName) {
-        return cachedEntry;
-      }
-
-      // Activate with error handling
-      try {
-        flock.activateAnimation(
-          mesh,
-          meshOrGroup,
-          cachedEntry,
-          animationName,
-          loop,
-          restart,
-          currentRequest,
-        );
-      } catch (error) {
-        console.error(`Failed to activate animation ${animationName}:`, error);
-      }
-      return cachedEntry;
-    }
-
-    // Not loaded yet - start loading
-    if (inflight[animationName]) {
-      return null; // Already loading, don't duplicate
-    }
-
-    inflight[animationName] = true;
-
-    const loadPromise = (async () => {
-      try {
+    // Resolve or load the animation group (promise-cached)
+    let retargetedGroup;
+    if (cache[animationName]) {
+      retargetedGroup =
+        typeof cache[animationName].then === "function"
+          ? await cache[animationName]
+          : cache[animationName];
+    } else {
+      cache[animationName] = (async () => {
         const modelName = meshOrGroup.metadata?.modelName;
-
-        // Safe check for blockNames
-        const useBlockSuffix =
-          typeof blockNames !== "undefined" &&
-          Array.isArray(blockNames) &&
-          blockNames.includes(modelName);
-
-        const animationFile = useBlockSuffix
-          ? animationName + "_Block"
-          : animationName;
+        const animationFile =
+          typeof blockNames !== "undefined" && blockNames.includes(modelName)
+            ? animationName + "_Block"
+            : animationName;
 
         const animImport =
           await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
@@ -1207,42 +1334,29 @@ export const flockAnimate = {
         const animGroup = animImport.animationGroups.find(
           (ag) => ag.name === animationName && ag.targetedAnimations.length > 0,
         );
-
         if (!animGroup) {
-          console.warn(
-            `Animation group ${animationName} not found in loaded file`,
-          );
           animImport.dispose();
-          return {
-            _loadError: true,
-            _errorMessage: "Animation group not found",
-          };
+          return null;
         }
 
-        // Build bone and transform node maps
-        const boneMap = {};
-        const tnMap = {};
+        const boneMap = {},
+          tnMap = {};
         mesh.skeleton.bones.forEach((b) => {
           boneMap[b.name] = b;
-          if (b._linkedTransformNode) {
+          if (b._linkedTransformNode)
             tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
-          }
         });
 
-        // Create retargeted animation group
         const newGroup = new flock.BABYLON.AnimationGroup(
           `${mesh.name}.${animationName}`,
           scene,
         );
-
         for (const ta of animGroup.targetedAnimations) {
           let target = null;
-          if (ta.target instanceof flock.BABYLON.Bone) {
+          if (ta.target instanceof flock.BABYLON.Bone)
             target = boneMap[ta.target.name];
-          } else if (ta.target instanceof flock.BABYLON.TransformNode) {
+          else if (ta.target instanceof flock.BABYLON.TransformNode)
             target = tnMap[ta.target.name];
-          }
-
           if (target && ta.animation?.targetProperty !== "scaling") {
             const animCopy = ta.animation.clone(
               `${ta.animation.name}_${mesh.name}`,
@@ -1253,64 +1367,221 @@ export const flockAnimate = {
 
         animImport.dispose();
         return newGroup;
-      } catch (error) {
-        console.error(`Failed to load animation ${animationName}:`, error);
-        return { _loadError: true, _errorMessage: error.message };
-      } finally {
-        delete inflight[animationName];
+      })();
+
+      retargetedGroup = await cache[animationName];
+      cache[animationName] = retargetedGroup;
+    }
+
+    if (!retargetedGroup) return null;
+
+    // If this was a preload (play === false), do NOT switch or start anything.
+    if (!play) {
+      return retargetedGroup;
+    }
+
+    // Only activate if this is still the latest requested animation.
+    if (mesh.metadata.requestedAnimationName !== animationName) {
+      return retargetedGroup;
+    }
+
+    if (
+      mesh._currentAnimGroup &&
+      mesh._currentAnimGroup !== retargetedGroup &&
+      mesh._currentAnimGroup.isPlaying
+    ) {
+      mesh._currentAnimGroup.stop();
+      mesh._currentAnimGroup = null;
+    }
+
+    mesh._currentAnimGroup = retargetedGroup;
+    mesh.metadata.currentAnimationName = animationName;
+
+    // Update physics shape based on animation
+    const physicsMesh = meshOrGroup;
+
+    if (
+      physicsMesh &&
+      physicsMesh.physics &&
+      physicsMesh.physics.shape &&
+      physicsMesh.physics.shape.constructor.name === "_PhysicsShapeCapsule"
+    ) {
+      // Determine desired physics shape type based on animation name
+      let desiredShapeType = "vertical";
+      if (animationName === "Fly") {
+        desiredShapeType = "horizontal-fly";
+      } else if (animationName === "Fall") {
+        desiredShapeType = "horizontal-fall";
+      } else if (animationName === "Sitting" || animationName === "Sit_Down") {
+        //console.log("Sitting animation detected");
+        desiredShapeType = "sitting";
       }
-    })();
 
-    // Store promise in cache
-    cache[animationName] = loadPromise;
+      // Only update if the shape type has changed
+      if (
+        !mesh.metadata.currentPhysicsShapeType ||
+        mesh.metadata.currentPhysicsShapeType !== desiredShapeType
+      ) {
+        // Preserve physics properties
+        const motionType = physicsMesh.physics.getMotionType();
+        const massProps = physicsMesh.physics.getMassProperties();
+        const disablePreStep = physicsMesh.physics.disablePreStep;
 
-    // Auto-activate when loaded
-    loadPromise
-      .then((result) => {
-        // Replace promise with actual result (group or error object)
-        cache[animationName] = result;
-
-        // Only activate if it's a valid group and conditions are met
-        if (
-          result &&
-          result instanceof flock.BABYLON.AnimationGroup &&
-          play &&
-          mesh.metadata.requestedAnimationName === animationName
-        ) {
-          try {
-            flock.activateAnimation(
-              mesh,
-              meshOrGroup,
-              result,
-              animationName,
-              loop,
-              restart,
-              currentRequest,
-            );
-          } catch (error) {
-            console.error(
-              `Failed to activate animation ${animationName} after load:`,
-              error,
-            );
-          }
+        // Create new shape based on animation
+        // Always use physicsMesh which has the full body bounding box
+        let newShape;
+        if (desiredShapeType === "horizontal-fly") {
+          newShape = flock.createHorizontalCapsuleFromBoundingBox(
+            physicsMesh,
+            flock.scene,
+            0,
+          );
+        } else if (desiredShapeType === "horizontal-fall") {
+          newShape = flock.createHorizontalCapsuleFromBoundingBox(
+            physicsMesh,
+            flock.scene,
+            -0.4,
+          );
+        } else if (desiredShapeType === "sitting") {
+          newShape = flock.createSittingCapsuleFromBoundingBox(
+            physicsMesh,
+            flock.scene,
+          );
+        } else {
+          newShape = flock.createCapsuleFromBoundingBox(
+            physicsMesh,
+            flock.scene,
+          );
         }
-      })
-      .catch((error) => {
-        // Shouldn't reach here due to try-catch above, but safety net
-        console.error(
-          `Unexpected error in animation load promise for ${animationName}:`,
-          error,
-        );
-        cache[animationName] = {
-          _loadError: true,
-          _errorMessage: error.message,
-        };
-      });
 
-    return null; // Return immediately
+        // Update the physics shape
+        physicsMesh.physics.shape = newShape;
+
+        // Restore physics properties
+        physicsMesh.physics.setMotionType(motionType);
+        physicsMesh.physics.setMassProperties(massProps);
+        physicsMesh.physics.disablePreStep = disablePreStep;
+
+        // Track the current physics shape type
+        mesh.metadata.currentPhysicsShapeType = desiredShapeType;
+      }
+    }
+
+    if (!retargetedGroup.isPlaying || restart) {
+      retargetedGroup.stop();
+      retargetedGroup.reset();
+      retargetedGroup.start(loop);
+    }
+
+    return retargetedGroup;
   },
 
-  switchToAnimationModel(
+  // Helper: Wait for mesh to appear in scene
+  async _waitForMesh(meshName, { maxAttempts = 100, interval = 10 } = {}) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const mesh = flock.scene.getMeshByName(meshName);
+      if (mesh) return mesh;
+      await new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(resolve, interval);
+        if (flock.abortController && flock.abortController.signal) {
+          flock.abortController.signal.addEventListener("abort", () => {
+            clearTimeout(timeoutId);
+            reject(new Error("Timeout aborted"));
+          });
+        }
+      });
+    }
+    return null;
+  },
+  async _playAnimationLoad(
+    meshName,
+    { animationName, loop = false, restart = true } = {},
+  ) {
+    if (!animationName) {
+      console.warn(
+        `No animationName provided for playAnimation on mesh '${meshName}'.`,
+      );
+      return;
+    }
+    const mesh = flock.scene.getMeshByName(meshName);
+    if (!mesh) {
+      console.error(`Mesh '${meshName}' not found for animation.`);
+      return;
+    }
+    // Await the AnimationGroup from switchToAnimationLoad, which handles caching and remap
+    const animGroup = await flock._switchToAnimationLoad(
+      flock.scene,
+      mesh,
+      animationName,
+      loop,
+      restart,
+    );
+    if (!animGroup) {
+      console.warn(
+        `Animation '${animationName}' not found or failed for mesh '${meshName}'.`,
+      );
+      return;
+    }
+    return new Promise((resolve) => {
+      if (animGroup.onAnimationGroupEndObservable) {
+        const observer = animGroup.onAnimationGroupEndObservable.add(() => {
+          animGroup.onAnimationGroupEndObservable.remove(observer);
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    });
+  },
+  switchToAnimation(
+    scene,
+    meshOrGroup,
+    animationName,
+    loop = true,
+    restart = false,
+    play = true,
+  ) {
+    const modelName = meshOrGroup.metadata.modelName;
+
+    if (modelAnimationNames.includes(modelName)) {
+      return flock._switchToAnimationModel(
+        scene,
+        meshOrGroup,
+        animationName,
+        loop,
+        restart,
+      );
+    } else if (flock.separateAnimations) {
+      // || meshOrGroup.name.includes('ANIMTEST'))
+
+      return flock._switchToAnimationLoad(
+        scene,
+        meshOrGroup,
+        animationName,
+        loop,
+        restart,
+        play,
+      );
+    } else {
+      return flock._switchToAnimationModel(
+        scene,
+        meshOrGroup,
+        animationName,
+        loop,
+        restart,
+      );
+    }
+  },
+
+  _switchToAnimationModel(
+    meshName,
+    { animationName, loop = true, restart = false } = {},
+  ) {
+    return flock.whenModelReady(meshName, (mesh) => {
+      flock.switchToAnimation(flock.scene, mesh, animationName, loop, restart);
+    });
+  },
+  _switchToAnimationModel(
     scene,
     mesh,
     animationName,
@@ -1329,7 +1600,7 @@ export const flockAnimate = {
     let targetAnimationGroup = flock.scene?.animationGroups?.find(
       (group) =>
         group.name === newAnimationName &&
-        flock.animationGroupTargetsDescendant(group, mesh),
+        flock._animationGroupTargetsDescendant(group, mesh),
     );
 
     if (!targetAnimationGroup) {
@@ -1453,34 +1724,7 @@ export const flockAnimate = {
     return targetAnimationGroup;
   },
 
-  switchAnimationModel(
-    meshName,
-    { animationName, loop = true, restart = false } = {},
-  ) {
-    return flock.whenModelReady(meshName, (mesh) => {
-      flock.switchToAnimation(flock.scene, mesh, animationName, loop, restart);
-    });
-  },
-
-  // Helper: Wait for mesh to appear in scene
-  async _waitForMesh(meshName, { maxAttempts = 100, interval = 10 } = {}) {
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const mesh = flock.scene.getMeshByName(meshName);
-      if (mesh) return mesh;
-      await new Promise((resolve, reject) => {
-        const timeoutId = setTimeout(resolve, interval);
-        if (flock.abortController && flock.abortController.signal) {
-          flock.abortController.signal.addEventListener("abort", () => {
-            clearTimeout(timeoutId);
-            reject(new Error("Timeout aborted"));
-          });
-        }
-      });
-    }
-    return null;
-  },
-
-  async playAnimationModel(
+  async _playAnimationModel(
     meshName,
     { animationName, loop = false, restart = true } = {},
   ) {
@@ -1511,293 +1755,5 @@ export const flockAnimate = {
     return new Promise((resolve) => {
       animGroup.onAnimationEndObservable.addOnce(() => resolve());
     });
-  },
-
-  async playAnimationLoad(
-    meshName,
-    { animationName, loop = false, restart = true } = {},
-  ) {
-    if (!animationName) {
-      console.warn(
-        `No animationName provided for playAnimation on mesh '${meshName}'.`,
-      );
-      return;
-    }
-    const mesh = flock.scene.getMeshByName(meshName);
-    if (!mesh) {
-      console.error(`Mesh '${meshName}' not found for animation.`);
-      return;
-    }
-    // Await the AnimationGroup from switchToAnimationLoad, which handles caching and remap
-    const animGroup = await flock.switchToAnimationLoad(
-      flock.scene,
-      mesh,
-      animationName,
-      loop,
-      restart,
-    );
-    if (!animGroup) {
-      console.warn(
-        `Animation '${animationName}' not found or failed for mesh '${meshName}'.`,
-      );
-      return;
-    }
-    return new Promise((resolve) => {
-      if (animGroup.onAnimationGroupEndObservable) {
-        const observer = animGroup.onAnimationGroupEndObservable.add(() => {
-          animGroup.onAnimationGroupEndObservable.remove(observer);
-          resolve();
-        });
-      } else {
-        resolve();
-      }
-    });
-  },
-
-  // Helper: Get the MIN position of a mesh on a given axis, accounting for its pivot
-  getMeshPivotPosition(mesh, axis) {
-    // Match setAnchor defaults: x=CENTER, y=MIN, z=CENTER
-    const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
-      x: "CENTER",
-      y: "MIN",
-      z: "CENTER",
-    };
-    const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
-    const halfSize = bounding[axis] * mesh.scaling[axis];
-
-    const pivotSetting = pivotSettings[axis];
-
-    if (pivotSetting === "CENTER") {
-      return mesh.position[axis]; // No adjustment for CENTER
-    } else if (pivotSetting === "MIN") {
-      return mesh.position[axis] - halfSize;
-    } else if (pivotSetting === "MAX") {
-      return mesh.position[axis] + halfSize;
-    }
-  },
-  resolvePropertyToAnimate(property, mesh) {
-    if (!mesh) {
-      console.warn("Mesh not found.");
-      return null;
-    }
-
-    switch (property) {
-      case "color":
-        flock.ensureUniqueMaterial(mesh);
-        return mesh.material?.diffuseColor !== undefined
-          ? "material.diffuseColor"
-          : "material.albedoColor";
-
-      case "alpha":
-        if (mesh.material) {
-          mesh.material.transparencyMode =
-            flock.BABYLON.Material.MATERIAL_ALPHABLEND;
-        }
-        return "material.alpha";
-
-      default:
-        // Handle rotation.x, rotation.y, rotation.z with quaternions
-        if (
-          ["rotation.x", "rotation.y", "rotation.z"].includes(property) &&
-          mesh.rotationQuaternion // Only applies if using quaternions
-        ) {
-          return "rotationQuaternion"; // Map to rotationQuaternion
-        }
-
-        // Leave everything else unchanged
-        return property;
-    }
-  },
-  determineAnimationType(property) {
-    // Handle rotation.x, rotation.y, rotation.z with quaternions
-    if (["rotation.x", "rotation.y", "rotation.z"].includes(property)) {
-      return flock.BABYLON.Animation.ANIMATIONTYPE_QUATERNION; // Quaternion type
-    }
-
-    switch (property) {
-      case "color":
-        return flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3;
-
-      case "position":
-      case "rotation":
-      case "scaling":
-        return flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3; // Full Vector3 properties
-
-      default:
-        return flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT; // Scalars like position.x and scaling.x
-    }
-  },
-  parseKeyframeValue(property, value, mesh) {
-    // Handle quaternion rotation for rotation.x, rotation.y, and rotation.z
-    if (
-      ["rotation.x", "rotation.y", "rotation.z"].includes(property) &&
-      mesh.rotationQuaternion // Only applies if using quaternions
-    ) {
-      // Ensure the quaternion exists
-      if (!mesh.rotationQuaternion) {
-        mesh.rotationQuaternion = flock.BABYLON.Quaternion.FromEulerVector(
-          mesh.rotation || flock.BABYLON.Vector3.Zero(),
-        );
-      }
-
-      // Convert quaternion to Euler angles
-      const euler = mesh.rotationQuaternion.toEulerAngles();
-
-      // Update the specified axis (convert degrees to radians)
-      const radians = flock.BABYLON.Tools.ToRadians(value); // Degrees → Radians
-      switch (property) {
-        case "rotation.x":
-          euler.x = radians;
-          break;
-        case "rotation.y":
-          euler.y = radians;
-          break;
-        case "rotation.z":
-          euler.z = radians;
-          break;
-      }
-
-      // Return the updated quaternion
-      return flock.BABYLON.Quaternion.RotationYawPitchRoll(
-        euler.y,
-        euler.x,
-        euler.z,
-      );
-    }
-
-    // Handle full Vector3 rotations
-    if (property.startsWith("rotation")) {
-      if (value instanceof flock.BABYLON.Vector3) {
-        return new flock.BABYLON.Vector3(
-          flock.BABYLON.Tools.ToRadians(value.x || 0),
-          flock.BABYLON.Tools.ToRadians(value.y || 0),
-          flock.BABYLON.Tools.ToRadians(value.z || 0),
-        );
-      } else if (typeof value === "string") {
-        const vectorValues = value.match(/-?\d+(\.\d+)?/g).map(Number);
-        return new flock.BABYLON.Vector3(
-          flock.BABYLON.Tools.ToRadians(vectorValues[0] || 0),
-          flock.BABYLON.Tools.ToRadians(vectorValues[1] || 0),
-          flock.BABYLON.Tools.ToRadians(vectorValues[2] || 0),
-        );
-      }
-    }
-
-    // Colors remain unchanged
-    if (property === "color") {
-      return flock.BABYLON.Color3.FromHexString(value);
-    }
-
-    // Handle position and scaling as Vector3
-    if (["position", "scaling"].some((p) => property.startsWith(p))) {
-      if (value instanceof flock.BABYLON.Vector3) {
-        return value;
-      } else if (typeof value === "string") {
-        const vectorValues = value.match(/-?\d+(\.\d+)?/g).map(Number);
-        return new flock.BABYLON.Vector3(
-          vectorValues[0] || 0,
-          vectorValues[1] || 0,
-          vectorValues[2] || 0,
-        );
-      }
-    }
-
-    // Scalar values for properties like position.x, scaling.x
-    if (/\.(x|y|z)$/.test(property)) {
-      return parseFloat(value); // Scalar values remain unchanged
-    }
-
-    return parseFloat(value); // Default for scalar properties
-  },
-  findFirstDescendantWithMaterial(mesh) {
-    if (mesh.material) return mesh;
-    const descendants = mesh.getDescendants();
-    return descendants.find((descendant) => descendant.material) || null;
-  },
-  addAnimationToGroup(animationGroup, animation, target) {
-    // Add the animation to the group
-    animationGroup.addTargetedAnimation(animation, target);
-
-    if (animationGroup.isStarted) {
-      // Get the current frame of the first animation in the group
-      const currentFrame =
-        animationGroup.targetedAnimations[0]?.animation.runtimeAnimations[0]
-          ?.currentFrame;
-
-      if (currentFrame !== undefined) {
-        // Find the RuntimeAnimation for the newly added animation
-        const runtimeAnimation = animation.runtimeAnimations.find(
-          (ra) => ra.target === target,
-        );
-
-        if (runtimeAnimation) {
-          runtimeAnimation.goToFrame(currentFrame);
-          //console.log(`New animation synchronised to frame ${currentFrame}.`);
-        }
-      } else {
-        console.warn(
-          "Could not retrieve the current frame for synchronisation.",
-        );
-      }
-    }
-  },
-  applyEasing(animation, easing) {
-    let easingFunction;
-
-    switch (easing.toLowerCase()) {
-      case "ease-in":
-        easingFunction = new flock.BABYLON.QuadraticEase();
-        easingFunction.setEasingMode(
-          flock.BABYLON.EasingFunction.EASINGMODE_EASEIN,
-        );
-        break;
-      case "ease-out":
-        easingFunction = new flock.BABYLON.QuadraticEase();
-        easingFunction.setEasingMode(
-          flock.BABYLON.EasingFunction.EASINGMODE_EASEOUT,
-        );
-        break;
-      case "ease-in-out":
-        easingFunction = new flock.BABYLON.QuadraticEase();
-        easingFunction.setEasingMode(
-          flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
-        );
-        break;
-      case "linear":
-      default:
-        easingFunction = null; // No easing for linear
-        break;
-    }
-
-    if (easingFunction) {
-      animation.setEasingFunction(easingFunction);
-      //console.log(`Applied easing: ${easing}`);
-    }
-  },
-  stopAnimationsTargetingMesh(scene, mesh) {
-    scene.animationGroups.forEach(function (animationGroup) {
-      let targets = animationGroup.targetedAnimations.map(
-        function (targetedAnimation) {
-          return targetedAnimation.target;
-        },
-      );
-
-      if (
-        targets.includes(mesh) ||
-        flock.animationGroupTargetsDescendant(animationGroup, mesh)
-      ) {
-        animationGroup.stop();
-      }
-    });
-  },
-  animationGroupTargetsDescendant(animationGroup, parentMesh) {
-    let descendants = parentMesh.getDescendants();
-    for (let targetedAnimation of animationGroup.targetedAnimations) {
-      let target = targetedAnimation.target;
-      if (descendants.includes(target)) {
-        return true;
-      }
-    }
-    return false;
   },
 };

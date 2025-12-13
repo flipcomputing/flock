@@ -1417,7 +1417,7 @@ function updateCylinderGeometry(
 function replaceMeshModel(currentMesh, block) {
   if (!currentMesh || !block) return;
 
-  const animationInfo = flock.getCurrentAnimationInfo(currentMesh);
+  const animationInfo = flock._getCurrentAnimationInfo(currentMesh);
 
   const modelName = block.getFieldValue("MODELS");
   if (!modelName) return;

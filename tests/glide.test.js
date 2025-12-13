@@ -6,26 +6,6 @@ function checkXPosition(box, pos) {
 	return Math.abs(box.position.x - pos) <= 0.1;
 }
 
-function getMeshPivotPosition(mesh, axis) {
-	const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
-		x: "CENTER",
-		y: "MIN",
-		z: "CENTER",
-	};
-
-	const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
-	const halfSize = bounding[axis] * mesh.scaling[axis];
-	const pivotSetting = pivotSettings[axis];
-
-	if (pivotSetting === "CENTER") {
-		return mesh.position[axis];
-	} else if (pivotSetting === "MIN") {
-		return mesh.position[axis] - halfSize;
-	} else if (pivotSetting === "MAX") {
-		return mesh.position[axis] + halfSize;
-	}
-}
-
 // Test suite for glideTo function
 export function runGlideToTests(flock) {
 	describe("glideTo function tests @slow", function () {
