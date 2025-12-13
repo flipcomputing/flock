@@ -369,6 +369,45 @@ export function duplicateBlockAndInsert(
 
 	Blockly.Events.setGroup(false);
 
+	// Trigger update of mesh from block values
+	queueMicrotask(() => {
+		Blockly.Events.setGroup("duplicate");
+
+		const descendants = duplicateBlock.getDescendants(false);
+
+		for (const b of descendants) {
+			const transformChildTypes = ["rotate_to", "resize"];
+			if (!transformChildTypes.includes(b.type)) continue;
+
+			for (const input of b.inputList ?? []) {
+				const numBlock = input.connection?.targetBlock?.();
+				if (!numBlock) continue;
+
+				if (typeof numBlock.getFieldValue !== "function") continue;
+				const current = numBlock.getFieldValue("NUM");
+				if (current === null || current === undefined) continue;
+
+				const currNum = Number(current);
+				const oldValue = Number.isFinite(currNum)
+					? String(currNum - 1e-6)
+					: "__refresh_old__";
+				const newValue = String(current);
+
+				Blockly.Events.fire(
+					new Blockly.Events.BlockChange(
+						numBlock,
+						"field",
+						"NUM",
+						oldValue,
+						newValue,
+					),
+				);
+			}
+		}
+
+		Blockly.Events.setGroup(false);
+	});
+
 	duplicateBlock.initSvg();
 	duplicateBlock.render();
 
