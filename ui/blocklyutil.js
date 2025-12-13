@@ -317,3 +317,124 @@ export function createBlockForCharacter(
 		if (!eventsWereEnabled) Blockly.Events.disable();
 	}
 }
+
+const roundToOneDecimal = (value) => Math.round(value * 10) / 10;
+
+export function setBlockXYZ(block, x, y, z) {
+	const setInputValue = (inputName, value) => {
+		const input = block.getInput(inputName);
+		const connectedBlock = input.connection.targetBlock();
+
+		if (connectedBlock) {
+			connectedBlock.setFieldValue(String(value), "NUM");
+		}
+	};
+
+	setInputValue("X", roundToOneDecimal(x));
+	setInputValue("Y", roundToOneDecimal(y));
+	setInputValue("Z", roundToOneDecimal(z));
+}
+
+export function duplicateBlockAndInsert(
+	originalBlock,
+	workspace,
+	pickedPosition,
+) {
+	if (!originalBlock) {
+		return null;
+	}
+
+	Blockly.Events.setGroup("duplicate");
+
+	const blockJson = Blockly.serialization.blocks.save(originalBlock, {
+		includeShadows: true,
+	});
+
+	if (blockJson.next) {
+		delete blockJson.next;
+	}
+
+	const duplicateBlock = Blockly.serialization.blocks.append(
+		blockJson,
+		workspace,
+	);
+
+	setPositionValues(duplicateBlock, pickedPosition, duplicateBlock.type);
+
+	if (originalBlock.nextConnection && duplicateBlock.previousConnection) {
+		originalBlock.nextConnection.connect(duplicateBlock.previousConnection);
+	} else {
+		duplicateBlock.moveBy(50, 50);
+	}
+
+	Blockly.Events.setGroup(false);
+
+	duplicateBlock.initSvg();
+	duplicateBlock.render();
+
+	return duplicateBlock;
+}
+
+export function findParentWithBlockId(mesh) {
+	let currentNode = mesh;
+	while (currentNode) {
+		if (currentNode.metadata.blockKey !== undefined) {
+			return currentNode;
+		}
+		currentNode = currentNode.parent;
+	}
+
+	return null;
+}
+
+export function calculateYPosition(mesh, block) {
+	let finalY = mesh.position.y;
+
+	if (
+		mesh.metadata &&
+		mesh.metadata.yOffset &&
+		mesh.metadata.yOffset !== 0 &&
+		block
+	) {
+		console.log(
+			"Updating y position for mesh:",
+			mesh.name,
+			"with block:",
+			block.type,
+		);
+		const scaleInput = block.getInput("SCALE");
+
+		if (scaleInput && scaleInput.connection.targetBlock()) {
+			const scale = scaleInput.connection
+				.targetBlock()
+				.getFieldValue("NUM");
+			finalY -= scale * mesh.metadata.yOffset;
+		}
+	}
+
+	return finalY;
+}
+
+export function setNumberInputs(block, valuesByInputName) {
+	if (!block || !valuesByInputName) return;
+
+	for (const [inputName, value] of Object.entries(valuesByInputName)) {
+		if (value === undefined || value === null) continue;
+
+		const n = Number(value);
+		if (!Number.isFinite(n)) continue;
+
+		const target = block.getInput(inputName)?.connection?.targetBlock?.();
+		if (!target?.setFieldValue) continue;
+
+		target.setFieldValue(String(roundToOneDecimal(n)), "NUM");
+	}
+}
+
+export function getNumberInput(block, inputName) {
+	const target = block?.getInput(inputName)?.connection?.targetBlock?.();
+	if (!target?.getFieldValue) return NaN;
+
+	const n = Number(target.getFieldValue("NUM"));
+	return Number.isFinite(n) ? n : NaN;
+}
