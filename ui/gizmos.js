@@ -1022,7 +1022,11 @@ export function toggleGizmo(gizmoType) {
             }
 
             case "create_sphere":
-              setNumberInputs(block, { DIAMETER_X: w, DIAMETER_Y: h, DIAMETER_Z: d });
+              setNumberInputs(block, {
+                DIAMETER_X: w,
+                DIAMETER_Y: h,
+                DIAMETER_Z: d,
+              });
               break;
 
             case "load_multi_object":
@@ -1059,7 +1063,8 @@ export function toggleGizmo(gizmoType) {
 
                 ["X", "Y", "Z"].forEach((axis) => {
                   const input = resizeBlock.getInput(axis);
-                  const shadow = Blockly.getMainWorkspace().newBlock("math_number");
+                  const shadow =
+                    Blockly.getMainWorkspace().newBlock("math_number");
                   shadow.setFieldValue("1", "NUM");
                   shadow.setShadow(true);
                   shadow.initSvg();
@@ -1068,7 +1073,9 @@ export function toggleGizmo(gizmoType) {
                 });
 
                 resizeBlock.render();
-                block.getInput("DO").connection.connect(resizeBlock.previousConnection);
+                block
+                  .getInput("DO")
+                  .connection.connect(resizeBlock.previousConnection);
 
                 gizmoCreatedBlocks.set(resizeBlock.id, {
                   parentId: block.id,
@@ -1077,13 +1084,32 @@ export function toggleGizmo(gizmoType) {
                 });
               }
 
-              const bbox2 = ensureFreshBounds(mesh);
-              const sizeWorld = bbox2.extendSizeWorld.scale(2);
+              function getScaledSize(mesh) {
+                const { originalMin, originalMax } = mesh.metadata || {};
+                const min =
+                  originalMin ?? mesh.getBoundingInfo().boundingBox.minimum;
+                const max =
+                  originalMax ?? mesh.getBoundingInfo().boundingBox.maximum;
+
+                const baseX = max.x - min.x;
+                const baseY = max.y - min.y;
+                const baseZ = max.z - min.z;
+
+                return {
+                  x: baseX * Math.abs(mesh.scaling.x),
+                  y: baseY * Math.abs(mesh.scaling.y),
+                  z: baseZ * Math.abs(mesh.scaling.z),
+                };
+              }
+
+              mesh.computeWorldMatrix(true);
+              mesh.refreshBoundingInfo();
+              const sizeLocalScaled = getScaledSize(mesh);
 
               setNumberInputs(resizeBlock, {
-                X: sizeWorld.x,
-                Y: sizeWorld.y,
-                Z: sizeWorld.z,
+                X: sizeLocalScaled.x,
+                Y: sizeLocalScaled.y,
+                Z: sizeLocalScaled.z,
               });
 
               Blockly.Events.setGroup(null);
@@ -1093,7 +1119,6 @@ export function toggleGizmo(gizmoType) {
         } catch (e) {
           console.error("Error updating block values:", e);
         }
-
       });
 
       break;
