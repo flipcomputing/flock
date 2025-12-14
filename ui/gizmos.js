@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      // If gizmos are on, kill them
+      // If gizmos are on, disable them
       try {
         if (
           typeof areGizmosEnabled === "function" ? areGizmosEnabled() : true
@@ -171,7 +171,7 @@ function applyColorAtPosition(canvasX, canvasY) {
 
 let cameraMode = "play";
 
-// --- Color Picking Keyboard Mode Functions ---
+// Color Picking Keyboard Mode Functions
 
 function startColorPickingKeyboardMode(callback) {
   endColorPickingMode();
@@ -359,18 +359,19 @@ function hideBoundingBox(mesh) {
 }
 
 function resetChildMeshesOfAttachedMesh() {
-  gizmoManager.attachedMesh
+  gizmoManager?.attachedMesh
     .getChildMeshes()
     .forEach((child) => hideBoundingBox(child));
 }
 
 function resetAttachedMesh() {
+  if (!gizmoManager?.attachedMesh) return;
   hideBoundingBox(gizmoManager.attachedMesh);
   resetChildMeshesOfAttachedMesh();
 }
 
 function resetAttachedMeshIfMeshAttached() {
-  if (gizmoManager.attachedMesh) {
+  if (gizmoManager?.attachedMesh) {
     resetAttachedMesh();
   }
 }
@@ -1135,6 +1136,7 @@ export function toggleGizmo(gizmoType) {
 }
 
 function turnOffAllGizmos() {
+  if (!gizmoManager) return;
   resetBoundingBoxVisibilityIfManuallyChanged(gizmoManager.attachedMesh);
   resetAttachedMeshIfMeshAttached();
   gizmoManager.attachToMesh(null);
