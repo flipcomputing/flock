@@ -5,12 +5,7 @@ export function setFlockReference(ref) {
 }
 
 export const flockTransform = {
-  positionAt(meshName, {
-    x = 0,
-    y = 0,
-    z = 0,
-    useY = true,
-  } = {}) {
+  positionAt(meshName, { x = 0, y = 0, z = 0, useY = true } = {}) {
     return new Promise((resolve, reject) => {
       flock.whenModelReady(meshName, (mesh) => {
         if (!mesh) {
@@ -36,8 +31,7 @@ export const flockTransform = {
         // Check if we have pivot settings in metadata
         if (mesh.metadata && mesh.metadata.pivotSettings) {
           const pivotSettings = mesh.metadata.pivotSettings;
-          const boundingBox =
-            mesh.getBoundingInfo().boundingBox.extendSize;
+          const boundingBox = mesh.getBoundingInfo().boundingBox.extendSize;
 
           // Helper to resolve pivot values
           function resolvePivotValue(value, axis) {
@@ -92,7 +86,6 @@ export const flockTransform = {
         //console.log("Position at", x, y, z, mesh.position.y, mesh);
 
         resolve();
-
       });
     });
   },
@@ -107,15 +100,30 @@ export const flockTransform = {
 
         switch (coordinate_setting) {
           case "x_coordinate":
-            flock.positionAt(meshName, { x: value, y: null, z: null, useY: false});
+            flock.positionAt(meshName, {
+              x: value,
+              y: null,
+              z: null,
+              useY: false,
+            });
             break;
 
           case "y_coordinate":
-            flock.positionAt(meshName, { x: null, y: value, z: null, useY: true});
+            flock.positionAt(meshName, {
+              x: null,
+              y: value,
+              z: null,
+              useY: true,
+            });
             break;
 
           case "z_coordinate":
-            flock.positionAt(meshName, { x: null, y: null, z: value, useY: false});
+            flock.positionAt(meshName, {
+              x: null,
+              y: null,
+              z: value,
+              useY: false,
+            });
             break;
         }
 
@@ -145,9 +153,14 @@ export const flockTransform = {
               originalMotionType = mesh1.physics.getMotionType();
 
               // Only change motion type if it's not already DYNAMIC or ANIMATED
-              if (originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
-                  originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED) {
-                mesh1.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+              if (
+                originalMotionType !==
+                  flock.BABYLON.PhysicsMotionType.DYNAMIC &&
+                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED
+              ) {
+                mesh1.physics.setMotionType(
+                  flock.BABYLON.PhysicsMotionType.ANIMATED,
+                );
               }
             }
 
@@ -170,9 +183,12 @@ export const flockTransform = {
               );
 
               // Restore original motion type if it was changed and different from ANIMATED
-              if (originalMotionType && 
-                  originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED &&
-                  originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC) {
+              if (
+                originalMotionType &&
+                originalMotionType !==
+                  flock.BABYLON.PhysicsMotionType.ANIMATED &&
+                originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC
+              ) {
                 // Use setTimeout to allow physics update to complete first
                 setTimeout(() => {
                   mesh1.physics.setMotionType(originalMotionType);
@@ -181,9 +197,12 @@ export const flockTransform = {
             }
 
             resolve();
-
           } catch (error) {
-            reject(new Error(`Failed to move mesh '${meshName}' to '${target}': ${error.message}`));
+            reject(
+              new Error(
+                `Failed to move mesh '${meshName}' to '${target}': ${error.message}`,
+              ),
+            );
           }
         });
       });
@@ -212,7 +231,9 @@ export const flockTransform = {
               originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED &&
               originalMotionType != null
             ) {
-              mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+              mesh.physics.setMotionType(
+                flock.BABYLON.PhysicsMotionType.ANIMATED,
+              );
               motionTypeTemporarilyChanged = true;
             }
           }
@@ -223,14 +244,18 @@ export const flockTransform = {
           if (mesh.physics) {
             const currentMotionType = mesh.physics.getMotionType?.();
 
-            if (currentMotionType === flock.BABYLON.PhysicsMotionType.ANIMATED) {
+            if (
+              currentMotionType === flock.BABYLON.PhysicsMotionType.ANIMATED
+            ) {
               // For ANIMATED bodies, drive transform explicitly.
               mesh.physics.disablePreStep = false;
               mesh.physics.setTargetTransform(
                 mesh.position,
-                mesh.rotationQuaternion
+                mesh.rotationQuaternion,
               );
-            } else if (currentMotionType === flock.BABYLON.PhysicsMotionType.DYNAMIC) {
+            } else if (
+              currentMotionType === flock.BABYLON.PhysicsMotionType.DYNAMIC
+            ) {
               // For DYNAMIC bodies, do not call setTargetTransform.
               if (originalVelocity) {
                 originalVelocity.y = 0;
@@ -249,8 +274,8 @@ export const flockTransform = {
         } catch (error) {
           reject(
             new Error(
-              `Failed to move mesh '${meshName}' by vector: ${error.message}`
-            )
+              `Failed to move mesh '${meshName}' by vector: ${error.message}`,
+            ),
           );
         }
       });
@@ -275,9 +300,10 @@ export const flockTransform = {
       );
 
       return distance;
-
     } catch (error) {
-      throw new Error(`Failed to calculate distance between '${meshName1}' and '${meshName2}': ${error.message}`);
+      throw new Error(
+        `Failed to calculate distance between '${meshName1}' and '${meshName2}': ${error.message}`,
+      );
     }
   },
   rotate(meshName, { x = 0, y = 0, z = 0 } = {}) {
@@ -305,15 +331,9 @@ export const flockTransform = {
           if (!camera.rotationQuaternion) {
             camera.rotationQuaternion =
               flock.BABYLON.Quaternion.RotationYawPitchRoll(
-                flock.BABYLON.Tools.ToRadians(
-                  camera.rotation.y,
-                ),
-                flock.BABYLON.Tools.ToRadians(
-                  camera.rotation.x,
-                ),
-                flock.BABYLON.Tools.ToRadians(
-                  camera.rotation.z,
-                ),
+                flock.BABYLON.Tools.ToRadians(camera.rotation.y),
+                flock.BABYLON.Tools.ToRadians(camera.rotation.x),
+                flock.BABYLON.Tools.ToRadians(camera.rotation.z),
               );
           }
 
@@ -329,20 +349,21 @@ export const flockTransform = {
         const xRadian = flock.BABYLON.Tools.ToRadians(x);
         const yRadian = flock.BABYLON.Tools.ToRadians(y);
         const zRadian = flock.BABYLON.Tools.ToRadians(z);
-        const newLightVector = new flock.BABYLON.Vector3(xRadian, yRadian, zRadian);
+        const newLightVector = new flock.BABYLON.Vector3(
+          xRadian,
+          yRadian,
+          zRadian,
+        );
         mesh.direction = oldLightVector.add(newLightVector);
         return;
       }
 
-      const incrementalRotation =
-        flock.BABYLON.Quaternion.RotationYawPitchRoll(
-          flock.BABYLON.Tools.ToRadians(y),
-          flock.BABYLON.Tools.ToRadians(x),
-          flock.BABYLON.Tools.ToRadians(z),
-        );
-      mesh.rotationQuaternion
-        .multiplyInPlace(incrementalRotation)
-        .normalize();
+      const incrementalRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+        flock.BABYLON.Tools.ToRadians(y),
+        flock.BABYLON.Tools.ToRadians(x),
+        flock.BABYLON.Tools.ToRadians(z),
+      );
+      mesh.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
 
       if (mesh.physics) {
         mesh.physics.disablePreStep = false;
@@ -370,25 +391,18 @@ export const flockTransform = {
           if (!camera.rotationQuaternion) {
             camera.rotationQuaternion =
               flock.BABYLON.Quaternion.RotationYawPitchRoll(
-                flock.BABYLON.Tools.ToRadians(
-                  camera.rotation.y,
-                ),
-                flock.BABYLON.Tools.ToRadians(
-                  camera.rotation.x,
-                ),
-                flock.BABYLON.Tools.ToRadians(
-                  camera.rotation.z,
-                ),
+                flock.BABYLON.Tools.ToRadians(camera.rotation.y),
+                flock.BABYLON.Tools.ToRadians(camera.rotation.x),
+                flock.BABYLON.Tools.ToRadians(camera.rotation.z),
               ).normalize();
           }
           // Create the target quaternion using the absolute Euler angles.
           // Here we assume y is yaw, x is pitch, and z is roll.
-          const targetQuat =
-            flock.BABYLON.Quaternion.RotationYawPitchRoll(
-              flock.BABYLON.Tools.ToRadians(y),
-              flock.BABYLON.Tools.ToRadians(x),
-              flock.BABYLON.Tools.ToRadians(z),
-            ).normalize();
+          const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+            flock.BABYLON.Tools.ToRadians(y),
+            flock.BABYLON.Tools.ToRadians(x),
+            flock.BABYLON.Tools.ToRadians(z),
+          ).normalize();
           // Set the camera's rotationQuaternion directly to the target.
           camera.rotationQuaternion = targetQuat;
         }
@@ -407,7 +421,7 @@ export const flockTransform = {
       const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
         flock.BABYLON.Tools.ToRadians(y), // yaw
         flock.BABYLON.Tools.ToRadians(x), // pitch
-        flock.BABYLON.Tools.ToRadians(z)  // roll
+        flock.BABYLON.Tools.ToRadians(z), // roll
       ).normalize();
 
       // Set the mesh's rotation directly to the target
@@ -441,13 +455,21 @@ export const flockTransform = {
     if (!scene) return;
 
     // Camera special case: Babylon camera API already handles this well.
-    if (meshName === "__active_camera__" && typeof mesh1.setTarget === "function") {
+    if (
+      meshName === "__active_camera__" &&
+      typeof mesh1.setTarget === "function"
+    ) {
       const camPos = mesh1.getAbsolutePosition?.() ?? mesh1.absolutePosition;
-      const tgtPos = (mesh2.getAbsolutePosition?.() ?? mesh2.absolutePosition).clone();
+      const tgtPos = (
+        mesh2.getAbsolutePosition?.() ?? mesh2.absolutePosition
+      ).clone();
       if (!useY) tgtPos.y = camPos.y;
       mesh1.setTarget(tgtPos);
-      await new Promise(resolve => {
-        const cb = () => { scene.onAfterRenderObservable.removeCallback(cb); resolve(); };
+      await new Promise((resolve) => {
+        const cb = () => {
+          scene.onAfterRenderObservable.removeCallback(cb);
+          resolve();
+        };
         scene.onAfterRenderObservable.add(cb);
       });
       return;
@@ -480,18 +502,24 @@ export const flockTransform = {
     await this.rotateTo(meshName, {
       x: flock.BABYLON.Tools.ToDegrees(euler.x),
       y: flock.BABYLON.Tools.ToDegrees(euler.y),
-      z: flock.BABYLON.Tools.ToDegrees(euler.z)
+      z: flock.BABYLON.Tools.ToDegrees(euler.z),
     });
 
     // Wait one tick so transforms "stick" before returning.
     if (mesh1.physics) {
-      await new Promise(resolve => {
-        const cb = () => { scene.onAfterPhysicsObservable.removeCallback(cb); resolve(); };
+      await new Promise((resolve) => {
+        const cb = () => {
+          scene.onAfterPhysicsObservable.removeCallback(cb);
+          resolve();
+        };
         scene.onAfterPhysicsObservable.add(cb);
       });
     } else {
-      await new Promise(resolve => {
-        const cb = () => { scene.onAfterRenderObservable.removeCallback(cb); resolve(); };
+      await new Promise((resolve) => {
+        const cb = () => {
+          scene.onAfterRenderObservable.removeCallback(cb);
+          resolve();
+        };
         scene.onAfterRenderObservable.add(cb);
       });
     }
@@ -506,7 +534,7 @@ export const flockTransform = {
       xOrigin = "CENTRE",
       yOrigin = "BOTTOM",
       zOrigin = "CENTRE",
-    } = {}
+    } = {},
   ) {
     return flock.whenModelReady(meshName, (mesh) => {
       mesh.metadata = mesh.metadata || {};
@@ -576,13 +604,13 @@ export const flockTransform = {
   resize(
     meshName,
     {
-      width = null,     
-      height = null,   
-      depth = null,    
+      width = null,
+      height = null,
+      depth = null,
       xOrigin = "CENTRE",
       yOrigin = "BASE",
       zOrigin = "CENTRE",
-    } = {}
+    } = {},
   ) {
     return flock.whenModelReady(meshName, (mesh) => {
       mesh.metadata = mesh.metadata || {};
@@ -658,11 +686,14 @@ export const flockTransform = {
       flock.updatePhysics(mesh);
     });
   },
-  setPivotPoint(meshName, {
-    xPivot = "CENTER",
-    yPivot = "MIN",     // <- default Y is MIN (BASE)
-    zPivot = "CENTER",
-  } = {}) {
+  setAnchor(
+    meshName,
+    {
+      xPivot = "CENTER",
+      yPivot = "MIN", // <- default Y is MIN (BASE)
+      zPivot = "CENTER",
+    } = {},
+  ) {
     return flock.whenModelReady(meshName, (mesh) => {
       if (!mesh) return;
 
@@ -672,17 +703,24 @@ export const flockTransform = {
       function resolvePivotValue(value, axis) {
         if (typeof value === "string") {
           switch (value) {
-            case "MIN":    return -bounding[axis];
-            case "MAX":    return  bounding[axis];
+            case "MIN":
+              return -bounding[axis];
+            case "MAX":
+              return bounding[axis];
             case "CENTER":
-            default:       return 0;
+            default:
+              return 0;
           }
         }
-        return (typeof value === "number") ? value : 0;
+        return typeof value === "number" ? value : 0;
       }
 
       // OLD pivot from metadata; default Y is MIN, X/Z are CENTER
-      const prev = (mesh.metadata && mesh.metadata.pivotSettings) || { x: "CENTER", y: "MIN", z: "CENTER" };
+      const prev = (mesh.metadata && mesh.metadata.pivotSettings) || {
+        x: "CENTER",
+        y: "MIN",
+        z: "CENTER",
+      };
       const oldPivotLocal = new BABYLON.Vector3(
         resolvePivotValue(prev.x, "x"),
         resolvePivotValue(prev.y, "y"),
@@ -699,16 +737,24 @@ export const flockTransform = {
       // World position of OLD pivot (before change)
       mesh.computeWorldMatrix(true);
       const wmBefore = mesh.getWorldMatrix().clone();
-      const oldPivotWorld = BABYLON.Vector3.TransformCoordinates(oldPivotLocal, wmBefore);
+      const oldPivotWorld = BABYLON.Vector3.TransformCoordinates(
+        oldPivotLocal,
+        wmBefore,
+      );
 
       // Apply new pivot to mesh (and children, per your existing behavior)
       mesh.setPivotPoint(newPivotLocal);
-      mesh.getChildMeshes().forEach((child) => child.setPivotPoint(newPivotLocal));
+      mesh
+        .getChildMeshes()
+        .forEach((child) => child.setPivotPoint(newPivotLocal));
 
       // World position of NEW pivot (after change)
       mesh.computeWorldMatrix(true);
       const wmAfter = mesh.getWorldMatrix().clone();
-      const newPivotWorld = BABYLON.Vector3.TransformCoordinates(newPivotLocal, wmAfter);
+      const newPivotWorld = BABYLON.Vector3.TransformCoordinates(
+        newPivotLocal,
+        wmAfter,
+      );
 
       // Reposition to preserve visual placement
       const delta = oldPivotWorld.subtract(newPivotWorld);
@@ -716,10 +762,18 @@ export const flockTransform = {
 
       // Physics sync
       if (mesh.physics) {
-        if (mesh.physics.getMotionType() !== BABYLON.PhysicsMotionType.DYNAMIC) {
+        if (
+          mesh.physics.getMotionType() !== BABYLON.PhysicsMotionType.DYNAMIC
+        ) {
           mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
         }
-        const rq = mesh.rotationQuaternion || BABYLON.Quaternion.FromEulerAngles(mesh.rotation.x, mesh.rotation.y, mesh.rotation.z);
+        const rq =
+          mesh.rotationQuaternion ||
+          BABYLON.Quaternion.FromEulerAngles(
+            mesh.rotation.x,
+            mesh.rotation.y,
+            mesh.rotation.z,
+          );
         mesh.physics.disablePreStep = false;
         mesh.physics.setTargetTransform(mesh.position, rq);
       }
@@ -731,5 +785,56 @@ export const flockTransform = {
       mesh.metadata.pivotSettings = { x: xPivot, y: yPivot, z: zPivot };
     });
   },
+  _getAnchor(mesh) {
+    if (!mesh) return null;
 
-}
+    // Cameras / anything without bounds: just use position
+    if (!mesh.getBoundingInfo || !mesh.getBoundingInfo()) {
+      return {
+        x: mesh.position.x,
+        y: mesh.position.y,
+        z: mesh.position.z,
+      };
+    }
+
+    mesh.computeWorldMatrix(true);
+    const bb = mesh.getBoundingInfo().boundingBox;
+    const minW = bb.minimumWorld;
+    const maxW = bb.maximumWorld;
+
+    // Same defaults as setAnchor: X/Z CENTER, Y MIN (BASE)
+    const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
+      x: "CENTER",
+      y: "MIN",
+      z: "CENTER",
+    };
+
+    function resolveAxis(axisKey, setting) {
+      const min = minW[axisKey];
+      const max = maxW[axisKey];
+
+      if (typeof setting === "string") {
+        switch (setting) {
+          case "MIN":
+            return min;
+          case "MAX":
+            return max;
+          case "CENTER":
+          default:
+            return (min + max) / 2;
+        }
+      }
+
+      if (typeof setting === "number") return setting;
+
+      // Fallback to center
+      return (min + max) / 2;
+    }
+
+    const x = resolveAxis("x", pivotSettings.x);
+    const y = resolveAxis("y", pivotSettings.y);
+    const z = resolveAxis("z", pivotSettings.z);
+
+    return { x, y, z };
+  },
+};

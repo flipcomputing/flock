@@ -815,7 +815,7 @@ export default {
   my_place_ui: "🏠 My place",
   microbit_monkey_ui: "🐵 micro:bit monkey",
   tree_jump_ui: "🌳 Tree jump",
-  
+  shape_push_ui: "🔶 Shape push",
   main_menu_ui: "Main menu",
   menu_button_sr_label_ui: "Menu",
   project_submenu_ui: "Project",

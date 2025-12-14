@@ -1,5 +1,9 @@
 import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap, generateUniqueId } from "../generators/generators.js";
+import {
+  meshMap,
+  meshBlockIdMap,
+  generateUniqueId,
+} from "../generators/generators.js";
 import { flock } from "../flock.js";
 import {
   extractMaterialInfo,
@@ -8,7 +12,6 @@ import {
 } from "./blockmesh.js";
 
 export function createMeshOnCanvas(block) {
-
   const mesh = getMeshFromBlock(block);
   if (mesh) {
     console.warn("Mesh already exists for block", block.id);
@@ -136,6 +139,7 @@ export function createMeshOnCanvas(block) {
         alpha,
       });
 
+      console.log("Create mesh on canvas");
       flock.createMap(mapName, material);
 
       break;
@@ -632,48 +636,4 @@ function createShapeInternal(block) {
     meshMap[block.id] = block;
     meshBlockIdMap[block.id] = block.id;
   }
-}
-
-// Updated setPositionValues function with rounding behavior
-export function setPositionValues(block, position, blockType) {
-  // Helper function to set position values on blocks
-  if (block && position) {
-    try {
-      // Helper function to set or create shadow block for position input
-      function setOrCreatePositionInput(inputName, value) {
-        const input = block.getInput(inputName);
-        if (!input) return;
-
-        // Round the value to 1 decimal place
-        const roundedValue = Math.round(value * 10) / 10;
-
-        let targetBlock = input.connection.targetBlock();
-        if (!targetBlock) {
-          // Create a shadow block if none exists
-          const shadowBlock =
-            Blockly.getMainWorkspace().newBlock("math_number");
-          shadowBlock.setFieldValue(String(roundedValue), "NUM");
-          shadowBlock.setShadow(true);
-          shadowBlock.setMovable(false);
-          shadowBlock.setDeletable(false);
-          shadowBlock.initSvg();
-          shadowBlock.render();
-          input.connection.connect(shadowBlock.outputConnection);
-        } else {
-          // Set the value if a block is already connected
-          targetBlock.setFieldValue(String(roundedValue), "NUM");
-        }
-      }
-
-      setOrCreatePositionInput("X", position.x);
-      setOrCreatePositionInput("Y", position.y);
-      setOrCreatePositionInput("Z", position.z);
-    } catch (e) {
-      console.warn("Could not set position values for block:", blockType, e);
-    }
-  }
-}
-
-function roundPositionValue(value) {
-  return Math.round(value * 10) / 10; // 1 decimal place
 }

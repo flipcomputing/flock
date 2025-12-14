@@ -5,6 +5,70 @@ export function setFlockReference(ref) {
 }
 
 export const flockMaterial = {
+  /* randomColour() {
+          const colors = [
+                  "#FF6B6B",
+                  "#4ECDC4",
+                  "#45B7D1",
+                  "#96CEB4",
+                  "#FFEAA7",
+                  "#DDA0DD",
+                  "#98D8C8",
+                  "#F7DC6F",
+                  "#BB8FCE",
+                  "#85C1E9",
+                  "#F8C471",
+                  "#82E0AA",
+                  "#F1948A",
+                  "#85C1E9",
+                  "#D7BDE2",
+          ];
+          return colors[Math.floor(Math.random() * colors.length)];
+  },
+  hexToRgba(hex, alpha = 1) {
+          // Remove the hash if present
+          hex = hex.replace(/^#/, "");
+
+          // Parse the hex values
+          const bigint = parseInt(hex, 16);
+          const r = (bigint >> 16) & 255;
+          const g = (bigint >> 8) & 255;
+          const b = bigint & 255;
+
+          return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  },
+  hexToRgb(hex) {
+          // Remove the hash if present
+          hex = hex.replace(/^#/, "");
+
+          // Parse the hex values
+          const bigint = parseInt(hex, 16);
+          const r = (bigint >> 16) & 255;
+          const g = (bigint >> 8) & 255;
+          const b = bigint & 255;
+
+          return { r, g, b };
+  },
+  rgbToHex(r, g, b) {
+          // Ensure values are within valid range
+          r = Math.max(0, Math.min(255, Math.round(r)));
+          g = Math.max(0, Math.min(255, Math.round(g)));
+          b = Math.max(0, Math.min(255, Math.round(b)));
+
+          // Convert to hex and pad with zeros if needed
+          const hex =
+                  "#" +
+                  [r, g, b]
+                          .map((x) => {
+                                  const hex = x.toString(16);
+                                  return hex.length === 1
+                                          ? "0" + hex
+                                          : hex;
+                          })
+                          .join("");
+
+          return hex;
+  },*/
   randomColour() {
     const letters = "0123456789ABCDEF";
     let colour = "#";
@@ -1136,11 +1200,12 @@ export const flockMaterial = {
     const resolvedAlpha = alpha == null ? 1.0 : alpha;
 
     // --- Helpers --------------------------------------------------------------
-    const isBabylonMaterial = (v) =>
-      v && typeof v.getClassName === "function";
+    const isBabylonMaterial = (v) => v && typeof v.getClassName === "function";
 
     const isMaterialDescriptor = (v) =>
-      v && typeof v === "object" && !Array.isArray(v) &&
+      v &&
+      typeof v === "object" &&
+      !Array.isArray(v) &&
       ("materialName" in v || "color" in v || "alpha" in v);
 
     const toMaterial = (v) => {
@@ -1199,7 +1264,11 @@ export const flockMaterial = {
       mesh.material = m;
       const tex =
         m?.albedoTexture || m?.diffuseTexture || m?.baseTexture || null;
-      if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
+      if (
+        tex &&
+        typeof tex.uScale === "number" &&
+        typeof tex.vScale === "number"
+      ) {
         if (!tex.uScale) tex.uScale = 1;
         if (!tex.vScale) tex.vScale = 1;
       }
@@ -1219,7 +1288,11 @@ export const flockMaterial = {
         ? toMaterial(color[0])
         : null;
 
-    if (materialFromArray || isBabylonMaterial(color) || isMaterialDescriptor(color)) {
+    if (
+      materialFromArray ||
+      isBabylonMaterial(color) ||
+      isMaterialDescriptor(color)
+    ) {
       const matCandidate = materialFromArray || toMaterial(color);
       if (matCandidate) {
         disposePlaneSideMaterials();
@@ -1258,7 +1331,11 @@ export const flockMaterial = {
         c instanceof flock.BABYLON.Color3 ||
         c instanceof flock.BABYLON.Color4;
 
-      if (Array.isArray(color) && color.length === 2 && color.every(isPlainColour)) {
+      if (
+        Array.isArray(color) &&
+        color.length === 2 &&
+        color.every(isPlainColour)
+      ) {
         clearVertexColors();
 
         const [front, back] = color.map(makeColor4);
@@ -1281,8 +1358,10 @@ export const flockMaterial = {
         const updatePlaneSideMaterial = (mat, frontColor, backColor) => {
           if (mat.subMaterials?.length !== 2) return false;
           const [frontMat, backMat] = mat.subMaterials;
-          if (!(frontMat instanceof flock.BABYLON.StandardMaterial)) return false;
-          if (!(backMat instanceof flock.BABYLON.StandardMaterial)) return false;
+          if (!(frontMat instanceof flock.BABYLON.StandardMaterial))
+            return false;
+          if (!(backMat instanceof flock.BABYLON.StandardMaterial))
+            return false;
 
           frontMat.diffuseColor = new flock.BABYLON.Color3(
             frontColor.r,
@@ -1302,7 +1381,10 @@ export const flockMaterial = {
         };
 
         let multiMaterial = tryReusePlaneSideMaterial();
-        if (multiMaterial && !updatePlaneSideMaterial(multiMaterial, front, back)) {
+        if (
+          multiMaterial &&
+          !updatePlaneSideMaterial(multiMaterial, front, back)
+        ) {
           disposePlaneSideMaterials(multiMaterial);
           multiMaterial = null;
         }
@@ -1374,10 +1456,10 @@ export const flockMaterial = {
       clearVertexColors();
       const material = new flock.BABYLON.StandardMaterial(
         `${shapeType.toLowerCase()}Material`,
-        scene
+        scene,
       );
       material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(Array.isArray(color) ? color[0] : color)
+        flock.getColorFromString(Array.isArray(color) ? color[0] : color),
       );
       material.alpha = resolvedAlpha;
       mesh.material = material;
@@ -1386,13 +1468,24 @@ export const flockMaterial = {
 
     // --- Box face colours via vertex colours ----------------------------------
     if (shapeType === "Box") {
-      const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+      const positions = mesh.getVerticesData(
+        flock.BABYLON.VertexBuffer.PositionKind,
+      );
       const indices = mesh.getIndices();
-      const normals = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
+      const normals = mesh.getVerticesData(
+        flock.BABYLON.VertexBuffer.NormalKind,
+      );
 
       if (!positions || !indices || indices.length !== 36) {
-        console.warn("Mesh is not a standard box; falling back to uniform color.");
-        return flock.applyMaterialToMesh(mesh, shapeType, color[0], resolvedAlpha);
+        console.warn(
+          "Mesh is not a standard box; falling back to uniform color.",
+        );
+        return flock.applyMaterialToMesh(
+          mesh,
+          shapeType,
+          color[0],
+          resolvedAlpha,
+        );
       }
 
       const faceToSide = ["front", "back", "right", "left", "top", "bottom"];
@@ -1408,7 +1501,11 @@ export const flockMaterial = {
       switch (color.length) {
         case 2:
           sideColorMap.top = sideColorMap.bottom = makeColor4(color[0]);
-          sideColorMap.left = sideColorMap.right = sideColorMap.front = sideColorMap.back = makeColor4(color[1]);
+          sideColorMap.left =
+            sideColorMap.right =
+            sideColorMap.front =
+            sideColorMap.back =
+              makeColor4(color[1]);
           break;
         case 3:
           sideColorMap.top = sideColorMap.bottom = makeColor4(color[0]);
@@ -1430,7 +1527,14 @@ export const flockMaterial = {
           break;
         default: {
           const arr = color.slice(0, 6).map(makeColor4);
-          [sideColorMap.top, sideColorMap.bottom, sideColorMap.left, sideColorMap.right, sideColorMap.front, sideColorMap.back] = arr;
+          [
+            sideColorMap.top,
+            sideColorMap.bottom,
+            sideColorMap.left,
+            sideColorMap.right,
+            sideColorMap.front,
+            sideColorMap.back,
+          ] = arr;
         }
       }
 
@@ -1451,14 +1555,14 @@ export const flockMaterial = {
           newPositions.push(
             positions[vi * 3],
             positions[vi * 3 + 1],
-            positions[vi * 3 + 2]
+            positions[vi * 3 + 2],
           );
 
           if (normals) {
             newNormals.push(
               normals[vi * 3],
               normals[vi * 3 + 1],
-              normals[vi * 3 + 2]
+              normals[vi * 3 + 2],
             );
           }
 
@@ -1467,8 +1571,12 @@ export const flockMaterial = {
         }
       }
 
-      mesh.setVerticesData(flock.BABYLON.VertexBuffer.PositionKind, newPositions);
-      if (normals) mesh.setVerticesData(flock.BABYLON.VertexBuffer.NormalKind, newNormals);
+      mesh.setVerticesData(
+        flock.BABYLON.VertexBuffer.PositionKind,
+        newPositions,
+      );
+      if (normals)
+        mesh.setVerticesData(flock.BABYLON.VertexBuffer.NormalKind, newNormals);
       mesh.setVerticesData(flock.BABYLON.VertexBuffer.ColorKind, colors);
       mesh.setIndices(newIndices);
 
@@ -1486,12 +1594,18 @@ export const flockMaterial = {
 
     // --- Cylinder colours via vertex colours ----------------------------------
     if (shapeType === "Cylinder") {
-      const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+      const positions = mesh.getVerticesData(
+        flock.BABYLON.VertexBuffer.PositionKind,
+      );
       const indices = mesh.getIndices();
-      const normals = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
+      const normals = mesh.getVerticesData(
+        flock.BABYLON.VertexBuffer.NormalKind,
+      );
 
       if (!positions || !indices) {
-        console.warn("Missing geometry for cylinder; falling back to uniform color.");
+        console.warn(
+          "Missing geometry for cylinder; falling back to uniform color.",
+        );
         return flock.applyMaterialToMesh(
           mesh,
           shapeType,
@@ -1506,7 +1620,8 @@ export const flockMaterial = {
       const newIndices = [];
 
       const yVals = [];
-      for (let i = 0; i < positions.length; i += 3) yVals.push(positions[i + 1]);
+      for (let i = 0; i < positions.length; i += 3)
+        yVals.push(positions[i + 1]);
 
       const minY = Math.min(...yVals);
       const maxY = Math.max(...yVals);
@@ -1541,7 +1656,7 @@ export const flockMaterial = {
           } else {
             const sideColorIndex = 2 + Math.floor(sideFaceIndex / 2);
             faceColor = makeColor4(
-              color[(sideColorIndex % (color.length - 2)) + 2]
+              color[(sideColorIndex % (color.length - 2)) + 2],
             );
             sideFaceIndex++;
           }
@@ -1553,14 +1668,14 @@ export const flockMaterial = {
           newPositions.push(
             positions[vi * 3],
             positions[vi * 3 + 1],
-            positions[vi * 3 + 2]
+            positions[vi * 3 + 2],
           );
 
           if (normals) {
             newNormals.push(
               normals[vi * 3],
               normals[vi * 3 + 1],
-              normals[vi * 3 + 2]
+              normals[vi * 3 + 2],
             );
           }
 
@@ -1569,8 +1684,12 @@ export const flockMaterial = {
         }
       }
 
-      mesh.setVerticesData(flock.BABYLON.VertexBuffer.PositionKind, newPositions);
-      if (normals) mesh.setVerticesData(flock.BABYLON.VertexBuffer.NormalKind, newNormals);
+      mesh.setVerticesData(
+        flock.BABYLON.VertexBuffer.PositionKind,
+        newPositions,
+      );
+      if (normals)
+        mesh.setVerticesData(flock.BABYLON.VertexBuffer.NormalKind, newNormals);
       mesh.setVerticesData(flock.BABYLON.VertexBuffer.ColorKind, colors);
       mesh.setIndices(newIndices);
 
@@ -1589,10 +1708,10 @@ export const flockMaterial = {
     // --- Default N-colour fallback (treat as uniform) -------------------------
     const material = new flock.BABYLON.StandardMaterial(
       `${shapeType.toLowerCase()}Material`,
-      scene
+      scene,
     );
     material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-      flock.getColorFromString(color[0])
+      flock.getColorFromString(color[0]),
     );
     material.alpha = resolvedAlpha;
     mesh.material = material;

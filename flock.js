@@ -11,7 +11,7 @@ import * as BABYLON_LOADER from "@babylonjs/loaders";
 import { GradientMaterial } from "@babylonjs/materials";
 import * as BABYLON_EXPORT from "@babylonjs/serializers";
 import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
-// Point Babylon’s Draco loader at your local folder
+// Point Babylon’s Draco loader at local folder for offline use
 BABYLON.DracoCompression.Configuration = {
         decoder: {
                 wasmUrl: "./draco/draco_wasm_wrapper_gltf.js",
@@ -30,7 +30,8 @@ import "@fontsource/asap/600.css";
 import { characterNames } from "./config";
 
 const optionalBabylonDeps = { earcut, FlowGraphLog10Block, SetMaterialIDBlock };
-const globalEarcutTarget = typeof globalThis !== "undefined" ? globalThis : undefined;
+const globalEarcutTarget =
+        typeof globalThis !== "undefined" ? globalThis : undefined;
 if (globalEarcutTarget) {
         Object.assign(globalEarcutTarget, optionalBabylonDeps);
 }
@@ -63,9 +64,20 @@ import {
         flockPhysics,
         setFlockReference as setFlockPhysics,
 } from "./api/physics";
+import { flockXR, setFlockReference as setFlockXR } from "./api/xr";
+import {
+        flockControl,
+        setFlockReference as setFlockControl,
+} from "./api/control";
 import { flockScene, setFlockReference as setFlockScene } from "./api/scene";
 import { flockMesh, setFlockReference as setFlockMesh } from "./api/mesh";
 import { flockCamera, setFlockReference as setFlockCamera } from "./api/camera";
+import { flockEvents, setFlockReference as setFlockEvents } from "./api/events";
+import { flockMath, setFlockReference as setFlockMath } from "./api/math";
+import {
+        flockSensing,
+        setFlockReference as setFlockSensing,
+} from "./api/sensing";
 import { translate } from "./main/translation.js";
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
@@ -145,6 +157,11 @@ export const flock = {
         ...flockScene,
         ...flockMesh,
         ...flockCamera,
+        ...flockXR,
+        ...flockControl,
+        ...flockEvents,
+        ...flockSensing,
+        ...flockMath,
         // Enhanced error reporting with block context
         createEnhancedError(error, code) {
                 const lines = code.split("\n");
@@ -187,9 +204,6 @@ export const flock = {
 
                 return errorContext;
         },
-        createVector3(x, y, z) {
-                return new flock.BABYLON.Vector3(x, y, z);
-        },
         maxMeshesReached() {
                 const scene = flock?.scene;
                 if (!scene || typeof flock.maxMeshes !== "number") return false;
@@ -199,7 +213,9 @@ export const flock = {
 
                 if (meshCount >= max) {
                         flock.printText?.({
-                                text: translate("max_mesh_limit_reached").replace("{max}", max),
+                                text: translate(
+                                        "max_mesh_limit_reached",
+                                ).replace("{max}", max),
                                 duration: 30,
                                 color: "#ff0000",
                         });
@@ -223,7 +239,6 @@ export const flock = {
                 const total = performance.memory.totalJSHeapSize / 1024 / 1024;
                 const limit = performance.memory.jsHeapSizeLimit / 1024 / 1024;
 
-                // Log to console (you might want to display in UI instead)
                 console.log(
                         `Memory: ${used.toFixed(1)}MB used / ${total.toFixed(1)}MB allocated / ${limit.toFixed(1)}MB limit`,
                 );
@@ -234,12 +249,11 @@ export const flock = {
                         console.warn(
                                 `High memory usage: ${usagePercent.toFixed(1)}% of limit`,
                         );
-                        // Show user warning in your UI
+                        // Show user warning in UI
                         this.printText({
-                                text: translate("high_memory_usage_warning").replace(
-                                        "{percent}",
-                                        usagePercent.toFixed(1),
-                                ),
+                                text: translate(
+                                        "high_memory_usage_warning",
+                                ).replace("{percent}", usagePercent.toFixed(1)),
                                 duration: 3,
                                 color: "#ff9900",
                         });
@@ -336,7 +350,9 @@ export const flock = {
 
                 const banner = doc.createElement("div");
                 banner.id = warningId;
-                banner.textContent = translate("physics_out_of_memory_banner_ui");
+                banner.textContent = translate(
+                        "physics_out_of_memory_banner_ui",
+                );
                 banner.style.position = "fixed";
                 banner.style.top = "0";
                 banner.style.left = "0";
@@ -642,11 +658,10 @@ export const flock = {
                         }
 
                         // --- create fresh same-origin iframe ---
-                        const { win, doc } =
-                                await flock.replaceSandboxIframe({
-                                        id: "flock-iframe",
-                                        sameOrigin: true,
-                                });
+                        const { win, doc } = await flock.replaceSandboxIframe({
+                                id: "flock-iframe",
+                                sameOrigin: true,
+                        });
 
                         // --- load SES text in parent and inject inline into iframe (CSP allows inline) ---
                         const sesResp = await fetch(
@@ -662,14 +677,14 @@ export const flock = {
                         sesScript.text = sesText;
                         doc.head.appendChild(sesScript);
 
-                        // --- lockdown the iframe realm ---
+                        // lockdown the iframe realm
                         win.lockdown();
 
-                        // --- initialise your scene (unchanged) ---
+                        // initialise scene
                         await this.initializeNewScene?.();
                         if (this.memoryDebug) this.startMemoryMonitoring?.();
 
-                        // --- abort plumbing (unchanged) ---
+                        // abort plumbing
                         this.__runToken = (this.__runToken || 0) + 1;
                         const runToken = this.__runToken;
                         this.abortController?.abort?.();
@@ -836,10 +851,9 @@ export const flock = {
                         console.error("Enhanced error details:", enhancedError);
 
                         this.printText?.({
-                                text: translate("runtime_error_message").replace(
-                                        "{message}",
-                                        error.message,
-                                ),
+                                text: translate(
+                                        "runtime_error_message",
+                                ).replace("{message}", error.message),
                                 duration: 5,
                                 color: "#ff0000",
                         });
@@ -968,7 +982,7 @@ export const flock = {
                         resetParticleSystem:
                                 this.resetParticleSystem?.bind(this),
                         animateKeyFrames: this.animateKeyFrames?.bind(this),
-                        setPivotPoint: this.setPivotPoint?.bind(this),
+                        setAnchor: this.setAnchor?.bind(this),
                         rotate: this.rotate?.bind(this),
                         lookAt: this.lookAt?.bind(this),
                         moveTo: this.moveTo?.bind(this),
@@ -976,7 +990,8 @@ export const flock = {
                         rotateAnim: this.rotateAnim?.bind(this),
                         animateProperty: this.animateProperty?.bind(this),
                         positionAt: this.positionAt?.bind(this),
-                        positionAtSingleCoordinate: this.positionAtSingleCoordinate?.bind(this),
+                        positionAtSingleCoordinate:
+                                this.positionAtSingleCoordinate?.bind(this),
                         distanceTo: this.distanceTo?.bind(this),
                         safeLoop: this.safeLoop?.bind(this),
                         waitUntil: this.waitUntil?.bind(this),
@@ -1113,12 +1128,14 @@ export const flock = {
                                 try {
                                         w?.stop?.();
                                 } catch {
-                                        /* ignore teardown errors */ // stops loading
+                                        /* ignore teardown errors */
+                                        // stops loading
                                 }
                                 try {
                                         w?.close?.();
                                 } catch {
-                                        /* ignore teardown errors */ // some browsers free resources
+                                        /* ignore teardown errors */
+                                        // some browsers free resources
                                 }
 
                                 // Navigate to a harmless page to break references, then remove
@@ -1170,7 +1187,7 @@ export const flock = {
                         }
                 });
 
-                // If we fell back to about:blank, inject CSP meta now (runs before your code anyway)
+                // If we fell back to about:blank, inject CSP meta now (runs before user code anyway)
                 if (
                         !("srcdoc" in document.createElement("iframe")) ||
                         !iframe.srcdoc
@@ -1186,7 +1203,6 @@ export const flock = {
                         meta.httpEquiv = "Content-Security-Policy";
                         meta.content = csp;
                         doc.head.appendChild(meta);
-                        // Optionally inject your canvas or boot HTML here if needed
                 }
 
                 const win = iframe.contentWindow;
@@ -1306,7 +1322,7 @@ export const flock = {
                                         return;
                                 }
 
-                                const [ , , rawRightX = 0, rawRightY = 0 ] =
+                                const [, , rawRightX = 0, rawRightY = 0] =
                                         gamepad.axes || [];
 
                                 const rightX =
@@ -1321,10 +1337,17 @@ export const flock = {
                                 const leftShoulder = gamepad.buttons?.[4];
                                 const rightShoulder = gamepad.buttons?.[5];
                                 const normalizeShoulder = (button) =>
-                                        Boolean(button?.pressed || button?.value > 0.5);
+                                        Boolean(
+                                                button?.pressed ||
+                                                        button?.value > 0.5,
+                                        );
                                 const shoulderTurn =
-                                        (normalizeShoulder(rightShoulder) ? 1 : 0) -
-                                        (normalizeShoulder(leftShoulder) ? 1 : 0);
+                                        (normalizeShoulder(rightShoulder)
+                                                ? 1
+                                                : 0) -
+                                        (normalizeShoulder(leftShoulder)
+                                                ? 1
+                                                : 0);
 
                                 const yawInput = rightX + shoulderTurn;
 
@@ -1341,7 +1364,8 @@ export const flock = {
                                 const deltaTime =
                                         (flock.engine?.getDeltaTime?.() ?? 16) /
                                         1000;
-                                const yawDelta = yawInput * yawSpeed * deltaTime;
+                                const yawDelta =
+                                        yawInput * yawSpeed * deltaTime;
                                 const pitchDelta =
                                         rightY * pitchSpeed * deltaTime;
 
@@ -1359,7 +1383,10 @@ export const flock = {
 
                                         camera.beta = Math.min(
                                                 upperBeta,
-                                                Math.max(lowerBeta, camera.beta),
+                                                Math.max(
+                                                        lowerBeta,
+                                                        camera.beta,
+                                                ),
                                         );
                                 } else {
                                         camera.rotation.y += yawDelta;
@@ -1368,10 +1395,13 @@ export const flock = {
                                         const minPitch = -Math.PI / 2 + 0.01;
                                         const maxPitch = Math.PI / 2 - 0.01;
 
-                                  camera.rotation.x = Math.min(
-                                          maxPitch,
-                                          Math.max(minPitch, camera.rotation.x),
-                                  );
+                                        camera.rotation.x = Math.min(
+                                                maxPitch,
+                                                Math.max(
+                                                        minPitch,
+                                                        camera.rotation.x,
+                                                ),
+                                        );
                                 }
                         });
         },
@@ -1407,7 +1437,8 @@ export const flock = {
                                         return;
                                 }
 
-                                const pressedButtons = flock.canvas.pressedButtons;
+                                const pressedButtons =
+                                        flock.canvas.pressedButtons;
                                 const nextGamepadKeys = new Set();
 
                                 const gamepads = navigator.getGamepads() || [];
@@ -1417,8 +1448,11 @@ export const flock = {
                                         Object.entries(buttonToKeys).forEach(
                                                 ([index, keys]) => {
                                                         const button =
-                                                                gamepad.buttons?.[
-                                                                        Number(index)
+                                                                gamepad
+                                                                        .buttons?.[
+                                                                        Number(
+                                                                                index,
+                                                                        )
                                                                 ];
                                                         const isPressed =
                                                                 normalizeButtonState(
@@ -1426,10 +1460,11 @@ export const flock = {
                                                                 );
 
                                                         if (isPressed) {
-                                                                keys.forEach((k) =>
-                                                                        nextGamepadKeys.add(
-                                                                                k,
-                                                                        ),
+                                                                keys.forEach(
+                                                                        (k) =>
+                                                                                nextGamepadKeys.add(
+                                                                                        k,
+                                                                                ),
                                                                 );
                                                         }
                                                 },
@@ -1854,10 +1889,10 @@ export const flock = {
                                                         console.log(
                                                                 "Forced garbage collection",
                                                         );
-                                        } catch {
-                                                // Silently fail if gc is not available
-                                        }
-                                }, 100);
+                                                } catch {
+                                                        // Silently fail if gc is not available
+                                                }
+                                        }, 100);
                                 }
 
                                 console.log(
@@ -1900,9 +1935,8 @@ export const flock = {
                 flock.havokAbortHandled = false;
                 flock.disposed = false;
 
-                const existingOomBanner = flock.document?.getElementById(
-                        "havok-oom-warning",
-                );
+                const existingOomBanner =
+                        flock.document?.getElementById("havok-oom-warning");
                 existingOomBanner?.remove?.();
 
                 // Create the new scene
@@ -1922,9 +1956,8 @@ export const flock = {
 
                 // Apply and remember the app's default clear colour so it can be
                 // restored if the user removes their sky/background blocks later.
-                const defaultClearColor = flock.BABYLON.Color3.FromHexString(
-                        "#33334c",
-                );
+                const defaultClearColor =
+                        flock.BABYLON.Color3.FromHexString("#33334c");
                 flock.scene.clearColor =
                         defaultClearColor.clone?.() ?? defaultClearColor;
                 flock.initialClearColor =
@@ -1959,6 +1992,11 @@ export const flock = {
                 setFlockScene(flock);
                 setFlockMesh(flock);
                 setFlockCamera(flock);
+                setFlockXR(flock);
+                setFlockMath(flock);
+                setFlockControl(flock);
+                setFlockEvents(flock);
+                setFlockSensing(flock);
 
                 // Add highlight layer
                 flock.highlighter = new flock.BABYLON.HighlightLayer(
@@ -2075,15 +2113,6 @@ export const flock = {
 
                 // Reset XR helper
                 flock.xrHelper = null;
-        },
-        randomInteger(a, b) {
-                if (a > b) {
-                        // Swap a and b to ensure a is smaller.
-                        var c = a;
-                        a = b;
-                        b = c;
-                }
-                return Math.floor(Math.random() * (b - a + 1) + a);
         },
         async initializeXR(mode) {
                 if (flock.xrHelper) return; // Avoid reinitializing
@@ -2672,15 +2701,17 @@ export const flock = {
                         callback,
                         mode,
                         applyToGroup,
-                        } of triggers) {
-                                if (applyToGroup) {
-                                        // 🔁 Reapply trigger across all matching meshes
-                                        const matching = flock.scene.meshes.filter(
-                                                (m) => getGroupRoot(m.name) === groupName,
-                                        );
-                                        for (const m of matching) {
-                                                flock.onTrigger(m.name, {
-                                                        trigger,
+                } of triggers) {
+                        if (applyToGroup) {
+                                // 🔁 Reapply trigger across all matching meshes
+                                const matching = flock.scene.meshes.filter(
+                                        (m) =>
+                                                getGroupRoot(m.name) ===
+                                                groupName,
+                                );
+                                for (const m of matching) {
+                                        flock.onTrigger(m.name, {
+                                                trigger,
                                                 callback,
                                                 mode,
                                                 applyToGroup: false, // prevent recursion
@@ -2724,1221 +2755,7 @@ export const flock = {
                 flock._nameRegistry.delete(name);
         },
 
-        /* 
-                Category: Scene>XR
-        */
-
-        setCameraBackground(cameraType) {
-                if (!flock.scene) {
-                        console.error(
-                                "Scene not available. Ensure the scene is initialised before setting the camera background.",
-                        );
-                        return;
-                }
-
-                const videoLayer = new flock.BABYLON.Layer(
-                        "videoLayer",
-                        null,
-                        flock.scene,
-                        true,
-                );
-
-                flock.BABYLON.VideoTexture.CreateFromWebCam(
-                        flock.scene,
-                        (videoTexture) => {
-                                videoTexture._invertY = false; // Correct orientation
-                                videoTexture.uScale = -1; // Flip horizontally for mirror effect
-                                videoLayer.texture = videoTexture; // Assign the video feed to the layer
-                        },
-                        {
-                                facingMode: cameraType, // "user" for front, "environment" for back
-                                minWidth: 640,
-                                minHeight: 480,
-                                maxWidth: 1920,
-                                maxHeight: 1080,
-                                deviceId: "",
-                        },
-                );
-        },
-        async setXRMode(mode) {
-                await flock.initializeXR(mode);
-                flock.printText({
-                        text: translate("xr_mode_message"),
-                        duration: 5,
-                        color: "white",
-                });
-        },
-        exportMesh(meshName, format) {
-                //meshName = "scene";
-
-                if (meshName === "scene" && format === "GLB") {
-                        const scene = flock.scene;
-
-                        const cls = (n) => n?.getClassName?.();
-                        const isEnabledDeep = (n) =>
-                                typeof n.isEnabled === "function"
-                                        ? n.isEnabled(true)
-                                        : true;
-
-                        // Treat ALL mesh subclasses as geometry; we'll still skip LinesMesh explicitly
-                        const isAbstractMesh = (n) =>
-                                typeof BABYLON !== "undefined" &&
-                                n instanceof BABYLON.AbstractMesh;
-                        const isLines = (n) => cls(n) === "LinesMesh";
-
-                        // --- Ghost: top-level + enabled + AbstractMesh + no material (not lines)
-                        const targets = scene.meshes.filter(
-                                (m) =>
-                                        !m.parent &&
-                                        isEnabledDeep(m) &&
-                                        isAbstractMesh(m) &&
-                                        !isLines(m) &&
-                                        !m.material,
-                        );
-
-                        // Shared transparent PBR material (GLTF-friendly)
-                        const ghostMat = new BABYLON.PBRMaterial(
-                                "_tmpExportGhost",
-                                scene,
-                        );
-                        ghostMat.alpha = 0;
-                        ghostMat.alphaMode = BABYLON.Engine.ALPHA_BLEND;
-                        ghostMat.transparencyMode =
-                                BABYLON.PBRMaterial.PBRMATERIAL_ALPHABLEND;
-                        ghostMat.disableLighting = true;
-                        ghostMat.metallic = 0;
-                        ghostMat.roughness = 1;
-                        ghostMat.albedoColor = new BABYLON.Color4(1, 1, 1, 0);
-
-                        const patches = targets.map((mesh) => ({
-                                mesh,
-                                prev: mesh.material ?? null,
-                        }));
-                        for (const { mesh } of patches)
-                                mesh.material = ghostMat;
-
-                        // Optional: name allowlist for safety (keeps ground even if disabled, if you want)
-                        const alwaysKeepNames = new Set(["ground", "Ground"]);
-
-                        const shouldExportNode = (node) => {
-                                const c = cls(node);
-                                if (!c) return false;
-
-                                // Always keep ground (by name) before any other checks
-                                if (node.name && alwaysKeepNames.has(node.name))
-                                        return true;
-
-                                // Respect enabled state (includes ancestors)
-                                if (!isEnabledDeep(node)) return false;
-
-                                // Never export cameras/lights
-                                if (c === "Camera" || c === "Light")
-                                        return false;
-
-                                // Skip line helpers entirely
-                                if (c === "LinesMesh") return false;
-
-                                // Keep all transform containers
-                                if (c === "TransformNode") return true;
-
-                                // Keep ALL mesh subclasses (e.g., Mesh, InstancedMesh, GroundMesh, etc.)
-                                if (isAbstractMesh(node)) return true;
-
-                                return false;
-                        };
-
-                        flock.EXPORT.GLTF2Export.GLBAsync(scene, "scene.glb", {
-                                exportMaterials: true,
-                                exportTextures: true,
-                                shouldExportNode,
-                        })
-                                .then((glb) => glb.downloadFiles())
-                                .finally(() => {
-                                        // Restore originals
-                                        for (const { mesh, prev } of patches)
-                                                mesh.material = prev;
-                                        ghostMat.dispose();
-                                });
-
-                        return;
-                }
-
-                return flock.whenModelReady(meshName, async function (mesh) {
-                        const rootChild = mesh
-                                .getChildMeshes()
-                                .find((child) => child.name === "__root__");
-                        if (rootChild) {
-                                mesh = rootChild;
-                        }
-                        const childMeshes = mesh.getChildMeshes(false);
-                        // Combine the parent mesh with its children
-                        const meshList = [mesh, ...childMeshes];
-                        if (format === "STL") {
-                                flock.EXPORT.STLExport.CreateSTL(
-                                        meshList,
-                                        true,
-                                        mesh.name,
-                                        false,
-                                        false,
-                                );
-                        } else if (format === "OBJ") {
-                                flock.EXPORT.OBJExport.OBJ(mesh);
-                                //download(mesh.name + ".obj", objData, "text/plain");
-                        } else if (format === "GLB") {
-                                mesh.flipFaces();
-                                flock.EXPORT.GLTF2Export.GLBAsync(
-                                        flock.scene,
-                                        mesh.name + ".glb",
-                                        {
-                                                shouldExportNode: (node) =>
-                                                        node === mesh ||
-                                                        mesh
-                                                                .getChildMeshes()
-                                                                .includes(node),
-                                        },
-                                ).then((glb) => {
-                                        mesh.flipFaces();
-                                        glb.downloadFiles();
-                                });
-                        }
-                });
-        },
-
-        /*
-
-        */
-
-        wait(duration) {
-                return new Promise((resolve, reject) => {
-                        const timeoutId = setTimeout(() => {
-                                if (flock.abortController?.signal) {
-                                        flock.abortController.signal.removeEventListener(
-                                                "abort",
-                                                onAbort,
-                                        );
-                                }
-                                resolve();
-                        }, duration * 1000);
-
-                        const onAbort = () => {
-                                clearTimeout(timeoutId); // Clear the timeout if aborted
-                                if (flock.abortController?.signal) {
-                                        flock.abortController.signal.removeEventListener(
-                                                "abort",
-                                                onAbort,
-                                        );
-                                }
-                                // Instead of throwing an error, resolve gracefully here
-                                reject(new Error("Wait aborted"));
-                        };
-
-                        if (flock.abortController?.signal) {
-                                flock.abortController.signal.addEventListener(
-                                        "abort",
-                                        onAbort,
-                                );
-                        }
-                }).catch((error) => {
-                        // Check if the error is the expected "Wait aborted" error and handle it
-                        if (error.message === "Wait aborted") {
-                                return;
-                        }
-                        // If it's another error, rethrow it
-                        throw error;
-                });
-        },
-        async safeLoop(
-                iteration,
-                loopBody,
-                chunkSize = 100,
-                timing = { lastFrameTime: performance.now() },
-                state = {},
-        ) {
-                if (state.stopExecution) return; // Check if we should stop further iterations
-
-                // Execute the loop body
-                await loopBody(iteration);
-
-                // Yield control after every `chunkSize` iterations
-                if (iteration % chunkSize === 0) {
-                        const currentTime = performance.now();
-
-                        if (currentTime - timing.lastFrameTime > 16) {
-                                await new Promise((resolve) =>
-                                        requestAnimationFrame(resolve),
-                                );
-                                timing.lastFrameTime = performance.now(); // Update timing for this loop
-                        }
-                }
-        },
-        waitUntil(conditionFunc) {
-                return new Promise((resolve, reject) => {
-                        const checkCondition = () => {
-                                try {
-                                        if (conditionFunc()) {
-                                                flock.scene.onBeforeRenderObservable.removeCallback(
-                                                        checkCondition,
-                                                );
-                                                resolve();
-                                        }
-                                } catch (error) {
-                                        flock.scene.onBeforeRenderObservable.removeCallback(
-                                                checkCondition,
-                                        );
-                                        reject(error);
-                                }
-                        };
-                        flock.scene.onBeforeRenderObservable.add(
-                                checkCondition,
-                        );
-                });
-        },
-        getProperty(modelName, propertyName) {
-                const mesh =
-                        modelName === "__active_camera__"
-                                ? flock.scene.activeCamera
-                                : modelName === "__main_light__"
-                                ? flock.mainLight : flock.scene.getMeshByName(modelName);
-
-                if (!mesh) return null;
-
-                const position =
-                        modelName === "__active_camera__"
-                                ? mesh.globalPosition
-                                : mesh.getAbsolutePosition();
-
-                let propertyValue = null;
-                let colors = null;
-
-                mesh.computeWorldMatrix(true);
-
-                const rotation =
-                        modelName === "__active_camera__"
-                                ? mesh.absoluteRotation.toEulerAngles()
-                                : mesh.absoluteRotationQuaternion.toEulerAngles();
-
-                let allMeshes, materialNode, materialNodes;
-                switch (propertyName) {
-                        case "POSITION_X":
-                                propertyValue = parseFloat(
-                                        position.x.toFixed(2),
-                                );
-                                break;
-                        case "POSITION_Y":
-                                propertyValue = parseFloat(
-                                        position.y.toFixed(2),
-                                );
-                                break;
-                        case "POSITION_Z":
-                                propertyValue = parseFloat(
-                                        position.z.toFixed(2),
-                                );
-                                break;
-                        case "ROTATION_X":
-                                propertyValue = parseFloat(
-                                        flock.BABYLON.Tools.ToDegrees(
-                                                rotation.x,
-                                        ).toFixed(2),
-                                );
-                                break;
-                        case "ROTATION_Y":
-                                parseFloat(
-                                        (propertyValue =
-                                                flock.BABYLON.Tools.ToDegrees(
-                                                        rotation.y,
-                                                ).toFixed(2)),
-                                );
-                                break;
-                        case "ROTATION_Z":
-                                propertyValue = parseFloat(
-                                        flock.BABYLON.Tools.ToDegrees(
-                                                rotation.z,
-                                        ).toFixed(2),
-                                );
-                                break;
-                        case "SCALE_X":
-                                propertyValue = parseFloat(
-                                        mesh.scaling.x.toFixed(2),
-                                );
-                                break;
-                        case "SCALE_Y":
-                                propertyValue = parseFloat(
-                                        mesh.scaling.y.toFixed(2),
-                                );
-                                break;
-                        case "SCALE_Z":
-                                propertyValue = parseFloat(
-                                        mesh.scaling.z.toFixed(2),
-                                );
-                                break;
-                        case "SIZE_X": {
-                                const bi = mesh.getBoundingInfo();
-                                propertyValue = parseFloat(
-                                        (
-                                                bi.boundingBox.maximumWorld.x -
-                                                bi.boundingBox.minimumWorld.x
-                                        ).toFixed(2),
-                                );
-                                break;
-                        }
-                        case "SIZE_Y": {
-                                const bi = mesh.getBoundingInfo();
-                                propertyValue = parseFloat(
-                                        (
-                                                bi.boundingBox.maximumWorld.y -
-                                                bi.boundingBox.minimumWorld.y
-                                        ).toFixed(2),
-                                );
-                                break;
-                        }
-                        case "SIZE_Z": {
-                                const bi = mesh.getBoundingInfo();
-                                propertyValue = parseFloat(
-                                        (
-                                                bi.boundingBox.maximumWorld.z -
-                                                bi.boundingBox.minimumWorld.z
-                                        ).toFixed(2),
-                                );
-                                break;
-                        }
-                        case "MIN_X":
-                                if (mesh.metadata?.origin?.xOrigin === "LEFT") {
-                                        // Adjust based on LEFT origin
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.x;
-                                } else if (
-                                        mesh.metadata?.origin?.xOrigin ===
-                                        "RIGHT"
-                                ) {
-                                        // Adjust based on RIGHT origin
-                                        const diffX =
-                                                (mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.x -
-                                                        mesh.getBoundingInfo()
-                                                                .boundingBox
-                                                                .minimum.x) *
-                                                (1 - mesh.scaling.x);
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.x - diffX;
-                                } else {
-                                        // Default CENTER origin
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox.minimum.x *
-                                                mesh.scaling.x;
-                                }
-                                break;
-
-                        case "MAX_X":
-                                if (
-                                        mesh.metadata?.origin?.xOrigin ===
-                                        "RIGHT"
-                                ) {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.x;
-                                } else if (
-                                        mesh.metadata?.origin?.xOrigin ===
-                                        "LEFT"
-                                ) {
-                                        const diffX =
-                                                (mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.x -
-                                                        mesh.getBoundingInfo()
-                                                                .boundingBox
-                                                                .minimum.x) *
-                                                mesh.scaling.x;
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.x + diffX;
-                                } else {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.x *
-                                                mesh.scaling.x;
-                                }
-                                break;
-
-                        case "MIN_Y":
-                                if (mesh.metadata?.origin?.yOrigin === "BASE") {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.y;
-                                } else if (
-                                        mesh.metadata?.origin?.yOrigin === "TOP"
-                                ) {
-                                        const diffY =
-                                                (mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.y -
-                                                        mesh.getBoundingInfo()
-                                                                .boundingBox
-                                                                .minimum.y) *
-                                                (1 - mesh.scaling.y);
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.y - diffY;
-                                } else {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.y;
-                                        //mesh.getBoundingInfo().boundingBox.minimum.y *
-                                        //                                              mesh.scaling.y;
-                                }
-
-                                break;
-
-                        case "MAX_Y":
-                                if (mesh.metadata?.origin?.yOrigin === "TOP") {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.y;
-                                } else if (
-                                        mesh.metadata?.origin?.yOrigin ===
-                                        "BASE"
-                                ) {
-                                        const diffY =
-                                                (mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.y -
-                                                        mesh.getBoundingInfo()
-                                                                .boundingBox
-                                                                .minimum.y) *
-                                                mesh.scaling.y;
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.y + diffY;
-                                } else {
-                                        propertyValue = propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.y;
-                                        //mesh.getBoundingInfo().boundingBox.maximum.y *
-                                        //                                              mesh.scaling.y;
-                                }
-                                break;
-
-                        case "MIN_Z":
-                                if (
-                                        mesh.metadata?.origin?.zOrigin ===
-                                        "FRONT"
-                                ) {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.z;
-                                } else if (
-                                        mesh.metadata?.origin?.zOrigin ===
-                                        "BACK"
-                                ) {
-                                        const diffZ =
-                                                (mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.z -
-                                                        mesh.getBoundingInfo()
-                                                                .boundingBox
-                                                                .minimum.z) *
-                                                (1 - mesh.scaling.z);
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.z - diffZ;
-                                } else {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox.minimum.z *
-                                                mesh.scaling.z;
-                                }
-                                break;
-
-                        case "MAX_Z":
-                                if (mesh.metadata?.origin?.zOrigin === "BACK") {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.z;
-                                } else if (
-                                        mesh.metadata?.origin?.zOrigin ===
-                                        "FRONT"
-                                ) {
-                                        const diffZ =
-                                                (mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.z -
-                                                        mesh.getBoundingInfo()
-                                                                .boundingBox
-                                                                .minimum.z) *
-                                                mesh.scaling.z;
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.z + diffZ;
-                                } else {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.z *
-                                                mesh.scaling.z;
-                                }
-                                break;
-                        case "VISIBLE":
-                                propertyValue = mesh.isVisible;
-                                break;
-                        case "ALPHA":
-                                allMeshes = [mesh].concat(
-                                        mesh.getDescendants(),
-                                );
-                                materialNode = allMeshes.find(
-                                        (node) => node.material,
-                                );
-
-                                if (materialNode) {
-                                        propertyValue =
-                                                materialNode.material.alpha;
-                                }
-                                break;
-                        case "COLOUR":
-                                allMeshes = [mesh].concat(
-                                        mesh.getDescendants(),
-                                );
-                                materialNodes = allMeshes.filter(
-                                        (node) => node.material,
-                                );
-
-                                // Map to get the diffuseColor or albedoColor of each material as a hex string
-                                colors = materialNodes
-                                        .map((node) => {
-                                                if (
-                                                        node.material
-                                                                .diffuseColor
-                                                ) {
-                                                        return node.material.diffuseColor.toHexString();
-                                                } else if (
-                                                        node.material
-                                                                .albedoColor
-                                                ) {
-                                                        return node.material.albedoColor.toHexString();
-                                                }
-                                                return null;
-                                        })
-                                        .filter((color) => color !== null);
-                                if (colors.length === 1) {
-                                        propertyValue = colors[0];
-                                } else if (colors.length > 1) {
-                                        propertyValue = colors.join(", ");
-                                }
-
-                                break;
-                        default:
-                                console.log("Property not recognized.");
-                }
-                return propertyValue;
-        },
-        keyPressed(key) {
-                // Combine all input sources: keys, buttons, and controllers
-                const pressedKeys = flock.canvas.pressedKeys;
-                const pressedButtons = flock.canvas.pressedButtons;
-
-                // Check VR controller inputs
-                const normalizedKey = key.toUpperCase();
-
-                const vrPressed =
-                        flock.xrHelper?.baseExperience?.input?.inputSources.some(
-                                (inputSource) => {
-                                        if (inputSource.gamepad) {
-                                                const gamepad =
-                                                        inputSource.gamepad;
-
-                                                // Thumbstick movement
-                                                if (
-                                                        normalizedKey === "W" &&
-                                                        gamepad.axes[1] < -0.5
-                                                )
-                                                        return true; // Forward
-                                                if (
-                                                        normalizedKey === "S" &&
-                                                        gamepad.axes[1] > 0.5
-                                                )
-                                                        return true; // Backward
-                                                if (
-                                                        normalizedKey === "A" &&
-                                                        gamepad.axes[0] < -0.5
-                                                )
-                                                        return true; // Left
-                                                if (
-                                                        normalizedKey === "D" &&
-                                                        gamepad.axes[0] > 0.5
-                                                )
-                                                        return true; // Right
-
-                                                // Button mappings
-                                                if (
-                                                        (normalizedKey ===
-                                                                "SPACE" ||
-                                                                key === " ") &&
-                                                        gamepad.buttons[0]
-                                                                ?.pressed
-                                                )
-                                                        return true; // A button for jump
-                                                if (
-                                                        normalizedKey === "E" &&
-                                                        gamepad.buttons[1]
-                                                                ?.pressed
-                                                )
-                                                        return true; // B button maps to E
-                                                if (
-                                                        normalizedKey === "F" &&
-                                                        gamepad.buttons[2]
-                                                                ?.pressed
-                                                )
-                                                        return true; // X button maps to F
-                                                if (
-                                                        normalizedKey === "R" &&
-                                                        gamepad.buttons[3]
-                                                                ?.pressed
-                                                )
-                                                        return true; // Y button maps to R
-
-                                                // General button check
-                                                if (
-                                                        normalizedKey === "ANY" &&
-                                                        gamepad.buttons.some(
-                                                                (button) =>
-                                                                        button.pressed,
-                                                        )
-                                                )
-                                                        return true;
-                                        }
-                                        return false;
-                                },
-                        );
-
-                const gamepadPressed = (() => {
-                        if (!navigator.getGamepads) {
-                                return false;
-                        }
-
-                        const gamepads = navigator.getGamepads() || [];
-
-                        return Array.from(gamepads).some((gamepad) => {
-                                if (!gamepad) {
-                                        return false;
-                                }
-
-                                const { axes = [], buttons = [] } = gamepad;
-
-                                switch (normalizedKey) {
-                                        case "W":
-                                                return (
-                                                        axes[1] < -0.5 ||
-                                                        buttons[12]?.pressed
-                                                );
-                                        case "S":
-                                                return (
-                                                        axes[1] > 0.5 ||
-                                                        buttons[13]?.pressed
-                                                );
-                                        case "A":
-                                                return (
-                                                        axes[0] < -0.5 ||
-                                                        buttons[14]?.pressed
-                                                );
-                                        case "Q":
-                                                return (
-                                                        axes[0] < -0.5 ||
-                                                        buttons[14]?.pressed ||
-                                                        buttons[1]?.pressed
-                                                );
-                                        case "D":
-                                                return (
-                                                        axes[0] > 0.5 ||
-                                                        buttons[15]?.pressed
-                                                );
-                                        case "SPACE":
-                                                return buttons[0]?.pressed;
-                                        case "E":
-                                                return buttons[1]?.pressed;
-                                        case "F":
-                                                return buttons[2]?.pressed;
-                                        case "R":
-                                                return (
-                                                        buttons[3]?.pressed ||
-                                                        buttons[6]?.pressed ||
-                                                        buttons[7]?.pressed
-                                                );
-                                        case "ANY":
-                                                return (
-                                                        axes.some(
-                                                                (axis) =>
-                                                                        Math.abs(
-                                                                                axis,
-                                                                        ) > 0.5,
-                                                        ) ||
-                                                        buttons.some(
-                                                                (button) =>
-                                                                        button?.pressed,
-                                                        )
-                                                );
-                                        default:
-                                                return false;
-                                }
-                        });
-                })();
-
-                const normalizedButtonPressed =
-                        pressedButtons.has(key) ||
-                        pressedButtons.has(key.toLowerCase()) ||
-                        pressedButtons.has(key.toUpperCase());
-
-                // Combine all sources
-                if (key === "ANY") {
-                        return (
-                                pressedKeys.size > 0 ||
-                                pressedButtons.size > 0 ||
-                                vrPressed ||
-                                gamepadPressed
-                        );
-                } else if (key === "NONE") {
-                        return (
-                                pressedKeys.size === 0 &&
-                                pressedButtons.size === 0 &&
-                                !vrPressed &&
-                                !gamepadPressed
-                        );
-                } else {
-                        return (
-                                pressedKeys.has(key) ||
-                                pressedKeys.has(key.toLowerCase()) ||
-                                pressedKeys.has(key.toUpperCase()) ||
-                                normalizedButtonPressed ||
-                                vrPressed ||
-                                gamepadPressed
-                        );
-                }
-        },
-        actionPressed(action) {
-                const actionMap = {
-                        FORWARD: ["W", "Z"],
-                        BACKWARD: ["S"],
-                        LEFT: ["A", "Q"],
-                        RIGHT: ["D"],
-                        BUTTON1: ["E", "1"],
-                        BUTTON2: ["R", "2"],
-                        BUTTON3: ["F", "3"],
-                        BUTTON4: ["SPACE", " ", "4"],
-                };
-
-                const actionKeys = actionMap[action];
-
-                if (!actionKeys) {
-                        return false;
-                }
-
-                return actionKeys.some((key) => this.keyPressed(key));
-        },
-        seededRandom(from, to, seed) {
-                const x = Math.sin(seed) * 10000;
-                const random = x - Math.floor(x);
-                const result = Math.floor(random * (to - from + 1)) + from;
-                return result;
-        },
-        randomColour() {
-                const colors = [
-                        "#FF6B6B",
-                        "#4ECDC4",
-                        "#45B7D1",
-                        "#96CEB4",
-                        "#FFEAA7",
-                        "#DDA0DD",
-                        "#98D8C8",
-                        "#F7DC6F",
-                        "#BB8FCE",
-                        "#85C1E9",
-                        "#F8C471",
-                        "#82E0AA",
-                        "#F1948A",
-                        "#85C1E9",
-                        "#D7BDE2",
-                ];
-                return colors[Math.floor(Math.random() * colors.length)];
-        },
-        hexToRgba(hex, alpha = 1) {
-                // Remove the hash if present
-                hex = hex.replace(/^#/, "");
-
-                // Parse the hex values
-                const bigint = parseInt(hex, 16);
-                const r = (bigint >> 16) & 255;
-                const g = (bigint >> 8) & 255;
-                const b = bigint & 255;
-
-                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        },
-        hexToRgb(hex) {
-                // Remove the hash if present
-                hex = hex.replace(/^#/, "");
-
-                // Parse the hex values
-                const bigint = parseInt(hex, 16);
-                const r = (bigint >> 16) & 255;
-                const g = (bigint >> 8) & 255;
-                const b = bigint & 255;
-
-                return { r, g, b };
-        },
-        rgbToHex(r, g, b) {
-                // Ensure values are within valid range
-                r = Math.max(0, Math.min(255, Math.round(r)));
-                g = Math.max(0, Math.min(255, Math.round(g)));
-                b = Math.max(0, Math.min(255, Math.round(b)));
-
-                // Convert to hex and pad with zeros if needed
-                const hex =
-                        "#" +
-                        [r, g, b]
-                                .map((x) => {
-                                        const hex = x.toString(16);
-                                        return hex.length === 1
-                                                ? "0" + hex
-                                                : hex;
-                                })
-                                .join("");
-
-                return hex;
-        },
-        sanitizeEventName(eventName) {
-                if (typeof eventName !== "string") {
-                        return "";
-                }
-                // Remove disallowed characters (symbols, control chars), allow emoji, spaces, letters, numbers
-                // This allows everything except common punctuation and control characters
-                const clean = eventName.replace(
-                        /[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/g,
-                        "",
-                );
-                return clean.substring(0, 50);
-        },
-        isAllowedEventName(eventName) {
-                if (!eventName || typeof eventName !== "string") {
-                        return false;
-                }
-
-                if (eventName.length > 30) {
-                        return false;
-                }
-
-                const lower = eventName.toLowerCase();
-                const reservedPrefixes = [
-                        "_",
-                        "on",
-                        "system",
-                        "internal",
-                        "babylon",
-                        "flock",
-                ];
-                if (
-                        reservedPrefixes.some((prefix) =>
-                                lower.startsWith(prefix),
-                        )
-                ) {
-                        return false;
-                }
-
-                const disallowedChars =
-                        /[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/;
-                if (disallowedChars.test(eventName)) {
-                        return false;
-                }
-
-                return true;
-        },
-        onEvent(eventName, handler, once = false) {
-                eventName = flock.sanitizeEventName(eventName);
-                if (!flock.isAllowedEventName(eventName)) {
-                        console.warn(
-                                `Event name ${eventName} is reserved and cannot be broadcasted.`,
-                        );
-                        return;
-                }
-                if (!flock.events[eventName]) {
-                        flock.events[eventName] =
-                                new flock.BABYLON.Observable();
-                }
-                if (once) {
-                        const wrappedHandler = (data) => {
-                                handler(data);
-                                flock.events[eventName].remove(wrappedHandler);
-                        };
-                        flock.events[eventName].add(wrappedHandler);
-                } else {
-                        flock.events[eventName].add(handler);
-                }
-        },
-        broadcastEvent(eventName, data) {
-                eventName = flock.sanitizeEventName(eventName);
-                if (!flock.isAllowedEventName(eventName)) {
-                        console.warn(
-                                `Event name ${eventName} is reserved and cannot be broadcasted.`,
-                        );
-                        return;
-                }
-                if (flock.events && flock.events[eventName]) {
-                        flock.events[eventName].notifyObservers(data);
-                }
-        },
-        whenActionEvent(action, callback, isReleased = false) {
-                const actionMap = {
-                        FORWARD: ["w", "z"],
-                        BACKWARD: ["s"],
-                        LEFT: ["a", "q"],
-                        RIGHT: ["d"],
-                        BUTTON1: ["e", "1"],
-                        BUTTON2: ["r", "2"],
-                        BUTTON3: ["f", "3"],
-                        BUTTON4: [" ", "4"],
-                };
-
-                const actionKeys = actionMap[action];
-
-                if (!actionKeys?.length) {
-                        return;
-                }
-
-                [...new Set(actionKeys.map((key) => key.toLowerCase()))].forEach(
-                        (key) => {
-                                this.whenKeyEvent(key, callback, isReleased);
-                        },
-                );
-
-                const getGamepadActiveState = () => {
-                        if (!navigator.getGamepads) {
-                                return false;
-                        }
-
-                        const gamepads = navigator.getGamepads() || [];
-
-                        return Array.from(gamepads).some((gamepad) => {
-                                if (!gamepad) {
-                                        return false;
-                                }
-
-                                const { axes = [], buttons = [] } = gamepad;
-
-                                switch (action) {
-                                        case "FORWARD":
-                                                return (
-                                                        axes[1] < -0.5 ||
-                                                        buttons[12]?.pressed
-                                                );
-                                        case "BACKWARD":
-                                                return (
-                                                        axes[1] > 0.5 ||
-                                                        buttons[13]?.pressed
-                                                );
-                                        case "LEFT":
-                                                return (
-                                                        axes[0] < -0.5 ||
-                                                        buttons[14]?.pressed
-                                                );
-                                        case "RIGHT":
-                                                return (
-                                                        axes[0] > 0.5 ||
-                                                        buttons[15]?.pressed
-                                                );
-                                        case "BUTTON1":
-                                                return buttons[1]?.pressed;
-                                        case "BUTTON2":
-                                                return (
-                                                        buttons[3]?.pressed ||
-                                                        buttons[6]?.pressed ||
-                                                        buttons[7]?.pressed
-                                                );
-                                        case "BUTTON3":
-                                                return buttons[2]?.pressed;
-                                        case "BUTTON4":
-                                                return buttons[0]?.pressed;
-                                        default:
-                                                return false;
-                                }
-                        });
-                };
-
-                let lastGamepadState = getGamepadActiveState();
-
-                const monitorGamepad = () => {
-                        const isActive = getGamepadActiveState();
-
-                        const shouldTrigger = isReleased
-                                ? !isActive && lastGamepadState
-                                : isActive && !lastGamepadState;
-
-                        if (shouldTrigger) {
-                                callback();
-                        }
-
-                        lastGamepadState = isActive;
-                        requestAnimationFrame(monitorGamepad);
-                };
-
-                requestAnimationFrame(monitorGamepad);
-        },
-        whenKeyEvent(key, callback, isReleased = false) {
-                // Handle keyboard input
-                const eventType = isReleased
-                        ? flock.BABYLON.KeyboardEventTypes.KEYUP
-                        : flock.BABYLON.KeyboardEventTypes.KEYDOWN;
-
-                flock.scene.onKeyboardObservable.add((kbInfo) => {
-                        if (
-                                kbInfo.type === eventType &&
-                                kbInfo.event.key.toLowerCase() === key
-                        ) {
-                                callback();
-                        }
-                });
-
-                // Register the callback for the grid input observable
-                const gridObservable = isReleased
-                        ? flock.gridKeyReleaseObservable
-                        : flock.gridKeyPressObservable;
-
-                gridObservable.add((inputKey) => {
-                        if (inputKey === key) {
-                                callback();
-                        }
-                });
-
-                flock.xrHelper?.input.onControllerAddedObservable.add(
-                        (controller) => {
-                                console.log(
-                                        `DEBUG: Controller added: ${controller.inputSource.handedness}`,
-                                );
-
-                                const handedness =
-                                        controller.inputSource.handedness;
-
-                                // Map button IDs to the corresponding keyboard keys
-                                const buttonMap =
-                                        handedness === "left"
-                                                ? {
-                                                          "y-button": "q",
-                                                          "x-button": "e",
-                                                  } // Left controller: Y -> Q, X -> E
-                                                : handedness === "right"
-                                                  ? {
-                                                            "b-button": "f",
-                                                            "a-button": " ",
-                                                    } // Right controller: B -> F, A -> Space
-                                                  : {}; // Unknown handedness: No mapping
-
-                                controller.onMotionControllerInitObservable.add(
-                                        (motionController) => {
-                                                Object.entries(
-                                                        buttonMap,
-                                                ).forEach(
-                                                        ([
-                                                                buttonId,
-                                                                mappedKey,
-                                                        ]) => {
-                                                                // Trigger the callback only for the specific key
-                                                                if (
-                                                                        mappedKey !==
-                                                                        key
-                                                                ) {
-                                                                        return;
-                                                                }
-                                                                const component =
-                                                                        motionController.getComponent(
-                                                                                buttonId,
-                                                                        );
-
-                                                                if (
-                                                                        !component
-                                                                ) {
-                                                                        console.warn(
-                                                                                `DEBUG: Button ID '${buttonId}' not found for ${handedness} controller.`,
-                                                                        );
-                                                                        return;
-                                                                }
-
-                                                                console.log(
-                                                                        `DEBUG: Observing button ID '${buttonId}' for key '${mappedKey}' on ${handedness} controller.`,
-                                                                );
-
-                                                                // Track the last known pressed state for this specific button
-                                                                let lastPressedState = false;
-
-                                                                // Monitor state changes for this specific button
-                                                                component.onButtonStateChangedObservable.add(
-                                                                        () => {
-                                                                                const isPressed =
-                                                                                        component.pressed;
-
-                                                                                // Debugging to verify button states
-                                                                                console.log(
-                                                                                        `DEBUG: Observable fired for '${buttonId}', pressed: ${isPressed}`,
-                                                                                );
-
-                                                                                // Ensure this logic only processes events for the current button
-                                                                                if (
-                                                                                        motionController.getComponent(
-                                                                                                buttonId,
-                                                                                        ) !==
-                                                                                        component
-                                                                                ) {
-                                                                                        console.log(
-                                                                                                `DEBUG: Skipping event for '${buttonId}' as it doesn't match the triggering component.`,
-                                                                                        );
-                                                                                        return;
-                                                                                }
-
-                                                                                // Ignore repeated callbacks for the same state
-                                                                                if (
-                                                                                        isPressed ===
-                                                                                        lastPressedState
-                                                                                ) {
-                                                                                        console.log(
-                                                                                                `DEBUG: No state change for '${buttonId}', skipping callback.`,
-                                                                                        );
-                                                                                        return;
-                                                                                }
-
-                                                                                // Only handle "released" transitions
-                                                                                if (
-                                                                                        !isPressed &&
-                                                                                        lastPressedState
-                                                                                ) {
-                                                                                        console.log(
-                                                                                                `DEBUG: Key '${mappedKey}' (button ID '${buttonId}') released on ${handedness} controller.`,
-                                                                                        );
-                                                                                        callback(
-                                                                                                mappedKey,
-                                                                                                "released",
-                                                                                        );
-                                                                                }
-
-                                                                                // Update last pressed state
-                                                                                lastPressedState =
-                                                                                        isPressed;
-                                                                        },
-                                                                );
-                                                        },
-                                                );
-                                        },
-                                );
-                        },
-                );
-        },
-        start(action) {
-                flock.scene.onBeforeRenderObservable.addOnce(action);
-        },
-        // Runtime helper must exist where generated code executes.
+        // Runtime helper
         sanitizeInlineText(input) {
                 return String(input)
                         .replace(/\r?\n/g, " ")
@@ -3946,138 +2763,7 @@ export const flock = {
                         .replace(/\/\//g, "∕∕")
                         .replace(/`/g, "ˋ");
         },
-        async forever(action) {
-                let isDisposed = false;
-                let isActionRunning = false;
 
-                // Function to run the action
-                const runAction = async () => {
-                        if (isDisposed) {
-                                console.log(
-                                        "Scene is disposed. Exiting action.",
-                                );
-                                return; // Exit if the scene is disposed
-                        }
-
-                        if (isActionRunning) {
-                                return; // Exit if the action is already running
-                        }
-
-                        isActionRunning = true;
-
-                        try {
-                                if (isDisposed) {
-                                        return;
-                                }
-                                await action();
-                        } catch (error) {
-                                console.log(
-                                        "Error while running action:",
-                                        error,
-                                );
-                        } finally {
-                                isActionRunning = false;
-                                if (!isDisposed) {
-                                        flock.scene.onBeforeRenderObservable.addOnce(
-                                                runAction,
-                                        );
-                                }
-                        }
-                };
-
-                flock.scene.onBeforeRenderObservable.addOnce(runAction);
-                // Handle scene disposal
-                const disposeHandler = () => {
-                        if (isDisposed) {
-                                console.log(
-                                        "Dispose handler already triggered.",
-                                );
-                                return;
-                        }
-
-                        isDisposed = true;
-                        flock.scene.onBeforeRenderObservable.clear(); // Clear the observable
-                };
-                flock.scene.onDisposeObservable.add(disposeHandler);
-        },
-        async forever2(action) {
-                const scene = flock.scene;
-                if (!scene) {
-                        console.warn("[forever] Scene not ready yet");
-                        return;
-                }
-
-                let isDisposed = false;
-                let isActionRunning = false;
-                let tickObserver = null;
-                let disposeObserver = null;
-                let watchdogId = null;
-                const WATCHDOG_MS = 4000; // unlock if an iteration takes too long
-
-                const clearWatchdog = () => {
-                        if (watchdogId) {
-                                clearTimeout(watchdogId);
-                                watchdogId = null;
-                        }
-                };
-
-                const runAction = () => {
-                        if (isDisposed) return;
-
-                        // If previous iteration still running, skip this frame but keep observer alive
-                        if (isActionRunning) return;
-
-                        isActionRunning = true;
-
-                        // Start watchdog so a stuck Promise can't freeze the loop
-                        clearWatchdog();
-                        watchdogId = setTimeout(() => {
-                                console.warn(
-                                        "[forever] Watchdog tripped; unlocking stalled iteration",
-                                );
-                                isActionRunning = false;
-                        }, WATCHDOG_MS);
-
-                        try {
-                                // Fire-and-forget; never await inside the render tick
-                                Promise.resolve(action())
-                                        .catch((err) => {
-                                                console.error(
-                                                        "[forever] Action error:",
-                                                        err,
-                                                );
-                                        })
-                                        .finally(() => {
-                                                clearWatchdog();
-                                                isActionRunning = false;
-                                        });
-                        } catch (err) {
-                                // Synchronous errors still won't kill the observer
-                                clearWatchdog();
-                                isActionRunning = false;
-                                console.error("[forever] Sync error:", err);
-                        }
-                };
-
-                // Persistent observer: stays attached every frame
-                tickObserver = scene.onBeforeRenderObservable.add(runAction);
-
-                // Clean up only our own observers on dispose
-                const disposeHandler = () => {
-                        if (isDisposed) return;
-                        isDisposed = true;
-                        clearWatchdog();
-                        if (tickObserver)
-                                scene.onBeforeRenderObservable.remove(
-                                        tickObserver,
-                                );
-                        if (disposeObserver)
-                                scene.onDisposeObservable.remove(
-                                        disposeObserver,
-                                );
-                };
-                disposeObserver = scene.onDisposeObservable.add(disposeHandler);
-        },
         download(filename, data, mimeType) {
                 const blob = new Blob([data], { type: mimeType });
                 const url = URL.createObjectURL(blob);

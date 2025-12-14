@@ -16,7 +16,7 @@ export function runTranslationTests(flock) {
 
 			// Ensure we always exercise the pivotSettings branch:
 			// default pivot: x=CENTER, y=MIN (BASE), z=CENTER
-			await flock.setPivotPoint(boxId);
+			await flock.setAnchor(boxId);
 		});
 
 		afterEach(function () {

@@ -3,16 +3,8 @@ import { meshMap, meshBlockIdMap } from "../generators/generators.js";
 import { flock } from "../flock.js";
 import { objectColours } from "../config.js";
 import { createMeshOnCanvas } from "./addmeshes.js";
-import { createBlockWithShadows, highlightBlockById } from "./addmenu.js";
-
-const characterMaterials = [
-  "Hair",
-  "Skin",
-  "Eyes",
-  "Sleeves",
-  "Shorts",
-  "TShirt",
-];
+import { highlightBlockById } from "./blocklyutil.js";
+import { createBlockWithShadows } from "./addmenu.js";
 
 const colorFields = {
   HAIR_COLOR: true,
@@ -497,10 +489,8 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
   const prev = toNum(oldScale, null);
   const next = toNum(newScale, 1);
 
-  // Establish a true unit baseline the *first* time we see a scale change.
-  // If we know the previous factor (prev), unitScale = currentVisual / prev.
   if (!mesh.metadata.__unitScale) {
-    const divider = prev || next || 1; // prefer oldScale; else newScale; avoid 0
+    const divider = prev || next || 1;
     mesh.metadata.__unitScale = {
       x: mesh.scaling.x / divider,
       y: mesh.scaling.y / divider,
@@ -518,7 +508,6 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
   mesh.refreshBoundingInfo();
   const ext = mesh.getBoundingInfo().boundingBox.extendSizeWorld;
 
-  // read Y (robustly)
   const getNumInput = (blk, name, def = 0) => {
     const inp = blk.getInput && blk.getInput(name);
     const tgt =
@@ -528,7 +517,6 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
       inp.connection.targetBlock();
     const v = tgt ? Number(tgt.getFieldValue("NUM")) : def;
     return Number.isFinite(v) ? v : def;
-    // add inline fallback if your Y is inline
   };
   const baseY = getNumInput(block, "Y", 0);
   mesh.position.y = baseY + ext.y;
@@ -1426,7 +1414,7 @@ function updateCylinderGeometry(
 function replaceMeshModel(currentMesh, block) {
   if (!currentMesh || !block) return;
 
-  const animationInfo = flock.getCurrentAnimationInfo(currentMesh);
+  const animationInfo = flock._getCurrentAnimationInfo(currentMesh);
 
   const modelName = block.getFieldValue("MODELS");
   if (!modelName) return;
@@ -1864,9 +1852,6 @@ function replaceMeshModel(currentMesh, block) {
         loop: animationInfo.isLooping ?? true, // defaults to true if undefined
       });
     }
-
-    /*const childNames = (currentMesh.getChildren ? currentMesh.getChildren() : []).map(n => n.name);
-    console.log(`[replaceMeshModel] Parent '${currentMesh.name}' kept. New children:`, childNames);*/
   });
 }
 
@@ -1884,7 +1869,6 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   const getUltimateParent = (m) =>
     m?.parent ? getUltimateParent(m.parent) : m;
 
-  // Try to set colour on a target block (colour picker) or, failing that, on the parent block's field.
   const setColorOnTargetOrField = (targetBlock, parentBlock, colorHex) => {
     if (targetBlock) {
       if (targetBlock.getField?.("COLOR")) {
@@ -1936,25 +1920,17 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     return tgt || null;
   };
 
-  // Heuristic: is this input likely to be a color input?
   const isColorishName = (name) =>
     /(?:^|_)(MAP_)?COL(?:OU)?R$/i.test(name || "");
 
-  // Depth-first search for a colour input/field anywhere under a block.
-  // Returns { input, targetBlock, ownerBlock } where:
-  //  - input: the Input that should hold a color picker (could be nested)
-  //  - targetBlock: the colour picker (created if needed)
-  //  - ownerBlock: the block that owns `input` (fallback for direct field set)
   const findNestedColorTarget = (rootBlock, visited = new Set()) => {
     if (!rootBlock || visited.has(rootBlock.id)) return null;
     visited.add(rootBlock.id);
 
-    // 0) direct field on this block (rare but cheap to check)
     if (rootBlock.getField?.("COLOR") || rootBlock.getField?.("COLOUR")) {
       return { input: null, targetBlock: rootBlock, ownerBlock: rootBlock };
     }
 
-    // 1) look for an input that is explicitly colour-ish
     for (const inp of rootBlock.inputList || []) {
       if (isColorishName(inp?.name)) {
         const targetBlock = ensureColorTargetOnInput(inp);
@@ -1962,7 +1938,6 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       }
     }
 
-    // 2) Otherwise, traverse all connected children; many designs have a MATERIAL input → material block → colour input
     for (const inp of rootBlock.inputList || []) {
       const child = inp?.connection?.targetBlock?.();
       if (!child) continue;
@@ -2049,7 +2024,6 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   const materialName = mesh?.material?.name?.replace(/_clone$/, "");
   const colorIndex = mesh?.metadata?.materialIndex;
 
-  // 1) Character sub-mesh path (these use fixed field inputs on the character block)
   if (
     materialName &&
     Object.prototype.hasOwnProperty.call(materialToFieldMap, materialName)
@@ -2071,7 +2045,6 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     return;
   }
 
-  // 2) Multi-object path stays as-is
   if (block.type === "load_multi_object") {
     withUndoGroup(() => {
       block.updateColorAtIndex?.(selectedColor, colorIndex);
@@ -2081,8 +2054,6 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     return;
   }
 
-  // 3) Generic / map / ground / load_object, including NESTED MATERIAL BLOCKS
-  //    We now search recursively for a colour input under this block.
   const found = findNestedColorTarget(block);
   if (!found) {
     console.warn(
@@ -2091,7 +2062,6 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     return;
   }
 
-  // Respect your special purple → config default for load_object (only if top-level is load_object).
   const isDefaultPurple = selectedColor?.toLowerCase?.() === "#9932cc";
   let finalColor = selectedColor;
   if (

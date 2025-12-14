@@ -2,12 +2,26 @@ import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators/generators.js";
 import { flock } from "../flock.js";
 import { translate } from "../main/translation.js";
-import { setPositionValues } from "./addmeshes.js";
 import {
   getMeshFromBlockKey,
   getRootMesh,
   updateBlockColorAndHighlight,
 } from "./blockmesh.js";
+import {
+  highlightBlockById,
+  getCanvasXAndCanvasYValues,
+  setBlockXYZ,
+  duplicateBlockAndInsert,
+  findParentWithBlockId,
+  calculateYPosition,
+  setNumberInputs,
+  getNumberInput,
+} from "./blocklyutil.js";
+import {
+  getMeshRotationInDegrees,
+  roundVectorToFixed,
+  pickLeafFromRay,
+} from "./meshhelpers.js";
 export let gizmoManager;
 
 const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
@@ -110,7 +124,6 @@ function pickMeshFromCanvas() {
     // Exit if outside canvas
     if (eventIsOutOfCanvasBounds(event, canvasRect)) {
       window.removeEventListener("click", onPickMesh);
-      // keep this if you want outside-click to exit picking:
       endColorPickingMode();
       // restore cursors
       document.body.style.cursor = "default";
@@ -118,82 +131,24 @@ function pickMeshFromCanvas() {
       return;
     }
 
-    // Inside canvas → paint (stay in mode)
     const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
     applyColorAtPosition(canvasX, canvasY);
-
-    // 🔁 Re-assert crosshair in case Babylon/camera changed it
     document.body.style.cursor = "crosshair";
     canvas.style.cursor = "crosshair";
   };
 
-  // Keyboard mode still supported
   startColorPickingKeyboardMode(onPickMesh);
-
-  // Enter persistent pointer mode
   document.body.style.cursor = "crosshair";
   canvas.style.cursor = "crosshair";
-  // keep your click wiring (no {once:true})
+
   setTimeout(() => {
     window.addEventListener("click", onPickMesh);
   }, 200);
 }
 
-// treat undefined as pickable; only exclude explicit false
-const PICK_OK = (m) => m && m.isPickable !== false;
-
-function isLeafMesh(m) {
-  if (!m || m.isDisposed?.()) return false;
-  const hasKids = (m.getChildren?.().length ?? 0) > 0;
-  const hasGeom =
-    typeof m.getTotalVertices === "function" && m.getTotalVertices() > 0;
-  return !hasKids && hasGeom;
-}
-
-function isInSubtree(root, node) {
-  if (!root || !node) return false;
-  if (root === node) return true;
-  for (let p = node.parent; p; p = p.parent) if (p === root) return true;
-  return false;
-}
-
-function pickLeafFromRay(ray, scene) {
-  // 1) Prefer a direct leaf hit (skips the composite parent)
-  const leafFirst = scene.pickWithRay(ray, (m) => PICK_OK(m) && isLeafMesh(m));
-  if (leafFirst?.pickedMesh) return leafFirst.pickedMesh;
-
-  // 2) Fallback: get primary (likely parent), then search only its subtree
-  const primary = scene.pickWithRay(ray, PICK_OK);
-  const parent = primary?.pickedMesh;
-  if (!parent) return null;
-
-  if (isLeafMesh(parent)) return parent;
-
-  const maxDist = (primary.distance ?? Number.POSITIVE_INFINITY) + 1e-4;
-  const ray2 = ray.clone();
-  ray2.length = Math.min(ray.length ?? maxDist, maxDist);
-
-  const hits =
-    scene.multiPickWithRay(
-      ray2,
-      (m) => PICK_OK(m) && isLeafMesh(m) && isInSubtree(parent, m),
-      false,
-    ) || [];
-
-  if (hits.length) {
-    // ensure nearest leaf is chosen
-    hits.sort((a, b) => a.distance - b.distance);
-    return hits[0].pickedMesh;
-  }
-
-  // last resort: color the parent
-  return parent;
-}
-
 function applyColorAtPosition(canvasX, canvasY) {
   const scene = flock.scene;
 
-  // If you use the selection octree, keep it fresh (cheap if unchanged)
   if (scene.selectionOctree) scene.createOrUpdateSelectionOctree();
 
   const pickRay = scene.createPickingRay(
@@ -262,7 +217,6 @@ function handleColorPickingKeydown(event) {
     case "Enter":
       event.preventDefault();
       if (colorPickingCircle) {
-        // Paint and KEEP GOING (no checks, no exit)
         applyColorAtPosition(
           colorPickingCirclePosition.x,
           colorPickingCirclePosition.y,
@@ -382,12 +336,6 @@ function scrollToBlockTopParentLeft(workspace, blockId) {
   const pixelBlockY = blockXY.y * scale;
   const pixelParentX = parentXY.x * scale;
 
-  // Get metrics to determine padding
-  const metrics = workspace.getMetrics();
-
-  // Calculate desired scroll position
-  // For Y: position block at top with some padding (20px)
-  // For X: position parent at left with some padding (20px)
   const padding = 20;
   const scrollToY = pixelBlockY - padding;
   const scrollToX = pixelParentX - padding;
@@ -398,34 +346,6 @@ function scrollToBlockTopParentLeft(workspace, blockId) {
 
   // Scroll the workspace
   workspace.scroll(x, y);
-}
-
-function highlightBlockById(workspace, block) {
-  if (!workspace || !block || block.workspace !== workspace) return;
-
-  // Select and scroll only when the code view is visible
-  if (window.codeMode === "both") {
-    if (typeof workspace.setSelected === "function") {
-      workspace.setSelected(block);
-    } else {
-      block.select();
-    }
-
-    // Scroll to position the block at the top and its parent at the left
-    scrollToBlockTopParentLeft(workspace, block.id);
-  }
-}
-
-function findParentWithBlockId(mesh) {
-  let currentNode = mesh;
-  while (currentNode) {
-    if (currentNode.metadata.blockKey !== undefined) {
-      return currentNode;
-    }
-    currentNode = currentNode.parent;
-  }
-
-  return null;
 }
 
 // For composite meshes where visibility needs setting to
@@ -462,19 +382,6 @@ function eventIsOutOfCanvasBounds(event, canvasRect) {
     event.clientY < canvasRect.top ||
     event.clientY > canvasRect.bottom
   );
-}
-
-export function getCanvasXAndCanvasYValues(event, canvasRect) {
-  return [event.clientX - canvasRect.left, event.clientY - canvasRect.top];
-}
-function getCanvasXYFromEvent(ev, canvas, rect) {
-  const rw = canvas.width; // render/backing width
-  const rh = canvas.height; // render/backing height
-  const cw = rect.width; // CSS width
-  const ch = rect.height; // CSS height
-  const x = (ev.clientX - rect.left) * (rw / cw);
-  const y = (ev.clientY - rect.top) * (rh / ch);
-  return [x, y];
 }
 
 function deleteBlockWithUndo(blockId) {
@@ -700,51 +607,7 @@ export function toggleGizmo(gizmoType) {
 
           const workspace = Blockly.getMainWorkspace();
           const originalBlock = workspace.getBlockById(blockId);
-
-          //console.log("Duplicate", blockKey, meshMap);
-          if (originalBlock) {
-            // Serialize the block and its children, including shadows
-
-            Blockly.Events.setGroup("duplicate");
-            const blockJson = Blockly.serialization.blocks.save(originalBlock, {
-              includeShadows: true, // Include shadow blocks in the duplication
-            });
-
-            // Remove the "next" connection from the serialized JSON
-            if (blockJson.next) {
-              delete blockJson.next;
-            }
-            // Append the duplicated block and its children
-            const duplicateBlock = Blockly.serialization.blocks.append(
-              blockJson,
-              workspace,
-            );
-
-            setPositionValues(
-              duplicateBlock,
-              pickedPosition,
-              duplicateBlock.type,
-            );
-
-            // Connect the new block as the next block
-            if (
-              originalBlock.nextConnection &&
-              duplicateBlock.previousConnection
-            ) {
-              originalBlock.nextConnection.connect(
-                duplicateBlock.previousConnection,
-              );
-            } else {
-              // If no connection, visually position it
-              duplicateBlock.moveBy(50, 50);
-            }
-
-            Blockly.Events.setGroup(false);
-
-            // Initialise and render the duplicated block
-            duplicateBlock.initSvg();
-            duplicateBlock.render();
-          }
+          duplicateBlockAndInsert(originalBlock, workspace, pickedPosition);
         }
       };
 
@@ -772,15 +635,11 @@ export function toggleGizmo(gizmoType) {
           let pickedMesh = event.pickInfo.pickedMesh;
 
           if (pickedMesh && pickedMesh.name !== "ground") {
-            // Assuming 'mesh' is your Babylon.js mesh object
             const position = pickedMesh.getAbsolutePosition();
 
             // Round the coordinates to 2 decimal places
-            const roundedPosition = new BABYLON.Vector3(
-              parseFloat(position.x.toFixed(2)),
-              parseFloat(position.y.toFixed(2)),
-              parseFloat(position.z.toFixed(2)),
-            );
+            const roundedPosition = roundVectorToFixed(position, 2);
+
             flock.printText({
               text: translate("position_readout").replace(
                 "{position}",
@@ -811,12 +670,8 @@ export function toggleGizmo(gizmoType) {
             if (pickedMesh && pickedMesh.name === "ground") {
               const position = event.pickInfo.pickedPoint;
 
-              // Round the coordinates to 2 decimal places
-              const roundedPosition = new BABYLON.Vector3(
-                parseFloat(position.x.toFixed(2)),
-                parseFloat(position.y.toFixed(2)),
-                parseFloat(position.z.toFixed(2)),
-              );
+              const roundedPosition = roundVectorToFixed(position, 2);
+
               flock.printText({
                 text: translate("position_readout").replace(
                   "{position}",
@@ -859,13 +714,11 @@ export function toggleGizmo(gizmoType) {
           }
 
           const block = meshMap[mesh.metadata.blockKey];
-
           highlightBlockById(Blockly.getMainWorkspace(), block);
         },
       );
 
       gizmoManager.boundingBoxDragBehavior.onDragEndObservable.add(function () {
-        // Retrieve the mesh associated with the bb gizmo
         const mesh = gizmoManager.attachedMesh;
 
         if (mesh.savedMotionType) {
@@ -876,55 +729,16 @@ export function toggleGizmo(gizmoType) {
 
         const block = meshMap[mesh.metadata.blockKey];
 
-        let meshY = mesh.position.y;
-
-        if (
-          mesh.metadata &&
-          mesh.metadata.yOffset &&
-          mesh.metadata.yOffset != 0
-        ) {
-          const scale = block
-            .getInput("SCALE")
-            .connection.targetBlock()
-            .getFieldValue("NUM");
-
-          meshY -= scale * mesh.metadata.yOffset;
-        }
-
         if (block) {
-          block
-            .getInput("X")
-            .connection.targetBlock()
-            .setFieldValue(
-              String(Math.round(mesh.position.x * 10) / 10),
-              "NUM",
-            );
-          block
-            .getInput("Y")
-            .connection.targetBlock()
-            .setFieldValue(String(Math.round(meshY * 10) / 10), "NUM");
-          block
-            .getInput("Z")
-            .connection.targetBlock()
-            .setFieldValue(
-              String(Math.round(mesh.position.z * 10) / 10),
-              "NUM",
-            );
+          const meshY = calculateYPosition(mesh, block);
+          setBlockXYZ(block, mesh.position.x, meshY, mesh.position.z);
         }
       });
 
       break;
 
     case "position":
-      gizmoManager.positionGizmoEnabled = true;
-      gizmoManager.gizmos.positionGizmo.snapDistance = 0.1;
-      gizmoManager.gizmos.positionGizmo.xGizmo._coloredMaterial.diffuseColor =
-        blueColor;
-      gizmoManager.gizmos.positionGizmo.yGizmo._coloredMaterial.diffuseColor =
-        greenColor;
-      gizmoManager.gizmos.positionGizmo.zGizmo._coloredMaterial.diffuseColor =
-        orangeColor;
-      gizmoManager.gizmos.positionGizmo.updateGizmoPositionToMatchAttachedMesh = true;
+      configurePositionGizmo(gizmoManager);
       gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(function () {
         const mesh = gizmoManager.attachedMesh;
         const motionType = mesh.physics?.getMotionType();
@@ -943,8 +757,8 @@ export function toggleGizmo(gizmoType) {
 
         highlightBlockById(Blockly.getMainWorkspace(), block);
       });
+
       gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
-        // Retrieve the mesh associated with the position gizmo
         const mesh = gizmoManager.attachedMesh;
 
         if (mesh.savedMotionType) {
@@ -954,59 +768,17 @@ export function toggleGizmo(gizmoType) {
 
         const block = meshMap[mesh.metadata.blockKey];
 
-        let meshY = mesh.position.y;
-
-        if (mesh.metadata?.yOffset && mesh.metadata.yOffset != 0) {
-          try {
-            const scale = block
-              .getInput("SCALE")
-              .connection.targetBlock()
-              .getFieldValue("NUM");
-
-            meshY -= scale * mesh.metadata.yOffset;
-          } catch (e) {}
-        }
-
         if (block) {
-          try {
-            block
-              .getInput("X")
-              .connection.targetBlock()
-              .setFieldValue(
-                String(Math.round(mesh.position.x * 10) / 10),
-                "NUM",
-              );
-          } catch (e) {}
-          try {
-            meshY -=
-              mesh.getBoundingInfo().boundingBox.extendSize.y * mesh.scaling.y;
-            block
-              .getInput("Y")
-              .connection.targetBlock()
-              .setFieldValue(String(Math.round(meshY * 10) / 10), "NUM");
-          } catch (e) {}
-          try {
-            block
-              .getInput("Z")
-              .connection.targetBlock()
-              .setFieldValue(
-                String(Math.round(mesh.position.z * 10) / 10),
-                "NUM",
-              );
-          } catch (e) {}
+          let meshY = calculateYPosition(mesh, block);
+          meshY -=
+            mesh.getBoundingInfo().boundingBox.extendSize.y * mesh.scaling.y;
+          setBlockXYZ(block, mesh.position.x, meshY, mesh.position.z);
         }
       });
 
       break;
     case "rotation":
-      gizmoManager.rotationGizmoEnabled = true;
-      gizmoManager.gizmos.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = false;
-      gizmoManager.gizmos.rotationGizmo.xGizmo._coloredMaterial.diffuseColor =
-        blueColor;
-      gizmoManager.gizmos.rotationGizmo.yGizmo._coloredMaterial.diffuseColor =
-        greenColor;
-      gizmoManager.gizmos.rotationGizmo.zGizmo._coloredMaterial.diffuseColor =
-        orangeColor;
+      configureRotationGizmo(gizmoManager);
 
       gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(function () {
         let mesh = gizmoManager.attachedMesh;
@@ -1045,16 +817,11 @@ export function toggleGizmo(gizmoType) {
 
         const block = meshMap[mesh.metadata.blockKey];
 
-        //console.log("Rotating", mesh, blockKey, meshMap);
-        if (!block) {
-          return;
-        }
+        if (!block) return;
 
-        // Generate a unique group ID for this gizmo action
         const groupId = Blockly.utils.idGenerator.genUid();
         Blockly.Events.setGroup(groupId);
 
-        //console.log("Rotating", block);
         let addedDoSection = false;
         if (!block.getInput("DO")) {
           block.appendStatementInput("DO").setCheck(null).appendField("");
@@ -1114,48 +881,14 @@ export function toggleGizmo(gizmoType) {
           });
         }
 
-        function getEulerAnglesFromQuaternion(quaternion) {
-          const euler = quaternion.toEulerAngles(); // Converts quaternion to Euler angles
-          return {
-            x: Math.round(euler.x * (180 / Math.PI) * 10) / 10,
-            y: Math.round(euler.y * (180 / Math.PI) * 10) / 10,
-            z: Math.round(euler.z * (180 / Math.PI) * 10) / 10,
-          };
-        }
+        const currentRotation = getMeshRotationInDegrees(mesh);
 
-        // Get the correct rotation values, checking for quaternion
-        let rotationX = 0,
-          rotationY = 0,
-          rotationZ = 0;
-        if (mesh.rotationQuaternion) {
-          // If using quaternion, convert it to Euler angles
-          const rotation = getEulerAnglesFromQuaternion(
-            mesh.rotationQuaternion,
-          );
-          rotationX = rotation.x;
-          rotationY = rotation.y;
-          rotationZ = rotation.z;
-        } else {
-          // If using standard Euler rotation
-          rotationX = Math.round(mesh.rotation.x * (180 / Math.PI) * 10) / 10;
-          rotationY = Math.round(mesh.rotation.y * (180 / Math.PI) * 10) / 10;
-          rotationZ = Math.round(mesh.rotation.z * (180 / Math.PI) * 10) / 10;
-        }
-
-        // Helper to update the value of the connected block or shadow block
-        function setRotationValue(inputName, value) {
-          const input = rotateBlock.getInput(inputName);
-          const connectedBlock = input.connection.targetBlock();
-
-          if (connectedBlock) {
-            connectedBlock.setFieldValue(String(value), "NUM");
-          }
-        }
-
-        // Set the rotation values (X, Y, Z)
-        setRotationValue("X", rotationX);
-        setRotationValue("Y", rotationY);
-        setRotationValue("Z", rotationZ);
+        setBlockXYZ(
+          rotateBlock,
+          currentRotation.x,
+          currentRotation.y,
+          currentRotation.z,
+        );
 
         // End undo group
         Blockly.Events.setGroup(null);
@@ -1163,336 +896,232 @@ export function toggleGizmo(gizmoType) {
 
       break;
 
-      case "scale":
-        gizmoManager.scaleGizmoEnabled = true;
-        gizmoManager.gizmos.scaleGizmo.PreserveScaling = true;
-        gizmoManager.gizmos.scaleGizmo.xGizmo._coloredMaterial.diffuseColor =
-          blueColor;
-        gizmoManager.gizmos.scaleGizmo.yGizmo._coloredMaterial.diffuseColor =
-          greenColor;
-        gizmoManager.gizmos.scaleGizmo.zGizmo._coloredMaterial.diffuseColor =
-          orangeColor;
+    case "scale":
+      configureScaleGizmo(gizmoManager);
 
-        gizmoManager.gizmos.scaleGizmo.sensitivity = 4;
-        gizmoManager.gizmos.scaleGizmo.uniformScaleGizmo.scaleRatio = 2.5;
+      // Track bottom for correct visual anchoring
+      let originalBottomY = 0;
 
-        // Track bottom for correct visual anchoring
-        let originalBottomY = 0;
+      gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
+        const mesh = gizmoManager.attachedMesh;
+        flock.ensureUniqueGeometry(mesh);
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
 
-        gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
-          const mesh = gizmoManager.attachedMesh;
-          flock.ensureUniqueGeometry(mesh);
-          mesh.computeWorldMatrix(true);
-          mesh.refreshBoundingInfo();
-          originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+        const motionType = mesh.physics?.getMotionType();
+        mesh.savedMotionType = motionType;
 
-          const motionType = mesh.physics?.getMotionType();
-          mesh.savedMotionType = motionType;
+        if (
+          mesh.physics &&
+          mesh.physics.getMotionType() !==
+            flock.BABYLON.PhysicsMotionType.ANIMATED
+        ) {
+          mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+          mesh.physics.disablePreStep = false;
+        }
 
-          if (
-            mesh.physics &&
-            mesh.physics.getMotionType() !==
-              flock.BABYLON.PhysicsMotionType.ANIMATED
-          ) {
-            mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-            mesh.physics.disablePreStep = false;
+        const block = meshMap[mesh.metadata.blockKey];
+        highlightBlockById(Blockly.getMainWorkspace(), block);
+      });
+
+      gizmoManager.gizmos.scaleGizmo.onDragObservable.add(() => {
+        const mesh = gizmoManager.attachedMesh;
+
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+
+        const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+        const deltaY = originalBottomY - newBottomY;
+        mesh.position.y += deltaY;
+
+        const block = Blockly.getMainWorkspace().getBlockById(
+          mesh.metadata.blockKey,
+        );
+        if (gizmoManager.scaleGizmoEnabled) {
+          switch (block?.type) {
+            case "create_capsule":
+            case "create_cylinder":
+              mesh.scaling.z = mesh.scaling.x;
+              break;
           }
+        }
+      });
 
-          const block = meshMap[mesh.metadata.blockKey];
-          highlightBlockById(Blockly.getMainWorkspace(), block);
-        });
+      gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
+        const mesh = gizmoManager.attachedMesh;
+        const block = meshMap[mesh.metadata.blockKey];
 
-        gizmoManager.gizmos.scaleGizmo.onDragObservable.add(() => {
-          const mesh = gizmoManager.attachedMesh;
+        if (mesh.savedMotionType) {
+          mesh.physics.setMotionType(mesh.savedMotionType);
+        }
 
-          mesh.computeWorldMatrix(true);
-          mesh.refreshBoundingInfo();
+        try {
+          const ensureFreshBounds = (m) => {
+            m.computeWorldMatrix(true);
+            m.refreshBoundingInfo();
+            return m.getBoundingInfo().boundingBox;
+          };
 
-          const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
-          const deltaY = originalBottomY - newBottomY;
-          mesh.position.y += deltaY;
+          const bbox = ensureFreshBounds(mesh);
 
-          const block = Blockly.getMainWorkspace().getBlockById(
-            mesh.metadata.blockKey,
-          );
-          if (gizmoManager.scaleGizmoEnabled) {
-            switch (block?.type) {
-              case "create_capsule":
-              case "create_cylinder":
-                mesh.scaling.z = mesh.scaling.x;
-                break;
-            }
-          }
-        });
+          const newBottomY = bbox.minimumWorld.y;
+          mesh.position.y += originalBottomY - newBottomY;
 
-        gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
-          const mesh = gizmoManager.attachedMesh;
-          const block = meshMap[mesh.metadata.blockKey];
+          const sizeLocal = bbox.extendSize.scale(2);
+          const w = sizeLocal.x * mesh.scaling.x;
+          const h = sizeLocal.y * mesh.scaling.y;
+          const d = sizeLocal.z * mesh.scaling.z;
 
-          if (mesh.savedMotionType) {
-            mesh.physics.setMotionType(mesh.savedMotionType);
-          }
+          switch (block.type) {
+            case "create_plane":
+              setNumberInputs(block, { WIDTH: w, HEIGHT: h });
+              break;
 
-          try {
-            // Ensure world matrix and bounding info are current
-            mesh.computeWorldMatrix(true);
-            mesh.refreshBoundingInfo();
+            case "create_box":
+              setNumberInputs(block, { WIDTH: w, HEIGHT: h, DEPTH: d });
+              break;
 
-            const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
-            const deltaY = originalBottomY - newBottomY;
-            mesh.position.y += deltaY;
+            case "create_capsule":
+              setNumberInputs(block, { HEIGHT: h, DIAMETER: w });
+              break;
 
-            const originalSize = mesh
-              .getBoundingInfo()
-              .boundingBox.extendSize.scale(2);
+            case "create_cylinder": {
+              const newScaledDiameter = w;
 
-            const newWidth =
-              Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
-            const newHeight =
-              Math.round(originalSize.y * mesh.scaling.y * 10) / 10;
-            const newDepth =
-              Math.round(originalSize.z * mesh.scaling.z * 10) / 10;
+              const currentTop = getNumberInput(block, "DIAMETER_TOP");
+              const currentBottom = getNumberInput(block, "DIAMETER_BOTTOM");
 
-            switch (block.type) {
-              case "create_plane":
-                block
-                  .getInput("WIDTH")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newWidth), "NUM");
-                block
-                  .getInput("HEIGHT")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newHeight), "NUM");
-                break;
+              let newTop;
+              let newBottom;
 
-              case "create_box":
-                block
-                  .getInput("WIDTH")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newWidth), "NUM");
-                block
-                  .getInput("HEIGHT")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newHeight), "NUM");
-                block
-                  .getInput("DEPTH")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newDepth), "NUM");
-                break;
-
-              case "create_capsule":
-                block
-                  .getInput("HEIGHT")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newHeight), "NUM");
-                block
-                  .getInput("DIAMETER")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newWidth), "NUM");
-                break;
-
-              case "create_cylinder": {
-                const boundingInfo = mesh.getBoundingInfo();
-                const originalSize = boundingInfo.boundingBox.extendSize.scale(2);
-                mesh.computeWorldMatrix(true);
-
-                let newCylinderHeight = mesh.scaling.y * originalSize.y;
-                block
-                  .getInput("HEIGHT")
-                  .connection.targetBlock()
-                  .setFieldValue(
-                    String(Math.round(newCylinderHeight * 10) / 10),
-                    "NUM",
-                  );
-
-                let newScaledDiameter =
-                  Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
-
-                let currentTop = parseFloat(
-                  block
-                    .getInput("DIAMETER_TOP")
-                    .connection.targetBlock()
-                    .getFieldValue("NUM"),
-                );
-                let currentBottom = parseFloat(
-                  block
-                    .getInput("DIAMETER_BOTTOM")
-                    .connection.targetBlock()
-                    .getFieldValue("NUM"),
-                );
-
+              if (
+                Number.isFinite(currentTop) &&
+                Number.isFinite(currentBottom) &&
+                currentTop > 0 &&
+                currentBottom > 0
+              ) {
                 if (currentTop >= currentBottom) {
-                  let newTop = newScaledDiameter;
-                  let ratio = currentBottom / currentTop;
-                  let newBottom = Math.round(newTop * ratio * 10) / 10;
-                  block
-                    .getInput("DIAMETER_TOP")
-                    .connection.targetBlock()
-                    .setFieldValue(String(newTop), "NUM");
-                  block
-                    .getInput("DIAMETER_BOTTOM")
-                    .connection.targetBlock()
-                    .setFieldValue(String(newBottom), "NUM");
+                  newTop = newScaledDiameter;
+                  newBottom = newTop * (currentBottom / currentTop);
                 } else {
-                  let newBottom = newScaledDiameter;
-                  let ratio = currentTop / currentBottom;
-                  let newTop = Math.round(newBottom * ratio * 10) / 10;
-                  block
-                    .getInput("DIAMETER_BOTTOM")
-                    .connection.targetBlock()
-                    .setFieldValue(String(newBottom), "NUM");
-                  block
-                    .getInput("DIAMETER_TOP")
-                    .connection.targetBlock()
-                    .setFieldValue(String(newTop), "NUM");
+                  newBottom = newScaledDiameter;
+                  newTop = newBottom * (currentTop / currentBottom);
                 }
-                break;
+              } else {
+                newTop = newScaledDiameter;
+                newBottom = newScaledDiameter;
               }
 
-              case "create_sphere":
-                block
-                  .getInput("DIAMETER_X")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newWidth), "NUM");
-                block
-                  .getInput("DIAMETER_Y")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newHeight), "NUM");
-                block
-                  .getInput("DIAMETER_Z")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newDepth), "NUM");
-                break;
+              setNumberInputs(block, {
+                HEIGHT: h,
+                DIAMETER_TOP: newTop,
+                DIAMETER_BOTTOM: newBottom,
+              });
+              break;
+            }
 
-                case "load_multi_object":
-                case "load_object":
-                case "load_character": {
-                  // Generate a unique group ID for this gizmo action
-                  const groupId = Blockly.utils.idGenerator.genUid();
-                  Blockly.Events.setGroup(groupId);
+            case "create_sphere":
+              setNumberInputs(block, {
+                DIAMETER_X: w,
+                DIAMETER_Y: h,
+                DIAMETER_Z: d,
+              });
+              break;
 
-                  let addedDoSection = false;
-                  if (!block.getInput("DO")) {
-                    block.appendStatementInput("DO").setCheck(null).appendField("");
-                    addedDoSection = true;
-                  }
+            case "load_multi_object":
+            case "load_object":
+            case "load_character": {
+              const groupId = Blockly.utils.idGenerator.genUid();
+              Blockly.Events.setGroup(groupId);
 
-                  let resizeBlock = null;
-                  let modelVariable = block.getFieldValue("ID_VAR");
-                  const statementConnection = block.getInput("DO").connection;
-                  if (statementConnection && statementConnection.targetBlock()) {
-                    let currentBlock = statementConnection.targetBlock();
-                    while (currentBlock) {
-                      if (currentBlock.type === "resize") {
-                        const modelField = currentBlock.getFieldValue("BLOCK_NAME");
-                        if (modelField === modelVariable) {
-                          resizeBlock = currentBlock;
-                          break;
-                        }
-                      }
-                      currentBlock = currentBlock.getNextBlock();
-                    }
-                  }
+              let addedDoSection = false;
+              if (!block.getInput("DO")) {
+                block.appendStatementInput("DO").setCheck(null).appendField("");
+                addedDoSection = true;
+              }
 
-                  if (!resizeBlock) {
-                    resizeBlock = Blockly.getMainWorkspace().newBlock("resize");
-                    resizeBlock.setFieldValue(modelVariable, "BLOCK_NAME");
-                    resizeBlock.initSvg();
-                    resizeBlock.render();
+              let resizeBlock = null;
+              const modelVariable = block.getFieldValue("ID_VAR");
 
-                    ["X", "Y", "Z"].forEach((axis) => {
-                      const input = resizeBlock.getInput(axis);
-                      const shadowBlock =
-                        Blockly.getMainWorkspace().newBlock("math_number");
-                      shadowBlock.setFieldValue("1", "NUM");
-                      shadowBlock.setShadow(true);
-                      shadowBlock.initSvg();
-                      shadowBlock.render();
-                      input.connection.connect(shadowBlock.outputConnection);
-                    });
-
-                    resizeBlock.render();
-                    block
-                      .getInput("DO")
-                      .connection.connect(resizeBlock.previousConnection);
-
-                    // Track this block for DO section cleanup
-                    const timestamp = Date.now();
-                    gizmoCreatedBlocks.set(resizeBlock.id, {
-                      parentId: block.id,
-                      createdDoSection: addedDoSection,
-                      timestamp: timestamp,
-                    });
-                  }
-
-                  function setResizeValue(inputName, value) {
-                    const input = resizeBlock.getInput(inputName);
-                    const connectedBlock = input?.connection?.targetBlock();
-
-                    if (!connectedBlock) {
-                      if (flock.meshDebug) {
-                        console.log(
-                          "[Gizmo resize] No number block connected on",
-                          inputName,
-                          "for resize block",
-                          resizeBlock.id
-                        );
-                      }
-                      return;
-                    }
-
-                    if (flock.meshDebug) {
-                      console.log(
-                        "[Gizmo resize] Setting",
-                        inputName,
-                        "to",
-                        value,
-                        "on block",
-                        connectedBlock.id
-                      );
-                    }
-
-                    connectedBlock.setFieldValue(String(value), "NUM");
-                  }
-
-                  // 🔍 Recompute bounding info *right here* to be absolutely sure it's fresh
-                  mesh.computeWorldMatrix(true);
-                  mesh.refreshBoundingInfo();
-
-                  const bbox = mesh.getBoundingInfo().boundingBox;
-                  const sizeWorld = bbox.extendSizeWorld.scale(2); // full width/height/depth in world
-
-                  const width  = Math.round(sizeWorld.x * 10) / 10;
-                  const height = Math.round(sizeWorld.y * 10) / 10;
-                  const depth  = Math.round(sizeWorld.z * 10) / 10;
-
-                  if (flock.meshDebug) {
-                    console.log("[Gizmo resize] load_* extents:", {
-                      width,
-                      height,
-                      depth,
-                      scaling: mesh.scaling && mesh.scaling.clone
-                        ? mesh.scaling.clone()
-                        : mesh.scaling
-                    });
-                  }
-
-                  setResizeValue("X", width);
-                  setResizeValue("Y", height);
-                  setResizeValue("Z", depth);
-
-                  // End undo group
-                  Blockly.Events.setGroup(null);
+              const stmt = block.getInput("DO")?.connection?.targetBlock?.();
+              for (let cur = stmt; cur; cur = cur.getNextBlock?.()) {
+                if (
+                  cur.type === "resize" &&
+                  cur.getFieldValue?.("BLOCK_NAME") === modelVariable
+                ) {
+                  resizeBlock = cur;
                   break;
                 }
+              }
 
+              if (!resizeBlock) {
+                resizeBlock = Blockly.getMainWorkspace().newBlock("resize");
+                resizeBlock.setFieldValue(modelVariable, "BLOCK_NAME");
+                resizeBlock.initSvg();
+                resizeBlock.render();
+
+                ["X", "Y", "Z"].forEach((axis) => {
+                  const input = resizeBlock.getInput(axis);
+                  const shadow =
+                    Blockly.getMainWorkspace().newBlock("math_number");
+                  shadow.setFieldValue("1", "NUM");
+                  shadow.setShadow(true);
+                  shadow.initSvg();
+                  shadow.render();
+                  input.connection.connect(shadow.outputConnection);
+                });
+
+                resizeBlock.render();
+                block
+                  .getInput("DO")
+                  .connection.connect(resizeBlock.previousConnection);
+
+                gizmoCreatedBlocks.set(resizeBlock.id, {
+                  parentId: block.id,
+                  createdDoSection: addedDoSection,
+                  timestamp: Date.now(),
+                });
+              }
+
+              function getScaledSize(mesh) {
+                const { originalMin, originalMax } = mesh.metadata || {};
+                const min =
+                  originalMin ?? mesh.getBoundingInfo().boundingBox.minimum;
+                const max =
+                  originalMax ?? mesh.getBoundingInfo().boundingBox.maximum;
+
+                const baseX = max.x - min.x;
+                const baseY = max.y - min.y;
+                const baseZ = max.z - min.z;
+
+                return {
+                  x: baseX * Math.abs(mesh.scaling.x),
+                  y: baseY * Math.abs(mesh.scaling.y),
+                  z: baseZ * Math.abs(mesh.scaling.z),
+                };
+              }
+
+              mesh.computeWorldMatrix(true);
+              mesh.refreshBoundingInfo();
+              const sizeLocalScaled = getScaledSize(mesh);
+
+              setNumberInputs(resizeBlock, {
+                X: sizeLocalScaled.x,
+                Y: sizeLocalScaled.y,
+                Z: sizeLocalScaled.z,
+              });
+
+              Blockly.Events.setGroup(null);
+              break;
             }
-          } catch (e) {
-            console.error("Error updating block values:", e);
           }
-        });
+        } catch (e) {
+          console.error("Error updating block values:", e);
+        }
+      });
 
-        break;
+      break;
     case "boundingBox":
       gizmoManager.boundingBoxGizmoEnabled = true;
 
@@ -1703,16 +1332,6 @@ export function setGizmoManager(value) {
       //highlightBlockById(Blockly.getMainWorkspace(), block);
     }
     originalAttach(mesh);
-
-    let _lastDisposeObs = mesh?.onDisposeObservable.addOnce(() => {
-      // Only detach if we're still attached to THIS node
-      if (
-        gizmoManager?.attachedMesh === mesh ||
-        gizmoManager?.attachedNode === mesh
-      ) {
-        gizmoManager?.attachToMesh(null);
-      }
-    });
   };
 
   const canvas = flock.scene.getEngine().getRenderingCanvas();
@@ -1727,7 +1346,6 @@ export function setGizmoManager(value) {
         .blockKey;
       const blockId = meshBlockIdMap[blockKey];
 
-      //console.log("Delete", blockKey, meshMap);
       deleteBlockWithUndo(blockId);
     }
   });
@@ -1738,6 +1356,96 @@ export function disposeGizmoManager() {
     gizmoManager.dispose();
     gizmoManager = null; // Clear the global reference for garbage collection
   }
+}
+
+export function configurePositionGizmo(
+  gizmoManager,
+  {
+    enable = true,
+    snapDistance = 0.1,
+    xColor = blueColor,
+    yColor = greenColor,
+    zColor = orangeColor,
+    updateToMatchAttachedMesh = true,
+  } = {},
+) {
+  if (!gizmoManager) return;
+
+  gizmoManager.positionGizmoEnabled = enable;
+
+  const pg = gizmoManager.gizmos?.positionGizmo;
+  if (!pg) return;
+
+  pg.snapDistance = snapDistance;
+
+  if (pg.xGizmo?._coloredMaterial)
+    pg.xGizmo._coloredMaterial.diffuseColor = xColor;
+  if (pg.yGizmo?._coloredMaterial)
+    pg.yGizmo._coloredMaterial.diffuseColor = yColor;
+  if (pg.zGizmo?._coloredMaterial)
+    pg.zGizmo._coloredMaterial.diffuseColor = zColor;
+
+  pg.updateGizmoPositionToMatchAttachedMesh = updateToMatchAttachedMesh;
+}
+
+export function configureRotationGizmo(
+  gizmoManager,
+  {
+    enable = true,
+    xColor = blueColor,
+    yColor = greenColor,
+    zColor = orangeColor,
+    updateToMatchAttachedMesh = false,
+  } = {},
+) {
+  if (!gizmoManager) return;
+
+  gizmoManager.rotationGizmoEnabled = enable;
+
+  const rg = gizmoManager.gizmos?.rotationGizmo;
+  if (!rg) return;
+
+  if (rg.xGizmo?._coloredMaterial)
+    rg.xGizmo._coloredMaterial.diffuseColor = xColor;
+  if (rg.yGizmo?._coloredMaterial)
+    rg.yGizmo._coloredMaterial.diffuseColor = yColor;
+  if (rg.zGizmo?._coloredMaterial)
+    rg.zGizmo._coloredMaterial.diffuseColor = zColor;
+
+  rg.updateGizmoRotationToMatchAttachedMesh = updateToMatchAttachedMesh;
+}
+
+export function configureScaleGizmo(
+  gizmoManager,
+  {
+    enable = true,
+    preserveScaling = true,
+    xColor = blueColor,
+    yColor = greenColor,
+    zColor = orangeColor,
+    sensitivity = 4,
+    uniformScaleRatio = 2.5,
+  } = {},
+) {
+  if (!gizmoManager) return;
+
+  gizmoManager.scaleGizmoEnabled = enable;
+
+  const sg = gizmoManager.gizmos?.scaleGizmo;
+  if (!sg) return;
+
+  sg.PreserveScaling = preserveScaling;
+
+  if (sg.xGizmo?._coloredMaterial)
+    sg.xGizmo._coloredMaterial.diffuseColor = xColor;
+  if (sg.yGizmo?._coloredMaterial)
+    sg.yGizmo._coloredMaterial.diffuseColor = yColor;
+  if (sg.zGizmo?._coloredMaterial)
+    sg.zGizmo._coloredMaterial.diffuseColor = zColor;
+
+  sg.sensitivity = sensitivity;
+
+  if (sg.uniformScaleGizmo) sg.uniformScaleGizmo.scaleRatio = uniformScaleRatio;
 }
 
 // Export functions for global access
