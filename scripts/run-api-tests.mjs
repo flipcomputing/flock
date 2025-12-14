@@ -294,6 +294,14 @@ async function runTests(suiteId = 'all') {
   });
 
   const page = await context.newPage();
+  page.on("console", (msg) => {
+  console.log(`[browser:${msg.type()}] ${msg.text()}`);
+});
+
+page.on("pageerror", (err) => {
+  console.log("[browser:pageerror]", err);
+});
+
 
   // Inject script to expose flock globally when it's created
   if (logApi || logAll) {
