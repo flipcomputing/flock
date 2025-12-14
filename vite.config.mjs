@@ -191,8 +191,7 @@ export default {
     {
       name: 'copy-library-files',
       writeBundle() {
-        copyFileSync('example.html', 'dist/example.html');
-        copyFileSync('flockdemo.html', 'dist/flockdemo.html');
+        copyFileSync('cubeart.html', 'dist/cubeart.html');
       },
     },
   ],
