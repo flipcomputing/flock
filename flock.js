@@ -2795,3 +2795,14 @@ window.setBPM = flockSound.setBPM;
 window.updateListenerPositionAndOrientation =
         flockSound.updateListenerPositionAndOrientation;
 window.speak = flockSound.speak;
+
+window.onload = async function () {
+        const scriptElement = document.getElementById("flock");
+        if (scriptElement) {
+                console.log("Standalone Flock 🐦");
+                initializeFlock();
+                // Hide loading screen after a short delay for standalone flock
+                setTimeout(hideLoadingScreen, 1000);
+                return; // standalone flock
+        }
+};
