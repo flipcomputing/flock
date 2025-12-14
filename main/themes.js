@@ -21,15 +21,18 @@ export const categoryColours = {
 function setLogos(themeName) {
         const bird = document.getElementById("logo");
         const inlineLogo = document.getElementById("flocklogo");
+        if (!bird || !inlineLogo) return;
         switch (themeName) {
                 case "dark-contrast":
                         inlineLogo.src = "./images/inline-flock-xr-dark1.svg";
-                        bird.src = "./images/flock-bird-mascot-2colours-dark1.svg";
+                        bird.src =
+                                "./images/flock-bird-mascot-2colours-dark1.svg";
                         break;
 
                 case "dark":
                         inlineLogo.src = "./images/inline-flock-xr-dark2.svg";
-                        bird.src = "./images/flock-bird-mascot-2colours-dark2.svg";
+                        bird.src =
+                                "./images/flock-bird-mascot-2colours-dark2.svg";
                         break;
 
                 case "contrast":
@@ -41,7 +44,7 @@ function setLogos(themeName) {
                         inlineLogo.src = "./images/inline-flock-xr.svg";
                         bird.src = "./images/flock-bird-mascot.svg";
                         break;
-        };
+        }
 }
 
 // Function to call when switching themes
@@ -109,20 +112,48 @@ export function createThemeConfig(themeName) {
                         procedure_blocks: baseStyles.procedures,
                 },
                 categoryStyles: {
-                        events_category: { colour: baseStyles.events.colourPrimary },
-                        scene_category: { colour: baseStyles.scene.colourPrimary },
-                        transform_category: { colour: baseStyles.transform.colourPrimary },
-                        animate_category: { colour: baseStyles.animate.colourPrimary },
-                        materials_category: { colour: baseStyles.materials.colourPrimary },
-                        sound_category: { colour: baseStyles.sound.colourPrimary },
-                        sensing_category: { colour: baseStyles.sensing.colourPrimary },
-                        snippets_category: { colour: baseStyles.snippets.colourPrimary },
-                        control_category: { colour: baseStyles.control.colourPrimary },
-                        logic_category: { colour: baseStyles.logic.colourPrimary },
-                        variables_category: { colour: baseStyles.variables.colourPrimary },
-                        text_category: { colour: baseStyles.text.colourPrimary },
-                        lists_category: { colour: baseStyles.lists.colourPrimary },
-                        math_category: { colour: baseStyles.math.colourPrimary },
+                        events_category: {
+                                colour: baseStyles.events.colourPrimary,
+                        },
+                        scene_category: {
+                                colour: baseStyles.scene.colourPrimary,
+                        },
+                        transform_category: {
+                                colour: baseStyles.transform.colourPrimary,
+                        },
+                        animate_category: {
+                                colour: baseStyles.animate.colourPrimary,
+                        },
+                        materials_category: {
+                                colour: baseStyles.materials.colourPrimary,
+                        },
+                        sound_category: {
+                                colour: baseStyles.sound.colourPrimary,
+                        },
+                        sensing_category: {
+                                colour: baseStyles.sensing.colourPrimary,
+                        },
+                        snippets_category: {
+                                colour: baseStyles.snippets.colourPrimary,
+                        },
+                        control_category: {
+                                colour: baseStyles.control.colourPrimary,
+                        },
+                        logic_category: {
+                                colour: baseStyles.logic.colourPrimary,
+                        },
+                        variables_category: {
+                                colour: baseStyles.variables.colourPrimary,
+                        },
+                        text_category: {
+                                colour: baseStyles.text.colourPrimary,
+                        },
+                        lists_category: {
+                                colour: baseStyles.lists.colourPrimary,
+                        },
+                        math_category: {
+                                colour: baseStyles.math.colourPrimary,
+                        },
                         procedures_category: {
                                 colour: baseStyles.procedures.colourPrimary,
                         },
@@ -136,21 +167,46 @@ function getThemeBaseStyles(themeName) {
         const themes = {
                 light: {
                         // For light theme, use consistent structure with colourPrimary
-                        events: { colourPrimary: categoryColours.Events || 20,  colourText: "#000000" },
-                        scene: { colourPrimary: categoryColours.Scene || 160, colourText: "#000000" },
-                        transform: { colourPrimary: categoryColours.Transform || 210 },
-                        animate: { colourPrimary: categoryColours.Animate || 60 },
-                        materials: { colourPrimary: categoryColours.Materials || 290 },
+                        events: {
+                                colourPrimary: categoryColours.Events || 20,
+                                colourText: "#000000",
+                        },
+                        scene: {
+                                colourPrimary: categoryColours.Scene || 160,
+                                colourText: "#000000",
+                        },
+                        transform: {
+                                colourPrimary: categoryColours.Transform || 210,
+                        },
+                        animate: {
+                                colourPrimary: categoryColours.Animate || 60,
+                        },
+                        materials: {
+                                colourPrimary: categoryColours.Materials || 290,
+                        },
                         sound: { colourPrimary: categoryColours.Sound || 30 },
-                        sensing: { colourPrimary: categoryColours.Sensing || 200 },
-                        snippets: { colourPrimary: categoryColours.Snippets || 120 },
-                        control: { colourPrimary: categoryColours.Control || 25 },
+                        sensing: {
+                                colourPrimary: categoryColours.Sensing || 200,
+                        },
+                        snippets: {
+                                colourPrimary: categoryColours.Snippets || 120,
+                        },
+                        control: {
+                                colourPrimary: categoryColours.Control || 25,
+                        },
                         logic: { colourPrimary: categoryColours.Logic || 210 },
-                        variables: { colourPrimary: categoryColours.Variables || 330 },
+                        variables: {
+                                colourPrimary: categoryColours.Variables || 330,
+                        },
                         text: { colourPrimary: categoryColours.Text || 160 },
-                        lists: { colourPrimary: categoryColours.Variables || 330 },
+                        lists: {
+                                colourPrimary: categoryColours.Variables || 330,
+                        },
                         math: { colourPrimary: categoryColours.Math || 230 },
-                        procedures: { colourPrimary: categoryColours.Procedures || 290 },
+                        procedures: {
+                                colourPrimary:
+                                        categoryColours.Procedures || 290,
+                        },
                         components: {
                                 workspaceBackgroundColour: "#f9f9f9",
                                 toolboxBackgroundColour: "#fff",
@@ -167,19 +223,38 @@ function getThemeBaseStyles(themeName) {
                         // Dark theme now uses the same block colors as light theme
                         events: { colourPrimary: categoryColours.Events || 20 },
                         scene: { colourPrimary: categoryColours.Scene || 160 },
-                        transform: { colourPrimary: categoryColours.Transform || 210 },
-                        animate: { colourPrimary: categoryColours.Animate || 60 },
-                        materials: { colourPrimary: categoryColours.Materials || 290 },
+                        transform: {
+                                colourPrimary: categoryColours.Transform || 210,
+                        },
+                        animate: {
+                                colourPrimary: categoryColours.Animate || 60,
+                        },
+                        materials: {
+                                colourPrimary: categoryColours.Materials || 290,
+                        },
                         sound: { colourPrimary: categoryColours.Sound || 30 },
-                        sensing: { colourPrimary: categoryColours.Sensing || 200 },
-                        snippets: { colourPrimary: categoryColours.Snippets || 120 },
-                        control: { colourPrimary: categoryColours.Control || 25 },
+                        sensing: {
+                                colourPrimary: categoryColours.Sensing || 200,
+                        },
+                        snippets: {
+                                colourPrimary: categoryColours.Snippets || 120,
+                        },
+                        control: {
+                                colourPrimary: categoryColours.Control || 25,
+                        },
                         logic: { colourPrimary: categoryColours.Logic || 210 },
-                        variables: { colourPrimary: categoryColours.Variables || 330 },
+                        variables: {
+                                colourPrimary: categoryColours.Variables || 330,
+                        },
                         text: { colourPrimary: categoryColours.Text || 160 },
-                        lists: { colourPrimary: categoryColours.Variables || 330 },
+                        lists: {
+                                colourPrimary: categoryColours.Variables || 330,
+                        },
                         math: { colourPrimary: categoryColours.Math || 230 },
-                        procedures: { colourPrimary: categoryColours.Procedures || 290 },
+                        procedures: {
+                                colourPrimary:
+                                        categoryColours.Procedures || 290,
+                        },
                         components: {
                                 workspaceBackgroundColour: "#1e1e1e",
                                 toolboxBackgroundColour: "#333",
@@ -427,26 +502,40 @@ function registerCategoryStyles() {
         const categoryStyles = {
                 events_category: { colour: lightStyles.events.colourPrimary },
                 scene_category: { colour: lightStyles.scene.colourPrimary },
-                transform_category: { colour: lightStyles.transform.colourPrimary },
+                transform_category: {
+                        colour: lightStyles.transform.colourPrimary,
+                },
                 animate_category: { colour: lightStyles.animate.colourPrimary },
-                materials_category: { colour: lightStyles.materials.colourPrimary },
+                materials_category: {
+                        colour: lightStyles.materials.colourPrimary,
+                },
                 sound_category: { colour: lightStyles.sound.colourPrimary },
                 sensing_category: { colour: lightStyles.sensing.colourPrimary },
-                snippets_category: { colour: lightStyles.snippets.colourPrimary },
+                snippets_category: {
+                        colour: lightStyles.snippets.colourPrimary,
+                },
                 control_category: { colour: lightStyles.control.colourPrimary },
                 logic_category: { colour: lightStyles.logic.colourPrimary },
-                variables_category: { colour: lightStyles.variables.colourPrimary },
+                variables_category: {
+                        colour: lightStyles.variables.colourPrimary,
+                },
                 text_category: { colour: lightStyles.text.colourPrimary },
                 lists_category: { colour: lightStyles.lists.colourPrimary },
                 math_category: { colour: lightStyles.math.colourPrimary },
-                procedures_category: { colour: lightStyles.procedures.colourPrimary },
+                procedures_category: {
+                        colour: lightStyles.procedures.colourPrimary,
+                },
         };
 
         // Register each category style
         Object.entries(categoryStyles).forEach(([styleName, styleConfig]) => {
                 try {
                         // Just register directly without checking if it exists
-                        Blockly.registry.register("categoryStyles", styleName, styleConfig);
+                        Blockly.registry.register(
+                                "categoryStyles",
+                                styleName,
+                                styleConfig,
+                        );
                 } catch (error) {
                         // Only warn if it's not an "already exists" error
                         if (!error.message.includes("already registered")) {
