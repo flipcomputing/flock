@@ -2067,19 +2067,7 @@ export const flock = {
                 // Enable collisions
                 flock.scene.collisionsEnabled = true;
 
-                const isTouchScreen =
-                        "ontouchstart" in window ||
-                        navigator.maxTouchPoints > 0 ||
-                        window.matchMedia("(pointer: coarse)").matches;
-
-                if (isTouchScreen) {
-                        flock.controlsTexture =
-                                flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-                                        "UI",
-                                );
-                        flock.createArrowControls("white");
-                        flock.createButtonControls("white");
-                }
+                flock.buttonControls("BOTH", "AUTO", "#ffffff");
 
                 // Create the UI
                 flock.advancedTexture =

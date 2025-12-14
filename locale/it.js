@@ -449,8 +449,10 @@ export default {
   // Tooltip translations - Effects blocks
   main_light_tooltip:
     "Imposta l’intensità della luce principale.\nParola chiave: intensità luce",
-  set_fog_tooltip: "Configura la nebbia della scena. Usa inizio e fine per impostare le distanze vicina e lontana.\nParola chiave: fog",
-  get_light_tooltip: "Ottieni la luce principale della scena corrente.\nParola chiave: light",
+  set_fog_tooltip:
+    "Configura la nebbia della scena. Usa inizio e fine per impostare le distanze vicina e lontana.\nParola chiave: fog",
+  get_light_tooltip:
+    "Ottieni la luce principale della scena corrente.\nParola chiave: light",
 
   // Tooltip translations - Events blocks
   start_tooltip:
@@ -792,6 +794,9 @@ export default {
   VISIBLE_option: "visibile",
   ALPHA_option: "alpha",
   COLOUR_option: "colore",
+  AUTO_option: "automatico",
+  ENABLED_option: "abilitato",
+  DISABLED_option: "disabilitato",
 
   BOTH_option: "entrambi",
   ARROWS_option: "frecce",
@@ -1026,7 +1031,8 @@ export default {
   snippet_filename_prompt: "Inserisci un nome file per lo snippet:",
   project_file_description: "Progetto Flock XR",
   file_too_large_alert: "File troppo grande. La dimensione massima è 5 MB.",
-  invalid_filetype_alert: "Sono consentiti solo file di progetto .json o .flock.",
+  invalid_filetype_alert:
+    "Sono consentiti solo file di progetto .json o .flock.",
   invalid_project_alert: "Questo file non è un progetto Flock XR valido.",
   failed_to_read_file_alert: "Impossibile leggere il file.",
 
@@ -1040,10 +1046,8 @@ export default {
     "Il motore fisico ha esaurito la memoria. Prova a ridurre il numero di oggetti fisici o a ricaricare il progetto.", // AI-generated; needs validation
   runtime_error_message: "Errore: {message}",
   xr_mode_message: "Modalità XR!",
-  fly_camera_instructions:
-    "ℹ️ Telecamera volante, usa le frecce e Pag su/giù",
-  select_mesh_delete_prompt:
-    "⚠️ Seleziona una mesh e poi fai clic su elimina.",
+  fly_camera_instructions: "ℹ️ Telecamera volante, usa le frecce e Pag su/giù",
+  select_mesh_delete_prompt: "⚠️ Seleziona una mesh e poi fai clic su elimina.",
   select_mesh_duplicate_prompt:
     "⚠️ Seleziona una mesh, fai clic su duplica e poi fai clic per posizionare le copie.",
   position_readout: "Posizione: {position}",

@@ -1,7 +1,7 @@
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Escena",
-  CATEGORY_MESHES: "Mallas", 
+  CATEGORY_MESHES: "Mallas",
   CATEGORY_XR: "XR",
   CATEGORY_EFFECTS: "Efectos",
   CATEGORY_CAMERA: "Cámara",
@@ -49,7 +49,8 @@ export default {
   more_options: "Más opciones",
   hex_placeholder: "ff0000 o red",
   skin_tone: "Tono de piel",
-  color_wheel_aria: "Rueda de color: usa las teclas de flecha para seleccionar tono y saturación",
+  color_wheel_aria:
+    "Rueda de color: usa las teclas de flecha para seleccionar tono y saturación",
 
   // Palette names
   palette_bright: "Brillante",
@@ -132,23 +133,31 @@ export default {
   clone_mesh: "agregar %1 clon de %2",
 
   // Custom block translations - Models blocks
-  load_character: "agregar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncabello: %7 |  piel: %8 |  ojos: %9 |  camiseta: %10 |  pantalones cortos: %11 |  detalle: %12",
+  load_character:
+    "agregar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncabello: %7 |  piel: %8 |  ojos: %9 |  camiseta: %10 |  pantalones cortos: %11 |  detalle: %12",
   load_object: "agregar %1 %2 %3 escala: %4 x: %5 y: %6 z: %7",
   load_multi_object: "agregar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncolores: %7",
   load_model: "agregar %1 %2 escala: %3 x: %4 y: %5 z: %6",
 
   // Custom block translations - Animate blocks
-  glide_to: "deslizar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿regresar? %7 ¿repetir? %8 %9",
-  glide_to_seconds: "deslizar %1 a x %2 y %3 z %4 en %5 segundos \n%6 ¿regresar? %7 ¿repetir? %8 %9",
-  glide_to_object: "deslizar %1 a %2 en %6 segundos\ndesplazamiento x: %3 y: %4 z: %5\n%7 ¿regresar? %8 ¿repetir? %9 %10",
-  rotate_anim: "rotar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿invertir? %7 ¿repetir? %8 %9",
-  rotate_anim_seconds: "rotar %1 a x %2 y %3 z %4 en %5 segundos\n%6 ¿invertir? %7 ¿repetir? %8 %9",
+  glide_to:
+    "deslizar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿regresar? %7 ¿repetir? %8 %9",
+  glide_to_seconds:
+    "deslizar %1 a x %2 y %3 z %4 en %5 segundos \n%6 ¿regresar? %7 ¿repetir? %8 %9",
+  glide_to_object:
+    "deslizar %1 a %2 en %6 segundos\ndesplazamiento x: %3 y: %4 z: %5\n%7 ¿regresar? %8 ¿repetir? %9 %10",
+  rotate_anim:
+    "rotar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿invertir? %7 ¿repetir? %8 %9",
+  rotate_anim_seconds:
+    "rotar %1 a x %2 y %3 z %4 en %5 segundos\n%6 ¿invertir? %7 ¿repetir? %8 %9",
   animate_property: "animar %1 %2 a %3 en %4 ms ¿invertir? %5 ¿repetir? %6 %7",
   colour_keyframe: "en %1 color: %2",
   number_keyframe: "en: %1 valor: %2",
   xyz_keyframe: "en: %1 x: %2 y: %3 z: %4",
-  animate_keyframes: "animar fotogramas en %1 propiedad %2\nfotogramas %3\nsuavizado %4 repetir %5 invertir %6 %7",
-  animation: "animar fotogramas en %1 propiedad %2 grupo %3\nfotogramas %4\nsuavizado %5 repetir %6 invertir %7 modo %8",
+  animate_keyframes:
+    "animar fotogramas en %1 propiedad %2\nfotogramas %3\nsuavizado %4 repetir %5 invertir %6 %7",
+  animation:
+    "animar fotogramas en %1 propiedad %2 grupo %3\nfotogramas %4\nsuavizado %5 repetir %6 invertir %7 modo %8",
   control_animation_group: "grupo de animación %1 %2",
   animate_from: "animar grupo %1 desde %2 segundos",
   stop_animations: "detener animaciones %1",
@@ -205,13 +214,15 @@ export default {
   on_event: "al evento %1",
 
   // Custom block translations - Materials blocks
-  change_color: "cambiar color de %1 a %2",               // 'change color' → cambiar color :contentReference[oaicite:2]{index=2}
+  change_color: "cambiar color de %1 a %2", // 'change color' → cambiar color :contentReference[oaicite:2]{index=2}
   change_material: "aplicar material %1 a %2 con color %3",
-  text_material: "material %1 texto %2 color %3 fondo %4\nancho: %5 alto: %6 tamaño: %7",
+  text_material:
+    "material %1 texto %2 color %3 fondo %4\nancho: %5 alto: %6 tamaño: %7",
   place_decal: "calcomanía %1 ángulo %2",
-  decal: "calcomanía en %1 desde x: %2 y: %3 z: %4 \nángulo x: %5 y: %6 z: %7\ntamaño x: %8 y: %9 z: %10 material: %11",
+  decal:
+    "calcomanía en %1 desde x: %2 y: %3 z: %4 \nángulo x: %5 y: %6 z: %7\ntamaño x: %8 y: %9 z: %10 material: %11",
   highlight: "resaltar %1 %2",
-  glow: "resplandor en %1",                               // 'glow' → resplandor (noun sense) :contentReference[oaicite:3]{index=3}
+  glow: "resplandor en %1", // 'glow' → resplandor (noun sense) :contentReference[oaicite:3]{index=3}
   tint: "tinte %1 %2",
   set_alpha: "establecer alfa de %1 a %2",
   clear_effects: "limpiar efectos de %1",
@@ -241,37 +252,51 @@ export default {
   canvas_controls: "controles de lienzo %1",
   button_controls: "controles de botón %1 habilitados %2 color %3",
   microbit_input: "cuando evento micro:bit %1",
-  ui_slider: "control deslizante UI %1 de %2 a %3 por defecto %4 en x: %5 y: %6\ncolor: %7 fondo: %8 %9",
+  ui_slider:
+    "control deslizante UI %1 de %2 a %3 por defecto %4 en x: %5 y: %6\ncolor: %7 fondo: %8 %9",
 
   // Custom block translations - Shapes blocks
-  create_particle_effect: "agregar efecto de partículas %1 en: %2\nforma: %3 inicio %4 fin %5 alfa: %6 a %7\ntasa: %8 tamaño: %9 a %10 duración: %11 a %12\ngravedad: %13 fuerza x: %14 y: %15 z: %16\nvelocidad angular: %17 a %18 ángulo inicial: %19 a %20",
+  create_particle_effect:
+    "agregar efecto de partículas %1 en: %2\nforma: %3 inicio %4 fin %5 alfa: %6 a %7\ntasa: %8 tamaño: %9 a %10 duración: %11 a %12\ngravedad: %13 fuerza x: %14 y: %15 z: %16\nvelocidad angular: %17 a %18 ángulo inicial: %19 a %20",
   control_particle_system: "sistema de partículas %1 %2",
-  create_box: "agregar caja %1 %2 ancho: %3 alto: %4 profundidad: %5 \nen x: %6 y: %7 z: %8",
-  create_sphere: "agregar esfera %1 %2 diámetro x: %3 diámetro y: %4 diámetro z: %5\nen x: %6 y: %7 z: %8",
-  create_cylinder: "agregar cilindro %1 %2 altura: %3 superior: %4 inferior: %5 lados: %6\nen x: %7 y: %8 z: %9",
-  create_capsule: "agregar cápsula %1 %2 diámetro: %3 altura: %4 \nen x: %5 y: %6 z: %7",
+  create_box:
+    "agregar caja %1 %2 ancho: %3 alto: %4 profundidad: %5 \nen x: %6 y: %7 z: %8",
+  create_sphere:
+    "agregar esfera %1 %2 diámetro x: %3 diámetro y: %4 diámetro z: %5\nen x: %6 y: %7 z: %8",
+  create_cylinder:
+    "agregar cilindro %1 %2 altura: %3 superior: %4 inferior: %5 lados: %6\nen x: %7 y: %8 z: %9",
+  create_capsule:
+    "agregar cápsula %1 %2 diámetro: %3 altura: %4 \nen x: %5 y: %6 z: %7",
   create_plane: "agregar plano %1 %2 ancho: %3 alto: %4 \nen x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
-  play_sound: "reproducir sonido %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7",
+  play_sound:
+    "reproducir sonido %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7",
   stop_all_sounds: "detener todos los sonidos",
   midi_note: "nota MIDI %1",
   rest: "pausa",
-  play_notes: "reproducir notas en %1\nnotas: %2 duraciones: %3\ninstrumento: %4 modo: %5",
+  play_notes:
+    "reproducir notas en %1\nnotas: %2 duraciones: %3\ninstrumento: %4 modo: %5",
   set_scene_bpm: "establecer BPM de la escena en %1",
   set_mesh_bpm: "establecer BPM de %1 en %2",
-  create_instrument: "instrumento %1 onda: %2 frecuencia: %3 ataque: %4 decaimiento: %5 sostenido: %6 liberación: %7",
+  create_instrument:
+    "instrumento %1 onda: %2 frecuencia: %3 ataque: %4 decaimiento: %5 sostenido: %6 liberación: %7",
   instrument: "instrumento %1",
-  speak: "hablar %1 %2 voz: %3 idioma: %4\nvelocidad: %5 tono: %6 volumen: %7 modo: %8",
+  speak:
+    "hablar %1 %2 voz: %3 idioma: %4\nvelocidad: %5 tono: %6 volumen: %7 modo: %8",
 
   // Custom block translations - Text blocks
   comment: "// %1",
   print_text: "imprimir %1 por %2 segundos %3",
   say: "decir %1 por %2 s %3 \ntexto %4 en %5 alfa %6 tamaño %7 %8 %9",
-  ui_text: "texto UI %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7",
-  ui_button: "botón UI %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 text: %7 background: %8",
-  ui_input: "entrada UI %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8",
-  create_3d_text: "agregar %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9",
+  ui_text:
+    "texto UI %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7",
+  ui_button:
+    "botón UI %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 text: %7 background: %8",
+  ui_input:
+    "entrada UI %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8",
+  create_3d_text:
+    "agregar %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9",
 
   // Custom block translations - Transform blocks
   move_by_xyz: "cambiar posición de %1 en x: %2 y: %3 z: %4",
@@ -306,177 +331,280 @@ export default {
   BLOCK_WAIT_SECONDS_MESSAGE: "esperar %1 segundos",
   BLOCK_KEY_PRESSED_MESSAGE: "¿tecla %1 presionada?",
   BLOCK_MOVE_FORWARD_MESSAGE: "mover %1 hacia adelante por %2",
-  BLOCK_CREATE_BOX_MESSAGE: "crear caja %1 color %2 tamaño %3 × %4 × %5 en %6, %7, %8",
+  BLOCK_CREATE_BOX_MESSAGE:
+    "crear caja %1 color %2 tamaño %3 × %4 × %5 en %6, %7, %8",
 
   // Add more custom block translations as needed
 
   // Tooltip translations - Scene Blocks
   set_sky_color_tooltip: "Set the sky color of the scene.\nPalabra clave: sky",
-  create_ground_tooltip: "Add a ground plane with collisions enabled to the scene.\nPalabra clave: ground",
-  set_background_color_tooltip: "Set the scene's background color.\nPalabra clave: background",
-  create_map_tooltip: "Create a map with the selected name and material.\nPalabra clave: map",
+  create_ground_tooltip:
+    "Add a ground plane with collisions enabled to the scene.\nPalabra clave: ground",
+  set_background_color_tooltip:
+    "Set the scene's background color.\nPalabra clave: background",
+  create_map_tooltip:
+    "Create a map with the selected name and material.\nPalabra clave: map",
   show_tooltip: "Show the selected mesh.\nPalabra clave: show",
   hide_tooltip: "Hide the selected mesh.\nPalabra clave: hide",
-  dispose_tooltip: "Remove the specified mesh from the scene.\nPalabra clave: dispose",
-  clone_mesh_tooltip: "Clone a mesh and assign it to a variable.\nPalabra clave: clone",
+  dispose_tooltip:
+    "Remove the specified mesh from the scene.\nPalabra clave: dispose",
+  clone_mesh_tooltip:
+    "Clone a mesh and assign it to a variable.\nPalabra clave: clone",
 
   // Tooltip translations - Models blocks
-  load_character_tooltip: "Create a configurable character.\nPalabra clave: character",
+  load_character_tooltip:
+    "Create a configurable character.\nPalabra clave: character",
   load_object_tooltip: "Create an object.\nPalabra clave: object",
-  load_multi_object_tooltip: "Create an object with colors.\nPalabra clave: object",
+  load_multi_object_tooltip:
+    "Create an object with colors.\nPalabra clave: object",
   load_model_tooltip: "Load a model.\nPalabra clave: model",
 
   // Tooltip translations - Animate blocks
-  glide_to_tooltip: "Deslízate a una posición especificada durante una duración, con opciones de inversión, bucle y easing.",
-  glide_to_seconds_tooltip: "Deslízate a una posición especificada durante una duración, con opciones de inversión, bucle y easing.",
-  glide_to_object_tooltip: "Deslízate a la posición de otra malla con desplazamientos x/y/z opcionales (0 por defecto) y opciones de invertir, bucle y easing.",
-  rotate_anim_tooltip: "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y easing.",
-  rotate_anim_seconds_tooltip: "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y easing.",
-  animate_property_tooltip: "Anima una propiedad de material de la malla y sus hijos.",
+  glide_to_tooltip:
+    "Deslízate a una posición especificada durante una duración, con opciones de inversión, bucle y easing.",
+  glide_to_seconds_tooltip:
+    "Deslízate a una posición especificada durante una duración, con opciones de inversión, bucle y easing.",
+  glide_to_object_tooltip:
+    "Deslízate a la posición de otra malla con desplazamientos x/y/z opcionales (0 por defecto) y opciones de invertir, bucle y easing.",
+  rotate_anim_tooltip:
+    "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y easing.",
+  rotate_anim_seconds_tooltip:
+    "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y easing.",
+  animate_property_tooltip:
+    "Anima una propiedad de material de la malla y sus hijos.",
   colour_keyframe_tooltip: "Define un fotograma clave de color y duración.",
   number_keyframe_tooltip: "Define un fotograma clave numérico con duración.",
   xyz_keyframe_tooltip: "Define un fotograma clave XYZ con duración.",
-  animate_keyframes_tooltip: "Anima un conjunto de fotogramas clave en la malla seleccionada, con easing, bucle opcional e inversión.",
-  animation_tooltip: "Crea un grupo de animación para la malla y propiedad seleccionadas, con fotogramas clave, easing, bucle e inversión opcionales. Usa crear, iniciar o esperar para controlar el comportamiento.",
-  control_animation_group_tooltip: "Controla el grupo de animación reproduciéndolo, pausándolo o deteniéndolo.",
-  animate_from_tooltip: "Comienza a animar el grupo desde el tiempo especificado (en segundos).",
-  stop_animations_tooltip: "Detiene todas las animaciones de fotogramas clave en la malla seleccionada.\nPalabra clave: stop",
-  switch_animation_tooltip: "Cambia la animación de la malla indicada a la animación dada.\nPalabra clave: switch",
-  play_animation_tooltip: "Reproduce la animación seleccionada una vez en la malla indicada.\nPalabra clave: play",
+  animate_keyframes_tooltip:
+    "Anima un conjunto de fotogramas clave en la malla seleccionada, con easing, bucle opcional e inversión.",
+  animation_tooltip:
+    "Crea un grupo de animación para la malla y propiedad seleccionadas, con fotogramas clave, easing, bucle e inversión opcionales. Usa crear, iniciar o esperar para controlar el comportamiento.",
+  control_animation_group_tooltip:
+    "Controla el grupo de animación reproduciéndolo, pausándolo o deteniéndolo.",
+  animate_from_tooltip:
+    "Comienza a animar el grupo desde el tiempo especificado (en segundos).",
+  stop_animations_tooltip:
+    "Detiene todas las animaciones de fotogramas clave en la malla seleccionada.\nPalabra clave: stop",
+  switch_animation_tooltip:
+    "Cambia la animación de la malla indicada a la animación dada.\nPalabra clave: switch",
+  play_animation_tooltip:
+    "Reproduce la animación seleccionada una vez en la malla indicada.\nPalabra clave: play",
 
   // Tooltip translations - Base blocks
   xyz_tooltip: "Crea un vector con coordenadas X, Y, Z",
 
   // Tooltip translations - Camera blocks
-  camera_control_tooltip: "Asocia una tecla específica a una acción de control de cámara.",
-  camera_follow_tooltip: "Haz que la cámara siga una malla con una distancia personalizable (radio) al objetivo.\nPalabra clave: follow",
+  camera_control_tooltip:
+    "Asocia una tecla específica a una acción de control de cámara.",
+  camera_follow_tooltip:
+    "Haz que la cámara siga una malla con una distancia personalizable (radio) al objetivo.\nPalabra clave: follow",
   get_camera_tooltip: "Obtén la cámara actual de la escena",
 
   // Tooltip translations - Combine blocks
-  merge_meshes_tooltip: "Fusiona una lista de mallas en una sola y almacena el resultado.\nPalabra clave: merge",
-  subtract_meshes_tooltip: "Resta una lista de mallas de una malla base y almacena el resultado.\nPalabra clave: subtract",
-  intersection_meshes_tooltip: "Intersecta una lista de mallas y almacena la geometría resultante.\nPalabra clave: intersect",
-  hull_meshes_tooltip: "Crea una envolvente convexa de una lista de mallas y almacena el resultado.\nPalabra clave: hull",
+  merge_meshes_tooltip:
+    "Fusiona una lista de mallas en una sola y almacena el resultado.\nPalabra clave: merge",
+  subtract_meshes_tooltip:
+    "Resta una lista de mallas de una malla base y almacena el resultado.\nPalabra clave: subtract",
+  intersection_meshes_tooltip:
+    "Intersecta una lista de mallas y almacena la geometría resultante.\nPalabra clave: intersect",
+  hull_meshes_tooltip:
+    "Crea una envolvente convexa de una lista de mallas y almacena el resultado.\nPalabra clave: hull",
 
   // Tooltip translations - Connect blocks
-  parent_tooltip: "Establece relación padre‑hijo entre dos mallas conservando la posición mundial del hijo.\nPalabra clave: parent",
-  parent_child_tooltip: "Establece relación padre‑hijo entre dos mallas con desplazamiento en x, y y z.\nPalabra clave: child",
-  remove_parent_tooltip: "Elimina la relación de paternidad de la malla especificada.\nPalabra clave: unparent",
-  stop_follow_tooltip: "Detiene que la malla especificada siga a otra.\nPalabra clave: stopfollow",
-  hold_tooltip: "Adjunta una malla al hueso especificado de otra con desplazamiento en x, y, z.\nPalabra clave: hold",
-  drop_tooltip: "Desprende una malla del hueso al que está adjunta.\nPalabra clave: drop",
-  follow_tooltip: "Haz que una malla siga a otra en una posición especificada (arriba, centro o abajo) con desplazamiento en x, y y z.\nPalabra clave: follow",
-  export_mesh_tooltip: "Exporta una malla en STL, OBJ o GLB.\nPalabra clave: export",
+  parent_tooltip:
+    "Establece relación padre‑hijo entre dos mallas conservando la posición mundial del hijo.\nPalabra clave: parent",
+  parent_child_tooltip:
+    "Establece relación padre‑hijo entre dos mallas con desplazamiento en x, y y z.\nPalabra clave: child",
+  remove_parent_tooltip:
+    "Elimina la relación de paternidad de la malla especificada.\nPalabra clave: unparent",
+  stop_follow_tooltip:
+    "Detiene que la malla especificada siga a otra.\nPalabra clave: stopfollow",
+  hold_tooltip:
+    "Adjunta una malla al hueso especificado de otra con desplazamiento en x, y, z.\nPalabra clave: hold",
+  drop_tooltip:
+    "Desprende una malla del hueso al que está adjunta.\nPalabra clave: drop",
+  follow_tooltip:
+    "Haz que una malla siga a otra en una posición especificada (arriba, centro o abajo) con desplazamiento en x, y y z.\nPalabra clave: follow",
+  export_mesh_tooltip:
+    "Exporta una malla en STL, OBJ o GLB.\nPalabra clave: export",
 
   // Tooltip translations - Control blocks
-  wait_tooltip: "Espera un tiempo especificado en milisegundos.\nPalabra clave: milli",
-  wait_seconds_tooltip: "Espera un tiempo especificado en segundos.\nPalabra clave: wait",
-  wait_until_tooltip: "Espera hasta que la condición sea verdadera.\nPalabra clave: until",
-  local_variable_tooltip: "Crea una versión local de una variable seleccionada. Oculta la variable global y puede tener un valor distinto.\nPalabra clave: local",
-  for_loop2_tooltip: "Bucle desde un número inicial hasta uno final usando un cierto paso.",
-  for_loop_tooltip: "Bucle desde un número inicial hasta uno final usando un cierto paso. Haz clic en el menú para seleccionar la variable del bucle.\nPalabra clave: for",
+  wait_tooltip:
+    "Espera un tiempo especificado en milisegundos.\nPalabra clave: milli",
+  wait_seconds_tooltip:
+    "Espera un tiempo especificado en segundos.\nPalabra clave: wait",
+  wait_until_tooltip:
+    "Espera hasta que la condición sea verdadera.\nPalabra clave: until",
+  local_variable_tooltip:
+    "Crea una versión local de una variable seleccionada. Oculta la variable global y puede tener un valor distinto.\nPalabra clave: local",
+  for_loop2_tooltip:
+    "Bucle desde un número inicial hasta uno final usando un cierto paso.",
+  for_loop_tooltip:
+    "Bucle desde un número inicial hasta uno final usando un cierto paso. Haz clic en el menú para seleccionar la variable del bucle.\nPalabra clave: for",
   get_lexical_variable_tooltip: "Obtiene el valor de una variable léxica",
 
   // Tooltip translations - Effects blocks
-  main_light_tooltip: "Establece la intensidad de la luz principal.\nPalabra clave: light intensity",
-  set_fog_tooltip: "Configura la niebla de la escena. Usa inicio y fin para definir las distancias cercana y lejana.\nPalabra clave: fog",
-  get_light_tooltip: "Obtén la luz principal de la escena actual.\nPalabra clave: light",
+  main_light_tooltip:
+    "Establece la intensidad de la luz principal.\nPalabra clave: light intensity",
+  set_fog_tooltip:
+    "Configura la niebla de la escena. Usa inicio y fin para definir las distancias cercana y lejana.\nPalabra clave: fog",
+  get_light_tooltip:
+    "Obtén la luz principal de la escena actual.\nPalabra clave: light",
 
   // Tooltip translations - Events blocks
-  start_tooltip: "Ejecuta los bloques internos al iniciar el proyecto. Puede haber múltiples bloques de inicio.\nPalabra clave: start",
-  forever_tooltip: "Ejecuta los bloques internos cada fotograma o tras finalizar la iteración anterior.\nPalabra clave: forever",
-  when_clicked_tooltip: "Ejecuta los bloques internos cuando ocurra el evento de clic en la malla.\nPalabra clave: click",
-  on_collision_tooltip: "Ejecuta los bloques internos cuando una malla intersecta o deja de intersectar otra.\nPalabra clave: collide",
-  when_key_event_tooltip: "Ejecuta los bloques internos cuando la tecla especificada se pulsa o se suelta.",
-  when_action_event_tooltip: "Ejecuta los bloques internos cuando la acción elegida se pulsa o se suelta en teclado, táctil o XR.",
-  broadcast_event_tooltip: "Emite un evento que es recibido por el bloque 'on event'.\nPalabra clave: broadcast",
-  on_event_tooltip: "Ejecuta el código cuando se recibe un evento emitido.\nPalabra clave: on",
+  start_tooltip:
+    "Ejecuta los bloques internos al iniciar el proyecto. Puede haber múltiples bloques de inicio.\nPalabra clave: start",
+  forever_tooltip:
+    "Ejecuta los bloques internos cada fotograma o tras finalizar la iteración anterior.\nPalabra clave: forever",
+  when_clicked_tooltip:
+    "Ejecuta los bloques internos cuando ocurra el evento de clic en la malla.\nPalabra clave: click",
+  on_collision_tooltip:
+    "Ejecuta los bloques internos cuando una malla intersecta o deja de intersectar otra.\nPalabra clave: collide",
+  when_key_event_tooltip:
+    "Ejecuta los bloques internos cuando la tecla especificada se pulsa o se suelta.",
+  when_action_event_tooltip:
+    "Ejecuta los bloques internos cuando la acción elegida se pulsa o se suelta en teclado, táctil o XR.",
+  broadcast_event_tooltip:
+    "Emite un evento que es recibido por el bloque 'on event'.\nPalabra clave: broadcast",
+  on_event_tooltip:
+    "Ejecuta el código cuando se recibe un evento emitido.\nPalabra clave: on",
 
   // Tooltip translations - Materials blocks
-  change_color_tooltip: "Cambia el color de la malla seleccionada.\nPalabra clave: color",
-  change_material_tooltip: "Aplica un material seleccionado con tinte de color a la malla especificada.\nPalabra clave: material",
-  text_material_tooltip: "Crea un material con texto o emoji, especificando ancho, alto, color de fondo y tamaño de texto.",
-  place_decal_tooltip: "Coloca una calcomanía (decal) en una malla usando el material seleccionado.",
-  decal_tooltip: "Crea una calcomanía en una malla con posición, normal, tamaño y material.",
+  change_color_tooltip:
+    "Cambia el color de la malla seleccionada.\nPalabra clave: color",
+  change_material_tooltip:
+    "Aplica un material seleccionado con tinte de color a la malla especificada.\nPalabra clave: material",
+  text_material_tooltip:
+    "Crea un material con texto o emoji, especificando ancho, alto, color de fondo y tamaño de texto.",
+  place_decal_tooltip:
+    "Coloca una calcomanía (decal) en una malla usando el material seleccionado.",
+  decal_tooltip:
+    "Crea una calcomanía en una malla con posición, normal, tamaño y material.",
   highlight_tooltip: "Resalta la malla seleccionada.\nPalabra clave: highlight",
-  glow_tooltip: "Añade un efecto de resplandor (glow) a la malla seleccionada.\nPalabra clave: glow",
+  glow_tooltip:
+    "Añade un efecto de resplandor (glow) a la malla seleccionada.\nPalabra clave: glow",
   tint_tooltip: "Añade un tinte de color.\nPalabra clave: tint",
-  set_alpha_tooltip: "Establece el canal alfa (transparencia) del material de una malla. Valores entre 0 y 1.\nPalabra clave: alpha",
-  clear_effects_tooltip: "Elimina efectos visuales de la malla seleccionada.\nPalabra clave: clear",
+  set_alpha_tooltip:
+    "Establece el canal alfa (transparencia) del material de una malla. Valores entre 0 y 1.\nPalabra clave: alpha",
+  clear_effects_tooltip:
+    "Elimina efectos visuales de la malla seleccionada.\nPalabra clave: clear",
   colour_tooltip: "Selecciona un color.\nPalabra clave: color",
   skin_colour_tooltip: "Selecciona un color de piel.\nPalabra clave: skin",
-  greyscale_colour_tooltip: "Selecciona un color en escala de grises para elevación.\nPalabra clave: grey",
+  greyscale_colour_tooltip:
+    "Selecciona un color en escala de grises para elevación.\nPalabra clave: grey",
   random_colour_tooltip: "Genera un color aleatorio.\nPalabra clave: randcol",
   material_tooltip: "Define propiedades del material",
   gradient_material_tooltip: "Define propiedades del material (gradiente)",
   set_material_tooltip: "Aplica el material especificado a la malla indicada.",
 
   // Tooltip translations - Physics blocks
-  add_physics_tooltip: "Añade física a la malla. Opciones: dynamic, static, animated o none.\nPalabra clave: physics",
-  add_physics_shape_tooltip: "Añade una forma física a la malla. Opciones: mesh o capsule.\nPalabra clave: physics",
-  apply_force_tooltip: "Aplica una fuerza a una malla en direcciones XYZ.\nPalabra clave: force",
-  show_physics_tooltip: "Mostrar u ocultar colisionadores físicos para depuración. Marque para mostrar, desmarque para ocultar.\nPalabra clave: debug physics collider",
+  add_physics_tooltip:
+    "Añade física a la malla. Opciones: dynamic, static, animated o none.\nPalabra clave: physics",
+  add_physics_shape_tooltip:
+    "Añade una forma física a la malla. Opciones: mesh o capsule.\nPalabra clave: physics",
+  apply_force_tooltip:
+    "Aplica una fuerza a una malla en direcciones XYZ.\nPalabra clave: force",
+  show_physics_tooltip:
+    "Mostrar u ocultar colisionadores físicos para depuración. Marque para mostrar, desmarque para ocultar.\nPalabra clave: debug physics collider",
 
   // Tooltip translations - Sensing blocks
-  key_pressed_tooltip: "Devuelve verdadero si la tecla especificada está presionada.\nPalabra clave: ispressed",
+  key_pressed_tooltip:
+    "Devuelve verdadero si la tecla especificada está presionada.\nPalabra clave: ispressed",
   action_pressed_tooltip:
     "Devuelve verdadero si el control de movimiento o acción seleccionado está activo en teclado, táctil o XR.",
-  meshes_touching_tooltip: "Devuelve verdadero si las dos mallas seleccionadas se están tocando.\nPalabra clave: istouching",
+  meshes_touching_tooltip:
+    "Devuelve verdadero si las dos mallas seleccionadas se están tocando.\nPalabra clave: istouching",
   time_tooltip: "Devuelve el tiempo actual en segundos.",
   distance_to_tooltip: "Calcula la distancia entre dos mallas.",
-  touching_surface_tooltip: "Comprueba si la malla está tocando una superficie.\nPalabra clave: surface",
-  get_property_tooltip: "Obtiene el valor de la propiedad seleccionada de una malla.\nPalabra clave: get",
-  canvas_controls_tooltip: "Añade o elimina controles de movimiento en el lienzo.\nPalabra clave: canvas",
-  button_controls_tooltip: "Configura los controles de botones.\nPalabra clave: button",
-  microbit_input_tooltip: "Ejecuta los bloques dentro cuando se desencadena un evento micro:bit especificado.",
-  ui_slider_tooltip: "Añade un control deslizante 2D en la UI y almacena su referencia en una variable.",
+  touching_surface_tooltip:
+    "Comprueba si la malla está tocando una superficie.\nPalabra clave: surface",
+  get_property_tooltip:
+    "Obtiene el valor de la propiedad seleccionada de una malla.\nPalabra clave: get",
+  canvas_controls_tooltip:
+    "Añade o elimina controles de movimiento en el lienzo.\nPalabra clave: canvas",
+  button_controls_tooltip:
+    "Configura los controles de botones.\nPalabra clave: button",
+  microbit_input_tooltip:
+    "Ejecuta los bloques dentro cuando se desencadena un evento micro:bit especificado.",
+  ui_slider_tooltip:
+    "Añade un control deslizante 2D en la UI y almacena su referencia en una variable.",
 
   // Tooltip translations - Shapes blocks
-  create_particle_effect_tooltip: "Crea un efecto de partículas conectado a una malla con forma, gravedad, tamaño, color, transparencia, duración, fuerza y rotación configurables.",
-  control_particle_system_tooltip: "Controla el sistema de partículas iniciándolo, deteniéndolo o reiniciándolo.",
-  create_box_tooltip: "Crea una caja de color con dimensiones y posición especificadas.\nPalabra clave: box",
-  create_sphere_tooltip: "Crea una esfera de color con dimensiones y posición especificadas.\nPalabra clave: sphere",
-  create_cylinder_tooltip: "Crea un cilindro de color con dimensiones y posición especificadas.\nPalabra clave: cylinder",
-  create_capsule_tooltip: "Crea una cápsula de color con dimensiones y posición especificadas.\nPalabra clave: capsule",
-  create_plane_tooltip: "Crea un plano 2D de color con ancho, alto y posición especificadas.\nPalabra clave: plane",
+  create_particle_effect_tooltip:
+    "Crea un efecto de partículas conectado a una malla con forma, gravedad, tamaño, color, transparencia, duración, fuerza y rotación configurables.",
+  control_particle_system_tooltip:
+    "Controla el sistema de partículas iniciándolo, deteniéndolo o reiniciándolo.",
+  create_box_tooltip:
+    "Crea una caja de color con dimensiones y posición especificadas.\nPalabra clave: box",
+  create_sphere_tooltip:
+    "Crea una esfera de color con dimensiones y posición especificadas.\nPalabra clave: sphere",
+  create_cylinder_tooltip:
+    "Crea un cilindro de color con dimensiones y posición especificadas.\nPalabra clave: cylinder",
+  create_capsule_tooltip:
+    "Crea una cápsula de color con dimensiones y posición especificadas.\nPalabra clave: capsule",
+  create_plane_tooltip:
+    "Crea un plano 2D de color con ancho, alto y posición especificadas.\nPalabra clave: plane",
 
   // Tooltip translations - Sound blocks
-  play_sound_tooltip: "Reproduce el sonido seleccionado en una malla con velocidad, volumen y modo ajustables.\nPalabra clave: sound",
-  stop_all_sounds_tooltip: "Detiene todos los sonidos que se estén reproduciendo en la escena.\nPalabra clave: nosound",
+  play_sound_tooltip:
+    "Reproduce el sonido seleccionado en una malla con velocidad, volumen y modo ajustables.\nPalabra clave: sound",
+  stop_all_sounds_tooltip:
+    "Detiene todos los sonidos que se estén reproduciendo en la escena.\nPalabra clave: nosound",
   midi_note_tooltip: "Un valor de nota MIDI entre 0 y 127.",
   rest_tooltip: "Un silencio (pausa) en una secuencia musical.",
-  play_notes_tooltip: "Reproduce una secuencia de notas y silencios MIDI con duraciones correspondientes, usando la malla para paneo. Puede devolver el control inmediatamente o al finalizar.",
+  play_notes_tooltip:
+    "Reproduce una secuencia de notas y silencios MIDI con duraciones correspondientes, usando la malla para paneo. Puede devolver el control inmediatamente o al finalizar.",
   set_scene_bpm_tooltip: "Establece el BPM para toda la escena.",
   set_mesh_bpm_tooltip: "Establece el BPM para la malla seleccionada.",
-  create_instrument_tooltip: "Crea un instrumento y lo asigna a la variable seleccionada.",
+  create_instrument_tooltip:
+    "Crea un instrumento y lo asigna a la variable seleccionada.",
   instrument_tooltip: "Selecciona un instrumento para reproducir notas.",
-  speak_tooltip: "Convierte texto en voz usando Web Speech API con posicionamiento 3D opcional.\nPalabra clave: speak",
+  speak_tooltip:
+    "Convierte texto en voz usando Web Speech API con posicionamiento 3D opcional.\nPalabra clave: speak",
 
   // Tooltip translations - Text blocks
-  comment_tooltip: "Una línea de comentario para facilitar la comprensión de tu código.",
+  comment_tooltip:
+    "Una línea de comentario para facilitar la comprensión de tu código.",
   print_text_tooltip: "Texto en el panel de salida.\nPalabra clave: print",
-  say_tooltip: "Muestra un texto como burbuja de diálogo sobre una malla.\nPalabra clave: say",
-  ui_text_tooltip: "Añade texto a la pantalla UI y almacena el control en una variable para uso o eliminación posterior.",
-  ui_button_tooltip: "Añade un botón 2D a la pantalla UI con tamaño preestablecido y almacena su control en una variable.",
-  ui_input_tooltip: "Pregunta al usuario y espera su respuesta. Guarda el resultado en una variable.",
+  say_tooltip:
+    "Muestra un texto como burbuja de diálogo sobre una malla.\nPalabra clave: say",
+  ui_text_tooltip:
+    "Añade texto a la pantalla UI y almacena el control en una variable para uso o eliminación posterior.",
+  ui_button_tooltip:
+    "Añade un botón 2D a la pantalla UI con tamaño preestablecido y almacena su control en una variable.",
+  ui_input_tooltip:
+    "Pregunta al usuario y espera su respuesta. Guarda el resultado en una variable.",
   create_3d_text_tooltip: "Crea texto 3D en la escena.",
 
   // Tooltip translations - Transform blocks
-  move_by_xyz_tooltip: "Mueve una malla cierta cantidad en direcciones x, y y z.\nPalabra clave: move",
-  move_to_xyz_tooltip: "Teletransporta la malla a las coordenadas. Opcionalmente, usa el eje Y.\nPalabra clave: moveby",
-  move_to_tooltip: "Teletransporta la primera malla a la ubicación de la segunda.\nPalabra clave: moveto",
-  scale_tooltip: "Redimensiona una malla a los valores x, y y z dados, controlando el origen del escalado.\nPalabra clave: scale",
-  resize_tooltip: "Redimensiona una malla a los valores x, y y z dados, controlando el origen.\nPalabra clave: resize",
-  rotate_model_xyz_tooltip: "Rota la malla por los valores x, y, z indicados.\nPalabra clave: rotate\nKeyword: rotateby",
-  rotate_to_tooltip: "Rota la malla para apuntar hacia las coordenadas.\nPalabra clave: rotateto",
-  look_at_tooltip: "Rota la primera malla hacia la posición de la segunda.\nPalabra clave: look",
-  move_forward_tooltip: "Mueve la malla en la dirección especificada. 'Forward' sigue su dirección, 'sideways' y 'strafe' se basan en la cámara.\nPalabra clave: push",
-  set_pivot_tooltip: "Establece el punto de anclaje para una malla en los ejes X, Y y Z.\nPalabra clave: ancla",
-  min_centre_max_tooltip: "Elige min, centro o max para el punto de pivote.\nPalabra clave: minmax",
+  move_by_xyz_tooltip:
+    "Mueve una malla cierta cantidad en direcciones x, y y z.\nPalabra clave: move",
+  move_to_xyz_tooltip:
+    "Teletransporta la malla a las coordenadas. Opcionalmente, usa el eje Y.\nPalabra clave: moveby",
+  move_to_tooltip:
+    "Teletransporta la primera malla a la ubicación de la segunda.\nPalabra clave: moveto",
+  scale_tooltip:
+    "Redimensiona una malla a los valores x, y y z dados, controlando el origen del escalado.\nPalabra clave: scale",
+  resize_tooltip:
+    "Redimensiona una malla a los valores x, y y z dados, controlando el origen.\nPalabra clave: resize",
+  rotate_model_xyz_tooltip:
+    "Rota la malla por los valores x, y, z indicados.\nPalabra clave: rotate\nKeyword: rotateby",
+  rotate_to_tooltip:
+    "Rota la malla para apuntar hacia las coordenadas.\nPalabra clave: rotateto",
+  look_at_tooltip:
+    "Rota la primera malla hacia la posición de la segunda.\nPalabra clave: look",
+  move_forward_tooltip:
+    "Mueve la malla en la dirección especificada. 'Forward' sigue su dirección, 'sideways' y 'strafe' se basan en la cámara.\nPalabra clave: push",
+  set_pivot_tooltip:
+    "Establece el punto de anclaje para una malla en los ejes X, Y y Z.\nPalabra clave: ancla",
+  min_centre_max_tooltip:
+    "Elige min, centro o max para el punto de pivote.\nPalabra clave: minmax",
 
   // Tooltip translations - XR blocks
-  device_camera_background_tooltip: "Usa la cámara del dispositivo como fondo de la escena. Funciona en móvil y escritorio.",
-  set_xr_mode_tooltip: "Establece el modo XR para la escena.\nOpciones: VR, AR, Magic Window.",
+  device_camera_background_tooltip:
+    "Usa la cámara del dispositivo como fondo de la escena. Funciona en móvil y escritorio.",
+  set_xr_mode_tooltip:
+    "Establece el modo XR para la escena.\nOpciones: VR, AR, Magic Window.",
 
   // Dropdown option translations
   AWAIT_option: "esperar",
@@ -664,6 +792,9 @@ export default {
   VISIBLE_option: "visible",
   ALPHA_option: "alfa",
   COLOUR_option: "color",
+  AUTO_option: "automático",
+  ENABLED_option: "habilitado",
+  DISABLED_option: "deshabilitado",
 
   BOTH_option: "ambos",
   ARROWS_option: "flechas",
@@ -822,12 +953,14 @@ export default {
   stop_code_button_ui: "Detener tu código",
   open_button_ui: "Abrir un proyecto desde un archivo en tu computadora",
   open_file_input_label_ui: "Selecciona el archivo de proyecto para abrir",
-  export_code_button_ui: "Guardar este proyecto en un archivo en tu computadora.",
+  export_code_button_ui:
+    "Guardar este proyecto en un archivo en tu computadora.",
   example_select_ui: "Elige un proyecto de ejemplo para cargar",
 
   toggle_design_ui: "Diseña tu proyecto",
   toggle_play_ui: "Usa tu proyecto",
-  fullscreen_toggle_ui: "Cambiar entre vista de pantalla completa y vista normal.",
+  fullscreen_toggle_ui:
+    "Cambiar entre vista de pantalla completa y vista normal.",
 
   show_shapes_button_ui: "Agregar formas y modelos",
   color_picker_button_ui: "Cambiar color del objeto",
@@ -839,7 +972,8 @@ export default {
   delete_button_ui: "Eliminar malla seleccionada",
   camera_button_ui: "Controles de cámara",
 
-  info_panel_link_ui: "Visitar sitio web de Flock XR (se abre en una pestaña nueva)",
+  info_panel_link_ui:
+    "Visitar sitio web de Flock XR (se abre en una pestaña nueva)",
 
   project_name_ui: "Nombre del proyecto",
 
@@ -862,12 +996,14 @@ export default {
   keyboard_menu_ui: "Abrir el menú principal",
   keyboard_play_ui: "Reproducir",
   keyboard_gizmos_ui: "Ir a los artilugios",
-  keyboard_navigation_ui: "Ir a la barra de navegación del navegador (los atajos sobrescritos funcionan desde aquí)",
+  keyboard_navigation_ui:
+    "Ir a la barra de navegación del navegador (los atajos sobrescritos funcionan desde aquí)",
 
   // Accessibility and announcements
   unmute_audio_aria: "Activar sonido.",
   focused_main_content: "Contenido principal enfocado.",
-  toolbox_search_results_aria: "Resultados de búsqueda de la caja de herramientas.",
+  toolbox_search_results_aria:
+    "Resultados de búsqueda de la caja de herramientas.",
   context_delete_option: "Eliminar",
   context_copy_option: "Copiar",
   context_paste_option: "Pegar",
@@ -896,7 +1032,8 @@ export default {
   snippet_filename_prompt: "Introduce un nombre de archivo para el fragmento:",
   project_file_description: "Proyecto de Flock XR",
   file_too_large_alert: "Archivo demasiado grande. El tamaño máximo es 5 MB.",
-  invalid_filetype_alert: "Solo se permiten archivos de proyecto .json o .flock.",
+  invalid_filetype_alert:
+    "Solo se permiten archivos de proyecto .json o .flock.",
   invalid_project_alert: "Este archivo no es un proyecto válido de Flock XR.",
   failed_to_read_file_alert: "No se pudo leer el archivo.",
 
@@ -910,8 +1047,7 @@ export default {
     "El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.", // AI-generated; needs validation
   runtime_error_message: "Error: {message}",
   xr_mode_message: "¡Modo XR!",
-  fly_camera_instructions:
-    "ℹ️ Cámara en vuelo, usa las flechas y Page Up/Down",
+  fly_camera_instructions: "ℹ️ Cámara en vuelo, usa las flechas y Page Up/Down",
   select_mesh_delete_prompt:
     "⚠️ Selecciona una malla y luego haz clic en eliminar.",
   select_mesh_duplicate_prompt:
@@ -941,6 +1077,4 @@ export default {
   colour_blend: "mezclar %1 y %2 en %3",
 
   dark_contrast_theme_ui: "Oscuro",
-  
-
 };

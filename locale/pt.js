@@ -276,13 +276,15 @@ export default {
   stop_all_sounds: "parar todos os sons",
   midi_note: "nota MIDI %1",
   rest: "pausa",
-  play_notes: "tocar notas em %1\nnotas: %2 durações: %3\ninstrumento: %4 modo: %5",
+  play_notes:
+    "tocar notas em %1\nnotas: %2 durações: %3\ninstrumento: %4 modo: %5",
   set_scene_bpm: "definir BPM da cena para %1",
   set_mesh_bpm: "definir BPM de %1 para %2",
   create_instrument:
     "instrumento %1 onda: %2 frequência: %3 ataque: %4 decaimento: %5 sustentação: %6 liberação: %7",
   instrument: "instrumento %1",
-  speak: "falar %1 %2 voz: %3 idioma: %4\nvelocidade: %5 tom: %6 volume: %7 modo: %8",
+  speak:
+    "falar %1 %2 voz: %3 idioma: %4\nvelocidade: %5 tom: %6 volume: %7 modo: %8",
 
   // Custom block translations - Text blocks
   comment: "// %1",
@@ -441,7 +443,8 @@ export default {
   // Tooltip translations - Effects blocks
   main_light_tooltip:
     "Define a intensidade da luz principal.\nPalavra-chave: intensidade da luz",
-  set_fog_tooltip: "Configura a névoa da cena. Use início e fim para definir as distâncias próxima e distante.\nPalavra-chave: névoa",
+  set_fog_tooltip:
+    "Configura a névoa da cena. Use início e fim para definir as distâncias próxima e distante.\nPalavra-chave: névoa",
   get_light_tooltip: "Obtém a luz principal da cena atual.\nPalavra-chave: luz",
 
   // Tooltip translations - Events blocks
@@ -787,7 +790,9 @@ export default {
   VISIBLE_option: "visível",
   ALPHA_option: "alpha",
   COLOUR_option: "cor",
-
+  AUTO_option: "automático",
+  ENABLED_option: "ativado",
+  DISABLED_option: "desativado",
   BOTH_option: "ambos",
   ARROWS_option: "setas",
   ACTIONS_option: "ações",
@@ -991,13 +996,13 @@ export default {
   // Accessibility and announcements
   unmute_audio_aria: "Ativar som.",
   focused_main_content: "Conteúdo principal focalizado.",
-  toolbox_search_results_aria: "Resultados de pesquisa da caixa de ferramentas.",
+  toolbox_search_results_aria:
+    "Resultados de pesquisa da caixa de ferramentas.",
   context_delete_option: "Excluir",
   context_copy_option: "Copiar",
   context_paste_option: "Colar",
   context_cut_option: "Cortar",
-  canvas_focus_navigation:
-    "Tela 3D focada. Use as setas ou WASD para navegar.",
+  canvas_focus_navigation: "Tela 3D focada. Use as setas ou WASD para navegar.",
   design_tool_label: "Ferramenta de design",
   focused_element_suffix: "{name} focado",
   search_toolbox_focused: "Pesquisa da caixa de ferramentas focada",
@@ -1020,7 +1025,8 @@ export default {
   snippet_filename_prompt: "Insira um nome de arquivo para o snippet:",
   project_file_description: "Projeto Flock XR",
   file_too_large_alert: "Arquivo muito grande. O tamanho máximo é 5 MB.",
-  invalid_filetype_alert: "Somente arquivos de projeto .json ou .flock são permitidos.",
+  invalid_filetype_alert:
+    "Somente arquivos de projeto .json ou .flock são permitidos.",
   invalid_project_alert: "Este arquivo não é um projeto Flock XR válido.",
   failed_to_read_file_alert: "Falha ao ler o arquivo.",
 
@@ -1034,10 +1040,8 @@ export default {
     "O motor de física ficou sem memória. Tente reduzir o número de objetos físicos ou recarregar o projeto.", // AI-generated; needs validation
   runtime_error_message: "Erro: {message}",
   xr_mode_message: "Modo XR!",
-  fly_camera_instructions:
-    "ℹ️ Câmera de voo, use as setas e Page Up/Down",
-  select_mesh_delete_prompt:
-    "⚠️ Selecione uma malha e clique em apagar.",
+  fly_camera_instructions: "ℹ️ Câmera de voo, use as setas e Page Up/Down",
+  select_mesh_delete_prompt: "⚠️ Selecione uma malha e clique em apagar.",
   select_mesh_duplicate_prompt:
     "⚠️ Selecione uma malha, clique em duplicar e depois clique para posicionar as cópias.",
   position_readout: "Posição: {position}",
