@@ -1289,11 +1289,26 @@ export function setGizmoManager(value) {
   gizmoManager = value;
 
   const originalAttach = gizmoManager.attachToMesh.bind(gizmoManager);
+  let attachedMeshDisposeObserver = null;
+  let meshWithDisposeObserver = null;
+
+  const clearAttachedMeshDisposeObserver = () => {
+    if (attachedMeshDisposeObserver && meshWithDisposeObserver) {
+      meshWithDisposeObserver.onDisposeObservable.remove(
+        attachedMeshDisposeObserver,
+      );
+    }
+
+    attachedMeshDisposeObserver = null;
+    meshWithDisposeObserver = null;
+  };
   gizmoManager.attachToMesh = (mesh) => {
     if (mesh && mesh.name === "ground") {
       turnOffAllGizmos();
       mesh = null;
     }
+
+    clearAttachedMeshDisposeObserver();
 
     if (gizmoManager.attachedMesh) {
       resetAttachedMesh();
@@ -1332,6 +1347,14 @@ export function setGizmoManager(value) {
       //highlightBlockById(Blockly.getMainWorkspace(), block);
     }
     originalAttach(mesh);
+
+    if (mesh) {
+      meshWithDisposeObserver = mesh;
+      attachedMeshDisposeObserver = mesh.onDisposeObservable.add(() => {
+        clearAttachedMeshDisposeObserver();
+        turnOffAllGizmos();
+      });
+    }
   };
 
   const canvas = flock.scene.getEngine().getRenderingCanvas();
