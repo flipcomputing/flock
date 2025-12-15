@@ -897,6 +897,7 @@ export function initializeVariableIndexes() {
     instrument: 1,
     animation: 1,
     clone: 1,
+    particleEffect: 1,
   };
 
   const allVariables = Blockly.getMainWorkspace()

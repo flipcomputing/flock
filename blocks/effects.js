@@ -57,10 +57,18 @@ export function defineEffectsBlocks() {
                                                 type: "field_dropdown",
                                                 name: "FOG_MODE",
                                                 options: [
-                                                        getDropdownOption("LINEAR"),
-                                                        getDropdownOption("NONE"),
-                                                        getDropdownOption("EXP"),
-                                                        getDropdownOption("EXP2"),
+                                                        getDropdownOption(
+                                                                "LINEAR",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "NONE",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "EXP",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "EXP2",
+                                                        ),
                                                 ],
                                         },
                                         {
@@ -108,7 +116,7 @@ export function defineEffectsBlocks() {
                                 tooltip: getTooltip("get_light"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('scene_blocks');
+                        this.setStyle("scene_blocks");
                 },
         };
 }
