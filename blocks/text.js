@@ -1,10 +1,15 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
-import { 
-  getHelpUrlFor, 
-  nextVariableIndexes,
+import {
+        getHelpUrlFor,
+        nextVariableIndexes,
+        handleBlockCreateEvent,
 } from "./blocks.js";
-import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
+import {
+        translate,
+        getTooltip,
+        getDropdownOption,
+} from "../main/translation.js";
 
 export function defineTextBlocks() {
         Blockly.Blocks["comment"] = {
@@ -26,7 +31,7 @@ export function defineTextBlocks() {
                                 tooltip: getTooltip("comment"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('text_blocks');
+                        this.setStyle("text_blocks");
                 },
         };
 
@@ -39,7 +44,11 @@ export function defineTextBlocks() {
                                         {
                                                 type: "input_value",
                                                 name: "TEXT",
-                                                check: ["String", "Number", "Array"],
+                                                check: [
+                                                        "String",
+                                                        "Number",
+                                                        "Array",
+                                                ],
                                         },
                                         {
                                                 type: "input_value",
@@ -60,7 +69,7 @@ export function defineTextBlocks() {
                                 tooltip: getTooltip("print_text"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('text_blocks');
+                        this.setStyle("text_blocks");
                 },
         };
 
@@ -111,16 +120,24 @@ export function defineTextBlocks() {
                                                 type: "field_dropdown",
                                                 name: "MODE",
                                                 options: [
-                                                        getDropdownOption("ADD"),
-                                                        getDropdownOption("REPLACE"),
+                                                        getDropdownOption(
+                                                                "ADD",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "REPLACE",
+                                                        ),
                                                 ],
                                         },
                                         {
                                                 type: "field_dropdown",
                                                 name: "ASYNC",
                                                 options: [
-                                                        getDropdownOption("START"),
-                                                        getDropdownOption("AWAIT"),
+                                                        getDropdownOption(
+                                                                "START",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "AWAIT",
+                                                        ),
                                                 ],
                                         },
                                 ],
@@ -131,7 +148,7 @@ export function defineTextBlocks() {
                                 tooltip: getTooltip("say"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('text_blocks');
+                        this.setStyle("text_blocks");
                 },
         };
 
@@ -183,7 +200,7 @@ export function defineTextBlocks() {
                                 tooltip: getTooltip("ui_text"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('text_blocks');
+                        this.setStyle("text_blocks");
                 },
         };
 
@@ -216,18 +233,30 @@ export function defineTextBlocks() {
                                                 type: "field_dropdown",
                                                 name: "SIZE",
                                                 options: [
-                                                        getDropdownOption("SMALL"),
-                                                        getDropdownOption("MEDIUM"),
-                                                        getDropdownOption("LARGE"),
+                                                        getDropdownOption(
+                                                                "SMALL",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "MEDIUM",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "LARGE",
+                                                        ),
                                                 ],
                                         },
                                         {
                                                 type: "field_dropdown",
                                                 name: "TEXT_SIZE",
                                                 options: [
-                                                        getDropdownOption("14px"),
-                                                        getDropdownOption("18px"),
-                                                        getDropdownOption("24px"),
+                                                        getDropdownOption(
+                                                                "14px",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "18px",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "24px",
+                                                        ),
                                                 ],
                                         },
                                         {
@@ -248,78 +277,84 @@ export function defineTextBlocks() {
                                 tooltip: getTooltip("ui_button"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('text_blocks');
+                        this.setStyle("text_blocks");
                 },
         };
 
         Blockly.Blocks["ui_input"] = {
-          init: function () {
-                this.jsonInit({
-                  type: "ui_input",
-                  message0: translate("ui_input"),
-                  args0: [
-                        {
-                          type: "field_variable",
-                          name: "INPUT_VAR",
-                        },
-                        {
-                          type: "input_value",
-                          name: "TEXT",
-                          check: "String",
-                        },
-                        {
-                          type: "input_value",
-                          name: "X",
-                          check: "Number",
-                        },
-                        {
-                          type: "input_value",
-                          name: "Y",
-                          check: "Number",
-                        },
-                        {
-                          type: "field_dropdown",
-                          name: "SIZE",
-                          options: [
-                                getDropdownOption("SMALL"),
-                                getDropdownOption("MEDIUM"),
-                                getDropdownOption("LARGE"),
-                          ],
-                        },
-                        {
-                          type: "input_value",
-                          name: "TEXT_SIZE",
-                          check: "Number",
-                        },
-                        {
-                          type: "input_value",
-                          name: "TEXT_COLOR",
-                          check: "Colour",
-                        },
-                        {
-                          type: "input_value",
-                          name: "BACKGROUND_COLOR",
-                          check: "Colour",
-                        },
-                  ],
-                  inputsInline: true,
-                  previousStatement: null,
-                  nextStatement: null,
-                  colour: categoryColours["Text"],
-                  tooltip: getTooltip("ui_input"),
-                });
+                init: function () {
+                        this.jsonInit({
+                                type: "ui_input",
+                                message0: translate("ui_input"),
+                                args0: [
+                                        {
+                                                type: "field_variable",
+                                                name: "INPUT_VAR",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "TEXT",
+                                                check: "String",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "X",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Y",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "field_dropdown",
+                                                name: "SIZE",
+                                                options: [
+                                                        getDropdownOption(
+                                                                "SMALL",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "MEDIUM",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "LARGE",
+                                                        ),
+                                                ],
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "TEXT_SIZE",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "TEXT_COLOR",
+                                                check: "Colour",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "BACKGROUND_COLOR",
+                                                check: "Colour",
+                                        },
+                                ],
+                                inputsInline: true,
+                                previousStatement: null,
+                                nextStatement: null,
+                                colour: categoryColours["Text"],
+                                tooltip: getTooltip("ui_input"),
+                        });
 
-                this.setHelpUrl(getHelpUrlFor(this.type));
-                  this.setStyle('text_blocks');
-          },
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("text_blocks");
+                },
         };
-
 
         Blockly.Blocks["create_3d_text"] = {
                 init: function () {
                         const variableNamePrefix = "text";
                         let nextVariableName =
-                                variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
 
                         this.jsonInit({
                                 message0: translate("create_3d_text"),
@@ -338,8 +373,10 @@ export function defineTextBlocks() {
                                                 type: "field_dropdown",
                                                 name: "FONT",
                                                 options: [
-              getDropdownOption("__fonts_FreeSans_Bold_json"),
-            ],
+                                                        getDropdownOption(
+                                                                "__fonts_FreeSans_Bold_json",
+                                                        ),
+                                                ],
                                         },
                                         {
                                                 type: "input_value",
@@ -379,7 +416,16 @@ export function defineTextBlocks() {
                                 nextStatement: null,
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('text_blocks');
+                        this.setStyle("text_blocks");
+
+                        this.setOnChange((changeEvent) =>
+                                handleBlockCreateEvent(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                        nextVariableIndexes,
+                                ),
+                        );
                 },
         };
 }
