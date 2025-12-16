@@ -902,6 +902,10 @@ export function initializeVariableIndexes() {
     input: 1,
     slider: 1,
     particleEffect: 1,
+    merged: 1,
+    subtracted: 1,
+    intersection: 1,
+    hull: 1,
   };
 
   const allVariables = Blockly.getMainWorkspace()
