@@ -5,7 +5,8 @@ import {
         addToggleButton,
         mutationToDom,
         domToMutation,
-        inlineIcon,
+        nextVariableIndexes,
+        handleBlockCreateEvent,
         updateShape,
 } from "./blocks.js";
 import {
@@ -568,6 +569,10 @@ export function defineSensingBlocks() {
         };
         Blockly.Blocks["ui_slider"] = {
                 init: function () {
+                        const variableNamePrefix = "slider";
+                        const nextVariableName =
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
                         this.jsonInit({
                                 type: "ui_slider",
                                 message0: translate("ui_slider"),
@@ -575,6 +580,7 @@ export function defineSensingBlocks() {
                                         {
                                                 type: "field_variable",
                                                 name: "SLIDER_VAR",
+                                                variable: nextVariableName,
                                         },
                                         {
                                                 type: "input_value",
@@ -636,6 +642,15 @@ export function defineSensingBlocks() {
 
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("text_blocks");
+                        this.setOnChange((changeEvent) =>
+                                handleBlockCreateEvent(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                        nextVariableIndexes,
+                                        "SLIDER_VAR",
+                                ),
+                        );
                 },
         };
 }

@@ -897,6 +897,10 @@ export function initializeVariableIndexes() {
     instrument: 1,
     animation: 1,
     clone: 1,
+    uitext: 1,
+    button: 1,
+    input: 1,
+    slider: 1,
     particleEffect: 1,
   };
 
