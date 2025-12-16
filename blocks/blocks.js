@@ -940,7 +940,8 @@ export function defineBlocks() {
   //     Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
 
   function updateCurrentMeshName(block, variableFieldName) {
-    const variableName = block.getField(variableFieldName).getText(); // Get the selected variable name
+    const field = block?.getField?.(variableFieldName);
+    const variableName = field?.getText?.();
 
     if (variableName) {
       window.currentMesh = variableName;

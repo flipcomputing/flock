@@ -347,6 +347,7 @@ export function defineSoundBlocks() {
                                         changeEvent,
                                         variableNamePrefix,
                                         nextVariableIndexes,
+                                        "INSTRUMENT",
                                 );
                         });
                 },
