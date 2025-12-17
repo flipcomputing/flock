@@ -4174,9 +4174,9 @@ const toolboxSnippets = {
                                                 inputs: {
                                                         IF0: {
                                                                 block: {
-                                                                        type: "key_pressed",
+                                                                        type: "action_pressed",
                                                                         fields: {
-                                                                                KEY: "w",
+                                                                                ACTION: "FORWARD",
                                                                         },
                                                                 },
                                                         },
@@ -4226,9 +4226,9 @@ const toolboxSnippets = {
                                                         },
                                                         IF1: {
                                                                 block: {
-                                                                        type: "key_pressed",
+                                                                        type: "action_pressed",
                                                                         fields: {
-                                                                                KEY: "s",
+                                                                                ACTION: "BACKWARD",
                                                                         },
                                                                 },
                                                         },
