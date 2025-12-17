@@ -80,62 +80,6 @@ function createSceneColorBlock(config) {
                                         .some((x) => x.id === b.id);
                         };
 
-                        const runAfterLayout = (evt) => {
-                                // Let Blockly finalise connections first
-                                Promise.resolve().then(() => {
-                                        requestAnimationFrame(() => {
-                                                if (!runtimeReady()) return;
-
-                                                const colorInputName =
-                                                        config.inputName ||
-                                                        "COLOR";
-                                                const colorBlock =
-                                                        this.getInputTargetBlock(
-                                                                colorInputName,
-                                                        );
-
-                                                // (No de-shadowing logic here unless you want colour shadows too)
-
-                                                if (config.useMeshLifecycle) {
-                                                        if (
-                                                                typeof handleMeshLifecycleChange ===
-                                                                "function"
-                                                        ) {
-                                                                if (
-                                                                        handleMeshLifecycleChange(
-                                                                                this,
-                                                                                evt,
-                                                                        )
-                                                                )
-                                                                        return;
-                                                        }
-                                                        if (
-                                                                typeof handleFieldOrChildChange ===
-                                                                "function"
-                                                        ) {
-                                                                if (
-                                                                        handleFieldOrChildChange(
-                                                                                this,
-                                                                                evt,
-                                                                        )
-                                                                )
-                                                                        return;
-                                                        }
-                                                }
-
-                                                if (
-                                                        typeof updateOrCreateMeshFromBlock ===
-                                                        "function"
-                                                ) {
-                                                        updateOrCreateMeshFromBlock(
-                                                                this,
-                                                                evt,
-                                                        );
-                                                }
-                                        });
-                                });
-                        };
-
                         this.setOnChange((evt) => {
                                 const eventTypes = config.listenToMove
                                         ? [
@@ -192,11 +136,11 @@ function createSceneColorBlock(config) {
 
                                 if (!relevant) return;
 
-                                if (debounceTimer) clearTimeout(debounceTimer);
-                                debounceTimer = setTimeout(
-                                        () => runAfterLayout(evt),
-                                        30,
-                                );
+                                if (handleMeshLifecycleChange(this, evt))
+                                        return;
+                                if (handleFieldOrChildChange(this, evt)) return;
+
+                                updateOrCreateMeshFromBlock(this, evt);
                         });
                 },
         };
@@ -220,6 +164,7 @@ export function defineSceneBlocks() {
                 type: "set_background_color",
                 inputColor: "#6495ED",
                 check: ["Colour"],
+                listenToMove: true,
         });
 
         Blockly.Blocks["create_map"] = {
@@ -301,91 +246,6 @@ export function defineSceneBlocks() {
                                 input.connection.respawnShadow_();
                         };
 
-                        const runAfterLayout = (evt) => {
-                                // Let Blockly finalize connections first
-                                Promise.resolve().then(() => {
-                                        requestAnimationFrame(() => {
-                                                // Bail out quietly until Flock is ready to avoid
-                                                // `flock.materialsDebug` / `flock.texturePath` undefined errors.
-                                                if (!runtimeReady()) return;
-
-                                                const mat =
-                                                        this.getInputTargetBlock(
-                                                                "MATERIAL",
-                                                        );
-
-                                                // De-shadow only when editing inside the material subtree.
-                                                if (
-                                                        mat &&
-                                                        mat.isShadow &&
-                                                        mat.isShadow()
-                                                ) {
-                                                        const touchesMat =
-                                                                inSubtree(
-                                                                        mat,
-                                                                        evt.blockId,
-                                                                ) ||
-                                                                inSubtree(
-                                                                        mat,
-                                                                        evt.newParentId,
-                                                                ) ||
-                                                                inSubtree(
-                                                                        mat,
-                                                                        evt.oldParentId,
-                                                                );
-                                                        if (touchesMat)
-                                                                mat.setShadow(
-                                                                        false,
-                                                                );
-                                                }
-
-                                                // If MATERIAL cleared entirely, respawn default shadow.
-                                                if (
-                                                        !this.getInputTargetBlock(
-                                                                "MATERIAL",
-                                                        )
-                                                ) {
-                                                        respawnMaterialShadow();
-                                                }
-
-                                                // Update pipeline (only when runtime is ready)
-                                                if (
-                                                        typeof handleMeshLifecycleChange ===
-                                                        "function"
-                                                ) {
-                                                        if (
-                                                                handleMeshLifecycleChange(
-                                                                        this,
-                                                                        evt,
-                                                                )
-                                                        )
-                                                                return;
-                                                }
-                                                if (
-                                                        typeof handleFieldOrChildChange ===
-                                                        "function"
-                                                ) {
-                                                        if (
-                                                                handleFieldOrChildChange(
-                                                                        this,
-                                                                        evt,
-                                                                )
-                                                        )
-                                                                return;
-                                                }
-                                                if (
-                                                        typeof updateOrCreateMeshFromBlock ===
-                                                        "function"
-                                                ) {
-                                                        updateOrCreateMeshFromBlock(
-                                                                this,
-                                                                evt,
-                                                        );
-                                                }
-                                        });
-                                });
-                        };
-
                         this.setOnChange((evt) => {
                                 const eventTypes = [
                                         Blockly.Events.BLOCK_CREATE,
@@ -430,13 +290,11 @@ export function defineSceneBlocks() {
 
                                 if (!relevant) return;
 
-                                if (!relevant) return;
+                                if (handleMeshLifecycleChange(this, evt))
+                                        return;
+                                if (handleFieldOrChildChange(this, evt)) return;
 
-                                if (debounceTimer) clearTimeout(debounceTimer);
-                                debounceTimer = setTimeout(
-                                        () => runAfterLayout(evt),
-                                        30,
-                                );
+                                updateOrCreateMeshFromBlock(this, evt);
                         });
                 },
         };
