@@ -3945,221 +3945,13 @@ const toolboxSnippetsPhysics = {
         ],
 };
 
-const toolboxSnippets = {
+const toolboxSnippetsMovement = {
         kind: "category",
-        icon: "./images/snippets.svg",
-        //colour: categoryColours["Snippets"],
+        icon: "./images/arrows.svg",
         categorystyle: "snippets_category",
-        name: "%{BKY_CATEGORY_SNIPPETS}",
+        name: "%{BKY_CATEGORY_MOVEMENT}",
         contents: [
-                {
-                        type: "start",
-                        kind: "block",
-                        inputs: {
-                                DO: {
-                                        block: {
-                                                type: "set_sky_color",
-                                                inputs: {
-                                                        COLOR: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#6495ed",
-                                                                        },
-                                                                },
-                                                        },
-                                                },
-                                                next: {
-                                                        /*block: {
-                                        type: "create_ground",
-                                        inputs: {
-                                          COLOR: {
-                                                shadow: {
-                                                  type: "colour",
-                                                  fields: {
-                                                        COLOR: "#71bc78"
-                                                  }
-                                                }
-                                          }
-                                        }
-                                  }*/
-                                                        block: {
-                                                                type: "create_map",
-                                                                fields: {
-                                                                        MAP_NAME: "NONE",
-                                                                },
-                                                                inputs: {
-                                                                        MATERIAL: {
-                                                                                shadow: {
-                                                                                        type: "material",
 
-                                                                                        fields: {
-                                                                                                TEXTURE_SET:
-                                                                                                        "none.png",
-                                                                                        },
-                                                                                        inputs: {
-                                                                                                BASE_COLOR: {
-                                                                                                        shadow: {
-                                                                                                                type: "colour",
-
-                                                                                                                fields: {
-                                                                                                                        COLOR: "#71bc78",
-                                                                                                                },
-                                                                                                        },
-                                                                                                },
-                                                                                                ALPHA: {
-                                                                                                        shadow: {
-                                                                                                                type: "math_number",
-
-                                                                                                                fields: {
-                                                                                                                        NUM: 1,
-                                                                                                                },
-                                                                                                        },
-                                                                                                },
-                                                                                        },
-                                                                                },
-                                                                        },
-                                                                },
-                                                        },
-                                                },
-                                        },
-                                },
-                        },
-                },
-                {
-                        kind: "block",
-                        type: "start",
-                        inputs: {
-                                DO: {
-                                        block: {
-                                                type: "load_character",
-                                                fields: {
-                                                        MODELS: "Block3.glb",
-                                                        ID_VAR: {
-                                                                name: "player",
-                                                                type: "",
-                                                        },
-                                                },
-                                                inputs: {
-                                                        SCALE: {
-                                                                shadow: {
-                                                                        type: "math_number",
-                                                                        fields: {
-                                                                                NUM: 1,
-                                                                        },
-                                                                },
-                                                        },
-                                                        X: {
-                                                                shadow: {
-                                                                        type: "math_number",
-                                                                        fields: {
-                                                                                NUM: 0,
-                                                                        },
-                                                                },
-                                                        },
-                                                        Y: {
-                                                                shadow: {
-                                                                        type: "math_number",
-                                                                        fields: {
-                                                                                NUM: 0,
-                                                                        },
-                                                                },
-                                                        },
-                                                        Z: {
-                                                                shadow: {
-                                                                        type: "math_number",
-                                                                        fields: {
-                                                                                NUM: 0,
-                                                                        },
-                                                                },
-                                                        },
-                                                        HAIR_COLOR: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#000000",
-                                                                        },
-                                                                },
-                                                        },
-                                                        SKIN_COLOR: {
-                                                                shadow: {
-                                                                        type: "skin_colour",
-                                                                        fields: {
-                                                                                COLOR: "#a15c33",
-                                                                        },
-                                                                },
-                                                        },
-                                                        EYES_COLOR: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#000000",
-                                                                        },
-                                                                },
-                                                        },
-                                                        SLEEVES_COLOR: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#008b8b",
-                                                                        },
-                                                                },
-                                                        },
-                                                        SHORTS_COLOR: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#00008b",
-                                                                        },
-                                                                },
-                                                        },
-                                                        TSHIRT_COLOR: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#ff8f60",
-                                                                        },
-                                                                },
-                                                        },
-                                                },
-                                                next: {
-                                                        block: {
-                                                                type: "add_physics",
-                                                                fields: {
-                                                                        MODEL_VAR: {
-                                                                                name: "player",
-                                                                                type: "",
-                                                                        },
-                                                                        PHYSICS_TYPE:
-                                                                                "DYNAMIC",
-                                                                },
-                                                                next: {
-                                                                        block: {
-                                                                                type: "camera_follow",
-                                                                                fields: {
-                                                                                        MESH_VAR: {
-                                                                                                name: "player",
-                                                                                                type: "",
-                                                                                        },
-                                                                                },
-                                                                                inputs: {
-                                                                                        RADIUS: {
-                                                                                                block: {
-                                                                                                        type: "math_number",
-                                                                                                        fields: {
-                                                                                                                NUM: 7,
-                                                                                                        },
-                                                                                                },
-                                                                                        },
-                                                                                },
-                                                                        },
-                                                                },
-                                                        },
-                                                },
-                                        },
-                                },
-                        },
-                },
                 {
                         kind: "block",
                         type: "forever",
@@ -4410,6 +4202,225 @@ const toolboxSnippets = {
                                 },
                         },
                 },
+        ]
+}
+
+const toolboxSnippets = {
+        kind: "category",
+        icon: "./images/snippets.svg",
+        //colour: categoryColours["Snippets"],
+        categorystyle: "snippets_category",
+        name: "%{BKY_CATEGORY_SNIPPETS}",
+        contents: [
+                {
+                        type: "start",
+                        kind: "block",
+                        inputs: {
+                                DO: {
+                                        block: {
+                                                type: "set_sky_color",
+                                                inputs: {
+                                                        COLOR: {
+                                                                shadow: {
+                                                                        type: "colour",
+                                                                        fields: {
+                                                                                COLOR: "#6495ed",
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                                next: {
+                                                        /*block: {
+                                        type: "create_ground",
+                                        inputs: {
+                                          COLOR: {
+                                                shadow: {
+                                                  type: "colour",
+                                                  fields: {
+                                                        COLOR: "#71bc78"
+                                                  }
+                                                }
+                                          }
+                                        }
+                                  }*/
+                                                        block: {
+                                                                type: "create_map",
+                                                                fields: {
+                                                                        MAP_NAME: "NONE",
+                                                                },
+                                                                inputs: {
+                                                                        MATERIAL: {
+                                                                                shadow: {
+                                                                                        type: "material",
+
+                                                                                        fields: {
+                                                                                                TEXTURE_SET:
+                                                                                                        "none.png",
+                                                                                        },
+                                                                                        inputs: {
+                                                                                                BASE_COLOR: {
+                                                                                                        shadow: {
+                                                                                                                type: "colour",
+
+                                                                                                                fields: {
+                                                                                                                        COLOR: "#71bc78",
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                                ALPHA: {
+                                                                                                        shadow: {
+                                                                                                                type: "math_number",
+
+                                                                                                                fields: {
+                                                                                                                        NUM: 1,
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
+                        type: "start",
+                        inputs: {
+                                DO: {
+                                        block: {
+                                                type: "load_character",
+                                                fields: {
+                                                        MODELS: "Block3.glb",
+                                                        ID_VAR: {
+                                                                name: "player",
+                                                                type: "",
+                                                        },
+                                                },
+                                                inputs: {
+                                                        SCALE: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 1,
+                                                                        },
+                                                                },
+                                                        },
+                                                        X: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
+                                                        },
+                                                        Y: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
+                                                        },
+                                                        Z: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
+                                                        },
+                                                        HAIR_COLOR: {
+                                                                shadow: {
+                                                                        type: "colour",
+                                                                        fields: {
+                                                                                COLOR: "#000000",
+                                                                        },
+                                                                },
+                                                        },
+                                                        SKIN_COLOR: {
+                                                                shadow: {
+                                                                        type: "skin_colour",
+                                                                        fields: {
+                                                                                COLOR: "#a15c33",
+                                                                        },
+                                                                },
+                                                        },
+                                                        EYES_COLOR: {
+                                                                shadow: {
+                                                                        type: "colour",
+                                                                        fields: {
+                                                                                COLOR: "#000000",
+                                                                        },
+                                                                },
+                                                        },
+                                                        SLEEVES_COLOR: {
+                                                                shadow: {
+                                                                        type: "colour",
+                                                                        fields: {
+                                                                                COLOR: "#008b8b",
+                                                                        },
+                                                                },
+                                                        },
+                                                        SHORTS_COLOR: {
+                                                                shadow: {
+                                                                        type: "colour",
+                                                                        fields: {
+                                                                                COLOR: "#00008b",
+                                                                        },
+                                                                },
+                                                        },
+                                                        TSHIRT_COLOR: {
+                                                                shadow: {
+                                                                        type: "colour",
+                                                                        fields: {
+                                                                                COLOR: "#ff8f60",
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                                next: {
+                                                        block: {
+                                                                type: "add_physics",
+                                                                fields: {
+                                                                        MODEL_VAR: {
+                                                                                name: "player",
+                                                                                type: "",
+                                                                        },
+                                                                        PHYSICS_TYPE:
+                                                                                "DYNAMIC",
+                                                                },
+                                                                next: {
+                                                                        block: {
+                                                                                type: "camera_follow",
+                                                                                fields: {
+                                                                                        MESH_VAR: {
+                                                                                                name: "player",
+                                                                                                type: "",
+                                                                                        },
+                                                                                },
+                                                                                inputs: {
+                                                                                        RADIUS: {
+                                                                                                block: {
+                                                                                                        type: "math_number",
+                                                                                                        fields: {
+                                                                                                                NUM: 7,
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
+                toolboxSnippetsMovement,
                 toolboxSnippetsPhysics,
         ],
 };

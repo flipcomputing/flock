@@ -25,6 +25,7 @@ export default {
   CATEGORY_MATH: "Math",
   CATEGORY_FUNCTIONS: "Functions",
   CATEGORY_SNIPPETS: "Snippets",
+  CATEGORY_MOVEMENT: "Movement",
 
   // Color picker translations
   choose_a_color: "Choose a Color",
