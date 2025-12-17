@@ -395,16 +395,6 @@ window.onload = async function () {
         window.addEventListener("resize", onResize);
 
         switchView("both");
-
-        const scriptElement = document.getElementById("flock");
-        if (scriptElement) {
-                initializeFlock();
-                console.log("Standalone Flock");
-                // Hide loading screen after a short delay for standalone flock
-                setTimeout(hideLoadingScreen, 1000);
-                return; // standalone flock
-        }
-
         initializeBlocks();
         // Initialize Blockly and add custom context menu options
         addExportContextMenuOptions();

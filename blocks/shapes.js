@@ -4,99 +4,30 @@ import {
         nextVariableIndexes,
         handleBlockChange,
         addDoMutatorWithToggleBehavior,
+        handleBlockCreateEvent,
         getHelpUrlFor,
 } from "./blocks.js";
-import {
-        deleteMeshFromBlock,
-        updateOrCreateMeshFromBlock,
-        getMeshFromBlock,
-} from "../ui/blockmesh.js";
 import {
         translate,
         getTooltip,
         getDropdownOption,
 } from "../main/translation.js";
-import { flock } from "../flock.js";
 
 export function defineShapeBlocks() {
-        function createShapeBlockDefinition({
-                type,
-                variableNamePrefix,
-                message0,
-                additionalArgs0,
-                tooltip,
-        }) {
-                Blockly.Blocks[type] = {
-                        init: function () {
-                                // Create a unique group id for creation and record it on the block.
-                                const groupId = Blockly.utils.idGenerator.genUid();
-                                Blockly.Events.setGroup(groupId);
-                                this._creationGroup = groupId;
-                                this._creationTime = Date.now();
-                                try {
-                                        // Generate the next variable name based on the prefix.
-                                        let nextVariableName =
-                                                variableNamePrefix +
-                                                nextVariableIndexes[variableNamePrefix];
-                                        // Build the JSON args for the block.
-                                        let args0 = [
-                                                {
-                                                        type: "field_variable",
-                                                        name: "ID_VAR",
-                                                        variable: nextVariableName,
-                                                },
-                                                {
-                                                        type: "input_value",
-                                                        name: "COLOR",
-                                                        check: ["Colour", "Array", "Material"],
-                                                },
-                                                ...additionalArgs0,
-                                                { type: "input_value", name: "X", check: "Number" },
-                                                { type: "input_value", name: "Y", check: "Number" },
-                                                { type: "input_value", name: "Z", check: "Number" },
-                                        ];
-                                        // Initialise the block via jsonInit.
-                                        this.jsonInit({
-                                                type: type,
-                                                message0: message0,
-                                                args0: args0,
-                                                previousStatement: null,
-                                                nextStatement: null,
-                                                inputsInline: true,
-                                                colour: categoryColours["Scene"],
-                                                tooltip: tooltip,
-                                        });
-                                        this.setHelpUrl(getHelpUrlFor(this.type));
-                                        this.setStyle("scene_blocks");
-                                        // Set up the change handler.
-                                        this.setOnChange((changeEvent) =>
-                                                handleBlockChange(
-                                                        this,
-                                                        changeEvent,
-                                                        variableNamePrefix,
-                                                ),
-                                        );
-                                        // Add the mutator with toggle behaviour.
-                                        addDoMutatorWithToggleBehavior(this);
-                                } finally {
-                                        Blockly.Events.setGroup(null);
-                                }
-                        },
-                };
-        }
-
-        
-
         // Define the particle effect block.
         Blockly.Blocks["create_particle_effect"] = {
                 init: function () {
+                        const variableNamePrefix = "particleEffect";
+                        let nextVariableName =
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
                         this.jsonInit({
                                 message0: translate("create_particle_effect"),
                                 args0: [
                                         {
                                                 type: "field_variable",
                                                 name: "ID_VAR",
-                                                variable: "particleEffect",
+                                                variable: nextVariableName,
                                         },
                                         {
                                                 type: "field_variable",
@@ -626,6 +557,15 @@ export function defineShapeBlocks() {
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("scene_blocks");
+
+                        this.setOnChange((changeEvent) =>
+                                handleBlockCreateEvent(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                        nextVariableIndexes,
+                                ),
+                        );
                 },
         };
 
@@ -633,7 +573,8 @@ export function defineShapeBlocks() {
                 init: function () {
                         const variableNamePrefix = "box";
                         let nextVariableName =
-                                variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
                         this.jsonInit({
                                 type: "create_box",
                                 message0: translate("create_box"),
@@ -646,14 +587,42 @@ export function defineShapeBlocks() {
                                         {
                                                 type: "input_value",
                                                 name: "COLOR",
-                                                check: ["Colour", "Array", "Material"],
+                                                check: [
+                                                        "Colour",
+                                                        "Array",
+                                                        "Material",
+                                                ],
                                         },
-                                        { type: "input_value", name: "WIDTH", check: "Number" },
-                                        { type: "input_value", name: "HEIGHT", check: "Number" },
-                                        { type: "input_value", name: "DEPTH", check: "Number" },
-                                        { type: "input_value", name: "X", check: "Number" },
-                                        { type: "input_value", name: "Y", check: "Number" },
-                                        { type: "input_value", name: "Z", check: "Number" },
+                                        {
+                                                type: "input_value",
+                                                name: "WIDTH",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "HEIGHT",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "DEPTH",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "X",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Y",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Z",
+                                                check: "Number",
+                                        },
                                 ],
                                 previousStatement: null,
                                 nextStatement: null,
@@ -666,7 +635,11 @@ export function defineShapeBlocks() {
 
                         // Set up the change handler.
                         this.setOnChange((changeEvent) =>
-                                handleBlockChange(this, changeEvent, variableNamePrefix),
+                                handleBlockChange(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                ),
                         );
                         // Add the mutator with toggle behaviour.
                         addDoMutatorWithToggleBehavior(this);
@@ -677,7 +650,8 @@ export function defineShapeBlocks() {
                 init: function () {
                         const variableNamePrefix = "sphere";
                         let nextVariableName =
-                                variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
                         this.jsonInit({
                                 type: "create_sphere",
                                 message0: translate("create_sphere"),
@@ -690,7 +664,11 @@ export function defineShapeBlocks() {
                                         {
                                                 type: "input_value",
                                                 name: "COLOR",
-                                                check: ["Colour", "Array", "Material"],
+                                                check: [
+                                                        "Colour",
+                                                        "Array",
+                                                        "Material",
+                                                ],
                                         },
                                         {
                                                 type: "input_value",
@@ -707,9 +685,21 @@ export function defineShapeBlocks() {
                                                 name: "DIAMETER_Z",
                                                 check: "Number",
                                         },
-                                        { type: "input_value", name: "X", check: "Number" },
-                                        { type: "input_value", name: "Y", check: "Number" },
-                                        { type: "input_value", name: "Z", check: "Number" },
+                                        {
+                                                type: "input_value",
+                                                name: "X",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Y",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Z",
+                                                check: "Number",
+                                        },
                                 ],
                                 previousStatement: null,
                                 nextStatement: null,
@@ -722,7 +712,11 @@ export function defineShapeBlocks() {
 
                         // Set up the change handler.
                         this.setOnChange((changeEvent) =>
-                                handleBlockChange(this, changeEvent, variableNamePrefix),
+                                handleBlockChange(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                ),
                         );
                         // Add the mutator with toggle behaviour.
                         addDoMutatorWithToggleBehavior(this);
@@ -733,7 +727,8 @@ export function defineShapeBlocks() {
                 init: function () {
                         const variableNamePrefix = "cylinder";
                         let nextVariableName =
-                                variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
                         this.jsonInit({
                                 type: "create_cylinder",
                                 message0: translate("create_cylinder"),
@@ -746,9 +741,17 @@ export function defineShapeBlocks() {
                                         {
                                                 type: "input_value",
                                                 name: "COLOR",
-                                                check: ["Colour", "Array", "Material"],
+                                                check: [
+                                                        "Colour",
+                                                        "Array",
+                                                        "Material",
+                                                ],
                                         },
-                                        { type: "input_value", name: "HEIGHT", check: "Number" },
+                                        {
+                                                type: "input_value",
+                                                name: "HEIGHT",
+                                                check: "Number",
+                                        },
                                         {
                                                 type: "input_value",
                                                 name: "DIAMETER_TOP",
@@ -764,9 +767,21 @@ export function defineShapeBlocks() {
                                                 name: "TESSELLATIONS",
                                                 check: "Number",
                                         },
-                                        { type: "input_value", name: "X", check: "Number" },
-                                        { type: "input_value", name: "Y", check: "Number" },
-                                        { type: "input_value", name: "Z", check: "Number" },
+                                        {
+                                                type: "input_value",
+                                                name: "X",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Y",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Z",
+                                                check: "Number",
+                                        },
                                 ],
                                 previousStatement: null,
                                 nextStatement: null,
@@ -779,7 +794,11 @@ export function defineShapeBlocks() {
 
                         // Set up the change handler.
                         this.setOnChange((changeEvent) =>
-                                handleBlockChange(this, changeEvent, variableNamePrefix),
+                                handleBlockChange(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                ),
                         );
                         // Add the mutator with toggle behaviour.
                         addDoMutatorWithToggleBehavior(this);
@@ -790,7 +809,8 @@ export function defineShapeBlocks() {
                 init: function () {
                         const variableNamePrefix = "capsule";
                         let nextVariableName =
-                                variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
                         this.jsonInit({
                                 type: "create_capsule",
                                 message0: translate("create_capsule"),
@@ -803,13 +823,37 @@ export function defineShapeBlocks() {
                                         {
                                                 type: "input_value",
                                                 name: "COLOR",
-                                                check: ["Colour", "Array", "Material"],
+                                                check: [
+                                                        "Colour",
+                                                        "Array",
+                                                        "Material",
+                                                ],
                                         },
-                                        { type: "input_value", name: "DIAMETER", check: "Number" },
-                                        { type: "input_value", name: "HEIGHT", check: "Number" },
-                                        { type: "input_value", name: "X", check: "Number" },
-                                        { type: "input_value", name: "Y", check: "Number" },
-                                        { type: "input_value", name: "Z", check: "Number" },
+                                        {
+                                                type: "input_value",
+                                                name: "DIAMETER",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "HEIGHT",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "X",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Y",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Z",
+                                                check: "Number",
+                                        },
                                 ],
                                 previousStatement: null,
                                 nextStatement: null,
@@ -822,7 +866,11 @@ export function defineShapeBlocks() {
 
                         // Set up the change handler.
                         this.setOnChange((changeEvent) =>
-                                handleBlockChange(this, changeEvent, variableNamePrefix),
+                                handleBlockChange(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                ),
                         );
                         // Add the mutator with toggle behaviour.
                         addDoMutatorWithToggleBehavior(this);
@@ -833,7 +881,8 @@ export function defineShapeBlocks() {
                 init: function () {
                         const variableNamePrefix = "plane";
                         let nextVariableName =
-                                variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
                         this.jsonInit({
                                 type: "create_plane",
                                 message0: translate("create_plane"),
@@ -846,13 +895,37 @@ export function defineShapeBlocks() {
                                         {
                                                 type: "input_value",
                                                 name: "COLOR",
-                                                check: ["Colour", "Array", "Material"], 
+                                                check: [
+                                                        "Colour",
+                                                        "Array",
+                                                        "Material",
+                                                ],
                                         },
-                                        { type: "input_value", name: "WIDTH", check: "Number" },
-                                        { type: "input_value", name: "HEIGHT", check: "Number" },
-                                        { type: "input_value", name: "X", check: "Number" },
-                                        { type: "input_value", name: "Y", check: "Number" },
-                                        { type: "input_value", name: "Z", check: "Number" },
+                                        {
+                                                type: "input_value",
+                                                name: "WIDTH",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "HEIGHT",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "X",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Y",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Z",
+                                                check: "Number",
+                                        },
                                 ],
                                 previousStatement: null,
                                 nextStatement: null,
@@ -865,7 +938,11 @@ export function defineShapeBlocks() {
 
                         // Set up the change handler.
                         this.setOnChange((changeEvent) =>
-                                handleBlockChange(this, changeEvent, variableNamePrefix),
+                                handleBlockChange(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                ),
                         );
                         // Add the mutator with toggle behaviour.
                         addDoMutatorWithToggleBehavior(this);
@@ -887,9 +964,15 @@ export function defineShapeBlocks() {
                                                 type: "field_dropdown",
                                                 name: "ACTION",
                                                 options: [
-                                                        getDropdownOption("start"),
-                                                        getDropdownOption("stop"),
-                                                        getDropdownOption("reset"),
+                                                        getDropdownOption(
+                                                                "start",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "stop",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "reset",
+                                                        ),
                                                 ],
                                         },
                                 ],

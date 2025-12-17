@@ -414,24 +414,29 @@ export const flockUI = {
     rightGrid.addControl(button3, 1, 0); // Row 1, Column 0
     rightGrid.addControl(button4, 1, 1); // Row 1, Column 1
   },
-  buttonControls(control, enabled, color) {
-    if (flock.controlsTexture) {
-      flock.controlsTexture.dispose();
+  buttonControls(control = "BOTH", mode = "AUTO", color = "#ffffff") {
+    const shouldShow =
+      mode === "ENABLED" ||
+      (mode === "AUTO" &&
+        ("ontouchstart" in window ||
+          navigator.maxTouchPoints > 0 ||
+          window.matchMedia("(pointer: coarse)").matches));
+
+    if (!shouldShow) {
+      flock.controlsTexture?.dispose();
+      flock.controlsTexture = null;
+      return;
     }
+
+    flock.controlsTexture?.dispose();
 
     flock.controlsTexture =
       flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-    // Set all controls to be non-interactive if disabled
-    flock.controlsTexture.rootContainer.isEnabled = enabled;
-
-    // Only create/update controls if they don't exist yet
-    if (enabled) {
-      if (control == "ARROWS" || control == "BOTH")
-        flock.createArrowControls(color);
-      if (control == "ACTIONS" || control == "BOTH")
-        flock.createButtonControls(color);
-    }
+    if (control === "ARROWS" || control === "BOTH")
+      flock.createArrowControls(color ?? "#ffffff");
+    if (control === "ACTIONS" || control === "BOTH")
+      flock.createButtonControls(color ?? "#ffffff");
   },
   canvasControls(setting) {
     if (setting) {

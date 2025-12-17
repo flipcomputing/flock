@@ -57,53 +57,109 @@ function emitSafeTextArg(code) {
 }
 
 const RESERVED_IDENTIFIERS = new Set([
-  "await","break","case","catch","class","const","continue","debugger","default",
-  "delete","do","else","enum","export","extends","false","finally","for","function",
-  "if","implements","import","in","instanceof","interface","let","new","null",
-  "package","private","protected","public","return","static","super","switch",
-  "this","throw","true","try","typeof","var","void","while","with","yield",
-  "arguments","eval"
+        "await",
+        "break",
+        "case",
+        "catch",
+        "class",
+        "const",
+        "continue",
+        "debugger",
+        "default",
+        "delete",
+        "do",
+        "else",
+        "enum",
+        "export",
+        "extends",
+        "false",
+        "finally",
+        "for",
+        "function",
+        "if",
+        "implements",
+        "import",
+        "in",
+        "instanceof",
+        "interface",
+        "let",
+        "new",
+        "null",
+        "package",
+        "private",
+        "protected",
+        "public",
+        "return",
+        "static",
+        "super",
+        "switch",
+        "this",
+        "throw",
+        "true",
+        "try",
+        "typeof",
+        "var",
+        "void",
+        "while",
+        "with",
+        "yield",
+        "arguments",
+        "eval",
 ]);
 
 function emitSafeIdentifierLiteral(code) {
-  if (!code) {
-    console.debug("[emitSafeIdentifierLiteral] No code → undefined");
-    return "undefined";
-  }
+        if (!code) {
+                console.debug(
+                        "[emitSafeIdentifierLiteral] No code → undefined",
+                );
+                return "undefined";
+        }
 
-  // Match single, double, or template quoted literals
-  const m = code.match(/^(['"`])(.*)\1$/s);
-  if (!m) {
-    console.debug("[emitSafeIdentifierLiteral] Not quoted → undefined:", code);
-    return "undefined";
-  }
+        // Match single, double, or template quoted literals
+        const m = code.match(/^(['"`])(.*)\1$/s);
+        if (!m) {
+                console.debug(
+                        "[emitSafeIdentifierLiteral] Not quoted → undefined:",
+                        code,
+                );
+                return "undefined";
+        }
 
-  const rawBody = m[2];
+        const rawBody = m[2];
 
-  // Reject escapes entirely
-  if (rawBody.includes("\\")) {
-    console.debug("[emitSafeIdentifierLiteral] Contains backslash → undefined:", rawBody);
-    return "undefined";
-  }
+        // Reject escapes entirely
+        if (rawBody.includes("\\")) {
+                console.debug(
+                        "[emitSafeIdentifierLiteral] Contains backslash → undefined:",
+                        rawBody,
+                );
+                return "undefined";
+        }
 
-  // Replace spaces and other whitespace with underscores
-  const normalized = rawBody.replace(/\s+/g, "_");
-  console.debug("[emitSafeIdentifierLiteral] Normalized:", normalized);
+        // Replace spaces and other whitespace with underscores
+        const normalized = rawBody.replace(/\s+/g, "_");
+        console.debug("[emitSafeIdentifierLiteral] Normalized:", normalized);
 
-  // Validate identifier
-  if (!/^[A-Za-z$_][A-Za-z0-9$_]*$/.test(normalized)) {
-    console.debug("[emitSafeIdentifierLiteral] Invalid identifier → undefined:", normalized);
-    return "undefined";
-  }
+        // Validate identifier
+        if (!/^[A-Za-z$_][A-Za-z0-9$_]*$/.test(normalized)) {
+                console.debug(
+                        "[emitSafeIdentifierLiteral] Invalid identifier → undefined:",
+                        normalized,
+                );
+                return "undefined";
+        }
 
-  // Check reserved keywords
-  if (RESERVED_IDENTIFIERS.has(normalized)) {
-    console.debug("[emitSafeIdentifierLiteral] Reserved identifier → undefined:", normalized);
-    return "undefined";
-  }
+        // Check reserved keywords
+        if (RESERVED_IDENTIFIERS.has(normalized)) {
+                console.debug(
+                        "[emitSafeIdentifierLiteral] Reserved identifier → undefined:",
+                        normalized,
+                );
+                return "undefined";
+        }
 
-  console.debug("[emitSafeIdentifierLiteral] OK →", normalized);
-  return JSON.stringify(normalized);
+        console.debug("[emitSafeIdentifierLiteral] OK →", normalized);
+        return JSON.stringify(normalized);
 }
 
 export function defineGenerators() {
@@ -679,7 +735,7 @@ export function defineGenerators() {
                                 javascriptGenerator.ORDER_FUNCTION_CALL,
                         );
                 }
-                
+
                 return `createGround(${color}, "${meshId}");\n`;
         };
 
@@ -704,12 +760,13 @@ export function defineGenerators() {
                 const meshId = "sky";
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
-                let color = javascriptGenerator.valueToCode(
-                        block,
-                        "COLOR",
-                        javascriptGenerator.ORDER_NONE,
-                ) || '"#6495ED"';
-                
+                let color =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "COLOR",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || '"#6495ED"';
+
                 return `setSky(${color});\n`;
         };
 
@@ -720,19 +777,18 @@ export function defineGenerators() {
                                 "INTENSITY",
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "1.0";
-                const diffuse = 
+                const diffuse =
                         javascriptGenerator.valueToCode(
                                 block,
                                 "DIFFUSE",
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "#FFFFFF";
-                const groundColor = 
+                const groundColor =
                         javascriptGenerator.valueToCode(
                                 block,
                                 "GROUND_COLOR",
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "#808080";
-                
 
                 return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor});\n`;
         };
@@ -747,10 +803,10 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["button_controls"] = function (block) {
-                const color = getFieldValue(block, "COLOR", "#6495ED");
+                const color = getFieldValue(block, "COLOR", "#ffffff");
                 const control = block.getFieldValue("CONTROL");
-                const enabled = block.getFieldValue("ENABLED") == "TRUE";
-                return `buttonControls("${control}", ${enabled}, ${color});\n`;
+                const mode = block.getFieldValue("ENABLED");
+                return `buttonControls("${control}", "${mode}", ${color});\n`;
         };
 
         // Assumes sanitizeForCode(text) is defined and in scope.
@@ -1210,7 +1266,7 @@ export function defineGenerators() {
                 const y = getFieldValue(block, "Y", "0");
                 const z = getFieldValue(block, "Z", "0");
                 const color = getFieldValue(block, "COLOR", '"#000000"');
-                
+
                 const variableName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("ID_VAR"),
                         Blockly.Names.NameType.VARIABLE,
@@ -1249,7 +1305,7 @@ export function defineGenerators() {
                 const y = getFieldValue(block, "Y", "0");
                 const z = getFieldValue(block, "Z", "0");
                 const color = getFieldValue(block, "COLOR", '"#000000"');
-                
+
                 const variableName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("ID_VAR"),
                         Blockly.Names.NameType.VARIABLE,
@@ -1705,28 +1761,29 @@ export function defineGenerators() {
                 return createMesh(block, "Plane", params, "plane");
         };
 
-        javascriptGenerator.forBlock["set_background_color"] = function (block) {
-          // Defaults to a quoted hex string (e.g., "#6495ED")
-          let color = getFieldValue(block, "COLOR", '"#6495ED"');
+        javascriptGenerator.forBlock["set_background_color"] = function (
+                block,
+        ) {
+                // Defaults to a quoted hex string (e.g., "#6495ED")
+                let color = getFieldValue(block, "COLOR", '"#6495ED"');
 
-          const colorInput = block.getInput("COLOR");
-          const colorBlock = colorInput?.connection?.targetBlock();
+                const colorInput = block.getInput("COLOR");
+                const colorBlock = colorInput?.connection?.targetBlock();
 
-          if (colorBlock && colorBlock.type === "material") {
-            color = `(function(m){
+                if (colorBlock && colorBlock.type === "material") {
+                        color = `(function(m){
               const c = (m && (m.color || m.diffuseColor || m.albedoColor));
               return (c && c.toHexString) ? c.toHexString() : "#6495ED";
             })(${color})`;
-          }
+                }
 
-          const meshId = "sky";
-          meshMap[meshId] = block;
-          meshBlockIdMap[meshId] = block.id;
+                const meshId = "sky";
+                meshMap[meshId] = block;
+                meshBlockIdMap[meshId] = block.id;
 
-          // Background block should always request clear-color behaviour
-          return `setSky(${color}, { clear: true });\n`;
+                // Background block should always request clear-color behaviour
+                return `setSky(${color}, { clear: true });\n`;
         };
-
 
         javascriptGenerator.forBlock["create_wall"] = function (block) {
                 const color = getFieldValue(block, "COLOR", "#9932CC");
@@ -1768,7 +1825,8 @@ export function defineGenerators() {
                         Blockly.Names.NameType.VARIABLE,
                 );
 
-                const coordinate = block.getFieldValue("COORDINATE") || "x_coordinate";
+                const coordinate =
+                        block.getFieldValue("COORDINATE") || "x_coordinate";
                 const value = getFieldValue(block, "VALUE", "0");
 
                 switch (coordinate) {
@@ -1778,8 +1836,7 @@ export function defineGenerators() {
                                 return `await moveByVector(${modelName}, { x: 0, y: ${value}, z: 0 });\n`;
                         case "z_coordinate":
                                 return `await moveByVector(${modelName}, { x: 0, y: 0, z: ${value} });\n`;
-                };
-
+                }
         };
 
         javascriptGenerator.forBlock["scale"] = function (block) {
@@ -1914,14 +1971,14 @@ export function defineGenerators() {
                         Blockly.Names.NameType.VARIABLE,
                 );
 
-                const coordinate = block.getFieldValue("COORDINATE") || "x_coordinate";
+                const coordinate =
+                        block.getFieldValue("COORDINATE") || "x_coordinate";
                 const value = getFieldValue(block, "VALUE", "0");
-                
+
                 return `await positionAtSingleCoordinate(${meshName}, "${coordinate}", ${value});\n`;
         };
 
         javascriptGenerator.forBlock["distance_to"] = function (block) {
-        
                 const meshName1 = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MODEL1"),
                         Blockly.Names.NameType.VARIABLE,
@@ -2357,34 +2414,36 @@ export function defineGenerators() {
 
         // JavaScript generator for broadcast_event
         javascriptGenerator.forBlock["broadcast_event"] = function (block) {
-          const raw =
-            javascriptGenerator.valueToCode(
-              block,
-              "EVENT_NAME",
-              javascriptGenerator.ORDER_ATOMIC
-            ) || 'undefined';
+                const raw =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "EVENT_NAME",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "undefined";
 
-          const safe = emitSafeIdentifierLiteral(raw, undefined);
-          return `broadcastEvent(${safe});\n`;
+                const safe = emitSafeIdentifierLiteral(raw, undefined);
+                return `broadcastEvent(${safe});\n`;
         };
-
 
         // JavaScript generator for on_event
         javascriptGenerator.forBlock["on_event"] = function (block) {
-          // Don't force a default; let invalid/empty resolve to undefined
-          const raw =
-            javascriptGenerator.valueToCode(
-              block,
-              "EVENT_NAME",
-              javascriptGenerator.ORDER_ATOMIC
-            ) || "";
+                // Don't force a default; let invalid/empty resolve to undefined
+                const raw =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "EVENT_NAME",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "";
 
-          console.debug("[on_event] Raw EVENT_NAME:", raw);
-          const safe = emitSafeIdentifierLiteral(raw);
-          console.debug("[on_event] Safe result:", safe);
+                console.debug("[on_event] Raw EVENT_NAME:", raw);
+                const safe = emitSafeIdentifierLiteral(raw);
+                console.debug("[on_event] Safe result:", safe);
 
-          const statements_do = javascriptGenerator.statementToCode(block, "DO");
-          return `onEvent(${safe}, async function() {\n${statements_do}});\n`;
+                const statements_do = javascriptGenerator.statementToCode(
+                        block,
+                        "DO",
+                );
+                return `onEvent(${safe}, async function() {\n${statements_do}});\n`;
         };
 
         javascriptGenerator.forBlock["highlight"] = function (block) {
@@ -2960,7 +3019,10 @@ export function defineGenerators() {
 
         javascriptGenerator.forBlock["action_pressed"] = function (block) {
                 const action = block.getFieldValue("ACTION");
-                return [`actionPressed("${action}")`, javascriptGenerator.ORDER_NONE];
+                return [
+                        `actionPressed("${action}")`,
+                        javascriptGenerator.ORDER_NONE,
+                ];
         };
 
         javascriptGenerator.forBlock["key_pressed"] = function (block) {

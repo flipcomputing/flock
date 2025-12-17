@@ -897,6 +897,15 @@ export function initializeVariableIndexes() {
     instrument: 1,
     animation: 1,
     clone: 1,
+    uitext: 1,
+    button: 1,
+    input: 1,
+    slider: 1,
+    particleEffect: 1,
+    merged: 1,
+    subtracted: 1,
+    intersection: 1,
+    hull: 1,
   };
 
   const allVariables = Blockly.getMainWorkspace()
@@ -935,7 +944,8 @@ export function defineBlocks() {
   //     Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
 
   function updateCurrentMeshName(block, variableFieldName) {
-    const variableName = block.getField(variableFieldName).getText(); // Get the selected variable name
+    const field = block?.getField?.(variableFieldName);
+    const variableName = field?.getText?.();
 
     if (variableName) {
       window.currentMesh = variableName;

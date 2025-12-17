@@ -719,3 +719,20 @@ body[data-theme="dark"] .blocklyTreeLabel {
   stroke: #a89940 !important;
   stroke-width: 2px !important;
 }
+
+/* Wrap long lines inside the workspace-comment editor */
+textarea.blocklyCommentText.blocklyTextarea.blocklyText {
+  color: black;  
+}
+
+/* Keep block comment editor constrained to its bubble */
+.blocklyCommentForeignObject > body.blocklyMinimalBody,
+.blocklyCommentForeignObject textarea.blocklyCommentText {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+
+
+

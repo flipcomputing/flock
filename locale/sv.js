@@ -441,7 +441,8 @@ export default {
       // Tooltip translations - Effects blocks
       main_light_tooltip:
             "Ställ in intensiteten på huvudljuset.\nKeyword: light intensity",
-      set_fog_tooltip: "Konfigurera scenens dimma. Använd start och slut för att ställa in nära och långt avstånd.\nKeyword: fog",
+      set_fog_tooltip:
+            "Konfigurera scenens dimma. Använd start och slut för att ställa in nära och långt avstånd.\nKeyword: fog",
       get_light_tooltip: "Hämta huvudljuset på aktuella scen.\nKeyword: light",
 
       // Tooltip translations - Events blocks
@@ -592,8 +593,8 @@ export default {
             "Rotera det första mesh-objektet mot det andra objektets position.\nKeyword: look",
       move_forward_tooltip:
             "Flytta mesh-objektet i angiven riktning. 'Framåt' flyttar det i riktningen det pekar, 'sida' i kamerans riktning och 'strafe' i sidled relativt kameran.\nKeyword: push",
-  set_pivot_tooltip:
-        "Ställ in ankarpunkten för ett mesh längs X-, Y- och Z-axeln\nKeyword: ankare",
+      set_pivot_tooltip:
+            "Ställ in ankarpunkten för ett mesh längs X-, Y- och Z-axeln\nKeyword: ankare",
       min_centre_max_tooltip:
             "Välj min, center eller max som pivotpunkt\nKeyword: minmax",
 
@@ -789,7 +790,9 @@ export default {
       VISIBLE_option: "synlig",
       ALPHA_option: "alfa",
       COLOUR_option: "färg",
-
+      AUTO_option: "auto",
+      ENABLED_option: "aktiverad",
+      DISABLED_option: "inaktiverad",
       BOTH_option: "båda",
       ARROWS_option: "pilar",
       ACTIONS_option: "åtgärder",
@@ -974,7 +977,7 @@ export default {
       about_description_made_by_ui: " utvecklat av ",
       about_description_company_ui: "Flip Computing",
       about_description_disclaimer_ui:
-        " Testa gärna, men kom ihåg att saker kan ändras och vissa funktioner är ännu inte färdiga. Vi söker för närvarande stöd för att utveckla Flock så att du kan lita på det.",
+            " Testa gärna, men kom ihåg att saker kan ändras och vissa funktioner är ännu inte färdiga. Vi söker för närvarande stöd för att utveckla Flock så att du kan lita på det.",
       about_run_intro_ui:
             "Titta på demona ovan för att se vad du kan göra. Gör några ändringar och klicka på",
       about_run_action_ui: "kör.",
@@ -999,14 +1002,14 @@ export default {
       context_paste_option: "Klistra in",
       context_cut_option: "Klipp ut",
       canvas_focus_navigation:
-        "3D-canvas har fokus. Använd piltangenterna eller WASD för att navigera.",
+            "3D-canvas har fokus. Använd piltangenterna eller WASD för att navigera.",
       design_tool_label: "Designverktyg",
       focused_element_suffix: "{name} har fokus",
       search_toolbox_focused: "Verktygslådesökningen har fokus",
       code_workspace_focused: "Kodarbetsytan har fokus",
       interactive_element_label: "Interaktivt element",
       panel_resizer_focused:
-        "Paneljustering har fokus. Använd piltangenterna för att ändra storlek, Home för att återställa.",
+            "Paneljustering har fokus. Använd piltangenterna för att ändra storlek, Home för att återställa.",
       undo_performed: "Ångra utförd",
       redo_performed: "Gör om utförd",
       camera_moving_forward: "Kameran rör sig framåt",
@@ -1023,29 +1026,30 @@ export default {
       project_file_description: "Flock XR-projekt",
       file_too_large_alert: "Filen är för stor. Maxstorlek är 5 MB.",
       invalid_filetype_alert:
-        "Endast .json- eller .flock-projektfiler är tillåtna.",
-      invalid_project_alert: "Den här filen är inte ett giltigt Flock XR-projekt.",
+            "Endast .json- eller .flock-projektfiler är tillåtna.",
+      invalid_project_alert:
+            "Den här filen är inte ett giltigt Flock XR-projekt.",
       failed_to_read_file_alert: "Det gick inte att läsa filen.",
 
       // UI status messages
       max_mesh_limit_reached:
-        "⚠️ Gräns nådd: du kan bara ha {max} mesh i din värld.",
+            "⚠️ Gräns nådd: du kan bara ha {max} mesh i din värld.",
       high_memory_usage_warning: "Varning: hög minnesanvändning ({percent}%)",
       physics_out_of_memory_log:
-        "Havok-fysiken avbröts, troligen på grund av minnesbrist.", // AI-generated; needs validation
+            "Havok-fysiken avbröts, troligen på grund av minnesbrist.", // AI-generated; needs validation
       physics_out_of_memory_banner_ui:
-        "Fysikmotorn fick slut på minne. Försök minska antalet fysikobjekt eller ladda om projektet.", // AI-generated; needs validation
+            "Fysikmotorn fick slut på minne. Försök minska antalet fysikobjekt eller ladda om projektet.", // AI-generated; needs validation
       runtime_error_message: "Fel: {message}",
       xr_mode_message: "XR-läge!",
       fly_camera_instructions:
-        "ℹ️ Flygkamera, använd piltangenterna och Page Up/Down",
+            "ℹ️ Flygkamera, använd piltangenterna och Page Up/Down",
       select_mesh_delete_prompt:
-        "⚠️ Välj ett mesh och klicka sedan på ta bort.",
+            "⚠️ Välj ett mesh och klicka sedan på ta bort.",
       select_mesh_duplicate_prompt:
-        "⚠️ Välj ett mesh och klicka på duplicera, klicka sedan för att placera kopior.",
+            "⚠️ Välj ett mesh och klicka på duplicera, klicka sedan för att placera kopior.",
       position_readout: "Position: {position}",
       eyedropper_not_supported_alert:
-        "Färgväljaren stöds inte i den här webbläsaren. Prova Chrome eller Edge.",
+            "Färgväljaren stöds inte i den här webbläsaren. Prova Chrome eller Edge.",
       blocks_copied_alert: "Block kopierade till lokal lagring!",
       no_blocks_to_copy_alert: "Inga block att kopiera.",
       copy_blocks_failed_alert: "Det gick inte att kopiera blocken.",

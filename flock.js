@@ -2067,19 +2067,7 @@ export const flock = {
                 // Enable collisions
                 flock.scene.collisionsEnabled = true;
 
-                const isTouchScreen =
-                        "ontouchstart" in window ||
-                        navigator.maxTouchPoints > 0 ||
-                        window.matchMedia("(pointer: coarse)").matches;
-
-                if (isTouchScreen) {
-                        flock.controlsTexture =
-                                flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-                                        "UI",
-                                );
-                        flock.createArrowControls("white");
-                        flock.createButtonControls("white");
-                }
+                flock.buttonControls("BOTH", "AUTO", "#ffffff");
 
                 // Create the UI
                 flock.advancedTexture =
@@ -2807,3 +2795,14 @@ window.setBPM = flockSound.setBPM;
 window.updateListenerPositionAndOrientation =
         flockSound.updateListenerPositionAndOrientation;
 window.speak = flockSound.speak;
+
+window.onload = async function () {
+        const scriptElement = document.getElementById("flock");
+        if (scriptElement) {
+                console.log("Standalone Flock 🐦");
+                initializeFlock();
+                // Hide loading screen after a short delay for standalone flock
+                setTimeout(hideLoadingScreen, 1000);
+                return; // standalone flock
+        }
+};

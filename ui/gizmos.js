@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      // If gizmos are on, kill them
+      // If gizmos are on, disable them
       try {
         if (
           typeof areGizmosEnabled === "function" ? areGizmosEnabled() : true
@@ -171,7 +171,7 @@ function applyColorAtPosition(canvasX, canvasY) {
 
 let cameraMode = "play";
 
-// --- Color Picking Keyboard Mode Functions ---
+// Color Picking Keyboard Mode Functions
 
 function startColorPickingKeyboardMode(callback) {
   endColorPickingMode();
@@ -359,18 +359,19 @@ function hideBoundingBox(mesh) {
 }
 
 function resetChildMeshesOfAttachedMesh() {
-  gizmoManager.attachedMesh
+  gizmoManager?.attachedMesh
     .getChildMeshes()
     .forEach((child) => hideBoundingBox(child));
 }
 
 function resetAttachedMesh() {
+  if (!gizmoManager?.attachedMesh) return;
   hideBoundingBox(gizmoManager.attachedMesh);
   resetChildMeshesOfAttachedMesh();
 }
 
 function resetAttachedMeshIfMeshAttached() {
-  if (gizmoManager.attachedMesh) {
+  if (gizmoManager?.attachedMesh) {
     resetAttachedMesh();
   }
 }
@@ -739,23 +740,31 @@ export function toggleGizmo(gizmoType) {
 
     case "position":
       configurePositionGizmo(gizmoManager);
-      gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(function () {
+      gizmoManager.onAttachedToMeshObservable.add((mesh) => {
+        if (!mesh) return;
+
+        const blockKey = mesh?.metadata?.blockKey;
+        const blockId = blockKey ? meshMap[blockKey] : null;
+        if (!blockId) return;
+
+        highlightBlockById(Blockly.getMainWorkspace(), blockId);
+      });
+
+      gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(() => {
         const mesh = gizmoManager.attachedMesh;
-        const motionType = mesh.physics?.getMotionType();
+        if (!mesh) return;
+
+        const motionType = mesh.physics?.getMotionType?.();
         mesh.savedMotionType = motionType;
 
         if (
           mesh.physics &&
           motionType &&
-          motionType != flock.BABYLON.PhysicsMotionType.ANIMATED
+          motionType !== flock.BABYLON.PhysicsMotionType.ANIMATED
         ) {
           mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
           mesh.physics.disablePreStep = false;
         }
-
-        const block = meshMap[mesh.metadata.blockKey];
-
-        highlightBlockById(Blockly.getMainWorkspace(), block);
       });
 
       gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
@@ -780,29 +789,33 @@ export function toggleGizmo(gizmoType) {
     case "rotation":
       configureRotationGizmo(gizmoManager);
 
-      gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(function () {
+      gizmoManager.onAttachedToMeshObservable.add((mesh) => {
+        if (!mesh) return;
+
+        const blockKey = mesh?.metadata?.blockKey;
+        const blockId = blockKey ? meshMap[blockKey] : null;
+        if (!blockId) return;
+
+        highlightBlockById(Blockly.getMainWorkspace(), blockId);
+      });
+
+      gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(() => {
         let mesh = gizmoManager.attachedMesh;
-        while (mesh.parent && !mesh.parent.physicsImpostor) {
-          mesh = mesh.parent;
-        }
+        if (!mesh) return;
 
         const motionType =
-          mesh.physics.getMotionType() ||
+          mesh.physics?.getMotionType?.() ??
           flock.BABYLON.PhysicsMotionType.STATIC;
         mesh.savedMotionType = motionType;
 
         if (
           mesh.physics &&
-          mesh.physics.getMotionType() !=
+          mesh.physics.getMotionType?.() !==
             flock.BABYLON.PhysicsMotionType.ANIMATED
         ) {
           mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
           mesh.physics.disablePreStep = false;
         }
-
-        const block = meshMap[mesh.metadata.blockKey];
-
-        highlightBlockById(Blockly.getMainWorkspace(), block);
       });
 
       gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(function () {
@@ -898,32 +911,18 @@ export function toggleGizmo(gizmoType) {
 
     case "scale":
       configureScaleGizmo(gizmoManager);
+      gizmoManager.onAttachedToMeshObservable.add((mesh) => {
+        if (!mesh) return;
+
+        const blockKey = mesh?.metadata?.blockKey;
+        const blockId = blockKey ? meshMap[blockKey] : null;
+        if (!blockId) return;
+
+        highlightBlockById(Blockly.getMainWorkspace(), blockId);
+      });
 
       // Track bottom for correct visual anchoring
       let originalBottomY = 0;
-
-      gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
-        const mesh = gizmoManager.attachedMesh;
-        flock.ensureUniqueGeometry(mesh);
-        mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
-        originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
-
-        const motionType = mesh.physics?.getMotionType();
-        mesh.savedMotionType = motionType;
-
-        if (
-          mesh.physics &&
-          mesh.physics.getMotionType() !==
-            flock.BABYLON.PhysicsMotionType.ANIMATED
-        ) {
-          mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-          mesh.physics.disablePreStep = false;
-        }
-
-        const block = meshMap[mesh.metadata.blockKey];
-        highlightBlockById(Blockly.getMainWorkspace(), block);
-      });
 
       gizmoManager.gizmos.scaleGizmo.onDragObservable.add(() => {
         const mesh = gizmoManager.attachedMesh;
@@ -947,6 +946,29 @@ export function toggleGizmo(gizmoType) {
           }
         }
       });
+
+      gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
+        const mesh = gizmoManager.attachedMesh;
+        flock.ensureUniqueGeometry(mesh);
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+
+        const motionType = mesh.physics?.getMotionType();
+        mesh.savedMotionType = motionType;
+
+        if (
+          mesh.physics &&
+          mesh.physics.getMotionType() !==
+            flock.BABYLON.PhysicsMotionType.ANIMATED
+        ) {
+          mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+          mesh.physics.disablePreStep = false;
+        }
+
+        const block = meshMap[mesh.metadata.blockKey];
+        highlightBlockById(Blockly.getMainWorkspace(), block);
+      });   
 
       gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
         const mesh = gizmoManager.attachedMesh;
@@ -1135,6 +1157,7 @@ export function toggleGizmo(gizmoType) {
 }
 
 function turnOffAllGizmos() {
+  if (!gizmoManager) return;
   resetBoundingBoxVisibilityIfManuallyChanged(gizmoManager.attachedMesh);
   resetAttachedMeshIfMeshAttached();
   gizmoManager.attachToMesh(null);
@@ -1289,11 +1312,26 @@ export function setGizmoManager(value) {
   gizmoManager = value;
 
   const originalAttach = gizmoManager.attachToMesh.bind(gizmoManager);
+  let attachedMeshDisposeObserver = null;
+  let meshWithDisposeObserver = null;
+
+  const clearAttachedMeshDisposeObserver = () => {
+    if (attachedMeshDisposeObserver && meshWithDisposeObserver) {
+      meshWithDisposeObserver.onDisposeObservable.remove(
+        attachedMeshDisposeObserver,
+      );
+    }
+
+    attachedMeshDisposeObserver = null;
+    meshWithDisposeObserver = null;
+  };
   gizmoManager.attachToMesh = (mesh) => {
     if (mesh && mesh.name === "ground") {
       turnOffAllGizmos();
       mesh = null;
     }
+
+    clearAttachedMeshDisposeObserver();
 
     if (gizmoManager.attachedMesh) {
       resetAttachedMesh();
@@ -1332,6 +1370,14 @@ export function setGizmoManager(value) {
       //highlightBlockById(Blockly.getMainWorkspace(), block);
     }
     originalAttach(mesh);
+
+    if (mesh) {
+      meshWithDisposeObserver = mesh;
+      attachedMeshDisposeObserver = mesh.onDisposeObservable.add(() => {
+        clearAttachedMeshDisposeObserver();
+        turnOffAllGizmos();
+      });
+    }
   };
 
   const canvas = flock.scene.getEngine().getRenderingCanvas();

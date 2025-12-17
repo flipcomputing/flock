@@ -5,7 +5,8 @@ import {
         addToggleButton,
         mutationToDom,
         domToMutation,
-        inlineIcon,
+        nextVariableIndexes,
+        handleBlockCreateEvent,
         updateShape,
 } from "./blocks.js";
 import {
@@ -26,16 +27,40 @@ export function defineSensingBlocks() {
                                                 type: "field_dropdown",
                                                 name: "KEY",
                                                 options: [
-                                                        getDropdownOption("ANY"),
-                                                        getDropdownOption("NONE"),
+                                                        getDropdownOption(
+                                                                "ANY",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "NONE",
+                                                        ),
                                                         getDropdownOption("w"),
                                                         getDropdownOption("a"),
                                                         getDropdownOption("s"),
                                                         getDropdownOption("d"),
-                                                        [getOption("space_infinity"), " "],
-                                                        [getOption("q_icon"), "q"],
-                                                        [getOption("e_icon"), "e"],
-                                                        [getOption("f_icon"), "f"],
+                                                        [
+                                                                getOption(
+                                                                        "space_infinity",
+                                                                ),
+                                                                " ",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "q_icon",
+                                                                ),
+                                                                "q",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "e_icon",
+                                                                ),
+                                                                "e",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "f_icon",
+                                                                ),
+                                                                "f",
+                                                        ],
                                                 ],
                                         },
                                 ],
@@ -58,14 +83,54 @@ export function defineSensingBlocks() {
                                                 type: "field_dropdown",
                                                 name: "ACTION",
                                                 options: [
-                                                        [getOption("ACTION_FORWARD"), "FORWARD"],
-                                                        [getOption("ACTION_BACKWARD"), "BACKWARD"],
-                                                        [getOption("ACTION_LEFT"), "LEFT"],
-                                                        [getOption("ACTION_RIGHT"), "RIGHT"],
-                                                        [getOption("ACTION_BUTTON1"), "BUTTON1"],
-                                                        [getOption("ACTION_BUTTON2"), "BUTTON2"],
-                                                        [getOption("ACTION_BUTTON3"), "BUTTON3"],
-                                                        [getOption("ACTION_BUTTON4"), "BUTTON4"],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_FORWARD",
+                                                                ),
+                                                                "FORWARD",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_BACKWARD",
+                                                                ),
+                                                                "BACKWARD",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_LEFT",
+                                                                ),
+                                                                "LEFT",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_RIGHT",
+                                                                ),
+                                                                "RIGHT",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_BUTTON1",
+                                                                ),
+                                                                "BUTTON1",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_BUTTON2",
+                                                                ),
+                                                                "BUTTON2",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_BUTTON3",
+                                                                ),
+                                                                "BUTTON3",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_BUTTON4",
+                                                                ),
+                                                                "BUTTON4",
+                                                        ],
                                                 ],
                                         },
                                 ],
@@ -182,8 +247,7 @@ export function defineSensingBlocks() {
                                 ],
                                 output: "Boolean",
                                 colour: categoryColours["Sensing"],
-                                tooltip:
-                                        "Returns true if the mesh with this name is present in the scene.",
+                                tooltip: "Returns true if the mesh with this name is present in the scene.",
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("sensing_blocks");
@@ -200,27 +264,69 @@ export function defineSensingBlocks() {
                                                 type: "field_dropdown",
                                                 name: "PROPERTY",
                                                 options: [
-                                                        getDropdownOption("POSITION_X"),
-                                                        getDropdownOption("POSITION_Y"),
-                                                        getDropdownOption("POSITION_Z"),
-                                                        getDropdownOption("ROTATION_X"),
-                                                        getDropdownOption("ROTATION_Y"),
-                                                        getDropdownOption("ROTATION_Z"),
-                                                        getDropdownOption("MIN_X"),
-                                                        getDropdownOption("MAX_X"),
-                                                        getDropdownOption("MIN_Y"),
-                                                        getDropdownOption("MAX_Y"),
-                                                        getDropdownOption("MIN_Z"),
-                                                        getDropdownOption("MAX_Z"),
-                                                        getDropdownOption("SCALE_X"),
-                                                        getDropdownOption("SCALE_Y"),
-                                                        getDropdownOption("SCALE_Z"),
-                                                        getDropdownOption("SIZE_X"),
-                                                        getDropdownOption("SIZE_Y"),
-                                                        getDropdownOption("SIZE_Z"),
-                                                        getDropdownOption("VISIBLE"),
-                                                        getDropdownOption("ALPHA"),
-                                                        getDropdownOption("COLOUR"),
+                                                        getDropdownOption(
+                                                                "POSITION_X",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "POSITION_Y",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "POSITION_Z",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ROTATION_X",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ROTATION_Y",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ROTATION_Z",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "MIN_X",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "MAX_X",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "MIN_Y",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "MAX_Y",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "MIN_Z",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "MAX_Z",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "SCALE_X",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "SCALE_Y",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "SCALE_Z",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "SIZE_X",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "SIZE_Y",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "SIZE_Z",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "VISIBLE",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ALPHA",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "COLOUR",
+                                                        ),
                                                 ],
                                         },
                                         {
@@ -270,15 +376,31 @@ export function defineSensingBlocks() {
                                                 type: "field_dropdown",
                                                 name: "CONTROL",
                                                 options: [
-                                                        getDropdownOption("BOTH"),
-                                                        getDropdownOption("ARROWS"),
-                                                        getDropdownOption("ACTIONS"),
+                                                        getDropdownOption(
+                                                                "BOTH",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ARROWS",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ACTIONS",
+                                                        ),
                                                 ],
                                         },
                                         {
-                                                type: "field_checkbox",
+                                                type: "field_dropdown",
                                                 name: "ENABLED",
-                                                checked: true,
+                                                options: [
+                                                        getDropdownOption(
+                                                                "AUTO",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ENABLED",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "DISABLED",
+                                                        ),
+                                                ],
                                         },
                                         {
                                                 type: "input_value",
@@ -306,24 +428,114 @@ export function defineSensingBlocks() {
                                                 type: "field_dropdown",
                                                 name: "EVENT",
                                                 options: [
-                                                        [getOption("pin_0"), "0"],
-                                                        [getOption("pin_1"), "1"],
-                                                        [getOption("pin_2"), "2"],
-                                                        [getOption("pin_l"), "l"],
-                                                        [getOption("pin_j"), "j"],
-                                                        [getOption("pin_h"), "h"],
-                                                        [getOption("pin_k"), "k"],
-                                                        [getOption("pin_space"), " "],
-                                                        [getOption("pin_q"), "q"],
-                                                        [getOption("pin_r"), "r"],
-                                                        [getOption("pin_t"), "t"],
-                                                        [getOption("pin_o"), "o"],
-                                                        [getOption("pin_p"), "p"],
-                                                        [getOption("pin_a"), "a"],
-                                                        [getOption("pin_d"), "d"],
-                                                        [getOption("pin_y"), "y"],
-                                                        [getOption("pin_h"), "h"],
-                                                        [getOption("pin_i"), "i"],
+                                                        [
+                                                                getOption(
+                                                                        "pin_0",
+                                                                ),
+                                                                "0",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_1",
+                                                                ),
+                                                                "1",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_2",
+                                                                ),
+                                                                "2",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_l",
+                                                                ),
+                                                                "l",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_j",
+                                                                ),
+                                                                "j",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_h",
+                                                                ),
+                                                                "h",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_k",
+                                                                ),
+                                                                "k",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_space",
+                                                                ),
+                                                                " ",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_q",
+                                                                ),
+                                                                "q",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_r",
+                                                                ),
+                                                                "r",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_t",
+                                                                ),
+                                                                "t",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_o",
+                                                                ),
+                                                                "o",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_p",
+                                                                ),
+                                                                "p",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_a",
+                                                                ),
+                                                                "a",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_d",
+                                                                ),
+                                                                "d",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_y",
+                                                                ),
+                                                                "y",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_h",
+                                                                ),
+                                                                "h",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "pin_i",
+                                                                ),
+                                                                "i",
+                                                        ],
                                                 ],
                                         },
                                 ],
@@ -357,6 +569,10 @@ export function defineSensingBlocks() {
         };
         Blockly.Blocks["ui_slider"] = {
                 init: function () {
+                        const variableNamePrefix = "slider";
+                        const nextVariableName =
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
                         this.jsonInit({
                                 type: "ui_slider",
                                 message0: translate("ui_slider"),
@@ -364,6 +580,7 @@ export function defineSensingBlocks() {
                                         {
                                                 type: "field_variable",
                                                 name: "SLIDER_VAR",
+                                                variable: nextVariableName,
                                         },
                                         {
                                                 type: "input_value",
@@ -404,9 +621,15 @@ export function defineSensingBlocks() {
                                                 type: "field_dropdown",
                                                 name: "SIZE",
                                                 options: [
-                                                        getDropdownOption("SMALL"),
-                                                        getDropdownOption("MEDIUM"),
-                                                        getDropdownOption("LARGE"),
+                                                        getDropdownOption(
+                                                                "SMALL",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "MEDIUM",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "LARGE",
+                                                        ),
                                                 ],
                                         },
                                 ],
@@ -419,6 +642,15 @@ export function defineSensingBlocks() {
 
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("text_blocks");
+                        this.setOnChange((changeEvent) =>
+                                handleBlockCreateEvent(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                        nextVariableIndexes,
+                                        "SLIDER_VAR",
+                                ),
+                        );
                 },
         };
 }

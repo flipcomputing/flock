@@ -1247,30 +1247,40 @@ export const flockAnimate = {
     }
   },
   _getCurrentAnimationInfo(meshOrGroup) {
-    // Find mesh with skeleton
-    const findMeshWithSkeleton = (rootMesh) => {
-      if (rootMesh?.skeleton) return rootMesh;
-      if (rootMesh?.getChildMeshes) {
-        for (const child of rootMesh.getChildMeshes()) {
-          if (child.skeleton) return child;
-        }
+  const findMeshWithSkeleton = (rootMesh) => {
+    if (rootMesh?.skeleton) return rootMesh;
+    if (rootMesh?.getChildMeshes) {
+      for (const child of rootMesh.getChildMeshes()) {
+        if (child.skeleton) return child;
       }
-      return null;
-    };
+    }
+    return null;
+  };
 
-    const mesh = findMeshWithSkeleton(meshOrGroup);
-    if (!mesh || !mesh.metadata) return null;
+  const mesh = findMeshWithSkeleton(meshOrGroup);
+  if (!mesh || !mesh.metadata) return null;
 
-    const scene = mesh.getScene?.();
-    const animName = mesh.metadata.currentAnimationName || null;
-    if (!animName || !scene) return { name: null, isLooping: false };
+  const scene = mesh.getScene?.();
+  const animName = mesh.metadata.currentAnimationName || null;
+  if (!animName || !scene) return { name: null, isLooping: false, isPlaying: false };
 
-    // Try to find a Babylon AnimationGroup that matches
-    const group = scene.animationGroups.find((g) => g.name === animName);
-    const isLooping = group ? !!group.loopAnimation : false;
+  // Your groups are named like `${mesh.name}.${animName}`
+  const expectedGroupName = `${mesh.name}.${animName}`;
 
-    return { name: animName, isLooping };
-  },
+  const group =
+    scene.getAnimationGroupByName?.(expectedGroupName) ||
+    scene.animationGroups?.find((g) => g.name === expectedGroupName) ||
+    // fallback if naming ever changes:
+    scene.animationGroups?.find((g) => g.name?.endsWith?.(`.${animName}`)) ||
+    null;
+
+  return {
+    name: animName,
+    isLooping: group ? !!group.loopAnimation : false,
+    isPlaying: group ? !!group.isPlaying : false,
+    groupName: group?.name ?? null,
+  };
+},
   async _switchToAnimationLoad(
     scene,
     meshOrGroup,
@@ -1339,13 +1349,20 @@ export const flockAnimate = {
           return null;
         }
 
-        const boneMap = {},
-          tnMap = {};
-        mesh.skeleton.bones.forEach((b) => {
-          boneMap[b.name] = b;
-          if (b._linkedTransformNode)
-            tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
-        });
+       const skeleton = mesh.skeleton;
+if (!skeleton || !skeleton.bones) {
+  animImport.dispose();
+  return null;
+}
+
+const boneMap = {};
+const tnMap = {};
+skeleton.bones.forEach((b) => {
+  boneMap[b.name] = b;
+  if (b._linkedTransformNode) {
+    tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
+  }
+});
 
         const newGroup = new flock.BABYLON.AnimationGroup(
           `${mesh.name}.${animationName}`,

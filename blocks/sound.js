@@ -15,7 +15,10 @@ import {
 export function defineSoundBlocks() {
         Blockly.Blocks["play_sound"] = {
                 init: function () {
-                        let nextVariableName = "sound" + nextVariableIndexes["sound"];
+                        const variableNamePrefix = "sound";
+                        let nextVariableName =
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
                         this.jsonInit({
                                 type: "play_sound",
                                 message0: translate("play_sound"),
@@ -29,7 +32,12 @@ export function defineSoundBlocks() {
                                                 type: "field_dropdown",
                                                 name: "SOUND_NAME",
                                                 options: function () {
-                                                        return audioNames.map((name) => [name, name]);
+                                                        return audioNames.map(
+                                                                (name) => [
+                                                                        name,
+                                                                        name,
+                                                                ],
+                                                        );
                                                 },
                                         },
                                         {
@@ -56,16 +64,24 @@ export function defineSoundBlocks() {
                                                 type: "field_dropdown",
                                                 name: "MODE",
                                                 options: [
-                                                        getDropdownOption("ONCE"),
-                                                        getDropdownOption("LOOP"),
+                                                        getDropdownOption(
+                                                                "ONCE",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "LOOP",
+                                                        ),
                                                 ],
                                         },
                                         {
                                                 type: "field_dropdown",
                                                 name: "ASYNC",
                                                 options: [
-                                                        getDropdownOption("START"),
-                                                        getDropdownOption("AWAIT"),
+                                                        getDropdownOption(
+                                                                "START",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "AWAIT",
+                                                        ),
                                                 ],
                                         },
                                 ],
@@ -77,7 +93,16 @@ export function defineSoundBlocks() {
                                 extensions: ["dynamic_mesh_dropdown"], // Attach the extension
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('sound_blocks');
+                        this.setStyle("sound_blocks");
+
+                        this.setOnChange((changeEvent) => {
+                                handleBlockCreateEvent(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                        nextVariableIndexes,
+                                );
+                        });
                 },
         };
 
@@ -91,8 +116,7 @@ export function defineSoundBlocks() {
                                 tooltip: getTooltip("stop_all_sounds"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('sound_blocks');
-
+                        this.setStyle("sound_blocks");
                 },
         };
 
@@ -116,8 +140,7 @@ export function defineSoundBlocks() {
                                 tooltip: getTooltip("midi_note"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('sound_blocks');
-
+                        this.setStyle("sound_blocks");
                 },
         };
 
@@ -131,8 +154,7 @@ export function defineSoundBlocks() {
                                 tooltip: getTooltip("rest"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('sound_blocks');
-
+                        this.setStyle("sound_blocks");
                 },
         };
 
@@ -166,8 +188,12 @@ export function defineSoundBlocks() {
                                                 type: "field_dropdown",
                                                 name: "ASYNC",
                                                 options: [
-                                                        getDropdownOption("START"),
-                                                        getDropdownOption("AWAIT"),
+                                                        getDropdownOption(
+                                                                "START",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "AWAIT",
+                                                        ),
                                                 ],
                                         },
                                 ],
@@ -178,8 +204,7 @@ export function defineSoundBlocks() {
                                 tooltip: getTooltip("play_notes"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('sound_blocks');
-
+                        this.setStyle("sound_blocks");
                 },
         };
 
@@ -202,8 +227,7 @@ export function defineSoundBlocks() {
                                 tooltip: getTooltip("set_scene_bpm"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('sound_blocks');
-
+                        this.setStyle("sound_blocks");
                 },
         };
 
@@ -231,8 +255,7 @@ export function defineSoundBlocks() {
                                 tooltip: getTooltip("set_mesh_bpm"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('sound_blocks');
-
+                        this.setStyle("sound_blocks");
                 },
         };
 
@@ -240,7 +263,8 @@ export function defineSoundBlocks() {
                 init: function () {
                         const variableNamePrefix = "instrument";
                         let nextVariableName =
-                                variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
                         this.jsonInit({
                                 type: "create_instrument",
                                 message0: translate("create_instrument"),
@@ -254,10 +278,18 @@ export function defineSoundBlocks() {
                                                 type: "field_dropdown",
                                                 name: "TYPE",
                                                 options: [
-                                                        getDropdownOption("sine"),
-                                                        getDropdownOption("square"),
-                                                        getDropdownOption("sawtooth"),
-                                                        getDropdownOption("triangle"),
+                                                        getDropdownOption(
+                                                                "sine",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "square",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "sawtooth",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "triangle",
+                                                        ),
                                                 ],
                                         },
                                         {
@@ -307,7 +339,7 @@ export function defineSoundBlocks() {
                                 tooltip: getTooltip("create_instrument"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('sound_blocks');
+                        this.setStyle("sound_blocks");
 
                         this.setOnChange((changeEvent) => {
                                 handleBlockCreateEvent(
@@ -315,6 +347,7 @@ export function defineSoundBlocks() {
                                         changeEvent,
                                         variableNamePrefix,
                                         nextVariableIndexes,
+                                        "INSTRUMENT",
                                 );
                         });
                 },
@@ -330,10 +363,18 @@ export function defineSoundBlocks() {
                                                 type: "field_dropdown",
                                                 name: "INSTRUMENT_TYPE",
                                                 options: [
-                                                        getDropdownOption("default"),
-                                                        getDropdownOption("piano"),
-                                                        getDropdownOption("guitar"),
-                                                        getDropdownOption("violin"),
+                                                        getDropdownOption(
+                                                                "default",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "piano",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "guitar",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "violin",
+                                                        ),
                                                 ],
                                         },
                                 ],
@@ -342,8 +383,7 @@ export function defineSoundBlocks() {
                                 tooltip: getTooltip("instrument"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('sound_blocks');
-
+                        this.setStyle("sound_blocks");
                 },
         };
 
@@ -367,16 +407,24 @@ export function defineSoundBlocks() {
                                                 type: "field_dropdown",
                                                 name: "VOICE",
                                                 options: [
-                                                        getDropdownOption("female"),
-                                                        getDropdownOption("male"),
+                                                        getDropdownOption(
+                                                                "female",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "male",
+                                                        ),
                                                 ],
                                         },
                                         {
                                                 type: "field_dropdown",
                                                 name: "LANGUAGE",
                                                 options: [
-                                                        getDropdownOption("en-GB"),
-                                                        getDropdownOption("en-US"),
+                                                        getDropdownOption(
+                                                                "en-GB",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "en-US",
+                                                        ),
                                                 ],
                                         },
                                         {
@@ -398,8 +446,12 @@ export function defineSoundBlocks() {
                                                 type: "field_dropdown",
                                                 name: "ASYNC",
                                                 options: [
-                                                        getDropdownOption("START"),
-                                                        getDropdownOption("AWAIT"),
+                                                        getDropdownOption(
+                                                                "START",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "AWAIT",
+                                                        ),
                                                 ],
                                         },
                                 ],
@@ -411,8 +463,7 @@ export function defineSoundBlocks() {
                                 extensions: ["dynamic_mesh_dropdown"], // Attach the extension
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('sound_blocks');
-
+                        this.setStyle("sound_blocks");
                 },
         };
 }

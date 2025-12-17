@@ -912,36 +912,6 @@ const toolboxScene = {
                 },*/
                 {
                         kind: "block",
-                        type: "set_background_color",
-                        keyword: "background",
-                        inputs: {
-                                COLOR: {
-                                        shadow: {
-                                                type: "colour",
-                                                fields: {
-                                                        COLOR: "#6495ED",
-                                                },
-                                        },
-                                },
-                        },
-                },
-                /*{
-                        kind: "block",
-                        type: "create_map",
-                        keyword: "map",
-                        inputs: {
-                                COLOR: {
-                                        shadow: {
-                                                type: "colour",
-                                                fields: {
-                                                        COLOR: "#71BC78",
-                                                },
-                                        },
-                                },
-                        },
-                },*/
-                {
-                        kind: "block",
                         type: "create_map",
                         keyword: "map",
                         inputs: {
@@ -971,6 +941,36 @@ const toolboxScene = {
                                 },
                         },
                 },
+                {
+                        kind: "block",
+                        type: "set_background_color",
+                        keyword: "background",
+                        inputs: {
+                                COLOR: {
+                                        shadow: {
+                                                type: "colour",
+                                                fields: {
+                                                        COLOR: "#6495ED",
+                                                },
+                                        },
+                                },
+                        },
+                },
+                /*{
+                        kind: "block",
+                        type: "create_map",
+                        keyword: "map",
+                        inputs: {
+                                COLOR: {
+                                        shadow: {
+                                                type: "colour",
+                                                fields: {
+                                                        COLOR: "#71BC78",
+                                                },
+                                        },
+                                },
+                        },
+                },*/               
                 {
                         kind: "block",
                         type: "show",
