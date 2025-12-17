@@ -50,13 +50,11 @@ export function buildColorsListShadowSpec(objectName) {
 
 	const listSpec = {
 		type: "lists_create_with",
-		// Modern serializer:
 		extraState: { itemCount: colours.length },
-		// Older builds read mutation for count:
 		mutation: { items: colours.length },
 		inline: true,
 		inputs: {},
-	};
+	}; 
 
 	colours.forEach((hex, i) => {
 		listSpec.inputs["ADD" + i] = {

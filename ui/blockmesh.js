@@ -15,6 +15,58 @@ const colorFields = {
   SLEEVES_COLOR: true,
 };
 
+function isMainWorkspaceEvent(changeEvent, block) {
+  const mainWs = Blockly.getMainWorkspace();
+  const ws = block?.workspace;
+
+  if (!ws) {
+    console.log("[isMainWorkspaceEvent] false: block has no workspace", {
+      blockId: block?.id,
+      eventType: changeEvent?.type,
+      eventWorkspaceId: changeEvent?.workspaceId,
+    });
+    return false;
+  }
+
+  if (ws.isFlyout) {
+    console.log("[isMainWorkspaceEvent] false: block is in flyout workspace", {
+      blockId: block?.id,
+      eventType: changeEvent?.type,
+      eventWorkspaceId: changeEvent?.workspaceId,
+      blockWorkspaceId: ws.id,
+      mainWorkspaceId: mainWs?.id,
+    });
+    return false;
+  }
+
+  if (ws !== mainWs) {
+    console.log(
+      "[isMainWorkspaceEvent] false: block is in a non-main, non-flyout workspace",
+      {
+        blockId: block?.id,
+        eventType: changeEvent?.type,
+        eventWorkspaceId: changeEvent?.workspaceId,
+        blockWorkspaceId: ws.id,
+        mainWorkspaceId: mainWs?.id,
+      },
+    );
+    return false;
+  }
+
+  if (changeEvent?.workspaceId && changeEvent.workspaceId !== ws.id) {
+    console.log("[isMainWorkspaceEvent] false: event workspaceId mismatch", {
+      blockId: block?.id,
+      eventType: changeEvent?.type,
+      eventWorkspaceId: changeEvent.workspaceId,
+      blockWorkspaceId: ws.id,
+      mainWorkspaceId: mainWs?.id,
+    });
+    return false;
+  }
+
+  return true;
+}
+
 export function getRootMesh(mesh) {
   if (flock.meshDebug) console.log(mesh.parent);
   if (!mesh) return null;
@@ -280,6 +332,7 @@ export function clearSkyMesh({ preserveClearColor = true } = {}) {
 }
 
 export function setClearSkyToBlack() {
+  console.log("*** Setting clear sky to black");
   const fallbackColor =
     flock.initialClearColor?.toHexString?.() ??
     flock.initialClearColor ??
@@ -296,11 +349,11 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
       block.type,
       changeEvent.type,
     );
-  const inFlyout =
-    typeof block.isInFlyout === "function"
-      ? block.isInFlyout()
-      : block.isInFlyout;
-  if (inFlyout) return;
+
+  if (!isMainWorkspaceEvent(changeEvent, block)) {
+    return;
+  }
+
   if (
     [
       "set_sky_color",
@@ -374,11 +427,14 @@ function safeGetFieldValue(block, fieldName) {
 
 function updateSkyFromBlock(mesh, block, changeEvent) {
   if (!block.isEnabled()) {
+    console.log("Block disabled, setting clear sky to black");
     setClearSkyToBlack();
     return;
   }
 
   const colorInput = block.getInputTargetBlock("COLOR");
+
+  if (!colorInput) return;
 
   if (colorInput && colorInput.type === "material") {
     const { textureSet, baseColor, alpha } = extractMaterialInfo(colorInput);
@@ -1120,6 +1176,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   //if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
 
   if (block.type === "set_sky_color") {
+    console.log("Updating sky from block");
     updateSkyFromBlock(mesh, block, changeEvent);
     return;
   }

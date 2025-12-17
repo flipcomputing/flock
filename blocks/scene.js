@@ -11,11 +11,6 @@ import {
 import { mapNames } from "../config.js";
 import { updateOrCreateMeshFromBlock } from "../ui/blockmesh.js";
 import { translate, getTooltip, getOption } from "../main/translation.js";
-import { flock } from "../flock.js";
-
-/* -------------------------------------------------------
- * Shared helpers (reused across block definitions)
- * ----------------------------------------------------- */
 
 function initSceneJsonBlock(block, { type, args0, inputsInline = true }) {
         block.jsonInit({
@@ -216,10 +211,6 @@ function attachCreateMapOnChange(block) {
                 updateOrCreateMeshFromBlock(block, changeEvent);
         });
 }
-
-/* -------------------------------------------------------
- * Blocks
- * ----------------------------------------------------- */
 
 export function defineSceneBlocks() {
         Blockly.Blocks["set_sky_color"] = {

@@ -10,24 +10,28 @@ export const flockScene = {
   /*
    Category: Scene
   */
-  // Back-compatible: setSky(colorOrMaterialOrArray, options)
-  // setSky(colorOrMaterialOrArray, options?)
   setSky(color, options = {}) {
     if (!sceneReady()) {
       return;
     }
 
+    if (!color) {
+      console.log("[set sky] No color provided");
+      return;
+    }
+
     const { clear = false } = options;
 
-    // Dispose any previous sky dome
     if (flock.sky) {
       flock.disposeMesh(flock.sky);
       flock.sky = null;
     }
 
-    // --- BACKGROUND ONLY (flat clear color) ---
+    // Set background clear color
     if (clear === true) {
-      const c3 = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+      const c3 = flock.BABYLON.Color3.FromHexString(
+        flock.getColorFromString(color),
+      );
       flock.scene.clearColor = c3;
       return;
     }
@@ -36,8 +40,12 @@ export const flockScene = {
     const createSkySphere = () => {
       const s = flock.BABYLON.MeshBuilder.CreateSphere(
         "sky",
-        { segments: 32, diameter: 1000, sideOrientation: flock.BABYLON.Mesh.BACKSIDE },
-        flock.scene
+        {
+          segments: 32,
+          diameter: 1000,
+          sideOrientation: flock.BABYLON.Mesh.BACKSIDE,
+        },
+        flock.scene,
       );
       s.infiniteDistance = true;
       s.isPickable = false;
@@ -45,14 +53,18 @@ export const flockScene = {
       return s;
     };
 
-    // --- MATERIAL INPUT: use as-is ---
     if (color && color instanceof flock.BABYLON.Material) {
       const skySphere = createSkySphere();
       flock.sky = skySphere;
 
       // Optional tiling if there’s a texture
-      const tex = color.diffuseTexture || color.albedoTexture || color.baseTexture;
-      if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
+      const tex =
+        color.diffuseTexture || color.albedoTexture || color.baseTexture;
+      if (
+        tex &&
+        typeof tex.uScale === "number" &&
+        typeof tex.vScale === "number"
+      ) {
         tex.uScale = 10;
         tex.vScale = 10;
       }
@@ -62,15 +74,19 @@ export const flockScene = {
       return;
     }
 
-    // --- GRADIENT INPUT: arrays (2+) ---
+    // Use gradient material for multi-color sky
     if (Array.isArray(color) && color.length >= 2) {
       const skySphere = createSkySphere();
       flock.sky = skySphere;
 
       if (color.length === 2) {
         const mat = new flock.GradientMaterial("skyGradient", flock.scene);
-        mat.bottomColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color[0]));
-        mat.topColor    = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color[1]));
+        mat.bottomColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color[0]),
+        );
+        mat.topColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color[1]),
+        );
         mat.offset = 0.8;
         mat.smoothness = 0.5;
         mat.scale = 0.01;
@@ -78,9 +94,15 @@ export const flockScene = {
         mat.disableLighting = true; // gradient is usually unlit
         skySphere.material = mat;
       } else {
-        const mat = flock.createMultiColorGradientMaterial("skyGradient", color);
+        const mat = flock.createMultiColorGradientMaterial(
+          "skyGradient",
+          color,
+        );
         const { minimum, maximum } = skySphere.getBoundingInfo();
-        mat.setVector2("minMax", new flock.BABYLON.Vector2(minimum.y, maximum.y));
+        mat.setVector2(
+          "minMax",
+          new flock.BABYLON.Vector2(minimum.y, maximum.y),
+        );
         mat.backFaceCulling = false;
         mat.disableLighting = true;
         skySphere.material = mat;
@@ -90,17 +112,22 @@ export const flockScene = {
 
     // --- SINGLE-COLOUR SKY DOME (this is the key change) ---
     if (typeof color === "string") {
-      const c3 = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+      const c3 = flock.BABYLON.Color3.FromHexString(
+        flock.getColorFromString(color),
+      );
 
       const skySphere = createSkySphere();
       flock.sky = skySphere;
 
-      const skyMat = new flock.BABYLON.StandardMaterial("skyMaterial", flock.scene);
+      const skyMat = new flock.BABYLON.StandardMaterial(
+        "skyMaterial",
+        flock.scene,
+      );
       skyMat.backFaceCulling = false;
-      skyMat.disableLighting = false;     // ensure lit
-      skyMat.diffuseColor     = c3;       // reacts to lights
-      skyMat.ambientColor     = c3.scale(0.05); // gentle lift, optional
-      skyMat.fogEnabled       = false;
+      skyMat.disableLighting = false; // ensure lit
+      skyMat.diffuseColor = c3; // reacts to lights
+      skyMat.ambientColor = c3.scale(0.05); // gentle lift, optional
+      skyMat.fogEnabled = false;
 
       skySphere.material = skyMat;
       return;
@@ -109,10 +136,7 @@ export const flockScene = {
     // Fallback (shouldn’t hit)
     flock.scene.clearColor = new flock.BABYLON.Color3(0, 0, 0);
   },
-  createLinearGradientTexture(
-    colors,
-    opts = {},
-  ) {
+  createLinearGradientTexture(colors, opts = {}) {
     if (!sceneReady()) {
       return null;
     }
@@ -143,7 +167,6 @@ export const flockScene = {
       grad.addColorStop(stop, rgb);
     }
 
-    // Paint
     if (horizontal) {
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, 1);
@@ -153,15 +176,13 @@ export const flockScene = {
     }
     dt.update(false);
 
-    // Configure addressing for clean edges
     const tex = new flock.BABYLON.Texture(null, flock.scene);
-    tex._texture = dt.getInternalTexture(); // bind underlying texture
+    tex._texture = dt.getInternalTexture();
     tex.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
     tex.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-    return dt; // return DynamicTexture; consumers can also use dt
+    return dt;
   },
   createGround(colorOrMaterial, modelId, opts = {}) {
-
     if (!sceneReady()) {
       return;
     }
@@ -206,11 +227,9 @@ export const flockScene = {
     };
 
     if (colorOrMaterial && colorOrMaterial instanceof flock.BABYLON.Material) {
-      // Case 1: Material passed in
       ground.material = colorOrMaterial;
-      applyTilingIfAnyTexture(ground.material); // <<< match sky (default 10)
+      applyTilingIfAnyTexture(ground.material);
     } else if (Array.isArray(colorOrMaterial) && colorOrMaterial.length >= 2) {
-      // Case 2: Multi-colour gradient (no tiling needed for a 1×N gradient)
       const mat = new flock.BABYLON.StandardMaterial(
         "groundGradientMat",
         flock.scene,
@@ -231,7 +250,7 @@ export const flockScene = {
 
       ground.material = mat;
     } else {
-      // Case 3: Single colour
+      // Single color
       const mat = new flock.BABYLON.StandardMaterial(
         "groundMaterial",
         flock.scene,
@@ -247,6 +266,11 @@ export const flockScene = {
   },
   createMap(image, material) {
     if (!sceneReady()) {
+      return;
+    }
+
+    if (!material) {
+      console.log("[create map] No material provided");
       return;
     }
 
@@ -344,11 +368,9 @@ export const flockScene = {
     };
 
     if (material && material instanceof flock.BABYLON.Material) {
-      // Case 1: Material passed in
       ground.material = material;
       applyTilingIfAnyTexture(ground.material);
     } else if (Array.isArray(material) && material.length >= 2) {
-      // Case 2: Multi-colour gradient
       const mat = new flock.BABYLON.StandardMaterial(
         "mapGradientMat",
         flock.scene,
@@ -369,7 +391,7 @@ export const flockScene = {
 
       ground.material = mat;
     } else if (material) {
-      // Case 3: Single colour
+      // Single colour
       const mat = new flock.BABYLON.StandardMaterial(
         "mapColorMat",
         flock.scene,
@@ -565,9 +587,6 @@ export const flockScene = {
     flock.whenModelReady(meshName, (mesh) => {
       if (mesh) flock.disposeMesh(mesh);
     });
-
-    //return flock.whenModelReady(meshName, (mesh) => {
-    // });
   },
   cloneMesh({ sourceMeshName, cloneId, callback = null }) {
     const uniqueCloneId = cloneId + "_" + flock.scene.getUniqueId();
