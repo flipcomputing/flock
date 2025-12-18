@@ -944,6 +944,7 @@ export default {
   project_save_ui: "Save",
   language_submenu_ui: "Language",
   about_submenu_ui: "About",
+  hub_submenu_ui: "Hub",
 
   theme_submenu_ui: "Theme",
   light_theme_ui: "Light",
