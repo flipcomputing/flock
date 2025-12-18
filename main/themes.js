@@ -18,6 +18,63 @@ export const categoryColours = {
         Procedures: "%{BKY_PROCEDURES_HUE}",
 };
 
+// Original AAA palette (Zishan Rahman)
+export const contrastCategoryColoursAAA = {
+        Events: "#734a4e",
+        Scene: "#0d5c00",
+        Transform: "#343ddb",
+        Animate: "#a71c4e",
+        Materials: "#7211b6",
+        Sound: "#ab0046",
+        Sensing: "#4e5a00",
+        Snippets: "#1c457f",
+        Control: "#970097",
+        Logic: "#0000ff",
+        Variables: "#002c2b",
+        Text: "#5545be",
+        Lists: "%{BKY_VARIABLES_HUE}",
+        Math: "#3f0000",
+        Procedures: "#8a24a5",
+};
+
+// Becky's AA palette (Rebecca Franks)
+export const contrastCategoryColoursAA = {
+        Events: "#913a34",
+        Scene: "#5e7b33",
+        Transform: "#77792e",
+        Animate: "#8b7234",
+        Materials: "#793298",
+        Sound: "#995f3a",
+        Sensing: "#2d787c",
+        Snippets: "#387091",
+        Control: "#308332",
+        Logic: "#0000ff",
+        Variables: "#963065",
+        Text: "#30826b",
+        Lists: "%{BKY_VARIABLES_HUE}",
+        Math: "#2e3987",
+        Procedures: "#83398f",
+};
+
+// Revised Becky's palette to also pass AAA tests (Rebecca Franks, Zishan Rahman)
+export const contrastCategoryColours = {
+        Events: "#913a34",
+        Scene: "#315f3a",
+        Transform: "#8b4700",
+        Animate: "#734a4e",
+        Materials: "#793298",
+        Sound: "#99303a",
+        Sensing: "#2d5896",
+        Snippets: "#385891",
+        Control: "#135f17",
+        Logic: "#18387b",
+        Variables: "#963065",
+        Text: "#5545be",
+        Lists: "%{BKY_VARIABLES_HUE}",
+        Math: "#2e3987",
+        Procedures: "#83398f",
+};
+
 function setLogos(themeName) {
         const bird = document.getElementById("logo");
         const inlineLogo = document.getElementById("flocklogo");
@@ -57,16 +114,19 @@ function switchTheme(themeName) {
 
         if (!workspace) return;
 
-        // Set HSV values based on theme
-        if (["light", "dark"].includes(themeName)) {
-                // For dark theme, use same saturation/value as light theme
-                Blockly.utils.colour.setHsvSaturation(0.3);
-                Blockly.utils.colour.setHsvValue(0.85);
-        } else if (["contrast", "dark-contrast"].includes(themeName)) {
-                // Contrast theme now uses more saturated colors like the old dark theme
-                Blockly.utils.colour.setHsvSaturation(0.525);
-                Blockly.utils.colour.setHsvValue(0.65);
-        }
+        Blockly.utils.colour.setHsvSaturation(0.3);
+        Blockly.utils.colour.setHsvValue(0.85);
+
+        // // Set HSV values based on theme
+        // if (["light", "dark"].includes(themeName)) {
+        //         // For dark theme, use same saturation/value as light theme
+        //         Blockly.utils.colour.setHsvSaturation(0.3);
+        //         Blockly.utils.colour.setHsvValue(0.85);
+        // } else if (["contrast", "dark-contrast"].includes(themeName)) {
+        //         // Contrast theme now uses more saturated colors like the old dark theme
+        //         Blockly.utils.colour.setHsvSaturation(0.525);
+        //         Blockly.utils.colour.setHsvValue(0.65);
+        // }
 
         setLogos(themeName);
 
@@ -272,82 +332,22 @@ function getThemeBaseStyles(themeName) {
                         },
                 },
                 contrast: {
-                        // Contrast theme now uses the old dark theme colors
-                        events: {
-                                colourPrimary: "#E74C3C",
-                                colourSecondary: "#C0392B",
-                                colourTertiary: "#A93226",
-                        },
-                        scene: {
-                                colourPrimary: "#1ABC9C",
-                                colourSecondary: "#16A085",
-                                colourTertiary: "#138D75",
-                        },
-                        transform: {
-                                colourPrimary: "#3498DB",
-                                colourSecondary: "#2980B9",
-                                colourTertiary: "#2471A3",
-                        },
-                        animate: {
-                                colourPrimary: "#F1C40F",
-                                colourSecondary: "#D4AC0D",
-                                colourTertiary: "#B7950B",
-                        },
-                        materials: {
-                                colourPrimary: "#9B59B6",
-                                colourSecondary: "#8E44AD",
-                                colourTertiary: "#7D3C98",
-                        },
-                        sound: {
-                                colourPrimary: "#E67E22",
-                                colourSecondary: "#D35400",
-                                colourTertiary: "#BA4A00",
-                        },
-                        sensing: {
-                                colourPrimary: "#5DADE2",
-                                colourSecondary: "#3498DB",
-                                colourTertiary: "#2980B9",
-                        },
-                        snippets: {
-                                colourPrimary: "#58D68D",
-                                colourSecondary: "#27AE60",
-                                colourTertiary: "#229954",
-                        },
-                        control: {
-                                colourPrimary: "#FF8F00",
-                                colourSecondary: "#E65100",
-                                colourTertiary: "#BF360C",
-                        },
-                        logic: {
-                                colourPrimary: "#2196F3",
-                                colourSecondary: "#1976D2",
-                                colourTertiary: "#1565C0",
-                        },
-                        variables: {
-                                colourPrimary: "#F44336",
-                                colourSecondary: "#D32F2F",
-                                colourTertiary: "#C62828",
-                        },
-                        text: {
-                                colourPrimary: "#4CAF50",
-                                colourSecondary: "#388E3C",
-                                colourTertiary: "#2E7D32",
-                        },
-                        lists: {
-                                colourPrimary: "#F44336",
-                                colourSecondary: "#D32F2F",
-                                colourTertiary: "#C62828",
-                        },
-                        math: {
-                                colourPrimary: "#3F51B5",
-                                colourSecondary: "#303F9F",
-                                colourTertiary: "#283593",
-                        },
-                        procedures: {
-                                colourPrimary: "#009688",
-                                colourSecondary: "#00796B",
-                                colourTertiary: "#00695C",
-                        },
+                        // High contrast theme now uses the same block colors as default light theme
+                        events: { colourPrimary: contrastCategoryColours.Events },
+                        scene: { colourPrimary: contrastCategoryColours.Scene },
+                        transform: { colourPrimary: contrastCategoryColours.Transform },
+                        animate: { colourPrimary: contrastCategoryColours.Animate },
+                        materials: { colourPrimary: contrastCategoryColours.Materials },
+                        sound: { colourPrimary: contrastCategoryColours.Sound },
+                        sensing: { colourPrimary: contrastCategoryColours.Sensing },
+                        snippets: { colourPrimary: contrastCategoryColours.Snippets },
+                        control: { colourPrimary: contrastCategoryColours.Control },
+                        logic: { colourPrimary: contrastCategoryColours.Logic },
+                        variables: { colourPrimary: contrastCategoryColours.Variables },
+                        text: { colourPrimary: contrastCategoryColours.Text },
+                        lists: { colourPrimary: contrastCategoryColours.Lists },
+                        math: { colourPrimary: contrastCategoryColours.Math },
+                        procedures: { colourPrimary: contrastCategoryColours.Procedures },
                         components: {
                                 workspaceBackgroundColour: "#FFFFFF",
                                 toolboxBackgroundColour: "#000000",
@@ -363,82 +363,22 @@ function getThemeBaseStyles(themeName) {
                         },
                 },
                 "dark-contrast": {
-                        // Use same colours for both high contrast theme
-                        events: {
-                                colourPrimary: "#E74C3C",
-                                colourSecondary: "#C0392B",
-                                colourTertiary: "#A93226",
-                        },
-                        scene: {
-                                colourPrimary: "#1ABC9C",
-                                colourSecondary: "#16A085",
-                                colourTertiary: "#138D75",
-                        },
-                        transform: {
-                                colourPrimary: "#3498DB",
-                                colourSecondary: "#2980B9",
-                                colourTertiary: "#2471A3",
-                        },
-                        animate: {
-                                colourPrimary: "#F1C40F",
-                                colourSecondary: "#D4AC0D",
-                                colourTertiary: "#B7950B",
-                        },
-                        materials: {
-                                colourPrimary: "#9B59B6",
-                                colourSecondary: "#8E44AD",
-                                colourTertiary: "#7D3C98",
-                        },
-                        sound: {
-                                colourPrimary: "#E67E22",
-                                colourSecondary: "#D35400",
-                                colourTertiary: "#BA4A00",
-                        },
-                        sensing: {
-                                colourPrimary: "#5DADE2",
-                                colourSecondary: "#3498DB",
-                                colourTertiary: "#2980B9",
-                        },
-                        snippets: {
-                                colourPrimary: "#58D68D",
-                                colourSecondary: "#27AE60",
-                                colourTertiary: "#229954",
-                        },
-                        control: {
-                                colourPrimary: "#FF8F00",
-                                colourSecondary: "#E65100",
-                                colourTertiary: "#BF360C",
-                        },
-                        logic: {
-                                colourPrimary: "#2196F3",
-                                colourSecondary: "#1976D2",
-                                colourTertiary: "#1565C0",
-                        },
-                        variables: {
-                                colourPrimary: "#F44336",
-                                colourSecondary: "#D32F2F",
-                                colourTertiary: "#C62828",
-                        },
-                        text: {
-                                colourPrimary: "#4CAF50",
-                                colourSecondary: "#388E3C",
-                                colourTertiary: "#2E7D32",
-                        },
-                        lists: {
-                                colourPrimary: "#F44336",
-                                colourSecondary: "#D32F2F",
-                                colourTertiary: "#C62828",
-                        },
-                        math: {
-                                colourPrimary: "#3F51B5",
-                                colourSecondary: "#303F9F",
-                                colourTertiary: "#283593",
-                        },
-                        procedures: {
-                                colourPrimary: "#009688",
-                                colourSecondary: "#00796B",
-                                colourTertiary: "#00695C",
-                        },
+                        // High contrast dark theme now uses the same block colors as default light theme
+                        events: { colourPrimary: contrastCategoryColours.Events },
+                        scene: { colourPrimary: contrastCategoryColours.Scene },
+                        transform: { colourPrimary: contrastCategoryColours.Transform },
+                        animate: { colourPrimary: contrastCategoryColours.Animate },
+                        materials: { colourPrimary: contrastCategoryColours.Materials },
+                        sound: { colourPrimary: contrastCategoryColours.Sound },
+                        sensing: { colourPrimary: contrastCategoryColours.Sensing },
+                        snippets: { colourPrimary: contrastCategoryColours.Snippets },
+                        control: { colourPrimary: contrastCategoryColours.Control },
+                        logic: { colourPrimary: contrastCategoryColours.Logic },
+                        variables: { colourPrimary: contrastCategoryColours.Variables },
+                        text: { colourPrimary: contrastCategoryColours.Text },
+                        lists: { colourPrimary: contrastCategoryColours.Lists },
+                        math: { colourPrimary: contrastCategoryColours.Math },
+                        procedures: { colourPrimary: contrastCategoryColours.Procedures },
                         components: {
                                 workspaceBackgroundColour: "#FFFFFF",
                                 toolboxBackgroundColour: "#000000",
