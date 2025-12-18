@@ -207,11 +207,11 @@ export default {
   // Custom block translation - Events blocks
   start: "iniciar",
   forever: "siempre\n%1",
-  when_clicked: "cuando se haga clic en %1 %2",
-  on_collision: "al colisionar %1 con %2 %3",
+  when_clicked: "cuando %1 %2",
+  on_collision: "cuando %1 choque %2 %3",
   when_key_event: "cuando tecla %1 %2",
   when_action_event: "cuando %1 %2",
-  broadcast_event: "difundir evento %1",
+  broadcast_event: "transmitir evento %1",
   on_event: "al evento %1",
 
   // Custom block translations - Materials blocks
@@ -228,8 +228,8 @@ export default {
   set_alpha: "establecer alfa de %1 a %2",
   clear_effects: "limpiar efectos de %1",
   colour: "%1",
-  skin_colour: "color de piel %1",
-  greyscale_colour: "color en escala de grises %1",
+  skin_colour: "%1",
+  greyscale_colour: "%1",
   colour_from_string: "- %1 -",
   random_colour: "color aleatorio",
   material: "material %1 %2 alfa %3",
@@ -238,7 +238,7 @@ export default {
 
   // Custom block translations - Physics blocks
   add_physics: "añadir física a %1 tipo %2",
-  add_physics_shape: "añadir forma física %1 tipo %2",
+  add_physics_shape: "añadir física forma  %1 tipo %2",
   apply_force: "aplicar fuerza a %1 x: %2 y: %3 z: %4",
   show_physics: "mostrar formas físicas %1",
 
@@ -265,7 +265,7 @@ export default {
   create_sphere:
     "añadir esfera %1 %2 diámetro x: %3 diámetro y: %4 diámetro z: %5\nen x: %6 y: %7 z: %8",
   create_cylinder:
-    "añadir cilindro %1 %2 altura: %3 superior: %4 inferior: %5 lados: %6\nen x: %7 y: %8 z: %9",
+    "añadir cilindro %1 %2 altura: %3 parte superior: %4 parte inferior: %5 lados: %6\nen x: %7 y: %8 z: %9",
   create_capsule:
     "añadir cápsula %1 %2 diámetro: %3 altura: %4 \nen x: %5 y: %6 z: %7",
   create_plane: "añadir plano %1 %2 ancho: %3 alto: %4 \nen x: %5 y: %6 z: %7",
@@ -273,13 +273,13 @@ export default {
   // Custom block translations - Sound blocks
   play_sound:
     "reproducir sonido %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7",
-  stop_all_sounds: "detener todos los sonidos",
+  stop_all_sounds: "parar todos los sonidos",
   midi_note: "nota MIDI %1",
   rest: "pausa",
   play_notes:
     "reproducir notas en %1\nnotas: %2 duraciones: %3\ninstrumento: %4 modo: %5",
-  set_scene_bpm: "establecer BPM de la escena en %1",
-  set_mesh_bpm: "establecer BPM de %1 en %2",
+  set_scene_bpm: "establecer BPM de la escena a %1",
+  set_mesh_bpm: "establecer BPM de %1 a %2",
   create_instrument:
     "instrumento %1 onda: %2 frecuencia: %3 ataque: %4 decaimiento: %5 sostenido: %6 liberación: %7",
   instrument: "instrumento %1",
@@ -291,25 +291,25 @@ export default {
   print_text: "imprimir %1 por %2 segundos %3",
   say: "decir %1 por %2 s %3 \ntexto %4 en %5 alfa %6 tamaño %7 %8 %9",
   ui_text:
-    "texto UI %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7",
+    "UI texto %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7",
   ui_button:
-    "botón UI %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 text: %7 background: %8",
+    "UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 text: %7 background: %8",
   ui_input:
-    "entrada UI %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8",
+    "UI aporte %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8",
   create_3d_text:
     "añadir %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9",
 
   // Custom block translations - Transform blocks
-  move_by_xyz: "cambiar posición de %1 en x: %2 y: %3 z: %4",
+  move_by_xyz: "cambiar posición de %1 por x: %2 y: %3 z: %4",
   move_by_xyz_single: "cambiar posición de %1 por %2 %3",
-  move_to_xyz: "establecer posición de %1 en x: %2 y: %3 z: %4 ¿eje y? %5",
-  move_to_xyz_single: "establecer posición de %1 en %2 %3",
-  move_to: "establecer posición de %1 en %2 ¿eje y? %3",
+  move_to_xyz: "establecer posición de %1 a x: %2 y: %3 z: %4 y? %5",
+  move_to_xyz_single: "establecer posición de %1 a %2 %3",
+  move_to: "establecer posición de %1 a %2 y? %3",
   scale: "escalar %1 x: %2 y: %3 z: %4\norigen x: %5 y: %6 z: %7",
   resize: "redimensionar %1 x: %2 y: %3 z: %4\norigen x: %5 y: %6 z: %7",
   rotate_model_xyz: "rotar %1 por x: %2 y: %3 z: %4",
   rotate_to: "rotar %1 a x: %2 y: %3 z: %4",
-  look_at: "hacer que %1 mire a %2 ¿eje y? %3",
+  look_at: "hacer que %1 mire a %2 y? %3",
   move_forward: "mover %1 %2 velocidad %3",
   set_pivot: "establecer ancla de %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
@@ -327,12 +327,12 @@ export default {
   CONTROLS_FOREACH_INPUT_DO: "",
   CONTROLS_IF_MSG_THEN: "",
   CONTROLS_IF_MSG_ELSE: "else\n",
-  CONTROLS_FOR_TITLE: "para cada %1 desde %2 hasta %3 de %4",
+  CONTROLS_FOR_TITLE: "para cada %1 desde %2 hasta %3 por %4",
 
   // Block message translations
   BLOCK_PRINT_TEXT_MESSAGE: "imprimir %1 durante %2 segundos %3",
   BLOCK_WAIT_SECONDS_MESSAGE: "esperar %1 segundos",
-  BLOCK_KEY_PRESSED_MESSAGE: "¿tecla %1 presionada?",
+  BLOCK_KEY_PRESSED_MESSAGE: "¿tecla %1 pulsado?",
   BLOCK_MOVE_FORWARD_MESSAGE: "mover %1 hacia adelante por %2",
   BLOCK_CREATE_BOX_MESSAGE:
     "crear caja %1 color %2 tamaño %3 × %4 × %5 en %6, %7, %8",
