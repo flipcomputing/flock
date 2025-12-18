@@ -926,7 +926,7 @@ export default {
       physics_fun_ui: "👆🏾 Fysiklek",
       collect_the_gems_ui: "💎 Samla ädelstenarna",
       water_map_ui: "💧 Vattenkarta",
-      flyman_ui: "🪽 Flyman!",
+      flyer_ui: "🪽 Flyer!",
       skittles_ui: "🎳 Käglor",
       beetle_ui: "🪲 Skalbagge",
       roominator_ui: "🛋️ Rumsdesign",
