@@ -1,7 +1,7 @@
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Escena",
-  CATEGORY_MESHES: "Mallas",
+  CATEGORY_MESHES: "Objetos",
   CATEGORY_XR: "XR",
   CATEGORY_EFFECTS: "Efectos",
   CATEGORY_CAMERA: "Cámara",
@@ -48,7 +48,7 @@ export default {
   surprise_color: "Color sorpresa",
   pick_color_from_screen: "Seleccionar color de la pantalla",
   more_options: "Más opciones",
-  hex_placeholder: "ff0000 o red",
+  hex_placeholder: "ff0000 o rojo",
   skin_tone: "Tono de piel",
   color_wheel_aria:
     "Rueda de color: usa las teclas de flecha para seleccionar tono y saturación",
@@ -131,14 +131,14 @@ export default {
   show: "mostrar %1",
   hide: "ocultar %1",
   dispose: "eliminar %1",
-  clone_mesh: "agregar %1 clon de %2",
+  clone_mesh: "añadir %1 clon de %2",
 
   // Custom block translations - Models blocks
   load_character:
-    "agregar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncabello: %7 |  piel: %8 |  ojos: %9 |  camiseta: %10 |  pantalones cortos: %11 |  detalle: %12",
-  load_object: "agregar %1 %2 %3 escala: %4 x: %5 y: %6 z: %7",
-  load_multi_object: "agregar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncolores: %7",
-  load_model: "agregar %1 %2 escala: %3 x: %4 y: %5 z: %6",
+    "añadir %1 %2 escala: %3 x: %4 y: %5 z: %6\npelo: %7 |  piel: %8 |  ojos: %9 |  camiseta: %10 |  pantalones cortos: %11 |  detalle: %12",
+  load_object: "añadir %1 %2 %3 escala: %4 x: %5 y: %6 z: %7",
+  load_multi_object: "añadir %1 %2 escala: %3 x: %4 y: %5 z: %6\ncolores: %7",
+  load_model: "añadir %1 %2 escala: %3 x: %4 y: %5 z: %6",
 
   // Custom block translations - Animate blocks
   glide_to:
@@ -156,14 +156,14 @@ export default {
   number_keyframe: "en: %1 valor: %2",
   xyz_keyframe: "en: %1 x: %2 y: %3 z: %4",
   animate_keyframes:
-    "animar fotogramas en %1 propiedad %2\nfotogramas %3\nsuavizado %4 repetir %5 invertir %6 %7",
+    "animar fotogramas clave en %1 propiedad %2\nfotogramas clave %3\nsuavizado %4 repetir %5 invertir %6 %7",
   animation:
-    "animar fotogramas en %1 propiedad %2 grupo %3\nfotogramas %4\nsuavizado %5 repetir %6 invertir %7 modo %8",
+    "animar fotogramas clave en %1 propiedad %2 grupo %3\nfotogramas clave %4\nsuavizado %5 repetir %6 invertir %7 modo %8",
   control_animation_group: "grupo de animación %1 %2",
   animate_from: "animar grupo %1 desde %2 segundos",
-  stop_animations: "detener animaciones %1",
-  switch_animation: "cambiar animación de %1 a %2",
-  play_animation: "reproducir animación %1 en %2",
+  stop_animations: "parar animaciones %1",
+  switch_animation: "cambiar animación a %1 para %2",
+  play_animation: "reproducir animación %1 para %2",
 
   // Custom block translations - Base blocks
   xyz: "x: %1 y: %2 z: %3",
@@ -174,16 +174,16 @@ export default {
   get_camera: "obtener cámara como %1",
 
   // Custom block translations - Combine blocks
-  merge_meshes: "agregar %1 como fusión %2",
-  subtract_meshes: "agregar %1 como %2 restar %3",
-  intersection_meshes: "agregar %1 como intersección %2",
-  hull_meshes: "agregar %1 como envoltura de %2",
+  merge_meshes: "añadir %1 como unir %2",
+  subtract_meshes: "añadir %1 como %2 restar %3",
+  intersection_meshes: "añadir %1 como intersección %2",
+  hull_meshes: "añadir %1 como envoltura de %2",
 
   // Custom block translations - Connect blocks
   parent: "hacer padre a %1 hijo %2",
   parent_child: "hacer padre a %1 hijo %2\ndesplazamiento x: %3 y: %4 z: %5",
   remove_parent: "quitar padre de %1",
-  stop_follow: "detener seguimiento de %1",
+  stop_follow: "parar seguimiento de %1",
   hold: "hacer que %1 sostenga %2\ndesplazamiento x: %3 y: %4 z: %5",
   drop: "soltar %1",
   follow: "hacer que %1 siga a %2 a %3\ndesplazamiento x: %4 y: %5 z: %6",
@@ -258,17 +258,17 @@ export default {
 
   // Custom block translations - Shapes blocks
   create_particle_effect:
-    "agregar efecto de partículas %1 en: %2\nforma: %3 inicio %4 fin %5 alfa: %6 a %7\ntasa: %8 tamaño: %9 a %10 duración: %11 a %12\ngravedad: %13 fuerza x: %14 y: %15 z: %16\nvelocidad angular: %17 a %18 ángulo inicial: %19 a %20",
+    "añadir efecto de partículas %1 en: %2\nforma: %3 inicio %4 fin %5 alfa: %6 a %7\ntasa: %8 tamaño: %9 a %10 duración: %11 a %12\ngravedad: %13 fuerza x: %14 y: %15 z: %16\nvelocidad angular: %17 a %18 ángulo inicial: %19 a %20",
   control_particle_system: "sistema de partículas %1 %2",
   create_box:
-    "agregar caja %1 %2 ancho: %3 alto: %4 profundidad: %5 \nen x: %6 y: %7 z: %8",
+    "añadir caja %1 %2 ancho: %3 alto: %4 profundidad: %5 \nen x: %6 y: %7 z: %8",
   create_sphere:
-    "agregar esfera %1 %2 diámetro x: %3 diámetro y: %4 diámetro z: %5\nen x: %6 y: %7 z: %8",
+    "añadir esfera %1 %2 diámetro x: %3 diámetro y: %4 diámetro z: %5\nen x: %6 y: %7 z: %8",
   create_cylinder:
-    "agregar cilindro %1 %2 altura: %3 superior: %4 inferior: %5 lados: %6\nen x: %7 y: %8 z: %9",
+    "añadir cilindro %1 %2 altura: %3 superior: %4 inferior: %5 lados: %6\nen x: %7 y: %8 z: %9",
   create_capsule:
-    "agregar cápsula %1 %2 diámetro: %3 altura: %4 \nen x: %5 y: %6 z: %7",
-  create_plane: "agregar plano %1 %2 ancho: %3 alto: %4 \nen x: %5 y: %6 z: %7",
+    "añadir cápsula %1 %2 diámetro: %3 altura: %4 \nen x: %5 y: %6 z: %7",
+  create_plane: "añadir plano %1 %2 ancho: %3 alto: %4 \nen x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
   play_sound:
@@ -297,7 +297,7 @@ export default {
   ui_input:
     "entrada UI %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8",
   create_3d_text:
-    "agregar %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9",
+    "añadir %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9",
 
   // Custom block translations - Transform blocks
   move_by_xyz: "cambiar posición de %1 en x: %2 y: %3 z: %4",
@@ -975,7 +975,7 @@ export default {
   fullscreen_toggle_ui:
     "Cambiar entre vista de pantalla completa y vista normal.",
 
-  show_shapes_button_ui: "Agregar formas y modelos",
+  show_shapes_button_ui: "añadir formas y modelos",
   color_picker_button_ui: "Cambiar color del objeto",
   position_button_ui: "Posicionar malla",
   rotation_button_ui: "Rotar malla",
