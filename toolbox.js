@@ -4490,7 +4490,7 @@ const toolboxSnippetsMovement = {
                                 },
                                 DO: {
                                         block: {
-                                                type: "play_animation",
+                                                type: "switch_animation",
                                                 fields: {
                                                         MODEL: {
                                                                 name: "player",
