@@ -4260,7 +4260,7 @@ const toolboxSnippetsMovement = {
                                                                                         block: {
                                                                                                 type: "logic_boolean",
                                                                                                 fields: {
-                                                                                                        BOOL: "TRUE",
+                                                                                                        BOOL: "FALSE",
                                                                                                 },
                                                                                         },
                                                                                 },
@@ -4369,7 +4369,7 @@ const toolboxSnippetsMovement = {
                                                                                                                         block: {
                                                                                                                                 type: "logic_boolean",
                                                                                                                                 fields: {
-                                                                                                                                        BOOL: "FALSE",
+                                                                                                                                        BOOL: "TRUE",
                                                                                                                                 },
                                                                                                                         },
                                                                                                                 },
