@@ -25,6 +25,7 @@ export default {
   CATEGORY_MATH: "Mathe",
   CATEGORY_FUNCTIONS: "Funktionen",
   CATEGORY_SNIPPETS: "Snippets",
+  CATEGORY_MOVEMENT: "Bewegung",
 
   // Color picker translations
   choose_a_color: "Wähle eine Farbe",
@@ -306,7 +307,9 @@ export default {
 
   // Transform blocks
   move_by_xyz: "Position von %1 ändern um x: %2 y: %3 z: %4",
+  move_by_xyz_single: "Position von %1 ändern um %2 %3",
   move_to_xyz: "Position von %1 setzen auf x: %2 y: %3 z: %4 y? %5",
+  move_to_xyz_single: "Position von %1 setzen auf %2 %3",
   move_to: "Position von %1 setzen auf %2 y? %3",
   scale: "Skaliere %1 x: %2 y: %3 z: %4\nUrsprung x: %5 y: %6 z: %7",
   resize: "Größe ändern %1 x: %2 y: %3 z: %4\nUrsprung x: %5 y: %6 z: %7",
@@ -706,8 +709,12 @@ export default {
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
     "Bewege ein Objekt um den angegebenen Wert in X-, Y- und Z-Richtung.\nSchlüsselwort: move",
+  move_by_xyz_single_tooltip:
+    "Bewege ein Objekt um einen bestimmten Wert in X-, Y- oder Z-Richtung.\nSchlüsselwort: move",
   move_to_xyz_tooltip:
     "Teleportiert das Objekt zu den angegebenen Koordinaten. Optional Y-Achse nutzen.\nSchlüsselwort: moveby",
+  move_to_xyz_single_tooltip:
+    "Teleportiert das Objekt zur angegebenen einzelnen Koordinate.\nSchlüsselwort: moveby",
   move_to_tooltip:
     "Teleportiert das erste Objekt zur Position des zweiten.\nSchlüsselwort: moveto",
   scale_tooltip:
@@ -898,8 +905,9 @@ export default {
   Dance2_option: "Tanz 2",
   Dance3_option: "Tanz 3",
   Dance4_option: "Tanz 4",
-  Jump_Idle_option: "Sprung-Idle",
-  Jump_Land_option: "Landen",
+  JumpUp_option: "Hochsprung",
+  JumpIdle_option: "Sprung-Idle",
+  JumpLand_option: "Landen",
   Punch_option: "Schlagen",
   HitReact_option: "Getroffen",
   Idle_Hold_option: "Ruhen (Halten)",
@@ -913,6 +921,7 @@ export default {
   Stand_Up_option: "Aufstehen",
   Wobble_option: "Wackeln",
   Clap_option: "Klatschen",
+  Climb_rope_option: "Am Seil klettern",
 
   loading_ui: "Flock XR wird geladen...",
   loading_success_ui: "Flock XR erfolgreich geladen",
@@ -944,6 +953,9 @@ export default {
   tent_lights_ui: "⛺ Zeltlichter",
   my_place_ui: "🏠 Mein Ort",
   microbit_monkey_ui: "🐵 micro:bit-Affe",
+  tree_jump_ui: "🌳 Baum-Sprung",
+  shape_push_ui: "🔶 Form schieben",
+  alien_planet_ui: "👽 Alien-Planet",
 
   main_menu_ui: "Hauptmenü",
   menu_button_sr_label_ui: "Menü",
@@ -953,6 +965,7 @@ export default {
   project_save_ui: "Speichern",
   language_submenu_ui: "Sprache",
   about_submenu_ui: "Über",
+  hub_submenu_ui: "Hub",
   theme_submenu_ui: "Thema",
   light_theme_ui: "Hell",
   dark_theme_ui: "Dunkel 2",
@@ -1062,7 +1075,7 @@ export default {
   about_description_disclaimer_ui:
     " Du kannst es gern ausprobieren, aber beachte, dass sich noch Dinge ändern können und manche Funktionen noch nicht fertig sind. Wir suchen derzeit Unterstützung, um Flock weiterzuentwickeln, sodass du dich darauf verlassen kannst.",
   about_run_intro_ui:
-    "Schau dir die Demos oben an, um zu sehen, was möglich ist. Mach ein paar Änderungen und klicke auf",
+    "Sieh dir die Demos oben an, um zu sehen, was möglich ist. Nimm ein paar Änderungen vor und klicke auf",
   about_run_action_ui: "Start.",
   about_links_privacy_prefix_ui: "Sieh dir die ",
   about_links_privacy_label_ui: "Datenschutzerklärung",

@@ -25,6 +25,7 @@ export default {
       CATEGORY_MATH: "Matematik",
       CATEGORY_FUNCTIONS: "Funktioner",
       CATEGORY_SNIPPETS: "Snippets",
+      CATEGORY_MOVEMENT: "Rörelse",
 
       // Color picker translations
       choose_a_color: "Välj en färg",
@@ -298,7 +299,9 @@ export default {
 
       // Custom block translations - Transform blocks
       move_by_xyz: "ändra positionen för %1 med x: %2 y: %3 z: %4",
+      move_by_xyz_single: "ändra positionen för %1 med %2 %3",
       move_to_xyz: "ställ in positionen för %1 till x: %2 y: %3 z: %4 y? %5",
+      move_to_xyz_single: "ställ in positionen för %1 till %2 %3",
       move_to: "ställ in positionen för %1 till %2 y? %3",
       scale: "skala %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7",
       resize: "ändra storlek på %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7",
@@ -577,8 +580,12 @@ export default {
       // Tooltip translations - Transform blocks
       move_by_xyz_tooltip:
             "Flytta ett mesh ett angivet värde i x-, y- och z-led.\nKeyword: move",
+      move_by_xyz_single_tooltip:
+            "Flytta ett mesh en viss mängd i x-, y- eller z-led.\nKeyword: move",
       move_to_xyz_tooltip:
             "Teleportera mesh-objektet till angivna koordinater. Du kan välja att använda Y-axeln.\nKeyword: moveby",
+      move_to_xyz_single_tooltip:
+            "Teleportera mesh:en till den angivna enskilda koordinaten.\nKeyword: moveby",
       move_to_tooltip:
             "Teleportera det första mesh-objektet till det andra mesh-objektets position.\nKeyword: moveto",
       scale_tooltip:
@@ -884,8 +891,9 @@ export default {
       Dance2_option: "Dans 2",
       Dance3_option: "Dans 3",
       Dance4_option: "Dans 4",
-      Jump_Idle_option: "Hoppa vila",
-      Jump_Land_option: "Hoppa landa",
+      JumpUp_option: "Hoppa upp",
+      JumpIdle_option: "Hoppa vila",
+      JumpLand_option: "Hoppa landa",
       Punch_option: "Slag",
       HitReact_option: "Reaktion vid träff",
       Idle_Hold_option: "Vila håll",
@@ -899,6 +907,7 @@ export default {
       Stand_Up_option: "Ställ dig upp",
       Wobble_option: "Vingla",
       Clap_option: "Applådera",
+      Climb_rope_option: "Klättra rep",
 
       // HTML translations
       loading_ui: "Laddar Flock XR...",
@@ -929,6 +938,9 @@ export default {
       tent_lights_ui: "⛺ Festivaltält",
       my_place_ui: "🏠 Mitt ställe",
       microbit_monkey_ui: "🐵 micro:bit-apa",
+      tree_jump_ui: "🌳 Träd-hopp",
+      shape_push_ui: "🔶 Skjuta form",
+      alien_planet_ui: "👽 Alienplanet",
       character_designer_ui: "👚 Karaktärsdesign",
       sit_down_ui: "🪑 Sätt dig",
 
@@ -940,6 +952,7 @@ export default {
       project_save_ui: "Spara",
       language_submenu_ui: "Språk",
       about_submenu_ui: "Om",
+      hub_submenu_ui: "Nav",
 
       theme_submenu_ui: "Tema",
       light_theme_ui: "Ljust",
@@ -979,7 +992,7 @@ export default {
       about_description_disclaimer_ui:
             " Testa gärna, men kom ihåg att saker kan ändras och vissa funktioner är ännu inte färdiga. Vi söker för närvarande stöd för att utveckla Flock så att du kan lita på det.",
       about_run_intro_ui:
-            "Titta på demona ovan för att se vad du kan göra. Gör några ändringar och klicka på",
+            "Titta på demoversionerna ovan för att se vad du kan göra. Gör några ändringar och klicka på",
       about_run_action_ui: "kör.",
       about_links_privacy_prefix_ui: "Se ",
       about_links_privacy_label_ui: "integritetspolicyn",

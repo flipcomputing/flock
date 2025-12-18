@@ -25,6 +25,7 @@ export default {
   CATEGORY_MATH: "Matematyka",
   CATEGORY_FUNCTIONS: "Funkcje",
   CATEGORY_SNIPPETS: "Fragmenty",
+  CATEGORY_MOVEMENT: "Ruch",
 
   // Color picker translations
   choose_a_color: "Wybierz kolor",
@@ -302,7 +303,9 @@ export default {
 
   // Custom block translations - Transform blocks
   move_by_xyz: "zmień pozycję %1 o x: %2, y: %3, z: %4",
+  move_by_xyz_single: "zmień położenie %1 o %2 %3",
   move_to_xyz: "ustaw pozycję %1 na x: %2, y: %3, z: %4 y? %5",
+  move_to_xyz_single: "ustaw położenie %1 na %2 %3",
   move_to: "ustaw pozycję %1 na %2 y? %3",
   scale: "skaluj %1 x: %2, y: %3, z: %4\npunkt odniesienia x: %5, y: %6, z: %7",
   resize:
@@ -578,8 +581,12 @@ export default {
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
     "Przesuń siatkę o określoną wartość w osiach x, y i z.\nSłowo kluczowe: move",
+  move_by_xyz_single_tooltip:
+    "Przesuń siatkę o podaną wartość w osi x, y lub z.\nSłowo kluczowe: move",
   move_to_xyz_tooltip:
     "Teleportuj siatkę do koordynatów. Opcjonalnie: użyj osi Y.\nSłowo kluczowe: moveby",
+  move_to_xyz_single_tooltip:
+    "Teleportuj siatkę do podanej pojedynczej współrzędnej.\nSłowo kluczowe: moveby",
   move_to_tooltip:
     "Teleportuj pierwszą siatkę do pozycji drugiej.\nSłowo kluczowe: moveto",
   scale_tooltip:
@@ -881,13 +888,15 @@ export default {
   Jump_option: "Skok",
   Flip_option: "Salto",
 
+  JumpUp_option: "Skok w górę",
+
   Dance1_option: "Taniec 1",
   Dance2_option: "Taniec 2",
   Dance3_option: "Taniec 3",
   Dance4_option: "Taniec 4",
 
-  Jump_Idle_option: "Skok – bezczynność",
-  Jump_Land_option: "Lądowanie",
+  JumpIdle_option: "Skok – bezczynność",
+  JumpLand_option: "Lądowanie",
   Punch_option: "Cios",
   HitReact_option: "Reakcja na uderzenie",
 
@@ -904,6 +913,7 @@ export default {
   Stand_Up_option: "Wstawanie",
   Wobble_option: "Chwianie",
   Clap_option: "Klaśnięcie",
+  Climb_rope_option: "Wspinaj się po linie",
 
   // HTML translations
   loading_ui: "Ładowanie Flock XR…",
@@ -934,6 +944,9 @@ export default {
   tent_lights_ui: "⛺ Światełka namiotu",
   my_place_ui: "🏠 Moje miejsce",
   microbit_monkey_ui: "🐵 małpa micro:bit",
+  tree_jump_ui: "🌳 Skok z drzewa",
+  shape_push_ui: "🔶 Pchnięcie kształtu",
+  alien_planet_ui: "👽 Obca planeta",
   character_designer_ui: "👚 Kreator postaci",
   sit_down_ui: "🪑 Usiądź",
 
@@ -945,6 +958,7 @@ export default {
   project_save_ui: "Zapisz",
   language_submenu_ui: "Język",
   about_submenu_ui: "O programie",
+  hub_submenu_ui: "Hub",
 
   theme_submenu_ui: "Motyw",
   light_theme_ui: "Jasny",
@@ -984,7 +998,7 @@ export default {
   about_description_disclaimer_ui:
     " Wypróbuj go, ale miej na uwadze, że rzeczy mogą się zmieniać i niektóre funkcje nie są jeszcze ukończone. Aktualnie poszukujemy wsparcia, aby Flock XR mógł stać się stabilny.",
   about_run_intro_ui:
-    "Spójrz na powyższe dema, aby zobaczyć, co możesz zrobić. Wprowadź zmiany i kliknij",
+    "Zobacz powyższe dema, aby dowiedzieć się, co możesz zrobić. Wprowadź kilka zmian i kliknij",
   about_run_action_ui: "uruchom.",
   about_links_privacy_prefix_ui: "Zobacz ",
   about_links_privacy_label_ui: "politykę prywatności",
