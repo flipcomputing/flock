@@ -4184,16 +4184,153 @@ const toolboxSnippetsMovement = {
                                                                                 },
                                                                         },
                                                                         inputs: {
-                                                                                ANIMATION_NAME:
-                                                                                        {
-                                                                                                shadow: {
-                                                                                                        type: "animation_name",
-                                                                                                        fields: {
-                                                                                                                ANIMATION_NAME:
-                                                                                                                        "Idle",
-                                                                                                        },
+                                                                                ANIMATION_NAME: {
+                                                                                        shadow: {
+                                                                                                type: "animation_name",
+                                                                                                fields: {
+                                                                                                        ANIMATION_NAME:
+                                                                                                                "Idle",
                                                                                                 },
                                                                                         },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
+                        type: "procedures_defnoreturn",
+                        fields: {
+                                NAME: "walk or fly",
+                        },
+                        inputs: {
+                                STACK: {
+                                        block: {
+                                                type: "controls_if",
+                                                extraState: {
+                                                        hasElse: true,
+                                                },
+                                                inputs: {
+                                                        IF0: {
+                                                                block: {
+                                                                        type: "touching_surface",
+                                                                        fields: {
+                                                                                MODEL_VAR: {
+                                                                                        name: "player",
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                        DO0: {
+                                                                block: {
+                                                                        type: "switch_animation",
+                                                                        fields: {
+                                                                                MODEL: {
+                                                                                        name: "player",
+                                                                                },
+                                                                        },
+                                                                        inputs: {
+                                                                                ANIMATION_NAME: {
+                                                                                        shadow: {
+                                                                                                type: "animation_name",
+                                                                                                fields: {
+                                                                                                        ANIMATION_NAME: "Walk",
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                        ELSE: {
+                                                                block: {
+                                                                        type: "switch_animation",
+                                                                        fields: {
+                                                                                MODEL: {
+                                                                                        name: "player",
+                                                                                },
+                                                                        },
+                                                                        inputs: {
+                                                                                ANIMATION_NAME: {
+                                                                                        shadow: {
+                                                                                                type: "animation_name",
+                                                                                                fields: {
+                                                                                                        ANIMATION_NAME: "Fly",
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
+                        type: "procedures_defnoreturn",
+                        fields: {
+                                NAME: "stand or fly",
+                        },
+                        inputs: {
+                                STACK: {
+                                        block: {
+                                                type: "controls_if",
+                                                extraState: {
+                                                        hasElse: true,
+                                                },
+                                                inputs: {
+                                                        IF0: {
+                                                                block: {
+                                                                        type: "touching_surface",
+                                                                        fields: {
+                                                                                MODEL_VAR: {
+                                                                                        name: "player",
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                        DO0: {
+                                                                block: {
+                                                                        type: "switch_animation",
+                                                                        fields: {
+                                                                                MODEL: {
+                                                                                        name: "player",
+                                                                                },
+                                                                        },
+                                                                        inputs: {
+                                                                                ANIMATION_NAME: {
+                                                                                        shadow: {
+                                                                                                type: "animation_name",
+                                                                                                fields: {
+                                                                                                        ANIMATION_NAME: "Idle",
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                        ELSE: {
+                                                                block: {
+                                                                        type: "switch_animation",
+                                                                        fields: {
+                                                                                MODEL: {
+                                                                                        name: "player",
+                                                                                },
+                                                                        },
+                                                                        inputs: {
+                                                                                ANIMATION_NAME: {
+                                                                                        shadow: {
+                                                                                                type: "animation_name",
+                                                                                                fields: {
+                                                                                                        ANIMATION_NAME: "Fly",
+                                                                                                },
+                                                                                        },
+                                                                                },
                                                                         },
                                                                 },
                                                         },
