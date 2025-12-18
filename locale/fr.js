@@ -303,7 +303,9 @@ export default {
 
   // Custom block translations - Transform blocks
   move_by_xyz: "changer la position de %1 de x: %2 y: %3 z: %4",
+  move_by_xyz_single: "changer la position de %1 de %2 %3",
   move_to_xyz: "définir la position de %1 à x: %2 y: %3 z: %4 y ? %5",
+  move_to_xyz_single: "définir la position de %1 à %2 %3",
   move_to: "définir la position de %1 à %2 y ? %3",
   scale: "échelle %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7",
   resize: "redimensionner %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7",
@@ -585,8 +587,12 @@ export default {
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
     "Déplace un maillage d'une certaine valeur selon X, Y et Z.\nMot-clé: move",
+  move_by_xyz_single_tooltip:
+    "Déplacer un maillage d’un montant donné sur l’axe x, y ou z.\nMot-clé: move",
   move_to_xyz_tooltip:
     "Téléporte le maillage aux coordonnées données. Utilise l’axe Y en option.\nMot-clé: moveby",
+  move_to_xyz_single_tooltip:
+    "Téléporter le maillage vers la coordonnée unique indiquée.\nMot-clé: moveby",
   move_to_tooltip:
     "Téléporte le premier maillage à l’emplacement du second.\nMot-clé: moveto",
   scale_tooltip:
@@ -893,8 +899,9 @@ export default {
   Dance2_option: "Danse2",
   Dance3_option: "Danse3",
   Dance4_option: "Danse4",
-  Jump_Idle_option: "Saut stationnaire",
-  Jump_Land_option: "Atterrissage",
+  JumpUp_option: "Sauter vers le haut",
+  JumpIdle_option: "Saut stationnaire",
+  JumpLand_option: "Atterrissage",
   Punch_option: "Coup de poing",
   HitReact_option: "Réaction au coup",
   Idle_Hold_option: "Attente immobile",
@@ -908,6 +915,7 @@ export default {
   Stand_Up_option: "Se lever",
   Wobble_option: "Osciller",
   Clap_option: "Applaudir",
+  Climb_rope_option: "Grimper à la corde",
 
   // HTML translations
   loading_ui: "Chargement de Flock XR...",
@@ -938,6 +946,9 @@ export default {
   tent_lights_ui: "⛺ Tente de festival",
   my_place_ui: "🏠 Mon endroit",
   microbit_monkey_ui: "🐵 Singe micro:bit",
+  tree_jump_ui: "🌳 Saut d’arbre",
+  shape_push_ui: "🔶 Pousser la forme",
+  alien_planet_ui: "👽 Planète alien",
   character_designer_ui: "👚 Créateur de personnages",
 
   sit_down_ui: "🪑 Assieds-toi",
@@ -950,6 +961,7 @@ export default {
   project_save_ui: "Enregistrer",
   language_submenu_ui: "Langue",
   about_submenu_ui: "À propos",
+  hub_submenu_ui: "Hub",
 
   theme_submenu_ui: "Thème",
   light_theme_ui: "Clair",
@@ -991,7 +1003,7 @@ export default {
   about_description_disclaimer_ui:
     " Veuillez l’essayer, mais sachez que certaines choses peuvent changer et que certaines fonctionnalités ne sont pas encore terminées. Nous cherchons actuellement du soutien pour développer Flock afin que vous puissiez compter sur lui.",
   about_run_intro_ui:
-    "Regardez les démos ci-dessus pour voir ce que vous pouvez faire. Apportez quelques modifications, puis cliquez sur",
+    "Regardez les démos ci-dessus pour voir ce que vous pouvez faire. Faites quelques modifications et cliquez sur",
   about_run_action_ui: " exécuter.",
   about_links_privacy_prefix_ui: "Consultez la ",
   about_links_privacy_label_ui: "politique de confidentialité",

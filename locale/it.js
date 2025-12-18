@@ -306,7 +306,9 @@ export default {
 
   // Custom block translations - Transform blocks
   move_by_xyz: "cambia posizione di %1 di x: %2 y: %3 z: %4",
+  move_by_xyz_single: "cambia la posizione di %1 di %2 %3",
   move_to_xyz: "imposta la posizione di %1 su x: %2 y: %3 z: %4 y? %5",
+  move_to_xyz_single: "imposta la posizione di %1 a %2 %3",
   move_to: "imposta la posizione di %1 su %2 y? %3",
   scale: "scala %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7",
   resize: "ridimensiona %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7",
@@ -582,8 +584,12 @@ export default {
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
     "Muove una mesh di una certa quantità in x, y e z.\nParola chiave: move",
+  move_by_xyz_single_tooltip:
+    "Sposta una mesh di una determinata quantità nella direzione x, y o z.\nParola chiave: move",
   move_to_xyz_tooltip:
     "Teletrasporta la mesh alle coordinate. Facoltativamente usa l’asse Y.\nParola chiave: moveby",
+  move_to_xyz_single_tooltip:
+    "Teletrasporta la mesh alla coordinata singola specificata.\nParola chiave: moveby",
   move_to_tooltip:
     "Teletrasporta la prima mesh alla posizione della seconda mesh.\nParola chiave: moveto",
   scale_tooltip:
@@ -890,8 +896,9 @@ export default {
   Dance2_option: "Danza2",
   Dance3_option: "Danza3",
   Dance4_option: "Danza4",
-  Jump_Idle_option: "Salto fermo",
-  Jump_Land_option: "Atterra",
+  JumpUp_option: "Salto in alto",
+  JumpIdle_option: "Salto fermo",
+  JumpLand_option: "Atterra",
   Punch_option: "Pugno",
   HitReact_option: "Reazione colpo",
   Idle_Hold_option: "Fermo con oggetto",
@@ -905,6 +912,7 @@ export default {
   Stand_Up_option: "Alzati",
   Wobble_option: "Dondola",
   Clap_option: "Applaudi",
+  Climb_rope_option: "Arrampicati sulla corda",
 
   // HTML translations
   loading_ui: "Caricamento di Flock XR...",
@@ -937,6 +945,9 @@ export default {
   tent_lights_ui: "⛺ Tenda festival",
   my_place_ui: "🏠 Il mio posto",
   microbit_monkey_ui: "🐵 micro:bit scimmia",
+  tree_jump_ui: "🌳 Salto dall'albero",
+  shape_push_ui: "🔶 Spinta forma",
+  alien_planet_ui: "👽 Pianeta alieno",
 
   main_menu_ui: "Menu principale",
   menu_button_sr_label_ui: "Menu",
@@ -946,6 +957,7 @@ export default {
   project_save_ui: "Salva",
   language_submenu_ui: "Lingua",
   about_submenu_ui: "Informazioni",
+  hub_submenu_ui: "Hub",
 
   theme_submenu_ui: "Tema",
   light_theme_ui: "Chiaro",
@@ -986,7 +998,7 @@ export default {
   about_description_disclaimer_ui:
     " Provalo pure, ma tieni presente che le cose possono cambiare e alcune funzionalità non sono ancora complete. Stiamo cercando supporto per sviluppare Flock in modo che tu possa farci affidamento.",
   about_run_intro_ui:
-    "Dai un’occhiata alle demo sopra per vedere cosa puoi fare. Fai qualche modifica e clicca",
+    "Guarda le demo sopra per vedere cosa puoi fare. Fai qualche modifica e clicca su",
   about_run_action_ui: "esegui.",
   about_links_privacy_prefix_ui: "Consulta la ",
   about_links_privacy_label_ui: "privacy policy",
