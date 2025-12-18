@@ -940,6 +940,7 @@ export default {
   physics_fun_ui: "👆🏾 Physik-Spaß",
   collect_the_gems_ui: "💎 Sammle die Edelsteine",
   water_map_ui: "💧 Wasserkarte",
+  flyman_ui: "🪽 Flyman!",
   skittles_ui: "🎳 Kegeln",
   beetle_ui: "🪲 Käfer",
   roominator_ui: "🛋️ Raum-Designer",
