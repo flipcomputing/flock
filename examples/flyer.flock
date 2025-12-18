@@ -6,7 +6,7 @@
         "type": "start",
         "id": ")$6Ey~TQ+o7mR;*R4=Y?",
         "x": 10,
-        "y": 630,
+        "y": 826,
         "inputs": {
           "DO": {
             "block": {
@@ -71,7 +71,7 @@
         "type": "start",
         "id": "BO6m]`cT,]LB[r/jF|kl",
         "x": 10,
-        "y": 882,
+        "y": 1078,
         "inputs": {
           "DO": {
             "block": {
@@ -219,7 +219,7 @@
         "type": "forever",
         "id": "oI2WMh3h(O!rZ93+}yQS",
         "x": 10,
-        "y": 1218,
+        "y": 1414,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -413,7 +413,7 @@
         "type": "procedures_defnoreturn",
         "id": "@F;xrcoH.TNUBwr[[l$S",
         "x": 10,
-        "y": 2366,
+        "y": 2562,
         "fields": {
           "NAME": "walk or fly"
         },
@@ -490,7 +490,7 @@
         "type": "procedures_defnoreturn",
         "id": "w^37]AB#f?D_3]0BZT+f",
         "x": 10,
-        "y": 2710,
+        "y": 2906,
         "fields": {
           "NAME": "stand or fly"
         },
@@ -567,7 +567,7 @@
         "type": "start",
         "id": "1e,o?[G6#MYP/l@GT;k#",
         "x": 10,
-        "y": 418,
+        "y": 614,
         "inputs": {
           "DO": {
             "block": {
@@ -652,7 +652,7 @@
         "type": "start",
         "id": "AxWXZoSx[Sl1ZRtqF3Dq",
         "x": 10,
-        "y": 206,
+        "y": 402,
         "inputs": {
           "DO": {
             "block": {
@@ -737,7 +737,7 @@
         "type": "forever",
         "id": "7p/}t,R`N1tM$6}}@vKa",
         "x": 10,
-        "y": 2058,
+        "y": 2254,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -825,7 +825,7 @@
         "type": "start",
         "id": "w!7jP}l*rPh[i27$LPlv",
         "x": 10,
-        "y": 10,
+        "y": 206,
         "inputs": {
           "DO": {
             "block": {
@@ -888,6 +888,74 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": "`Sh*gY]_|--!*[*{jsI0",
+        "x": 10,
+        "y": 10,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "load_object",
+              "id": "1JiC@eEqv^:RA]c1Fyi;",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "EyYpkL?MXiCD@fkEt8e."
+                },
+                "MODELS": "Coin.glb"
+              },
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "3-jJ:E|8B[S?5GlKTR4|",
+                    "fields": {
+                      "COLOR": "#a47e1b"
+                    }
+                  }
+                },
+                "SCALE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "Vv1^y_.@0}G)c(8{~YP{",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "xY6F70wB!{,yW3QJi+Uz",
+                    "fields": {
+                      "NUM": -2.8
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "lz5t=kZwDTI#1!nn+NZB",
+                    "fields": {
+                      "NUM": 4.1
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "Qz@m,M.;IU,C;nOx}eXh",
+                    "fields": {
+                      "NUM": 0.4
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     ]
   },
@@ -907,6 +975,10 @@
     {
       "name": "object1",
       "id": "IO]ahoZXxpi99Q89ZMpd"
+    },
+    {
+      "name": "object2",
+      "id": "EyYpkL?MXiCD@fkEt8e."
     }
   ]
 }
