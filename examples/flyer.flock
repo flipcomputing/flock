@@ -6,7 +6,7 @@
         "type": "start",
         "id": ")$6Ey~TQ+o7mR;*R4=Y?",
         "x": 10,
-        "y": 10,
+        "y": 630,
         "inputs": {
           "DO": {
             "block": {
@@ -71,7 +71,7 @@
         "type": "start",
         "id": "BO6m]`cT,]LB[r/jF|kl",
         "x": 10,
-        "y": 262,
+        "y": 882,
         "inputs": {
           "DO": {
             "block": {
@@ -219,7 +219,7 @@
         "type": "forever",
         "id": "oI2WMh3h(O!rZ93+}yQS",
         "x": 10,
-        "y": 598,
+        "y": 1218,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -413,7 +413,7 @@
         "type": "procedures_defnoreturn",
         "id": "@F;xrcoH.TNUBwr[[l$S",
         "x": 10,
-        "y": 1438,
+        "y": 2366,
         "fields": {
           "NAME": "walk or fly"
         },
@@ -490,7 +490,7 @@
         "type": "procedures_defnoreturn",
         "id": "w^37]AB#f?D_3]0BZT+f",
         "x": 10,
-        "y": 1782,
+        "y": 2710,
         "fields": {
           "NAME": "stand or fly"
         },
@@ -562,6 +562,332 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": "1e,o?[G6#MYP/l@GT;k#",
+        "x": 10,
+        "y": 418,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "create_box",
+              "id": "}F6WC1:Y]4/TdTT:?Y)`",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "POvNt54WUfIBKP]AV726"
+                }
+              },
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "0J@62l4JXuib]o2ynb1P",
+                    "fields": {
+                      "COLOR": "#0c335e"
+                    }
+                  }
+                },
+                "WIDTH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "p%TVoeob-IJ.ni~P(kuP",
+                    "fields": {
+                      "NUM": 3.3
+                    }
+                  }
+                },
+                "HEIGHT": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "b9ebEfZUzSUOQwA,KK}8",
+                    "fields": {
+                      "NUM": 12
+                    }
+                  }
+                },
+                "DEPTH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "C70{IDUn^~,B7vCRX,+i",
+                    "fields": {
+                      "NUM": 4
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "n{g8qaTGlll`c%~L!26n",
+                    "fields": {
+                      "NUM": 3.9
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "p*y}zg@)gz,*5{vDL1Ze",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "}=]Rbw.=6z-v,cLf5/_,",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "AxWXZoSx[Sl1ZRtqF3Dq",
+        "x": 10,
+        "y": 206,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "create_box",
+              "id": "*Ttn(0H[irvvhR^?,KD#",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "^G(W!Wwne|(qGz7`z8c6"
+                }
+              },
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "sdo_Hf%osKG:_j(UYN!K",
+                    "fields": {
+                      "COLOR": "#08dcdb"
+                    }
+                  }
+                },
+                "WIDTH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "25iQ3,NPOd8FSY1e0Qi!",
+                    "fields": {
+                      "NUM": 3.3
+                    }
+                  }
+                },
+                "HEIGHT": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "n?}LI/PrDlF}WL04=)^D",
+                    "fields": {
+                      "NUM": 4.1
+                    }
+                  }
+                },
+                "DEPTH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "T![A=7batWQV]J:QZr8%",
+                    "fields": {
+                      "NUM": 4
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "Kkn?cS`{#ub9Go(`JHN:",
+                    "fields": {
+                      "NUM": -3.7
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "O:lzV/z75:@:KHulgG03",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "xdYxZ012qXaK^$cP0t.q",
+                    "fields": {
+                      "NUM": -1.6
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "forever",
+        "id": "7p/}t,R`N1tM$6}}@vKa",
+        "x": 10,
+        "y": 2058,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "controls_if",
+              "id": "gHj$kS/t3G+]d]v1}S]@",
+              "inputs": {
+                "IF0": {
+                  "block": {
+                    "type": "action_pressed",
+                    "id": "/NG)ad,2xvU^6QifLg$B",
+                    "fields": {
+                      "ACTION": "BUTTON4"
+                    }
+                  }
+                },
+                "DO0": {
+                  "block": {
+                    "type": "apply_force",
+                    "id": "suy8a9jjy)!y}hAc?Jmq",
+                    "fields": {
+                      "MESH_VAR": {
+                        "id": "Sb6x{_]VNPU@/f=L[2fU"
+                      }
+                    },
+                    "inputs": {
+                      "X": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "Z#51u=cX:5|%(XXeB4yo",
+                          "fields": {
+                            "NUM": 0
+                          }
+                        }
+                      },
+                      "Y": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "@b~x7Ecb]Y~B[GlU}5iX",
+                          "fields": {
+                            "NUM": 1
+                          }
+                        }
+                      },
+                      "Z": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "tH*g%kOyve{p$Q,Y1KfN",
+                          "fields": {
+                            "NUM": 0
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "play_animation",
+                        "id": "x7NRqph-J,0Q6hUc^zap",
+                        "fields": {
+                          "MODEL": {
+                            "id": "Sb6x{_]VNPU@/f=L[2fU"
+                          }
+                        },
+                        "inputs": {
+                          "ANIMATION_NAME": {
+                            "shadow": {
+                              "type": "animation_name",
+                              "id": "$Qb%nx}cwB:^1/-8F,ch",
+                              "fields": {
+                                "ANIMATION_NAME": "Jump"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "w!7jP}l*rPh[i27$LPlv",
+        "x": 10,
+        "y": 10,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "load_object",
+              "id": "g;vU+Ib5icFOc1kOE_]L",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "IO]ahoZXxpi99Q89ZMpd"
+                },
+                "MODELS": "Coin.glb"
+              },
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "lJW=7Z`E[-7gwrr,hZ#i",
+                    "fields": {
+                      "COLOR": "#a47e1b"
+                    }
+                  }
+                },
+                "SCALE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "Ka|LedRW7YHR/51{+iou",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "O7AhM87ae]U/NoJhpF9v",
+                    "fields": {
+                      "NUM": 4.1
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "a.F`;CX!r-vq9TLUw=gG",
+                    "fields": {
+                      "NUM": 12
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "l63r8AmSI4fBz0.XL,jg",
+                    "fields": {
+                      "NUM": 0.3
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     ]
   },
@@ -569,6 +895,18 @@
     {
       "name": "player",
       "id": "Sb6x{_]VNPU@/f=L[2fU"
+    },
+    {
+      "name": "box1",
+      "id": "POvNt54WUfIBKP]AV726"
+    },
+    {
+      "name": "box2",
+      "id": "^G(W!Wwne|(qGz7`z8c6"
+    },
+    {
+      "name": "object1",
+      "id": "IO]ahoZXxpi99Q89ZMpd"
     }
   ]
 }
