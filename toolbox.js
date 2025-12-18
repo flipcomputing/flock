@@ -4400,6 +4400,116 @@ const toolboxSnippetsMovement = {
                                 },
                         },
                 },
+                {
+                        kind: "block",
+                        type: "on_event",
+                        extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+                        inputs: {
+                                EVENT_NAME: {
+                                        block: {
+                                                type: "text",
+                                                fields: {
+                                                        TEXT: "jumped",
+                                                },
+                                        },
+                                },
+                                DO: {
+                                        block: {
+                                                type: "play_animation",
+                                                fields: {
+                                                        MODEL: {
+                                                                name: "player",
+                                                        },
+                                                },
+                                                inputs: {
+                                                        ANIMATION_NAME: {
+                                                                shadow: {
+                                                                        type: "animation_name",
+                                                                        fields: {
+                                                                                ANIMATION_NAME: "JumpUp",
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                                next: {
+                                                        block: {
+                                                                type: "play_animation",
+                                                                fields: {
+                                                                        MODEL: {
+                                                                                name: "player",
+                                                                        },
+                                                                },
+                                                                inputs: {
+                                                                        ANIMATION_NAME: {
+                                                                                shadow: {
+                                                                                        type: "animation_name",
+                                                                                        fields: {
+                                                                                                ANIMATION_NAME: "JumpIdle",
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                                next: {
+                                                                        block: {
+                                                                                type: "play_animation",
+                                                                                fields: {
+                                                                                        MODEL: {
+                                                                                                name: "player",
+                                                                                        },
+                                                                                },
+                                                                                inputs: {
+                                                                                        ANIMATION_NAME: {
+                                                                                                shadow: {
+                                                                                                        type: "animation_name",
+                                                                                                        fields: {
+                                                                                                                ANIMATION_NAME: "JumpLand",
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
+                        type: "on_event",
+                        extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+                        inputs: {
+                                EVENT_NAME: {
+                                        block: {
+                                                type: "text",
+                                                fields: {
+                                                        TEXT: "landed",
+                                                },
+                                        },
+                                },
+                                DO: {
+                                        block: {
+                                                type: "play_animation",
+                                                fields: {
+                                                        MODEL: {
+                                                                name: "player",
+                                                        },
+                                                },
+                                                inputs: {
+                                                        ANIMATION_NAME: {
+                                                                shadow: {
+                                                                        type: "animation_name",
+                                                                        fields: {
+                                                                                ANIMATION_NAME: "Idle",
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
         ]
 }
 
