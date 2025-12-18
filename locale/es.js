@@ -364,34 +364,34 @@ export default {
 
   // Tooltip translations - Animate blocks
   glide_to_tooltip:
-    "Deslízate a una posición especificada durante una duración, con opciones de inversión, bucle y easing.",
+    "Deslízate a una posición especificada durante una duración, con opciones para inversión, bucle y facilidando.",
   glide_to_seconds_tooltip:
-    "Deslízate a una posición especificada durante una duración, con opciones de inversión, bucle y easing.",
+    "Deslízate a una posición especificada durante una duración, con opciones para inversión, bucle y facilidando.",
   glide_to_object_tooltip:
-    "Deslízate a la posición de otra malla con desplazamientos x/y/z opcionales (0 por defecto) y opciones de invertir, bucle y easing.",
+    "Deslízate a la posición de otra malla con desplazamientos x/y/z opcionales (0 por defecto) y opciones de invertir, bucle y facilidando.",
   rotate_anim_tooltip:
-    "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y easing.",
+    "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y facilidando.",
   rotate_anim_seconds_tooltip:
-    "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y easing.",
+    "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y facilidando.",
   animate_property_tooltip:
     "Anima una propiedad de material de la malla y sus hijos.",
-  colour_keyframe_tooltip: "Define un fotograma clave de color y duración.",
-  number_keyframe_tooltip: "Define un fotograma clave numérico con duración.",
-  xyz_keyframe_tooltip: "Define un fotograma clave XYZ con duración.",
+  colour_keyframe_tooltip: "Establece un fotograma clave de color y duración.",
+  number_keyframe_tooltip: "Establece un fotograma clave numérico con duración.",
+  xyz_keyframe_tooltip: "Establece un fotograma clave XYZ con duración.",
   animate_keyframes_tooltip:
-    "Anima un conjunto de fotogramas clave en la malla seleccionada, con easing, bucle opcional e inversión.",
+    "Anima un conjunto de fotogramas clave en la malla seleccionada, con facilidando, bucle opcional e inversión.",
   animation_tooltip:
-    "Crea un grupo de animación para la malla y propiedad seleccionadas, con fotogramas clave, easing, bucle e inversión opcionales. Usa crear, iniciar o esperar para controlar el comportamiento.",
+    "Crea un grupo de animación para la malla y propiedad seleccionadas, con fotogramas clave, facilidando, bucle e inversión opcionales. Escoje crear, iniciar o esperar para controlar el comportamiento.",
   control_animation_group_tooltip:
-    "Controla el grupo de animación reproduciéndolo, pausándolo o deteniéndolo.",
+    "Controla el grupo de animación reproduciéndolo, pausándolo o parandolo.",
   animate_from_tooltip:
     "Comienza a animar el grupo desde el tiempo especificado (en segundos).",
   stop_animations_tooltip:
-    "Detiene todas las animaciones de fotogramas clave en la malla seleccionada.\nPalabra clave: stop",
+    "Para todas las animaciones de fotogramas clave en la malla seleccionada.\nPalabra clave: para",
   switch_animation_tooltip:
-    "Cambia la animación de la malla indicada a la animación dada.\nPalabra clave: switch",
+    "Cambia la animación de la malla indicada a la animación dada.\nPalabra clave: cambia",
   play_animation_tooltip:
-    "Reproduce la animación seleccionada una vez en la malla indicada.\nPalabra clave: play",
+    "Reproduce la animación seleccionada una vez en la malla indicada.\nPalabra clave: Reproduce",
 
   // Tooltip translations - Base blocks
   xyz_tooltip: "Crea un vector con coordenadas X, Y, Z",
@@ -400,77 +400,77 @@ export default {
   camera_control_tooltip:
     "Asocia una tecla específica a una acción de control de cámara.",
   camera_follow_tooltip:
-    "Haz que la cámara siga una malla con una distancia personalizable (radio) al objetivo.\nPalabra clave: follow",
+    "Haz que la cámara siga una malla con una distancia personalizable (radio) al objetivo.\nPalabra clave: Sigue",
   get_camera_tooltip: "Obtén la cámara actual de la escena",
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip:
-    "Fusiona una lista de mallas en una sola y almacena el resultado.\nPalabra clave: merge",
+    "Fusiona una lista de mallas en uno y almacena el resultado.\nPalabra clave: fusiona",
   subtract_meshes_tooltip:
-    "Resta una lista de mallas de una malla base y almacena el resultado.\nPalabra clave: subtract",
+    "Resta una lista de mallas de una malla base y almacena el resultado.\nPalabra clave: Resta",
   intersection_meshes_tooltip:
-    "Intersecta una lista de mallas y almacena la geometría resultante.\nPalabra clave: intersect",
+    "Intersecta una lista de mallas y almacena la geometría resultante.\nPalabra clave: intersecta",
   hull_meshes_tooltip:
-    "Crea una envolvente convexa de una lista de mallas y almacena el resultado.\nPalabra clave: hull",
+    "Crea una envolvente convexa de una lista de mallas y almacena el resultado.\nPalabra clave: envolvente",
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    "Establece relación padre‑hijo entre dos mallas conservando la posición mundial del hijo.\nPalabra clave: parent",
+    "Establece relación padre‑hijo entre dos mallas conservando la posición mundial del hijo.\nPalabra clave: padre",
   parent_child_tooltip:
-    "Establece relación padre‑hijo entre dos mallas con desplazamiento en x, y y z.\nPalabra clave: child",
+    "Establece relación padre‑hijo entre dos mallas con desplazamiento en la dirección x, y, y z.\nPalabra clave: hijo",
   remove_parent_tooltip:
-    "Elimina la relación de paternidad de la malla especificada.\nPalabra clave: unparent",
+    "Elimina la relación de paternidad de la malla especificada.\nPalabra clave: elimina",
   stop_follow_tooltip:
-    "Detiene que la malla especificada siga a otra.\nPalabra clave: stopfollow",
+    "Prevenir que la malla especificada siga a otra.\nPalabra clave: paraseguir",
   hold_tooltip:
-    "Adjunta una malla al hueso especificado de otra con desplazamiento en x, y, z.\nPalabra clave: hold",
+    "Adjuntar una malla al hueso especificado de otra con desplazamiento en x, y, z.\nPalabra clave: sostenga",
   drop_tooltip:
-    "Desprende una malla del hueso al que está adjunta.\nPalabra clave: drop",
+    "Desprende una malla del hueso al que está adjunta.\nPalabra clave: soltar",
   follow_tooltip:
-    "Haz que una malla siga a otra en una posición especificada (arriba, centro o abajo) con desplazamiento en x, y y z.\nPalabra clave: follow",
+    "Haz que una malla siga a otra en una posición especificada (arriba, centro o abajo) con desplazamiento en dirección x, y, y z.\nPalabra clave: siigue",
   export_mesh_tooltip:
-    "Exporta una malla en STL, OBJ o GLB.\nPalabra clave: export",
+    "Exporta una malla en STL, OBJ o GLB.\nPalabra clave: exporta",
 
   // Tooltip translations - Control blocks
   wait_tooltip:
-    "Espera un tiempo especificado en milisegundos.\nPalabra clave: milli",
+    "Espera un tiempo especificado en milisegundos.\nPalabra clave: mili",
   wait_seconds_tooltip:
-    "Espera un tiempo especificado en segundos.\nPalabra clave: wait",
+    "Espera un tiempo especificado en segundos.\nPalabra clave: espera",
   wait_until_tooltip:
-    "Espera hasta que la condición sea verdadera.\nPalabra clave: until",
+    "Espera hasta que la condición sea verdadera.\nPalabra clave: hasta",
   local_variable_tooltip:
     "Crea una versión local de una variable seleccionada. Oculta la variable global y puede tener un valor distinto.\nPalabra clave: local",
   for_loop2_tooltip:
     "Bucle desde un número inicial hasta uno final usando un cierto paso.",
   for_loop_tooltip:
-    "Bucle desde un número inicial hasta uno final usando un cierto paso. Haz clic en el menú para seleccionar la variable del bucle.\nPalabra clave: for",
+    "Bucle desde un número inicial hasta uno final usando un cierto paso. Haz clic en el menú para seleccionar la variable del bucle para usar en tu código\nPalabra clave: para",
   get_lexical_variable_tooltip: "Obtiene el valor de una variable léxica",
 
   // Tooltip translations - Effects blocks
   main_light_tooltip:
-    "Establece la intensidad de la luz principal.\nPalabra clave: light intensity",
+    "Establece la intensidad de la luz principal.\nPalabra clave: intensidad de luz",
   set_fog_tooltip:
-    "Configura la niebla de la escena. Usa inicio y fin para definir las distancias cercana y lejana.\nPalabra clave: fog",
+    "Configura la niebla de la escena. Usa inicio y fin para definir las distancias cercana y lejana.\nPalabra clave: niebla",
   get_light_tooltip:
-    "Obtén la luz principal de la escena actual.\nPalabra clave: light",
+    "Obtén la luz principal de la escena actual.\nPalabra clave: luz",
 
   // Tooltip translations - Events blocks
   start_tooltip:
-    "Ejecuta los bloques internos al iniciar el proyecto. Puede haber múltiples bloques de inicio.\nPalabra clave: start",
+    "Ejecuta los bloques internos al iniciar el proyecto. Puede haber múltiples bloques de inicio.\nPalabra clave: Iniciar",
   forever_tooltip:
-    "Ejecuta los bloques internos cada fotograma o tras finalizar la iteración anterior.\nPalabra clave: forever",
+    "Ejecuta los bloques dentro de cada fotograma o tras finalizar la iteración anterior.\nPalabra clave: para siempre",
   when_clicked_tooltip:
-    "Ejecuta los bloques internos cuando ocurra el evento de clic en la malla.\nPalabra clave: click",
+    "Ejecuta los bloques en el interior cuando active la malla.\nPalabra clave: clic",
   on_collision_tooltip:
-    "Ejecuta los bloques internos cuando una malla intersecta o deja de intersectar otra.\nPalabra clave: collide",
+    "Ejecuta los bloques internos cuando una malla intersecta o deja de intersectar otra.\nPalabra clave: chocar",
   when_key_event_tooltip:
     "Ejecuta los bloques internos cuando la tecla especificada se pulsa o se suelta.",
   when_action_event_tooltip:
-    "Ejecuta los bloques internos cuando la acción elegida se pulsa o se suelta en teclado, táctil o XR.",
+    "Ejecuta los bloques internos cuando la acción elegida se pulsa o se suelta en teclado, toque o XR.",
   broadcast_event_tooltip:
-    "Emite un evento que es recibido por el bloque 'on event'.\nPalabra clave: broadcast",
+    "Emite un evento que es recibido por el bloque 'on event'.\nPalabra clave: emite",
   on_event_tooltip:
-    "Ejecuta el código cuando se recibe un evento emitido.\nPalabra clave: on",
+    "Ejecuta el código cuando se recibe un evento emitido.\nPalabra clave: encender",
 
   // Tooltip translations - Materials blocks
   change_color_tooltip:
@@ -480,25 +480,25 @@ export default {
   text_material_tooltip:
     "Crea un material con texto o emoji, especificando ancho, alto, color de fondo y tamaño de texto.",
   place_decal_tooltip:
-    "Coloca una calcomanía (decal) en una malla usando el material seleccionado.",
+    "Coloca una calcomanía en una malla usando el material seleccionado.",
   decal_tooltip:
     "Crea una calcomanía en una malla con posición, normal, tamaño y material.",
-  highlight_tooltip: "Resalta la malla seleccionada.\nPalabra clave: highlight",
+  highlight_tooltip: "Resalta la malla seleccionada.\nPalabra clave: resalta",
   glow_tooltip:
-    "Añade un efecto de resplandor (glow) a la malla seleccionada.\nPalabra clave: glow",
-  tint_tooltip: "Añade un tinte de color.\nPalabra clave: tint",
+    "Añade un efecto de resplandor a la malla seleccionada.\nPalabra clave: resplandor",
+  tint_tooltip: "Añade un tinte de color.\nPalabra clave: tinte",
   set_alpha_tooltip:
-    "Establece el canal alfa (transparencia) del material de una malla. Valores entre 0 y 1.\nPalabra clave: alpha",
+    "Establece el canal alfa (transparencia) del material de una malla. Valores entre 0 y 1.\nPalabra clave: alfa",
   clear_effects_tooltip:
-    "Elimina efectos visuales de la malla seleccionada.\nPalabra clave: clear",
+    "Elimina efectos visuales de la malla seleccionada.\nPalabra clave: elimina",
   colour_tooltip: "Selecciona un color.\nPalabra clave: color",
-  skin_colour_tooltip: "Selecciona un color de piel.\nPalabra clave: skin",
+  skin_colour_tooltip: "Selecciona un color de piel.\nPalabra clave: piel",
   greyscale_colour_tooltip:
-    "Selecciona un color en escala de grises para elevación.\nPalabra clave: grey",
-  random_colour_tooltip: "Genera un color aleatorio.\nPalabra clave: randcol",
+    "Selecciona un color en escala de grises para elevación.\nPalabra clave: gris",
+  random_colour_tooltip: "Genera un color aleatorio.\nPalabra clave: color aleatorio",
   material_tooltip: "Define propiedades del material",
   gradient_material_tooltip: "Define propiedades del material (gradiente)",
-  set_material_tooltip: "Aplica el material especificado a la malla indicada.",
+  set_material_tooltip: "Establecer el material especificado a la malla indicada.",
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
