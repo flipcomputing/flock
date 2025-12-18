@@ -340,27 +340,27 @@ export default {
   // Add more custom block translations as needed
 
   // Tooltip translations - Scene Blocks
-  set_sky_color_tooltip: "Set the sky color of the scene.\nPalabra clave: sky",
+  set_sky_color_tooltip: "Establece el cielo del cielo de la escena.\nPalabra clave: cielo",
   create_ground_tooltip:
-    "Add a ground plane with collisions enabled to the scene.\nPalabra clave: ground",
+    "Añide un plano de tierra con collisions habilitadas a la escena.\nPalabra clave: suelo",
   set_background_color_tooltip:
-    "Set the scene's background color.\nPalabra clave: background",
+    "Establece el color de fondo de las escenas.\nPalabra clave: background",
   create_map_tooltip:
-    "Create a map with the selected name and material.\nPalabra clave: map",
-  show_tooltip: "Show the selected mesh.\nPalabra clave: show",
-  hide_tooltip: "Hide the selected mesh.\nPalabra clave: hide",
+    "Crea un mapa con el nombre y matieral seleccionado.\nPalabra clave: mapa",
+  show_tooltip: "mostrar la malla seleccionada.\nPalabra clave: mostrar",
+  hide_tooltip: "Ocultar la malla seleccionado.\nPalabra clave: Oculater",
   dispose_tooltip:
-    "Remove the specified mesh from the scene.\nPalabra clave: dispose",
+    "Eliminar la malla especificada de la escena.\nPalabra clave: disponer",
   clone_mesh_tooltip:
-    "Clone a mesh and assign it to a variable.\nPalabra clave: clone",
+    "clonar una malla y asignrla a una variable.\nPalabra clave: clonar",
 
   // Tooltip translations - Models blocks
   load_character_tooltip:
-    "Create a configurable character.\nPalabra clave: character",
-  load_object_tooltip: "Create an object.\nPalabra clave: object",
+    "Crear un personaje configurable.\nPalabra clave: personaje",
+  load_object_tooltip: "crear un objeto.\nPalabra clave: objecto",
   load_multi_object_tooltip:
-    "Create an object with colors.\nPalabra clave: object",
-  load_model_tooltip: "Load a model.\nPalabra clave: model",
+    "crear un objeto con colores.\nPalabra clave: objecto",
+  load_model_tooltip: "cargar un modelo.\nPalabra clave: modelo",
 
   // Tooltip translations - Animate blocks
   glide_to_tooltip:
