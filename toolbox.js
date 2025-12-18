@@ -4202,6 +4202,204 @@ const toolboxSnippetsMovement = {
                                 },
                         },
                 },
+                {
+                        kind: "block",
+                        type: "forever",
+                        extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+                        inputs: {
+                                DO: {
+                                        block: {
+                                                type: "controls_if",
+                                                inputs: {
+                                                        IF0: {
+                                                                block: {
+                                                                        type: "logic_operation",
+                                                                        fields: {
+                                                                                OP: "AND",
+                                                                        },
+                                                                        inputs: {
+                                                                                A: {
+                                                                                        block: {
+                                                                                                type: "variables_get",
+                                                                                                fields: {
+                                                                                                        VAR: {
+                                                                                                                name: "jumping",
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                                B: {
+                                                                                        block: {
+                                                                                                type: "touching_surface",
+                                                                                                fields: {
+                                                                                                        MODEL_VAR: {
+                                                                                                                name: "player",
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                        DO0: {
+                                                                block: {
+                                                                        type: "variables_set",
+                                                                        fields: {
+                                                                                VAR: {
+                                                                                        name: "jumping",
+                                                                                },
+                                                                        },
+                                                                        inputs: {
+                                                                                VALUE: {
+                                                                                        shadow: {
+                                                                                                type: "math_number",
+                                                                                                fields: {
+                                                                                                        NUM: 0,
+                                                                                                },
+                                                                                        },
+                                                                                        block: {
+                                                                                                type: "logic_boolean",
+                                                                                                fields: {
+                                                                                                        BOOL: "TRUE",
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        next: {
+                                                                                block: {
+                                                                                        type: "broadcast_event",
+                                                                                        inputs: {
+                                                                                                EVENT_NAME: {
+                                                                                                        shadow: {
+                                                                                                                type: "text",
+                                                                                                                fields: {
+                                                                                                                        TEXT: "jumped",
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                                next: {
+                                                        block: {
+                                                                type: "controls_if",
+                                                                inputs: {
+                                                                        IF0: {
+                                                                                block: {
+                                                                                        type: "logic_operation",
+                                                                                        fields: {
+                                                                                                OP: "AND",
+                                                                                        },
+                                                                                        inputs: {
+                                                                                                A: {
+                                                                                                        block: {
+                                                                                                                type: "action_pressed",
+                                                                                                                fields: {
+                                                                                                                        ACTION: "BUTTON4",
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                                B: {
+                                                                                                        block: {
+                                                                                                                type: "logic_negate",
+                                                                                                                inputs: {
+                                                                                                                        BOOL: {
+                                                                                                                                block: {
+                                                                                                                                        type: "variables_get",
+                                                                                                                                        fields: {
+                                                                                                                                                VAR: {
+                                                                                                                                                        name: "jumping",
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        DO0: {
+                                                                                block: {
+                                                                                        type: "apply_force",
+                                                                                        fields: {
+                                                                                                MESH_VAR: {
+                                                                                                        name: "player",
+                                                                                                },
+                                                                                        },
+                                                                                        inputs: {
+                                                                                                X: {
+                                                                                                        shadow: {
+                                                                                                                type: "math_number",
+                                                                                                                fields: {
+                                                                                                                        NUM: 0,
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                                Y: {
+                                                                                                        shadow: {
+                                                                                                                type: "math_number",
+                                                                                                                fields: {
+                                                                                                                        NUM: 5,
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                                Z: {
+                                                                                                        shadow: {
+                                                                                                                type: "math_number",
+                                                                                                                fields: {
+                                                                                                                        NUM: 2,
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                        next: {
+                                                                                                block: {
+                                                                                                        type: "variables_set",
+                                                                                                        fields: {
+                                                                                                                VAR: {
+                                                                                                                        name: "jumping",
+                                                                                                                },
+                                                                                                        },
+                                                                                                        inputs: {
+                                                                                                                VALUE: {
+                                                                                                                        block: {
+                                                                                                                                type: "logic_boolean",
+                                                                                                                                fields: {
+                                                                                                                                        BOOL: "TRUE",
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
+                                                                                                        next: {
+                                                                                                                block: {
+                                                                                                                        type: "broadcast_event",
+                                                                                                                        inputs: {
+                                                                                                                                EVENT_NAME: {
+                                                                                                                                        block: {
+                                                                                                                                                type: "text",
+                                                                                                                                                fields: {
+                                                                                                                                                        TEXT: "jumped",
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
         ]
 }
 
