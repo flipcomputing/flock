@@ -5,6 +5,9 @@ import { translate, getTooltip } from "../main/translation.js";
 
 const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
 
+const TRANSPARENT_PNG_1PX =
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQImWNgYGBgAAAABQABJACfMwAAAABJRU5ErkJggg==";
+
 export function defineControlBlocks() {
         Blockly.Blocks["wait"] = {
                 init: function () {
@@ -628,6 +631,7 @@ export function defineControlBlocks() {
                                 const attached =
                                         condInput.connection?.targetBlock();
                                 if (attached) {
+                                        // Save state for restoring later
                                         this._stashedCondState =
                                                 Blockly.serialization.blocks.save(
                                                         attached,
@@ -639,8 +643,14 @@ export function defineControlBlocks() {
                                                         },
                                                 );
 
+                                        // Disconnect without recording undo (we handle it via field change)
+                                        const eventsWereEnabled = Blockly.Events.isEnabled();
+                                        Blockly.Events.disable();
                                         attached.unplug(false);
                                         attached.dispose(true);
+                                        if (eventsWereEnabled) {
+                                                Blockly.Events.enable();
+                                        }
                                 }
                                 condInput.setVisible(false);
                         } else {
@@ -649,6 +659,9 @@ export function defineControlBlocks() {
                                 const alreadyHasCond =
                                         !!condInput.connection?.targetBlock();
                                 if (!alreadyHasCond && this._stashedCondState) {
+                                        const eventsWereEnabled = Blockly.Events.isEnabled();
+                                        Blockly.Events.disable();
+
                                         const restored =
                                                 Blockly.serialization.blocks.append(
                                                         this._stashedCondState,
@@ -664,6 +677,12 @@ export function defineControlBlocks() {
                                                         condInput.connection,
                                                 );
                                         }
+
+                                        if (eventsWereEnabled) {
+                                                Blockly.Events.enable();
+                                        }
+
+                                        this._stashedCondState = null;
                                 }
                         }
 
@@ -704,19 +723,16 @@ export function defineControlBlocks() {
 
                                 if (isInvalid) {
                                         // The nextBlock is invalid after lastMode
-                                        // Disconnect from the current block, which removes the entire chain from here
-                                        // unplug(true) with "heal" should keep the unplugged blocks connected to each other
-                                        setTimeout(() => {
-                                                if (nextBlock && !nextBlock.isDisposed() && nextConn.isConnected()) {
-                                                        // Disconnect from the parent side
-                                                        nextConn.disconnect();
+                                        // Disconnect from the current block synchronously
+                                        if (nextBlock && !nextBlock.isDisposed() && nextConn.isConnected()) {
+                                                // Disconnect from the parent side
+                                                nextConn.disconnect();
 
-                                                        // Bump the disconnected chain to a new location
-                                                        if (nextBlock.rendered) {
-                                                                nextBlock.bumpNeighbours();
-                                                        }
+                                                // Bump the disconnected chain to a new location
+                                                if (nextBlock.rendered) {
+                                                        nextBlock.bumpNeighbours();
                                                 }
-                                        }, 0);
+                                        }
                                         break; // Stop checking since we're disconnecting from here
                                 }
 
