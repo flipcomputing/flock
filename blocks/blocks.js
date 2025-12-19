@@ -838,7 +838,10 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
     if (b.isInsertionMarker?.()) return super.drawBottom_();
 
     const mode = b.getFieldValue?.("MODE");
-    const continuesChain = mode === MODE.IF || mode === MODE.ELSEIF;
+
+    // Only clauses that can legally have something after them in the same chain.
+    const canContinueChain = mode === MODE.IF || mode === MODE.ELSEIF;
+    if (!canContinueChain) return super.drawBottom_();
 
     // Require an ACTUAL next connection to a real if_clause block.
     const nextConn = b.nextConnection;
@@ -848,7 +851,15 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
     const nextIsRealIfClause =
       next && next.type === "if_clause" && !next.isInsertionMarker?.();
 
-    if (continuesChain && nextIsRealIfClause) {
+    if (!nextIsRealIfClause) return super.drawBottom_();
+
+    // Only flatten when the NEXT clause is a joined clause (else/else if),
+    // not when it’s a new IF statement.
+    const nextMode = next.getFieldValue?.("MODE");
+    const nextIsJoinedClause =
+      nextMode === MODE.ELSE || nextMode === MODE.ELSEIF;
+
+    if (nextIsJoinedClause) {
       this.drawFlatBottom_();
       return;
     }
@@ -863,13 +874,16 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
     if (b?.type !== "if_clause") return;
 
     // Don’t paint seam covers on insertion markers / connection previews.
-    if (typeof b.isInsertionMarker === "function" && b.isInsertionMarker()) return;
+    if (typeof b.isInsertionMarker === "function" && b.isInsertionMarker())
+      return;
 
     const svgRoot = b.getSvgRoot?.();
     if (!svgRoot) return;
 
     // Always remove any previous cover (so disabling can hide it).
-    const existing = svgRoot.querySelector?.(":scope > rect.ifclause-seam-cover");
+    const existing = svgRoot.querySelector?.(
+      ":scope > rect.ifclause-seam-cover",
+    );
     if (existing) existing.remove();
 
     // If the block is disabled, we’re done (no cover).
@@ -915,7 +929,6 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
 
     svgRoot.appendChild(rect);
   }
-
 }
 
 export class CustomZelosRenderer extends Blockly.zelos.Renderer {
