@@ -4412,6 +4412,16 @@ const toolboxSnippets = {
                                                                                                 },
                                                                                         },
                                                                                 },
+                                                                                next: {
+                                                                                        block: {
+                                                                                                type: "get_camera",
+                                                                                                fields: {
+                                                                                                        VAR: {
+                                                                                                                name: "camera",
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
                                                                         },
                                                                 },
                                                         },
