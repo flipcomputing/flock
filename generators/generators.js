@@ -3885,6 +3885,58 @@ javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
         return code;
 };
 
+const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
+
+javascriptGenerator.forBlock["if_clause"] = function (block, generator) {
+  const isClause = (b) => b && b.type === "if_clause";
+
+  const prev = block.getPreviousBlock();
+  const isChainTop = !isClause(prev);
+
+  // Non-top clauses do not emit code independently.
+  if (!isChainTop) return "";
+
+  // Collect contiguous clause blocks.
+  const chain = [];
+  let cur = block;
+  while (cur && isClause(cur)) {
+    chain.push(cur);
+    cur = cur.getNextBlock();
+  }
+
+  let code = "";
+
+  const first = chain[0];
+  const firstCond =
+    generator.valueToCode(first, "COND", generator.ORDER_NONE) || "false";
+  const firstBody = generator.statementToCode(first, "DO");
+
+  code += `if (${firstCond}) {\n${firstBody}}`;
+
+  for (let i = 1; i < chain.length; i++) {
+    const clause = chain[i];
+    const mode = clause.getFieldValue("MODE");
+
+    if (mode === MODE.IF) break;
+
+    if (mode === MODE.ELSEIF) {
+      const cond =
+        generator.valueToCode(clause, "COND", generator.ORDER_NONE) || "false";
+      const body = generator.statementToCode(clause, "DO");
+      code += ` else if (${cond}) {\n${body}}`;
+      continue;
+    }
+
+    if (mode === MODE.ELSE) {
+      const body = generator.statementToCode(clause, "DO");
+      code += ` else {\n${body}}`;
+      break;
+    }
+  }
+
+  return code + "\n";
+};
+
 javascriptGenerator.forBlock["xyz"] = function (block) {
         const x =
                 javascriptGenerator.valueToCode(
