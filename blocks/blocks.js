@@ -863,8 +863,21 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
     if (b?.type !== "if_clause") return;
 
     // Don’t paint seam covers on insertion markers / connection previews.
-    if (typeof b.isInsertionMarker === "function" && b.isInsertionMarker())
-      return;
+    if (typeof b.isInsertionMarker === "function" && b.isInsertionMarker()) return;
+
+    const svgRoot = b.getSvgRoot?.();
+    if (!svgRoot) return;
+
+    // Always remove any previous cover (so disabling can hide it).
+    const existing = svgRoot.querySelector?.(":scope > rect.ifclause-seam-cover");
+    if (existing) existing.remove();
+
+    // If the block is disabled, we’re done (no cover).
+    // Use isEnabled (covers setDisabledReason etc), with a fallback to `disabled`.
+    const isDisabled =
+      (typeof b.isEnabled === "function" ? !b.isEnabled() : false) ||
+      !!b.disabled;
+    if (isDisabled) return;
 
     const prev = b.getPreviousBlock?.();
     const prevIsIfClause = prev && prev.type === "if_clause";
@@ -873,15 +886,6 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
     const isJoinedClause = mode === MODE.ELSE || mode === MODE.ELSEIF;
 
     if (!prevIsIfClause || !isJoinedClause) return;
-
-    const svgRoot = b.getSvgRoot?.();
-    if (!svgRoot) return;
-
-    // Remove any previous cover (avoid duplicates on rerender).
-    const existing = svgRoot.querySelector?.(
-      ":scope > rect.ifclause-seam-cover",
-    );
-    if (existing) existing.remove();
 
     // Get the actual rendered fill from the block path (avoids black during previews).
     const pathObj = this.pathObject_;
@@ -899,25 +903,19 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
     const strokePx =
       this.constants_?.OUTLINE_WIDTH ?? this.constants_?.STROKE_WIDTH ?? 1;
 
-    const corner =  1;
-    const xStart = corner;
-
-    // Sit slightly above and tall enough to cover both outline strokes.
-    const y = -strokePx * 2;
-    const height = strokePx * 4 + 4;
-
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     rect.setAttribute("class", "ifclause-seam-cover");
-    rect.setAttribute("x", String(xStart));
-    rect.setAttribute("y", String(y));
+    rect.setAttribute("x", "1");
+    rect.setAttribute("y", String(-strokePx * 2));
     rect.setAttribute("width", String(coverPx));
-    rect.setAttribute("height", String(height));
+    rect.setAttribute("height", String(strokePx * 4));
     rect.setAttribute("fill", fill);
     rect.setAttribute("stroke", "none");
     rect.setAttribute("pointer-events", "none");
 
     svgRoot.appendChild(rect);
   }
+
 }
 
 export class CustomZelosRenderer extends Blockly.zelos.Renderer {
