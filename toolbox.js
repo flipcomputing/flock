@@ -970,7 +970,7 @@ const toolboxScene = {
                                         },
                                 },
                         },
-                },*/               
+                },*/
                 {
                         kind: "block",
                         type: "show",
@@ -2232,6 +2232,11 @@ const toolboxCondition = {
                         type: "logic_ternary",
                         keyword: "ternary",
                 },
+              /*  {
+                        kind: "block",
+                        type: "if_clause",
+                        keyword: "if",
+                },*/
         ],
 };
 
@@ -3951,7 +3956,6 @@ const toolboxSnippetsMovement = {
         categorystyle: "snippets_category",
         name: "%{BKY_CATEGORY_MOVEMENT}",
         contents: [
-
                 {
                         kind: "block",
                         type: "forever",
@@ -4202,8 +4206,8 @@ const toolboxSnippetsMovement = {
                                 },
                         },
                 },
-        ]
-}
+        ],
+};
 
 const toolboxSnippets = {
         kind: "category",
