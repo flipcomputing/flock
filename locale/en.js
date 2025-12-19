@@ -252,7 +252,7 @@ export default {
   time: "time in s",
   distance_to: "distance from %1 to %2",
   touching_surface: "is %1 touching surface",
-  mesh_exists: "does %1 exist?",
+  mesh_exists: "%1 exists?",
   get_property: "get %1 of %2",
   canvas_controls: "canvas controls %1",
   button_controls: "button controls %1 enabled: %2 color: %3",
