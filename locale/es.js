@@ -502,31 +502,31 @@ export default {
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
-    "Añade física a la malla. Opciones: dynamic, static, animated o none.\nPalabra clave: physics",
+    "Añade física a la malla. Opciones: dinámico, estático, animado o nada.\nPalabra clave: física",
   add_physics_shape_tooltip:
-    "Añade una forma física a la malla. Opciones: mesh o capsule.\nPalabra clave: physics",
+    "Añade una forma física a la malla. Opciones: malla o cápsula.\nPalabra clave: física",
   apply_force_tooltip:
-    "Aplica una fuerza a una malla en direcciones XYZ.\nPalabra clave: force",
+    "Aplica una fuerza a una malla en direcciones XYZ.\nPalabra clave: fuerza",
   show_physics_tooltip:
-    "Mostrar u ocultar colisionadores físicos para depuración. Marque para mostrar, desmarque para ocultar.\nPalabra clave: debug physics collider",
+    "Mostrar u ocultar colisionadores físicos para depuración. Marque para mostrar, desmarque para ocultar.\nPalabra clave: depuración de coliionador de física",
 
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip:
-    "Devuelve verdadero si la tecla especificada está presionada.\nPalabra clave: ispressed",
+    "Devuelve verdadero si la tecla especificada está pulsado.\nPalabra clave: estápulsado",
   action_pressed_tooltip:
-    "Devuelve verdadero si el control de movimiento o acción seleccionado está activo en teclado, táctil o XR.",
+    "Devuelve verdadero si el control de movimiento o acción specificado está activo en teclado, toque o XR.",
   meshes_touching_tooltip:
-    "Devuelve verdadero si las dos mallas seleccionadas se están tocando.\nPalabra clave: istouching",
+    "Devuelve verdadero si las dos mallas seleccionadas se están tocando.\nPalabra clave: estántocando",
   time_tooltip: "Devuelve el tiempo actual en segundos.",
   distance_to_tooltip: "Calcula la distancia entre dos mallas.",
   touching_surface_tooltip:
-    "Comprueba si la malla está tocando una superficie.\nPalabra clave: surface",
+    "Comprueba si la malla está tocando una superficie.\nPalabra clave: superficie",
   get_property_tooltip:
-    "Obtiene el valor de la propiedad seleccionada de una malla.\nPalabra clave: get",
+    "Obtiene el valor de la propiedad seleccionada de una malla.\nPalabra clave: obtiene",
   canvas_controls_tooltip:
-    "Añade o elimina controles de movimiento en el lienzo.\nPalabra clave: canvas",
+    "Añade o elimina controles de movimiento en el lienzo.\nPalabra clave: lienzo",
   button_controls_tooltip:
-    "Configura los controles de botones.\nPalabra clave: button",
+    "Configura controles de botónes.\nPalabra clave: botón",
   microbit_input_tooltip:
     "Ejecuta los bloques dentro cuando se desencadena un evento micro:bit especificado.",
   ui_slider_tooltip:
@@ -538,80 +538,80 @@ export default {
   control_particle_system_tooltip:
     "Controla el sistema de partículas iniciándolo, deteniéndolo o reiniciándolo.",
   create_box_tooltip:
-    "Crea una caja de color con dimensiones y posición especificadas.\nPalabra clave: box",
+    "Crea una caja de color con dimensiones y posición especificadas.\nPalabra clave: caja",
   create_sphere_tooltip:
-    "Crea una esfera de color con dimensiones y posición especificadas.\nPalabra clave: sphere",
+    "Crea una esfera de color con dimensiones y posición especificadas.\nPalabra clave: esfera",
   create_cylinder_tooltip:
-    "Crea un cilindro de color con dimensiones y posición especificadas.\nPalabra clave: cylinder",
+    "Crea un cilindro de color con dimensiones y posición especificadas.\nPalabra clave: cilindro",
   create_capsule_tooltip:
-    "Crea una cápsula de color con dimensiones y posición especificadas.\nPalabra clave: capsule",
+    "Crea una cápsula de color con dimensiones y posición especificadas.\nPalabra clave: cápsula",
   create_plane_tooltip:
-    "Crea un plano 2D de color con ancho, alto y posición especificadas.\nPalabra clave: plane",
+    "Crea un plano 2D de color con ancho, alto y posición especificadas.\nPalabra clave: plano",
 
   // Tooltip translations - Sound blocks
   play_sound_tooltip:
-    "Reproduce el sonido seleccionado en una malla con velocidad, volumen y modo ajustables.\nPalabra clave: sound",
+    "Reproduce el sonido seleccionado en una malla con velocidad, volumen y modo ajustables.\nPalabra clave: sonido",
   stop_all_sounds_tooltip:
-    "Detiene todos los sonidos que se estén reproduciendo en la escena.\nPalabra clave: nosound",
+    "Para todos los sonidos que estén reproduciendo en la escena.\nPalabra clave: nosonido",
   midi_note_tooltip: "Un valor de nota MIDI entre 0 y 127.",
-  rest_tooltip: "Un silencio (pausa) en una secuencia musical.",
+  rest_tooltip: "Un pausa (silencio) en una secuencia musical.",
   play_notes_tooltip:
-    "Reproduce una secuencia de notas y silencios MIDI con duraciones correspondientes, usando la malla para paneo. Puede devolver el control inmediatamente o al finalizar.",
+    "Reproduce una secuencia de notas y silencios MIDI con duraciones correspondientes, usando la malla para paneo. Puede devolver inmediatamente o al finalizar.",
   set_scene_bpm_tooltip: "Establece el BPM para toda la escena.",
   set_mesh_bpm_tooltip: "Establece el BPM para la malla seleccionada.",
   create_instrument_tooltip:
     "Crea un instrumento y lo asigna a la variable seleccionada.",
   instrument_tooltip: "Selecciona un instrumento para reproducir notas.",
   speak_tooltip:
-    "Convierte texto en voz usando Web Speech API con posicionamiento 3D opcional.\nPalabra clave: speak",
+    "Convierte texto en voz usando el Web Speech API (API de voz web) con posicionamiento 3D opcional.\nPalabra clave: hablar",
 
   // Tooltip translations - Text blocks
   comment_tooltip:
-    "Una línea de comentario para facilitar la comprensión de tu código.",
-  print_text_tooltip: "Texto en el panel de salida.\nPalabra clave: print",
+    "Una línea de comentario para ayudar la comprensión de tu código.",
+  print_text_tooltip: "Texto en el panel de salida.\nPalabra clave: imprimir",
   say_tooltip:
-    "Muestra un texto como burbuja de diálogo sobre una malla.\nPalabra clave: say",
+    "Muestra un texto como burbuja de diálogo en una malla.\nPalabra clave: di",
   ui_text_tooltip:
-    "Añade texto a la pantalla UI y almacena el control en una variable para uso o eliminación posterior.",
+    "Añade texto a la pantalla UI y almacena el control en una variable para usar o eliminar luego.",
   ui_button_tooltip:
     "Añade un botón 2D a la pantalla UI con tamaño preestablecido y almacena su control en una variable.",
   ui_input_tooltip:
-    "Pregunta al usuario y espera su respuesta. Guarda el resultado en una variable.",
+    "Preguntale una pregunta al usuario y espera su respuesta. Guarda el resultado en una variable.",
   create_3d_text_tooltip: "Crea texto 3D en la escena.",
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
-    "Mueve una malla cierta cantidad en direcciones x, y y z.\nPalabra clave: move",
+    "Mueve una malla cierta cantidad en direcciones x, y, y z.\nPalabra clave: mueve",
   move_by_xyz_single_tooltip:
-    "Mover una malla una cantidad dada en la dirección x, y o z.\nPalabra clave: move",
+    "Mueve una malla una cantidad en cualquiera dirección x, y, o z.\nPalabra clave: mueve",
   move_to_xyz_tooltip:
-    "Teletransporta la malla a las coordenadas. Opcionalmente, usa el eje Y.\nPalabra clave: moveby",
+    "Teletransporta la malla a las coordenadas. Opcionalmente, usa el eje Y.\nPalabra clave: muevepor",
   move_to_xyz_single_tooltip:
-    "Teletransporta la malla a la coordenada única especificada.\nPalabra clave: moveby",
+    "Teletransporta la malla a la coordenada única especificada.\nPalabra clave: muevepor",
   move_to_tooltip:
-    "Teletransporta la primera malla a la ubicación de la segunda.\nPalabra clave: moveto",
+    "Teletransporta la primera malla a la ubicación de la segunda.\nPalabra clave: muevea",
   scale_tooltip:
-    "Redimensiona una malla a los valores x, y y z dados, controlando el origen del escalado.\nPalabra clave: scale",
+    "Redimensiona una malla a los valores x, y, y z y controla el origen del escalado.\nPalabra clave: escala",
   resize_tooltip:
-    "Redimensiona una malla a los valores x, y y z dados, controlando el origen.\nPalabra clave: resize",
+    "Redimensiona una malla a los valores x, y, y z y controla el origen del escalado.\nPalabra clave: redimensiona",
   rotate_model_xyz_tooltip:
-    "Rota la malla por los valores x, y, z indicados.\nPalabra clave: rotate\nKeyword: rotateby",
+    "Rota la malla por los valores x, y, z indicados.\nPalabra clave: rota\nKeyword: rotapor",
   rotate_to_tooltip:
-    "Rota la malla para apuntar hacia las coordenadas.\nPalabra clave: rotateto",
+    "Rota la malla para q apunte hacia las coordenadas.\nPalabra clave: rotaa",
   look_at_tooltip:
-    "Rota la primera malla hacia la posición de la segunda.\nPalabra clave: look",
+    "Rota la primera malla hacia la posición de la segunda.\nPalabra clave: mira",
   move_forward_tooltip:
-    "Mueve la malla en la dirección especificada. 'Forward' sigue su dirección, 'sideways' y 'strafe' se basan en la cámara.\nPalabra clave: push",
+    "Mueve la malla en la dirección especificada. 'adelante' sigue su dirección, 'al lado' lo mueve relativo a la posición de la cámara, y 'strafear' lo mueve al lado relative a la posición de la cámara.\nPalabra clave: empuja",
   set_pivot_tooltip:
-    "Establece el punto de anclaje para una malla en los ejes X, Y y Z.\nPalabra clave: ancla",
+    "Establece el punto de anclaje para una malla en los ejes X, Y, y Z.\nPalabra clave: ancla",
   min_centre_max_tooltip:
-    "Elige min, centro o max para el punto de pivote.\nPalabra clave: minmax",
+    "Elige minimo, centro o maximo para el punto de pivote.\nPalabra clave: minmax",
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
-    "Usa la cámara del dispositivo como fondo de la escena. Funciona en móvil y escritorio.",
+    "Usa la cámara del dispositivo como fondo para la escena. Funciona en móvil y computadora.",
   set_xr_mode_tooltip:
-    "Establece el modo XR para la escena.\nOpciones: VR, AR, Magic Window.",
+    "Establece el modo XR para la escena.\nOpciones: VR, RA, Ventana Mágica.",
 
   // Dropdown option translations
   AWAIT_option: "esperar",
@@ -623,17 +623,17 @@ export default {
   CubicEase_option: "Suavizado cúbico",
   QuadraticEase_option: "Suavizado cuadrático",
   ExponentialEase_option: "Suavizado exponencial",
-  BounceEase_option: "Rebote",
-  ElasticEase_option: "Elástico",
-  BackEase_option: "Retroceso",
+  BounceEase_option: "Suavizado rebote",
+  ElasticEase_option: "Suavizado elástico",
+  BackEase_option: "Suavizado retroceso",
 
-  EASEIN_option: "entrada suave",
-  EASEOUT_option: "salida suave",
-  EASEINOUT_option: "entrada/salida suave",
+  EASEIN_option: "entrada suavizado",
+  EASEOUT_option: "salida suavizado",
+  EASEINOUT_option: "entrada-salida suavizado",
 
   play_option: "▶️ Reproducir",
   pause_option: "⏸️ Pausa",
-  stop_option: "⏹️ Detener",
+  stop_option: "⏹️ Para",
   start_option: "▶️ Iniciar",
   reset_option: "🔄 Reiniciar",
 
@@ -685,11 +685,11 @@ export default {
   LEFT_option: "izquierda",
   RIGHT_option: "derecha",
   BASE_option: "base",
-  FRONT_option: "delante",
-  BACK_option: "detrás",
+  FRONT_option: "frente",
+  BACK_option: "atras",
   forward_option: "adelante",
-  sideways_option: "lateral",
-  strafe_option: "desplazar",
+  sideways_option: "al lado",
+  strafe_option: "strafear",
   MIN_option: "mín",
   MAX_option: "máx",
   user_option: "delantero",
@@ -754,8 +754,8 @@ export default {
   ArrowRight_option: "⯈",
   ArrowDown_option: "⯆",
 
-  pressed_option: "presionado",
-  released_option: "liberado",
+  pressed_option: "pulsar",
+  released_option: "soltado",
   starts_option: "empieza",
   ends_option: "termina",
 
@@ -815,23 +815,23 @@ export default {
   ACTION_BUTTON3_option: "botón 3",
   ACTION_BUTTON4_option: "botón 4",
 
-  pin_0_option: "Pin P0 liberado", // Duplicate key 0
-  pin_1_option: "Pin P1 liberado", // Duplicate key 1
-  pin_2_option: "Pin P2 liberado", // Duplicate key 2
-  pin_l_option: "Logo presionado largo", // All have duplicate keys
+  pin_0_option: "Pin P0 soltado", // Duplicate key 0
+  pin_1_option: "Pin P1 soltado", // Duplicate key 1
+  pin_2_option: "Pin P2 soltado", // Duplicate key 2
+  pin_l_option: "Logo pulsado largo", // All have duplicate keys
   pin_j_option: "Logo tocado",
-  pin_h_option: "Logo presionado",
-  pin_k_option: "Logo liberado",
-  pin_space_option: "Botón A presionado",
-  pin_q_option: "Botón B presionado",
-  pin_r_option: "Botón A+B presionado",
-  pin_t_option: "Gesto: Caída Libre",
-  pin_o_option: "Gesto: Logo Arriba",
-  pin_p_option: "Gesto: Logo Abajo",
-  pin_a_option: "Gesto: Inclinar Izquierda",
-  pin_d_option: "Gesto: Inclinar Derecha",
-  pin_y_option: "Gesto: Pantalla Arriba",
-  pin_h_option: "Gesto: Pantalla Abajo",
+  pin_h_option: "Logo pulsado",
+  pin_k_option: "Logo soltado",
+  pin_space_option: "Botón A pulsado",
+  pin_q_option: "Botón B pulsado",
+  pin_r_option: "Botón A+B pulsado",
+  pin_t_option: "Gesto: CaídaLibre",
+  pin_o_option: "Gesto: LogoArriba",
+  pin_p_option: "Gesto: LogoAbajo",
+  pin_a_option: "Gesto: InclinarIzquierda",
+  pin_d_option: "Gesto: InclinarDerecha",
+  pin_y_option: "Gesto: PantallaArriba",
+  pin_h_option: "Gesto: PantallaAbajo",
   pin_i_option: "Gesto: Sacudir",
 
   SMALL_option: "pequeño",
@@ -846,13 +846,13 @@ export default {
   sawtooth_option: "diente de sierra",
   triangle_option: "triángulo",
 
-  default_option: "Instrumento predeterminado (Seno)",
+  default_option: "Instrumento por defecto (Seno)",
   piano_option: "Piano (Cuadrado)",
   guitar_option: "Guitarra (Diente de sierra)",
   violin_option: "Violín (Triángulo)",
 
-  female_option: "femenino",
-  male_option: "masculino",
+  female_option: "hembra",
+  male_option: "macho",
 
   en_GB_option: "Inglés (Reino Unido)",
   en_US_option: "Inglés (EE.UU.)",
