@@ -67,6 +67,220 @@ export function initializeBlocks() {
 Blockly.utils.colour.setHsvSaturation(0.3); // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
 Blockly.utils.colour.setHsvValue(0.85); // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
 
+const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
+
+// Global connection checker - add this to your workspace initialization
+function initializeIfClauseConnectionChecker(workspace) {
+        const connectionChecker = workspace.connectionChecker;
+
+        // Store the original doTypeChecks method
+        const originalDoTypeChecks = connectionChecker.doTypeChecks.bind(connectionChecker);
+
+        // Helper function to get all blocks in a stack (including during drag)
+        function getAllBlocksInStack(block) {
+                const blocks = [block];
+                let current = block;
+
+                // Go down the chain
+                while (current.nextConnection) {
+                        const next = current.nextConnection.targetBlock();
+                        if (!next) break;
+                        blocks.push(next);
+                        current = next;
+                }
+
+                return blocks;
+        }
+
+        // Helper function to check if a block or its descendants contain if_clause blocks
+        function hasIfClauseInStack(block) {
+                const stack = getAllBlocksInStack(block);
+                // Check if any block after the first one is an if_clause
+                for (let i = 1; i < stack.length; i++) {
+                        if (stack[i].type === "if_clause") {
+                                return true;
+                        }
+                }
+                return false;
+        }
+
+        // Helper function to check if a connection is a statement input (like DO)
+        function isStatementInputConnection(connection) {
+                const block = connection.getSourceBlock();
+                // Check if this connection belongs to a statement input
+                for (let i = 0; i < block.inputList.length; i++) {
+                        const input = block.inputList[i];
+                        if (input.type === Blockly.INPUT_VALUE || 
+                            input.type === Blockly.DUMMY_INPUT) {
+                                continue;
+                        }
+                        // Check for statement input
+                        if (input.connection === connection) {
+                                return true;
+                        }
+                }
+                return false;
+        }
+
+        // Override the doTypeChecks method
+        connectionChecker.doTypeChecks = function(a, b) {
+                // First do the standard type checking
+                if (!originalDoTypeChecks(a, b)) {
+                        return false;
+                }
+
+                // Get the blocks involved
+                const blockA = a.getSourceBlock();
+                const blockB = b.getSourceBlock();
+
+                // Check if either block is an if_clause
+                const aIsIfClause = blockA.type === "if_clause";
+                const bIsIfClause = blockB.type === "if_clause";
+
+                if (!aIsIfClause && !bIsIfClause) {
+                        return true; // Neither is if_clause, allow
+                }
+
+                // Determine the type of connection
+                let movingBlock, targetBlock, movingConnection, targetConnection;
+
+                if (a.type === Blockly.PREVIOUS_STATEMENT && b.type === Blockly.NEXT_STATEMENT) {
+                        movingBlock = blockA;
+                        targetBlock = blockB;
+                        movingConnection = a;
+                        targetConnection = b;
+                } else if (a.type === Blockly.NEXT_STATEMENT && b.type === Blockly.PREVIOUS_STATEMENT) {
+                        movingBlock = blockB;
+                        targetBlock = blockA;
+                        movingConnection = b;
+                        targetConnection = a;
+                } else {
+                        return true; // Not a statement connection
+                }
+
+                // Check if target connection is a statement input (like DO)
+                const isTargetStatementInput = isStatementInputConnection(targetConnection);
+
+                if (isTargetStatementInput) {
+                        // This is connecting into a statement input (like DO)
+                        // ELSEIF and ELSE cannot go inside DO blocks
+                        if (movingBlock.type === "if_clause") {
+                                const movingMode = movingBlock.getFieldValue("MODE");
+                                if (movingMode === MODE.ELSEIF || movingMode === MODE.ELSE) {
+                                        return false;
+                                }
+                        }
+                        // Everything else (including IF) is allowed in statement inputs
+                        return true;
+                }
+
+                // This is a chain connection (previous connecting to next)
+                const connectingToNext = (targetConnection === targetBlock.nextConnection);
+                const movingIsIfClause = movingBlock.type === "if_clause";
+                const targetIsIfClause = targetBlock.type === "if_clause";
+
+                // If moving block is if_clause, validate its rules
+                if (movingIsIfClause) {
+                        const movingMode = movingBlock.getFieldValue("MODE");
+                        const movingHasIfClauseBelow = hasIfClauseInStack(movingBlock);
+
+                        // IF blocks can connect anywhere (they start a new chain)
+                        if (movingMode === MODE.IF) {
+                                return true;
+                        }
+
+                        if (connectingToNext) {
+                                // Moving block is connecting AFTER target
+
+                                if (targetIsIfClause) {
+                                        const targetMode = targetBlock.getFieldValue("MODE");
+
+                                        // Rule 1: Nothing can connect after ELSE
+                                        if (targetMode === MODE.ELSE) {
+                                                return false;
+                                        }
+
+                                        // Rule 2: ELSE cannot connect if it has if_clause blocks after it
+                                        if (movingMode === MODE.ELSE && movingHasIfClauseBelow) {
+                                                return false;
+                                        }
+
+                                        // Rule 3: ELSE cannot be inserted in middle of chain
+                                        const targetHasNext = targetBlock.nextConnection?.targetBlock();
+                                        if (targetHasNext && targetHasNext.type === "if_clause" && movingMode === MODE.ELSE) {
+                                                return false;
+                                        }
+                                } else {
+                                        // Target is NOT if_clause
+                                        // ELSEIF and ELSE cannot connect after non-if_clause blocks
+                                        if (movingMode === MODE.ELSEIF || movingMode === MODE.ELSE) {
+                                                return false;
+                                        }
+                                }
+
+                        } else {
+                                // Moving block is connecting BEFORE target
+
+                                if (targetIsIfClause) {
+                                        const targetMode = targetBlock.getFieldValue("MODE");
+
+                                        // Rule 1: ELSE cannot connect if it has if_clause blocks after it
+                                        if (movingMode === MODE.ELSE && movingHasIfClauseBelow) {
+                                                return false;
+                                        }
+
+                                        // Rule 2: Cannot insert if target is part of a chain after ELSE
+                                        let current = targetBlock;
+                                        while (current && current.type === "if_clause") {
+                                                const prev = current.previousConnection?.targetBlock();
+                                                if (!prev || prev.type !== "if_clause") break;
+
+                                                const prevMode = prev.getFieldValue("MODE");
+                                                if (prevMode === MODE.ELSE) {
+                                                        return false;
+                                                }
+                                                current = prev;
+                                        }
+                                } else {
+                                        // Target is NOT if_clause
+                                        // ELSEIF and ELSE cannot connect before non-if_clause blocks
+                                        if (movingMode === MODE.ELSEIF || movingMode === MODE.ELSE) {
+                                                return false;
+                                        }
+                                }
+                        }
+                }
+
+                // If target is if_clause but moving block is not, additional checks
+                if (targetIsIfClause && !movingIsIfClause) {
+                        const targetMode = targetBlock.getFieldValue("MODE");
+
+                        if (connectingToNext) {
+                                // Non-if_clause connecting after if_clause
+                                // Only allow if target is at the end of chain (no if_clause blocks after)
+                                const targetHasNext = targetBlock.nextConnection?.targetBlock();
+
+                                if (targetHasNext && targetHasNext.type === "if_clause") {
+                                        // Target has if_clause blocks after it, cannot insert non-if_clause
+                                        return false;
+                                }
+
+                                // Otherwise it's fine - connecting at the end of the chain
+                                return true;
+                        } else {
+                                // Non-if_clause connecting before if_clause
+                                // Only allow before IF (which can start a new chain)
+                                // Don't allow before ELSEIF or ELSE
+                                if (targetMode === MODE.ELSEIF || targetMode === MODE.ELSE) {
+                                        return false;
+                                }
+                        }
+                }
+
+                return true;
+        };
+}
+
 export function initializeWorkspace() {
         // Set Blockly color configuration
         Blockly.utils.colour.setHsvSaturation(0.3);
@@ -185,8 +399,6 @@ export function initializeWorkspace() {
         const workspaceSearch = new WorkspaceSearch(workspace);
         workspaceSearch.init();
 
-
-
         // Set up auto value behavior
         setupAutoValueBehavior(workspace);
 
@@ -205,82 +417,90 @@ export function createBlocklyWorkspace() {
 
         KeyboardNavigation.registerKeyboardNavigationStyles();
 
-        const _origOnKeyDown = Blockly.Toolbox && Blockly.Toolbox.prototype.onKeyDown_;
-        if (Blockly.Toolbox && Blockly.Toolbox.prototype) {
-          Blockly.Toolbox.prototype.onKeyDown_ = function /* no-op */ (e) { /* defer to keyboard nav */ };
-        }
-
         workspace = Blockly.inject("blocklyDiv", options);
+        initializeIfClauseConnectionChecker(workspace);
 
         // --- Blockly search flyout accessibility fix ---
         // Makes the visible search flyout tabbable and allows Tab/↓ from the search input to reach it.
 
         (function enableBlocklySearchFlyoutTabbing() {
-          // 1) Blockly's injection area (always exists when workspace is loaded)
-          const root = document.getElementById('blocklyDiv');
-          if (!root) return;
+                // 1) Blockly's injection area (always exists when workspace is loaded)
+                const root = document.getElementById("blocklyDiv");
+                if (!root) return;
 
-          // 2) Helper to find visible search flyout (the one with actual results)
-          function getVisibleFlyout() {
-            const flyouts = root.querySelectorAll('svg.blocklyToolboxFlyout');
-            return Array.from(flyouts).find(svg => {
-              const r = svg.getBoundingClientRect();
-              return r.width > 0 && r.height > 0;
-            }) || null;
-          }
+                // 2) Helper to find visible search flyout (the one with actual results)
+                function getVisibleFlyout() {
+                        const flyouts = root.querySelectorAll(
+                                "svg.blocklyToolboxFlyout",
+                        );
+                        return (
+                                Array.from(flyouts).find((svg) => {
+                                        const r = svg.getBoundingClientRect();
+                                        return r.width > 0 && r.height > 0;
+                                }) || null
+                        );
+                }
 
-          // 3) Make the flyout focusable
-          function ensureFlyoutFocusable() {
-            const flyout = getVisibleFlyout();
-            if (!flyout) return null;
+                // 3) Make the flyout focusable
+                function ensureFlyoutFocusable() {
+                        const flyout = getVisibleFlyout();
+                        if (!flyout) return null;
 
-            const ws = flyout.querySelector('g.blocklyWorkspace');
-            const target = ws || flyout;
+                        const ws = flyout.querySelector("g.blocklyWorkspace");
+                        const target = ws || flyout;
 
-            // Ensure focusability
-            target.setAttribute('tabindex', '0');
-            target.setAttribute('focusable', 'true');
-            target.setAttribute('role', 'group');
-            target.setAttribute(
-              'aria-label',
-              translate('toolbox_search_results_aria'),
-            );
+                        // Ensure focusability
+                        target.setAttribute("tabindex", "0");
+                        target.setAttribute("focusable", "true");
+                        target.setAttribute("role", "group");
+                        target.setAttribute(
+                                "aria-label",
+                                translate("toolbox_search_results_aria"),
+                        );
 
-            return target;
-          }
+                        return target;
+                }
 
-          // 4) Jump from search input → flyout
-          function wireSearchInput() {
-            const search = root.querySelector('.blocklyToolbox input[type="search"]');
-            if (!search) return;
+                // 4) Jump from search input → flyout
+                function wireSearchInput() {
+                        const search = root.querySelector(
+                                '.blocklyToolbox input[type="search"]',
+                        );
+                        if (!search) return;
 
-            // Blockly sets tabindex="-1" by default — fix that
-            if (search.tabIndex < 0) search.tabIndex = 0;
+                        // Blockly sets tabindex="-1" by default — fix that
+                        if (search.tabIndex < 0) search.tabIndex = 0;
 
-            search.addEventListener('keydown', (e) => {
-              if ((e.key === 'Tab' && !e.shiftKey) || e.key === 'ArrowDown') {
-                const target = ensureFlyoutFocusable();
-                if (!target) return;
-                e.preventDefault();
-                e.stopPropagation();
-                try { target.focus({ preventScroll: true }); } catch {}
-              }
-            });
-          }
+                        search.addEventListener("keydown", (e) => {
+                                if (
+                                        (e.key === "Tab" && !e.shiftKey) ||
+                                        e.key === "ArrowDown"
+                                ) {
+                                        const target = ensureFlyoutFocusable();
+                                        if (!target) return;
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        try {
+                                                target.focus({
+                                                        preventScroll: true,
+                                                });
+                                        } catch {}
+                                }
+                        });
+                }
 
-          // 5) Keep it alive while Blockly updates dynamically
-          const observer = new MutationObserver(() => ensureFlyoutFocusable());
-          observer.observe(root, { childList: true, subtree: true });
+                // 5) Keep it alive while Blockly updates dynamically
+                const observer = new MutationObserver(() =>
+                        ensureFlyoutFocusable(),
+                );
+                observer.observe(root, { childList: true, subtree: true });
 
-          // Initial setup
-          wireSearchInput();
-          ensureFlyoutFocusable();
+                // Initial setup
+                wireSearchInput();
+                ensureFlyoutFocusable();
         })();
 
-
         const keyboardNav = new KeyboardNavigation(workspace);
-
-
 
         // Keep scrolling; remove only the obvious flyout-width bump.
         (function simpleNoBumpTranslate() {
@@ -516,7 +736,8 @@ export function createBlocklyWorkspace() {
                         if (!data) return;
 
                         // Selected block (if any, and not from flyout)
-                        const selected = Blockly.common?.getSelected?.() || null;
+                        const selected =
+                                Blockly.common?.getSelected?.() || null;
                         if (selected && selected.isInFlyout) return; // never paste in the flyout
 
                         e.preventDefault();
@@ -840,45 +1061,48 @@ function setupAutoValueBehavior(workspace) {
 
 export function overrideSearchPlugin(workspace) {
         function getBlocksFromToolbox(workspace) {
-            const toolboxBlocks = [];
-            const seenTypes = new Set(); // Track which block types we've already added
+                const toolboxBlocks = [];
+                const seenTypes = new Set(); // Track which block types we've already added
 
-            function processItem(item, categoryName = "") {
-                const currentCategory = item.getName
-                    ? item.getName()
-                    : categoryName;
+                function processItem(item, categoryName = "") {
+                        const currentCategory = item.getName
+                                ? item.getName()
+                                : categoryName;
 
-                if (currentCategory === "Snippets") {
-                    return;
-                }
-
-                if (item.getContents) {
-                    const contents = item.getContents();
-                    const blocks = Array.isArray(contents)
-                        ? contents
-                        : [contents];
-
-                    blocks.forEach((block) => {
-                        if (block.kind === "block" && !seenTypes.has(block.type)) {
-                            seenTypes.add(block.type);
-                            toolboxBlocks.push({
-                                type: block.type,
-                                text: block.type,
-                                full: block,
-                            });
+                        if (currentCategory === "Snippets") {
+                                return;
                         }
-                    });
+
+                        if (item.getContents) {
+                                const contents = item.getContents();
+                                const blocks = Array.isArray(contents)
+                                        ? contents
+                                        : [contents];
+
+                                blocks.forEach((block) => {
+                                        if (
+                                                block.kind === "block" &&
+                                                !seenTypes.has(block.type)
+                                        ) {
+                                                seenTypes.add(block.type);
+                                                toolboxBlocks.push({
+                                                        type: block.type,
+                                                        text: block.type,
+                                                        full: block,
+                                                });
+                                        }
+                                });
+                        }
+
+                        if (item.getChildToolboxItems) {
+                                item.getChildToolboxItems().forEach((child) => {
+                                        processItem(child, currentCategory);
+                                });
+                        }
                 }
 
-                if (item.getChildToolboxItems) {
-                    item.getChildToolboxItems().forEach((child) => {
-                        processItem(child, currentCategory);
-                    });
-                }
-            }
-
-            workspace.getToolbox().getToolboxItems().forEach(processItem);
-            return toolboxBlocks;
+                workspace.getToolbox().getToolboxItems().forEach(processItem);
+                return toolboxBlocks;
         }
 
         const SearchCategory = Blockly.registry.getClass(
@@ -1001,17 +1225,19 @@ export function overrideSearchPlugin(workspace) {
         }
 
         SearchCategory.prototype.showMatchingBlocks = function (matches) {
-            const flyout = this.workspace_.getToolbox().getFlyout();
-            if (!flyout) {
-                console.error("Flyout not found!");
-                return;
-            }
+                const flyout = this.workspace_.getToolbox().getFlyout();
+                if (!flyout) {
+                        console.error("Flyout not found!");
+                        return;
+                }
 
-            flyout.hide();
-            flyout.show([]);
+                flyout.hide();
+                flyout.show([]);
 
-            const xmlList = matches.map(match => createXmlFromJson(match.full));
-            flyout.show(xmlList);
+                const xmlList = matches.map((match) =>
+                        createXmlFromJson(match.full),
+                );
+                flyout.show(xmlList);
         };
 
         const toolboxDef = workspace.options.languageTree;

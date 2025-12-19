@@ -2232,11 +2232,11 @@ const toolboxCondition = {
                         type: "logic_ternary",
                         keyword: "ternary",
                 },
-               /* {
+               {
                         kind: "block",
                         type: "if_clause",
                         keyword: "if",
-                },*/
+                },
         ],
 };
 
