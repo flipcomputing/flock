@@ -4343,7 +4343,7 @@ const toolboxSnippetsMovement = {
                                                                                                         shadow: {
                                                                                                                 type: "math_number",
                                                                                                                 fields: {
-                                                                                                                        NUM: 5,
+                                                                                                                        NUM: 2,
                                                                                                                 },
                                                                                                         },
                                                                                                 },
@@ -4351,7 +4351,7 @@ const toolboxSnippetsMovement = {
                                                                                                         shadow: {
                                                                                                                 type: "math_number",
                                                                                                                 fields: {
-                                                                                                                        NUM: 2,
+                                                                                                                        NUM: 0,
                                                                                                                 },
                                                                                                         },
                                                                                                 },
