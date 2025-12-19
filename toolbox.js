@@ -3612,6 +3612,105 @@ const toolboxSnippetsSitDown = {
                                 },
                         },
                 },
+                {
+                        kind: "block",
+                        type: "when_clicked",
+                        fields: {
+                                MODEL_VAR: {
+                                        name: "seat",
+                                },
+                                TRIGGER: "OnPickTrigger",
+                        },
+                        inputs: {
+                                DO: {
+                                        block: {
+                                                type: "controls_if",
+                                                extraState: {
+                                                        hasElse: true,
+                                                },
+                                                inputs: {
+                                                        IF0: {
+                                                                block: {
+                                                                        type: "logic_negate",
+                                                                        inputs: {
+                                                                                BOOL: {
+                                                                                        block: {
+                                                                                                type: "variables_get",
+                                                                                                fields: {
+                                                                                                        VAR: {
+                                                                                                                name: "sitting",
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                        DO0: {
+                                                                block: {
+                                                                        type: "variables_set",
+                                                                        fields: {
+                                                                                VAR: {
+                                                                                        name: "sitting",
+                                                                                },
+                                                                        },
+                                                                        inputs: {
+                                                                                VALUE: {
+                                                                                        shadow: {
+                                                                                                type: "math_number",
+                                                                                                fields: {
+                                                                                                        NUM: 0,
+                                                                                                },
+                                                                                        },
+                                                                                        block: {
+                                                                                                type: "logic_boolean",
+                                                                                                fields: {
+                                                                                                        BOOL: "FALSE",
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        next: {
+                                                                                block: {
+                                                                                        type: "look_at",
+                                                                                        fields: {
+                                                                                                MODEL1: {
+                                                                                                        name: "player",
+                                                                                                },
+                                                                                                MODEL2: {
+                                                                                                        name: "seat",
+                                                                                                },
+                                                                                                USE_Y: false,
+                                                                                        },
+                                                                                        next: {
+                                                                                                block: {
+                                                                                                        type: "switch_animation",
+                                                                                                        fields: {
+                                                                                                                MODEL: {
+                                                                                                                        name: "player",
+                                                                                                                },
+                                                                                                        },
+                                                                                                        inputs: {
+                                                                                                                ANIMATION_NAME: {
+                                                                                                                        shadow: {
+                                                                                                                                type: "animation_name",
+                                                                                                                                fields: {
+                                                                                                                                        ANIMATION_NAME: "Walk",
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
         ],
 }
 
