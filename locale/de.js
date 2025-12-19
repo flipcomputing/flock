@@ -306,6 +306,10 @@ export default {
   create_3d_text:
     "Füge 3D‑Text hinzu %1: %2 Schrift: %3 Größe: %4 Farbe: %5\nTiefe: %6 x: %7 y: %8 z: %9",
 
+  // Math blocks
+  random_seeded_int: "zufällige Ganzzahl von %1 bis %2 Seed: %3",
+  to_number: "konvertiere %1 zu %2",
+
   // Transform blocks
   move_by_xyz: "Position von %1 ändern um x: %2 y: %3 z: %4",
   move_by_xyz_single: "Position von %1 ändern um %2 %3",
@@ -318,6 +322,8 @@ export default {
   rotate_to: "Rotiere %1 zu x: %2 y: %3 z: %4",
   look_at: "Lass %1 auf %2 sehen y? %3",
   move_forward: "Bewege %1 %2 Geschwindigkeit %3",
+  rotate_camera: "Kamera um %1 Grad drehen",
+  up: "nach oben %1 Kraft %2",
   set_pivot: "Setze Anker von %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
 
@@ -709,6 +715,12 @@ export default {
     "Stelle dem Benutzer eine Frage und warte auf die Eingabe. Ergebnis wird in einer Variable gespeichert.",
   create_3d_text_tooltip: "Erstelle 3D-Text in der Szene.",
 
+  // Tooltip translations - Math blocks
+  random_seeded_int_tooltip:
+    "Erzeuge eine zufällige Ganzzahl mit Seed.\nSchlüsselwort: seed",
+  to_number_tooltip:
+    "Konvertiere eine Zeichenkette in eine Ganzzahl oder Gleitkommazahl.",
+
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
     "Bewege ein Objekt um den angegebenen Wert in X-, Y- und Z-Richtung.\nSchlüsselwort: move",
@@ -732,6 +744,9 @@ export default {
     "Dreht das erste Objekt so, dass es auf die Position des zweiten zeigt.\nSchlüsselwort: look",
   move_forward_tooltip:
     "Bewegt das Objekt in die gewählte Richtung: 'Vorwärts' entlang Blickrichtung, 'Seitlich' relativ zur Kamera, 'Strafe' quer zur Kamerarichtung.\nSchlüsselwort: push",
+  rotate_camera_tooltip:
+    "Drehe die Kamera um die angegebenen Grad nach links oder rechts.\nSchlüsselwort: rotate",
+  up_tooltip: "Wende die angegebene Aufwärtskraft an.\nSchlüsselwort: up",
   set_pivot_tooltip:
     "Setze den Ankerpunkt eines Objekts in X-, Y- und Z-Richtung.\nSchlüsselwort: Anker",
   min_centre_max_tooltip:

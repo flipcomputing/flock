@@ -300,6 +300,10 @@ export default {
   create_3d_text:
     "adicionar texto 3D %1: %2 fonte: %3 tamanho: %4 cor: %5\nprofundidade: %6 x: %7 y: %8 z: %9",
 
+  // Custom block translations - Math blocks
+  random_seeded_int: "inteiro aleatório de %1 a %2 semente: %3",
+  to_number: "converter %1 para %2",
+
   // Custom block translations - Transform blocks
   move_by_xyz: "alterar posição de %1 em x: %2 y: %3 z: %4",
   move_by_xyz_single: "alterar posição de %1 em %2 %3",
@@ -312,6 +316,8 @@ export default {
   rotate_to: "girar %1 para x: %2 y: %3 z: %4",
   look_at: "fazer %1 olhar para %2 y? %3",
   move_forward: "mover %1 %2 velocidade %3",
+  rotate_camera: "girar câmera em %1 graus",
+  up: "para cima %1 força %2",
   set_pivot: "definir âncora de %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
 
@@ -580,6 +586,12 @@ export default {
     "Faz uma pergunta ao usuário e aguarda a resposta. Armazena o resultado em uma variável.",
   create_3d_text_tooltip: "Cria um texto 3D na cena.",
 
+  // Tooltip translations - Math blocks
+  random_seeded_int_tooltip:
+    "Gera um inteiro aleatório com uma semente.\nPalavra-chave: seed",
+  to_number_tooltip:
+    "Converte uma string em número inteiro ou decimal.",
+
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
     "Move um mesh uma certa distância nas direções x, y e z.\nPalavra-chave: mover",
@@ -603,6 +615,9 @@ export default {
     "Gira o primeiro mesh para olhar para a posição do segundo mesh.\nPalavra-chave: olhar",
   move_forward_tooltip:
     "Move o mesh na direção especificada. 'Frente' o move na direção que está apontando, 'lateral' move em relação à câmera e 'deslocamento' move lateralmente em relação à câmera.\nPalavra-chave: empurrar",
+  rotate_camera_tooltip:
+    "Gira a câmera para a esquerda ou direita pelos graus indicados.\nPalavra-chave: rotate",
+  up_tooltip: "Aplica a força para cima especificada.\nPalavra-chave: up",
   set_pivot_tooltip:
     "Define o ponto de âncora de um mesh nos eixos X, Y e Z.\nPalavra-chave: âncora",
   min_centre_max_tooltip:

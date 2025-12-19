@@ -2,7 +2,7 @@ import * as Blockly from "blockly";
 //import "@blockly/block-plus-minus";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { toolbox } from "../toolbox.js";
-import { getOption, translate } from "../main/translation.js";
+import { getOption, translate, getTooltip } from "../main/translation.js";
 import { flock } from "../flock.js";
 
 import {
@@ -1064,7 +1064,7 @@ export function defineBlocks() {
     init: function () {
       this.jsonInit({
         type: "rotate_camera",
-        message0: "rotate camera by %1 degrees",
+        message0: translate("rotate_camera"),
         args0: [
           {
             type: "input_value",
@@ -1076,8 +1076,7 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Transform"],
-        tooltip:
-          "Rotate the camera left or right by the given degrees.\nKeyword: rotate",
+        tooltip: getTooltip("rotate_camera"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
@@ -1087,7 +1086,7 @@ export function defineBlocks() {
     init: function () {
       this.jsonInit({
         type: "up",
-        message0: "up %1 force %2",
+        message0: translate("up"),
         args0: [
           {
             type: "field_variable",
@@ -1103,7 +1102,7 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Transform"],
-        tooltip: "Apply the specified upwards force.\nKeyword: up",
+        tooltip: getTooltip("up"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
@@ -1113,7 +1112,7 @@ export function defineBlocks() {
     init: function () {
       this.jsonInit({
         type: "random_seeded_int",
-        message0: "random integer from %1 to %2 seed: %3",
+        message0: translate("random_seeded_int"),
         args0: [
           {
             type: "input_value",
@@ -1137,7 +1136,7 @@ export function defineBlocks() {
         inputsInline: true,
         output: "Number",
         colour: 230,
-        tooltip: "Generate a random integer with a seed.\n Keyword: seed",
+        tooltip: getTooltip("random_seeded_int"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
@@ -1147,7 +1146,7 @@ export function defineBlocks() {
     init: function () {
       this.jsonInit({
         type: "to_number",
-        message0: "convert %1 to %2",
+        message0: translate("to_number"),
         args0: [
           {
             type: "input_value",
@@ -1166,7 +1165,7 @@ export function defineBlocks() {
         inputsInline: true,
         output: "Number",
         colour: 230,
-        tooltip: "Convert a string to an integer or float.",
+        tooltip: getTooltip("to_number"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
