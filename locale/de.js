@@ -931,6 +931,7 @@ export default {
   demo_ui: "Demo",
   new_ui: "Neu",
   starter_ui: "👋🏽 Starter",
+  controller_test_ui: "🎮 Controller-Testlauf",
   character_designer_ui: "👚 Charakter-Designer",
   controller_starter_ui: "🎮 Controller-Starter",
   snow_globe_ui: "❄️ Schneekugel",

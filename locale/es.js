@@ -921,6 +921,7 @@ export default {
   demo_ui: "Demostración",
   new_ui: "Nuevo",
   starter_ui: "👋🏽 Inicial",
+  controller_test_ui: "🎮 Prueba con Controlador",
   controller_starter_ui: "🎮 Inicial con Controlador",
   snow_globe_ui: "❄️ Bola de Nieve",
   forest_base_ui: "🌲 Base en el Bosque",

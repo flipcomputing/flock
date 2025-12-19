@@ -918,6 +918,7 @@ export default {
       demo_ui: "Demo",
       new_ui: "Ny",
       starter_ui: "👋🏽 Start",
+      controller_test_ui: "🎮 Gamepad mätning",
       controller_starter_ui: "🎮 Kontrollstart",
       snow_globe_ui: "❄️ Snöglob",
       forest_base_ui: "🌲 Skogsbas",
