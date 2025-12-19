@@ -305,6 +305,10 @@ export default {
   create_3d_text:
     "aggiungi %1 testo 3D: %2 font: %3 dimensione: %4 colore: %5\nprofondità: %6 x: %7 y: %8 z: %9 ",
 
+  // Custom block translations - Math blocks
+  random_seeded_int: "numero intero casuale da %1 a %2 seed: %3",
+  to_number: "converti %1 in %2",
+
   // Custom block translations - Transform blocks
   move_by_xyz: "cambia posizione di %1 di x: %2 y: %3 z: %4",
   move_by_xyz_single: "cambia la posizione di %1 di %2 %3",
@@ -317,6 +321,8 @@ export default {
   rotate_to: "ruota %1 a x: %2 y: %3 z: %4",
   look_at: "fai guardare %1 a %2 y? %3",
   move_forward: "muovi %1 %2 velocità %3",
+  rotate_camera: "ruota la camera di %1 gradi",
+  up: "su %1 forza %2",
   set_pivot: "imposta ancoraggio di %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
 
@@ -584,6 +590,11 @@ export default {
     "Chiede all’utente una risposta e attende l’input. Salva il risultato in una variabile.",
   create_3d_text_tooltip: "Crea testo 3D nella scena.",
 
+  // Tooltip translations - Math blocks
+  random_seeded_int_tooltip:
+    "Genera un numero intero casuale con un seed.\nParola chiave: seed",
+  to_number_tooltip: "Converte una stringa in intero o float.",
+
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
     "Muove una mesh di una certa quantità in x, y e z.\nParola chiave: move",
@@ -607,6 +618,9 @@ export default {
     "Ruota la prima mesh verso la posizione della seconda mesh.\nParola chiave: look",
   move_forward_tooltip:
     "Muove la mesh nella direzione specificata. 'Avanti' segue la direzione in cui punta; 'laterale' si muove rispetto alla camera; 'strafe' si muove di lato rispetto alla camera.\nParola chiave: push",
+  rotate_camera_tooltip:
+    "Ruota la camera a sinistra o destra dei gradi indicati.\nParola chiave: rotate",
+  up_tooltip: "Applica la forza verso l'alto indicata.\nParola chiave: up",
   set_pivot_tooltip:
     "Imposta il punto di ancoraggio di una mesh sugli assi X, Y e Z\nParola chiave: ancora",
   min_centre_max_tooltip:

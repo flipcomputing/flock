@@ -302,6 +302,10 @@ export default {
   create_3d_text:
     "add %1 3D text: %2 font: %3 size: %4 color: %5\ndepth: %6 x: %7 y: %8 z: %9 ",
 
+  // Custom block translations - Math blocks
+  random_seeded_int: "random integer from %1 to %2 seed: %3",
+  to_number: "convert %1 to %2",
+
   // Custom block translations - Transform blocks
   move_by_xyz: "change position of %1 by x: %2 y: %3 z: %4",
   move_by_xyz_single: "change position of %1 by %2 %3",
@@ -314,6 +318,8 @@ export default {
   rotate_to: "rotate %1 to x: %2 y: %3 z: %4",
   look_at: "look %1 at %2 y? %3",
   move_forward: "move %1 %2 speed: %3",
+  rotate_camera: "rotate camera by %1 degrees",
+  up: "up %1 force %2",
   set_pivot: "set anchor of %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
 
@@ -572,6 +578,11 @@ export default {
     "Ask the user a question and wait for input. Stores the result in a variable.",
   create_3d_text_tooltip: "Create 3D text in the scene.",
 
+  // Tooltip translations - Math blocks
+  random_seeded_int_tooltip:
+    "Generate a random integer with a seed.\nKeyword: seed",
+  to_number_tooltip: "Convert a string to an integer or float.",
+
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
     "Move a mesh a given amount in x y and z directions.\nKeyword: move",
@@ -595,6 +606,9 @@ export default {
     "Rotate the first mesh towards the position of the second mesh.\nKeyword: look",
   move_forward_tooltip:
     "Move the mesh in the specified direction. 'Forward' moves it in the direction it's pointing, 'sideways' moves it relative to the camera's direction, and 'strafe' moves it sideways relative to the camera's direction.\nKeyword: push",
+  rotate_camera_tooltip:
+    "Rotate the camera left or right by the given degrees.\nKeyword: rotate",
+  up_tooltip: "Apply the specified upwards force.\nKeyword: up",
   set_pivot_tooltip:
     "Set the anchor point for a mesh on the X, Y, and Z axes\nKeyword: anchor",
   min_centre_max_tooltip:
