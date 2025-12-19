@@ -548,12 +548,12 @@ export function defineControlBlocks() {
                         this.setColour(210);
                         this.setPreviousStatement(true);
                         this.setNextStatement(true);
-
-                        // HEAD + COND on the same row.
                         this.setInputsInline(true);
 
-                        // Stores a serialized condition subtree when switching to ELSE.
                         this._stashedCondState = null;
+
+                        // True while Blockly is constructing/rehydrating the block graph.
+                        this._isRestoring = true;
 
                         this.appendDummyInput("HEAD").appendField(
                                 new Blockly.FieldDropdown(
@@ -570,15 +570,17 @@ export function defineControlBlocks() {
                                 "MODE",
                         );
 
-                        // Boolean socket (hex shape if Boolean outputs are used in your workspace).
                         this.appendValueInput("COND").setCheck("Boolean");
-
-                        // Body stack (no "do"/"then" labels).
                         this.appendStatementInput("DO");
 
                         this.updateShape_(
                                 this.getFieldValue("MODE") ?? MODE.IF,
                         );
+
+                        // Clear restore flag after Blockly has had a chance to reconnect blocks.
+                        setTimeout(() => {
+                                this._isRestoring = false;
+                        }, 0);
                 },
 
                 saveExtraState: function () {
@@ -590,20 +592,36 @@ export function defineControlBlocks() {
                 },
 
                 loadExtraState: function (state) {
-                        const mode = state?.mode ?? MODE.IF;
+                        // Stay in restoring mode while Blockly reconnects child blocks.
+                        this._isRestoring = true;
+
                         this._stashedCondState =
                                 state?.stashedCondState ?? null;
+
+                        const mode = state?.mode ?? MODE.IF;
                         this.setFieldValue(mode, "MODE");
+
+                        // Only show/hide here; no dispose/restore while restoring.
                         this.updateShape_(mode);
+
+                        setTimeout(() => {
+                                this._isRestoring = false;
+                        }, 0);
                 },
 
                 updateShape_: function (mode) {
                         const wantsCond = mode !== MODE.ELSE;
+
                         const condInput = this.getInput("COND");
                         if (!condInput) return;
 
+                        // During restore: never stash/dispose/append; only toggle visibility.
+                        if (this._isRestoring) {
+                                condInput.setVisible(wantsCond);
+                                return;
+                        }
+
                         if (!wantsCond) {
-                                // Switching to ELSE: stash + remove condition subtree (no floating block).
                                 const attached =
                                         condInput.connection?.targetBlock();
                                 if (attached) {
@@ -623,7 +641,6 @@ export function defineControlBlocks() {
                                 }
                                 condInput.setVisible(false);
                         } else {
-                                // Switching back to IF / ELSEIF: show COND and restore if empty.
                                 condInput.setVisible(true);
 
                                 const alreadyHasCond =
