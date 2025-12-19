@@ -789,6 +789,8 @@ export class CustomConstantProvider extends Blockly.zelos.ConstantProvider {
   }
 }
 
+const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
+
 class CustomRenderInfo extends Blockly.zelos.RenderInfo {
   constructor(renderer, block) {
     super(renderer, block);
@@ -797,19 +799,142 @@ class CustomRenderInfo extends Blockly.zelos.RenderInfo {
   adjustXPosition_() {}
 }
 
+class CustomZelosDrawer extends Blockly.zelos.Drawer {
+  constructor(block, info) {
+    super(block, info);
+  }
+
+  drawTop_() {
+    const b = this.block_;
+    if (b?.type !== "if_clause") return super.drawTop_();
+
+    // Never change shape for insertion markers.
+    if (b.isInsertionMarker?.()) return super.drawTop_();
+
+    const mode = b.getFieldValue?.("MODE");
+    const isClause = mode === MODE.ELSE || mode === MODE.ELSEIF;
+
+    // Require an ACTUAL previous connection to a real if_clause block.
+    const prevConn = b.previousConnection;
+    const prev =
+      prevConn && prevConn.isConnected() ? prevConn.targetBlock() : null;
+
+    const prevIsRealIfClause =
+      prev && prev.type === "if_clause" && !prev.isInsertionMarker?.();
+
+    if (isClause && prevIsRealIfClause) {
+      this.drawFlatTop_();
+      return;
+    }
+
+    super.drawTop_();
+  }
+
+  drawBottom_() {
+    const b = this.block_;
+    if (b?.type !== "if_clause") return super.drawBottom_();
+
+    // Never change shape for insertion markers.
+    if (b.isInsertionMarker?.()) return super.drawBottom_();
+
+    const mode = b.getFieldValue?.("MODE");
+    const continuesChain = mode === MODE.IF || mode === MODE.ELSEIF;
+
+    // Require an ACTUAL next connection to a real if_clause block.
+    const nextConn = b.nextConnection;
+    const next =
+      nextConn && nextConn.isConnected() ? nextConn.targetBlock() : null;
+
+    const nextIsRealIfClause =
+      next && next.type === "if_clause" && !next.isInsertionMarker?.();
+
+    if (continuesChain && nextIsRealIfClause) {
+      this.drawFlatBottom_();
+      return;
+    }
+
+    super.drawBottom_();
+  }
+
+  draw() {
+    super.draw();
+
+    const b = this.block_;
+    if (b?.type !== "if_clause") return;
+
+    // Don’t paint seam covers on insertion markers / connection previews.
+    if (typeof b.isInsertionMarker === "function" && b.isInsertionMarker())
+      return;
+
+    const prev = b.getPreviousBlock?.();
+    const prevIsIfClause = prev && prev.type === "if_clause";
+
+    const mode = b.getFieldValue?.("MODE");
+    const isJoinedClause = mode === MODE.ELSE || mode === MODE.ELSEIF;
+
+    if (!prevIsIfClause || !isJoinedClause) return;
+
+    const svgRoot = b.getSvgRoot?.();
+    if (!svgRoot) return;
+
+    // Remove any previous cover (avoid duplicates on rerender).
+    const existing = svgRoot.querySelector?.(
+      ":scope > rect.ifclause-seam-cover",
+    );
+    if (existing) existing.remove();
+
+    // Get the actual rendered fill from the block path (avoids black during previews).
+    const pathObj = this.pathObject_;
+    const mainPath =
+      pathObj?.svgPath_ || pathObj?.svgPath || pathObj?.path_ || null;
+
+    const fill =
+      (mainPath?.getAttribute && mainPath.getAttribute("fill")) ||
+      mainPath?.style?.fill ||
+      (typeof b.getColour === "function" ? b.getColour() : null);
+
+    if (!fill || fill === "none") return;
+
+    const coverPx = 16;
+    const strokePx =
+      this.constants_?.OUTLINE_WIDTH ?? this.constants_?.STROKE_WIDTH ?? 1;
+
+    const corner =  1;
+    const xStart = corner;
+
+    // Sit slightly above and tall enough to cover both outline strokes.
+    const y = -strokePx * 2;
+    const height = strokePx * 4 + 4;
+
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("class", "ifclause-seam-cover");
+    rect.setAttribute("x", String(xStart));
+    rect.setAttribute("y", String(y));
+    rect.setAttribute("width", String(coverPx));
+    rect.setAttribute("height", String(height));
+    rect.setAttribute("fill", fill);
+    rect.setAttribute("stroke", "none");
+    rect.setAttribute("pointer-events", "none");
+
+    svgRoot.appendChild(rect);
+  }
+}
+
 export class CustomZelosRenderer extends Blockly.zelos.Renderer {
   constructor(name) {
     super(name);
   }
 
-  // Override the method to return our custom constant provider
   makeConstants_() {
     return new CustomConstantProvider();
   }
 
-  // Override the method to return our custom RenderInfo
   makeRenderInfo_(block) {
     return new CustomRenderInfo(this, block);
+  }
+
+  makeDrawer_(block, info) {
+    return new CustomZelosDrawer(block, info);
   }
 }
 
