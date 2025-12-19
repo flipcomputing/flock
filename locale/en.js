@@ -911,6 +911,7 @@ export default {
   demo_ui: "Demo",
   new_ui: "New",
   starter_ui: "👋🏽 Starter",
+  controller_test_ui: "🎮 Controller test",
   character_designer_ui: "👚 Character designer",
   controller_starter_ui: "🎮 Controller starter",
   snow_globe_ui: "❄️ Snow globe",
