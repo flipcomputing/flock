@@ -3494,6 +3494,13 @@ const toolboxMath = {
         ],
 };
 
+const toolboxSnippetsSitDown = {
+        kind: "category",
+        icon: "./images/couch-solid.svg",
+        categorystyle: "snippets_category",
+        name: "%{BKY_CATEGORY_SIT_DOWN}",
+}
+
 const toolboxSnippetsPhysics = {
         kind: "category",
         icon: "./images/physics.svg",
@@ -4452,6 +4459,7 @@ const toolboxSnippets = {
                 },
                 toolboxSnippetsMovement,
                 toolboxSnippetsPhysics,
+                toolboxSnippetsSitDown,
         ],
 };
 

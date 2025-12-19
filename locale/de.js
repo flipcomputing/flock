@@ -26,6 +26,7 @@ export default {
   CATEGORY_FUNCTIONS: "Funktionen",
   CATEGORY_SNIPPETS: "Snippets",
   CATEGORY_MOVEMENT: "Bewegung",
+  CATEGORY_SIT_DOWN: "Hinsetzen",
 
   // Color picker translations
   choose_a_color: "Wähle eine Farbe",
