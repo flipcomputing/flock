@@ -3745,6 +3745,24 @@ const toolboxSnippetsSitDown = {
                                                                                                                                                 },
                                                                                                                                         },
                                                                                                                                 },
+                                                                                                                                next: {
+                                                                                                                                        type: "switch_animation",
+                                                                                                                                        fields: {
+                                                                                                                                                MODEL: {
+                                                                                                                                                        name: "player",
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                        inputs: {
+                                                                                                                                                ANIMATION_NAME: {
+                                                                                                                                                        shadow: {
+                                                                                                                                                                type: "animation_name",
+                                                                                                                                                                fields: {
+                                                                                                                                                                        ANIMATION_NAME: "Idle",
+                                                                                                                                                                },
+                                                                                                                                                        },
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                },
                                                                                                                         },
                                                                                                                 },
                                                                                                         },
