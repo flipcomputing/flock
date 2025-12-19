@@ -252,6 +252,7 @@ export default {
   time: "time in s",
   distance_to: "distance from %1 to %2",
   touching_surface: "is %1 touching surface",
+  mesh_exists: "does %1 exist?",
   get_property: "get %1 of %2",
   canvas_controls: "canvas controls %1",
   button_controls: "button controls %1 enabled: %2 color: %3",
@@ -513,6 +514,8 @@ export default {
   distance_to_tooltip: "Calculate the distance between two meshes.",
   touching_surface_tooltip:
     "Check if the mesh is touching a surface.\nKeyword: surface",
+  mesh_exists_tooltip:
+    "Return true if the mesh with this name is present in the scene.",
   get_property_tooltip:
     "Get the value of the selected property of a mesh.\nKeyword: get",
   canvas_controls_tooltip:

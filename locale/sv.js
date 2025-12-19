@@ -249,6 +249,7 @@ export default {
       time: "tid i s",
       distance_to: "avstånd från %1 till %2",
       touching_surface: "är %1 i kontakt med yta",
+      mesh_exists: "finns %1?",
       get_property: "hämta %1 från %2",
       canvas_controls: "canvas kontroller %1",
       button_controls: "knappkontroller %1 aktiverad %2 färg %3",
@@ -515,6 +516,8 @@ export default {
       distance_to_tooltip: "Beräkna avståndet mellan två mesh-objekt.",
       touching_surface_tooltip:
             "Kontrollera om mesh-objektet rör vid en yta.\nKeyword: surface",
+      mesh_exists_tooltip:
+            "Returnerar sant om meshen med det här namnet finns i scenen.",
       get_property_tooltip:
             "Hämta värdet på den valda egenskapen för ett mesh.\nKeyword: get",
       canvas_controls_tooltip:

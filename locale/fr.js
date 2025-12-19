@@ -250,6 +250,7 @@ export default {
   time: "temps en s",
   distance_to: "distance de %1 à %2",
   touching_surface: "%1 touche la surface",
+  mesh_exists: "%1 existe-t-il ?",
   get_property: "obtenir %1 de %2",
   canvas_controls: "contrôles de la toile %1",
   button_controls: "contrôles du bouton %1 activé %2 couleur %3",
@@ -526,6 +527,8 @@ export default {
   distance_to_tooltip: "Calcule la distance entre deux maillages.",
   touching_surface_tooltip:
     "Vérifie si le maillage touche une surface.\nMot-clé: surface",
+  mesh_exists_tooltip:
+    "Renvoie vrai si le maillage portant ce nom est présent dans la scène.",
   get_property_tooltip:
     "Obtient la valeur de la propriété sélectionnée d’un maillage.\nMot-clé: get",
   canvas_controls_tooltip:

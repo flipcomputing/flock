@@ -255,6 +255,7 @@ export default {
   time: "Zeit in s",
   distance_to: "Entfernung von %1 nach %2",
   touching_surface: "Berührt %1 eine Oberfläche",
+  mesh_exists: "existiert %1?",
   get_property: "Hole %1 von %2",
   canvas_controls: "Leinwandsteuerung %1",
   button_controls: "Buttonsteuerung %1 aktiviert %2 Farbe %3",
@@ -648,6 +649,8 @@ export default {
   distance_to_tooltip: "Berechnet den Abstand zwischen zwei Objekten.",
   touching_surface_tooltip:
     "Prüft, ob das Objekt eine Oberfläche berührt.\nSchlüsselwort: surface",
+  mesh_exists_tooltip:
+    "Gibt true zurück, wenn das Mesh mit diesem Namen in der Szene vorhanden ist.",
   get_property_tooltip:
     "Gibt den Wert der gewählten Eigenschaft eines Objekts zurück.\nSchlüsselwort: get",
   canvas_controls_tooltip:
