@@ -3702,10 +3702,13 @@ const toolboxSnippetsSitDown = {
                                                                                                         },
                                                                                                         next: {
                                                                                                                 block: {
-                                                                                                                        type: "glide_to_seconds",
+                                                                                                                        type: "glide_to_object",
                                                                                                                         fields: {
-                                                                                                                                MESH_VAR: {
+                                                                                                                                MODEL1: {
                                                                                                                                         name: "player",
+                                                                                                                                },
+                                                                                                                                MODEL2: {
+                                                                                                                                        name: "seat",
                                                                                                                                 },
                                                                                                                                 MODE: "AWAIT",
                                                                                                                                 REVERSE: false,
@@ -3713,15 +3716,15 @@ const toolboxSnippetsSitDown = {
                                                                                                                                 EASING: "Linear",
                                                                                                                         },
                                                                                                                         inputs: {
-                                                                                                                                X: {
+                                                                                                                                DURATION: {
                                                                                                                                         shadow: {
                                                                                                                                                 type: "math_numnber",
                                                                                                                                                 fields: {
-                                                                                                                                                        NUM: 3,
+                                                                                                                                                        NUM: 1,
                                                                                                                                                 },
                                                                                                                                         },
                                                                                                                                 },
-                                                                                                                                Y: {
+                                                                                                                                X_OFFSET: {
                                                                                                                                         shadow: {
                                                                                                                                                 type: "math_numnber",
                                                                                                                                                 fields: {
@@ -3729,19 +3732,19 @@ const toolboxSnippetsSitDown = {
                                                                                                                                                 },
                                                                                                                                         },
                                                                                                                                 },
-                                                                                                                                Z: {
+                                                                                                                                Y_OFFSET: {
                                                                                                                                         shadow: {
                                                                                                                                                 type: "math_numnber",
                                                                                                                                                 fields: {
-                                                                                                                                                        NUM: -0.2,
+                                                                                                                                                        NUM: 0,
                                                                                                                                                 },
                                                                                                                                         },
                                                                                                                                 },
-                                                                                                                                DURATION: {
+                                                                                                                                Z_OFFSET: {
                                                                                                                                         shadow: {
                                                                                                                                                 type: "math_numnber",
                                                                                                                                                 fields: {
-                                                                                                                                                        NUM: 1,
+                                                                                                                                                        NUM: 0,
                                                                                                                                                 },
                                                                                                                                         },
                                                                                                                                 },
