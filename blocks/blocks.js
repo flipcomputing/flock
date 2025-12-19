@@ -797,6 +797,37 @@ class CustomRenderInfo extends Blockly.zelos.RenderInfo {
   }
 
   adjustXPosition_() {}
+
+  addElemSpacing_() {
+    super.addElemSpacing_();
+
+    // Add extra height to the top row for IF blocks only
+    if (this.block_.type === "if_clause") {
+      const mode = this.block_.getFieldValue?.("MODE");
+      if (mode === MODE.IF && this.rows.length > 0) {
+        // Find the first row with fields or inputs (skip the top cap row)
+        for (let i = 0; i < this.rows.length; i++) {
+          const row = this.rows[i];
+
+          // Check if this row has elements (fields, inputs, etc.)
+          if (row.elements && row.elements.length > 0) {
+            // Check if it's not just a top/bottom cap or connection row
+            const hasContent = row.elements.some(
+              (el) => el.field || el.input || (el.type && el.type !== 0),
+            );
+
+            if (hasContent) {
+              // Add extra height to this row
+              const extraHeight = 20;
+              row.height += extraHeight;
+              row.minHeight = row.height;
+              break; // Only modify the first content row
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 class CustomZelosDrawer extends Blockly.zelos.Drawer {
