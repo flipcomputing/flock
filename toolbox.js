@@ -4292,132 +4292,152 @@ const toolboxSnippets = {
                         inputs: {
                                 DO: {
                                         block: {
-                                                type: "load_character",
+                                                type: "variables_set",
                                                 fields: {
-                                                        MODELS: "Block3.glb",
-                                                        ID_VAR: {
-                                                                name: "player",
-                                                                type: "",
+                                                        VAR: {
+                                                                name: "sitting",
                                                         },
                                                 },
                                                 inputs: {
-                                                        SCALE: {
-                                                                shadow: {
-                                                                        type: "math_number",
+                                                        VALUE: {
+                                                                block: {
+                                                                        type: "logic_boolean",
                                                                         fields: {
-                                                                                NUM: 1,
-                                                                        },
-                                                                },
-                                                        },
-                                                        X: {
-                                                                shadow: {
-                                                                        type: "math_number",
-                                                                        fields: {
-                                                                                NUM: 0,
-                                                                        },
-                                                                },
-                                                        },
-                                                        Y: {
-                                                                shadow: {
-                                                                        type: "math_number",
-                                                                        fields: {
-                                                                                NUM: 0,
-                                                                        },
-                                                                },
-                                                        },
-                                                        Z: {
-                                                                shadow: {
-                                                                        type: "math_number",
-                                                                        fields: {
-                                                                                NUM: 0,
-                                                                        },
-                                                                },
-                                                        },
-                                                        HAIR_COLOR: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#000000",
-                                                                        },
-                                                                },
-                                                        },
-                                                        SKIN_COLOR: {
-                                                                shadow: {
-                                                                        type: "skin_colour",
-                                                                        fields: {
-                                                                                COLOR: "#a15c33",
-                                                                        },
-                                                                },
-                                                        },
-                                                        EYES_COLOR: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#000000",
-                                                                        },
-                                                                },
-                                                        },
-                                                        SLEEVES_COLOR: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#008b8b",
-                                                                        },
-                                                                },
-                                                        },
-                                                        SHORTS_COLOR: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#00008b",
-                                                                        },
-                                                                },
-                                                        },
-                                                        TSHIRT_COLOR: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#ff8f60",
+                                                                                BOOL: "FALSE",
                                                                         },
                                                                 },
                                                         },
                                                 },
                                                 next: {
                                                         block: {
-                                                                type: "add_physics",
+                                                                type: "load_character",
                                                                 fields: {
-                                                                        MODEL_VAR: {
+                                                                        MODELS: "Block3.glb",
+                                                                        ID_VAR: {
                                                                                 name: "player",
                                                                                 type: "",
                                                                         },
-                                                                        PHYSICS_TYPE:
-                                                                                "DYNAMIC",
+                                                                },
+                                                                inputs: {
+                                                                        SCALE: {
+                                                                                shadow: {
+                                                                                        type: "math_number",
+                                                                                        fields: {
+                                                                                                NUM: 1,
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        X: {
+                                                                                shadow: {
+                                                                                        type: "math_number",
+                                                                                        fields: {
+                                                                                                NUM: 0,
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        Y: {
+                                                                                shadow: {
+                                                                                        type: "math_number",
+                                                                                        fields: {
+                                                                                                NUM: 0,
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        Z: {
+                                                                                shadow: {
+                                                                                        type: "math_number",
+                                                                                        fields: {
+                                                                                                NUM: 0,
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        HAIR_COLOR: {
+                                                                                shadow: {
+                                                                                        type: "colour",
+                                                                                        fields: {
+                                                                                                COLOR: "#000000",
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        SKIN_COLOR: {
+                                                                                shadow: {
+                                                                                        type: "skin_colour",
+                                                                                        fields: {
+                                                                                                COLOR: "#a15c33",
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        EYES_COLOR: {
+                                                                                shadow: {
+                                                                                        type: "colour",
+                                                                                        fields: {
+                                                                                                COLOR: "#000000",
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        SLEEVES_COLOR: {
+                                                                                shadow: {
+                                                                                        type: "colour",
+                                                                                        fields: {
+                                                                                                COLOR: "#008b8b",
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        SHORTS_COLOR: {
+                                                                                shadow: {
+                                                                                        type: "colour",
+                                                                                        fields: {
+                                                                                                COLOR: "#00008b",
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        TSHIRT_COLOR: {
+                                                                                shadow: {
+                                                                                        type: "colour",
+                                                                                        fields: {
+                                                                                                COLOR: "#ff8f60",
+                                                                                        },
+                                                                                },
+                                                                        },
                                                                 },
                                                                 next: {
                                                                         block: {
-                                                                                type: "camera_follow",
+                                                                                type: "add_physics",
                                                                                 fields: {
-                                                                                        MESH_VAR: {
+                                                                                        MODEL_VAR: {
                                                                                                 name: "player",
                                                                                                 type: "",
                                                                                         },
-                                                                                },
-                                                                                inputs: {
-                                                                                        RADIUS: {
-                                                                                                block: {
-                                                                                                        type: "math_number",
-                                                                                                        fields: {
-                                                                                                                NUM: 7,
-                                                                                                        },
-                                                                                                },
-                                                                                        },
+                                                                                        PHYSICS_TYPE:
+                                                                                                "DYNAMIC",
                                                                                 },
                                                                                 next: {
                                                                                         block: {
-                                                                                                type: "get_camera",
+                                                                                                type: "camera_follow",
                                                                                                 fields: {
-                                                                                                        VAR: {
-                                                                                                                name: "camera",
+                                                                                                        MESH_VAR: {
+                                                                                                                name: "player",
+                                                                                                                type: "",
+                                                                                                        },
+                                                                                                },
+                                                                                                inputs: {
+                                                                                                        RADIUS: {
+                                                                                                                block: {
+                                                                                                                        type: "math_number",
+                                                                                                                        fields: {
+                                                                                                                                NUM: 7,
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                                next: {
+                                                                                                        block: {
+                                                                                                                type: "get_camera",
+                                                                                                                fields: {
+                                                                                                                        VAR: {
+                                                                                                                                name: "camera",
+                                                                                                                        },
+                                                                                                                },
                                                                                                         },
                                                                                                 },
                                                                                         },
