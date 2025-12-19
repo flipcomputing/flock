@@ -3499,6 +3499,120 @@ const toolboxSnippetsSitDown = {
         icon: "./images/couch-solid.svg",
         categorystyle: "snippets_category",
         name: "%{BKY_CATEGORY_SIT_DOWN}",
+        contents: [
+                {
+                        kind: "block",
+                        type: "start",
+                        inputs: {
+                                DO: {
+                                        block: {
+                                                type: "create_box",
+                                                fields: {
+                                                        ID_VAR: {
+                                                                name: "seat",
+                                                        },
+                                                },
+                                                inputs: {
+                                                        COLOR: {
+                                                                shadow: {
+                                                                        type: "colour",
+                                                                        fields: {
+                                                                                COLOR: "#666666"
+                                                                        },
+                                                                },
+                                                        },
+                                                        WIDTH: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 1,
+                                                                        },
+                                                                },
+                                                        },
+                                                        HEIGHT: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0.5,
+                                                                        },
+                                                                },
+                                                        },
+                                                        DEPTH: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 1,
+                                                                        },
+                                                                },
+                                                        },
+                                                        X: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 3,
+                                                                        },
+                                                                },
+                                                        },
+                                                        Y: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
+                                                        },
+                                                        Z: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: -1,
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                                next: {
+                                                        block: {
+                                                                type: "set_material",
+                                                                fields: {
+                                                                        MESH: {
+                                                                                name: "seat",
+                                                                        },
+                                                                },
+                                                                inputs: {
+                                                                        MATERIAL: {
+                                                                                shadow: {
+                                                                                        type: "material",
+                                                                                        fields: {
+                                                                                                TEXTURE_SET: "grass.png",
+                                                                                        },
+                                                                                        inputs: {
+                                                                                                BASE_COLOR: {
+                                                                                                        shadow: {
+                                                                                                                type: "colour",
+                                                                                                                fields: {
+                                                                                                                        COLOR: "#666666",
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                                ALPHA: {
+                                                                                                        shadow: {
+                                                                                                                type: "math_number",
+                                                                                                                fields: {
+                                                                                                                        NUM: 1,
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
+        ],
 }
 
 const toolboxSnippetsPhysics = {
