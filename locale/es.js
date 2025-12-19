@@ -871,9 +871,9 @@ export default {
   MAGIC_WINDOW_option: "Ventana Mágica (mirar alrededor)",
 
   circular_depression_png_option: "Depresión Circular",
-  checkerboard_png_option: "Tablero de Ajedrez",
+  checkerboard_png_option: "Tablero de damas",
   sloped_plane_png_option: "Plano Inclinado",
-  cove_plateau_png_option: "Meseta de Bahía",
+  cove_plateau_png_option: "Meseta de la cala",
   random_hills_png_option: "Colinas Aleatorias",
   diagonal_ridge_png_option: "Cresta Diagonal",
   mixed_heights_png_option: "Alturas Mixtas",
@@ -922,7 +922,7 @@ export default {
   new_ui: "Nuevo",
   starter_ui: "👋🏽 Inicial",
   controller_starter_ui: "🎮 Inicial con Controlador",
-  snow_globe_ui: "❄️ Bola de Nieve",
+  snow_globe_ui: "❄️ Globo de Nieve",
   forest_base_ui: "🌲 Base en el Bosque",
   character_animation_ui: "🎥 Animación de Personaje",
   cube_art_ui: "🎨 Arte Cubo",
@@ -931,7 +931,7 @@ export default {
   water_map_ui: "💧 Mapa de Agua",
   skittles_ui: "🎳 Bolos",
   beetle_ui: "🪲 Escarabajo",
-  roominator_ui: "🛋️ Roominator",
+  roominator_ui: "🛋️ Habitación",
   ball_pit_ui: "🟠 Piscina de Pelotas",
   ur_enough_ui: "💗 ¡Eres Suficiente!",
   tallest_buildings_ui: "📊 Edificios Más Altos",
@@ -947,20 +947,20 @@ export default {
   character_designer_ui: "👚 Diseñador de personajes",
   sit_down_ui: "🪑 Siéntate",
 
-  main_menu_ui: "Abrir menú para más opciones",
+  main_menu_ui: "Menú Principal",
   menu_button_sr_label_ui: "Menú",
   project_submenu_ui: "Proyecto",
   project_new_ui: "Nuevo",
   project_open_ui: "Abrir",
   project_save_ui: "Guardar",
   language_submenu_ui: "Idioma",
-  about_submenu_ui: "Acerca de",
+  about_submenu_ui: "Sobre nosotros",
   hub_submenu_ui: "Centro",
 
   theme_submenu_ui: "Tema",
   light_theme_ui: "Claro",
   dark_theme_ui: "Oscuro",
-  contrast_theme_ui: "Alto contraste",
+  contrast_theme_ui: "Contraste",
 
   run_code_button_ui: "Ejecutar tu código",
   stop_code_button_ui: "Detener tu código",
@@ -976,7 +976,7 @@ export default {
     "Cambiar entre vista de pantalla completa y vista normal.",
 
   show_shapes_button_ui: "añadir formas y modelos",
-  color_picker_button_ui: "Cambiar color del objeto",
+  color_picker_button_ui: "Escoge color del objeto",
   position_button_ui: "Posicionar malla",
   rotation_button_ui: "Rotar malla",
   scale_button_ui: "Escalar tamaño de malla",
@@ -986,11 +986,11 @@ export default {
   camera_button_ui: "Controles de cámara",
 
   info_panel_link_ui:
-    "Visitar sitio web de Flock XR (se abre en una pestaña nueva)",
+    "Visitar pagina web de Flock XR (se abre en una pestaña nueva)",
 
   project_name_ui: "Nombre del proyecto",
 
-  about_heading_ui: "Acerca de Flock XR",
+  about_heading_ui: "Sobre Flock XR",
   about_description_intro_ui: "Flock XR es un ",
   about_description_prototype_ui: "prototipo",
   about_description_made_by_ui: " hecho por ",
@@ -998,12 +998,12 @@ export default {
   about_description_disclaimer_ui:
     " Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas. Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.",
   about_run_intro_ui:
-    "Mira las demos para ver lo que puedes hacer. Realiza algunos cambios y haz clic en",
+    "Mira las demos para ver lo que puedes hacer. Realiza algunos cambios y haz clic",
   about_run_action_ui: "ejecutar.",
-  about_links_privacy_prefix_ui: "Consulta la ",
+  about_links_privacy_prefix_ui: "ver la ",
   about_links_privacy_label_ui: "política de privacidad",
   about_links_privacy_suffix_ui: " de Flock XR. ",
-  about_links_contact_label_ui: "Contacta con nosotros",
+  about_links_contact_label_ui: "Contactanos",
 
   keyboard_controls_ui: "Información de controles del teclado [Ctrl + /]",
   keyboard_menu_ui: "Abrir el menú principal",
@@ -1024,7 +1024,7 @@ export default {
   canvas_focus_navigation:
     "Lienzo 3D enfocado. Usa las flechas o WASD para navegar.",
   design_tool_label: "Herramienta de diseño",
-  focused_element_suffix: "{name} enfocado",
+  focused_element_suffix: "{nombre} enfocado",
   search_toolbox_focused: "Búsqueda de la caja de herramientas enfocada",
   code_workspace_focused: "Espacio de trabajo de código enfocado",
   interactive_element_label: "Elemento interactivo",
@@ -1048,26 +1048,26 @@ export default {
   invalid_filetype_alert:
     "Solo se permiten archivos de proyecto .json o .flock.",
   invalid_project_alert: "Este archivo no es un proyecto válido de Flock XR.",
-  failed_to_read_file_alert: "No se pudo leer el archivo.",
+  failed_to_read_file_alert: "No pudo leer el archivo.",
 
   // UI status messages
   max_mesh_limit_reached:
     "⚠️ Límite alcanzado: solo puedes tener {max} mallas en tu mundo.",
-  high_memory_usage_warning: "Advertencia: uso de memoria alto ({percent}%)",
+  high_memory_usage_warning: "Advertencia: uso de memoria alto ({porciento}%)",
   physics_out_of_memory_log:
     "La física de Havok se abortó, probablemente por falta de memoria.", // AI-generated; needs validation
   physics_out_of_memory_banner_ui:
     "El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.", // AI-generated; needs validation
-  runtime_error_message: "Error: {message}",
+  runtime_error_message: "Error: {mensaje}",
   xr_mode_message: "¡Modo XR!",
   fly_camera_instructions: "ℹ️ Cámara en vuelo, usa las flechas y Page Up/Down",
   select_mesh_delete_prompt:
     "⚠️ Selecciona una malla y luego haz clic en eliminar.",
   select_mesh_duplicate_prompt:
     "⚠️ Selecciona una malla y haz clic en duplicar, luego haz clic para colocar las copias.",
-  position_readout: "Posición: {position}",
+  position_readout: "Posición: {Posición}",
   eyedropper_not_supported_alert:
-    "La herramienta cuentagotas no es compatible con este navegador. Prueba con Chrome o Edge.",
+    "El selector de colores no es compatible con este navegador. Prueba con Chrome o Edge.",
   blocks_copied_alert: "¡Bloques copiados al almacenamiento local!",
   no_blocks_to_copy_alert: "No hay bloques para copiar.",
   copy_blocks_failed_alert: "No se pudieron copiar los bloques.",
