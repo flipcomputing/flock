@@ -4273,7 +4273,7 @@ const toolboxSnippetsMovement = {
                                                                                                         shadow: {
                                                                                                                 type: "text",
                                                                                                                 fields: {
-                                                                                                                        TEXT: "jumped",
+                                                                                                                        TEXT: "landed",
                                                                                                                 },
                                                                                                         },
                                                                                                 },
@@ -4382,7 +4382,7 @@ const toolboxSnippetsMovement = {
                                                                                                                                         block: {
                                                                                                                                                 type: "text",
                                                                                                                                                 fields: {
-                                                                                                                                                        TEXT: "landed",
+                                                                                                                                                        TEXT: "jumped",
                                                                                                                                                 },
                                                                                                                                         },
                                                                                                                                 },
