@@ -3700,6 +3700,54 @@ const toolboxSnippetsSitDown = {
                                                                                                                         },
                                                                                                                 },
                                                                                                         },
+                                                                                                        next: {
+                                                                                                                block: {
+                                                                                                                        type: "glide_to_seconds",
+                                                                                                                        fields: {
+                                                                                                                                MESH_VAR: {
+                                                                                                                                        name: "player",
+                                                                                                                                },
+                                                                                                                                MODE: "AWAIT",
+                                                                                                                                REVERSE: false,
+                                                                                                                                LOOP: false,
+                                                                                                                                EASING: "Linear",
+                                                                                                                        },
+                                                                                                                        inputs: {
+                                                                                                                                X: {
+                                                                                                                                        shadow: {
+                                                                                                                                                type: "math_numnber",
+                                                                                                                                                fields: {
+                                                                                                                                                        NUM: 3,
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                },
+                                                                                                                                Y: {
+                                                                                                                                        shadow: {
+                                                                                                                                                type: "math_numnber",
+                                                                                                                                                fields: {
+                                                                                                                                                        NUM: 0,
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                },
+                                                                                                                                Z: {
+                                                                                                                                        shadow: {
+                                                                                                                                                type: "math_numnber",
+                                                                                                                                                fields: {
+                                                                                                                                                        NUM: -0.2,
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                },
+                                                                                                                                DURATION: {
+                                                                                                                                        shadow: {
+                                                                                                                                                type: "math_numnber",
+                                                                                                                                                fields: {
+                                                                                                                                                        NUM: 1,
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
                                                                                                 },
                                                                                         },
                                                                                 },
