@@ -237,7 +237,7 @@ export function defineSensingBlocks() {
                 init: function () {
                         this.jsonInit({
                                 type: "mesh_exists",
-                                message0: "%1 exists",
+                                message0: translate("mesh_exists"),
                                 args0: [
                                         {
                                                 type: "field_variable",
@@ -247,7 +247,7 @@ export function defineSensingBlocks() {
                                 ],
                                 output: "Boolean",
                                 colour: categoryColours["Sensing"],
-                                tooltip: "Returns true if the mesh with this name is present in the scene.",
+                                tooltip: getTooltip("mesh_exists"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("sensing_blocks");

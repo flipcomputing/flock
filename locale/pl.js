@@ -251,6 +251,7 @@ export default {
   time: "czas w s",
   distance_to: "odległość od %1 do %2",
   touching_surface: "czy %1 dotyka powierzchni?",
+  mesh_exists: "czy %1 istnieje?",
   get_property: "pobierz %1 z %2",
   canvas_controls: "kontrola płótna %1",
   button_controls: "kontrolki przycisku %1 włączone: %2 kolor: %3",
@@ -520,6 +521,8 @@ export default {
   distance_to_tooltip: "Oblicz odległość między siatkami %1 i %2.",
   touching_surface_tooltip:
     "Sprawdź, czy siatka %1 dotyka powierzchni.\nSłowo kluczowe: surface",
+  mesh_exists_tooltip:
+    "Zwraca true, jeśli siatka o tej nazwie znajduje się na scenie.",
   get_property_tooltip:
     "Pobierz wartość właściwości %1 z siatki %2.\nSłowo kluczowe: get",
   canvas_controls_tooltip:
