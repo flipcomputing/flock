@@ -237,6 +237,12 @@ export const flockScene = {
       setTextureTiling(tex);
 
       if (mat instanceof flock.BABYLON.ShaderMaterial) {
+        const shaderTex =
+          mat.getTextureByName?.("textureSampler") ||
+          mat.getTexture?.("textureSampler") ||
+          null;
+        setTextureTiling(shaderTex);
+
         mat.setFloat("uScale", repeat);
         mat.setFloat("vScale", repeat);
       }
