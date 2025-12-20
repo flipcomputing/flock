@@ -277,6 +277,39 @@ export const flockScene = {
     if (flock.ground) {
       flock.disposeMesh(flock.ground);
     }
+
+    const mapTexturePhysicalSize = 4;
+    const scaleGroundUVsToPhysicalSize = (mesh, texturePhysicalSize) => {
+      const positions = mesh.getVerticesData(
+        flock.BABYLON.VertexBuffer.PositionKind,
+      );
+      if (!positions || !positions.length) return;
+
+      const { minimum, maximum } = mesh.getBoundingInfo();
+      const minX = minimum.x;
+      const minZ = minimum.z;
+      const spanX = maximum.x - minimum.x;
+      const spanZ = maximum.z - minimum.z;
+      if (!Number.isFinite(spanX) || !Number.isFinite(spanZ)) return;
+
+      const uvs =
+        mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind) ||
+        new Float32Array((positions.length / 3) * 2);
+
+      for (let i = 0, ui = 0; i < positions.length; i += 3, ui += 2) {
+        const x = positions[i];
+        const z = positions[i + 2];
+        uvs[ui] = (x - minX) / texturePhysicalSize;
+        uvs[ui + 1] = (z - minZ) / texturePhysicalSize;
+      }
+
+      mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
+    };
+
+    const shouldScaleUVs =
+      !(Array.isArray(material) && material.length >= 2) &&
+      !(material instanceof flock.GradientMaterial);
+
     let ground;
     if (image === "NONE") {
       const modelId = "flatGround";
@@ -296,6 +329,10 @@ export const flockScene = {
       ground.metadata = ground.metadata || {};
       ground.metadata.blockKey = modelId;
       ground.receiveShadows = true;
+
+      if (shouldScaleUVs) {
+        scaleGroundUVsToPhysicalSize(ground, mapTexturePhysicalSize);
+      }
     } else {
       const minHeight = 0;
       const maxHeight = 10;
@@ -342,6 +379,12 @@ export const flockScene = {
             };
             heightMapGroundBody.shape = heightMapGroundShape;
             heightMapGroundBody.setMassProperties({ mass: 0 });
+            if (shouldScaleUVs) {
+              scaleGroundUVsToPhysicalSize(
+                groundMesh,
+                mapTexturePhysicalSize,
+              );
+            }
           },
         },
         flock.scene,
