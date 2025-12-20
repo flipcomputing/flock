@@ -89,7 +89,7 @@
                       },
                       "block": {
                         "type": "material",
-                        "id": "N{u;_08lc.6RAn4~j,7@",
+                        "id": "`,xo_;xnyWivuib]/|[J",
                         "fields": {
                           "TEXTURE_SET": "bricks.png"
                         },
@@ -239,7 +239,7 @@
         "type": "start",
         "id": "a2dB|N!oaAuOe5zwpdLM",
         "x": 10,
-        "y": 1443,
+        "y": 1432,
         "inputs": {
           "DO": {
             "block": {
@@ -309,7 +309,7 @@
         "type": "procedures_defnoreturn",
         "id": "7I8Xda{.W!Up2`3I.Hr/",
         "x": 10,
-        "y": 940,
+        "y": 934,
         "extraState": {
           "params": [
             {
@@ -617,7 +617,7 @@
         "type": "start",
         "id": "h1OKJ3SlBJ/`eUknMKa]",
         "x": 10,
-        "y": 1611,
+        "y": 1600,
         "inputs": {
           "DO": {
             "block": {
@@ -702,7 +702,7 @@
         "type": "start",
         "id": "qXk.~x]bv)rC5c_p74yO",
         "x": 10,
-        "y": 1822,
+        "y": 1810,
         "inputs": {
           "DO": {
             "block": {
@@ -1021,7 +1021,7 @@
         "type": "forever",
         "id": "(~Q,RJBP9IxjGD-H_*RI",
         "x": 10,
-        "y": 2527,
+        "y": 2508,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -1150,7 +1150,7 @@
         "type": "start",
         "id": "a=r?(-3eO`.O0D-$u7#:",
         "x": 10,
-        "y": 2800,
+        "y": 2778,
         "inputs": {
           "DO": {
             "block": {
@@ -1300,7 +1300,7 @@
         "type": "start",
         "id": "=~lU!AgJo-{2r[%[~LO#",
         "x": 10,
-        "y": 551,
+        "y": 548,
         "inputs": {
           "DO": {
             "block": {
@@ -1477,15 +1477,22 @@
         "type": "forever",
         "id": "$$i@z!T[?b%=ld;r4{i_",
         "x": 10,
-        "y": 3156,
+        "y": 3340,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
             "block": {
-              "type": "controls_if",
-              "id": "fgzQqr:icy4Wx!3DQNg8",
+              "type": "if_clause",
+              "id": "h9~z)REZu4Df;WG`b-OH",
+              "extraState": {
+                "mode": "IF",
+                "stashedCondState": null
+              },
+              "fields": {
+                "MODE": "IF"
+              },
               "inputs": {
-                "IF0": {
+                "COND": {
                   "block": {
                     "type": "logic_operation",
                     "id": "YAWe74#v202IEb5l_CbT",
@@ -1518,7 +1525,7 @@
                     }
                   }
                 },
-                "DO0": {
+                "DO": {
                   "block": {
                     "type": "variables_set",
                     "id": "ZAz!):hdSW%:QI06sAiS",
@@ -1567,10 +1574,17 @@
               },
               "next": {
                 "block": {
-                  "type": "controls_if",
-                  "id": "PbP?;^wF#y?#yB6C^:2F",
+                  "type": "if_clause",
+                  "id": "OVya_$N?yfq^z2:O2y+f",
+                  "extraState": {
+                    "mode": "IF",
+                    "stashedCondState": null
+                  },
+                  "fields": {
+                    "MODE": "IF"
+                  },
                   "inputs": {
-                    "IF0": {
+                    "COND": {
                       "block": {
                         "type": "logic_operation",
                         "id": "IYzR#s2f#lu,/.H)i+)w",
@@ -1609,7 +1623,7 @@
                         }
                       }
                     },
-                    "DO0": {
+                    "DO": {
                       "block": {
                         "type": "apply_force",
                         "id": "PNqZ`K5MMKoteAJh}ZmV",
@@ -1698,13 +1712,17 @@
                   },
                   "next": {
                     "block": {
-                      "type": "controls_if",
-                      "id": "QC!p.YoS)R-%,pz8f*~]",
+                      "type": "if_clause",
+                      "id": "?D:fD?[BDUp?/!_y$CFv",
                       "extraState": {
-                        "elseIfCount": 3
+                        "mode": "ELSEIF",
+                        "stashedCondState": null
+                      },
+                      "fields": {
+                        "MODE": "ELSEIF"
                       },
                       "inputs": {
-                        "IF0": {
+                        "COND": {
                           "block": {
                             "type": "action_pressed",
                             "id": "jx|Y-;_chCel.EUg_1fo",
@@ -1713,7 +1731,7 @@
                             }
                           }
                         },
-                        "DO0": {
+                        "DO": {
                           "block": {
                             "type": "move_forward",
                             "id": "_3DNI(o~2OZfOg.yg8B^",
@@ -1735,243 +1753,314 @@
                               }
                             }
                           }
-                        },
-                        "IF1": {
-                          "block": {
-                            "type": "action_pressed",
-                            "id": "KQ|SOJB2h!|soh,tm@/q",
-                            "fields": {
-                              "ACTION": "BACKWARD"
-                            }
-                          }
-                        },
-                        "DO1": {
-                          "block": {
-                            "type": "move_forward",
-                            "id": "*IVt8qPsX-HwhrJ[Fw!F",
-                            "fields": {
-                              "MODEL": {
-                                "id": "`_|:Og`.3AQ90Q18ur0@"
-                              },
-                              "DIRECTION": "forward"
-                            },
-                            "inputs": {
-                              "SPEED": {
-                                "shadow": {
-                                  "type": "math_number",
-                                  "id": "sAO|B)omb$JS?,1N)([=",
-                                  "fields": {
-                                    "NUM": -8
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        },
-                        "IF2": {
-                          "block": {
-                            "type": "action_pressed",
-                            "id": "raISL41*uONAtrlc~?Q=",
-                            "fields": {
-                              "ACTION": "LEFT"
-                            }
-                          }
-                        },
-                        "DO2": {
-                          "block": {
-                            "type": "move_forward",
-                            "id": "C8SL%5!%(#gQ,=OoYHNo",
-                            "fields": {
-                              "MODEL": {
-                                "id": "`_|:Og`.3AQ90Q18ur0@"
-                              },
-                              "DIRECTION": "sideways"
-                            },
-                            "inputs": {
-                              "SPEED": {
-                                "shadow": {
-                                  "type": "math_number",
-                                  "id": "w!U7Ed):g+?3ukGBUVCo",
-                                  "fields": {
-                                    "NUM": -5
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        },
-                        "IF3": {
-                          "block": {
-                            "type": "action_pressed",
-                            "id": ")SGQLFF~x`tnl2DmJ^$e",
-                            "fields": {
-                              "ACTION": "RIGHT"
-                            }
-                          }
-                        },
-                        "DO3": {
-                          "block": {
-                            "type": "move_forward",
-                            "id": "H%_G?Gklrj53qvYHbp3?",
-                            "fields": {
-                              "MODEL": {
-                                "id": "`_|:Og`.3AQ90Q18ur0@"
-                              },
-                              "DIRECTION": "sideways"
-                            },
-                            "inputs": {
-                              "SPEED": {
-                                "shadow": {
-                                  "type": "math_number",
-                                  "id": "$GNS#}ZA-W*5Q6DB(0m)",
-                                  "fields": {
-                                    "NUM": 5
-                                  }
-                                }
-                              }
-                            }
-                          }
                         }
                       },
                       "next": {
                         "block": {
-                          "type": "controls_if",
-                          "id": "ob)0QjCpu_On[Le2u/4v",
+                          "type": "if_clause",
+                          "id": "X-qsSa^viAU{-7U%hzyy",
+                          "extraState": {
+                            "mode": "ELSEIF",
+                            "stashedCondState": null
+                          },
+                          "fields": {
+                            "MODE": "ELSEIF"
+                          },
                           "inputs": {
-                            "IF0": {
+                            "COND": {
                               "block": {
-                                "type": "logic_negate",
-                                "id": "lyTa1I){_.GSDkx9JlQu",
+                                "type": "action_pressed",
+                                "id": "wuM#{b.9Ovks^0A[w*e+",
+                                "fields": {
+                                  "ACTION": "BACKWARD"
+                                }
+                              }
+                            },
+                            "DO": {
+                              "block": {
+                                "type": "move_forward",
+                                "id": ",iz2P3BHLe?^xtOQ80_[",
+                                "fields": {
+                                  "MODEL": {
+                                    "id": "`_|:Og`.3AQ90Q18ur0@"
+                                  },
+                                  "DIRECTION": "forward"
+                                },
                                 "inputs": {
-                                  "BOOL": {
-                                    "block": {
-                                      "type": "variables_get",
-                                      "id": "-k4^89KM9E0U*$wiDGjp",
+                                  "SPEED": {
+                                    "shadow": {
+                                      "type": "math_number",
+                                      "id": "^8*cpF2d:{(7(yvs#nA2",
                                       "fields": {
-                                        "VAR": {
-                                          "id": "lRJUV|,bY~kc~kNT65Sk"
-                                        }
+                                        "NUM": -8
                                       }
                                     }
                                   }
                                 }
                               }
-                            },
-                            "DO0": {
-                              "block": {
-                                "type": "controls_if",
-                                "id": "+L,1qK8]H2/P8/vpon8J",
-                                "extraState": {
-                                  "hasElse": true
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "if_clause",
+                              "id": "Qgxp]8{S992CFQHAF}X!",
+                              "extraState": {
+                                "mode": "ELSEIF",
+                                "stashedCondState": null
+                              },
+                              "fields": {
+                                "MODE": "ELSEIF"
+                              },
+                              "inputs": {
+                                "COND": {
+                                  "block": {
+                                    "type": "action_pressed",
+                                    "id": "E+3Bk4j$f[24w+ahidJl",
+                                    "fields": {
+                                      "ACTION": "LEFT"
+                                    }
+                                  }
                                 },
-                                "inputs": {
-                                  "IF0": {
+                                "DO": {
+                                  "block": {
+                                    "type": "move_forward",
+                                    "id": "C8SL%5!%(#gQ,=OoYHNo",
+                                    "fields": {
+                                      "MODEL": {
+                                        "id": "`_|:Og`.3AQ90Q18ur0@"
+                                      },
+                                      "DIRECTION": "sideways"
+                                    },
+                                    "inputs": {
+                                      "SPEED": {
+                                        "shadow": {
+                                          "type": "math_number",
+                                          "id": "w!U7Ed):g+?3ukGBUVCo",
+                                          "fields": {
+                                            "NUM": -5
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "if_clause",
+                                  "id": "5uIF=6WO=iFbxDI3VyQ4",
+                                  "extraState": {
+                                    "mode": "ELSEIF",
+                                    "stashedCondState": null
+                                  },
+                                  "fields": {
+                                    "MODE": "ELSEIF"
+                                  },
+                                  "inputs": {
+                                    "COND": {
+                                      "block": {
+                                        "type": "action_pressed",
+                                        "id": "uO_Is9X7VLBtbFf1.)0W",
+                                        "fields": {
+                                          "ACTION": "RIGHT"
+                                        }
+                                      }
+                                    },
+                                    "DO": {
+                                      "block": {
+                                        "type": "move_forward",
+                                        "id": "P(2;;]Wp%h.$rU}H7JO=",
+                                        "fields": {
+                                          "MODEL": {
+                                            "id": "`_|:Og`.3AQ90Q18ur0@"
+                                          },
+                                          "DIRECTION": "sideways"
+                                        },
+                                        "inputs": {
+                                          "SPEED": {
+                                            "shadow": {
+                                              "type": "math_number",
+                                              "id": "^vmerH%R_Mt9Gw/6N#a4",
+                                              "fields": {
+                                                "NUM": 5
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "next": {
                                     "block": {
-                                      "type": "logic_operation",
-                                      "id": "1JGc.uRse1d-G+l^TwgE",
+                                      "type": "if_clause",
+                                      "id": "V^8LQ(N~tMb+#91B3zI3",
+                                      "extraState": {
+                                        "mode": "IF",
+                                        "stashedCondState": null
+                                      },
                                       "fields": {
-                                        "OP": "OR"
+                                        "MODE": "IF"
                                       },
                                       "inputs": {
-                                        "A": {
+                                        "COND": {
                                           "block": {
-                                            "type": "logic_operation",
-                                            "id": "YV6%rS{P_!27Z_O9Gu@%",
-                                            "fields": {
-                                              "OP": "OR"
-                                            },
+                                            "type": "logic_negate",
+                                            "id": "lyTa1I){_.GSDkx9JlQu",
                                             "inputs": {
-                                              "A": {
+                                              "BOOL": {
                                                 "block": {
-                                                  "type": "logic_operation",
-                                                  "id": "BJ/3:YOJ,l]P9`M6@H/|",
+                                                  "type": "variables_get",
+                                                  "id": "-k4^89KM9E0U*$wiDGjp",
                                                   "fields": {
-                                                    "OP": "OR"
-                                                  },
-                                                  "inputs": {
-                                                    "A": {
-                                                      "block": {
-                                                        "type": "action_pressed",
-                                                        "id": "6j#P_Eb;W]b/c!#!mk4~",
-                                                        "fields": {
-                                                          "ACTION": "FORWARD"
-                                                        }
-                                                      }
-                                                    },
-                                                    "B": {
-                                                      "block": {
-                                                        "type": "action_pressed",
-                                                        "id": "ouGPfxiE@hJ$db8!gSkB",
-                                                        "fields": {
-                                                          "ACTION": "BACKWARD"
-                                                        }
-                                                      }
+                                                    "VAR": {
+                                                      "id": "lRJUV|,bY~kc~kNT65Sk"
                                                     }
-                                                  }
-                                                }
-                                              },
-                                              "B": {
-                                                "block": {
-                                                  "type": "action_pressed",
-                                                  "id": "U(@j$eBp:a[pT)meB;/x",
-                                                  "fields": {
-                                                    "ACTION": "LEFT"
                                                   }
                                                 }
                                               }
                                             }
                                           }
                                         },
-                                        "B": {
+                                        "DO": {
                                           "block": {
-                                            "type": "action_pressed",
-                                            "id": "ii.lJ#M|R$u;|4DAyJje",
+                                            "type": "if_clause",
+                                            "id": "k9c2y_}A=r-,L13)A(p2",
+                                            "extraState": {
+                                              "mode": "IF",
+                                              "stashedCondState": null
+                                            },
                                             "fields": {
-                                              "ACTION": "RIGHT"
-                                            }
-                                          }
-                                        }
-                                      }
-                                    }
-                                  },
-                                  "DO0": {
-                                    "block": {
-                                      "type": "switch_animation",
-                                      "id": "]0Y;nM7TiOJdNzXpJd/S",
-                                      "fields": {
-                                        "MODEL": {
-                                          "id": "`_|:Og`.3AQ90Q18ur0@"
-                                        }
-                                      },
-                                      "inputs": {
-                                        "ANIMATION_NAME": {
-                                          "shadow": {
-                                            "type": "animation_name",
-                                            "id": "~`y|o;;u6By?BRt(Kmb5",
-                                            "fields": {
-                                              "ANIMATION_NAME": "Walk"
-                                            }
-                                          }
-                                        }
-                                      }
-                                    }
-                                  },
-                                  "ELSE": {
-                                    "block": {
-                                      "type": "switch_animation",
-                                      "id": ",{Be8t$TE{f[+K_44y[7",
-                                      "fields": {
-                                        "MODEL": {
-                                          "id": "`_|:Og`.3AQ90Q18ur0@"
-                                        }
-                                      },
-                                      "inputs": {
-                                        "ANIMATION_NAME": {
-                                          "shadow": {
-                                            "type": "animation_name",
-                                            "id": "E}Y%i=4N|Wff?Da-N!6_",
-                                            "fields": {
-                                              "ANIMATION_NAME": "Idle"
+                                              "MODE": "IF"
+                                            },
+                                            "inputs": {
+                                              "COND": {
+                                                "block": {
+                                                  "type": "logic_operation",
+                                                  "id": "1JGc.uRse1d-G+l^TwgE",
+                                                  "fields": {
+                                                    "OP": "OR"
+                                                  },
+                                                  "inputs": {
+                                                    "A": {
+                                                      "block": {
+                                                        "type": "logic_operation",
+                                                        "id": "YV6%rS{P_!27Z_O9Gu@%",
+                                                        "fields": {
+                                                          "OP": "OR"
+                                                        },
+                                                        "inputs": {
+                                                          "A": {
+                                                            "block": {
+                                                              "type": "logic_operation",
+                                                              "id": "BJ/3:YOJ,l]P9`M6@H/|",
+                                                              "fields": {
+                                                                "OP": "OR"
+                                                              },
+                                                              "inputs": {
+                                                                "A": {
+                                                                  "block": {
+                                                                    "type": "action_pressed",
+                                                                    "id": "6j#P_Eb;W]b/c!#!mk4~",
+                                                                    "fields": {
+                                                                      "ACTION": "FORWARD"
+                                                                    }
+                                                                  }
+                                                                },
+                                                                "B": {
+                                                                  "block": {
+                                                                    "type": "action_pressed",
+                                                                    "id": "ouGPfxiE@hJ$db8!gSkB",
+                                                                    "fields": {
+                                                                      "ACTION": "BACKWARD"
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "B": {
+                                                            "block": {
+                                                              "type": "action_pressed",
+                                                              "id": "U(@j$eBp:a[pT)meB;/x",
+                                                              "fields": {
+                                                                "ACTION": "LEFT"
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "B": {
+                                                      "block": {
+                                                        "type": "action_pressed",
+                                                        "id": "ii.lJ#M|R$u;|4DAyJje",
+                                                        "fields": {
+                                                          "ACTION": "RIGHT"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "DO": {
+                                                "block": {
+                                                  "type": "switch_animation",
+                                                  "id": "]0Y;nM7TiOJdNzXpJd/S",
+                                                  "fields": {
+                                                    "MODEL": {
+                                                      "id": "`_|:Og`.3AQ90Q18ur0@"
+                                                    }
+                                                  },
+                                                  "inputs": {
+                                                    "ANIMATION_NAME": {
+                                                      "shadow": {
+                                                        "type": "animation_name",
+                                                        "id": "~`y|o;;u6By?BRt(Kmb5",
+                                                        "fields": {
+                                                          "ANIMATION_NAME": "Walk"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "next": {
+                                              "block": {
+                                                "type": "if_clause",
+                                                "id": "fXvFBl:^:`|xbXW0R}.j",
+                                                "extraState": {
+                                                  "mode": "ELSE",
+                                                  "stashedCondState": null
+                                                },
+                                                "fields": {
+                                                  "MODE": "ELSE"
+                                                },
+                                                "inputs": {
+                                                  "DO": {
+                                                    "block": {
+                                                      "type": "switch_animation",
+                                                      "id": ",{Be8t$TE{f[+K_44y[7",
+                                                      "fields": {
+                                                        "MODEL": {
+                                                          "id": "`_|:Og`.3AQ90Q18ur0@"
+                                                        }
+                                                      },
+                                                      "inputs": {
+                                                        "ANIMATION_NAME": {
+                                                          "shadow": {
+                                                            "type": "animation_name",
+                                                            "id": "E}Y%i=4N|Wff?Da-N!6_",
+                                                            "fields": {
+                                                              "ANIMATION_NAME": "Idle"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
                                             }
                                           }
                                         }
@@ -1996,7 +2085,7 @@
         "type": "on_event",
         "id": "/u`#q`qfA^xJYW/=#S@)",
         "x": 10,
-        "y": 4503,
+        "y": 4864,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -2080,7 +2169,7 @@
         "type": "on_event",
         "id": "DEcpSyPS.u!lFn(_T#xa",
         "x": 10,
-        "y": 4787,
+        "y": 5144,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -2120,7 +2209,7 @@
         "type": "on_collision",
         "id": "TBHX|I2BV@,v9wLk8YU5",
         "x": 10,
-        "y": 4969,
+        "y": 5324,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -2340,7 +2429,7 @@
         "type": "on_collision",
         "id": ":h2Kd?SKqMPM#P2}^V]g",
         "x": 10,
-        "y": 5449,
+        "y": 5796,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -2560,7 +2649,7 @@
         "type": "on_collision",
         "id": "^=u.mM/Ji]{;vT/ch#XX",
         "x": 10,
-        "y": 5929,
+        "y": 6268,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -2780,7 +2869,7 @@
         "type": "forever",
         "id": "bvF)Rl8Y0!g(H#(0]5}x",
         "x": 10,
-        "y": 6693,
+        "y": 7020,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -2921,7 +3010,7 @@
         "type": "on_event",
         "id": ".Zi~Q~Oat2Vz+L}LG`#i",
         "x": 10,
-        "y": 6409,
+        "y": 6740,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -2997,6 +3086,91 @@
                           "NUM": 1
                         }
                       }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "LuWWcg+x5]Sd.]vyK:PT",
+        "x": 10,
+        "y": 3130,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "create_box",
+              "id": "D=b-d:4n@rY%]Bn]D9Rq",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "IRc`_?e|O{Vix9r4%`},"
+                }
+              },
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "{xC)1iS*a!mlWR#{/KPN",
+                    "fields": {
+                      "COLOR": "#33ccff"
+                    }
+                  }
+                },
+                "WIDTH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "-UgMBWOd3{/^5DpFbB;n",
+                    "fields": {
+                      "NUM": 4
+                    }
+                  }
+                },
+                "HEIGHT": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "WRNFE/L3c(A.sd[#Zh.I",
+                    "fields": {
+                      "NUM": 1.5
+                    }
+                  }
+                },
+                "DEPTH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "ZHEX-(^memGQCYE1UWT0",
+                    "fields": {
+                      "NUM": 4
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "SflN7:gQ3N.6me;VGkJ@",
+                    "fields": {
+                      "NUM": -20
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "]?Q5V|yn8[RR+Nz8Q/$6",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "c$8uBeKHY`=pN3+Xqt-6",
+                    "fields": {
+                      "NUM": 20
                     }
                   }
                 }
@@ -3083,6 +3257,10 @@
     {
       "name": "sound4",
       "id": "dH(/dO7._/}4^RQ!8w!`"
+    },
+    {
+      "name": "box3",
+      "id": "IRc`_?e|O{Vix9r4%`},"
     }
   ]
 }
