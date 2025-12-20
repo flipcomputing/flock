@@ -22,6 +22,7 @@ export default {
         { src: 'sounds/*.{ogg,mp3,aac,wav}', dest: 'sounds' },
         { src: 'images/*.*', dest: 'images' },
         { src: 'examples/*.json', dest: 'examples' },
+        { src: 'examples/*.flock', dest: 'examples' },
         { src: 'textures/*.png', dest: 'textures' },
         { src: 'fonts/*.{json,woff2}', dest: 'fonts' },
         { src: 'node_modules/blockly/media/*', dest: 'blockly/media' },
@@ -44,12 +45,12 @@ export default {
 
       assetsInclude: [
         '**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3',
-        '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2',
+        '**/*.json', '**/*.flock', '**/*.png', '**/*.woff', '**/*.woff2',
         '**/*.css', '**/*.svg', '**/*.wasm'
       ],
       includeAssets: [
         '**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3',
-        '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2',
+        '**/*.json', '**/*.flock', '**/*.png', '**/*.woff', '**/*.woff2',
         '**/*.css', '**/*.svg', '**/*.wasm'
       ],
 
