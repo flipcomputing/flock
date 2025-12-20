@@ -220,6 +220,8 @@ export const flockScene = {
           typeof tex.uScale === "number" &&
           typeof tex.vScale === "number"
         ) {
+          tex.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+          tex.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
           tex.uScale = repeat;
           tex.vScale = repeat;
         }
