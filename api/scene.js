@@ -214,15 +214,29 @@ export const flockScene = {
 
     // Helper to apply tiling consistently (diffuse/albedo/base)
     const applyTilingIfAnyTexture = (mat, repeat = tile) => {
+      const setTextureTiling = (tex) => {
+        if (
+          tex &&
+          typeof tex.uScale === "number" &&
+          typeof tex.vScale === "number"
+        ) {
+          tex.uScale = repeat;
+          tex.vScale = repeat;
+        }
+      };
+
       const tex =
-        mat?.diffuseTexture || mat?.albedoTexture || mat?.baseTexture || null;
-      if (
-        tex &&
-        typeof tex.uScale === "number" &&
-        typeof tex.vScale === "number"
-      ) {
-        tex.uScale = repeat;
-        tex.vScale = repeat;
+        mat?.diffuseTexture ||
+        mat?.albedoTexture ||
+        mat?.baseTexture ||
+        mat?.getTexture?.("textureSampler") ||
+        null;
+
+      setTextureTiling(tex);
+
+      if (mat instanceof flock.BABYLON.ShaderMaterial) {
+        mat.setFloat("uScale", repeat);
+        mat.setFloat("vScale", repeat);
       }
     };
 
