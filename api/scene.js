@@ -351,25 +351,12 @@ export const flockScene = {
     ground.metadata = ground.metadata || {};
     ground.metadata.blockKey = "ground";
 
-    // Helper to apply tiling consistently (diffuse/albedo/base)
-    const applyTilingIfAnyTexture = (mat, repeat = 25) => {
-      const tex =
-        mat?.diffuseTexture || mat?.albedoTexture || mat?.baseTexture || null;
-      if (
-        tex &&
-        typeof tex.uScale === "number" &&
-        typeof tex.vScale === "number"
-      ) {
-        tex.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-        tex.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-        tex.uScale = repeat;
-        tex.vScale = repeat;
-      }
+    const applyMapMaterial = (mat) => {
+      flock.applyMaterialToMesh(ground, "Plane", mat);
     };
 
     if (material && material instanceof flock.BABYLON.Material) {
-      ground.material = material;
-      applyTilingIfAnyTexture(ground.material);
+      applyMapMaterial(material);
     } else if (Array.isArray(material) && material.length >= 2) {
       const mat = new flock.BABYLON.StandardMaterial(
         "mapGradientMat",
@@ -383,24 +370,16 @@ export const flockScene = {
       mat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
       mat.backFaceCulling = true;
 
-      // Apply tiling to gradient
-      mat.diffuseTexture.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-      mat.diffuseTexture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-      mat.diffuseTexture.uScale = 25;
-      mat.diffuseTexture.vScale = 25;
+      // Clamp so the gradient spans the plane once
+      mat.diffuseTexture.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+      mat.diffuseTexture.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+      mat.diffuseTexture.uScale = 1;
+      mat.diffuseTexture.vScale = 1;
 
-      ground.material = mat;
+      applyMapMaterial(mat);
     } else if (material) {
-      // Single colour
-      const mat = new flock.BABYLON.StandardMaterial(
-        "mapColorMat",
-        flock.scene,
-      );
-      mat.diffuseColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(material),
-      );
-      mat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
-      ground.material = mat;
+      // Delegate to shared material application (handles strings, descriptors, etc.)
+      applyMapMaterial(material);
     }
 
     flock.ground = ground;
