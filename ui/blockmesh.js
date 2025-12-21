@@ -1764,7 +1764,13 @@ function replaceMeshModel(currentMesh, block) {
   //const originalNames = originalDirectChildren.map(n => n?.name);
   //console.log("[replaceMeshModel] Snapshot direct children:", originalNames);
   const shouldRestoreBoundingBox = currentMesh.showBoundingBox === true;
+  const parentWasEnabled = currentMesh.isEnabled?.();
+  const parentVisibility = currentMesh.visibility;
   currentMesh.showBoundingBox = false;
+  try {
+    currentMesh.setEnabled?.(false);
+  } catch {}
+  if (currentMesh.visibility !== undefined) currentMesh.visibility = 0;
   for (const child of originalDirectChildren) {
     if (!child || child.isDisposed?.()) continue;
     child.showBoundingBox = false;
@@ -1949,6 +1955,11 @@ function replaceMeshModel(currentMesh, block) {
       newChild.setEnabled?.(true);
     } catch {}
     if (newChild.visibility !== undefined) newChild.visibility = 1;
+    try {
+      currentMesh.setEnabled?.(parentWasEnabled ?? true);
+    } catch {}
+    if (currentMesh.visibility !== undefined)
+      currentMesh.visibility = parentVisibility ?? 1;
     if (shouldRestoreBoundingBox) currentMesh.showBoundingBox = true;
   });
 }
