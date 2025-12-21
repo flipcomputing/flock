@@ -12,4 +12,5 @@ export function ensureEditableMaterialBlock(materialBlock, { force = false } = {
         materialBlock.setShadow(false);
         materialBlock.setMovable(true);
         materialBlock.setDeletable(true);
+        materialBlock.render();
 }
