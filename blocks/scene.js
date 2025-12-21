@@ -158,38 +158,86 @@ function initSceneColourLikeBlock(block, cfg) {
         });
 }
 
-function respawnMaterialShadow(block) {
-        const input = block.getInput("MATERIAL");
-        if (!input || !input.connection) return;
+function cacheMaterialState(mapBlock) {
+  const mat = mapBlock.getInputTargetBlock("MATERIAL");
+  if (!mat || mat.type !== "material") return;
+  if (mat.isShadow?.()) return;
 
-        const shadowDom = Blockly.utils.xml.textToDom(`
-    <shadow type="material">
-      <value name="BASE_COLOR">
-        <shadow type="colour">
-          <field name="COLOR">#71BC78</field>
-        </shadow>
-      </value>
-      <value name="ALPHA">
-        <shadow type="math_number">
-          <field name="NUM">1.0</field>
-        </shadow>
-      </value>
-    </shadow>
-  `);
+  mapBlock._cachedMaterialState =
+    Blockly.serialization.blocks.save(mat);
+}
 
-        input.connection.setShadowDom(shadowDom);
-        input.connection.respawnShadow_();
+function refillMaterialFromCache(mapBlock) {
+  const ws = mapBlock.workspace;
+  if (!ws || ws.isFlyout) return false;
+
+  const input = mapBlock.getInput("MATERIAL");
+  const conn = input?.connection;
+  if (!conn || conn.isConnected()) return false;
+
+  const state = mapBlock._cachedMaterialState;
+  if (!state) return false;
+
+  const clone = Blockly.serialization.blocks.append(state, ws);
+  if (!clone?.outputConnection) return false;
+
+  clone.outputConnection.connect(conn);
+  return true;
+}
+
+function replaceShadowMaterialWithCache(mapBlock) {
+  const ws = mapBlock.workspace;
+  if (!ws || ws.isFlyout) return false;
+
+  const state = mapBlock._cachedMaterialState;
+  if (!state) return false;
+
+  const mat = mapBlock.getInputTargetBlock("MATERIAL");
+  if (!mat || mat.type !== "material") return false;
+  if (!mat.isShadow?.()) return false;
+
+  const input = mapBlock.getInput("MATERIAL");
+  const conn = input?.connection;
+  if (!conn) return false;
+
+  mat.dispose(false);
+
+  const clone = Blockly.serialization.blocks.append(state, ws);
+  if (!clone?.outputConnection) return false;
+
+  clone.outputConnection.connect(conn);
+  return true;
 }
 
 function promoteMaterialContainerFromShadow(mapBlock) {
-  const ws = mapBlock?.workspace;
+  const ws = mapBlock.workspace;
   if (!ws || ws.isFlyout) return;
 
-  const mat = mapBlock.getInputTargetBlock?.("MATERIAL");
+  const mat = mapBlock.getInputTargetBlock("MATERIAL");
   if (!mat || mat.type !== "material") return;
 
-  if (typeof mat.isShadow === "function" && mat.isShadow()) {
+  if (mat.isShadow?.()) {
     mat.setShadow(false);
+  }
+}
+
+function respawnMaterialShadow(mapBlock) {
+  const ws = mapBlock.workspace;
+  if (!ws || ws.isFlyout) return;
+
+  const input = mapBlock.getInput("MATERIAL");
+  const conn = input?.connection;
+  if (!conn || conn.isConnected()) return;
+
+  const restored = refillMaterialFromCache(mapBlock);
+  if (restored) return;
+
+  const block = ws.newBlock("material");
+  if (typeof block.initSvg === "function") block.initSvg();
+  if (typeof block.render === "function") block.render();
+
+  if (block?.outputConnection) {
+    block.outputConnection.connect(conn);
   }
 }
 
@@ -209,15 +257,25 @@ function attachCreateMapOnChange(block) {
 
     const relevant =
       wasBlockDeleted(changeEvent, block.id) ||
-      changeEventHitsTouches(changeEvent, touches);
+      changeEventHitsTouches(changeEvent, touches) ||
+      (changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+        changeEvent.blockId === block.id) ||
+      (changeEvent.type === Blockly.Events.BLOCK_MOVE &&
+        changeEvent.oldParentId === block.id &&
+        changeEvent.oldInputName === "MATERIAL");
 
     if (!relevant) return;
+
+    if (replaceShadowMaterialWithCache(block)) return;
 
     promoteMaterialContainerFromShadow(block);
 
     if (!block.getInputTargetBlock("MATERIAL")) {
       respawnMaterialShadow(block);
+      return;
     }
+
+    cacheMaterialState(block);
 
     if (handleMeshLifecycleChange(block, changeEvent)) return;
     if (handleFieldOrChildChange(block, changeEvent)) return;
