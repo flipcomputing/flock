@@ -1,6 +1,7 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
+import { getMetadata } from "meta-png";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
@@ -132,61 +133,61 @@ function validateBlocklyJson(json) {
 		}
 	}
 
-        function upgradeAnimationInputs(block) {
-                if (!block || typeof block !== "object") return;
+	function upgradeAnimationInputs(block) {
+		if (!block || typeof block !== "object") return;
 
-                const legacyAnimationName = block.fields?.ANIMATION_NAME;
-                const hasNewAnimationInput = block.inputs?.ANIMATION_NAME;
+		const legacyAnimationName = block.fields?.ANIMATION_NAME;
+		const hasNewAnimationInput = block.inputs?.ANIMATION_NAME;
 
-                if (
-                        legacyAnimationName &&
-                        !hasNewAnimationInput &&
-                        (block.type === "play_animation" ||
-                                block.type === "switch_animation")
-                ) {
-                        block.inputs = block.inputs || {};
-                        block.inputs.ANIMATION_NAME = {
-                                shadow: {
-                                        type: "animation_name",
-                                        fields: { ANIMATION_NAME: legacyAnimationName },
-                                },
-                        };
+		if (
+			legacyAnimationName &&
+			!hasNewAnimationInput &&
+			(block.type === "play_animation" ||
+				block.type === "switch_animation")
+		) {
+			block.inputs = block.inputs || {};
+			block.inputs.ANIMATION_NAME = {
+				shadow: {
+					type: "animation_name",
+					fields: { ANIMATION_NAME: legacyAnimationName },
+				},
+			};
 
-                        delete block.fields.ANIMATION_NAME;
+			delete block.fields.ANIMATION_NAME;
 
-                        if (block.fields && Object.keys(block.fields).length === 0) {
-                                delete block.fields;
-                        }
-                }
+			if (block.fields && Object.keys(block.fields).length === 0) {
+				delete block.fields;
+			}
+		}
 
-                if (block.inputs) {
-                        Object.values(block.inputs).forEach((input) => {
-                                upgradeAnimationInputs(input?.block);
-                                upgradeAnimationInputs(input?.shadow);
-                        });
-                }
+		if (block.inputs) {
+			Object.values(block.inputs).forEach((input) => {
+				upgradeAnimationInputs(input?.block);
+				upgradeAnimationInputs(input?.shadow);
+			});
+		}
 
-                upgradeAnimationInputs(block.next?.block);
-        }
+		upgradeAnimationInputs(block.next?.block);
+	}
 
-        // 3. Validate it's actually a Blockly workspace structure
-        function validateBlocklyStructure(data) {
-                // Empty workspace is valid
-                if (Object.keys(data).length === 0) {
-                        return;
-                }
+	// 3. Validate it's actually a Blockly workspace structure
+	function validateBlocklyStructure(data) {
+		// Empty workspace is valid
+		if (Object.keys(data).length === 0) {
+			return;
+		}
 
-                // Blockly workspace JSON should have specific structure
-                // Check if data.blocks exists and is a non-null object (not an array)
-                if (
-                        !data.blocks ||
-                        typeof data.blocks !== "object" ||
-                        Array.isArray(data.blocks)
-                ) {
-                        throw new Error(
-                                "Invalid Blockly structure: missing or invalid blocks object",
-                        );
-                }
+		// Blockly workspace JSON should have specific structure
+		// Check if data.blocks exists and is a non-null object (not an array)
+		if (
+			!data.blocks ||
+			typeof data.blocks !== "object" ||
+			Array.isArray(data.blocks)
+		) {
+			throw new Error(
+				"Invalid Blockly structure: missing or invalid blocks object",
+			);
+		}
 
 		// Whitelist allowed properties at root level
 		const allowedRootKeys = ["blocks", "variables", "workspaceComments"];
@@ -317,15 +318,15 @@ function validateBlocklyJson(json) {
 		}
 	}
 
-        // Run all validations
-        checkForDangerousContent(data);
-        validateBlocklyStructure(data);
+	// Run all validations
+	checkForDangerousContent(data);
+	validateBlocklyStructure(data);
 
-        if (data?.blocks?.blocks) {
-                data.blocks.blocks.forEach((block) => upgradeAnimationInputs(block));
-        }
+	if (data?.blocks?.blocks) {
+		data.blocks.blocks.forEach((block) => upgradeAnimationInputs(block));
+	}
 
-        return data;
+	return data;
 }
 
 export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
@@ -475,9 +476,7 @@ export async function exportCode(workspace) {
 				suggestedName: `${projectName}${FLOCK_EXT}`,
 				types: [
 					{
-                                            description: translate(
-                                                    "project_file_description",
-                                            ),
+						description: translate("project_file_description"),
 						accept: {
 							[FLOCK_MIME]: [FLOCK_EXT],
 						},
@@ -523,9 +522,7 @@ export function importSnippet() {
 		reader.onload = () => {
 			const content = reader.result;
 
-			if (fileType === "image/svg+xml") {
-				handleSVGImport(content);
-			} else if (fileType === "image/png") {
+			if (fileType === "image/png") {
 				handlePNGImport(content);
 			} else if (
 				fileType === "application/json" ||
@@ -550,34 +547,6 @@ export function importSnippet() {
 	};
 }
 
-// Handle SVG import
-function handleSVGImport(content) {
-	try {
-		const parser = new DOMParser();
-		const svgDoc = parser.parseFromString(content, "image/svg+xml");
-		const metadataElement = svgDoc.querySelector("metadata");
-
-		if (!metadataElement) {
-			console.error("No <metadata> tag found in the SVG file.");
-			return;
-		}
-
-		const metadataContent = metadataElement.textContent.trim();
-		const parsedData = JSON.parse(metadataContent);
-
-		if (!parsedData.blockJson) {
-			console.error("Metadata JSON does not contain 'blockJson'.");
-			return;
-		}
-
-		const blockJson = JSON.parse(parsedData.blockJson);
-		const workspace = Blockly.getMainWorkspace();
-		Blockly.serialization.blocks.append(blockJson, workspace);
-	} catch (error) {
-		console.error("Error processing SVG file:", error);
-	}
-}
-
 // Handle PNG import
 function handlePNGImport(content) {
 	try {
@@ -590,8 +559,11 @@ function handlePNGImport(content) {
 		}
 
 		const decodedMetadata = JSON.parse(decodeURIComponent(encodedMetadata));
+		const validatedBlocks = validateSnippetBlocks(decodedMetadata);
 		const workspace = Blockly.getMainWorkspace();
-		Blockly.serialization.blocks.append(decodedMetadata, workspace);
+		validatedBlocks.forEach((block) =>
+			Blockly.serialization.blocks.append(block, workspace),
+		);
 	} catch (error) {
 		console.error("Error processing PNG metadata:", error);
 	}
@@ -601,11 +573,35 @@ function handlePNGImport(content) {
 function handleJSONImport(content) {
 	try {
 		const blockJson = JSON.parse(content);
+		const validatedBlocks = validateSnippetBlocks(blockJson);
 		const workspace = Blockly.getMainWorkspace();
-		Blockly.serialization.blocks.append(blockJson, workspace);
+		validatedBlocks.forEach((block) =>
+			Blockly.serialization.blocks.append(block, workspace),
+		);
 	} catch (error) {
 		console.error("Error processing JSON file:", error);
 	}
+}
+
+// Validate snippet content before appending to the workspace
+function validateSnippetBlocks(snippetData) {
+	if (!snippetData) {
+		throw new Error("Snippet data is empty or undefined");
+	}
+
+	// Support both raw block JSON and wrapped workspace snippets
+	const blocks =
+		snippetData?.blocks?.blocks ??
+		(Array.isArray(snippetData) ? snippetData : [snippetData]);
+
+	const wrappedWorkspace = {
+		blocks: {
+			blocks,
+		},
+	};
+
+	const validated = validateBlocklyJson(wrappedWorkspace);
+	return validated.blocks.blocks;
 }
 
 // Function to set up file input handler
@@ -618,14 +614,14 @@ export function setupFileInput(workspace, executeCallback) {
 
 		const maxSize = 5 * 1024 * 1024;
 		if (file.size > maxSize) {
-                    alert(translate("file_too_large_alert"));
+			alert(translate("file_too_large_alert"));
 			event.target.value = ""; // Reset the input
 			return;
 		}
 
 		const lowerName = file.name.toLowerCase();
 		if (!lowerName.endsWith(".json") && !lowerName.endsWith(".flock")) {
-                    alert(translate("invalid_filetype_alert"));
+			alert(translate("invalid_filetype_alert"));
 			event.target.value = ""; // Reset the input
 			return;
 		}
@@ -668,7 +664,7 @@ export function setupFileInput(workspace, executeCallback) {
 				loadWorkspaceAndExecute(json, workspace, executeCallback);
 			} catch (e) {
 				console.error("Error loading Blockly project:", e);
-                            alert(translate("invalid_project_alert"));
+				alert(translate("invalid_project_alert"));
 				window.loadingCode = false;
 			} finally {
 				// Reset the input so the same file can be selected again
@@ -676,7 +672,7 @@ export function setupFileInput(workspace, executeCallback) {
 			}
 		};
 		reader.onerror = function () {
-                    alert(translate("failed_to_read_file_alert"));
+			alert(translate("failed_to_read_file_alert"));
 			window.loadingCode = false;
 			event.target.value = ""; // Reset the input
 		};
