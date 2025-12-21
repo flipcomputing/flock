@@ -1763,8 +1763,11 @@ function replaceMeshModel(currentMesh, block) {
   const oldChildScale = oldFirstChild?.scaling?.clone?.() || null;
   //const originalNames = originalDirectChildren.map(n => n?.name);
   //console.log("[replaceMeshModel] Snapshot direct children:", originalNames);
+  const shouldRestoreBoundingBox = currentMesh.showBoundingBox === true;
+  currentMesh.showBoundingBox = false;
   for (const child of originalDirectChildren) {
     if (!child || child.isDisposed?.()) continue;
+    child.showBoundingBox = false;
     try {
       child.setEnabled?.(false);
     } catch {}
@@ -1946,6 +1949,7 @@ function replaceMeshModel(currentMesh, block) {
       newChild.setEnabled?.(true);
     } catch {}
     if (newChild.visibility !== undefined) newChild.visibility = 1;
+    if (shouldRestoreBoundingBox) currentMesh.showBoundingBox = true;
   });
 }
 
