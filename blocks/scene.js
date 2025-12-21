@@ -179,7 +179,8 @@ function respawnMaterialShadow(block) {
   `);
 
         input.connection.setShadowDom(shadowDom);
-        input.connection.respawnShadow_();
+        const shadowBlock = input.connection.respawnShadow_();
+        ensureEditableMaterialBlock(shadowBlock, { force: true });
 }
 
 function attachCreateMapOnChange(block) {
