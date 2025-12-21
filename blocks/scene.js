@@ -258,9 +258,7 @@ export function defineSceneBlocks() {
                                         check: [
                                                 "Material",
                                                 "Array",
-                                                "Colour",
                                                 "material_like",
-                                                "colour_array",
                                         ],
                                 }),
                         ];
