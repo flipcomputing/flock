@@ -1763,6 +1763,13 @@ function replaceMeshModel(currentMesh, block) {
   const oldChildScale = oldFirstChild?.scaling?.clone?.() || null;
   //const originalNames = originalDirectChildren.map(n => n?.name);
   //console.log("[replaceMeshModel] Snapshot direct children:", originalNames);
+  for (const child of originalDirectChildren) {
+    if (!child || child.isDisposed?.()) continue;
+    try {
+      child.setEnabled?.(false);
+    } catch {}
+    if (child.visibility !== undefined) child.visibility = 0;
+  }
 
   // Debug old tree before removal
   /*for (const oc of originalDirectChildren) {
@@ -1933,6 +1940,12 @@ function replaceMeshModel(currentMesh, block) {
         loop: animationInfo.isLooping ?? true, // defaults to true if undefined
       });
     }
+
+    // Ensure the replacement is visible after swap
+    try {
+      newChild.setEnabled?.(true);
+    } catch {}
+    if (newChild.visibility !== undefined) newChild.visibility = 1;
   });
 }
 
