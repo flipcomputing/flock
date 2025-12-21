@@ -12,22 +12,20 @@ import { translate, getTooltip } from "../main/translation.js";
 const DEFAULT_MATERIAL_BASE_COLOR = "#71BC78";
 const DEFAULT_MATERIAL_ALPHA = "1.0";
 
-function createColourBlock(workspace, hex) {
-        const colourBlock = workspace.newBlock("colour");
-        colourBlock.setShadow(false);
-        colourBlock.setFieldValue(hex, "COLOR");
-        colourBlock.initSvg();
-        colourBlock.render();
-        return colourBlock;
+function makeColourShadowDom(hex) {
+        return Blockly.utils.xml.textToDom(`
+    <shadow type="colour">
+      <field name="COLOR">${hex}</field>
+    </shadow>
+  `);
 }
 
-function createNumberBlock(workspace, value) {
-        const numberBlock = workspace.newBlock("math_number");
-        numberBlock.setShadow(false);
-        numberBlock.setFieldValue(value, "NUM");
-        numberBlock.initSvg();
-        numberBlock.render();
-        return numberBlock;
+function makeNumberShadowDom(value) {
+        return Blockly.utils.xml.textToDom(`
+    <shadow type="math_number">
+      <field name="NUM">${value}</field>
+    </shadow>
+  `);
 }
 
 export function createDefaultMaterialBlock(workspace) {
@@ -37,22 +35,18 @@ export function createDefaultMaterialBlock(workspace) {
 
         const baseColorInput = materialBlock.getInput("BASE_COLOR");
         if (baseColorInput?.connection) {
-                baseColorInput.connection.connect(
-                        createColourBlock(
-                                workspace,
-                                DEFAULT_MATERIAL_BASE_COLOR,
-                        ).outputConnection,
+                baseColorInput.connection.setShadowDom(
+                        makeColourShadowDom(DEFAULT_MATERIAL_BASE_COLOR),
                 );
+                baseColorInput.connection.respawnShadow_();
         }
 
         const alphaInput = materialBlock.getInput("ALPHA");
         if (alphaInput?.connection) {
-                alphaInput.connection.connect(
-                        createNumberBlock(
-                                workspace,
-                                DEFAULT_MATERIAL_ALPHA,
-                        ).outputConnection,
+                alphaInput.connection.setShadowDom(
+                        makeNumberShadowDom(DEFAULT_MATERIAL_ALPHA),
                 );
+                alphaInput.connection.respawnShadow_();
         }
 
         materialBlock.render();
@@ -707,7 +701,7 @@ export function defineMaterialsBlocks() {
                           {
                                 type: "input_value",
                                 name: "MATERIAL",
-                                check: ["Material", "Array"], // Ensure it only accepts blocks that output a Material
+                                check: ["Material"], // Ensure it only accepts blocks that output a Material
                           },
                         ],
                         previousStatement: null,
