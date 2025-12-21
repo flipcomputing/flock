@@ -591,9 +591,67 @@ export function createBlocklyWorkspace() {
                 return Blockly.utils.svgMath.screenToWsCoordinates(ws, c);
         }
 
-        // Helper to get keyboard shortcut modifier key based on platform
-        const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-        const modKey = isMac ? "⌘" : "Ctrl";
+        // Add a context menu item that mirrors the keyboard-navigation "detach" (X) shortcut.
+        (function registerDetachContextMenuItem() {
+                const registry = Blockly.ContextMenuRegistry.registry;
+                const id = "detachBlockWithShortcut";
+                if (registry.getItem && registry.getItem(id)) return;
+
+                function renderShortcut(label, shortcut) {
+                        const wrapper = document.createElement("span");
+                        wrapper.style.display = "flex";
+                        wrapper.style.alignItems = "center";
+                        wrapper.style.justifyContent = "space-between";
+                        wrapper.style.gap = "1.5em";
+                        wrapper.style.width = "100%";
+
+                        const labelEl = document.createElement("span");
+                        labelEl.textContent = label;
+
+                        const shortcutEl = document.createElement("span");
+                        shortcutEl.textContent = shortcut;
+                        shortcutEl.style.color = "var(--blockly-text-disabled, #aaa)";
+
+                        wrapper.append(labelEl, shortcutEl);
+                        return wrapper;
+                }
+
+                registry.register({
+                        id,
+                        weight: 80,
+                        displayText: () => {
+                                const text = translate("detach_block_option");
+                                const label =
+                                        text === "detach_block_option"
+                                                ? "Detach"
+                                                : text;
+                                return renderShortcut(label, "X");
+                        },
+                        preconditionFn: (scope) => {
+                                const block = scope.block;
+                                if (!block || block.isInFlyout) return "hidden";
+
+                                const hasParent =
+                                        !!block.getParent() ||
+                                        !!block.previousConnection?.targetConnection ||
+                                        !!block.outputConnection?.targetConnection;
+                                return hasParent ? "enabled" : "disabled";
+                        },
+                        callback: (scope) => {
+                                const block = scope.block;
+                                if (!block) return;
+
+                                const healStack = !block.outputConnection?.isConnected();
+                                const prevGroup = Blockly.Events.getGroup();
+                                Blockly.Events.setGroup("contextmenu_detach");
+                                block.unplug(healStack);
+                                const cursor = block.workspace?.getCursor?.();
+                                if (cursor?.setCurNode) cursor.setCurNode(block);
+                                Blockly.Events.setGroup(prevGroup || null);
+                        },
+                        scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+                });
+        })();
 
         // ===== OVERRIDE CLIPBOARD METHODS =====
         // Save original methods
