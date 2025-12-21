@@ -63,9 +63,13 @@ export function respawnMaterialInput(block, inputName = "MATERIAL") {
         if (!block?.workspace) return;
         const input = block.getInput(inputName);
         if (!input?.connection) return;
-        if (input.connection.targetBlock()) return;
+        const target = input.connection.targetBlock();
+        if (target && !target.isShadow()) return;
 
         input.connection.setShadowDom(null);
+        if (target?.isShadow()) {
+                target.dispose(false);
+        }
         const materialBlock = createDefaultMaterialBlock(block.workspace);
         if (materialBlock.outputConnection) {
                 input.connection.connect(materialBlock.outputConnection);
@@ -85,7 +89,8 @@ function attachMaterialInputRespawn(block, inputName = "MATERIAL") {
                 if (!block.workspace || block.isDisposed?.()) return;
                 if (block.workspace.isFlyout) return;
 
-                if (!block.getInputTargetBlock(inputName)) {
+                const target = block.getInputTargetBlock(inputName);
+                if (!target || target.isShadow?.()) {
                         respawnMaterialInput(block, inputName);
                 }
         });

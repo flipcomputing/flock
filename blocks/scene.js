@@ -177,9 +177,7 @@ function attachCreateMapOnChange(block) {
                 ];
                 if (!eventTypes.includes(changeEvent.type)) return;
 
-                if (!block.getInputTargetBlock("MATERIAL")) {
-                        respawnMaterialShadow(block);
-                }
+                respawnMaterialShadow(block);
 
                 const relevant =
                         wasBlockDeleted(changeEvent, block.id) ||
