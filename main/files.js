@@ -561,9 +561,7 @@ function handlePNGImport(content) {
 		const decodedMetadata = JSON.parse(decodeURIComponent(encodedMetadata));
 		const validatedBlocks = validateSnippetBlocks(decodedMetadata);
 		const workspace = Blockly.getMainWorkspace();
-		validatedBlocks.forEach((block) =>
-			Blockly.serialization.blocks.append(block, workspace),
-		);
+		appendSnippetBlocksAtViewport(workspace, validatedBlocks);
 	} catch (error) {
 		console.error("Error processing PNG metadata:", error);
 	}
@@ -575,9 +573,7 @@ function handleJSONImport(content) {
 		const blockJson = JSON.parse(content);
 		const validatedBlocks = validateSnippetBlocks(blockJson);
 		const workspace = Blockly.getMainWorkspace();
-		validatedBlocks.forEach((block) =>
-			Blockly.serialization.blocks.append(block, workspace),
-		);
+		appendSnippetBlocksAtViewport(workspace, validatedBlocks);
 	} catch (error) {
 		console.error("Error processing JSON file:", error);
 	}
@@ -602,6 +598,33 @@ function validateSnippetBlocks(snippetData) {
 
 	const validated = validateBlocklyJson(wrappedWorkspace);
 	return validated.blocks.blocks;
+}
+
+function appendSnippetBlocksAtViewport(workspace, blocksJson) {
+	// Capture the set of existing top blocks so we can detect new ones.
+	const before = new Set(workspace.getTopBlocks(false).map((b) => b.id));
+
+	// Append
+	blocksJson.forEach((b) =>
+		Blockly.serialization.blocks.append(b, workspace),
+	);
+
+	// Collect the newly created top blocks
+	const created = workspace
+		.getTopBlocks(false)
+		.filter((b) => !before.has(b.id));
+	if (!created.length) return;
+
+	// Place them near the current viewport top-left, with a stagger.
+	const m = workspace.getMetrics();
+	const baseX = m.viewLeft + 40;
+	const baseY = m.viewTop + 40;
+
+	created.forEach((b, i) => {
+		// If the block had x/y, keep it. If not, move it.
+		// (Many snippets won't have x/y, so they'll move.)
+		b.moveBy(baseX + i * 40, baseY + i * 40);
+	});
 }
 
 // Function to set up file input handler
