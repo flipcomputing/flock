@@ -164,7 +164,7 @@ function makeMaterialShadowEditable(materialBlock) {
 
         materialBlock.setShadow(false);
         materialBlock.setMovable(true);
-        materialBlock.setDeletable(false);
+        materialBlock.setDeletable(true);
 }
 
 function respawnMaterialShadow(block) {
