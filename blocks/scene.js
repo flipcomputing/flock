@@ -161,14 +161,6 @@ function initSceneColourLikeBlock(block, cfg) {
 function makeMaterialShadowEditable(materialBlock) {
         if (!materialBlock || materialBlock.type !== "material") return;
 
-        const baseColorBlock = materialBlock.getInputTargetBlock("BASE_COLOR");
-        const alphaBlock = materialBlock.getInputTargetBlock("ALPHA");
-        const hasRealChild =
-                (baseColorBlock && !baseColorBlock.isShadow()) ||
-                (alphaBlock && !alphaBlock.isShadow());
-
-        if (!hasRealChild || !materialBlock.isShadow()) return;
-
         materialBlock.setShadow(false);
         materialBlock.setMovable(true);
         materialBlock.setDeletable(true);
@@ -194,7 +186,8 @@ function respawnMaterialShadow(block) {
   `);
 
         input.connection.setShadowDom(shadowDom);
-        input.connection.respawnShadow_();
+        const shadowBlock = input.connection.respawnShadow_();
+        makeMaterialShadowEditable(shadowBlock);
 }
 
 function attachCreateMapOnChange(block) {
