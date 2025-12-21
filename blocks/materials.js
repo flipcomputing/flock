@@ -9,6 +9,88 @@ import {
 import { flock } from "../flock.js";
 import { translate, getTooltip } from "../main/translation.js";
 
+const DEFAULT_MATERIAL_BASE_COLOR = "#71BC78";
+const DEFAULT_MATERIAL_ALPHA = "1.0";
+
+function createColourBlock(workspace, hex) {
+        const colourBlock = workspace.newBlock("colour");
+        colourBlock.setShadow(false);
+        colourBlock.setFieldValue(hex, "COLOR");
+        colourBlock.initSvg();
+        colourBlock.render();
+        return colourBlock;
+}
+
+function createNumberBlock(workspace, value) {
+        const numberBlock = workspace.newBlock("math_number");
+        numberBlock.setShadow(false);
+        numberBlock.setFieldValue(value, "NUM");
+        numberBlock.initSvg();
+        numberBlock.render();
+        return numberBlock;
+}
+
+export function createDefaultMaterialBlock(workspace) {
+        const materialBlock = workspace.newBlock("material");
+        materialBlock.setShadow(false);
+        materialBlock.initSvg();
+
+        const baseColorInput = materialBlock.getInput("BASE_COLOR");
+        if (baseColorInput?.connection) {
+                baseColorInput.connection.connect(
+                        createColourBlock(
+                                workspace,
+                                DEFAULT_MATERIAL_BASE_COLOR,
+                        ).outputConnection,
+                );
+        }
+
+        const alphaInput = materialBlock.getInput("ALPHA");
+        if (alphaInput?.connection) {
+                alphaInput.connection.connect(
+                        createNumberBlock(
+                                workspace,
+                                DEFAULT_MATERIAL_ALPHA,
+                        ).outputConnection,
+                );
+        }
+
+        materialBlock.render();
+        return materialBlock;
+}
+
+export function respawnMaterialInput(block, inputName = "MATERIAL") {
+        if (!block?.workspace) return;
+        const input = block.getInput(inputName);
+        if (!input?.connection) return;
+        if (input.connection.targetBlock()) return;
+
+        input.connection.setShadowDom(null);
+        const materialBlock = createDefaultMaterialBlock(block.workspace);
+        if (materialBlock.outputConnection) {
+                input.connection.connect(materialBlock.outputConnection);
+        }
+}
+
+function attachMaterialInputRespawn(block, inputName = "MATERIAL") {
+        block.setOnChange((changeEvent) => {
+                const eventTypes = [
+                        Blockly.Events.BLOCK_CREATE,
+                        Blockly.Events.BLOCK_CHANGE,
+                        Blockly.Events.BLOCK_MOVE,
+                        Blockly.Events.BLOCK_DELETE,
+                        Blockly.Events.UI,
+                ];
+                if (!eventTypes.includes(changeEvent.type)) return;
+                if (!block.workspace || block.isDisposed?.()) return;
+                if (block.workspace.isFlyout) return;
+
+                if (!block.getInputTargetBlock(inputName)) {
+                        respawnMaterialInput(block, inputName);
+                }
+        });
+}
+
 export function defineMaterialsBlocks() {
 
           Blockly.Blocks["change_color"] = {
@@ -631,7 +713,7 @@ export function defineMaterialsBlocks() {
                   });
                   this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle('materials_blocks');
+                  attachMaterialInputRespawn(this);
                 },
           };
 }
-

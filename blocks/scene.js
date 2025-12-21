@@ -11,6 +11,7 @@ import {
 import { mapNames } from "../config.js";
 import { updateOrCreateMeshFromBlock } from "../ui/blockmesh.js";
 import { translate, getTooltip, getOption } from "../main/translation.js";
+import { respawnMaterialInput } from "./materials.js";
 
 function initSceneJsonBlock(block, { type, args0, inputsInline = true }) {
         block.jsonInit({
@@ -159,26 +160,7 @@ function initSceneColourLikeBlock(block, cfg) {
 }
 
 function respawnMaterialShadow(block) {
-        const input = block.getInput("MATERIAL");
-        if (!input || !input.connection) return;
-
-        const shadowDom = Blockly.utils.xml.textToDom(`
-    <shadow type="material">
-      <value name="BASE_COLOR">
-        <shadow type="colour">
-          <field name="COLOR">#71BC78</field>
-        </shadow>
-      </value>
-      <value name="ALPHA">
-        <shadow type="math_number">
-          <field name="NUM">1.0</field>
-        </shadow>
-      </value>
-    </shadow>
-  `);
-
-        input.connection.setShadowDom(shadowDom);
-        input.connection.respawnShadow_();
+        respawnMaterialInput(block, "MATERIAL");
 }
 
 function attachCreateMapOnChange(block) {
@@ -195,15 +177,15 @@ function attachCreateMapOnChange(block) {
                 ];
                 if (!eventTypes.includes(changeEvent.type)) return;
 
+                if (!block.getInputTargetBlock("MATERIAL")) {
+                        respawnMaterialShadow(block);
+                }
+
                 const relevant =
                         wasBlockDeleted(changeEvent, block.id) ||
                         changeEventHitsTouches(changeEvent, touches);
 
                 if (!relevant) return;
-
-                if (!block.getInputTargetBlock("MATERIAL")) {
-                        respawnMaterialShadow(block);
-                }
 
                 if (handleMeshLifecycleChange(block, changeEvent)) return;
                 if (handleFieldOrChildChange(block, changeEvent)) return;
