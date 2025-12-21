@@ -1475,6 +1475,7 @@ function replaceMeshModel(currentMesh, block) {
 
   const modelName = block.getFieldValue("MODELS");
   if (!modelName) return;
+  const { color: blockColor } = resolveColorAndMaterialForBlock(block);
 
   // ---------- helpers ----------
   function walkNodes(root) {
@@ -1803,15 +1804,19 @@ function replaceMeshModel(currentMesh, block) {
     // Colors to reapply for non-characters
     let nonCharacterColors = null;
     if (!isCharacter) {
-      const cols = [];
-      for (const oc of originalDirectChildren) {
-        if (oc && !oc.isDisposed?.()) {
-          const c = extractColorsForChangeOrder(oc);
-          if (c.length) cols.push(...c);
+      if (Array.isArray(blockColor) ? blockColor.length : blockColor) {
+        nonCharacterColors = blockColor;
+      } else {
+        const cols = [];
+        for (const oc of originalDirectChildren) {
+          if (oc && !oc.isDisposed?.()) {
+            const c = extractColorsForChangeOrder(oc);
+            if (c.length) cols.push(...c);
+          }
         }
+        nonCharacterColors = cols;
+        //console.log("[NONCHAR_COLORS]", nonCharacterColors);
       }
-      nonCharacterColors = cols;
-      //console.log("[NONCHAR_COLORS]", nonCharacterColors);
     }
 
     // Measure old base (world) before removing originals
