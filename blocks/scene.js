@@ -163,7 +163,7 @@ function makeMaterialShadowEditable(materialBlock) {
         if (!materialBlock.isShadow()) return;
 
         materialBlock.setShadow(false);
-        materialBlock.setMovable(false);
+        materialBlock.setMovable(true);
         materialBlock.setDeletable(false);
 }
 
