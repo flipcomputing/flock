@@ -29,27 +29,23 @@ function makeNumberShadowDom(value) {
 }
 
 export function createDefaultMaterialBlock(workspace) {
-        const materialBlock = workspace.newBlock("material");
+        const materialXml = Blockly.utils.xml.textToDom(`
+    <block type="material">
+      <value name="BASE_COLOR">
+        <shadow type="colour">
+          <field name="COLOR">${DEFAULT_MATERIAL_BASE_COLOR}</field>
+        </shadow>
+      </value>
+      <value name="ALPHA">
+        <shadow type="math_number">
+          <field name="NUM">${DEFAULT_MATERIAL_ALPHA}</field>
+        </shadow>
+      </value>
+    </block>
+  `);
+
+        const materialBlock = Blockly.utils.xml.domToBlock(materialXml, workspace);
         materialBlock.setShadow(false);
-        materialBlock.initSvg();
-
-        const baseColorInput = materialBlock.getInput("BASE_COLOR");
-        if (baseColorInput?.connection) {
-                baseColorInput.connection.setShadowDom(
-                        makeColourShadowDom(DEFAULT_MATERIAL_BASE_COLOR),
-                );
-                baseColorInput.connection.respawnShadow_();
-        }
-
-        const alphaInput = materialBlock.getInput("ALPHA");
-        if (alphaInput?.connection) {
-                alphaInput.connection.setShadowDom(
-                        makeNumberShadowDom(DEFAULT_MATERIAL_ALPHA),
-                );
-                alphaInput.connection.respawnShadow_();
-        }
-
-        materialBlock.render();
         return materialBlock;
 }
 
