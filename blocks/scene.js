@@ -158,6 +158,15 @@ function initSceneColourLikeBlock(block, cfg) {
         });
 }
 
+function makeMaterialShadowEditable(materialBlock) {
+        if (!materialBlock || materialBlock.type !== "material") return;
+        if (!materialBlock.isShadow()) return;
+
+        materialBlock.setShadow(false);
+        materialBlock.setMovable(false);
+        materialBlock.setDeletable(false);
+}
+
 function respawnMaterialShadow(block) {
         const input = block.getInput("MATERIAL");
         if (!input || !input.connection) return;
@@ -178,7 +187,8 @@ function respawnMaterialShadow(block) {
   `);
 
         input.connection.setShadowDom(shadowDom);
-        input.connection.respawnShadow_();
+        const shadowBlock = input.connection.respawnShadow_();
+        makeMaterialShadowEditable(shadowBlock);
 }
 
 function attachCreateMapOnChange(block) {
@@ -201,8 +211,11 @@ function attachCreateMapOnChange(block) {
 
                 if (!relevant) return;
 
-                if (!block.getInputTargetBlock("MATERIAL")) {
+                const materialBlock = block.getInputTargetBlock("MATERIAL");
+                if (!materialBlock) {
                         respawnMaterialShadow(block);
+                } else {
+                        makeMaterialShadowEditable(materialBlock);
                 }
 
                 if (handleMeshLifecycleChange(block, changeEvent)) return;
