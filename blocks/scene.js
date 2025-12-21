@@ -59,7 +59,7 @@ function makeInSubtree(ws) {
         };
 }
 
-function makeTouchesInputSubtree(block, ws, inputName) {
+export function makeTouchesInputSubtree(block, ws, inputName) {
         const inSubtree = makeInSubtree(ws);
         return (id) => {
                 if (!id) return false;
@@ -77,7 +77,7 @@ function isDragStop(changeEvent) {
         );
 }
 
-function changeEventHitsTouches(changeEvent, touches) {
+export function changeEventHitsTouches(changeEvent, touches) {
         return (
                 touches(changeEvent.blockId) ||
                 (Array.isArray(changeEvent.ids) &&
@@ -88,7 +88,7 @@ function changeEventHitsTouches(changeEvent, touches) {
         );
 }
 
-function wasBlockDeleted(changeEvent, blockId) {
+export function wasBlockDeleted(changeEvent, blockId) {
         return (
                 changeEvent.type === Blockly.Events.BLOCK_DELETE &&
                 Array.isArray(changeEvent.ids) &&
@@ -158,132 +158,130 @@ function initSceneColourLikeBlock(block, cfg) {
         });
 }
 
-function cacheMaterialState(mapBlock) {
-  const mat = mapBlock.getInputTargetBlock("MATERIAL");
-  if (!mat || mat.type !== "material") return;
-  if (mat.isShadow?.()) return;
+export function cacheMaterialState(mapBlock) {
+        const mat = mapBlock.getInputTargetBlock("MATERIAL");
+        if (!mat || mat.type !== "material") return;
+        if (mat.isShadow?.()) return;
 
-  mapBlock._cachedMaterialState =
-    Blockly.serialization.blocks.save(mat);
+        mapBlock._cachedMaterialState = Blockly.serialization.blocks.save(mat);
 }
 
 function refillMaterialFromCache(mapBlock) {
-  const ws = mapBlock.workspace;
-  if (!ws || ws.isFlyout) return false;
+        const ws = mapBlock.workspace;
+        if (!ws || ws.isFlyout) return false;
 
-  const input = mapBlock.getInput("MATERIAL");
-  const conn = input?.connection;
-  if (!conn || conn.isConnected()) return false;
+        const input = mapBlock.getInput("MATERIAL");
+        const conn = input?.connection;
+        if (!conn || conn.isConnected()) return false;
 
-  const state = mapBlock._cachedMaterialState;
-  if (!state) return false;
+        const state = mapBlock._cachedMaterialState;
+        if (!state) return false;
 
-  const clone = Blockly.serialization.blocks.append(state, ws);
-  if (!clone?.outputConnection) return false;
+        const clone = Blockly.serialization.blocks.append(state, ws);
+        if (!clone?.outputConnection) return false;
 
-  clone.outputConnection.connect(conn);
-  return true;
+        clone.outputConnection.connect(conn);
+        return true;
 }
 
-function replaceShadowMaterialWithCache(mapBlock) {
-  const ws = mapBlock.workspace;
-  if (!ws || ws.isFlyout) return false;
+export function replaceShadowMaterialWithCache(mapBlock) {
+        const ws = mapBlock.workspace;
+        if (!ws || ws.isFlyout) return false;
 
-  const state = mapBlock._cachedMaterialState;
-  if (!state) return false;
+        const state = mapBlock._cachedMaterialState;
+        if (!state) return false;
 
-  const mat = mapBlock.getInputTargetBlock("MATERIAL");
-  if (!mat || mat.type !== "material") return false;
-  if (!mat.isShadow?.()) return false;
+        const mat = mapBlock.getInputTargetBlock("MATERIAL");
+        if (!mat || mat.type !== "material") return false;
+        if (!mat.isShadow?.()) return false;
 
-  const input = mapBlock.getInput("MATERIAL");
-  const conn = input?.connection;
-  if (!conn) return false;
+        const input = mapBlock.getInput("MATERIAL");
+        const conn = input?.connection;
+        if (!conn) return false;
 
-  mat.dispose(false);
+        mat.dispose(false);
 
-  const clone = Blockly.serialization.blocks.append(state, ws);
-  if (!clone?.outputConnection) return false;
+        const clone = Blockly.serialization.blocks.append(state, ws);
+        if (!clone?.outputConnection) return false;
 
-  clone.outputConnection.connect(conn);
-  return true;
+        clone.outputConnection.connect(conn);
+        return true;
 }
 
-function promoteMaterialContainerFromShadow(mapBlock) {
-  const ws = mapBlock.workspace;
-  if (!ws || ws.isFlyout) return;
+export function promoteMaterialContainerFromShadow(mapBlock) {
+        const ws = mapBlock.workspace;
+        if (!ws || ws.isFlyout) return;
 
-  const mat = mapBlock.getInputTargetBlock("MATERIAL");
-  if (!mat || mat.type !== "material") return;
+        const mat = mapBlock.getInputTargetBlock("MATERIAL");
+        if (!mat || mat.type !== "material") return;
 
-  if (mat.isShadow?.()) {
-    mat.setShadow(false);
-  }
+        if (mat.isShadow?.()) {
+                mat.setShadow(false);
+        }
 }
 
-function respawnMaterialShadow(mapBlock) {
-  const ws = mapBlock.workspace;
-  if (!ws || ws.isFlyout) return;
+export function respawnMaterialShadow(mapBlock) {
+        const ws = mapBlock.workspace;
+        if (!ws || ws.isFlyout) return;
 
-  const input = mapBlock.getInput("MATERIAL");
-  const conn = input?.connection;
-  if (!conn || conn.isConnected()) return;
+        const input = mapBlock.getInput("MATERIAL");
+        const conn = input?.connection;
+        if (!conn || conn.isConnected()) return;
 
-  const restored = refillMaterialFromCache(mapBlock);
-  if (restored) return;
+        const restored = refillMaterialFromCache(mapBlock);
+        if (restored) return;
 
-  const block = ws.newBlock("material");
-  if (typeof block.initSvg === "function") block.initSvg();
-  if (typeof block.render === "function") block.render();
+        const block = ws.newBlock("material");
+        if (typeof block.initSvg === "function") block.initSvg();
+        if (typeof block.render === "function") block.render();
 
-  if (block?.outputConnection) {
-    block.outputConnection.connect(conn);
-  }
+        if (block?.outputConnection) {
+                block.outputConnection.connect(conn);
+        }
 }
 
 function attachCreateMapOnChange(block) {
-  const ws = block.workspace;
-  const touches = makeTouchesInputSubtree(block, ws, "MATERIAL");
+        const ws = block.workspace;
+        const touches = makeTouchesInputSubtree(block, ws, "MATERIAL");
 
-  block.setOnChange((changeEvent) => {
-    const eventTypes = [
-      Blockly.Events.BLOCK_CREATE,
-      Blockly.Events.BLOCK_CHANGE,
-      Blockly.Events.BLOCK_MOVE,
-      Blockly.Events.BLOCK_DELETE,
-      Blockly.Events.UI,
-    ];
-    if (!eventTypes.includes(changeEvent.type)) return;
+        block.setOnChange((changeEvent) => {
+                const eventTypes = [
+                        Blockly.Events.BLOCK_CREATE,
+                        Blockly.Events.BLOCK_CHANGE,
+                        Blockly.Events.BLOCK_MOVE,
+                        Blockly.Events.BLOCK_DELETE,
+                        Blockly.Events.UI,
+                ];
+                if (!eventTypes.includes(changeEvent.type)) return;
 
-    const relevant =
-      wasBlockDeleted(changeEvent, block.id) ||
-      changeEventHitsTouches(changeEvent, touches) ||
-      (changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-        changeEvent.blockId === block.id) ||
-      (changeEvent.type === Blockly.Events.BLOCK_MOVE &&
-        changeEvent.oldParentId === block.id &&
-        changeEvent.oldInputName === "MATERIAL");
+                const relevant =
+                        wasBlockDeleted(changeEvent, block.id) ||
+                        changeEventHitsTouches(changeEvent, touches) ||
+                        (changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+                                changeEvent.blockId === block.id) ||
+                        (changeEvent.type === Blockly.Events.BLOCK_MOVE &&
+                                changeEvent.oldParentId === block.id &&
+                                changeEvent.oldInputName === "MATERIAL");
 
-    if (!relevant) return;
+                if (!relevant) return;
 
-    if (replaceShadowMaterialWithCache(block)) return;
+                if (replaceShadowMaterialWithCache(block)) return;
 
-    promoteMaterialContainerFromShadow(block);
+                promoteMaterialContainerFromShadow(block);
 
-    if (!block.getInputTargetBlock("MATERIAL")) {
-      respawnMaterialShadow(block);
-      return;
-    }
+                if (!block.getInputTargetBlock("MATERIAL")) {
+                        respawnMaterialShadow(block);
+                        return;
+                }
 
-    cacheMaterialState(block);
+                cacheMaterialState(block);
 
-    if (handleMeshLifecycleChange(block, changeEvent)) return;
-    if (handleFieldOrChildChange(block, changeEvent)) return;
+                if (handleMeshLifecycleChange(block, changeEvent)) return;
+                if (handleFieldOrChildChange(block, changeEvent)) return;
 
-    updateOrCreateMeshFromBlock(block, changeEvent);
-  });
+                updateOrCreateMeshFromBlock(block, changeEvent);
+        });
 }
-
 
 export function defineSceneBlocks() {
         Blockly.Blocks["set_sky_color"] = {
