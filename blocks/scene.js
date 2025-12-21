@@ -181,36 +181,51 @@ function respawnMaterialShadow(block) {
         input.connection.respawnShadow_();
 }
 
-function attachCreateMapOnChange(block) {
-        const ws = block.workspace;
-        const touches = makeTouchesInputSubtree(block, ws, "MATERIAL");
+function promoteMaterialContainerFromShadow(mapBlock) {
+  const ws = mapBlock?.workspace;
+  if (!ws || ws.isFlyout) return;
 
-        block.setOnChange((changeEvent) => {
-                const eventTypes = [
-                        Blockly.Events.BLOCK_CREATE,
-                        Blockly.Events.BLOCK_CHANGE,
-                        Blockly.Events.BLOCK_MOVE,
-                        Blockly.Events.BLOCK_DELETE,
-                        Blockly.Events.UI,
-                ];
-                if (!eventTypes.includes(changeEvent.type)) return;
+  const mat = mapBlock.getInputTargetBlock?.("MATERIAL");
+  if (!mat || mat.type !== "material") return;
 
-                const relevant =
-                        wasBlockDeleted(changeEvent, block.id) ||
-                        changeEventHitsTouches(changeEvent, touches);
-
-                if (!relevant) return;
-
-                if (!block.getInputTargetBlock("MATERIAL")) {
-                        respawnMaterialShadow(block);
-                }
-
-                if (handleMeshLifecycleChange(block, changeEvent)) return;
-                if (handleFieldOrChildChange(block, changeEvent)) return;
-
-                updateOrCreateMeshFromBlock(block, changeEvent);
-        });
+  if (typeof mat.isShadow === "function" && mat.isShadow()) {
+    mat.setShadow(false);
+  }
 }
+
+function attachCreateMapOnChange(block) {
+  const ws = block.workspace;
+  const touches = makeTouchesInputSubtree(block, ws, "MATERIAL");
+
+  block.setOnChange((changeEvent) => {
+    const eventTypes = [
+      Blockly.Events.BLOCK_CREATE,
+      Blockly.Events.BLOCK_CHANGE,
+      Blockly.Events.BLOCK_MOVE,
+      Blockly.Events.BLOCK_DELETE,
+      Blockly.Events.UI,
+    ];
+    if (!eventTypes.includes(changeEvent.type)) return;
+
+    const relevant =
+      wasBlockDeleted(changeEvent, block.id) ||
+      changeEventHitsTouches(changeEvent, touches);
+
+    if (!relevant) return;
+
+    promoteMaterialContainerFromShadow(block);
+
+    if (!block.getInputTargetBlock("MATERIAL")) {
+      respawnMaterialShadow(block);
+    }
+
+    if (handleMeshLifecycleChange(block, changeEvent)) return;
+    if (handleFieldOrChildChange(block, changeEvent)) return;
+
+    updateOrCreateMeshFromBlock(block, changeEvent);
+  });
+}
+
 
 export function defineSceneBlocks() {
         Blockly.Blocks["set_sky_color"] = {
