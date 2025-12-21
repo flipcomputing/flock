@@ -11,6 +11,7 @@ import {
 import { mapNames } from "../config.js";
 import { updateOrCreateMeshFromBlock } from "../ui/blockmesh.js";
 import { translate, getTooltip, getOption } from "../main/translation.js";
+import { ensureEditableMaterialBlock } from "./materialShadow.js";
 
 function initSceneJsonBlock(block, { type, args0, inputsInline = true }) {
         block.jsonInit({
@@ -158,14 +159,6 @@ function initSceneColourLikeBlock(block, cfg) {
         });
 }
 
-function makeMaterialShadowEditable(materialBlock) {
-        if (!materialBlock || materialBlock.type !== "material") return;
-
-        materialBlock.setShadow(false);
-        materialBlock.setMovable(true);
-        materialBlock.setDeletable(true);
-}
-
 function respawnMaterialShadow(block) {
         const input = block.getInput("MATERIAL");
         if (!input || !input.connection) return;
@@ -186,8 +179,7 @@ function respawnMaterialShadow(block) {
   `);
 
         input.connection.setShadowDom(shadowDom);
-        const shadowBlock = input.connection.respawnShadow_();
-        makeMaterialShadowEditable(shadowBlock);
+        input.connection.respawnShadow_();
 }
 
 function attachCreateMapOnChange(block) {
@@ -214,7 +206,7 @@ function attachCreateMapOnChange(block) {
                 if (!materialBlock) {
                         respawnMaterialShadow(block);
                 } else {
-                        makeMaterialShadowEditable(materialBlock);
+                        ensureEditableMaterialBlock(materialBlock);
                 }
 
                 if (handleMeshLifecycleChange(block, changeEvent)) return;

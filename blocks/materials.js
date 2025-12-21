@@ -8,6 +8,7 @@ import {
 } from "../config.js";
 import { flock } from "../flock.js";
 import { translate, getTooltip } from "../main/translation.js";
+import { ensureEditableMaterialBlock } from "./materialShadow.js";
 
 export function defineMaterialsBlocks() {
 
@@ -631,7 +632,22 @@ export function defineMaterialsBlocks() {
                   });
                   this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle('materials_blocks');
+                        this.setOnChange((changeEvent) => {
+                                const eventTypes = [
+                                        Blockly.Events.BLOCK_CREATE,
+                                        Blockly.Events.BLOCK_CHANGE,
+                                        Blockly.Events.BLOCK_MOVE,
+                                        Blockly.Events.BLOCK_DELETE,
+                                        Blockly.Events.UI,
+                                ];
+                                if (!eventTypes.includes(changeEvent.type)) return;
+
+                                const materialBlock =
+                                        this.getInputTargetBlock("MATERIAL");
+                                if (materialBlock) {
+                                        ensureEditableMaterialBlock(materialBlock);
+                                }
+                        });
                 },
           };
 }
-
