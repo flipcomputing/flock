@@ -1541,7 +1541,26 @@ function replaceMeshModel(currentMesh, block) {
     const r = Math.round(c.r * 255),
       g = Math.round(c.g * 255),
       b = Math.round(c.b * 255);
-    return flock.rgbToHex(r, g, b);
+    return _rgbToHex(r, g, b);
+  }
+
+  function _rgbToHex(r, g, b) {
+    // Ensure values are within valid range
+    r = Math.max(0, Math.min(255, Math.round(r)));
+    g = Math.max(0, Math.min(255, Math.round(g)));
+    b = Math.max(0, Math.min(255, Math.round(b)));
+
+    // Convert to hex and pad with zeros if needed
+    const hex =
+      "#" +
+      [r, g, b]
+        .map((x) => {
+          const hex = x.toString(16);
+          return hex.length === 1 ? "0" + hex : hex;
+        })
+        .join("");
+
+    return hex;
   }
 
   function _matPrimaryColor(mat) {
