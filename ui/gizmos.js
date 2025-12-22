@@ -702,13 +702,15 @@ export function toggleGizmo(gizmoType) {
         function () {
           const mesh = gizmoManager.attachedMesh;
 
-          const motionType = mesh.physics.getMotionType();
+          if (!mesh?.physics) return;
+
+          const motionType = mesh.physics.getMotionType?.();
           mesh.savedMotionType = motionType;
 
           if (
             mesh.physics &&
-            mesh.physics.getMotionType() !=
-              flock.BABYLON.PhysicsMotionType.STATIC
+            motionType != null &&
+            motionType !== flock.BABYLON.PhysicsMotionType.STATIC
           ) {
             mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
             mesh.physics.disablePreStep = false;
@@ -722,7 +724,7 @@ export function toggleGizmo(gizmoType) {
       gizmoManager.boundingBoxDragBehavior.onDragEndObservable.add(function () {
         const mesh = gizmoManager.attachedMesh;
 
-        if (mesh.savedMotionType) {
+        if (mesh.savedMotionType && mesh.physics) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
 
@@ -770,7 +772,7 @@ export function toggleGizmo(gizmoType) {
       gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
         const mesh = gizmoManager.attachedMesh;
 
-        if (mesh.savedMotionType) {
+        if (mesh.savedMotionType && mesh.physics) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
         mesh.computeWorldMatrix(true);
@@ -803,6 +805,8 @@ export function toggleGizmo(gizmoType) {
         let mesh = gizmoManager.attachedMesh;
         if (!mesh) return;
 
+        if (!mesh.physics) return;
+
         const motionType =
           mesh.physics?.getMotionType?.() ??
           flock.BABYLON.PhysicsMotionType.STATIC;
@@ -820,9 +824,11 @@ export function toggleGizmo(gizmoType) {
 
       gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(function () {
         let mesh = gizmoManager.attachedMesh;
-        while (mesh.parent && !mesh.parent.physics) {
+        while (mesh?.parent && !mesh.parent.physics) {
           mesh = mesh.parent;
         }
+
+        if (!mesh?.physics) return;
 
         if (mesh.savedMotionType) {
           mesh.physics.setMotionType(mesh.savedMotionType);

@@ -174,6 +174,11 @@ export const flockPhysics = {
   },
   setPhysicsShape(meshName, shapeType) {
     return flock.whenModelReady(meshName, (mesh) => {
+      const capturePhysicsState = (targetMesh) => ({
+        motionType: targetMesh.physics?.getMotionType?.(),
+        disablePreStep: targetMesh.physics?.disablePreStep,
+      });
+
       const disposePhysics = (targetMesh) => {
         if (targetMesh.physics) {
           const body = targetMesh.physics;
@@ -204,6 +209,7 @@ export const flockPhysics = {
       // --- CAPSULE path (player collider) ---
       const applyCapsuleToRoot = (targetMesh) => {
         targetMesh.computeWorldMatrix(true);
+        const { motionType, disablePreStep } = capturePhysicsState(targetMesh);
         disposePhysics(targetMesh);
 
         // IMPORTANT: use targetMesh (not outer mesh)
@@ -227,13 +233,17 @@ export const flockPhysics = {
         );
         physicsBody.shape = physicsShape;
         physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
-        physicsBody.disablePreStep = false;
+        physicsBody.disablePreStep = disablePreStep ?? false;
 
         targetMesh.physics = physicsBody;
+        if (motionType != null) {
+          physicsBody.setMotionType(motionType);
+        }
       };
 
       // --- MESH path (preserve original behaviour) ---
       const applyMeshPhysicsShape = (targetMesh) => {
+        const { motionType, disablePreStep } = capturePhysicsState(targetMesh);
         // Keep your original material gate
         if (!targetMesh.material) {
           disposePhysics(targetMesh);
@@ -249,13 +259,13 @@ export const flockPhysics = {
 
         const physicsBody = new flock.BABYLON.PhysicsBody(
           targetMesh,
-          flock.BABYLON.PhysicsMotionType.STATIC, // unchanged
+          motionType ?? flock.BABYLON.PhysicsMotionType.STATIC,
           false,
           flock.scene,
         );
         physicsBody.shape = physicsShape;
         physicsBody.setMassProperties({ mass: 1, restitution: 0.5 }); // unchanged
-        physicsBody.disablePreStep = false;
+        physicsBody.disablePreStep = disablePreStep ?? false;
 
         targetMesh.physics = physicsBody;
       };

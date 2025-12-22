@@ -147,10 +147,13 @@ export const flockTransform = {
 
           try {
             let originalMotionType = null;
+            let originalDisablePreStep = null;
+            let motionTypeTemporarilyChanged = false;
 
             // Store original physics state if physics object
             if (mesh1.physics) {
               originalMotionType = mesh1.physics.getMotionType();
+              originalDisablePreStep = mesh1.physics.disablePreStep;
 
               // Only change motion type if it's not already DYNAMIC or ANIMATED
               if (
@@ -161,6 +164,7 @@ export const flockTransform = {
                 mesh1.physics.setMotionType(
                   flock.BABYLON.PhysicsMotionType.ANIMATED,
                 );
+                motionTypeTemporarilyChanged = true;
               }
             }
 
@@ -182,8 +186,15 @@ export const flockTransform = {
                 mesh1.rotationQuaternion,
               );
 
+              const restoreDisablePreStep = () => {
+                if (originalDisablePreStep != null) {
+                  mesh1.physics.disablePreStep = originalDisablePreStep;
+                }
+              };
+
               // Restore original motion type if it was changed and different from ANIMATED
               if (
+                motionTypeTemporarilyChanged &&
                 originalMotionType &&
                 originalMotionType !==
                   flock.BABYLON.PhysicsMotionType.ANIMATED &&
@@ -192,7 +203,10 @@ export const flockTransform = {
                 // Use setTimeout to allow physics update to complete first
                 setTimeout(() => {
                   mesh1.physics.setMotionType(originalMotionType);
+                  restoreDisablePreStep();
                 }, 0);
+              } else {
+                restoreDisablePreStep();
               }
             }
 
@@ -218,11 +232,13 @@ export const flockTransform = {
 
         try {
           let originalMotionType = null;
+          let originalDisablePreStep = null;
           let originalVelocity = null;
           let motionTypeTemporarilyChanged = false;
 
           if (mesh.physics) {
             originalMotionType = mesh.physics.getMotionType?.();
+            originalDisablePreStep = mesh.physics.disablePreStep;
             originalVelocity = mesh.physics.getLinearVelocity?.();
 
             // Only coerce to ANIMATED if the body is neither DYNAMIC nor ANIMATED.
@@ -266,6 +282,11 @@ export const flockTransform = {
             // Restore original motion type sync if we coerced it.
             if (motionTypeTemporarilyChanged && originalMotionType != null) {
               mesh.physics.setMotionType(originalMotionType);
+              if (originalDisablePreStep != null) {
+                mesh.physics.disablePreStep = originalDisablePreStep;
+              }
+            } else if (originalDisablePreStep != null) {
+              mesh.physics.disablePreStep = originalDisablePreStep;
             }
           }
 
