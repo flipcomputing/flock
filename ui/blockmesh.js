@@ -1476,6 +1476,20 @@ function replaceMeshModel(currentMesh, block) {
   const modelName = block.getFieldValue("MODELS");
   if (!modelName) return;
 
+  const wasEnabled =
+    typeof currentMesh.isEnabled === "function"
+      ? currentMesh.isEnabled()
+      : currentMesh.isVisible ?? true;
+  const setMeshEnabled = (enabled) => {
+    if (typeof currentMesh.setEnabled === "function") {
+      currentMesh.setEnabled(enabled);
+    } else {
+      currentMesh.isVisible = enabled;
+    }
+  };
+
+  if (wasEnabled) setMeshEnabled(false);
+
   // ---------- helpers ----------
   function walkNodes(root) {
     const out = [];
@@ -1793,140 +1807,149 @@ function replaceMeshModel(currentMesh, block) {
     : flock.createObject(createArgs);
 
   flock.whenModelReady(newMeshName, (loadedMesh) => {
-    if (!loadedMesh) return;
-
-    const newChild = firstRenderable(loadedMesh) || loadedMesh;
-
-    // Debug new incoming temp tree
-    //printMaterialTree(loadedMesh, "NEW");
-
-    // Colors to reapply for non-characters
-    let nonCharacterColors = null;
-    if (!isCharacter) {
-      const cols = [];
-      for (const oc of originalDirectChildren) {
-        if (oc && !oc.isDisposed?.()) {
-          const c = extractColorsForChangeOrder(oc);
-          if (c.length) cols.push(...c);
-        }
-      }
-      nonCharacterColors = cols;
-      //console.log("[NONCHAR_COLORS]", nonCharacterColors);
+    if (!loadedMesh) {
+      if (wasEnabled) setMeshEnabled(true);
+      return;
     }
 
-    // Measure old base (world) before removing originals
-    const oldBaseY = worldBaseYOfRenderables(originalDirectChildren);
-
-    // Remove physics on the temp container to avoid duplicate bodies
-    stripPhysicsTree(loadedMesh);
-
-    // Detach new child from its loader wrapper
     try {
-      newChild.setParent?.(null, true);
-    } catch {}
+      const newChild = firstRenderable(loadedMesh) || loadedMesh;
 
-    // Remove ONLY the original direct children
-    const removed = [];
-    const skipped = [];
-    for (const child of originalDirectChildren) {
-      if (!child || child.isDisposed?.()) {
-        skipped.push({ name: child?.name, reason: "already disposed" });
-        continue;
-      }
-      if (child === currentMesh) {
-        skipped.push({ name: child.name, reason: "is parent" });
-        continue;
-      }
-      if (child.parent !== currentMesh) {
-        skipped.push({ name: child.name, reason: "no longer direct child" });
-        continue;
-      }
-      stripPhysicsTree(child);
-      disposeTree(child);
-      removed.push(child.name);
-    }
-    //console.log("[replaceMeshModel] Disposed original direct children:", removed);
-    //if (skipped.length) console.log("[replaceMeshModel] Skipped (not removed):", skipped);
+      // Debug new incoming temp tree
+      //printMaterialTree(loadedMesh, "NEW");
 
-    // Parent the replacement under the existing parent
-    newChild.parent = currentMesh;
-
-    // Apply old first child's local scale (if any) to the new child
-    if (oldChildScale && newChild.scaling) {
-      try {
-        newChild.scaling.copyFrom(oldChildScale);
-      } catch {}
-      try {
-        newChild.computeWorldMatrix(true);
-        newChild.refreshBoundingInfo?.();
-      } catch {}
-    }
-
-    // Base alignment (world) uses updated bounds
-    if (oldBaseY != null) {
-      try {
-        newChild.computeWorldMatrix(true);
-        newChild.refreshBoundingInfo?.();
-        const newBaseY = newChild.getBoundingInfo().boundingBox.minimumWorld.y;
-        if (isFinite(newBaseY)) {
-          const dy = oldBaseY - newBaseY;
-          const abs = newChild.getAbsolutePosition();
-          newChild.setAbsolutePosition(
-            new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
-          );
+      // Colors to reapply for non-characters
+      let nonCharacterColors = null;
+      if (!isCharacter) {
+        const cols = [];
+        for (const oc of originalDirectChildren) {
+          if (oc && !oc.isDisposed?.()) {
+            const c = extractColorsForChangeOrder(oc);
+            if (c.length) cols.push(...c);
+          }
         }
-      } catch {}
-    }
+        nonCharacterColors = cols;
+        //console.log("[NONCHAR_COLORS]", nonCharacterColors);
+      }
 
-    // Base alignment (world)
-    if (oldBaseY != null) {
+      // Measure old base (world) before removing originals
+      const oldBaseY = worldBaseYOfRenderables(originalDirectChildren);
+
+      // Remove physics on the temp container to avoid duplicate bodies
+      stripPhysicsTree(loadedMesh);
+
+      // Detach new child from its loader wrapper
       try {
-        newChild.computeWorldMatrix(true);
-        newChild.refreshBoundingInfo?.();
-        const newBaseY = newChild.getBoundingInfo().boundingBox.minimumWorld.y;
-        if (isFinite(newBaseY)) {
-          const dy = oldBaseY - newBaseY;
-          const abs = newChild.getAbsolutePosition();
-          newChild.setAbsolutePosition(
-            new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
-          );
-        }
+        newChild.setParent?.(null, true);
       } catch {}
-    }
 
-    // Apply colours
-    if (isCharacter) {
-      const palette =
-        (currentMesh.metadata && currentMesh.metadata.colors) || null;
-      if (palette && Object.keys(palette).length) {
+      // Remove ONLY the original direct children
+      const removed = [];
+      const skipped = [];
+      for (const child of originalDirectChildren) {
+        if (!child || child.isDisposed?.()) {
+          skipped.push({ name: child?.name, reason: "already disposed" });
+          continue;
+        }
+        if (child === currentMesh) {
+          skipped.push({ name: child.name, reason: "is parent" });
+          continue;
+        }
+        if (child.parent !== currentMesh) {
+          skipped.push({ name: child.name, reason: "no longer direct child" });
+          continue;
+        }
+        stripPhysicsTree(child);
+        disposeTree(child);
+        removed.push(child.name);
+      }
+      //console.log("[replaceMeshModel] Disposed original direct children:", removed);
+      //if (skipped.length) console.log("[replaceMeshModel] Skipped (not removed):", skipped);
+
+      // Parent the replacement under the existing parent
+      newChild.parent = currentMesh;
+
+      // Apply old first child's local scale (if any) to the new child
+      if (oldChildScale && newChild.scaling) {
         try {
-          flock.applyColorsToCharacter(currentMesh, palette);
+          newChild.scaling.copyFrom(oldChildScale);
+        } catch {}
+        try {
+          newChild.computeWorldMatrix(true);
+          newChild.refreshBoundingInfo?.();
         } catch {}
       }
-    } else if (nonCharacterColors && nonCharacterColors.length) {
-      try {
-        flock.changeColorMesh(newChild, nonCharacterColors);
-      } catch (e) {
-        console.warn("changeColorMesh failed", e);
+
+      // Base alignment (world) uses updated bounds
+      if (oldBaseY != null) {
+        try {
+          newChild.computeWorldMatrix(true);
+          newChild.refreshBoundingInfo?.();
+          const newBaseY =
+            newChild.getBoundingInfo().boundingBox.minimumWorld.y;
+          if (isFinite(newBaseY)) {
+            const dy = oldBaseY - newBaseY;
+            const abs = newChild.getAbsolutePosition();
+            newChild.setAbsolutePosition(
+              new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
+            );
+          }
+        } catch {}
       }
-    }
 
-    // Dispose loader wrapper if distinct (physics already stripped)
-    if (loadedMesh !== newChild && !loadedMesh.isDisposed?.()) {
-      try {
-        loadedMesh.setParent?.(null);
-      } catch {}
-      try {
-        loadedMesh.dispose?.();
-      } catch {}
-    }
+      // Base alignment (world)
+      if (oldBaseY != null) {
+        try {
+          newChild.computeWorldMatrix(true);
+          newChild.refreshBoundingInfo?.();
+          const newBaseY =
+            newChild.getBoundingInfo().boundingBox.minimumWorld.y;
+          if (isFinite(newBaseY)) {
+            const dy = oldBaseY - newBaseY;
+            const abs = newChild.getAbsolutePosition();
+            newChild.setAbsolutePosition(
+              new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
+            );
+          }
+        } catch {}
+      }
 
-    if (animationInfo?.name) {
-      flock.switchAnimation(loadedMesh.name, {
-        animationName: animationInfo.name,
-        restart: true,
-        loop: animationInfo.isLooping ?? true, // defaults to true if undefined
-      });
+      // Apply colours
+      if (isCharacter) {
+        const palette =
+          (currentMesh.metadata && currentMesh.metadata.colors) || null;
+        if (palette && Object.keys(palette).length) {
+          try {
+            flock.applyColorsToCharacter(currentMesh, palette);
+          } catch {}
+        }
+      } else if (nonCharacterColors && nonCharacterColors.length) {
+        try {
+          flock.changeColorMesh(newChild, nonCharacterColors);
+        } catch (e) {
+          console.warn("changeColorMesh failed", e);
+        }
+      }
+
+      // Dispose loader wrapper if distinct (physics already stripped)
+      if (loadedMesh !== newChild && !loadedMesh.isDisposed?.()) {
+        try {
+          loadedMesh.setParent?.(null);
+        } catch {}
+        try {
+          loadedMesh.dispose?.();
+        } catch {}
+      }
+
+      if (animationInfo?.name) {
+        flock.switchAnimation(loadedMesh.name, {
+          animationName: animationInfo.name,
+          restart: true,
+          loop: animationInfo.isLooping ?? true, // defaults to true if undefined
+        });
+      }
+    } finally {
+      if (wasEnabled) setMeshEnabled(true);
     }
   });
 }
