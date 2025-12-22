@@ -1822,13 +1822,35 @@ function replaceMeshModel(currentMesh, block) {
       let nonCharacterColors = null;
       if (!isCharacter) {
         const cols = [];
-        for (const oc of originalDirectChildren) {
-          if (oc && !oc.isDisposed?.()) {
-            const c = extractColorsForChangeOrder(oc);
-            if (c.length) cols.push(...c);
+    for (const oc of originalDirectChildren) {
+      if (oc && !oc.isDisposed?.()) {
+        const c = extractColorsForChangeOrder(oc);
+        if (c.length) cols.push(...c);
+      }
+    }
+    const blockColors = (() => {
+      if (block.type === "load_multi_object") {
+        const colorsInput = block.getInput("COLORS");
+        const listBlock = colorsInput?.connection?.targetBlock?.();
+        if (listBlock?.type === "lists_create_with") {
+          const collected = [];
+          for (const input of listBlock.inputList || []) {
+            if (!input?.name?.startsWith("ADD")) continue;
+            const target = input.connection?.targetBlock?.();
+            const hex =
+              target?.getFieldValue?.("COLOR") ||
+              target?.getFieldValue?.("COLOUR") ||
+              null;
+            if (hex) collected.push(hex);
           }
+          return collected;
         }
-        nonCharacterColors = cols;
+      }
+      return null;
+    })();
+
+    nonCharacterColors =
+      blockColors && blockColors.length ? blockColors : cols;
         //console.log("[NONCHAR_COLORS]", nonCharacterColors);
       }
 
