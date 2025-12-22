@@ -55,6 +55,7 @@ export const flockMesh = {
     mesh.metadata.physicsCapsule = {
       radius,
       height: adjustedHeight,
+      baseY: localCenter.y - adjustedHeight / 2,
       localCenter,
     };
 
@@ -62,7 +63,7 @@ export const flockMesh = {
   },
   createHorizontalCapsuleFromBoundingBox(mesh, scene, yOffsetFactor = 0) {
     // Get dimensions from the current vertical capsule
-    let radius, height;
+    let radius, height, localCenter, baseY;
 
     const physicsMesh = mesh.physics
       ? mesh
@@ -85,45 +86,72 @@ export const flockMesh = {
         );
         radius = currentShape.radius;
         height = cylinderLength + 2 * radius;
+        const centerY =
+          (currentShape.pointA.y + currentShape.pointB.y) / 2 || 0;
+        baseY = centerY - radius;
       }
     }
 
+    const capsuleMetadata =
+      mesh.metadata?.physicsCapsule || physicsMesh?.metadata?.physicsCapsule;
     if (!radius || !height) {
-      if (mesh.metadata?.physicsCapsule) {
-        radius = mesh.metadata.physicsCapsule.radius;
-        height = mesh.metadata.physicsCapsule.height;
+      if (capsuleMetadata) {
+        radius = capsuleMetadata.radius;
+        height = capsuleMetadata.height;
+        localCenter = capsuleMetadata.localCenter;
+        baseY = capsuleMetadata.baseY;
       } else {
         mesh.computeWorldMatrix(true);
         const boundingInfo = mesh.getBoundingInfo();
-        height =
-          boundingInfo.boundingBox.maximumWorld.y -
-          boundingInfo.boundingBox.minimumWorld.y;
-        const width =
-          boundingInfo.boundingBox.maximumWorld.x -
-          boundingInfo.boundingBox.minimumWorld.x;
-        const depth =
-          boundingInfo.boundingBox.maximumWorld.z -
-          boundingInfo.boundingBox.minimumWorld.z;
+        const bb = boundingInfo.boundingBox;
+
+        const localMin = bb.minimum;
+        const localMax = bb.maximum;
+
+        height = localMax.y - localMin.y;
+        const width = localMax.x - localMin.x;
+        const depth = localMax.z - localMin.z;
         radius = Math.min(width, depth) / 2;
+
+        localCenter = bb.center.clone();
+        baseY = localCenter.y - height / 2;
+
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.physicsCapsule = {
+          radius,
+          height,
+          localCenter,
+          baseY,
+        };
       }
+    }
+
+    if (!localCenter) {
+      mesh.computeWorldMatrix(true);
+      const boundingInfo = mesh.getBoundingInfo();
+      localCenter = boundingInfo.boundingBox.center.clone();
+    }
+
+    if (baseY === undefined) {
+      baseY = localCenter.y - height / 2;
     }
 
     // Create horizontal capsule with same dimensions as vertical, rotated along Z-axis
     const cylinderLength = Math.max(0, height - 2 * radius);
-    const center = flock.BABYLON.Vector3.Zero();
 
     // Calculate Y offset relative to mesh height
     const yOffset = yOffsetFactor * height;
+    const centerY = baseY + radius + yOffset;
 
     const segmentStart = new flock.BABYLON.Vector3(
-      center.x,
-      center.y + yOffset,
-      center.z - cylinderLength / 2,
+      localCenter.x,
+      centerY,
+      localCenter.z - cylinderLength / 2,
     );
     const segmentEnd = new flock.BABYLON.Vector3(
-      center.x,
-      center.y + yOffset,
-      center.z + cylinderLength / 2,
+      localCenter.x,
+      centerY,
+      localCenter.z + cylinderLength / 2,
     );
 
     const shape = new flock.BABYLON.PhysicsShapeCapsule(
