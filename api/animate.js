@@ -6,6 +6,70 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+const determineDesiredShapeType = (animationName) => {
+  if (animationName === "Fly") return "horizontal-fly";
+  if (animationName === "Fall") return "horizontal-fall";
+  if (animationName === "Sitting" || animationName === "Sit_Down") {
+    return "sitting";
+  }
+  return "vertical";
+};
+
+const updateCapsuleShapeForAnimation = (
+  physicsMesh,
+  animationName,
+  { fallYOffset = -0.4 } = {},
+) => {
+  if (
+    !physicsMesh ||
+    !physicsMesh.physics ||
+    !physicsMesh.physics.shape ||
+    physicsMesh.physics.shape.constructor.name !== "_PhysicsShapeCapsule"
+  ) {
+    return;
+  }
+
+  const desiredShapeType = determineDesiredShapeType(animationName);
+  if (!physicsMesh.metadata) physicsMesh.metadata = {};
+
+  if (physicsMesh.metadata.currentPhysicsShapeType === desiredShapeType) {
+    return;
+  }
+
+  const motionType = physicsMesh.physics.getMotionType();
+  const massProps = physicsMesh.physics.getMassProperties();
+  const disablePreStep = physicsMesh.physics.disablePreStep;
+
+  let newShape;
+  if (desiredShapeType === "horizontal-fly") {
+    newShape = flock.createHorizontalCapsuleFromBoundingBox(
+      physicsMesh,
+      flock.scene,
+      0,
+    );
+  } else if (desiredShapeType === "horizontal-fall") {
+    newShape = flock.createHorizontalCapsuleFromBoundingBox(
+      physicsMesh,
+      flock.scene,
+      fallYOffset,
+    );
+  } else if (desiredShapeType === "sitting") {
+    newShape = flock.createSittingCapsuleFromBoundingBox(
+      physicsMesh,
+      flock.scene,
+    );
+  } else {
+    newShape = flock.createCapsuleFromBoundingBox(physicsMesh, flock.scene);
+  }
+
+  physicsMesh.physics.shape = newShape;
+  physicsMesh.physics.setMotionType(motionType);
+  physicsMesh.physics.setMassProperties(massProps);
+  physicsMesh.physics.disablePreStep = disablePreStep;
+
+  physicsMesh.metadata.currentPhysicsShapeType = desiredShapeType;
+};
+
 export const flockAnimate = {
   async playAnimation(
     meshName,
@@ -1183,61 +1247,9 @@ export const flockAnimate = {
 
     // Update physics shape
     const physicsMesh = meshOrGroup;
-    if (
-      physicsMesh &&
-      physicsMesh.physics &&
-      physicsMesh.physics.shape &&
-      physicsMesh.physics.shape.constructor.name === "_PhysicsShapeCapsule"
-    ) {
-      let desiredShapeType = "vertical";
-      if (animationName === "Fly") {
-        desiredShapeType = "horizontal-fly";
-      } else if (animationName === "Fall") {
-        desiredShapeType = "horizontal-fall";
-      } else if (animationName === "Sitting" || animationName === "Sit_Down") {
-        desiredShapeType = "sitting";
-      }
-
-      if (
-        !mesh.metadata.currentPhysicsShapeType ||
-        mesh.metadata.currentPhysicsShapeType !== desiredShapeType
-      ) {
-        const motionType = physicsMesh.physics.getMotionType();
-        const massProps = physicsMesh.physics.getMassProperties();
-        const disablePreStep = physicsMesh.physics.disablePreStep;
-
-        let newShape;
-        if (desiredShapeType === "horizontal-fly") {
-          newShape = flock.createHorizontalCapsuleFromBoundingBox(
-            physicsMesh,
-            flock.scene,
-            0,
-          );
-        } else if (desiredShapeType === "horizontal-fall") {
-          newShape = flock.createHorizontalCapsuleFromBoundingBox(
-            physicsMesh,
-            flock.scene,
-            -0.4,
-          );
-        } else if (desiredShapeType === "sitting") {
-          newShape = flock.createSittingCapsuleFromBoundingBox(
-            physicsMesh,
-            flock.scene,
-          );
-        } else {
-          newShape = flock.createCapsuleFromBoundingBox(
-            physicsMesh,
-            flock.scene,
-          );
-        }
-
-        physicsMesh.physics.shape = newShape;
-        physicsMesh.physics.setMotionType(motionType);
-        physicsMesh.physics.setMassProperties(massProps);
-        physicsMesh.physics.disablePreStep = disablePreStep;
-        mesh.metadata.currentPhysicsShapeType = desiredShapeType;
-      }
-    }
+    updateCapsuleShapeForAnimation(physicsMesh, animationName, {
+      fallYOffset: -0.4,
+    });
 
     // Start animation
     if (!retargetedGroup.isPlaying || restart) {
@@ -1417,72 +1429,9 @@ skeleton.bones.forEach((b) => {
     // Update physics shape based on animation
     const physicsMesh = meshOrGroup;
 
-    if (
-      physicsMesh &&
-      physicsMesh.physics &&
-      physicsMesh.physics.shape &&
-      physicsMesh.physics.shape.constructor.name === "_PhysicsShapeCapsule"
-    ) {
-      // Determine desired physics shape type based on animation name
-      let desiredShapeType = "vertical";
-      if (animationName === "Fly") {
-        desiredShapeType = "horizontal-fly";
-      } else if (animationName === "Fall") {
-        desiredShapeType = "horizontal-fall";
-      } else if (animationName === "Sitting" || animationName === "Sit_Down") {
-        //console.log("Sitting animation detected");
-        desiredShapeType = "sitting";
-      }
-
-      // Only update if the shape type has changed
-      if (
-        !mesh.metadata.currentPhysicsShapeType ||
-        mesh.metadata.currentPhysicsShapeType !== desiredShapeType
-      ) {
-        // Preserve physics properties
-        const motionType = physicsMesh.physics.getMotionType();
-        const massProps = physicsMesh.physics.getMassProperties();
-        const disablePreStep = physicsMesh.physics.disablePreStep;
-
-        // Create new shape based on animation
-        // Always use physicsMesh which has the full body bounding box
-        let newShape;
-        if (desiredShapeType === "horizontal-fly") {
-          newShape = flock.createHorizontalCapsuleFromBoundingBox(
-            physicsMesh,
-            flock.scene,
-            0,
-          );
-        } else if (desiredShapeType === "horizontal-fall") {
-          newShape = flock.createHorizontalCapsuleFromBoundingBox(
-            physicsMesh,
-            flock.scene,
-            -0.4,
-          );
-        } else if (desiredShapeType === "sitting") {
-          newShape = flock.createSittingCapsuleFromBoundingBox(
-            physicsMesh,
-            flock.scene,
-          );
-        } else {
-          newShape = flock.createCapsuleFromBoundingBox(
-            physicsMesh,
-            flock.scene,
-          );
-        }
-
-        // Update the physics shape
-        physicsMesh.physics.shape = newShape;
-
-        // Restore physics properties
-        physicsMesh.physics.setMotionType(motionType);
-        physicsMesh.physics.setMassProperties(massProps);
-        physicsMesh.physics.disablePreStep = disablePreStep;
-
-        // Track the current physics shape type
-        mesh.metadata.currentPhysicsShapeType = desiredShapeType;
-      }
-    }
+    updateCapsuleShapeForAnimation(physicsMesh, animationName, {
+      fallYOffset: -0.4,
+    });
 
     if (!retargetedGroup.isPlaying || restart) {
       retargetedGroup.stop();
@@ -1659,84 +1608,9 @@ skeleton.bones.forEach((b) => {
     // Update physics shape based on animation
     const physicsMesh = mesh;
 
-    if (
-      physicsMesh &&
-      physicsMesh.physics &&
-      physicsMesh.physics.shape &&
-      physicsMesh.physics.shape.constructor.name === "_PhysicsShapeCapsule"
-    ) {
-      // Find mesh with skeleton for bounding box calculation
-      const findMeshWithSkeleton = (rootMesh) => {
-        if (rootMesh?.skeleton) return rootMesh;
-        if (rootMesh?.getChildMeshes) {
-          for (const child of rootMesh.getChildMeshes()) {
-            if (child.skeleton) return child;
-          }
-        }
-        return null;
-      };
-      const skeletonMesh = findMeshWithSkeleton(mesh) || mesh;
-
-      // Determine desired physics shape type based on animation name
-      let desiredShapeType = "vertical";
-      if (animationName === "Fly") {
-        desiredShapeType = "horizontal-fly";
-      } else if (animationName === "Fall") {
-        desiredShapeType = "horizontal-fall";
-      } else if (animationName === "Sitting") {
-        desiredShapeType = "sitting";
-      }
-
-      // Only update if the shape type has changed
-      if (!skeletonMesh.metadata) skeletonMesh.metadata = {};
-      if (
-        !skeletonMesh.metadata.currentPhysicsShapeType ||
-        skeletonMesh.metadata.currentPhysicsShapeType !== desiredShapeType
-      ) {
-        // Preserve physics properties
-        const motionType = physicsMesh.physics.getMotionType();
-        const massProps = physicsMesh.physics.getMassProperties();
-        const disablePreStep = physicsMesh.physics.disablePreStep;
-
-        // Create new shape based on animation
-        // Always use physicsMesh which has the full body bounding box
-        let newShape;
-        if (desiredShapeType === "horizontal-fly") {
-          newShape = flock.createHorizontalCapsuleFromBoundingBox(
-            physicsMesh,
-            flock.scene,
-            0,
-          );
-        } else if (desiredShapeType === "horizontal-fall") {
-          newShape = flock.createHorizontalCapsuleFromBoundingBox(
-            physicsMesh,
-            flock.scene,
-            -0.5,
-          );
-        } else if (desiredShapeType === "sitting") {
-          newShape = flock.createSittingCapsuleFromBoundingBox(
-            physicsMesh,
-            flock.scene,
-          );
-        } else {
-          newShape = flock.createCapsuleFromBoundingBox(
-            physicsMesh,
-            flock.scene,
-          );
-        }
-
-        // Update the physics shape
-        physicsMesh.physics.shape = newShape;
-
-        // Restore physics properties
-        physicsMesh.physics.setMotionType(motionType);
-        physicsMesh.physics.setMassProperties(massProps);
-        physicsMesh.physics.disablePreStep = disablePreStep;
-
-        // Track the current physics shape type
-        skeletonMesh.metadata.currentPhysicsShapeType = desiredShapeType;
-      }
-    }
+    updateCapsuleShapeForAnimation(physicsMesh, animationName, {
+      fallYOffset: -0.5,
+    });
 
     return targetAnimationGroup;
   },
