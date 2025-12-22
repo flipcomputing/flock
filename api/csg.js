@@ -331,7 +331,7 @@ export const flockCSG = {
 			});
 		});
 	},
-	subtractMeshes(modelId, baseMeshName, meshNames, approach = "merge") {
+	subtractMeshesMerge(modelId, baseMeshName, meshNames) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
@@ -345,168 +345,100 @@ export const flockCSG = {
 					node.getTotalVertices &&
 					node.getTotalVertices() > 0 &&
 					node.material
-				) {
+				)
 					out.push(node);
-				}
 				const kids = node.getChildren ? node.getChildren() : [];
 				for (let i = kids.length - 1; i >= 0; i--) stack.push(kids[i]);
 			}
 			return out;
 		};
 
+		const cloneForCSG = (src, name) => {
+			src.computeWorldMatrix(true);
+			const worldMatrix = src.getWorldMatrix();
+			const dup = src.clone(name);
+			dup.setParent(null);
+			dup.bakeTransformIntoVertices(worldMatrix);
+			dup.position.set(0, 0, 0);
+			dup.rotation.set(0, 0, 0);
+			dup.rotationQuaternion = null;
+			dup.scaling.set(1, 1, 1);
+			dup.computeWorldMatrix(true);
+			const kinds = [
+				flock.BABYLON.VertexBuffer.UVKind,
+				flock.BABYLON.VertexBuffer.ColorKind,
+				flock.BABYLON.VertexBuffer.TangentKind,
+			];
+			kinds.forEach((k) => {
+				if (dup.isVerticesDataPresent(k)) dup.removeVerticesData(k);
+			});
+			return dup;
+		};
+
 		return new Promise((resolve) => {
 			flock.whenModelReady(baseMeshName, (baseMesh) => {
 				if (!baseMesh) return resolve(null);
+				let actualBase = baseMesh.metadata?.modelName
+					? flock._findFirstDescendantWithMaterial(baseMesh) ||
+						baseMesh
+					: baseMesh;
 
 				flock
 					.prepareMeshes(modelId, meshNames, blockId)
 					.then((validMeshes) => {
 						const scene = baseMesh.getScene();
-						let outerCSG;
-						let actualBase;
+						const baseDuplicate = cloneForCSG(
+							actualBase,
+							"baseDuplicate",
+						);
+						let outerCSG = flock.BABYLON.CSG2.FromMesh(
+							baseDuplicate,
+							false,
+						);
 						const subtractDuplicates = [];
 
-						// =========================================================
-						// PATH A: INDIVIDUAL (Your working Donut Logic)
-						// =========================================================
-						if (approach === "individual") {
-							actualBase = baseMesh;
-							if (baseMesh.metadata?.modelName) {
-								const meshWithMaterial =
-									flock._findFirstDescendantWithMaterial(
-										baseMesh,
+						validMeshes.forEach((mesh, meshIndex) => {
+							const parts = collectMaterialMeshesDeep(mesh);
+							if (parts.length > 0) {
+								const partClones = parts.map((p, i) =>
+									cloneForCSG(p, `temp_${meshIndex}_${i}`),
+								);
+								const isDonut =
+									mesh.name.toLowerCase().includes("donut") ||
+									mesh.metadata?.modelName
+										?.toLowerCase()
+										.includes("donut");
+
+								if (isDonut) {
+									partClones.forEach((pc) =>
+										subtractDuplicates.push(pc),
 									);
-								if (meshWithMaterial)
-									actualBase = meshWithMaterial;
-							}
-
-							const baseDuplicate =
-								actualBase.clone("baseDuplicate");
-							baseDuplicate.setParent(null);
-							baseDuplicate.position = actualBase
-								.getAbsolutePosition()
-								.clone();
-							baseDuplicate.rotationQuaternion = null;
-							baseDuplicate.rotation =
-								actualBase.absoluteRotationQuaternion
-									? actualBase.absoluteRotationQuaternion.toEulerAngles()
-									: actualBase.rotation.clone();
-							baseDuplicate.computeWorldMatrix(true);
-
-							outerCSG = flock.BABYLON.CSG2.FromMesh(
-								baseDuplicate,
-								false,
-							);
-
-							validMeshes.forEach((mesh) => {
-								const parts = collectMaterialMeshesDeep(mesh);
-								parts.forEach((p) => {
-									const dup = p.clone("partDup", null, true);
-									dup.computeWorldMatrix(true);
-									if (typeof dup.flipFaces === "function")
-										dup.flipFaces();
-									subtractDuplicates.push(dup);
-								});
-							});
-						}
-						// =========================================================
-						// PATH B: MERGE (Your working Pendant/Star Logic)
-						// =========================================================
-						else {
-							actualBase = baseMesh.metadata?.modelName
-								? flock._findFirstDescendantWithMaterial(
-										baseMesh,
-									) || baseMesh
-								: baseMesh;
-
-							const cloneForCSG = (src, name) => {
-								src.computeWorldMatrix(true);
-								const worldMatrix = src.getWorldMatrix();
-								const dup = src.clone(name);
-								dup.setParent(null);
-								dup.bakeTransformIntoVertices(worldMatrix);
-								dup.position.set(0, 0, 0);
-								dup.rotation.set(0, 0, 0);
-								dup.rotationQuaternion = null;
-								dup.scaling.set(1, 1, 1);
-								dup.computeWorldMatrix(true);
-
-								const kinds = [
-									flock.BABYLON.VertexBuffer.UVKind,
-									flock.BABYLON.VertexBuffer.ColorKind,
-									flock.BABYLON.VertexBuffer.TangentKind,
-								];
-								kinds.forEach((k) => {
-									if (dup.isVerticesDataPresent(k))
-										dup.removeVerticesData(k);
-								});
-								return dup;
-							};
-
-							const baseDuplicate = cloneForCSG(
-								actualBase,
-								"baseDuplicate",
-							);
-							outerCSG = flock.BABYLON.CSG2.FromMesh(
-								baseDuplicate,
-								false,
-							);
-
-							validMeshes.forEach((mesh, meshIndex) => {
-								const parts = collectMaterialMeshesDeep(mesh);
-								if (parts.length > 0) {
-									const partClones = parts.map((p, i) =>
-										cloneForCSG(
-											p,
-											`temp_${meshIndex}_${i}`,
-										),
-									);
-
-									// Keep your internal donut auto-check for the merge path
-									const isAutoDonut =
-										mesh.name
-											.toLowerCase()
-											.includes("donut") ||
-										mesh.metadata?.modelName
-											?.toLowerCase()
-											.includes("donut");
-
-									if (isAutoDonut) {
-										partClones.forEach((pc) =>
-											subtractDuplicates.push(pc),
-										);
-									} else {
-										let unified =
-											partClones.length > 1
-												? flock.BABYLON.Mesh.MergeMeshes(
-														partClones,
-														true,
-														true,
-														undefined,
-														false,
-														true,
-													)
-												: partClones[0];
-
-										if (unified) {
-											unified.forceSharedVertices();
-											if (
-												mesh.metadata?.modelName &&
-												typeof unified.flipFaces ===
-													"function"
-											) {
-												unified.flipFaces();
-											}
-											subtractDuplicates.push(unified);
-										}
+								} else {
+									let unified =
+										partClones.length > 1
+											? flock.BABYLON.Mesh.MergeMeshes(
+													partClones,
+													true,
+													true,
+													undefined,
+													false,
+													true,
+												)
+											: partClones[0];
+									if (unified) {
+										unified.forceSharedVertices();
+										if (
+											mesh.metadata?.modelName &&
+											typeof unified.flipFaces ===
+												"function"
+										)
+											unified.flipFaces();
+										subtractDuplicates.push(unified);
 									}
 								}
-							});
-						}
+							}
+						});
 
-						// =========================================================
-						// SUBTRACTION & FINAL ALIGNMENT
-						// =========================================================
 						subtractDuplicates.forEach((m) => {
 							try {
 								const meshCSG = flock.BABYLON.CSG2.FromMesh(
@@ -515,7 +447,7 @@ export const flockCSG = {
 								);
 								outerCSG = outerCSG.subtract(meshCSG);
 							} catch (e) {
-								console.warn("Piece skip", e);
+								console.warn(e);
 							}
 						});
 
@@ -524,28 +456,9 @@ export const flockCSG = {
 							scene,
 							{ centerMesh: false },
 						);
-
-						if (approach === "individual") {
-							// Path A Alignment
-							const localCenter = resultMesh
-								.getBoundingInfo()
-								.boundingBox.center.clone();
-							resultMesh.setPivotMatrix(
-								BABYLON.Matrix.Translation(
-									localCenter.x,
-									localCenter.y,
-									localCenter.z,
-								),
-								false,
-							);
-							resultMesh.position.subtractInPlace(localCenter);
-						} else {
-							// Path B Alignment
-							resultMesh.position.set(0, 0, 0);
-							resultMesh.rotation.set(0, 0, 0);
-							resultMesh.scaling.set(1, 1, 1);
-						}
-
+						resultMesh.position.set(0, 0, 0);
+						resultMesh.rotation.set(0, 0, 0);
+						resultMesh.scaling.set(1, 1, 1);
 						resultMesh.computeWorldMatrix(true);
 						flock.applyResultMeshProperties(
 							resultMesh,
@@ -554,7 +467,7 @@ export const flockCSG = {
 							blockId,
 						);
 
-						// Cleanup
+						baseDuplicate.dispose();
 						subtractDuplicates.forEach((m) => m.dispose());
 						baseMesh.dispose();
 						validMeshes.forEach((m) => m.dispose());
@@ -563,7 +476,7 @@ export const flockCSG = {
 			});
 		});
 	},
-	subtractMeshes(modelId, baseMeshName, meshNames, approach = "merge") {
+	subtractMeshesIndividual(modelId, baseMeshName, meshNames) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
@@ -577,9 +490,8 @@ export const flockCSG = {
 					node.getTotalVertices &&
 					node.getTotalVertices() > 0 &&
 					node.material
-				) {
+				)
 					out.push(node);
-				}
 				const kids = node.getChildren ? node.getChildren() : [];
 				for (let i = kids.length - 1; i >= 0; i--) stack.push(kids[i]);
 			}
@@ -589,229 +501,101 @@ export const flockCSG = {
 		return new Promise((resolve) => {
 			flock.whenModelReady(baseMeshName, (baseMesh) => {
 				if (!baseMesh) return resolve(null);
+				let actualBase = baseMesh;
+				if (baseMesh.metadata?.modelName) {
+					const meshWithMaterial =
+						flock._findFirstDescendantWithMaterial(baseMesh);
+					if (meshWithMaterial) actualBase = meshWithMaterial;
+				}
 
 				flock
 					.prepareMeshes(modelId, meshNames, blockId)
 					.then((validMeshes) => {
 						const scene = baseMesh.getScene();
+						const baseDuplicate = actualBase.clone("baseDuplicate");
+						baseDuplicate.setParent(null);
+						baseDuplicate.position = actualBase
+							.getAbsolutePosition()
+							.clone();
+						baseDuplicate.rotationQuaternion = null;
+						baseDuplicate.rotation =
+							actualBase.absoluteRotationQuaternion
+								? actualBase.absoluteRotationQuaternion.toEulerAngles()
+								: actualBase.rotation.clone();
+						baseDuplicate.computeWorldMatrix(true);
 
-						// ---------------------------------------------------------
-						// PATH: INDIVIDUAL (Your exact Donut Version)
-						// ---------------------------------------------------------
-						if (approach === "individual") {
-							let actualBase = baseMesh;
-							if (baseMesh.metadata?.modelName) {
-								const meshWithMaterial =
-									flock._findFirstDescendantWithMaterial(
-										baseMesh,
-									);
-								if (meshWithMaterial)
-									actualBase = meshWithMaterial;
-							}
-
-							const baseDuplicate =
-								actualBase.clone("baseDuplicate");
-							baseDuplicate.setParent(null);
-							baseDuplicate.position = actualBase
-								.getAbsolutePosition()
-								.clone();
-							baseDuplicate.rotationQuaternion = null;
-							baseDuplicate.rotation =
-								actualBase.absoluteRotationQuaternion
-									? actualBase.absoluteRotationQuaternion.toEulerAngles()
-									: actualBase.rotation.clone();
-							baseDuplicate.computeWorldMatrix(true);
-
-							let outerCSG = flock.BABYLON.CSG2.FromMesh(
-								baseDuplicate,
-								false,
-							);
-
-							const allToolParts = [];
-							validMeshes.forEach((mesh) => {
-								const parts = collectMaterialMeshesDeep(mesh);
-								parts.forEach((p) => {
-									const dup = p.clone("partDup", null, true);
-									dup.computeWorldMatrix(true);
-									if (typeof dup.flipFaces === "function")
-										dup.flipFaces();
-									allToolParts.push(dup);
-								});
-							});
-
-							allToolParts.forEach((part) => {
-								try {
-									const partCSG = flock.BABYLON.CSG2.FromMesh(
-										part,
-										false,
-									);
-									outerCSG = outerCSG.subtract(partCSG);
-								} catch (e) {
-									console.warn("Piece skip", e);
-								}
-							});
-
-							const resultMesh = outerCSG.toMesh(
-								"resultMesh",
-								scene,
-								{ centerMesh: false },
-							);
-							const localCenter = resultMesh
-								.getBoundingInfo()
-								.boundingBox.center.clone();
-							resultMesh.setPivotMatrix(
-								BABYLON.Matrix.Translation(
-									localCenter.x,
-									localCenter.y,
-									localCenter.z,
-								),
-								false,
-							);
-							resultMesh.position.subtractInPlace(localCenter);
-							resultMesh.computeWorldMatrix(true);
-
-							flock.applyResultMeshProperties(
-								resultMesh,
-								actualBase,
-								modelId,
-								blockId,
-							);
-
-							baseDuplicate.dispose();
-							allToolParts.forEach((t) => t.dispose());
-							baseMesh.dispose();
-							validMeshes.forEach((m) => m.dispose());
-							resolve(modelId);
-						}
-
-						// ---------------------------------------------------------
-						// PATH: MERGE (Your exact Pendant/Star Version)
-						// ---------------------------------------------------------
-						else {
-							let actualBase = baseMesh.metadata?.modelName
-								? flock._findFirstDescendantWithMaterial(
-										baseMesh,
-									) || baseMesh
-								: baseMesh;
-
-							const cloneForCSG = (src, name) => {
-								src.computeWorldMatrix(true);
-								const worldMatrix = src.getWorldMatrix();
-								const dup = src.clone(name);
-								dup.setParent(null);
-								dup.bakeTransformIntoVertices(worldMatrix);
-								dup.position.set(0, 0, 0);
-								dup.rotation.set(0, 0, 0);
-								dup.rotationQuaternion = null;
-								dup.scaling.set(1, 1, 1);
+						let outerCSG = flock.BABYLON.CSG2.FromMesh(
+							baseDuplicate,
+							false,
+						);
+						const allToolParts = [];
+						validMeshes.forEach((mesh) => {
+							const parts = collectMaterialMeshesDeep(mesh);
+							parts.forEach((p) => {
+								const dup = p.clone("partDup", null, true);
 								dup.computeWorldMatrix(true);
-								const kinds = [
-									flock.BABYLON.VertexBuffer.UVKind,
-									flock.BABYLON.VertexBuffer.ColorKind,
-									flock.BABYLON.VertexBuffer.TangentKind,
-								];
-								kinds.forEach((k) => {
-									if (dup.isVerticesDataPresent(k))
-										dup.removeVerticesData(k);
-								});
-								return dup;
-							};
-
-							const baseDuplicate = cloneForCSG(
-								actualBase,
-								"baseDuplicate",
-							);
-							let outerCSG = flock.BABYLON.CSG2.FromMesh(
-								baseDuplicate,
-								false,
-							);
-
-							const subtractDuplicates = [];
-							validMeshes.forEach((mesh, meshIndex) => {
-								const parts = collectMaterialMeshesDeep(mesh);
-								if (parts.length > 0) {
-									const partClones = parts.map((p, i) =>
-										cloneForCSG(
-											p,
-											`temp_${meshIndex}_${i}`,
-										),
-									);
-									const isDonut =
-										mesh.name
-											.toLowerCase()
-											.includes("donut") ||
-										mesh.metadata?.modelName
-											?.toLowerCase()
-											.includes("donut");
-
-									if (isDonut) {
-										partClones.forEach((pc) =>
-											subtractDuplicates.push(pc),
-										);
-									} else {
-										let unified =
-											partClones.length > 1
-												? flock.BABYLON.Mesh.MergeMeshes(
-														partClones,
-														true,
-														true,
-														undefined,
-														false,
-														true,
-													)
-												: partClones[0];
-										if (unified) {
-											unified.forceSharedVertices();
-											if (
-												mesh.metadata?.modelName &&
-												typeof unified.flipFaces ===
-													"function"
-											)
-												unified.flipFaces();
-											subtractDuplicates.push(unified);
-										}
-									}
-								}
+								if (typeof dup.flipFaces === "function")
+									dup.flipFaces();
+								allToolParts.push(dup);
 							});
+						});
 
-							subtractDuplicates.forEach((m) => {
-								try {
-									const meshCSG = flock.BABYLON.CSG2.FromMesh(
-										m,
-										false,
-									);
-									outerCSG = outerCSG.subtract(meshCSG);
-								} catch (e) {
-									console.warn("CSG error", e);
-								}
-							});
+						allToolParts.forEach((part) => {
+							try {
+								const partCSG = flock.BABYLON.CSG2.FromMesh(
+									part,
+									false,
+								);
+								outerCSG = outerCSG.subtract(partCSG);
+							} catch (e) {
+								console.warn(e);
+							}
+						});
 
-							const resultMesh = outerCSG.toMesh(
-								"resultMesh",
-								scene,
-								{ centerMesh: false },
-							);
-							resultMesh.position.set(0, 0, 0);
-							resultMesh.rotation.set(0, 0, 0);
-							resultMesh.scaling.set(1, 1, 1);
-							resultMesh.computeWorldMatrix(true);
+						const resultMesh = outerCSG.toMesh(
+							"resultMesh",
+							scene,
+							{ centerMesh: false },
+						);
+						const localCenter = resultMesh
+							.getBoundingInfo()
+							.boundingBox.center.clone();
+						resultMesh.setPivotMatrix(
+							BABYLON.Matrix.Translation(
+								localCenter.x,
+								localCenter.y,
+								localCenter.z,
+							),
+							false,
+						);
+						resultMesh.position.subtractInPlace(localCenter);
+						resultMesh.computeWorldMatrix(true);
+						flock.applyResultMeshProperties(
+							resultMesh,
+							actualBase,
+							modelId,
+							blockId,
+						);
 
-							flock.applyResultMeshProperties(
-								resultMesh,
-								actualBase,
-								modelId,
-								blockId,
-							);
-
-							baseDuplicate.dispose();
-							subtractDuplicates.forEach((m) => m.dispose());
-							baseMesh.dispose();
-							validMeshes.forEach((m) => m.dispose());
-							resolve(modelId);
-						}
+						baseDuplicate.dispose();
+						allToolParts.forEach((t) => t.dispose());
+						baseMesh.dispose();
+						validMeshes.forEach((m) => m.dispose());
+						resolve(modelId);
 					});
 			});
 		});
+	},
+	subtractMeshes(modelId, baseMeshName, meshNames, approach = "merge") {
+		if (approach === "individual") {
+			return this.subtractMeshesIndividual(
+				modelId,
+				baseMeshName,
+				meshNames,
+			);
+		} else {
+			return this.subtractMeshesMerge(modelId, baseMeshName, meshNames);
+		}
 	},
 	intersectMeshes(modelId, meshList) {
 		const blockId = modelId;
