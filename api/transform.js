@@ -363,6 +363,19 @@ export const flockTransform = {
         flock.BABYLON.Tools.ToRadians(x),
         flock.BABYLON.Tools.ToRadians(z),
       );
+
+      if (!mesh.rotationQuaternion) {
+        const {
+          x: currentX = 0,
+          y: currentY = 0,
+          z: currentZ = 0,
+        } = mesh.rotation || {};
+        mesh.rotationQuaternion = flock.BABYLON.Quaternion.FromEulerAngles(
+          currentX,
+          currentY,
+          currentZ,
+        );
+      }
       mesh.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
 
       if (mesh.physics) {
