@@ -20,7 +20,7 @@ mergeMeshes(modelId, meshList) {
 				// If metadata exists, use the mesh with material.
 				if (firstMesh.metadata?.modelName) {
 					const meshWithMaterial =
-						flock.findFirstDescendantWithMaterial(firstMesh);
+						flock._findFirstDescendantWithMaterial(firstMesh);
 					if (meshWithMaterial) {
 						firstMesh = meshWithMaterial;
 						firstMesh.refreshBoundingInfo();
@@ -33,7 +33,7 @@ mergeMeshes(modelId, meshList) {
 				validMeshes.slice(1).forEach((mesh) => {
 					if (mesh.metadata?.modelName) {
 						const meshWithMaterial =
-							flock.findFirstDescendantWithMaterial(mesh);
+							flock._findFirstDescendantWithMaterial(mesh);
 						if (meshWithMaterial) {
 							mesh = meshWithMaterial;
 							mesh.refreshBoundingInfo();
@@ -105,7 +105,7 @@ mergeMeshes(modelId, meshList) {
 				let actualMesh = baseMesh;
 				if (baseMesh.metadata?.modelName) {
 					const meshWithMaterial =
-						flock.findFirstDescendantWithMaterial(baseMesh);
+						flock._findFirstDescendantWithMaterial(baseMesh);
 					if (meshWithMaterial) {
 						actualMesh = meshWithMaterial;
 						//actualMesh.parent = null;
@@ -142,7 +142,7 @@ mergeMeshes(modelId, meshList) {
 								// If metadata exists, use the mesh with material.
 								if (mesh.metadata?.modelName) {
 									const meshWithMaterial =
-										flock.findFirstDescendantWithMaterial(
+										flock._findFirstDescendantWithMaterial(
 											mesh,
 										);
 									if (meshWithMaterial) {
@@ -268,7 +268,7 @@ intersectMeshes(modelId, meshList) {
 				// If metadata exists, use the mesh with material.
 				if (firstMesh.metadata?.modelName) {
 					const meshWithMaterial =
-						flock.findFirstDescendantWithMaterial(firstMesh);
+						flock._findFirstDescendantWithMaterial(firstMesh);
 					if (meshWithMaterial) {
 						firstMesh = meshWithMaterial;
 						firstMesh.refreshBoundingInfo();
@@ -282,7 +282,7 @@ intersectMeshes(modelId, meshList) {
 				validMeshes.slice(1).forEach((mesh) => {
 					if (mesh.metadata?.modelName) {
 						const meshWithMaterial =
-							flock.findFirstDescendantWithMaterial(mesh);
+							flock._findFirstDescendantWithMaterial(mesh);
 						if (meshWithMaterial) {
 							mesh = meshWithMaterial;
 							mesh.refreshBoundingInfo();
@@ -353,7 +353,7 @@ createHull(modelId, meshList) {
 				const updatedValidMeshes = validMeshes.map((mesh) => {
 					if (mesh.metadata?.modelName) {
 						const meshWithMaterial =
-							flock.findFirstDescendantWithMaterial(mesh);
+							flock._findFirstDescendantWithMaterial(mesh);
 						if (meshWithMaterial) {
 							meshWithMaterial.refreshBoundingInfo();
 							meshWithMaterial.flipFaces();
