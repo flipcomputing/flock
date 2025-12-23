@@ -33,7 +33,9 @@ export const flockMaterial = {
 
     const shapeType = mesh?.metadata?.shapeType;
     const bakedShapes = new Set(["Box", "Sphere", "Cylinder", "Capsule", "Plane"]);
-    if (shapeType && bakedShapes.has(shapeType)) return;
+    if (shapeType && bakedShapes.has(shapeType) && !Number.isFinite(unitsPerTile)) {
+      return;
+    }
 
     const tex =
       material.diffuseTexture ||
