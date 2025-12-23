@@ -387,7 +387,10 @@ export const flockMaterial = {
     });
   },
   setMaterialTileSize(meshName, tileUnits) {
-    return flock.setMaterial(meshName, null, { tileSize: tileUnits });
+    const requestedSize = Number(tileUnits);
+    if (!Number.isFinite(requestedSize) || requestedSize <= 0)
+      return Promise.resolve();
+    return flock.setMaterial(meshName, [], { tileSize: requestedSize });
   },
   clearEffects(meshName) {
     return flock.whenModelReady(meshName, (mesh) => {
@@ -851,15 +854,23 @@ export const flockMaterial = {
         })
       : [];
 
-    flock.setMaterialInternal(meshName, normalizedMaterials, options);
-    flock.whenModelReady(meshName, (mesh) => {
-      if (flock.materialsDebug) console.log(mesh.metadata.clones);
-      mesh.metadata?.clones?.forEach((cloneName) => {
-        flock.setMaterialInternal(cloneName, normalizedMaterials, options);
-      });
-    });
+    const tasks = [];
+    tasks.push(flock.setMaterialInternal(meshName, normalizedMaterials, options));
+
+    tasks.push(
+      flock.whenModelReady(meshName, (mesh) => {
+        if (flock.materialsDebug) console.log(mesh.metadata.clones);
+        const clonePromises =
+          mesh.metadata?.clones?.map((cloneName) =>
+            flock.setMaterialInternal(cloneName, normalizedMaterials, options),
+          ) || [];
+        return Promise.all(clonePromises);
+      }),
+    );
+
+    return Promise.all(tasks);
   },
-  setMaterialInternal(meshName, materials, { tileSize = null } = {}) {
+  setMaterialInternal(meshName, materials = [], { tileSize = null } = {}) {
     return flock.whenModelReady(meshName, (mesh) => {
       const allMeshes = [mesh].concat(mesh.getDescendants());
       const hasMaterials = Array.isArray(materials) && materials.length > 0;
