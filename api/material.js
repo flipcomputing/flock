@@ -5,7 +5,7 @@ export function setFlockReference(ref) {
 }
 
 const PRIMITIVE_TILE_SCALE = 1;
-const IMPORTED_TILE_SCALE = 0.5;
+const IMPORTED_TILE_SCALE = 0.25;
 const DEFAULT_TILE_UNITS = 4;
 
 function resolveTextureTileScale(mesh, fallbackScale = null) {
@@ -66,7 +66,12 @@ function computeEffectiveTile(mesh, baseTile, fallbackScale = null, { neutralSca
 }
 
 export const flockMaterial = {
-  adjustMaterialTilingToMesh(mesh, material, unitsPerTile = null) {
+  adjustMaterialTilingToMesh(
+    mesh,
+    material,
+    unitsPerTile = null,
+    { unitsAlreadyScaled = false, baseTileOverride = null } = {},
+  ) {
     if (!mesh || !material) return;
 
     if (mesh.metadata?.skipAutoTiling) return;
@@ -103,22 +108,29 @@ export const flockMaterial = {
       return;
     }
 
+    const providedTile =
+      Number.isFinite(unitsPerTile) && unitsPerTile > 0 ? unitsPerTile : null;
+
     const baseTile =
-      Number.isFinite(unitsPerTile) && unitsPerTile > 0
-        ? unitsPerTile
-        : Number.isFinite(existingTile) && existingTile > 0
-          ? existingTile
-          : DEFAULT_TILE_UNITS;
+      Number.isFinite(baseTileOverride) && baseTileOverride > 0
+        ? baseTileOverride
+        : providedTile ??
+          (Number.isFinite(existingTile) && existingTile > 0
+            ? existingTile
+            : DEFAULT_TILE_UNITS);
 
     mesh.metadata = mesh.metadata || {};
-    if (!Number.isFinite(mesh.metadata.textureTileBaseSize)) {
+    if (Number.isFinite(baseTileOverride) && baseTileOverride > 0) {
+      mesh.metadata.textureTileBaseSize = baseTileOverride;
+    } else if (!Number.isFinite(mesh.metadata.textureTileBaseSize)) {
       mesh.metadata.textureTileBaseSize = baseTile;
     }
 
     const { effective } = computeEffectiveTile(mesh, baseTile, null, {
-      neutralScale: !!shapeType, // primitives neutral, imports scaled
+      neutralScale: unitsAlreadyScaled || !!shapeType, // primitives neutral, imports scaled
     });
-    const effectiveTile = effective ?? baseTile;
+    const effectiveTile =
+      unitsAlreadyScaled && providedTile != null ? providedTile : effective ?? baseTile;
     mesh.metadata.textureTileSize = effectiveTile;
 
     if (shapeType && bakedShapes.has(shapeType)) {
@@ -950,10 +962,13 @@ export const flockMaterial = {
             console.log(`Setting material of ${part.name} to ${material.name}`);
           // Apply the material to the mesh
           part.material = material;
-          const { effective } = computeEffectiveTile(part, baseTile, rootScale, {
+          const { base, effective } = computeEffectiveTile(part, baseTile, rootScale, {
             neutralScale: !!part.metadata?.shapeType && Number.isFinite(tileSize),
           });
-          flock.adjustMaterialTilingToMesh(part, material, effective);
+          flock.adjustMaterialTilingToMesh(part, material, effective, {
+            unitsAlreadyScaled: true,
+            baseTileOverride: base,
+          });
         });
       }
 
@@ -972,7 +987,10 @@ export const flockMaterial = {
             ? part.sourceMesh?.material
             : null);
         if (material) {
-          flock.adjustMaterialTilingToMesh(part, material, effective);
+          flock.adjustMaterialTilingToMesh(part, material, effective, {
+            unitsAlreadyScaled: true,
+            baseTileOverride: base,
+          });
         }
       });
 
