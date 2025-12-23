@@ -387,31 +387,7 @@ export const flockMaterial = {
     });
   },
   setMaterialTileSize(meshName, tileUnits) {
-    const requestedSize = Number(tileUnits);
-    return flock.whenModelReady(meshName, (mesh) => {
-      if (!Number.isFinite(requestedSize) || requestedSize <= 0) return;
-
-      const targets = [mesh, ...(mesh.getDescendants?.() || [])];
-      const rootScale = resolveTextureTileScale(mesh);
-
-      targets.forEach((target) => {
-        const scale = resolveTextureTileScale(target, rootScale);
-        const effectiveTileSize = requestedSize * scale;
-        target.metadata.textureTileBaseSize = requestedSize;
-        target.metadata.textureTileSize = effectiveTileSize;
-
-        const material =
-          target.material ||
-          (target.getClassName?.() === "InstancedMesh"
-            ? target.sourceMesh?.material
-            : null);
-
-        if (material) {
-          retilePrimitiveMesh(target, effectiveTileSize);
-          flock.adjustMaterialTilingToMesh(target, material, effectiveTileSize);
-        }
-      });
-    });
+    return flock.setMaterial(meshName, null, { tileSize: tileUnits });
   },
   clearEffects(meshName) {
     return flock.whenModelReady(meshName, (mesh) => {
@@ -861,76 +837,104 @@ export const flockMaterial = {
     return material;
   },
 
-  setMaterial(meshName, materials) {
-    materials = materials.map((material) => {
-      if (material instanceof flock.BABYLON.Material) {
-        return material;
-      } else {
-        material = flock.createMaterial(material);
-        material.metadata = material.metadata || {};
-        material.metadata.internal = true;
-        return material;
-      }
-    });
+  setMaterial(meshName, materials, options = {}) {
+    const normalizedMaterials = Array.isArray(materials)
+      ? materials.map((material) => {
+          if (material instanceof flock.BABYLON.Material) {
+            return material;
+          } else {
+            material = flock.createMaterial(material);
+            material.metadata = material.metadata || {};
+            material.metadata.internal = true;
+            return material;
+          }
+        })
+      : [];
 
-    flock.setMaterialInternal(meshName, materials);
+    flock.setMaterialInternal(meshName, normalizedMaterials, options);
     flock.whenModelReady(meshName, (mesh) => {
       if (flock.materialsDebug) console.log(mesh.metadata.clones);
       mesh.metadata?.clones?.forEach((cloneName) => {
-        flock.setMaterialInternal(cloneName, materials);
+        flock.setMaterialInternal(cloneName, normalizedMaterials, options);
       });
     });
   },
-  setMaterialInternal(meshName, materials) {
+  setMaterialInternal(meshName, materials, { tileSize = null } = {}) {
     return flock.whenModelReady(meshName, (mesh) => {
       const allMeshes = [mesh].concat(mesh.getDescendants());
-      allMeshes.forEach((part) => {
-        if (part.material?.metadata?.internal) {
-          part.material.dispose();
-        }
-      });
+      const hasMaterials = Array.isArray(materials) && materials.length > 0;
 
-      if (flock.materialsDebug)
-        console.log(`Setting material of ${meshName} to ${materials}:`);
-      const validMeshes = allMeshes.filter(
-        (part) => part instanceof flock.BABYLON.Mesh,
-      );
-
-      // Sort meshes alphabetically by name
-      const sortedMeshes = validMeshes.sort((a, b) =>
-        a.name.localeCompare(b.name),
-      );
-
-      if (flock.materialsDebug)
-        console.log(`Setting material of ${sortedMeshes.length} meshes`);
-      sortedMeshes.forEach((part, index) => {
-        const material = Array.isArray(materials)
-          ? materials[index % materials.length]
-          : materials;
-
-        if (material instanceof flock.GradientMaterial) {
-          mesh.computeWorldMatrix(true);
-
-          const boundingInfo = mesh.getBoundingInfo();
-
-          const yDimension = boundingInfo.boundingBox.extendSizeWorld.y;
-
-          material.scale = yDimension > 0 ? 1 / yDimension : 1;
-        }
-        if (!(material instanceof flock.BABYLON.Material)) {
-          console.error(
-            `Invalid material provided for mesh ${part.name}:`,
-            material,
-          );
-          return;
-        }
+      if (hasMaterials) {
+        allMeshes.forEach((part) => {
+          if (part.material?.metadata?.internal) {
+            part.material.dispose();
+          }
+        });
 
         if (flock.materialsDebug)
-          console.log(`Setting material of ${part.name} to ${material.name}`);
-        // Apply the material to the mesh
-        part.material = material;
-        flock.adjustMaterialTilingToMesh(part, material);
-      });
+          console.log(`Setting material of ${meshName} to ${materials}:`);
+        const validMeshes = allMeshes.filter(
+          (part) => part instanceof flock.BABYLON.Mesh,
+        );
+
+        // Sort meshes alphabetically by name
+        const sortedMeshes = validMeshes.sort((a, b) =>
+          a.name.localeCompare(b.name),
+        );
+
+        if (flock.materialsDebug)
+          console.log(`Setting material of ${sortedMeshes.length} meshes`);
+        sortedMeshes.forEach((part, index) => {
+          const material = Array.isArray(materials)
+            ? materials[index % materials.length]
+            : materials;
+
+          if (material instanceof flock.GradientMaterial) {
+            mesh.computeWorldMatrix(true);
+
+            const boundingInfo = mesh.getBoundingInfo();
+
+            const yDimension = boundingInfo.boundingBox.extendSizeWorld.y;
+
+            material.scale = yDimension > 0 ? 1 / yDimension : 1;
+          }
+          if (!(material instanceof flock.BABYLON.Material)) {
+            console.error(
+              `Invalid material provided for mesh ${part.name}:`,
+              material,
+            );
+            return;
+          }
+
+          if (flock.materialsDebug)
+            console.log(`Setting material of ${part.name} to ${material.name}`);
+          // Apply the material to the mesh
+          part.material = material;
+          flock.adjustMaterialTilingToMesh(part, material);
+        });
+      }
+
+      if (Number.isFinite(tileSize) && tileSize > 0) {
+        const targets = allMeshes.filter(
+          (part) => part instanceof flock.BABYLON.Mesh,
+        );
+        const rootScale = resolveTextureTileScale(mesh);
+        targets.forEach((part) => {
+          const scale = resolveTextureTileScale(part, rootScale);
+          const effectiveTileSize = tileSize * scale;
+          part.metadata.textureTileBaseSize = tileSize;
+          part.metadata.textureTileSize = effectiveTileSize;
+          retilePrimitiveMesh(part, effectiveTileSize);
+          const material =
+            part.material ||
+            (part.getClassName?.() === "InstancedMesh"
+              ? part.sourceMesh?.material
+              : null);
+          if (material) {
+            flock.adjustMaterialTilingToMesh(part, material, effectiveTileSize);
+          }
+        });
+      }
 
       if (mesh.metadata?.glow) {
         flock.glowMesh(mesh);
