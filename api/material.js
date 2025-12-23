@@ -115,7 +115,10 @@ export const flockMaterial = {
       mesh.metadata.textureTileBaseSize = baseTile;
     }
 
-    const effectiveTile = baseTile;
+    const { effective } = computeEffectiveTile(mesh, baseTile, null, {
+      neutralScale: !!shapeType,
+    });
+    const effectiveTile = effective ?? baseTile;
     mesh.metadata.textureTileSize = effectiveTile;
 
     if (shapeType && bakedShapes.has(shapeType)) {
@@ -948,7 +951,7 @@ export const flockMaterial = {
           // Apply the material to the mesh
           part.material = material;
           const { effective } = computeEffectiveTile(part, baseTile, rootScale, {
-            neutralScale: Number.isFinite(tileSize),
+            neutralScale: !!part.metadata?.shapeType && Number.isFinite(tileSize),
           });
           flock.adjustMaterialTilingToMesh(part, material, effective);
         });
@@ -956,9 +959,12 @@ export const flockMaterial = {
 
       const targets = allMeshes.filter((part) => part instanceof flock.BABYLON.Mesh);
       targets.forEach((part) => {
-        const { base, effective } = computeEffectiveTile(part, baseTile, rootScale, {
-          neutralScale: Number.isFinite(tileSize),
-        });
+        const { base, effective } = computeEffectiveTile(
+          part,
+          baseTile,
+          rootScale,
+          { neutralScale: !!part.metadata?.shapeType && Number.isFinite(tileSize) },
+        );
         if (!base || !effective) return;
         part.metadata.textureTileBaseSize = base;
         part.metadata.textureTileSize = effective;
