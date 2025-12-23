@@ -31,9 +31,15 @@ export const flockMaterial = {
 
     if (mesh.metadata?.skipAutoTiling) return;
 
+    const existingTile = mesh.metadata?.textureTileSize;
     const shapeType = mesh?.metadata?.shapeType;
     const bakedShapes = new Set(["Box", "Sphere", "Cylinder", "Capsule", "Plane"]);
-    if (shapeType && bakedShapes.has(shapeType) && !Number.isFinite(unitsPerTile)) {
+    if (
+      shapeType &&
+      bakedShapes.has(shapeType) &&
+      !Number.isFinite(unitsPerTile) &&
+      !Number.isFinite(existingTile)
+    ) {
       return;
     }
 
@@ -56,7 +62,6 @@ export const flockMaterial = {
     const extend = mesh.getBoundingInfo?.()?.boundingBox?.extendSizeWorld;
     if (!extend) return;
 
-    const existingTile = mesh.metadata?.textureTileSize;
     const tile =
       Number.isFinite(unitsPerTile) && unitsPerTile > 0
         ? unitsPerTile
