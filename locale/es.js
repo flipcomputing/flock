@@ -236,7 +236,7 @@ export default {
   gradient_material: "material %1 alfa %2", // human
   set_material: "establecer material de %1 a %2", // human
   material_tile_size:
-    "establecer el tamaño de mosaico del material de %1 a %2", // human
+    "establecer el tamaño de mosaico del material de %1 a %2", // ai
 
   // Custom block translations - Physics blocks
   add_physics: "añadir física a %1 tipo %2", // human
