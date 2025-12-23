@@ -581,6 +581,7 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
   mesh.refreshBoundingInfo();
 
   flock.updatePhysics(mesh);
+  flock.adjustMaterialTilingForHierarchy(mesh);
 
   if (flock.meshDebug) {
     console.log("[SCALE change]", {

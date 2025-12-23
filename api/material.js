@@ -42,6 +42,16 @@ export const flockMaterial = {
     if (Number.isFinite(newUScale) && newUScale > 0) tex.uScale = newUScale;
     if (Number.isFinite(newVScale) && newVScale > 0) tex.vScale = newVScale;
   },
+  adjustMaterialTilingForHierarchy(mesh, unitsPerTile) {
+    if (!mesh) return;
+    const targets = [mesh, ...(mesh.getDescendants?.() || [])];
+    targets.forEach((m) => {
+      const mat =
+        m.material ||
+        (m.getClassName?.() === "InstancedMesh" ? m.sourceMesh?.material : null);
+      flock.adjustMaterialTilingToMesh(m, mat, unitsPerTile);
+    });
+  },
   /* randomColour() {
           const colors = [
                   "#FF6B6B",
