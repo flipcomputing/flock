@@ -237,6 +237,8 @@ export default {
   material: "materiał %1 %2 przezroczystość: %3",
   gradient_material: "gradientowy materiał %1 przezroczystość: %2",
   set_material: "ustaw materiał %2 na %1",
+  material_tile_size:
+    "ustaw rozmiar kafelka materiału dla %1 na %2",
 
   // Custom block translations - Physics blocks
   add_physics: "dodaj fizykę do %1 typ: %2",
@@ -505,6 +507,8 @@ export default {
   material_tooltip: "Zdefiniuj właściwości materiału",
   gradient_material_tooltip: "Zdefiniuj właściwości materiału z gradientem",
   set_material_tooltip: "Ustaw podany materiał na wybranym obiekcie.",
+  material_tile_size_tooltip:
+    "Ustaw ile jednostek świata zajmuje każdy kafelek tekstury. Importowane siatki używają połowy rozmiaru form prymitywnych. Nic nie robi, jeśli materiał nie ma tekstury.\nSłowo kluczowe: rozmiar kafelka",
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:

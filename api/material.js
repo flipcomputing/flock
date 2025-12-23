@@ -4,6 +4,27 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+const PRIMITIVE_TILE_SCALE = 1;
+const IMPORTED_TILE_SCALE = 0.5;
+
+function resolveTextureTileScale(mesh, fallbackScale = null) {
+  const meta = mesh.metadata || (mesh.metadata = {});
+  if (Number.isFinite(meta.textureTileScale)) return meta.textureTileScale;
+
+  const isPrimitive = !!meta.shapeType;
+  const isImported = !!meta.modelName;
+  const inferredScale =
+    fallbackScale != null
+      ? fallbackScale
+      : isPrimitive
+        ? PRIMITIVE_TILE_SCALE
+        : isImported
+          ? IMPORTED_TILE_SCALE
+          : PRIMITIVE_TILE_SCALE;
+  meta.textureTileScale = inferredScale;
+  return inferredScale;
+}
+
 export const flockMaterial = {
   adjustMaterialTilingToMesh(mesh, material, unitsPerTile = null) {
     if (!mesh || !material) return;
@@ -316,6 +337,32 @@ export const flockMaterial = {
             flock.BABYLON.Material.MATERIAL_ALPHABLEND;
           if (value > 0) nextMesh.material.needDepthPrePass = true;
           else nextMesh.material.needDepthPrePass = false;
+        }
+      });
+    });
+  },
+  setMaterialTileSize(meshName, tileUnits) {
+    const requestedSize = Number(tileUnits);
+    return flock.whenModelReady(meshName, (mesh) => {
+      if (!Number.isFinite(requestedSize) || requestedSize <= 0) return;
+
+      const targets = [mesh, ...(mesh.getDescendants?.() || [])];
+      const rootScale = resolveTextureTileScale(mesh);
+
+      targets.forEach((target) => {
+        const scale = resolveTextureTileScale(target, rootScale);
+        const effectiveTileSize = requestedSize * scale;
+        target.metadata.textureTileBaseSize = requestedSize;
+        target.metadata.textureTileSize = effectiveTileSize;
+
+        const material =
+          target.material ||
+          (target.getClassName?.() === "InstancedMesh"
+            ? target.sourceMesh?.material
+            : null);
+
+        if (material) {
+          flock.adjustMaterialTilingToMesh(target, material, effectiveTileSize);
         }
       });
     });

@@ -235,6 +235,8 @@ export default {
       material: "material %1 %2 alfa %3",
       gradient_material: "material %1 alfa %2",
       set_material: "ställ in material för %1 till %2",
+      material_tile_size:
+            "ställ in materialets plattstorlek för %1 till %2",
 
       // Custom block translations - Physics blocks
       add_physics: "lägg till fysik %1 typ %2",
@@ -500,6 +502,8 @@ export default {
       gradient_material_tooltip: "Definiera materialegenskaper",
       set_material_tooltip:
             "Ange det angivna materialet på det valda mesh-objektet.",
+      material_tile_size_tooltip:
+            "Ställ in hur många världs-enheter varje texturplatta täcker. Importerade mesh använder halva storleken av primitiva former. Gör inget om materialet saknar textur.\nKeyword: plattstorlek",
 
       // Tooltip translations - Physics blocks
       add_physics_tooltip:

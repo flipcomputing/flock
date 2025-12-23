@@ -3086,6 +3086,20 @@ const toolboxMaterials = {
                                 },
                         },
                 },
+                {
+                        kind: "block",
+                        type: "set_material_tile_size",
+                        inputs: {
+                                TILE_SIZE: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 4,
+                                                },
+                                        },
+                                },
+                        },
+                },
         ],
 };
 

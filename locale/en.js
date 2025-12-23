@@ -238,6 +238,7 @@ export default {
   material: "material %1 %2 alpha %3",
   gradient_material: "material %1 alpha %2",
   set_material: "set material of %1 to %2",
+  material_tile_size: "set material tile size of %1 to %2",
 
   // Custom block translations - Physics blocks
   add_physics: "add physics %1 type %2",
@@ -498,6 +499,8 @@ export default {
   material_tooltip: "Define material properties",
   gradient_material_tooltip: "Define material properties",
   set_material_tooltip: "Set the specified material on the given mesh.",
+  material_tile_size_tooltip:
+    "Set how many world units each texture tile spans. Imported meshes use half the size of primitive shapes. Does nothing if the material has no texture.\nKeyword: tile size",
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:

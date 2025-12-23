@@ -241,6 +241,8 @@ export default {
   material: "Material %1 %2 Alpha %3",
   gradient_material: "Material %1 Alpha %2",
   set_material: "Material von %1 auf %2 setzen",
+  material_tile_size:
+    "Material-Kachelgröße für %1 auf %2 setzen",
 
   // Physics blocks
   add_physics: "Physik hinzufügen %1 Typ %2",
@@ -633,6 +635,8 @@ export default {
   material_tooltip: "Definiere Materialeigenschaften",
   gradient_material_tooltip: "Definiere Materialeigenschaften mit Verlauf",
   set_material_tooltip: "Setze das angegebene Material auf das Objekt",
+  material_tile_size_tooltip:
+    "Lege fest, wie viele Welteinheiten jede Texturkachel umfasst. Importierte Meshes nutzen die halbe Größe von primitiven Formen. Tut nichts, wenn das Material keine Textur hat.\nSchlüsselwort: Kachelgröße",
 
   // Physics tooltips
   add_physics_tooltip:

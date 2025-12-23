@@ -240,6 +240,8 @@ export default {
   material: "materiale %1 %2 alpha %3",
   gradient_material: "materiale %1 alpha %2",
   set_material: "imposta materiale di %1 a %2",
+  material_tile_size:
+    "imposta la dimensione della piastrella del materiale di %1 a %2",
 
   // Custom block translations - Physics blocks
   add_physics: "aggiungi fisica %1 tipo %2",
@@ -509,6 +511,8 @@ export default {
   material_tooltip: "Definisci le proprietà del materiale",
   gradient_material_tooltip: "Definisci le proprietà del materiale",
   set_material_tooltip: "Imposta il materiale specificato sulla mesh indicata.",
+  material_tile_size_tooltip:
+    "Imposta quante unità del mondo occupa ogni piastrella della texture. Le mesh importate usano metà della dimensione delle forme primitive. Non fa nulla se il materiale non ha texture.\nParola chiave: dimensione piastrella",
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:

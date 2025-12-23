@@ -236,6 +236,8 @@ export default {
   material: "matériau %1 %2 opacité %3",
   gradient_material: "matériau %1 opacité %2",
   set_material: "définir le matériau de %1 à %2",
+  material_tile_size:
+    "définir la taille de tuile du matériau de %1 à %2",
 
   // Custom block translations - Physics blocks
   add_physics: "ajouter physique %1 type %2",
@@ -511,6 +513,8 @@ export default {
   material_tooltip: "Définit les propriétés du matériau",
   gradient_material_tooltip: "Définit les propriétés du matériau",
   set_material_tooltip: "Définit le matériau spécifié sur le maillage donné.",
+  material_tile_size_tooltip:
+    "Définit combien d’unités du monde chaque tuile de texture couvre. Les maillages importés utilisent la moitié de la taille des formes primitives. Ne fait rien si le matériau n’a pas de texture.\nMot-clé: taille de tuile",
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:

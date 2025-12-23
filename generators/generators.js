@@ -3334,6 +3334,23 @@ export function defineGenerators() {
                 return code;*/
         };
 
+        javascriptGenerator.forBlock["set_material_tile_size"] = function (
+                block,
+        ) {
+                const meshVar = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MESH"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const tileSize = javascriptGenerator.valueToCode(
+                        block,
+                        "TILE_SIZE",
+                        javascriptGenerator.ORDER_ATOMIC,
+                );
+
+                return `await setMaterialTileSize(${meshVar}, ${tileSize});\n`;
+        };
+
         javascriptGenerator.forBlock["skin_colour"] = function (block) {
                 const colour = block.getFieldValue("COLOR");
                 const code = `"${colour}"`;

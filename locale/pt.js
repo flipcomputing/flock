@@ -235,6 +235,8 @@ export default {
   material: "material %1 %2 opacidade %3",
   gradient_material: "material %1 opacidade %2",
   set_material: "definir material de %1 para %2",
+  material_tile_size:
+    "definir tamanho de ladrilho do material de %1 para %2",
 
   // Custom block translations - Physics blocks
   add_physics: "adicionar física %1 tipo %2",
@@ -501,6 +503,8 @@ export default {
   material_tooltip: "Define propriedades de material",
   gradient_material_tooltip: "Define propriedades de material com gradiente",
   set_material_tooltip: "Define o material especificado no mesh indicado.",
+  material_tile_size_tooltip:
+    "Define quantas unidades do mundo cada ladrilho de textura cobre. Meshes importados usam metade do tamanho das formas primitivas. Não faz nada se o material não tiver textura.\nPalavra-chave: tamanho do ladrilho",
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:

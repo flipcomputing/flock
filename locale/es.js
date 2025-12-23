@@ -235,6 +235,8 @@ export default {
   material: "material %1 %2 alfa %3", // human
   gradient_material: "material %1 alfa %2", // human
   set_material: "establecer material de %1 a %2", // human
+  material_tile_size:
+    "establecer el tamaño de mosaico del material de %1 a %2", // human
 
   // Custom block translations - Physics blocks
   add_physics: "añadir física a %1 tipo %2", // human
@@ -504,6 +506,8 @@ export default {
   material_tooltip: "Define propiedades del material", // human
   gradient_material_tooltip: "Define propiedades del material (gradiente)", // human
   set_material_tooltip: "Establecer el material especificado a la malla indicada.", // human
+  material_tile_size_tooltip:
+    "Define cuántas unidades del mundo ocupa cada mosaico de textura. Las mallas importadas usan la mitad del tamaño de las formas primitivas. No hace nada si el material no tiene textura.\nPalabra clave: tamaño de mosaico", // human
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:

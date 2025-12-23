@@ -748,4 +748,32 @@ export function defineMaterialsBlocks() {
                   attachSetMaterialOnChange(this);
             },
       };
+
+      Blockly.Blocks["set_material_tile_size"] = {
+            init: function () {
+                  this.jsonInit({
+                        type: "set_material_tile_size",
+                        message0: translate("material_tile_size"),
+                        args0: [
+                              {
+                                    type: "field_variable",
+                                    name: "MESH",
+                                    variable: window.currentMesh,
+                              },
+                              {
+                                    type: "input_value",
+                                    name: "TILE_SIZE",
+                                    check: "Number",
+                              },
+                        ],
+                        previousStatement: null,
+                        nextStatement: null,
+                        inputsInline: true,
+                        colour: categoryColours["Materials"],
+                        tooltip: getTooltip("material_tile_size"),
+                  });
+                  this.setHelpUrl(getHelpUrlFor(this.type));
+                  this.setStyle("materials_blocks");
+            },
+      };
 }
