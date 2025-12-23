@@ -59,9 +59,9 @@ function retilePrimitiveMesh(mesh, tileSize) {
   }
 }
 
-function computeEffectiveTile(mesh, baseTile, fallbackScale = null) {
+function computeEffectiveTile(mesh, baseTile, fallbackScale = null, { neutralScale = false } = {}) {
   if (!Number.isFinite(baseTile) || baseTile <= 0) return { base: null, effective: null };
-  const scale = resolveTextureTileScale(mesh, fallbackScale);
+  const scale = neutralScale ? 1 : resolveTextureTileScale(mesh, fallbackScale);
   return { base: baseTile, effective: baseTile * scale };
 }
 
@@ -115,13 +115,8 @@ export const flockMaterial = {
       mesh.metadata.textureTileBaseSize = baseTile;
     }
 
-    const neutralScale = Number.isFinite(unitsPerTile);
-    const effectiveTile =
-      neutralScale ? baseTile : baseTile * resolveTextureTileScale(mesh);
+    const effectiveTile = baseTile;
     mesh.metadata.textureTileSize = effectiveTile;
-    if (!Number.isFinite(mesh.metadata.textureTileBaseSize)) {
-      mesh.metadata.textureTileBaseSize = tile;
-    }
 
     if (shapeType && bakedShapes.has(shapeType)) {
       retilePrimitiveMesh(mesh, effectiveTile);
@@ -952,14 +947,18 @@ export const flockMaterial = {
             console.log(`Setting material of ${part.name} to ${material.name}`);
           // Apply the material to the mesh
           part.material = material;
-          const { effective } = computeEffectiveTile(part, baseTile, rootScale);
+          const { effective } = computeEffectiveTile(part, baseTile, rootScale, {
+            neutralScale: Number.isFinite(tileSize),
+          });
           flock.adjustMaterialTilingToMesh(part, material, effective);
         });
       }
 
       const targets = allMeshes.filter((part) => part instanceof flock.BABYLON.Mesh);
       targets.forEach((part) => {
-        const { base, effective } = computeEffectiveTile(part, baseTile, rootScale);
+        const { base, effective } = computeEffectiveTile(part, baseTile, rootScale, {
+          neutralScale: Number.isFinite(tileSize),
+        });
         if (!base || !effective) return;
         part.metadata.textureTileBaseSize = base;
         part.metadata.textureTileSize = effective;
