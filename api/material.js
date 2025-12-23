@@ -106,6 +106,9 @@ export const flockMaterial = {
 
     if (shapeType && bakedShapes.has(shapeType)) {
       retilePrimitiveMesh(mesh, tile);
+      tex.uScale = 1;
+      tex.vScale = 1;
+      return;
     }
 
     const worldWidth = extend.x * 2;
