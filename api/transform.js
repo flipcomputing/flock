@@ -704,6 +704,7 @@ export const flockTransform = {
       // Final updates.
       mesh.refreshBoundingInfo();
       mesh.computeWorldMatrix(true);
+      refreshSizeAwareMaterials(mesh);
       flock.updatePhysics(mesh);
     });
   },
@@ -859,3 +860,42 @@ export const flockTransform = {
     return { x, y, z };
   },
 };
+
+function refreshSizeAwareMaterials(mesh) {
+  const parts = [mesh, ...mesh.getChildMeshes(false)];
+
+  for (const part of parts) {
+    if (!part.material) continue;
+
+    const material = ensureMaterialUniqueForResize(part);
+    if (!material) continue;
+
+    // Recompute size-aware properties so the material matches the resized geometry.
+    part.computeWorldMatrix(true);
+    const extend = part.getBoundingInfo().boundingBox.extendSizeWorld;
+
+    if (material instanceof flock.GradientMaterial) {
+      material.scale = extend.y > 0 ? 1 / extend.y : 1;
+    }
+  }
+}
+
+function ensureMaterialUniqueForResize(part) {
+  const mat = part.material;
+  if (!mat) return null;
+
+  // If we've already made this material unique for this mesh, reuse it.
+  if (mat.metadata?.uniqueForResize) return mat;
+
+  if (typeof mat.clone === "function") {
+    const cloneName = `${mat.name || "material"}__${part.name}__resize`;
+    const cloned = mat.clone(cloneName);
+    cloned.metadata = { ...(cloned.metadata || {}), uniqueForResize: true };
+    part.material = cloned;
+    return cloned;
+  }
+
+  // Fall back to tagging the existing material if cloning is unavailable.
+  mat.metadata = { ...(mat.metadata || {}), uniqueForResize: true };
+  return mat;
+}
