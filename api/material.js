@@ -116,7 +116,7 @@ export const flockMaterial = {
     }
 
     const { effective } = computeEffectiveTile(mesh, baseTile, null, {
-      neutralScale: !!shapeType,
+      neutralScale: !!shapeType, // primitives neutral, imports scaled
     });
     const effectiveTile = effective ?? baseTile;
     mesh.metadata.textureTileSize = effectiveTile;
@@ -959,12 +959,9 @@ export const flockMaterial = {
 
       const targets = allMeshes.filter((part) => part instanceof flock.BABYLON.Mesh);
       targets.forEach((part) => {
-        const { base, effective } = computeEffectiveTile(
-          part,
-          baseTile,
-          rootScale,
-          { neutralScale: !!part.metadata?.shapeType && Number.isFinite(tileSize) },
-        );
+        const { base, effective } = computeEffectiveTile(part, baseTile, rootScale, {
+          neutralScale: !!part.metadata?.shapeType && Number.isFinite(tileSize),
+        });
         if (!base || !effective) return;
         part.metadata.textureTileBaseSize = base;
         part.metadata.textureTileSize = effective;
