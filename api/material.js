@@ -6,7 +6,7 @@ export function setFlockReference(ref) {
 
 const PRIMITIVE_TILE_SCALE = 1;
 const IMPORTED_TILE_SCALE = 0.5;
-const DEFAULT_TILE_UNITS = 3;
+const DEFAULT_TILE_UNITS = 4;
 
 function resolveTextureTileScale(mesh, fallbackScale = null) {
   const meta = mesh.metadata || (mesh.metadata = {});
