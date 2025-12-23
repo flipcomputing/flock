@@ -8,6 +8,8 @@ export const flockMaterial = {
   adjustMaterialTilingToMesh(mesh, material, unitsPerTile = null) {
     if (!mesh || !material) return;
 
+    if (mesh.metadata?.skipAutoTiling) return;
+
     const shapeType = mesh?.metadata?.shapeType;
     const bakedShapes = new Set(["Box", "Sphere", "Cylinder", "Capsule", "Plane"]);
     if (shapeType && bakedShapes.has(shapeType)) return;
