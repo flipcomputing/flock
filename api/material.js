@@ -5,8 +5,12 @@ export function setFlockReference(ref) {
 }
 
 export const flockMaterial = {
-  adjustMaterialTilingToMesh(mesh, material, unitsPerTile = 2) {
+  adjustMaterialTilingToMesh(mesh, material, unitsPerTile = 4) {
     if (!mesh || !material) return;
+
+    const shapeType = mesh?.metadata?.shapeType;
+    const bakedShapes = new Set(["Box", "Sphere", "Cylinder", "Capsule", "Plane"]);
+    if (shapeType && bakedShapes.has(shapeType)) return;
 
     const tex =
       material.diffuseTexture ||
