@@ -581,6 +581,7 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
   mesh.refreshBoundingInfo();
 
   flock.updatePhysics(mesh);
+  flock.adjustMaterialTilingForHierarchy(mesh);
 
   if (flock.meshDebug) {
     console.log("[SCALE change]", {
@@ -863,6 +864,39 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
     flock.positionAt(mesh.name, { x, y, z, useY: true });
   };
 
+  const applyPrimitiveUVTiling = (shapeType, dims) => {
+    const TILE_SIZE = 4;
+    switch (shapeType) {
+      case "Box":
+        flock.setSizeBasedBoxUVs(
+          mesh,
+          dims.width,
+          dims.height,
+          dims.depth,
+          TILE_SIZE,
+        );
+        break;
+      case "Sphere":
+        flock.setSphereUVs(mesh, dims.diameter, TILE_SIZE);
+        break;
+      case "Cylinder":
+        flock.setSizeBasedCylinderUVs(
+          mesh,
+          dims.height,
+          dims.diameterTop,
+          dims.diameterBottom,
+          TILE_SIZE,
+        );
+        break;
+      case "Capsule":
+        flock.setCapsuleUVs(mesh, dims.radius, dims.height, TILE_SIZE);
+        break;
+      case "Plane":
+        flock.setSizeBasedPlaneUVs(mesh, dims.width, dims.height, TILE_SIZE);
+        break;
+    }
+  };
+
   switch (block.type) {
     case "create_box": {
       if (["WIDTH", "HEIGHT", "DEPTH"].includes(changed)) {
@@ -880,6 +914,7 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           .getFieldValue("NUM");
 
         setAbsoluteSize(mesh, width, height, depth);
+        applyPrimitiveUVTiling("Box", { width, height, depth });
         repositionPrimitiveFromBlock();
       }
       break;
@@ -901,6 +936,9 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           .getFieldValue("NUM");
 
         setAbsoluteSize(mesh, dx, dy, dz);
+        applyPrimitiveUVTiling("Sphere", {
+          diameter: Math.max(dx, dy, dz),
+        });
         repositionPrimitiveFromBlock();
       }
       break;
@@ -930,6 +968,11 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           .getFieldValue("NUM");
 
         updateCylinderGeometry(mesh, dt, db, h, s);
+        applyPrimitiveUVTiling("Cylinder", {
+          height: h,
+          diameterTop: dt,
+          diameterBottom: db,
+        });
 
         // only reposition when actual dimensions change, not tessellation
         if (["HEIGHT", "DIAMETER_TOP", "DIAMETER_BOTTOM"].includes(changed)) {
@@ -951,6 +994,7 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           .getFieldValue("NUM");
 
         setAbsoluteSize(mesh, d, h, d);
+        applyPrimitiveUVTiling("Capsule", { radius: d / 2, height: h });
         repositionPrimitiveFromBlock();
       }
       break;
@@ -968,6 +1012,7 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           .getFieldValue("NUM");
 
         setAbsoluteSize(mesh, w, h, 0);
+        applyPrimitiveUVTiling("Plane", { width: w, height: h });
         repositionPrimitiveFromBlock();
       }
       break;
@@ -1936,7 +1981,24 @@ function replaceMeshModel(currentMesh, block) {
         } catch {}
       }
 
-      // Apply colours
+      // Apply material/colour from the block, then fall back to saved colours
+      const { color: blockColor, materialInfo } =
+        resolveColorAndMaterialForBlock(block);
+
+      if (materialInfo || blockColor) {
+        try {
+          handleMaterialOrColorChange(
+            newChild,
+            block,
+            "COLOR",
+            blockColor,
+            materialInfo,
+          );
+        } catch (e) {
+          console.warn("handleMaterialOrColorChange failed", e);
+        }
+      }
+
       if (isCharacter) {
         const palette =
           (currentMesh.metadata && currentMesh.metadata.colors) || null;

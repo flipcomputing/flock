@@ -198,34 +198,6 @@ export const flockModels = {
       } catch (_) {}
     };
 
-    /**
-     * Helper to ensure texture tiling matches world size
-     */
-    const adjustTiling = (mesh, mat) => {
-      const tex = mat.diffuseTexture || mat.albedoTexture || mat.baseTexture;
-
-      if (tex && typeof tex.uScale === "number") {
-        const unitsPerTile = 2; 
-
-        tex.wrapU = 1; // WRAP
-        tex.wrapV = 1; // WRAP
-
-        mesh.computeWorldMatrix(true);
-        const boundingInfo = mesh.getBoundingInfo();
-        const extend = boundingInfo.boundingBox.extendSizeWorld; // Half-dimensions
-
-        const worldWidth = extend.x * 2;
-        const worldHeight = extend.y * 2;
-        const worldDepth = extend.z * 2;
-
-        let newUScale = worldWidth / unitsPerTile;
-        let newVScale = (worldHeight > worldDepth ? worldHeight : worldDepth) / unitsPerTile;
-
-        tex.uScale = newUScale || 1;
-        tex.vScale = newVScale || 1;
-      }
-    };
-
     const applyMaterialToHierarchy = (mesh, colorInput) => {
       if (!applyColor || !colorInput) return;
 
@@ -253,7 +225,7 @@ export const flockModels = {
       // Apply to Root
       if (targetMaterials[0]) {
         mesh.material = targetMaterials[0];
-        adjustTiling(mesh, targetMaterials[0]);
+        flock.adjustMaterialTilingToMesh(mesh, targetMaterials[0]);
       }
 
       // Apply to Children
@@ -262,7 +234,7 @@ export const flockModels = {
         const m = targetMaterials[i] || targetMaterials[0];
         if (m) {
           child.material = m;
-          adjustTiling(child, m);
+          flock.adjustMaterialTilingToMesh(child, m);
         }
       });
     };

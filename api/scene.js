@@ -393,6 +393,8 @@ export const flockScene = {
     ground.name = "ground";
     ground.metadata = ground.metadata || {};
     ground.metadata.blockKey = "ground";
+    ground.metadata.skipAutoTiling = true;
+    ground.metadata.textureTileSize = mapTexturePhysicalSize;
 
     const applyMapMaterial = (mat) => {
       flock.applyMaterialToMesh(ground, "Plane", mat);

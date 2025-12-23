@@ -5,6 +5,63 @@ export function setFlockReference(ref) {
 }
 
 export const flockMaterial = {
+  adjustMaterialTilingToMesh(mesh, material, unitsPerTile = null) {
+    if (!mesh || !material) return;
+
+    if (mesh.metadata?.skipAutoTiling) return;
+
+    const shapeType = mesh?.metadata?.shapeType;
+    const bakedShapes = new Set(["Box", "Sphere", "Cylinder", "Capsule", "Plane"]);
+    if (shapeType && bakedShapes.has(shapeType)) return;
+
+    const tex =
+      material.diffuseTexture ||
+      material.albedoTexture ||
+      material.baseTexture ||
+      null;
+
+    if (!tex || typeof tex.uScale !== "number" || typeof tex.vScale !== "number") {
+      return;
+    }
+
+    const wrap = flock?.BABYLON?.Texture?.WRAP_ADDRESSMODE ?? 1;
+    tex.wrapU = wrap;
+    tex.wrapV = wrap;
+
+    mesh.computeWorldMatrix?.(true);
+    mesh.refreshBoundingInfo?.();
+    const extend = mesh.getBoundingInfo?.()?.boundingBox?.extendSizeWorld;
+    if (!extend) return;
+
+    const existingTile = mesh.metadata?.textureTileSize;
+    const tile =
+      Number.isFinite(unitsPerTile) && unitsPerTile > 0
+        ? unitsPerTile
+        : Number.isFinite(existingTile) && existingTile > 0
+          ? existingTile
+          : 2;
+    mesh.metadata = mesh.metadata || {};
+    mesh.metadata.textureTileSize = tile;
+    const worldWidth = extend.x * 2;
+    const worldHeight = extend.y * 2;
+    const worldDepth = extend.z * 2;
+
+    const newUScale = worldWidth / tile;
+    const newVScale = Math.max(worldHeight, worldDepth) / tile;
+
+    if (Number.isFinite(newUScale) && newUScale > 0) tex.uScale = newUScale;
+    if (Number.isFinite(newVScale) && newVScale > 0) tex.vScale = newVScale;
+  },
+  adjustMaterialTilingForHierarchy(mesh, unitsPerTile) {
+    if (!mesh) return;
+    const targets = [mesh, ...(mesh.getDescendants?.() || [])];
+    targets.forEach((m) => {
+      const mat =
+        m.material ||
+        (m.getClassName?.() === "InstancedMesh" ? m.sourceMesh?.material : null);
+      flock.adjustMaterialTilingToMesh(m, mat, unitsPerTile);
+    });
+  },
   /* randomColour() {
           const colors = [
                   "#FF6B6B",
@@ -701,6 +758,7 @@ export const flockMaterial = {
     const allMeshes = [mesh].concat(mesh.getDescendants());
     allMeshes.forEach((part) => {
       part.material = material;
+      flock.adjustMaterialTilingToMesh(part, material);
     });
 
     if (mesh.metadata?.glow) {
@@ -778,6 +836,7 @@ export const flockMaterial = {
           console.log(`Setting material of ${part.name} to ${material.name}`);
         // Apply the material to the mesh
         part.material = material;
+        flock.adjustMaterialTilingToMesh(part, material);
       });
 
       if (mesh.metadata?.glow) {
@@ -1262,16 +1321,7 @@ export const flockMaterial = {
 
     const applyMaterialWithTilingIfAny = (m) => {
       mesh.material = m;
-      const tex =
-        m?.albedoTexture || m?.diffuseTexture || m?.baseTexture || null;
-      if (
-        tex &&
-        typeof tex.uScale === "number" &&
-        typeof tex.vScale === "number"
-      ) {
-        if (!tex.uScale) tex.uScale = 1;
-        if (!tex.vScale) tex.vScale = 1;
-      }
+      flock.adjustMaterialTilingToMesh(mesh, m);
     };
 
     const clearVertexColors = () => {
