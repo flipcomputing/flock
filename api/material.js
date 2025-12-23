@@ -90,7 +90,7 @@ export const flockMaterial = {
     const extend = mesh.getBoundingInfo?.()?.boundingBox?.extendSizeWorld;
     if (!extend) return;
 
-    const existingTile = mesh.metadata?.textureTileSize;
+    const existingTile = mesh.metadata?.textureTileBaseSize ?? mesh.metadata?.textureTileSize;
     const shapeType = mesh?.metadata?.shapeType;
     const bakedShapes = new Set(["Box", "Sphere", "Cylinder", "Capsule", "Plane"]);
 
@@ -103,7 +103,7 @@ export const flockMaterial = {
       return;
     }
 
-    const tile =
+    const baseTile =
       Number.isFinite(unitsPerTile) && unitsPerTile > 0
         ? unitsPerTile
         : Number.isFinite(existingTile) && existingTile > 0
@@ -112,11 +112,12 @@ export const flockMaterial = {
 
     mesh.metadata = mesh.metadata || {};
     if (!Number.isFinite(mesh.metadata.textureTileBaseSize)) {
-      mesh.metadata.textureTileBaseSize = tile;
+      mesh.metadata.textureTileBaseSize = baseTile;
     }
 
-    const scale = resolveTextureTileScale(mesh);
-    const effectiveTile = tile * scale;
+    const neutralScale = Number.isFinite(unitsPerTile);
+    const effectiveTile =
+      neutralScale ? baseTile : baseTile * resolveTextureTileScale(mesh);
     mesh.metadata.textureTileSize = effectiveTile;
     if (!Number.isFinite(mesh.metadata.textureTileBaseSize)) {
       mesh.metadata.textureTileBaseSize = tile;
