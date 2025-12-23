@@ -6,6 +6,7 @@ export function setFlockReference(ref) {
 
 const PRIMITIVE_TILE_SCALE = 1;
 const IMPORTED_TILE_SCALE = 0.5;
+const DEFAULT_TILE_UNITS = 4;
 
 function resolveTextureTileScale(mesh, fallbackScale = null) {
   const meta = mesh.metadata || (mesh.metadata = {});
@@ -107,9 +108,12 @@ export const flockMaterial = {
         ? unitsPerTile
         : Number.isFinite(existingTile) && existingTile > 0
           ? existingTile
-          : 2;
+          : DEFAULT_TILE_UNITS;
     mesh.metadata = mesh.metadata || {};
     mesh.metadata.textureTileSize = tile;
+    if (!Number.isFinite(mesh.metadata.textureTileBaseSize)) {
+      mesh.metadata.textureTileBaseSize = tile;
+    }
 
     if (shapeType && bakedShapes.has(shapeType)) {
       retilePrimitiveMesh(mesh, tile);
@@ -892,7 +896,7 @@ export const flockMaterial = {
             ? mesh.metadata.textureTileBaseSize
             : Number.isFinite(mesh.metadata?.textureTileSize)
               ? mesh.metadata.textureTileSize
-              : null;
+              : DEFAULT_TILE_UNITS;
 
       if (hasMaterials) {
         allMeshes.forEach((part) => {
