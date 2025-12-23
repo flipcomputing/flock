@@ -1015,6 +1015,8 @@ export const flock = {
                         changeColorMesh: this.changeColorMesh?.bind(this),
                         changeMaterial: this.changeMaterial?.bind(this),
                         setMaterial: this.setMaterial?.bind(this),
+                        setMaterialTileSize:
+                                this.setMaterialTileSize?.bind(this),
                         createMaterial: this.createMaterial?.bind(this),
                         moveForward: this.moveForward?.bind(this),
                         moveSideways: this.moveSideways?.bind(this),
