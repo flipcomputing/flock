@@ -5,7 +5,7 @@ export function setFlockReference(ref) {
 }
 
 export const flockMaterial = {
-  adjustMaterialTilingToMesh(mesh, material, unitsPerTile = 4) {
+  adjustMaterialTilingToMesh(mesh, material, unitsPerTile = null) {
     if (!mesh || !material) return;
 
     const shapeType = mesh?.metadata?.shapeType;
@@ -31,7 +31,15 @@ export const flockMaterial = {
     const extend = mesh.getBoundingInfo?.()?.boundingBox?.extendSizeWorld;
     if (!extend) return;
 
-    const tile = Number.isFinite(unitsPerTile) && unitsPerTile > 0 ? unitsPerTile : 1;
+    const existingTile = mesh.metadata?.textureTileSize;
+    const tile =
+      Number.isFinite(unitsPerTile) && unitsPerTile > 0
+        ? unitsPerTile
+        : Number.isFinite(existingTile) && existingTile > 0
+          ? existingTile
+          : 2;
+    mesh.metadata = mesh.metadata || {};
+    mesh.metadata.textureTileSize = tile;
     const worldWidth = extend.x * 2;
     const worldHeight = extend.y * 2;
     const worldDepth = extend.z * 2;
