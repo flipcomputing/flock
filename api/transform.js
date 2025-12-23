@@ -631,27 +631,28 @@ export const flockTransform = {
       xOrigin = "CENTRE",
       yOrigin = "BASE",
       zOrigin = "CENTRE",
+      maintainTextureScale = true,
     } = {},
   ) {
     return flock.whenModelReady(meshName, (mesh) => {
       mesh.metadata = mesh.metadata || {};
-      // Save the original local bounding box once.
+
       if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
         const bi = mesh.getBoundingInfo();
         mesh.metadata.originalMin = bi.boundingBox.minimum.clone();
         mesh.metadata.originalMax = bi.boundingBox.maximum.clone();
       }
+
       const origMin = mesh.metadata.originalMin;
       const origMax = mesh.metadata.originalMax;
-      // Compute the original dimensions.
       const origWidth = origMax.x - origMin.x;
       const origHeight = origMax.y - origMin.y;
       const origDepth = origMax.z - origMin.z;
-      // Compute new scaling factors based on the original dimensions.
+
       const scaleX = origWidth && width !== null ? width / origWidth : 1;
       const scaleY = origHeight && height !== null ? height / origHeight : 1;
       const scaleZ = origDepth && depth !== null ? depth / origDepth : 1;
-      // Refresh current bounding info and compute the old anchor (world space)
+
       mesh.refreshBoundingInfo();
       const oldBI = mesh.getBoundingInfo();
       const oldMinWorld = oldBI.boundingBox.minimumWorld;
@@ -673,11 +674,35 @@ export const flockTransform = {
             ? oldMaxWorld.z
             : (oldMinWorld.z + oldMaxWorld.z) / 2,
       );
-      // Apply the new scaling.
+
       mesh.scaling = new flock.BABYLON.Vector3(scaleX, scaleY, scaleZ);
+
+      if (maintainTextureScale && mesh.material) {
+        const materials = mesh.material.subMaterials || [mesh.material];
+
+        materials.forEach((mat) => {
+          const textures = [
+            mat.albedoTexture,
+            mat.diffuseTexture,
+            mat.bumpTexture,
+            mat.reflectionTexture,
+          ];
+
+          textures.forEach((tex) => {
+            if (tex) {
+              // Logic: Texture scale should match the mesh scale to maintain world-size density
+              // Note: This assumes original texture scale was 1.0.
+              // Use mesh.scaling.x/y/z depending on which plane the texture sits on.
+              // For a generic box, we use X and Y for U and V.
+              tex.uScale = scaleX;
+              tex.vScale = scaleY;
+            }
+          });
+        });
+      }
+
       mesh.refreshBoundingInfo();
       mesh.computeWorldMatrix(true);
-      // Now compute the new anchor (world space) after scaling.
       const newBI = mesh.getBoundingInfo();
       const newMinWorld = newBI.boundingBox.minimumWorld;
       const newMaxWorld = newBI.boundingBox.maximumWorld;
@@ -691,17 +716,17 @@ export const flockTransform = {
           ? newMinWorld.y
           : yOrigin === "TOP"
             ? newMaxWorld.y
-            : (newMinWorld.y + newMaxWorld.y) / 2,
+            : (oldMinWorld.y + oldMaxWorld.y) / 2,
         zOrigin === "FRONT"
           ? newMinWorld.z
           : zOrigin === "BACK"
             ? newMaxWorld.z
             : (newMinWorld.z + newMaxWorld.z) / 2,
       );
-      // Compute the difference and adjust the mesh's position so the anchor stays fixed.
+
       const diff = newAnchor.subtract(oldAnchor);
       mesh.position.subtractInPlace(diff);
-      // Final updates.
+
       mesh.refreshBoundingInfo();
       mesh.computeWorldMatrix(true);
       flock.updatePhysics(mesh);
