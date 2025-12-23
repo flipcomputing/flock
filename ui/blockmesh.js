@@ -1981,7 +1981,24 @@ function replaceMeshModel(currentMesh, block) {
         } catch {}
       }
 
-      // Apply colours
+      // Apply material/colour from the block, then fall back to saved colours
+      const { color: blockColor, materialInfo } =
+        resolveColorAndMaterialForBlock(block);
+
+      if (materialInfo || blockColor) {
+        try {
+          handleMaterialOrColorChange(
+            newChild,
+            block,
+            "COLOR",
+            blockColor,
+            materialInfo,
+          );
+        } catch (e) {
+          console.warn("handleMaterialOrColorChange failed", e);
+        }
+      }
+
       if (isCharacter) {
         const palette =
           (currentMesh.metadata && currentMesh.metadata.colors) || null;
