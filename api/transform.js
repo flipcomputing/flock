@@ -638,9 +638,9 @@ export const flockTransform = {
       mesh.metadata = mesh.metadata || {};
 
       if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
-        const bi = mesh.getBoundingInfo();
-        mesh.metadata.originalMin = bi.boundingBox.minimum.clone();
-        mesh.metadata.originalMax = bi.boundingBox.maximum.clone();
+        const hierarchy = mesh.getHierarchyBoundingVectors();
+        mesh.metadata.originalMin = hierarchy.min.clone();
+        mesh.metadata.originalMax = hierarchy.max.clone();
       }
 
       const origMin = mesh.metadata.originalMin;
@@ -653,82 +653,88 @@ export const flockTransform = {
       const scaleY = origHeight && height !== null ? height / origHeight : 1;
       const scaleZ = origDepth && depth !== null ? depth / origDepth : 1;
 
-      mesh.refreshBoundingInfo();
-      const oldBI = mesh.getBoundingInfo();
-      const oldMinWorld = oldBI.boundingBox.minimumWorld;
-      const oldMaxWorld = oldBI.boundingBox.maximumWorld;
+      // Save old anchor (world space)
+      mesh.computeWorldMatrix(true);
+      const oldBI = mesh.getHierarchyBoundingVectors();
       const oldAnchor = new flock.BABYLON.Vector3(
         xOrigin === "LEFT"
-          ? oldMinWorld.x
+          ? oldBI.min.x
           : xOrigin === "RIGHT"
-            ? oldMaxWorld.x
-            : (oldMinWorld.x + oldMaxWorld.x) / 2,
+            ? oldBI.max.x
+            : (oldBI.min.x + oldBI.max.x) / 2,
         yOrigin === "BASE"
-          ? oldMinWorld.y
+          ? oldBI.min.y
           : yOrigin === "TOP"
-            ? oldMaxWorld.y
-            : (oldMinWorld.y + oldMaxWorld.y) / 2,
+            ? oldBI.max.y
+            : (oldBI.min.y + oldBI.max.y) / 2,
         zOrigin === "FRONT"
-          ? oldMinWorld.z
+          ? oldBI.min.z
           : zOrigin === "BACK"
-            ? oldMaxWorld.z
-            : (oldMinWorld.z + oldMaxWorld.z) / 2,
+            ? oldBI.max.z
+            : (oldBI.min.z + oldBI.max.z) / 2,
       );
 
       mesh.scaling = new flock.BABYLON.Vector3(scaleX, scaleY, scaleZ);
 
-      if (maintainTextureScale && mesh.material) {
-        const materials = mesh.material.subMaterials || [mesh.material];
+      if (maintainTextureScale) {
+        const allMeshes = [mesh, ...mesh.getChildMeshes()];
 
-        materials.forEach((mat) => {
-          const textures = [
-            mat.albedoTexture,
-            mat.diffuseTexture,
-            mat.bumpTexture,
-            mat.reflectionTexture,
-          ];
+        allMeshes.forEach((m) => {
+          if (!m.material) return;
+          const mats = m.material.subMaterials || [m.material];
 
-          textures.forEach((tex) => {
-            if (tex) {
-              // Logic: Texture scale should match the mesh scale to maintain world-size density
-              // Note: This assumes original texture scale was 1.0.
-              // Use mesh.scaling.x/y/z depending on which plane the texture sits on.
-              // For a generic box, we use X and Y for U and V.
-              tex.uScale = scaleX;
-              tex.vScale = scaleY;
-            }
+          mats.forEach((mat) => {
+            const textures = [
+              mat.albedoTexture,
+              mat.diffuseTexture,
+              mat.bumpTexture,
+            ];
+
+            textures.forEach((tex) => {
+              if (tex && typeof tex.uScale === "number") {
+                const unitsPerTile = 2.0;
+
+                const currentW =
+                  width !== null ? width : origWidth * mesh.scaling.x;
+                const currentH =
+                  height !== null ? height : origHeight * mesh.scaling.y;
+                const currentD =
+                  depth !== null ? depth : origDepth * mesh.scaling.z;
+
+                tex.uScale = currentW / unitsPerTile;
+                tex.vScale = Math.max(currentH, currentD) / unitsPerTile;
+
+                tex.wrapU = 1; // Wrap
+                tex.wrapV = 1; // Wrap
+              }
+            });
           });
         });
       }
 
-      mesh.refreshBoundingInfo();
       mesh.computeWorldMatrix(true);
-      const newBI = mesh.getBoundingInfo();
-      const newMinWorld = newBI.boundingBox.minimumWorld;
-      const newMaxWorld = newBI.boundingBox.maximumWorld;
+      const newBI = mesh.getHierarchyBoundingVectors();
       const newAnchor = new flock.BABYLON.Vector3(
         xOrigin === "LEFT"
-          ? newMinWorld.x
+          ? newBI.min.x
           : xOrigin === "RIGHT"
-            ? newMaxWorld.x
-            : (newMinWorld.x + newMaxWorld.x) / 2,
+            ? newBI.max.x
+            : (newBI.min.x + newBI.max.x) / 2,
         yOrigin === "BASE"
-          ? newMinWorld.y
+          ? newBI.min.y
           : yOrigin === "TOP"
-            ? newMaxWorld.y
-            : (oldMinWorld.y + oldMaxWorld.y) / 2,
+            ? newBI.max.y
+            : (newBI.min.y + newBI.max.y) / 2,
         zOrigin === "FRONT"
-          ? newMinWorld.z
+          ? newBI.min.z
           : zOrigin === "BACK"
-            ? newMaxWorld.z
-            : (newMinWorld.z + newMaxWorld.z) / 2,
+            ? newBI.max.z
+            : (newBI.min.z + newBI.max.z) / 2,
       );
 
       const diff = newAnchor.subtract(oldAnchor);
       mesh.position.subtractInPlace(diff);
 
-      mesh.refreshBoundingInfo();
-      mesh.computeWorldMatrix(true);
       flock.updatePhysics(mesh);
     });
   },
