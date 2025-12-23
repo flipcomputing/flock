@@ -70,18 +70,6 @@ export const flockMaterial = {
 
     if (mesh.metadata?.skipAutoTiling) return;
 
-    const existingTile = mesh.metadata?.textureTileSize;
-    const shapeType = mesh?.metadata?.shapeType;
-    const bakedShapes = new Set(["Box", "Sphere", "Cylinder", "Capsule", "Plane"]);
-    if (
-      shapeType &&
-      bakedShapes.has(shapeType) &&
-      !Number.isFinite(unitsPerTile) &&
-      !Number.isFinite(existingTile)
-    ) {
-      return;
-    }
-
     const tex =
       material.diffuseTexture ||
       material.albedoTexture ||
@@ -100,6 +88,19 @@ export const flockMaterial = {
     mesh.refreshBoundingInfo?.();
     const extend = mesh.getBoundingInfo?.()?.boundingBox?.extendSizeWorld;
     if (!extend) return;
+
+    const existingTile = mesh.metadata?.textureTileSize;
+    const shapeType = mesh?.metadata?.shapeType;
+    const bakedShapes = new Set(["Box", "Sphere", "Cylinder", "Capsule", "Plane"]);
+
+    if (
+      !Number.isFinite(unitsPerTile) &&
+      !Number.isFinite(existingTile) &&
+      (!shapeType || !bakedShapes.has(shapeType))
+    ) {
+      // No explicit tile size and no stored tile size -> keep current texture scaling.
+      return;
+    }
 
     const tile =
       Number.isFinite(unitsPerTile) && unitsPerTile > 0
