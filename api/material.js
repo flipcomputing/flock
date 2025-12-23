@@ -25,6 +25,39 @@ function resolveTextureTileScale(mesh, fallbackScale = null) {
   return inferredScale;
 }
 
+function retilePrimitiveMesh(mesh, tileSize) {
+  const shapeType = mesh?.metadata?.shapeType;
+  if (!shapeType || !Number.isFinite(tileSize) || tileSize <= 0) return;
+
+  const ext = mesh.getBoundingInfo?.()?.boundingBox?.extendSizeWorld;
+  if (!ext) return;
+
+  const width = ext.x * 2;
+  const height = ext.y * 2;
+  const depth = ext.z * 2;
+  const largestDiameter = Math.max(width, height, depth);
+
+  switch (shapeType) {
+    case "Box":
+      flock.setSizeBasedBoxUVs(mesh, width, height, depth, tileSize);
+      break;
+    case "Sphere":
+      flock.setSphereUVs(mesh, largestDiameter, tileSize);
+      break;
+    case "Cylinder":
+      flock.setSizeBasedCylinderUVs(mesh, height, width, width, tileSize);
+      break;
+    case "Capsule":
+      flock.setCapsuleUVs(mesh, width / 2, height, tileSize);
+      break;
+    case "Plane":
+      flock.setSizeBasedPlaneUVs(mesh, width, depth, tileSize);
+      break;
+    default:
+      break;
+  }
+}
+
 export const flockMaterial = {
   adjustMaterialTilingToMesh(mesh, material, unitsPerTile = null) {
     if (!mesh || !material) return;
@@ -70,6 +103,11 @@ export const flockMaterial = {
           : 2;
     mesh.metadata = mesh.metadata || {};
     mesh.metadata.textureTileSize = tile;
+
+    if (shapeType && bakedShapes.has(shapeType)) {
+      retilePrimitiveMesh(mesh, tile);
+    }
+
     const worldWidth = extend.x * 2;
     const worldHeight = extend.y * 2;
     const worldDepth = extend.z * 2;
@@ -369,6 +407,7 @@ export const flockMaterial = {
             : null);
 
         if (material) {
+          retilePrimitiveMesh(target, effectiveTileSize);
           flock.adjustMaterialTilingToMesh(target, material, effectiveTileSize);
         }
       });
