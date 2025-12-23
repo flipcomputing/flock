@@ -109,14 +109,21 @@ export const flockMaterial = {
         : Number.isFinite(existingTile) && existingTile > 0
           ? existingTile
           : DEFAULT_TILE_UNITS;
+
     mesh.metadata = mesh.metadata || {};
-    mesh.metadata.textureTileSize = tile;
+    if (!Number.isFinite(mesh.metadata.textureTileBaseSize)) {
+      mesh.metadata.textureTileBaseSize = tile;
+    }
+
+    const scale = resolveTextureTileScale(mesh);
+    const effectiveTile = tile * scale;
+    mesh.metadata.textureTileSize = effectiveTile;
     if (!Number.isFinite(mesh.metadata.textureTileBaseSize)) {
       mesh.metadata.textureTileBaseSize = tile;
     }
 
     if (shapeType && bakedShapes.has(shapeType)) {
-      retilePrimitiveMesh(mesh, tile);
+      retilePrimitiveMesh(mesh, effectiveTile);
       tex.uScale = 1;
       tex.vScale = 1;
       return;
@@ -126,8 +133,8 @@ export const flockMaterial = {
     const worldHeight = extend.y * 2;
     const worldDepth = extend.z * 2;
 
-    const newUScale = worldWidth / tile;
-    const newVScale = Math.max(worldHeight, worldDepth) / tile;
+    const newUScale = worldWidth / effectiveTile;
+    const newVScale = Math.max(worldHeight, worldDepth) / effectiveTile;
 
     if (Number.isFinite(newUScale) && newUScale > 0) tex.uScale = newUScale;
     if (Number.isFinite(newVScale) && newVScale > 0) tex.vScale = newVScale;
