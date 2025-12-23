@@ -58,6 +58,12 @@ function retilePrimitiveMesh(mesh, tileSize) {
   }
 }
 
+function computeEffectiveTile(mesh, baseTile, fallbackScale = null) {
+  if (!Number.isFinite(baseTile) || baseTile <= 0) return { base: null, effective: null };
+  const scale = resolveTextureTileScale(mesh, fallbackScale);
+  return { base: baseTile, effective: baseTile * scale };
+}
+
 export const flockMaterial = {
   adjustMaterialTilingToMesh(mesh, material, unitsPerTile = null) {
     if (!mesh || !material) return;
@@ -877,6 +883,15 @@ export const flockMaterial = {
     return flock.whenModelReady(meshName, (mesh) => {
       const allMeshes = [mesh].concat(mesh.getDescendants());
       const hasMaterials = Array.isArray(materials) && materials.length > 0;
+      const rootScale = resolveTextureTileScale(mesh);
+      const baseTile =
+        Number.isFinite(tileSize) && tileSize > 0
+          ? tileSize
+          : Number.isFinite(mesh.metadata?.textureTileBaseSize)
+            ? mesh.metadata.textureTileBaseSize
+            : Number.isFinite(mesh.metadata?.textureTileSize)
+              ? mesh.metadata.textureTileSize
+              : null;
 
       if (hasMaterials) {
         allMeshes.forEach((part) => {
@@ -924,31 +939,27 @@ export const flockMaterial = {
             console.log(`Setting material of ${part.name} to ${material.name}`);
           // Apply the material to the mesh
           part.material = material;
-          flock.adjustMaterialTilingToMesh(part, material);
+          const { effective } = computeEffectiveTile(part, baseTile, rootScale);
+          flock.adjustMaterialTilingToMesh(part, material, effective);
         });
       }
 
-      if (Number.isFinite(tileSize) && tileSize > 0) {
-        const targets = allMeshes.filter(
-          (part) => part instanceof flock.BABYLON.Mesh,
-        );
-        const rootScale = resolveTextureTileScale(mesh);
-        targets.forEach((part) => {
-          const scale = resolveTextureTileScale(part, rootScale);
-          const effectiveTileSize = tileSize * scale;
-          part.metadata.textureTileBaseSize = tileSize;
-          part.metadata.textureTileSize = effectiveTileSize;
-          retilePrimitiveMesh(part, effectiveTileSize);
-          const material =
-            part.material ||
-            (part.getClassName?.() === "InstancedMesh"
-              ? part.sourceMesh?.material
-              : null);
-          if (material) {
-            flock.adjustMaterialTilingToMesh(part, material, effectiveTileSize);
-          }
-        });
-      }
+      const targets = allMeshes.filter((part) => part instanceof flock.BABYLON.Mesh);
+      targets.forEach((part) => {
+        const { base, effective } = computeEffectiveTile(part, baseTile, rootScale);
+        if (!base || !effective) return;
+        part.metadata.textureTileBaseSize = base;
+        part.metadata.textureTileSize = effective;
+        retilePrimitiveMesh(part, effective);
+        const material =
+          part.material ||
+          (part.getClassName?.() === "InstancedMesh"
+            ? part.sourceMesh?.material
+            : null);
+        if (material) {
+          flock.adjustMaterialTilingToMesh(part, material, effective);
+        }
+      });
 
       if (mesh.metadata?.glow) {
         flock.glowMesh(mesh);
