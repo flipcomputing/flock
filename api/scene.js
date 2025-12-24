@@ -110,7 +110,6 @@ export const flockScene = {
       return;
     }
 
-    // --- SINGLE-COLOUR SKY DOME (this is the key change) ---
     if (typeof color === "string") {
       const c3 = flock.BABYLON.Color3.FromHexString(
         flock.getColorFromString(color),
@@ -125,8 +124,9 @@ export const flockScene = {
       );
       skyMat.backFaceCulling = false;
       skyMat.disableLighting = false; // ensure lit
-      skyMat.diffuseColor = c3; // reacts to lights
-      skyMat.ambientColor = c3.scale(0.05); // gentle lift, optional
+      skyMat.emissiveColor = c3.scale(0.9); // mostly self-lit
+      skyMat.diffuseColor  = c3.scale(0.2); // tiny amount reacts to lights
+      skyMat.ambientColor  = c3.scale(0.1);
       skyMat.fogEnabled = false;
 
       skySphere.material = skyMat;
