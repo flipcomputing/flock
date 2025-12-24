@@ -124,8 +124,8 @@ export const flockScene = {
       );
       skyMat.backFaceCulling = false;
       skyMat.disableLighting = false; // ensure lit
-      skyMat.emissiveColor = c3.scale(0.9); // mostly self-lit
-      skyMat.diffuseColor  = c3.scale(0.2); // tiny amount reacts to lights
+      skyMat.emissiveColor = c3.scale(0.3); 
+      skyMat.diffuseColor  = c3; 
       skyMat.ambientColor  = c3.scale(0.1);
       skyMat.fogEnabled = false;
 
