@@ -18,7 +18,8 @@ export const flockEffects = {
   lightColor(diffuse, groundColor) {
     if (flock.mainLight) {
       flock.mainLight.diffuse = flock.BABYLON.Color3.FromHexString(diffuse);
-      flock.mainLight.groundColor = flock.BABYLON.Color3.FromHexString(groundColor);
+      flock.mainLight.groundColor =
+        flock.BABYLON.Color3.FromHexString(groundColor);
     } else {
       console.warn(
         "Main light is not defined. Please ensure flock.mainLight exists.",
@@ -49,6 +50,21 @@ export const flockEffects = {
     const particlePromise = new Promise((resolve, reject) => {
       flock.whenModelReady(emitterMesh, (meshInstance) => {
         try {
+          if (Array.isArray(flock.scene.particleSystems)) {
+            flock.scene.particleSystems
+              .filter((system) => system.emitter === meshInstance)
+              .forEach((system) => {
+                try {
+                  system.dispose();
+                } catch (error) {
+                  console.error(
+                    `Error disposing existing particle system '${system.name}':`,
+                    error,
+                  );
+                }
+              });
+          }
+
           // Create the particle system
           const particleSystem = new flock.BABYLON.ParticleSystem(
             resultName,
@@ -146,7 +162,10 @@ export const flockEffects = {
 
           resolve(particleSystem);
         } catch (error) {
-          console.error(`Error creating particle effect '${resultName}':`, error);
+          console.error(
+            `Error creating particle effect '${resultName}':`,
+            error,
+          );
           reject(error);
         }
       });
@@ -188,7 +207,13 @@ export const flockEffects = {
       console.warn(`Particle system '${systemName}' not found.`);
     }
   },
-  setFog({ fogColorHex, fogMode, fogDensity = 0.1, fogStart = 50, fogEnd = 100 } = {}) {
+  setFog({
+    fogColorHex,
+    fogMode,
+    fogDensity = 0.1,
+    fogStart = 50,
+    fogEnd = 100,
+  } = {}) {
     const fogColorRgb = flock.BABYLON.Color3.FromHexString(
       flock.getColorFromString(fogColorHex),
     );
@@ -213,4 +238,4 @@ export const flockEffects = {
     flock.scene.fogStart = fogStart;
     flock.scene.fogEnd = fogEnd;
   },
-}
+};
