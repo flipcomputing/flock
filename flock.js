@@ -1499,6 +1499,8 @@ export const flock = {
                         preserveDrawingBuffer: true,
                         stencil: true,
                         powerPreference: "default",
+                        deterministicLockstep: true,
+                        lockstepMaxSteps: 4,
                 });
 
                 flock.engine.enableOfflineSupport = false;
