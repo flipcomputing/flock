@@ -70,231 +70,289 @@ Blockly.utils.colour.setHsvValue(0.85); // 0 (inclusive) to 1 (exclusive), defau
 const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
 
 function initializeIfClauseConnectionChecker(workspace) {
-  const connectionChecker = workspace.connectionChecker;
+        const connectionChecker = workspace.connectionChecker;
 
-  // Store the original doTypeChecks method
-  const originalDoTypeChecks =
-    connectionChecker.doTypeChecks.bind(connectionChecker);
+        // Store the original doTypeChecks method
+        const originalDoTypeChecks =
+                connectionChecker.doTypeChecks.bind(connectionChecker);
 
-  function isRealBlock(block) {
-    return (
-      !!block &&
-      !(typeof block.isInsertionMarker === "function" &&
-        block.isInsertionMarker())
-    );
-  }
-
-  function realTargetBlock(connection) {
-    const t = connection?.targetBlock?.();
-    return isRealBlock(t) ? t : null;
-  }
-
-  function realNext(block) {
-    return realTargetBlock(block?.nextConnection);
-  }
-
-  function realPrev(block) {
-    return realTargetBlock(block?.previousConnection);
-  }
-
-  // Helper function to get all blocks in a stack (excluding insertion markers)
-  function getAllBlocksInStack(block) {
-    const blocks = [block];
-    let current = block;
-
-    while (current?.nextConnection) {
-      const next = realNext(current);
-      if (!next) break;
-      blocks.push(next);
-      current = next;
-    }
-
-    return blocks;
-  }
-
-  // Helper function to check if a block or its descendants contain if_clause blocks
-  function hasIfClauseInStack(block) {
-    const stack = getAllBlocksInStack(block);
-    // Check if any block after the first one is an if_clause
-    for (let i = 1; i < stack.length; i++) {
-      if (stack[i].type === "if_clause") {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  // Helper function to check if a connection is a statement input (like DO)
-  function isStatementInputConnection(connection) {
-    const block = connection.getSourceBlock();
-    for (let i = 0; i < block.inputList.length; i++) {
-      const input = block.inputList[i];
-      if (input.type === Blockly.INPUT_VALUE || input.type === Blockly.DUMMY_INPUT) {
-        continue;
-      }
-      if (input.connection === connection) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  // Override the doTypeChecks method
-  connectionChecker.doTypeChecks = function (a, b) {
-    // First do the standard type checking
-    if (!originalDoTypeChecks(a, b)) {
-      return false;
-    }
-
-    // Get the blocks involved
-    const blockA = a.getSourceBlock();
-    const blockB = b.getSourceBlock();
-
-    // Check if either block is an if_clause
-    const aIsIfClause = blockA.type === "if_clause";
-    const bIsIfClause = blockB.type === "if_clause";
-
-    if (!aIsIfClause && !bIsIfClause) {
-      return true; // Neither is if_clause, allow
-    }
-
-    // Determine the type of connection
-    let movingBlock, targetBlock, movingConnection, targetConnection;
-
-    if (a.type === Blockly.PREVIOUS_STATEMENT && b.type === Blockly.NEXT_STATEMENT) {
-      movingBlock = blockA;
-      targetBlock = blockB;
-      movingConnection = a;
-      targetConnection = b;
-    } else if (a.type === Blockly.NEXT_STATEMENT && b.type === Blockly.PREVIOUS_STATEMENT) {
-      movingBlock = blockB;
-      targetBlock = blockA;
-      movingConnection = b;
-      targetConnection = a;
-    } else {
-      return true; // Not a statement connection
-    }
-
-    // Check if target connection is a statement input (like DO)
-    const isTargetStatementInput = isStatementInputConnection(targetConnection);
-
-    if (isTargetStatementInput) {
-      // This is connecting into a statement input (like DO)
-      // ELSEIF and ELSE cannot go inside DO blocks
-      if (movingBlock.type === "if_clause") {
-        const movingMode = movingBlock.getFieldValue("MODE");
-        if (movingMode === MODE.ELSEIF || movingMode === MODE.ELSE) {
-          return false;
-        }
-      }
-      // Everything else (including IF) is allowed in statement inputs
-      return true;
-    }
-
-    // This is a chain connection (previous connecting to next)
-    const connectingToNext = targetConnection === targetBlock.nextConnection;
-    const movingIsIfClause = movingBlock.type === "if_clause";
-    const targetIsIfClause = targetBlock.type === "if_clause";
-
-    // If moving block is if_clause, validate its rules
-    if (movingIsIfClause) {
-      const movingMode = movingBlock.getFieldValue("MODE");
-      const movingHasIfClauseBelow = hasIfClauseInStack(movingBlock);
-
-      // IF blocks can connect anywhere (they start a new chain)
-      if (movingMode === MODE.IF) {
-        return true;
-      }
-
-      if (connectingToNext) {
-        // Moving block is connecting AFTER target
-
-        if (targetIsIfClause) {
-          const targetMode = targetBlock.getFieldValue("MODE");
-
-          // Rule 1: Nothing can connect after ELSE
-          if (targetMode === MODE.ELSE) {
-            return false;
-          }
-
-          // Rule 2: ELSE cannot connect if it has if_clause blocks after it
-          if (movingMode === MODE.ELSE && movingHasIfClauseBelow) {
-            return false;
-          }
-
-          // Rule 3: ELSE cannot be inserted in middle of chain
-          const targetHasNext = realNext(targetBlock);
-          if (targetHasNext && targetHasNext.type === "if_clause" && movingMode === MODE.ELSE) {
-            return false;
-          }
-        } else {
-          // Target is NOT if_clause
-          // ELSEIF and ELSE cannot connect after non-if_clause blocks
-          if (movingMode === MODE.ELSEIF || movingMode === MODE.ELSE) {
-            return false;
-          }
-        }
-      } else {
-        // Moving block is connecting BEFORE target
-
-        if (targetIsIfClause) {
-          // Rule 1: ELSE cannot connect if it has if_clause blocks after it
-          if (movingMode === MODE.ELSE && movingHasIfClauseBelow) {
-            return false;
-          }
-
-          // Rule 2: Cannot insert if target is part of a chain after ELSE
-          let current = targetBlock;
-          while (current && current.type === "if_clause") {
-            const prev = realPrev(current);
-            if (!prev || prev.type !== "if_clause") break;
-
-            const prevMode = prev.getFieldValue("MODE");
-            if (prevMode === MODE.ELSE) {
-              return false;
-            }
-            current = prev;
-          }
-        } else {
-          // Target is NOT if_clause
-          // ELSEIF and ELSE cannot connect before non-if_clause blocks
-          if (movingMode === MODE.ELSEIF || movingMode === MODE.ELSE) {
-            return false;
-          }
-        }
-      }
-    }
-
-    // If target is if_clause but moving block is not, additional checks
-    if (targetIsIfClause && !movingIsIfClause) {
-      const targetMode = targetBlock.getFieldValue("MODE");
-
-      if (connectingToNext) {
-        // Non-if_clause connecting after if_clause
-        // Only allow if target is at the end of chain (no if_clause blocks after)
-        const targetHasNext = realNext(targetBlock);
-
-        if (targetHasNext && targetHasNext.type === "if_clause") {
-          // Target has if_clause blocks after it, cannot insert non-if_clause
-          return false;
+        function isRealBlock(block) {
+                return (
+                        !!block &&
+                        !(
+                                typeof block.isInsertionMarker === "function" &&
+                                block.isInsertionMarker()
+                        )
+                );
         }
 
-        // Otherwise it's fine - connecting at the end of the chain
-        return true;
-      } else {
-        // Non-if_clause connecting before if_clause
-        // Only allow before IF (which can start a new chain)
-        // Don't allow before ELSEIF or ELSE
-        if (targetMode === MODE.ELSEIF || targetMode === MODE.ELSE) {
-          return false;
+        function realTargetBlock(connection) {
+                const t = connection?.targetBlock?.();
+                return isRealBlock(t) ? t : null;
         }
-      }
-    }
 
-    return true;
-  };
+        function realNext(block) {
+                return realTargetBlock(block?.nextConnection);
+        }
+
+        function realPrev(block) {
+                return realTargetBlock(block?.previousConnection);
+        }
+
+        // Helper function to get all blocks in a stack (excluding insertion markers)
+        function getAllBlocksInStack(block) {
+                const blocks = [block];
+                let current = block;
+
+                while (current?.nextConnection) {
+                        const next = realNext(current);
+                        if (!next) break;
+                        blocks.push(next);
+                        current = next;
+                }
+
+                return blocks;
+        }
+
+        // Helper function to check if a block or its descendants contain if_clause blocks
+        function hasIfClauseInStack(block) {
+                const stack = getAllBlocksInStack(block);
+                // Check if any block after the first one is an if_clause
+                for (let i = 1; i < stack.length; i++) {
+                        if (stack[i].type === "if_clause") {
+                                return true;
+                        }
+                }
+                return false;
+        }
+
+        // Helper function to check if a connection is a statement input (like DO)
+        function isStatementInputConnection(connection) {
+                const block = connection.getSourceBlock();
+                for (let i = 0; i < block.inputList.length; i++) {
+                        const input = block.inputList[i];
+                        if (
+                                input.type === Blockly.INPUT_VALUE ||
+                                input.type === Blockly.DUMMY_INPUT
+                        ) {
+                                continue;
+                        }
+                        if (input.connection === connection) {
+                                return true;
+                        }
+                }
+                return false;
+        }
+
+        // Override the doTypeChecks method
+        connectionChecker.doTypeChecks = function (a, b) {
+                // First do the standard type checking
+                if (!originalDoTypeChecks(a, b)) {
+                        return false;
+                }
+
+                // Get the blocks involved
+                const blockA = a.getSourceBlock();
+                const blockB = b.getSourceBlock();
+
+                // Check if either block is an if_clause
+                const aIsIfClause = blockA.type === "if_clause";
+                const bIsIfClause = blockB.type === "if_clause";
+
+                if (!aIsIfClause && !bIsIfClause) {
+                        return true; // Neither is if_clause, allow
+                }
+
+                // Determine the type of connection
+                let movingBlock,
+                        targetBlock,
+                        movingConnection,
+                        targetConnection;
+
+                if (
+                        a.type === Blockly.PREVIOUS_STATEMENT &&
+                        b.type === Blockly.NEXT_STATEMENT
+                ) {
+                        movingBlock = blockA;
+                        targetBlock = blockB;
+                        movingConnection = a;
+                        targetConnection = b;
+                } else if (
+                        a.type === Blockly.NEXT_STATEMENT &&
+                        b.type === Blockly.PREVIOUS_STATEMENT
+                ) {
+                        movingBlock = blockB;
+                        targetBlock = blockA;
+                        movingConnection = b;
+                        targetConnection = a;
+                } else {
+                        return true; // Not a statement connection
+                }
+
+                // Check if target connection is a statement input (like DO)
+                const isTargetStatementInput =
+                        isStatementInputConnection(targetConnection);
+
+                if (isTargetStatementInput) {
+                        // This is connecting into a statement input (like DO)
+                        // ELSEIF and ELSE cannot go inside DO blocks
+                        if (movingBlock.type === "if_clause") {
+                                const movingMode =
+                                        movingBlock.getFieldValue("MODE");
+                                if (
+                                        movingMode === MODE.ELSEIF ||
+                                        movingMode === MODE.ELSE
+                                ) {
+                                        return false;
+                                }
+                        }
+                        // Everything else (including IF) is allowed in statement inputs
+                        return true;
+                }
+
+                // This is a chain connection (previous connecting to next)
+                const connectingToNext =
+                        targetConnection === targetBlock.nextConnection;
+                const movingIsIfClause = movingBlock.type === "if_clause";
+                const targetIsIfClause = targetBlock.type === "if_clause";
+
+                // If moving block is if_clause, validate its rules
+                if (movingIsIfClause) {
+                        const movingMode = movingBlock.getFieldValue("MODE");
+                        const movingHasIfClauseBelow =
+                                hasIfClauseInStack(movingBlock);
+
+                        // IF blocks can connect anywhere (they start a new chain)
+                        if (movingMode === MODE.IF) {
+                                return true;
+                        }
+
+                        if (connectingToNext) {
+                                // Moving block is connecting AFTER target
+
+                                if (targetIsIfClause) {
+                                        const targetMode =
+                                                targetBlock.getFieldValue(
+                                                        "MODE",
+                                                );
+
+                                        // Rule 1: Nothing can connect after ELSE
+                                        if (targetMode === MODE.ELSE) {
+                                                return false;
+                                        }
+
+                                        // Rule 2: ELSE cannot connect if it has if_clause blocks after it
+                                        if (
+                                                movingMode === MODE.ELSE &&
+                                                movingHasIfClauseBelow
+                                        ) {
+                                                return false;
+                                        }
+
+                                        // Rule 3: ELSE cannot be inserted in middle of chain
+                                        const targetHasNext =
+                                                realNext(targetBlock);
+                                        if (
+                                                targetHasNext &&
+                                                targetHasNext.type ===
+                                                        "if_clause" &&
+                                                movingMode === MODE.ELSE
+                                        ) {
+                                                return false;
+                                        }
+                                } else {
+                                        // Target is NOT if_clause
+                                        // ELSEIF and ELSE cannot connect after non-if_clause blocks
+                                        if (
+                                                movingMode === MODE.ELSEIF ||
+                                                movingMode === MODE.ELSE
+                                        ) {
+                                                return false;
+                                        }
+                                }
+                        } else {
+                                // Moving block is connecting BEFORE target
+
+                                if (targetIsIfClause) {
+                                        // Rule 1: ELSE cannot connect if it has if_clause blocks after it
+                                        if (
+                                                movingMode === MODE.ELSE &&
+                                                movingHasIfClauseBelow
+                                        ) {
+                                                return false;
+                                        }
+
+                                        // Rule 2: Cannot insert if target is part of a chain after ELSE
+                                        let current = targetBlock;
+                                        while (
+                                                current &&
+                                                current.type === "if_clause"
+                                        ) {
+                                                const prev = realPrev(current);
+                                                if (
+                                                        !prev ||
+                                                        prev.type !==
+                                                                "if_clause"
+                                                )
+                                                        break;
+
+                                                const prevMode =
+                                                        prev.getFieldValue(
+                                                                "MODE",
+                                                        );
+                                                if (prevMode === MODE.ELSE) {
+                                                        return false;
+                                                }
+                                                current = prev;
+                                        }
+                                } else {
+                                        // Target is NOT if_clause
+                                        // ELSEIF and ELSE cannot connect before non-if_clause blocks
+                                        if (
+                                                movingMode === MODE.ELSEIF ||
+                                                movingMode === MODE.ELSE
+                                        ) {
+                                                return false;
+                                        }
+                                }
+                        }
+                }
+
+                // If target is if_clause but moving block is not, additional checks
+                if (targetIsIfClause && !movingIsIfClause) {
+                        const targetMode = targetBlock.getFieldValue("MODE");
+
+                        if (connectingToNext) {
+                                // Non-if_clause connecting after if_clause
+                                // Only allow if target is at the end of chain (no if_clause blocks after)
+                                const targetHasNext = realNext(targetBlock);
+
+                                if (
+                                        targetHasNext &&
+                                        targetHasNext.type === "if_clause"
+                                ) {
+                                        // Target has if_clause blocks after it, cannot insert non-if_clause
+                                        return false;
+                                }
+
+                                // Otherwise it's fine - connecting at the end of the chain
+                                return true;
+                        } else {
+                                // Non-if_clause connecting before if_clause
+                                // Only allow before IF (which can start a new chain)
+                                // Don't allow before ELSEIF or ELSE
+                                if (
+                                        targetMode === MODE.ELSEIF ||
+                                        targetMode === MODE.ELSE
+                                ) {
+                                        return false;
+                                }
+                        }
+                }
+
+                return true;
+        };
 }
-
 
 export function initializeWorkspace() {
         // Set Blockly color configuration
@@ -610,7 +668,8 @@ export function createBlocklyWorkspace() {
 
                         const shortcutEl = document.createElement("span");
                         shortcutEl.textContent = shortcut;
-                        shortcutEl.style.color = "var(--blockly-text-disabled, #aaa)";
+                        shortcutEl.style.color =
+                                "var(--blockly-text-disabled, #aaa)";
 
                         wrapper.append(labelEl, shortcutEl);
                         return wrapper;
@@ -633,24 +692,42 @@ export function createBlocklyWorkspace() {
 
                                 const hasParent =
                                         !!block.getParent() ||
-                                        !!block.previousConnection?.targetConnection ||
-                                        !!block.outputConnection?.targetConnection;
+                                        !!block.previousConnection
+                                                ?.targetConnection ||
+                                        !!block.outputConnection
+                                                ?.targetConnection;
                                 return hasParent ? "enabled" : "disabled";
                         },
                         callback: (scope) => {
                                 const block = scope.block;
                                 if (!block) return;
 
-                                const healStack = !block.outputConnection?.isConnected();
+                                const healStack =
+                                        !block.outputConnection?.isConnected();
                                 const prevGroup = Blockly.Events.getGroup();
                                 Blockly.Events.setGroup("contextmenu_detach");
                                 block.unplug(healStack);
                                 const cursor = block.workspace?.getCursor?.();
-                                if (cursor?.setCurNode) cursor.setCurNode(block);
+                                if (cursor?.setCurNode)
+                                        cursor.setCurNode(block);
                                 Blockly.Events.setGroup(prevGroup || null);
                         },
                         scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
                 });
+        })();
+
+        // Reorder block context menu items for better grouping.
+        (function adjustBlockContextMenuWeights() {
+                const registry = Blockly.ContextMenuRegistry.registry;
+
+                const duplicate = registry.getItem?.("blockDuplicate");
+                if (duplicate) duplicate.weight = 9;
+
+                const detach = registry.getItem?.("detachBlockWithShortcut");
+                if (detach) detach.weight = 10;
+
+                const deleteItem = registry.getItem?.("blockDelete");
+                if (deleteItem) deleteItem.weight = 20;
         })();
 
         // ===== OVERRIDE CLIPBOARD METHODS =====
