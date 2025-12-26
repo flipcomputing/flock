@@ -86,34 +86,33 @@ export const flockUI = {
     backgroundColor,
     buttonId,
   } = {}) {
-    // Ensure flock.scene and flock.GUI are initialized
     if (!flock.scene || !flock.GUI) {
       throw new Error("flock.scene or flock.GUI is not initialized.");
     }
 
-    // Ensure UITexture exists
     flock.scene.UITexture ??=
       flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-    // Validate buttonId
     if (!buttonId || typeof buttonId !== "string") {
       throw new Error("buttonId must be a valid non-empty string.");
     }
 
-    // Create a Babylon.js GUI button
+    const existing = flock.scene.UITexture.getControlByName(buttonId);
+    if (existing) {
+      existing.dispose();
+    }
+
     const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
 
-    // Preset button sizes for consistency
     const buttonSizes = {
       SMALL: { width: "100px", height: "40px" },
       MEDIUM: { width: "150px", height: "50px" },
       LARGE: { width: "200px", height: "60px" },
     };
 
-    // Validate and apply the selected size
     if (typeof width !== "string") {
       throw new Error(
-        "Invalid button size. Please provide a valid size: 'SMALL', 'MEDIUM', or 'LARGE'.",
+        "Invalid button size. Use 'SMALL', 'MEDIUM', or 'LARGE'.",
       );
     }
 
@@ -121,29 +120,18 @@ export const flockUI = {
     button.width = size.width;
     button.height = size.height;
 
-    // Configure text block settings
     if (button.textBlock) {
       button.textBlock.textWrapping = true;
       button.textBlock.resizeToFit = true;
-      button.textBlock.fontSize = textSize ? `${textSize}px` : "16px"; // Default font size
-    } else {
-      console.warn(
-        "No textBlock found for the button. Text-related settings will not be applied.",
-      );
+      button.textBlock.fontSize = textSize ? `${textSize}px` : "16px";
     }
 
-    // Set button text color and background color
     button.color = textColor || "white";
     button.background = backgroundColor || "blue";
 
-    // Validate x and y positions
-    if (typeof x !== "number" || typeof y !== "number") {
-      throw new Error("x and y must be numbers.");
-    }
-
-    // Set button alignment
     button.left = `${x}px`;
     button.top = `${y}px`;
+
     button.horizontalAlignment =
       x < 0
         ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
@@ -154,10 +142,8 @@ export const flockUI = {
         ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
         : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
-    // Add the button to the UI
     flock.scene.UITexture.addControl(button);
 
-    // Return the buttonId for future reference
     return buttonId;
   },
   async UIInput({
