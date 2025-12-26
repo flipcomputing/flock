@@ -643,67 +643,77 @@ export const flockUI = {
     }
   },
   printText({ text, duration = 30, color = "white" } = {}) {
-    if (!flock.scene || !flock.stackPanel) return;
+      console.log(text);
 
-    // Validate duration: must be finite and non-negative
-    const safeDuration =
-      isFinite(Number(duration)) && Number(duration) >= 0
-        ? Number(duration)
-        : 0;
-    duration = safeDuration;
+      if (!flock.scene || !flock.stackPanel) return;
 
-    console.log(text);
-    try {
-      // Create a rectangle container for the text
-      const bg = new flock.GUI.Rectangle("textBackground");
-      bg.background = "rgba(255, 255, 255, 0.5)";
-      bg.adaptWidthToChildren = true; // Adjust width to fit the text
-      bg.adaptHeightToChildren = true; // Adjust height to fit the text
-      bg.cornerRadius = 2; // Match the original corner rounding
-      bg.thickness = 0; // No border
-      bg.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align the container to the left
-      bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align to the top
-      bg.left = "5px"; // Preserve original spacing
-      bg.top = "5px";
+      const safeDuration = isFinite(Number(duration)) && Number(duration) >= 0
+          ? Number(duration)
+          : 0;
 
-      // Create the text block inside the rectangle
-      const textBlock = new flock.GUI.TextBlock("textBlock", text);
-      textBlock.color = color;
-      textBlock.fontSize = "20"; // Match the original font size
-      textBlock.fontFamily = fontFamily; // Retain original font
-      textBlock.height = "25px"; // Match the original height
-      textBlock.paddingLeft = "10px"; // Padding for left alignment
-      textBlock.paddingRight = "10px";
-      textBlock.paddingTop = "2px";
-      textBlock.paddingBottom = "2px";
-      textBlock.textHorizontalAlignment =
-        flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Left align the text
-      textBlock.textVerticalAlignment =
-        flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER; // Center vertically within the rectangle
-      textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap; // Enable word wrap
-      textBlock.resizeToFit = true; // Allow resizing
-      textBlock.forceResizeWidth = true;
+      try {
+          const bg = new flock.GUI.Rectangle("textBackground");
+          bg.background = "rgba(255, 255, 255, 0.5)";
+          bg.adaptWidthToChildren = true;
+          bg.adaptHeightToChildren = true;
+          bg.cornerRadius = 2;
+          bg.thickness = 0;
+          bg.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+          bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+          bg.left = "5px";
+          bg.top = "5px";
 
-      // Add the text block to the rectangle
-      bg.addControl(textBlock);
+          const textBlock = new flock.GUI.TextBlock("textBlock", text);
+          textBlock.color = color;
+          textBlock.fontSize = "20";
+          textBlock.fontFamily = fontFamily;
+          textBlock.height = "25px";
+          textBlock.paddingLeft = "10px";
+          textBlock.paddingRight = "10px";
+          textBlock.paddingTop = "2px";
+          textBlock.paddingBottom = "2px";
+          textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+          textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+          textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
+          textBlock.resizeToFit = true;
+          textBlock.forceResizeWidth = true;
 
-      // Add the rectangle to the stack panel
-      flock.stackPanel.addControl(bg);
+          bg.addControl(textBlock);
+          flock.stackPanel.addControl(bg);
 
-      // Remove the text after the specified duration
-      const timeoutId = setTimeout(() => {
-        if (flock.scene) {
-          // Ensure the scene is still valid
-          flock.stackPanel.removeControl(bg);
-        }
-      }, duration * 1000);
+          const fadeOut = () => {
+              const anim = new BABYLON.Animation(
+                  "fadeOut", "alpha", 30, 
+                  BABYLON.Animation.ANIMATIONTYPE_FLOAT, 
+                  BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+              );
 
-      // Handle cleanup in case of scene disposal
-      flock.abortController.signal.addEventListener("abort", () => {
-        clearTimeout(timeoutId);
-      });
-    } catch (error) {
-      console.warn("Unable to print text:", error);
-    }
+              anim.setKeys([
+                  { frame: 0, value: 1 },
+                  { frame: 30, value: 0 }
+              ]);
+
+              bg.animations = []; 
+              bg.animations.push(anim);
+
+              flock.scene.beginAnimation(bg, 0, 30, false, 1.0, () => {
+                  flock.stackPanel.removeControl(bg);
+                  bg.dispose(); 
+              });
+          };
+
+          const timeoutId = setTimeout(fadeOut, safeDuration * 1000);
+
+          flock.abortController.signal.addEventListener("abort", () => {
+              clearTimeout(timeoutId);
+              if (flock.stackPanel) {
+                  flock.stackPanel.removeControl(bg);
+                  bg.dispose();
+              }
+          }, { once: true });
+
+      } catch (error) {
+          console.warn("Unable to print text:", error);
+      }
   },
 };
