@@ -274,43 +274,54 @@ export const flockUI = {
     backgroundColor,
   } = {}) {
     if (!flock.scene || !flock.GUI) {
-      throw new Error("flock.scene or flock.GUI is not initialized.");
+        throw new Error("flock.scene or flock.GUI is not initialized.");
     }
 
-    flock.scene.UITexture ??=
-      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    if (!flock.scene.UITexture) {
+        flock.scene.UITexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, flock.scene);
+    }
+
+    const existing = flock.scene.UITexture.getControlByName(id);
+    if (existing) existing.dispose();
 
     const sliderSizes = {
-      SMALL: { width: "100px", height: "20px" },
-      MEDIUM: { width: "200px", height: "30px" },
-      LARGE: { width: "300px", height: "40px" },
+        SMALL: { width: "100px", height: "20px" },
+        MEDIUM: { width: "200px", height: "30px" },
+        LARGE: { width: "300px", height: "40px" },
     };
 
-    const resolvedSize =
-      sliderSizes[(size || "MEDIUM").toUpperCase()] || sliderSizes.MEDIUM;
+    const resolvedSize = sliderSizes[(size || "MEDIUM").toUpperCase()] || sliderSizes.MEDIUM;
 
-    const slider = new flock.GUI.Slider();
-    slider.name = id;
+    const slider = new flock.GUI.Slider(id);
     slider.minimum = min;
     slider.maximum = max;
     slider.value = value;
-    slider.color = textColor || "#000000";
-    slider.background = backgroundColor || "#ffffff";
+
+    slider.thickness = 0;            
+    slider.borderColor = "transparent"; 
+
+    slider.isPointerBlocker = true;
+    slider.thumbWidth = "20px";
+    slider.isFocusLinker = true;
+
+    slider.color = textColor || "#000000";       // Color of the "filled" part and thumb
+    slider.background = backgroundColor || "#ffffff"; // Color of the "empty" track
     slider.height = resolvedSize.height;
     slider.width = resolvedSize.width;
 
     slider.left = `${x}px`;
     slider.top = `${y}px`;
-    slider.horizontalAlignment =
-      x < 0
+    slider.horizontalAlignment = x < 0
         ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
         : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    slider.verticalAlignment =
-      y < 0
+    slider.verticalAlignment = y < 0
         ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
         : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
+    slider.zIndex = 1000;
+
     flock.scene.UITexture.addControl(slider);
+
     return slider;
   },
   createSmallButton(text, keys, color) {
