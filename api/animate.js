@@ -126,92 +126,77 @@ export const flockAnimate = {
     } = {},
   ) {
     return new Promise(async (resolve) => {
-      // Check if mesh exists immediately first
       const existingMesh = flock.scene?.getMeshByName(meshName);
       if (!existingMesh) {
-        console.warn(`Mesh '${meshName}' not found for rotateAnim.`);
         resolve();
         return;
       }
 
       await flock.whenModelReady(meshName, async function (mesh) {
         if (mesh) {
-          // Store the original rotation
+          const BABYLON = flock.BABYLON;
+          const children = mesh.getChildMeshes();
+
+          // 1. Pre-calculate local offsets to "Weld" them manually
+          const childData = children.map((c) => ({
+            mesh: c,
+            localPos: c.position.clone(),
+            localRot: c.rotation.clone(),
+            localQuat: c.rotationQuaternion
+              ? c.rotationQuaternion.clone()
+              : null,
+          }));
+
           const startRotation = mesh.rotation.clone();
-
-          // Convert degrees to radians
-          const targetRotation = new flock.BABYLON.Vector3(
-            x * (Math.PI / 180), // X-axis in radians
-            y * (Math.PI / 180), // Y-axis in radians
-            z * (Math.PI / 180), // Z-axis in radians
+          const targetRotation = new BABYLON.Vector3(
+            x * (Math.PI / 180),
+            y * (Math.PI / 180),
+            z * (Math.PI / 180),
           );
-
           const fps = 30;
           const frames = fps * duration;
 
-          // Determine the loop mode based on reverse and loop
-          let loopMode;
-          if (reverse) {
-            loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO;
-          } else if (loop) {
-            loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
-          } else {
-            loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
-          }
-
-          // Create animation for rotation only
-          const rotateAnimation = new flock.BABYLON.Animation(
-            "rotateTo",
+          const rotateAnimation = new BABYLON.Animation(
+            "rotate",
             "rotation",
             fps,
-            flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-            loopMode,
+            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+            reverse
+              ? BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
+              : loop
+                ? BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+                : BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
           );
-
-          // Define keyframes for rotation
-          const rotateKeys = [
+          rotateAnimation.setKeys([
             { frame: 0, value: startRotation },
             { frame: frames, value: targetRotation },
-          ];
+          ]);
 
-          rotateAnimation.setKeys(rotateKeys);
-
-          // Apply easing if needed
           if (easing !== "Linear") {
-            let easingFunction;
-            switch (easing) {
-              case "SineEase":
-                easingFunction = new flock.BABYLON.SineEase();
-                break;
-              case "CubicEase":
-                easingFunction = new flock.BABYLON.CubicEase();
-                break;
-              case "QuadraticEase":
-                easingFunction = new flock.BABYLON.QuadraticEase();
-                break;
-              case "ExponentialEase":
-                easingFunction = new flock.BABYLON.ExponentialEase();
-                break;
-              case "BounceEase":
-                easingFunction = new flock.BABYLON.BounceEase();
-                break;
-              case "ElasticEase":
-                easingFunction = new flock.BABYLON.ElasticEase();
-                break;
-              case "BackEase":
-                easingFunction = new flock.BABYLON.BackEase();
-                break;
-              default:
-                easingFunction = new flock.BABYLON.SineEase();
-            }
-            easingFunction.setEasingMode(
-              flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
-            );
-            rotateAnimation.setEasingFunction(easingFunction);
+            let ease = new BABYLON[easing]();
+            ease.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+            rotateAnimation.setEasingFunction(ease);
           }
 
-          // Use beginDirectAnimation to apply ONLY the rotation animation
-          // This ensures we don't interfere with any other properties
+          // 2. THE WELD: Explicitly move children to the parent's current world state
+          const syncObserver = flock.scene.onAfterAnimationsObservable.add(
+            () => {
+              mesh.computeWorldMatrix(true);
+              childData.forEach((data) => {
+                // This forces the child to align with the parent's absolute transform
+                data.mesh.computeWorldMatrix(true);
+              });
+
+              if (mesh.physics && mesh.physics._pluginData?.hpBodyId) {
+                mesh.physics.setTargetTransform(
+                  mesh.absolutePosition,
+                  mesh.absoluteRotationQuaternion ||
+                    BABYLON.Quaternion.FromEulerVector(mesh.rotation),
+                );
+              }
+            },
+          );
+
           const animatable = flock.scene.beginDirectAnimation(
             mesh,
             [rotateAnimation],
@@ -219,12 +204,12 @@ export const flockAnimate = {
             frames,
             loop,
           );
-
           animatable.onAnimationEndObservable.add(() => {
+            flock.scene.onAfterAnimationsObservable.remove(syncObserver);
             resolve();
           });
         } else {
-          resolve(); // Resolve immediately if the mesh is not available
+          resolve();
         }
       });
     });
@@ -244,116 +229,72 @@ export const flockAnimate = {
     return new Promise(async (resolve) => {
       await flock.whenModelReady(meshName, async function (mesh) {
         if (mesh) {
-          // Where is this mesh’s anchor right now?
-          const startAnchor = flock._getAnchor(mesh); // { x, y, z }
+          const BABYLON = flock.BABYLON;
+          const children = mesh.getChildMeshes();
 
-          // Where do we want the anchor to be?
-          const targetAnchor = new flock.BABYLON.Vector3(x, y, z);
-
-          // How far does the anchor need to move?
+          const startAnchor = flock._getAnchor(mesh);
+          const targetAnchor = new BABYLON.Vector3(x, y, z);
           const anchorDelta = targetAnchor.subtract(
-            new flock.BABYLON.Vector3(
-              startAnchor.x,
-              startAnchor.y,
-              startAnchor.z,
-            ),
+            new BABYLON.Vector3(startAnchor.x, startAnchor.y, startAnchor.z),
           );
-
-          // Mesh.position must move by the same delta (pure translation)
           const startPosition = mesh.position.clone();
           const endPosition = startPosition.add(anchorDelta);
-
           const fps = 30;
           const frames = fps * duration;
 
-          const glideAnimation = new flock.BABYLON.Animation(
-            "glideTo",
+          const glideAnimation = new BABYLON.Animation(
+            "glide",
             "position",
             fps,
-            flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
             loop || reverse
-              ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE // Continuous loop or reverse
-              : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT, // Stops at end
+              ? BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+              : BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
           );
 
-          // Define keyframes for forward and reverse motion
           const glideKeys = [
-            { frame: 0, value: startPosition }, // Start position
-            { frame: frames, value: endPosition }, // End position
+            { frame: 0, value: startPosition },
+            { frame: frames, value: endPosition },
           ];
-
-          // Add reverse motion if required
-          if (reverse || loop) {
-            glideKeys.push(
-              { frame: frames * 2, value: startPosition }, // Return to start
-            );
-          }
-
-          // Set keyframes
+          if (reverse || loop)
+            glideKeys.push({ frame: frames * 2, value: startPosition });
           glideAnimation.setKeys(glideKeys);
 
-          // Apply easing if specified
           if (easing !== "Linear") {
-            let easingFunction;
-            switch (easing) {
-              case "SineEase":
-                easingFunction = new flock.BABYLON.SineEase();
-                break;
-              case "CubicEase":
-                easingFunction = new flock.BABYLON.CubicEase();
-                break;
-              case "QuadraticEase":
-                easingFunction = new flock.BABYLON.QuadraticEase();
-                break;
-              case "ExponentialEase":
-                easingFunction = new flock.BABYLON.ExponentialEase();
-                break;
-              case "BounceEase":
-                easingFunction = new flock.BABYLON.BounceEase();
-                break;
-              case "ElasticEase":
-                easingFunction = new flock.BABYLON.ElasticEase();
-                break;
-              case "BackEase":
-                easingFunction = new flock.BABYLON.BackEase();
-                break;
-              default:
-                easingFunction = new flock.BABYLON.SineEase(); // Default to SineEase
-            }
-            easingFunction.setEasingMode(
-              flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
-            );
-            glideAnimation.setEasingFunction(easingFunction);
+            let ease = new BABYLON[easing]();
+            ease.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+            glideAnimation.setEasingFunction(ease);
           }
 
-          // Attach the animation to the mesh
-          mesh.animations.push(glideAnimation);
+          const syncObserver = flock.scene.onAfterAnimationsObservable.add(
+            () => {
+              mesh.computeWorldMatrix(true);
+              children.forEach((c) => c.computeWorldMatrix(true));
 
-          // Start the animation
-          const animatable = flock.scene.beginAnimation(
-            mesh,
-            0,
-            reverse ? frames * 2 : frames,
-            loop,
+              if (mesh.physics && mesh.physics._pluginData?.hpBodyId) {
+                mesh.physics.setTargetTransform(
+                  mesh.absolutePosition,
+                  mesh.absoluteRotationQuaternion ||
+                    BABYLON.Quaternion.FromEulerVector(mesh.rotation),
+                );
+              }
+            },
           );
 
-          if (mesh.physics) {
-            mesh.physics.disablePreStep = false;
-            mesh.physics.setPrestepType(
-              flock.BABYLON.PhysicsPrestepType.ACTION,
-            );
-          }
+          const animatable = flock.scene.beginDirectAnimation(
+            mesh,
+            [glideAnimation],
+            0,
+            reverse || loop ? frames * 2 : frames,
+            loop,
+          );
           animatable.onAnimationEndObservable.add(() => {
-            if (reverse) {
-              // Ensure mesh ends at the final position for non-looping animations
-              mesh.position = startPosition.clone();
-            } else {
-              mesh.position = endPosition.clone();
-            }
+            flock.scene.onAfterAnimationsObservable.remove(syncObserver);
+            if (!reverse) mesh.position = endPosition.clone();
             resolve();
           });
         } else {
-          resolve(); // Resolve immediately if the mesh is not available
+          resolve();
         }
       });
     });
