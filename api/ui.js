@@ -8,9 +8,7 @@ export function setFlockReference(ref) {
 
 export const flockUI = {
   UIText({ text, x, y, fontSize, color, duration, id = null } = {}) {
-    if (!flock.scene || !flock.GUI) {
-      return;
-    }
+    if (!flock.scene || !flock.GUI) return;
 
     flock.scene.UITexture ??=
       flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -25,59 +23,54 @@ export const flockUI = {
     const adjustedY = y < 0 ? maxHeight + y : y;
 
     let textBlock = flock.scene.UITexture.getControlByName(textBlockId);
+
     if (!textBlock) {
       textBlock = new flock.GUI.TextBlock(textBlockId);
       textBlock.name = textBlockId;
       flock.scene.UITexture.addControl(textBlock);
 
-      // Anchor control at screen top-left; don't block input.
       textBlock.horizontalAlignment =
         flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
       textBlock.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
       textBlock.textWrapping = false;
       textBlock.isPointerBlocker = false;
-      // Keep text centered inside its line box.
       textBlock.textHorizontalAlignment =
         flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
       textBlock.textVerticalAlignment =
         flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     }
 
-    // Update text + style
     textBlock.text = text;
     textBlock.color = color || "white";
+    textBlock.isVisible = true;
 
-    // Font & line box
     const px = Number(fontSize || 24);
     textBlock.fontSize = px;
-    const linePx = Math.max(1, Math.round(px * 1.2)); // 1.2× prevents ascender clipping
+    const linePx = Math.max(1, Math.round(px * 1.2));
     textBlock.lineHeight = `${linePx}px`;
     textBlock.height = `${Math.max(linePx, px + 4)}px`;
 
-    // Position
     textBlock.left = adjustedX;
     textBlock.top = adjustedY;
 
-    // WEB FONT STABILIZER: avoid the “first update jump”
     if (document.fonts && document.fonts.status !== "loaded") {
-      // Hide until fonts are ready, then force a clean measure.
-      const prevAlpha = textBlock.alpha;
       textBlock.alpha = 0;
       document.fonts.ready.then(() => {
-        textBlock._markAsDirty(); // re-measure with real font
-        textBlock.alpha = prevAlpha ?? 1;
+        if (!textBlock.isDisposed) {
+          textBlock._markAsDirty();
+          textBlock.alpha = 1;
+        }
       });
     } else {
-      // If fonts are already ready, still nudge a re-measure on update.
-      // This helps when the first call happened before the font loaded.
-      setTimeout(() => textBlock._markAsDirty(), 0);
+      Promise.resolve().then(() => textBlock._markAsDirty());
     }
 
-    // Auto-hide after duration
     if (duration > 0) {
       setTimeout(() => {
         const ctl = flock.scene.UITexture.getControlByName(textBlockId);
-        if (ctl) ctl.isVisible = false;
+        if (ctl) {
+          ctl.dispose();
+        }
       }, duration * 1000);
     }
 
@@ -445,223 +438,6 @@ export const flockUI = {
       flock.scene.activeCamera.detachControl();
     }
   },
-  say(meshName, options = {}) {
-    let {
-      text,
-      duration,
-      textColor = "#ffffff",
-      backgroundColor = "#000000",
-      alpha = 1,
-      size = 24,
-      mode = "ADD",
-    } = options;
-
-    // Validate duration
-    duration =
-      isFinite(Number(duration)) && Number(duration) >= 0
-        ? Number(duration)
-        : 0;
-    // Validate alpha
-    alpha = isFinite(Number(alpha))
-      ? Math.min(Math.max(Number(alpha), 0), 1)
-      : 0.7;
-    // Validate size
-    size = isFinite(Number(size)) && Number(size) > 0 ? Number(size) : 16;
-
-    if (!flock.scene) {
-      console.error("Scene is not available.");
-      return Promise.reject("Scene is not available.");
-    }
-
-    const mesh = flock.scene.getMeshByName(meshName);
-
-    if (mesh) {
-      return handleMesh(mesh);
-    } else {
-      return new Promise((resolve, reject) => {
-        flock.whenModelReady(meshName, function (readyMesh) {
-          if (readyMesh) {
-            handleMesh(readyMesh).then(resolve).catch(reject);
-          } else {
-            console.error("Mesh is not defined.");
-            reject("Mesh is not defined.");
-          }
-        });
-      });
-    }
-
-    function handleMesh(targetMesh) {
-      return new Promise((resolve) => {
-        let plane;
-        let background = "transparent";
-
-        // Determine if the target itself is the plane or if we need to find/create one
-        if (targetMesh.metadata && targetMesh.metadata.shape == "plane") {
-          plane = targetMesh;
-          background = plane.material.diffuseColor.toHexString();
-          plane.material.needDepthPrePass = true;
-        } else {
-          plane = targetMesh
-            .getDescendants()
-            .find((child) => child.name === "textPlane");
-        }
-
-        // Create plane if it doesn't exist
-        if (!plane) {
-          plane = flock.BABYLON.MeshBuilder.CreatePlane(
-            "textPlane",
-            { width: 4, height: 4 },
-            flock.scene,
-          );
-          plane.name = "textPlane";
-          plane.parent = targetMesh;
-          plane.checkCollisions = false;
-          plane.isPickable = false;
-          plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
-
-          // FIX: Store observer so it can be removed on disposal
-          const observer = flock.scene.onBeforeRenderObservable.add(() => {
-            if (targetMesh.isDisposed()) {
-              flock.scene.onBeforeRenderObservable.remove(observer);
-              plane.dispose();
-              return;
-            }
-            const boundingInfo = targetMesh.getBoundingInfo();
-            const parentScale = targetMesh.scaling;
-            // Keep the plane's scale consistent regardless of parent scaling
-            plane.scaling.set(
-              1 / parentScale.x,
-              1 / parentScale.y,
-              1 / parentScale.z,
-            );
-            plane.position.y =
-              boundingInfo.boundingBox.maximum.y + 2.1 / parentScale.y;
-          });
-
-          plane.onDisposeObservable.add(() => {
-            flock.scene.onBeforeRenderObservable.remove(observer);
-          });
-        }
-
-        // Setup AdvancedDynamicTexture
-        let advancedTexture;
-        if (!plane.advancedTexture) {
-          const planeBoundingInfo = plane.getBoundingInfo();
-          const planeWidth = planeBoundingInfo.boundingBox.extendSize.x * 2;
-          const planeHeight = planeBoundingInfo.boundingBox.extendSize.y * 2;
-          const aspectRatio = planeWidth / planeHeight;
-          const baseResolution = 1024;
-          const textureWidth =
-            baseResolution * (aspectRatio > 1 ? 1 : aspectRatio);
-          const textureHeight =
-            baseResolution * (aspectRatio > 1 ? 1 / aspectRatio : 1);
-
-          advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
-            plane,
-            textureWidth,
-            textureHeight,
-          );
-          advancedTexture.isTransparent = true;
-          plane.advancedTexture = advancedTexture;
-
-          if (targetMesh.metadata && targetMesh.metadata.shape == "plane") {
-            let fullScreenRect = new flock.GUI.Rectangle();
-            fullScreenRect.width = "100%";
-            fullScreenRect.height = "100%";
-            fullScreenRect.background = background;
-            fullScreenRect.color = "transparent";
-            advancedTexture.addControl(fullScreenRect);
-          }
-
-          const stackPanel = new flock.GUI.StackPanel("stackPanel");
-          stackPanel.horizontalAlignment =
-            flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-          stackPanel.verticalAlignment =
-            flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-          stackPanel.isVertical = true;
-          stackPanel.width = "100%";
-          stackPanel.adaptHeightToChildren = true;
-          stackPanel.spacing = 4;
-          advancedTexture.addControl(stackPanel);
-        } else {
-          advancedTexture = plane.advancedTexture;
-        }
-
-        const stackPanel = advancedTexture.getControlByName("stackPanel");
-        if (mode === "REPLACE") {
-          stackPanel.clearControls();
-        }
-
-        if (text) {
-          const bg = new flock.GUI.Rectangle("textBackground");
-          bg.background = flock.hexToRgba(backgroundColor, alpha);
-          bg.adaptWidthToChildren = true;
-          bg.adaptHeightToChildren = true;
-          bg.cornerRadius = 30;
-          bg.thickness = 0;
-          bg.checkCollisions = false;
-          bg.isPickable = false;
-          stackPanel.addControl(bg);
-
-          const scale = 8;
-          const textBlock = new flock.GUI.TextBlock();
-          textBlock.text = String(text);
-          textBlock.color = textColor;
-          textBlock.fontSize = size * scale;
-          textBlock.fontFamily = fontFamily;
-          textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
-          textBlock.resizeToFit = true;
-          textBlock.paddingLeft = 50;
-          textBlock.paddingRight = 50;
-          textBlock.paddingTop = 20;
-          textBlock.paddingBottom = 20;
-          textBlock.textHorizontalAlignment =
-            flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-          bg.addControl(textBlock);
-
-          if (duration > 0) {
-            const timeoutId = setTimeout(() => {
-              // Use the Animation class for a smooth fade
-              const anim = new flock.BABYLON.Animation(
-                "fadeOut",
-                "alpha",
-                30,
-                flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-                flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
-              );
-
-              anim.setKeys([
-                { frame: 0, value: 1 },
-                { frame: 30, value: 0 },
-              ]);
-              bg.animations = [anim];
-
-              flock.scene.beginAnimation(bg, 0, 30, false, 1.0, () => {
-                stackPanel.removeControl(bg);
-                bg.dispose();
-                resolve();
-              });
-            }, duration * 1000);
-
-            flock.abortController.signal.addEventListener(
-              "abort",
-              () => {
-                clearTimeout(timeoutId);
-                bg.dispose();
-                resolve(new Error("Action aborted"));
-              },
-              { once: true },
-            );
-          } else {
-            resolve();
-          }
-        } else {
-          resolve();
-        }
-      });
-    }
-  },
-
   say(meshName, options = {}) {
     let {
       text,
