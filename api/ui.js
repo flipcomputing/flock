@@ -274,47 +274,55 @@ export const flockUI = {
     backgroundColor,
   } = {}) {
     if (!flock.scene || !flock.GUI) {
-        throw new Error("flock.scene or flock.GUI is not initialized.");
+      throw new Error("flock.scene or flock.GUI is not initialized.");
     }
 
     if (!flock.scene.UITexture) {
-        flock.scene.UITexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, flock.scene);
+      flock.scene.UITexture =
+        flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          "UI",
+          true,
+          flock.scene,
+        );
     }
 
     const existing = flock.scene.UITexture.getControlByName(id);
     if (existing) existing.dispose();
 
     const sliderSizes = {
-        SMALL: { width: "100px", height: "20px" },
-        MEDIUM: { width: "200px", height: "30px" },
-        LARGE: { width: "300px", height: "40px" },
+      SMALL: { width: "100px", height: "20px" },
+      MEDIUM: { width: "200px", height: "30px" },
+      LARGE: { width: "300px", height: "40px" },
     };
 
-    const resolvedSize = sliderSizes[(size || "MEDIUM").toUpperCase()] || sliderSizes.MEDIUM;
+    const resolvedSize =
+      sliderSizes[(size || "MEDIUM").toUpperCase()] || sliderSizes.MEDIUM;
 
     const slider = new flock.GUI.Slider(id);
     slider.minimum = min;
     slider.maximum = max;
     slider.value = value;
 
-    slider.thickness = 0;            
-    slider.borderColor = "transparent"; 
+    slider.thickness = 0;
+    slider.borderColor = "transparent";
 
     slider.isPointerBlocker = true;
     slider.thumbWidth = "20px";
     slider.isFocusLinker = true;
 
-    slider.color = textColor || "#000000";       // Color of the "filled" part and thumb
+    slider.color = textColor || "#000000"; // Color of the "filled" part and thumb
     slider.background = backgroundColor || "#ffffff"; // Color of the "empty" track
     slider.height = resolvedSize.height;
     slider.width = resolvedSize.width;
 
     slider.left = `${x}px`;
     slider.top = `${y}px`;
-    slider.horizontalAlignment = x < 0
+    slider.horizontalAlignment =
+      x < 0
         ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
         : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    slider.verticalAlignment = y < 0
+    slider.verticalAlignment =
+      y < 0
         ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
         : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
@@ -329,24 +337,28 @@ export const flockUI = {
 
     const keyList = Array.isArray(keys) ? keys : [keys];
     const uniqueKeys = Array.from(
-      new Set(
-        keyList.filter(
-          (key) => key !== undefined && key !== null && key !== "",
-        ),
-      ),
+      new Set(keyList.filter((k) => k != null && k !== "")),
     );
-    // Use a unique ID per button so Babylon doesn't recycle the same control
-    // name, which can prevent some buttons from receiving pointer events when
-    // multiple instances share an identifier.
+
     const buttonId = `small-${text}-${Math.random().toString(36).slice(2)}`;
     const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
-    button.width = `${70 * flock.displayScale}px`; // Scale size
-    button.height = `${70 * flock.displayScale}px`;
+
+    const size = 70 * flock.displayScale;
+    button.width = `${size}px`;
+    button.height = `${size}px`;
     button.color = color;
     button.background = "transparent";
-    button.fontSize = `${40 * flock.displayScale}px`; // Scale font size
-
+    button.thickness = 0;
+    button.fontSize = `${40 * flock.displayScale}px`;
     button.fontFamily = fontFamily;
+
+    const releaseKeys = () => {
+      uniqueKeys.forEach((key) => {
+        flock.canvas.pressedButtons.delete(key);
+        flock.gridKeyReleaseObservable.notifyObservers(key);
+      });
+    };
+
     button.onPointerDownObservable.add(() => {
       uniqueKeys.forEach((key) => {
         flock.canvas.pressedButtons.add(key);
@@ -354,19 +366,132 @@ export const flockUI = {
       });
     });
 
-    button.onPointerUpObservable.add(() => {
-      uniqueKeys.forEach((key) => {
-        flock.canvas.pressedButtons.delete(key);
-        flock.gridKeyReleaseObservable.notifyObservers(key);
-      });
-    });
+    // Handle release on up OR when finger slides off
+    button.onPointerUpObservable.add(releaseKeys);
+    button.onPointerOutObservable.add(releaseKeys);
+
     return button;
   },
   createArrowControls(color) {
-    // Add a safety check at the beginning of the function
     if (!flock.controlsTexture) return;
 
-    // Create a grid
+    const grid = new flock.GUI.Grid();
+    grid.width = `${240 * flock.displayScale}px`;
+    grid.height = `${160 * flock.displayScale}px`;
+    grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+
+    // Position it slightly away from the screen edge
+    grid.left = "20px";
+    grid.top = "-20px";
+
+    grid.addRowDefinition(1);
+    grid.addRowDefinition(1);
+    grid.addColumnDefinition(1);
+    grid.addColumnDefinition(1);
+    grid.addColumnDefinition(1);
+
+    flock.controlsTexture.addControl(grid);
+
+    const upButton = flock.createSmallButton("△", ["w", "ArrowUp"], color);
+    const downButton = flock.createSmallButton("▽", ["s", "ArrowDown"], color);
+    const leftButton = flock.createSmallButton("◁", ["a", "ArrowLeft"], color);
+    const rightButton = flock.createSmallButton(
+      "▷",
+      ["d", "ArrowRight"],
+      color,
+    );
+
+    // Add padding so buttons don't overlap touch areas
+    [upButton, downButton, leftButton, rightButton].forEach((b) => {
+      b.paddingTop = "4px";
+      b.paddingBottom = "4px";
+      b.paddingLeft = "4px";
+      b.paddingRight = "4px";
+    });
+
+    grid.addControl(upButton, 0, 1);
+    grid.addControl(leftButton, 1, 0);
+    grid.addControl(downButton, 1, 1);
+    grid.addControl(rightButton, 1, 2);
+  },
+  createButtonControls(color) {
+    if (!flock.controlsTexture) return;
+
+    const rightGrid = new flock.GUI.Grid();
+    rightGrid.width = `${160 * flock.displayScale}px`;
+    rightGrid.height = `${160 * flock.displayScale}px`;
+    rightGrid.horizontalAlignment =
+      flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+    rightGrid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+
+    // Position it away from the edge
+    rightGrid.left = "-20px";
+    rightGrid.top = "-20px";
+
+    rightGrid.addRowDefinition(1);
+    rightGrid.addRowDefinition(1);
+    rightGrid.addColumnDefinition(1);
+    rightGrid.addColumnDefinition(1);
+
+    flock.controlsTexture.addControl(rightGrid);
+
+    const button1 = flock.createSmallButton("①", "e", color);
+    const button2 = flock.createSmallButton("②", "r", color);
+    const button3 = flock.createSmallButton("③", "f", color);
+    const button4 = flock.createSmallButton("④", " ", color);
+
+    [button1, button2, button3, button4].forEach((b) => {
+      b.paddingTop = "4px";
+      b.paddingBottom = "4px";
+      b.paddingLeft = "4px";
+      b.paddingRight = "4px";
+    });
+
+    rightGrid.addControl(button1, 0, 0);
+    rightGrid.addControl(button2, 0, 1);
+    rightGrid.addControl(button3, 1, 0);
+    rightGrid.addControl(button4, 1, 1);
+  },
+  createSmallButton(text, keys, color) {
+    if (!flock.controlsTexture) return;
+
+    const keyList = Array.isArray(keys) ? keys : [keys];
+
+    const buttonId = `small-${text}-${Math.random().toString(36).slice(2)}`;
+    const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
+    button.width = `${70 * flock.displayScale}px`;
+    button.height = `${70 * flock.displayScale}px`;
+    button.color = color;
+    button.background = "transparent";
+    button.fontSize = `${40 * flock.displayScale}px`;
+
+    button.fontFamily = fontFamily;
+
+    button.onPointerDownObservable.add(() => {
+      keyList.forEach((key) => {
+        if (key == null) return;
+        flock.canvas.pressedButtons.add(key);
+        flock.gridKeyPressObservable.notifyObservers(key);
+      });
+    });
+
+    const releaseAction = () => {
+      keyList.forEach((key) => {
+        if (key == null) return;
+        flock.canvas.pressedButtons.delete(key);
+        flock.gridKeyReleaseObservable.notifyObservers(key);
+      });
+    };
+
+    button.onPointerUpObservable.add(releaseAction);
+    button.onPointerOutObservable.add(releaseAction);
+
+    return button;
+  },
+  createArrowControls(color) {
+    if (!flock.controlsTexture) return;
+
     const grid = new flock.GUI.Grid();
     grid.width = `${240 * flock.displayScale}px`;
     grid.height = `${160 * flock.displayScale}px`;
@@ -378,6 +503,7 @@ export const flockUI = {
     grid.addColumnDefinition(1);
     grid.addColumnDefinition(1);
     flock.controlsTexture.addControl(grid);
+
     const upButton = flock.createSmallButton("△", ["w", "ArrowUp"], color);
     const downButton = flock.createSmallButton("▽", ["s", "ArrowDown"], color);
     const leftButton = flock.createSmallButton("◁", ["a", "ArrowLeft"], color);
@@ -386,18 +512,18 @@ export const flockUI = {
       ["d", "ArrowRight"],
       color,
     );
-    // Add buttons to the grid
-    grid.addControl(upButton, 0, 1); // Add to row 0, column 1
-    grid.addControl(leftButton, 1, 0); // Add to row 1, column 0
-    grid.addControl(downButton, 1, 1); // Add to row 1, column 1
-    grid.addControl(rightButton, 1, 2); // Add to row 1, column 2
+
+    grid.addControl(upButton, 0, 1);
+    grid.addControl(leftButton, 1, 0);
+    grid.addControl(downButton, 1, 1);
+    grid.addControl(rightButton, 1, 2);
   },
   createButtonControls(color) {
     if (!flock.controlsTexture) return;
-    // Create another grid for the buttons on the right
+
     const rightGrid = new flock.GUI.Grid();
-    rightGrid.width = `${160 * flock.displayScale}px`; // Scale width
-    rightGrid.height = `${160 * flock.displayScale}px`; // Scale height
+    rightGrid.width = `${160 * flock.displayScale}px`;
+    rightGrid.height = `${160 * flock.displayScale}px`;
     rightGrid.horizontalAlignment =
       flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
     rightGrid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
@@ -407,41 +533,47 @@ export const flockUI = {
     rightGrid.addColumnDefinition(1);
     flock.controlsTexture.addControl(rightGrid);
 
-    // Create buttons for the right grid
     const button1 = flock.createSmallButton("①", "e", color);
     const button2 = flock.createSmallButton("②", "r", color);
     const button3 = flock.createSmallButton("③", "f", color);
     const button4 = flock.createSmallButton("④", " ", color);
 
-    // Add buttons to the right grid in a 2x2 layout
-    rightGrid.addControl(button1, 0, 0); // Row 0, Column 0
-    rightGrid.addControl(button2, 0, 1); // Row 0, Column 1
-    rightGrid.addControl(button3, 1, 0); // Row 1, Column 0
-    rightGrid.addControl(button4, 1, 1); // Row 1, Column 1
+    rightGrid.addControl(button1, 0, 0);
+    rightGrid.addControl(button2, 0, 1);
+    rightGrid.addControl(button3, 1, 0);
+    rightGrid.addControl(button4, 1, 1);
   },
   buttonControls(control = "BOTH", mode = "AUTO", color = "#ffffff") {
-    const shouldShow =
-      mode === "ENABLED" ||
-      (mode === "AUTO" &&
-        ("ontouchstart" in window ||
-          navigator.maxTouchPoints > 0 ||
-          window.matchMedia("(pointer: coarse)").matches));
+    // Check if touch is available
+    const isTouchDevice =
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0 ||
+      window.matchMedia("(pointer: coarse)").matches;
+
+    const shouldShow = mode === "ENABLED" || (mode === "AUTO" && isTouchDevice);
 
     if (!shouldShow) {
-      flock.controlsTexture?.dispose();
-      flock.controlsTexture = null;
+      if (flock.controlsTexture) {
+        flock.controlsTexture.dispose();
+        flock.controlsTexture = null;
+      }
       return;
     }
 
-    flock.controlsTexture?.dispose();
+    // Clean restart
+    if (flock.controlsTexture) flock.controlsTexture.dispose();
 
-    flock.controlsTexture =
-      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    // Attach to the scene so it receives input
+    flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+      "VirtualControls",
+      true,
+      flock.scene,
+    );
 
     if (control === "ARROWS" || control === "BOTH")
-      flock.createArrowControls(color ?? "#ffffff");
+      flock.createArrowControls(color);
     if (control === "ACTIONS" || control === "BOTH")
-      flock.createButtonControls(color ?? "#ffffff");
+      flock.createButtonControls(color);
   },
   canvasControls(setting) {
     if (setting) {
