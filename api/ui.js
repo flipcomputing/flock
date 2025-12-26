@@ -456,16 +456,16 @@ export const flockUI = {
       mode = "ADD",
     } = options;
 
-    // Validate duration: must be finite and non-negative
+    // Validate duration
     duration =
       isFinite(Number(duration)) && Number(duration) >= 0
         ? Number(duration)
         : 0;
-    // Validate alpha: must be finite and clamped between 0 and 1
+    // Validate alpha
     alpha = isFinite(Number(alpha))
       ? Math.min(Math.max(Number(alpha), 0), 1)
       : 0.7;
-    // Validate size: must be finite and positive
+    // Validate size
     size = isFinite(Number(size)) && Number(size) > 0 ? Number(size) : 16;
 
     if (!flock.scene) {
@@ -476,14 +476,12 @@ export const flockUI = {
     const mesh = flock.scene.getMeshByName(meshName);
 
     if (mesh) {
-      // Mesh is available immediately — always return the Promise!
       return handleMesh(mesh);
     } else {
-      // Mesh not ready: wait for it, and only resolve after text has been removed
       return new Promise((resolve, reject) => {
-        flock.whenModelReady(meshName, function (mesh) {
-          if (mesh) {
-            handleMesh(mesh).then(resolve).catch(reject);
+        flock.whenModelReady(meshName, function (readyMesh) {
+          if (readyMesh) {
+            handleMesh(readyMesh).then(resolve).catch(reject);
           } else {
             console.error("Mesh is not defined.");
             reject("Mesh is not defined.");
@@ -492,21 +490,23 @@ export const flockUI = {
       });
     }
 
-    function handleMesh(mesh) {
+    function handleMesh(targetMesh) {
       return new Promise((resolve) => {
-        const targetMesh = mesh;
         let plane;
         let background = "transparent";
+
+        // Determine if the target itself is the plane or if we need to find/create one
         if (targetMesh.metadata && targetMesh.metadata.shape == "plane") {
           plane = targetMesh;
           background = plane.material.diffuseColor.toHexString();
           plane.material.needDepthPrePass = true;
         } else {
-          plane = mesh
+          plane = targetMesh
             .getDescendants()
             .find((child) => child.name === "textPlane");
         }
-        let advancedTexture;
+
+        // Create plane if it doesn't exist
         if (!plane) {
           plane = flock.BABYLON.MeshBuilder.CreatePlane(
             "textPlane",
@@ -515,27 +515,36 @@ export const flockUI = {
           );
           plane.name = "textPlane";
           plane.parent = targetMesh;
-          plane.alpha = 1;
           plane.checkCollisions = false;
           plane.isPickable = false;
-
-          // Get initial bounding info.
-          let boundingInfo = targetMesh.getBoundingInfo();
-          plane.position.y =
-            boundingInfo.boundingBox.maximum.y + 2.5 / targetMesh.scaling.y;
           plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 
-          flock.scene.onBeforeRenderObservable.add(() => {
-            boundingInfo = targetMesh.getBoundingInfo();
+          // FIX: Store observer so it can be removed on disposal
+          const observer = flock.scene.onBeforeRenderObservable.add(() => {
+            if (targetMesh.isDisposed()) {
+              flock.scene.onBeforeRenderObservable.remove(observer);
+              plane.dispose();
+              return;
+            }
+            const boundingInfo = targetMesh.getBoundingInfo();
             const parentScale = targetMesh.scaling;
-            plane.scaling.x = 1 / parentScale.x;
-            plane.scaling.y = 1 / parentScale.y;
-            plane.scaling.z = 1 / parentScale.z;
+            // Keep the plane's scale consistent regardless of parent scaling
+            plane.scaling.set(
+              1 / parentScale.x,
+              1 / parentScale.y,
+              1 / parentScale.z,
+            );
             plane.position.y =
               boundingInfo.boundingBox.maximum.y + 2.1 / parentScale.y;
           });
+
+          plane.onDisposeObservable.add(() => {
+            flock.scene.onBeforeRenderObservable.remove(observer);
+          });
         }
 
+        // Setup AdvancedDynamicTexture
+        let advancedTexture;
         if (!plane.advancedTexture) {
           const planeBoundingInfo = plane.getBoundingInfo();
           const planeWidth = planeBoundingInfo.boundingBox.extendSize.x * 2;
@@ -563,8 +572,221 @@ export const flockUI = {
             fullScreenRect.color = "transparent";
             advancedTexture.addControl(fullScreenRect);
           }
-          const stackPanel = new flock.GUI.StackPanel();
-          stackPanel.name = "stackPanel";
+
+          const stackPanel = new flock.GUI.StackPanel("stackPanel");
+          stackPanel.horizontalAlignment =
+            flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+          stackPanel.verticalAlignment =
+            flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+          stackPanel.isVertical = true;
+          stackPanel.width = "100%";
+          stackPanel.adaptHeightToChildren = true;
+          stackPanel.spacing = 4;
+          advancedTexture.addControl(stackPanel);
+        } else {
+          advancedTexture = plane.advancedTexture;
+        }
+
+        const stackPanel = advancedTexture.getControlByName("stackPanel");
+        if (mode === "REPLACE") {
+          stackPanel.clearControls();
+        }
+
+        if (text) {
+          const bg = new flock.GUI.Rectangle("textBackground");
+          bg.background = flock.hexToRgba(backgroundColor, alpha);
+          bg.adaptWidthToChildren = true;
+          bg.adaptHeightToChildren = true;
+          bg.cornerRadius = 30;
+          bg.thickness = 0;
+          bg.checkCollisions = false;
+          bg.isPickable = false;
+          stackPanel.addControl(bg);
+
+          const scale = 8;
+          const textBlock = new flock.GUI.TextBlock();
+          textBlock.text = String(text);
+          textBlock.color = textColor;
+          textBlock.fontSize = size * scale;
+          textBlock.fontFamily = fontFamily;
+          textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
+          textBlock.resizeToFit = true;
+          textBlock.paddingLeft = 50;
+          textBlock.paddingRight = 50;
+          textBlock.paddingTop = 20;
+          textBlock.paddingBottom = 20;
+          textBlock.textHorizontalAlignment =
+            flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+          bg.addControl(textBlock);
+
+          if (duration > 0) {
+            const timeoutId = setTimeout(() => {
+              // Use the Animation class for a smooth fade
+              const anim = new flock.BABYLON.Animation(
+                "fadeOut",
+                "alpha",
+                30,
+                flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+                flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+              );
+
+              anim.setKeys([
+                { frame: 0, value: 1 },
+                { frame: 30, value: 0 },
+              ]);
+              bg.animations = [anim];
+
+              flock.scene.beginAnimation(bg, 0, 30, false, 1.0, () => {
+                stackPanel.removeControl(bg);
+                bg.dispose();
+                resolve();
+              });
+            }, duration * 1000);
+
+            flock.abortController.signal.addEventListener(
+              "abort",
+              () => {
+                clearTimeout(timeoutId);
+                bg.dispose();
+                resolve(new Error("Action aborted"));
+              },
+              { once: true },
+            );
+          } else {
+            resolve();
+          }
+        } else {
+          resolve();
+        }
+      });
+    }
+  },
+
+  say(meshName, options = {}) {
+    let {
+      text,
+      duration,
+      textColor = "#ffffff",
+      backgroundColor = "#000000",
+      alpha = 1,
+      size = 24,
+      mode = "ADD",
+    } = options;
+
+    // Validate duration
+    duration =
+      isFinite(Number(duration)) && Number(duration) >= 0
+        ? Number(duration)
+        : 0;
+    // Validate alpha
+    alpha = isFinite(Number(alpha))
+      ? Math.min(Math.max(Number(alpha), 0), 1)
+      : 0.7;
+    // Validate size
+    size = isFinite(Number(size)) && Number(size) > 0 ? Number(size) : 16;
+
+    if (!flock.scene) {
+      console.error("Scene is not available.");
+      return Promise.reject("Scene is not available.");
+    }
+
+    const mesh = flock.scene.getMeshByName(meshName);
+
+    if (mesh) {
+      return handleMesh(mesh);
+    } else {
+      return new Promise((resolve, reject) => {
+        flock.whenModelReady(meshName, function (readyMesh) {
+          if (readyMesh) {
+            handleMesh(readyMesh).then(resolve).catch(reject);
+          } else {
+            console.error("Mesh is not defined.");
+            reject("Mesh is not defined.");
+          }
+        });
+      });
+    }
+
+    function handleMesh(targetMesh) {
+      return new Promise((resolve) => {
+        let plane;
+        let background = "transparent";
+
+        if (targetMesh.metadata && targetMesh.metadata.shape == "plane") {
+          plane = targetMesh;
+          background = plane.material.diffuseColor.toHexString();
+          plane.material.needDepthPrePass = true;
+        } else {
+          plane = targetMesh
+            .getDescendants()
+            .find((child) => child.name === "textPlane");
+        }
+
+        if (!plane) {
+          plane = flock.BABYLON.MeshBuilder.CreatePlane(
+            "textPlane",
+            { width: 4, height: 4 },
+            flock.scene,
+          );
+          plane.name = "textPlane";
+          plane.parent = targetMesh;
+          plane.checkCollisions = false;
+          plane.isPickable = false;
+          plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+          // FIX: Cleanup observer to prevent memory leak
+          const observer = flock.scene.onBeforeRenderObservable.add(() => {
+            if (targetMesh.isDisposed()) {
+              flock.scene.onBeforeRenderObservable.remove(observer);
+              plane.dispose();
+              return;
+            }
+            const boundingInfo = targetMesh.getBoundingInfo();
+            const parentScale = targetMesh.scaling;
+            plane.scaling.set(
+              1 / parentScale.x,
+              1 / parentScale.y,
+              1 / parentScale.z,
+            );
+            plane.position.y =
+              boundingInfo.boundingBox.maximum.y + 2.1 / parentScale.y;
+          });
+
+          plane.onDisposeObservable.add(() => {
+            flock.scene.onBeforeRenderObservable.remove(observer);
+          });
+        }
+
+        let advancedTexture;
+        if (!plane.advancedTexture) {
+          const planeBoundingInfo = plane.getBoundingInfo();
+          const planeWidth = planeBoundingInfo.boundingBox.extendSize.x * 2;
+          const planeHeight = planeBoundingInfo.boundingBox.extendSize.y * 2;
+          const aspectRatio = planeWidth / planeHeight;
+          const baseResolution = 1024;
+          const textureWidth =
+            baseResolution * (aspectRatio > 1 ? 1 : aspectRatio);
+          const textureHeight =
+            baseResolution * (aspectRatio > 1 ? 1 / aspectRatio : 1);
+
+          advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
+            plane,
+            textureWidth,
+            textureHeight,
+          );
+          advancedTexture.isTransparent = true;
+          plane.advancedTexture = advancedTexture;
+
+          if (targetMesh.metadata && targetMesh.metadata.shape == "plane") {
+            let fullScreenRect = new flock.GUI.Rectangle();
+            fullScreenRect.width = "100%";
+            fullScreenRect.height = "100%";
+            fullScreenRect.background = background;
+            fullScreenRect.color = "transparent";
+            advancedTexture.addControl(fullScreenRect);
+          }
+
+          const stackPanel = new flock.GUI.StackPanel("stackPanel");
           stackPanel.horizontalAlignment =
             flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
           stackPanel.verticalAlignment =
@@ -605,7 +827,6 @@ export const flockUI = {
           textBlock.color = textColor;
           textBlock.fontSize = size * scale;
           textBlock.fontFamily = fontFamily;
-          textBlock.alpha = 1;
           textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
           textBlock.resizeToFit = true;
           textBlock.forceResizeWidth = true;
@@ -620,19 +841,23 @@ export const flockUI = {
           bg.addControl(textBlock);
 
           if (duration > 0) {
-            const timeoutId = setTimeout(function () {
+            const timeoutId = setTimeout(() => {
               stackPanel.removeControl(bg);
               bg.dispose();
               textBlock.dispose();
               resolve();
             }, duration * 1000);
 
-            flock.abortController.signal.addEventListener("abort", () => {
-              clearTimeout(timeoutId);
-              bg.dispose();
-              textBlock.dispose();
-              resolve(new Error("Action aborted"));
-            });
+            flock.abortController.signal.addEventListener(
+              "abort",
+              () => {
+                clearTimeout(timeoutId);
+                bg.dispose();
+                textBlock.dispose();
+                resolve(new Error("Action aborted"));
+              },
+              { once: true },
+            );
           } else {
             resolve();
           }
@@ -643,77 +868,85 @@ export const flockUI = {
     }
   },
   printText({ text, duration = 30, color = "white" } = {}) {
-      console.log(text);
+    console.log(text);
 
-      if (!flock.scene || !flock.stackPanel) return;
+    if (!flock.scene || !flock.stackPanel) return;
 
-      const safeDuration = isFinite(Number(duration)) && Number(duration) >= 0
-          ? Number(duration)
-          : 0;
+    const safeDuration =
+      isFinite(Number(duration)) && Number(duration) >= 0
+        ? Number(duration)
+        : 0;
 
-      try {
-          const bg = new flock.GUI.Rectangle("textBackground");
-          bg.background = "rgba(255, 255, 255, 0.5)";
-          bg.adaptWidthToChildren = true;
-          bg.adaptHeightToChildren = true;
-          bg.cornerRadius = 2;
-          bg.thickness = 0;
-          bg.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-          bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-          bg.left = "5px";
-          bg.top = "5px";
+    try {
+      const bg = new flock.GUI.Rectangle("textBackground");
+      bg.background = "rgba(255, 255, 255, 0.5)";
+      bg.adaptWidthToChildren = true;
+      bg.adaptHeightToChildren = true;
+      bg.cornerRadius = 2;
+      bg.thickness = 0;
+      bg.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+      bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+      bg.left = "5px";
+      bg.top = "5px";
 
-          const textBlock = new flock.GUI.TextBlock("textBlock", text);
-          textBlock.color = color;
-          textBlock.fontSize = "20";
-          textBlock.fontFamily = fontFamily;
-          textBlock.height = "25px";
-          textBlock.paddingLeft = "10px";
-          textBlock.paddingRight = "10px";
-          textBlock.paddingTop = "2px";
-          textBlock.paddingBottom = "2px";
-          textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-          textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-          textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
-          textBlock.resizeToFit = true;
-          textBlock.forceResizeWidth = true;
+      const textBlock = new flock.GUI.TextBlock("textBlock", text);
+      textBlock.color = color;
+      textBlock.fontSize = "20";
+      textBlock.fontFamily = fontFamily;
+      textBlock.height = "25px";
+      textBlock.paddingLeft = "10px";
+      textBlock.paddingRight = "10px";
+      textBlock.paddingTop = "2px";
+      textBlock.paddingBottom = "2px";
+      textBlock.textHorizontalAlignment =
+        flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+      textBlock.textVerticalAlignment =
+        flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+      textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
+      textBlock.resizeToFit = true;
+      textBlock.forceResizeWidth = true;
 
-          bg.addControl(textBlock);
-          flock.stackPanel.addControl(bg);
+      bg.addControl(textBlock);
+      flock.stackPanel.addControl(bg);
 
-          const fadeOut = () => {
-              const anim = new BABYLON.Animation(
-                  "fadeOut", "alpha", 30, 
-                  BABYLON.Animation.ANIMATIONTYPE_FLOAT, 
-                  BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-              );
+      const fadeOut = () => {
+        const anim = new BABYLON.Animation(
+          "fadeOut",
+          "alpha",
+          30,
+          BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+          BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+        );
 
-              anim.setKeys([
-                  { frame: 0, value: 1 },
-                  { frame: 30, value: 0 }
-              ]);
+        anim.setKeys([
+          { frame: 0, value: 1 },
+          { frame: 30, value: 0 },
+        ]);
 
-              bg.animations = []; 
-              bg.animations.push(anim);
+        bg.animations = [];
+        bg.animations.push(anim);
 
-              flock.scene.beginAnimation(bg, 0, 30, false, 1.0, () => {
-                  flock.stackPanel.removeControl(bg);
-                  bg.dispose(); 
-              });
-          };
+        flock.scene.beginAnimation(bg, 0, 30, false, 1.0, () => {
+          flock.stackPanel.removeControl(bg);
+          bg.dispose();
+        });
+      };
 
-          const timeoutId = setTimeout(fadeOut, safeDuration * 1000);
+      const timeoutId = setTimeout(fadeOut, safeDuration * 1000);
 
-          flock.abortController.signal.addEventListener("abort", () => {
-              clearTimeout(timeoutId);
-              if (flock.stackPanel) {
-                  flock.stackPanel.removeControl(bg);
-                  bg.dispose();
-              }
-          }, { once: true });
-
-      } catch (error) {
-          console.warn("Unable to print text:", error);
-      }
+      flock.abortController.signal.addEventListener(
+        "abort",
+        () => {
+          clearTimeout(timeoutId);
+          if (flock.stackPanel) {
+            flock.stackPanel.removeControl(bg);
+            bg.dispose();
+          }
+        },
+        { once: true },
+      );
+    } catch (error) {
+      console.warn("Unable to print text:", error);
+    }
   },
 };
