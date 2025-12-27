@@ -770,6 +770,46 @@ export const flockMaterial = {
     // Map to keep track of materials and their assigned colours and indices
     const materialToColorMap = new Map();
 
+    const recordMaterialUse = (material, meshPart) => {
+      const existing = materialToColorMap.get(material) || { meshes: [] };
+      existing.meshes.push(meshPart);
+      materialToColorMap.set(material, existing);
+    };
+
+    const cacheRecoloredMaterials = () => {
+      materialToColorMap.forEach((info, material) => {
+        if (!material) return;
+
+        const descriptor = describeStandardMaterial(material);
+        if (!descriptor) return;
+
+        const key = descriptorKey(descriptor);
+        const existingEntry = materialCache.get(key);
+
+        if (existingEntry) {
+          info.meshes.forEach(() => incrementCacheRef(key));
+          const cachedMaterial = existingEntry.material;
+          if (cachedMaterial !== material) {
+            logMaterialCache("Reusing recolored cached material", { key, descriptor });
+            material.dispose?.();
+          }
+          info.meshes.forEach((meshPart) => {
+            if (meshPart.material !== cachedMaterial) {
+              meshPart.material = cachedMaterial;
+            }
+          });
+          return;
+        }
+
+        registerCachedMaterial(material, key);
+        const entry = materialCache.get(key);
+        if (entry) {
+          entry.refCount += Math.max(0, info.meshes.length - 1);
+        }
+        logMaterialCache("Added recolored cached material", { key, descriptor });
+      });
+    };
+
     function applyColorInOrder(part) {
       if (part.material) {
         // Check if the material is already processed
@@ -792,6 +832,7 @@ export const flockMaterial = {
           materialToColorMap.set(part.material, {
             hexColor,
             index: currentIndex,
+            meshes: [part],
           });
 
           // Set metadata on this mesh with its colour index
@@ -809,6 +850,7 @@ export const flockMaterial = {
             part.metadata = {};
           }
 
+          recordMaterialUse(part.material, part);
           if (part.metadata.materialIndex === undefined) {
             part.metadata.materialIndex = colorIndex;
           }
@@ -826,12 +868,7 @@ export const flockMaterial = {
 
     if (!flock.characterNames.includes(mesh.metadata?.meshName)) {
       applyColorInOrder(mesh);
-
-      materialToColorMap.forEach((_, mat) => {
-        mat.metadata = mat.metadata || {};
-        mat.metadata.sharedMaterial = false;
-        mat.metadata.cacheKey = undefined;
-      });
+      cacheRecoloredMaterials();
     } else {
       const characterColors = {
         hair: colors[0],
