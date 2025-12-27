@@ -82,13 +82,48 @@ import { translate } from "./main/translation.js";
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
 
+const parseBooleanFlag = (value) => {
+        if (value == null) return null;
+        const normalised = String(value).toLowerCase();
+        if (["", "1", "true", "yes", "on"].includes(normalised)) return true;
+        if (["0", "false", "no", "off"].includes(normalised)) return false;
+        return null;
+};
+
+const resolveMaterialsDebugFlag = () => {
+        if (typeof window === "undefined") return false;
+
+        try {
+                const params = new URLSearchParams(window.location.search || "");
+                const overrideFlag = parseBooleanFlag(params.get("materialsDebug"));
+                const debugList = (params.get("debug") || "")
+                        .split(/[ ,]/)
+                        .map((value) => value.trim())
+                        .filter(Boolean);
+                if (overrideFlag !== null) {
+                        if (overrideFlag) console.log("[MaterialCache] debug enabled (query)");
+                        return overrideFlag;
+                }
+
+                const storedFlag = window.localStorage?.getItem("flockMaterialsDebug");
+                const enabled = storedFlag === "true" || debugList.includes("materials");
+
+                if (enabled) console.log("[MaterialCache] debug enabled");
+                return enabled;
+        } catch (error) {
+                console.warn("Unable to resolve materials debug flag", error);
+        }
+
+        return false;
+};
+
 export const flock = {
         blockDebug: false,
         callbackMode: true,
         separateAnimations: true,
         memoryDebug: false,
         memoryMonitorInterval: 5000,
-        materialsDebug: false,
+        materialsDebug: resolveMaterialsDebugFlag(),
         meshDebug: false,
         performanceOverlay: false,
         maxMeshes: 5000,
