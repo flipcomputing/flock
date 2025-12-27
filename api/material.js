@@ -4,6 +4,10 @@ const materialCache = new Map();
 const materialCacheKeys = new WeakMap();
 const cachedMaterialMeshes = new WeakSet();
 
+const logMaterialCache = (...args) => {
+  if (flock?.materialsDebug) console.log("[MaterialCache]", ...args);
+};
+
 const normaliseColorInput = (input) => {
   const asHex = (value) => {
     if (typeof value === "string") return flock.getColorFromString(value);
@@ -55,6 +59,7 @@ const registerCachedMaterial = (material, key) => {
   material.metadata.cacheKey = key;
   materialCache.set(key, { material, refCount: 1 });
   materialCacheKeys.set(material, key);
+  logMaterialCache("Registered material", { key, name: material.name });
 };
 
 const describeStandardMaterial = (material) => {
@@ -90,20 +95,29 @@ const cacheExistingMaterial = (material) => {
     material.metadata = material.metadata || {};
     material.metadata.sharedMaterial = true;
     incrementCacheRef(existingKey);
+    logMaterialCache("Reusing material by metadata", { key: existingKey });
     return materialCache.get(existingKey).material;
   }
 
   const descriptor = describeStandardMaterial(material);
-  if (!descriptor) return material;
+  if (!descriptor) {
+    logMaterialCache("Skipped caching (unsupported type)", {
+      materialName: material?.name,
+      materialType: material?.getClassName?.(),
+    });
+    return material;
+  }
 
   const key = descriptorKey(descriptor);
   const existing = incrementCacheRef(key);
   if (existing) {
     material.dispose?.();
+    logMaterialCache("Reusing matching cached material", { key, descriptor });
     return existing;
   }
 
   registerCachedMaterial(material, key);
+  logMaterialCache("Added new cached material", { key, descriptor });
   return material;
 };
 
@@ -129,7 +143,10 @@ const cacheMaterialsInHierarchy = (mesh) => {
 
 const incrementCacheRef = (key) => {
   const entry = materialCache.get(key);
-  if (entry) entry.refCount += 1;
+  if (entry) {
+    entry.refCount += 1;
+    logMaterialCache("Increment ref", { key, refCount: entry.refCount });
+  }
   return entry?.material ?? null;
 };
 
@@ -341,10 +358,16 @@ export const flockMaterial = {
     if (key && materialCache.has(key)) {
       const entry = materialCache.get(key);
       entry.refCount = Math.max(0, (entry.refCount || 0) - 1);
+      logMaterialCache("Release cached material", {
+        key,
+        refCount: entry.refCount,
+        name: material.name,
+      });
 
       if (entry.refCount === 0) {
         materialCache.delete(key);
         materialCacheKeys.delete(material);
+        logMaterialCache("Disposing cached material", { key, name: material.name });
         if (Array.isArray(flock.scene?.materials)) {
           flock.scene.materials = flock.scene.materials.filter(
             (mat) => mat !== material,
