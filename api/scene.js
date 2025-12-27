@@ -403,23 +403,42 @@ export const flockScene = {
     if (material && material instanceof flock.BABYLON.Material) {
       applyMapMaterial(material);
     } else if (Array.isArray(material) && material.length >= 2) {
-      const mat = new flock.BABYLON.StandardMaterial(
-        "mapGradientMat",
-        flock.scene,
-      );
-      const dt = flock.createLinearGradientTexture(material, {
-        size: 1024,
-        horizontal: false,
+      const cacheKey = flock.materialCacheKey?.({
+        materialName: "mapGradientMat",
+        color: material,
+        alpha: 1,
+        tiling: {
+          wrapU: flock.BABYLON.Texture.CLAMP_ADDRESSMODE,
+          wrapV: flock.BABYLON.Texture.CLAMP_ADDRESSMODE,
+          uScale: 1,
+          vScale: 1,
+        },
       });
-      mat.diffuseTexture = dt;
-      mat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
-      mat.backFaceCulling = true;
+      const cached = cacheKey ? flock.acquireCachedMaterial(cacheKey) : null;
 
-      // Clamp so the gradient spans the plane once
-      mat.diffuseTexture.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-      mat.diffuseTexture.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-      mat.diffuseTexture.uScale = 1;
-      mat.diffuseTexture.vScale = 1;
+      const mat = cached ||
+        (() => {
+          const newMat = new flock.BABYLON.StandardMaterial(
+            "mapGradientMat",
+            flock.scene,
+          );
+          const dt = flock.createLinearGradientTexture(material, {
+            size: 1024,
+            horizontal: false,
+          });
+          newMat.diffuseTexture = dt;
+          newMat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
+          newMat.backFaceCulling = true;
+
+          // Clamp so the gradient spans the plane once
+          newMat.diffuseTexture.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+          newMat.diffuseTexture.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+          newMat.diffuseTexture.uScale = 1;
+          newMat.diffuseTexture.vScale = 1;
+
+          if (cacheKey) flock.registerCachedMaterial(newMat, cacheKey);
+          return newMat;
+        })();
 
       applyMapMaterial(mat);
     } else if (material) {
@@ -553,12 +572,13 @@ export const flockScene = {
 
         // Dispose material if not already disposed
         if (!disposedMaterials.has(material)) {
+          disposedMaterials.add(material);
           const sharedMaterial = currentMesh.metadata?.sharedMaterial;
           const internalMaterial = material.metadata?.internal;
 
-          if (sharedMaterial === false && internalMaterial === true) {
-            disposedMaterials.add(material);
-
+          if (material.metadata?.cacheKey) {
+            flock.releaseMaterial(material);
+          } else if (sharedMaterial === false && internalMaterial === true) {
             // Remove from scene.materials
             flock.scene.materials = flock.scene.materials.filter(
               (mat) => mat !== material,

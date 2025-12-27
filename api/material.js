@@ -1,7 +1,72 @@
 let flock;
 
+const materialCache = new Map();
+const materialCacheKeys = new WeakMap();
+
+const normaliseColorInput = (input) => {
+  const asHex = (value) => {
+    if (typeof value === "string") return flock.getColorFromString(value);
+    if (value instanceof flock?.BABYLON?.Color3) return value.toHexString();
+    if (value instanceof flock?.BABYLON?.Color4)
+      return new flock.BABYLON.Color3(value.r, value.g, value.b).toHexString();
+    if (
+      value &&
+      typeof value === "object" &&
+      typeof value.r === "number" &&
+      typeof value.g === "number" &&
+      typeof value.b === "number"
+    ) {
+      const col = new flock.BABYLON.Color3(value.r, value.g, value.b);
+      return col.toHexString();
+    }
+    return String(value ?? "");
+  };
+
+  if (Array.isArray(input)) return input.map((v) => asHex(v));
+  if (input == null) return null;
+  return asHex(input);
+};
+
+const normaliseTiling = (tiling) => {
+  if (tiling == null) return null;
+  if (typeof tiling === "number") return { unitsPerTile: tiling };
+  if (typeof tiling === "object") {
+    const { uScale, vScale, wrapU, wrapV, unitsPerTile } = tiling;
+    return { uScale, vScale, wrapU, wrapV, unitsPerTile };
+  }
+  return { value: tiling };
+};
+
+const descriptorKey = (descriptor = {}) => {
+  const { materialName = "", color = null, alpha = 1, tiling = null } =
+    descriptor;
+  return JSON.stringify({
+    materialName,
+    color: normaliseColorInput(color),
+    alpha: Number.isFinite(alpha) ? alpha : 1,
+    tiling: normaliseTiling(tiling),
+  });
+};
+
+const registerCachedMaterial = (material, key) => {
+  material.metadata = material.metadata || {};
+  material.metadata.sharedMaterial = true;
+  material.metadata.cacheKey = key;
+  materialCache.set(key, { material, refCount: 1 });
+  materialCacheKeys.set(material, key);
+};
+
+const incrementCacheRef = (key) => {
+  const entry = materialCache.get(key);
+  if (entry) entry.refCount += 1;
+  return entry?.material ?? null;
+};
+
 export function setFlockReference(ref) {
   flock = ref;
+  flock.materialCacheKey = descriptorKey;
+  flock.acquireCachedMaterial = incrementCacheRef;
+  flock.registerCachedMaterial = registerCachedMaterial;
 }
 
 export const flockMaterial = {
@@ -197,6 +262,31 @@ export const flockMaterial = {
     }
   },
 
+  releaseMaterial(material, { forceDispose = false } = {}) {
+    if (!material) return;
+    const key = materialCacheKeys.get(material) || material.metadata?.cacheKey;
+    if (key && materialCache.has(key)) {
+      const entry = materialCache.get(key);
+      entry.refCount = Math.max(0, (entry.refCount || 0) - 1);
+
+      if (entry.refCount === 0) {
+        materialCache.delete(key);
+        materialCacheKeys.delete(material);
+        if (Array.isArray(flock.scene?.materials)) {
+          flock.scene.materials = flock.scene.materials.filter(
+            (mat) => mat !== material,
+          );
+        }
+        material.dispose?.();
+      }
+      return;
+    }
+
+    if (forceDispose) {
+      material.dispose?.();
+    }
+  },
+
   tint(meshName, { color } = {}) {
     if (flock.materialsDebug)
       console.log(`Changing tint of ${meshName} by ${color}`);
@@ -376,19 +466,26 @@ export const flockMaterial = {
     // Iterate through all collected meshes
     allMeshes.forEach((currentMesh) => {
       if (currentMesh.material && currentMesh.metadata?.sharedMaterial) {
+        const originalMaterial = currentMesh.material;
         // Check if the material has already been cloned
-        if (!materialMapping.has(currentMesh.material)) {
+        if (!materialMapping.has(originalMaterial)) {
           // Clone the material and store it in the mapping
           if (flock.materialsDebug)
             console.log(
-              ` Cloning material, ${currentMesh.material}, of ${currentMesh.name}`,
+              ` Cloning material, ${originalMaterial}, of ${currentMesh.name}`,
             );
-          const clonedMaterial = cloneMaterial(currentMesh.material);
-          materialMapping.set(currentMesh.material, clonedMaterial);
+          const clonedMaterial = cloneMaterial(originalMaterial);
+          clonedMaterial.metadata = {
+            ...(clonedMaterial.metadata || {}),
+            sharedMaterial: false,
+            cacheKey: undefined,
+          };
+          materialMapping.set(originalMaterial, clonedMaterial);
         }
 
         // Assign the cloned material to the current mesh
-        currentMesh.material = materialMapping.get(currentMesh.material);
+        currentMesh.material = materialMapping.get(originalMaterial);
+        flock.releaseMaterial(originalMaterial, { forceDispose: false });
         currentMesh.metadata.sharedMaterial = false; // Material is now unique to this hierarchy
       }
     });
@@ -793,7 +890,7 @@ export const flockMaterial = {
       const allMeshes = [mesh].concat(mesh.getDescendants());
       allMeshes.forEach((part) => {
         if (part.material?.metadata?.internal) {
-          part.material.dispose();
+          flock.releaseMaterial(part.material, { forceDispose: true });
         }
       });
 
@@ -844,8 +941,16 @@ export const flockMaterial = {
       }
     });
   },
-  createMaterial({ color, materialName, alpha } = {}) {
+  createMaterial({ color, materialName, alpha, tiling } = {}) {
     if (flock?.materialsDebug) console.log(`Create material: ${materialName}`);
+    const resolvedAlpha = alpha ?? 1;
+    const descriptor = { color, materialName, alpha: resolvedAlpha, tiling };
+    const key = descriptorKey(descriptor);
+    const existing = incrementCacheRef(key);
+    if (existing) {
+      return existing;
+    }
+
     let material;
     const texturePath = flock.texturePath + materialName;
 
@@ -896,15 +1001,16 @@ export const flockMaterial = {
       material.backFaceCulling = false;
     }
 
-    material.alpha = alpha;
+    material.alpha = resolvedAlpha;
 
     // Update alpha for shader materials
-    if (material.setFloat && alpha !== undefined) {
-      material.setFloat("alpha", alpha);
+    if (material.setFloat && resolvedAlpha !== undefined) {
+      material.setFloat("alpha", resolvedAlpha);
     }
 
     if (flock.materialsDebug)
       console.log(`Created the material: ${material.name}`);
+    registerCachedMaterial(material, key);
     return material;
   },
   createMultiColorGradientMaterial(name, colors) {
@@ -1756,10 +1862,11 @@ export const flockMaterial = {
     }
 
     // --- Default N-colour fallback (treat as uniform) -------------------------
-    const material = new flock.BABYLON.StandardMaterial(
-      `${shapeType.toLowerCase()}Material`,
-      scene,
-    );
+    const material = flock.createMaterial({
+      materialName: `${shapeType.toLowerCase()}Material`,
+      color: color[0],
+      alpha: resolvedAlpha,
+    });
     material.diffuseColor = flock.BABYLON.Color3.FromHexString(
       flock.getColorFromString(color[0]),
     );
