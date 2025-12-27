@@ -561,29 +561,30 @@ export const flockMaterial = {
 
     // Iterate through all collected meshes
     allMeshes.forEach((currentMesh) => {
-      if (currentMesh.material && currentMesh.metadata?.sharedMaterial) {
-        const originalMaterial = currentMesh.material;
-        // Check if the material has already been cloned
-        if (!materialMapping.has(originalMaterial)) {
-          // Clone the material and store it in the mapping
-          if (flock.materialsDebug)
-            console.log(
-              ` Cloning material, ${originalMaterial}, of ${currentMesh.name}`,
-            );
-          const clonedMaterial = cloneMaterial(originalMaterial);
-          clonedMaterial.metadata = {
-            ...(clonedMaterial.metadata || {}),
-            sharedMaterial: false,
-            cacheKey: undefined,
-          };
-          materialMapping.set(originalMaterial, clonedMaterial);
-        }
+      const originalMaterial = currentMesh.material;
+      const isSharedMaterial = originalMaterial?.metadata?.sharedMaterial;
+      if (!originalMaterial || !isSharedMaterial) return;
 
-        // Assign the cloned material to the current mesh
-        currentMesh.material = materialMapping.get(originalMaterial);
-        flock.releaseMaterial(originalMaterial, { forceDispose: false });
-        currentMesh.metadata.sharedMaterial = false; // Material is now unique to this hierarchy
+      // Check if the material has already been cloned
+      if (!materialMapping.has(originalMaterial)) {
+        // Clone the material and store it in the mapping
+        if (flock.materialsDebug)
+          console.log(
+            ` Cloning material, ${originalMaterial}, of ${currentMesh.name}`,
+          );
+        const clonedMaterial = cloneMaterial(originalMaterial);
+        clonedMaterial.metadata = {
+          ...(clonedMaterial.metadata || {}),
+          sharedMaterial: false,
+          cacheKey: undefined,
+        };
+        materialMapping.set(originalMaterial, clonedMaterial);
       }
+
+      // Assign the cloned material to the current mesh
+      currentMesh.material = materialMapping.get(originalMaterial);
+      flock.releaseMaterial(originalMaterial, { forceDispose: false });
+      currentMesh.metadata.sharedMaterial = false; // Material is now unique to this hierarchy
     });
   },
   ensureStandardMaterial(mesh) {
@@ -756,11 +757,15 @@ export const flockMaterial = {
       return;
     }
 
-    if (
-      mesh.metadata?.sharedMaterial &&
-      !(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)
-    )
+    const meshHasSharedMaterial = (targetMesh) => {
+      const mat = targetMesh.material;
+      return mat?.metadata?.sharedMaterial === true;
+    };
+
+    const childMeshes = mesh.getChildMeshes ? mesh.getChildMeshes(true) : [];
+    if (meshHasSharedMaterial(mesh) || childMeshes.some(meshHasSharedMaterial)) {
       flock.ensureUniqueMaterial(mesh);
+    }
 
     // Ensure color is an array
     const colors = Array.isArray(color) ? color : [color];
