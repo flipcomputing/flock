@@ -105,8 +105,7 @@ const resolveMaterialsDebugFlag = () => {
                         return overrideFlag;
                 }
 
-                const storedFlag = window.localStorage?.getItem("flockMaterialsDebug");
-                const enabled = storedFlag === "true" || debugList.includes("materials");
+                const enabled = debugList.includes("materials");
 
                 if (enabled) console.log("[MaterialCache] debug enabled");
                 return enabled;
