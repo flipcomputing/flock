@@ -2,6 +2,7 @@ let flock;
 
 const materialCache = new Map();
 const materialCacheKeys = new WeakMap();
+const cachedMaterialMeshes = new WeakSet();
 
 const normaliseColorInput = (input) => {
   const asHex = (value) => {
@@ -56,6 +57,76 @@ const registerCachedMaterial = (material, key) => {
   materialCacheKeys.set(material, key);
 };
 
+const describeStandardMaterial = (material) => {
+  if (!material || !(material instanceof flock?.BABYLON?.StandardMaterial)) return null;
+
+  const tex = material.diffuseTexture;
+  const tiling = tex
+    ? {
+        uScale: tex.uScale,
+        vScale: tex.vScale,
+        wrapU: tex.wrapU,
+        wrapV: tex.wrapV,
+      }
+    : null;
+
+  const color = material.diffuseColor?.toHexString?.() ?? null;
+
+  return {
+    materialName: tex?.name || material.name || "",
+    color,
+    alpha: material.alpha ?? 1,
+    tiling,
+  };
+};
+
+const cacheExistingMaterial = (material) => {
+  if (!material) return material;
+
+  const existingKey =
+    materialCacheKeys.get(material) || material.metadata?.cacheKey || null;
+
+  if (existingKey && materialCache.has(existingKey)) {
+    material.metadata = material.metadata || {};
+    material.metadata.sharedMaterial = true;
+    incrementCacheRef(existingKey);
+    return materialCache.get(existingKey).material;
+  }
+
+  const descriptor = describeStandardMaterial(material);
+  if (!descriptor) return material;
+
+  const key = descriptorKey(descriptor);
+  const existing = incrementCacheRef(key);
+  if (existing) {
+    material.dispose?.();
+    return existing;
+  }
+
+  registerCachedMaterial(material, key);
+  return material;
+};
+
+const cacheMaterialsInHierarchy = (mesh) => {
+  if (!mesh) return;
+
+  const meshes = [mesh, ...(mesh.getChildMeshes?.(false) || [])];
+
+  meshes.forEach((currentMesh) => {
+    if (!currentMesh || cachedMaterialMeshes.has(currentMesh)) return;
+
+    const material = currentMesh.material;
+    if (material) {
+      const cachedMaterial = cacheExistingMaterial(material);
+      if (cachedMaterial !== material) {
+        currentMesh.material = cachedMaterial;
+      }
+    }
+
+    cachedMaterialMeshes.add(currentMesh);
+  });
+};
+
 const incrementCacheRef = (key) => {
   const entry = materialCache.get(key);
   if (entry) entry.refCount += 1;
@@ -67,6 +138,8 @@ export function setFlockReference(ref) {
   flock.materialCacheKey = descriptorKey;
   flock.acquireCachedMaterial = incrementCacheRef;
   flock.registerCachedMaterial = registerCachedMaterial;
+  flock.cacheExistingMaterial = cacheExistingMaterial;
+  flock.cacheMaterialsInHierarchy = cacheMaterialsInHierarchy;
 }
 
 export const flockMaterial = {

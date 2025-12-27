@@ -278,6 +278,7 @@ export const flockModels = {
       // PATH A: Cache
       if (flock.modelCache[modelName]) {
         const mesh = flock.modelCache[modelName].clone(bKey);
+        flock.cacheMaterialsInHierarchy?.(mesh);
         finalizeMesh(mesh, meshName, groupName, bKey);
         resolveReady(mesh);
         return meshName;
@@ -287,6 +288,7 @@ export const flockModels = {
       if (flock.modelsBeingLoaded[modelName]) {
         flock.modelsBeingLoaded[modelName].then(() => {
           const mesh = flock.modelCache[modelName].clone(bKey);
+          flock.cacheMaterialsInHierarchy?.(mesh);
           finalizeMesh(mesh, meshName, groupName, bKey);
           resolveReady(mesh);
         });
@@ -302,12 +304,14 @@ export const flockModels = {
         const root = container.meshes[0];
 
         if (applyColor) flock.ensureStandardMaterial(root);
+        flock.cacheMaterialsInHierarchy?.(root);
 
         // Cache Template
         const template = root.clone(`${modelName}_template`);
         template.setEnabled(false);
         template.isPickable = false;
         template.getChildMeshes().forEach(c => c.setEnabled(false));
+        flock.cacheMaterialsInHierarchy?.(template);
         flock.modelCache[modelName] = template;
 
         // Finalize the one currently in scene

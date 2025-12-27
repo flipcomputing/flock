@@ -578,15 +578,18 @@ export const flockScene = {
         // Detach material from the mesh
         currentMesh.material = null;
 
+        if (material.metadata?.cacheKey) {
+          flock.releaseMaterial(material);
+          return;
+        }
+
         // Dispose material if not already disposed
         if (!disposedMaterials.has(material)) {
           disposedMaterials.add(material);
           const sharedMaterial = currentMesh.metadata?.sharedMaterial;
           const internalMaterial = material.metadata?.internal;
 
-          if (material.metadata?.cacheKey) {
-            flock.releaseMaterial(material);
-          } else if (sharedMaterial === false && internalMaterial === true) {
+          if (sharedMaterial === false && internalMaterial === true) {
             // Remove from scene.materials
             flock.scene.materials = flock.scene.materials.filter(
               (mat) => mat !== material,
