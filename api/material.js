@@ -828,6 +828,17 @@ export const flockMaterial = {
 
     if (!flock.characterNames.includes(mesh.metadata?.meshName)) {
       applyColorInOrder(mesh);
+
+      materialToColorMap.forEach((_, mat) => {
+        const cached = flock.cacheExistingMaterial(mat);
+        if (cached && cached !== mat) {
+          // Replace the material on meshes that still reference the uncached instance
+          mesh.getChildMeshes(true)?.forEach((child) => {
+            if (child.material === mat) child.material = cached;
+          });
+          if (mesh.material === mat) mesh.material = cached;
+        }
+      });
     } else {
       const characterColors = {
         hair: colors[0],
