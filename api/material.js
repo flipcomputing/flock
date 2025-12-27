@@ -1436,6 +1436,26 @@ export const flockMaterial = {
       }
     };
 
+    const isPlainColorValue = (c) =>
+      typeof c === "string" ||
+      c instanceof flock.BABYLON.Color3 ||
+      c instanceof flock.BABYLON.Color4;
+
+    const tryApplyPlainColor = () => {
+      if (Array.isArray(color) || !isPlainColorValue(color)) return false;
+
+      const mat = flock.createMaterial({
+        materialName: "none.png",
+        color,
+        alpha: resolvedAlpha,
+      });
+
+      disposePlaneSideMaterials();
+      clearVertexColors();
+      applyMaterialWithTilingIfAny(mat);
+      return true;
+    };
+
     // --- Material path for objects that can take a single material ------------
     const materialFromArray =
       Array.isArray(color) &&
@@ -1457,6 +1477,10 @@ export const flockMaterial = {
         applyMaterialWithTilingIfAny(matCandidate);
         return;
       }
+    }
+
+    if (tryApplyPlainColor()) {
+      return;
     }
 
     // Plane: allow a material or a material descriptor (or array -> first)

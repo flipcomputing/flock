@@ -504,13 +504,21 @@ export const flockScene = {
     }
 
     if (mesh.name === "ground") {
-      mesh.material?.dispose();
+      if (mesh.material?.metadata?.cacheKey) {
+        flock.releaseMaterial(mesh.material);
+      } else {
+        mesh.material?.dispose();
+      }
       mesh.dispose();
       flock.ground = null;
       return;
     }
     if (mesh.name === "sky") {
-      mesh.material?.dispose();
+      if (mesh.material?.metadata?.cacheKey) {
+        flock.releaseMaterial(mesh.material);
+      } else {
+        mesh.material?.dispose();
+      }
       mesh.dispose();
       flock.sky = null;
       return;
