@@ -828,14 +828,9 @@ export const flockMaterial = {
       applyColorInOrder(mesh);
 
       materialToColorMap.forEach((_, mat) => {
-        const cached = flock.cacheExistingMaterial(mat);
-        if (cached && cached !== mat) {
-          // Replace the material on meshes that still reference the uncached instance
-          mesh.getChildMeshes(true)?.forEach((child) => {
-            if (child.material === mat) child.material = cached;
-          });
-          if (mesh.material === mat) mesh.material = cached;
-        }
+        mat.metadata = mat.metadata || {};
+        mat.metadata.sharedMaterial = false;
+        mat.metadata.cacheKey = undefined;
       });
     } else {
       const characterColors = {
