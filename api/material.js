@@ -1,26 +1,77 @@
 let flock;
 
+const materialCache = new Map();
+const materialCacheStats = { hits: 0, misses: 0 };
+
+const materialDebugLog = (...args) => {
+  if (!flock?.materialsDebug) return;
+  console.log("[materials]", ...args);
+};
+
+const buildMaterialCacheKey = ({ materialName, color, alpha, shaderType }) => {
+  const normalizedAlpha = alpha ?? 1;
+  const normalizeColour = (value) =>
+    value == null ? "" : flock.getColorFromString(value);
+
+  const normalizedColour = Array.isArray(color)
+    ? color.map(normalizeColour).join("|")
+    : normalizeColour(color);
+
+  return [shaderType || "standard", materialName || "", normalizedColour, normalizedAlpha].join(
+    "::",
+  );
+};
+
 export function setFlockReference(ref) {
   flock = ref;
+  flock.materialCacheStats = materialCacheStats;
+  flock.logMaterialCacheSummary = () => {
+    materialDebugLog(
+      `Cache summary: ${materialCache.size} entries, ${materialCacheStats.hits} hits, ${materialCacheStats.misses} misses`,
+    );
+    if (!flock?.materialsDebug) return;
+    materialCache.forEach((value, key) => {
+      materialDebugLog("  •", key, {
+        name: value?.name,
+        id: value?.uniqueId,
+        shared: value?.metadata?.sharedMaterial,
+      });
+    });
+  };
 }
 
 export const flockMaterial = {
   adjustMaterialTilingToMesh(mesh, material, unitsPerTile = null) {
     if (!mesh || !material) return;
 
-    if (mesh.metadata?.skipAutoTiling) return;
+    if (mesh.metadata?.skipAutoTiling) {
+      materialDebugLog("Skip auto-tiling (mesh opted out)", mesh?.name);
+      return;
+    }
 
     const shapeType = mesh?.metadata?.shapeType;
     const bakedShapes = new Set(["Box", "Sphere", "Cylinder", "Capsule", "Plane"]);
-    if (shapeType && bakedShapes.has(shapeType)) return;
+    if (shapeType && bakedShapes.has(shapeType)) {
+      materialDebugLog(
+        "Skip auto-tiling (baked shape)",
+        mesh?.name,
+        "shape:",
+        shapeType,
+      );
+      return;
+    }
 
-    const tex =
-      material.diffuseTexture ||
-      material.albedoTexture ||
-      material.baseTexture ||
-      null;
+    const textureProp = material.diffuseTexture
+      ? "diffuseTexture"
+      : material.albedoTexture
+        ? "albedoTexture"
+        : material.baseTexture
+          ? "baseTexture"
+          : null;
+    let tex = textureProp ? material[textureProp] : null;
 
     if (!tex || typeof tex.uScale !== "number" || typeof tex.vScale !== "number") {
+      materialDebugLog("Skip auto-tiling (no numeric texture scale)", mesh?.name);
       return;
     }
 
@@ -49,8 +100,61 @@ export const flockMaterial = {
     const newUScale = worldWidth / tile;
     const newVScale = Math.max(worldHeight, worldDepth) / tile;
 
+    const needsTiling =
+      (Number.isFinite(newUScale) && newUScale > 0 && tex.uScale !== newUScale) ||
+      (Number.isFinite(newVScale) && newVScale > 0 && tex.vScale !== newVScale);
+
+    if (needsTiling && material.metadata?.sharedMaterial) {
+      const clonedMaterial =
+        typeof material.clone === "function"
+          ? material.clone(
+              `${material.name || "material"}_autoTile_${mesh?.id ?? mesh?.uniqueId ?? Date.now()}`,
+            )
+          : null;
+
+      if (clonedMaterial) {
+        materialDebugLog(
+          "Cloning shared material for tiling",
+          material?.name,
+          "for",
+          mesh?.name,
+        );
+        clonedMaterial.metadata = {
+          ...(material.metadata || {}),
+          sharedMaterial: false,
+          internal: true,
+        };
+
+        const clonedTexture = tex?.clone?.() || null;
+        if (textureProp && clonedTexture) {
+          clonedMaterial[textureProp] = clonedTexture;
+          tex = clonedTexture;
+        }
+
+        mesh.material = clonedMaterial;
+        material = clonedMaterial;
+      } else {
+        materialDebugLog(
+          "Cannot safely tile shared material (no clone support)",
+          material?.name,
+          mesh?.name,
+        );
+        // Skip tiling when we cannot safely detach a shared material.
+        return material;
+      }
+    }
+
     if (Number.isFinite(newUScale) && newUScale > 0) tex.uScale = newUScale;
     if (Number.isFinite(newVScale) && newVScale > 0) tex.vScale = newVScale;
+
+    materialDebugLog(
+      "Applied auto-tiling",
+      mesh?.name,
+      material?.name,
+      { uScale: tex.uScale, vScale: tex.vScale, tile },
+    );
+
+    return material;
   },
   adjustMaterialTilingForHierarchy(mesh, unitsPerTile) {
     if (!mesh) return;
@@ -845,12 +949,49 @@ export const flockMaterial = {
     });
   },
   createMaterial({ color, materialName, alpha } = {}) {
-    if (flock?.materialsDebug) console.log(`Create material: ${materialName}`);
+    materialDebugLog("Create material", {
+      materialName,
+      color,
+      alpha,
+    });
+    const isTwoColor = Array.isArray(color) && color.length === 2;
+    const shaderType = isTwoColor
+      ? materialName === "none.png"
+        ? "gradient"
+        : "colorReplace"
+      : "standard";
+    const resolvedAlpha = alpha ?? 1;
+
+    const cacheKey = buildMaterialCacheKey({
+      materialName,
+      color,
+      alpha: resolvedAlpha,
+      shaderType,
+    });
+
+    if (materialCache.has(cacheKey)) {
+      materialCacheStats.hits += 1;
+      const cachedMaterial = materialCache.get(cacheKey);
+      cachedMaterial.metadata = {
+        ...(cachedMaterial.metadata || {}),
+        sharedMaterial: true,
+        internal: true,
+      };
+      materialDebugLog("Cache hit", {
+        cacheKey,
+        name: cachedMaterial?.name,
+        uniqueId: cachedMaterial?.uniqueId,
+        stats: { ...materialCacheStats },
+      });
+      return cachedMaterial;
+    }
+
+    materialCacheStats.misses += 1;
     let material;
-    const texturePath = flock.texturePath + materialName;
+    const texturePath = materialName ? flock.texturePath + materialName : null;
 
     // Handle two-color case
-    if (Array.isArray(color) && color.length === 2) {
+    if (isTwoColor) {
       // Use gradient for Flat material
       if (materialName === "none.png") {
         material = new flock.GradientMaterial(materialName, flock.scene);
@@ -896,15 +1037,28 @@ export const flockMaterial = {
       material.backFaceCulling = false;
     }
 
-    material.alpha = alpha;
+    material.alpha = resolvedAlpha;
 
     // Update alpha for shader materials
-    if (material.setFloat && alpha !== undefined) {
-      material.setFloat("alpha", alpha);
+    if (material.setFloat && resolvedAlpha !== undefined) {
+      material.setFloat("alpha", resolvedAlpha);
     }
 
-    if (flock.materialsDebug)
-      console.log(`Created the material: ${material.name}`);
+    material.metadata = {
+      ...(material.metadata || {}),
+      sharedMaterial: true,
+      internal: true,
+      cacheKey,
+    };
+
+    materialCache.set(cacheKey, material);
+
+    materialDebugLog("Cache miss -> created material", {
+      cacheKey,
+      name: material?.name,
+      uniqueId: material?.uniqueId,
+      stats: { ...materialCacheStats },
+    });
     return material;
   },
   createMultiColorGradientMaterial(name, colors) {
@@ -1321,7 +1475,10 @@ export const flockMaterial = {
 
     const applyMaterialWithTilingIfAny = (m) => {
       mesh.material = m;
-      flock.adjustMaterialTilingToMesh(mesh, m);
+      const adjustedMaterial = flock.adjustMaterialTilingToMesh(mesh, m);
+      if (adjustedMaterial) {
+        mesh.material = adjustedMaterial;
+      }
     };
 
     const clearVertexColors = () => {
@@ -1345,6 +1502,12 @@ export const flockMaterial = {
     ) {
       const matCandidate = materialFromArray || toMaterial(color);
       if (matCandidate) {
+        materialDebugLog("Apply material (direct)", {
+          mesh: mesh?.name,
+          material: matCandidate?.name,
+          cacheKey: matCandidate?.metadata?.cacheKey,
+          shared: matCandidate?.metadata?.sharedMaterial,
+        });
         disposePlaneSideMaterials();
         clearVertexColors();
         matCandidate.alpha = resolvedAlpha;
@@ -1368,6 +1531,12 @@ export const flockMaterial = {
       }
 
       if (matCandidate) {
+        materialDebugLog("Apply material (plane)", {
+          mesh: mesh?.name,
+          material: matCandidate?.name,
+          cacheKey: matCandidate?.metadata?.cacheKey,
+          shared: matCandidate?.metadata?.sharedMaterial,
+        });
         disposePlaneSideMaterials();
         clearVertexColors();
         matCandidate.alpha = resolvedAlpha;
