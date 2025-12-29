@@ -124,30 +124,33 @@ export const flockPhysics = {
 
     if (flock.abortController?.signal?.aborted || !mesh) return mesh;
 
+    // Initialize metadata if it doesn't exist
+    mesh.metadata = mesh.metadata || {};
+    mesh.metadata.physicsType = physicsType;
+
     if (!mesh.physics) return mesh;
 
     switch (physicsType) {
       case "STATIC":
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
         mesh.physics.disablePreStep = true;
-        if (mesh.physics.body) mesh.physics.body.disableSync = false; // Resume sync
+        if (mesh.physics.body) mesh.physics.body.disableSync = false;
         break;
 
       case "DYNAMIC":
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
         mesh.physics.disablePreStep = false;
-        if (mesh.physics.body) mesh.physics.body.disableSync = false; // Resume sync
+        if (mesh.physics.body) mesh.physics.body.disableSync = false;
         break;
 
       case "ANIMATED":
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
         mesh.physics.disablePreStep = false;
-        if (mesh.physics.body) mesh.physics.body.disableSync = false; // Resume sync
+        if (mesh.physics.body) mesh.physics.body.disableSync = false;
         break;
 
       case "NONE":
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
-
         try {
           const id = mesh.physics._pluginData?.hpBodyId;
           if (id != null) {
@@ -156,7 +159,6 @@ export const flockPhysics = {
         } catch (e) {
           console.warn("[setPhysics] Error removing body:", e);
         }
-
         mesh.physics.disablePreStep = true;
         break;
     }

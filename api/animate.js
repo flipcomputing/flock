@@ -232,6 +232,18 @@ export const flockAnimate = {
           const BABYLON = flock.BABYLON;
           const children = mesh.getChildMeshes();
 
+          // Determine if we should actually treat this as a physics object
+          const isPhysicsActive =
+            mesh.physics &&
+            mesh.metadata?.physicsType !== "NONE" &&
+            mesh.physics._pluginData?.hpBodyId;
+
+          if (isPhysicsActive) {
+            mesh.physics.disablePreStep = false;
+            mesh.physics.setPrestepType(BABYLON.PhysicsPrestepType.ACTION);
+            mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+          }
+
           const startAnchor = flock._getAnchor(mesh);
           const targetAnchor = new BABYLON.Vector3(x, y, z);
           const anchorDelta = targetAnchor.subtract(
@@ -271,7 +283,8 @@ export const flockAnimate = {
               mesh.computeWorldMatrix(true);
               children.forEach((c) => c.computeWorldMatrix(true));
 
-              if (mesh.physics && mesh.physics._pluginData?.hpBodyId) {
+              // Only sync the physics body if physics is logically active
+              if (isPhysicsActive) {
                 mesh.physics.setTargetTransform(
                   mesh.absolutePosition,
                   mesh.absoluteRotationQuaternion ||
@@ -288,6 +301,7 @@ export const flockAnimate = {
             reverse || loop ? frames * 2 : frames,
             loop,
           );
+
           animatable.onAnimationEndObservable.add(() => {
             flock.scene.onAfterAnimationsObservable.remove(syncObserver);
             if (!reverse) mesh.position = endPosition.clone();
