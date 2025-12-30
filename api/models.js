@@ -208,23 +208,27 @@ export const flockModels = {
         const rawColor = isObject
           ? newColor.color || newColor.baseColor
           : newColor;
-        const texName = isObject ? newColor.textureSet || "NONE" : "NONE";
+        const texName = isObject
+          ? newColor.materialName || newColor.textureSet || "NONE"
+          : "NONE";
 
         const resolvedHex = flock.getColorFromString(rawColor) || "#ffffff";
-        const targetCacheKey = `solid_${resolvedHex.toLowerCase()}_1_${texName}`;
+        const targetCacheKey =
+          `mat_${resolvedHex.toLowerCase()}_1_${texName}`.toLowerCase();
 
         if (!m.metadata) m.metadata = {};
         if (blockKey) m.metadata.blockKey = blockKey;
         if (index !== undefined) m.metadata.materialIndex = index;
 
-        // Skip if material is already correct based on the cache key
         if (m.material?.metadata?.cacheKey === targetCacheKey) return;
 
-        const newMat = flock.getOrCreateMaterial(newColor, 1, flock.scene);
-        m.material = newMat;
+        flock.setMaterialWithCleanup(m, newColor);
+
+        if (m.material) {
+          flock.adjustMaterialTilingToMesh(m, m.material);
+        }
       };
 
-      // Sort meshes deterministically so material index 0 always hits the same part
       const geometryMeshes = mesh
         .getDescendants(false)
         .filter(

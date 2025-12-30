@@ -477,9 +477,7 @@ export const flockScene = {
     });
   },
   disposeMesh(mesh) {
-    if (!mesh) {
-      return;
-    }
+    if (!mesh) return;
 
     if (mesh.name === "ground") {
       mesh.material?.dispose();
@@ -509,8 +507,6 @@ export const flockScene = {
       meshesToDispose = mesh.getChildMeshes().concat(mesh);
     }
 
-    const disposedMaterials = new Set();
-
     flock.scene.animationGroups.slice().forEach((animationGroup) => {
       const targets = animationGroup.targetedAnimations.map(
         (anim) => anim.target,
@@ -539,28 +535,25 @@ export const flockScene = {
     });
 
     meshesToDispose.forEach((currentMesh) => {
-      if (currentMesh.material) {
-        const material = currentMesh.material;
-        const cacheKey = material.metadata?.cacheKey;
+      const material = currentMesh.material;
+      if (!material) return;
 
-        currentMesh.material = null;
+      const cacheKey = material.metadata?.cacheKey;
+      currentMesh.material = null;
 
-        if (!disposedMaterials.has(material)) {
+      if (material.metadata?.isManaged) {
+        const isStillInUse = flock.scene.meshes.some(m => 
+          !meshesToDispose.includes(m) && !m.isDisposed() && m.material === material
+        );
+
+        if (!isStillInUse) {
           if (cacheKey && flock.materialCache?.[cacheKey]) {
-            const cachedMat = flock.materialCache[cacheKey];
-            cachedMat.metadata.refCount =
-              (cachedMat.metadata.refCount || 1) - 1;
-
-            if (cachedMat.metadata.refCount <= 0) {
-              delete flock.materialCache[cacheKey];
-              material.dispose();
-              disposedMaterials.add(material);
-            }
-          } else if (currentMesh.metadata?.sharedMaterial === false) {
-            material.dispose();
-            disposedMaterials.add(material);
+            delete flock.materialCache[cacheKey];
           }
+          material.dispose(true, true);
         }
+      } else if (currentMesh.metadata?.sharedMaterial === false) {
+        material.dispose();
       }
     });
 
@@ -579,7 +572,6 @@ export const flockScene = {
         if (currentMesh.physics) {
           currentMesh.physics.dispose();
         }
-
         flock.scene.removeMesh(currentMesh);
         currentMesh.setEnabled(false);
         currentMesh.dispose();
