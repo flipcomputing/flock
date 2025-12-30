@@ -11,7 +11,13 @@ export const flockMaterial = {
     if (mesh.metadata?.skipAutoTiling) return;
 
     const shapeType = mesh?.metadata?.shapeType;
-    const bakedShapes = new Set(["Box", "Sphere", "Cylinder", "Capsule", "Plane"]);
+    const bakedShapes = new Set([
+      "Box",
+      "Sphere",
+      "Cylinder",
+      "Capsule",
+      "Plane",
+    ]);
     if (shapeType && bakedShapes.has(shapeType)) return;
 
     const tex =
@@ -20,7 +26,11 @@ export const flockMaterial = {
       material.baseTexture ||
       null;
 
-    if (!tex || typeof tex.uScale !== "number" || typeof tex.vScale !== "number") {
+    if (
+      !tex ||
+      typeof tex.uScale !== "number" ||
+      typeof tex.vScale !== "number"
+    ) {
       return;
     }
 
@@ -58,7 +68,9 @@ export const flockMaterial = {
     targets.forEach((m) => {
       const mat =
         m.material ||
-        (m.getClassName?.() === "InstancedMesh" ? m.sourceMesh?.material : null);
+        (m.getClassName?.() === "InstancedMesh"
+          ? m.sourceMesh?.material
+          : null);
       flock.adjustMaterialTilingToMesh(m, mat, unitsPerTile);
     });
   },
@@ -1767,21 +1779,45 @@ export const flockMaterial = {
     mesh.material = material;
   },
 
-  getOrCreateMaterial(color, alpha, scene) {
-    const color3 =
-      typeof color === "string"
-        ? flock.BABYLON.Color3.FromHexString(color)
-        : color;
-    const materialKey = `Color_${color3.toHexString()}_Alpha_${alpha}`;
+  getOrCreateMaterial(colorInput, alpha = 1, scene) {
+    const isObject = typeof colorInput === "object" && colorInput !== null;
+    const rawColor = isObject
+      ? colorInput.color || colorInput.baseColor
+      : colorInput;
+    const texName = isObject ? colorInput.textureSet || "NONE" : "NONE";
 
-    if (!flock.materialCache[materialKey]) {
-      const material = new flock.BABYLON.StandardMaterial(materialKey, scene);
-      material.diffuseColor = color3;
-      material.alpha = alpha;
-      material.backFaceCulling = false;
-      flock.materialCache[materialKey] = material;
+    const resolvedHex = flock.getColorFromString(rawColor) || "#ffffff";
+    const hex = resolvedHex.toLowerCase();
+    const cacheKey = `solid_${hex}_${alpha}_${texName}`;
+
+    if (!flock.materialCache) flock.materialCache = {};
+
+    // Return cached material if available
+    if (flock.materialCache[cacheKey]) {
+      const mat = flock.materialCache[cacheKey];
+      if (mat.metadata) {
+        mat.metadata.refCount = (mat.metadata.refCount || 0) + 1;
+      }
+      return mat;
     }
 
-    return flock.materialCache[materialKey];
+    // Create new material
+    const newMat = new flock.BABYLON.StandardMaterial(cacheKey, scene);
+    const rgb = flock.hexToRgb(hex);
+    newMat.diffuseColor = new flock.BABYLON.Color3(
+      rgb.r / 255,
+      rgb.g / 255,
+      rgb.b / 255,
+    );
+    newMat.alpha = alpha;
+
+    newMat.metadata = {
+      cacheKey: cacheKey,
+      refCount: 1,
+      isManaged: true,
+    };
+
+    flock.materialCache[cacheKey] = newMat;
+    return newMat;
   },
 };

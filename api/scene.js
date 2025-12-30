@@ -124,9 +124,9 @@ export const flockScene = {
       );
       skyMat.backFaceCulling = false;
       skyMat.disableLighting = false; // ensure lit
-      skyMat.emissiveColor = c3.scale(0.3); 
-      skyMat.diffuseColor  = c3; 
-      skyMat.ambientColor  = c3.scale(0.1);
+      skyMat.emissiveColor = c3.scale(0.3);
+      skyMat.diffuseColor = c3;
+      skyMat.ambientColor = c3.scale(0.1);
       skyMat.fogEnabled = false;
 
       skySphere.material = skyMat;
@@ -380,10 +380,7 @@ export const flockScene = {
             heightMapGroundBody.shape = heightMapGroundShape;
             heightMapGroundBody.setMassProperties({ mass: 0 });
             if (shouldScaleUVs) {
-              scaleGroundUVsToPhysicalSize(
-                groundMesh,
-                mapTexturePhysicalSize,
-              );
+              scaleGroundUVsToPhysicalSize(groundMesh, mapTexturePhysicalSize);
             }
           },
         },
@@ -514,7 +511,6 @@ export const flockScene = {
 
     const disposedMaterials = new Set();
 
-    // Process AnimationGroups
     flock.scene.animationGroups.slice().forEach((animationGroup) => {
       const targets = animationGroup.targetedAnimations.map(
         (anim) => anim.target,
@@ -523,17 +519,16 @@ export const flockScene = {
       if (
         targets.some((target) => meshesToDispose.includes(target)) ||
         targets.some((target) => mesh.getDescendants().includes(target)) ||
-        targets.length === 0 // Orphaned group
+        targets.length === 0
       ) {
         animationGroup.targetedAnimations.forEach((anim) => {
-          anim.target = null; // Detach references
+          anim.target = null;
         });
         animationGroup.stop();
         animationGroup.dispose();
       }
     });
 
-    // Dispose standalone animations
     meshesToDispose.forEach((currentMesh) => {
       if (currentMesh.animations) {
         currentMesh.animations.forEach((animation) => {
@@ -543,58 +538,50 @@ export const flockScene = {
       }
     });
 
-    // Detach and Dispose Materials
     meshesToDispose.forEach((currentMesh) => {
       if (currentMesh.material) {
         const material = currentMesh.material;
+        const cacheKey = material.metadata?.cacheKey;
 
-        // Detach material from the mesh
         currentMesh.material = null;
 
-        // Dispose material if not already disposed
         if (!disposedMaterials.has(material)) {
-          const sharedMaterial = currentMesh.metadata?.sharedMaterial;
-          const internalMaterial = material.metadata?.internal;
+          if (cacheKey && flock.materialCache?.[cacheKey]) {
+            const cachedMat = flock.materialCache[cacheKey];
+            cachedMat.metadata.refCount =
+              (cachedMat.metadata.refCount || 1) - 1;
 
-          if (sharedMaterial === false && internalMaterial === true) {
-            disposedMaterials.add(material);
-
-            // Remove from scene.materials
-            flock.scene.materials = flock.scene.materials.filter(
-              (mat) => mat !== material,
-            );
-
+            if (cachedMat.metadata.refCount <= 0) {
+              delete flock.materialCache[cacheKey];
+              material.dispose();
+              disposedMaterials.add(material);
+            }
+          } else if (currentMesh.metadata?.sharedMaterial === false) {
             material.dispose();
+            disposedMaterials.add(material);
           }
         }
       }
     });
 
-    // Break parent-child relationships
     meshesToDispose.forEach((currentMesh) => {
-      //console.log("Stopping current sound");
       if (currentMesh?.metadata?.currentSound) {
         currentMesh.metadata.currentSound.stop();
       }
     });
-    // Break parent-child relationships
+
     meshesToDispose.forEach((currentMesh) => {
       currentMesh.parent = null;
     });
 
-    // Dispose meshes in reverse order
     meshesToDispose.reverse().forEach((currentMesh) => {
       if (!currentMesh.isDisposed()) {
-        // Remove physics body
         if (currentMesh.physics) {
           currentMesh.physics.dispose();
         }
 
-        // Remove from scene
         flock.scene.removeMesh(currentMesh);
         currentMesh.setEnabled(false);
-
-        // Dispose the mesh
         currentMesh.dispose();
       }
     });
