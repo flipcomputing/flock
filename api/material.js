@@ -1679,28 +1679,28 @@ export const flockMaterial = {
     }
   },
   getOrCreateMaterial(colorInput, alpha = 1, scene) {
-    // At the top of getOrCreateMaterial
     console.log(
-      `[Cache-In] Color: ${colorInput?.color || colorInput}, Tex: ${colorInput?.materialName}, Alpha: ${alpha}`,
+      `[Cache-In] Color: ${colorInput?.color || colorInput}, Tex: ${colorInput?.materialName || colorInput?.textureSet}, Alpha: ${alpha}`,
     );
 
     const isObject = typeof colorInput === "object" && colorInput !== null;
     const rawColor = isObject
       ? colorInput.color || colorInput.baseColor
       : colorInput;
-    const texName = isObject ? colorInput.textureSet || "NONE" : "NONE";
+
+    const texName = isObject
+      ? colorInput.textureSet || colorInput.materialName || "NONE"
+      : "NONE";
 
     const colorKey = Array.isArray(rawColor) ? rawColor.join("-") : rawColor;
     const cacheKey = `mat_${colorKey}_${alpha}_${texName}`.toLowerCase();
 
     if (!flock.materialCache) flock.materialCache = {};
 
-    // 1. Return cached material if available
     if (flock.materialCache[cacheKey]) {
       return flock.materialCache[cacheKey];
     }
 
-    // 2. Create new material using createMaterial
     const materialParams = isObject
       ? colorInput
       : {
@@ -1711,7 +1711,6 @@ export const flockMaterial = {
 
     const newMat = flock.createMaterial(materialParams);
 
-    // 3. Setup metadata for the cache tracking (No refCount)
     newMat.name = cacheKey;
     newMat.alpha = alpha;
 
@@ -1721,7 +1720,6 @@ export const flockMaterial = {
 
     flock.materialCache[cacheKey] = newMat;
 
-    // Right before the final return newMat;
     if (newMat) {
       console.log(
         `[Cache-Out] Success. Key: ${cacheKey}, ID: ${newMat.uniqueId}, Type: ${newMat.getClassName()}`,

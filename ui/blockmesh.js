@@ -612,28 +612,38 @@ function handleMaterialOrColorChange(
   const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
   const root = ultimateParent(mesh);
 
+  const targets = root
+    .getDescendants(false)
+    .filter((m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0);
+
+  if (root instanceof flock.BABYLON.Mesh) targets.push(root);
+
+  const referenceTarget = targets.find(t => t.material?.metadata?.cacheKey) || targets[0];
+
+  // Identify if we are in a 'Color Only' state (no material block present)
+  const isColorOnly = !materialInfo || materialInfo.textureSet === "NONE";
   const hasMaterial = !!(materialInfo?.textureSet && materialInfo.textureSet !== "NONE");
   const alpha = materialInfo?.alpha ?? 1;
 
   let baseColor =
     color ??
     materialInfo?.baseColor ??
-    root.material?.diffuseColor?.toHexString?.() ??
-    root.material?.albedoColor?.toHexString?.();
+    referenceTarget?.material?.diffuseColor?.toHexString?.() ??
+    referenceTarget?.material?.albedoColor?.toHexString?.();
 
-  if (!baseColor && !hasMaterial) return root;
+  if (!baseColor && !hasMaterial && !isColorOnly) return root;
 
   const isColorList = Array.isArray(baseColor) && baseColor.length > 1;
 
   if (isColorList && !hasMaterial) {
-    const geometryMeshes = root
-      .getDescendants(false)
-      .filter((n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0)
+    const geometryMeshes = targets
+      .filter((m) => m !== root)
       .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
     geometryMeshes.forEach((m, i) => {
       const targetColor = baseColor[i % baseColor.length];
-      let tex = m.material?.metadata?.cacheKey?.split('_').pop() || "none.png";
+      // If color only, force none.png. Otherwise keep current.
+      let tex = isColorOnly ? "none.png" : (m.material?.metadata?.cacheKey?.split("_").pop() || "none.png");
       if (tex === "none") tex = "none.png";
 
       flock.setMaterialWithCleanup(m, {
@@ -646,17 +656,18 @@ function handleMaterialOrColorChange(
     return root;
   }
 
-  const targets = root
-    .getDescendants(false)
-    .filter((m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0);
-
-  if (root instanceof flock.BABYLON.Mesh) targets.push(root);
-
   targets.forEach((target) => {
-    let currentTex = target.material?.metadata?.cacheKey?.split('_').pop() || "none.png";
-    if (currentTex === "none") currentTex = "none.png";
+    let targetTex;
 
-    const targetTex = hasMaterial ? materialInfo.textureSet : currentTex;
+    if (hasMaterial) {
+      targetTex = materialInfo.textureSet;
+    } else if (isColorOnly) {
+      targetTex = "none.png";
+    } else {
+      let currentTex = target.material?.metadata?.cacheKey?.split("_").pop() || "none.png";
+      if (currentTex === "none") currentTex = "none.png";
+      targetTex = currentTex;
+    }
 
     flock.setMaterialWithCleanup(target, {
       color: baseColor,
