@@ -205,8 +205,10 @@ export const flockModels = {
 
       const updateMeshMaterial = (m, newColor, index) => {
         const isObject = typeof newColor === "object" && newColor !== null;
-        const rawColor = isObject ? (newColor.color || newColor.baseColor) : newColor;
-        const texName = isObject ? (newColor.textureSet || "NONE") : "NONE";
+        const rawColor = isObject
+          ? newColor.color || newColor.baseColor
+          : newColor;
+        const texName = isObject ? newColor.textureSet || "NONE" : "NONE";
 
         const resolvedHex = flock.getColorFromString(rawColor) || "#ffffff";
         const targetCacheKey = `solid_${resolvedHex.toLowerCase()}_1_${texName}`;
@@ -225,8 +227,15 @@ export const flockModels = {
       // Sort meshes deterministically so material index 0 always hits the same part
       const geometryMeshes = mesh
         .getDescendants(false)
-        .filter((n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0)
-        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }));
+        .filter(
+          (n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0,
+        )
+        .sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          }),
+        );
 
       if (Array.isArray(colorInput)) {
         geometryMeshes.forEach((m, i) => {
@@ -346,6 +355,10 @@ export const flockModels = {
             m.metadata = m.metadata || {};
             m.metadata.isTemplate = true;
             m.metadata.templateTag = modelName;
+            if (m.material) {
+              m.material.dispose(true, true);
+              m.material = null;
+            }
             m.isPickable = false;
           });
 
