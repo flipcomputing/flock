@@ -295,39 +295,37 @@ export const flockMaterial = {
     mesh.getChildMeshes().forEach(applyGlow);
   },
   setAlpha(meshName, { value = 1 } = {}) {
-    if (flock.materialsDebug)
-      console.log(`Set alpha of ${meshName} to ${value}:`);
-
-    // Clamp value between 0 and 1
     value = Math.max(0, Math.min(1, value));
 
     return flock.whenModelReady(meshName, (mesh) => {
-      const allMeshes = [mesh, ...mesh.getDescendants()];
+      const allMeshes = [mesh, ...mesh.getDescendants()].filter(
+        (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0,
+      );
 
       allMeshes.forEach((nextMesh) => {
+        const oldMat = nextMesh.material;
+        if (!oldMat || !oldMat.metadata?.cacheKey) return;
+
+        const parts = oldMat.metadata.cacheKey.split("_");
+        const colorPart = parts[1];
+        const texPart = parts[3];
+
+        const color = colorPart.includes("-")
+          ? colorPart.split("-")
+          : colorPart;
+
+        const materialParams = {
+          color: color,
+          materialName: texPart,
+          alpha: value,
+        };
+
+        flock.setMaterialWithCleanup(nextMesh, materialParams);
+
         if (nextMesh.material) {
-          if (!(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)) {
-            flock.ensureUniqueMaterial(nextMesh);
-          }
-          if (nextMesh.material?.metadata?.internal === true) {
-            nextMesh.material.alpha = value;
-          } else {
-            let material = flock.createMaterial({
-              color: "#ffffff",
-              materialName: "arrows.png",
-              alpha: 1,
-            });
-            Object.keys(material).forEach((key) => {
-              if (key != "uniqueId") material[key] = nextMesh.material[key];
-            });
-            material.alpha = value;
-            material.internal = true;
-            nextMesh.material = material;
-          }
           nextMesh.material.transparencyMode =
             flock.BABYLON.Material.MATERIAL_ALPHABLEND;
-          if (value > 0) nextMesh.material.needDepthPrePass = true;
-          else nextMesh.material.needDepthPrePass = false;
+          nextMesh.material.needDepthPrePass = value > 0 && value < 1;
         }
       });
     });
@@ -646,74 +644,43 @@ export const flockMaterial = {
   },
 
   setMaterial(meshName, materials) {
-    materials = materials.map((material) => {
-      if (material instanceof flock.BABYLON.Material) {
-        return material;
-      } else {
-        material = flock.createMaterial(material);
-        material.metadata = material.metadata || {};
-        material.metadata.internal = true;
-        return material;
-      }
-    });
+    const materialArray = Array.isArray(materials) ? materials : [materials];
 
-    flock.setMaterialInternal(meshName, materials);
+    flock.setMaterialInternal(meshName, materialArray);
+
     flock.whenModelReady(meshName, (mesh) => {
-      if (flock.materialsDebug) console.log(mesh.metadata.clones);
       mesh.metadata?.clones?.forEach((cloneName) => {
-        flock.setMaterialInternal(cloneName, materials);
+        flock.setMaterialInternal(cloneName, materialArray);
       });
     });
   },
   setMaterialInternal(meshName, materials) {
     return flock.whenModelReady(meshName, (mesh) => {
       const allMeshes = [mesh].concat(mesh.getDescendants());
-      allMeshes.forEach((part) => {
-        if (part.material?.metadata?.internal) {
-          part.material.dispose();
-        }
-      });
-
-      if (flock.materialsDebug)
-        console.log(`Setting material of ${meshName} to ${materials}:`);
       const validMeshes = allMeshes.filter(
-        (part) => part instanceof flock.BABYLON.Mesh,
+        (part) =>
+          part instanceof flock.BABYLON.Mesh && part.getTotalVertices() > 0,
       );
 
-      // Sort meshes alphabetically by name
       const sortedMeshes = validMeshes.sort((a, b) =>
         a.name.localeCompare(b.name),
       );
 
-      if (flock.materialsDebug)
-        console.log(`Setting material of ${sortedMeshes.length} meshes`);
       sortedMeshes.forEach((part, index) => {
-        const material = Array.isArray(materials)
-          ? materials[index % materials.length]
-          : materials;
+        const materialInput = materials[index % materials.length];
 
-        if (material instanceof flock.GradientMaterial) {
+        flock.setMaterialWithCleanup(part, materialInput);
+
+        const appliedMaterial = part.material;
+
+        if (appliedMaterial instanceof flock.GradientMaterial) {
           mesh.computeWorldMatrix(true);
-
           const boundingInfo = mesh.getBoundingInfo();
-
           const yDimension = boundingInfo.boundingBox.extendSizeWorld.y;
-
-          material.scale = yDimension > 0 ? 1 / yDimension : 1;
-        }
-        if (!(material instanceof flock.BABYLON.Material)) {
-          console.error(
-            `Invalid material provided for mesh ${part.name}:`,
-            material,
-          );
-          return;
+          appliedMaterial.scale = yDimension > 0 ? 1 / yDimension : 1;
         }
 
-        if (flock.materialsDebug)
-          console.log(`Setting material of ${part.name} to ${material.name}`);
-        // Apply the material to the mesh
-        part.material = material;
-        flock.adjustMaterialTilingToMesh(part, material);
+        flock.adjustMaterialTilingToMesh(part, appliedMaterial);
       });
 
       if (mesh.metadata?.glow) {
@@ -1669,43 +1636,72 @@ export const flockMaterial = {
     }
   },
   getOrCreateMaterial(colorInput, alpha = 1, scene) {
-    const isObject = typeof colorInput === "object" && colorInput !== null;
-    const rawColor = isObject
-      ? colorInput.color || colorInput.baseColor
-      : colorInput;
+    const isObject =
+      typeof colorInput === "object" &&
+      colorInput !== null &&
+      !Array.isArray(colorInput);
 
-    const texName = isObject
-      ? colorInput.textureSet || colorInput.materialName || "NONE"
-      : "NONE";
+    let rawColor = "#ffffff";
+    let texName = "none.png";
+    let finalAlpha = alpha;
 
-    const colorKey = Array.isArray(rawColor) ? rawColor.join("-") : rawColor;
-    const cacheKey = `mat_${colorKey}_${alpha}_${texName}`.toLowerCase();
+    if (isObject) {
+      const inner = colorInput.color || colorInput.baseColor;
+      const isInnerObject =
+        typeof inner === "object" && inner !== null && !Array.isArray(inner);
 
-    if (!flock.materialCache) flock.materialCache = {};
-
-    if (flock.materialCache[cacheKey]) {
-      return flock.materialCache[cacheKey];
+      if (isInnerObject) {
+        rawColor = inner.color || inner.baseColor || "#ffffff";
+        texName =
+          inner.materialName ||
+          inner.textureSet ||
+          colorInput.materialName ||
+          colorInput.textureSet ||
+          "none.png";
+        finalAlpha =
+          inner.alpha !== undefined
+            ? inner.alpha
+            : colorInput.alpha !== undefined
+              ? colorInput.alpha
+              : alpha;
+      } else {
+        rawColor = inner || "#ffffff";
+        texName =
+          colorInput.materialName || colorInput.textureSet || "none.png";
+        finalAlpha = colorInput.alpha !== undefined ? colorInput.alpha : alpha;
+      }
+    } else {
+      rawColor = colorInput || "#ffffff";
     }
 
-    const materialParams = isObject
-      ? colorInput
-      : {
-          color: rawColor,
-          materialName: texName === "NONE" ? "none.png" : texName,
-          alpha: alpha,
-        };
+    const colorKey = Array.isArray(rawColor) ? rawColor.join("-") : rawColor;
+    const alphaKey = parseFloat(finalAlpha).toFixed(2);
+    const cacheKey = `mat_${colorKey}_${alphaKey}_${texName}`.toLowerCase();
+
+    if (!flock.materialCache) flock.materialCache = {};
+    if (flock.materialCache[cacheKey]) return flock.materialCache[cacheKey];
+
+    const materialParams = {
+      color: rawColor,
+      materialName: texName,
+      alpha: finalAlpha,
+    };
 
     const newMat = flock.createMaterial(materialParams);
 
     newMat.name = cacheKey;
-    newMat.alpha = alpha;
+    newMat.alpha = finalAlpha;
 
     if (!newMat.metadata) newMat.metadata = {};
     newMat.metadata.cacheKey = cacheKey;
     newMat.metadata.isManaged = true;
 
-    flock.materialCache[cacheKey] = newMat;
+    if (finalAlpha < 1) {
+      newMat.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+      newMat.needDepthPrePass = true;
+    }
 
+    flock.materialCache[cacheKey] = newMat;
     return newMat;
   },
 };
