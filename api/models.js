@@ -201,44 +201,41 @@ export const flockModels = {
     const applyMaterialToHierarchy = (mesh, colorInput) => {
       if (!applyColor || !colorInput) return;
 
-      let targetMaterials = [];
+      const blockKey = mesh.metadata?.blockKey;
 
-      if (
-        colorInput &&
-        typeof colorInput === "object" &&
-        !Array.isArray(colorInput)
-      ) {
-        const mat =
-          colorInput.materialName && !colorInput.getClassName
-            ? flock.createMaterial(colorInput)
-            : colorInput;
-        targetMaterials = [mat];
-      } else if (
-        Array.isArray(colorInput) &&
-        colorInput.length &&
-        typeof colorInput[0] === "object"
-      ) {
-        targetMaterials = colorInput.map((c) =>
-          c.materialName && !c.getClassName ? flock.createMaterial(c) : c,
-        );
+      const updateMeshMaterial = (m, newColor, index) => {
+        const isObject = typeof newColor === "object" && newColor !== null;
+        const rawColor = isObject ? (newColor.color || newColor.baseColor) : newColor;
+        const texName = isObject ? (newColor.textureSet || "NONE") : "NONE";
+
+        const resolvedHex = flock.getColorFromString(rawColor) || "#ffffff";
+        const targetCacheKey = `solid_${resolvedHex.toLowerCase()}_1_${texName}`;
+
+        if (!m.metadata) m.metadata = {};
+        if (blockKey) m.metadata.blockKey = blockKey;
+        if (index !== undefined) m.metadata.materialIndex = index;
+
+        // Skip if material is already correct based on the cache key
+        if (m.material?.metadata?.cacheKey === targetCacheKey) return;
+
+        const newMat = flock.getOrCreateMaterial(newColor, 1, flock.scene);
+        m.material = newMat;
+      };
+
+      // Sort meshes deterministically so material index 0 always hits the same part
+      const geometryMeshes = mesh
+        .getDescendants(false)
+        .filter((n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0)
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }));
+
+      if (Array.isArray(colorInput)) {
+        geometryMeshes.forEach((m, i) => {
+          const targetColor = colorInput[i % colorInput.length];
+          updateMeshMaterial(m, targetColor, i);
+        });
       } else {
-        flock.changeColorMesh(mesh, colorInput);
-        return;
+        geometryMeshes.forEach((m) => updateMeshMaterial(m, colorInput));
       }
-
-      if (targetMaterials[0]) {
-        mesh.material = targetMaterials[0];
-        flock.adjustMaterialTilingToMesh(mesh, targetMaterials[0]);
-      }
-
-      const children = mesh.getChildMeshes(false);
-      children.forEach((child, i) => {
-        const m = targetMaterials[i] || targetMaterials[0];
-        if (m) {
-          child.material = m;
-          flock.adjustMaterialTilingToMesh(child, m);
-        }
-      });
     };
 
     const setTemplateFlags = (node, tag) => {
