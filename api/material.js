@@ -502,54 +502,140 @@ export const flockMaterial = {
       oldMaterial.dispose();
     });
   },
-  ensureStandardMaterial2(mesh) {
-    if (!mesh) return;
-
-    // Set to track replaced materials and their corresponding replacements
-    const replacedMaterialsMap = new Map();
-
-    // Default material to use as the replacement base
-    const defaultMaterial =
-      flock.scene.defaultMaterial ||
-      new flock.BABYLON.StandardMaterial("defaultMaterial", flock.scene);
-    defaultMaterial.backFaceCulling = false;
-
-    const replaceIfPBRMaterial = (targetMesh) => {
-      const material = targetMesh.material;
-
-      if (material && material.getClassName() === "PBRMaterial") {
-        if (!replacedMaterialsMap.has(material)) {
-          // Replace with a cloned default material, preserving the name
-          const originalName = material.name;
-          const newMaterial = defaultMaterial.clone(originalName);
-          replacedMaterialsMap.set(material, newMaterial);
-        }
-
-        // Assign the replaced material to the mesh
-        targetMesh.material = replacedMaterialsMap.get(material);
-
-        targetMesh.material = replacedMaterialsMap.get(material);
-        targetMesh.backFaceCulling = false;
-        targetMesh.material.alpha = 1;
-        targetMesh.material.transparencyMode =
-          flock.BABYLON.Material.MATERIAL_OPAQUE;
-        // targetMesh.material.alphaMode = undefined;
-        //targetMesh.material.reflectionTexture = null;
-        targetMesh.material.needDepthPrePass = false;
-        targetMesh.material.specularColor = new flock.BABYLON.Color3(0, 0, 0);
+  changeColor(meshName, { color } = {}) {
+    return flock.whenModelReady(meshName, (mesh) => {
+      if (flock.materialsDebug)
+        console.log(`Change colour of ${meshName} to ${color}:`);
+      if (!mesh) {
+        flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color),
+        );
+        return Promise.resolve(); // or just let it resolve naturally
       }
-    };
 
-    // Replace material on the main mesh
-    replaceIfPBRMaterial(mesh);
-
-    // Replace materials on all child meshes
-    mesh.getChildMeshes().forEach(replaceIfPBRMaterial);
-
-    // Dispose of all replaced materials
-    replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
-      oldMaterial.dispose();
+      flock.changeColorMesh(mesh, color);
     });
+  },
+  changeColorMesh(mesh, color) {
+    if (!mesh) {
+      flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
+        flock.getColorFromString(color),
+      );
+      return;
+    }
+
+    if (
+      mesh.metadata?.sharedMaterial &&
+      !(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)
+    )
+      flock.ensureUniqueMaterial(mesh);
+
+    // Ensure color is an array
+    const colors = Array.isArray(color) ? color : [color];
+    let colorIndex = 0;
+
+    if (flock.materialsDebug)
+      console.log(` Changing the colour of ${mesh.name} to ${colors}`);
+
+    // Map to keep track of materials and their assigned colours and indices
+    const materialToColorMap = new Map();
+
+    function applyColorInOrder(part) {
+      if (part.material) {
+        // Check if the material is already processed
+        if (!materialToColorMap.has(part.material)) {
+          const currentIndex = colorIndex % colors.length;
+
+          const hexColor = flock.getColorFromString(colors[currentIndex]);
+          const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
+
+          // Apply the colour to the material
+          if (part.material.diffuseColor !== undefined) {
+            part.material.diffuseColor = babylonColor;
+          } else {
+            part.material.albedoColor = babylonColor.toLinearSpace();
+            part.material.emissiveColor = babylonColor.toLinearSpace();
+            part.material.emissiveIntensity = 0.1;
+          }
+
+          // Map the material to the colour and its assigned index
+          materialToColorMap.set(part.material, {
+            hexColor,
+            index: currentIndex,
+          });
+
+          // Set metadata on this mesh with its colour index
+          if (!part.metadata) {
+            part.metadata = {};
+          }
+          if (!part.metadata.materialIndex) {
+            part.metadata.materialIndex = colorIndex;
+          }
+
+          colorIndex++;
+        } else {
+          // Material already processed, reapply the existing index
+          if (!part.metadata) {
+            part.metadata = {};
+          }
+
+          if (part.metadata.materialIndex === undefined) {
+            part.metadata.materialIndex = colorIndex;
+          }
+        }
+      }
+
+      // Process the submeshes (children) of the current mesh, sorted alphabetically
+      const sortedChildMeshes = part
+        .getChildMeshes()
+        .sort((a, b) => a.name.localeCompare(b.name));
+      sortedChildMeshes.forEach((child) => applyColorInOrder(child));
+    }
+
+    // Start applying colours to the main mesh and its hierarchy
+
+    if (!flock.characterNames.includes(mesh.metadata?.meshName)) {
+      applyColorInOrder(mesh);
+    } else {
+      const characterColors = {
+        hair: colors[0],
+        skin: colors[1],
+        eyes: colors[2],
+        tshirt: colors[3],
+        shorts: colors[4],
+        sleeves: colors[5],
+      };
+      flock.applyColorsToCharacter(mesh, characterColors);
+      return;
+    }
+
+    // If no material was found, create a new one and set metadata
+    if (materialToColorMap.size === 0) {
+      const material = new flock.BABYLON.StandardMaterial(
+        "meshMaterial",
+        flock.scene,
+      );
+      material.diffuseColor = flock.BABYLON.Color3.FromHexString(colors[0]);
+      material.backFaceCulling = false;
+      mesh.material = material;
+      if (!mesh.metadata) {
+        mesh.metadata = {};
+      }
+      mesh.metadata.materialIndex = 0;
+    }
+
+    try {
+      if (mesh.metadata.shapeType === "Cylinder") {
+        mesh.forceSharedVertices();
+        mesh.convertToFlatShadedMesh();
+      }
+    } catch (e) {
+      console.log("Error converting mesh to flat shaded:", e);
+    }
+
+    if (mesh.metadata?.glow) {
+      flock.glowMesh(mesh);
+    }
   },
   applyColorToMaterial(part, materialName, color) {
     if (part.material && part.material.name === materialName) {
