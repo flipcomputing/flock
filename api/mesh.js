@@ -247,39 +247,45 @@ export const flockMesh = {
     return null;
   },
 
-  initializeMesh(mesh, position, color, shapeType, alpha = 1) {
-    const px = Array.isArray(position) ? position[0] : position?.x ?? 0;
-    const py = Array.isArray(position) ? position[1] : position?.y ?? 0;
-    const pz = Array.isArray(position) ? position[2] : position?.z ?? 0;
+  initializeMesh(
+    mesh,
+    position,
+    color,
+    shapeType,
+    alpha = 1,
+    applyColor = true,
+  ) {
+    const px = Array.isArray(position) ? position[0] : (position?.x ?? 0);
+    const py = Array.isArray(position) ? position[1] : (position?.y ?? 0);
+    const pz = Array.isArray(position) ? position[2] : (position?.z ?? 0);
 
     mesh.position = new flock.BABYLON.Vector3(px, py, pz);
 
     mesh.metadata = { ...(mesh.metadata || {}), shapeType };
     mesh.metadata.blockKey = mesh.name;
 
-    const colorList = Array.isArray(color) ? color.flat() : [color];
-    const isMultiColor = colorList.length > 1;
+    if (applyColor) {
+      const colorList = Array.isArray(color) ? color.flat() : [color];
+      const isMultiColor = colorList.length > 1;
 
-    const subMeshes = mesh
-      .getDescendants(false)
-      .filter((m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0)
-      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+      const subMeshes = mesh
+        .getDescendants(false)
+        .filter(
+          (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0,
+        )
+        .sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { numeric: true }),
+        );
 
-    const isVertexColorShape = ["Box", "Cylinder"].includes(shapeType);
-
-    if (isVertexColorShape && isMultiColor && subMeshes.length === 0) {
-      flock.applyMaterialToMesh(mesh, shapeType, colorList, alpha);
-    } else {
       const allTargets = subMeshes.length > 0 ? subMeshes : [mesh];
 
       allTargets.forEach((target) => {
         let targetColor;
         if (isMultiColor) {
           if (subMeshes.length > 1) {
-            const meshIndex = subMeshes.indexOf(target);
-            targetColor = meshIndex !== -1 
-              ? colorList[meshIndex % colorList.length] 
-              : colorList[0];
+            const idx = subMeshes.indexOf(target);
+            targetColor =
+              idx !== -1 ? colorList[idx % colorList.length] : colorList[0];
           } else {
             targetColor = colorList[0];
           }
@@ -299,7 +305,7 @@ export const flockMesh = {
       });
     }
 
-    mesh.metadata.sharedMaterial = false;
+    mesh.metadata.sharedMaterial = !applyColor;
     mesh.isVisible = true;
     mesh.setEnabled(true);
 

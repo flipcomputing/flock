@@ -351,36 +351,42 @@ export const flockModels = {
       );
       flock.modelsBeingLoaded[modelName] = loadPromise;
 
-      loadPromise
-        .then((container) => {
-          container.addAllToScene();
+      // ... inside the loadPromise.then block ...
 
-          container.meshes.forEach((m) => {
-            m.metadata = m.metadata || {};
-            m.metadata.isTemplate = true;
-            m.metadata.templateTag = modelName;
+      loadPromise.then((container) => {
+        container.addAllToScene();
+
+        container.meshes.forEach((m) => {
+          m.metadata = m.metadata || {};
+          m.metadata.isTemplate = true;
+          m.metadata.templateTag = modelName;
+
+          // Only clear materials if we are intending to apply our own color system
+          if (applyColor) {
             if (m.material) {
               m.material.dispose(true, true);
               m.material = null;
             }
-            m.isPickable = false;
-          });
+          }
 
-          const root = container.meshes[0];
-
-          if (applyColor) flock.ensureStandardMaterial(root);
-
-          const template = root.clone(`${modelName}_template`);
-          setTemplateFlags(template, modelName);
-          flock.modelCache[modelName] = template;
-
-          finalizeMesh(root, meshName, groupName, bKey);
-          resolveReady(root);
-          releaseContainer(container);
-        })
-        .finally(() => {
-          delete flock.modelsBeingLoaded[modelName];
+          m.isPickable = false;
         });
+
+        const root = container.meshes[0];
+
+        // Only force standard material if we are applying custom colors
+        if (applyColor) {
+          flock.ensureStandardMaterial(root);
+        }
+
+        const template = root.clone(`${modelName}_template`);
+        setTemplateFlags(template, modelName);
+        flock.modelCache[modelName] = template;
+
+        finalizeMesh(root, meshName, groupName, bKey);
+        resolveReady(root);
+        releaseContainer(container);
+      });
 
       return meshName;
     } catch (e) {
