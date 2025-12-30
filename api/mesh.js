@@ -225,96 +225,87 @@ export const flockMesh = {
       scene,
     );
   },
-  
+
   coerceToMaterialIfNeeded(spec) {
     // Already a Babylon Material?
-    if (spec && typeof spec === "object" && typeof spec.getClassName === "function") {
+    if (
+      spec &&
+      typeof spec === "object" &&
+      typeof spec.getClassName === "function"
+    ) {
       return spec;
     }
     // Plain spec like { materialName, color, alpha } → build it
-    if (spec && typeof spec === "object" && !Array.isArray(spec) && spec.materialName) {
+    if (
+      spec &&
+      typeof spec === "object" &&
+      !Array.isArray(spec) &&
+      spec.materialName
+    ) {
       return flock.createMaterial(spec);
     }
     return null;
   },
 
   initializeMesh(mesh, position, color, shapeType, alpha = 1) {
-    // Accept Vector3 or [x,y,z]
     const px = Array.isArray(position) ? position[0] : position?.x ?? 0;
     const py = Array.isArray(position) ? position[1] : position?.y ?? 0;
     const pz = Array.isArray(position) ? position[2] : position?.z ?? 0;
 
     mesh.position = new flock.BABYLON.Vector3(px, py, pz);
 
-    // Set metadata and unique name
     mesh.metadata = { ...(mesh.metadata || {}), shapeType };
     mesh.metadata.blockKey = mesh.name;
 
-    let handledMaterial = false;
-    const singleMat = flock.coerceToMaterialIfNeeded(color);
+    const colorList = Array.isArray(color) ? color.flat() : [color];
+    const isMultiColor = colorList.length > 1;
 
-    if (singleMat) {
-      // Optional tiling like sky if texture exists
-      const tex = singleMat.diffuseTexture || singleMat.albedoTexture || singleMat.baseTexture || null;
-      if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
-        if (!tex.uScale) tex.uScale = 10;
-        if (!tex.vScale) tex.vScale = 10;
-      }
+    const subMeshes = mesh
+      .getDescendants(false)
+      .filter((m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0)
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
-      // Determine which alpha to use:
-      // 1) If material already has alpha -> inherit it
-      // 2) Otherwise use the provided alpha param
-      const alphaToUse =
-        (singleMat.alpha != null && singleMat.alpha !== 1)
-          ? singleMat.alpha
-          : alpha;
+    const isVertexColorShape = ["Box", "Cylinder"].includes(shapeType);
 
-      singleMat.alpha = alphaToUse;
+    if (isVertexColorShape && isMultiColor && subMeshes.length === 0) {
+      flock.applyMaterialToMesh(mesh, shapeType, colorList, alpha);
+    } else {
+      const allTargets = subMeshes.length > 0 ? subMeshes : [mesh];
 
-      if (singleMat.alpha < 1 && singleMat.transparencyMode == null) {
-        singleMat.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
-      }
-
-      // Apply to mesh and children
-      if (typeof mesh.getChildMeshes === "function") {
-        for (const m of mesh.getChildMeshes(false)) {
-          if (m && m.material !== undefined) m.material = singleMat;
+      allTargets.forEach((target) => {
+        let targetColor;
+        if (isMultiColor) {
+          if (subMeshes.length > 1) {
+            const meshIndex = subMeshes.indexOf(target);
+            targetColor = meshIndex !== -1 
+              ? colorList[meshIndex % colorList.length] 
+              : colorList[0];
+          } else {
+            targetColor = colorList[0];
+          }
+        } else {
+          targetColor = colorList[0];
         }
-      }
-      if (mesh.material !== undefined) mesh.material = singleMat;
 
-      handledMaterial = true;
-    }
+        flock.setMaterialWithCleanup(target, {
+          color: targetColor,
+          alpha: alpha,
+          materialName: "none.png",
+        });
 
-    if (!handledMaterial && Array.isArray(color) && color.length && color.every(c => c && typeof c === "object")) {
-      const mats = color.map(c => flock.coerceToMaterialIfNeeded(c) || c);
-      if (mesh.material !== undefined && mats[0]) mesh.material = mats[0];
-
-      const kids = typeof mesh.getChildMeshes === "function" ? mesh.getChildMeshes(false) : [];
-      for (let i = 0; i < kids.length; i++) {
-        if (kids[i] && kids[i].material !== undefined && mats[i]) {
-          kids[i].material = mats[i];
+        if (target.material) {
+          flock.adjustMaterialTilingToMesh(target, target.material);
         }
-      }
-      handledMaterial = true;
-    }
-
-    if (!handledMaterial) {
-      flock.applyMaterialToMesh(mesh, shapeType, color, alpha);
+      });
     }
 
     mesh.metadata.sharedMaterial = false;
-
-    // Guard: ensure material exists before tagging metadata
-    if (mesh.material) {
-      mesh.material.metadata = mesh.material.metadata || {};
-      mesh.material.metadata.internal = true;
-    }
-
-    // Enable and make the mesh visible
     mesh.isVisible = true;
     mesh.setEnabled(true);
-    if (alpha > 0 && mesh.material) mesh.material.needDepthPrePass = true;
+
+    if (alpha > 0 && mesh.material) {
+      mesh.material.needDepthPrePass = true;
+    }
     mesh.metadata.sharedGeometry = true;
   },
 
@@ -323,27 +314,40 @@ export const flockMesh = {
   // Works for non-cubes (width ≠ height ≠ depth). Keeps seams consistent by flipping some faces.
   setSizeBasedBoxUVs(mesh, width, height, depth, texturePhysicalSize = 4) {
     // Ensure we can read/write UVs
-    const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
-    const normals   = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
-    let uvs         = mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind);
+    const positions = mesh.getVerticesData(
+      flock.BABYLON.VertexBuffer.PositionKind,
+    );
+    const normals = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
+    let uvs = mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind);
     if (!positions || !normals) return;
     if (!uvs) uvs = new Float32Array((positions.length / 3) * 2);
 
     // Compute local-space AABB to align tiles to edges (not the centre).
     // This makes (min edge) map to UV 0, so every face starts on a tile boundary.
-    let minX = +Infinity, maxX = -Infinity;
-    let minY = +Infinity, maxY = -Infinity;
-    let minZ = +Infinity, maxZ = -Infinity;
+    let minX = +Infinity,
+      maxX = -Infinity;
+    let minY = +Infinity,
+      maxY = -Infinity;
+    let minZ = +Infinity,
+      maxZ = -Infinity;
     for (let i = 0; i < positions.length; i += 3) {
-      const x = positions[i], y = positions[i + 1], z = positions[i + 2];
-      if (x < minX) minX = x; if (x > maxX) maxX = x;
-      if (y < minY) minY = y; if (y > maxY) maxY = y;
-      if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+      const x = positions[i],
+        y = positions[i + 1],
+        z = positions[i + 2];
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      if (z < minZ) minZ = z;
+      if (z > maxZ) maxZ = z;
     }
     // Fallback to provided sizes if the geometry AABB is degenerate
-    const spanX = (Number.isFinite(minX) && Number.isFinite(maxX)) ? (maxX - minX) : width;
-    const spanY = (Number.isFinite(minY) && Number.isFinite(maxY)) ? (maxY - minY) : height;
-    const spanZ = (Number.isFinite(minZ) && Number.isFinite(maxZ)) ? (maxZ - minZ) : depth;
+    const spanX =
+      Number.isFinite(minX) && Number.isFinite(maxX) ? maxX - minX : width;
+    const spanY =
+      Number.isFinite(minY) && Number.isFinite(maxY) ? maxY - minY : height;
+    const spanZ =
+      Number.isFinite(minZ) && Number.isFinite(maxZ) ? maxZ - minZ : depth;
 
     // Scale factor: converts world/local distance → UV repeats
     // 1 tile per `texturePhysicalSize` units
@@ -358,13 +362,20 @@ export const flockMesh = {
     // - Top   (+Y):   U=X increasing +, V=Z flipped
     // - Bottom(-Y):   U=X increasing +, V=Z increasing +
     for (let i = 0, vi = 0; i < positions.length; i += 3, vi += 2) {
-      const nx = normals[i], ny = normals[i + 1], nz = normals[i + 2];
-      const x  = positions[i], y  = positions[i + 1], z  = positions[i + 2];
+      const nx = normals[i],
+        ny = normals[i + 1],
+        nz = normals[i + 2];
+      const x = positions[i],
+        y = positions[i + 1],
+        z = positions[i + 2];
 
       // Decide which axis the face is aligned to
-      const ax = Math.abs(nx), ay = Math.abs(ny), az = Math.abs(nz);
+      const ax = Math.abs(nx),
+        ay = Math.abs(ny),
+        az = Math.abs(nz);
 
-      let u = 0, v = 0;
+      let u = 0,
+        v = 0;
 
       if (az >= ax && az >= ay) {
         // Z faces (front/back) → map X × Y
@@ -373,10 +384,12 @@ export const flockMesh = {
         const vRaw = (y - minY) * invTile; // 0..spanY/texturePhysicalSize
         if (nz >= 0) {
           // Front (+Z): no flip
-          u = uRaw; v = vRaw;
+          u = uRaw;
+          v = vRaw;
         } else {
           // Back (-Z): flip U to keep seam continuity
-          u = (spanX * invTile) - uRaw; v = vRaw;
+          u = spanX * invTile - uRaw;
+          v = vRaw;
         }
       } else if (ax >= ay && ax >= az) {
         // X faces (left/right) → map Z × Y
@@ -384,10 +397,12 @@ export const flockMesh = {
         const vRaw = (y - minY) * invTile; // 0..spanY/texturePhysicalSize
         if (nx >= 0) {
           // Right (+X): flip U so front-right edge matches
-          u = (spanZ * invTile) - uRaw; v = vRaw;
+          u = spanZ * invTile - uRaw;
+          v = vRaw;
         } else {
           // Left (-X): no flip
-          u = uRaw; v = vRaw;
+          u = uRaw;
+          v = vRaw;
         }
       } else {
         // Y faces (top/bottom) → map X × Z
@@ -395,14 +410,16 @@ export const flockMesh = {
         const vRaw = (z - minZ) * invTile; // 0..spanZ/texturePhysicalSize
         if (ny >= 0) {
           // Top (+Y): flip V so front-top edge matches
-          u = uRaw; v = (spanZ * invTile) - vRaw;
+          u = uRaw;
+          v = spanZ * invTile - vRaw;
         } else {
           // Bottom (-Y): no flip
-          u = uRaw; v = vRaw;
+          u = uRaw;
+          v = vRaw;
         }
       }
 
-      uvs[vi]     = u;
+      uvs[vi] = u;
       uvs[vi + 1] = v;
     }
 
@@ -415,8 +432,10 @@ export const flockMesh = {
       t.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
       t.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
       // Per-vertex UVs already encode the repeats; keep global scales neutral
-      t.uScale = 1; t.vScale = 1;
-      t.uOffset = 0; t.vOffset = 0;
+      t.uScale = 1;
+      t.vScale = 1;
+      t.uOffset = 0;
+      t.vOffset = 0;
     }
   },
   setSphereUVs(mesh, diameter, texturePhysicalSize = 1) {
@@ -632,7 +651,9 @@ export const flockMesh = {
     if (mesh.metadata?.sharedGeometry) {
       try {
         // Check if mesh has valid geometry before extracting
-        const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+        const positions = mesh.getVerticesData(
+          flock.BABYLON.VertexBuffer.PositionKind,
+        );
         if (!positions || positions.length === 0) {
           console.warn("Mesh has no valid position data");
           return false;
@@ -927,9 +948,10 @@ export const flockMesh = {
 
         // Local helper: get pivot offset in *mesh local* space
         function getLocalPivotOffset(mesh) {
-          const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
+          const pivotSettings = (mesh.metadata &&
+            mesh.metadata.pivotSettings) || {
             x: "CENTER",
-            y: "MIN",    // default Y is base
+            y: "MIN", // default Y is base
             z: "CENTER",
           };
 
@@ -939,7 +961,7 @@ export const flockMesh = {
             const half = ext[axis];
             const setting = pivotSettings[axis];
             if (setting === "MIN") return -half;
-            if (setting === "MAX") return  half;
+            if (setting === "MAX") return half;
             // CENTER (default)
             return 0;
           }
@@ -956,7 +978,7 @@ export const flockMesh = {
 
         // Parent/child pivot offsets in their own local spaces
         const parentPivotLocal = getLocalPivotOffset(parentMesh);
-        const childPivotLocal  = getLocalPivotOffset(childMesh);
+        const childPivotLocal = getLocalPivotOffset(childMesh);
 
         const desiredChildLocalPos = parentPivotLocal
           .add(offsetLocal)
