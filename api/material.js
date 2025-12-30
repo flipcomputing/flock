@@ -1781,43 +1781,37 @@ export const flockMaterial = {
 
   getOrCreateMaterial(colorInput, alpha = 1, scene) {
     const isObject = typeof colorInput === "object" && colorInput !== null;
-    const rawColor = isObject
-      ? colorInput.color || colorInput.baseColor
-      : colorInput;
-    const texName = isObject ? colorInput.textureSet || "NONE" : "NONE";
+    const rawColor = isObject ? (colorInput.color || colorInput.baseColor) : colorInput;
+    const texName = isObject ? (colorInput.textureSet || "NONE") : "NONE";
 
-    const resolvedHex = flock.getColorFromString(rawColor) || "#ffffff";
-    const hex = resolvedHex.toLowerCase();
-    const cacheKey = `solid_${hex}_${alpha}_${texName}`;
+    const colorKey = Array.isArray(rawColor) ? rawColor.join("-") : rawColor;
+    const cacheKey = `mat_${colorKey}_${alpha}_${texName}`.toLowerCase();
 
     if (!flock.materialCache) flock.materialCache = {};
 
-    // Return cached material if available
+    // 1. Return cached material if available
     if (flock.materialCache[cacheKey]) {
-      const mat = flock.materialCache[cacheKey];
-      if (mat.metadata) {
-        mat.metadata.refCount = (mat.metadata.refCount || 0) + 1;
-      }
-      return mat;
+      return flock.materialCache[cacheKey];
     }
 
-    // Create new material
-    const newMat = new flock.BABYLON.StandardMaterial(cacheKey, scene);
-    const rgb = flock.hexToRgb(hex);
-    newMat.diffuseColor = new flock.BABYLON.Color3(
-      rgb.r / 255,
-      rgb.g / 255,
-      rgb.b / 255,
-    );
+    // 2. Create new material using createMaterial
+    const materialParams = isObject ? colorInput : { 
+      color: rawColor, 
+      materialName: texName === "NONE" ? "none.png" : texName,
+      alpha: alpha 
+    };
+
+    const newMat = flock.createMaterial(materialParams);
+
+    // 3. Setup metadata for the cache tracking (No refCount)
+    newMat.name = cacheKey;
     newMat.alpha = alpha;
 
-    newMat.metadata = {
-      cacheKey: cacheKey,
-      refCount: 1,
-      isManaged: true,
-    };
+    if (!newMat.metadata) newMat.metadata = {};
+    newMat.metadata.cacheKey = cacheKey;
+    newMat.metadata.isManaged = true;
 
     flock.materialCache[cacheKey] = newMat;
     return newMat;
-  },
+  }
 };
