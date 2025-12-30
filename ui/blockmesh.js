@@ -600,7 +600,6 @@ function handleMaterialOrColorChange(
   color,
   materialInfo,
 ) {
-  // Only handle relevant change types
   if (
     !(
       ["COLOR", "COLORS", "BASE_COLOR", "ALPHA"].includes(changed) ||
@@ -608,13 +607,6 @@ function handleMaterialOrColorChange(
     )
   ) {
     return mesh;
-  }
-
-  if (flock.meshDebug) {
-    console.log("=== APPLYING COLOR/MATERIAL CHANGE ===");
-    console.log("Material info:", materialInfo);
-    console.log("Color:", color);
-    console.log("Color type:", typeof color, Array.isArray(color));
   }
 
   const hasMaterial =
@@ -638,26 +630,47 @@ function handleMaterialOrColorChange(
   const isColorList = Array.isArray(baseColor) && baseColor.length > 1;
   let appliedColourList = false;
 
-  const blockShapeMap = {
-    create_box: "Box",
-    create_sphere: "Sphere",
-    create_cylinder: "Cylinder",
-    create_capsule: "Capsule",
-    create_plane: "Plane",
-  };
+  const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
+  mesh = ultimateParent(mesh);
 
-  const rootShapeType =
-    mesh?.metadata?.shapeType || blockShapeMap[block.type] || block.type;
+  console.log(
+    `[LiveUpdate] Processing: ${mesh.name}, Block: ${block.type}, Changed: ${changed}`,
+  );
 
   if (isColorList && !hasMaterial) {
-    const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
-    mesh = ultimateParent(mesh);
-
     const useMeshWideColorCycle =
       block.type === "load_object" || block.type === "load_multi_object";
 
     if (useMeshWideColorCycle) {
-      flock.changeColorMesh(mesh, baseColor);
+      const geometryMeshes = mesh
+        .getDescendants(false)
+        .filter(
+          (n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0,
+        )
+        .sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          }),
+        );
+
+      geometryMeshes.forEach((m, i) => {
+        const targetColor = baseColor[i % baseColor.length];
+        const oldMatId = m.material ? m.material.uniqueId : "none";
+
+        flock.setMaterialWithCleanup(m, {
+          color: targetColor,
+          alpha: alpha,
+          materialName: m.metadata?.modelName || "none.png",
+        });
+
+        const newMatId = m.material ? m.material.uniqueId : "none";
+        console.log(
+          `  - Child[${i}] ${m.name}: Mat ${oldMatId} -> ${newMatId} (Color: ${targetColor})`,
+        );
+
+        if (m.material) flock.adjustMaterialTilingToMesh(m, m.material);
+      });
       appliedColourList = true;
     }
   }
@@ -666,32 +679,40 @@ function handleMaterialOrColorChange(
     !appliedColourList &&
     (baseColor != null || hasMaterial || mesh?.material)
   ) {
-    // Special handling for load_object default color
     if (color === "#9932cc" && block.type === "load_object") {
       const modelName = block.getFieldValue("MODELS");
-      baseColor = objectColours[modelName] || "#FFD700";
+      baseColor = flock.objectColours?.[modelName] || "#FFD700";
     }
 
-    const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
-    mesh = ultimateParent(mesh);
+    const materialParams = {
+      color: baseColor,
+      alpha: alpha,
+      materialName: hasMaterial
+        ? materialInfo.textureSet
+        : mesh.metadata?.modelName || "none.png",
+    };
 
-    const colorOrMaterial = hasMaterial
-      ? { materialName: materialInfo.textureSet, color: baseColor, alpha }
-      : (baseColor ?? mesh.material);
+    const targets = mesh
+      .getDescendants(false)
+      .filter(
+        (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0,
+      );
 
-    if (colorOrMaterial != null) {
-      const targets = [mesh]
-        .concat(mesh.getDescendants?.() || [])
-        .filter((m) => m instanceof flock.BABYLON.Mesh);
+    if (mesh instanceof flock.BABYLON.Mesh) targets.push(mesh);
 
-      targets.forEach((target) => {
-        const shape = target?.metadata?.shapeType || rootShapeType;
-        flock.applyMaterialToMesh(target, shape, colorOrMaterial, alpha);
-      });
-    }
+    targets.forEach((target) => {
+      const oldMatId = target.material ? target.material.uniqueId : "none";
+
+      flock.setMaterialWithCleanup(target, materialParams);
+
+      const newMatId = target.material ? target.material.uniqueId : "none";
+      console.log(`  - Target ${target.name}: Mat ${oldMatId} -> ${newMatId}`);
+
+      if (target.material)
+        flock.adjustMaterialTilingToMesh(target, target.material);
+    });
   }
 
-  // mesh may now be its ultimate parent; return so caller keeps using the same one
   return mesh;
 }
 
@@ -1524,7 +1545,7 @@ function replaceMeshModel(currentMesh, block) {
   const wasEnabled =
     typeof currentMesh.isEnabled === "function"
       ? currentMesh.isEnabled()
-      : currentMesh.isVisible ?? true;
+      : (currentMesh.isVisible ?? true);
   const setMeshEnabled = (enabled) => {
     if (typeof currentMesh.setEnabled === "function") {
       currentMesh.setEnabled(enabled);
@@ -1867,35 +1888,35 @@ function replaceMeshModel(currentMesh, block) {
       let nonCharacterColors = null;
       if (!isCharacter) {
         const cols = [];
-    for (const oc of originalDirectChildren) {
-      if (oc && !oc.isDisposed?.()) {
-        const c = extractColorsForChangeOrder(oc);
-        if (c.length) cols.push(...c);
-      }
-    }
-    const blockColors = (() => {
-      if (block.type === "load_multi_object") {
-        const colorsInput = block.getInput("COLORS");
-        const listBlock = colorsInput?.connection?.targetBlock?.();
-        if (listBlock?.type === "lists_create_with") {
-          const collected = [];
-          for (const input of listBlock.inputList || []) {
-            if (!input?.name?.startsWith("ADD")) continue;
-            const target = input.connection?.targetBlock?.();
-            const hex =
-              target?.getFieldValue?.("COLOR") ||
-              target?.getFieldValue?.("COLOUR") ||
-              null;
-            if (hex) collected.push(hex);
+        for (const oc of originalDirectChildren) {
+          if (oc && !oc.isDisposed?.()) {
+            const c = extractColorsForChangeOrder(oc);
+            if (c.length) cols.push(...c);
           }
-          return collected;
         }
-      }
-      return null;
-    })();
+        const blockColors = (() => {
+          if (block.type === "load_multi_object") {
+            const colorsInput = block.getInput("COLORS");
+            const listBlock = colorsInput?.connection?.targetBlock?.();
+            if (listBlock?.type === "lists_create_with") {
+              const collected = [];
+              for (const input of listBlock.inputList || []) {
+                if (!input?.name?.startsWith("ADD")) continue;
+                const target = input.connection?.targetBlock?.();
+                const hex =
+                  target?.getFieldValue?.("COLOR") ||
+                  target?.getFieldValue?.("COLOUR") ||
+                  null;
+                if (hex) collected.push(hex);
+              }
+              return collected;
+            }
+          }
+          return null;
+        })();
 
-    nonCharacterColors =
-      blockColors && blockColors.length ? blockColors : cols;
+        nonCharacterColors =
+          blockColors && blockColors.length ? blockColors : cols;
         //console.log("[NONCHAR_COLORS]", nonCharacterColors);
       }
 
