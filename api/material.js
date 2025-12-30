@@ -1128,7 +1128,6 @@ export const flockMaterial = {
 
     return shaderMaterial;
   },
-
   applyMaterialToMesh(mesh, shapeType, color, alpha = 1.0) {
     if (flock.materialsDebug) console.log(`Applying material to ${mesh.name}`);
     const scene = mesh.getScene();
@@ -1646,13 +1645,6 @@ export const flockMaterial = {
   setMaterialWithCleanup(mesh, materialData) {
     if (!mesh) return;
 
-    // DEBUG: Identify the mesh and exactly what data is being passed
-    console.log(`[setMaterialWithCleanup] Target: ${mesh.name}`, {
-      color: materialData.color,
-      materialName: materialData.materialName,
-      isObject: typeof materialData.color === "object",
-    });
-
     const oldMat = mesh.material;
 
     // Get or create from cache
@@ -1662,7 +1654,6 @@ export const flockMaterial = {
 
     mesh.material = newMat;
 
-    // Standard Scene-Check Cleanup
     if (oldMat && oldMat.metadata && oldMat.metadata.isManaged) {
       const cacheKey = oldMat.metadata.cacheKey;
       const isStillInUse = flock.scene.meshes.some(
@@ -1670,7 +1661,6 @@ export const flockMaterial = {
       );
 
       if (!isStillInUse) {
-        console.log(`[Cleanup] Disposing unused: ${cacheKey}`);
         if (cacheKey && flock.materialCache[cacheKey]) {
           delete flock.materialCache[cacheKey];
         }
@@ -1679,10 +1669,6 @@ export const flockMaterial = {
     }
   },
   getOrCreateMaterial(colorInput, alpha = 1, scene) {
-    console.log(
-      `[Cache-In] Color: ${colorInput?.color || colorInput}, Tex: ${colorInput?.materialName || colorInput?.textureSet}, Alpha: ${alpha}`,
-    );
-
     const isObject = typeof colorInput === "object" && colorInput !== null;
     const rawColor = isObject
       ? colorInput.color || colorInput.baseColor
@@ -1720,16 +1706,6 @@ export const flockMaterial = {
 
     flock.materialCache[cacheKey] = newMat;
 
-    if (newMat) {
-      console.log(
-        `[Cache-Out] Success. Key: ${cacheKey}, ID: ${newMat.uniqueId}, Type: ${newMat.getClassName()}`,
-      );
-    } else {
-      console.error(
-        `[Cache-Out] FAILED. createMaterial returned nothing for:`,
-        colorInput,
-      );
-    }
     return newMat;
   },
 };

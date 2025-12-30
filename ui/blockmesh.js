@@ -612,71 +612,78 @@ function handleMaterialOrColorChange(
   const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
   const root = ultimateParent(mesh);
 
-  const targets = root
-    .getDescendants(false)
-    .filter((m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0);
-
-  if (root instanceof flock.BABYLON.Mesh) targets.push(root);
-
-  const referenceTarget = targets.find(t => t.material?.metadata?.cacheKey) || targets[0];
-
-  // Identify if we are in a 'Color Only' state (no material block present)
-  const isColorOnly = !materialInfo || materialInfo.textureSet === "NONE";
-  const hasMaterial = !!(materialInfo?.textureSet && materialInfo.textureSet !== "NONE");
+  const isExplicitNone = !materialInfo || materialInfo.textureSet === "NONE";
+  const hasTexture = materialInfo?.textureSet && materialInfo.textureSet !== "NONE";
   const alpha = materialInfo?.alpha ?? 1;
 
-  let baseColor =
-    color ??
-    materialInfo?.baseColor ??
-    referenceTarget?.material?.diffuseColor?.toHexString?.() ??
-    referenceTarget?.material?.albedoColor?.toHexString?.();
+  let rawColor = materialInfo?.colors || materialInfo?.baseColor || color;
 
-  if (!baseColor && !hasMaterial && !isColorOnly) return root;
-
-  const isColorList = Array.isArray(baseColor) && baseColor.length > 1;
-
-  if (isColorList && !hasMaterial) {
-    const geometryMeshes = targets
-      .filter((m) => m !== root)
-      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-
-    geometryMeshes.forEach((m, i) => {
-      const targetColor = baseColor[i % baseColor.length];
-      // If color only, force none.png. Otherwise keep current.
-      let tex = isColorOnly ? "none.png" : (m.material?.metadata?.cacheKey?.split("_").pop() || "none.png");
-      if (tex === "none") tex = "none.png";
-
-      flock.setMaterialWithCleanup(m, {
-        color: targetColor,
-        alpha: alpha,
-        materialName: tex,
-      });
-      if (m.material) flock.adjustMaterialTilingToMesh(m, m.material);
-    });
-    return root;
+  if (!rawColor) {
+    const firstMat = root.getDescendants(false).find(m => m.material)?.material;
+    rawColor = firstMat?.diffuseColor?.toHexString() || "#ffffff";
   }
 
-  targets.forEach((target) => {
-    let targetTex;
+  const colorList = Array.isArray(rawColor) ? rawColor.flat() : [rawColor];
+  const isMultiColorArray = colorList.length > 1;
 
-    if (hasMaterial) {
-      targetTex = materialInfo.textureSet;
-    } else if (isColorOnly) {
-      targetTex = "none.png";
-    } else {
-      let currentTex = target.material?.metadata?.cacheKey?.split("_").pop() || "none.png";
-      if (currentTex === "none") currentTex = "none.png";
-      targetTex = currentTex;
+  const subMeshes = root
+    .getDescendants(false)
+    .filter((m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0)
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+  const allTargets = subMeshes.length > 0 ? subMeshes : [root];
+
+  allTargets.forEach((target) => {
+    if (!(target instanceof flock.BABYLON.Mesh)) return;
+
+    const wasGradient = target.material?.metadata?.isGradient || 
+                        target.isVerticesDataPresent(flock.BABYLON.VertexBuffer.ColorKind);
+
+    if (wasGradient && !isMultiColorArray) {
+      if (target.isVerticesDataPresent(flock.BABYLON.VertexBuffer.ColorKind)) {
+        target.removeVerticesData(flock.BABYLON.VertexBuffer.ColorKind);
+      }
+      target.hasVertexAlpha = false;
+      if (target.resetDrawCache) target.resetDrawCache();
     }
 
+    let targetColor;
+    if (isMultiColorArray) {
+      if (hasTexture) {
+        targetColor = colorList;
+      } else if (subMeshes.length > 1) {
+        const meshIndex = subMeshes.indexOf(target);
+        targetColor = meshIndex !== -1 
+          ? colorList[meshIndex % colorList.length] 
+          : colorList[0];
+      } else {
+        targetColor = colorList;
+      }
+    } else {
+      targetColor = colorList[0];
+    }
+
+    let targetTex;
+    if (hasTexture) {
+      targetTex = materialInfo.textureSet;
+    } else if (isExplicitNone) {
+      targetTex = "none.png";
+    } else {
+      const currentKey = target.material?.metadata?.cacheKey;
+      targetTex = currentKey ? currentKey.split("_").pop() : "none.png";
+    }
+
+    if (targetTex === "none") targetTex = "none.png";
+
     flock.setMaterialWithCleanup(target, {
-      color: baseColor,
+      color: targetColor,
       alpha: alpha,
       materialName: targetTex,
     });
 
-    if (target.material)
+    if (target.material) {
       flock.adjustMaterialTilingToMesh(target, target.material);
+    }
   });
 
   return root;
@@ -1996,7 +2003,7 @@ function replaceMeshModel(currentMesh, block) {
         }
       } else if (nonCharacterColors && nonCharacterColors.length) {
         try {
-          flock.changeColorMesh(newChild, nonCharacterColors);
+          //flock.changeColorMesh(newChild, nonCharacterColors);
         } catch (e) {
           console.warn("changeColorMesh failed", e);
         }
