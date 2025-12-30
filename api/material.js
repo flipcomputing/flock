@@ -1679,6 +1679,11 @@ export const flockMaterial = {
     }
   },
   getOrCreateMaterial(colorInput, alpha = 1, scene) {
+    // At the top of getOrCreateMaterial
+    console.log(
+      `[Cache-In] Color: ${colorInput?.color || colorInput}, Tex: ${colorInput?.materialName}, Alpha: ${alpha}`,
+    );
+
     const isObject = typeof colorInput === "object" && colorInput !== null;
     const rawColor = isObject
       ? colorInput.color || colorInput.baseColor
@@ -1715,6 +1720,18 @@ export const flockMaterial = {
     newMat.metadata.isManaged = true;
 
     flock.materialCache[cacheKey] = newMat;
+
+    // Right before the final return newMat;
+    if (newMat) {
+      console.log(
+        `[Cache-Out] Success. Key: ${cacheKey}, ID: ${newMat.uniqueId}, Type: ${newMat.getClassName()}`,
+      );
+    } else {
+      console.error(
+        `[Cache-Out] FAILED. createMaterial returned nothing for:`,
+        colorInput,
+      );
+    }
     return newMat;
   },
 };

@@ -609,111 +609,66 @@ function handleMaterialOrColorChange(
     return mesh;
   }
 
-  const hasMaterial =
-    materialInfo &&
-    materialInfo.textureSet &&
-    materialInfo.textureSet !== "NONE";
+  const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
+  const root = ultimateParent(mesh);
 
-  const alpha =
-    materialInfo?.alpha != null
-      ? materialInfo.alpha
-      : hasMaterial
-        ? (mesh?.material?.alpha ?? 1)
-        : 1;
+  const hasMaterial = !!(materialInfo?.textureSet && materialInfo.textureSet !== "NONE");
+  const alpha = materialInfo?.alpha ?? 1;
 
   let baseColor =
     color ??
     materialInfo?.baseColor ??
-    mesh?.material?.diffuseColor?.toHexString?.() ??
-    mesh?.material?.albedoColor?.toHexString?.();
+    root.material?.diffuseColor?.toHexString?.() ??
+    root.material?.albedoColor?.toHexString?.();
+
+  if (!baseColor && !hasMaterial) return root;
 
   const isColorList = Array.isArray(baseColor) && baseColor.length > 1;
-  let appliedColourList = false;
-
-  const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
-  mesh = ultimateParent(mesh);
-
-  console.log(
-    `[LiveUpdate] Processing: ${mesh.name}, Block: ${block.type}, Changed: ${changed}`,
-  );
 
   if (isColorList && !hasMaterial) {
-    const useMeshWideColorCycle =
-      block.type === "load_object" || block.type === "load_multi_object";
+    const geometryMeshes = root
+      .getDescendants(false)
+      .filter((n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0)
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
-    if (useMeshWideColorCycle) {
-      const geometryMeshes = mesh
-        .getDescendants(false)
-        .filter(
-          (n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0,
-        )
-        .sort((a, b) =>
-          a.name.localeCompare(b.name, undefined, {
-            numeric: true,
-            sensitivity: "base",
-          }),
-        );
+    geometryMeshes.forEach((m, i) => {
+      const targetColor = baseColor[i % baseColor.length];
+      let tex = m.material?.metadata?.cacheKey?.split('_').pop() || "none.png";
+      if (tex === "none") tex = "none.png";
 
-      geometryMeshes.forEach((m, i) => {
-        const targetColor = baseColor[i % baseColor.length];
-        const oldMatId = m.material ? m.material.uniqueId : "none";
-
-        flock.setMaterialWithCleanup(m, {
-          color: targetColor,
-          alpha: alpha,
-          materialName: m.metadata?.modelName || "none.png",
-        });
-
-        const newMatId = m.material ? m.material.uniqueId : "none";
-        console.log(
-          `  - Child[${i}] ${m.name}: Mat ${oldMatId} -> ${newMatId} (Color: ${targetColor})`,
-        );
-
-        if (m.material) flock.adjustMaterialTilingToMesh(m, m.material);
+      flock.setMaterialWithCleanup(m, {
+        color: targetColor,
+        alpha: alpha,
+        materialName: tex,
       });
-      appliedColourList = true;
-    }
+      if (m.material) flock.adjustMaterialTilingToMesh(m, m.material);
+    });
+    return root;
   }
 
-  if (
-    !appliedColourList &&
-    (baseColor != null || hasMaterial || mesh?.material)
-  ) {
-    if (color === "#9932cc" && block.type === "load_object") {
-      const modelName = block.getFieldValue("MODELS");
-      baseColor = flock.objectColours?.[modelName] || "#FFD700";
-    }
+  const targets = root
+    .getDescendants(false)
+    .filter((m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0);
 
-    const materialParams = {
+  if (root instanceof flock.BABYLON.Mesh) targets.push(root);
+
+  targets.forEach((target) => {
+    let currentTex = target.material?.metadata?.cacheKey?.split('_').pop() || "none.png";
+    if (currentTex === "none") currentTex = "none.png";
+
+    const targetTex = hasMaterial ? materialInfo.textureSet : currentTex;
+
+    flock.setMaterialWithCleanup(target, {
       color: baseColor,
       alpha: alpha,
-      materialName: hasMaterial
-        ? materialInfo.textureSet
-        : mesh.metadata?.modelName || "none.png",
-    };
-
-    const targets = mesh
-      .getDescendants(false)
-      .filter(
-        (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0,
-      );
-
-    if (mesh instanceof flock.BABYLON.Mesh) targets.push(mesh);
-
-    targets.forEach((target) => {
-      const oldMatId = target.material ? target.material.uniqueId : "none";
-
-      flock.setMaterialWithCleanup(target, materialParams);
-
-      const newMatId = target.material ? target.material.uniqueId : "none";
-      console.log(`  - Target ${target.name}: Mat ${oldMatId} -> ${newMatId}`);
-
-      if (target.material)
-        flock.adjustMaterialTilingToMesh(target, target.material);
+      materialName: targetTex,
     });
-  }
 
-  return mesh;
+    if (target.material)
+      flock.adjustMaterialTilingToMesh(target, target.material);
+  });
+
+  return root;
 }
 
 function updateGroundFromBlock(mesh, block, changeEvent) {
