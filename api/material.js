@@ -1778,11 +1778,47 @@ export const flockMaterial = {
     material.alpha = resolvedAlpha;
     mesh.material = material;
   },
+  setMaterialWithCleanup(mesh, materialData) {
+    if (!mesh) return;
 
+    // DEBUG: Identify the mesh and exactly what data is being passed
+    console.log(`[setMaterialWithCleanup] Target: ${mesh.name}`, {
+      color: materialData.color,
+      materialName: materialData.materialName,
+      isObject: typeof materialData.color === "object",
+    });
+
+    const oldMat = mesh.material;
+
+    // Get or create from cache
+    const newMat = flock.getOrCreateMaterial(materialData);
+
+    if (oldMat === newMat) return;
+
+    mesh.material = newMat;
+
+    // Standard Scene-Check Cleanup
+    if (oldMat && oldMat.metadata && oldMat.metadata.isManaged) {
+      const cacheKey = oldMat.metadata.cacheKey;
+      const isStillInUse = flock.scene.meshes.some(
+        (m) => m !== mesh && !m.isDisposed() && m.material === oldMat,
+      );
+
+      if (!isStillInUse) {
+        console.log(`[Cleanup] Disposing unused: ${cacheKey}`);
+        if (cacheKey && flock.materialCache[cacheKey]) {
+          delete flock.materialCache[cacheKey];
+        }
+        oldMat.dispose(true, true);
+      }
+    }
+  },
   getOrCreateMaterial(colorInput, alpha = 1, scene) {
     const isObject = typeof colorInput === "object" && colorInput !== null;
-    const rawColor = isObject ? (colorInput.color || colorInput.baseColor) : colorInput;
-    const texName = isObject ? (colorInput.textureSet || "NONE") : "NONE";
+    const rawColor = isObject
+      ? colorInput.color || colorInput.baseColor
+      : colorInput;
+    const texName = isObject ? colorInput.textureSet || "NONE" : "NONE";
 
     const colorKey = Array.isArray(rawColor) ? rawColor.join("-") : rawColor;
     const cacheKey = `mat_${colorKey}_${alpha}_${texName}`.toLowerCase();
@@ -1795,11 +1831,13 @@ export const flockMaterial = {
     }
 
     // 2. Create new material using createMaterial
-    const materialParams = isObject ? colorInput : { 
-      color: rawColor, 
-      materialName: texName === "NONE" ? "none.png" : texName,
-      alpha: alpha 
-    };
+    const materialParams = isObject
+      ? colorInput
+      : {
+          color: rawColor,
+          materialName: texName === "NONE" ? "none.png" : texName,
+          alpha: alpha,
+        };
 
     const newMat = flock.createMaterial(materialParams);
 
@@ -1813,5 +1851,5 @@ export const flockMaterial = {
 
     flock.materialCache[cacheKey] = newMat;
     return newMat;
-  }
+  },
 };

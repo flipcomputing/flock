@@ -3101,38 +3101,31 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["material"] = function (block) {
-                const baseColor =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "BASE_COLOR",
+            const baseColor = javascriptGenerator.valueToCode(
+                block,
+                "BASE_COLOR",
+                javascriptGenerator.ORDER_ATOMIC,
+            ) || '"#ffffff"';
 
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || '"#ffffff"';
+            const textureSet = block.getFieldValue("TEXTURE_SET");
+            const alpha = javascriptGenerator.valueToCode(
+                block,
+                "ALPHA",
+                javascriptGenerator.ORDER_ATOMIC,
+            ) || "1";
 
-                const textureSet = block.getFieldValue("TEXTURE_SET");
-                const alpha =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "ALPHA",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "1";
+            // Always return a standard data object. 
+            // Logic that uses this block (like set_material) will handle the application.
+            const code = `{ 
+                color: ${baseColor}, 
+                materialName: "${textureSet}", 
+                alpha: ${alpha} 
+            }`;
 
-                function findSetMaterial(currentBlock) {
-                        if (currentBlock.type === "set_material") return true;
-                        if (currentBlock.parentBlock_ === null) return false;
-                        return findSetMaterial(currentBlock.parentBlock_);
-                }
-
-                const isInSetMaterial = findSetMaterial(block);
-
-                // Generate the code to call the createMaterial helper function
-                const code = isInSetMaterial
-                        ? `{ color: ${baseColor}, materialName: "${textureSet}", alpha: ${alpha} }`
-                        : `createMaterial({ color: ${baseColor}, materialName: "${textureSet}", alpha: ${alpha} })`;
-                return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+            return [code, javascriptGenerator.ORDER_ATOMIC];
         };
 
-        javascriptGenerator.forBlock["gradient_material"] = function (block) {
+        /*javascriptGenerator.forBlock["gradient_material"] = function (block) {
                 const color =
                         javascriptGenerator.valueToCode(
                                 block,
@@ -3149,9 +3142,9 @@ export function defineGenerators() {
 
                 const code = `createMaterial(${color}, null, ${alpha})`;
                 return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
-        };
+        };*/
 
-        javascriptGenerator.forBlock["material2"] = function (block) {
+       /* javascriptGenerator.forBlock["material2"] = function (block) {
                 const baseColor =
                         javascriptGenerator.valueToCode(
                                 block,
@@ -3187,9 +3180,9 @@ export function defineGenerators() {
                 // Generate the code to call the createMaterial helper function
                 const code = `createMaterial(${baseColor}, ${emissiveColor}, "${textureSet}", ${metallic}, ${roughness}, ${alpha})`;
                 return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
-        };
+        };*/
 
-        javascriptGenerator.forBlock["text_material"] = function (block) {
+       /* javascriptGenerator.forBlock["text_material"] = function (block) {
                 const variable = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MATERIAL_VAR"),
                         Blockly.Names.NameType.VARIABLE,
@@ -3232,9 +3225,9 @@ export function defineGenerators() {
                         ) || 120;
 
                 return `${variable} = textMaterial(${text}, ${color}, ${backgroundColor}, ${width}, ${height}, ${textSize});\n`;
-        };
+        };*/
 
-        javascriptGenerator.forBlock["decal"] = function (block) {
+       /* javascriptGenerator.forBlock["decal"] = function (block) {
                 const mesh = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MESH"),
                         Blockly.Names.NameType.VARIABLE,
@@ -3307,7 +3300,7 @@ export function defineGenerators() {
 
                 // Use a helper function for placing the decal
                 return `placeDecal(${materialVar}, ${angle} );\n`;
-        };
+        };*/
 
         javascriptGenerator.forBlock["set_material"] = function (block) {
                 const meshVar = javascriptGenerator.nameDB_.getName(
