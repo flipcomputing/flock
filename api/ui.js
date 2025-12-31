@@ -2,6 +2,8 @@ let flock;
 //let fontFamily = "Asap";
 let fontFamily = "Atkinson Hyperlegible Next";
 
+import sanitizeHtml from "sanitize-html";
+
 export function setFlockReference(ref) {
   flock = ref;
 }
@@ -171,8 +173,11 @@ export const flockUI = {
     // Sanitization Helper
     const sanitize = (val) => {
       if (typeof val !== "string") return "";
-      return val
-        .replace(/<[^>]*>?/gm, "") // Remove HTML tags
+      const withoutHtml = sanitizeHtml(val, {
+        allowedTags: [],
+        allowedAttributes: {},
+      });
+      return withoutHtml
         .replace(
           /[^\w\s\?\.\,\!\@\#\$\%\^\&\*\(\)\-\+\=\[\]\{\}\:\;\x22\x27\/]/gi,
           "",
