@@ -427,47 +427,25 @@ function safeGetFieldValue(block, fieldName) {
 
 function updateSkyFromBlock(mesh, block, changeEvent) {
   if (!block.isEnabled()) {
-    console.log("Block disabled, setting clear sky to black");
     setClearSkyToBlack();
     return;
   }
 
   const colorInput = block.getInputTargetBlock("COLOR");
-
   if (!colorInput) return;
 
   if (colorInput && colorInput.type === "material") {
     const { textureSet, baseColor, alpha } = extractMaterialInfo(colorInput);
     let read = readColourFromInputOrShadow(colorInput, "BASE_COLOR");
 
-    if (flock.meshDebug) {
-      console.log("Sky material info:", {
-        textureSet,
-        baseColor,
-        alpha,
-        colorValue: read.value,
-      });
-    }
-
-    if (read.value == null && !block.__skyRetry) {
-      block.__skyRetry = true;
-      requestAnimationFrame(() => {
-        block.__skyRetry = false;
-        updateMeshFromBlock(mesh, block, changeEvent);
-      });
-      return;
-    }
-
     const colorValue = read.value ?? baseColor;
 
     if (textureSet && textureSet !== "NONE") {
-      const materialOptions = {
+      flock.setSky({
         color: colorValue,
         materialName: textureSet,
         alpha,
-      };
-      const material = flock.createMaterial(materialOptions);
-      flock.setSky(material || colorValue);
+      });
       return;
     }
 
@@ -1125,7 +1103,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   //if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
 
   if (block.type === "set_sky_color") {
-    console.log("Updating sky from block");
     updateSkyFromBlock(mesh, block, changeEvent);
     return;
   }
