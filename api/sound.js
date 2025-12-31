@@ -232,7 +232,9 @@ export const flockSound = {
           let offsetTime = 0;
           for (let i = 0; i < notes.length; i++) {
             const note = notes[i];
-            const duration = Number(durations[i]);
+            // Use default duration of 0.5 if missing or invalid (NaN)
+            const rawDuration = Number(durations[i]);
+            const duration = isNaN(rawDuration) ? 0.5 : rawDuration;
 
             if (note !== null) {
               flock.playMidiNote(
@@ -274,6 +276,12 @@ export const flockSound = {
     instrument = null,
   ) {
     if (!context || context.state === "closed") return;
+
+    // Validate numeric parameters to prevent Web Audio API errors
+    if (!isFinite(duration) || !isFinite(playTime) || !isFinite(bpm)) {
+      console.warn('playMidiNote: Invalid parameters', { duration, playTime, bpm });
+      return;
+    }
 
     // Create a new oscillator for each note
     const osc = context.createOscillator();
