@@ -2,8 +2,6 @@ let flock;
 //let fontFamily = "Asap";
 let fontFamily = "Atkinson Hyperlegible Next";
 
-import sanitizeHtml from "sanitize-html";
-
 export function setFlockReference(ref) {
   flock = ref;
 }
@@ -157,35 +155,30 @@ export const flockUI = {
     textColor,
     backgroundColor,
     id = null,
-    mode = "AWAIT", // "START" or "AWAIT"
+    mode = "AWAIT",
   } = {}) {
     if (!flock.scene || !flock.GUI) {
       throw new Error("flock.scene or flock.GUI is not initialized.");
     }
-
     flock.scene.UITexture ??=
       flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-    const inputId =
-      id || `input_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const submitId = `submit_${inputId}`;
-
-    // Sanitization Helper
-    const sanitize = (val) => {
-      if (typeof val !== "string") return "";
-      const withoutHtml = sanitizeHtml(val, {
-        allowedTags: [],
-        allowedAttributes: {},
-      });
-      return withoutHtml
-        .replace(
-          /[^\w\s\?\.\,\!\@\#\$\%\^\&\*\(\)\-\+\=\[\]\{\}\:\;\x22\x27\/]/gi,
-          "",
-        ) // Basic char filter
-        .trim();
+    const sanitize = (val, { maxLen = 500 } = {}) => {
+      if (val == null) return "";
+      let s = String(val);
+      s = s.normalize('NFKC');
+      const doc = new DOMParser().parseFromString(s, "text/html");
+      s = doc.body.textContent || "";
+      s = s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");
+      s = s.replace(/\s+/g, " ").trim();
+      if (s.length > maxLen) s = s.slice(0, maxLen);
+      return s;
     };
 
-    // Cleanup existing controls with same ID
+    const inputId = id ? sanitize(id, { maxLen: 100 }) : 
+      `input_${Date.now()}_${crypto.randomUUID()}`;
+    const submitId = `submit_${inputId}`;
+
     const existingInput = flock.scene.UITexture.getControlByName(inputId);
     const existingSubmit = flock.scene.UITexture.getControlByName(submitId);
     if (existingInput) existingInput.dispose();
@@ -196,17 +189,14 @@ export const flockUI = {
       MEDIUM: { width: "300px", height: "50px" },
       LARGE: { width: "400px", height: "60px" },
     };
-
-    const resolvedSize =
-      sizeMap[(size || "").toUpperCase()] || sizeMap["MEDIUM"];
+    const resolvedSize = sizeMap[(size || "").toUpperCase()] || sizeMap["MEDIUM"];
     const inputWidth = resolvedSize.width;
     const inputHeight = resolvedSize.height;
     const buttonWidth = "50px";
     const spacing = 10;
 
-    // Create input box
     const input = new flock.GUI.InputText(inputId);
-    input.placeholderText = text;
+    input.placeholderText = sanitize(text);
     input.width = inputWidth;
     input.height = inputHeight;
     input.color = textColor || "black";
@@ -215,19 +205,15 @@ export const flockUI = {
     input.fontSize = fontSize || 24;
     input.text = "";
 
-    // Original Positioning Logic
     input.left = `${x}px`;
     input.top = `${y}px`;
-    input.horizontalAlignment =
-      x < 0
-        ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
-        : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    input.verticalAlignment =
-      y < 0
-        ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
-        : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    input.horizontalAlignment = x < 0
+      ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+      : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    input.verticalAlignment = y < 0
+      ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
+      : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
-    // Create submit button
     const button = flock.GUI.Button.CreateSimpleButton(submitId, "✓");
     button.width = buttonWidth;
     button.height = inputHeight;
@@ -235,7 +221,6 @@ export const flockUI = {
     button.background = textColor || "white";
     button.fontSize = fontSize || 24;
 
-    // Handle button offset based on alignment
     const offset = parseInt(inputWidth) + spacing;
     button.left = x < 0 ? `${x - offset}px` : `${x + offset}px`;
     button.top = `${y}px`;
@@ -249,7 +234,6 @@ export const flockUI = {
       return inputId;
     }
 
-    // Await mode
     return new Promise((resolve) => {
       const submit = () => {
         const cleanValue = sanitize(input.text);
@@ -257,9 +241,7 @@ export const flockUI = {
         button.dispose();
         resolve(cleanValue);
       };
-
       button.onPointerUpObservable.add(submit);
-
       input.onKeyboardEventProcessedObservable.add((event) => {
         if (event.type === "keydown" && event.key === "Enter") {
           submit();
