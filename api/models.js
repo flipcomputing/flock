@@ -201,46 +201,9 @@ export const flockModels = {
     const applyMaterialToHierarchy = (mesh, colorInput) => {
       if (!applyColor || !colorInput) return;
 
-      let targetMaterials = [];
-
-      if (
-        colorInput &&
-        typeof colorInput === "object" &&
-        !Array.isArray(colorInput)
-      ) {
-        const mat =
-          colorInput.materialName && !colorInput.getClassName
-            ? flock.createMaterial(colorInput)
-            : colorInput;
-        targetMaterials = [mat];
-      } else if (
-        Array.isArray(colorInput) &&
-        colorInput.length &&
-        typeof colorInput[0] === "object"
-      ) {
-        targetMaterials = colorInput.map((c) =>
-          c.materialName && !c.getClassName ? flock.createMaterial(c) : c,
-        );
-      } else {
-        flock.changeColorMesh(mesh, colorInput);
-        return;
-      }
-
-      if (targetMaterials[0]) {
-        mesh.material = targetMaterials[0];
-        flock.adjustMaterialTilingToMesh(mesh, targetMaterials[0]);
-      }
-
-      const children = mesh.getChildMeshes(false);
-      children.forEach((child, i) => {
-        const m = targetMaterials[i] || targetMaterials[0];
-        if (m) {
-          child.material = m;
-          flock.adjustMaterialTilingToMesh(child, m);
-        }
-      });
+      flock.applyMaterialToHierarchy(mesh, color);
     };
-
+    
     const setTemplateFlags = (node, tag) => {
       const list = [
         node,
@@ -341,32 +304,42 @@ export const flockModels = {
       );
       flock.modelsBeingLoaded[modelName] = loadPromise;
 
-      loadPromise
-        .then((container) => {
-          container.addAllToScene();
+      // ... inside the loadPromise.then block ...
 
-          container.meshes.forEach((m) => {
-            m.metadata = m.metadata || {};
-            m.metadata.isTemplate = true;
-            m.metadata.templateTag = modelName;
-            m.isPickable = false;
-          });
+      loadPromise.then((container) => {
+        container.addAllToScene();
 
-          const root = container.meshes[0];
+        container.meshes.forEach((m) => {
+          m.metadata = m.metadata || {};
+          m.metadata.isTemplate = true;
+          m.metadata.templateTag = modelName;
 
-          if (applyColor) flock.ensureStandardMaterial(root);
+          // Only clear materials if we are intending to apply our own color system
+          if (applyColor) {
+            if (m.material) {
+              m.material.dispose(true, true);
+              m.material = null;
+            }
+          }
 
-          const template = root.clone(`${modelName}_template`);
-          setTemplateFlags(template, modelName);
-          flock.modelCache[modelName] = template;
-
-          finalizeMesh(root, meshName, groupName, bKey);
-          resolveReady(root);
-          releaseContainer(container);
-        })
-        .finally(() => {
-          delete flock.modelsBeingLoaded[modelName];
+          m.isPickable = false;
         });
+
+        const root = container.meshes[0];
+
+        // Only force standard material if we are applying custom colors
+        if (applyColor) {
+          flock.ensureStandardMaterial(root);
+        }
+
+        const template = root.clone(`${modelName}_template`);
+        setTemplateFlags(template, modelName);
+        flock.modelCache[modelName] = template;
+
+        finalizeMesh(root, meshName, groupName, bKey);
+        resolveReady(root);
+        releaseContainer(container);
+      });
 
       return meshName;
     } catch (e) {

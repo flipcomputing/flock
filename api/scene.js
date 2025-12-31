@@ -10,15 +10,21 @@ export const flockScene = {
   /*
    Category: Scene
   */
-  setSky(color, options = {}) {
-    if (!sceneReady()) {
-      return;
+  setSky(input, options = {}) {
+    if (!sceneReady()) return;
+
+    let color = input;
+
+    // Convert object input to a material (handles texture + colors)
+    if (
+      typeof input === "object" &&
+      !(input instanceof flock.BABYLON.Material) &&
+      !Array.isArray(input)
+    ) {
+      color = flock.createMaterial(input);
     }
 
-    if (!color) {
-      console.log("[set sky] No color provided");
-      return;
-    }
+    if (!color) return;
 
     const { clear = false } = options;
 
@@ -27,7 +33,6 @@ export const flockScene = {
       flock.sky = null;
     }
 
-    // Set background clear color
     if (clear === true) {
       const c3 = flock.BABYLON.Color3.FromHexString(
         flock.getColorFromString(color),
@@ -36,7 +41,6 @@ export const flockScene = {
       return;
     }
 
-    // Helper to create an inside-facing dome that follows the camera
     const createSkySphere = () => {
       const s = flock.BABYLON.MeshBuilder.CreateSphere(
         "sky",
@@ -57,24 +61,30 @@ export const flockScene = {
       const skySphere = createSkySphere();
       flock.sky = skySphere;
 
-      // Optional tiling if there’s a texture
+      const isShader = typeof color.setFloat === "function";
       const tex =
         color.diffuseTexture || color.albedoTexture || color.baseTexture;
-      if (
-        tex &&
-        typeof tex.uScale === "number" &&
-        typeof tex.vScale === "number"
-      ) {
-        tex.uScale = 10;
-        tex.vScale = 10;
+
+      if (tex || isShader) {
+        
+        const scaleValue = 10;
+
+        if (tex) {
+          tex.uScale = scaleValue;
+          tex.vScale = scaleValue;
+        }
+
+        if (isShader) {
+          color.setFloat("uScale", scaleValue);
+          color.setFloat("vScale", scaleValue);
+        }
       }
+
       color.backFaceCulling = false;
-      color.disableLighting = !!color.disableLighting; // leave caller’s intent
       skySphere.material = color;
       return;
     }
 
-    // Use gradient material for multi-color sky
     if (Array.isArray(color) && color.length >= 2) {
       const skySphere = createSkySphere();
       flock.sky = skySphere;
@@ -91,7 +101,7 @@ export const flockScene = {
         mat.smoothness = 0.5;
         mat.scale = 0.01;
         mat.backFaceCulling = false;
-        mat.disableLighting = true; // gradient is usually unlit
+        mat.disableLighting = true;
         skySphere.material = mat;
       } else {
         const mat = flock.createMultiColorGradientMaterial(
@@ -114,7 +124,6 @@ export const flockScene = {
       const c3 = flock.BABYLON.Color3.FromHexString(
         flock.getColorFromString(color),
       );
-
       const skySphere = createSkySphere();
       flock.sky = skySphere;
 
@@ -123,17 +132,16 @@ export const flockScene = {
         flock.scene,
       );
       skyMat.backFaceCulling = false;
-      skyMat.disableLighting = false; // ensure lit
-      skyMat.emissiveColor = c3.scale(0.3); 
-      skyMat.diffuseColor  = c3; 
-      skyMat.ambientColor  = c3.scale(0.1);
+      skyMat.disableLighting = false;
+      skyMat.emissiveColor = c3.scale(0.3);
+      skyMat.diffuseColor = c3;
+      skyMat.ambientColor = c3.scale(0.1);
       skyMat.fogEnabled = false;
 
       skySphere.material = skyMat;
       return;
     }
 
-    // Fallback (shouldn’t hit)
     flock.scene.clearColor = new flock.BABYLON.Color3(0, 0, 0);
   },
   createLinearGradientTexture(colors, opts = {}) {
@@ -182,127 +190,53 @@ export const flockScene = {
     tex.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
     return dt;
   },
-  createGround(colorOrMaterial, modelId, opts = {}) {
-    if (!sceneReady()) {
-      return;
-    }
+  createMap(image, material) {
+    if (!sceneReady() || !material) return;
 
-    const tile = typeof opts.tile === "number" ? opts.tile : 10;
+    const mapTexturePhysicalSize = 4;
 
-    if (flock.ground) {
-      flock.disposeMesh(flock.ground);
-    }
-
-    const ground = flock.BABYLON.MeshBuilder.CreateGround(
-      modelId,
-      { width: 100, height: 100, subdivisions: 2 },
-      flock.scene,
-    );
-
-    const groundAggregate = new flock.BABYLON.PhysicsAggregate(
-      ground,
-      flock.BABYLON.PhysicsShapeType.BOX,
-      { mass: 0, friction: 0.5 },
-      flock.scene,
-    );
-
-    ground.name = modelId;
-    ground.metadata = ground.metadata || {};
-    ground.metadata.blockKey = modelId;
-    ground.receiveShadows = true;
-    ground.physics = groundAggregate;
-
-    // Helper to apply tiling consistently (diffuse/albedo/base)
-    const applyTilingIfAnyTexture = (mat, repeat = tile) => {
-      const tex =
-        mat?.diffuseTexture || mat?.albedoTexture || mat?.baseTexture || null;
-      if (
-        tex &&
-        typeof tex.uScale === "number" &&
-        typeof tex.vScale === "number"
-      ) {
-        tex.uScale = repeat;
-        tex.vScale = repeat;
+    const applyMaterialToGround = (mesh, mat) => {
+      if (Array.isArray(mat) && mat.length >= 2) {
+        const standardMat = new flock.BABYLON.StandardMaterial(
+          "mapGradientMat",
+          flock.scene,
+        );
+        const dt = flock.createLinearGradientTexture(mat, {
+          size: 1024,
+          horizontal: false,
+        });
+        standardMat.diffuseTexture = dt;
+        standardMat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
+        standardMat.diffuseTexture.wrapU =
+          flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+        standardMat.diffuseTexture.wrapV =
+          flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+        flock.setMaterialWithCleanup(mesh, standardMat);
+      } else {
+        flock.setMaterialWithCleanup(mesh, material);
       }
     };
 
-    if (colorOrMaterial && colorOrMaterial instanceof flock.BABYLON.Material) {
-      ground.material = colorOrMaterial;
-      applyTilingIfAnyTexture(ground.material);
-    } else if (Array.isArray(colorOrMaterial) && colorOrMaterial.length >= 2) {
-      const mat = new flock.BABYLON.StandardMaterial(
-        "groundGradientMat",
-        flock.scene,
-      );
-      const dt = flock.createLinearGradientTexture(colorOrMaterial, {
-        size: 1024,
-        horizontal: false,
-      });
-      mat.diffuseTexture = dt;
-      mat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
-      mat.backFaceCulling = true;
-
-      // Clamp so the gradient spans the plane once
-      mat.diffuseTexture.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-      mat.diffuseTexture.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-      mat.diffuseTexture.uScale = 1;
-      mat.diffuseTexture.vScale = 1;
-
-      ground.material = mat;
-    } else {
-      // Single color
-      const mat = new flock.BABYLON.StandardMaterial(
-        "groundMaterial",
-        flock.scene,
-      );
-      mat.diffuseColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(colorOrMaterial),
-      );
-      mat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
-      ground.material = mat;
-    }
-
-    flock.ground = ground;
-  },
-  createMap(image, material) {
-    if (!sceneReady()) {
-      return;
-    }
-
-    if (!material) {
-      console.log("[create map] No material provided");
-      return;
+    if (flock.ground && flock.ground.metadata?.heightMapImage === image) {
+      applyMaterialToGround(flock.ground, material);
+      return flock.ground;
     }
 
     if (flock.ground) {
       flock.disposeMesh(flock.ground);
     }
 
-    const mapTexturePhysicalSize = 4;
-    const scaleGroundUVsToPhysicalSize = (mesh, texturePhysicalSize) => {
+    const scaleGroundUVs = (mesh) => {
       const positions = mesh.getVerticesData(
         flock.BABYLON.VertexBuffer.PositionKind,
       );
-      if (!positions || !positions.length) return;
-
-      const { minimum, maximum } = mesh.getBoundingInfo();
-      const minX = minimum.x;
-      const minZ = minimum.z;
-      const spanX = maximum.x - minimum.x;
-      const spanZ = maximum.z - minimum.z;
-      if (!Number.isFinite(spanX) || !Number.isFinite(spanZ)) return;
-
-      const uvs =
-        mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind) ||
-        new Float32Array((positions.length / 3) * 2);
-
+      if (!positions) return;
+      const { minimum } = mesh.getBoundingInfo();
+      const uvs = new Float32Array((positions.length / 3) * 2);
       for (let i = 0, ui = 0; i < positions.length; i += 3, ui += 2) {
-        const x = positions[i];
-        const z = positions[i + 2];
-        uvs[ui] = (x - minX) / texturePhysicalSize;
-        uvs[ui + 1] = (z - minZ) / texturePhysicalSize;
+        uvs[ui] = (positions[i] - minimum.x) / mapTexturePhysicalSize;
+        uvs[ui + 1] = (positions[i + 2] - minimum.z) / mapTexturePhysicalSize;
       }
-
       mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
     };
 
@@ -312,122 +246,78 @@ export const flockScene = {
 
     let ground;
     if (image === "NONE") {
-      const modelId = "flatGround";
       ground = flock.BABYLON.MeshBuilder.CreateGround(
-        modelId,
+        "ground",
         { width: 100, height: 100, subdivisions: 2 },
         flock.scene,
       );
-      const groundAggregate = new flock.BABYLON.PhysicsAggregate(
+      ground.physics = new flock.BABYLON.PhysicsAggregate(
         ground,
         flock.BABYLON.PhysicsShapeType.BOX,
         { mass: 0, friction: 0.5 },
         flock.scene,
       );
-      ground.physics = groundAggregate;
-      ground.name = modelId;
-      ground.metadata = ground.metadata || {};
-      ground.metadata.blockKey = modelId;
+      ground.metadata = {
+        blockKey: "ground",
+        skipAutoTiling: true,
+        textureTileSize: mapTexturePhysicalSize,
+        heightMapImage: "NONE",
+      };
       ground.receiveShadows = true;
-
-      if (shouldScaleUVs) {
-        scaleGroundUVsToPhysicalSize(ground, mapTexturePhysicalSize);
-      }
+      if (shouldScaleUVs) scaleGroundUVs(ground);
+      applyMaterialToGround(ground, material);
+      flock.ground = ground;
     } else {
-      const minHeight = 0;
-      const maxHeight = 10;
       ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
-        "heightmap",
+        "ground",
         flock.texturePath + image,
         {
           width: 100,
           height: 100,
-          minHeight: minHeight,
-          maxHeight: maxHeight,
+          minHeight: 0,
+          maxHeight: 10,
           subdivisions: 64,
-          onReady: (groundMesh) => {
-            const vertexData = groundMesh.getVerticesData(
+          onReady: (gm) => {
+            if (flock.ground !== gm) {
+              gm.dispose();
+              return;
+            }
+            gm.metadata = {
+              blockKey: "ground",
+              skipAutoTiling: true,
+              textureTileSize: mapTexturePhysicalSize,
+              heightMapImage: image,
+            };
+            const vertexData = gm.getVerticesData(
               flock.BABYLON.VertexBuffer.PositionKind,
             );
             let minDistance = Infinity;
             let closestY = 0;
             for (let i = 0; i < vertexData.length; i += 3) {
-              const x = vertexData[i];
-              const z = vertexData[i + 2];
-              const y = vertexData[i + 1];
-              const distance = Math.sqrt(x * x + z * z);
-              if (distance < minDistance) {
-                minDistance = distance;
-                closestY = y;
+              const dist = Math.sqrt(
+                vertexData[i] ** 2 + vertexData[i + 2] ** 2,
+              );
+              if (dist < minDistance) {
+                minDistance = dist;
+                closestY = vertexData[i + 1];
               }
             }
-
-            groundMesh.position.y -= closestY;
-            const heightMapGroundShape = new flock.BABYLON.PhysicsShapeMesh(
-              ground,
-              flock.scene,
-            );
-            const heightMapGroundBody = new flock.BABYLON.PhysicsBody(
-              ground,
+            gm.position.y -= closestY;
+            const body = new flock.BABYLON.PhysicsBody(
+              gm,
               flock.BABYLON.PhysicsMotionType.STATIC,
               false,
               flock.scene,
             );
-            heightMapGroundShape.material = {
-              friction: 0.3,
-              restitution: 0,
-            };
-            heightMapGroundBody.shape = heightMapGroundShape;
-            heightMapGroundBody.setMassProperties({ mass: 0 });
-            if (shouldScaleUVs) {
-              scaleGroundUVsToPhysicalSize(
-                groundMesh,
-                mapTexturePhysicalSize,
-              );
-            }
+            body.shape = new flock.BABYLON.PhysicsShapeMesh(gm, flock.scene);
+            if (shouldScaleUVs) scaleGroundUVs(gm);
+            applyMaterialToGround(gm, material);
           },
         },
         flock.scene,
       );
+      flock.ground = ground;
     }
-    ground.name = "ground";
-    ground.metadata = ground.metadata || {};
-    ground.metadata.blockKey = "ground";
-    ground.metadata.skipAutoTiling = true;
-    ground.metadata.textureTileSize = mapTexturePhysicalSize;
-
-    const applyMapMaterial = (mat) => {
-      flock.applyMaterialToMesh(ground, "Plane", mat);
-    };
-
-    if (material && material instanceof flock.BABYLON.Material) {
-      applyMapMaterial(material);
-    } else if (Array.isArray(material) && material.length >= 2) {
-      const mat = new flock.BABYLON.StandardMaterial(
-        "mapGradientMat",
-        flock.scene,
-      );
-      const dt = flock.createLinearGradientTexture(material, {
-        size: 1024,
-        horizontal: false,
-      });
-      mat.diffuseTexture = dt;
-      mat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
-      mat.backFaceCulling = true;
-
-      // Clamp so the gradient spans the plane once
-      mat.diffuseTexture.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-      mat.diffuseTexture.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-      mat.diffuseTexture.uScale = 1;
-      mat.diffuseTexture.vScale = 1;
-
-      applyMapMaterial(mat);
-    } else if (material) {
-      // Delegate to shared material application (handles strings, descriptors, etc.)
-      applyMapMaterial(material);
-    }
-
-    flock.ground = ground;
 
     return ground;
   },
@@ -480,12 +370,9 @@ export const flockScene = {
     });
   },
   disposeMesh(mesh) {
-    if (!mesh) {
-      return;
-    }
+    if (!mesh) return;
 
     if (mesh.name === "ground") {
-      mesh.material?.dispose();
       mesh.dispose();
       flock.ground = null;
       return;
@@ -512,9 +399,6 @@ export const flockScene = {
       meshesToDispose = mesh.getChildMeshes().concat(mesh);
     }
 
-    const disposedMaterials = new Set();
-
-    // Process AnimationGroups
     flock.scene.animationGroups.slice().forEach((animationGroup) => {
       const targets = animationGroup.targetedAnimations.map(
         (anim) => anim.target,
@@ -523,17 +407,16 @@ export const flockScene = {
       if (
         targets.some((target) => meshesToDispose.includes(target)) ||
         targets.some((target) => mesh.getDescendants().includes(target)) ||
-        targets.length === 0 // Orphaned group
+        targets.length === 0
       ) {
         animationGroup.targetedAnimations.forEach((anim) => {
-          anim.target = null; // Detach references
+          anim.target = null;
         });
         animationGroup.stop();
         animationGroup.dispose();
       }
     });
 
-    // Dispose standalone animations
     meshesToDispose.forEach((currentMesh) => {
       if (currentMesh.animations) {
         currentMesh.animations.forEach((animation) => {
@@ -543,58 +426,49 @@ export const flockScene = {
       }
     });
 
-    // Detach and Dispose Materials
     meshesToDispose.forEach((currentMesh) => {
-      if (currentMesh.material) {
-        const material = currentMesh.material;
+      const material = currentMesh.material;
+      if (!material) return;
 
-        // Detach material from the mesh
-        currentMesh.material = null;
+      const cacheKey = material.metadata?.cacheKey;
+      currentMesh.material = null;
 
-        // Dispose material if not already disposed
-        if (!disposedMaterials.has(material)) {
-          const sharedMaterial = currentMesh.metadata?.sharedMaterial;
-          const internalMaterial = material.metadata?.internal;
+      if (material.metadata?.isManaged) {
+        const isStillInUse = flock.scene.meshes.some(
+          (m) =>
+            !meshesToDispose.includes(m) &&
+            !m.isDisposed() &&
+            m.material === material,
+        );
 
-          if (sharedMaterial === false && internalMaterial === true) {
-            disposedMaterials.add(material);
-
-            // Remove from scene.materials
-            flock.scene.materials = flock.scene.materials.filter(
-              (mat) => mat !== material,
-            );
-
-            material.dispose();
+        if (!isStillInUse) {
+          if (cacheKey && flock.materialCache?.[cacheKey]) {
+            delete flock.materialCache[cacheKey];
           }
+          material.dispose(true, true);
         }
+      } else if (currentMesh.metadata?.sharedMaterial === false) {
+        material.dispose();
       }
     });
 
-    // Break parent-child relationships
     meshesToDispose.forEach((currentMesh) => {
-      //console.log("Stopping current sound");
       if (currentMesh?.metadata?.currentSound) {
         currentMesh.metadata.currentSound.stop();
       }
     });
-    // Break parent-child relationships
+
     meshesToDispose.forEach((currentMesh) => {
       currentMesh.parent = null;
     });
 
-    // Dispose meshes in reverse order
     meshesToDispose.reverse().forEach((currentMesh) => {
       if (!currentMesh.isDisposed()) {
-        // Remove physics body
         if (currentMesh.physics) {
           currentMesh.physics.dispose();
         }
-
-        // Remove from scene
         flock.scene.removeMesh(currentMesh);
         currentMesh.setEnabled(false);
-
-        // Dispose the mesh
         currentMesh.dispose();
       }
     });

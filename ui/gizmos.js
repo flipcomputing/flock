@@ -161,7 +161,6 @@ function applyColorAtPosition(canvasX, canvasY) {
   const pickedMesh = pickLeafFromRay(pickRay, scene);
 
   if (pickedMesh) {
-    flock.changeColorMesh(pickedMesh, selectedColor);
     updateBlockColorAndHighlight(pickedMesh, selectedColor);
   } else {
     flock.setSky(selectedColor);

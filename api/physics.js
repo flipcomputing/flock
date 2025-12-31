@@ -1,5 +1,122 @@
 let flock;
 
+const getShapeTypeFromPhysics = (physics) => {
+  const shapeName = physics?.shape?.constructor?.name;
+  switch (shapeName) {
+    case "_PhysicsShapeCapsule":
+      return "CAPSULE";
+    case "_PhysicsShapeMesh":
+      return "MESH";
+    default:
+      return null;
+  }
+};
+
+const capturePhysicsState = (targetMesh) => ({
+  motionType: targetMesh.physics?.getMotionType?.(),
+  disablePreStep: targetMesh.physics?.disablePreStep ?? false,
+  shapeType:
+    getShapeTypeFromPhysics(targetMesh.physics) ||
+    targetMesh.metadata?.physicsShapeType,
+});
+
+const disposePhysics = (targetMesh) => {
+  if (!targetMesh.physics) return;
+
+  const body = targetMesh.physics;
+
+  // Remove the body from the physics world
+  try {
+    if (body._pluginData?.hpBodyId) {
+      flock.hk._hknp.HP_World_RemoveBody(
+        flock.hk.world,
+        body._pluginData.hpBodyId,
+      );
+    }
+  } catch (e) {
+    console.warn("[physics] RemoveBody warning:", e);
+  }
+
+  // Dispose of the shape explicitly
+  try {
+    body.shape?.dispose?.();
+  } catch {}
+  try {
+    body.dispose?.();
+  } catch {}
+  targetMesh.physics = null;
+};
+
+const applyPhysicsShape = (
+  targetMesh,
+  shapeType,
+  motionType = flock.BABYLON.PhysicsMotionType.STATIC,
+  disablePreStep = false,
+) => {
+  switch (shapeType) {
+    case "CAPSULE": {
+      targetMesh.computeWorldMatrix(true);
+      const physicsShape = flock.createCapsuleFromBoundingBox(
+        targetMesh,
+        flock.scene,
+      );
+      if (!physicsShape) {
+        console.error(
+          "[physics] Failed to create capsule for",
+          targetMesh.name,
+        );
+        return;
+      }
+
+      const physicsBody = new flock.BABYLON.PhysicsBody(
+        targetMesh,
+        flock.BABYLON.PhysicsMotionType.DYNAMIC,
+        false,
+        flock.scene,
+      );
+      physicsBody.shape = physicsShape;
+      physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
+      physicsBody.disablePreStep = disablePreStep;
+      targetMesh.physics = physicsBody;
+      physicsBody.setMotionType(motionType);
+      targetMesh.metadata = targetMesh.metadata || {};
+      targetMesh.metadata.physicsShapeType = "CAPSULE";
+      targetMesh.metadata.physicsCache = {
+        motionType: physicsBody.getMotionType?.(),
+        disablePreStep: physicsBody.disablePreStep,
+        shapeType: "CAPSULE",
+      };
+      break;
+    }
+
+    case "MESH":
+    default: {
+      const physicsShape = new flock.BABYLON.PhysicsShapeMesh(
+        targetMesh,
+        flock.scene,
+      );
+      const physicsBody = new flock.BABYLON.PhysicsBody(
+        targetMesh,
+        motionType,
+        false,
+        flock.scene,
+      );
+      physicsBody.shape = physicsShape;
+      physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
+      physicsBody.disablePreStep = disablePreStep;
+      targetMesh.physics = physicsBody;
+      targetMesh.metadata = targetMesh.metadata || {};
+      targetMesh.metadata.physicsShapeType = "MESH";
+      targetMesh.metadata.physicsCache = {
+        motionType: physicsBody.getMotionType?.(),
+        disablePreStep: physicsBody.disablePreStep,
+        shapeType: "MESH",
+      };
+      break;
+    }
+  }
+};
+
 export function setFlockReference(ref) {
   flock = ref;
 }
@@ -128,6 +245,14 @@ export const flockPhysics = {
     mesh.metadata = mesh.metadata || {};
     mesh.metadata.physicsType = physicsType;
 
+    if (!mesh.physics && physicsType !== "NONE") {
+      const { motionType, disablePreStep, shapeType } =
+        mesh.metadata.physicsCache || {};
+      const resolvedShapeType =
+        shapeType || mesh.metadata.physicsShapeType || "MESH";
+      applyPhysicsShape(mesh, resolvedShapeType, motionType, disablePreStep);
+    }
+
     if (!mesh.physics) return mesh;
 
     switch (physicsType) {
@@ -150,16 +275,9 @@ export const flockPhysics = {
         break;
 
       case "NONE":
-        mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
-        try {
-          const id = mesh.physics._pluginData?.hpBodyId;
-          if (id != null) {
-            flock.hk._hknp.HP_World_RemoveBody(flock.hk.world, id);
-          }
-        } catch (e) {
-          console.warn("[setPhysics] Error removing body:", e);
-        }
-        mesh.physics.disablePreStep = true;
+        mesh.metadata.physicsCache = capturePhysicsState(mesh);
+        disposePhysics(mesh);
+        mesh.physics = null;
         break;
     }
 
@@ -172,32 +290,7 @@ export const flockPhysics = {
         disablePreStep: targetMesh.physics?.disablePreStep,
       });
 
-      const disposePhysics = (targetMesh) => {
-        if (targetMesh.physics) {
-          const body = targetMesh.physics;
-
-          // Remove the body from the physics world
-          try {
-            if (body._pluginData?.hpBodyId) {
-              flock.hk._hknp.HP_World_RemoveBody(
-                flock.hk.world,
-                body._pluginData.hpBodyId,
-              );
-            }
-          } catch (e) {
-            console.warn("[setPhysicsShape] RemoveBody warning:", e);
-          }
-
-          // Dispose of the shape explicitly
-          try {
-            body.shape?.dispose?.();
-          } catch {}
-          try {
-            body.dispose?.();
-          } catch {}
-          targetMesh.physics = null;
-        }
-      };
+      mesh.metadata = mesh.metadata || {};
 
       // --- CAPSULE path (player collider) ---
       const applyCapsuleToRoot = (targetMesh) => {
@@ -232,9 +325,15 @@ export const flockPhysics = {
         if (motionType != null) {
           physicsBody.setMotionType(motionType);
         }
+
+        targetMesh.metadata.physicsShapeType = "CAPSULE";
+        targetMesh.metadata.physicsCache = {
+          motionType: physicsBody.getMotionType?.(),
+          disablePreStep: physicsBody.disablePreStep,
+          shapeType: "CAPSULE",
+        };
       };
 
-      // --- MESH path (preserve original behaviour) ---
       const applyMeshPhysicsShape = (targetMesh) => {
         const { motionType, disablePreStep } = capturePhysicsState(targetMesh);
         // Keep your original material gate
@@ -261,6 +360,13 @@ export const flockPhysics = {
         physicsBody.disablePreStep = disablePreStep ?? false;
 
         targetMesh.physics = physicsBody;
+
+        targetMesh.metadata.physicsShapeType = "MESH";
+        targetMesh.metadata.physicsCache = {
+          motionType: physicsBody.getMotionType?.(),
+          disablePreStep: physicsBody.disablePreStep,
+          shapeType: "MESH",
+        };
       };
 
       // --- Dispatch by shape type ---

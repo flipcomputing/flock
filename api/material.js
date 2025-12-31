@@ -6,12 +6,19 @@ export function setFlockReference(ref) {
 
 export const flockMaterial = {
   adjustMaterialTilingToMesh(mesh, material, unitsPerTile = null) {
+    return; // Don't scale textures - need to change the mesh UVs instead
     if (!mesh || !material) return;
 
     if (mesh.metadata?.skipAutoTiling) return;
 
     const shapeType = mesh?.metadata?.shapeType;
-    const bakedShapes = new Set(["Box", "Sphere", "Cylinder", "Capsule", "Plane"]);
+    const bakedShapes = new Set([
+      "Box",
+      "Sphere",
+      "Cylinder",
+      "Capsule",
+      "Plane",
+    ]);
     if (shapeType && bakedShapes.has(shapeType)) return;
 
     const tex =
@@ -20,7 +27,11 @@ export const flockMaterial = {
       material.baseTexture ||
       null;
 
-    if (!tex || typeof tex.uScale !== "number" || typeof tex.vScale !== "number") {
+    if (
+      !tex ||
+      typeof tex.uScale !== "number" ||
+      typeof tex.vScale !== "number"
+    ) {
       return;
     }
 
@@ -58,7 +69,9 @@ export const flockMaterial = {
     targets.forEach((m) => {
       const mat =
         m.material ||
-        (m.getClassName?.() === "InstancedMesh" ? m.sourceMesh?.material : null);
+        (m.getClassName?.() === "InstancedMesh"
+          ? m.sourceMesh?.material
+          : null);
       flock.adjustMaterialTilingToMesh(m, mat, unitsPerTile);
     });
   },
@@ -283,39 +296,37 @@ export const flockMaterial = {
     mesh.getChildMeshes().forEach(applyGlow);
   },
   setAlpha(meshName, { value = 1 } = {}) {
-    if (flock.materialsDebug)
-      console.log(`Set alpha of ${meshName} to ${value}:`);
-
-    // Clamp value between 0 and 1
     value = Math.max(0, Math.min(1, value));
 
     return flock.whenModelReady(meshName, (mesh) => {
-      const allMeshes = [mesh, ...mesh.getDescendants()];
+      const allMeshes = [mesh, ...mesh.getDescendants()].filter(
+        (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0,
+      );
 
       allMeshes.forEach((nextMesh) => {
+        const oldMat = nextMesh.material;
+        if (!oldMat || !oldMat.metadata?.cacheKey) return;
+
+        const parts = oldMat.metadata.cacheKey.split("_");
+        const colorPart = parts[1];
+        const texPart = parts[3];
+
+        const color = colorPart.includes("-")
+          ? colorPart.split("-")
+          : colorPart;
+
+        const materialParams = {
+          color: color,
+          materialName: texPart,
+          alpha: value,
+        };
+
+        flock.setMaterialWithCleanup(nextMesh, materialParams);
+
         if (nextMesh.material) {
-          if (!(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)) {
-            flock.ensureUniqueMaterial(nextMesh);
-          }
-          if (nextMesh.material?.metadata?.internal === true) {
-            nextMesh.material.alpha = value;
-          } else {
-            let material = flock.createMaterial({
-              color: "#ffffff",
-              materialName: "arrows.png",
-              alpha: 1,
-            });
-            Object.keys(material).forEach((key) => {
-              if (key != "uniqueId") material[key] = nextMesh.material[key];
-            });
-            material.alpha = value;
-            material.internal = true;
-            nextMesh.material = material;
-          }
           nextMesh.material.transparencyMode =
             flock.BABYLON.Material.MATERIAL_ALPHABLEND;
-          if (value > 0) nextMesh.material.needDepthPrePass = true;
-          else nextMesh.material.needDepthPrePass = false;
+          nextMesh.material.needDepthPrePass = value > 0 && value < 1;
         }
       });
     });
@@ -487,55 +498,6 @@ export const flockMaterial = {
     replaceIfPBRMaterial(mesh);
     // Replace materials on all child meshes
     mesh.getChildMeshes().forEach(replaceIfPBRMaterial);
-    // Dispose of all replaced materials
-    replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
-      oldMaterial.dispose();
-    });
-  },
-  ensureStandardMaterial2(mesh) {
-    if (!mesh) return;
-
-    // Set to track replaced materials and their corresponding replacements
-    const replacedMaterialsMap = new Map();
-
-    // Default material to use as the replacement base
-    const defaultMaterial =
-      flock.scene.defaultMaterial ||
-      new flock.BABYLON.StandardMaterial("defaultMaterial", flock.scene);
-    defaultMaterial.backFaceCulling = false;
-
-    const replaceIfPBRMaterial = (targetMesh) => {
-      const material = targetMesh.material;
-
-      if (material && material.getClassName() === "PBRMaterial") {
-        if (!replacedMaterialsMap.has(material)) {
-          // Replace with a cloned default material, preserving the name
-          const originalName = material.name;
-          const newMaterial = defaultMaterial.clone(originalName);
-          replacedMaterialsMap.set(material, newMaterial);
-        }
-
-        // Assign the replaced material to the mesh
-        targetMesh.material = replacedMaterialsMap.get(material);
-
-        targetMesh.material = replacedMaterialsMap.get(material);
-        targetMesh.backFaceCulling = false;
-        targetMesh.material.alpha = 1;
-        targetMesh.material.transparencyMode =
-          flock.BABYLON.Material.MATERIAL_OPAQUE;
-        // targetMesh.material.alphaMode = undefined;
-        //targetMesh.material.reflectionTexture = null;
-        targetMesh.material.needDepthPrePass = false;
-        targetMesh.material.specularColor = new flock.BABYLON.Color3(0, 0, 0);
-      }
-    };
-
-    // Replace material on the main mesh
-    replaceIfPBRMaterial(mesh);
-
-    // Replace materials on all child meshes
-    mesh.getChildMeshes().forEach(replaceIfPBRMaterial);
-
     // Dispose of all replaced materials
     replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
       oldMaterial.dispose();
@@ -769,74 +731,22 @@ export const flockMaterial = {
   },
 
   setMaterial(meshName, materials) {
-    materials = materials.map((material) => {
-      if (material instanceof flock.BABYLON.Material) {
-        return material;
-      } else {
-        material = flock.createMaterial(material);
-        material.metadata = material.metadata || {};
-        material.metadata.internal = true;
-        return material;
-      }
-    });
+    const materialArray = Array.isArray(materials) ? materials : [materials];
 
-    flock.setMaterialInternal(meshName, materials);
+    flock.setMaterialInternal(meshName, materialArray);
+
     flock.whenModelReady(meshName, (mesh) => {
-      if (flock.materialsDebug) console.log(mesh.metadata.clones);
       mesh.metadata?.clones?.forEach((cloneName) => {
-        flock.setMaterialInternal(cloneName, materials);
+        flock.setMaterialInternal(cloneName, materialArray);
       });
     });
   },
   setMaterialInternal(meshName, materials) {
+    console.log("Applying material to", meshName, "with", materials);
     return flock.whenModelReady(meshName, (mesh) => {
-      const allMeshes = [mesh].concat(mesh.getDescendants());
-      allMeshes.forEach((part) => {
-        if (part.material?.metadata?.internal) {
-          part.material.dispose();
-        }
-      });
-
-      if (flock.materialsDebug)
-        console.log(`Setting material of ${meshName} to ${materials}:`);
-      const validMeshes = allMeshes.filter(
-        (part) => part instanceof flock.BABYLON.Mesh,
-      );
-
-      // Sort meshes alphabetically by name
-      const sortedMeshes = validMeshes.sort((a, b) =>
-        a.name.localeCompare(b.name),
-      );
-
-      if (flock.materialsDebug)
-        console.log(`Setting material of ${sortedMeshes.length} meshes`);
-      sortedMeshes.forEach((part, index) => {
-        const material = Array.isArray(materials)
-          ? materials[index % materials.length]
-          : materials;
-
-        if (material instanceof flock.GradientMaterial) {
-          mesh.computeWorldMatrix(true);
-
-          const boundingInfo = mesh.getBoundingInfo();
-
-          const yDimension = boundingInfo.boundingBox.extendSizeWorld.y;
-
-          material.scale = yDimension > 0 ? 1 / yDimension : 1;
-        }
-        if (!(material instanceof flock.BABYLON.Material)) {
-          console.error(
-            `Invalid material provided for mesh ${part.name}:`,
-            material,
-          );
-          return;
-        }
-
-        if (flock.materialsDebug)
-          console.log(`Setting material of ${part.name} to ${material.name}`);
-        // Apply the material to the mesh
-        part.material = material;
-        flock.adjustMaterialTilingToMesh(part, material);
+      flock.applyMaterialToHierarchy(mesh, materials, {
+        applyColor: true,
+        blockKey: null,
       });
 
       if (mesh.metadata?.glow) {
@@ -1251,537 +1161,178 @@ export const flockMaterial = {
 
     return shaderMaterial;
   },
+  setMaterialWithCleanup(mesh, materialData) {
+    if (!mesh) return;
 
-  applyMaterialToMesh(mesh, shapeType, color, alpha = 1.0) {
-    if (flock.materialsDebug) console.log(`Applying material to ${mesh.name}`);
-    const scene = mesh.getScene();
+    const oldMat = mesh.material;
 
-    const resolvedAlpha = alpha == null ? 1.0 : alpha;
+    // Get or create from cache
+    const newMat = flock.getOrCreateMaterial(materialData);
 
-    // --- Helpers --------------------------------------------------------------
-    const isBabylonMaterial = (v) => v && typeof v.getClassName === "function";
+    if (oldMat === newMat) return;
+
+    mesh.material = newMat;
+
+    if (oldMat && oldMat.metadata && oldMat.metadata.isManaged) {
+      const cacheKey = oldMat.metadata.cacheKey;
+      const isStillInUse = flock.scene.meshes.some(
+        (m) => m !== mesh && !m.isDisposed() && m.material === oldMat,
+      );
+
+      if (!isStillInUse) {
+        if (cacheKey && flock.materialCache[cacheKey]) {
+          delete flock.materialCache[cacheKey];
+        }
+        oldMat.dispose(true, true);
+      }
+    }
+  },
+  getOrCreateMaterial(colorInput, alpha = 1, scene) {
+    const isObject =
+      typeof colorInput === "object" &&
+      colorInput !== null &&
+      !Array.isArray(colorInput);
+
+    let rawColor = "#ffffff";
+    let texName = "none.png";
+    let finalAlpha = alpha;
+
+    if (isObject) {
+      const inner = colorInput.color || colorInput.baseColor;
+      const isInnerObject =
+        typeof inner === "object" && inner !== null && !Array.isArray(inner);
+
+      if (isInnerObject) {
+        rawColor = inner.color || inner.baseColor || "#ffffff";
+        texName =
+          inner.materialName ||
+          inner.textureSet ||
+          colorInput.materialName ||
+          colorInput.textureSet ||
+          "none.png";
+        finalAlpha =
+          inner.alpha !== undefined
+            ? inner.alpha
+            : colorInput.alpha !== undefined
+              ? colorInput.alpha
+              : alpha;
+      } else {
+        rawColor = inner || "#ffffff";
+        texName =
+          colorInput.materialName || colorInput.textureSet || "none.png";
+        finalAlpha = colorInput.alpha !== undefined ? colorInput.alpha : alpha;
+      }
+    } else {
+      rawColor = colorInput || "#ffffff";
+    }
+
+    const colorKey = Array.isArray(rawColor) ? rawColor.join("-") : rawColor;
+    const alphaKey = parseFloat(finalAlpha).toFixed(2);
+    const cacheKey = `mat_${colorKey}_${alphaKey}_${texName}`.toLowerCase();
+
+    if (!flock.materialCache) flock.materialCache = {};
+    if (flock.materialCache[cacheKey]) return flock.materialCache[cacheKey];
+
+    const materialParams = {
+      color: rawColor,
+      materialName: texName,
+      alpha: finalAlpha,
+    };
+
+    const newMat = flock.createMaterial(materialParams);
+
+    newMat.name = cacheKey;
+    newMat.alpha = finalAlpha;
+
+    if (!newMat.metadata) newMat.metadata = {};
+    newMat.metadata.cacheKey = cacheKey;
+    newMat.metadata.isManaged = true;
+
+    if (finalAlpha < 1) {
+      newMat.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+      newMat.needDepthPrePass = true;
+    }
+
+    flock.materialCache[cacheKey] = newMat;
+    return newMat;
+  },
+  applyMaterialToHierarchy(rootMesh, colorInput, opts = {}) {
+    const applyColor = opts.applyColor ?? true;
+    if (!applyColor || !rootMesh || !colorInput) return rootMesh;
+
+    const geometryMeshes = rootMesh
+      .getDescendants(false)
+      .filter(
+        (n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0,
+      )
+      .sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        }),
+      );
+
+    const targets = geometryMeshes.length ? geometryMeshes : [rootMesh];
 
     const isMaterialDescriptor = (v) =>
-      v &&
-      typeof v === "object" &&
-      !Array.isArray(v) &&
-      ("materialName" in v || "color" in v || "alpha" in v);
+      typeof v === "object" && v !== null && !Array.isArray(v);
 
-    const toMaterial = (v) => {
-      if (isBabylonMaterial(v)) return v;
-      if (isMaterialDescriptor(v)) {
-        const desc = { ...v };
-        if (desc.alpha == null) desc.alpha = resolvedAlpha;
-        return flock.createMaterial(desc);
-      }
-      return null;
+    const getRawColor = (v) =>
+      isMaterialDescriptor(v) ? v.color || v.baseColor : v;
+
+    const getTexName = (v) =>
+      isMaterialDescriptor(v)
+        ? v.materialName || v.textureSet || "NONE"
+        : "NONE";
+
+    const getAlpha = (v) =>
+      isMaterialDescriptor(v)
+        ? (v.alpha ?? opts.alpha ?? 1)
+        : (opts.alpha ?? 1);
+
+    const makeTargetCacheKey = (v) => {
+      const rawColor = getRawColor(v);
+      const resolvedHex = flock.getColorFromString(rawColor) || "#ffffff";
+      const texName = String(getTexName(v));
+      const alpha = getAlpha(v);
+
+      // This matches your existing cache key convention closely while also
+      // respecting alpha when it’s provided via descriptor or opts.
+      return `mat_${resolvedHex.toLowerCase()}_${alpha}_${texName}`.toLowerCase();
     };
 
-    const makeColor4 = (c) => {
-      if (typeof c === "string") {
-        const col = flock.BABYLON.Color3.FromHexString(c);
-        return new flock.BABYLON.Color4(col.r, col.g, col.b, resolvedAlpha);
-      } else if (c instanceof flock.BABYLON.Color3) {
-        return new flock.BABYLON.Color4(c.r, c.g, c.b, resolvedAlpha);
-      } else if (c instanceof flock.BABYLON.Color4) {
-        return new flock.BABYLON.Color4(c.r, c.g, c.b, c.a);
-      } else {
-        return new flock.BABYLON.Color4(1, 1, 1, resolvedAlpha);
-      }
-    };
+    const applyOne = (m, v, index) => {
+      if (!(m instanceof flock.BABYLON.Mesh)) return;
 
-    const isPlaneSideMultiMaterial = (m) =>
-      m instanceof flock.BABYLON.MultiMaterial &&
-      (m.metadata?.planeSides || m.name?.startsWith("planeMultiMat_"));
+      m.metadata = m.metadata || {};
 
-    const disposePlaneSideMaterials = (target = mesh.material) => {
-      if (!isPlaneSideMultiMaterial(target)) return;
+      if (index !== undefined) m.metadata.materialIndex = index;
+      else if (m.metadata.materialIndex !== undefined)
+        delete m.metadata.materialIndex;
 
-      target.subMaterials?.forEach((sub) => sub?.dispose());
-      target.dispose(true, true);
-      if (target === mesh.material) {
-        mesh.material = null;
-      }
+      const targetCacheKey = makeTargetCacheKey(v);
+      if (m.material?.metadata?.cacheKey === targetCacheKey) return;
 
-      // Revert to a single submesh when we drop the plane-side materials.
-      if (mesh.subMeshes?.length > 1) {
-        const indices = mesh.getIndices();
-        const verticesCount = mesh.getTotalVertices();
-        mesh.subMeshes = [];
-        new flock.BABYLON.SubMesh(
-          0,
-          0,
-          verticesCount,
-          0,
-          indices?.length || 0,
-          mesh,
-        );
+      flock.setMaterialWithCleanup(m, v);
+
+      if (m.material) {
+        flock.adjustMaterialTilingToMesh(m, m.material);
+        m.material.needDepthPrePass = getAlpha(v) > 0;
       }
     };
 
-    const applyMaterialWithTilingIfAny = (m) => {
-      mesh.material = m;
-      flock.adjustMaterialTilingToMesh(mesh, m);
-    };
+    if (Array.isArray(colorInput)) {
+      const flat = colorInput.flat();
+      if (!flat.length) return rootMesh;
 
-    const clearVertexColors = () => {
-      if (mesh?.isVerticesDataPresent?.(flock.BABYLON.VertexBuffer.ColorKind)) {
-        mesh.removeVerticesData(flock.BABYLON.VertexBuffer.ColorKind);
-      }
-    };
-
-    // --- Material path for objects that can take a single material ------------
-    const materialFromArray =
-      Array.isArray(color) &&
-      color.length === 1 &&
-      (isBabylonMaterial(color[0]) || isMaterialDescriptor(color[0]))
-        ? toMaterial(color[0])
-        : null;
-
-    if (
-      materialFromArray ||
-      isBabylonMaterial(color) ||
-      isMaterialDescriptor(color)
-    ) {
-      const matCandidate = materialFromArray || toMaterial(color);
-      if (matCandidate) {
-        disposePlaneSideMaterials();
-        clearVertexColors();
-        matCandidate.alpha = resolvedAlpha;
-        applyMaterialWithTilingIfAny(matCandidate);
-        return;
-      }
+      targets.forEach((m, i) => {
+        const v = flat[i % flat.length];
+        applyOne(m, v, i);
+      });
+    } else {
+      targets.forEach((m) => applyOne(m, colorInput));
     }
 
-    // Plane: allow a material or a material descriptor (or array -> first)
-    if (shapeType === "Plane") {
-      let matCandidate = null;
-
-      if (Array.isArray(color) && color.length) {
-        // First material-like element wins
-        const first = color[0];
-        if (isBabylonMaterial(first) || isMaterialDescriptor(first)) {
-          matCandidate = toMaterial(first);
-        }
-      } else if (isBabylonMaterial(color) || isMaterialDescriptor(color)) {
-        matCandidate = toMaterial(color);
-      }
-
-      if (matCandidate) {
-        disposePlaneSideMaterials();
-        clearVertexColors();
-        matCandidate.alpha = resolvedAlpha;
-        applyMaterialWithTilingIfAny(matCandidate);
-        return;
-      }
-
-      // Two-colour planes: one colour per side
-      const isPlainColour = (c) =>
-        typeof c === "string" ||
-        c instanceof flock.BABYLON.Color3 ||
-        c instanceof flock.BABYLON.Color4;
-
-      if (
-        Array.isArray(color) &&
-        color.length === 2 &&
-        color.every(isPlainColour)
-      ) {
-        clearVertexColors();
-
-        const [front, back] = color.map(makeColor4);
-        const makePlaneMaterial = (c4, suffix) => {
-          const mat = new flock.BABYLON.StandardMaterial(
-            `planeSide${suffix}_${mesh.id}`,
-            scene,
-          );
-          mat.diffuseColor = new flock.BABYLON.Color3(c4.r, c4.g, c4.b);
-          mat.alpha = c4.a;
-          return mat;
-        };
-
-        const tryReusePlaneSideMaterial = () => {
-          if (!isPlaneSideMultiMaterial(mesh.material)) return null;
-          if (mesh.material?.subMaterials?.length !== 2) return null;
-          return mesh.material;
-        };
-
-        const updatePlaneSideMaterial = (mat, frontColor, backColor) => {
-          if (mat.subMaterials?.length !== 2) return false;
-          const [frontMat, backMat] = mat.subMaterials;
-          if (!(frontMat instanceof flock.BABYLON.StandardMaterial))
-            return false;
-          if (!(backMat instanceof flock.BABYLON.StandardMaterial))
-            return false;
-
-          frontMat.diffuseColor = new flock.BABYLON.Color3(
-            frontColor.r,
-            frontColor.g,
-            frontColor.b,
-          );
-          frontMat.alpha = frontColor.a;
-
-          backMat.diffuseColor = new flock.BABYLON.Color3(
-            backColor.r,
-            backColor.g,
-            backColor.b,
-          );
-          backMat.alpha = backColor.a;
-
-          return true;
-        };
-
-        let multiMaterial = tryReusePlaneSideMaterial();
-        if (
-          multiMaterial &&
-          !updatePlaneSideMaterial(multiMaterial, front, back)
-        ) {
-          disposePlaneSideMaterials(multiMaterial);
-          multiMaterial = null;
-        }
-
-        if (!multiMaterial) {
-          multiMaterial = new flock.BABYLON.MultiMaterial(
-            `planeMultiMat_${mesh.id}`,
-            scene,
-          );
-          multiMaterial.metadata = { planeSides: true };
-          multiMaterial.subMaterials.push(
-            makePlaneMaterial(front, "Front"),
-            makePlaneMaterial(back, "Back"),
-          );
-        }
-
-        multiMaterial.metadata = multiMaterial.metadata || {};
-        multiMaterial.metadata.planeSides = true;
-
-        const indices = mesh.getIndices();
-        const verticesCount = mesh.getTotalVertices();
-        if (
-          !indices ||
-          indices.length < 12 ||
-          indices.length % 2 !== 0 ||
-          verticesCount <= 0
-        ) {
-          disposePlaneSideMaterials(multiMaterial);
-          console.warn(
-            "Plane mesh missing expected geometry; falling back to single colour.",
-          );
-          return flock.applyMaterialToMesh(
-            mesh,
-            shapeType,
-            color[0],
-            resolvedAlpha,
-          );
-        } else {
-          mesh.subMeshes = [];
-          const firstSideCount = indices.length / 2;
-          new flock.BABYLON.SubMesh(
-            0,
-            0,
-            verticesCount,
-            0,
-            firstSideCount,
-            mesh,
-          );
-          new flock.BABYLON.SubMesh(
-            1,
-            0,
-            verticesCount,
-            firstSideCount,
-            indices.length - firstSideCount,
-            mesh,
-          );
-          mesh.material = multiMaterial;
-          return;
-        }
-      }
-      // Fall through to colour handling if not material-like
-    }
-
-    // --- Single uniform colour (all shapes except special cases below) --------
-    if (!Array.isArray(color) || color.length === 1) {
-      if (shapeType === "Plane") {
-        disposePlaneSideMaterials();
-      }
-      clearVertexColors();
-      const material = new flock.BABYLON.StandardMaterial(
-        `${shapeType.toLowerCase()}Material`,
-        scene,
-      );
-      material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(Array.isArray(color) ? color[0] : color),
-      );
-      material.alpha = resolvedAlpha;
-      mesh.material = material;
-      return;
-    }
-
-    // --- Box face colours via vertex colours ----------------------------------
-    if (shapeType === "Box") {
-      const positions = mesh.getVerticesData(
-        flock.BABYLON.VertexBuffer.PositionKind,
-      );
-      const indices = mesh.getIndices();
-      const normals = mesh.getVerticesData(
-        flock.BABYLON.VertexBuffer.NormalKind,
-      );
-
-      if (!positions || !indices || indices.length !== 36) {
-        console.warn(
-          "Mesh is not a standard box; falling back to uniform color.",
-        );
-        return flock.applyMaterialToMesh(
-          mesh,
-          shapeType,
-          color[0],
-          resolvedAlpha,
-        );
-      }
-
-      const faceToSide = ["front", "back", "right", "left", "top", "bottom"];
-      const sideColorMap = {
-        front: makeColor4(color[0]),
-        back: makeColor4(color[0]),
-        left: makeColor4(color[0]),
-        right: makeColor4(color[0]),
-        top: makeColor4(color[0]),
-        bottom: makeColor4(color[0]),
-      };
-
-      switch (color.length) {
-        case 2:
-          sideColorMap.top = sideColorMap.bottom = makeColor4(color[0]);
-          sideColorMap.left =
-            sideColorMap.right =
-            sideColorMap.front =
-            sideColorMap.back =
-              makeColor4(color[1]);
-          break;
-        case 3:
-          sideColorMap.top = sideColorMap.bottom = makeColor4(color[0]);
-          sideColorMap.left = sideColorMap.right = makeColor4(color[1]);
-          sideColorMap.front = sideColorMap.back = makeColor4(color[2]);
-          break;
-        case 4:
-          sideColorMap.top = makeColor4(color[0]);
-          sideColorMap.bottom = makeColor4(color[1]);
-          sideColorMap.left = sideColorMap.right = makeColor4(color[2]);
-          sideColorMap.front = sideColorMap.back = makeColor4(color[3]);
-          break;
-        case 5:
-          sideColorMap.top = sideColorMap.bottom = makeColor4(color[0]);
-          sideColorMap.left = makeColor4(color[1]);
-          sideColorMap.right = makeColor4(color[2]);
-          sideColorMap.front = makeColor4(color[3]);
-          sideColorMap.back = makeColor4(color[4]);
-          break;
-        default: {
-          const arr = color.slice(0, 6).map(makeColor4);
-          [
-            sideColorMap.top,
-            sideColorMap.bottom,
-            sideColorMap.left,
-            sideColorMap.right,
-            sideColorMap.front,
-            sideColorMap.back,
-          ] = arr;
-        }
-      }
-
-      const colors = [];
-      const newPositions = [];
-      const newNormals = [];
-      const newIndices = [];
-      let baseIndex = 0;
-
-      for (let i = 0; i < indices.length; i += 6) {
-        const faceIndex = i / 6;
-        const side = faceToSide[faceIndex];
-        const faceColor = sideColorMap[side];
-
-        for (let j = 0; j < 6; j++) {
-          const vi = indices[i + j];
-
-          newPositions.push(
-            positions[vi * 3],
-            positions[vi * 3 + 1],
-            positions[vi * 3 + 2],
-          );
-
-          if (normals) {
-            newNormals.push(
-              normals[vi * 3],
-              normals[vi * 3 + 1],
-              normals[vi * 3 + 2],
-            );
-          }
-
-          colors.push(faceColor.r, faceColor.g, faceColor.b, faceColor.a);
-          newIndices.push(baseIndex++);
-        }
-      }
-
-      mesh.setVerticesData(
-        flock.BABYLON.VertexBuffer.PositionKind,
-        newPositions,
-      );
-      if (normals)
-        mesh.setVerticesData(flock.BABYLON.VertexBuffer.NormalKind, newNormals);
-      mesh.setVerticesData(flock.BABYLON.VertexBuffer.ColorKind, colors);
-      mesh.setIndices(newIndices);
-
-      const useVertexAlpha = resolvedAlpha < 1;
-      mesh.hasVertexAlpha = useVertexAlpha;
-
-      const mat = new flock.BABYLON.StandardMaterial("faceColorMat", scene);
-      mat.diffuseColor = flock.BABYLON.Color3.White();
-      mat.alpha = resolvedAlpha;
-      mat.backFaceCulling = false;
-      mat.vertexColors = true;
-      mesh.material = mat;
-      return;
-    }
-
-    // --- Cylinder colours via vertex colours ----------------------------------
-    if (shapeType === "Cylinder") {
-      const positions = mesh.getVerticesData(
-        flock.BABYLON.VertexBuffer.PositionKind,
-      );
-      const indices = mesh.getIndices();
-      const normals = mesh.getVerticesData(
-        flock.BABYLON.VertexBuffer.NormalKind,
-      );
-
-      if (!positions || !indices) {
-        console.warn(
-          "Missing geometry for cylinder; falling back to uniform color.",
-        );
-        return flock.applyMaterialToMesh(
-          mesh,
-          shapeType,
-          color[0],
-          resolvedAlpha,
-        );
-      }
-
-      const colors = [];
-      const newPositions = [];
-      const newNormals = [];
-      const newIndices = [];
-
-      const yVals = [];
-      for (let i = 0; i < positions.length; i += 3)
-        yVals.push(positions[i + 1]);
-
-      const minY = Math.min(...yVals);
-      const maxY = Math.max(...yVals);
-
-      const makeColorFromIndex = (i) => makeColor4(color[i % color.length]);
-
-      let baseIndex = 0;
-      let sideFaceIndex = 0;
-
-      for (let i = 0; i < indices.length; i += 3) {
-        const vi0 = indices[i];
-        const vi1 = indices[i + 1];
-        const vi2 = indices[i + 2];
-
-        const y0 = positions[vi0 * 3 + 1];
-        const y1 = positions[vi1 * 3 + 1];
-        const y2 = positions[vi2 * 3 + 1];
-
-        const isTop = y0 === maxY && y1 === maxY && y2 === maxY;
-        const isBottom = y0 === minY && y1 === minY && y2 === minY;
-
-        let faceColor;
-        if (isTop) {
-          faceColor = makeColor4(color[0]);
-        } else if (isBottom) {
-          faceColor = makeColor4(color.length > 1 ? color[1] : color[0]);
-        } else {
-          if (color.length === 2) {
-            faceColor = makeColor4(color[1]);
-          } else if (color.length === 3) {
-            faceColor = makeColor4(color[2]);
-          } else {
-            const sideColorIndex = 2 + Math.floor(sideFaceIndex / 2);
-            faceColor = makeColor4(
-              color[(sideColorIndex % (color.length - 2)) + 2],
-            );
-            sideFaceIndex++;
-          }
-        }
-
-        for (let j = 0; j < 3; j++) {
-          const vi = indices[i + j];
-
-          newPositions.push(
-            positions[vi * 3],
-            positions[vi * 3 + 1],
-            positions[vi * 3 + 2],
-          );
-
-          if (normals) {
-            newNormals.push(
-              normals[vi * 3],
-              normals[vi * 3 + 1],
-              normals[vi * 3 + 2],
-            );
-          }
-
-          colors.push(faceColor.r, faceColor.g, faceColor.b, faceColor.a);
-          newIndices.push(baseIndex++);
-        }
-      }
-
-      mesh.setVerticesData(
-        flock.BABYLON.VertexBuffer.PositionKind,
-        newPositions,
-      );
-      if (normals)
-        mesh.setVerticesData(flock.BABYLON.VertexBuffer.NormalKind, newNormals);
-      mesh.setVerticesData(flock.BABYLON.VertexBuffer.ColorKind, colors);
-      mesh.setIndices(newIndices);
-
-      const useVertexAlpha = resolvedAlpha < 1;
-      mesh.hasVertexAlpha = useVertexAlpha;
-
-      const mat = new flock.BABYLON.StandardMaterial("cylColorMat", scene);
-      mat.diffuseColor = flock.BABYLON.Color3.White();
-      mat.backFaceCulling = false;
-      mat.vertexColors = true;
-      mat.alpha = resolvedAlpha;
-      mesh.material = mat;
-      return;
-    }
-
-    // --- Default N-colour fallback (treat as uniform) -------------------------
-    const material = new flock.BABYLON.StandardMaterial(
-      `${shapeType.toLowerCase()}Material`,
-      scene,
-    );
-    material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-      flock.getColorFromString(color[0]),
-    );
-    material.alpha = resolvedAlpha;
-    mesh.material = material;
-  },
-
-  getOrCreateMaterial(color, alpha, scene) {
-    const color3 =
-      typeof color === "string"
-        ? flock.BABYLON.Color3.FromHexString(color)
-        : color;
-    const materialKey = `Color_${color3.toHexString()}_Alpha_${alpha}`;
-
-    if (!flock.materialCache[materialKey]) {
-      const material = new flock.BABYLON.StandardMaterial(materialKey, scene);
-      material.diffuseColor = color3;
-      material.alpha = alpha;
-      material.backFaceCulling = false;
-      flock.materialCache[materialKey] = material;
-    }
-
-    return flock.materialCache[materialKey];
+    return rootMesh;
   },
 };
