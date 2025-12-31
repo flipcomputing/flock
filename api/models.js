@@ -201,56 +201,9 @@ export const flockModels = {
     const applyMaterialToHierarchy = (mesh, colorInput) => {
       if (!applyColor || !colorInput) return;
 
-      const blockKey = mesh.metadata?.blockKey;
-
-      const updateMeshMaterial = (m, newColor, index) => {
-        const isObject = typeof newColor === "object" && newColor !== null;
-        const rawColor = isObject
-          ? newColor.color || newColor.baseColor
-          : newColor;
-        const texName = isObject
-          ? newColor.materialName || newColor.textureSet || "NONE"
-          : "NONE";
-
-        const resolvedHex = flock.getColorFromString(rawColor) || "#ffffff";
-        const targetCacheKey =
-          `mat_${resolvedHex.toLowerCase()}_1_${texName}`.toLowerCase();
-
-        if (!m.metadata) m.metadata = {};
-        if (blockKey) m.metadata.blockKey = blockKey;
-        if (index !== undefined) m.metadata.materialIndex = index;
-
-        if (m.material?.metadata?.cacheKey === targetCacheKey) return;
-
-        flock.setMaterialWithCleanup(m, newColor);
-
-        if (m.material) {
-          flock.adjustMaterialTilingToMesh(m, m.material);
-        }
-      };
-
-      const geometryMeshes = mesh
-        .getDescendants(false)
-        .filter(
-          (n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0,
-        )
-        .sort((a, b) =>
-          a.name.localeCompare(b.name, undefined, {
-            numeric: true,
-            sensitivity: "base",
-          }),
-        );
-
-      if (Array.isArray(colorInput)) {
-        geometryMeshes.forEach((m, i) => {
-          const targetColor = colorInput[i % colorInput.length];
-          updateMeshMaterial(m, targetColor, i);
-        });
-      } else {
-        geometryMeshes.forEach((m) => updateMeshMaterial(m, colorInput));
-      }
+      flock.applyMaterialToHierarchy(mesh, color);
     };
-
+    
     const setTemplateFlags = (node, tag) => {
       const list = [
         node,

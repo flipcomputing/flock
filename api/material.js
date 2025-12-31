@@ -1277,4 +1277,83 @@ export const flockMaterial = {
     flock.materialCache[cacheKey] = newMat;
     return newMat;
   },
+  applyMaterialToHierarchy(rootMesh, colorInput, opts = {}) {
+    const applyColor = opts.applyColor ?? true;
+    if (!applyColor || !rootMesh || !colorInput) return rootMesh;
+
+    const geometryMeshes = rootMesh
+      .getDescendants(false)
+      .filter(
+        (n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0,
+      )
+      .sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        }),
+      );
+
+    const targets = geometryMeshes.length ? geometryMeshes : [rootMesh];
+
+    const isMaterialDescriptor = (v) =>
+      typeof v === "object" && v !== null && !Array.isArray(v);
+
+    const getRawColor = (v) =>
+      isMaterialDescriptor(v) ? v.color || v.baseColor : v;
+
+    const getTexName = (v) =>
+      isMaterialDescriptor(v)
+        ? v.materialName || v.textureSet || "NONE"
+        : "NONE";
+
+    const getAlpha = (v) =>
+      isMaterialDescriptor(v)
+        ? (v.alpha ?? opts.alpha ?? 1)
+        : (opts.alpha ?? 1);
+
+    const makeTargetCacheKey = (v) => {
+      const rawColor = getRawColor(v);
+      const resolvedHex = flock.getColorFromString(rawColor) || "#ffffff";
+      const texName = String(getTexName(v));
+      const alpha = getAlpha(v);
+
+      // This matches your existing cache key convention closely while also
+      // respecting alpha when it’s provided via descriptor or opts.
+      return `mat_${resolvedHex.toLowerCase()}_${alpha}_${texName}`.toLowerCase();
+    };
+
+    const applyOne = (m, v, index) => {
+      if (!(m instanceof flock.BABYLON.Mesh)) return;
+
+      m.metadata = m.metadata || {};
+
+      if (index !== undefined) m.metadata.materialIndex = index;
+      else if (m.metadata.materialIndex !== undefined)
+        delete m.metadata.materialIndex;
+
+      const targetCacheKey = makeTargetCacheKey(v);
+      if (m.material?.metadata?.cacheKey === targetCacheKey) return;
+
+      flock.setMaterialWithCleanup(m, v);
+
+      if (m.material) {
+        flock.adjustMaterialTilingToMesh(m, m.material);
+        m.material.needDepthPrePass = getAlpha(v) > 0;
+      }
+    };
+
+    if (Array.isArray(colorInput)) {
+      const flat = colorInput.flat();
+      if (!flat.length) return rootMesh;
+
+      targets.forEach((m, i) => {
+        const v = flat[i % flat.length];
+        applyOne(m, v, i);
+      });
+    } else {
+      targets.forEach((m) => applyOne(m, colorInput));
+    }
+
+    return rootMesh;
+  },
 };

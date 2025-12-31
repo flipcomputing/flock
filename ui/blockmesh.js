@@ -580,8 +580,8 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
   mesh.computeWorldMatrix(true);
   mesh.refreshBoundingInfo();
 
-  flock.updatePhysics(mesh);
-  flock.adjustMaterialTilingForHierarchy(mesh);
+ // flock.updatePhysics(mesh);
+  //flock.adjustMaterialTilingForHierarchy(mesh);
 
   if (flock.meshDebug) {
     console.log("[SCALE change]", {
@@ -606,15 +606,13 @@ function handleMaterialOrColorChange(
       changed.startsWith?.("ADD")
     )
   ) {
+    console.log("Returning");
     return mesh;
   }
 
   const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
   const root = ultimateParent(mesh);
 
-  const isExplicitNone = !materialInfo || materialInfo.textureSet === "NONE";
-  const hasTexture =
-    materialInfo?.textureSet && materialInfo.textureSet !== "NONE";
   const alpha = materialInfo?.alpha ?? 1;
 
   let rawColor = materialInfo?.colors || materialInfo?.baseColor || color;
@@ -626,121 +624,30 @@ function handleMaterialOrColorChange(
     rawColor = firstMat?.diffuseColor?.toHexString() || "#ffffff";
   }
 
-  const colorList = Array.isArray(rawColor) ? rawColor.flat() : [rawColor];
-  const isMultiColorArray = colorList.length > 1;
+  const textureSet = materialInfo?.textureSet;
 
-  const subMeshes = root
-    .getDescendants(false)
-    .filter((m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0)
-    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  let input;
+  if (textureSet && textureSet !== "NONE") {
+    input = {
+      color: rawColor,
+      alpha,
+      materialName: textureSet,
+    };
+  } else {
+    input = rawColor;
+  }
 
-  const allTargets = subMeshes.length > 0 ? subMeshes : [root];
-
-  allTargets.forEach((target) => {
-    if (!(target instanceof flock.BABYLON.Mesh)) return;
-
-    const wasGradient =
-      target.material?.metadata?.isGradient ||
-      target.isVerticesDataPresent(flock.BABYLON.VertexBuffer.ColorKind);
-
-    if (wasGradient && !isMultiColorArray) {
-      if (target.isVerticesDataPresent(flock.BABYLON.VertexBuffer.ColorKind)) {
-        target.removeVerticesData(flock.BABYLON.VertexBuffer.ColorKind);
-      }
-      target.hasVertexAlpha = false;
-      if (target.resetDrawCache) target.resetDrawCache();
-    }
-
-    let targetColor;
-    if (isMultiColorArray) {
-      if (hasTexture) {
-        targetColor = colorList;
-      } else if (subMeshes.length > 1) {
-        const meshIndex = subMeshes.indexOf(target);
-        targetColor =
-          meshIndex !== -1
-            ? colorList[meshIndex % colorList.length]
-            : colorList[0];
-      } else {
-        targetColor = colorList;
-      }
-    } else {
-      targetColor = colorList[0];
-    }
-
-    let targetTex;
-    if (hasTexture) {
-      targetTex = materialInfo.textureSet;
-    } else if (isExplicitNone) {
-      targetTex = "none.png";
-    } else {
-      const currentKey = target.material?.metadata?.cacheKey;
-      targetTex = currentKey ? currentKey.split("_").pop() : "none.png";
-    }
-
-    if (targetTex === "none") targetTex = "none.png";
-
-    flock.setMaterialWithCleanup(target, {
-      color: targetColor,
-      alpha: alpha,
-      materialName: targetTex,
-    });
-
-    if (target.material) {
-      flock.adjustMaterialTilingToMesh(target, target.material);
-    }
+  flock.applyMaterialToHierarchy(root, input, {
+    applyColor: true,
+    alpha,
+    blockKey: root.metadata?.blockKey,
   });
 
   return root;
 }
 
 function updateGroundFromBlock(mesh, block, changeEvent) {
-  meshMap["ground"] = block;
-  meshBlockIdMap["ground"] = block.id;
-
-  const colorInput = block.getInputTargetBlock("COLOR");
-
-  if (colorInput && colorInput.type === "material") {
-    const { textureSet, baseColor, alpha } = extractMaterialInfo(colorInput);
-    let read = readColourFromInputOrShadow(colorInput, "BASE_COLOR");
-
-    if (flock.meshDebug) {
-      console.log("Ground material info:", {
-        textureSet,
-        baseColor,
-        alpha,
-        colorValue: read.value,
-      });
-    }
-
-    if (read.value == null && !block.__groundRetry) {
-      block.__groundRetry = true;
-      requestAnimationFrame(() => {
-        block.__groundRetry = false;
-        updateMeshFromBlock(mesh, block, changeEvent);
-      });
-      return;
-    }
-
-    const colorValue = read.value ?? baseColor;
-
-    if (textureSet && textureSet !== "NONE") {
-      const materialOptions = {
-        color: colorValue,
-        materialName: textureSet,
-        alpha,
-      };
-      const material = flock.createMaterial(materialOptions);
-      flock.createGround(material || colorValue, "ground");
-      return;
-    }
-
-    flock.createGround(colorValue, "ground");
-    return;
-  }
-
-  const read = readColourFromInputOrShadow(block, "COLOR");
-  flock.createGround(read.value, "ground");
+  console.log("Use map block instead of ground");
 }
 
 function updateMapFromBlock(mesh, block, changeEvent) {

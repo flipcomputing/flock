@@ -183,7 +183,6 @@ export const flockScene = {
     return dt;
   },
   createMap(image, material) {
-    console.log("Create map", material);
     if (!sceneReady()) {
       return;
     }
@@ -386,8 +385,6 @@ export const flockScene = {
     if (!mesh) return;
 
     if (mesh.name === "ground") {
-      mesh.material?.dispose();
-      mesh.dispose();
       flock.ground = null;
       return;
     }

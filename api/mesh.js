@@ -265,43 +265,11 @@ export const flockMesh = {
     mesh.metadata.blockKey = mesh.name;
 
     if (applyColor) {
-      const colorList = Array.isArray(color) ? color.flat() : [color];
-      const isMultiColor = colorList.length > 1;
-
-      const subMeshes = mesh
-        .getDescendants(false)
-        .filter(
-          (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0,
-        )
-        .sort((a, b) =>
-          a.name.localeCompare(b.name, undefined, { numeric: true }),
-        );
-
-      const allTargets = subMeshes.length > 0 ? subMeshes : [mesh];
-
-      allTargets.forEach((target) => {
-        let targetColor;
-        if (isMultiColor) {
-          if (subMeshes.length > 1) {
-            const idx = subMeshes.indexOf(target);
-            targetColor =
-              idx !== -1 ? colorList[idx % colorList.length] : colorList[0];
-          } else {
-            targetColor = colorList[0];
-          }
-        } else {
-          targetColor = colorList[0];
-        }
-
-        flock.setMaterialWithCleanup(target, {
-          color: targetColor,
-          alpha: alpha,
-          materialName: "none.png",
-        });
-
-        if (target.material) {
-          flock.adjustMaterialTilingToMesh(target, target.material);
-        }
+      const colorInput = Array.isArray(color) ? color.flat() : color;
+      flock.applyMaterialToHierarchy(mesh, colorInput, {
+        applyColor: true,
+        blockKey: mesh.metadata.blockKey,
+        alpha,
       });
     }
 
@@ -312,6 +280,7 @@ export const flockMesh = {
     if (alpha > 0 && mesh.material) {
       mesh.material.needDepthPrePass = true;
     }
+
     mesh.metadata.sharedGeometry = true;
   },
 
