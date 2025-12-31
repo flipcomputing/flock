@@ -6,6 +6,7 @@ export function setFlockReference(ref) {
 
 export const flockMaterial = {
   adjustMaterialTilingToMesh(mesh, material, unitsPerTile = null) {
+    return; // Don't scale textures - need to change the mesh UVs instead
     if (!mesh || !material) return;
 
     if (mesh.metadata?.skipAutoTiling) return;
