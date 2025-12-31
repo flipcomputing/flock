@@ -4,6 +4,10 @@ A project from: [Flip Computing](https://flipcomputing.com/).
 
 Current pilot version: [app.flockxr.com](https://app.flockxr.com/)
 
+## Project Statistics
+[![CodeQL](https://github.com/flipcomputing/flock/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/flipcomputing/flock/actions/workflows/github-code-scanning/codeql)
+[![Mocha tests](https://github.com/flipcomputing/flock/actions/workflows/run-mocha-tests.yml/badge.svg)](https://github.com/flipcomputing/flock/actions/workflows/run-mocha-tests.yml)
+
 Flock XR is a free 3D coding and design tool to allow young people aged around 9-14+ to make interactive experiences, games, animations, VR experiences and more. Flock XR runs in a web browser with no accounts or downloads needed. 
 
 Flock XR has been designed as a bridge between Scratch and professional 3D tools, such as Babylon JS, UEFN, Unity and Godot. Flock XR builds on our experience working in schools and clubs to create engaging resources for young people to use and personalise. 
