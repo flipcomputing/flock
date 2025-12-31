@@ -613,13 +613,16 @@ function handleMaterialOrColorChange(
   const root = ultimateParent(mesh);
 
   const isExplicitNone = !materialInfo || materialInfo.textureSet === "NONE";
-  const hasTexture = materialInfo?.textureSet && materialInfo.textureSet !== "NONE";
+  const hasTexture =
+    materialInfo?.textureSet && materialInfo.textureSet !== "NONE";
   const alpha = materialInfo?.alpha ?? 1;
 
   let rawColor = materialInfo?.colors || materialInfo?.baseColor || color;
 
   if (!rawColor) {
-    const firstMat = root.getDescendants(false).find(m => m.material)?.material;
+    const firstMat = root
+      .getDescendants(false)
+      .find((m) => m.material)?.material;
     rawColor = firstMat?.diffuseColor?.toHexString() || "#ffffff";
   }
 
@@ -636,8 +639,9 @@ function handleMaterialOrColorChange(
   allTargets.forEach((target) => {
     if (!(target instanceof flock.BABYLON.Mesh)) return;
 
-    const wasGradient = target.material?.metadata?.isGradient || 
-                        target.isVerticesDataPresent(flock.BABYLON.VertexBuffer.ColorKind);
+    const wasGradient =
+      target.material?.metadata?.isGradient ||
+      target.isVerticesDataPresent(flock.BABYLON.VertexBuffer.ColorKind);
 
     if (wasGradient && !isMultiColorArray) {
       if (target.isVerticesDataPresent(flock.BABYLON.VertexBuffer.ColorKind)) {
@@ -653,9 +657,10 @@ function handleMaterialOrColorChange(
         targetColor = colorList;
       } else if (subMeshes.length > 1) {
         const meshIndex = subMeshes.indexOf(target);
-        targetColor = meshIndex !== -1 
-          ? colorList[meshIndex % colorList.length] 
-          : colorList[0];
+        targetColor =
+          meshIndex !== -1
+            ? colorList[meshIndex % colorList.length]
+            : colorList[0];
       } else {
         targetColor = colorList;
       }
@@ -739,7 +744,6 @@ function updateGroundFromBlock(mesh, block, changeEvent) {
 }
 
 function updateMapFromBlock(mesh, block, changeEvent) {
-  // Track ownership so deletions can dispose the ground mesh
   meshMap["ground"] = block;
   meshBlockIdMap["ground"] = block.id;
 
@@ -755,7 +759,7 @@ function updateMapFromBlock(mesh, block, changeEvent) {
     block.__mapRetry = true;
     requestAnimationFrame(() => {
       block.__mapRetry = false;
-      updateMeshFromBlock(mesh, block, changeEvent);
+      updateMapFromBlock(mesh, block, changeEvent);
     });
     return;
   }
@@ -766,8 +770,7 @@ function updateMapFromBlock(mesh, block, changeEvent) {
     alpha,
   };
 
-  const material = flock.createMaterial(materialOptions);
-  flock.createMap(mapName, material);
+  flock.createMap(mapName, materialOptions);
 }
 
 function resolveColorAndMaterialForBlock(block) {

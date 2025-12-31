@@ -88,7 +88,7 @@ export const flock = {
         separateAnimations: true,
         memoryDebug: false,
         memoryMonitorInterval: 5000,
-        materialsDebug: false,
+        materialsDebug: true,
         meshDebug: false,
         performanceOverlay: false,
         maxMeshes: 5000,
