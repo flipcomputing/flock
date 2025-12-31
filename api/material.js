@@ -742,32 +742,11 @@ export const flockMaterial = {
     });
   },
   setMaterialInternal(meshName, materials) {
+    console.log("Applying material to", meshName, "with", materials);
     return flock.whenModelReady(meshName, (mesh) => {
-      const allMeshes = [mesh].concat(mesh.getDescendants());
-      const validMeshes = allMeshes.filter(
-        (part) =>
-          part instanceof flock.BABYLON.Mesh && part.getTotalVertices() > 0,
-      );
-
-      const sortedMeshes = validMeshes.sort((a, b) =>
-        a.name.localeCompare(b.name),
-      );
-
-      sortedMeshes.forEach((part, index) => {
-        const materialInput = materials[index % materials.length];
-
-        flock.setMaterialWithCleanup(part, materialInput);
-
-        const appliedMaterial = part.material;
-
-        if (appliedMaterial instanceof flock.GradientMaterial) {
-          mesh.computeWorldMatrix(true);
-          const boundingInfo = mesh.getBoundingInfo();
-          const yDimension = boundingInfo.boundingBox.extendSizeWorld.y;
-          appliedMaterial.scale = yDimension > 0 ? 1 / yDimension : 1;
-        }
-
-        flock.adjustMaterialTilingToMesh(part, appliedMaterial);
+      flock.applyMaterialToHierarchy(mesh, materials, {
+        applyColor: true,
+        blockKey: null,
       });
 
       if (mesh.metadata?.glow) {

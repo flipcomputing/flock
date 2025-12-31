@@ -183,44 +183,52 @@ export const flockScene = {
     return dt;
   },
   createMap(image, material) {
-    if (!sceneReady()) {
-      return;
-    }
+    if (!sceneReady() || !material) return;
 
-    if (!material) {
-      console.log("[create map] No material provided");
-      return;
+    const mapTexturePhysicalSize = 4;
+
+    const applyMaterialToGround = (mesh, mat) => {
+      if (Array.isArray(mat) && mat.length >= 2) {
+        const standardMat = new flock.BABYLON.StandardMaterial(
+          "mapGradientMat",
+          flock.scene,
+        );
+        const dt = flock.createLinearGradientTexture(mat, {
+          size: 1024,
+          horizontal: false,
+        });
+        standardMat.diffuseTexture = dt;
+        standardMat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
+        standardMat.diffuseTexture.wrapU =
+          flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+        standardMat.diffuseTexture.wrapV =
+          flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+        flock.setMaterialWithCleanup(mesh, standardMat);
+      } else {
+        flock.setMaterialWithCleanup(mesh, material);
+      }
+    };
+
+    if (flock.ground && flock.ground.metadata?.heightMapImage === image) {
+      applyMaterialToGround(flock.ground, material);
+      return flock.ground;
     }
 
     if (flock.ground) {
       flock.disposeMesh(flock.ground);
     }
 
-    const mapTexturePhysicalSize = 4;
-    const scaleGroundUVsToPhysicalSize = (mesh, texturePhysicalSize) => {
+    const scaleGroundUVs = (mesh) => {
       const positions = mesh.getVerticesData(
         flock.BABYLON.VertexBuffer.PositionKind,
       );
-      if (!positions || !positions.length) return;
-
-      const { minimum, maximum } = mesh.getBoundingInfo();
-      const minX = minimum.x;
-      const minZ = minimum.z;
-      const spanX = maximum.x - minimum.x;
-      const spanZ = maximum.z - minimum.z;
-      if (!Number.isFinite(spanX) || !Number.isFinite(spanZ)) return;
-
-      const uvs =
-        mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind) ||
-        new Float32Array((positions.length / 3) * 2);
-
+      if (!positions) return;
+      const { minimum } = mesh.getBoundingInfo();
+      const uvs = new Float32Array((positions.length / 3) * 2);
       for (let i = 0, ui = 0; i < positions.length; i += 3, ui += 2) {
-        const x = positions[i];
-        const z = positions[i + 2];
-        uvs[ui] = (x - minX) / texturePhysicalSize;
-        uvs[ui + 1] = (z - minZ) / texturePhysicalSize;
+        uvs[ui] = (positions[i] - minimum.x) / mapTexturePhysicalSize;
+        uvs[ui + 1] = (positions[i + 2] - minimum.z) / mapTexturePhysicalSize;
       }
-
       mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
     };
 
@@ -230,30 +238,30 @@ export const flockScene = {
 
     let ground;
     if (image === "NONE") {
-      const modelId = "flatGround";
       ground = flock.BABYLON.MeshBuilder.CreateGround(
-        modelId,
+        "ground",
         { width: 100, height: 100, subdivisions: 2 },
         flock.scene,
       );
-      const groundAggregate = new flock.BABYLON.PhysicsAggregate(
+      ground.physics = new flock.BABYLON.PhysicsAggregate(
         ground,
         flock.BABYLON.PhysicsShapeType.BOX,
         { mass: 0, friction: 0.5 },
         flock.scene,
       );
-      ground.physics = groundAggregate;
-      ground.name = modelId;
-      ground.metadata = ground.metadata || {};
-      ground.metadata.blockKey = modelId;
+      ground.metadata = {
+        blockKey: "ground",
+        skipAutoTiling: true,
+        textureTileSize: mapTexturePhysicalSize,
+        heightMapImage: "NONE",
+      };
       ground.receiveShadows = true;
-
-      if (shouldScaleUVs) {
-        scaleGroundUVsToPhysicalSize(ground, mapTexturePhysicalSize);
-      }
+      if (shouldScaleUVs) scaleGroundUVs(ground);
+      applyMaterialToGround(ground, material);
+      flock.ground = ground;
     } else {
       ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
-        "heightmap",
+        "ground",
         flock.texturePath + image,
         {
           width: 100,
@@ -261,76 +269,48 @@ export const flockScene = {
           minHeight: 0,
           maxHeight: 10,
           subdivisions: 64,
-          onReady: (groundMesh) => {
-            const vertexData = groundMesh.getVerticesData(
+          onReady: (gm) => {
+            if (flock.ground !== gm) {
+              gm.dispose();
+              return;
+            }
+            gm.metadata = {
+              blockKey: "ground",
+              skipAutoTiling: true,
+              textureTileSize: mapTexturePhysicalSize,
+              heightMapImage: image,
+            };
+            const vertexData = gm.getVerticesData(
               flock.BABYLON.VertexBuffer.PositionKind,
             );
             let minDistance = Infinity;
             let closestY = 0;
             for (let i = 0; i < vertexData.length; i += 3) {
-              const x = vertexData[i];
-              const z = vertexData[i + 2];
-              const y = vertexData[i + 1];
-              const distance = Math.sqrt(x * x + z * z);
-              if (distance < minDistance) {
-                minDistance = distance;
-                closestY = y;
+              const dist = Math.sqrt(
+                vertexData[i] ** 2 + vertexData[i + 2] ** 2,
+              );
+              if (dist < minDistance) {
+                minDistance = dist;
+                closestY = vertexData[i + 1];
               }
             }
-
-            groundMesh.position.y -= closestY;
-            const heightMapGroundShape = new flock.BABYLON.PhysicsShapeMesh(
-              groundMesh,
-              flock.scene,
-            );
-            const heightMapGroundBody = new flock.BABYLON.PhysicsBody(
-              groundMesh,
+            gm.position.y -= closestY;
+            const body = new flock.BABYLON.PhysicsBody(
+              gm,
               flock.BABYLON.PhysicsMotionType.STATIC,
               false,
               flock.scene,
             );
-            heightMapGroundShape.material = {
-              friction: 0.3,
-              restitution: 0,
-            };
-            heightMapGroundBody.shape = heightMapGroundShape;
-            heightMapGroundBody.setMassProperties({ mass: 0 });
-            if (shouldScaleUVs) {
-              scaleGroundUVsToPhysicalSize(groundMesh, mapTexturePhysicalSize);
-            }
+            body.shape = new flock.BABYLON.PhysicsShapeMesh(gm, flock.scene);
+            if (shouldScaleUVs) scaleGroundUVs(gm);
+            applyMaterialToGround(gm, material);
           },
         },
         flock.scene,
       );
+      flock.ground = ground;
     }
 
-    ground.name = "ground";
-    ground.metadata = ground.metadata || {};
-    ground.metadata.blockKey = "ground";
-    ground.metadata.skipAutoTiling = true;
-    ground.metadata.textureTileSize = mapTexturePhysicalSize;
-
-    if (Array.isArray(material) && material.length >= 2) {
-      const mat = new flock.BABYLON.StandardMaterial(
-        "mapGradientMat",
-        flock.scene,
-      );
-      const dt = flock.createLinearGradientTexture(material, {
-        size: 1024,
-        horizontal: false,
-      });
-      mat.diffuseTexture = dt;
-      mat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
-      mat.backFaceCulling = true;
-      mat.diffuseTexture.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-      mat.diffuseTexture.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-
-      flock.setMaterialWithCleanup(ground, mat);
-    } else {
-      flock.setMaterialWithCleanup(ground, material);
-    }
-
-    flock.ground = ground;
     return ground;
   },
   show(meshName) {
@@ -385,6 +365,7 @@ export const flockScene = {
     if (!mesh) return;
 
     if (mesh.name === "ground") {
+      mesh.dispose();
       flock.ground = null;
       return;
     }

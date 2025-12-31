@@ -580,7 +580,7 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
   mesh.computeWorldMatrix(true);
   mesh.refreshBoundingInfo();
 
- // flock.updatePhysics(mesh);
+  // flock.updatePhysics(mesh);
   //flock.adjustMaterialTilingForHierarchy(mesh);
 
   if (flock.meshDebug) {
