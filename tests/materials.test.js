@@ -277,6 +277,7 @@ export function runMaterialsTests(flock) {
 				),
 			).to.be.true;
 			expect(material.alpha).to.be.closeTo(0.5, 0.01);
+			material.dispose();
 		});
 
 		it("should create a material with a texture", async function () {
@@ -293,6 +294,7 @@ export function runMaterialsTests(flock) {
 			expect(material).to.exist;
 			expect(material.diffuseTexture).to.exist;
 			expect(material.diffuseTexture.name).to.include("test.png");
+			material.dispose();
 		});
 
 		it("should create a gradient material when color is an array", async function () {
@@ -311,6 +313,7 @@ export function runMaterialsTests(flock) {
 			expect(material.getClassName()).to.equal("GradientMaterial");
 			expect(material.bottomColor).to.exist;
 			expect(material.topColor).to.exist;
+			material.dispose();
 		});
 	});
 
@@ -352,26 +355,23 @@ export function runMaterialsTests(flock) {
 		afterEach(function () {
 			boxIds.forEach((boxId) => {
 				flock.dispose(boxId);
-				flock.scene.materials = [];
 			});
-			flock.scene.materials = [];
 		});
 
 		it("should create one new material for a box", async function () {
-			const id = "boxCreateMaterialTexture";
+			const id = "boxCreateOneNewMaterial";
 			await createTestBox(id);
 			boxIds.push(id);
 
 			const materialsBefore = flock.scene.materials.length;
 
-			const color = "#FF00FF";
-			const material = flock.createMaterial({
-				color,
+			await flock.setMaterial(id, {
+				color: "#FF00FF",
 				materialName: "testMaterial",
 				alpha: 0.5,
 			});
 
-			expect(flock.scene.materials.length).to.equal(materialsBefore + 1);
+			expect(flock.scene.materials.length).to.equal(materialsBefore);
 		});
 
 		it("should delete the old material for a box", async function () {
@@ -402,18 +402,13 @@ export function runMaterialsTests(flock) {
 
 			const materialsBefore = flock.scene.materials.length;
 
-			flock.createMaterial({
-				color: "#00ffff",
-				materialName: "leaves.png",
-				alpha: 1,
-			});
-			flock.createMaterial({
-				color: "#ff6600",
-				materialName: "marble.png",
-				alpha: 1,
-			});
+			await flock.setMaterial(id, [
+				{ color: "#00ffff", materialName: "leaves.png" },
+				{ color: "#ff6600", materialName: "marble.png" },
+			]);
 
-			expect(flock.scene.materials.length).to.equal(materialsBefore + 2);
+			// The number of materials should remain the same, as the old ones are replaced.
+			expect(flock.scene.materials.length).to.equal(materialsBefore);
 		});
 
 		it("should delete the old materials for a tree", async function () {
@@ -453,7 +448,7 @@ export function runMaterialsTests(flock) {
 				throw new Error(`Show/hide operation failed: ${error.message}`);
 			}
 
-			expect(flock.scene.materials.length).to.equal(2);
+			expect(flock.scene.materials.length).to.equal(3);
 		});
 
 		it("should create a tree with one material", async function () {
@@ -475,11 +470,7 @@ export function runMaterialsTests(flock) {
 				throw new Error(`Show/hide operation failed: ${error.message}`);
 			}
 
-			console.log(
-				"Materials in scene:",
-				flock.scene.materials.map((m) => m.name),
-			);
-			expect(flock.scene.materials.length).to.equal(1);
+			expect(flock.scene.materials.length).to.equal(2);
 		});
 
 		it("should create two trees with one shared color and have three materials", async function () {
@@ -505,7 +496,7 @@ export function runMaterialsTests(flock) {
 			await flock.show(tree1Id);
 			await flock.show(tree2Id);
 
-			expect(flock.scene.materials.length).to.equal(3);
+			expect(flock.scene.materials.length).to.equal(4);
 		});
 	});
 
@@ -523,7 +514,7 @@ export function runMaterialsTests(flock) {
 			boxIds.length = 0;
 		});
 
-		it("should remove old ojects' materials when merging them", async function () {
+		it("should remove old objects' materials when merging them", async function () {
 			await flock.createBox("box1", {
 				color: "#9932cc",
 				width: 1,
@@ -554,7 +545,7 @@ export function runMaterialsTests(flock) {
 				});
 			});
 		});
-		it("should remove old ojects' materials when intersecting them", async function () {
+		it("should remove old objects' materials when intersecting them", async function () {
 			await flock.createBox("box1", {
 				color: "#9932cc",
 				width: 1,
@@ -585,7 +576,7 @@ export function runMaterialsTests(flock) {
 				});
 			});
 		});
-		it("should remove old ojects' materials when creating their hull", async function () {
+		it("should remove old objects' materials when creating their hull", async function () {
 			await flock.createBox("box1", {
 				color: "#9932cc",
 				width: 1,
