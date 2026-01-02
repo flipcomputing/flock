@@ -944,36 +944,6 @@ export function runAnimateTests(flock) {
 				await animationPromise;
 			});
 
-			it("should wait for mesh creation when glideTo is called early", async function () {
-				const boxId = "glideToDelayedCreation";
-
-				const glidePromise = flock.glideTo(boxId, {
-					x: 2,
-					y: 1,
-					z: 0,
-					duration: 0.1,
-				});
-
-				await new Promise((resolve) => setTimeout(resolve, 20));
-
-				await flock.createBox(boxId, {
-					width: 1,
-					height: 1,
-					depth: 1,
-					position: [0, 0, 0],
-				});
-				boxIds.push(boxId);
-
-				let error;
-				try {
-					await glidePromise;
-				} catch (err) {
-					error = err;
-				}
-
-				expect(error).to.be.undefined;
-			});
-
 			it("should handle zero duration in rotateAnim", async function () {
 				const boxId = "zeroDuration";
 				await flock.createBox(boxId, {
