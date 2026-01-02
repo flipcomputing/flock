@@ -75,35 +75,35 @@ export const flockAnimate = {
     meshName,
     { animationName, loop = false, restart = true } = {},
   ) {
-    // Always wait for mesh to exist before deciding
-    const mesh = await flock._waitForMesh(meshName);
-    if (!mesh) {
-      console.error(`Mesh "${meshName}" not found.`);
-      return;
-    }
-    // Get the modelName from metadata or whatever property you use
-    const modelName = mesh.metadata?.modelName;
+    return flock.whenModelReady(meshName, (mesh) => {
+      if (!mesh) {
+        console.error(`Mesh "${meshName}" not found.`);
+        return;
+      }
+      // Get the modelName from metadata or whatever property you use
+      const modelName = mesh.metadata?.modelName;
 
-    // Check if model should use playAnimationModel based on configuration
-    if (modelAnimationNames.includes(modelName)) {
-      return flock._playAnimationModel(meshName, {
-        animationName,
-        loop,
-        restart,
-      });
-    } else if (flock.separateAnimations) {
-      return flock._playAnimationLoad(meshName, {
-        animationName,
-        loop,
-        restart,
-      });
-    } else {
-      return flock._playAnimationModel(meshName, {
-        animationName,
-        loop,
-        restart,
-      });
-    }
+      // Check if model should use playAnimationModel based on configuration
+      if (modelAnimationNames.includes(modelName)) {
+        return flock._playAnimationModel(meshName, {
+          animationName,
+          loop,
+          restart,
+        });
+      } else if (flock.separateAnimations) {
+        return flock._playAnimationLoad(meshName, {
+          animationName,
+          loop,
+          restart,
+        });
+      } else {
+        return flock._playAnimationModel(meshName, {
+          animationName,
+          loop,
+          restart,
+        });
+      }
+    });
   },
   switchAnimation(
     meshName,
@@ -125,92 +125,81 @@ export const flockAnimate = {
       easing = "Linear",
     } = {},
   ) {
-    return new Promise(async (resolve) => {
-      const existingMesh = flock.scene?.getMeshByName(meshName);
-      if (!existingMesh) {
-        resolve();
-        return;
-      }
-
-      await flock.whenModelReady(meshName, async function (mesh) {
-        if (mesh) {
-          const BABYLON = flock.BABYLON;
-          const children = mesh.getChildMeshes();
-
-          // 1. Pre-calculate local offsets to "Weld" them manually
-          const childData = children.map((c) => ({
-            mesh: c,
-            localPos: c.position.clone(),
-            localRot: c.rotation.clone(),
-            localQuat: c.rotationQuaternion
-              ? c.rotationQuaternion.clone()
-              : null,
-          }));
-
-          const startRotation = mesh.rotation.clone();
-          const targetRotation = new BABYLON.Vector3(
-            x * (Math.PI / 180),
-            y * (Math.PI / 180),
-            z * (Math.PI / 180),
-          );
-          const fps = 30;
-          const frames = fps * duration;
-
-          const rotateAnimation = new BABYLON.Animation(
-            "rotate",
-            "rotation",
-            fps,
-            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-            reverse
-              ? BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
-              : loop
-                ? BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-                : BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
-          );
-          rotateAnimation.setKeys([
-            { frame: 0, value: startRotation },
-            { frame: frames, value: targetRotation },
-          ]);
-
-          if (easing !== "Linear") {
-            let ease = new BABYLON[easing]();
-            ease.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-            rotateAnimation.setEasingFunction(ease);
-          }
-
-          // 2. THE WELD: Explicitly move children to the parent's current world state
-          const syncObserver = flock.scene.onAfterAnimationsObservable.add(
-            () => {
-              mesh.computeWorldMatrix(true);
-              childData.forEach((data) => {
-                // This forces the child to align with the parent's absolute transform
-                data.mesh.computeWorldMatrix(true);
-              });
-
-              if (mesh.physics && mesh.physics._pluginData?.hpBodyId) {
-                mesh.physics.setTargetTransform(
-                  mesh.absolutePosition,
-                  mesh.absoluteRotationQuaternion ||
-                    BABYLON.Quaternion.FromEulerVector(mesh.rotation),
-                );
-              }
-            },
-          );
-
-          const animatable = flock.scene.beginDirectAnimation(
-            mesh,
-            [rotateAnimation],
-            0,
-            frames,
-            loop,
-          );
-          animatable.onAnimationEndObservable.add(() => {
-            flock.scene.onAfterAnimationsObservable.remove(syncObserver);
-            resolve();
-          });
-        } else {
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, async (mesh) => {
+        if (!mesh) {
           resolve();
+          return;
         }
+
+        const BABYLON = flock.BABYLON;
+        const children = mesh.getChildMeshes();
+
+        const childData = children.map((c) => ({
+          mesh: c,
+          localPos: c.position.clone(),
+          localRot: c.rotation.clone(),
+          localQuat: c.rotationQuaternion ? c.rotationQuaternion.clone() : null,
+        }));
+
+        const startRotation = mesh.rotation.clone();
+        const targetRotation = new BABYLON.Vector3(
+          x * (Math.PI / 180),
+          y * (Math.PI / 180),
+          z * (Math.PI / 180),
+        );
+
+        const fps = 30;
+        const frames = fps * duration;
+
+        const rotateAnimation = new BABYLON.Animation(
+          "rotate",
+          "rotation",
+          fps,
+          BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+          reverse
+            ? BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
+            : loop
+              ? BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+              : BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+        );
+
+        rotateAnimation.setKeys([
+          { frame: 0, value: startRotation },
+          { frame: frames, value: targetRotation },
+        ]);
+
+        if (easing !== "Linear") {
+          const ease = new BABYLON[easing]();
+          ease.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+          rotateAnimation.setEasingFunction(ease);
+        }
+
+        const syncObserver = flock.scene.onAfterAnimationsObservable.add(() => {
+          mesh.computeWorldMatrix(true);
+          childData.forEach((data) => data.mesh.computeWorldMatrix(true));
+
+          if (mesh.physics && mesh.physics._pluginData?.hpBodyId) {
+            mesh.physics.setTargetTransform(
+              mesh.absolutePosition,
+              mesh.absoluteRotationQuaternion ||
+                BABYLON.Quaternion.FromEulerVector(mesh.rotation),
+            );
+          }
+        });
+
+        const animatable = flock.scene.beginDirectAnimation(
+          mesh,
+          [rotateAnimation],
+          0,
+          frames,
+          loop,
+        );
+
+        animatable.onAnimationEndObservable.add(() => {
+          flock.scene.onAfterAnimationsObservable.remove(syncObserver);
+          resolve();
+        });
       });
     });
   },
@@ -401,14 +390,6 @@ export const flockAnimate = {
     } = {},
   ) {
     return new Promise(async (resolve) => {
-      // Check if mesh exists immediately first
-      const existingMesh = flock.scene?.getMeshByName(meshName);
-      if (!existingMesh) {
-        console.warn(`Mesh '${meshName}' not found for animateKeyFrames.`);
-        resolve();
-        return;
-      }
-
       await flock.whenModelReady(meshName, async (mesh) => {
         if (!mesh) {
           resolve();
@@ -768,14 +749,6 @@ export const flockAnimate = {
     const frames = fps * duration;
 
     return new Promise(async (resolve) => {
-      // Check if mesh exists immediately first
-      const existingMesh = flock.scene?.getMeshByName(meshName);
-      if (!existingMesh) {
-        console.warn(`Mesh '${meshName}' not found for animateProperty.`);
-        resolve();
-        return;
-      }
-
       // Await mesh to be ready
       await flock.whenModelReady(meshName, async function (mesh) {
         if (!mesh) {
