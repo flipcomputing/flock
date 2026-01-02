@@ -215,5 +215,27 @@ export function runGlideToTests(flock) {
 				done();
 			});
 		});
+
+		it("should handle camera movement @slow", async function () {
+			this.timeout(3000); // Set a timeout for the animation
+
+			const camera = flock.scene.activeCamera;
+			console.log("Camera:", camera);
+			const targetPosition = { x: 5, y: 5, z: 5 };
+
+			console.log("Starting glide", flock.getCamera());
+
+			await flock.glideTo(flock.getCamera(), {
+				...targetPosition,
+				duration: 1,
+			});
+
+			console.log("glideTo with camera has returned/resolved.");
+
+			// Assert the camera has moved to the correct position
+			expect(camera.position.x).to.be.closeTo(targetPosition.x, 0.1);
+			expect(camera.position.y).to.be.closeTo(targetPosition.y, 0.1);
+			expect(camera.position.z).to.be.closeTo(targetPosition.z, 0.1);
+		});
 	});
 }
