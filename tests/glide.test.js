@@ -11,11 +11,12 @@ export function runGlideToTests(flock) {
 	describe("glideTo function tests @slow", function () {
 		let box1;
 		let box2;
+		const boxIds = [];
 
 		// Set up the box before each test
 		beforeEach(async function () {
 			// Create a box before each test
-			box1 = flock.createBox("box1", {
+			box1 = await flock.createBox("box1", {
 				color: "#996633",
 				width: 1,
 				height: 1,
@@ -212,6 +213,28 @@ export function runGlideToTests(flock) {
 			expect(camera.position.x).to.be.closeTo(targetPosition.x, 0.1);
 			expect(camera.position.y).to.be.closeTo(targetPosition.y, 0.1);
 			expect(camera.position.z).to.be.closeTo(targetPosition.z, 0.1);
+		});
+
+		it("should wait for mesh creation when glideTo is called early", async function () {
+			const boxId = "glideToDelayedCreation";
+
+			const glidePromise = flock.glideTo(boxId, {
+				x: 2,
+				y: 1,
+				z: 0,
+				duration: 0.1,
+			});
+
+			// Wait a moment before creating the box
+			await new Promise((resolve) => setTimeout(resolve, 20));
+
+			await flock.createBox(boxId, {
+				position: [0, 0, 0],
+			});
+			boxIds.push(boxId);
+
+			// The test passes if the promise resolves without error
+			await glidePromise;
 		});
 	});
 }
