@@ -2070,7 +2070,7 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["play_animation"] = function (block) {
-                var model = javascriptGenerator.nameDB_.getName(
+                const model = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MODEL"),
                         Blockly.Names.NameType.VARIABLE,
                 );
@@ -2080,7 +2080,7 @@ export function defineGenerators() {
                                 "ANIMATION_NAME",
                                 javascriptGenerator.ORDER_NONE,
                         ) || '"Idle"';
-                var code = `await playAnimation(${model}, { animationName: ${animationName} });\n`;
+                const code = `await playAnimation(${model}, { animationName: ${animationName} });\n`;
                 return code;
         };
 
@@ -2520,7 +2520,7 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["switch_animation"] = function (block) {
-                var model = javascriptGenerator.nameDB_.getName(
+                const model = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MODEL"),
                         Blockly.Names.NameType.VARIABLE,
                 );
@@ -2530,7 +2530,7 @@ export function defineGenerators() {
                                 "ANIMATION_NAME",
                                 javascriptGenerator.ORDER_NONE,
                         ) || '"Idle"';
-                var code = `switchAnimation(${model}, { animationName: ${animationName} });\n`;
+                const code = `switchAnimation(${model}, { animationName: ${animationName} });\n`;
                 return code;
         };
 
@@ -3102,75 +3102,14 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["material"] = function (block) {
-            const baseColor = javascriptGenerator.valueToCode(
-                block,
-                "BASE_COLOR",
-                javascriptGenerator.ORDER_ATOMIC,
-            ) || '"#ffffff"';
-
-            const textureSet = block.getFieldValue("TEXTURE_SET");
-            const alpha = javascriptGenerator.valueToCode(
-                block,
-                "ALPHA",
-                javascriptGenerator.ORDER_ATOMIC,
-            ) || "1";
-
-            // Always return a standard data object. 
-            // Logic that uses this block (like set_material) will handle the application.
-            const code = `{ 
-                color: ${baseColor}, 
-                materialName: "${textureSet}", 
-                alpha: ${alpha} 
-            }`;
-
-            return [code, javascriptGenerator.ORDER_ATOMIC];
-        };
-
-        /*javascriptGenerator.forBlock["gradient_material"] = function (block) {
-                const color =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "COLOR",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "1";
-
-                const alpha =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "ALPHA",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "1";
-
-                const code = `createMaterial(${color}, null, ${alpha})`;
-                return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
-        };*/
-
-       /* javascriptGenerator.forBlock["material2"] = function (block) {
                 const baseColor =
                         javascriptGenerator.valueToCode(
                                 block,
                                 "BASE_COLOR",
                                 javascriptGenerator.ORDER_ATOMIC,
-                        ) || "1";
-                const emissiveColor =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "EMISSIVE_COLOR",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "1";
+                        ) || '"#ffffff"';
+
                 const textureSet = block.getFieldValue("TEXTURE_SET");
-                const metallic =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "METALLIC",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "1";
-                const roughness =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "ROUGHNESS",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "1";
                 const alpha =
                         javascriptGenerator.valueToCode(
                                 block,
@@ -3178,145 +3117,32 @@ export function defineGenerators() {
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "1";
 
-                // Generate the code to call the createMaterial helper function
-                const code = `createMaterial(${baseColor}, ${emissiveColor}, "${textureSet}", ${metallic}, ${roughness}, ${alpha})`;
-                return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
-        };*/
+                // Always return a standard data object.
+                // Logic that uses this block (like set_material) will handle the application.
+                const code = `{ 
+                color: ${baseColor}, 
+                materialName: "${textureSet}", 
+                alpha: ${alpha} 
+            }`;
 
-       /* javascriptGenerator.forBlock["text_material"] = function (block) {
-                const variable = javascriptGenerator.nameDB_.getName(
-                        block.getFieldValue("MATERIAL_VAR"),
-                        Blockly.Names.NameType.VARIABLE,
-                );
-                const text =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "TEXT",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "'Text'";
-                const color =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "COLOR",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "'#FFFFFF'";
-                const backgroundColor =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "BACKGROUND_COLOR",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "'transparent'";
-                const width =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "WIDTH",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || 512;
-                const height =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "HEIGHT",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || 512;
-                const textSize =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "TEXT_SIZE",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || 120;
+                return [code, javascriptGenerator.ORDER_ATOMIC];
+        };
 
-                return `${variable} = textMaterial(${text}, ${color}, ${backgroundColor}, ${width}, ${height}, ${textSize});\n`;
-        };*/
-
-       /* javascriptGenerator.forBlock["decal"] = function (block) {
-                const mesh = javascriptGenerator.nameDB_.getName(
+        javascriptGenerator.forBlock["set_material"] = function (block) {
+                const meshVar = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MESH"),
                         Blockly.Names.NameType.VARIABLE,
                 );
-                const positionX = javascriptGenerator.valueToCode(
-                        block,
-                        "POSITION_X",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const positionY = javascriptGenerator.valueToCode(
-                        block,
-                        "POSITION_Y",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const positionZ = javascriptGenerator.valueToCode(
-                        block,
-                        "POSITION_Z",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const normalX = javascriptGenerator.valueToCode(
-                        block,
-                        "NORMAL_X",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const normalY = javascriptGenerator.valueToCode(
-                        block,
-                        "NORMAL_Y",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const normalZ = javascriptGenerator.valueToCode(
-                        block,
-                        "NORMAL_Z",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const sizeX = javascriptGenerator.valueToCode(
-                        block,
-                        "SIZE_X",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const sizeY = javascriptGenerator.valueToCode(
-                        block,
-                        "SIZE_Y",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const sizeZ = javascriptGenerator.valueToCode(
-                        block,
-                        "SIZE_Z",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const materialVar = javascriptGenerator.valueToCode(
-                        block,
-                        "MATERIAL",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
 
-                const code = `createDecal(${mesh}, ${positionX}, ${positionY}, ${positionZ}, ${normalX}, ${normalY}, ${normalZ}, ${sizeX}, ${sizeY}, ${sizeZ}, ${materialVar});\n`;
+                const material =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "MATERIAL",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "{}";
+
+                const code = `setMaterial(${meshVar}, ${material});\n`;
                 return code;
-        };
-
-        javascriptGenerator.forBlock["place_decal"] = function (block) {
-                const materialVar = javascriptGenerator.nameDB_.getName(
-                        block.getFieldValue("MATERIAL"),
-                        Blockly.Names.NameType.VARIABLE,
-                );
-                const angle = javascriptGenerator.valueToCode(
-                        block,
-                        "ANGLE",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-
-                // Use a helper function for placing the decal
-                return `placeDecal(${materialVar}, ${angle} );\n`;
-        };*/
-
-        javascriptGenerator.forBlock["set_material"] = function (block) {
-            const meshVar = javascriptGenerator.nameDB_.getName(
-                block.getFieldValue("MESH"),
-                Blockly.Names.NameType.VARIABLE
-            );
-
-            const material = javascriptGenerator.valueToCode(
-                block,
-                "MATERIAL",
-                javascriptGenerator.ORDER_ATOMIC
-            ) || "{}";
-
-            const code = `setMaterial(${meshVar}, ${material});\n`;
-            return code;
         };
 
         javascriptGenerator.forBlock["skin_colour"] = function (block) {
@@ -4231,51 +4057,6 @@ javascriptGenerator.forBlock["lists_setIndex"] = function (block) {
 
         throw Error("Unhandled combination (lists_setIndex).");
 };
-/*javascriptGenerator.forBlock["text_join"] = function (
-  block,
-  generator
-) {
-  const joinBlock = block;
-  switch (joinBlock.itemCount) {
-        case 0:
-          return ["''", javascriptGenerator.ORDER_ATOMIC];
-        case 1: {
-          const element =
-                generator.valueToCode(joinBlock, "ADD0", javascriptGenerator.ORDER_NONE) || "''";
-          const codeAndOrder = forceString(element);
-          return codeAndOrder;
-        }
-        case 2: {
-          const element0 =
-                generator.valueToCode(joinBlock, "ADD0", javascriptGenerator.ORDER_NONE) || "''";
-          const element1 =
-                generator.valueToCode(joinBlock, "ADD1", javascriptGenerator.ORDER_NONE) || "''";
-          const code = forceString(element0)[0] + " + " + forceString(element1)[0];
-          return [code, javascriptGenerator.ORDER_ADDITION];
-        }
-        default: {
-          const elements = new Array(joinBlock.itemCount);
-          for (let i = 0; i < joinBlock.itemCount; i++) {
-                elements[i] =
-                  generator.valueToCode(joinBlock, "ADD" + i, javascriptGenerator.ORDER_NONE) || "''";
-          }
-          const code = "[" + elements.join(",") + "].join('')";
-          return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
-        }
-  }
-};
-javascriptGenerator.forBlock["lists_create_with"] = function (
-  block,
-  generator
-) {
-  const createWithBlock = block;
-  const elements = new Array(createWithBlock.itemCount);
-  for (let i = 0; i < createWithBlock.itemCount; i++) {
-        elements[i] = generator.valueToCode(block, "ADD" + i, javascriptGenerator.ORDER_NONE) || "null";
-  }
-  const code = "[" + elements.join(", ") + "]";
-  return [code, javascriptGenerator.ORDER_ATOMIC];
-};*/
 
 javascriptGenerator.forBlock["keyword"] = function (block) {
         return "";
