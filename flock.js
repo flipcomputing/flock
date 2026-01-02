@@ -1042,6 +1042,7 @@ export const flock = {
                         UISlider: this.UISlider?.bind(this),
                         onIntersect: this.onIntersect?.bind(this),
                         getProperty: this.getProperty?.bind(this),
+                        getTime: this.getTime?.bind(this),
                         exportMesh: this.exportMesh?.bind(this),
                         createVector3: this.createVector3?.bind(this),
                 };

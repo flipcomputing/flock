@@ -6,7 +6,7 @@ export function setFlockReference(ref) {
 
 export const flockSensing = {
   /* 
-		  Category: Sensing
+                  Category: Sensing
   */
 
   getProperty(modelName, propertyName) {
@@ -376,5 +376,17 @@ export const flockSensing = {
     }
 
     return actionKeys.some((key) => this.keyPressed(key));
+  },
+  getTime(unit) {
+    const now = Date.now();
+    switch (unit) {
+      case "milliseconds":
+        return now;
+      case "minutes":
+        return Math.floor(now / 60000);
+      case "seconds":
+      default:
+        return Math.floor(now / 1000);
+    }
   },
 };

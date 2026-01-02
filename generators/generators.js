@@ -1994,8 +1994,9 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["time"] = function (block) {
-                let code = `Math.floor(Date.now() / 1000)`;
-                return [code, javascriptGenerator.ORDER_ATOMIC];
+                const unit = block.getFieldValue("UNIT") || "seconds";
+                const code = `getTime("${unit}")`;
+                return [code, javascriptGenerator.ORDER_NONE];
         };
 
         javascriptGenerator.forBlock["get_property"] = function (block) {

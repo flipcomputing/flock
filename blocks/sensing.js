@@ -174,9 +174,19 @@ export function defineSensingBlocks() {
                         this.jsonInit({
                                 type: "time",
                                 message0: translate("time"),
-                                args0: [],
+                                args0: [
+                                        {
+                                                type: "field_dropdown",
+                                                name: "UNIT",
+                                                options: [
+                                                        [getOption("seconds"), "seconds"],
+                                                        [getOption("milliseconds"), "milliseconds"],
+                                                        [getOption("minutes"), "minutes"],
+                                                ],
+                                        },
+                                ],
                                 output: "Number",
-                                colour: categoryColours["Sensing"], // Adjust the colour category as necessary
+                                colour: categoryColours["Sensing"],
                                 inputsInline: true,
                                 tooltip: getTooltip("time"),
                         });

@@ -246,7 +246,10 @@ export default {
   key_pressed: "tecla presionada es %1", // human
   action_pressed: "%1", // human
   meshes_touching: "%1 tocando %2", // human
-  time: "tiempo en s", // human
+  time: "tiempo en %1", // human
+  seconds: "segundos",
+  milliseconds: "milisegundos",
+  minutes: "minutos",
   distance_to: "distancia de %1 a %2", // human
   touching_surface: "¿%1 está tocando superficie?", // human
   mesh_exists: "%1 existe?", // human
