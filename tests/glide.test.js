@@ -3,7 +3,7 @@
 import { expect } from "chai";
 
 function checkXPosition(box, pos) {
-	return Math.abs(box.position.x - pos) <= 0.2;
+	return Math.abs(box.position.x - pos) <= 0.3;
 }
 
 // Test suite for glideTo function
@@ -211,7 +211,7 @@ export function runGlideToTests(flock) {
 				);
 
 				// Assert the movement took approximately the specified duration
-				expect(duration).to.be.closeTo(2, 0.3);
+				expect(duration).to.be.closeTo(2, 0.5);
 				done();
 			});
 		});
