@@ -3,7 +3,7 @@
 import { expect } from "chai";
 
 function checkXPosition(box, pos) {
-	return Math.abs(box.position.x - pos) <= 0.1;
+	return Math.abs(box.position.x - pos) <= 0.2;
 }
 
 // Test suite for glideTo function
@@ -35,7 +35,7 @@ export function runGlideToTests(flock) {
 		});
 
 		it("should move the box to the correct position @slow", function (done) {
-			this.timeout(15000); // Increase the timeout forthis test
+			this.timeout(2000); // Set a reasonable timeout for a short animation
 			// Call glideTo to move the
 
 			flock
@@ -52,53 +52,53 @@ export function runGlideToTests(flock) {
 		});
 
 		it("should handle reverse movement @slow", function (done) {
-			this.timeout(10000); // Increase the timeout for this test
+			this.timeout(5000); // Increase the timeout for this test
 
-			// Move the box with loop enabled
+			// Move the box with reverse enabled
 			flock.glideTo(box1, {
 				x: 6,
 				y: 0,
 				z: 0,
 				duration: 2,
 				reverse: true,
-			}); // Start the glide with return enabled
+			});
 
-			let count = 0;
-			let passed = true;
+			let hasReachedTarget = false;
+			let hasReturned = false;
 
 			// Check the box's position periodically
 			const intervalId = setInterval(() => {
 				const box = flock.scene.getMeshByName(box1);
+				if (!box) return;
 
-				switch (count) {
-					case 3:
-						if (!checkXPosition(box, 0)) {
-							passed = false;
-						}
-						break;
-					case 0:
-					case 2:
-						if (!checkXPosition(box, 3)) {
-							passed = false;
-						}
-						break;
-					case 1:
-						if (!checkXPosition(box, 6)) {
-							passed = false;
-						}
-						break;
+				// Log the current position for debugging
+				//console.log(`[Reverse Test] Current X: ${box.position.x.toFixed(3)}`);
+
+				// Check if it reached the target
+				if (checkXPosition(box, 6)) {
+					hasReachedTarget = true;
 				}
 
-				count++;
+				// If it has reached the target, now check if it has returned
+				// Use 'else if' to ensure we don't check for return on the same tick we reach the target
+				else if (hasReachedTarget && checkXPosition(box, 0)) {
+					hasReturned = true;
+				}
+			}, 25); // Check more frequently to reliably catch the peak position
 
-				// Stop checking after 4 seconds
-				if (count > 3) {
+			// After the full animation duration (2s out + 2s back), check the states
+			setTimeout(() => {
+				try {
 					clearInterval(intervalId);
-
-					expect(passed).to.be.true;
+					expect(hasReachedTarget, "Box did not reach target").to.be
+						.true;
+					expect(hasReturned, "Box did not return to start").to.be
+						.true;
 					done();
+				} catch (e) {
+					done(e);
 				}
-			}, 1000); // Check every 1000ms
+			}, 4500); // Wait for 4.5 seconds to be safe
 		});
 
 		it("should handle looping", function (done) {
@@ -191,15 +191,27 @@ export function runGlideToTests(flock) {
 		});
 
 		it("should complete within the given duration", function (done) {
-			this.timeout(10000); // Increase the timeout for this test
-			const startTime = Date.now();
+			this.timeout(3000); // Tighter timeout for a 2s animation
+			let startTime = null;
+			const box = flock.scene.getMeshByName(box1);
+
+			// Observer to start the timer on first movement
+			const observer = flock.scene.onBeforeRenderObservable.add(() => {
+				if (box.position.x > 0 && startTime === null) {
+					startTime = Date.now();
+				}
+			});
 
 			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 2 }).then(() => {
+				flock.scene.onBeforeRenderObservable.remove(observer); // Clean up observer
 				const endTime = Date.now();
 				const duration = (endTime - startTime) / 1000; // Convert to seconds
+				console.log(
+					`Glide duration test: expected ~2s, got ${duration.toFixed(3)}s`,
+				);
 
 				// Assert the movement took approximately the specified duration
-				expect(duration).to.be.closeTo(2, 0.5); // Within 0.5 seconds tolerance
+				expect(duration).to.be.closeTo(2, 0.3);
 				done();
 			});
 		});

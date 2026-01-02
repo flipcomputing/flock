@@ -226,92 +226,91 @@ export const flockAnimate = {
       easing = "Linear",
     } = {},
   ) {
-    return new Promise(async (resolve) => {
-      await flock.whenModelReady(meshName, async function (mesh) {
-        if (mesh) {
-          const BABYLON = flock.BABYLON;
-          const children = mesh.getChildMeshes();
+    try {
+      const mesh = await flock._waitForMesh(meshName);
+      if (!mesh) {
+        return;
+      }
 
-          // Determine if we should actually treat this as a physics object
-          const isPhysicsActive =
-            mesh.physics &&
-            mesh.metadata?.physicsType !== "NONE" &&
-            mesh.physics._pluginData?.hpBodyId;
+      const BABYLON = flock.BABYLON;
+      const children = mesh.getChildMeshes();
 
-          if (isPhysicsActive) {
-            mesh.physics.disablePreStep = false;
-            mesh.physics.setPrestepType(BABYLON.PhysicsPrestepType.ACTION);
-            mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
-          }
+      const isPhysicsActive =
+        mesh.physics &&
+        mesh.metadata?.physicsType !== "NONE" &&
+        mesh.physics._pluginData?.hpBodyId;
 
-          const startAnchor = flock._getAnchor(mesh);
-          const targetAnchor = new BABYLON.Vector3(x, y, z);
-          const anchorDelta = targetAnchor.subtract(
-            new BABYLON.Vector3(startAnchor.x, startAnchor.y, startAnchor.z),
+      if (isPhysicsActive) {
+        mesh.physics.disablePreStep = false;
+        mesh.physics.setPrestepType(BABYLON.PhysicsPrestepType.ACTION);
+        mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+      }
+
+      const startAnchor = flock._getAnchor(mesh);
+      const targetAnchor = new BABYLON.Vector3(x, y, z);
+      const anchorDelta = targetAnchor.subtract(
+        new BABYLON.Vector3(startAnchor.x, startAnchor.y, startAnchor.z),
+      );
+      const startPosition = mesh.position.clone();
+      const endPosition = startPosition.add(anchorDelta);
+      const fps = 30;
+      const frames = fps * duration;
+
+      const glideAnimation = new BABYLON.Animation(
+        "glide",
+        "position",
+        fps,
+        BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+        loop || reverse
+          ? BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+          : BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+      );
+
+      const glideKeys = [
+        { frame: 0, value: startPosition },
+        { frame: frames, value: endPosition },
+      ];
+      if (reverse || loop) {
+        glideKeys.push({ frame: frames * 2, value: startPosition });
+      }
+      glideAnimation.setKeys(glideKeys);
+
+      if (easing !== "Linear") {
+        let ease = new BABYLON[easing]();
+        ease.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+        glideAnimation.setEasingFunction(ease);
+      }
+
+      const syncObserver = flock.scene.onAfterAnimationsObservable.add(() => {
+        mesh.computeWorldMatrix(true);
+        children.forEach((c) => c.computeWorldMatrix(true));
+        if (isPhysicsActive) {
+          mesh.physics.setTargetTransform(
+            mesh.absolutePosition,
+            mesh.absoluteRotationQuaternion ||
+              BABYLON.Quaternion.FromEulerVector(mesh.rotation),
           );
-          const startPosition = mesh.position.clone();
-          const endPosition = startPosition.add(anchorDelta);
-          const fps = 30;
-          const frames = fps * duration;
-
-          const glideAnimation = new BABYLON.Animation(
-            "glide",
-            "position",
-            fps,
-            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-            loop || reverse
-              ? BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-              : BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
-          );
-
-          const glideKeys = [
-            { frame: 0, value: startPosition },
-            { frame: frames, value: endPosition },
-          ];
-          if (reverse || loop)
-            glideKeys.push({ frame: frames * 2, value: startPosition });
-          glideAnimation.setKeys(glideKeys);
-
-          if (easing !== "Linear") {
-            let ease = new BABYLON[easing]();
-            ease.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-            glideAnimation.setEasingFunction(ease);
-          }
-
-          const syncObserver = flock.scene.onAfterAnimationsObservable.add(
-            () => {
-              mesh.computeWorldMatrix(true);
-              children.forEach((c) => c.computeWorldMatrix(true));
-
-              // Only sync the physics body if physics is logically active
-              if (isPhysicsActive) {
-                mesh.physics.setTargetTransform(
-                  mesh.absolutePosition,
-                  mesh.absoluteRotationQuaternion ||
-                    BABYLON.Quaternion.FromEulerVector(mesh.rotation),
-                );
-              }
-            },
-          );
-
-          const animatable = flock.scene.beginDirectAnimation(
-            mesh,
-            [glideAnimation],
-            0,
-            reverse || loop ? frames * 2 : frames,
-            loop,
-          );
-
-          animatable.onAnimationEndObservable.add(() => {
-            flock.scene.onAfterAnimationsObservable.remove(syncObserver);
-            if (!reverse) mesh.position = endPosition.clone();
-            resolve();
-          });
-        } else {
-          resolve();
         }
       });
-    });
+
+      const animatable = flock.scene.beginDirectAnimation(
+        mesh,
+        [glideAnimation],
+        0,
+        reverse || loop ? frames * 2 : frames,
+        loop,
+      );
+
+      await animatable.waitAsync();
+
+      flock.scene.onAfterAnimationsObservable.remove(syncObserver);
+      if (!reverse && !loop) {
+        mesh.position = endPosition.clone();
+      }
+    } catch (error) {
+      console.error(`Error in glideTo for mesh "${meshName}":`, error);
+      throw error; // Re-throw the error to allow for external handling
+    }
   },
   async glideToObject(
     meshName1,
