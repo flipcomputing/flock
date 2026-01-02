@@ -742,26 +742,28 @@ export const flockMesh = {
     return bb;
   },
   hold(meshToAttach, targetMesh, xOffset = 0, yOffset = 0, zOffset = 0) {
-    return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
-      flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
-        // Find the first mesh with a skeleton (including descendants)
-        const targetWithSkeleton = targetMeshInstance.skeleton
-          ? targetMeshInstance
-          : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
+    return new Promise((resolve) => {
+      flock.whenModelReady(targetMesh, (targetMeshInstance) => {
+        flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
+          const targetWithSkeleton = targetMeshInstance.skeleton
+            ? targetMeshInstance
+            : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
 
-        if (targetWithSkeleton) {
-          const bone = targetWithSkeleton.skeleton.bones.find(
-            (b) => b.name === "Hold",
-          );
-          if (bone) {
-            meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
-            meshToAttachInstance.position = new flock.BABYLON.Vector3(
-              xOffset,
-              yOffset,
-              zOffset,
+          if (targetWithSkeleton) {
+            const bone = targetWithSkeleton.skeleton.bones.find(
+              (b) => b.name === "Hold",
             );
+            if (bone) {
+              meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
+              meshToAttachInstance.position = new flock.BABYLON.Vector3(
+                xOffset,
+                yOffset,
+                zOffset,
+              );
+            }
           }
-        }
+          resolve();
+        });
       });
     });
   },
@@ -770,141 +772,145 @@ export const flockMesh = {
     targetMesh,
     { boneName = "Hold", x = 0, y = 0, z = 0 } = {},
   ) {
-    return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
-      flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
-        // Save pre-attach world rotation for later restore
-        {
-          const worldMatrix = meshToAttachInstance.getWorldMatrix(true).clone();
-          const scale = new flock.BABYLON.Vector3();
-          const rotation = new flock.BABYLON.Quaternion();
-          const position = new flock.BABYLON.Vector3();
-          worldMatrix.decompose(scale, rotation, position);
-          (meshToAttachInstance.metadata ||= {})._preAttachWorldRotation =
-            rotation.clone();
-        }
-
-        // Pause physics by removing body from Havok world (keep reference)
-        if (
-          meshToAttachInstance.physics &&
-          meshToAttachInstance.physics._pluginData
-        ) {
-          flock.hk._hknp.HP_World_RemoveBody(
-            flock.hk.world,
-            meshToAttachInstance.physics._pluginData.hpBodyId,
-          );
-        }
-
-        const logicalBoneName = boneName;
-        boneName = targetMeshInstance?.metadata?.modelName?.startsWith(
-          "Character",
-        )
-          ? attachBlockMapping[boneName]
-          : attachMixamoMapping[boneName];
-
-        const targetWithSkeleton = targetMeshInstance.skeleton
-          ? targetMeshInstance
-          : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
-
-        if (targetWithSkeleton) {
-          const bone = targetWithSkeleton.skeleton.bones.find(
-            (b) => b.name === boneName,
-          );
-          if (bone) {
-            meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
-
-            if (logicalBoneName === "Head") {
-              let estimatedLength = 0.1;
-              if (bone.children.length > 0) {
-                const headWorld = flock.BABYLON.Vector3.TransformCoordinates(
-                  flock.BABYLON.Vector3.Zero(),
-                  bone.getWorldMatrix(),
-                );
-                const childWorld = flock.BABYLON.Vector3.TransformCoordinates(
-                  flock.BABYLON.Vector3.Zero(),
-                  bone.children[0].getWorldMatrix(),
-                );
-                estimatedLength = childWorld.subtract(headWorld).length();
-              } else {
-                const meshes = targetWithSkeleton.getChildMeshes?.() || [
-                  targetWithSkeleton,
-                ];
-                const minYVals = [];
-                const maxYVals = [];
-                for (const m of meshes) {
-                  const info = m.getBoundingInfo?.();
-                  if (!info) continue;
-                  const minY = info.boundingBox.minimumWorld.y;
-                  const maxY = info.boundingBox.maximumWorld.y;
-                  if (isFinite(minY) && isFinite(maxY)) {
-                    minYVals.push(minY);
-                    maxYVals.push(maxY);
-                  }
-                }
-                let modelHeight = 1;
-                if (minYVals.length && maxYVals.length) {
-                  const allMinY = Math.min(...minYVals);
-                  const allMaxY = Math.max(...maxYVals);
-                  modelHeight = allMaxY - allMinY;
-                }
-                const defaultHeadOffset = 1.3;
-                estimatedLength = defaultHeadOffset * Math.max(modelHeight, 1);
-              }
-              y += estimatedLength;
-            }
-
-            meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
+    return new Promise((resolve) => {
+      flock.whenModelReady(targetMesh, (targetMeshInstance) => {
+        flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
+          {
+            const worldMatrix = meshToAttachInstance.getWorldMatrix(true).clone();
+            const scale = new flock.BABYLON.Vector3();
+            const rotation = new flock.BABYLON.Quaternion();
+            const position = new flock.BABYLON.Vector3();
+            worldMatrix.decompose(scale, rotation, position);
+            (meshToAttachInstance.metadata ||= {})._preAttachWorldRotation =
+              rotation.clone();
           }
-        }
+
+          if (
+            meshToAttachInstance.physics &&
+            meshToAttachInstance.physics._pluginData
+          ) {
+            flock.hk._hknp.HP_World_RemoveBody(
+              flock.hk.world,
+              meshToAttachInstance.physics._pluginData.hpBodyId,
+            );
+          }
+
+          const logicalBoneName = boneName;
+          boneName = targetMeshInstance?.metadata?.modelName?.startsWith(
+            "Character",
+          )
+            ? attachBlockMapping[boneName]
+            : attachMixamoMapping[boneName];
+
+          const targetWithSkeleton = targetMeshInstance.skeleton
+            ? targetMeshInstance
+            : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
+
+          if (targetWithSkeleton) {
+            const bone = targetWithSkeleton.skeleton.bones.find(
+              (b) => b.name === boneName,
+            );
+            if (bone) {
+              meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
+
+              if (logicalBoneName === "Head") {
+                let estimatedLength = 0.1;
+                if (bone.children.length > 0) {
+                  const headWorld = flock.BABYLON.Vector3.TransformCoordinates(
+                    flock.BABYLON.Vector3.Zero(),
+                    bone.getWorldMatrix(),
+                  );
+                  const childWorld = flock.BABYLON.Vector3.TransformCoordinates(
+                    flock.BABYLON.Vector3.Zero(),
+                    bone.children[0].getWorldMatrix(),
+                  );
+                  estimatedLength = childWorld.subtract(headWorld).length();
+                } else {
+                  const meshes = targetWithSkeleton.getChildMeshes?.() || [
+                    targetWithSkeleton,
+                  ];
+                  const minYVals = [];
+                  const maxYVals = [];
+                  for (const m of meshes) {
+                    const info = m.getBoundingInfo?.();
+                    if (!info) continue;
+                    const minY = info.boundingBox.minimumWorld.y;
+                    const maxY = info.boundingBox.maximumWorld.y;
+                    if (isFinite(minY) && isFinite(maxY)) {
+                      minYVals.push(minY);
+                      maxYVals.push(maxY);
+                    }
+                  }
+                  let modelHeight = 1;
+                  if (minYVals.length && maxYVals.length) {
+                    const allMinY = Math.min(...minYVals);
+                    const allMaxY = Math.max(...maxYVals);
+                    modelHeight = allMaxY - allMinY;
+                  }
+                  const defaultHeadOffset = 1.3;
+                  estimatedLength = defaultHeadOffset * Math.max(modelHeight, 1);
+                }
+                y += estimatedLength;
+              }
+
+              meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
+            }
+          }
+          resolve();
+        });
       });
     });
   },
   drop(meshToDetach) {
-    return flock.whenModelReady(meshToDetach, (mesh) => {
-      // Capture current world transform
-      const worldMatrix = mesh.getWorldMatrix(true).clone();
-      const scale = new flock.BABYLON.Vector3();
-      const rotationNow = new flock.BABYLON.Quaternion();
-      const position = new flock.BABYLON.Vector3();
-      worldMatrix.decompose(scale, rotationNow, position);
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshToDetach, (mesh) => {
+        const worldMatrix = mesh.getWorldMatrix(true).clone();
+        const scale = new flock.BABYLON.Vector3();
+        const rotationNow = new flock.BABYLON.Quaternion();
+        const position = new flock.BABYLON.Vector3();
+        worldMatrix.decompose(scale, rotationNow, position);
 
-      // Restore pre-attach world rotation if available
-      const md = mesh.metadata || {};
-      const restoreRotation = md._preAttachWorldRotation || rotationNow;
+        const md = mesh.metadata || {};
+        const restoreRotation = md._preAttachWorldRotation || rotationNow;
 
-      mesh.detachFromBone?.();
-      mesh.parent = null;
-      mesh.rotationQuaternion = restoreRotation.clone();
-      mesh.scaling = scale;
-      mesh.position = position.add(new flock.BABYLON.Vector3(0, 0.002, 0));
-      mesh.computeWorldMatrix(true);
+        mesh.detachFromBone?.();
+        mesh.parent = null;
+        mesh.rotationQuaternion = restoreRotation.clone();
+        mesh.scaling = scale;
+        mesh.position = position.add(new flock.BABYLON.Vector3(0, 0.002, 0));
+        mesh.computeWorldMatrix(true);
 
-      const body = mesh.physics;
-      if (body && body._pluginData) {
-        body.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-        if (body.setTargetTransform)
-          body.setTargetTransform(mesh.position, mesh.rotationQuaternion);
-        body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
-        body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
-
-        flock.hk._hknp.HP_World_AddBody(
-          flock.hk.world,
-          body._pluginData.hpBodyId,
-          true,
-        );
-
-        flock.scene.onBeforeRenderObservable.addOnce(() => {
-          body.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
+        const body = mesh.physics;
+        if (body && body._pluginData) {
+          body.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+          if (body.setTargetTransform)
+            body.setTargetTransform(mesh.position, mesh.rotationQuaternion);
           body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
           body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
-        });
-      }
+
+          flock.hk._hknp.HP_World_AddBody(
+            flock.hk.world,
+            body._pluginData.hpBodyId,
+            true,
+          );
+
+          flock.scene.onBeforeRenderObservable.addOnce(() => {
+            body.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
+            body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
+            body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
+          });
+        }
+        resolve();
+      });
     });
   },
   setParent(parentModelName, childModelName) {
-    return flock.whenModelReady(parentModelName, (parentMesh) => {
-      flock.whenModelReady(childModelName, (childMesh) => {
-        // Set the parent-child relationship
-        childMesh.setParent(parentMesh);
+    return new Promise((resolve) => {
+      flock.whenModelReady(parentModelName, (parentMesh) => {
+        flock.whenModelReady(childModelName, (childMesh) => {
+          childMesh.setParent(parentMesh);
+          resolve();
+        });
       });
     });
   },
@@ -915,66 +921,64 @@ export const flockMesh = {
     offsetY = 0,
     offsetZ = 0,
   ) {
-    return flock.whenModelReady(parentModelName, (parentMesh) => {
-      flock.whenModelReady(childModelName, (childMesh) => {
-        if (!parentMesh || !childMesh) return;
-
-        const BABYLON = flock.BABYLON;
-
-        // Local helper: get pivot offset in *mesh local* space
-        function getLocalPivotOffset(mesh) {
-          const pivotSettings = (mesh.metadata &&
-            mesh.metadata.pivotSettings) || {
-            x: "CENTER",
-            y: "MIN", // default Y is base
-            z: "CENTER",
-          };
-
-          const ext = mesh.getBoundingInfo().boundingBox.extendSize;
-
-          function axisOffset(axis) {
-            const half = ext[axis];
-            const setting = pivotSettings[axis];
-            if (setting === "MIN") return -half;
-            if (setting === "MAX") return half;
-            // CENTER (default)
-            return 0;
+    return new Promise((resolve) => {
+      flock.whenModelReady(parentModelName, (parentMesh) => {
+        flock.whenModelReady(childModelName, (childMesh) => {
+          if (!parentMesh || !childMesh) {
+            resolve();
+            return;
           }
 
-          return new BABYLON.Vector3(
-            axisOffset("x"),
-            axisOffset("y"),
-            axisOffset("z"),
-          );
-        }
+          const BABYLON = flock.BABYLON;
 
-        // Offsets in parent local space
-        const offsetLocal = new BABYLON.Vector3(offsetX, offsetY, offsetZ);
+          function getLocalPivotOffset(mesh) {
+            const pivotSettings = (mesh.metadata &&
+              mesh.metadata.pivotSettings) || {
+              x: "CENTER",
+              y: "MIN",
+              z: "CENTER",
+            };
 
-        // Parent/child pivot offsets in their own local spaces
-        const parentPivotLocal = getLocalPivotOffset(parentMesh);
-        const childPivotLocal = getLocalPivotOffset(childMesh);
+            const ext = mesh.getBoundingInfo().boundingBox.extendSize;
 
-        const desiredChildLocalPos = parentPivotLocal
-          .add(offsetLocal)
-          .subtract(childPivotLocal);
+            function axisOffset(axis) {
+              const half = ext[axis];
+              const setting = pivotSettings[axis];
+              if (setting === "MIN") return -half;
+              if (setting === "MAX") return half;
+              return 0;
+            }
 
-        // Now actually parent and apply the computed local position
-        childMesh.parent = parentMesh;
-        childMesh.position.copyFrom(desiredChildLocalPos);
+            return new BABYLON.Vector3(
+              axisOffset("x"),
+              axisOffset("y"),
+              axisOffset("z"),
+            );
+          }
+
+          const offsetLocal = new BABYLON.Vector3(offsetX, offsetY, offsetZ);
+          const parentPivotLocal = getLocalPivotOffset(parentMesh);
+          const childPivotLocal = getLocalPivotOffset(childMesh);
+
+          const desiredChildLocalPos = parentPivotLocal
+            .add(offsetLocal)
+            .subtract(childPivotLocal);
+
+          childMesh.parent = parentMesh;
+          childMesh.position.copyFrom(desiredChildLocalPos);
+          resolve();
+        });
       });
     });
   },
   removeParent(childModelName) {
-    return flock.whenModelReady(childModelName, (childMesh) => {
-      // Calculate the world position before removing the parent
-      const worldPosition = childMesh.getAbsolutePosition();
-
-      // Remove the parent-child relationship
-      childMesh.parent = null;
-
-      // Set the child mesh's position to its world position
-      childMesh.position = worldPosition;
+    return new Promise((resolve) => {
+      flock.whenModelReady(childModelName, (childMesh) => {
+        const worldPosition = childMesh.getAbsolutePosition();
+        childMesh.parent = null;
+        childMesh.position = worldPosition;
+        resolve();
+      });
     });
   },
   makeFollow(
@@ -985,48 +989,49 @@ export const flockMesh = {
     offsetY = 0,
     offsetZ = 0,
   ) {
-    // Ensure both models are loaded before proceeding
-    return flock.whenModelReady(followerModelName, (followerMesh) => {
-      flock.whenModelReady(targetModelName, (targetMesh) => {
-        // Remove any existing follow observer before adding a new one
-        followerMesh._followObserver &&
-          flock.scene.onBeforeRenderObservable.remove(
-            followerMesh._followObserver,
+    return new Promise((resolve) => {
+      flock.whenModelReady(followerModelName, (followerMesh) => {
+        flock.whenModelReady(targetModelName, (targetMesh) => {
+          followerMesh._followObserver &&
+            flock.scene.onBeforeRenderObservable.remove(
+              followerMesh._followObserver,
+            );
+
+          let getYPosition = () => {
+            if (followPosition === "TOP") {
+              return targetMesh.position.y + targetMesh.scaling.y;
+            } else if (followPosition === "CENTER") {
+              return targetMesh.position.y + targetMesh.scaling.y / 2;
+            } else {
+              return targetMesh.position.y;
+            }
+          };
+
+          followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(
+            () => {
+              followerMesh.position.x =
+                targetMesh.position.x + parseFloat(offsetX);
+              followerMesh.position.y = getYPosition() + parseFloat(offsetY);
+              followerMesh.position.z =
+                targetMesh.position.z + parseFloat(offsetZ);
+            },
           );
-
-        // Calculate Y position based on the follow position option
-        let getYPosition = () => {
-          if (followPosition === "TOP") {
-            return targetMesh.position.y + targetMesh.scaling.y;
-          } else if (followPosition === "CENTER") {
-            return targetMesh.position.y + targetMesh.scaling.y / 2;
-          } else {
-            return targetMesh.position.y;
-          }
-        };
-
-        // Create a new observer to update the follower's position
-        followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(
-          () => {
-            followerMesh.position.x =
-              targetMesh.position.x + parseFloat(offsetX);
-            followerMesh.position.y = getYPosition() + parseFloat(offsetY);
-            followerMesh.position.z =
-              targetMesh.position.z + parseFloat(offsetZ);
-          },
-        );
+          resolve();
+        });
       });
     });
   },
   stopFollow(followerModelName) {
-    return flock.whenModelReady(followerModelName, (followerMesh) => {
-      // Remove the follow observer if it exists
-      if (followerMesh._followObserver) {
-        flock.scene.onBeforeRenderObservable.remove(
-          followerMesh._followObserver,
-        );
-        followerMesh._followObserver = null;
-      }
+    return new Promise((resolve) => {
+      flock.whenModelReady(followerModelName, (followerMesh) => {
+        if (followerMesh._followObserver) {
+          flock.scene.onBeforeRenderObservable.remove(
+            followerMesh._followObserver,
+          );
+          followerMesh._followObserver = null;
+        }
+        resolve();
+      });
     });
   },
 

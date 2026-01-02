@@ -75,42 +75,47 @@ export const flockAnimate = {
     meshName,
     { animationName, loop = false, restart = true } = {},
   ) {
-    return flock.whenModelReady(meshName, (mesh) => {
-      if (!mesh) {
-        console.error(`Mesh "${meshName}" not found.`);
-        return;
-      }
-      // Get the modelName from metadata or whatever property you use
-      const modelName = mesh.metadata?.modelName;
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, async (mesh) => {
+        if (!mesh) {
+          console.error(`Mesh "${meshName}" not found.`);
+          resolve();
+          return;
+        }
+        const modelName = mesh.metadata?.modelName;
 
-      // Check if model should use playAnimationModel based on configuration
-      if (modelAnimationNames.includes(modelName)) {
-        return flock._playAnimationModel(meshName, {
-          animationName,
-          loop,
-          restart,
-        });
-      } else if (flock.separateAnimations) {
-        return flock._playAnimationLoad(meshName, {
-          animationName,
-          loop,
-          restart,
-        });
-      } else {
-        return flock._playAnimationModel(meshName, {
-          animationName,
-          loop,
-          restart,
-        });
-      }
+        if (modelAnimationNames.includes(modelName)) {
+          await flock._playAnimationModel(meshName, {
+            animationName,
+            loop,
+            restart,
+          });
+        } else if (flock.separateAnimations) {
+          await flock._playAnimationLoad(meshName, {
+            animationName,
+            loop,
+            restart,
+          });
+        } else {
+          await flock._playAnimationModel(meshName, {
+            animationName,
+            loop,
+            restart,
+          });
+        }
+        resolve();
+      });
     });
   },
   switchAnimation(
     meshName,
     { animationName, loop = true, restart = false } = {},
   ) {
-    return flock.whenModelReady(meshName, (mesh) => {
-      flock.switchToAnimation(flock.scene, mesh, animationName, loop, restart);
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, (mesh) => {
+        flock.switchToAnimation(flock.scene, mesh, animationName, loop, restart);
+        resolve();
+      });
     });
   },
   async rotateAnim(
@@ -1102,18 +1107,19 @@ export const flockAnimate = {
     }
   },
   stopAnimations(modelName) {
-    return flock.whenModelReady(modelName, (mesh) => {
-      if (mesh && mesh.animations) {
-        // Stop all animations directly on the mesh
-        flock.scene.stopAnimation(mesh);
-      }
+    return new Promise((resolve) => {
+      flock.whenModelReady(modelName, (mesh) => {
+        if (mesh && mesh.animations) {
+          flock.scene.stopAnimation(mesh);
+        }
 
-      // Alternatively, if using animation groups:
-      if (mesh.animationGroups) {
-        mesh.animationGroups.forEach((group) => {
-          group.stop();
-        });
-      }
+        if (mesh.animationGroups) {
+          mesh.animationGroups.forEach((group) => {
+            group.stop();
+          });
+        }
+        resolve();
+      });
     });
   },
   stopAnimationsTargetingMesh(scene, mesh) {
@@ -1472,8 +1478,11 @@ export const flockAnimate = {
     meshName,
     { animationName, loop = true, restart = false } = {},
   ) {
-    return flock.whenModelReady(meshName, (mesh) => {
-      flock.switchToAnimation(flock.scene, mesh, animationName, loop, restart);
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, (mesh) => {
+        flock.switchToAnimation(flock.scene, mesh, animationName, loop, restart);
+        resolve();
+      });
     });
   },
   _switchToAnimationModel(

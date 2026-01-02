@@ -284,7 +284,8 @@ export const flockPhysics = {
     return mesh;
   },
   setPhysicsShape(meshName, shapeType) {
-    return flock.whenModelReady(meshName, (mesh) => {
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, (mesh) => {
       const capturePhysicsState = (targetMesh) => ({
         motionType: targetMesh.physics?.getMotionType?.(),
         disablePreStep: targetMesh.physics?.disablePreStep,
@@ -387,8 +388,11 @@ export const flockPhysics = {
 
         default:
           console.error("Invalid shape type provided:", shapeType);
+          resolve();
           return;
       }
+        resolve();
+      });
     });
   },
   checkMeshesTouching(mesh1VarName, mesh2VarName) {
@@ -471,8 +475,12 @@ export const flockPhysics = {
       return;
     }
 
-    return flock.whenModelReady(meshName, async function (target) {
-      if (!target) return;
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, async function (target) {
+        if (!target) {
+          resolve();
+          return;
+        }
 
       let isExecuting = false;
       let hasExecuted = false;
@@ -568,18 +576,23 @@ export const flockPhysics = {
           async () => await executeAction(target.name),
         );
       }
+        resolve();
+      });
     });
   },
   onIntersect(meshName, otherMeshName, { trigger, callback }) {
-    return flock.whenModelReady(meshName, async function (mesh) {
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, async function (mesh) {
       if (!mesh) {
         console.error("Model not loaded:", meshName);
+        resolve();
         return;
       }
 
-      return flock.whenModelReady(otherMeshName, async function (otherMesh) {
+      flock.whenModelReady(otherMeshName, async function (otherMesh) {
         if (!otherMesh) {
           console.error("Model not loaded:", otherMeshName);
+          resolve();
           return;
         }
 
@@ -597,7 +610,7 @@ export const flockPhysics = {
             },
           },
           async function () {
-            await callback(mesh.name, otherMesh.name); // Pass mesh names
+            await callback(mesh.name, otherMesh.name);
           },
           new flock.BABYLON.PredicateCondition(
             flock.BABYLON.ActionManager,
@@ -606,6 +619,8 @@ export const flockPhysics = {
         );
 
         mesh.actionManager.registerAction(action);
+        resolve();
+      });
       });
     });
   },
@@ -613,25 +628,28 @@ export const flockPhysics = {
     meshName,
     otherMeshName,
     {
-      trigger = "OnIntersectionEnterTrigger", // kept for ActionManager path
+      trigger = "OnIntersectionEnterTrigger",
       callback,
-      usePhysics, // legacy boolean still supported
+      usePhysics,
       debounce = 0,
-      mode = "either", // "auto" | "either" | "intersection" | "physics"
-      separationFrames = 5, // when to consider 'exited' if only physics is used
+      mode = "either",
+      separationFrames = 5,
     } = {},
   ) {
-    return flock.whenModelReady(meshName, async (mesh) => {
-      if (!mesh) {
-        console.error("Model not loaded:", meshName);
-        return;
-      }
-
-      return flock.whenModelReady(otherMeshName, async (otherMesh) => {
-        if (!otherMesh) {
-          console.error("Model not loaded:", otherMeshName);
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, async (mesh) => {
+        if (!mesh) {
+          console.error("Model not loaded:", meshName);
+          resolve();
           return;
         }
+
+        flock.whenModelReady(otherMeshName, async (otherMesh) => {
+          if (!otherMesh) {
+            console.error("Model not loaded:", otherMeshName);
+            resolve();
+            return;
+          }
 
         const scene = flock.scene;
         const B = flock.BABYLON;
@@ -807,17 +825,8 @@ export const flockPhysics = {
           }
         }
 
-        // ---- return a disposer so callers can unregister later ----
-        // Usage: const dispose = onIntersect(...); dispose && dispose();
-        return () => {
-          // best effort cleanup
-          while (cleanups.length) {
-            const fn = cleanups.pop();
-            try {
-              fn();
-            } catch (_) {}
-          }
-        };
+        resolve();
+        });
       });
     });
   },

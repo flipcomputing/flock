@@ -330,20 +330,22 @@ export const flockScene = {
       uiButton.isVisible = true; // Hide the button
       return;
     }
-    return flock.whenModelReady(meshName, function (mesh) {
-      if (mesh) {
-        mesh.setEnabled(true);
-        // Only try to add physics body if mesh has physics
-        if (mesh.physics && mesh.physics._pluginData) {
-          flock.hk._hknp.HP_World_AddBody(
-            flock.hk.world,
-            mesh.physics._pluginData.hpBodyId,
-            mesh.physics.startAsleep,
-          );
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, function (mesh) {
+        if (mesh) {
+          mesh.setEnabled(true);
+          if (mesh.physics && mesh.physics._pluginData) {
+            flock.hk._hknp.HP_World_AddBody(
+              flock.hk.world,
+              mesh.physics._pluginData.hpBodyId,
+              mesh.physics.startAsleep,
+            );
+          }
+        } else {
+          console.log("Model not loaded:", meshName);
         }
-      } else {
-        console.log("Model not loaded:", meshName);
-      }
+        resolve();
+      });
     });
   },
   hide(meshName) {
@@ -354,19 +356,21 @@ export const flockScene = {
       uiButton.isVisible = false; // Hide the button
       return;
     }
-    return flock.whenModelReady(meshName, async function (mesh) {
-      if (mesh) {
-        mesh.setEnabled(false);
-        // Only try to remove physics body if mesh has physics
-        if (mesh.physics && mesh.physics._pluginData) {
-          flock.hk._hknp.HP_World_RemoveBody(
-            flock.hk.world,
-            mesh.physics._pluginData.hpBodyId,
-          );
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, async function (mesh) {
+        if (mesh) {
+          mesh.setEnabled(false);
+          if (mesh.physics && mesh.physics._pluginData) {
+            flock.hk._hknp.HP_World_RemoveBody(
+              flock.hk.world,
+              mesh.physics._pluginData.hpBodyId,
+            );
+          }
+        } else {
+          console.log("Mesh not loaded:", meshName);
         }
-      } else {
-        console.log("Mesh not loaded:", meshName);
-      }
+        resolve();
+      });
     });
   },
   disposeMesh(mesh) {

@@ -46,8 +46,11 @@ export const flockSound = {
     }
 
     // Mesh not ready yet — wait for it
-    return flock.whenModelReady(meshName, async (resolvedMesh) => {
-      return await attachSoundToMesh(resolvedMesh);
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, async (resolvedMesh) => {
+        const result = await attachSoundToMesh(resolvedMesh);
+        resolve(result);
+      });
     });
 
     // Main sound logic for mesh-attached sounds
@@ -399,16 +402,19 @@ export const flockSound = {
       return;
     }
 
-    return flock.whenModelReady(meshName, async function (mesh) {
-      if (!mesh) {
-        throw new Error(`Mesh '${meshName}' not found`);
-      }
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, async function (mesh) {
+        if (!mesh) {
+          throw new Error(`Mesh '${meshName}' not found`);
+        }
 
-      if (!mesh.metadata || typeof mesh.metadata !== "object") {
-        mesh.metadata = {};
-      }
+        if (!mesh.metadata || typeof mesh.metadata !== "object") {
+          mesh.metadata = {};
+        }
 
-      mesh.metadata.bpm = bpm;
+        mesh.metadata.bpm = bpm;
+        resolve();
+      });
     });
   },
   updateListenerPositionAndOrientation(context, camera) {

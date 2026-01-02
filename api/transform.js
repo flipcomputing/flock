@@ -328,143 +328,141 @@ export const flockTransform = {
     }
   },
   rotate(meshName, { x = 0, y = 0, z = 0 } = {}) {
-    // Handle mesh rotation
-    return flock.whenModelReady(meshName, (mesh) => {
-      if (meshName === "__active_camera__") {
-        // Handle camera rotation
-        const camera = flock.scene.activeCamera;
-        if (!camera) return;
-
-        const incrementalRotation =
-          flock.BABYLON.Quaternion.RotationYawPitchRoll(
-            flock.BABYLON.Tools.ToRadians(y),
-            flock.BABYLON.Tools.ToRadians(x),
-            flock.BABYLON.Tools.ToRadians(z),
-          );
-
-        // Check if the camera is ArcRotateCamera or FreeCamera, and rotate accordingly
-        if (camera.alpha !== undefined) {
-          // ArcRotateCamera: Adjust the 'alpha' (horizontal) and 'beta' (vertical)
-          camera.alpha += flock.BABYLON.Tools.ToRadians(y);
-          camera.beta += flock.BABYLON.Tools.ToRadians(x);
-        } else if (camera.rotation !== undefined) {
-          // FreeCamera: Adjust the camera's rotationQuaternion or Euler rotation
-          if (!camera.rotationQuaternion) {
-            camera.rotationQuaternion =
-              flock.BABYLON.Quaternion.RotationYawPitchRoll(
-                flock.BABYLON.Tools.ToRadians(camera.rotation.y),
-                flock.BABYLON.Tools.ToRadians(camera.rotation.x),
-                flock.BABYLON.Tools.ToRadians(camera.rotation.z),
-              );
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, (mesh) => {
+        if (meshName === "__active_camera__") {
+          const camera = flock.scene.activeCamera;
+          if (!camera) {
+            resolve();
+            return;
           }
 
-          camera.rotationQuaternion
-            .multiplyInPlace(incrementalRotation)
-            .normalize();
+          const incrementalRotation =
+            flock.BABYLON.Quaternion.RotationYawPitchRoll(
+              flock.BABYLON.Tools.ToRadians(y),
+              flock.BABYLON.Tools.ToRadians(x),
+              flock.BABYLON.Tools.ToRadians(z),
+            );
+
+          if (camera.alpha !== undefined) {
+            camera.alpha += flock.BABYLON.Tools.ToRadians(y);
+            camera.beta += flock.BABYLON.Tools.ToRadians(x);
+          } else if (camera.rotation !== undefined) {
+            if (!camera.rotationQuaternion) {
+              camera.rotationQuaternion =
+                flock.BABYLON.Quaternion.RotationYawPitchRoll(
+                  flock.BABYLON.Tools.ToRadians(camera.rotation.y),
+                  flock.BABYLON.Tools.ToRadians(camera.rotation.x),
+                  flock.BABYLON.Tools.ToRadians(camera.rotation.z),
+                );
+            }
+
+            camera.rotationQuaternion
+              .multiplyInPlace(incrementalRotation)
+              .normalize();
+          }
+          resolve();
+          return;
         }
-        return;
-      }
 
-      if (mesh.name === "hemisphericLight") {
-        const oldLightVector = mesh.direction;
-        const xRadian = flock.BABYLON.Tools.ToRadians(x);
-        const yRadian = flock.BABYLON.Tools.ToRadians(y);
-        const zRadian = flock.BABYLON.Tools.ToRadians(z);
-        const newLightVector = new flock.BABYLON.Vector3(
-          xRadian,
-          yRadian,
-          zRadian,
+        if (mesh.name === "hemisphericLight") {
+          const oldLightVector = mesh.direction;
+          const xRadian = flock.BABYLON.Tools.ToRadians(x);
+          const yRadian = flock.BABYLON.Tools.ToRadians(y);
+          const zRadian = flock.BABYLON.Tools.ToRadians(z);
+          const newLightVector = new flock.BABYLON.Vector3(
+            xRadian,
+            yRadian,
+            zRadian,
+          );
+          mesh.direction = oldLightVector.add(newLightVector);
+          resolve();
+          return;
+        }
+
+        const incrementalRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+          flock.BABYLON.Tools.ToRadians(y),
+          flock.BABYLON.Tools.ToRadians(x),
+          flock.BABYLON.Tools.ToRadians(z),
         );
-        mesh.direction = oldLightVector.add(newLightVector);
-        return;
-      }
+        mesh.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
 
-      const incrementalRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-        flock.BABYLON.Tools.ToRadians(y),
-        flock.BABYLON.Tools.ToRadians(x),
-        flock.BABYLON.Tools.ToRadians(z),
-      );
-      mesh.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
-
-      if (mesh.physics) {
-        mesh.physics.disablePreStep = false;
-        mesh.physics.setTargetTransform(
-          mesh.absolutePosition,
-          mesh.rotationQuaternion,
-        );
-      }
-      mesh.computeWorldMatrix(true);
+        if (mesh.physics) {
+          mesh.physics.disablePreStep = false;
+          mesh.physics.setTargetTransform(
+            mesh.absolutePosition,
+            mesh.rotationQuaternion,
+          );
+        }
+        mesh.computeWorldMatrix(true);
+        resolve();
+      });
     });
   },
   rotateTo(meshName, { x = 0, y = 0, z = 0 } = {}) {
-    return flock.whenModelReady(meshName, (mesh) => {
-      if (meshName === "__active_camera__") {
-        const camera = flock.scene.activeCamera;
-        if (!camera) return;
-        // For an ArcRotateCamera, set the absolute alpha (horizontal) and beta (vertical) angles.
-        if (camera.alpha !== undefined) {
-          camera.alpha = flock.BABYLON.Tools.ToRadians(y); // horizontal
-          camera.beta = flock.BABYLON.Tools.ToRadians(x); // vertical
-        }
-        // For a FreeCamera or any camera using a rotationQuaternion:
-        else if (camera.rotation !== undefined) {
-          // Ensure a rotationQuaternion exists.
-          if (!camera.rotationQuaternion) {
-            camera.rotationQuaternion =
-              flock.BABYLON.Quaternion.RotationYawPitchRoll(
-                flock.BABYLON.Tools.ToRadians(camera.rotation.y),
-                flock.BABYLON.Tools.ToRadians(camera.rotation.x),
-                flock.BABYLON.Tools.ToRadians(camera.rotation.z),
-              ).normalize();
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, (mesh) => {
+        if (meshName === "__active_camera__") {
+          const camera = flock.scene.activeCamera;
+          if (!camera) {
+            resolve();
+            return;
           }
-          // Create the target quaternion using the absolute Euler angles.
-          // Here we assume y is yaw, x is pitch, and z is roll.
-          const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-            flock.BABYLON.Tools.ToRadians(y),
-            flock.BABYLON.Tools.ToRadians(x),
-            flock.BABYLON.Tools.ToRadians(z),
-          ).normalize();
-          // Set the camera's rotationQuaternion directly to the target.
-          camera.rotationQuaternion = targetQuat;
+          if (camera.alpha !== undefined) {
+            camera.alpha = flock.BABYLON.Tools.ToRadians(y);
+            camera.beta = flock.BABYLON.Tools.ToRadians(x);
+          } else if (camera.rotation !== undefined) {
+            if (!camera.rotationQuaternion) {
+              camera.rotationQuaternion =
+                flock.BABYLON.Quaternion.RotationYawPitchRoll(
+                  flock.BABYLON.Tools.ToRadians(camera.rotation.y),
+                  flock.BABYLON.Tools.ToRadians(camera.rotation.x),
+                  flock.BABYLON.Tools.ToRadians(camera.rotation.z),
+                ).normalize();
+            }
+            const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+              flock.BABYLON.Tools.ToRadians(y),
+              flock.BABYLON.Tools.ToRadians(x),
+              flock.BABYLON.Tools.ToRadians(z),
+            ).normalize();
+            camera.rotationQuaternion = targetQuat;
+          }
+          resolve();
+          return;
         }
-        return;
-      }
-      // Ensure mesh has a rotation quaternion
-      if (!mesh.rotationQuaternion && mesh.name != "hemisphericLight") {
-        mesh.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-          mesh.rotation.y,
-          mesh.rotation.x,
-          mesh.rotation.z,
-        );
-      }
+        if (!mesh.rotationQuaternion && mesh.name != "hemisphericLight") {
+          mesh.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+            mesh.rotation.y,
+            mesh.rotation.x,
+            mesh.rotation.z,
+          );
+        }
 
-      // Create the target rotation quaternion from absolute Euler angles (degrees)
-      const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-        flock.BABYLON.Tools.ToRadians(y), // yaw
-        flock.BABYLON.Tools.ToRadians(x), // pitch
-        flock.BABYLON.Tools.ToRadians(z), // roll
-      ).normalize();
+        const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+          flock.BABYLON.Tools.ToRadians(y),
+          flock.BABYLON.Tools.ToRadians(x),
+          flock.BABYLON.Tools.ToRadians(z),
+        ).normalize();
 
-      // Set the mesh's rotation directly to the target
-      mesh.rotationQuaternion = targetQuat;
+        mesh.rotationQuaternion = targetQuat;
 
-      // Rotate light
-      if (mesh.name === "hemisphericLight") {
-        const xRadian = flock.BABYLON.Tools.ToRadians(x);
-        const yRadian = flock.BABYLON.Tools.ToRadians(y);
-        const zRadian = flock.BABYLON.Tools.ToRadians(z);
-        mesh.direction = new flock.BABYLON.Vector3(xRadian, yRadian, zRadian);
-      }
+        if (mesh.name === "hemisphericLight") {
+          const xRadian = flock.BABYLON.Tools.ToRadians(x);
+          const yRadian = flock.BABYLON.Tools.ToRadians(y);
+          const zRadian = flock.BABYLON.Tools.ToRadians(z);
+          mesh.direction = new flock.BABYLON.Vector3(xRadian, yRadian, zRadian);
+        }
 
-      // Update physics if present
-      if (mesh.physics) {
-        mesh.physics.disablePreStep = false;
-        mesh.physics.setTargetTransform(
-          mesh.absolutePosition,
-          mesh.rotationQuaternion,
-        );
-      }
-      mesh.computeWorldMatrix(true);
+        if (mesh.physics) {
+          mesh.physics.disablePreStep = false;
+          mesh.physics.setTargetTransform(
+            mesh.absolutePosition,
+            mesh.rotationQuaternion,
+          );
+        }
+        mesh.computeWorldMatrix(true);
+        resolve();
+      });
     });
   },
   async lookAt(meshName, { target, useY = false } = {}) {
@@ -557,69 +555,64 @@ export const flockTransform = {
       zOrigin = "CENTRE",
     } = {},
   ) {
-    return flock.whenModelReady(meshName, (mesh) => {
-      mesh.metadata = mesh.metadata || {};
-      mesh.metadata.origin = { xOrigin, yOrigin, zOrigin };
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, (mesh) => {
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.origin = { xOrigin, yOrigin, zOrigin };
 
-      if (mesh.physics) {
-        mesh.physics.disablePreStep = false;
-      }
-      // Get the original bounding box dimensions and positions
-      const boundingInfo = mesh.getBoundingInfo();
-      const originalMinY = boundingInfo.boundingBox.minimumWorld.y;
-      const originalMaxY = boundingInfo.boundingBox.maximumWorld.y;
-      const originalMinX = boundingInfo.boundingBox.minimumWorld.x;
-      const originalMaxX = boundingInfo.boundingBox.maximumWorld.x;
-      const originalMinZ = boundingInfo.boundingBox.minimumWorld.z;
-      const originalMaxZ = boundingInfo.boundingBox.maximumWorld.z;
+        if (mesh.physics) {
+          mesh.physics.disablePreStep = false;
+        }
+        const boundingInfo = mesh.getBoundingInfo();
+        const originalMinY = boundingInfo.boundingBox.minimumWorld.y;
+        const originalMaxY = boundingInfo.boundingBox.maximumWorld.y;
+        const originalMinX = boundingInfo.boundingBox.minimumWorld.x;
+        const originalMaxX = boundingInfo.boundingBox.maximumWorld.x;
+        const originalMinZ = boundingInfo.boundingBox.minimumWorld.z;
+        const originalMaxZ = boundingInfo.boundingBox.maximumWorld.z;
 
-      // Apply scaling to the mesh
-      mesh.scaling = new flock.BABYLON.Vector3(x, y, z);
+        mesh.scaling = new flock.BABYLON.Vector3(x, y, z);
 
-      mesh.refreshBoundingInfo();
-      mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        mesh.computeWorldMatrix(true);
 
-      // Get the new bounding box information after scaling
-      const newBoundingInfo = mesh.getBoundingInfo();
-      //console.log(newBoundingInfo);
-      const newMinY = newBoundingInfo.boundingBox.minimumWorld.y;
-      const newMaxY = newBoundingInfo.boundingBox.maximumWorld.y;
-      const newMinX = newBoundingInfo.boundingBox.minimumWorld.x;
-      const newMaxX = newBoundingInfo.boundingBox.maximumWorld.x;
-      const newMinZ = newBoundingInfo.boundingBox.minimumWorld.z;
-      const newMaxZ = newBoundingInfo.boundingBox.maximumWorld.z;
+        const newBoundingInfo = mesh.getBoundingInfo();
+        const newMinY = newBoundingInfo.boundingBox.minimumWorld.y;
+        const newMaxY = newBoundingInfo.boundingBox.maximumWorld.y;
+        const newMinX = newBoundingInfo.boundingBox.minimumWorld.x;
+        const newMaxX = newBoundingInfo.boundingBox.maximumWorld.x;
+        const newMinZ = newBoundingInfo.boundingBox.minimumWorld.z;
+        const newMaxZ = newBoundingInfo.boundingBox.maximumWorld.z;
 
-      // Adjust position based on Y-origin
-      if (yOrigin === "BASE") {
-        const diffY = newMinY - originalMinY;
-        mesh.position.y -= diffY; // Shift the object down by the difference
-      } else if (yOrigin === "TOP") {
-        const diffY = newMaxY - originalMaxY;
-        mesh.position.y -= diffY; // Shift the object up by the difference
-      }
+        if (yOrigin === "BASE") {
+          const diffY = newMinY - originalMinY;
+          mesh.position.y -= diffY;
+        } else if (yOrigin === "TOP") {
+          const diffY = newMaxY - originalMaxY;
+          mesh.position.y -= diffY;
+        }
 
-      // Adjust position based on X-origin
-      if (xOrigin === "LEFT") {
-        const diffX = newMinX - originalMinX;
-        mesh.position.x -= diffX; // Shift the object to the left
-      } else if (xOrigin === "RIGHT") {
-        const diffX = newMaxX - originalMaxX;
-        mesh.position.x -= diffX; // Shift the object to the right
-      }
+        if (xOrigin === "LEFT") {
+          const diffX = newMinX - originalMinX;
+          mesh.position.x -= diffX;
+        } else if (xOrigin === "RIGHT") {
+          const diffX = newMaxX - originalMaxX;
+          mesh.position.x -= diffX;
+        }
 
-      // Adjust position based on Z-origin
-      if (zOrigin === "FRONT") {
-        const diffZ = newMinZ - originalMinZ;
-        mesh.position.z -= diffZ; // Shift the object forward
-      } else if (zOrigin === "BACK") {
-        const diffZ = newMaxZ - originalMaxZ;
-        mesh.position.z -= diffZ; // Shift the object backward
-      }
+        if (zOrigin === "FRONT") {
+          const diffZ = newMinZ - originalMinZ;
+          mesh.position.z -= diffZ;
+        } else if (zOrigin === "BACK") {
+          const diffZ = newMaxZ - originalMaxZ;
+          mesh.position.z -= diffZ;
+        }
 
-      // Refresh bounding info and recompute world matrix
-      mesh.refreshBoundingInfo();
-      mesh.computeWorldMatrix(true);
-      flock.updatePhysics(mesh);
+        mesh.refreshBoundingInfo();
+        mesh.computeWorldMatrix(true);
+        flock.updatePhysics(mesh);
+        resolve();
+      });
     });
   },
   resize(
@@ -634,7 +627,8 @@ export const flockTransform = {
       maintainTextureScale = true,
     } = {},
   ) {
-    return flock.whenModelReady(meshName, (mesh) => {
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, (mesh) => {
       mesh.metadata = mesh.metadata || {};
 
       if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
@@ -708,18 +702,24 @@ export const flockTransform = {
       mesh.position.subtractInPlace(diff);
 
       flock.updatePhysics(mesh);
+        resolve();
+      });
     });
   },
   setAnchor(
     meshName,
     {
       xPivot = "CENTER",
-      yPivot = "MIN", // <- default Y is MIN (BASE)
+      yPivot = "MIN",
       zPivot = "CENTER",
     } = {},
   ) {
-    return flock.whenModelReady(meshName, (mesh) => {
-      if (!mesh) return;
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, (mesh) => {
+        if (!mesh) {
+          resolve();
+          return;
+        }
 
       const BABYLON = flock.BABYLON;
 
@@ -804,9 +804,10 @@ export const flockTransform = {
 
       mesh.computeWorldMatrix(true);
 
-      // Save NEW pivot settings
       mesh.metadata = mesh.metadata || {};
       mesh.metadata.pivotSettings = { x: xPivot, y: yPivot, z: zPivot };
+        resolve();
+      });
     });
   },
   _getAnchor(mesh) {
