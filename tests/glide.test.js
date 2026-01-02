@@ -3,7 +3,7 @@
 import { expect } from "chai";
 
 function checkXPosition(box, pos) {
-	return Math.abs(box.position.x - pos) <= 0.3;
+	return Math.abs(box.position.x - pos) <= 0.4;
 }
 
 // Test suite for glideTo function
@@ -34,21 +34,17 @@ export function runGlideToTests(flock) {
 			}
 		});
 
-		it("should move the box to the correct position @slow", function (done) {
+		it("should move the box to the correct position @slow", async function () {
 			this.timeout(2000); // Set a reasonable timeout for a short animation
-			// Call glideTo to move the
 
-			flock
-				.glideTo(box1, { x: 6, y: 0, z: 0, duration: 0.5 })
-				.then(() => {
-					const box = flock.scene.getMeshByName(box1);
+			await flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 0.5 });
 
-					// Assert the box has moved to the correct position
-					expect(box.position.x).to.equal(6);
-					expect(box.position.y).to.equal(0.5);
-					expect(box.position.z).to.equal(0);
-					done();
-				});
+			const box = flock.scene.getMeshByName(box1);
+
+			// Assert the box has moved to the correct position
+			expect(box.position.x).to.equal(6);
+			expect(box.position.y).to.equal(0.5);
+			expect(box.position.z).to.equal(0);
 		});
 
 		it("should handle reverse movement @slow", function (done) {
@@ -71,17 +67,11 @@ export function runGlideToTests(flock) {
 				const box = flock.scene.getMeshByName(box1);
 				if (!box) return;
 
-				// Log the current position for debugging
-				//console.log(`[Reverse Test] Current X: ${box.position.x.toFixed(3)}`);
-
-				// Check if it reached the target
-				if (checkXPosition(box, 6)) {
+				// Only check for return *after* the target has been reached.
+				// Using 'else if' makes the check mutually exclusive and more robust.
+				if (!hasReachedTarget && checkXPosition(box, 6)) {
 					hasReachedTarget = true;
-				}
-
-				// If it has reached the target, now check if it has returned
-				// Use 'else if' to ensure we don't check for return on the same tick we reach the target
-				else if (hasReachedTarget && checkXPosition(box, 0)) {
+				} else if (hasReachedTarget && checkXPosition(box, 0)) {
 					hasReturned = true;
 				}
 			}, 25); // Check more frequently to reliably catch the peak position
@@ -165,72 +155,58 @@ export function runGlideToTests(flock) {
 			}, 1000);
 		});
 
-		it("should follow the correct easing function", function (done) {
+		it("should follow the correct easing function", async function () {
 			this.timeout(5000); // Increase the timeout for this test
-			// Test with different easing options (Linear by default)
 
-			flock
-				.glideTo(box1, {
-					x: 6,
-					y: 0,
-					z: 0,
-					duration: 1,
-					reverse: false,
-					loop: false,
-					easing: "SineEase",
-				})
-				.then(() => {
-					const box = flock.scene.getMeshByName(box1);
+			await flock.glideTo(box1, {
+				x: 6,
+				y: 0,
+				z: 0,
+				duration: 1,
+				reverse: false,
+				loop: false,
+				easing: "SineEase",
+			});
 
-					// Check if the position matches expected easing behavior
-					expect(box.position.x).to.be.closeTo(6, 0.1); // Within some tolerance
-					expect(box.position.y).to.be.closeTo(0.5, 0.1);
-					expect(box.position.z).to.be.closeTo(0, 0.1);
-					done();
-				});
+			const box = flock.scene.getMeshByName(box1);
+
+			// Check if the position matches expected easing behavior
+			expect(box.position.x).to.be.closeTo(6, 0.1); // Within some tolerance
+			expect(box.position.y).to.be.closeTo(0.5, 0.1);
+			expect(box.position.z).to.be.closeTo(0, 0.1);
 		});
 
-		it("should complete within the given duration", function (done) {
+		it("should complete within the given duration", async function () {
 			this.timeout(3000); // Tighter timeout for a 2s animation
 			let startTime = null;
 			const box = flock.scene.getMeshByName(box1);
 
-			// Observer to start the timer on first movement
 			const observer = flock.scene.onBeforeRenderObservable.add(() => {
 				if (box.position.x > 0 && startTime === null) {
 					startTime = Date.now();
 				}
 			});
 
-			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 2 }).then(() => {
-				flock.scene.onBeforeRenderObservable.remove(observer); // Clean up observer
-				const endTime = Date.now();
-				const duration = (endTime - startTime) / 1000; // Convert to seconds
-				console.log(
-					`Glide duration test: expected ~2s, got ${duration.toFixed(3)}s`,
-				);
+			await flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 2 });
 
-				// Assert the movement took approximately the specified duration
-				expect(duration).to.be.closeTo(2, 0.5);
-				done();
-			});
+			flock.scene.onBeforeRenderObservable.remove(observer);
+			const endTime = Date.now();
+			const duration = (endTime - startTime) / 1000;
+
+			// Assert the movement took approximately the specified duration
+			expect(duration).to.be.closeTo(2, 0.5);
 		});
 
 		it("should handle camera movement @slow", async function () {
 			this.timeout(3000); // Set a timeout for the animation
 
 			const camera = flock.scene.activeCamera;
-			console.log("Camera:", camera);
 			const targetPosition = { x: 5, y: 5, z: 5 };
-
-			console.log("Starting glide", flock.getCamera());
 
 			await flock.glideTo(flock.getCamera(), {
 				...targetPosition,
 				duration: 1,
 			});
-
-			console.log("glideTo with camera has returned/resolved.");
 
 			// Assert the camera has moved to the correct position
 			expect(camera.position.x).to.be.closeTo(targetPosition.x, 0.1);

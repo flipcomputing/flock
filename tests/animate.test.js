@@ -213,47 +213,6 @@ export function runAnimateTests(flock) {
 			});
 		});
 
-		describe("glideTo function", function () {
-			it("should move mesh to target position", async function () {
-				const boxId = "glideToTest";
-				await flock.createBox(boxId, {
-					width: 1,
-					height: 1,
-					depth: 1,
-					position: [0, 0, 0],
-				});
-				boxIds.push(boxId);
-
-				const mesh = flock.scene.getMeshByName(boxId);
-				expect(mesh).to.exist;
-
-				await flock.glideTo(boxId, { x: 5, y: 3, z: 2, duration: 0.1 });
-
-				// Check final position (accounting for mesh height adjustment)
-				expect(mesh.position.x).to.be.closeTo(5, 0.1);
-				expect(mesh.position.z).to.be.closeTo(2, 0.1);
-				// Y position includes mesh height adjustment
-				expect(mesh.position.y).to.be.greaterThan(2.5);
-			});
-
-			it("should handle camera movement", async function () {
-				// Test camera movement (if active camera exists)
-				try {
-					await flock.glideTo("__active_camera__", {
-						x: 1,
-						y: 1,
-						z: 1,
-						duration: 0.1,
-					});
-					// If we get here without throwing, the test passes
-					expect(true).to.be.true;
-				} catch (error) {
-					// If there's no active camera, we should get a specific error or skip
-					console.log("No active camera for testing");
-				}
-			});
-		});
-
 		describe("animateProperty function", function () {
 			it("should animate alpha property", async function () {
 				const boxId = "animateAlpha";
