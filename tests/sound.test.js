@@ -23,20 +23,18 @@ export function runSoundTests(flock) {
 			const box = flock.scene.getMeshByName(boxId);
 			expect(box).to.exist;
 
-			// Play first sound and ignore any late errors
-			flock
-				.playSound(boxId, { soundName: "test.mp3", loop: true })
-				.catch(() => {});
-
-			await new Promise((r) => setTimeout(r, 500));
+			// Play first sound
+			await flock.playSound(boxId, {
+				soundName: "test.mp3",
+				loop: true,
+			});
 			expect(box.metadata?.currentSound?.name).to.equal("test.mp3");
 
-			// Replace with a second sound (also fire-and-forget)
-			flock
-				.playSound(boxId, { soundName: "test2.mp3", loop: true })
-				.catch(() => {});
-
-			await new Promise((r) => setTimeout(r, 500));
+			// Replace with a second sound
+			await flock.playSound(boxId, {
+				soundName: "test2.mp3",
+				loop: true,
+			});
 			expect(box.metadata?.currentSound?.name).to.equal("test2.mp3");
 		});
 
