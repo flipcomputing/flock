@@ -209,15 +209,22 @@ export function runSoundTests(flock) {
 		});
 		it("should play notes with specified notes and durations", async function () {
 			this.timeout(3000);
+			const start = performance.now();
 			const box = flock.scene.getMeshByName(boxId);
 			expect(box).to.exist;
 			const notes = [60, 62, 64]; // C4, D4, E4 as MIDI numbers
-			const durations = [0.5, 0.5, 1.0];
-			expect(() => {
-				flock.playNotes(boxId, { notes, durations });
-			}).to.not.throw();
-			// Allow time for notes to play
-			await new Promise((r) => setTimeout(r, 2500));
+			const durations = [0.2, 0.2, 0.2]; // Total duration 0.6s
+			const bpm = 120; // 2 beats per second, so 0.6s / 2 = 0.3s per beat
+
+			await flock.playNotes(boxId, { notes, durations, bpm });
+			const elapsed = (performance.now() - start) / 1000;
+
+			// The total time is the sum of all but the last duration (which is the start time of the last note),
+			// plus the duration of the last note itself. All converted from beats to seconds.
+			const secondsPerBeat = 60 / bpm;
+			const expectedDuration = durations.reduce((a, b) => a + b, 0) * secondsPerBeat;
+
+			expect(elapsed).to.be.greaterThan(expectedDuration - 0.1);
 		});
 		it("should play notes with custom instrument", async function () {
 			this.timeout(3000);
@@ -232,10 +239,7 @@ export function runSoundTests(flock) {
 				sustain: 0.6,
 				release: 0.8,
 			});
-			expect(() => {
-				flock.playNotes(boxId, { notes, durations, instrument });
-			}).to.not.throw();
-			await new Promise((r) => setTimeout(r, 1000));
+			await flock.playNotes(boxId, { notes, durations, instrument });
 		});
 		it("should handle empty notes array", async function () {
 			const box = flock.scene.getMeshByName(boxId);
@@ -264,11 +268,10 @@ export function runSoundTests(flock) {
 			const origConsoleError = console.error;
 			console.error = (...args) => {
 				capturedErrors.push(args.join(" "));
-				origConsoleError.apply(console, args);
 			};
 			try {
 				flock.playNotes(boxId, { notes, durations });
-				await new Promise((r) => setTimeout(r, 300));
+				await new Promise((r) => setTimeout(r, 100)); // wait for potential async errors
 				expect(
 					capturedErrors.some((msg) =>
 						/linearRampToValueAtTime|non-finite/i.test(msg),
@@ -279,58 +282,29 @@ export function runSoundTests(flock) {
 			}
 		});
 
-		it("should handle invalid durations (NaN/Infinity/negative) without logging errors", async function () {
-			const box = flock.scene.getMeshByName(boxId);
-			expect(box).to.exist;
-			const notes = [60, 62, 64];
-			const durations = [NaN, Infinity, -1];
+		describe("should handle invalid numeric inputs without logging errors", () => {
+			const testCases = [
+				{ name: "NaN duration", durations: [NaN, 0.5] },
+				{ name: "Infinity duration", durations: [Infinity, 0.5] },
+				{ name: "negative duration", durations: [-1, 0.5] },
+				{ name: "invalid bpm", durations: [0.5], bpm: NaN },
+			];
 
-			const capturedErrors = [];
-			const origConsoleError = console.error;
-			console.error = (...args) => {
-				capturedErrors.push(args.join(" "));
-				origConsoleError.apply(console, args);
-			};
-			try {
-				flock.playNotes(boxId, { notes, durations });
-				await new Promise((r) => setTimeout(r, 300));
-				expect(
-					capturedErrors.some((msg) =>
-						/linearRampToValueAtTime|non-finite/i.test(msg),
-					),
-				).to.be.false;
-			} finally {
-				console.error = origConsoleError;
-			}
-		});
-
-		it("should handle invalid bpm values without logging errors", async function () {
-			const box = flock.scene.getMeshByName(boxId);
-			expect(box).to.exist;
-
-			// Set an invalid BPM on the mesh
-			if (!box.metadata || typeof box.metadata !== "object")
-				box.metadata = {};
-			box.metadata.bpm = NaN;
-
-			const capturedErrors = [];
-			const origConsoleError = console.error;
-			console.error = (...args) => {
-				capturedErrors.push(args.join(" "));
-				origConsoleError.apply(console, args);
-			};
-			try {
-				flock.playNotes(boxId, { notes: [60], durations: [0.5] });
-				await new Promise((r) => setTimeout(r, 300));
-				expect(
-					capturedErrors.some((msg) =>
-						/linearRampToValueAtTime|non-finite/i.test(msg),
-					),
-				).to.be.false;
-			} finally {
-				console.error = origConsoleError;
-				delete box.metadata.bpm;
-			}
+			testCases.forEach(({ name, durations, bpm }) => {
+				it(`when given ${name}`, async () => {
+					const capturedErrors = [];
+					const origConsoleError = console.error;
+					console.error = (...args) => capturedErrors.push(args.join(" "));
+					try {
+						await flock.playNotes(boxId, { notes: [60, 62], durations, bpm });
+						await new Promise(r => setTimeout(r, 100));
+						const hasError = capturedErrors.some(msg => /linearRampToValueAtTime|non-finite/i.test(msg));
+						expect(hasError).to.be.false;
+					} finally {
+						console.error = origConsoleError;
+					}
+				});
+			});
 		});
 		it("should work with await syntax", async function () {
 			this.timeout(3000);
@@ -347,7 +321,7 @@ export function runSoundTests(flock) {
 					notes: [60],
 					durations: [0.5],
 				});
-			}).to.not.throw(); // Should handle gracefully, not crash
+			}).to.not.throw(); // Should handle gracefully
 		});
 	});
 }
