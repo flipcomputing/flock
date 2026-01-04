@@ -25,6 +25,11 @@ const AVAILABLE_SUITES = [
   { id: 'physics', name: 'Physics Tests (6 tests)', pattern: '@physics' },
   { id: 'materials', name: 'Materials Tests (22 tests)', pattern: '@materials' },
   { id: 'effects', name: 'Effects Tests (3 tests)', pattern: 'Effects API' },
+  {
+          id: "property",
+          name: "Sensing getProperty Tests",
+          pattern: "@property",
+        },
   { id: 'scale', name: 'Scale Tests (45 tests)', pattern: '@scale' },
   { id: 'rotation', name: 'Rotation Tests', pattern: '@rotation' },
   { id: 'translation', name: 'Translation/Movement Tests', pattern: '@translation' },
