@@ -288,16 +288,23 @@ export const flockMaterial = {
       m.metadata.glow = true;
 
       if (m.material) {
-        const emissiveColor = glowColor
-          ? flock.BABYLON.Color3.FromHexString(
-              flock.getColorFromString(glowColor),
-            )
-          : m.material.diffuseColor ||
-            m.material.albedoColor ||
-            flock.BABYLON.Color3.Black();
+        const currentMat = m.material;
+        const color = glowColor
+          ? flock.getColorFromString(glowColor)
+          : (currentMat.diffuseColor
+              ? "#" + currentMat.diffuseColor.toHexString().slice(1)
+              : (currentMat.albedoColor
+                  ? "#" + currentMat.albedoColor.toHexString().slice(1)
+                  : "#ffffff"));
 
-        m.material.emissiveColor = emissiveColor;
-        m.material.emissiveIntensity = 1.0;
+        const materialParams = {
+          color: color,
+          materialName: currentMat.metadata?.cacheKey?.split("_")[3] || "none.png",
+          alpha: currentMat.alpha ?? 1,
+          glow: true,
+        };
+
+        flock.setMaterialWithCleanup(m, materialParams);
       }
     };
 
@@ -350,11 +357,27 @@ export const flockMaterial = {
           console.log(`Clear effects from ${meshName}:`);
         const removeEffects = (targetMesh) => {
           if (targetMesh.material) {
-            targetMesh.material.emissiveColor = flock.BABYLON.Color3.Black();
+            const currentMat = targetMesh.material;
+            const color = currentMat.diffuseColor
+              ? "#" + currentMat.diffuseColor.toHexString().slice(1)
+              : (currentMat.albedoColor
+                  ? "#" + currentMat.albedoColor.toHexString().slice(1)
+                  : "#ffffff");
+
+            const materialParams = {
+              color: color,
+              materialName: currentMat.metadata?.cacheKey?.split("_")[3] || "none.png",
+              alpha: currentMat.alpha ?? 1,
+              glow: false,
+            };
+
+            flock.setMaterialWithCleanup(targetMesh, materialParams);
           }
 
+          targetMesh.metadata = targetMesh.metadata || {};
+          targetMesh.metadata.glow = false;
+
           if (flock.glowLayer) {
-            mesh.metadata.glow = false;
             flock.glowLayer.removeIncludedOnlyMesh(targetMesh);
           }
 
@@ -761,7 +784,7 @@ export const flockMaterial = {
       });
     });
   },
-  createMaterial({ color, materialName, alpha } = {}) {
+  createMaterial({ color, materialName, alpha, glow = false } = {}) {
     if (flock?.materialsDebug) console.log(`Create material: ${materialName}`);
     let material;
     const texturePath = flock.texturePath + materialName;
@@ -818,6 +841,15 @@ export const flockMaterial = {
     // Update alpha for shader materials
     if (material.setFloat && alpha !== undefined) {
       material.setFloat("alpha", alpha);
+    }
+
+    // Apply glow properties if enabled
+    if (glow && material.emissiveColor !== undefined) {
+      const emissiveColor = color
+        ? flock.BABYLON.Color3.FromHexString(flock.getColorFromString(Array.isArray(color) ? color[0] : color))
+        : flock.BABYLON.Color3.White();
+      material.emissiveColor = emissiveColor;
+      material.emissiveIntensity = 1.0;
     }
 
     if (flock.materialsDebug)
@@ -1203,6 +1235,7 @@ export const flockMaterial = {
     let rawColor = "#ffffff";
     let texName = "none.png";
     let finalAlpha = alpha;
+    let finalGlow = false;
 
     if (isObject) {
       const inner = colorInput.color || colorInput.baseColor;
@@ -1223,11 +1256,13 @@ export const flockMaterial = {
             : colorInput.alpha !== undefined
               ? colorInput.alpha
               : alpha;
+        finalGlow = inner.glow !== undefined ? inner.glow : (colorInput.glow ?? false);
       } else {
         rawColor = inner || "#ffffff";
         texName =
           colorInput.materialName || colorInput.textureSet || "none.png";
         finalAlpha = colorInput.alpha !== undefined ? colorInput.alpha : alpha;
+        finalGlow = colorInput.glow ?? false;
       }
     } else {
       rawColor = colorInput || "#ffffff";
@@ -1235,7 +1270,8 @@ export const flockMaterial = {
 
     const colorKey = Array.isArray(rawColor) ? rawColor.join("-") : rawColor;
     const alphaKey = parseFloat(finalAlpha).toFixed(2);
-    const cacheKey = `mat_${colorKey}_${alphaKey}_${texName}`.toLowerCase();
+    const glowKey = finalGlow ? "glow" : "noglow";
+    const cacheKey = `mat_${colorKey}_${alphaKey}_${texName}_${glowKey}`.toLowerCase();
 
     if (!flock.materialCache) flock.materialCache = {};
     if (flock.materialCache[cacheKey]) return flock.materialCache[cacheKey];
@@ -1244,6 +1280,7 @@ export const flockMaterial = {
       color: rawColor,
       materialName: texName,
       alpha: finalAlpha,
+      glow: finalGlow,
     };
 
     const newMat = flock.createMaterial(materialParams);
