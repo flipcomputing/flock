@@ -1441,9 +1441,9 @@ export function defineGenerators() {
                 if (fontKey === "__fonts_FreeSans_Bold_json")
                         font = "./fonts/FreeSans_Bold.json";
 
-                const meshId = "text_" + generateUniqueId();
-                meshMap[meshId] = block;
-                meshBlockIdMap[meshId] = block.id;
+                const meshId = `${variableName}__${block.id}`;
+                meshMap[block.id] = block;
+                meshBlockIdMap[block.id] = block.id;
 
                 let doCode = "";
                 if (block.getInput("DO")) {
