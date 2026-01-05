@@ -2344,6 +2344,20 @@ export const flock = {
                         if (settled) return;
                         settled = true;
                         try {
+                                // If there's a modelReady promise (async setup), wait for it so
+                                // we don't resolve before the creator finishes configuring.
+                                const pendingReady = flock.modelReadyPromises.get(id);
+                                if (pendingReady) {
+                                        try {
+                                                const readyVal = await pendingReady;
+                                                if (typeof readyVal !== "undefined")
+                                                        val = readyVal;
+                                        } catch (readyError) {
+                                                rejectP(readyError);
+                                                return;
+                                        }
+                                }
+
                                 // Await the callback so the readiness promise doesn't resolve
                                 // before user async work completes (premature resolution).
                                 if (typeof callback === "function")
