@@ -462,7 +462,6 @@ export const flockShapes = {
         );
 
         mesh.material = material;
-
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
         mesh.setEnabled(true);
@@ -470,6 +469,8 @@ export const flockShapes = {
 
         const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
         flock.applyPhysics(mesh, textShape);
+
+        await mesh.whenReadyAsync();
 
         flock._markNameCreated(meshName);
         flock.announceMeshReady(meshName, groupName);
