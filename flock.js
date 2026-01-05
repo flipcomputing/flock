@@ -2340,6 +2340,13 @@ export const flock = {
                 // loading textures, or chaining other whenModelReady calls).
                 // Await it so the readiness promise only resolves once that
                 // user-provided async work is finished.
+                //
+                // Even though creators like createObject already announce
+                // meshes after their own setup, they also stash a readiness
+                // promise in modelReadyPromises. Waiting for it here keeps the
+                // behaviour consistent for any creator that performs extra
+                // async work (e.g. font fetches in create3DText) before the
+                // mesh should be considered usable.
                 const settle = async (val) => {
                         if (settled) return;
                         settled = true;
