@@ -419,9 +419,10 @@ export const flockShapes = {
     let [desiredBase, blockKey] = modelId.includes("__")
       ? modelId.split("__")
       : [modelId, modelId];
-    desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
+    desiredBase = (desiredBase || "text").replace(/[^a-zA-Z0-9._-]/g, "");
 
-    const meshName = flock._reserveName(desiredBase || "text");
+    const meshName = flock._reserveName(desiredBase);
+    const groupName = desiredBase;
 
     let resolveReady;
     let rejectReady;
@@ -471,7 +472,7 @@ export const flockShapes = {
         flock.applyPhysics(mesh, textShape);
 
         flock._markNameCreated(meshName);
-        flock.announceMeshReady(meshName, desiredBase);
+        flock.announceMeshReady(meshName, groupName);
 
         resolveReady(mesh);
 
