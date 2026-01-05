@@ -2341,30 +2341,15 @@ export const flock = {
                 // Await it so the readiness promise only resolves once that
                 // user-provided async work is finished.
                 //
-                // Even though creators like createObject already announce
-                // meshes after their own setup, they also stash a readiness
-                // promise in modelReadyPromises. Waiting for it here keeps the
-                // behaviour consistent for any creator that performs extra
-                // async work (e.g. font fetches in create3DText) before the
-                // mesh should be considered usable.
+                // Creators (e.g. createObject, create3DText) already hold off
+                // announcing their mesh until after their own async work is
+                // complete, so we don't re-wait on any modelReadyPromises
+                // here—doing so would just delay callbacks that are already
+                // sequenced by the creator.
                 const settle = async (val) => {
                         if (settled) return;
                         settled = true;
                         try {
-                                // If there's a modelReady promise (async setup), wait for it so
-                                // we don't resolve before the creator finishes configuring.
-                                const pendingReady = flock.modelReadyPromises.get(id);
-                                if (pendingReady) {
-                                        try {
-                                                const readyVal = await pendingReady;
-                                                if (typeof readyVal !== "undefined")
-                                                        val = readyVal;
-                                        } catch (readyError) {
-                                                rejectP(readyError);
-                                                return;
-                                        }
-                                }
-
                                 // Await the callback so the readiness promise doesn't resolve
                                 // before user async work completes (premature resolution).
                                 if (typeof callback === "function")
