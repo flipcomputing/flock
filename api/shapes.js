@@ -416,13 +416,27 @@ export const flockShapes = {
   }) {
     const { x, y, z } = position;
 
-    // Create the loading promise
-    const loadPromise = new Promise(async (resolve, reject) => {
+    let [desiredBase, blockKey] = modelId.includes("__")
+      ? modelId.split("__")
+      : [modelId, modelId];
+    desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
+
+    const meshName = flock._reserveName(desiredBase || "text");
+
+    let resolveReady;
+    let rejectReady;
+    const readyPromise = new Promise((resolve, reject) => {
+      resolveReady = resolve;
+      rejectReady = reject;
+    });
+    flock.modelReadyPromises.set(meshName, readyPromise);
+
+    (async () => {
       try {
         const fontData = await (await fetch(font)).json();
 
         const mesh = flock.BABYLON.MeshBuilder.CreateText(
-          modelId,
+          meshName,
           text,
           fontData,
           {
@@ -434,6 +448,9 @@ export const flockShapes = {
         );
 
         mesh.position.set(x, y, z);
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.blockKey = blockKey;
+
         const material = new flock.BABYLON.StandardMaterial(
           "textMaterial",
           flock.scene,
@@ -453,20 +470,26 @@ export const flockShapes = {
         const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
         flock.applyPhysics(mesh, textShape);
 
+        flock._markNameCreated(meshName);
+        flock.announceMeshReady(meshName, desiredBase);
+
+        resolveReady(mesh);
+
         if (callback) {
-          requestAnimationFrame(callback);
+          requestAnimationFrame(() => callback(mesh));
         }
-
-        resolve();
       } catch (error) {
-        console.error(`Error creating 3D text '${modelId}':`, error);
-        reject(error);
+        console.error(`Error creating 3D text '${meshName}':`, error);
+        flock._releaseName(meshName);
+        flock.modelReadyPromises.delete(meshName);
+        rejectReady?.(error);
+      } finally {
+        setTimeout(() => {
+          flock.modelReadyPromises.delete(meshName);
+        }, 5000);
       }
-    });
+    })();
 
-    // Store promise for whenModelReady coordination
-    flock.modelReadyPromises.set(modelId, loadPromise);
-
-    return modelId;
+    return meshName;
   },
 };
