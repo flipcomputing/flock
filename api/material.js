@@ -346,7 +346,8 @@ export const flockMaterial = {
   clearEffects(meshName) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
-        if (flock.materialsDebug) console.log(`Clear effects from ${meshName}:`);
+        if (flock.materialsDebug)
+          console.log(`Clear effects from ${meshName}:`);
         const removeEffects = (targetMesh) => {
           if (targetMesh.material) {
             targetMesh.material.emissiveColor = flock.BABYLON.Color3.Black();
@@ -561,18 +562,11 @@ export const flockMaterial = {
           const currentIndex = colorIndex % colors.length;
 
           const hexColor = flock.getColorFromString(colors[currentIndex]);
-          const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
 
-          // Apply the colour to the material
-          if (part.material.diffuseColor !== undefined) {
-            part.material.diffuseColor = babylonColor;
-          } else {
-            part.material.albedoColor = babylonColor.toLinearSpace();
-            part.material.emissiveColor = babylonColor.toLinearSpace();
-            part.material.emissiveIntensity = 0.1;
-          }
+          // Use setMaterialWithCleanup to request a new material with the color
+          flock.setMaterialWithCleanup(part, { color: hexColor });
 
-          // Map the material to the colour and its assigned index
+          // Map the original material to the colour and its assigned index
           materialToColorMap.set(part.material, {
             hexColor,
             index: currentIndex,
@@ -625,17 +619,11 @@ export const flockMaterial = {
 
     // If no material was found, create a new one and set metadata
     if (materialToColorMap.size === 0) {
-      const material = new flock.BABYLON.StandardMaterial(
-        "meshMaterial",
-        flock.scene,
-      );
-      material.diffuseColor = flock.BABYLON.Color3.FromHexString(colors[0]);
-      material.backFaceCulling = false;
-      mesh.material = material;
-      if (!mesh.metadata) {
-        mesh.metadata = {};
+      flock.setMaterialWithCleanup(mesh, { color: colors[0] });
+      mesh.metadata = mesh.metadata || {};
+      if (mesh.metadata.materialIndex === undefined) {
+        mesh.metadata.materialIndex = 0;
       }
-      mesh.metadata.materialIndex = 0;
     }
 
     try {
