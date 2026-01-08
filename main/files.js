@@ -743,7 +743,7 @@ export function newProject() {
 	}
 
 	// Load the empty project template
-	fetch("examples/new.json")
+	fetch("examples/new.flock")
 		.then((response) => response.json())
 		.then((json) => {
 			loadWorkspaceAndExecute(json, workspace, executeCode);
