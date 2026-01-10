@@ -713,7 +713,15 @@ export const flockMesh = {
     bb.bakeCurrentTransformIntoVertices();
     bb.scaling.set(1, 1, 1);
 
-    bb.position = new flock.BABYLON.Vector3(x, y, z);
+    const groundLevelSentinel = -999999;
+    const numericY = typeof y === "string" ? Number(y) : y;
+    const shouldResolveGroundLevel =
+      y === "__ground__level__" || numericY === groundLevelSentinel;
+    const resolvedY = shouldResolveGroundLevel
+      ? flock.getGroundLevelAt(x, z)
+      : y;
+
+    bb.position = new flock.BABYLON.Vector3(x, resolvedY, z);
 
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
@@ -723,7 +731,7 @@ export const flockMesh = {
     });
 
     bb.metadata = bb.metadata || {};
-    bb.metadata.yOffset = (bb.position.y - y) / scale;
+    bb.metadata.yOffset = (bb.position.y - resolvedY) / scale;
     bb.metadata.modelName = modelName;
     flock.stopAnimationsTargetingMesh(flock.scene, mesh);
 
@@ -738,6 +746,19 @@ export const flockMesh = {
 
     // Set metadata on the root mesh
     setMetadata(bb);
+
+    if (shouldResolveGroundLevel && !flock.ground) {
+      flock.waitForGroundReady().then(() => {
+        const groundY = flock.getGroundLevelAt(x, z);
+        bb.position.y = groundY;
+        bb.metadata.yOffset = (bb.position.y - groundY) / scale;
+        if (bb.physics) {
+          bb.physics.setTargetTransform(bb.position, bb.rotationQuaternion);
+        }
+        bb.computeWorldMatrix(true);
+        bb.refreshBoundingInfo();
+      });
+    }
 
     // Set metadata on all descendants
     bb.getDescendants().forEach((descendant) => {
