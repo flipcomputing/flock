@@ -17,7 +17,8 @@ export const flockTransform = {
         y ??= mesh.position.y;
         z ??= mesh.position.z;
 
-        if (y === "__ground__level__" || Number.isNaN(y)) {
+        const groundLevelSentinel = -999999;
+        if (y === "__ground__level__" || y === groundLevelSentinel) {
           y = flock.getGroundLevelAt(x, z);
         }
 

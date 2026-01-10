@@ -2000,7 +2000,7 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["ground_level"] = function () {
-                const code = "NaN";
+                const code = "-999999";
                 return [code, javascriptGenerator.ORDER_NONE];
         };
 
