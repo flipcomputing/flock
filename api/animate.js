@@ -229,6 +229,12 @@ export const flockAnimate = {
     return new Promise(async (resolve) => {
       await flock.whenModelReady(meshName, async function (mesh) {
         if (mesh) {
+          const groundLevelSentinel = -999999;
+          const numericY = typeof y === "string" ? Number(y) : y;
+          if (y === "__ground__level__" || numericY === groundLevelSentinel) {
+            await flock.waitForGroundReady();
+            y = flock.getGroundLevelAt(x, z);
+          }
           const BABYLON = flock.BABYLON;
           const children = mesh.getChildMeshes();
 
