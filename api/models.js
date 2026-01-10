@@ -67,7 +67,13 @@ export const flockModels = {
       });
     };
 
-    const finalizeMesh = (mesh, mName, gName, bKey) => {
+    const finalizeMesh = (
+      mesh,
+      mName,
+      gName,
+      bKey,
+      { skipMaterialPrep = false } = {},
+    ) => {
       const bb = flock.setupMesh(
         mesh,
         modelName,
@@ -80,7 +86,9 @@ export const flockModels = {
       );
 
       // materials & colors
-      flock.ensureStandardMaterial(mesh);
+      if (!skipMaterialPrep) {
+        flock.ensureStandardMaterial(mesh);
+      }
       flock.applyColorsToCharacter(mesh, colors);
 
       // make descendants interactive
@@ -226,11 +234,14 @@ export const flockModels = {
           container.addAllToScene();
 
           const mesh = container.meshes[0];
+          flock.ensureStandardMaterial(mesh);
           const template = mesh.clone(`${modelName}_template`);
           setTemplateFlags(template, modelName);
           flock.modelCache[modelName] = template;
 
-          finalizeMesh(mesh, meshName, groupName, blockKey);
+          finalizeMesh(mesh, meshName, groupName, blockKey, {
+            skipMaterialPrep: true,
+          });
           resolveReady(mesh);
           cleanupAbort();
 
