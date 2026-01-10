@@ -49,6 +49,24 @@ export const flockModels = {
       });
     };
 
+    const setInstanceFlags = (node) => {
+      const list = [
+        node,
+        ...node
+          .getDescendants(false)
+          .filter((n) => n instanceof flock.BABYLON.AbstractMesh),
+      ];
+      list.forEach((m) => {
+        if (m.metadata?.isTemplate) {
+          m.metadata = { ...m.metadata, isTemplate: false };
+        }
+        m.isPickable = true;
+        if (typeof m.setEnabled === "function") m.setEnabled(true);
+        m.isVisible = true;
+        m.visibility = 1;
+      });
+    };
+
     const finalizeMesh = (mesh, mName, gName, bKey) => {
       const bb = flock.setupMesh(
         mesh,
@@ -73,6 +91,7 @@ export const flockModels = {
           childMesh.flipFaces(true);
         }
       });
+      setInstanceFlags(mesh);
 
       // Hide initially (readiness still announced so others can wire up)
       mesh.setEnabled(false);
