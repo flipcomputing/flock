@@ -259,8 +259,10 @@ export const flockMesh = {
     const py = Array.isArray(position) ? position[1] : (position?.y ?? 0);
     const pz = Array.isArray(position) ? position[2] : (position?.z ?? 0);
     const groundLevelSentinel = -999999;
+    const numericY = typeof py === "string" ? Number(py) : py;
     const resolvedY =
-      py === "__ground__level__" || py === groundLevelSentinel
+      py === "__ground__level__" ||
+      numericY === groundLevelSentinel
         ? flock.getGroundLevelAt(px, pz)
         : py;
 
