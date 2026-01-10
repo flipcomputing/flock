@@ -251,6 +251,7 @@ export default {
   seconds: "secondes",
   milliseconds: "millisecondes",
   minutes: "minutes",
+  ground_level: "niveau du sol",
   distance_to: "distance de %1 à %2",
   touching_surface: "%1 touche la surface",
   mesh_exists: "%1 existe-t-il ?",
@@ -533,6 +534,8 @@ export default {
   meshes_touching_tooltip:
     "Renvoie vrai si les deux maillages sélectionnés se touchent.\nMot-clé: istouching",
   time_tooltip: "Renvoie le temps actuel en secondes.",
+  ground_level_tooltip:
+    "Renvoie la hauteur du sol à la position x/z actuelle.",
   distance_to_tooltip: "Calcule la distance entre deux maillages.",
   touching_surface_tooltip:
     "Vérifie si le maillage touche une surface.\nMot-clé: surface",

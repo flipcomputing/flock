@@ -258,8 +258,12 @@ export const flockMesh = {
     const px = Array.isArray(position) ? position[0] : (position?.x ?? 0);
     const py = Array.isArray(position) ? position[1] : (position?.y ?? 0);
     const pz = Array.isArray(position) ? position[2] : (position?.z ?? 0);
+    const resolvedY =
+      py === "__ground__level__"
+        ? flock.getGroundLevelAt(px, pz)
+        : py;
 
-    mesh.position = new flock.BABYLON.Vector3(px, py, pz);
+    mesh.position = new flock.BABYLON.Vector3(px, resolvedY, pz);
 
     mesh.metadata = { ...(mesh.metadata || {}), shapeType };
     mesh.metadata.blockKey = mesh.name;

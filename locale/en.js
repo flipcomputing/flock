@@ -253,6 +253,7 @@ export default {
   seconds: "seconds",
   milliseconds: "milliseconds",
   minutes: "minutes",
+  ground_level: "ground level",
   distance_to: "distance from %1 to %2",
   touching_surface: "is %1 touching surface",
   mesh_exists: "%1 exists?",
@@ -520,6 +521,8 @@ export default {
   meshes_touching_tooltip:
     "Return true if the two selected meshes are touching.\nKeyword: istouching",
   time_tooltip: "Return the current time in seconds.",
+  ground_level_tooltip:
+    "Return the ground height at the current x/z position.",
   distance_to_tooltip: "Calculate the distance between two meshes.",
   touching_surface_tooltip:
     "Check if the mesh is touching a surface.\nKeyword: surface",

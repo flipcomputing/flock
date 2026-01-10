@@ -2284,6 +2284,11 @@ const toolboxSensing = {
                 },
                 {
                         kind: "block",
+                        type: "ground_level",
+                        keyword: "ground",
+                },
+                {
+                        kind: "block",
                         type: "time",
                         keyword: "time",
                 },

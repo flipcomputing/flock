@@ -252,6 +252,7 @@ export default {
   seconds: "sekundach",
   milliseconds: "milisekundach",
   minutes: "minutach",
+  ground_level: "poziom gruntu",
   distance_to: "odległość od %1 do %2",
   touching_surface: "czy %1 dotyka powierzchni?",
   mesh_exists: "czy %1 istnieje?",
@@ -527,6 +528,8 @@ export default {
   meshes_touching_tooltip:
     "Zwraca true, jeśli dwie wybrane siatki się stykają.\nSłowo kluczowe: istouching",
   time_tooltip: "Zwraca bieżący czas w sekundach.",
+  ground_level_tooltip:
+    "Zwraca wysokość gruntu w bieżącej pozycji x/z.",
   distance_to_tooltip: "Oblicz odległość między siatkami %1 i %2.",
   touching_surface_tooltip:
     "Sprawdź, czy siatka %1 dotyka powierzchni.\nSłowo kluczowe: surface",

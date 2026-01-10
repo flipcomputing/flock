@@ -250,6 +250,7 @@ export default {
   seconds: "segundos",
   milliseconds: "milisegundos",
   minutes: "minutos",
+  ground_level: "nivel del suelo", // human
   distance_to: "distancia de %1 a %2", // human
   touching_surface: "¿%1 está tocando superficie?", // human
   mesh_exists: "%1 existe?", // human
@@ -526,6 +527,8 @@ export default {
   meshes_touching_tooltip:
     "Devuelve verdadero si las dos mallas seleccionadas se están tocando.\nPalabra clave: estántocando", // human
   time_tooltip: "Devuelve el tiempo actual en segundos.", // human
+  ground_level_tooltip:
+    "Devuelve la altura del suelo en la posición x/z actual.", // human
   distance_to_tooltip: "Calcula la distancia entre dos mallas.", // human
   touching_surface_tooltip:
     "Comprueba si la malla está tocando una superficie.\nPalabra clave: superficie", // human

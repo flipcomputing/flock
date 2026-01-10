@@ -17,6 +17,10 @@ export const flockTransform = {
         y ??= mesh.position.y;
         z ??= mesh.position.z;
 
+        if (y === "__ground__level__") {
+          y = flock.getGroundLevelAt(x, z);
+        }
+
         if (mesh.physics) {
           if (
             mesh.physics.getMotionType() !==
