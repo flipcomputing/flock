@@ -7,7 +7,7 @@ export function setFlockReference(ref) {
 export const flockTransform = {
   positionAt(meshName, { x = 0, y = 0, z = 0, useY = true } = {}) {
     return new Promise((resolve, reject) => {
-      flock.whenModelReady(meshName, (mesh) => {
+      flock.whenModelReady(meshName, async (mesh) => {
         if (!mesh) {
           reject(new Error(`Mesh '${meshName}' not found`));
           return;
