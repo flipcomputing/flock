@@ -973,7 +973,7 @@ export function toggleGizmo(gizmoType) {
 
         const block = meshMap[mesh.metadata.blockKey];
         highlightBlockById(Blockly.getMainWorkspace(), block);
-      });   
+      });
 
       gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
         const mesh = gizmoManager.attachedMesh;
@@ -1414,6 +1414,8 @@ export function configurePositionGizmo(
   {
     enable = true,
     snapDistance = 0.1,
+    dragDeltaRatio = 0.2,
+    smoothDrag = true,
     xColor = blueColor,
     yColor = greenColor,
     zColor = orangeColor,
@@ -1428,6 +1430,13 @@ export function configurePositionGizmo(
   if (!pg) return;
 
   pg.snapDistance = snapDistance;
+
+  [pg.xGizmo, pg.yGizmo, pg.zGizmo].forEach((axisGizmo) => {
+    const dragBehavior = axisGizmo?.dragBehavior;
+    if (!dragBehavior) return;
+    dragBehavior.dragDeltaRatio = dragDeltaRatio;
+    dragBehavior.smoothDrag = smoothDrag;
+  });
 
   if (pg.xGizmo?._coloredMaterial)
     pg.xGizmo._coloredMaterial.diffuseColor = xColor;
