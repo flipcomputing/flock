@@ -79,7 +79,7 @@ export default {
         maximumFileSizeToCacheInBytes: 25_000_000,
         navigateFallback: `${BASE_URL}index.html`,
         navigateFallbackAllowlist: [
-          new RegExp(`^${BASE_URL.replace(/\\/$ /, '')}\\/(?!api|assets\\/)`)
+          new RegExp(`^${BASE_URL.replace(/\/$/, '')}/(?!api|assets/)`)
         ],
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,mp3,aac,wasm,json,woff,woff2}',
