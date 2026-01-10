@@ -260,11 +260,11 @@ export const flockMesh = {
     const pz = Array.isArray(position) ? position[2] : (position?.z ?? 0);
     const groundLevelSentinel = -999999;
     const numericY = typeof py === "string" ? Number(py) : py;
-    const resolvedY =
-      py === "__ground__level__" ||
-      numericY === groundLevelSentinel
-        ? flock.getGroundLevelAt(px, pz)
-        : py;
+    const shouldResolveGroundLevel =
+      py === "__ground__level__" || numericY === groundLevelSentinel;
+    const resolvedY = shouldResolveGroundLevel
+      ? flock.getGroundLevelAt(px, pz)
+      : py;
 
     mesh.position = new flock.BABYLON.Vector3(px, resolvedY, pz);
 
@@ -289,6 +289,20 @@ export const flockMesh = {
     }
 
     mesh.metadata.sharedGeometry = true;
+
+    if (shouldResolveGroundLevel && !flock.ground) {
+      flock.waitForGroundReady().then(() => {
+        const groundY = flock.getGroundLevelAt(px, pz);
+        mesh.position.y = groundY;
+        if (mesh.physics) {
+          mesh.physics.setTargetTransform(
+            mesh.position,
+            mesh.rotationQuaternion,
+          );
+        }
+        mesh.computeWorldMatrix(true);
+      });
+    }
   },
 
   // 1 tile = `texturePhysicalSize` world units

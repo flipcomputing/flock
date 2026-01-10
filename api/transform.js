@@ -19,10 +19,8 @@ export const flockTransform = {
 
         const groundLevelSentinel = -999999;
         const numericY = typeof y === "string" ? Number(y) : y;
-        if (
-          y === "__ground__level__" ||
-          numericY === groundLevelSentinel
-        ) {
+        if (y === "__ground__level__" || numericY === groundLevelSentinel) {
+          await flock.waitForGroundReady();
           y = flock.getGroundLevelAt(x, z);
         }
 

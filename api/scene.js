@@ -349,6 +349,19 @@ export const flockScene = {
 
     return 0;
   },
+  waitForGroundReady() {
+    if (!sceneReady()) return Promise.resolve(null);
+    if (flock.ground) return Promise.resolve(flock.ground);
+
+    return new Promise((resolve) => {
+      const observer = flock.scene.onBeforeRenderObservable.add(() => {
+        if (flock.ground) {
+          flock.scene.onBeforeRenderObservable.remove(observer);
+          resolve(flock.ground);
+        }
+      });
+    });
+  },
   show(meshName) {
     // Check if the ID refers to a UI button
     const uiButton = flock.scene.UITexture?.getControlByName(meshName);
