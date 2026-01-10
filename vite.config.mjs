@@ -10,7 +10,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const BASE_URL = process.env.VITE_BASE_URL || '/';
 
 export default {
-  // ✨ Ensure assets/chunk URLs are correct in standalone/PWA and under subpaths
+  // Ensure assets/chunk URLs are correct in standalone/PWA and under subpaths
   base: BASE_URL,
 
   plugins: [
@@ -62,7 +62,7 @@ export default {
         background_color: '#ffffff',
         display: 'fullscreen',
 
-        // ✅ Keep start route simple and within scope
+        // Keep start route simple and within scope
         start_url: BASE_URL,
         id: BASE_URL,
         scope: BASE_URL,
@@ -77,6 +77,10 @@ export default {
 
       workbox: {
         maximumFileSizeToCacheInBytes: 25_000_000,
+        navigateFallback: `${BASE_URL}index.html`,
+        navigateFallbackAllowlist: [
+          new RegExp(`^${BASE_URL.replace(/\\/$ /, '')}\\/(?!api|assets\\/)`)
+        ],
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,mp3,aac,wasm,json,woff,woff2}',
           'models/**/*',
@@ -89,7 +93,7 @@ export default {
         ],
         modifyURLPrefix: isProduction ? { '': BASE_URL } : {},
 
-        // ✅ Safe runtime caching: NetworkFirst for navigations; CacheFirst for real static assets
+        // Safe runtime caching: NetworkFirst for navigations; CacheFirst for real static assets
         runtimeCaching: [
           {
             // HTML shell (navigations)
