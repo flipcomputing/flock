@@ -259,7 +259,7 @@ export const flockMesh = {
     const py = Array.isArray(position) ? position[1] : (position?.y ?? 0);
     const pz = Array.isArray(position) ? position[2] : (position?.z ?? 0);
     const resolvedY =
-      py === "__ground__level__"
+      py === "__ground__level__" || Number.isNaN(py)
         ? flock.getGroundLevelAt(px, pz)
         : py;
 

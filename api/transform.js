@@ -17,7 +17,7 @@ export const flockTransform = {
         y ??= mesh.position.y;
         z ??= mesh.position.z;
 
-        if (y === "__ground__level__") {
+        if (y === "__ground__level__" || Number.isNaN(y)) {
           y = flock.getGroundLevelAt(x, z);
         }
 
