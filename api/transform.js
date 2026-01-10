@@ -7,7 +7,7 @@ export function setFlockReference(ref) {
 export const flockTransform = {
   positionAt(meshName, { x = 0, y = 0, z = 0, useY = true } = {}) {
     return new Promise((resolve, reject) => {
-      flock.whenModelReady(meshName, (mesh) => {
+      flock.whenModelReady(meshName, async (mesh) => {
         if (!mesh) {
           reject(new Error(`Mesh '${meshName}' not found`));
           return;
@@ -16,6 +16,13 @@ export const flockTransform = {
         x ??= mesh.position.x;
         y ??= mesh.position.y;
         z ??= mesh.position.z;
+
+        const groundLevelSentinel = -999999;
+        const numericY = typeof y === "string" ? Number(y) : y;
+        if (y === "__ground__level__" || numericY === groundLevelSentinel) {
+          await flock.waitForGroundReady();
+          y = flock.getGroundLevelAt(x, z);
+        }
 
         if (mesh.physics) {
           if (

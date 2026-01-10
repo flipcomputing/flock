@@ -250,6 +250,7 @@ export default {
       seconds: "sekunder",
       milliseconds: "millisekunder",
       minutes: "minuter",
+      ground_level: "marknivå",
       distance_to: "avstånd från %1 till %2",
       touching_surface: "är %1 i kontakt med yta",
       mesh_exists: "finns %1?",
@@ -522,6 +523,8 @@ export default {
       meshes_touching_tooltip:
             "Returnerar sant om de två valda mesh-objekten rör vid varandra.\nKeyword: istouching",
       time_tooltip: "Returnerar aktuell tid i sekunder.",
+      ground_level_tooltip:
+            "Returnerar markhöjden vid aktuell x/z-position.",
       distance_to_tooltip: "Beräkna avståndet mellan två mesh-objekt.",
       touching_surface_tooltip:
             "Kontrollera om mesh-objektet rör vid en yta.\nKeyword: surface",

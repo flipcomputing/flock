@@ -1999,6 +1999,11 @@ export function defineGenerators() {
                 return [code, javascriptGenerator.ORDER_NONE];
         };
 
+        javascriptGenerator.forBlock["ground_level"] = function () {
+                const code = "-999999";
+                return [code, javascriptGenerator.ORDER_NONE];
+        };
+
         javascriptGenerator.forBlock["get_property"] = function (block) {
                 const modelName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MESH"),

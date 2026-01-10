@@ -251,6 +251,7 @@ export const flockScene = {
         { width: 100, height: 100, subdivisions: 2 },
         flock.scene,
       );
+      ground.isPickable = true;
       ground.physics = new flock.BABYLON.PhysicsAggregate(
         ground,
         flock.BABYLON.PhysicsShapeType.BOX,
@@ -288,6 +289,7 @@ export const flockScene = {
               textureTileSize: mapTexturePhysicalSize,
               heightMapImage: image,
             };
+            gm.isPickable = true;
             const vertexData = gm.getVerticesData(
               flock.BABYLON.VertexBuffer.PositionKind,
             );
@@ -320,6 +322,45 @@ export const flockScene = {
     }
 
     return ground;
+  },
+  getGroundLevelAt(x = 0, z = 0, { rayStartY = 1000, rayLength = 5000 } = {}) {
+    if (!sceneReady()) return 0;
+
+    const groundMesh = flock.ground;
+    if (!groundMesh) return 0;
+
+    const rayOrigin = new flock.BABYLON.Vector3(x, rayStartY, z);
+    const rayDirection = new flock.BABYLON.Vector3(0, -1, 0);
+    const ray = new flock.BABYLON.Ray(rayOrigin, rayDirection, rayLength);
+
+    const hit = flock.scene.pickWithRay(ray, (mesh) => {
+      if (mesh === groundMesh) return true;
+      const name = mesh?.name?.toLowerCase?.() ?? "";
+      return (
+        name === "ground" ||
+        name.includes("ground") ||
+        mesh?.metadata?.blockKey === "ground"
+      );
+    });
+
+    if (hit?.pickedPoint) {
+      return hit.pickedPoint.y;
+    }
+
+    return 0;
+  },
+  waitForGroundReady() {
+    if (!sceneReady()) return Promise.resolve(null);
+    if (flock.ground) return Promise.resolve(flock.ground);
+
+    return new Promise((resolve) => {
+      const observer = flock.scene.onBeforeRenderObservable.add(() => {
+        if (flock.ground) {
+          flock.scene.onBeforeRenderObservable.remove(observer);
+          resolve(flock.ground);
+        }
+      });
+    });
   },
   show(meshName) {
     // Check if the ID refers to a UI button

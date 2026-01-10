@@ -195,6 +195,20 @@ export function defineSensingBlocks() {
                 },
         };
 
+        Blockly.Blocks["ground_level"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "ground_level",
+                                message0: translate("ground_level"),
+                                output: "Number",
+                                colour: categoryColours["Sensing"],
+                                tooltip: getTooltip("ground_level"),
+                        });
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("sensing_blocks");
+                },
+        };
+
         Blockly.Blocks["distance_to"] = {
                 init: function () {
                         this.jsonInit({

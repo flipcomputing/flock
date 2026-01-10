@@ -256,6 +256,7 @@ export default {
   seconds: "Sekunden",
   milliseconds: "Millisekunden",
   minutes: "Minuten",
+  ground_level: "Bodenniveau",
   distance_to: "Entfernung von %1 nach %2",
   touching_surface: "Berührt %1 eine Oberfläche",
   mesh_exists: "existiert %1?",
@@ -655,6 +656,8 @@ export default {
   meshes_touching_tooltip:
     "Gibt true zurück, wenn die zwei gewählten Objekte sich berühren.\nSchlüsselwort: istouching",
   time_tooltip: "Gibt die aktuelle Zeit in Sekunden zurück.",
+  ground_level_tooltip:
+    "Gibt die Bodenhöhe an der aktuellen x/z-Position zurück.",
   distance_to_tooltip: "Berechnet den Abstand zwischen zwei Objekten.",
   touching_surface_tooltip:
     "Prüft, ob das Objekt eine Oberfläche berührt.\nSchlüsselwort: surface",
