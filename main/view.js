@@ -42,11 +42,15 @@ function resizeCanvas() {
         const canvasArea = document.getElementById("canvasArea");
         const canvas = document.getElementById("renderCanvas");
 
+        if (!canvasArea || !canvas) {
+                return;
+        }
+
         const areaWidth = canvasArea.clientWidth;
         let areaHeight = canvasArea.clientHeight;
 
         const gizmoButtons = document.getElementById("gizmoButtons");
-        if (gizmoButtons.style.display != "none") {
+        if (gizmoButtons && gizmoButtons.style.display != "none") {
                 areaHeight -= 60; //Gizmos visible
         }
 
@@ -84,6 +88,9 @@ function switchView(view) {
         const canvasArea = document.getElementById("canvasArea");
         const flockLink = document.getElementById("flocklink");
         const resizer = document.getElementById("resizer");
+        if (!blocklyArea || !canvasArea || !flockLink) {
+                return;
+        }
 
         if (view === "both") {
                 viewMode = "both";
@@ -173,7 +180,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Request fullscreen on mobile only when running as a PWA
         if (isMobile() && isFullscreen) {
                 requestFullscreen();
-                document.getElementById("fullscreenToggle").style.display = "none";
+                const fullscreenToggle =
+                        document.getElementById("fullscreenToggle");
+                if (fullscreenToggle) {
+                        fullscreenToggle.style.display = "none";
+                }
         }
 
         if (window.matchMedia("(display-mode: fullscreen)").matches) {
@@ -227,7 +238,7 @@ let savedViewMode = "both"; // Track the actual view mode for wide screens
 // Function to add the button event listener (narrow screens only)
 function addButtonListener() {
         // Only add button listener on narrow screens
-        if (!isNarrowScreen()) {
+        if (!isNarrowScreen() || !switchViewsBtn) {
                 return;
         }
 
@@ -239,6 +250,9 @@ function addButtonListener() {
 
 function showCodeView() {
         const blocklyArea = document.getElementById("codePanel");
+        if (!blocklyArea) {
+                return;
+        }
         blocklyArea.style.display = "block";
 
         currentView = "code";
@@ -246,13 +260,18 @@ function showCodeView() {
         if (isNarrowScreen()) {
                 // Instead of CSS transform, change the layout directly
                 const canvasArea = document.getElementById("canvasArea");
+                if (!canvasArea) {
+                        return;
+                }
 
                 // Hide canvas, show code full width
                 canvasArea.style.display = "none";
                 blocklyArea.style.width = "100%";
                 blocklyArea.style.flex = "1 1 100%";
 
-                switchViewsBtn.textContent = "<< Canvas";
+                if (switchViewsBtn) {
+                        switchViewsBtn.textContent = "<< Canvas";
+                }
 
                 // Blockly resize after DOM changes
                 requestAnimationFrame(() => {
@@ -271,8 +290,12 @@ export function showCanvasView() {
         const gizmoButtons = document.getElementById("gizmoButtons");
         const flockLink = document.getElementById("flocklink");
 
-        gizmoButtons.style.display = "block";
-        flockLink.style.display = "block";
+        if (gizmoButtons) {
+                gizmoButtons.style.display = "block";
+        }
+        if (flockLink) {
+                flockLink.style.display = "block";
+        }
 
         currentView = "canvas";
 
@@ -280,6 +303,9 @@ export function showCanvasView() {
                 // Instead of CSS transform, change the layout directly
                 const blocklyArea = document.getElementById("codePanel");
                 const canvasArea = document.getElementById("canvasArea");
+                if (!blocklyArea || !canvasArea) {
+                        return;
+                }
 
                 // Hide code, show canvas full width
                 blocklyArea.style.display = "none";
@@ -287,7 +313,9 @@ export function showCanvasView() {
                 canvasArea.style.width = "100%";
                 canvasArea.style.flex = "1 1 100%";
 
-                switchViewsBtn.textContent = "Code >>";
+                if (switchViewsBtn) {
+                        switchViewsBtn.textContent = "Code >>";
+                }
         }
 
         onResize();
@@ -295,7 +323,7 @@ export function showCanvasView() {
 
 // Updated swipe handling to work with DOM-based switching
 function addSwipeListeners() {
-        if (!isNarrowScreen()) {
+        if (!isNarrowScreen() || !bottomBar) {
                 return;
         }
 
@@ -338,6 +366,9 @@ function setupViewObserver() {
         if (!window.IntersectionObserver || !isNarrowScreen()) return;
 
         const blocklyArea = document.getElementById("codePanel");
+        if (!blocklyArea) {
+                return;
+        }
 
         const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -371,6 +402,9 @@ export function initializeUI() {
         if (isNarrowScreen()) {
                 const blocklyArea = document.getElementById("codePanel");
                 const canvasArea = document.getElementById("canvasArea");
+                if (!blocklyArea || !canvasArea) {
+                        return;
+                }
 
                 // Determine initial view based on which panel is visible
                 if (getComputedStyle(blocklyArea).display !== "none" && 
@@ -386,7 +420,7 @@ export function initializeUI() {
 
 // Modified toggle function to work with new approach
 function togglePanels() {
-        if (!isNarrowScreen()) {
+        if (!isNarrowScreen() || !switchViewsBtn) {
                 return;
         }
 
@@ -408,6 +442,9 @@ export function togglePlayMode() {
         const bottomBar = document.getElementById("bottomBar");
         const flockLink = document.getElementById("flocklink");
         const resizer = document.getElementById("resizer");
+        if (!blocklyArea || !canvasArea || !gizmoButtons || !bottomBar || !flockLink) {
+                return;
+        }
 
         const gizmosVisible =
                 gizmoButtons &&
@@ -419,7 +456,9 @@ export function togglePlayMode() {
 
                 // Clear any transforms that might be applied
                 if (isNarrowScreen()) {
-                        container.style.transform = "translateX(0px)";
+                        if (container) {
+                                container.style.transform = "translateX(0px)";
+                        }
                 }
 
                 showCanvasView();
