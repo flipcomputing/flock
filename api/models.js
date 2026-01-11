@@ -42,6 +42,7 @@ export const flockModels = {
         m.metadata = m.metadata || {};
         m.metadata.isTemplate = true;
         m.metadata.templateTag = tag;
+        m.metadata.sharedMaterial = true;
         m.isPickable = false;
         if (typeof m.setEnabled === "function") m.setEnabled(false);
         m.isVisible = false;
@@ -59,6 +60,9 @@ export const flockModels = {
       list.forEach((m) => {
         if (m.metadata?.isTemplate) {
           m.metadata = { ...m.metadata, isTemplate: false };
+        }
+        if (m.metadata) {
+          m.metadata.sharedMaterial = true;
         }
         m.isPickable = true;
         if (typeof m.setEnabled === "function") m.setEnabled(true);
