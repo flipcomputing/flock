@@ -391,8 +391,18 @@ function initializeApp() {
 }
 
 window.onload = async function () {
-        const editorRoot = document.getElementById("flockeditor");
-        if (!editorRoot) {
+        const requiredElements = [
+                "flockeditor",
+                "renderCanvas",
+                "canvasArea",
+                "codePanel",
+                "gizmoButtons",
+                "bottomBar",
+        ];
+        const missingRequired = requiredElements.some(
+                (id) => !document.getElementById(id),
+        );
+        if (missingRequired) {
                 return;
         }
 
