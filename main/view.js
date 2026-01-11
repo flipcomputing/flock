@@ -589,6 +589,15 @@ class PanelResizer {
                 this.codePanel = document.getElementById('codePanel');
                 this.mainContent = document.getElementById('maincontent');
 
+                if (
+                        !this.resizer ||
+                        !this.canvasArea ||
+                        !this.codePanel ||
+                        !this.mainContent
+                ) {
+                        return;
+                }
+
                 this.isResizing = false;
                 this.startX = 0;
                 this.startCanvasWidth = 0;
@@ -736,5 +745,14 @@ class PanelResizer {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+        const resizer = document.getElementById('resizer');
+        const canvasArea = document.getElementById('canvasArea');
+        const codePanel = document.getElementById('codePanel');
+        const mainContent = document.getElementById('maincontent');
+
+        if (!resizer || !canvasArea || !codePanel || !mainContent) {
+                return;
+        }
+
         new PanelResizer();
 });
