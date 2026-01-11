@@ -391,6 +391,21 @@ function initializeApp() {
 }
 
 window.onload = async function () {
+        const requiredElements = [
+                "flockeditor",
+                "renderCanvas",
+                "canvasArea",
+                "codePanel",
+                "gizmoButtons",
+                "bottomBar",
+        ];
+        const missingRequired = requiredElements.some(
+                (id) => !document.getElementById(id),
+        );
+        if (missingRequired) {
+                return;
+        }
+
         // Resize Blockly workspace and Babylon.js canvas when the window is resized
         window.addEventListener("resize", onResize);
 
