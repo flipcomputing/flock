@@ -391,6 +391,11 @@ function initializeApp() {
 }
 
 window.onload = async function () {
+        const editorRoot = document.getElementById("flockeditor");
+        if (!editorRoot) {
+                return;
+        }
+
         // Resize Blockly workspace and Babylon.js canvas when the window is resized
         window.addEventListener("resize", onResize);
 
