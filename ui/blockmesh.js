@@ -2150,6 +2150,22 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   const blockKey = root?.metadata?.blockKey;
 
   if (!blockKey || !meshMap?.[blockKey]) {
+    const ws = Blockly.getMainWorkspace();
+    const fallbackBlock = blockKey ? ws?.getBlockById(blockKey) : null;
+    if (fallbackBlock) {
+      meshMap[blockKey] = fallbackBlock;
+      meshBlockIdMap[blockKey] = fallbackBlock.id;
+    } else {
+      console.warn("[color] Block not found for mesh", {
+        mesh: mesh?.name,
+        blockKey,
+        root: root?.name,
+      });
+      return;
+    }
+  }
+
+  if (!meshMap?.[blockKey]) {
     console.warn("[color] Block not found for mesh", {
       mesh: mesh?.name,
       blockKey,
