@@ -1231,6 +1231,11 @@ export function enableGizmos() {
   // Initialize undo handler for DO section cleanup
   addUndoHandler();
 
+  const gizmoButtons = document.getElementById("gizmoButtons");
+  if (!gizmoButtons) {
+    return;
+  }
+
   const positionButton = document.getElementById("positionButton");
   const rotationButton = document.getElementById("rotationButton");
   const scaleButton = document.getElementById("scaleButton");
@@ -1282,7 +1287,12 @@ export function enableGizmos() {
     scrollCharactersRightButton,
   ];
 
-  buttons.forEach((button) => button.removeAttribute("disabled"));
+  const activeButtons = buttons.filter(Boolean);
+  if (activeButtons.length !== buttons.length) {
+    return;
+  }
+
+  activeButtons.forEach((button) => button.removeAttribute("disabled"));
 
   // Attach event listeners
   positionButton.addEventListener("click", () => toggleGizmo("position"));
