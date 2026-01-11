@@ -664,18 +664,16 @@ export const flockMaterial = {
   },
   applyColorToMaterial(part, materialName, color) {
     if (part.material && part.material.name === materialName) {
-      part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
-      );
-      part.material.albedoColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
-      );
+      flock.setMaterialWithCleanup(part, {
+        color: flock.getColorFromString(color),
+        materialName,
+      });
     }
     part.getChildMeshes().forEach((child) => {
       flock.applyColorToMaterial(child, materialName, color);
     });
   },
-  applyColorsToCharacter(mesh, colors, { ensureUnique = true } = {}) {
+  applyColorsToCharacter(mesh, colors) {
     const {
       hair: hairColor,
       skin: skinColor,
@@ -684,10 +682,6 @@ export const flockMaterial = {
       shorts: shortsColor,
       tshirt: tshirtColor,
     } = colors;
-
-    if (ensureUnique) {
-      flock.ensureUniqueMaterial(mesh);
-    }
 
     flock.applyColorToMaterial(mesh, "Hair", hairColor);
     flock.applyColorToMaterial(mesh, "Skin", skinColor);
