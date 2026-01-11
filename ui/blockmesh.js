@@ -75,7 +75,7 @@ export function getRootMesh(mesh) {
 }
 
 export function deleteMeshFromBlock(blockId) {
-  const blockKey = getBlockKeyFromBlockID(blockId);
+  const blockKey = getBlockKeyFromBlockID(blockId) || blockId;
 
   if (!blockKey) {
     const block = Blockly.getMainWorkspace().getBlockById(blockId);
@@ -86,10 +86,6 @@ export function deleteMeshFromBlock(blockId) {
         return;
       }
     }
-  }
-
-  if (!blockKey) {
-    return;
   }
 
   const meshes = getMeshesFromBlockKey(blockKey);
@@ -176,7 +172,7 @@ export function getMeshFromBlock(block) {
     }
   }
 
-  const blockKey = getBlockKeyFromBlock(block);
+  const blockKey = getBlockKeyFromBlock(block) || block.id;
   if (!blockKey) return null;
 
   return getMeshFromBlockKey(blockKey);
@@ -232,7 +228,7 @@ export function getMeshesFromBlock(block) {
     }
   }
 
-  const blockKey = getBlockKeyFromBlock(block);
+  const blockKey = getBlockKeyFromBlock(block) || block.id;
   if (!blockKey) return [];
 
   return getMeshesFromBlockKey(blockKey);
@@ -1248,15 +1244,15 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
         zOrigin: contextBlock.getFieldValue("Z_ORIGIN") || "CENTRE",
       };
 
-        if (flock.meshDebug) {
-          console.log(
-            "Resize",
-            resizeOptions,
-            "on mesh",
-            meshes[0]?.name,
-            "from block",
-            block.type,
-            "event type",
+      if (flock.meshDebug) {
+        console.log(
+          "Resize",
+          resizeOptions,
+          "on mesh",
+          meshes[0]?.name,
+          "from block",
+          block.type,
+          "event type",
           changeEvent.type,
         );
       }
