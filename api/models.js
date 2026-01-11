@@ -89,7 +89,7 @@ export const flockModels = {
       if (!skipMaterialPrep) {
         flock.ensureStandardMaterial(mesh);
       }
-      flock.applyColorsToCharacter(mesh, colors);
+      flock.applyColorsToCharacter(mesh, colors, { ensureUnique: false });
 
       // make descendants interactive
       const descendants = mesh.getChildMeshes(false);

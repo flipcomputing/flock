@@ -675,7 +675,7 @@ export const flockMaterial = {
       flock.applyColorToMaterial(child, materialName, color);
     });
   },
-  applyColorsToCharacter(mesh, colors) {
+  applyColorsToCharacter(mesh, colors, { ensureUnique = true } = {}) {
     const {
       hair: hairColor,
       skin: skinColor,
@@ -684,6 +684,10 @@ export const flockMaterial = {
       shorts: shortsColor,
       tshirt: tshirtColor,
     } = colors;
+
+    if (ensureUnique) {
+      flock.ensureUniqueMaterial(mesh);
+    }
 
     flock.applyColorToMaterial(mesh, "Hair", hairColor);
     flock.applyColorToMaterial(mesh, "Skin", skinColor);
