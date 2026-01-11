@@ -75,7 +75,7 @@ export function getRootMesh(mesh) {
 }
 
 export function deleteMeshFromBlock(blockId) {
-  const blockKey = getBlockKeyFromBlockID(blockId);
+  const blockKey = getBlockKeyFromBlockID(blockId) || blockId;
 
   if (!blockKey) {
     const block = Blockly.getMainWorkspace().getBlockById(blockId);
@@ -88,16 +88,11 @@ export function deleteMeshFromBlock(blockId) {
     }
   }
 
-  if (!blockKey) {
-    return;
-  }
-
-  const mesh = getMeshFromBlockKey(blockKey);
-
-  if (!mesh || mesh.name === "__root__") {
-  } else {
+  const meshes = getMeshesFromBlockKey(blockKey);
+  meshes.forEach((mesh) => {
+    if (!mesh || mesh.name === "__root__") return;
     flock.disposeMesh(mesh);
-  }
+  });
 
   // Remove mappings
   delete meshMap[blockKey];
@@ -117,6 +112,14 @@ export function getBlockKeyFromBlockID(blockId) {
 export function getMeshFromBlockKey(blockKey) {
   return flock.scene?.meshes?.find(
     (mesh) => mesh.metadata?.blockKey === blockKey,
+  );
+}
+
+export function getMeshesFromBlockKey(blockKey) {
+  return (
+    flock.scene?.meshes?.filter(
+      (mesh) => mesh.metadata?.blockKey === blockKey,
+    ) || []
   );
 }
 
@@ -169,12 +172,67 @@ export function getMeshFromBlock(block) {
     }
   }
 
-  const blockKey = getBlockKeyFromBlock(block);
+  const blockKey = getBlockKeyFromBlock(block) || block.id;
   if (!blockKey) return null;
 
   return getMeshFromBlockKey(blockKey);
 }
 
+export function getMeshesFromBlock(block) {
+  if (!block) return [];
+
+  if (block.type === "create_map") {
+    const mesh = flock?.scene?.getMeshByName("ground");
+    return mesh ? [mesh] : [];
+  }
+
+  if (block.type === "rotate_to" || block.type === "resize") {
+    let container = null;
+    let node = block;
+
+    while (node) {
+      const parent = node.getParent();
+      if (!parent) break;
+
+      // Find the top of the stack within this parent
+      let top = node;
+      while (
+        top.getPrevious &&
+        top.getPrevious() &&
+        top.getPrevious().getParent() === parent
+      ) {
+        top = top.getPrevious();
+      }
+
+      const input = parent.getInputWithBlock
+        ? parent.getInputWithBlock(top)
+        : null;
+
+      // If this parent has a DO-style statement input containing our stack,
+      // treat that parent as the owning block.
+      if (
+        input &&
+        input.type === Blockly.NEXT_STATEMENT &&
+        input.name === "DO"
+      ) {
+        container = parent;
+        break;
+      }
+
+      // Climb further up in case we're nested inside another structure
+      node = parent;
+    }
+
+    if (container) {
+      block = container;
+    }
+  }
+
+  const blockKey = getBlockKeyFromBlock(block) || block.id;
+  if (!blockKey) return [];
+
+  return getMeshesFromBlockKey(blockKey);
+}
 function getMeshFromBlockId(blockId) {
   const blockKey = getBlockKeyFromBlockID(blockId);
 
@@ -366,8 +424,8 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     updateMeshFromBlock(null, block, changeEvent);
     return;
   }
-  const mesh = getMeshFromBlock(block);
-  if (flock.meshDebug) console.log(mesh);
+  const meshes = getMeshesFromBlock(block);
+  if (flock.meshDebug) console.log(meshes);
   const wasDisabled =
     changeEvent?.oldValue === true || changeEvent?.oldValue === "true";
   const nowEnabled =
@@ -380,7 +438,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   const isImmediateEnabledCreate =
     changeEvent?.type === Blockly.Events.BLOCK_CREATE &&
     block.isEnabled() &&
-    !mesh;
+    meshes.length === 0;
   if (window.loadingCode || block.disposed) return;
   const alreadyCreatingMesh = meshMap[block.id] !== undefined;
   if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate)) {
@@ -399,7 +457,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
       changeEvent?.type === Blockly.Events.BLOCK_CREATE ||
       changeEvent?.type === Blockly.Events.BLOCK_MOVE) &&
-    (mesh ||
+    (meshes.length ||
       [
         "set_sky_color",
         "set_background_color",
@@ -407,7 +465,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
         "create_map",
       ].includes(block.type))
   ) {
-    updateMeshFromBlock(mesh, block, changeEvent);
+    updateMeshFromBlock(meshes, block, changeEvent);
   }
 }
 
@@ -902,7 +960,7 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
   }
 }
 
-function handleLoadBlockChange(mesh, block, changed, changeEvent) {
+function handleLoadBlockChange(meshes, block, changed, changeEvent) {
   // All load_* blocks: replace model when MODELS changes
   if (
     ["load_object", "load_multi_object", "load_character"].includes(
@@ -910,7 +968,7 @@ function handleLoadBlockChange(mesh, block, changed, changeEvent) {
     ) &&
     changed === "MODELS"
   ) {
-    replaceMeshModel(mesh, block, changeEvent);
+    meshes.forEach((mesh) => replaceMeshModel(mesh, block, changeEvent));
     return true; // caller should return early
   }
 
@@ -943,7 +1001,9 @@ function handleLoadBlockChange(mesh, block, changed, changeEvent) {
         .getFieldValue("COLOR"),
     };
 
-    flock.applyColorsToCharacter(getMeshFromBlock(block), colors);
+    meshes.forEach((mesh) => {
+      if (mesh) flock.applyColorsToCharacter(mesh, colors);
+    });
   }
 
   return false;
@@ -966,7 +1026,7 @@ function getXYZFromBlock(block) {
   };
 }
 
-export function updateMeshFromBlock(mesh, block, changeEvent) {
+export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   if (flock.meshDebug) {
     console.log("=== UPDATE MESH FROM BLOCK ===");
     console.log("Block type:", block.type);
@@ -975,8 +1035,14 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     console.log("Change event details:", changeEvent);
   }
 
+  const meshes = Array.isArray(meshesOrMesh)
+    ? meshesOrMesh
+    : meshesOrMesh
+      ? [meshesOrMesh]
+      : [];
+
   if (
-    !mesh &&
+    meshes.length === 0 &&
     ![
       "set_sky_color",
       "set_background_color",
@@ -1095,15 +1161,15 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       block.type === "load_multi_object" ||
       block.type === "load_character") &&
     changed === "MODELS" &&
-    !mesh
+    meshes.length === 0
   ) {
-    mesh = getMeshFromBlock(block);
+    meshes.push(...getMeshesFromBlock(block));
   }
 
-  //if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
+  //if (meshes.length && mesh.physics) mesh.physics.disablePreStep = true;
 
   if (block.type === "set_sky_color") {
-    updateSkyFromBlock(mesh, block, changeEvent);
+    updateSkyFromBlock(null, block, changeEvent);
     return;
   }
 
@@ -1113,12 +1179,12 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
 
   if (block.type === "create_ground") {
-    updateGroundFromBlock(mesh, block, changeEvent);
+    updateGroundFromBlock(null, block, changeEvent);
     return;
   }
 
   if (block.type === "create_map") {
-    updateMapFromBlock(mesh, block, changeEvent);
+    updateMapFromBlock(null, block, changeEvent);
     return;
   }
 
@@ -1128,19 +1194,23 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   ({ color, materialInfo } = resolveColorAndMaterialForBlock(block));
 
   if (block.type.startsWith("load_") && changed === "SCALE") {
-    updateLoadBlockScaleFromEvent(mesh, block, changeEvent);
+    meshes.forEach((mesh) =>
+      updateLoadBlockScaleFromEvent(mesh, block, changeEvent),
+    );
   }
 
   // Handle load_* blocks (models and character colours)
-  if (handleLoadBlockChange(mesh, block, changed, changeEvent)) {
+  if (handleLoadBlockChange(meshes, block, changed, changeEvent)) {
     return;
   }
 
-  // Handle primitive geometry updates (box, sphere, etc.)
-  handlePrimitiveGeometryChange(mesh, block, changed);
+  meshes.forEach((mesh) => {
+    // Handle primitive geometry updates (box, sphere, etc.)
+    handlePrimitiveGeometryChange(mesh, block, changed);
 
-  // Handle material/color changes
-  handleMaterialOrColorChange(mesh, block, changed, color, materialInfo);
+    // Handle material/color changes
+    handleMaterialOrColorChange(mesh, block, changed, color, materialInfo);
+  });
 
   if (["X", "Y", "Z"].includes(changed)) {
     const isFieldChange =
@@ -1158,7 +1228,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     // --- rotate_to: allow gizmo / non-field events ---
     if (contextBlock.type === "rotate_to") {
       const rotation = getXYZFromBlock(contextBlock);
-      flock.rotateTo(mesh.name, rotation);
+      meshes.forEach((mesh) => flock.rotateTo(mesh.name, rotation));
       return;
     }
 
@@ -1179,7 +1249,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
           "Resize",
           resizeOptions,
           "on mesh",
-          mesh?.name,
+          meshes[0]?.name,
           "from block",
           block.type,
           "event type",
@@ -1187,8 +1257,10 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         );
       }
 
-      flock.resize(mesh.name, resizeOptions);
-      if (flock.meshDebug) console.log("After resize", mesh);
+      meshes.forEach((mesh) => {
+        flock.resize(mesh.name, resizeOptions);
+        if (flock.meshDebug) console.log("After resize", mesh);
+      });
       return;
     }
 
@@ -1221,10 +1293,12 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
     const position = getXYZFromBlock(block);
     if (flock.meshDebug) console.log("Position", position, block.type);
-    flock.positionAt(mesh.name, { ...position, useY: true });
+    meshes.forEach((mesh) =>
+      flock.positionAt(mesh.name, { ...position, useY: true }),
+    );
   }
 
-  flock.updatePhysics(mesh);
+  meshes.forEach((mesh) => flock.updatePhysics(mesh));
 
   if (flock.meshDebug) console.log("=== UPDATE COMPLETE ===");
 }
@@ -2076,6 +2150,22 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   const blockKey = root?.metadata?.blockKey;
 
   if (!blockKey || !meshMap?.[blockKey]) {
+    const ws = Blockly.getMainWorkspace();
+    const fallbackBlock = blockKey ? ws?.getBlockById(blockKey) : null;
+    if (fallbackBlock) {
+      meshMap[blockKey] = fallbackBlock;
+      meshBlockIdMap[blockKey] = fallbackBlock.id;
+    } else {
+      console.warn("[color] Block not found for mesh", {
+        mesh: mesh?.name,
+        blockKey,
+        root: root?.name,
+      });
+      return;
+    }
+  }
+
+  if (!meshMap?.[blockKey]) {
     console.warn("[color] Block not found for mesh", {
       mesh: mesh?.name,
       blockKey,
