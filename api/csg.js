@@ -19,6 +19,13 @@ export const flockCSG = {
 				: typeof mesh.getDescendants === "function"
 					? mesh.getDescendants()
 					: [];
+		const childSummary = childMeshes.map((child) => ({
+			name: child.name,
+			vertices:
+				typeof child.getTotalVertices === "function"
+					? child.getTotalVertices()
+					: 0,
+		}));
 		for (const child of childMeshes) {
 			const positions = child.getVerticesData?.(
 				flock.BABYLON.VertexBuffer.PositionKind,
@@ -42,16 +49,13 @@ export const flockCSG = {
 		if (flock.manifoldDebug) {
 			console.log(`[${context}] Mesh has no geometry: ${mesh.name}`, {
 				childCount: childMeshes.length,
-				children: childMeshes.map((child) => ({
-					name: child.name,
-					vertices:
-						typeof child.getTotalVertices === "function"
-							? child.getTotalVertices()
-							: 0,
-				})),
+				children: childSummary,
 			});
 		}
-		console.warn(`[${context}] No mesh with positions found: ${mesh.name}`);
+		console.warn(`[${context}] No mesh with positions found: ${mesh.name}`, {
+			childCount: childMeshes.length,
+			children: childSummary,
+		});
 		return null;
 	},
 	_ensureMeshForCSG(mesh, context = "CSG") {
