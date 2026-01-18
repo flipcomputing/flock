@@ -420,18 +420,84 @@ export const flockShapes = {
     const loadPromise = new Promise(async (resolve, reject) => {
       try {
         const fontData = await (await fetch(font)).json();
+        const manifold =
+          flock.manifold ??
+          (typeof globalThis !== "undefined" ? globalThis.manifold : null);
+        let mesh = null;
+        let manifoldText = null;
 
-        const mesh = flock.BABYLON.MeshBuilder.CreateText(
-          modelId,
-          text,
-          fontData,
-          {
-            size: size,
-            depth: depth,
-          },
-          flock.scene,
-          earcut,
-        );
+        const ensureArray = (data) =>
+          Array.isArray(data) ? data : Array.from(data || []);
+
+        const buildBabylonMeshFromManifold = (meshData) => {
+          if (!meshData) return null;
+          const positions = ensureArray(
+            meshData.positions ||
+              meshData.vertices ||
+              meshData.vertProperties ||
+              meshData.verts,
+          );
+          const indices = ensureArray(
+            meshData.indices || meshData.triangles || meshData.triVerts,
+          );
+          if (!positions.length || !indices.length) return null;
+          const newMesh = new flock.BABYLON.Mesh(modelId, flock.scene);
+          const normals = [];
+          flock.BABYLON.VertexData.ComputeNormals(
+            positions,
+            indices,
+            normals,
+          );
+          const vertexData = new flock.BABYLON.VertexData();
+          vertexData.positions = positions;
+          vertexData.indices = indices;
+          vertexData.normals = normals;
+          vertexData.applyToMesh(newMesh, true);
+          return newMesh;
+        };
+
+        if (manifold) {
+          const createText =
+            manifold.createTextMesh ||
+            manifold.createText ||
+            manifold.text ||
+            manifold.makeText;
+          if (createText) {
+            manifoldText = await createText({
+              text,
+              font,
+              fontData,
+              size,
+              depth,
+            });
+            if (manifoldText) {
+              if (typeof manifoldText.toBabylonMesh === "function") {
+                mesh = manifoldText.toBabylonMesh(modelId, flock.scene);
+              } else if (typeof manifoldText.toMesh === "function") {
+                const meshData = manifoldText.toMesh();
+                mesh = buildBabylonMeshFromManifold(meshData);
+              } else {
+                mesh = buildBabylonMeshFromManifold(
+                  manifoldText.mesh || manifoldText,
+                );
+              }
+            }
+          }
+        }
+
+        if (!mesh) {
+          mesh = flock.BABYLON.MeshBuilder.CreateText(
+            modelId,
+            text,
+            fontData,
+            {
+              size: size,
+              depth: depth,
+            },
+            flock.scene,
+            earcut,
+          );
+        }
 
         mesh.position.set(x, y, z);
         const material = new flock.BABYLON.StandardMaterial(
@@ -449,6 +515,11 @@ export const flockShapes = {
         mesh.refreshBoundingInfo();
         mesh.setEnabled(true);
         mesh.visibility = 1;
+
+        if (manifoldText) {
+          mesh.metadata = mesh.metadata || {};
+          mesh.metadata.manifold = manifoldText;
+        }
 
         const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
         flock.applyPhysics(mesh, textShape);
