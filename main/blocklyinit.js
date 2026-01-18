@@ -1308,6 +1308,24 @@ export function overrideSearchPlugin(workspace) {
                                                         text: fieldText,
                                                         kind: field.constructor?.name,
                                                 });
+                                        } else if (
+                                                field instanceof
+                                                        Blockly.FieldInput ||
+                                                field instanceof
+                                                        Blockly.FieldTextInput
+                                        ) {
+                                                const fieldValue =
+                                                        field.getValue?.();
+                                                if (fieldValue) {
+                                                        searchTerms.add(
+                                                                fieldValue,
+                                                        );
+                                                        runDebugFields.push({
+                                                                name: field.name,
+                                                                value: fieldValue,
+                                                                kind: field.constructor?.name,
+                                                        });
+                                                }
                                         }
 
                                         if (
