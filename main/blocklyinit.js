@@ -1311,8 +1311,9 @@ export function overrideSearchPlugin(workspace) {
                                         } else if (
                                                 field instanceof
                                                         Blockly.FieldInput ||
-                                                field instanceof
-                                                        Blockly.FieldTextInput
+                                                (Blockly.FieldTextInput &&
+                                                        field instanceof
+                                                                Blockly.FieldTextInput)
                                         ) {
                                                 const fieldValue =
                                                         field.getValue?.();
