@@ -1334,6 +1334,13 @@ export function overrideSearchPlugin(workspace) {
 
                                                 if (
                                                         field instanceof
+                                                        Blockly.FieldVariable
+                                                ) {
+                                                        return;
+                                                }
+
+                                                if (
+                                                        field instanceof
                                                         Blockly.FieldDropdown
                                                 ) {
                                                         field.getOptions(
@@ -1358,24 +1365,6 @@ export function overrideSearchPlugin(workspace) {
                                                 }
                                         });
                                 });
-
-                                if (
-                                        Array.from(searchTerms).some((term) =>
-                                                term
-                                                        .toLowerCase()
-                                                        .includes("run"),
-                                        )
-                                ) {
-                                        console.log(
-                                                "[toolbox-search] run match source",
-                                                {
-                                                        type,
-                                                        terms: Array.from(
-                                                                searchTerms,
-                                                        ),
-                                                },
-                                        );
-                                }
 
                                 indexedBlocks.push({
                                         ...blockInfo,
