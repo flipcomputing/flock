@@ -633,6 +633,8 @@ export const flockShapes = {
           mesh.metadata = mesh.metadata || {};
           mesh.metadata.manifold = manifoldText;
         }
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.textSource = manifoldText ? "manifold" : "babylon";
 
         const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
         flock.applyPhysics(mesh, textShape);

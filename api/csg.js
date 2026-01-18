@@ -1055,6 +1055,24 @@ export const flockCSG = {
 				return new Promise((resolve) => {
 					flock.whenModelReady(meshName, (mesh) => {
 						if (mesh) {
+							if (flock.manifoldDebug) {
+								const positions = mesh.getVerticesData?.(
+									flock.BABYLON.VertexBuffer.PositionKind,
+								);
+								const indices = mesh.getIndices?.();
+								const childCount =
+									typeof mesh.getChildMeshes === "function"
+										? mesh.getChildMeshes().length
+										: 0;
+								console.log("[prepareMeshes] Resolved mesh", {
+									meshName,
+									resolvedName: mesh.name,
+									positions: positions?.length ?? 0,
+									indices: indices?.length ?? 0,
+									childCount,
+									metadata: mesh.metadata,
+								});
+							}
 							mesh.name = modelId;
 							mesh.metadata = mesh.metadata || {};
 							mesh.metadata.blockKey = blockId;
