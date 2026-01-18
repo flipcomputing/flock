@@ -1376,11 +1376,12 @@ export function overrideSearchPlugin(workspace) {
         }
 
         SearchCategory.prototype.initBlockSearcher = function () {
+                const blockSearcher = this.blockSearcher;
                 const rebuildSearchIndex = () => {
-                        this.indexedBlocks_ = buildSearchIndex();
+                        blockSearcher.indexedBlocks_ = buildSearchIndex();
                 };
                 this.blockSearcher.indexBlocks = rebuildSearchIndex;
-                this.blockSearcher.indexedBlocks_ = [];
+                blockSearcher.indexedBlocks_ = [];
                 rebuildSearchIndex();
 
                 workspace.flockSearchCategory = this;
