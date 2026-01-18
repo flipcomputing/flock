@@ -1359,6 +1359,24 @@ export function overrideSearchPlugin(workspace) {
                                         });
                                 });
 
+                                if (
+                                        Array.from(searchTerms).some((term) =>
+                                                term
+                                                        .toLowerCase()
+                                                        .includes("run"),
+                                        )
+                                ) {
+                                        console.log(
+                                                "[toolbox-search] run match source",
+                                                {
+                                                        type,
+                                                        terms: Array.from(
+                                                                searchTerms,
+                                                        ),
+                                                },
+                                        );
+                                }
+
                                 indexedBlocks.push({
                                         ...blockInfo,
                                         text: Array.from(searchTerms).join(
