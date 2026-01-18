@@ -1297,6 +1297,66 @@ export function overrideSearchPlugin(workspace) {
                 const blockCreationWorkspace = new Blockly.Workspace();
                 const indexedBlocks = [];
 
+                function addBlockFieldTerms(block, searchTerms, runDebugFields) {
+                        block.inputList.forEach((input) => {
+                                input.fieldRow.forEach((field) => {
+                                        const fieldText = field.getText();
+                                        if (fieldText) {
+                                                searchTerms.add(fieldText);
+                                                runDebugFields.push({
+                                                        name: field.name,
+                                                        text: fieldText,
+                                                        kind: field.constructor?.name,
+                                                });
+                                        }
+
+                                        if (
+                                                field instanceof
+                                                Blockly.FieldVariable
+                                        ) {
+                                                return;
+                                        }
+
+                                        if (
+                                                field instanceof
+                                                Blockly.FieldDropdown
+                                        ) {
+                                                field.getOptions(
+                                                        true,
+                                                ).forEach((option) => {
+                                                        if (
+                                                                typeof option[0] ===
+                                                                "string"
+                                                        ) {
+                                                                searchTerms.add(
+                                                                        option[0],
+                                                                );
+                                                                runDebugFields.push({
+                                                                        name: field.name,
+                                                                        option:
+                                                                                option[0],
+                                                                        kind: field.constructor?.name,
+                                                                });
+                                                        } else if (
+                                                                "alt" in
+                                                                option[0]
+                                                        ) {
+                                                                searchTerms.add(
+                                                                        option[0].alt,
+                                                                );
+                                                                runDebugFields.push({
+                                                                        name: field.name,
+                                                                        option:
+                                                                                option[0].alt,
+                                                                        kind: field.constructor?.name,
+                                                                });
+                                                        }
+                                                });
+                                        }
+                                });
+                        });
+                }
+
                 try {
                         toolboxBlocks.forEach((blockInfo) => {
                                 const type = blockInfo.type;
@@ -1333,63 +1393,37 @@ export function overrideSearchPlugin(workspace) {
                                         }
                                 }
 
-                                block.inputList.forEach((input) => {
-                                        input.fieldRow.forEach((field) => {
-                                                const fieldText = field.getText();
-                                                if (fieldText) {
-                                                        searchTerms.add(fieldText);
-                                                        runDebugFields.push({
-                                                                name: field.name,
-                                                                text: fieldText,
-                                                                kind: field.constructor?.name,
-                                                        });
-                                                }
+                                addBlockFieldTerms(
+                                        block,
+                                        searchTerms,
+                                        runDebugFields,
+                                );
 
-                                                if (
-                                                        field instanceof
-                                                        Blockly.FieldVariable
-                                                ) {
-                                                        return;
-                                                }
+                                const inputDefinitions = blockInfo.full?.inputs;
+                                if (inputDefinitions) {
+                                        Object.values(inputDefinitions).forEach(
+                                                (definition) => {
+                                                        const shadowType =
+                                                                definition?.shadow?.type;
+                                                        if (!shadowType) {
+                                                                return;
+                                                        }
 
-                                                if (
-                                                        field instanceof
-                                                        Blockly.FieldDropdown
-                                                ) {
-                                                        field.getOptions(
+                                                        const shadowBlock =
+                                                                blockCreationWorkspace.newBlock(
+                                                                        shadowType,
+                                                                );
+                                                        addBlockFieldTerms(
+                                                                shadowBlock,
+                                                                searchTerms,
+                                                                runDebugFields,
+                                                        );
+                                                        shadowBlock.dispose(
                                                                 true,
-                                                        ).forEach((option) => {
-                                                                if (
-                                                                        typeof option[0] ===
-                                                                        "string"
-                                                                ) {
-                                                                        searchTerms.add(
-                                                                                option[0],
-                                                                        );
-                                                                        runDebugFields.push({
-                                                                                name: field.name,
-                                                                                option:
-                                                                                        option[0],
-                                                                                kind: field.constructor?.name,
-                                                                        });
-                                                                } else if (
-                                                                        "alt" in
-                                                                        option[0]
-                                                                ) {
-                                                                        searchTerms.add(
-                                                                                option[0].alt,
-                                                                        );
-                                                                        runDebugFields.push({
-                                                                                name: field.name,
-                                                                                option:
-                                                                                        option[0].alt,
-                                                                                kind: field.constructor?.name,
-                                                                        });
-                                                                }
-                                                        });
-                                                }
-                                        });
-                                });
+                                                        );
+                                                },
+                                        );
+                                }
 
                                 const runTerms = Array.from(searchTerms).filter(
                                         (term) =>
