@@ -60,14 +60,66 @@ export const flockCSG = {
 	},
 	_ensureMeshForCSG(mesh, context = "CSG") {
 		if (!mesh || typeof mesh.getVerticesData !== "function") return false;
-		const positions = mesh.getVerticesData(
+		let positions = mesh.getVerticesData(
 			flock.BABYLON.VertexBuffer.PositionKind,
 		);
 		let indices = mesh.getIndices?.();
 		const hasPositions = !!positions && positions.length > 0;
 		const hasIndices = !!indices && indices.length > 0;
 
-		if (hasPositions && !hasIndices) {
+		if (!hasPositions && mesh.metadata?.manifold?.toMesh) {
+			try {
+				const meshData = mesh.metadata.manifold.toMesh();
+				const flatten = (data) =>
+					Array.isArray(data)
+						? data.flatMap((entry) =>
+								Array.isArray(entry)
+									? entry
+									: typeof entry === "object"
+										? [
+												entry.x ?? entry[0],
+												entry.y ?? entry[1],
+												entry.z ?? entry[2],
+											]
+										: entry,
+							)
+						: Array.from(data || []);
+				positions = flatten(
+					meshData.positions ||
+						meshData.vertices ||
+						meshData.vertProperties ||
+						meshData.verts ||
+						meshData.triangles,
+				);
+				indices = flatten(
+					meshData.indices || meshData.triangles || meshData.triVerts,
+				);
+				if (!indices.length && positions.length) {
+					indices = Array.from(
+						{ length: positions.length / 3 },
+						(_, i) => i,
+					);
+				}
+				const vertexData = new flock.BABYLON.VertexData();
+				vertexData.positions = positions;
+				vertexData.indices = indices;
+				vertexData.applyToMesh(mesh, true);
+			} catch (error) {
+				console.warn(
+					`[${context}] Failed to rebuild mesh from manifold data: ${mesh.name}`,
+					error,
+				);
+			}
+		}
+
+		positions = mesh.getVerticesData(
+			flock.BABYLON.VertexBuffer.PositionKind,
+		);
+		indices = mesh.getIndices?.();
+		const updatedHasPositions = !!positions && positions.length > 0;
+		const updatedHasIndices = !!indices && indices.length > 0;
+
+		if (updatedHasPositions && !updatedHasIndices) {
 			indices = Array.from(
 				{ length: positions.length / 3 },
 				(_, i) => i,
@@ -78,10 +130,14 @@ export const flockCSG = {
 			vertexData.applyToMesh(mesh, true);
 		}
 
-		const ready = hasPositions && (hasIndices || indices?.length > 0);
+		const ready =
+			updatedHasPositions && (updatedHasIndices || indices?.length > 0);
 		if (!ready) {
 			console.warn(
 				`[${context}] Mesh is missing positions or indices: ${mesh.name}`,
+				{
+					textSource: mesh.metadata?.textSource,
+				},
 			);
 		} else if (flock.manifoldDebug) {
 			console.log(`[${context}] Mesh ready for CSG: ${mesh.name}`, {
