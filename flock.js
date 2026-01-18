@@ -111,6 +111,7 @@ export const flock = {
         _animationFileCache: {},
         characterNames: characterNames,
         alert: alert,
+        manifold: globalThis?.manifold ?? null,
         BABYLON: BABYLON,
         BABYLON_LOADER: BABYLON_LOADER,
         GradientMaterial: GradientMaterial,
