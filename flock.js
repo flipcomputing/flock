@@ -90,6 +90,7 @@ export const flock = {
         memoryMonitorInterval: 5000,
         materialsDebug: false,
         meshDebug: false,
+        manifoldDebug: false,
         performanceOverlay: false,
         maxMeshes: 5000,
         console: console,

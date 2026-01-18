@@ -423,6 +423,9 @@ export const flockShapes = {
         const manifold =
           flock.manifold ??
           (typeof globalThis !== "undefined" ? globalThis.manifold : null);
+        if (flock.manifoldDebug) {
+          console.log("[create3DText] Manifold available:", !!manifold);
+        }
         let mesh = null;
         let manifoldText = null;
 
@@ -480,6 +483,12 @@ export const flockShapes = {
           }
 
           if (!positions.length || !indices.length) return null;
+          if (flock.manifoldDebug) {
+            console.log("[create3DText] Manifold mesh data:", {
+              positions: positions.length,
+              indices: indices.length,
+            });
+          }
           const newMesh = new flock.BABYLON.Mesh(modelId, flock.scene);
           const normals = [];
           flock.BABYLON.VertexData.ComputeNormals(
@@ -501,6 +510,11 @@ export const flockShapes = {
             manifold.createText ||
             manifold.text ||
             manifold.makeText;
+          if (flock.manifoldDebug) {
+            console.log("[create3DText] Manifold text factory:", {
+              createText: !!createText,
+            });
+          }
           if (createText) {
             manifoldText = await createText({
               text,
@@ -509,13 +523,29 @@ export const flockShapes = {
               size,
               depth,
             });
+            if (flock.manifoldDebug) {
+              console.log("[create3DText] Manifold text result:", {
+                hasManifoldText: !!manifoldText,
+              });
+            }
             if (manifoldText) {
               if (typeof manifoldText.toBabylonMesh === "function") {
+                if (flock.manifoldDebug) {
+                  console.log(
+                    "[create3DText] Using manifoldText.toBabylonMesh",
+                  );
+                }
                 mesh = manifoldText.toBabylonMesh(modelId, flock.scene);
               } else if (typeof manifoldText.toMesh === "function") {
+                if (flock.manifoldDebug) {
+                  console.log("[create3DText] Using manifoldText.toMesh");
+                }
                 const meshData = manifoldText.toMesh();
                 mesh = buildBabylonMeshFromManifold(meshData);
               } else {
+                if (flock.manifoldDebug) {
+                  console.log("[create3DText] Using manifoldText mesh data");
+                }
                 mesh = buildBabylonMeshFromManifold(
                   manifoldText.mesh || manifoldText,
                 );
@@ -525,6 +555,9 @@ export const flockShapes = {
         }
 
         if (!mesh) {
+          if (flock.manifoldDebug) {
+            console.log("[create3DText] Falling back to BABYLON.CreateText");
+          }
           mesh = flock.BABYLON.MeshBuilder.CreateText(
             modelId,
             text,
