@@ -1266,11 +1266,123 @@ export function overrideSearchPlugin(workspace) {
         }
 
         const toolboxBlocks = getBlocksFromToolbox(workspace);
+
+        function getBlockMessage(blockType) {
+                const definition = Blockly.Blocks?.[blockType];
+                if (!definition) {
+                        return "";
+                }
+
+                const message0 =
+                        (typeof definition.message0 === "string" &&
+                                definition.message0) ||
+                        (typeof definition.json?.message0 === "string" &&
+                                definition.json.message0) ||
+                        "";
+
+                if (!message0) {
+                        return "";
+                }
+
+                const resolvedMessage =
+                        Blockly.utils.replaceMessageReferences(message0);
+                return translate(resolvedMessage);
+        }
+
+        function buildSearchIndex() {
+                const blockCreationWorkspace = new Blockly.Workspace();
+                const indexedBlocks = [];
+
+                try {
+                        toolboxBlocks.forEach((blockInfo) => {
+                                const type = blockInfo.type;
+                                if (!type || type === "") {
+                                        return;
+                                }
+
+                                const searchTerms = new Set();
+                                searchTerms.add(type.replaceAll("_", " "));
+
+                                const keyword =
+                                        blockInfo.keyword || blockInfo.full?.keyword;
+                                if (keyword) {
+                                        searchTerms.add(keyword);
+                                }
+
+                                const block =
+                                        blockCreationWorkspace.newBlock(type);
+
+                                const labelText =
+                                        typeof block.toString === "function"
+                                                ? block.toString()
+                                                : "";
+
+                                if (labelText && labelText.trim()) {
+                                        searchTerms.add(labelText);
+                                } else {
+                                        const fallbackMessage =
+                                                getBlockMessage(type);
+                                        if (fallbackMessage) {
+                                                searchTerms.add(fallbackMessage);
+                                        }
+                                }
+
+                                block.inputList.forEach((input) => {
+                                        input.fieldRow.forEach((field) => {
+                                                const fieldText = field.getText();
+                                                if (fieldText) {
+                                                        searchTerms.add(fieldText);
+                                                }
+
+                                                if (
+                                                        field instanceof
+                                                        Blockly.FieldDropdown
+                                                ) {
+                                                        field.getOptions(
+                                                                true,
+                                                        ).forEach((option) => {
+                                                                if (
+                                                                        typeof option[0] ===
+                                                                        "string"
+                                                                ) {
+                                                                        searchTerms.add(
+                                                                                option[0],
+                                                                        );
+                                                                } else if (
+                                                                        "alt" in
+                                                                        option[0]
+                                                                ) {
+                                                                        searchTerms.add(
+                                                                                option[0].alt,
+                                                                        );
+                                                                }
+                                                        });
+                                                }
+                                        });
+                                });
+
+                                indexedBlocks.push({
+                                        ...blockInfo,
+                                        text: Array.from(searchTerms).join(
+                                                " ",
+                                        ),
+                                });
+                        });
+                } finally {
+                        blockCreationWorkspace.dispose();
+                }
+
+                return indexedBlocks;
+        }
+
         SearchCategory.prototype.initBlockSearcher = function () {
-                this.blockSearcher.indexBlocks = function () {
-                        this.indexedBlocks_ = toolboxBlocks;
+                const rebuildSearchIndex = () => {
+                        this.indexedBlocks_ = buildSearchIndex();
                 };
-                this.blockSearcher.indexBlocks();
+                this.blockSearcher.indexBlocks = rebuildSearchIndex;
+                rebuildSearchIndex();
+
+                workspace.flockSearchCategory = this;
         };
 
         SearchCategory.prototype.matchBlocks = function () {
