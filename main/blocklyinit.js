@@ -1301,6 +1301,8 @@ export function overrideSearchPlugin(workspace) {
                                 const searchTerms = new Set();
                                 searchTerms.add(type.replaceAll("_", " "));
 
+                                const runDebugFields = [];
+
                                 const keyword =
                                         blockInfo.keyword || blockInfo.full?.keyword;
                                 if (keyword) {
@@ -1330,6 +1332,11 @@ export function overrideSearchPlugin(workspace) {
                                                 const fieldText = field.getText();
                                                 if (fieldText) {
                                                         searchTerms.add(fieldText);
+                                                        runDebugFields.push({
+                                                                name: field.name,
+                                                                text: fieldText,
+                                                                kind: field.constructor?.name,
+                                                        });
                                                 }
 
                                                 if (
@@ -1353,6 +1360,12 @@ export function overrideSearchPlugin(workspace) {
                                                                         searchTerms.add(
                                                                                 option[0],
                                                                         );
+                                                                        runDebugFields.push({
+                                                                                name: field.name,
+                                                                                option:
+                                                                                        option[0],
+                                                                                kind: field.constructor?.name,
+                                                                        });
                                                                 } else if (
                                                                         "alt" in
                                                                         option[0]
@@ -1360,11 +1373,34 @@ export function overrideSearchPlugin(workspace) {
                                                                         searchTerms.add(
                                                                                 option[0].alt,
                                                                         );
+                                                                        runDebugFields.push({
+                                                                                name: field.name,
+                                                                                option:
+                                                                                        option[0].alt,
+                                                                                kind: field.constructor?.name,
+                                                                        });
                                                                 }
                                                         });
                                                 }
                                         });
                                 });
+
+                                const runTerms = Array.from(searchTerms).filter(
+                                        (term) =>
+                                                term
+                                                        .toLowerCase()
+                                                        .includes("run"),
+                                );
+                                if (runTerms.length) {
+                                        console.log(
+                                                "[toolbox-search] run match source",
+                                                {
+                                                        type,
+                                                        runTerms,
+                                                        fields: runDebugFields,
+                                                },
+                                        );
+                                }
 
                                 indexedBlocks.push({
                                         ...blockInfo,
