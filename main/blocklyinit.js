@@ -11,6 +11,8 @@ import {
         handleBlockSelect,
         handleBlockDelete,
         CustomZelosRenderer,
+        initializeVariableIndexes,
+        nextVariableIndexes,
 } from "../blocks/blocks";
 import { defineBaseBlocks } from "../blocks/base";
 import { defineShapeBlocks } from "../blocks/shapes";
@@ -1212,46 +1214,44 @@ function setupAutoValueBehavior(workspace) {
 export function overrideSearchPlugin(workspace) {
         function getBlocksFromToolbox(workspace) {
                 const toolboxBlocks = [];
-                const seenTypes = new Set(); // Track which block types we've already added
+                const seenTypes = new Set();
 
-                function processItem(item, categoryName = "") {
-                        const currentCategory = item.getName
-                                ? item.getName()
-                                : categoryName;
-
-                        if (currentCategory === "Snippets") {
+                function collectBlocks(schema, categoryName = "") {
+                        if (!schema) {
                                 return;
                         }
 
-                        if (item.getContents) {
-                                const contents = item.getContents();
-                                const blocks = Array.isArray(contents)
-                                        ? contents
-                                        : [contents];
+                        if ("contents" in schema) {
+                                const currentCategory = schema.name || categoryName;
+                                if (currentCategory === "Snippets") {
+                                        return;
+                                }
 
-                                blocks.forEach((block) => {
-                                        if (
-                                                block.kind === "block" &&
-                                                !seenTypes.has(block.type)
-                                        ) {
-                                                seenTypes.add(block.type);
-                                                toolboxBlocks.push({
-                                                        type: block.type,
-                                                        text: block.type,
-                                                        full: block,
-                                                });
-                                        }
+                                schema.contents?.forEach((item) => {
+                                        collectBlocks(item, currentCategory);
                                 });
+                                return;
                         }
 
-                        if (item.getChildToolboxItems) {
-                                item.getChildToolboxItems().forEach((child) => {
-                                        processItem(child, currentCategory);
+                        if (
+                                schema.kind?.toLowerCase() === "block" &&
+                                schema.type &&
+                                !seenTypes.has(schema.type)
+                        ) {
+                                seenTypes.add(schema.type);
+                                toolboxBlocks.push({
+                                        type: schema.type,
+                                        text: schema.type,
+                                        full: schema,
+                                        keyword: schema.keyword,
                                 });
                         }
                 }
 
-                workspace.getToolbox().getToolboxItems().forEach(processItem);
+                workspace.options.languageTree?.contents?.forEach((item) => {
+                        collectBlocks(item);
+                });
+
                 return toolboxBlocks;
         }
 
@@ -1266,12 +1266,280 @@ export function overrideSearchPlugin(workspace) {
         }
 
         const toolboxBlocks = getBlocksFromToolbox(workspace);
+
+        function getBlockMessage(blockType) {
+                const definition = Blockly.Blocks?.[blockType];
+                if (!definition) {
+                        return "";
+                }
+
+                const message0 =
+                        (typeof definition.message0 === "string" &&
+                                definition.message0) ||
+                        (typeof definition.json?.message0 === "string" &&
+                                definition.json.message0) ||
+                        "";
+
+                if (!message0) {
+                        return "";
+                }
+
+                const resolvedMessage =
+                        Blockly.utils.replaceMessageReferences(message0);
+                return translate(resolvedMessage);
+        }
+
+        function buildSearchIndex() {
+                if (!Object.keys(nextVariableIndexes).length) {
+                        initializeVariableIndexes();
+                }
+
+                const blockCreationWorkspace = new Blockly.Workspace();
+                const indexedBlocks = [];
+
+                function applyFieldValues(block, fieldValues) {
+                        if (!block || !fieldValues) {
+                                return;
+                        }
+
+                        Object.entries(fieldValues).forEach(
+                                ([fieldName, value]) => {
+                                        if (
+                                                value === undefined ||
+                                                value === null ||
+                                                !block.getField(fieldName)
+                                        ) {
+                                                return;
+                                        }
+
+                                        const normalizedValue =
+                                                typeof value === "string"
+                                                        ? value
+                                                        : String(value);
+                                        block.setFieldValue(
+                                                normalizedValue,
+                                                fieldName,
+                                        );
+                                },
+                        );
+                }
+
+                function addBlockFieldTerms(block, searchTerms, runDebugFields) {
+                        block.inputList.forEach((input) => {
+                                input.fieldRow.forEach((field) => {
+                                        const fieldText = field.getText();
+                                        if (fieldText) {
+                                                searchTerms.add(fieldText);
+                                                runDebugFields.push({
+                                                        name: field.name,
+                                                        text: fieldText,
+                                                        kind: field.constructor?.name,
+                                                });
+                                        }
+
+                                        if (
+                                                field instanceof
+                                                Blockly.FieldVariable
+                                        ) {
+                                                return;
+                                        }
+
+                                        if (
+                                                !fieldText &&
+                                                typeof field.getValue ===
+                                                        "function"
+                                        ) {
+                                                const fieldValue =
+                                                        field.getValue();
+                                                if (
+                                                        typeof fieldValue ===
+                                                                "string" &&
+                                                        fieldValue.trim()
+                                                ) {
+                                                        searchTerms.add(
+                                                                fieldValue,
+                                                        );
+                                                        runDebugFields.push({
+                                                                name: field.name,
+                                                                value: fieldValue,
+                                                                kind: field.constructor?.name,
+                                                        });
+                                                }
+                                        }
+
+                                        if (
+                                                field instanceof
+                                                Blockly.FieldDropdown
+                                        ) {
+                                                field.getOptions(
+                                                        true,
+                                                ).forEach((option) => {
+                                                        if (
+                                                                typeof option[0] ===
+                                                                "string"
+                                                        ) {
+                                                                searchTerms.add(
+                                                                        option[0],
+                                                                );
+                                                                runDebugFields.push({
+                                                                        name: field.name,
+                                                                        option:
+                                                                                option[0],
+                                                                        kind: field.constructor?.name,
+                                                                });
+                                                        } else if (
+                                                                "alt" in
+                                                                option[0]
+                                                        ) {
+                                                                searchTerms.add(
+                                                                        option[0].alt,
+                                                                );
+                                                                runDebugFields.push({
+                                                                        name: field.name,
+                                                                        option:
+                                                                                option[0].alt,
+                                                                        kind: field.constructor?.name,
+                                                                });
+                                                        }
+                                                });
+                                        }
+                                });
+                        });
+                }
+
+                try {
+                        toolboxBlocks.forEach((blockInfo) => {
+                                const type = blockInfo.type;
+                                if (!type || type === "") {
+                                        return;
+                                }
+
+                                const searchTerms = new Set();
+                                searchTerms.add(type.replaceAll("_", " "));
+
+                                const runDebugFields = [];
+
+                                const keyword =
+                                        blockInfo.keyword || blockInfo.full?.keyword;
+                                if (keyword) {
+                                        searchTerms.add(keyword);
+                                }
+
+                                const block =
+                                        blockCreationWorkspace.newBlock(type);
+                                applyFieldValues(
+                                        block,
+                                        blockInfo.full?.fields,
+                                );
+
+                                const labelText =
+                                        typeof block.toString === "function"
+                                                ? block.toString()
+                                                : "";
+
+                                if (labelText && labelText.trim()) {
+                                        searchTerms.add(labelText);
+                                } else {
+                                        const fallbackMessage =
+                                                getBlockMessage(type);
+                                        if (fallbackMessage) {
+                                                searchTerms.add(fallbackMessage);
+                                        }
+                                }
+
+                                addBlockFieldTerms(
+                                        block,
+                                        searchTerms,
+                                        runDebugFields,
+                                );
+
+                                const inputDefinitions = blockInfo.full?.inputs;
+                                if (inputDefinitions) {
+                                        Object.values(inputDefinitions).forEach(
+                                                (definition) => {
+                                                        const shadowType =
+                                                                definition?.shadow?.type;
+                                                        if (!shadowType) {
+                                                                return;
+                                                        }
+
+                                                        const shadowBlock =
+                                                                blockCreationWorkspace.newBlock(
+                                                                        shadowType,
+                                                                );
+                                                        applyFieldValues(
+                                                                shadowBlock,
+                                                                definition?.shadow
+                                                                        ?.fields,
+                                                        );
+                                                        addBlockFieldTerms(
+                                                                shadowBlock,
+                                                                searchTerms,
+                                                                runDebugFields,
+                                                        );
+                                                        shadowBlock.dispose(
+                                                                true,
+                                                        );
+                                                },
+                                        );
+                                }
+
+                                const runTerms = Array.from(searchTerms).filter(
+                                        (term) =>
+                                                term
+                                                        .toLowerCase()
+                                                        .includes("run"),
+                                );
+                                if (runTerms.length) {
+                                        console.log(
+                                                "[toolbox-search] run match source",
+                                                {
+                                                        type,
+                                                        runTerms,
+                                                        fields: runDebugFields,
+                                                },
+                                        );
+                                }
+
+                                indexedBlocks.push({
+                                        ...blockInfo,
+                                        text: Array.from(searchTerms).join(
+                                                " ",
+                                        ),
+                                });
+                        });
+                } finally {
+                        blockCreationWorkspace.dispose();
+                }
+
+                return indexedBlocks;
+        }
+
         SearchCategory.prototype.initBlockSearcher = function () {
-                this.blockSearcher.indexBlocks = function () {
-                        this.indexedBlocks_ = toolboxBlocks;
+                const blockSearcher = this.blockSearcher;
+                const rebuildSearchIndex = () => {
+                        blockSearcher.indexedBlocks_ = buildSearchIndex();
                 };
-                this.blockSearcher.indexBlocks();
+                this.blockSearcher.indexBlocks = rebuildSearchIndex;
+                blockSearcher.indexedBlocks_ = [];
+                rebuildSearchIndex();
+
+                workspace.flockSearchCategory = this;
         };
+
+        const searchToolboxItem = workspace
+                .getToolbox()
+                ?.getToolboxItems?.()
+                ?.find(
+                        (item) =>
+                                item instanceof SearchCategory ||
+                                item.getToolboxItemDef?.().kind === "search" ||
+                                item.toolboxItemDef?.kind === "search",
+                );
+
+        if (searchToolboxItem?.initBlockSearcher) {
+                searchToolboxItem.initBlockSearcher();
+        }
 
         SearchCategory.prototype.matchBlocks = function () {
                 if (!this.hasInputStarted) {
@@ -1279,10 +1547,22 @@ export function overrideSearchPlugin(workspace) {
                         return;
                 }
 
+                if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
+                        if (this.blockSearcher.indexBlocks) {
+                                this.blockSearcher.indexBlocks();
+                        }
+                }
+
                 const query =
                         this.searchField?.value.toLowerCase().trim() || "";
 
-                const matches = this.blockSearcher.indexedBlocks_.filter(
+                const indexedBlocks = Array.isArray(
+                        this.blockSearcher.indexedBlocks_,
+                )
+                        ? this.blockSearcher.indexedBlocks_
+                        : [];
+
+                const matches = indexedBlocks.filter(
                         (block) => {
                                 if (block.text) {
                                         return block.text
