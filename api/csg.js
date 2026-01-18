@@ -13,21 +13,43 @@ export const flockCSG = {
 			);
 			if (positions && positions.length > 0) return mesh;
 		}
-		if (typeof mesh.getChildMeshes === "function") {
-			const children = mesh.getChildMeshes();
-			for (const child of children) {
-				const positions = child.getVerticesData?.(
-					flock.BABYLON.VertexBuffer.PositionKind,
-				);
-				if (positions && positions.length > 0) {
-					if (flock.manifoldDebug) {
-						console.log(
-							`[${context}] Using child mesh for CSG: ${child.name}`,
-						);
-					}
-					return child;
+		const childMeshes =
+			typeof mesh.getChildMeshes === "function"
+				? mesh.getChildMeshes()
+				: typeof mesh.getDescendants === "function"
+					? mesh.getDescendants()
+					: [];
+		for (const child of childMeshes) {
+			const positions = child.getVerticesData?.(
+				flock.BABYLON.VertexBuffer.PositionKind,
+			);
+			const totalVertices =
+				typeof child.getTotalVertices === "function"
+					? child.getTotalVertices()
+					: 0;
+			if (
+				(positions && positions.length > 0) ||
+				(totalVertices && totalVertices > 0)
+			) {
+				if (flock.manifoldDebug) {
+					console.log(
+						`[${context}] Using child mesh for CSG: ${child.name}`,
+					);
 				}
+				return child;
 			}
+		}
+		if (flock.manifoldDebug) {
+			console.log(`[${context}] Mesh has no geometry: ${mesh.name}`, {
+				childCount: childMeshes.length,
+				children: childMeshes.map((child) => ({
+					name: child.name,
+					vertices:
+						typeof child.getTotalVertices === "function"
+							? child.getTotalVertices()
+							: 0,
+				})),
+			});
 		}
 		console.warn(`[${context}] No mesh with positions found: ${mesh.name}`);
 		return null;
