@@ -5,6 +5,39 @@ export function setFlockReference(ref) {
 }
 
 export const flockCSG = {
+	_ensureMeshForCSG(mesh, context = "CSG") {
+		if (!mesh || typeof mesh.getVerticesData !== "function") return false;
+		const positions = mesh.getVerticesData(
+			flock.BABYLON.VertexBuffer.PositionKind,
+		);
+		let indices = mesh.getIndices?.();
+		const hasPositions = !!positions && positions.length > 0;
+		const hasIndices = !!indices && indices.length > 0;
+
+		if (hasPositions && !hasIndices) {
+			indices = Array.from(
+				{ length: positions.length / 3 },
+				(_, i) => i,
+			);
+			const vertexData = new flock.BABYLON.VertexData();
+			vertexData.positions = positions;
+			vertexData.indices = indices;
+			vertexData.applyToMesh(mesh, true);
+		}
+
+		const ready = hasPositions && (hasIndices || indices?.length > 0);
+		if (!ready) {
+			console.warn(
+				`[${context}] Mesh is missing positions or indices: ${mesh.name}`,
+			);
+		} else if (flock.manifoldDebug) {
+			console.log(`[${context}] Mesh ready for CSG: ${mesh.name}`, {
+				positions: positions?.length ?? 0,
+				indices: indices?.length ?? 0,
+			});
+		}
+		return ready;
+	},
 	mergeCompositeMesh(meshes) {
 		if (!meshes || meshes.length === 0) return null;
 
@@ -41,6 +74,12 @@ export const flockCSG = {
 							firstMesh.flipFaces();
 						}
 					}
+					if (!this._ensureMeshForCSG(firstMesh, "mergeMeshes")) {
+						console.warn(
+							"[mergeMeshes] Base mesh missing positions or indices.",
+						);
+						return null;
+					}
 					let baseCSG = flock.BABYLON.CSG2.FromMesh(firstMesh, false);
 
 					// Merge subsequent meshes
@@ -54,11 +93,17 @@ export const flockCSG = {
 								mesh.flipFaces();
 							}
 						}
-						const meshCSG = flock.BABYLON.CSG2.FromMesh(
-							mesh,
-							false,
-						);
-						baseCSG = baseCSG.add(meshCSG);
+						if (this._ensureMeshForCSG(mesh, "mergeMeshes")) {
+							const meshCSG = flock.BABYLON.CSG2.FromMesh(
+								mesh,
+								false,
+							);
+							baseCSG = baseCSG.add(meshCSG);
+						} else {
+							console.warn(
+								`[mergeMeshes] Skipping mesh without indices: ${mesh.name}`,
+							);
+						}
 					});
 
 					const mergedMesh1 = baseCSG.toMesh(
@@ -212,9 +257,20 @@ export const flockCSG = {
 							actualBase,
 							"baseDuplicate",
 						);
-						let outerCSG = tryCSG("FromMesh(baseDuplicate)", () =>
-							flock.BABYLON.CSG2.FromMesh(baseDuplicate, false),
-						);
+						let outerCSG = tryCSG("FromMesh(baseDuplicate)", () => {
+							if (
+								!this._ensureMeshForCSG(
+									baseDuplicate,
+									"subtractMeshes",
+								)
+							) {
+								return null;
+							}
+							return flock.BABYLON.CSG2.FromMesh(
+								baseDuplicate,
+								false,
+							);
+						});
 
 						if (!outerCSG) {
 							baseDuplicate.dispose();
@@ -275,6 +331,12 @@ export const flockCSG = {
 
 						// EXECUTE SUBTRACTION
 						subtractDuplicates.forEach((m, idx) => {
+							if (!this._ensureMeshForCSG(m, "subtractMeshes")) {
+								console.warn(
+									`[subtractMeshes] Skipping mesh without indices: ${m.name}`,
+								);
+								return;
+							}
 							const meshCSG = tryCSG(
 								`FromMesh(tool[${idx}])`,
 								() => flock.BABYLON.CSG2.FromMesh(m, false),
@@ -391,6 +453,28 @@ export const flockCSG = {
 							actualBase,
 							"baseDuplicate",
 						);
+						if (
+							!this._ensureMeshForCSG(
+								baseDuplicate,
+								"subtractMeshesMerge",
+							)
+						) {
+							console.warn(
+								"[subtractMeshesMerge] Base mesh missing positions or indices.",
+							);
+							return resolve(null);
+						}
+						if (
+							!this._ensureMeshForCSG(
+								baseDuplicate,
+								"subtractMeshesIndividual",
+							)
+						) {
+							console.warn(
+								"[subtractMeshesIndividual] Base mesh missing positions or indices.",
+							);
+							return resolve(null);
+						}
 						let outerCSG = flock.BABYLON.CSG2.FromMesh(
 							baseDuplicate,
 							false,
@@ -441,11 +525,17 @@ export const flockCSG = {
 
 						subtractDuplicates.forEach((m) => {
 							try {
-								const meshCSG = flock.BABYLON.CSG2.FromMesh(
-									m,
-									false,
-								);
-								outerCSG = outerCSG.subtract(meshCSG);
+								if (this._ensureMeshForCSG(m, "subtractMeshes")) {
+									const meshCSG = flock.BABYLON.CSG2.FromMesh(
+										m,
+										false,
+									);
+									outerCSG = outerCSG.subtract(meshCSG);
+								} else {
+									console.warn(
+										`[subtractMeshes] Skipping mesh without indices: ${m.name}`,
+									);
+								}
 							} catch (e) {
 								console.warn(e);
 							}
@@ -542,11 +632,22 @@ export const flockCSG = {
 
 						allToolParts.forEach((part) => {
 							try {
-								const partCSG = flock.BABYLON.CSG2.FromMesh(
-									part,
-									false,
-								);
-								outerCSG = outerCSG.subtract(partCSG);
+								if (
+									this._ensureMeshForCSG(
+										part,
+										"subtractMeshesIndividual",
+									)
+								) {
+									const partCSG = flock.BABYLON.CSG2.FromMesh(
+										part,
+										false,
+									);
+									outerCSG = outerCSG.subtract(partCSG);
+								} else {
+									console.warn(
+										`[subtractMeshesIndividual] Skipping mesh without indices: ${part.name}`,
+									);
+								}
 							} catch (e) {
 								console.warn(e);
 							}
@@ -653,11 +754,17 @@ export const flockCSG = {
 								mesh.flipFaces();
 							}
 						}
-						const meshCSG = flock.BABYLON.CSG2.FromMesh(
-							mesh,
-							false,
-						);
-						baseCSG = baseCSG.intersect(meshCSG);
+						if (this._ensureMeshForCSG(mesh, "intersectMeshes")) {
+							const meshCSG = flock.BABYLON.CSG2.FromMesh(
+								mesh,
+								false,
+							);
+							baseCSG = baseCSG.intersect(meshCSG);
+						} else {
+							console.warn(
+								`[intersectMeshes] Skipping mesh without indices: ${mesh.name}`,
+							);
+						}
 					});
 
 					// Generate the resulting intersected mesh
