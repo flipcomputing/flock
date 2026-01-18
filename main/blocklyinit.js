@@ -1297,6 +1297,33 @@ export function overrideSearchPlugin(workspace) {
                 const blockCreationWorkspace = new Blockly.Workspace();
                 const indexedBlocks = [];
 
+                function applyFieldValues(block, fieldValues) {
+                        if (!block || !fieldValues) {
+                                return;
+                        }
+
+                        Object.entries(fieldValues).forEach(
+                                ([fieldName, value]) => {
+                                        if (
+                                                value === undefined ||
+                                                value === null ||
+                                                !block.getField(fieldName)
+                                        ) {
+                                                return;
+                                        }
+
+                                        const normalizedValue =
+                                                typeof value === "string"
+                                                        ? value
+                                                        : String(value);
+                                        block.setFieldValue(
+                                                normalizedValue,
+                                                fieldName,
+                                        );
+                                },
+                        );
+                }
+
                 function addBlockFieldTerms(block, searchTerms, runDebugFields) {
                         block.inputList.forEach((input) => {
                                 input.fieldRow.forEach((field) => {
@@ -1400,6 +1427,10 @@ export function overrideSearchPlugin(workspace) {
 
                                 const block =
                                         blockCreationWorkspace.newBlock(type);
+                                applyFieldValues(
+                                        block,
+                                        blockInfo.full?.fields,
+                                );
 
                                 const labelText =
                                         typeof block.toString === "function"
@@ -1436,6 +1467,11 @@ export function overrideSearchPlugin(workspace) {
                                                                 blockCreationWorkspace.newBlock(
                                                                         shadowType,
                                                                 );
+                                                        applyFieldValues(
+                                                                shadowBlock,
+                                                                definition?.shadow
+                                                                        ?.fields,
+                                                        );
                                                         addBlockFieldTerms(
                                                                 shadowBlock,
                                                                 searchTerms,
