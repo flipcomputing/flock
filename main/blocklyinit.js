@@ -11,6 +11,8 @@ import {
         handleBlockSelect,
         handleBlockDelete,
         CustomZelosRenderer,
+        initializeVariableIndexes,
+        nextVariableIndexes,
 } from "../blocks/blocks";
 import { defineBaseBlocks } from "../blocks/base";
 import { defineShapeBlocks } from "../blocks/shapes";
@@ -1288,6 +1290,10 @@ export function overrideSearchPlugin(workspace) {
         }
 
         function buildSearchIndex() {
+                if (!Object.keys(nextVariableIndexes).length) {
+                        initializeVariableIndexes();
+                }
+
                 const blockCreationWorkspace = new Blockly.Workspace();
                 const indexedBlocks = [];
 
