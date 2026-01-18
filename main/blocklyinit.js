@@ -1386,6 +1386,20 @@ export function overrideSearchPlugin(workspace) {
                 workspace.flockSearchCategory = this;
         };
 
+        const searchToolboxItem = workspace
+                .getToolbox()
+                ?.getToolboxItems?.()
+                ?.find(
+                        (item) =>
+                                item instanceof SearchCategory ||
+                                item.getToolboxItemDef?.().kind === "search" ||
+                                item.toolboxItemDef?.kind === "search",
+                );
+
+        if (searchToolboxItem?.initBlockSearcher) {
+                searchToolboxItem.initBlockSearcher();
+        }
+
         SearchCategory.prototype.matchBlocks = function () {
                 if (!this.hasInputStarted) {
                         this.hasInputStarted = true;
