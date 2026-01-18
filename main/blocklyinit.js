@@ -1380,6 +1380,7 @@ export function overrideSearchPlugin(workspace) {
                         this.indexedBlocks_ = buildSearchIndex();
                 };
                 this.blockSearcher.indexBlocks = rebuildSearchIndex;
+                this.blockSearcher.indexedBlocks_ = [];
                 rebuildSearchIndex();
 
                 workspace.flockSearchCategory = this;
@@ -1394,15 +1395,19 @@ export function overrideSearchPlugin(workspace) {
                 if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
                         if (this.blockSearcher.indexBlocks) {
                                 this.blockSearcher.indexBlocks();
-                        } else {
-                                this.blockSearcher.indexedBlocks_ = [];
                         }
                 }
 
                 const query =
                         this.searchField?.value.toLowerCase().trim() || "";
 
-                const matches = this.blockSearcher.indexedBlocks_.filter(
+                const indexedBlocks = Array.isArray(
+                        this.blockSearcher.indexedBlocks_,
+                )
+                        ? this.blockSearcher.indexedBlocks_
+                        : [];
+
+                const matches = indexedBlocks.filter(
                         (block) => {
                                 if (block.text) {
                                         return block.text
