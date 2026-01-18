@@ -571,6 +571,47 @@ export const flockShapes = {
           );
         }
 
+        const ensureMeshHasIndices = (targetMesh) => {
+          if (!targetMesh) return false;
+          const positions = targetMesh.getVerticesData(
+            flock.BABYLON.VertexBuffer.PositionKind,
+          );
+          const indices = targetMesh.getIndices();
+          if (positions && positions.length && indices && indices.length) {
+            return true;
+          }
+          if (!positions || !positions.length) return false;
+          const generated = Array.from(
+            { length: positions.length / 3 },
+            (_, i) => i,
+          );
+          const vertexData = new flock.BABYLON.VertexData();
+          vertexData.positions = positions;
+          vertexData.indices = generated;
+          vertexData.applyToMesh(targetMesh, true);
+          return true;
+        };
+
+        if (!ensureMeshHasIndices(mesh)) {
+          if (flock.manifoldDebug) {
+            console.log(
+              "[create3DText] Missing indices; recreating with BABYLON.CreateText",
+            );
+          }
+          mesh.dispose();
+          mesh = flock.BABYLON.MeshBuilder.CreateText(
+            modelId,
+            text,
+            fontData,
+            {
+              size: size,
+              depth: depth,
+            },
+            flock.scene,
+            earcut,
+          );
+        }
+
         mesh.position.set(x, y, z);
         const material = new flock.BABYLON.StandardMaterial(
           "textMaterial",
