@@ -1212,46 +1212,44 @@ function setupAutoValueBehavior(workspace) {
 export function overrideSearchPlugin(workspace) {
         function getBlocksFromToolbox(workspace) {
                 const toolboxBlocks = [];
-                const seenTypes = new Set(); // Track which block types we've already added
+                const seenTypes = new Set();
 
-                function processItem(item, categoryName = "") {
-                        const currentCategory = item.getName
-                                ? item.getName()
-                                : categoryName;
-
-                        if (currentCategory === "Snippets") {
+                function collectBlocks(schema, categoryName = "") {
+                        if (!schema) {
                                 return;
                         }
 
-                        if (item.getContents) {
-                                const contents = item.getContents();
-                                const blocks = Array.isArray(contents)
-                                        ? contents
-                                        : [contents];
+                        if ("contents" in schema) {
+                                const currentCategory = schema.name || categoryName;
+                                if (currentCategory === "Snippets") {
+                                        return;
+                                }
 
-                                blocks.forEach((block) => {
-                                        if (
-                                                block.kind === "block" &&
-                                                !seenTypes.has(block.type)
-                                        ) {
-                                                seenTypes.add(block.type);
-                                                toolboxBlocks.push({
-                                                        type: block.type,
-                                                        text: block.type,
-                                                        full: block,
-                                                });
-                                        }
+                                schema.contents?.forEach((item) => {
+                                        collectBlocks(item, currentCategory);
                                 });
+                                return;
                         }
 
-                        if (item.getChildToolboxItems) {
-                                item.getChildToolboxItems().forEach((child) => {
-                                        processItem(child, currentCategory);
+                        if (
+                                schema.kind?.toLowerCase() === "block" &&
+                                schema.type &&
+                                !seenTypes.has(schema.type)
+                        ) {
+                                seenTypes.add(schema.type);
+                                toolboxBlocks.push({
+                                        type: schema.type,
+                                        text: schema.type,
+                                        full: schema,
+                                        keyword: schema.keyword,
                                 });
                         }
                 }
 
-                workspace.getToolbox().getToolboxItems().forEach(processItem);
+                workspace.options.languageTree?.contents?.forEach((item) => {
+                        collectBlocks(item);
+                });
+
                 return toolboxBlocks;
         }
 
