@@ -1309,9 +1309,12 @@ export function overrideSearchPlugin(workspace) {
                                                         kind: field.constructor?.name,
                                                 });
                                         } else if (
-                                                field instanceof
-                                                        Blockly.FieldInput ||
-                                                (Blockly.FieldTextInput &&
+                                                (typeof Blockly.FieldInput ===
+                                                        "function" &&
+                                                        field instanceof
+                                                                Blockly.FieldInput) ||
+                                                (typeof Blockly.FieldTextInput ===
+                                                        "function" &&
                                                         field instanceof
                                                                 Blockly.FieldTextInput)
                                         ) {
