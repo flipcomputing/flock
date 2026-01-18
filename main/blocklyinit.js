@@ -1308,19 +1308,27 @@ export function overrideSearchPlugin(workspace) {
                                                         text: fieldText,
                                                         kind: field.constructor?.name,
                                                 });
-                                        } else if (
-                                                (typeof Blockly.FieldInput ===
-                                                        "function" &&
-                                                        field instanceof
-                                                                Blockly.FieldInput) ||
-                                                (typeof Blockly.FieldTextInput ===
-                                                        "function" &&
-                                                        field instanceof
-                                                                Blockly.FieldTextInput)
+                                        }
+
+                                        if (
+                                                field instanceof
+                                                Blockly.FieldVariable
+                                        ) {
+                                                return;
+                                        }
+
+                                        if (
+                                                !fieldText &&
+                                                typeof field.getValue ===
+                                                        "function"
                                         ) {
                                                 const fieldValue =
-                                                        field.getValue?.();
-                                                if (fieldValue) {
+                                                        field.getValue();
+                                                if (
+                                                        typeof fieldValue ===
+                                                                "string" &&
+                                                        fieldValue.trim()
+                                                ) {
                                                         searchTerms.add(
                                                                 fieldValue,
                                                         );
@@ -1330,13 +1338,6 @@ export function overrideSearchPlugin(workspace) {
                                                                 kind: field.constructor?.name,
                                                         });
                                                 }
-                                        }
-
-                                        if (
-                                                field instanceof
-                                                Blockly.FieldVariable
-                                        ) {
-                                                return;
                                         }
 
                                         if (
