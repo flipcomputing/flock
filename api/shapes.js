@@ -429,17 +429,56 @@ export const flockShapes = {
         const ensureArray = (data) =>
           Array.isArray(data) ? data : Array.from(data || []);
 
+        const flattenVectorArray = (data) => {
+          if (!Array.isArray(data)) return ensureArray(data);
+          if (!data.length) return [];
+          if (typeof data[0] === "number") return data.slice();
+          if (Array.isArray(data[0])) return data.flat();
+          if (typeof data[0] === "object") {
+            return data.flatMap((entry) => [
+              entry.x ?? entry[0],
+              entry.y ?? entry[1],
+              entry.z ?? entry[2],
+            ]);
+          }
+          return [];
+        };
+
+        const flattenIndexArray = (data) => {
+          if (!Array.isArray(data)) return ensureArray(data);
+          if (!data.length) return [];
+          if (typeof data[0] === "number") return data.slice();
+          if (Array.isArray(data[0])) return data.flat();
+          if (typeof data[0] === "object") {
+            return data.flatMap((entry) => [
+              entry.a ?? entry[0],
+              entry.b ?? entry[1],
+              entry.c ?? entry[2],
+            ]);
+          }
+          return [];
+        };
+
         const buildBabylonMeshFromManifold = (meshData) => {
           if (!meshData) return null;
-          const positions = ensureArray(
+          let positions = flattenVectorArray(
             meshData.positions ||
               meshData.vertices ||
               meshData.vertProperties ||
               meshData.verts,
           );
-          const indices = ensureArray(
+          let indices = flattenIndexArray(
             meshData.indices || meshData.triangles || meshData.triVerts,
           );
+
+          if (!positions.length && meshData.triangles) {
+            positions = flattenVectorArray(meshData.triangles);
+            indices = Array.from(
+              { length: positions.length / 3 },
+              (_, i) => i,
+            );
+          }
+
           if (!positions.length || !indices.length) return null;
           const newMesh = new flock.BABYLON.Mesh(modelId, flock.scene);
           const normals = [];
