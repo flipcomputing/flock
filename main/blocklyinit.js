@@ -1391,6 +1391,14 @@ export function overrideSearchPlugin(workspace) {
                         return;
                 }
 
+                if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
+                        if (this.blockSearcher.indexBlocks) {
+                                this.blockSearcher.indexBlocks();
+                        } else {
+                                this.blockSearcher.indexedBlocks_ = [];
+                        }
+                }
+
                 const query =
                         this.searchField?.value.toLowerCase().trim() || "";
 
