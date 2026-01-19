@@ -1654,14 +1654,18 @@ export function overrideSearchPlugin(workspace) {
                                         const selected =
                                                 toolbox?.getSelectedItem?.();
                                         const resolveFocusElement = (item) =>
+                                                item?.getClickTarget?.() ||
                                                 item?.getDiv?.() ||
+                                                item?.rowDiv_ ||
                                                 item?.htmlDiv_ ||
                                                 item?.svgGroup_ ||
-                                                item?.rowDiv_ ||
                                                 item?.element_ ||
                                                 null;
                                         const focusElement =
                                                 resolveFocusElement(selected);
+                                        Blockly.getFocusManager?.()?.focusTree?.(
+                                                toolbox || null,
+                                        );
                                         if (toolboxDiv) {
                                                 const focusAttribute =
                                                         "data-flock-toolbox-row";
@@ -1743,9 +1747,6 @@ export function overrideSearchPlugin(workspace) {
                                                 }
                                                 toolboxDiv.focus();
                                         }
-                                        Blockly.getFocusManager?.()?.focusTree?.(
-                                                toolbox || null,
-                                        );
                                 }, 0);
                         });
                 }
