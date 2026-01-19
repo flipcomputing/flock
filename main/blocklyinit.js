@@ -1295,7 +1295,6 @@ export function overrideSearchPlugin(workspace) {
                         typeof performance.now === "function"
                                 ? performance.now()
                                 : Date.now();
-                console.info("[Search] buildSearchIndex start");
                 if (!Object.keys(nextVariableIndexes).length) {
                         initializeVariableIndexes();
                 }
@@ -1506,11 +1505,6 @@ export function overrideSearchPlugin(workspace) {
                         typeof performance.now === "function"
                                 ? performance.now()
                                 : Date.now();
-                console.info("[Search] buildSearchIndex complete", {
-                        durationMs: Math.round(endTime - startTime),
-                        blocks: indexedBlocks.length,
-                });
-
                 return indexedBlocks;
         }
 
