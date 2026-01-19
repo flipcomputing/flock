@@ -1645,6 +1645,45 @@ export function overrideSearchPlugin(workspace) {
                                 }, 0);
                         });
                 }
+
+                if (!this.flockSearchToolboxKeydownAttached && this.searchField) {
+                        this.flockSearchToolboxKeydownAttached = true;
+                        const toolboxDiv =
+                                this.workspace_
+                                        ?.getToolbox?.()
+                                        ?.getDiv?.() ||
+                                document.querySelector(".blocklyToolboxDiv");
+                        if (toolboxDiv) {
+                                toolboxDiv.addEventListener("keydown", (event) => {
+                                        if (
+                                                event.ctrlKey ||
+                                                event.metaKey ||
+                                                event.altKey ||
+                                                event.key.length !== 1
+                                        ) {
+                                                return;
+                                        }
+
+                                        const target = event.target;
+                                        const isEditable =
+                                                target instanceof HTMLElement &&
+                                                (target.isContentEditable ||
+                                                        target.closest(
+                                                                "input, textarea, [contenteditable='true']",
+                                                        ));
+                                        if (isEditable) {
+                                                return;
+                                        }
+
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        this.parentToolbox_?.setSelectedItem?.(this);
+                                        this.searchField.value = event.key;
+                                        this.searchField.focus();
+                                        this.matchBlocks?.();
+                                });
+                        }
+                }
         };
 
         const searchToolboxItem = workspace
