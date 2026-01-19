@@ -1839,6 +1839,9 @@ export function overrideSearchPlugin(workspace) {
         }
 
         SearchCategory.prototype.showMatchingBlocks = function (matches) {
+                if (!isSearchCategorySelected()) {
+                        return;
+                }
                 const flyout = this.workspace_.getToolbox().getFlyout();
                 if (!flyout) {
                         console.error("Flyout not found!");
