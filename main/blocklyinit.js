@@ -503,6 +503,41 @@ export function createBlocklyWorkspace() {
                 const root = document.getElementById("blocklyDiv");
                 if (!root) return;
 
+                function isEditableTarget(target) {
+                        if (!(target instanceof HTMLElement)) return false;
+                        const tag = target.tagName.toLowerCase();
+                        return (
+                                tag === "input" ||
+                                tag === "textarea" ||
+                                target.isContentEditable
+                        );
+                }
+
+                function preventToolboxSearchInput(event) {
+                        if (isEditableTarget(event.target)) return;
+                        if (typeof event.key !== "string") return;
+                        if (event.key.toLowerCase() !== "t") return;
+
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        const search = root.querySelector(
+                                '.blocklyToolbox input[type="search"]',
+                        );
+                        if (!search) return;
+
+                        if (document.activeElement === search) {
+                                search.blur();
+                        }
+                        if (search.value) {
+                                search.value = "";
+                        }
+                }
+
+                document.addEventListener("keydown", preventToolboxSearchInput, {
+                        capture: true,
+                });
+
                 // 2) Helper to find visible search flyout (the one with actual results)
                 function getVisibleFlyout() {
                         const flyouts = root.querySelectorAll(
