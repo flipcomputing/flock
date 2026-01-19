@@ -1643,12 +1643,6 @@ export function overrideSearchPlugin(workspace) {
                                         const toolbox =
                                                 this.workspace_?.getToolbox?.();
                                         const toolboxDiv = toolbox?.getDiv?.();
-                                        if (toolboxDiv) {
-                                                if (toolboxDiv.tabIndex < 0) {
-                                                        toolboxDiv.tabIndex = 0;
-                                                }
-                                                toolboxDiv.focus();
-                                        }
                                         if (toolbox) {
                                                 if (event.key === "ArrowDown") {
                                                         toolbox.selectNext?.();
@@ -1657,7 +1651,98 @@ export function overrideSearchPlugin(workspace) {
                                                 }
                                                 toolbox.refreshSelection?.();
                                         }
-                                        toolboxDiv?.focus?.();
+                                        const selected =
+                                                toolbox?.getSelectedItem?.();
+                                        const resolveFocusElement = (item) =>
+                                                item?.getDiv?.() ||
+                                                item?.htmlDiv_ ||
+                                                item?.svgGroup_ ||
+                                                item?.rowDiv_ ||
+                                                item?.element_ ||
+                                                null;
+                                        const focusElement =
+                                                resolveFocusElement(selected);
+                                        if (toolboxDiv) {
+                                                const focusAttribute =
+                                                        "data-flock-toolbox-row";
+                                                const previousFocusTargets =
+                                                        toolboxDiv.querySelectorAll?.(
+                                                                `[${focusAttribute}]`,
+                                                        ) || [];
+                                                previousFocusTargets.forEach(
+                                                        (element) => {
+                                                                if (
+                                                                        element ===
+                                                                        focusElement
+                                                                ) {
+                                                                        return;
+                                                                }
+                                                                if (
+                                                                        element instanceof
+                                                                        HTMLElement
+                                                                ) {
+                                                                        element.tabIndex =
+                                                                                -1;
+                                                                } else {
+                                                                        element.setAttribute?.(
+                                                                                "tabindex",
+                                                                                "-1",
+                                                                        );
+                                                                }
+                                                                element.removeAttribute?.(
+                                                                        focusAttribute,
+                                                                );
+                                                        },
+                                                );
+                                                if (
+                                                        focusElement &&
+                                                        focusElement.setAttribute
+                                                ) {
+                                                        focusElement.setAttribute(
+                                                                focusAttribute,
+                                                                "true",
+                                                        );
+                                                }
+                                        }
+                                        if (focusElement) {
+                                                if (
+                                                        focusElement instanceof
+                                                        HTMLElement
+                                                ) {
+                                                        if (
+                                                                focusElement.tabIndex <
+                                                                0
+                                                        ) {
+                                                                focusElement.tabIndex =
+                                                                        0;
+                                                        }
+                                                } else if (
+                                                        focusElement instanceof
+                                                        SVGElement
+                                                ) {
+                                                        const currentTabIndex =
+                                                                focusElement.getAttribute?.(
+                                                                        "tabindex",
+                                                                );
+                                                        if (
+                                                                currentTabIndex ===
+                                                                null ||
+                                                                currentTabIndex ===
+                                                                        "-1"
+                                                        ) {
+                                                                focusElement.setAttribute?.(
+                                                                        "tabindex",
+                                                                        "0",
+                                                                );
+                                                        }
+                                                }
+                                                focusElement.focus?.();
+                                        } else if (toolboxDiv) {
+                                                if (toolboxDiv.tabIndex < 0) {
+                                                        toolboxDiv.tabIndex = 0;
+                                                }
+                                                toolboxDiv.focus();
+                                        }
                                         Blockly.getFocusManager?.()?.focusTree?.(
                                                 toolbox || null,
                                         );
