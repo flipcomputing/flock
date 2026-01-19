@@ -516,82 +516,6 @@ export function createBlocklyWorkspace() {
                         );
                 }
 
-                function focusToolboxCategories(direction) {
-                        const toolbox = workspace?.getToolbox?.();
-                        const toolboxDiv = toolbox?.getDiv?.();
-                        if (toolboxDiv) {
-                                if (toolboxDiv.tabIndex < 0) {
-                                        toolboxDiv.tabIndex = 0;
-                                }
-                                toolboxDiv.focus();
-                        }
-                        if (toolbox) {
-                                if (direction === "first") {
-                                        const items =
-                                                toolbox.getToolboxItems?.() ||
-                                                [];
-                                        const firstItem =
-                                                items.find((item) => {
-                                                        const def =
-                                                                item.getToolboxItemDef?.() ||
-                                                                item.toolboxItemDef;
-                                                        return (
-                                                                def?.kind !==
-                                                                "search"
-                                                        );
-                                                }) || items[0];
-                                        if (firstItem) {
-                                                toolbox.setSelectedItem?.(
-                                                        firstItem,
-                                                );
-                                                Blockly.getFocusManager?.()?.focusNode?.(
-                                                        firstItem,
-                                                );
-                                                firstItem
-                                                        .getFocusableElement?.()
-                                                        ?.focus?.();
-                                        }
-                                } else if (direction === "next") {
-                                        toolbox.selectNext?.();
-                                } else if (direction === "previous") {
-                                        toolbox.selectPrevious?.();
-                                }
-                                toolbox.refreshSelection?.();
-                        }
-                        toolboxDiv?.focus?.();
-                        Blockly.getFocusManager?.()?.focusTree?.(toolbox || null);
-                }
-
-                function handleSearchArrowDown(event) {
-                        const target = event.target;
-                        if (
-                                !(target instanceof HTMLElement) ||
-                                !target.matches(
-                                        [
-                                                '.blocklyToolbox input[type="search"]',
-                                                ".blocklySearchInput",
-                                                '.blocklyToolbox input.blocklySearchInput',
-                                        ].join(", "),
-                                )
-                        ) {
-                                return;
-                        }
-                        if (event.key !== "ArrowDown") {
-                                return;
-                        }
-                        event.preventDefault();
-                        event.stopPropagation();
-                        if (target instanceof HTMLInputElement) {
-                                target.blur();
-                                target.setSelectionRange?.(0, 0);
-                        } else {
-                                target.blur();
-                        }
-                        setTimeout(() => {
-                                focusToolboxCategories("first");
-                        }, 0);
-                }
-
                 // 3) Make the flyout focusable
                 function ensureFlyoutFocusable() {
                         const flyout = getVisibleFlyout();
@@ -627,29 +551,22 @@ export function createBlocklyWorkspace() {
                         if (search.tabIndex < 0) search.tabIndex = 0;
 
                         search.addEventListener("keydown", (e) => {
-                                if (e.key === "Tab" && !e.shiftKey) {
-                                        const target = ensureFlyoutFocusable();
-                                        if (!target) return;
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        try {
-                                                target.focus({
-                                                        preventScroll: true,
-                                                });
-                                        } catch {}
+                                if (e.key !== "Tab" || e.shiftKey) {
+                                        return;
                                 }
+                                const target = ensureFlyoutFocusable();
+                                if (!target) return;
+                                e.preventDefault();
+                                e.stopPropagation();
+                                try {
+                                        target.focus({
+                                                preventScroll: true,
+                                        });
+                                } catch {}
                         });
                 }
 
                 // 5) Keep it alive while Blockly updates dynamically
-                if (root.dataset.searchKeyHandlerAttached !== "true") {
-                        root.dataset.searchKeyHandlerAttached = "true";
-                        root.addEventListener(
-                                "keydown",
-                                handleSearchArrowDown,
-                                true,
-                        );
-                }
                 const observer = new MutationObserver(() => {
                         wireSearchInput();
                         ensureFlyoutFocusable();
