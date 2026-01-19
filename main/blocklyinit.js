@@ -1611,6 +1611,25 @@ export function overrideSearchPlugin(workspace) {
                 }
 
                 workspace.flockSearchCategory = this;
+
+                if (!this.flockSearchKeydownAttached && this.searchField) {
+                        this.flockSearchKeydownAttached = true;
+                        this.searchField.addEventListener("keydown", (event) => {
+                                if (
+                                        event.key !== "ArrowDown" &&
+                                        event.key !== "ArrowUp"
+                                ) {
+                                        return;
+                                }
+
+                                this.searchField?.blur();
+                                setTimeout(() => {
+                                        this.workspace_
+                                                ?.getToolbox?.()
+                                                ?.refreshSelection?.();
+                                }, 0);
+                        });
+                }
         };
 
         const searchToolboxItem = workspace
