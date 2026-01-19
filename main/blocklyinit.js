@@ -1638,6 +1638,7 @@ export function overrideSearchPlugin(workspace) {
                                 event.preventDefault();
                                 event.stopPropagation();
                                 this.searchField?.blur();
+                                this.searchField?.setSelectionRange?.(0, 0);
                                 setTimeout(() => {
                                         this.workspace_
                                                 ?.getToolbox?.()
