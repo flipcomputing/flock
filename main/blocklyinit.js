@@ -612,6 +612,7 @@ export function createBlocklyWorkspace() {
                         },
                 };
 
+                shortcutRegistry.removeAllKeyMappings?.("toolbox");
                 shortcutRegistry.register(wrappedShortcut, true);
         })();
 
