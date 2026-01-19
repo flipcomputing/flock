@@ -542,6 +542,10 @@ export function createBlocklyWorkspace() {
                                 '.blocklyToolbox input[type="search"]',
                         );
                         if (!search) return;
+                        if (search.dataset.searchFlyoutWired === "true") {
+                                return;
+                        }
+                        search.dataset.searchFlyoutWired = "true";
 
                         // Blockly sets tabindex="-1" by default — fix that
                         if (search.tabIndex < 0) search.tabIndex = 0;
@@ -565,9 +569,10 @@ export function createBlocklyWorkspace() {
                 }
 
                 // 5) Keep it alive while Blockly updates dynamically
-                const observer = new MutationObserver(() =>
-                        ensureFlyoutFocusable(),
-                );
+                const observer = new MutationObserver(() => {
+                        wireSearchInput();
+                        ensureFlyoutFocusable();
+                });
                 observer.observe(root, { childList: true, subtree: true });
 
                 // Initial setup
