@@ -575,7 +575,11 @@ export function createBlocklyWorkspace() {
                                 if (e.key === "ArrowDown") {
                                         e.preventDefault();
                                         e.stopPropagation();
-                                        focusToolboxCategories("next");
+                                        search.blur();
+                                        search.setSelectionRange?.(0, 0);
+                                        setTimeout(() => {
+                                                focusToolboxCategories("next");
+                                        }, 0);
                                         return;
                                 }
                                 if (e.key === "Tab" && !e.shiftKey) {
