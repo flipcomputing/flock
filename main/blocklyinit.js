@@ -1526,6 +1526,29 @@ export function overrideSearchPlugin(workspace) {
                         const newIndex = buildSearchIndex();
                         workspace.flockSearchIndexedBlocks = newIndex;
                         blockSearcher.indexedBlocks_ = newIndex;
+
+                        const searchCategory = workspace.flockSearchCategory;
+                        if (searchCategory) {
+                                const showAllBlocksAsync = () => {
+                                        if (
+                                                searchCategory.searchField?.value
+                                                        .toLowerCase()
+                                                        .trim()
+                                        ) {
+                                                return;
+                                        }
+
+                                        searchCategory.showMatchingBlocks(
+                                                newIndex,
+                                        );
+                                };
+
+                                if (typeof requestIdleCallback === "function") {
+                                        requestIdleCallback(showAllBlocksAsync);
+                                } else {
+                                        setTimeout(showAllBlocksAsync, 0);
+                                }
+                        }
                 };
                 this.blockSearcher.indexBlocks = rebuildSearchIndex;
                 blockSearcher.indexedBlocks_ =
