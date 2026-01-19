@@ -1642,7 +1642,13 @@ export function overrideSearchPlugin(workspace) {
                                 setTimeout(() => {
                                         const toolbox =
                                                 this.workspace_?.getToolbox?.();
-                                        toolbox?.getDiv?.()?.focus?.();
+                                        const toolboxDiv = toolbox?.getDiv?.();
+                                        if (toolboxDiv) {
+                                                if (toolboxDiv.tabIndex < 0) {
+                                                        toolboxDiv.tabIndex = 0;
+                                                }
+                                                toolboxDiv.focus();
+                                        }
                                         if (toolbox) {
                                                 if (event.key === "ArrowDown") {
                                                         toolbox.selectNext?.();
@@ -1651,7 +1657,10 @@ export function overrideSearchPlugin(workspace) {
                                                 }
                                                 toolbox.refreshSelection?.();
                                         }
-                                        toolbox?.getDiv?.()?.focus?.();
+                                        toolboxDiv?.focus?.();
+                                        Blockly.getFocusManager?.()?.focusTree?.(
+                                                toolbox || null,
+                                        );
                                 }, 0);
                         });
                 }
