@@ -1576,8 +1576,84 @@ export function overrideSearchPlugin(workspace) {
                         this.searchField?.value.toLowerCase().trim() || "";
 
                 if (!query) {
-                        this.showMatchingBlocks([]);
+                        const showAllBlocksAsync = () => {
+                                if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
+                                        return;
+                                }
+
+                                if (this.searchField?.value.toLowerCase().trim()) {
+                                        return;
+                                }
+
+                                this.showMatchingBlocks(
+                                        this.blockSearcher.indexedBlocks_,
+                                );
+                        };
+
+                        const requestType =
+                                this.flockSearchAllBlocksRequest?.type;
+                        const requestId =
+                                this.flockSearchAllBlocksRequest?.id;
+                        if (
+                                requestType === "idle" &&
+                                typeof cancelIdleCallback === "function" &&
+                                typeof requestId === "number"
+                        ) {
+                                cancelIdleCallback(requestId);
+                        } else if (
+                                requestType === "timeout" &&
+                                typeof requestId === "number"
+                        ) {
+                                clearTimeout(requestId);
+                        }
+
+                        if (
+                                !Array.isArray(this.blockSearcher.indexedBlocks_) &&
+                                this.blockSearcher.indexBlocks
+                        ) {
+                                if (typeof requestIdleCallback === "function") {
+                                        const idleId = requestIdleCallback(() => {
+                                                this.blockSearcher.indexBlocks();
+                                                showAllBlocksAsync();
+                                        });
+                                        this.flockSearchAllBlocksRequest = {
+                                                type: "idle",
+                                                id: idleId,
+                                        };
+                                } else {
+                                        const timeoutId = setTimeout(() => {
+                                                this.blockSearcher.indexBlocks();
+                                                showAllBlocksAsync();
+                                        }, 0);
+                                        this.flockSearchAllBlocksRequest = {
+                                                type: "timeout",
+                                                id: timeoutId,
+                                        };
+                                }
+                        } else if (typeof requestIdleCallback === "function") {
+                                const idleId = requestIdleCallback(showAllBlocksAsync);
+                                this.flockSearchAllBlocksRequest = {
+                                        type: "idle",
+                                        id: idleId,
+                                };
+                        } else {
+                                const timeoutId = setTimeout(showAllBlocksAsync, 0);
+                                this.flockSearchAllBlocksRequest = {
+                                        type: "timeout",
+                                        id: timeoutId,
+                                };
+                        }
                         return;
+                }
+
+                if (this.flockSearchAllBlocksRequest?.type === "idle") {
+                        if (typeof cancelIdleCallback === "function") {
+                                cancelIdleCallback(
+                                        this.flockSearchAllBlocksRequest.id,
+                                );
+                        }
+                } else if (this.flockSearchAllBlocksRequest?.type === "timeout") {
+                        clearTimeout(this.flockSearchAllBlocksRequest.id);
                 }
 
                 if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
