@@ -1642,6 +1642,7 @@ export function overrideSearchPlugin(workspace) {
                                 setTimeout(() => {
                                         const toolbox =
                                                 this.workspace_?.getToolbox?.();
+                                        toolbox?.getDiv?.()?.focus?.();
                                         if (toolbox) {
                                                 if (event.key === "ArrowDown") {
                                                         toolbox.selectNext?.();
