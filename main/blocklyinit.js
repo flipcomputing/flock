@@ -516,6 +516,27 @@ export function createBlocklyWorkspace() {
                         );
                 }
 
+                function focusToolboxCategories(direction) {
+                        const toolbox = workspace?.getToolbox?.();
+                        const toolboxDiv = toolbox?.getDiv?.();
+                        if (toolboxDiv) {
+                                if (toolboxDiv.tabIndex < 0) {
+                                        toolboxDiv.tabIndex = 0;
+                                }
+                                toolboxDiv.focus();
+                        }
+                        if (toolbox) {
+                                if (direction === "next") {
+                                        toolbox.selectNext?.();
+                                } else if (direction === "previous") {
+                                        toolbox.selectPrevious?.();
+                                }
+                                toolbox.refreshSelection?.();
+                        }
+                        toolboxDiv?.focus?.();
+                        Blockly.getFocusManager?.()?.focusTree?.(toolbox || null);
+                }
+
                 // 3) Make the flyout focusable
                 function ensureFlyoutFocusable() {
                         const flyout = getVisibleFlyout();
@@ -551,10 +572,13 @@ export function createBlocklyWorkspace() {
                         if (search.tabIndex < 0) search.tabIndex = 0;
 
                         search.addEventListener("keydown", (e) => {
-                                if (
-                                        (e.key === "Tab" && !e.shiftKey) ||
-                                        e.key === "ArrowDown"
-                                ) {
+                                if (e.key === "ArrowDown") {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        focusToolboxCategories("next");
+                                        return;
+                                }
+                                if (e.key === "Tab" && !e.shiftKey) {
                                         const target = ensureFlyoutFocusable();
                                         if (!target) return;
                                         e.preventDefault();
