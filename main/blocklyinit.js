@@ -518,19 +518,24 @@ export function createBlocklyWorkspace() {
                         if (typeof event.key !== "string") return;
                         if (event.key.toLowerCase() !== "t") return;
 
-                        event.preventDefault();
-                        event.stopPropagation();
+                        const clearSearch = () => {
+                                const search = root.querySelector(
+                                        '.blocklyToolbox input[type="search"]',
+                                );
+                                if (!search) return;
 
-                        const search = root.querySelector(
-                                '.blocklyToolbox input[type="search"]',
-                        );
-                        if (!search) return;
+                                if (document.activeElement === search) {
+                                        search.blur();
+                                }
+                                if (search.value) {
+                                        search.value = "";
+                                }
+                        };
 
-                        if (document.activeElement === search) {
-                                search.blur();
-                        }
-                        if (search.value) {
-                                search.value = "";
+                        if (typeof requestAnimationFrame === "function") {
+                                requestAnimationFrame(clearSearch);
+                        } else {
+                                setTimeout(clearSearch, 0);
                         }
                 }
 
