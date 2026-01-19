@@ -1290,6 +1290,11 @@ export function overrideSearchPlugin(workspace) {
         }
 
         function buildSearchIndex() {
+                const startTime =
+                        typeof performance !== "undefined" &&
+                        typeof performance.now === "function"
+                                ? performance.now()
+                                : Date.now();
                 if (!Object.keys(nextVariableIndexes).length) {
                         initializeVariableIndexes();
                 }
@@ -1495,17 +1500,71 @@ export function overrideSearchPlugin(workspace) {
                         blockCreationWorkspace.dispose();
                 }
 
+                const endTime =
+                        typeof performance !== "undefined" &&
+                        typeof performance.now === "function"
+                                ? performance.now()
+                                : Date.now();
                 return indexedBlocks;
         }
 
         SearchCategory.prototype.initBlockSearcher = function () {
                 const blockSearcher = this.blockSearcher;
                 const rebuildSearchIndex = () => {
-                        blockSearcher.indexedBlocks_ = buildSearchIndex();
+                        const cachedIndex = workspace.flockSearchIndexedBlocks;
+                        if (Array.isArray(cachedIndex)) {
+                                blockSearcher.indexedBlocks_ = cachedIndex;
+                                return;
+                        }
+
+                        const newIndex = buildSearchIndex();
+                        workspace.flockSearchIndexedBlocks = newIndex;
+                        blockSearcher.indexedBlocks_ = newIndex;
+
+                        const searchCategory = workspace.flockSearchCategory;
+                        if (searchCategory) {
+                                const showAllBlocksAsync = () => {
+                                        if (
+                                                searchCategory.searchField?.value
+                                                        .toLowerCase()
+                                                        .trim()
+                                        ) {
+                                                return;
+                                        }
+
+                                        searchCategory.showMatchingBlocks(
+                                                newIndex,
+                                        );
+                                };
+
+                                if (typeof requestIdleCallback === "function") {
+                                        requestIdleCallback(showAllBlocksAsync);
+                                } else {
+                                        setTimeout(showAllBlocksAsync, 0);
+                                }
+                        }
                 };
                 this.blockSearcher.indexBlocks = rebuildSearchIndex;
-                blockSearcher.indexedBlocks_ = [];
-                rebuildSearchIndex();
+                blockSearcher.indexedBlocks_ =
+                        workspace.flockSearchIndexedBlocks || null;
+
+                if (!workspace.flockSearchIndexScheduled) {
+                        workspace.flockSearchIndexScheduled = true;
+                        const scheduleBuild = () => {
+                                workspace.flockSearchIndexScheduled = false;
+                                if (!workspace.flockSearchIndexedBlocks) {
+                                        rebuildSearchIndex();
+                                }
+                        };
+
+                        if (typeof requestIdleCallback === "function") {
+                                requestIdleCallback(scheduleBuild, {
+                                        timeout: 1000,
+                                });
+                        } else {
+                                setTimeout(scheduleBuild, 0);
+                        }
+                }
 
                 workspace.flockSearchCategory = this;
         };
@@ -1527,7 +1586,90 @@ export function overrideSearchPlugin(workspace) {
         SearchCategory.prototype.matchBlocks = function () {
                 if (!this.hasInputStarted) {
                         this.hasInputStarted = true;
+                }
+
+                const query =
+                        this.searchField?.value.toLowerCase().trim() || "";
+
+                if (!query) {
+                        const showAllBlocksAsync = () => {
+                                if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
+                                        return;
+                                }
+
+                                if (this.searchField?.value.toLowerCase().trim()) {
+                                        return;
+                                }
+
+                                this.showMatchingBlocks(
+                                        this.blockSearcher.indexedBlocks_,
+                                );
+                        };
+
+                        const requestType =
+                                this.flockSearchAllBlocksRequest?.type;
+                        const requestId =
+                                this.flockSearchAllBlocksRequest?.id;
+                        if (
+                                requestType === "idle" &&
+                                typeof cancelIdleCallback === "function" &&
+                                typeof requestId === "number"
+                        ) {
+                                cancelIdleCallback(requestId);
+                        } else if (
+                                requestType === "timeout" &&
+                                typeof requestId === "number"
+                        ) {
+                                clearTimeout(requestId);
+                        }
+
+                        if (
+                                !Array.isArray(this.blockSearcher.indexedBlocks_) &&
+                                this.blockSearcher.indexBlocks
+                        ) {
+                                if (typeof requestIdleCallback === "function") {
+                                        const idleId = requestIdleCallback(() => {
+                                                this.blockSearcher.indexBlocks();
+                                                showAllBlocksAsync();
+                                        });
+                                        this.flockSearchAllBlocksRequest = {
+                                                type: "idle",
+                                                id: idleId,
+                                        };
+                                } else {
+                                        const timeoutId = setTimeout(() => {
+                                                this.blockSearcher.indexBlocks();
+                                                showAllBlocksAsync();
+                                        }, 0);
+                                        this.flockSearchAllBlocksRequest = {
+                                                type: "timeout",
+                                                id: timeoutId,
+                                        };
+                                }
+                        } else if (typeof requestIdleCallback === "function") {
+                                const idleId = requestIdleCallback(showAllBlocksAsync);
+                                this.flockSearchAllBlocksRequest = {
+                                        type: "idle",
+                                        id: idleId,
+                                };
+                        } else {
+                                const timeoutId = setTimeout(showAllBlocksAsync, 0);
+                                this.flockSearchAllBlocksRequest = {
+                                        type: "timeout",
+                                        id: timeoutId,
+                                };
+                        }
                         return;
+                }
+
+                if (this.flockSearchAllBlocksRequest?.type === "idle") {
+                        if (typeof cancelIdleCallback === "function") {
+                                cancelIdleCallback(
+                                        this.flockSearchAllBlocksRequest.id,
+                                );
+                        }
+                } else if (this.flockSearchAllBlocksRequest?.type === "timeout") {
+                        clearTimeout(this.flockSearchAllBlocksRequest.id);
                 }
 
                 if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
@@ -1535,9 +1677,6 @@ export function overrideSearchPlugin(workspace) {
                                 this.blockSearcher.indexBlocks();
                         }
                 }
-
-                const query =
-                        this.searchField?.value.toLowerCase().trim() || "";
 
                 const indexedBlocks = Array.isArray(
                         this.blockSearcher.indexedBlocks_,
