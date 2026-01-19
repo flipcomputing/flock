@@ -1651,12 +1651,7 @@ export function overrideSearchPlugin(workspace) {
                                                 }
                                                 toolbox.refreshSelection?.();
                                         }
-                                        const selectedItem =
-                                                toolbox?.getSelectedItem?.();
-                                        const focusTarget =
-                                                selectedItem?.getFocusableElement?.() ||
-                                                toolbox?.getDiv?.();
-                                        focusTarget?.focus?.();
+                                        toolbox?.getDiv?.()?.focus?.();
                                 }, 0);
                         });
                 }
