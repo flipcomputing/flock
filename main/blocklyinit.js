@@ -516,6 +516,24 @@ export function createBlocklyWorkspace() {
                         );
                 }
 
+                function focusFirstToolboxCategory() {
+                        const toolbox = workspace?.getToolbox?.();
+                        if (!toolbox) return;
+                        const items = toolbox.getToolboxItems?.() || [];
+                        const firstItem =
+                                items.find((item) => {
+                                        const def =
+                                                item.getToolboxItemDef?.() ||
+                                                item.toolboxItemDef;
+                                        return def?.kind !== "search";
+                                }) || items[0];
+                        if (!firstItem) return;
+                        toolbox.setSelectedItem?.(firstItem);
+                        toolbox.refreshSelection?.();
+                        Blockly.getFocusManager?.()?.focusNode?.(firstItem);
+                        firstItem.getFocusableElement?.()?.focus?.();
+                }
+
                 // 3) Make the flyout focusable
                 function ensureFlyoutFocusable() {
                         const flyout = getVisibleFlyout();
@@ -551,6 +569,24 @@ export function createBlocklyWorkspace() {
                         if (search.tabIndex < 0) search.tabIndex = 0;
 
                         search.addEventListener("keydown", (e) => {
+                                if (e.key === "ArrowDown") {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (search.value !== "") {
+                                                search.value = "";
+                                                search.dispatchEvent(
+                                                        new Event("input", {
+                                                                bubbles: true,
+                                                        }),
+                                                );
+                                        }
+                                        search.blur();
+                                        search.setSelectionRange?.(0, 0);
+                                        setTimeout(() => {
+                                                focusFirstToolboxCategory();
+                                        }, 0);
+                                        return;
+                                }
                                 if (e.key !== "Tab" || e.shiftKey) {
                                         return;
                                 }
