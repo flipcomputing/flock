@@ -1316,8 +1316,8 @@ export function overrideSearchPlugin(workspace) {
                         (category && selectedItem === category);
 
                 return (
-                        isSelectedSearch &&
-                        category?.searchField === document.activeElement
+                        category?.searchField === document.activeElement &&
+                        isSelectedSearch
                 );
         };
 
@@ -1652,7 +1652,17 @@ export function overrideSearchPlugin(workspace) {
                                                 selectedItem?.getFocusableElement?.() ||
                                                 toolbox?.getDiv?.();
                                         focusTarget?.focus?.();
+                                        Blockly.getFocusManager?.()?.focusTree?.(
+                                                toolbox || null,
+                                        );
                                 }, 0);
+                        });
+                }
+
+                if (!this.flockSearchFocusAttached && this.searchField) {
+                        this.flockSearchFocusAttached = true;
+                        this.searchField.addEventListener("focus", () => {
+                                this.parentToolbox_?.setSelectedItem?.(this);
                         });
                 }
 
