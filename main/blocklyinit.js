@@ -577,6 +577,45 @@ export function createBlocklyWorkspace() {
 
         const keyboardNav = new KeyboardNavigation(workspace);
 
+        (function preventToolboxShortcutTextEntry() {
+                const shortcutRegistry = Blockly.ShortcutRegistry.registry;
+                const registry = shortcutRegistry.getRegistry?.();
+                const toolboxShortcut = registry?.toolbox;
+
+                if (!toolboxShortcut) {
+                        return;
+                }
+
+                const wrappedShortcut = {
+                        ...toolboxShortcut,
+                        callback: (ws, event, shortcut, scope) => {
+                                const keyboardEvent =
+                                        event instanceof KeyboardEvent
+                                                ? event
+                                                : null;
+                                if (
+                                        keyboardEvent &&
+                                        (keyboardEvent.key || "")
+                                                .toLowerCase() === "t"
+                                ) {
+                                        keyboardEvent.preventDefault();
+                                }
+
+                                return toolboxShortcut.callback
+                                        ? toolboxShortcut.callback(
+                                                ws,
+                                                event,
+                                                shortcut,
+                                                scope,
+                                        )
+                                        : false;
+                        },
+                };
+
+                shortcutRegistry.removeAllKeyMappings?.("toolbox");
+                shortcutRegistry.register(wrappedShortcut, true);
+        })();
+
         // Keep scrolling; remove only the obvious flyout-width bump.
         (function simpleNoBumpTranslate() {
                 const ws = Blockly.getMainWorkspace();
@@ -1266,6 +1305,21 @@ export function overrideSearchPlugin(workspace) {
         }
 
         const toolboxBlocks = getBlocksFromToolbox(workspace);
+        const isSearchCategorySelected = (category = null) => {
+                const toolbox = workspace.getToolbox?.();
+                const selectedItem = toolbox?.getSelectedItem?.();
+                const selectedDef =
+                        selectedItem?.getToolboxItemDef?.() ||
+                        selectedItem?.toolboxItemDef;
+                const isSelectedSearch =
+                        selectedDef?.kind === "search" ||
+                        (category && selectedItem === category);
+
+                return (
+                        category?.searchField === document.activeElement &&
+                        isSelectedSearch
+                );
+        };
 
         function getBlockMessage(blockType) {
                 const definition = Blockly.Blocks?.[blockType];
@@ -1524,6 +1578,9 @@ export function overrideSearchPlugin(workspace) {
                         const searchCategory = workspace.flockSearchCategory;
                         if (searchCategory) {
                                 const showAllBlocksAsync = () => {
+                                        if (!isSearchCategorySelected(searchCategory)) {
+                                                return;
+                                        }
                                         if (
                                                 searchCategory.searchField?.value
                                                         .toLowerCase()
@@ -1567,6 +1624,92 @@ export function overrideSearchPlugin(workspace) {
                 }
 
                 workspace.flockSearchCategory = this;
+
+                if (!this.flockSearchKeydownAttached && this.searchField) {
+                        this.flockSearchKeydownAttached = true;
+                        this.searchField.addEventListener("keydown", (event) => {
+                                if (
+                                        event.key !== "ArrowDown" &&
+                                        event.key !== "ArrowUp"
+                                ) {
+                                        return;
+                                }
+
+                                event.preventDefault();
+                                this.searchField.value = "";
+                                this.searchField?.blur();
+                                this.searchField?.setSelectionRange?.(0, 0);
+                                setTimeout(() => {
+                                        const toolbox =
+                                                this.workspace_?.getToolbox?.();
+                                        const toolboxDiv = toolbox?.getDiv?.();
+                                        if (toolboxDiv) {
+                                                if (toolboxDiv.tabIndex < 0) {
+                                                        toolboxDiv.tabIndex = 0;
+                                                }
+                                                toolboxDiv.focus();
+                                        }
+                                        if (toolbox) {
+                                                if (event.key === "ArrowDown") {
+                                                        toolbox.selectNext?.();
+                                                } else {
+                                                        toolbox.selectPrevious?.();
+                                                }
+                                                toolbox.refreshSelection?.();
+                                        }
+                                        toolboxDiv?.focus?.();
+                                        Blockly.getFocusManager?.()?.focusTree?.(
+                                                toolbox || null,
+                                        );
+                                }, 0);
+                        });
+                }
+
+                if (!this.flockSearchFocusAttached && this.searchField) {
+                        this.flockSearchFocusAttached = true;
+                        this.searchField.addEventListener("focus", () => {
+                                this.parentToolbox_?.setSelectedItem?.(this);
+                        });
+                }
+
+                if (!this.flockSearchToolboxKeydownAttached && this.searchField) {
+                        this.flockSearchToolboxKeydownAttached = true;
+                        const toolboxDiv =
+                                this.workspace_
+                                        ?.getToolbox?.()
+                                        ?.getDiv?.() ||
+                                document.querySelector(".blocklyToolboxDiv");
+                        if (toolboxDiv) {
+                                toolboxDiv.addEventListener("keydown", (event) => {
+                                        if (
+                                                event.ctrlKey ||
+                                                event.metaKey ||
+                                                event.altKey ||
+                                                event.key.length !== 1
+                                        ) {
+                                                return;
+                                        }
+
+                                        const target = event.target;
+                                        const isEditable =
+                                                target instanceof HTMLElement &&
+                                                (target.isContentEditable ||
+                                                        target.closest(
+                                                                "input, textarea, [contenteditable='true']",
+                                                        ));
+                                        if (isEditable) {
+                                                return;
+                                        }
+
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        this.parentToolbox_?.setSelectedItem?.(this);
+                                        this.searchField.value = event.key;
+                                        this.searchField.focus();
+                                        this.matchBlocks?.();
+                                });
+                        }
+                }
         };
 
         const searchToolboxItem = workspace
@@ -1593,6 +1736,9 @@ export function overrideSearchPlugin(workspace) {
 
                 if (!query) {
                         const showAllBlocksAsync = () => {
+                                if (!isSearchCategorySelected(this)) {
+                                        return;
+                                }
                                 if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
                                         return;
                                 }
@@ -1698,6 +1844,15 @@ export function overrideSearchPlugin(workspace) {
                 this.showMatchingBlocks(matches);
         };
 
+        const originalOnNodeBlur = SearchCategory.prototype.onNodeBlur;
+        SearchCategory.prototype.onNodeBlur = function () {
+                if (originalOnNodeBlur) {
+                        originalOnNodeBlur.call(this);
+                }
+
+                this.workspace_?.getToolbox?.()?.refreshSelection?.();
+        };
+
         function createXmlFromJson(
                 blockJson,
                 isShadow = false,
@@ -1777,6 +1932,9 @@ export function overrideSearchPlugin(workspace) {
         }
 
         SearchCategory.prototype.showMatchingBlocks = function (matches) {
+                if (!isSearchCategorySelected(this)) {
+                        return;
+                }
                 const flyout = this.workspace_.getToolbox().getFlyout();
                 if (!flyout) {
                         console.error("Flyout not found!");
