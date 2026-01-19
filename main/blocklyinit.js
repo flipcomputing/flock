@@ -1305,6 +1305,14 @@ export function overrideSearchPlugin(workspace) {
         }
 
         const toolboxBlocks = getBlocksFromToolbox(workspace);
+        const isSearchCategorySelected = () => {
+                const toolbox = workspace.getToolbox?.();
+                const selectedItem = toolbox?.getSelectedItem?.();
+                const selectedDef =
+                        selectedItem?.getToolboxItemDef?.() ||
+                        selectedItem?.toolboxItemDef;
+                return selectedDef?.kind === "search";
+        };
 
         function getBlockMessage(blockType) {
                 const definition = Blockly.Blocks?.[blockType];
@@ -1563,6 +1571,9 @@ export function overrideSearchPlugin(workspace) {
                         const searchCategory = workspace.flockSearchCategory;
                         if (searchCategory) {
                                 const showAllBlocksAsync = () => {
+                                        if (!isSearchCategorySelected()) {
+                                                return;
+                                        }
                                         if (
                                                 searchCategory.searchField?.value
                                                         .toLowerCase()
@@ -1632,6 +1643,9 @@ export function overrideSearchPlugin(workspace) {
 
                 if (!query) {
                         const showAllBlocksAsync = () => {
+                                if (!isSearchCategorySelected()) {
+                                        return;
+                                }
                                 if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
                                         return;
                                 }
