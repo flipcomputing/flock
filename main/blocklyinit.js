@@ -1305,23 +1305,8 @@ export function overrideSearchPlugin(workspace) {
         }
 
         const toolboxBlocks = getBlocksFromToolbox(workspace);
-        const isSearchCategorySelected = (category = null) => {
-                const toolbox = workspace.getToolbox?.();
-                const selectedItem = toolbox?.getSelectedItem?.();
-                if (category && selectedItem === category) {
-                        return true;
-                }
-                const selectedDef =
-                        selectedItem?.getToolboxItemDef?.() ||
-                        selectedItem?.toolboxItemDef;
-                if (selectedDef?.kind === "search") {
-                        return true;
-                }
-                if (category?.searchField === document.activeElement) {
-                        return true;
-                }
-                return false;
-        };
+        const isSearchCategorySelected = (category = null) =>
+                category?.searchField === document.activeElement;
 
         function getBlockMessage(blockType) {
                 const definition = Blockly.Blocks?.[blockType];
