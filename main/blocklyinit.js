@@ -1483,24 +1483,7 @@ export function overrideSearchPlugin(workspace) {
                                                 },
                                         );
                                 }
-
-                                const runTerms = Array.from(searchTerms).filter(
-                                        (term) =>
-                                                term
-                                                        .toLowerCase()
-                                                        .includes("run"),
-                                );
-                                if (runTerms.length) {
-                                        console.log(
-                                                "[toolbox-search] run match source",
-                                                {
-                                                        type,
-                                                        runTerms,
-                                                        fields: runDebugFields,
-                                                },
-                                        );
-                                }
-
+                        
                                 indexedBlocks.push({
                                         ...blockInfo,
                                         text: Array.from(searchTerms).join(
