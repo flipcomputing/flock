@@ -516,24 +516,6 @@ export function createBlocklyWorkspace() {
                         );
                 }
 
-                function focusFirstToolboxCategory() {
-                        const toolbox = workspace?.getToolbox?.();
-                        if (!toolbox) return;
-                        const items = toolbox.getToolboxItems?.() || [];
-                        const firstItem =
-                                items.find((item) => {
-                                        const def =
-                                                item.getToolboxItemDef?.() ||
-                                                item.toolboxItemDef;
-                                        return def?.kind !== "search";
-                                }) || items[0];
-                        if (!firstItem) return;
-                        toolbox.setSelectedItem?.(firstItem);
-                        toolbox.refreshSelection?.();
-                        Blockly.getFocusManager?.()?.focusNode?.(firstItem);
-                        firstItem.getFocusableElement?.()?.focus?.();
-                }
-
                 // 3) Make the flyout focusable
                 function ensureFlyoutFocusable() {
                         const flyout = getVisibleFlyout();
@@ -585,46 +567,6 @@ export function createBlocklyWorkspace() {
                 }
 
                 // 5) Keep it alive while Blockly updates dynamically
-                if (root.dataset.searchArrowHandlerAttached !== "true") {
-                        root.dataset.searchArrowHandlerAttached = "true";
-                        root.addEventListener(
-                                "keydown",
-                                (event) => {
-                                        const target = event.target;
-                                        if (
-                                                !(target instanceof HTMLElement) ||
-                                                !target.matches(
-                                                        '.blocklyToolbox input[type="search"]',
-                                                )
-                                        ) {
-                                                return;
-                                        }
-                                        if (event.key !== "ArrowDown") {
-                                                return;
-                                        }
-                                        event.preventDefault();
-                                        event.stopPropagation();
-                                        const input =
-                                                target instanceof HTMLInputElement
-                                                        ? target
-                                                        : null;
-                                        if (input && input.value !== "") {
-                                                input.value = "";
-                                                input.dispatchEvent(
-                                                        new Event("input", {
-                                                                bubbles: true,
-                                                        }),
-                                                );
-                                        }
-                                        target.blur();
-                                        input?.setSelectionRange?.(0, 0);
-                                        setTimeout(() => {
-                                                focusFirstToolboxCategory();
-                                        }, 0);
-                                },
-                                true,
-                        );
-                }
                 const observer = new MutationObserver(() => {
                         wireSearchInput();
                         ensureFlyoutFocusable();
