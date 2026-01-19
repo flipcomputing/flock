@@ -1636,25 +1636,26 @@ export function overrideSearchPlugin(workspace) {
                                 }
 
                                 event.preventDefault();
-                                event.stopPropagation();
                                 this.searchField.value = "";
                                 this.searchField?.blur();
                                 this.searchField?.setSelectionRange?.(0, 0);
                                 setTimeout(() => {
-                                        this.workspace_
-                                                ?.getToolbox?.()
-                                                ?.refreshSelection?.();
                                         const toolbox =
                                                 this.workspace_?.getToolbox?.();
+                                        if (toolbox) {
+                                                if (event.key === "ArrowDown") {
+                                                        toolbox.selectNext?.();
+                                                } else {
+                                                        toolbox.selectPrevious?.();
+                                                }
+                                                toolbox.refreshSelection?.();
+                                        }
                                         const selectedItem =
                                                 toolbox?.getSelectedItem?.();
                                         const focusTarget =
                                                 selectedItem?.getFocusableElement?.() ||
                                                 toolbox?.getDiv?.();
                                         focusTarget?.focus?.();
-                                        Blockly.getFocusManager?.()?.focusTree?.(
-                                                toolbox || null,
-                                        );
                                 }, 0);
                         });
                 }
