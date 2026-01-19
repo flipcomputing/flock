@@ -1290,6 +1290,12 @@ export function overrideSearchPlugin(workspace) {
         }
 
         function buildSearchIndex() {
+                const startTime =
+                        typeof performance !== "undefined" &&
+                        typeof performance.now === "function"
+                                ? performance.now()
+                                : Date.now();
+                console.info("[Search] buildSearchIndex start");
                 if (!Object.keys(nextVariableIndexes).length) {
                         initializeVariableIndexes();
                 }
@@ -1495,17 +1501,53 @@ export function overrideSearchPlugin(workspace) {
                         blockCreationWorkspace.dispose();
                 }
 
+                const endTime =
+                        typeof performance !== "undefined" &&
+                        typeof performance.now === "function"
+                                ? performance.now()
+                                : Date.now();
+                console.info("[Search] buildSearchIndex complete", {
+                        durationMs: Math.round(endTime - startTime),
+                        blocks: indexedBlocks.length,
+                });
+
                 return indexedBlocks;
         }
 
         SearchCategory.prototype.initBlockSearcher = function () {
                 const blockSearcher = this.blockSearcher;
                 const rebuildSearchIndex = () => {
-                        blockSearcher.indexedBlocks_ = buildSearchIndex();
+                        const cachedIndex = workspace.flockSearchIndexedBlocks;
+                        if (Array.isArray(cachedIndex)) {
+                                blockSearcher.indexedBlocks_ = cachedIndex;
+                                return;
+                        }
+
+                        const newIndex = buildSearchIndex();
+                        workspace.flockSearchIndexedBlocks = newIndex;
+                        blockSearcher.indexedBlocks_ = newIndex;
                 };
                 this.blockSearcher.indexBlocks = rebuildSearchIndex;
-                blockSearcher.indexedBlocks_ = [];
-                rebuildSearchIndex();
+                blockSearcher.indexedBlocks_ =
+                        workspace.flockSearchIndexedBlocks || null;
+
+                if (!workspace.flockSearchIndexScheduled) {
+                        workspace.flockSearchIndexScheduled = true;
+                        const scheduleBuild = () => {
+                                workspace.flockSearchIndexScheduled = false;
+                                if (!workspace.flockSearchIndexedBlocks) {
+                                        rebuildSearchIndex();
+                                }
+                        };
+
+                        if (typeof requestIdleCallback === "function") {
+                                requestIdleCallback(scheduleBuild, {
+                                        timeout: 1000,
+                                });
+                        } else {
+                                setTimeout(scheduleBuild, 0);
+                        }
+                }
 
                 workspace.flockSearchCategory = this;
         };
