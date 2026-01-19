@@ -1305,13 +1305,22 @@ export function overrideSearchPlugin(workspace) {
         }
 
         const toolboxBlocks = getBlocksFromToolbox(workspace);
-        const isSearchCategorySelected = () => {
+        const isSearchCategorySelected = (category = null) => {
                 const toolbox = workspace.getToolbox?.();
                 const selectedItem = toolbox?.getSelectedItem?.();
+                if (category && selectedItem === category) {
+                        return true;
+                }
                 const selectedDef =
                         selectedItem?.getToolboxItemDef?.() ||
                         selectedItem?.toolboxItemDef;
-                return selectedDef?.kind === "search";
+                if (selectedDef?.kind === "search") {
+                        return true;
+                }
+                if (category?.searchField === document.activeElement) {
+                        return true;
+                }
+                return false;
         };
 
         function getBlockMessage(blockType) {
@@ -1839,7 +1848,7 @@ export function overrideSearchPlugin(workspace) {
         }
 
         SearchCategory.prototype.showMatchingBlocks = function (matches) {
-                if (!isSearchCategorySelected()) {
+                if (!isSearchCategorySelected(this)) {
                         return;
                 }
                 const flyout = this.workspace_.getToolbox().getFlyout();
