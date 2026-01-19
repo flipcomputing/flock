@@ -1305,8 +1305,21 @@ export function overrideSearchPlugin(workspace) {
         }
 
         const toolboxBlocks = getBlocksFromToolbox(workspace);
-        const isSearchCategorySelected = (category = null) =>
-                category?.searchField === document.activeElement;
+        const isSearchCategorySelected = (category = null) => {
+                const toolbox = workspace.getToolbox?.();
+                const selectedItem = toolbox?.getSelectedItem?.();
+                const selectedDef =
+                        selectedItem?.getToolboxItemDef?.() ||
+                        selectedItem?.toolboxItemDef;
+                const isSelectedSearch =
+                        selectedDef?.kind === "search" ||
+                        (category && selectedItem === category);
+
+                return (
+                        isSelectedSearch &&
+                        category?.searchField === document.activeElement
+                );
+        };
 
         function getBlockMessage(blockType) {
                 const definition = Blockly.Blocks?.[blockType];
@@ -1565,7 +1578,7 @@ export function overrideSearchPlugin(workspace) {
                         const searchCategory = workspace.flockSearchCategory;
                         if (searchCategory) {
                                 const showAllBlocksAsync = () => {
-                                        if (!isSearchCategorySelected()) {
+                                        if (!isSearchCategorySelected(searchCategory)) {
                                                 return;
                                         }
                                         if (
@@ -1658,7 +1671,7 @@ export function overrideSearchPlugin(workspace) {
 
                 if (!query) {
                         const showAllBlocksAsync = () => {
-                                if (!isSearchCategorySelected()) {
+                                if (!isSearchCategorySelected(this)) {
                                         return;
                                 }
                                 if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
