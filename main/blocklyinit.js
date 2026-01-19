@@ -1572,14 +1572,19 @@ export function overrideSearchPlugin(workspace) {
                         return;
                 }
 
+                const query =
+                        this.searchField?.value.toLowerCase().trim() || "";
+
+                if (!query) {
+                        this.showMatchingBlocks([]);
+                        return;
+                }
+
                 if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
                         if (this.blockSearcher.indexBlocks) {
                                 this.blockSearcher.indexBlocks();
                         }
                 }
-
-                const query =
-                        this.searchField?.value.toLowerCase().trim() || "";
 
                 const indexedBlocks = Array.isArray(
                         this.blockSearcher.indexedBlocks_,
