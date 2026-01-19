@@ -556,6 +556,32 @@ export function createBlocklyWorkspace() {
                         Blockly.getFocusManager?.()?.focusTree?.(toolbox || null);
                 }
 
+                function handleSearchArrowDown(event) {
+                        const target = event.target;
+                        if (
+                                !(target instanceof HTMLElement) ||
+                                !target.matches(
+                                        '.blocklyToolbox input[type="search"]',
+                                )
+                        ) {
+                                return;
+                        }
+                        if (event.key !== "ArrowDown") {
+                                return;
+                        }
+                        event.preventDefault();
+                        event.stopPropagation();
+                        if (target instanceof HTMLInputElement) {
+                                target.blur();
+                                target.setSelectionRange?.(0, 0);
+                        } else {
+                                target.blur();
+                        }
+                        setTimeout(() => {
+                                focusToolboxCategories("first");
+                        }, 0);
+                }
+
                 // 3) Make the flyout focusable
                 function ensureFlyoutFocusable() {
                         const flyout = getVisibleFlyout();
@@ -591,16 +617,6 @@ export function createBlocklyWorkspace() {
                         if (search.tabIndex < 0) search.tabIndex = 0;
 
                         search.addEventListener("keydown", (e) => {
-                                if (e.key === "ArrowDown") {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        search.blur();
-                                        search.setSelectionRange?.(0, 0);
-                                        setTimeout(() => {
-                                                focusToolboxCategories("first");
-                                        }, 0);
-                                        return;
-                                }
                                 if (e.key === "Tab" && !e.shiftKey) {
                                         const target = ensureFlyoutFocusable();
                                         if (!target) return;
@@ -616,6 +632,14 @@ export function createBlocklyWorkspace() {
                 }
 
                 // 5) Keep it alive while Blockly updates dynamically
+                if (root.dataset.searchKeyHandlerAttached !== "true") {
+                        root.dataset.searchKeyHandlerAttached = "true";
+                        root.addEventListener(
+                                "keydown",
+                                handleSearchArrowDown,
+                                true,
+                        );
+                }
                 const observer = new MutationObserver(() => {
                         wireSearchInput();
                         ensureFlyoutFocusable();
