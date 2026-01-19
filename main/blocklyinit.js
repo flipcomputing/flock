@@ -1622,6 +1622,8 @@ export function overrideSearchPlugin(workspace) {
                                         return;
                                 }
 
+                                event.preventDefault();
+                                event.stopPropagation();
                                 this.searchField?.blur();
                                 setTimeout(() => {
                                         this.workspace_
