@@ -569,24 +569,6 @@ export function createBlocklyWorkspace() {
                         if (search.tabIndex < 0) search.tabIndex = 0;
 
                         search.addEventListener("keydown", (e) => {
-                                if (e.key === "ArrowDown") {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        if (search.value !== "") {
-                                                search.value = "";
-                                                search.dispatchEvent(
-                                                        new Event("input", {
-                                                                bubbles: true,
-                                                        }),
-                                                );
-                                        }
-                                        search.blur();
-                                        search.setSelectionRange?.(0, 0);
-                                        setTimeout(() => {
-                                                focusFirstToolboxCategory();
-                                        }, 0);
-                                        return;
-                                }
                                 if (e.key !== "Tab" || e.shiftKey) {
                                         return;
                                 }
@@ -603,6 +585,46 @@ export function createBlocklyWorkspace() {
                 }
 
                 // 5) Keep it alive while Blockly updates dynamically
+                if (root.dataset.searchArrowHandlerAttached !== "true") {
+                        root.dataset.searchArrowHandlerAttached = "true";
+                        root.addEventListener(
+                                "keydown",
+                                (event) => {
+                                        const target = event.target;
+                                        if (
+                                                !(target instanceof HTMLElement) ||
+                                                !target.matches(
+                                                        '.blocklyToolbox input[type="search"]',
+                                                )
+                                        ) {
+                                                return;
+                                        }
+                                        if (event.key !== "ArrowDown") {
+                                                return;
+                                        }
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        const input =
+                                                target instanceof HTMLInputElement
+                                                        ? target
+                                                        : null;
+                                        if (input && input.value !== "") {
+                                                input.value = "";
+                                                input.dispatchEvent(
+                                                        new Event("input", {
+                                                                bubbles: true,
+                                                        }),
+                                                );
+                                        }
+                                        target.blur();
+                                        input?.setSelectionRange?.(0, 0);
+                                        setTimeout(() => {
+                                                focusFirstToolboxCategory();
+                                        }, 0);
+                                },
+                                true,
+                        );
+                }
                 const observer = new MutationObserver(() => {
                         wireSearchInput();
                         ensureFlyoutFocusable();
