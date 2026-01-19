@@ -544,6 +544,12 @@ export function createBlocklyWorkspace() {
                                                 toolbox.setSelectedItem?.(
                                                         firstItem,
                                                 );
+                                                Blockly.getFocusManager?.()?.focusNode?.(
+                                                        firstItem,
+                                                );
+                                                firstItem
+                                                        .getFocusableElement?.()
+                                                        ?.focus?.();
                                         }
                                 } else if (direction === "next") {
                                         toolbox.selectNext?.();
@@ -561,7 +567,11 @@ export function createBlocklyWorkspace() {
                         if (
                                 !(target instanceof HTMLElement) ||
                                 !target.matches(
-                                        '.blocklyToolbox input[type="search"]',
+                                        [
+                                                '.blocklyToolbox input[type="search"]',
+                                                ".blocklySearchInput",
+                                                '.blocklyToolbox input.blocklySearchInput',
+                                        ].join(", "),
                                 )
                         ) {
                                 return;
