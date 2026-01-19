@@ -1751,6 +1751,15 @@ export function overrideSearchPlugin(workspace) {
                 this.showMatchingBlocks(matches);
         };
 
+        const originalOnNodeBlur = SearchCategory.prototype.onNodeBlur;
+        SearchCategory.prototype.onNodeBlur = function () {
+                if (originalOnNodeBlur) {
+                        originalOnNodeBlur.call(this);
+                }
+
+                this.workspace_?.getToolbox?.()?.refreshSelection?.();
+        };
+
         function createXmlFromJson(
                 blockJson,
                 isShadow = false,
