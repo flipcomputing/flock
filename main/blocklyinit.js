@@ -526,7 +526,26 @@ export function createBlocklyWorkspace() {
                                 toolboxDiv.focus();
                         }
                         if (toolbox) {
-                                if (direction === "next") {
+                                if (direction === "first") {
+                                        const items =
+                                                toolbox.getToolboxItems?.() ||
+                                                [];
+                                        const firstItem =
+                                                items.find((item) => {
+                                                        const def =
+                                                                item.getToolboxItemDef?.() ||
+                                                                item.toolboxItemDef;
+                                                        return (
+                                                                def?.kind !==
+                                                                "search"
+                                                        );
+                                                }) || items[0];
+                                        if (firstItem) {
+                                                toolbox.setSelectedItem?.(
+                                                        firstItem,
+                                                );
+                                        }
+                                } else if (direction === "next") {
                                         toolbox.selectNext?.();
                                 } else if (direction === "previous") {
                                         toolbox.selectPrevious?.();
@@ -578,7 +597,7 @@ export function createBlocklyWorkspace() {
                                         search.blur();
                                         search.setSelectionRange?.(0, 0);
                                         setTimeout(() => {
-                                                focusToolboxCategories("next");
+                                                focusToolboxCategories("first");
                                         }, 0);
                                         return;
                                 }
