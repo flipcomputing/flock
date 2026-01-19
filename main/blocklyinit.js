@@ -495,6 +495,39 @@ export function createBlocklyWorkspace() {
         workspace = Blockly.inject("blocklyDiv", options);
         initializeIfClauseConnectionChecker(workspace);
 
+        // Prevent the toolbox shortcut key from being typed into the search field.
+        document.addEventListener(
+                "keydown",
+                (event) => {
+                        if (
+                                event.ctrlKey ||
+                                event.metaKey ||
+                                event.altKey
+                        ) {
+                                return;
+                        }
+
+                        if ((event.key || "").toLowerCase() !== "t") {
+                                return;
+                        }
+
+                        const target = event.target;
+                        const isTextInput =
+                                target instanceof HTMLElement &&
+                                (target.isContentEditable ||
+                                        target.closest(
+                                                "input, textarea, [contenteditable='true']",
+                                        ));
+
+                        if (isTextInput) {
+                                return;
+                        }
+
+                        event.preventDefault();
+                },
+                { capture: true },
+        );
+
         // --- Blockly search flyout accessibility fix ---
         // Makes the visible search flyout tabbable and allows Tab/↓ from the search input to reach it.
 
