@@ -1586,7 +1586,6 @@ export function overrideSearchPlugin(workspace) {
         SearchCategory.prototype.matchBlocks = function () {
                 if (!this.hasInputStarted) {
                         this.hasInputStarted = true;
-                        return;
                 }
 
                 const query =
