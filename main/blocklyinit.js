@@ -1638,7 +1638,6 @@ export function overrideSearchPlugin(workspace) {
                                 event.preventDefault();
                                 this.searchField.value = "";
                                 this.searchField?.blur();
-                                this.searchField?.setSelectionRange?.(0, 0);
                                 setTimeout(() => {
                                         const toolbox =
                                                 this.workspace_?.getToolbox?.();
