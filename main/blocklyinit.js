@@ -530,6 +530,67 @@ export function createBlocklyWorkspace() {
             return false;
         };
 
+        (function wireToolboxKeyboardOverrides() {
+                if (!toolbox) return;
+                const toolboxDiv =
+                        toolbox.HtmlDiv ||
+                        document.querySelector(".blocklyToolboxDiv");
+                if (!toolboxDiv) return;
+
+                toolboxDiv.addEventListener(
+                        "keydown",
+                        (e) => {
+                                const target = e.target;
+                                if (
+                                        target &&
+                                        (target.tagName === "INPUT" ||
+                                                target.tagName === "TEXTAREA" ||
+                                                target.isContentEditable)
+                                ) {
+                                        return;
+                                }
+
+                                const flyout = toolbox.getFlyout?.();
+                                const flyoutVisible =
+                                        !!flyout && !!flyout.isVisible?.();
+
+                                if (e.key === "ArrowRight" && flyoutVisible) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        e.stopImmediatePropagation();
+                                        const flyoutWorkspace =
+                                                flyout.getWorkspace?.();
+                                        if (flyoutWorkspace) {
+                                                Blockly.getFocusManager().focusTree(
+                                                        flyoutWorkspace,
+                                                );
+                                        }
+                                        return;
+                                }
+
+                                if (
+                                        e.key === "Enter" ||
+                                        e.key === " " ||
+                                        e.key === "Spacebar"
+                                ) {
+                                        const selectedItem =
+                                                toolbox.getSelectedItem?.();
+                                        if (
+                                                selectedItem &&
+                                                typeof selectedItem.toggleExpanded ===
+                                                        "function"
+                                        ) {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                e.stopImmediatePropagation();
+                                                selectedItem.toggleExpanded();
+                                        }
+                                }
+                        },
+                        true,
+                );
+        })();
+
         initializeIfClauseConnectionChecker(workspace);
 
         (function wireToolboxSearchArrowDown() {
