@@ -492,54 +492,98 @@ export function createBlocklyWorkspace() {
 
         KeyboardNavigation.registerKeyboardNavigationStyles();
 
+        // Manually create a navigation-deferring toolbox
+        class NavigationDeferringToolbox extends Blockly.Toolbox {
+            onKeyDown_(e) {
+                return false; // Defer to keyboard navigation plugin
+            }
+        }
+
+        // Register it before inject
+        Blockly.registry.unregister(Blockly.registry.Type.TOOLBOX, Blockly.registry.DEFAULT);
+        Blockly.registry.register(
+            Blockly.registry.Type.TOOLBOX,
+            Blockly.registry.DEFAULT,
+            NavigationDeferringToolbox
+        );
+
         workspace = Blockly.inject("blocklyDiv", options);
+
+        // Add a global keydown listener to see what's happening
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown') {
+                console.log('[global] ArrowDown event');
+                console.log('[global] Target:', e.target);
+                console.log('[global] Active element:', document.activeElement);
+                console.trace('[global] Stack trace');
+            }
+        }, true);
+
+        // Initialize keyboard navigation
+        const keyboardNav = new KeyboardNavigation(workspace);
+        console.log('[init] KeyboardNav created:', keyboardNav);
+
+        // Monkey-patch
+        const toolbox = workspace.getToolbox();
+        toolbox.onKeyDown_ = function(e) {
+            console.log('[toolbox] onKeyDown_ called');
+            return false;
+        };
+
         initializeIfClauseConnectionChecker(workspace);
 
-        const keyboardNav = new KeyboardNavigation(workspace);
-
         (function wireToolboxSearchArrowDown() {
-            const host = workspace.getInjectionDiv?.() || document;
-            if (!host) {
-               // console.log("[search-arrow] no host, abort");
-                return;
-            }
-            //console.log("[search-arrow] attaching listener on host", host);
+                const host = workspace.getInjectionDiv?.() || document;
+                if (!host) {
+                        // console.log("[search-arrow] no host, abort");
+                        return;
+                }
+                //console.log("[search-arrow] attaching listener on host", host);
 
-            host.addEventListener(
-                "keydown",
-                (e) => {
-                    const t = e.target;
-                    if (!t || t.tagName !== "INPUT") return;
-                    if (t.type !== "search") return;
-                    if (e.key !== "ArrowDown") return;
+                host.addEventListener(
+                        "keydown",
+                        (e) => {
+                                const t = e.target;
+                                if (!t || t.tagName !== "INPUT") return;
+                                if (t.type !== "search") return;
+                                if (e.key !== "ArrowDown") return;
 
-                    //console.log("[search-arrow] ArrowDown on search input");
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
+                                //console.log("[search-arrow] ArrowDown on search input");
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
 
-                    const toolboxDiv = document.querySelector('.blocklyToolbox') 
-                        || host.querySelector('.blocklyToolbox')
-                        || t.closest('.blocklyToolbox');
+                                const toolboxDiv =
+                                        document.querySelector(
+                                                ".blocklyToolbox",
+                                        ) ||
+                                        host.querySelector(".blocklyToolbox") ||
+                                        t.closest(".blocklyToolbox");
 
-                    if (toolboxDiv) {
-                        t.blur();
-                        toolboxDiv.focus();
+                                if (toolboxDiv) {
+                                        t.blur();
+                                        toolboxDiv.focus();
 
-                        setTimeout(() => {
-                            const arrowEvent = new KeyboardEvent('keydown', {
-                                key: 'ArrowDown',
-                                keyCode: 40,
-                                code: 'ArrowDown',
-                                bubbles: true,
-                                cancelable: true
-                            });
-                            toolboxDiv.dispatchEvent(arrowEvent);
-                        }, 10);
-                    }
-                },
-                true,
-            );
+                                        setTimeout(() => {
+                                                const arrowEvent =
+                                                        new KeyboardEvent(
+                                                                "keydown",
+                                                                {
+                                                                        key: "ArrowDown",
+                                                                        keyCode: 40,
+                                                                        code: "ArrowDown",
+                                                                        bubbles: true,
+                                                                        cancelable: true,
+                                                                },
+                                                        );
+                                                toolboxDiv.dispatchEvent(
+                                                        arrowEvent,
+                                                );
+                                        }, 10);
+                                }
+                        },
+                        true,
+                );
         })();
 
         (function preventToolboxShortcutTextEntry() {
