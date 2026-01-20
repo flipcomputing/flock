@@ -1653,15 +1653,21 @@ export function overrideSearchPlugin(workspace) {
                                         const selected =
                                                 toolbox?.getSelectedItem?.();
                                         const resolveFocusElement = (item) =>
-                                                item?.getClickTarget?.() ||
-                                                item?.getDiv?.() ||
                                                 item?.rowDiv_ ||
+                                                item?.getDiv?.() ||
+                                                item?.getClickTarget?.() ||
                                                 item?.htmlDiv_ ||
                                                 item?.svgGroup_ ||
                                                 item?.element_ ||
                                                 null;
                                         const focusElement =
                                                 resolveFocusElement(selected);
+                                        const toolboxContents =
+                                                toolboxDiv?.querySelector?.(
+                                                        ".blocklyToolboxCategoryGroup",
+                                                ) || null;
+                                        const fallbackElement =
+                                                toolboxContents || toolboxDiv;
                                         Blockly.getFocusManager?.()?.focusTree?.(
                                                 toolbox || null,
                                         );
@@ -1707,24 +1713,26 @@ export function overrideSearchPlugin(workspace) {
                                                         );
                                                 }
                                         }
-                                        if (focusElement) {
+                                        const elementToFocus =
+                                                focusElement || fallbackElement;
+                                        if (elementToFocus) {
                                                 if (
-                                                        focusElement instanceof
+                                                        elementToFocus instanceof
                                                         HTMLElement
                                                 ) {
                                                         if (
-                                                                focusElement.tabIndex <
+                                                                elementToFocus.tabIndex <
                                                                 0
                                                         ) {
-                                                                focusElement.tabIndex =
+                                                                elementToFocus.tabIndex =
                                                                         0;
                                                         }
                                                 } else if (
-                                                        focusElement instanceof
+                                                        elementToFocus instanceof
                                                         SVGElement
                                                 ) {
                                                         const currentTabIndex =
-                                                                focusElement.getAttribute?.(
+                                                                elementToFocus.getAttribute?.(
                                                                         "tabindex",
                                                                 );
                                                         if (
@@ -1733,18 +1741,13 @@ export function overrideSearchPlugin(workspace) {
                                                                 currentTabIndex ===
                                                                         "-1"
                                                         ) {
-                                                                focusElement.setAttribute?.(
+                                                                elementToFocus.setAttribute?.(
                                                                         "tabindex",
                                                                         "0",
                                                                 );
                                                         }
                                                 }
-                                                focusElement.focus?.();
-                                        } else if (toolboxDiv) {
-                                                if (toolboxDiv.tabIndex < 0) {
-                                                        toolboxDiv.tabIndex = 0;
-                                                }
-                                                toolboxDiv.focus();
+                                                elementToFocus.focus?.();
                                         }
                                 }, 0);
                         });
