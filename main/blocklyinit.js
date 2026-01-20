@@ -495,87 +495,52 @@ export function createBlocklyWorkspace() {
         workspace = Blockly.inject("blocklyDiv", options);
         initializeIfClauseConnectionChecker(workspace);
 
-        // --- Blockly search flyout accessibility fix ---
-        // Makes the visible search flyout tabbable and allows Tab/↓ from the search input to reach it.
-
-        (function enableBlocklySearchFlyoutTabbing() {
-                // 1) Blockly's injection area (always exists when workspace is loaded)
-                const root = document.getElementById("blocklyDiv");
-                if (!root) return;
-
-                // 2) Helper to find visible search flyout (the one with actual results)
-                function getVisibleFlyout() {
-                        const flyouts = root.querySelectorAll(
-                                "svg.blocklyToolboxFlyout",
-                        );
-                        return (
-                                Array.from(flyouts).find((svg) => {
-                                        const r = svg.getBoundingClientRect();
-                                        return r.width > 0 && r.height > 0;
-                                }) || null
-                        );
-                }
-
-                // 3) Make the flyout focusable
-                function ensureFlyoutFocusable() {
-                        const flyout = getVisibleFlyout();
-                        if (!flyout) return null;
-
-                        const ws = flyout.querySelector("g.blocklyWorkspace");
-                        const target = ws || flyout;
-
-                        // Ensure focusability
-                        target.setAttribute("tabindex", "0");
-                        target.setAttribute("focusable", "true");
-                        target.setAttribute("role", "group");
-                        target.setAttribute(
-                                "aria-label",
-                                translate("toolbox_search_results_aria"),
-                        );
-
-                        return target;
-                }
-
-                // 4) Jump from search input → flyout
-                function wireSearchInput() {
-                        const search = root.querySelector(
-                                '.blocklyToolbox input[type="search"]',
-                        );
-                        if (!search) return;
-
-                        // Blockly sets tabindex="-1" by default — fix that
-                        if (search.tabIndex < 0) search.tabIndex = 0;
-
-                        search.addEventListener("keydown", (e) => {
-                                if (
-                                        (e.key === "Tab" && !e.shiftKey) ||
-                                        e.key === "ArrowDown"
-                                ) {
-                                        const target = ensureFlyoutFocusable();
-                                        if (!target) return;
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        try {
-                                                target.focus({
-                                                        preventScroll: true,
-                                                });
-                                        } catch {}
-                                }
-                        });
-                }
-
-                // 5) Keep it alive while Blockly updates dynamically
-                const observer = new MutationObserver(() =>
-                        ensureFlyoutFocusable(),
-                );
-                observer.observe(root, { childList: true, subtree: true });
-
-                // Initial setup
-                wireSearchInput();
-                ensureFlyoutFocusable();
-        })();
-
         const keyboardNav = new KeyboardNavigation(workspace);
+
+        (function wireToolboxSearchArrowDown() {
+            const host = workspace.getInjectionDiv?.() || document;
+            if (!host) {
+               // console.log("[search-arrow] no host, abort");
+                return;
+            }
+            //console.log("[search-arrow] attaching listener on host", host);
+
+            host.addEventListener(
+                "keydown",
+                (e) => {
+                    const t = e.target;
+                    if (!t || t.tagName !== "INPUT") return;
+                    if (t.type !== "search") return;
+                    if (e.key !== "ArrowDown") return;
+
+                    //console.log("[search-arrow] ArrowDown on search input");
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+
+                    const toolboxDiv = document.querySelector('.blocklyToolbox') 
+                        || host.querySelector('.blocklyToolbox')
+                        || t.closest('.blocklyToolbox');
+
+                    if (toolboxDiv) {
+                        t.blur();
+                        toolboxDiv.focus();
+
+                        setTimeout(() => {
+                            const arrowEvent = new KeyboardEvent('keydown', {
+                                key: 'ArrowDown',
+                                keyCode: 40,
+                                code: 'ArrowDown',
+                                bubbles: true,
+                                cancelable: true
+                            });
+                            toolboxDiv.dispatchEvent(arrowEvent);
+                        }, 10);
+                    }
+                },
+                true,
+            );
+        })();
 
         (function preventToolboxShortcutTextEntry() {
                 const shortcutRegistry = Blockly.ShortcutRegistry.registry;
@@ -595,19 +560,20 @@ export function createBlocklyWorkspace() {
                                                 : null;
                                 if (
                                         keyboardEvent &&
-                                        (keyboardEvent.key || "")
-                                                .toLowerCase() === "t"
+                                        (
+                                                keyboardEvent.key || ""
+                                        ).toLowerCase() === "t"
                                 ) {
                                         keyboardEvent.preventDefault();
                                 }
 
                                 return toolboxShortcut.callback
                                         ? toolboxShortcut.callback(
-                                                ws,
-                                                event,
-                                                shortcut,
-                                                scope,
-                                        )
+                                                  ws,
+                                                  event,
+                                                  shortcut,
+                                                  scope,
+                                          )
                                         : false;
                         },
                 };
@@ -1261,7 +1227,8 @@ export function overrideSearchPlugin(workspace) {
                         }
 
                         if ("contents" in schema) {
-                                const currentCategory = schema.name || categoryName;
+                                const currentCategory =
+                                        schema.name || categoryName;
                                 if (currentCategory === "Snippets") {
                                         return;
                                 }
@@ -1304,6 +1271,83 @@ export function overrideSearchPlugin(workspace) {
                 return;
         }
 
+        const originalInitBlockSearcher =
+                SearchCategory.prototype.initBlockSearcher;
+
+        SearchCategory.prototype.initBlockSearcher = function () {
+                // Let the official plugin initialize its own behaviour first.
+                if (typeof originalInitBlockSearcher === "function") {
+                        originalInitBlockSearcher.call(this);
+                }
+
+                const blockSearcher = this.blockSearcher;
+
+                const rebuildSearchIndex = () => {
+                        const cachedIndex = workspace.flockSearchIndexedBlocks;
+                        if (Array.isArray(cachedIndex)) {
+                                blockSearcher.indexedBlocks_ = cachedIndex;
+                                return;
+                        }
+
+                        const newIndex = buildSearchIndex();
+                        workspace.flockSearchIndexedBlocks = newIndex;
+                        blockSearcher.indexedBlocks_ = newIndex;
+
+                        const searchCategory = workspace.flockSearchCategory;
+                        if (searchCategory) {
+                                const showAllBlocksAsync = () => {
+                                        if (
+                                                !isSearchCategorySelected(
+                                                        searchCategory,
+                                                )
+                                        )
+                                                return;
+                                        if (
+                                                searchCategory.searchField?.value
+                                                        .toLowerCase()
+                                                        .trim()
+                                        ) {
+                                                return;
+                                        }
+                                        searchCategory.showMatchingBlocks(
+                                                newIndex,
+                                        );
+                                };
+
+                                if (typeof requestIdleCallback === "function") {
+                                        requestIdleCallback(showAllBlocksAsync);
+                                } else {
+                                        setTimeout(showAllBlocksAsync, 0);
+                                }
+                        }
+                };
+
+                this.blockSearcher.indexBlocks = rebuildSearchIndex;
+                blockSearcher.indexedBlocks_ =
+                        workspace.flockSearchIndexedBlocks || null;
+
+                if (!workspace.flockSearchIndexScheduled) {
+                        workspace.flockSearchIndexScheduled = true;
+                        const scheduleBuild = () => {
+                                workspace.flockSearchIndexScheduled = false;
+                                if (!workspace.flockSearchIndexedBlocks) {
+                                        rebuildSearchIndex();
+                                }
+                        };
+
+                        if (typeof requestIdleCallback === "function") {
+                                requestIdleCallback(scheduleBuild, {
+                                        timeout: 1000,
+                                });
+                        } else {
+                                setTimeout(scheduleBuild, 0);
+                        }
+                }
+
+                // Keep a reference so other helpers can see the active search category.
+                workspace.flockSearchCategory = this;
+        };
+
         const toolboxBlocks = getBlocksFromToolbox(workspace);
         const isSearchCategorySelected = (category = null) => {
                 const toolbox = workspace.getToolbox?.();
@@ -1315,10 +1359,7 @@ export function overrideSearchPlugin(workspace) {
                         selectedDef?.kind === "search" ||
                         (category && selectedItem === category);
 
-                return (
-                        category?.searchField === document.activeElement &&
-                        isSelectedSearch
-                );
+                return isSelectedSearch;
         };
 
         function getBlockMessage(blockType) {
@@ -1383,7 +1424,11 @@ export function overrideSearchPlugin(workspace) {
                         );
                 }
 
-                function addBlockFieldTerms(block, searchTerms, runDebugFields) {
+                function addBlockFieldTerms(
+                        block,
+                        searchTerms,
+                        runDebugFields,
+                ) {
                         block.inputList.forEach((input) => {
                                 input.fieldRow.forEach((field) => {
                                         const fieldText = field.getText();
@@ -1392,7 +1437,8 @@ export function overrideSearchPlugin(workspace) {
                                                 runDebugFields.push({
                                                         name: field.name,
                                                         text: fieldText,
-                                                        kind: field.constructor?.name,
+                                                        kind: field.constructor
+                                                                ?.name,
                                                 });
                                         }
 
@@ -1421,7 +1467,9 @@ export function overrideSearchPlugin(workspace) {
                                                         runDebugFields.push({
                                                                 name: field.name,
                                                                 value: fieldValue,
-                                                                kind: field.constructor?.name,
+                                                                kind: field
+                                                                        .constructor
+                                                                        ?.name,
                                                         });
                                                 }
                                         }
@@ -1430,37 +1478,45 @@ export function overrideSearchPlugin(workspace) {
                                                 field instanceof
                                                 Blockly.FieldDropdown
                                         ) {
-                                                field.getOptions(
-                                                        true,
-                                                ).forEach((option) => {
-                                                        if (
-                                                                typeof option[0] ===
-                                                                "string"
-                                                        ) {
-                                                                searchTerms.add(
-                                                                        option[0],
-                                                                );
-                                                                runDebugFields.push({
-                                                                        name: field.name,
-                                                                        option:
+                                                field.getOptions(true).forEach(
+                                                        (option) => {
+                                                                if (
+                                                                        typeof option[0] ===
+                                                                        "string"
+                                                                ) {
+                                                                        searchTerms.add(
                                                                                 option[0],
-                                                                        kind: field.constructor?.name,
-                                                                });
-                                                        } else if (
-                                                                "alt" in
-                                                                option[0]
-                                                        ) {
-                                                                searchTerms.add(
-                                                                        option[0].alt,
-                                                                );
-                                                                runDebugFields.push({
-                                                                        name: field.name,
-                                                                        option:
-                                                                                option[0].alt,
-                                                                        kind: field.constructor?.name,
-                                                                });
-                                                        }
-                                                });
+                                                                        );
+                                                                        runDebugFields.push(
+                                                                                {
+                                                                                        name: field.name,
+                                                                                        option: option[0],
+                                                                                        kind: field
+                                                                                                .constructor
+                                                                                                ?.name,
+                                                                                },
+                                                                        );
+                                                                } else if (
+                                                                        "alt" in
+                                                                        option[0]
+                                                                ) {
+                                                                        searchTerms.add(
+                                                                                option[0]
+                                                                                        .alt,
+                                                                        );
+                                                                        runDebugFields.push(
+                                                                                {
+                                                                                        name: field.name,
+                                                                                        option: option[0]
+                                                                                                .alt,
+                                                                                        kind: field
+                                                                                                .constructor
+                                                                                                ?.name,
+                                                                                },
+                                                                        );
+                                                                }
+                                                        },
+                                                );
                                         }
                                 });
                         });
@@ -1479,17 +1535,15 @@ export function overrideSearchPlugin(workspace) {
                                 const runDebugFields = [];
 
                                 const keyword =
-                                        blockInfo.keyword || blockInfo.full?.keyword;
+                                        blockInfo.keyword ||
+                                        blockInfo.full?.keyword;
                                 if (keyword) {
                                         searchTerms.add(keyword);
                                 }
 
                                 const block =
                                         blockCreationWorkspace.newBlock(type);
-                                applyFieldValues(
-                                        block,
-                                        blockInfo.full?.fields,
-                                );
+                                applyFieldValues(block, blockInfo.full?.fields);
 
                                 const labelText =
                                         typeof block.toString === "function"
@@ -1502,7 +1556,9 @@ export function overrideSearchPlugin(workspace) {
                                         const fallbackMessage =
                                                 getBlockMessage(type);
                                         if (fallbackMessage) {
-                                                searchTerms.add(fallbackMessage);
+                                                searchTerms.add(
+                                                        fallbackMessage,
+                                                );
                                         }
                                 }
 
@@ -1517,7 +1573,9 @@ export function overrideSearchPlugin(workspace) {
                                         Object.values(inputDefinitions).forEach(
                                                 (definition) => {
                                                         const shadowType =
-                                                                definition?.shadow?.type;
+                                                                definition
+                                                                        ?.shadow
+                                                                        ?.type;
                                                         if (!shadowType) {
                                                                 return;
                                                         }
@@ -1528,7 +1586,8 @@ export function overrideSearchPlugin(workspace) {
                                                                 );
                                                         applyFieldValues(
                                                                 shadowBlock,
-                                                                definition?.shadow
+                                                                definition
+                                                                        ?.shadow
                                                                         ?.fields,
                                                         );
                                                         addBlockFieldTerms(
@@ -1542,12 +1601,10 @@ export function overrideSearchPlugin(workspace) {
                                                 },
                                         );
                                 }
-                        
+
                                 indexedBlocks.push({
                                         ...blockInfo,
-                                        text: Array.from(searchTerms).join(
-                                                " ",
-                                        ),
+                                        text: Array.from(searchTerms).join(" "),
                                 });
                         });
                 } finally {
@@ -1561,156 +1618,6 @@ export function overrideSearchPlugin(workspace) {
                                 : Date.now();
                 return indexedBlocks;
         }
-
-        SearchCategory.prototype.initBlockSearcher = function () {
-                const blockSearcher = this.blockSearcher;
-                const rebuildSearchIndex = () => {
-                        const cachedIndex = workspace.flockSearchIndexedBlocks;
-                        if (Array.isArray(cachedIndex)) {
-                                blockSearcher.indexedBlocks_ = cachedIndex;
-                                return;
-                        }
-
-                        const newIndex = buildSearchIndex();
-                        workspace.flockSearchIndexedBlocks = newIndex;
-                        blockSearcher.indexedBlocks_ = newIndex;
-
-                        const searchCategory = workspace.flockSearchCategory;
-                        if (searchCategory) {
-                                const showAllBlocksAsync = () => {
-                                        if (!isSearchCategorySelected(searchCategory)) {
-                                                return;
-                                        }
-                                        if (
-                                                searchCategory.searchField?.value
-                                                        .toLowerCase()
-                                                        .trim()
-                                        ) {
-                                                return;
-                                        }
-
-                                        searchCategory.showMatchingBlocks(
-                                                newIndex,
-                                        );
-                                };
-
-                                if (typeof requestIdleCallback === "function") {
-                                        requestIdleCallback(showAllBlocksAsync);
-                                } else {
-                                        setTimeout(showAllBlocksAsync, 0);
-                                }
-                        }
-                };
-                this.blockSearcher.indexBlocks = rebuildSearchIndex;
-                blockSearcher.indexedBlocks_ =
-                        workspace.flockSearchIndexedBlocks || null;
-
-                if (!workspace.flockSearchIndexScheduled) {
-                        workspace.flockSearchIndexScheduled = true;
-                        const scheduleBuild = () => {
-                                workspace.flockSearchIndexScheduled = false;
-                                if (!workspace.flockSearchIndexedBlocks) {
-                                        rebuildSearchIndex();
-                                }
-                        };
-
-                        if (typeof requestIdleCallback === "function") {
-                                requestIdleCallback(scheduleBuild, {
-                                        timeout: 1000,
-                                });
-                        } else {
-                                setTimeout(scheduleBuild, 0);
-                        }
-                }
-
-                workspace.flockSearchCategory = this;
-
-                if (!this.flockSearchKeydownAttached && this.searchField) {
-                        this.flockSearchKeydownAttached = true;
-                        this.searchField.addEventListener("keydown", (event) => {
-                                if (
-                                        event.key !== "ArrowDown" &&
-                                        event.key !== "ArrowUp"
-                                ) {
-                                        return;
-                                }
-
-                                event.preventDefault();
-                                this.searchField.value = "";
-                                this.searchField?.blur();
-                                this.searchField?.setSelectionRange?.(0, 0);
-                                setTimeout(() => {
-                                        const toolbox =
-                                                this.workspace_?.getToolbox?.();
-                                        const toolboxDiv = toolbox?.getDiv?.();
-                                        if (toolboxDiv) {
-                                                if (toolboxDiv.tabIndex < 0) {
-                                                        toolboxDiv.tabIndex = 0;
-                                                }
-                                                toolboxDiv.focus();
-                                        }
-                                        if (toolbox) {
-                                                if (event.key === "ArrowDown") {
-                                                        toolbox.selectNext?.();
-                                                } else {
-                                                        toolbox.selectPrevious?.();
-                                                }
-                                                toolbox.refreshSelection?.();
-                                        }
-                                        toolboxDiv?.focus?.();
-                                        Blockly.getFocusManager?.()?.focusTree?.(
-                                                toolbox || null,
-                                        );
-                                }, 0);
-                        });
-                }
-
-                if (!this.flockSearchFocusAttached && this.searchField) {
-                        this.flockSearchFocusAttached = true;
-                        this.searchField.addEventListener("focus", () => {
-                                this.parentToolbox_?.setSelectedItem?.(this);
-                        });
-                }
-
-                if (!this.flockSearchToolboxKeydownAttached && this.searchField) {
-                        this.flockSearchToolboxKeydownAttached = true;
-                        const toolboxDiv =
-                                this.workspace_
-                                        ?.getToolbox?.()
-                                        ?.getDiv?.() ||
-                                document.querySelector(".blocklyToolboxDiv");
-                        if (toolboxDiv) {
-                                toolboxDiv.addEventListener("keydown", (event) => {
-                                        if (
-                                                event.ctrlKey ||
-                                                event.metaKey ||
-                                                event.altKey ||
-                                                event.key.length !== 1
-                                        ) {
-                                                return;
-                                        }
-
-                                        const target = event.target;
-                                        const isEditable =
-                                                target instanceof HTMLElement &&
-                                                (target.isContentEditable ||
-                                                        target.closest(
-                                                                "input, textarea, [contenteditable='true']",
-                                                        ));
-                                        if (isEditable) {
-                                                return;
-                                        }
-
-                                        event.preventDefault();
-                                        event.stopPropagation();
-                                        this.parentToolbox_?.setSelectedItem?.(this);
-                                        this.searchField.value = event.key;
-                                        this.searchField.focus();
-                                        this.matchBlocks?.();
-                                });
-                        }
-                }
-        };
 
         const searchToolboxItem = workspace
                 .getToolbox()
@@ -1739,11 +1646,20 @@ export function overrideSearchPlugin(workspace) {
                                 if (!isSearchCategorySelected(this)) {
                                         return;
                                 }
-                                if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
+                                if (
+                                        !Array.isArray(
+                                                this.blockSearcher
+                                                        .indexedBlocks_,
+                                        )
+                                ) {
                                         return;
                                 }
 
-                                if (this.searchField?.value.toLowerCase().trim()) {
+                                if (
+                                        this.searchField?.value
+                                                .toLowerCase()
+                                                .trim()
+                                ) {
                                         return;
                                 }
 
@@ -1754,8 +1670,7 @@ export function overrideSearchPlugin(workspace) {
 
                         const requestType =
                                 this.flockSearchAllBlocksRequest?.type;
-                        const requestId =
-                                this.flockSearchAllBlocksRequest?.id;
+                        const requestId = this.flockSearchAllBlocksRequest?.id;
                         if (
                                 requestType === "idle" &&
                                 typeof cancelIdleCallback === "function" &&
@@ -1770,14 +1685,18 @@ export function overrideSearchPlugin(workspace) {
                         }
 
                         if (
-                                !Array.isArray(this.blockSearcher.indexedBlocks_) &&
+                                !Array.isArray(
+                                        this.blockSearcher.indexedBlocks_,
+                                ) &&
                                 this.blockSearcher.indexBlocks
                         ) {
                                 if (typeof requestIdleCallback === "function") {
-                                        const idleId = requestIdleCallback(() => {
-                                                this.blockSearcher.indexBlocks();
-                                                showAllBlocksAsync();
-                                        });
+                                        const idleId = requestIdleCallback(
+                                                () => {
+                                                        this.blockSearcher.indexBlocks();
+                                                        showAllBlocksAsync();
+                                                },
+                                        );
                                         this.flockSearchAllBlocksRequest = {
                                                 type: "idle",
                                                 id: idleId,
@@ -1793,13 +1712,17 @@ export function overrideSearchPlugin(workspace) {
                                         };
                                 }
                         } else if (typeof requestIdleCallback === "function") {
-                                const idleId = requestIdleCallback(showAllBlocksAsync);
+                                const idleId =
+                                        requestIdleCallback(showAllBlocksAsync);
                                 this.flockSearchAllBlocksRequest = {
                                         type: "idle",
                                         id: idleId,
                                 };
                         } else {
-                                const timeoutId = setTimeout(showAllBlocksAsync, 0);
+                                const timeoutId = setTimeout(
+                                        showAllBlocksAsync,
+                                        0,
+                                );
                                 this.flockSearchAllBlocksRequest = {
                                         type: "timeout",
                                         id: timeoutId,
@@ -1814,7 +1737,9 @@ export function overrideSearchPlugin(workspace) {
                                         this.flockSearchAllBlocksRequest.id,
                                 );
                         }
-                } else if (this.flockSearchAllBlocksRequest?.type === "timeout") {
+                } else if (
+                        this.flockSearchAllBlocksRequest?.type === "timeout"
+                ) {
                         clearTimeout(this.flockSearchAllBlocksRequest.id);
                 }
 
@@ -1830,27 +1755,14 @@ export function overrideSearchPlugin(workspace) {
                         ? this.blockSearcher.indexedBlocks_
                         : [];
 
-                const matches = indexedBlocks.filter(
-                        (block) => {
-                                if (block.text) {
-                                        return block.text
-                                                .toLowerCase()
-                                                .includes(query);
-                                }
-                                return false;
-                        },
-                );
+                const matches = indexedBlocks.filter((block) => {
+                        if (block.text) {
+                                return block.text.toLowerCase().includes(query);
+                        }
+                        return false;
+                });
 
                 this.showMatchingBlocks(matches);
-        };
-
-        const originalOnNodeBlur = SearchCategory.prototype.onNodeBlur;
-        SearchCategory.prototype.onNodeBlur = function () {
-                if (originalOnNodeBlur) {
-                        originalOnNodeBlur.call(this);
-                }
-
-                this.workspace_?.getToolbox?.()?.refreshSelection?.();
         };
 
         function createXmlFromJson(
@@ -1979,7 +1891,7 @@ export function initBlocklyPerfOverlay(
         panel.innerHTML = `
         <div style="font-weight:600;margin-bottom:6px;">Blockly Perf</div>
         <div style="display:grid;grid-template-columns:auto 1fr;gap:2px 8px;white-space:nowrap;">
-          <div>Blocks (all/top):</div><div id="bp_blocks">–</div>
+          <div>Blocks (all/top):</div><div id="bp_blocks">d��</div>
           <div>Rendered blocks:</div><div id="bp_rendered">–</div>
           <div>SVG nodes:</div><div id="bp_svg">–</div>
           <div>Events/sec:</div><div id="bp_eps">–</div>
