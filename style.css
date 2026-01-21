@@ -474,6 +474,10 @@ button {
   touch-action: manipulation;
 }
 
+#exampleSelect {
+  background-color: var(--color-button-bg);
+}
+
 .bigbutton:hover {
   background-color: var(--color-button-bg-hover);
 }
