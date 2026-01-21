@@ -420,18 +420,197 @@ export const flockShapes = {
     const loadPromise = new Promise(async (resolve, reject) => {
       try {
         const fontData = await (await fetch(font)).json();
+        const manifold =
+          flock.manifold ??
+          (typeof globalThis !== "undefined" ? globalThis.manifold : null);
+        if (flock.manifoldDebug) {
+          console.log("[create3DText] Manifold available:", !!manifold);
+        }
+        let mesh = null;
+        let manifoldText = null;
 
-        const mesh = flock.BABYLON.MeshBuilder.CreateText(
-          modelId,
-          text,
-          fontData,
-          {
-            size: size,
-            depth: depth,
-          },
-          flock.scene,
-          earcut,
-        );
+        const ensureArray = (data) =>
+          Array.isArray(data) ? data : Array.from(data || []);
+
+        const flattenVectorArray = (data) => {
+          if (!Array.isArray(data)) return ensureArray(data);
+          if (!data.length) return [];
+          if (typeof data[0] === "number") return data.slice();
+          if (Array.isArray(data[0])) return data.flat();
+          if (typeof data[0] === "object") {
+            return data.flatMap((entry) => [
+              entry.x ?? entry[0],
+              entry.y ?? entry[1],
+              entry.z ?? entry[2],
+            ]);
+          }
+          return [];
+        };
+
+        const flattenIndexArray = (data) => {
+          if (!Array.isArray(data)) return ensureArray(data);
+          if (!data.length) return [];
+          if (typeof data[0] === "number") return data.slice();
+          if (Array.isArray(data[0])) return data.flat();
+          if (typeof data[0] === "object") {
+            return data.flatMap((entry) => [
+              entry.a ?? entry[0],
+              entry.b ?? entry[1],
+              entry.c ?? entry[2],
+            ]);
+          }
+          return [];
+        };
+
+        const buildBabylonMeshFromManifold = (meshData) => {
+          if (!meshData) return null;
+          let positions = flattenVectorArray(
+            meshData.positions ||
+              meshData.vertices ||
+              meshData.vertProperties ||
+              meshData.verts,
+          );
+          let indices = flattenIndexArray(
+            meshData.indices || meshData.triangles || meshData.triVerts,
+          );
+
+          if (!positions.length && meshData.triangles) {
+            positions = flattenVectorArray(meshData.triangles);
+            indices = Array.from(
+              { length: positions.length / 3 },
+              (_, i) => i,
+            );
+          }
+
+          if (!positions.length || !indices.length) return null;
+          if (flock.manifoldDebug) {
+            console.log("[create3DText] Manifold mesh data:", {
+              positions: positions.length,
+              indices: indices.length,
+            });
+          }
+          const newMesh = new flock.BABYLON.Mesh(modelId, flock.scene);
+          const normals = [];
+          flock.BABYLON.VertexData.ComputeNormals(
+            positions,
+            indices,
+            normals,
+          );
+          const vertexData = new flock.BABYLON.VertexData();
+          vertexData.positions = positions;
+          vertexData.indices = indices;
+          vertexData.normals = normals;
+          vertexData.applyToMesh(newMesh, true);
+          return newMesh;
+        };
+
+        if (manifold) {
+          const createText =
+            manifold.createTextMesh ||
+            manifold.createText ||
+            manifold.text ||
+            manifold.makeText;
+          if (flock.manifoldDebug) {
+            console.log("[create3DText] Manifold text factory:", {
+              createText: !!createText,
+            });
+          }
+          if (createText) {
+            manifoldText = await createText({
+              text,
+              font,
+              fontData,
+              size,
+              depth,
+            });
+            if (flock.manifoldDebug) {
+              console.log("[create3DText] Manifold text result:", {
+                hasManifoldText: !!manifoldText,
+              });
+            }
+            if (manifoldText) {
+              if (typeof manifoldText.toBabylonMesh === "function") {
+                if (flock.manifoldDebug) {
+                  console.log(
+                    "[create3DText] Using manifoldText.toBabylonMesh",
+                  );
+                }
+                mesh = manifoldText.toBabylonMesh(modelId, flock.scene);
+              } else if (typeof manifoldText.toMesh === "function") {
+                if (flock.manifoldDebug) {
+                  console.log("[create3DText] Using manifoldText.toMesh");
+                }
+                const meshData = manifoldText.toMesh();
+                mesh = buildBabylonMeshFromManifold(meshData);
+              } else {
+                if (flock.manifoldDebug) {
+                  console.log("[create3DText] Using manifoldText mesh data");
+                }
+                mesh = buildBabylonMeshFromManifold(
+                  manifoldText.mesh || manifoldText,
+                );
+              }
+            }
+          }
+        }
+
+        if (!mesh) {
+          if (flock.manifoldDebug) {
+            console.log("[create3DText] Falling back to BABYLON.CreateText");
+          }
+          mesh = flock.BABYLON.MeshBuilder.CreateText(
+            modelId,
+            text,
+            fontData,
+            {
+              size: size,
+              depth: depth,
+            },
+            flock.scene,
+            earcut,
+          );
+        }
+
+        const ensureMeshHasIndices = (targetMesh) => {
+          if (!targetMesh) return false;
+          const positions = targetMesh.getVerticesData(
+            flock.BABYLON.VertexBuffer.PositionKind,
+          );
+          const indices = targetMesh.getIndices();
+          if (positions && positions.length && indices && indices.length) {
+            return true;
+          }
+          if (!positions || !positions.length) return false;
+          const generated = Array.from(
+            { length: positions.length / 3 },
+            (_, i) => i,
+          );
+          const vertexData = new flock.BABYLON.VertexData();
+          vertexData.positions = positions;
+          vertexData.indices = generated;
+          vertexData.applyToMesh(targetMesh, true);
+          return true;
+        };
+
+        if (!ensureMeshHasIndices(mesh)) {
+          if (flock.manifoldDebug) {
+            console.log(
+              "[create3DText] Missing indices; recreating with BABYLON.CreateText",
+            );
+          }
+          mesh.dispose();
+          mesh = flock.BABYLON.MeshBuilder.CreateText(
+            modelId,
+            text,
+            fontData,
+            {
+              size: size,
+              depth: depth,
+            },
+            flock.scene,
+            earcut,
+          );
+        }
 
         mesh.position.set(x, y, z);
         const material = new flock.BABYLON.StandardMaterial(
@@ -449,6 +628,13 @@ export const flockShapes = {
         mesh.refreshBoundingInfo();
         mesh.setEnabled(true);
         mesh.visibility = 1;
+
+        if (manifoldText) {
+          mesh.metadata = mesh.metadata || {};
+          mesh.metadata.manifold = manifoldText;
+        }
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.textSource = manifoldText ? "manifold" : "babylon";
 
         const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
         flock.applyPhysics(mesh, textShape);
