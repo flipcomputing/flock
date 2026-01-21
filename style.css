@@ -466,7 +466,7 @@ button {
   padding: 4px;
   font-size: 18px;
   min-height:30px;
-  background-color: var(--color-button-bg);
+  background-color: var(--color-bg);
   color: var(--color-text-primary);
   border: none;
   border-radius: 15px;
