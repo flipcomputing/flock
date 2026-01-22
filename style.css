@@ -1071,6 +1071,11 @@ details summary:focus,
     margin-left: auto;
 }
 
+
+[data-theme="contrast"] .menu-item[aria-haspopup="true"]:hover::after {
+    color: black;
+}
+
 #examples {
   min-width: 100px;
   flex-grow: 1;
@@ -1092,6 +1097,14 @@ details summary:focus,
 
 .menu-item:hover {
   background-color: var(--color-menu-hover);
+}
+
+[data-theme="contrast"] .menu-item:hover .menu-label {
+  color: black;
+}
+
+[data-theme="contrast"] .menu-item:hover .menu-icon svg {
+  fill: black;
 }
 
 .menu-icon {
