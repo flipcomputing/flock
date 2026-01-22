@@ -540,7 +540,7 @@ button {
 }
 
 [data-theme="contrast"] .icon path {
-  fill: #000000 !important;
+  fill: #ffffff !important;
 }
 
 [data-theme="contrast"] .gizmo-button img {
