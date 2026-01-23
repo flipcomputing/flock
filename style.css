@@ -236,6 +236,10 @@
   color: #000000 !important;
 }
 
+[data-theme="dark"] #exampleSelect {
+  background-color: var(--color-bg) !important;
+}
+
 /* Loading Screen Styles */
 .loading-screen {
   position: fixed;
