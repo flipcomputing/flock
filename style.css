@@ -233,10 +233,15 @@
 } 
 
 [data-theme="contrast"] #exampleSelect {
-  color: #000000 !important;
+  color: white !important;
+  background-color: var(--color-bg) !important;
 }
 
 [data-theme="dark"] #exampleSelect {
+  background-color: var(--color-bg) !important;
+}
+
+[data-theme="dark-contrast"] #exampleSelect {
   background-color: var(--color-bg) !important;
 }
 
