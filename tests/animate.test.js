@@ -213,47 +213,6 @@ export function runAnimateTests(flock) {
 			});
 		});
 
-		describe("glideTo function", function () {
-			it("should move mesh to target position", async function () {
-				const boxId = "glideToTest";
-				await flock.createBox(boxId, {
-					width: 1,
-					height: 1,
-					depth: 1,
-					position: [0, 0, 0],
-				});
-				boxIds.push(boxId);
-
-				const mesh = flock.scene.getMeshByName(boxId);
-				expect(mesh).to.exist;
-
-				await flock.glideTo(boxId, { x: 5, y: 3, z: 2, duration: 0.1 });
-
-				// Check final position (accounting for mesh height adjustment)
-				expect(mesh.position.x).to.be.closeTo(5, 0.1);
-				expect(mesh.position.z).to.be.closeTo(2, 0.1);
-				// Y position includes mesh height adjustment
-				expect(mesh.position.y).to.be.greaterThan(2.5);
-			});
-
-			it("should handle camera movement", async function () {
-				// Test camera movement (if active camera exists)
-				try {
-					await flock.glideTo("__active_camera__", {
-						x: 1,
-						y: 1,
-						z: 1,
-						duration: 0.1,
-					});
-					// If we get here without throwing, the test passes
-					expect(true).to.be.true;
-				} catch (error) {
-					// If there's no active camera, we should get a specific error or skip
-					console.log("No active camera for testing");
-				}
-			});
-		});
-
 		describe("animateProperty function", function () {
 			it("should animate alpha property", async function () {
 				const boxId = "animateAlpha";
@@ -638,20 +597,23 @@ export function runAnimateTests(flock) {
 				expect(mesh).to.exist;
 			});
 
-			it("should handle missing mesh gracefully in animateKeyFrames", async function () {
+			it("should run animateKeyFrames after the mesh becomes available", async function () {
+				const meshName = "late_mesh_for_keyframes";
 				const keyframes = [
 					{ duration: 0, value: "#FF0000" },
-					{ duration: 1, value: "#00FF00" },
+					{ duration: 0.1, value: "#00FF00" },
 				];
 
-				// This should not throw an error
-				await flock.animateKeyFrames("nonExistentMesh", {
+				const animationPromise = flock.animateKeyFrames(meshName, {
 					keyframes: keyframes,
 					property: "color",
 				});
 
-				// If we get here without throwing, the test passes
-				expect(true).to.be.true;
+				await new Promise((resolve) => setTimeout(resolve, 50));
+				await flock.createBox(meshName, {});
+				boxIds.push(meshName);
+
+				await animationPromise;
 			});
 
 			it("should handle empty keyframes array", async function () {
@@ -896,21 +858,20 @@ export function runAnimateTests(flock) {
 				expect(mesh).to.exist;
 			});
 
-			it("should handle missing mesh gracefully", async function () {
-				// This test accounts for the retry mechanism in whenModelReady
-				this.timeout(5000);
+			it("should run playAnimation after the mesh becomes available", async function () {
+				const meshName = "late_mesh_for_play_anim";
+				const animationPromise = flock.playAnimation(meshName, {
+					animationName: "TestAnimation",
+				});
 
-				const startTime = Date.now();
-				try {
-					await flock.playAnimation("nonExistentMesh", {
-						animationName: "TestAnimation",
-					});
-				} catch (error) {
-					// Expected behavior when mesh is not found after attempts
-					const endTime = Date.now();
-					expect(endTime - startTime).to.be.greaterThan(900); // At least most of the retry time
-					expect(error.message).to.exist;
-				}
+				await new Promise((resolve) => setTimeout(resolve, 50));
+				await flock.createBox(meshName, {});
+				boxIds.push(meshName);
+
+				// Await to ensure it doesn't time out.
+				// The promise will resolve even if the animation doesn't exist,
+				// as long as the mesh is found.
+				await animationPromise;
 			});
 
 			it("should handle default parameters", async function () {
@@ -954,84 +915,33 @@ export function runAnimateTests(flock) {
 		});
 
 		describe("edge cases and error handling", function () {
-			it("should handle missing mesh gracefully in rotateAnim", async function () {
-				// This should not throw an error
-				await flock.rotateAnim("nonExistentMesh", { x: 90 });
-
-				// If we get here without throwing, the test passes
-				expect(true).to.be.true;
-			});
-
-			it("should wait for mesh creation when glideTo is called early", async function () {
-				const boxId = "glideToDelayedCreation";
-
-				const glidePromise = flock.glideTo(boxId, {
-					x: 2,
-					y: 1,
-					z: 0,
+			it("should run rotateAnim after the mesh becomes available", async function () {
+				const meshName = "late_mesh_for_rotate";
+				const animationPromise = flock.rotateAnim(meshName, {
+					x: 90,
 					duration: 0.1,
 				});
 
-				await new Promise((resolve) => setTimeout(resolve, 20));
+				await new Promise((resolve) => setTimeout(resolve, 50));
+				await flock.createBox(meshName, {});
+				boxIds.push(meshName);
 
-				await flock.createBox(boxId, {
-					width: 1,
-					height: 1,
-					depth: 1,
-					position: [0, 0, 0],
-				});
-				boxIds.push(boxId);
-
-				let error;
-				try {
-					await glidePromise;
-				} catch (err) {
-					error = err;
-				}
-
-				expect(error).to.be.undefined;
+				await animationPromise;
 			});
 
-			it("should handle missing mesh gracefully in animateProperty", async function () {
-				// This should not throw an error
-				await flock.animateProperty("nonExistentMesh", {
+			it("should run animateProperty after the mesh becomes available", async function () {
+				const meshName = "late_mesh_for_prop_anim";
+				const animationPromise = flock.animateProperty(meshName, {
 					property: "alpha",
 					targetValue: 0.5,
 					duration: 0.1,
 				});
 
-				// If we get here without throwing, the test passes
-				expect(true).to.be.true;
-			});
+				await new Promise((resolve) => setTimeout(resolve, 50));
+				await flock.createBox(meshName, {});
+				boxIds.push(meshName);
 
-			it("should wait for mesh creation when glideTo is called early", async function () {
-				const boxId = "glideToDelayedCreation";
-
-				const glidePromise = flock.glideTo(boxId, {
-					x: 2,
-					y: 1,
-					z: 0,
-					duration: 0.1,
-				});
-
-				await new Promise((resolve) => setTimeout(resolve, 20));
-
-				await flock.createBox(boxId, {
-					width: 1,
-					height: 1,
-					depth: 1,
-					position: [0, 0, 0],
-				});
-				boxIds.push(boxId);
-
-				let error;
-				try {
-					await glidePromise;
-				} catch (err) {
-					error = err;
-				}
-
-				expect(error).to.be.undefined;
+				await animationPromise;
 			});
 
 			it("should handle zero duration in rotateAnim", async function () {

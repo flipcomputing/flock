@@ -182,6 +182,34 @@
           pattern: "@sound",
         },
         {
+          id: "sound-integration",
+          name: "Sound Integration Tests",
+          importPath: "./sound-integration.test.js",
+          importFn: "runSoundIntegrationTests",
+          pattern: "@sound-integration",
+        },
+        {
+          id: "sound-investigation",
+          name: "Sound API Investigation",
+          importPath: "./sound-api-investigation.test.js",
+          importFn: "runSoundAPIInvestigation",
+          pattern: "@investigation",
+        },
+        {
+          id: "sound-verification",
+          name: "Sound Verification Tests",
+          importPath: "./sound-verification.test.js",
+          importFn: "runSoundVerificationTests",
+          pattern: "@sound-verification",
+        },
+        {
+          id: "sound-diagnostic",
+          name: "Sound Replacement Diagnostic",
+          importPath: "./sound-replacement-diagnostic.test.js",
+          importFn: "runSoundReplacementDiagnostic",
+          pattern: "@diagnostic",
+        },
+        {
           id: "translation",
           name: "Translation/Movement Tests",
           importPath: "./transform.translate.test.js",
@@ -223,6 +251,14 @@
           importFn: "runEffectsTests",
           pattern: "Effects API",
         },
+        {
+          id: "property",
+          name: "Sensing getProperty Tests",
+          importPath: "./getProperty.test.js",
+          importFn: "runGetPropertyTests",
+          pattern: "@property",
+        },
+
         {
           id: "animate",
           name: "Animation API Tests",

@@ -248,9 +248,14 @@ export default {
   key_pressed: "czy klawisz %1 jest wciśnięty?",
   action_pressed: "%1",
   meshes_touching: "czy %1 dotyka %2?",
-  time: "czas w s",
+  time: "czas w %1",
+  seconds: "sekundach",
+  milliseconds: "milisekundach",
+  minutes: "minutach",
+  ground_level: "poziom gruntu",
   distance_to: "odległość od %1 do %2",
   touching_surface: "czy %1 dotyka powierzchni?",
+  mesh_exists: "czy %1 istnieje?",
   get_property: "pobierz %1 z %2",
   canvas_controls: "kontrola płótna %1",
   button_controls: "kontrolki przycisku %1 włączone: %2 kolor: %3",
@@ -301,6 +306,10 @@ export default {
   create_3d_text:
     "dodaj tekst 3D %1: %2 czcionka: %3 rozmiar: %4 kolor: %5\ngłębokość: %6 x: %7 y: %8 z: %9",
 
+  // Custom block translations - Math blocks
+  random_seeded_int: "losowa liczba całkowita od %1 do %2 z ziarnem: %3",
+  to_number: "konwertuj %1 na %2",
+
   // Custom block translations - Transform blocks
   move_by_xyz: "zmień pozycję %1 o x: %2, y: %3, z: %4",
   move_by_xyz_single: "zmień położenie %1 o %2 %3",
@@ -314,6 +323,8 @@ export default {
   rotate_to: "obróć %1 do x: %2, y: %3, z: %4",
   look_at: "spójrz %1 na %2 y? %3",
   move_forward: "przesuń %1 %2 prędkość: %3",
+  rotate_camera: "obróć kamerę o %1 stopni",
+  up: "w górę %1 siła %2",
   set_pivot: "ustaw punkt kotwiczenia %1\nx: %2, y: %3, z: %4",
   min_centre_max: "%1",
 
@@ -517,9 +528,13 @@ export default {
   meshes_touching_tooltip:
     "Zwraca true, jeśli dwie wybrane siatki się stykają.\nSłowo kluczowe: istouching",
   time_tooltip: "Zwraca bieżący czas w sekundach.",
+  ground_level_tooltip:
+    "Zwraca wysokość gruntu w bieżącej pozycji x/z.",
   distance_to_tooltip: "Oblicz odległość między siatkami %1 i %2.",
   touching_surface_tooltip:
     "Sprawdź, czy siatka %1 dotyka powierzchni.\nSłowo kluczowe: surface",
+  mesh_exists_tooltip:
+    "Zwraca true, jeśli siatka o tej nazwie znajduje się na scenie.",
   get_property_tooltip:
     "Pobierz wartość właściwości %1 z siatki %2.\nSłowo kluczowe: get",
   canvas_controls_tooltip:
@@ -578,6 +593,12 @@ export default {
     "Zadaj użytkownikowi pytanie i poczekaj na odpowiedź. Wynik zapisany w zmiennej.",
   create_3d_text_tooltip: "Stwórz tekst 3D w scenie.",
 
+  // Tooltip translations - Math blocks
+  random_seeded_int_tooltip:
+    "Wygeneruj losową liczbę całkowitą z ziarnem.\nSłowo kluczowe: seed",
+  to_number_tooltip:
+    "Konwertuje ciąg na liczbę całkowitą lub zmiennoprzecinkową.",
+
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
     "Przesuń siatkę o określoną wartość w osiach x, y i z.\nSłowo kluczowe: move",
@@ -601,6 +622,9 @@ export default {
     "Obróć pierwszą siatkę w stronę pozycji drugiej.\nSłowo kluczowe: look",
   move_forward_tooltip:
     "Przesuń siatkę: 'forward' = w kierunku, 'sideways' = względem kamery, 'strafe' = bocznie.\nSłowo kluczowe: push",
+  rotate_camera_tooltip:
+    "Obraca kamerę w lewo lub w prawo o podaną liczbę stopni.\nSłowo kluczowe: rotate",
+  up_tooltip: "Zastosuj określoną siłę w górę.\nSłowo kluczowe: up",
   set_pivot_tooltip:
     "Ustaw punkt kotwiczenia siatki na osiach X, Y i Z.\nSłowo kluczowe: kotwica",
   min_centre_max_tooltip:

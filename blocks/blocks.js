@@ -2,7 +2,7 @@ import * as Blockly from "blockly";
 //import "@blockly/block-plus-minus";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { toolbox } from "../toolbox.js";
-import { getOption, translate } from "../main/translation.js";
+import { getOption, translate, getTooltip } from "../main/translation.js";
 import { flock } from "../flock.js";
 
 import {
@@ -789,12 +789,177 @@ export class CustomConstantProvider extends Blockly.zelos.ConstantProvider {
   }
 }
 
+const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
+
 class CustomRenderInfo extends Blockly.zelos.RenderInfo {
   constructor(renderer, block) {
     super(renderer, block);
   }
 
   adjustXPosition_() {}
+
+  addElemSpacing_() {
+    super.addElemSpacing_();
+
+    // Add extra height to the top row for IF blocks only
+    if (this.block_.type === "if_clause") {
+      const mode = this.block_.getFieldValue?.("MODE");
+      if (mode === MODE.IF && this.rows.length > 0) {
+        // Find the first row with fields or inputs (skip the top cap row)
+        for (let i = 0; i < this.rows.length; i++) {
+          const row = this.rows[i];
+
+          // Check if this row has elements (fields, inputs, etc.)
+          if (row.elements && row.elements.length > 0) {
+            // Check if it's not just a top/bottom cap or connection row
+            const hasContent = row.elements.some(
+              (el) => el.field || el.input || (el.type && el.type !== 0),
+            );
+
+            if (hasContent) {
+              // Add extra height to this row
+              const extraHeight = 20;
+              row.height += extraHeight;
+              row.minHeight = row.height;
+              break; // Only modify the first content row
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+class CustomZelosDrawer extends Blockly.zelos.Drawer {
+  constructor(block, info) {
+    super(block, info);
+  }
+
+  drawTop_() {
+    const b = this.block_;
+    if (b?.type !== "if_clause") return super.drawTop_();
+
+    // Never change shape for insertion markers.
+    if (b.isInsertionMarker?.()) return super.drawTop_();
+
+    const mode = b.getFieldValue?.("MODE");
+    const isClause = mode === MODE.ELSE || mode === MODE.ELSEIF;
+
+    // Require an ACTUAL previous connection to a real if_clause block.
+    const prevConn = b.previousConnection;
+    const prev =
+      prevConn && prevConn.isConnected() ? prevConn.targetBlock() : null;
+
+    const prevIsRealIfClause =
+      prev && prev.type === "if_clause" && !prev.isInsertionMarker?.();
+
+    if (isClause && prevIsRealIfClause) {
+      this.drawFlatTop_();
+      return;
+    }
+
+    super.drawTop_();
+  }
+
+  drawBottom_() {
+    const b = this.block_;
+    if (b?.type !== "if_clause") return super.drawBottom_();
+
+    // Never change shape for insertion markers.
+    if (b.isInsertionMarker?.()) return super.drawBottom_();
+
+    const mode = b.getFieldValue?.("MODE");
+
+    // Only clauses that can legally have something after them in the same chain.
+    const canContinueChain = mode === MODE.IF || mode === MODE.ELSEIF;
+    if (!canContinueChain) return super.drawBottom_();
+
+    // Require an ACTUAL next connection to a real if_clause block.
+    const nextConn = b.nextConnection;
+    const next =
+      nextConn && nextConn.isConnected() ? nextConn.targetBlock() : null;
+
+    const nextIsRealIfClause =
+      next && next.type === "if_clause" && !next.isInsertionMarker?.();
+
+    if (!nextIsRealIfClause) return super.drawBottom_();
+
+    // Only flatten when the NEXT clause is a joined clause (else/else if),
+    // not when it’s a new IF statement.
+    const nextMode = next.getFieldValue?.("MODE");
+    const nextIsJoinedClause =
+      nextMode === MODE.ELSE || nextMode === MODE.ELSEIF;
+
+    if (nextIsJoinedClause) {
+      this.drawFlatBottom_();
+      return;
+    }
+
+    super.drawBottom_();
+  }
+
+  draw() {
+    super.draw();
+
+    const b = this.block_;
+    if (b?.type !== "if_clause") return;
+
+    // Don’t paint seam covers on insertion markers / connection previews.
+    if (typeof b.isInsertionMarker === "function" && b.isInsertionMarker())
+      return;
+
+    const svgRoot = b.getSvgRoot?.();
+    if (!svgRoot) return;
+
+    // Always remove any previous cover (so disabling can hide it).
+    const existing = svgRoot.querySelector?.(
+      ":scope > rect.ifclause-seam-cover",
+    );
+    if (existing) existing.remove();
+
+    // If the block is disabled, we’re done (no cover).
+    // Use isEnabled (covers setDisabledReason etc), with a fallback to `disabled`.
+    const isDisabled =
+      (typeof b.isEnabled === "function" ? !b.isEnabled() : false) ||
+      !!b.disabled;
+    if (isDisabled) return;
+
+    const prev = b.getPreviousBlock?.();
+    const prevIsIfClause = prev && prev.type === "if_clause";
+
+    const mode = b.getFieldValue?.("MODE");
+    const isJoinedClause = mode === MODE.ELSE || mode === MODE.ELSEIF;
+
+    if (!prevIsIfClause || !isJoinedClause) return;
+
+    // Get the actual rendered fill from the block path (avoids black during previews).
+    const pathObj = this.pathObject_;
+    const mainPath =
+      pathObj?.svgPath_ || pathObj?.svgPath || pathObj?.path_ || null;
+
+    const fill =
+      (mainPath?.getAttribute && mainPath.getAttribute("fill")) ||
+      mainPath?.style?.fill ||
+      (typeof b.getColour === "function" ? b.getColour() : null);
+
+    if (!fill || fill === "none") return;
+
+    const coverPx = 16;
+    const strokePx =
+      this.constants_?.OUTLINE_WIDTH ?? this.constants_?.STROKE_WIDTH ?? 1;
+
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("class", "ifclause-seam-cover");
+    rect.setAttribute("x", "1");
+    rect.setAttribute("y", String(-strokePx * 2));
+    rect.setAttribute("width", String(coverPx));
+    rect.setAttribute("height", String(strokePx * 4));
+    rect.setAttribute("fill", fill);
+    rect.setAttribute("stroke", "none");
+    rect.setAttribute("pointer-events", "none");
+
+    svgRoot.appendChild(rect);
+  }
 }
 
 export class CustomZelosRenderer extends Blockly.zelos.Renderer {
@@ -802,14 +967,16 @@ export class CustomZelosRenderer extends Blockly.zelos.Renderer {
     super(name);
   }
 
-  // Override the method to return our custom constant provider
   makeConstants_() {
     return new CustomConstantProvider();
   }
 
-  // Override the method to return our custom RenderInfo
   makeRenderInfo_(block) {
     return new CustomRenderInfo(this, block);
+  }
+
+  makeDrawer_(block, info) {
+    return new CustomZelosDrawer(block, info);
   }
 }
 
@@ -1064,7 +1231,7 @@ export function defineBlocks() {
     init: function () {
       this.jsonInit({
         type: "rotate_camera",
-        message0: "rotate camera by %1 degrees",
+        message0: translate("rotate_camera"),
         args0: [
           {
             type: "input_value",
@@ -1076,8 +1243,7 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Transform"],
-        tooltip:
-          "Rotate the camera left or right by the given degrees.\nKeyword: rotate",
+        tooltip: getTooltip("rotate_camera"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
@@ -1087,7 +1253,7 @@ export function defineBlocks() {
     init: function () {
       this.jsonInit({
         type: "up",
-        message0: "up %1 force %2",
+        message0: translate("up"),
         args0: [
           {
             type: "field_variable",
@@ -1103,7 +1269,7 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Transform"],
-        tooltip: "Apply the specified upwards force.\nKeyword: up",
+        tooltip: getTooltip("up"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
@@ -1113,7 +1279,7 @@ export function defineBlocks() {
     init: function () {
       this.jsonInit({
         type: "random_seeded_int",
-        message0: "random integer from %1 to %2 seed: %3",
+        message0: translate("random_seeded_int"),
         args0: [
           {
             type: "input_value",
@@ -1137,7 +1303,7 @@ export function defineBlocks() {
         inputsInline: true,
         output: "Number",
         colour: 230,
-        tooltip: "Generate a random integer with a seed.\n Keyword: seed",
+        tooltip: getTooltip("random_seeded_int"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
@@ -1147,7 +1313,7 @@ export function defineBlocks() {
     init: function () {
       this.jsonInit({
         type: "to_number",
-        message0: "convert %1 to %2",
+        message0: translate("to_number"),
         args0: [
           {
             type: "input_value",
@@ -1166,7 +1332,7 @@ export function defineBlocks() {
         inputsInline: true,
         output: "Number",
         colour: 230,
-        tooltip: "Convert a string to an integer or float.",
+        tooltip: getTooltip("to_number"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
