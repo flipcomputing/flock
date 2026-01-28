@@ -943,6 +943,7 @@ export default {
   physics_fun_ui: "👆🏾 Physics fun",
   collect_the_gems_ui: "💎 Collect the gems",
   water_map_ui: "💧 Water map",
+  flyer_ui: "🪽 Flyer!",
   skittles_ui: "🎳 Skittles",
   beetle_ui: "🪲 Beetle",
   roominator_ui: "🛋️ Roominator",

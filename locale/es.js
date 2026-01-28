@@ -948,6 +948,7 @@ export default {
   physics_fun_ui: "👆🏾 Diversión Física", // human
   collect_the_gems_ui: "💎 Recoger las Gemas", // human
   water_map_ui: "💧 Mapa de Agua", // human
+  flyer_ui: "🪽 Aviador!", // human
   skittles_ui: "🎳 Bolos", // human
   beetle_ui: "🪲 Escarabajo", // human
   roominator_ui: "🛋️ Habitación", // human
