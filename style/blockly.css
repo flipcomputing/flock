@@ -136,7 +136,7 @@ textarea.blocklyCommentText.blocklyTextarea.blocklyText {
 }
 
 [data-theme="contrast"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
-  fill: rgba(255, 255, 255, 0.5) !important;
+  fill: rgba(255, 255, 255, 0.85) !important;
 }
 
 body[data-theme="contrast"] {
