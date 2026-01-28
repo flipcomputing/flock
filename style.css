@@ -232,6 +232,10 @@
   margin-right: 10px;
 } 
 
+::placeholder {
+  color: var(--color-text-primary) !important;
+}
+
 [data-theme="contrast"] #exampleSelect {
   color: #000000 !important;
 }
