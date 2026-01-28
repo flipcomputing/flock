@@ -224,7 +224,7 @@ export const objectColours = {
 
 export const modelNames = [
 	"Flock.glb",
-	"Flock_Santa.glb",
+	//"Flock_Santa.glb",
 	//"Character.glb",
 	//"bird.glb",
 	//"boat.glb",

@@ -331,9 +331,7 @@ export const flockShapes = {
 
     return newCapsule.name;
   },
-
   createPlane(planeId, { color, width, height, position, callback = null }) {
-    // Handle block key
     let blockKey = planeId;
     if (planeId.includes("__")) {
       [planeId, blockKey] = planeId.split("__");
@@ -344,7 +342,6 @@ export const flockShapes = {
       planeId = planeId + "_" + flock.scene.getUniqueId();
     }
 
-    // Create plane with specified dimensions
     const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
       planeId,
       {
@@ -354,19 +351,17 @@ export const flockShapes = {
       },
       flock.scene,
     );
-    // Set metadata and name
+
     newPlane.metadata = newPlane.metadata || {};
     newPlane.metadata.shape = "plane";
     newPlane.metadata.blockKey = blockKey;
 
-    // Set final position including the height offset all at once
     newPlane.position = new flock.BABYLON.Vector3(
       position[0],
       position[1] + height / 2,
       position[2],
     );
 
-    // Create physics body
     const planeBody = new flock.BABYLON.PhysicsBody(
       newPlane,
       flock.BABYLON.PhysicsMotionType.STATIC,
@@ -374,15 +369,13 @@ export const flockShapes = {
       flock.scene,
     );
 
-    // Create physics shape - matching the mesh position
     const planeShape = new flock.BABYLON.PhysicsShapeBox(
-      flock.BABYLON.Vector3.Zero(), // Center offset
+      flock.BABYLON.Vector3.Zero(),
       new flock.BABYLON.Quaternion(0, 0, 0, 1),
       new flock.BABYLON.Vector3(width, height, 0.001),
       flock.scene,
     );
 
-    // Set up physics properties
     planeBody.shape = planeShape;
     planeBody.setMassProperties({
       mass: 0,
@@ -391,10 +384,10 @@ export const flockShapes = {
     });
     newPlane.physics = planeBody;
 
-    flock.applyMaterialToMesh(newPlane, "Plane", color);
-
-    newPlane.material.metadata = newPlane.material.metadata || {};
-    newPlane.material.metadata.internal = true;
+    flock.setMaterialWithCleanup(newPlane, {
+      color: color,
+      materialName: "none.png"
+    });
 
     newPlane.metadata.blockKey = blockKey;
 

@@ -6,10 +6,10 @@ export function setFlockReference(ref) {
 
 export const flockSensing = {
   /* 
-		  Category: Sensing
+                  Category: Sensing
   */
 
-  getProperty(modelName, propertyName) {
+    getProperty(modelName, propertyName) {
     const mesh =
       modelName === "__active_camera__"
         ? flock.scene.activeCamera
@@ -19,49 +19,54 @@ export const flockSensing = {
 
     if (!mesh) return null;
 
+    // Ensure world transforms are current.
+    mesh.computeWorldMatrix(true);
+
+    // Use a consistent world position call (works for meshes and cameras).
     const position =
-      modelName === "__active_camera__"
-        ? mesh.globalPosition
-        : mesh.getAbsolutePosition();
+      typeof mesh.getAbsolutePosition === "function"
+        ? mesh.getAbsolutePosition()
+        : (mesh.globalPosition ?? mesh.position);
+
+    // Robust rotation: prefer quaternion if present, else fall back to Euler.
+    const rotEuler = mesh.absoluteRotationQuaternion
+      ? mesh.absoluteRotationQuaternion.toEulerAngles()
+      : mesh.rotationQuaternion
+        ? mesh.rotationQuaternion.toEulerAngles()
+        : (mesh.rotation ?? new flock.BABYLON.Vector3(0, 0, 0));
 
     let propertyValue = null;
     let colors = null;
 
-    mesh.computeWorldMatrix(true);
-
-    const rotation =
-      modelName === "__active_camera__"
-        ? mesh.absoluteRotation.toEulerAngles()
-        : mesh.absoluteRotationQuaternion.toEulerAngles();
-
     let allMeshes, materialNode, materialNodes;
+
     switch (propertyName) {
       case "POSITION_X":
-        propertyValue = parseFloat(position.x.toFixed(2));
+        propertyValue = position ? parseFloat(position.x.toFixed(2)) : null;
         break;
       case "POSITION_Y":
-        propertyValue = parseFloat(position.y.toFixed(2));
+        propertyValue = position ? parseFloat(position.y.toFixed(2)) : null;
         break;
       case "POSITION_Z":
-        propertyValue = parseFloat(position.z.toFixed(2));
+        propertyValue = position ? parseFloat(position.z.toFixed(2)) : null;
         break;
+
       case "ROTATION_X":
         propertyValue = parseFloat(
-          flock.BABYLON.Tools.ToDegrees(rotation.x).toFixed(2),
+          flock.BABYLON.Tools.ToDegrees(rotEuler.x).toFixed(2),
         );
         break;
       case "ROTATION_Y":
-        parseFloat(
-          (propertyValue = flock.BABYLON.Tools.ToDegrees(rotation.y).toFixed(
-            2,
-          )),
+        propertyValue = parseFloat(
+          flock.BABYLON.Tools.ToDegrees(rotEuler.y).toFixed(2),
         );
         break;
       case "ROTATION_Z":
         propertyValue = parseFloat(
-          flock.BABYLON.Tools.ToDegrees(rotation.z).toFixed(2),
+          flock.BABYLON.Tools.ToDegrees(rotEuler.z).toFixed(2),
         );
         break;
+
       case "SCALE_X":
         propertyValue = parseFloat(mesh.scaling.x.toFixed(2));
         break;
@@ -71,7 +76,11 @@ export const flockSensing = {
       case "SCALE_Z":
         propertyValue = parseFloat(mesh.scaling.z.toFixed(2));
         break;
+
       case "SIZE_X": {
+        if (typeof mesh.refreshBoundingInfo === "function") {
+          mesh.refreshBoundingInfo(true);
+        }
         const bi = mesh.getBoundingInfo();
         propertyValue = parseFloat(
           (
@@ -81,6 +90,9 @@ export const flockSensing = {
         break;
       }
       case "SIZE_Y": {
+        if (typeof mesh.refreshBoundingInfo === "function") {
+          mesh.refreshBoundingInfo(true);
+        }
         const bi = mesh.getBoundingInfo();
         propertyValue = parseFloat(
           (
@@ -90,6 +102,9 @@ export const flockSensing = {
         break;
       }
       case "SIZE_Z": {
+        if (typeof mesh.refreshBoundingInfo === "function") {
+          mesh.refreshBoundingInfo(true);
+        }
         const bi = mesh.getBoundingInfo();
         propertyValue = parseFloat(
           (
@@ -98,124 +113,76 @@ export const flockSensing = {
         );
         break;
       }
-      case "MIN_X":
-        if (mesh.metadata?.origin?.xOrigin === "LEFT") {
-          // Adjust based on LEFT origin
-          propertyValue = mesh.getBoundingInfo().boundingBox.minimumWorld.x;
-        } else if (mesh.metadata?.origin?.xOrigin === "RIGHT") {
-          // Adjust based on RIGHT origin
-          const diffX =
-            (mesh.getBoundingInfo().boundingBox.maximum.x -
-              mesh.getBoundingInfo().boundingBox.minimum.x) *
-            (1 - mesh.scaling.x);
-          propertyValue =
-            mesh.getBoundingInfo().boundingBox.maximumWorld.x - diffX;
-        } else {
-          // Default CENTER origin
-          propertyValue =
-            mesh.getBoundingInfo().boundingBox.minimum.x * mesh.scaling.x;
-        }
-        break;
 
-      case "MAX_X":
-        if (mesh.metadata?.origin?.xOrigin === "RIGHT") {
-          propertyValue = mesh.getBoundingInfo().boundingBox.maximumWorld.x;
-        } else if (mesh.metadata?.origin?.xOrigin === "LEFT") {
-          const diffX =
-            (mesh.getBoundingInfo().boundingBox.maximum.x -
-              mesh.getBoundingInfo().boundingBox.minimum.x) *
-            mesh.scaling.x;
-          propertyValue =
-            mesh.getBoundingInfo().boundingBox.minimumWorld.x + diffX;
-        } else {
-          propertyValue =
-            mesh.getBoundingInfo().boundingBox.maximum.x * mesh.scaling.x;
+      // MIN/MAX: return consistent world AABB extents.
+      // (Origin-specific adjustments previously mixed local/world spaces and manual scaling.)
+      case "MIN_X": {
+        if (typeof mesh.refreshBoundingInfo === "function") {
+          mesh.refreshBoundingInfo(true);
         }
+        const bi = mesh.getBoundingInfo();
+        propertyValue = bi.boundingBox.minimumWorld.x;
         break;
-
-      case "MIN_Y":
-        if (mesh.metadata?.origin?.yOrigin === "BASE") {
-          propertyValue = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
-        } else if (mesh.metadata?.origin?.yOrigin === "TOP") {
-          const diffY =
-            (mesh.getBoundingInfo().boundingBox.maximum.y -
-              mesh.getBoundingInfo().boundingBox.minimum.y) *
-            (1 - mesh.scaling.y);
-          propertyValue =
-            mesh.getBoundingInfo().boundingBox.maximumWorld.y - diffY;
-        } else {
-          propertyValue = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
-          //mesh.getBoundingInfo().boundingBox.minimum.y *
-          //                                              mesh.scaling.y;
+      }
+      case "MAX_X": {
+        if (typeof mesh.refreshBoundingInfo === "function") {
+          mesh.refreshBoundingInfo(true);
         }
-
+        const bi = mesh.getBoundingInfo();
+        propertyValue = bi.boundingBox.maximumWorld.x;
         break;
-
-      case "MAX_Y":
-        if (mesh.metadata?.origin?.yOrigin === "TOP") {
-          propertyValue = mesh.getBoundingInfo().boundingBox.maximumWorld.y;
-        } else if (mesh.metadata?.origin?.yOrigin === "BASE") {
-          const diffY =
-            (mesh.getBoundingInfo().boundingBox.maximum.y -
-              mesh.getBoundingInfo().boundingBox.minimum.y) *
-            mesh.scaling.y;
-          propertyValue =
-            mesh.getBoundingInfo().boundingBox.minimumWorld.y + diffY;
-        } else {
-          propertyValue = propertyValue =
-            mesh.getBoundingInfo().boundingBox.maximumWorld.y;
-          //mesh.getBoundingInfo().boundingBox.maximum.y *
-          //                                              mesh.scaling.y;
+      }
+      case "MIN_Y": {
+        if (typeof mesh.refreshBoundingInfo === "function") {
+          mesh.refreshBoundingInfo(true);
         }
+        const bi = mesh.getBoundingInfo();
+        propertyValue = bi.boundingBox.minimumWorld.y;
         break;
-
-      case "MIN_Z":
-        if (mesh.metadata?.origin?.zOrigin === "FRONT") {
-          propertyValue = mesh.getBoundingInfo().boundingBox.minimumWorld.z;
-        } else if (mesh.metadata?.origin?.zOrigin === "BACK") {
-          const diffZ =
-            (mesh.getBoundingInfo().boundingBox.maximum.z -
-              mesh.getBoundingInfo().boundingBox.minimum.z) *
-            (1 - mesh.scaling.z);
-          propertyValue =
-            mesh.getBoundingInfo().boundingBox.maximumWorld.z - diffZ;
-        } else {
-          propertyValue =
-            mesh.getBoundingInfo().boundingBox.minimum.z * mesh.scaling.z;
+      }
+      case "MAX_Y": {
+        if (typeof mesh.refreshBoundingInfo === "function") {
+          mesh.refreshBoundingInfo(true);
         }
+        const bi = mesh.getBoundingInfo();
+        propertyValue = bi.boundingBox.maximumWorld.y;
         break;
-
-      case "MAX_Z":
-        if (mesh.metadata?.origin?.zOrigin === "BACK") {
-          propertyValue = mesh.getBoundingInfo().boundingBox.maximumWorld.z;
-        } else if (mesh.metadata?.origin?.zOrigin === "FRONT") {
-          const diffZ =
-            (mesh.getBoundingInfo().boundingBox.maximum.z -
-              mesh.getBoundingInfo().boundingBox.minimum.z) *
-            mesh.scaling.z;
-          propertyValue =
-            mesh.getBoundingInfo().boundingBox.minimumWorld.z + diffZ;
-        } else {
-          propertyValue =
-            mesh.getBoundingInfo().boundingBox.maximum.z * mesh.scaling.z;
+      }
+      case "MIN_Z": {
+        if (typeof mesh.refreshBoundingInfo === "function") {
+          mesh.refreshBoundingInfo(true);
         }
+        const bi = mesh.getBoundingInfo();
+        propertyValue = bi.boundingBox.minimumWorld.z;
         break;
+      }
+      case "MAX_Z": {
+        if (typeof mesh.refreshBoundingInfo === "function") {
+          mesh.refreshBoundingInfo(true);
+        }
+        const bi = mesh.getBoundingInfo();
+        propertyValue = bi.boundingBox.maximumWorld.z;
+        break;
+      }
+
       case "VISIBLE":
-        propertyValue = mesh.isVisible;
+          propertyValue = mesh.isEnabled() && mesh.isVisible;
         break;
+
+      // Leaving colour-related logic as-is for now, per your request.
       case "ALPHA":
-        allMeshes = [mesh].concat(mesh.getDescendants());
+        allMeshes = [mesh].concat(mesh.getDescendants?.() ?? []);
         materialNode = allMeshes.find((node) => node.material);
 
         if (materialNode) {
           propertyValue = materialNode.material.alpha;
         }
         break;
+
       case "COLOUR":
-        allMeshes = [mesh].concat(mesh.getDescendants());
+        allMeshes = [mesh].concat(mesh.getDescendants?.() ?? []);
         materialNodes = allMeshes.filter((node) => node.material);
 
-        // Map to get the diffuseColor or albedoColor of each material as a hex string
         colors = materialNodes
           .map((node) => {
             if (node.material.diffuseColor) {
@@ -226,16 +193,18 @@ export const flockSensing = {
             return null;
           })
           .filter((color) => color !== null);
+
         if (colors.length === 1) {
           propertyValue = colors[0];
         } else if (colors.length > 1) {
           propertyValue = colors.join(", ");
         }
-
         break;
+
       default:
         console.log("Property not recognized.");
     }
+
     return propertyValue;
   },
   keyPressed(key) {
@@ -376,5 +345,17 @@ export const flockSensing = {
     }
 
     return actionKeys.some((key) => this.keyPressed(key));
+  },
+  getTime(unit) {
+    const now = Date.now();
+    switch (unit) {
+      case "milliseconds":
+        return now;
+      case "minutes":
+        return Math.floor(now / 60000);
+      case "seconds":
+      default:
+        return Math.floor(now / 1000);
+    }
   },
 };
