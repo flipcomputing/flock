@@ -3,6 +3,11 @@ import { categoryColours } from "../toolbox.js";
 import { getHelpUrlFor } from "./blocks.js";
 import { translate, getTooltip } from "../main/translation.js";
 
+const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
+
+const TRANSPARENT_PNG_1PX =
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQImWNgYGBgAAAABQABJACfMwAAAABJRU5ErkJggg==";
+
 export function defineControlBlocks() {
         Blockly.Blocks["wait"] = {
                 init: function () {
@@ -92,72 +97,6 @@ export function defineControlBlocks() {
                 },
         };
 
-        Blockly.Blocks["for_loop2"] = {
-                init: function () {
-                        this.jsonInit({
-                                type: "for_loop",
-                                message0: translate("for_loop2"),
-                                args0: [
-                                        {
-                                                type: "field_lexical_variable",
-                                                name: "VAR",
-                                                text: "count", // Default variable name is "count"
-                                                options: [["count", "count"]],
-                                        },
-                                        {
-                                                type: "input_value",
-                                                name: "FROM",
-                                                check: "Number",
-                                        },
-                                        {
-                                                type: "input_value",
-                                                name: "TO",
-                                                check: "Number",
-                                        },
-                                        {
-                                                type: "input_value",
-                                                name: "BY",
-                                                check: "Number",
-                                        },
-                                        {
-                                                type: "input_statement",
-                                                name: "DO",
-                                        },
-                                ],
-                                previousStatement: null,
-                                nextStatement: null,
-                                colour: categoryColours["Control"],
-                                inputsInline: true,
-                                tooltip: getTooltip("for_loop2"),
-                        });
-                        this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle("control_blocks");
-                },
-
-                // Returns an array of local variable names.
-                getLexicalVariables: function () {
-                        return [this.getFieldValue("VAR")];
-                },
-
-                // Update the variable name on this block.
-                setLexicalVariable: function (newName) {
-                        this.setFieldValue(String(newName), "VAR");
-                },
-
-                // Save the current variable name in a mutation.
-                mutationToDom: function () {
-                        const container = document.createElement("mutation");
-                        container.setAttribute("var", this.getFieldValue("VAR"));
-                        return container;
-                },
-
-                // Restore the variable name from a mutation.
-                domToMutation: function (xmlElement) {
-                        const variableName = xmlElement.getAttribute("var");
-                        this.setFieldValue(variableName, "VAR");
-                },
-        };
-
         Blockly.Blocks["for_loop"] = {
                 init: function () {
                         this.jsonInit({
@@ -218,24 +157,36 @@ export function defineControlBlocks() {
                                 const field = this.getField("VAR");
                                 if (field && field.variableId_) {
                                         const oldId = field.variableId_;
-                                        const newId = Blockly.utils.idGenerator.genUid();
+                                        const newId =
+                                                Blockly.utils.idGenerator.genUid();
                                         field.variableId_ = newId;
 
                                         // Recursively update nested getter blocks.
                                         const updateNestedBlocks = (block) => {
                                                 if (
-                                                        block.type === "get_lexical_variable" &&
-                                                        block.variableSourceId === oldId
+                                                        block.type ===
+                                                                "get_lexical_variable" &&
+                                                        block.variableSourceId ===
+                                                                oldId
                                                 ) {
-                                                        block.variableSourceId = newId;
+                                                        block.variableSourceId =
+                                                                newId;
                                                 }
-                                                block.getChildren(false).forEach(updateNestedBlocks);
+                                                block.getChildren(
+                                                        false,
+                                                ).forEach(updateNestedBlocks);
                                         };
 
                                         // Update getter blocks inside the DO input.
-                                        const doConnection = this.getInput("DO")?.connection;
-                                        if (doConnection && doConnection.targetBlock()) {
-                                                updateNestedBlocks(doConnection.targetBlock());
+                                        const doConnection =
+                                                this.getInput("DO")?.connection;
+                                        if (
+                                                doConnection &&
+                                                doConnection.targetBlock()
+                                        ) {
+                                                updateNestedBlocks(
+                                                        doConnection.targetBlock(),
+                                                );
                                         }
                                 }
                         }
@@ -249,9 +200,15 @@ export function defineControlBlocks() {
                         if (field && field.saveExtraState) {
                                 const extraState = field.saveExtraState();
                                 container.setAttribute("var", extraState.value);
-                                container.setAttribute("variableid", extraState.variableId);
+                                container.setAttribute(
+                                        "variableid",
+                                        extraState.variableId,
+                                );
                         } else {
-                                container.setAttribute("var", this.getFieldValue("VAR"));
+                                container.setAttribute(
+                                        "var",
+                                        this.getFieldValue("VAR"),
+                                );
                         }
                         return container;
                 },
@@ -259,7 +216,8 @@ export function defineControlBlocks() {
                 // Restore the variable name and unique id from the mutation.
                 domToMutation: function (xmlElement) {
                         const varName = xmlElement.getAttribute("var");
-                        const variableId = xmlElement.getAttribute("variableid");
+                        const variableId =
+                                xmlElement.getAttribute("variableid");
                         const field = this.getField("VAR");
                         if (field && field.loadExtraState) {
                                 field.loadExtraState({
@@ -300,7 +258,11 @@ export function defineControlBlocks() {
                 computeOptions() {
                         // If the field's value is null-ish, force it to "count".
                         let current = super.getValue();
-                        if (current === null || current === undefined || current === "") {
+                        if (
+                                current === null ||
+                                current === undefined ||
+                                current === ""
+                        ) {
                                 current = "count";
                                 super.setValue(current);
                         } else {
@@ -335,16 +297,22 @@ export function defineControlBlocks() {
                 setValue(value) {
                         if (value === "__RENAME__") {
                                 setTimeout(() => {
-                                        const currentName = String(super.getValue());
+                                        const currentName = String(
+                                                super.getValue(),
+                                        );
 
                                         const newName = window.prompt(
                                                 "Rename variable",
                                                 currentName,
                                         );
-                                        if (newName && newName !== currentName) {
+                                        if (
+                                                newName &&
+                                                newName !== currentName
+                                        ) {
                                                 if (
                                                         this.sourceBlock_ &&
-                                                        typeof this.sourceBlock_.setLexicalVariable ===
+                                                        typeof this.sourceBlock_
+                                                                .setLexicalVariable ===
                                                                 "function"
                                                 ) {
                                                         this.sourceBlock_.setLexicalVariable(
@@ -353,34 +321,63 @@ export function defineControlBlocks() {
                                                 }
                                                 // Recompute and "lock in" our options with the new variable.
                                                 this.cachedOptions_ = [
-                                                        [String(newName), String(newName)],
-                                                        ["Rename variable…", "__RENAME__"],
-                                                        ["Get variable", "__GET__"],
+                                                        [
+                                                                String(newName),
+                                                                String(newName),
+                                                        ],
+                                                        [
+                                                                "Rename variable…",
+                                                                "__RENAME__",
+                                                        ],
+                                                        [
+                                                                "Get variable",
+                                                                "__GET__",
+                                                        ],
                                                 ];
                                                 // Force our generator to return the updated options.
-                                                this.menuGenerator_ = () => this.cachedOptions_;
+                                                this.menuGenerator_ = () =>
+                                                        this.cachedOptions_;
                                                 // Update any getter blocks that reference this variable.
-                                                if (this.sourceBlock_ && this.sourceBlock_.workspace) {
-                                                        const workspace = this.sourceBlock_.workspace;
-                                                        const allBlocks = workspace.getAllBlocks(false);
-                                                        allBlocks.forEach((block) => {
-                                                                if (
-                                                                        block.type === "get_lexical_variable" &&
-                                                                        block.variableSourceId === this.variableId_
-                                                                ) {
+                                                if (
+                                                        this.sourceBlock_ &&
+                                                        this.sourceBlock_
+                                                                .workspace
+                                                ) {
+                                                        const workspace =
+                                                                this
+                                                                        .sourceBlock_
+                                                                        .workspace;
+                                                        const allBlocks =
+                                                                workspace.getAllBlocks(
+                                                                        false,
+                                                                );
+                                                        allBlocks.forEach(
+                                                                (block) => {
                                                                         if (
-                                                                                typeof block.updateVariable ===
-                                                                                "function"
+                                                                                block.type ===
+                                                                                        "get_lexical_variable" &&
+                                                                                block.variableSourceId ===
+                                                                                        this
+                                                                                                .variableId_
                                                                         ) {
-                                                                                block.updateVariable(newName);
-                                                                        } else {
-                                                                                block.setFieldValue(
-                                                                                        String(newName),
-                                                                                        "VAR",
-                                                                                );
+                                                                                if (
+                                                                                        typeof block.updateVariable ===
+                                                                                        "function"
+                                                                                ) {
+                                                                                        block.updateVariable(
+                                                                                                newName,
+                                                                                        );
+                                                                                } else {
+                                                                                        block.setFieldValue(
+                                                                                                String(
+                                                                                                        newName,
+                                                                                                ),
+                                                                                                "VAR",
+                                                                                        );
+                                                                                }
                                                                         }
-                                                                }
-                                                        });
+                                                                },
+                                                        );
                                                 }
                                                 // Finally, update the field's value.
                                                 super.setValue(String(newName));
@@ -393,15 +390,25 @@ export function defineControlBlocks() {
                                 return null;
                         } else if (value === "__GET__") {
                                 setTimeout(() => {
-                                        const variableName = String(super.getValue());
-                                        const workspace = this.sourceBlock_.workspace;
-                                        const newBlock = workspace.newBlock("get_lexical_variable");
+                                        const variableName = String(
+                                                super.getValue(),
+                                        );
+                                        const workspace =
+                                                this.sourceBlock_.workspace;
+                                        const newBlock = workspace.newBlock(
+                                                "get_lexical_variable",
+                                        );
                                         newBlock.initSvg();
                                         newBlock.render();
-                                        newBlock.setFieldValue(String(variableName), "VAR");
-                                        newBlock.variableSourceId = this.variableId_;
+                                        newBlock.setFieldValue(
+                                                String(variableName),
+                                                "VAR",
+                                        );
+                                        newBlock.variableSourceId =
+                                                this.variableId_;
 
-                                        const xy = this.sourceBlock_.getRelativeToSurfaceXY();
+                                        const xy =
+                                                this.sourceBlock_.getRelativeToSurfaceXY();
                                         newBlock.moveBy(xy.x + 20, xy.y + 20);
                                 }, 0);
                                 return null;
@@ -465,9 +472,15 @@ export function defineControlBlocks() {
                 // Save the current variable name and source ID to the XML mutation.
                 mutationToDom: function () {
                         const container = document.createElement("mutation");
-                        container.setAttribute("var", this.getFieldValue("VAR"));
+                        container.setAttribute(
+                                "var",
+                                this.getFieldValue("VAR"),
+                        );
                         if (this.variableSourceId) {
-                                container.setAttribute("sourceid", this.variableSourceId);
+                                container.setAttribute(
+                                        "sourceid",
+                                        this.variableSourceId,
+                                );
                         }
                         return container;
                 },
@@ -498,15 +511,24 @@ export function defineControlBlocks() {
                         // Traverse up the block hierarchy to find the closest for_loop with matching variable
                         while ((currentBlock = currentBlock.getParent())) {
                                 if (currentBlock.type === "for_loop") {
-                                        const loopVarName = currentBlock.getFieldValue("VAR");
-                                        const field = currentBlock.getField("VAR");
+                                        const loopVarName =
+                                                currentBlock.getFieldValue(
+                                                        "VAR",
+                                                );
+                                        const field =
+                                                currentBlock.getField("VAR");
 
-                                        if (loopVarName === variableName && field) {
+                                        if (
+                                                loopVarName === variableName &&
+                                                field
+                                        ) {
                                                 // Found a matching for_loop parent
-                                                const variableId = field.variableId_ || "";
+                                                const variableId =
+                                                        field.variableId_ || "";
 
                                                 // Update this getter's source ID
-                                                this.variableSourceId = variableId;
+                                                this.variableSourceId =
+                                                        variableId;
                                                 found = true;
                                                 break;
                                         }
@@ -515,16 +537,226 @@ export function defineControlBlocks() {
 
                         if (!found) {
                                 // No matching for_loop found, disconnect if connected to anything
-                                const parentConnection = this.outputConnection.targetConnection;
+                                const parentConnection =
+                                        this.outputConnection.targetConnection;
                                 if (parentConnection) {
                                         parentConnection.disconnect();
                                 }
                         }
                 }
         };
+
+        const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
+
+        Blockly.Blocks["if_clause"] = {
+                init: function () {
+                        this.setColour(210);
+                        this.setPreviousStatement(true);
+                        this.setNextStatement(true);
+                        this.setInputsInline(true);
+
+                        this._stashedCondState = null;
+
+                        // True while Blockly is constructing/rehydrating the block graph.
+                        this._isRestoring = true;
+
+                        this.appendDummyInput("HEAD").appendField(
+                                new Blockly.FieldDropdown(
+                                        [
+                                                ["if", MODE.IF],
+                                                ["else if", MODE.ELSEIF],
+                                                ["else", MODE.ELSE],
+                                        ],
+                                        (newValue) => {
+                                                this.updateShape_(newValue);
+                                                return newValue;
+                                        },
+                                ),
+                                "MODE",
+                        );
+
+                        this.appendValueInput("COND").setCheck("Boolean");
+                        this.appendStatementInput("DO");
+
+                        this.updateShape_(
+                                this.getFieldValue("MODE") ?? MODE.IF,
+                        );
+
+                        // Clear restore flag after Blockly has had a chance to reconnect blocks.
+                        setTimeout(() => {
+                                this._isRestoring = false;
+                        }, 0);
+                },
+
+                saveExtraState: function () {
+                        return {
+                                mode: this.getFieldValue("MODE"),
+                                stashedCondState:
+                                        this._stashedCondState ?? null,
+                        };
+                },
+
+                loadExtraState: function (state) {
+                        // Stay in restoring mode while Blockly reconnects child blocks.
+                        this._isRestoring = true;
+
+                        this._stashedCondState =
+                                state?.stashedCondState ?? null;
+
+                        const mode = state?.mode ?? MODE.IF;
+                        this.setFieldValue(mode, "MODE");
+
+                        // Only show/hide here; no dispose/restore while restoring.
+                        this.updateShape_(mode);
+
+                        setTimeout(() => {
+                                this._isRestoring = false;
+                        }, 0);
+                },
+
+                updateShape_: function (mode) {
+                        const wantsCond = mode !== MODE.ELSE;
+
+                        const condInput = this.getInput("COND");
+                        if (!condInput) return;
+
+                        // During restore: never stash/dispose/append; only toggle visibility.
+                        if (this._isRestoring) {
+                                condInput.setVisible(wantsCond);
+                                return;
+                        }
+
+                        // Handle condition input visibility
+                        if (!wantsCond) {
+                                const attached =
+                                        condInput.connection?.targetBlock();
+                                if (attached) {
+                                        // Save state for restoring later
+                                        this._stashedCondState =
+                                                Blockly.serialization.blocks.save(
+                                                        attached,
+                                                        {
+                                                                addInputBlocks: true,
+                                                                addNextBlocks: true,
+                                                                doFullSerialization: true,
+                                                                saveIds: false,
+                                                        },
+                                                );
+
+                                        // Disconnect without recording undo (we handle it via field change)
+                                        const eventsWereEnabled = Blockly.Events.isEnabled();
+                                        Blockly.Events.disable();
+                                        attached.unplug(false);
+                                        attached.dispose(true);
+                                        if (eventsWereEnabled) {
+                                                Blockly.Events.enable();
+                                        }
+                                }
+                                condInput.setVisible(false);
+                        } else {
+                                condInput.setVisible(true);
+
+                                const alreadyHasCond =
+                                        !!condInput.connection?.targetBlock();
+                                if (!alreadyHasCond && this._stashedCondState) {
+                                        const eventsWereEnabled = Blockly.Events.isEnabled();
+                                        Blockly.Events.disable();
+
+                                        const restored =
+                                                Blockly.serialization.blocks.append(
+                                                        this._stashedCondState,
+                                                        this.workspace,
+                                                        { recordUndo: false },
+                                                );
+
+                                        if (
+                                                restored?.outputConnection &&
+                                                condInput.connection
+                                        ) {
+                                                restored.outputConnection.connect(
+                                                        condInput.connection,
+                                                );
+                                        }
+
+                                        if (eventsWereEnabled) {
+                                                Blockly.Events.enable();
+                                        }
+
+                                        this._stashedCondState = null;
+                                }
+                        }
+
+                        // Validate and disconnect invalid subsequent blocks
+                        this.validateAndDisconnectInvalidChain_(mode);
+
+                        if (this.rendered) this.render();
+                },
+
+                validateAndDisconnectInvalidChain_: function (currentMode) {
+                        // Skip validation if we're not in a workspace or during restore
+                        if (!this.workspace || this._isRestoring) {
+                                return;
+                        }
+
+                        // Walk through the chain and find the first invalid block
+                        let current = this;
+                        let chainModes = [currentMode];
+
+                        while (current) {
+                                const nextConn = current.nextConnection;
+                                if (!nextConn) break;
+
+                                const nextBlock = nextConn.targetBlock();
+
+                                if (!nextBlock || nextBlock.type !== "if_clause") {
+                                        // End of if_clause chain, all valid
+                                        break;
+                                }
+
+                                const nextMode = nextBlock.getFieldValue?.("MODE");
+                                if (!nextMode) break;
+
+                                const lastMode = chainModes[chainModes.length - 1];
+
+                                // Check if this next block is valid given what came before
+                                const isInvalid = this.isInvalidInChain_(lastMode, nextMode);
+
+                                if (isInvalid) {
+                                        // The nextBlock is invalid after lastMode
+                                        // Disconnect from the current block synchronously
+                                        if (nextBlock && !nextBlock.isDisposed() && nextConn.isConnected()) {
+                                                // Disconnect from the parent side
+                                                nextConn.disconnect();
+
+                                                // Bump the disconnected chain to a new location
+                                                if (nextBlock.rendered) {
+                                                        nextBlock.bumpNeighbours();
+                                                }
+                                        }
+                                        break; // Stop checking since we're disconnecting from here
+                                }
+
+                                chainModes.push(nextMode);
+                                current = nextBlock;
+                        }
+                },
+
+                isInvalidInChain_: function (previousMode, nextMode) {
+                        // ELSE cannot have anything after it
+                        if (previousMode === MODE.ELSE) {
+                                return true;
+                        }
+
+                        // IF and ELSEIF can be followed by:
+                        // - ELSEIF (valid)
+                        // - ELSE (valid)
+                        // - IF (valid - starts a new chain)
+                        // So nothing is invalid after IF or ELSEIF
+                        return false;
+                },
+        };
 }
 
-// List all the built‑in control block types you want to style
 const builtInControlBlocks = [
         "controls_if",
         "controls_ifelse",
@@ -533,21 +765,15 @@ const builtInControlBlocks = [
         "controls_for",
         "controls_flow_statements",
         "controls_forEach",
-        // …add any others you want
 ];
 
 builtInControlBlocks.forEach((typeName) => {
         const blockDef = Blockly.Blocks[typeName];
         if (!blockDef) return;
-
-        // Keep a reference to the original init()
         const originalInit = blockDef.init;
 
-        // Overwrite it with your wrapper
         blockDef.init = function (...args) {
-                // 1) run the original JSON init or init logic
                 originalInit.apply(this, args);
-                // 2) then force your control style
                 this.setStyle("control_blocks");
         };
 });

@@ -192,17 +192,17 @@ export function runScaleTests(flock) {
 		it("should maintain anchor points with different origins", async function () {
 			const boxId = flock.createBox("test-box-anchor", {
 				color: testColors[1],
-				width: 2,
+				width: 4,
 				height: 2,
 				depth: 2,
-				position: [5, 3, 7],
+				position: [5, 0, 7],
 			});
 			testBoxIds.push(boxId);
 
-			const originalBounds = flock.scene
-				.getMeshByID(boxId)
-				.getBoundingInfo();
-			const originalBase = originalBounds.boundingBox.minimumWorld.y;
+			const originalBase = flock.getProperty(boxId, "MIN_Y");
+
+			// --- DEBUG: Log MIN_Y before resize ---
+			console.log(`DEBUG: MIN_Y before resize is: ${originalBase}`);
 
 			await flock.resize(boxId, {
 				width: 4,
@@ -210,9 +210,10 @@ export function runScaleTests(flock) {
 				depth: 3,
 				yOrigin: "BASE",
 			});
+			const newBase = flock.getProperty(boxId, "MIN_Y");
 
-			const newBounds = flock.scene.getMeshByID(boxId).getBoundingInfo();
-			const newBase = newBounds.boundingBox.minimumWorld.y;
+			// --- DEBUG: Log MIN_Y after resize ---
+			console.log(`DEBUG: MIN_Y after resize is: ${newBase}`);
 
 			expect(Math.abs(newBase - originalBase)).to.be.lessThan(0.001);
 		});

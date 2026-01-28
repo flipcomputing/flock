@@ -248,9 +248,14 @@ export default {
   key_pressed: "touche pressée est %1",
   action_pressed: "%1",
   meshes_touching: "%1 touche %2",
-  time: "temps en s",
+  time: "temps en %1",
+  seconds: "secondes",
+  milliseconds: "millisecondes",
+  minutes: "minutes",
+  ground_level: "niveau du sol",
   distance_to: "distance de %1 à %2",
   touching_surface: "%1 touche la surface",
+  mesh_exists: "%1 existe-t-il ?",
   get_property: "obtenir %1 de %2",
   canvas_controls: "contrôles de la toile %1",
   button_controls: "contrôles du bouton %1 activé %2 couleur %3",
@@ -302,6 +307,10 @@ export default {
   create_3d_text:
     "ajouter texte 3D %1: %2 police: %3 taille: %4 couleur: %5\nprofondeur: %6 x: %7 y: %8 z: %9",
 
+  // Custom block translations - Math blocks
+  random_seeded_int: "entier aléatoire de %1 à %2 graine : %3",
+  to_number: "convertir %1 en %2",
+
   // Custom block translations - Transform blocks
   move_by_xyz: "changer la position de %1 de x: %2 y: %3 z: %4",
   move_by_xyz_single: "changer la position de %1 de %2 %3",
@@ -314,6 +323,8 @@ export default {
   rotate_to: "pivoter %1 vers x: %2 y: %3 z: %4",
   look_at: "regarder %1 vers %2 y ? %3",
   move_forward: "avancer %1 %2 vitesse %3",
+  rotate_camera: "faire pivoter la caméra de %1 degrés",
+  up: "vers le haut %1 force %2",
   set_pivot: "définir l’ancre de %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
 
@@ -524,9 +535,13 @@ export default {
   meshes_touching_tooltip:
     "Renvoie vrai si les deux maillages sélectionnés se touchent.\nMot-clé: istouching",
   time_tooltip: "Renvoie le temps actuel en secondes.",
+  ground_level_tooltip:
+    "Renvoie la hauteur du sol à la position x/z actuelle.",
   distance_to_tooltip: "Calcule la distance entre deux maillages.",
   touching_surface_tooltip:
     "Vérifie si le maillage touche une surface.\nMot-clé: surface",
+  mesh_exists_tooltip:
+    "Renvoie vrai si le maillage portant ce nom est présent dans la scène.",
   get_property_tooltip:
     "Obtient la valeur de la propriété sélectionnée d’un maillage.\nMot-clé: get",
   canvas_controls_tooltip:
@@ -585,6 +600,12 @@ export default {
     "Pose une question à l’utilisateur et attend une réponse. Stocke le résultat dans une variable.",
   create_3d_text_tooltip: "Crée du texte 3D dans la scène.",
 
+  // Tooltip translations - Math blocks
+  random_seeded_int_tooltip:
+    "Génère un entier aléatoire avec une graine.\nMot-clé: seed",
+  to_number_tooltip:
+    "Convertit une chaîne en entier ou en nombre flottant.",
+
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
     "Déplace un maillage d'une certaine valeur selon X, Y et Z.\nMot-clé: move",
@@ -608,6 +629,9 @@ export default {
     "Fait pivoter le premier maillage pour regarder vers la position du second.\nMot-clé: look",
   move_forward_tooltip:
     "Déplace le maillage dans la direction spécifiée. 'Forward' le fait avancer, 'sideways' le fait se déplacer par rapport à la caméra, 'strafe' le fait se déplacer latéralement.\nMot-clé: push",
+  rotate_camera_tooltip:
+    "Fait pivoter la caméra vers la gauche ou la droite du nombre de degrés indiqué.\nMot-clé: rotate",
+  up_tooltip: "Applique la force vers le haut spécifiée.\nMot-clé: up",
   set_pivot_tooltip:
     "Définit le point d’ancrage d’un maillage selon les axes X, Y et Z\nMot-clé: ancre",
   min_centre_max_tooltip:

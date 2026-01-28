@@ -1042,6 +1042,7 @@ export const flock = {
                         UISlider: this.UISlider?.bind(this),
                         onIntersect: this.onIntersect?.bind(this),
                         getProperty: this.getProperty?.bind(this),
+                        getTime: this.getTime?.bind(this),
                         exportMesh: this.exportMesh?.bind(this),
                         createVector3: this.createVector3?.bind(this),
                 };
@@ -1499,6 +1500,8 @@ export const flock = {
                         preserveDrawingBuffer: true,
                         stencil: true,
                         powerPreference: "default",
+                        deterministicLockstep: true,
+                        lockstepMaxSteps: 4,
                 });
 
                 flock.engine.enableOfflineSupport = false;
@@ -2796,13 +2799,15 @@ window.updateListenerPositionAndOrientation =
         flockSound.updateListenerPositionAndOrientation;
 window.speak = flockSound.speak;
 
-window.onload = async function () {
+document.addEventListener("DOMContentLoaded", () => {
         const scriptElement = document.getElementById("flock");
         if (scriptElement) {
                 console.log("Standalone Flock 🐦");
                 initializeFlock();
-                // Hide loading screen after a short delay for standalone flock
-                setTimeout(hideLoadingScreen, 1000);
-                return; // standalone flock
+
+                // Assuming hideLoadingScreen is defined in the HTML's scope.
+                if (typeof hideLoadingScreen === "function") {
+                        setTimeout(hideLoadingScreen, 1000);
+                }
         }
-};
+});
