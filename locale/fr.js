@@ -926,7 +926,6 @@ export default {
   demo_ui: "Démo",
   new_ui: "Nouveau",
   starter_ui: "👋🏽 Débutant",
-  controller_test_ui: "🎮 Test de la manette",
   controller_starter_ui: "🎮 Départ avec manette",
   snow_globe_ui: "❄️ Boule à neige",
   forest_base_ui: "🌲 Base forestière",
