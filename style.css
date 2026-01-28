@@ -881,6 +881,18 @@ button {
   display: inline-block;
 }
 
+[data-theme="dark-contrast"] #main-menu a {
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark-contrast"] #menuDropdown .menu-item .menu-label {
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark-contrast"] #menuDropdown .menu-item .menu-icon svg {
+  color: var(--color-text-primary);
+}
+
 #main-menu li {
   list-style-type: none; /* Remove bullets */
   padding: 0; 
