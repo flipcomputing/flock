@@ -22,9 +22,18 @@ const AVAILABLE_SUITES = [
   { id: '@new', name: '🆕 Run Tests tagged @new', pattern: '@new' },
   { id: 'babylon', name: 'Basic Babylon Tests (3 tests)', pattern: 'Flock API Tests' },
   { id: 'sound', name: 'Sound Tests (1 test)', pattern: '@sound' },
+  { id: 'sound-integration', name: 'Sound Integration Tests', pattern: '@sound-integration' },
+  { id: 'sound-verification', name: 'Sound Verification Tests', pattern: '@sound-verification' },
+  { id: 'sound-investigation', name: 'Sound API Investigation', pattern: '@investigation' },
+  { id: 'sound-diagnostic', name: 'Sound Replacement Diagnostic', pattern: '@diagnostic' },
   { id: 'physics', name: 'Physics Tests (6 tests)', pattern: '@physics' },
   { id: 'materials', name: 'Materials Tests (22 tests)', pattern: '@materials' },
   { id: 'effects', name: 'Effects Tests (3 tests)', pattern: 'Effects API' },
+  {
+    id: "property",
+    name: "Sensing getProperty Tests",
+    pattern: "@property",
+  },
   { id: 'scale', name: 'Scale Tests (45 tests)', pattern: '@scale' },
   { id: 'rotation', name: 'Rotation Tests', pattern: '@rotation' },
   { id: 'translation', name: 'Translation/Movement Tests', pattern: '@translation' },
@@ -34,7 +43,9 @@ const AVAILABLE_SUITES = [
   { id: 'stress', name: 'Stress Tests (Boxes)', pattern: 'Stress test for many boxes' },
   { id: 'objects', name: 'Object Creation Tests', pattern: 'createObject tests' },
   { id: 'concurrency', name: 'Concurrency Tests', pattern: 'Concurrency and Stress Tests' },
-  { id: 'blocks', name: 'Block Tests', pattern: 'blocks.js tests' }
+  { id: 'blocks', name: 'Block Tests', pattern: 'blocks.js tests' },
+  { id: 'characterAnimations', name: 'Character Animation API', pattern: 'Character Animation API' },
+
 ];
 
 const args = process.argv.slice(2);
@@ -295,12 +306,12 @@ async function runTests(suiteId = 'all') {
 
   const page = await context.newPage();
   page.on("console", (msg) => {
-  console.log(`[browser:${msg.type()}] ${msg.text()}`);
-});
+    console.log(`[browser:${msg.type()}] ${msg.text()}`);
+  });
 
-page.on("pageerror", (err) => {
-  console.log("[browser:pageerror]", err);
-});
+  page.on("pageerror", (err) => {
+    console.log("[browser:pageerror]", err);
+  });
 
 
   // Inject script to expose flock globally when it's created
@@ -347,7 +358,7 @@ page.on("pageerror", (err) => {
     // First wait for mocha to be available
     await page.waitForFunction(() => {
       return typeof window.mocha !== 'undefined' &&
-             document.getElementById('testSelect') !== null;
+        document.getElementById('testSelect') !== null;
     }, { timeout: 30000 });
 
     console.log('✅ Test page loaded');
@@ -384,7 +395,7 @@ page.on("pageerror", (err) => {
     console.error('\nRecent console messages:');
     consoleMessages.slice(-15).forEach(msg => {
       const prefix = msg.type === 'error' ? '❌' :
-                    msg.type === 'warning' ? '⚠️ ' : '  ';
+        msg.type === 'warning' ? '⚠️ ' : '  ';
       console.log(`  ${prefix} [${msg.type}] ${msg.text}`);
     });
     throw error;
@@ -744,7 +755,7 @@ function cleanup() {
     server.kill();
   }
   if (browser) {
-    browser.close().catch(() => {});
+    browser.close().catch(() => { });
   }
 }
 

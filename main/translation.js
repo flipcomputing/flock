@@ -280,6 +280,10 @@ export async function setLanguage(language) {
         Blockly.Events.enable();
       }
     }
+
+    if (workspace.flockSearchCategory?.blockSearcher?.indexBlocks) {
+      workspace.flockSearchCategory.blockSearcher.indexBlocks();
+    }
   }
 }
 

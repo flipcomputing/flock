@@ -133,37 +133,38 @@ export const flockXR = {
       return;
     }
 
-    return flock.whenModelReady(meshName, async function (mesh) {
-      const rootChild = mesh
-        .getChildMeshes()
-        .find((child) => child.name === "__root__");
-      if (rootChild) {
-        mesh = rootChild;
-      }
-      const childMeshes = mesh.getChildMeshes(false);
-      // Combine the parent mesh with its children
-      const meshList = [mesh, ...childMeshes];
-      if (format === "STL") {
-        flock.EXPORT.STLExport.CreateSTL(
-          meshList,
-          true,
-          mesh.name,
-          false,
-          false,
-        );
-      } else if (format === "OBJ") {
-        flock.EXPORT.OBJExport.OBJ(mesh);
-        //download(mesh.name + ".obj", objData, "text/plain");
-      } else if (format === "GLB") {
-        mesh.flipFaces();
-        flock.EXPORT.GLTF2Export.GLBAsync(flock.scene, mesh.name + ".glb", {
-          shouldExportNode: (node) =>
-            node === mesh || mesh.getChildMeshes().includes(node),
-        }).then((glb) => {
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, async function (mesh) {
+        const rootChild = mesh
+          .getChildMeshes()
+          .find((child) => child.name === "__root__");
+        if (rootChild) {
+          mesh = rootChild;
+        }
+        const childMeshes = mesh.getChildMeshes(false);
+        const meshList = [mesh, ...childMeshes];
+        if (format === "STL") {
+          flock.EXPORT.STLExport.CreateSTL(
+            meshList,
+            true,
+            mesh.name,
+            false,
+            false,
+          );
+        } else if (format === "OBJ") {
+          flock.EXPORT.OBJExport.OBJ(mesh);
+        } else if (format === "GLB") {
           mesh.flipFaces();
-          glb.downloadFiles();
-        });
-      }
+          await flock.EXPORT.GLTF2Export.GLBAsync(flock.scene, mesh.name + ".glb", {
+            shouldExportNode: (node) =>
+              node === mesh || mesh.getChildMeshes().includes(node),
+          }).then((glb) => {
+            mesh.flipFaces();
+            glb.downloadFiles();
+          });
+        }
+        resolve();
+      });
     });
   },
 };

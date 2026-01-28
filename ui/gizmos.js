@@ -161,7 +161,6 @@ function applyColorAtPosition(canvasX, canvasY) {
   const pickedMesh = pickLeafFromRay(pickRay, scene);
 
   if (pickedMesh) {
-    flock.changeColorMesh(pickedMesh, selectedColor);
     updateBlockColorAndHighlight(pickedMesh, selectedColor);
   } else {
     flock.setSky(selectedColor);
@@ -702,13 +701,15 @@ export function toggleGizmo(gizmoType) {
         function () {
           const mesh = gizmoManager.attachedMesh;
 
-          const motionType = mesh.physics.getMotionType();
+          if (!mesh?.physics) return;
+
+          const motionType = mesh.physics.getMotionType?.();
           mesh.savedMotionType = motionType;
 
           if (
             mesh.physics &&
-            mesh.physics.getMotionType() !=
-              flock.BABYLON.PhysicsMotionType.STATIC
+            motionType != null &&
+            motionType !== flock.BABYLON.PhysicsMotionType.STATIC
           ) {
             mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
             mesh.physics.disablePreStep = false;
@@ -722,7 +723,7 @@ export function toggleGizmo(gizmoType) {
       gizmoManager.boundingBoxDragBehavior.onDragEndObservable.add(function () {
         const mesh = gizmoManager.attachedMesh;
 
-        if (mesh.savedMotionType) {
+        if (mesh.savedMotionType && mesh.physics) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
 
@@ -770,7 +771,7 @@ export function toggleGizmo(gizmoType) {
       gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
         const mesh = gizmoManager.attachedMesh;
 
-        if (mesh.savedMotionType) {
+        if (mesh.savedMotionType && mesh.physics) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
         mesh.computeWorldMatrix(true);
@@ -803,6 +804,8 @@ export function toggleGizmo(gizmoType) {
         let mesh = gizmoManager.attachedMesh;
         if (!mesh) return;
 
+        if (!mesh.physics) return;
+
         const motionType =
           mesh.physics?.getMotionType?.() ??
           flock.BABYLON.PhysicsMotionType.STATIC;
@@ -820,9 +823,11 @@ export function toggleGizmo(gizmoType) {
 
       gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(function () {
         let mesh = gizmoManager.attachedMesh;
-        while (mesh.parent && !mesh.parent.physics) {
+        while (mesh?.parent && !mesh.parent.physics) {
           mesh = mesh.parent;
         }
+
+        if (!mesh?.physics) return;
 
         if (mesh.savedMotionType) {
           mesh.physics.setMotionType(mesh.savedMotionType);
@@ -968,7 +973,7 @@ export function toggleGizmo(gizmoType) {
 
         const block = meshMap[mesh.metadata.blockKey];
         highlightBlockById(Blockly.getMainWorkspace(), block);
-      });   
+      });
 
       gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
         const mesh = gizmoManager.attachedMesh;
@@ -1409,6 +1414,8 @@ export function configurePositionGizmo(
   {
     enable = true,
     snapDistance = 0.1,
+    dragDeltaRatio = 0.2,
+    smoothDrag = true,
     xColor = blueColor,
     yColor = greenColor,
     zColor = orangeColor,
@@ -1423,6 +1430,13 @@ export function configurePositionGizmo(
   if (!pg) return;
 
   pg.snapDistance = snapDistance;
+
+  [pg.xGizmo, pg.yGizmo, pg.zGizmo].forEach((axisGizmo) => {
+    const dragBehavior = axisGizmo?.dragBehavior;
+    if (!dragBehavior) return;
+    dragBehavior.dragDeltaRatio = dragDeltaRatio;
+    dragBehavior.smoothDrag = smoothDrag;
+  });
 
   if (pg.xGizmo?._coloredMaterial)
     pg.xGizmo._coloredMaterial.diffuseColor = xColor;
