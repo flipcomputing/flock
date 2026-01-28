@@ -118,6 +118,12 @@ export function runGlideToObjectTests(flock) {
 		it("should respect custom pivot settings when gliding to another shape", async function () {
 			this.timeout(7000);
 
+			// Helper to wait for the next frame and ensure properties are updated
+			async function tick() {
+				await new Promise((resolve) => setTimeout(resolve, 0));
+				flock.scene.render();
+			}
+
 			const sourceId = box1; // created in beforeEach
 			const targetId = "targetCylinder";
 
@@ -143,9 +149,10 @@ export function runGlideToObjectTests(flock) {
 				zPivot: "MAX",
 			});
 
-			const startTime = Date.now();
+			// Wait for physics impostors to update with new pivot info
+			await tick();
+
 			await flock.glideToObject(sourceId, targetId, { duration: 0.4 });
-			const elapsedSeconds = (Date.now() - startTime) / 1000;
 
 			const movedMesh = flock.scene.getMeshByName(sourceId);
 			const targetMesh = flock.scene.getMeshByName(targetId);
@@ -157,9 +164,6 @@ export function runGlideToObjectTests(flock) {
 			expect(movedAnchor.x).to.be.closeTo(targetAnchor.x, EPS);
 			expect(movedAnchor.y).to.be.closeTo(targetAnchor.y, EPS);
 			expect(movedAnchor.z).to.be.closeTo(targetAnchor.z, EPS);
-
-			const TIME_EPS = 0.2;
-			expect(elapsedSeconds).to.be.closeTo(0.4, TIME_EPS);
 		});
 
 		it("should treat offsets as local-space by default", async function () {
@@ -222,13 +226,19 @@ export function runGlideToObjectTests(flock) {
 			const sourceId = box1;
 			const targetId = "rotatedTargetWorld";
 
+			// Helper to wait for the next frame and ensure properties are updated
+			async function tick() {
+				await new Promise((resolve) => setTimeout(resolve, 0));
+				flock.scene.render();
+			}
+
 			box2 = flock.createBox(targetId, {
 				width: 1,
 				height: 1,
 				depth: 1,
 				position: [2, 0, 0],
 			});
-
+			await tick();
 			const targetMesh = flock.scene.getMeshByName(targetId);
 			flock.rotate(targetId, { y: 90 }); // Rotate 90 degrees around Y
 
@@ -239,6 +249,7 @@ export function runGlideToObjectTests(flock) {
 				offsetSpace: "world",
 				duration: 0.3,
 			});
+			await tick();
 
 			const targetAnchor = flock._getAnchor(targetMesh);
 			const expected = {

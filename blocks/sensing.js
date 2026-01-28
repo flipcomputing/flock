@@ -174,11 +174,35 @@ export function defineSensingBlocks() {
                         this.jsonInit({
                                 type: "time",
                                 message0: translate("time"),
-                                args0: [],
+                                args0: [
+                                        {
+                                                type: "field_dropdown",
+                                                name: "UNIT",
+                                                options: [
+                                                        [getOption("seconds"), "seconds"],
+                                                        [getOption("milliseconds"), "milliseconds"],
+                                                        [getOption("minutes"), "minutes"],
+                                                ],
+                                        },
+                                ],
                                 output: "Number",
-                                colour: categoryColours["Sensing"], // Adjust the colour category as necessary
+                                colour: categoryColours["Sensing"],
                                 inputsInline: true,
                                 tooltip: getTooltip("time"),
+                        });
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("sensing_blocks");
+                },
+        };
+
+        Blockly.Blocks["ground_level"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "ground_level",
+                                message0: translate("ground_level"),
+                                output: "Number",
+                                colour: categoryColours["Sensing"],
+                                tooltip: getTooltip("ground_level"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("sensing_blocks");
@@ -237,7 +261,7 @@ export function defineSensingBlocks() {
                 init: function () {
                         this.jsonInit({
                                 type: "mesh_exists",
-                                message0: "%1 exists",
+                                message0: translate("mesh_exists"),
                                 args0: [
                                         {
                                                 type: "field_variable",
@@ -247,7 +271,7 @@ export function defineSensingBlocks() {
                                 ],
                                 output: "Boolean",
                                 colour: categoryColours["Sensing"],
-                                tooltip: "Returns true if the mesh with this name is present in the scene.",
+                                tooltip: getTooltip("mesh_exists"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("sensing_blocks");

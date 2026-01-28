@@ -246,9 +246,14 @@ export default {
       key_pressed: "tangent nedtryckt är %1",
       action_pressed: "%1",
       meshes_touching: "%1 vidrör %2",
-      time: "tid i s",
+      time: "tid i %1",
+      seconds: "sekunder",
+      milliseconds: "millisekunder",
+      minutes: "minuter",
+      ground_level: "marknivå",
       distance_to: "avstånd från %1 till %2",
       touching_surface: "är %1 i kontakt med yta",
+      mesh_exists: "finns %1?",
       get_property: "hämta %1 från %2",
       canvas_controls: "canvas kontroller %1",
       button_controls: "knappkontroller %1 aktiverad %2 färg %3",
@@ -297,6 +302,10 @@ export default {
       create_3d_text:
             "lägg till %1 3D text: %2 font: %3 storlek: %4 färg: %5\ndjup: %6 x: %7 y: %8 z: %9 ",
 
+      // Custom block translations - Math blocks
+      random_seeded_int: "slumpmässigt heltal från %1 till %2 frö: %3",
+      to_number: "konvertera %1 till %2",
+
       // Custom block translations - Transform blocks
       move_by_xyz: "ändra positionen för %1 med x: %2 y: %3 z: %4",
       move_by_xyz_single: "ändra positionen för %1 med %2 %3",
@@ -309,6 +318,8 @@ export default {
       rotate_to: "rotera %1 till x: %2 y: %3 z: %4",
       look_at: "titta %1 på %2 y? %3",
       move_forward: "flytta %1 %2 hastighet %3",
+      rotate_camera: "rotera kamera med %1 grader",
+      up: "upp %1 kraft %2",
       set_pivot: "ställ in ankare för %1\nx: %2 y: %3 z: %4",
       min_centre_max: "%1",
 
@@ -512,9 +523,13 @@ export default {
       meshes_touching_tooltip:
             "Returnerar sant om de två valda mesh-objekten rör vid varandra.\nKeyword: istouching",
       time_tooltip: "Returnerar aktuell tid i sekunder.",
+      ground_level_tooltip:
+            "Returnerar markhöjden vid aktuell x/z-position.",
       distance_to_tooltip: "Beräkna avståndet mellan två mesh-objekt.",
       touching_surface_tooltip:
             "Kontrollera om mesh-objektet rör vid en yta.\nKeyword: surface",
+      mesh_exists_tooltip:
+            "Returnerar sant om meshen med det här namnet finns i scenen.",
       get_property_tooltip:
             "Hämta värdet på den valda egenskapen för ett mesh.\nKeyword: get",
       canvas_controls_tooltip:
@@ -577,6 +592,12 @@ export default {
             "Ställ en fråga till användaren och vänta på svar. Sparar resultatet i en variabel.",
       create_3d_text_tooltip: "Skapa 3D-text i scenen.",
 
+      // Tooltip translations - Math blocks
+      random_seeded_int_tooltip:
+            "Genererar ett slumpmässigt heltal med frö.\nKeyword: seed",
+      to_number_tooltip:
+            "Konverterar en sträng till ett heltal eller flyttal.",
+
       // Tooltip translations - Transform blocks
       move_by_xyz_tooltip:
             "Flytta ett mesh ett angivet värde i x-, y- och z-led.\nKeyword: move",
@@ -600,6 +621,10 @@ export default {
             "Rotera det första mesh-objektet mot det andra objektets position.\nKeyword: look",
       move_forward_tooltip:
             "Flytta mesh-objektet i angiven riktning. 'Framåt' flyttar det i riktningen det pekar, 'sida' i kamerans riktning och 'strafe' i sidled relativt kameran.\nKeyword: push",
+      rotate_camera_tooltip:
+            "Roterar kameran åt vänster eller höger med angivet antal grader.\nKeyword: rotate",
+      up_tooltip:
+            "Applicerar den angivna uppåtriktade kraften.\nKeyword: up",
       set_pivot_tooltip:
             "Ställ in ankarpunkten för ett mesh längs X-, Y- och Z-axeln\nKeyword: ankare",
       min_centre_max_tooltip:

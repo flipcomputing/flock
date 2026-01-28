@@ -587,11 +587,7 @@ export function defineShapeBlocks() {
                                         {
                                                 type: "input_value",
                                                 name: "COLOR",
-                                                check: [
-                                                        "Colour",
-                                                        "Array",
-                                                        "Material",
-                                                ],
+                                                check: ["Colour", "Material"],
                                         },
                                         {
                                                 type: "input_value",
@@ -664,11 +660,7 @@ export function defineShapeBlocks() {
                                         {
                                                 type: "input_value",
                                                 name: "COLOR",
-                                                check: [
-                                                        "Colour",
-                                                        "Array",
-                                                        "Material",
-                                                ],
+                                                check: ["Colour", "Material"],
                                         },
                                         {
                                                 type: "input_value",
@@ -741,11 +733,7 @@ export function defineShapeBlocks() {
                                         {
                                                 type: "input_value",
                                                 name: "COLOR",
-                                                check: [
-                                                        "Colour",
-                                                        "Array",
-                                                        "Material",
-                                                ],
+                                                check: ["Colour", "Material"],
                                         },
                                         {
                                                 type: "input_value",
@@ -823,11 +811,7 @@ export function defineShapeBlocks() {
                                         {
                                                 type: "input_value",
                                                 name: "COLOR",
-                                                check: [
-                                                        "Colour",
-                                                        "Array",
-                                                        "Material",
-                                                ],
+                                                check: ["Colour", "Material"],
                                         },
                                         {
                                                 type: "input_value",
@@ -895,11 +879,7 @@ export function defineShapeBlocks() {
                                         {
                                                 type: "input_value",
                                                 name: "COLOR",
-                                                check: [
-                                                        "Colour",
-                                                        "Array",
-                                                        "Material",
-                                                ],
+                                                check: ["Colour", "Material"],
                                         },
                                         {
                                                 type: "input_value",

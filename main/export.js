@@ -20,16 +20,14 @@ async function exportBlockSnippet(block) {
 			// Define the options for the file picker
 			const options = {
 				suggestedName: `flock_snippet${FLOCK_SNIP_EXT}`,
-                                types: [
-                                        {
-                                                description: translate(
-                                                        "snippet_file_description",
-                                                ),
-                                                accept: {
-                                                        [FLOCK_SNIP_MIME]: [FLOCK_SNIP_EXT],
-                                                },
-                                        },
-                                ],
+				types: [
+					{
+						description: translate("snippet_file_description"),
+						accept: {
+							[FLOCK_SNIP_MIME]: [FLOCK_SNIP_EXT],
+						},
+					},
+				],
 			};
 
 			// Show the save file picker
@@ -46,10 +44,10 @@ async function exportBlockSnippet(block) {
 		} else {
 			// Fallback for browsers that don't support the File System Access API
 			const filename =
-                                prompt(
-                                        translate("snippet_filename_prompt"),
-                                        "blockly_snippet",
-                                ) || "blockly_snippet";
+				prompt(
+					translate("snippet_filename_prompt"),
+					"blockly_snippet",
+				) || "blockly_snippet";
 
 			const blob = new Blob([jsonString], { type: FLOCK_SNIP_MIME });
 			const link = document.createElement("a");
@@ -61,7 +59,6 @@ async function exportBlockSnippet(block) {
 		console.error("Error exporting block:", e);
 	}
 }
-
 
 export function addExportContextMenuOptions() {
 	addExportContextMenuOption();
@@ -200,30 +197,33 @@ async function generateSVG(block) {
 	const svgBlock = block.getSvgRoot().cloneNode(true);
 
 	// A) Only neutralise overlays that are safe to blank
-	svgBlock.querySelectorAll(
-	  '.blocklyPath.blocklyPathSelected, .blocklyHighlightedConnectionPath'
-	).forEach(el => {
-	  el.setAttribute('fill', 'none');           // prevent covering text
-	  if (!el.getAttribute('stroke')) el.setAttribute('stroke', '#999'); // optional thin outline
-	  el.setAttribute('stroke-width', '1');
-	});
+	svgBlock
+		.querySelectorAll(
+			".blocklyPath.blocklyPathSelected, .blocklyHighlightedConnectionPath",
+		)
+		.forEach((el) => {
+			el.setAttribute("fill", "none"); // prevent covering text
+			if (!el.getAttribute("stroke")) el.setAttribute("stroke", "#999"); // optional thin outline
+			el.setAttribute("stroke-width", "1");
+		});
 
 	// B) Do NOT change fills on .blocklyActiveFocus (base path can have it).
 	// If you want to remove the class (purely cosmetic), do this:
-	svgBlock.querySelectorAll('.blocklyActiveFocus').forEach(el => {
-	  el.classList.remove('blocklyActiveFocus');
+	svgBlock.querySelectorAll(".blocklyActiveFocus").forEach((el) => {
+		el.classList.remove("blocklyActiveFocus");
 	});
 
 	// C) Safety net: in each block group, keep only the FIRST path filled
-	svgBlock.querySelectorAll('g.blocklyBlock, g.start').forEach(g => {
-	  const paths = g.querySelectorAll(':scope > path.blocklyPath');
-	  paths.forEach((p, i) => {
-		if (i > 0) {                          // later paths are overlays
-		  p.setAttribute('fill', 'none');
-		  if (!p.getAttribute('stroke')) p.setAttribute('stroke', '#999');
-		  p.setAttribute('stroke-width', '1');
-		}
-	  });
+	svgBlock.querySelectorAll("g.blocklyBlock, g.start").forEach((g) => {
+		const paths = g.querySelectorAll(":scope > path.blocklyPath");
+		paths.forEach((p, i) => {
+			if (i > 0) {
+				// later paths are overlays
+				p.setAttribute("fill", "none");
+				if (!p.getAttribute("stroke")) p.setAttribute("stroke", "#999");
+				p.setAttribute("stroke-width", "1");
+			}
+		});
 	});
 
 	const serializer = new XMLSerializer();
@@ -256,27 +256,24 @@ async function generateSVG(block) {
 	);
 
 	const uiElements = svgBlock.querySelectorAll("rect.blocklyFieldRect");
-	uiElements.forEach((element) => {
-		const parentBlock = element.closest(".blocklyDraggable");
-		if (element.classList.contains("blocklyDropdownRect")) {
-			const blockFill = parentBlock
-				?.querySelector(".blocklyPath")
-				?.getAttribute("fill");
-			if (blockFill) {
-				element.setAttribute("fill", blockFill);
-			}
-			element.setAttribute("stroke", "#999999");
-			element.setAttribute("stroke-width", "1px");
-		} else if (element.classList.contains("blocklyCheckbox")) {
-			element.setAttribute("style", "fill: #ffffff !important;");
-			element.setAttribute("stroke", "#999999");
-			element.setAttribute("stroke-width", "1px");
-		} else {
-			element.setAttribute("fill", "none");
-			element.setAttribute("stroke", "#999999");
-			element.setAttribute("stroke-width", "1px");
-		}
+	uiElements.forEach((rect) => {
+	  const parentBlock = rect.closest(".blocklyDraggable");
+
+	  if (rect.classList.contains("blocklyDropdownRect")) {
+		const blockFill = parentBlock?.querySelector(".blocklyPath")?.getAttribute("fill");
+		if (blockFill) rect.setAttribute("fill", blockFill);
+		rect.setAttribute("stroke", "#999999");
+		rect.setAttribute("stroke-width", "1px");
+		return;
+	  }
+
+	  // v12: checkbox background is typically just a fieldRect (no checkbox class),
+	  // so default all field rects to a white background for export.
+	  rect.setAttribute("fill", "#ffffff");
+	  rect.setAttribute("stroke", "#999999");
+	  rect.setAttribute("stroke-width", "1px");
 	});
+
 
 	const uiTexts = svgBlock.querySelectorAll(
 		"text.blocklyCheckbox, text.blocklyText",

@@ -46,8 +46,11 @@ export const flockSound = {
     }
 
     // Mesh not ready yet — wait for it
-    return flock.whenModelReady(meshName, async (resolvedMesh) => {
-      return await attachSoundToMesh(resolvedMesh);
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, async (resolvedMesh) => {
+        const result = await attachSoundToMesh(resolvedMesh);
+        resolve(result);
+      });
     });
 
     // Main sound logic for mesh-attached sounds
@@ -175,7 +178,9 @@ export const flockSound = {
         const getBPM = (obj) => obj?.metadata?.bpm || null;
         const getBPMFromMeshOrScene = (mesh, scene) =>
           getBPM(mesh) || getBPM(mesh?.parent) || getBPM(scene) || 60;
-        const bpm = getBPMFromMeshOrScene(mesh, flock.scene);
+        let bpm = getBPMFromMeshOrScene(mesh, flock.scene);
+        bpm = Number(bpm);
+        if (!isFinite(bpm) || bpm <= 0) bpm = 60; // default BPM
 
         let context = flock.audioContext; // Ensure a global audio context
         if (!context || context.state === "closed") {
@@ -232,7 +237,10 @@ export const flockSound = {
           let offsetTime = 0;
           for (let i = 0; i < notes.length; i++) {
             const note = notes[i];
-            const duration = Number(durations[i]);
+            let duration = Number(durations[i]);
+            if (!isFinite(duration) || duration <= 0) {
+              duration = 1; // default to 1 beat if missing/invalid
+            }
 
             if (note !== null) {
               flock.playMidiNote(
@@ -275,6 +283,12 @@ export const flockSound = {
   ) {
     if (!context || context.state === "closed") return;
 
+    // Validate numeric parameters to prevent Web Audio API errors
+    if (!isFinite(duration) || !isFinite(playTime) || !isFinite(bpm)) {
+      console.warn('playMidiNote: Invalid parameters', { duration, playTime, bpm });
+      return;
+    }
+
     // Create a new oscillator for each note
     const osc = context.createOscillator();
     const panner = mesh.metadata.panner;
@@ -299,13 +313,25 @@ export const flockSound = {
 
     const fadeOutDuration = Math.min(0.2, duration * 0.2); // Longer fade-out for clarity
 
-    gainNode.gain.linearRampToValueAtTime(
-      0,
-      playTime + duration - gap - fadeOutDuration,
-    ); // Gradual fade-out
+    // Compute ramp and stop times and guard against non-finite or nonsensical values
+    const rampTime = playTime + duration - gap - fadeOutDuration;
+    if (!isFinite(rampTime) || rampTime <= playTime) {
+      // Fallback: set gain to 0 shortly after playTime
+      gainNode.gain.setValueAtTime(
+        0,
+        Math.max(playTime + 0.001, context.currentTime + 0.01),
+      );
+    } else {
+      gainNode.gain.linearRampToValueAtTime(0, rampTime);
+    }
 
     osc.start(playTime); // Start the note at playTime
-    osc.stop(playTime + duration - gap); // Stop slightly earlier to add a gap
+
+    let stopTime = playTime + duration - gap;
+    if (!isFinite(stopTime) || stopTime <= playTime) {
+      stopTime = Math.max(playTime + 0.001, context.currentTime + 0.02);
+    }
+    osc.stop(stopTime); // Stop slightly earlier to add a gap
 
     // Clean up: disconnect the oscillator after it's done
     osc.onended = () => {
@@ -372,16 +398,19 @@ export const flockSound = {
       return;
     }
 
-    return flock.whenModelReady(meshName, async function (mesh) {
-      if (!mesh) {
-        throw new Error(`Mesh '${meshName}' not found`);
-      }
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, async function (mesh) {
+        if (!mesh) {
+          throw new Error(`Mesh '${meshName}' not found`);
+        }
 
-      if (!mesh.metadata || typeof mesh.metadata !== "object") {
-        mesh.metadata = {};
-      }
+        if (!mesh.metadata || typeof mesh.metadata !== "object") {
+          mesh.metadata = {};
+        }
 
-      mesh.metadata.bpm = bpm;
+        mesh.metadata.bpm = bpm;
+        resolve();
+      });
     });
   },
   updateListenerPositionAndOrientation(context, camera) {
@@ -961,3 +990,4 @@ export const flockSound = {
     };
   },
 };
+
