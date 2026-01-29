@@ -3675,7 +3675,7 @@ const toolboxSnippetsSitDown = {
                                                                                         block: {
                                                                                                 type: "logic_boolean",
                                                                                                 fields: {
-                                                                                                        BOOL: "FALSE",
+                                                                                                        BOOL: "TRUE",
                                                                                                 },
                                                                                         },
                                                                                 },
@@ -3728,7 +3728,7 @@ const toolboxSnippetsSitDown = {
                                                                                                                         inputs: {
                                                                                                                                 DURATION: {
                                                                                                                                         shadow: {
-                                                                                                                                                type: "math_numnber",
+                                                                                                                                                type: "math_number",
                                                                                                                                                 fields: {
                                                                                                                                                         NUM: 1,
                                                                                                                                                 },
@@ -3736,7 +3736,7 @@ const toolboxSnippetsSitDown = {
                                                                                                                                 },
                                                                                                                                 X_OFFSET: {
                                                                                                                                         shadow: {
-                                                                                                                                                type: "math_numnber",
+                                                                                                                                                type: "math_number",
                                                                                                                                                 fields: {
                                                                                                                                                         NUM: 0,
                                                                                                                                                 },
@@ -3744,7 +3744,7 @@ const toolboxSnippetsSitDown = {
                                                                                                                                 },
                                                                                                                                 Y_OFFSET: {
                                                                                                                                         shadow: {
-                                                                                                                                                type: "math_numnber",
+                                                                                                                                                type: "math_number",
                                                                                                                                                 fields: {
                                                                                                                                                         NUM: 0,
                                                                                                                                                 },
@@ -3752,13 +3752,15 @@ const toolboxSnippetsSitDown = {
                                                                                                                                 },
                                                                                                                                 Z_OFFSET: {
                                                                                                                                         shadow: {
-                                                                                                                                                type: "math_numnber",
+                                                                                                                                                type: "math_number",
                                                                                                                                                 fields: {
                                                                                                                                                         NUM: 0,
                                                                                                                                                 },
                                                                                                                                         },
                                                                                                                                 },
-                                                                                                                                next: {
+                                                                                                                        },
+                                                                                                                        next: {
+                                                                                                                                block: {
                                                                                                                                         type: "switch_animation",
                                                                                                                                         fields: {
                                                                                                                                                 MODEL: {
