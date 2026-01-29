@@ -1,364 +1,429 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import {
-	nextVariableIndexes,
-	findCreateBlock,
-	handleBlockCreateEvent,
-	handleMeshLifecycleChange,
-	handleFieldOrChildChange,
-	addDoMutatorWithToggleBehavior,
-	getHelpUrlFor,
-} from "../blocks.js";
+        nextVariableIndexes,
+        handleBlockCreateEvent,
+        handleMeshLifecycleChange,
+        handleFieldOrChildChange,
+        addDoMutatorWithToggleBehavior,
+        getHelpUrlFor,
+} from "./blocks.js";
 import { mapNames } from "../config.js";
 import { updateOrCreateMeshFromBlock } from "../ui/blockmesh.js";
-import {
-	translate,
-	getTooltip,
-	getOption,
-	getDropdownOption,
-} from "../main/translation.js";
-import { flock } from "../flock.js";
+import { translate, getTooltip, getOption } from "../main/translation.js";
+
+function initSceneJsonBlock(block, { type, args0, inputsInline = true }) {
+        block.jsonInit({
+                type,
+                message0: translate(type),
+                args0,
+                previousStatement: null,
+                nextStatement: null,
+                inputsInline,
+                colour: categoryColours["Scene"],
+                tooltip: getTooltip(type),
+        });
+
+        block.setHelpUrl(getHelpUrlFor(block.type));
+        block.setStyle("scene_blocks");
+}
+
+function buildMapNameDropdownArgs() {
+        return [
+                {
+                        type: "field_dropdown",
+                        name: "MAP_NAME",
+                        options: [[getOption("FLAT"), "NONE"]].concat(
+                                mapNames(),
+                        ),
+                },
+        ];
+}
+
+function buildInputValueArg({ name, check, colour }) {
+        const arg = { type: "input_value", name };
+        if (check) arg.check = check;
+        if (colour) arg.colour = colour;
+        return arg;
+}
+
+function makeInSubtree(ws) {
+        return (rootBlock, id) => {
+                if (!id || !rootBlock) return false;
+                const b = ws.getBlockById(id);
+                if (!b) return false;
+                if (b === rootBlock) return true;
+                return rootBlock
+                        .getDescendants(false)
+                        .some((x) => x.id === b.id);
+        };
+}
+
+export function makeTouchesInputSubtree(block, ws, inputName) {
+        const inSubtree = makeInSubtree(ws);
+        return (id) => {
+                if (!id) return false;
+                if (id === block.id) return true;
+                const child = block.getInputTargetBlock(inputName);
+                if (!child) return false;
+                return inSubtree(child, id);
+        };
+}
+
+function isDragStop(changeEvent) {
+        return (
+                changeEvent.type === Blockly.Events.UI &&
+                changeEvent.element === "dragStop"
+        );
+}
+
+export function changeEventHitsTouches(changeEvent, touches) {
+        return (
+                touches(changeEvent.blockId) ||
+                (Array.isArray(changeEvent.ids) &&
+                        changeEvent.ids.some(touches)) ||
+                touches(changeEvent.newParentId) ||
+                touches(changeEvent.oldParentId) ||
+                isDragStop(changeEvent)
+        );
+}
+
+export function wasBlockDeleted(changeEvent, blockId) {
+        return (
+                changeEvent.type === Blockly.Events.BLOCK_DELETE &&
+                Array.isArray(changeEvent.ids) &&
+                changeEvent.ids.includes(blockId)
+        );
+}
+
+function attachMeshSyncOnChange(block, config) {
+        const ws = block.workspace;
+
+        const eventTypes = config.listenToMove
+                ? [
+                          Blockly.Events.BLOCK_CREATE,
+                          Blockly.Events.BLOCK_CHANGE,
+                          Blockly.Events.BLOCK_MOVE,
+                          Blockly.Events.BLOCK_DELETE,
+                          Blockly.Events.UI,
+                  ]
+                : [
+                          Blockly.Events.BLOCK_CREATE,
+                          Blockly.Events.BLOCK_CHANGE,
+                          Blockly.Events.BLOCK_DELETE,
+                          Blockly.Events.UI,
+                  ];
+
+        const touches = makeTouchesInputSubtree(
+                block,
+                ws,
+                config.subtreeInputName,
+        );
+
+        block.setOnChange((changeEvent) => {
+                if (!eventTypes.includes(changeEvent.type)) return;
+
+                const relevant =
+                        (config.includeSelfDelete &&
+                                wasBlockDeleted(changeEvent, block.id)) ||
+                        changeEventHitsTouches(changeEvent, touches);
+
+                if (!relevant) return;
+
+                if (handleMeshLifecycleChange(block, changeEvent)) return;
+                if (handleFieldOrChildChange(block, changeEvent)) return;
+
+                updateOrCreateMeshFromBlock(block, changeEvent);
+        });
+}
+
+function initSceneColourLikeBlock(block, cfg) {
+        const inputName = cfg.inputName || "COLOR";
+
+        const args0 = [];
+        if (cfg.hasDropdown) args0.push(...buildMapNameDropdownArgs());
+        args0.push(
+                buildInputValueArg({
+                        name: inputName,
+                        colour: cfg.inputColor,
+                        check: cfg.check || ["Colour", "Array", "Material"],
+                }),
+        );
+
+        initSceneJsonBlock(block, { type: cfg.type, args0 });
+        attachMeshSyncOnChange(block, {
+                listenToMove: !!cfg.listenToMove,
+                subtreeInputName: inputName,
+                includeSelfDelete: false,
+        });
+}
+
+export function cacheMaterialState(mapBlock) {
+        const mat = mapBlock.getInputTargetBlock("MATERIAL");
+        if (!mat || mat.type !== "material") return;
+        if (mat.isShadow?.()) return;
+
+        mapBlock._cachedMaterialState = Blockly.serialization.blocks.save(mat);
+}
+
+function refillMaterialFromCache(mapBlock) {
+        const ws = mapBlock.workspace;
+        if (!ws || ws.isFlyout) return false;
+
+        const input = mapBlock.getInput("MATERIAL");
+        const conn = input?.connection;
+        if (!conn || conn.isConnected()) return false;
+
+        const state = mapBlock._cachedMaterialState;
+        if (!state) return false;
+
+        const clone = Blockly.serialization.blocks.append(state, ws);
+        if (!clone?.outputConnection) return false;
+
+        clone.outputConnection.connect(conn);
+        return true;
+}
+
+export function replaceShadowMaterialWithCache(mapBlock) {
+        const ws = mapBlock.workspace;
+        if (!ws || ws.isFlyout) return false;
+
+        const state = mapBlock._cachedMaterialState;
+        if (!state) return false;
+
+        const mat = mapBlock.getInputTargetBlock("MATERIAL");
+        if (!mat || mat.type !== "material") return false;
+        if (!mat.isShadow?.()) return false;
+
+        const input = mapBlock.getInput("MATERIAL");
+        const conn = input?.connection;
+        if (!conn) return false;
+
+        mat.dispose(false);
+
+        const clone = Blockly.serialization.blocks.append(state, ws);
+        if (!clone?.outputConnection) return false;
+
+        clone.outputConnection.connect(conn);
+        return true;
+}
+
+export function promoteMaterialContainerFromShadow(mapBlock) {
+        const ws = mapBlock.workspace;
+        if (!ws || ws.isFlyout) return;
+
+        const mat = mapBlock.getInputTargetBlock("MATERIAL");
+        if (!mat || mat.type !== "material") return;
+
+        if (mat.isShadow?.()) {
+                mat.setShadow(false);
+        }
+}
+
+export function respawnMaterialShadow(mapBlock) {
+        const ws = mapBlock.workspace;
+        if (!ws || ws.isFlyout) return;
+
+        const input = mapBlock.getInput("MATERIAL");
+        const conn = input?.connection;
+        if (!conn || conn.isConnected()) return;
+
+        const restored = refillMaterialFromCache(mapBlock);
+        if (restored) return;
+
+        const block = ws.newBlock("material");
+        if (typeof block.initSvg === "function") block.initSvg();
+        if (typeof block.render === "function") block.render();
+
+        if (block?.outputConnection) {
+                block.outputConnection.connect(conn);
+        }
+}
+
+function attachCreateMapOnChange(block) {
+        const ws = block.workspace;
+        const touches = makeTouchesInputSubtree(block, ws, "MATERIAL");
+
+        block.setOnChange((changeEvent) => {
+                const eventTypes = [
+                        Blockly.Events.BLOCK_CREATE,
+                        Blockly.Events.BLOCK_CHANGE,
+                        Blockly.Events.BLOCK_MOVE,
+                        Blockly.Events.BLOCK_DELETE,
+                        Blockly.Events.UI,
+                ];
+                if (!eventTypes.includes(changeEvent.type)) return;
+
+                const relevant =
+                        wasBlockDeleted(changeEvent, block.id) ||
+                        changeEventHitsTouches(changeEvent, touches) ||
+                        (changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+                                changeEvent.blockId === block.id) ||
+                        (changeEvent.type === Blockly.Events.BLOCK_MOVE &&
+                                changeEvent.oldParentId === block.id &&
+                                changeEvent.oldInputName === "MATERIAL");
+
+                if (!relevant) return;
+
+                if (replaceShadowMaterialWithCache(block)) return;
+
+                promoteMaterialContainerFromShadow(block);
+
+                if (!block.getInputTargetBlock("MATERIAL")) {
+                        respawnMaterialShadow(block);
+                        return;
+                }
+
+                cacheMaterialState(block);
+
+                if (handleMeshLifecycleChange(block, changeEvent)) return;
+                if (handleFieldOrChildChange(block, changeEvent)) return;
+
+                updateOrCreateMeshFromBlock(block, changeEvent);
+        });
+}
 
 export function defineSceneBlocks() {
-	Blockly.Blocks["set_sky_color"] = {
-		init: function () {
-			this.jsonInit({
-				type: "set_sky_color",
-				message0: translate("set_sky_color"),
-				args0: [
-					{
-						type: "input_value",
-						name: "COLOR",
-						colour: "#6495ED",
-						check: ["Colour", "Array", "Material"],
-					},
-				],
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Scene"],
-				tooltip: getTooltip("set_sky_color"),
-			});
-			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle("scene_blocks");
-			this.setOnChange((changeEvent) => {
-				if (flock.eventDebug) console.log(changeEvent.type);
-				if (
-					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE ||
-					changeEvent.type === Blockly.Events.BLOCK_MOVE
-				) {
-					const parent = findCreateBlock(
-						Blockly.getMainWorkspace().getBlockById(
-							changeEvent.blockId,
-						),
-					);
-					if (parent === this) {
-						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id);
+        Blockly.Blocks["set_sky_color"] = {
+                init: function () {
+                        initSceneColourLikeBlock(this, {
+                                type: "set_sky_color",
+                                inputColor: "#6495ED",
+                                listenToMove: true,
+                        });
+                },
+        };
 
-						if (blockInWorkspace) {
-							updateOrCreateMeshFromBlock(this, changeEvent);
-							//window.updateCurrentMeshName(this, "ID_VAR");
-						}
-					}
-				}
-			});
-		},
-	};
+        Blockly.Blocks["create_ground"] = {
+                init: function () {
+                        initSceneColourLikeBlock(this, {
+                                type: "create_ground",
+                                inputColor: "#71BC78",
+                                listenToMove: true,
+                        });
+                },
+        };
 
-	Blockly.Blocks["create_ground"] = {
-		init: function () {
-			this.jsonInit({
-				type: "create_ground",
-				message0: translate("create_ground"),
-				args0: [
-					{
-						type: "input_value",
-						name: "COLOR",
-						colour: "#71BC78",
-						check: "Colour",
-					},
-				],
-				inputsInline: true,
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Scene"],
-				tooltip: getTooltip("create_ground"),
-			});
-			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle("scene_blocks");
-			this.setOnChange((changeEvent) => {
-				if (
-					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE
-				) {
-					const parent = findCreateBlock(
-						Blockly.getMainWorkspace().getBlockById(
-							changeEvent.blockId,
-						),
-					);
+        Blockly.Blocks["set_background_color"] = {
+                init: function () {
+                        initSceneColourLikeBlock(this, {
+                                type: "set_background_color",
+                                inputColor: "#6495ED",
+                                check: ["Colour"],
+                                listenToMove: true,
+                        });
+                },
+        };
 
-					if (parent === this) {
-						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id);
+        Blockly.Blocks["create_map"] = {
+                init: function () {
+                        const args0 = [
+                                ...buildMapNameDropdownArgs(),
+                                buildInputValueArg({
+                                        name: "MATERIAL",
+                                        check: [
+                                                "Material",
+                                                "Array",
+                                                "Colour",
+                                                "material_like",
+                                                "colour_array",
+                                        ],
+                                }),
+                        ];
 
-						if (blockInWorkspace) {
-							updateOrCreateMeshFromBlock(this, changeEvent);
-						}
-					}
-				}
-			});
-		},
-	};
+                        initSceneJsonBlock(this, { type: "create_map", args0 });
+                        attachCreateMapOnChange(this);
+                },
+        };
 
-	Blockly.Blocks["set_background_color"] = {
-		init: function () {
-			this.jsonInit({
-				type: "set_background_color",
-				message0: translate("set_background_color"),
-				args0: [
-					{
-						type: "input_value",
-						name: "COLOR",
-						colour: "#6495ED",
-						check: ["Colour", "Array", "Material"],
-					},
-				],
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Scene"],
-				tooltip: getTooltip("set_background_color"),
-			});
-			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle("scene_blocks");
-			this.setOnChange((changeEvent) => {
-				if (
-					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE
-				) {
-					const parent = findCreateBlock(
-						Blockly.getMainWorkspace().getBlockById(
-							changeEvent.blockId,
-						),
-					);
+        Blockly.Blocks["show"] = {
+                init: function () {
+                        initSceneJsonBlock(this, {
+                                type: "show",
+                                args0: [
+                                        {
+                                                type: "field_variable",
+                                                name: "MODEL_VAR",
+                                                variable: window.currentMesh,
+                                        },
+                                ],
+                                inputsInline: false,
+                        });
+                },
+        };
 
-					if (parent === this) {
-						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id);
+        Blockly.Blocks["hide"] = {
+                init: function () {
+                        initSceneJsonBlock(this, {
+                                type: "hide",
+                                args0: [
+                                        {
+                                                type: "field_variable",
+                                                name: "MODEL_VAR",
+                                                variable: window.currentMesh,
+                                        },
+                                ],
+                                inputsInline: false,
+                        });
+                },
+        };
 
-						if (blockInWorkspace) {
-							updateOrCreateMeshFromBlock(this, changeEvent);
-							//window.updateCurrentMeshName(this, "ID_VAR");
-						}
-					}
-				}
-			});
-		},
-	};
+        Blockly.Blocks["dispose"] = {
+                init: function () {
+                        initSceneJsonBlock(this, {
+                                type: "dispose",
+                                args0: [
+                                        {
+                                                type: "field_variable",
+                                                name: "MODEL_VAR",
+                                                variable: window.currentMesh,
+                                        },
+                                ],
+                        });
+                },
+        };
 
-	Blockly.Blocks["create_map"] = {
-		init: function () {
-			this.jsonInit({
-				type: "create_map",
-				message0: translate("create_map"),
-				args0: [
-					{
-						type: "field_dropdown",
-						name: "MAP_NAME",
-						options: [[getOption("FLAT"), "NONE"]].concat(
-							mapNames(),
-						),
-					},
-					{
-						type: "input_value",
-						name: "MATERIAL",
-						check: ["Material", "Array"],
-					},
-				],
-				previousStatement: null,
-				nextStatement: null,
-				inputsInline: true,
-				colour: categoryColours["Scene"],
-				tooltip: getTooltip("create_map"),
-			});
-			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle("scene_blocks");
-			this.setOnChange((changeEvent) => {
-				if (
-					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE
-				) {
-					const parent = findCreateBlock(
-						Blockly.getMainWorkspace().getBlockById(
-							changeEvent.blockId,
-						),
-					);
+        Blockly.Blocks["clone_mesh"] = {
+                init: function () {
+                        const variableNamePrefix = "clone";
+                        const nextVariableName =
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
 
-					if (parent === this) {
-						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id);
+                        this.jsonInit({
+                                message0: translate("clone_mesh"),
+                                args0: [
+                                        {
+                                                type: "field_variable",
+                                                name: "CLONE_VAR",
+                                                variable: nextVariableName,
+                                        },
+                                        {
+                                                type: "field_variable",
+                                                name: "SOURCE_MESH",
+                                                variable: window.currentMesh,
+                                        },
+                                ],
+                                inputsInline: true,
+                                colour: categoryColours["Scene"],
+                                tooltip: getTooltip("clone_mesh"),
+                                helpUrl: "",
+                                previousStatement: null,
+                                nextStatement: null,
+                        });
 
-						if (handleMeshLifecycleChange(this, changeEvent))
-							return;
-						if (handleFieldOrChildChange(this, changeEvent)) return;
-					}
-				}
-			});
-		},
-	};
+                        this.setOnChange((changeEvent) => {
+                                handleBlockCreateEvent(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                        nextVariableIndexes,
+                                );
+                        });
 
-	Blockly.Blocks["show"] = {
-		init: function () {
-			this.jsonInit({
-				type: "show",
-				message0: translate("show"),
-				args0: [
-					{
-						type: "field_variable",
-						name: "MODEL_VAR",
-						variable: window.currentMesh,
-					},
-				],
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Scene"],
-				tooltip: getTooltip("show"),
-			});
-
-			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle("scene_blocks");
-		},
-	};
-
-	Blockly.Blocks["hide"] = {
-		init: function () {
-			this.jsonInit({
-				type: "hide",
-				message0: translate("hide"),
-				args0: [
-					{
-						type: "field_variable",
-						name: "MODEL_VAR",
-						variable: window.currentMesh,
-					},
-				],
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Scene"],
-				tooltip: getTooltip("hide"),
-			});
-
-			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle("scene_blocks");
-		},
-	};
-
-	Blockly.Blocks["dispose"] = {
-		init: function () {
-			this.jsonInit({
-				type: "dispose",
-				message0: translate("dispose"),
-				args0: [
-					{
-						type: "field_variable",
-						name: "MODEL_VAR",
-						variable: window.currentMesh,
-					},
-				],
-				inputsInline: true,
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Scene"],
-				tooltip: getTooltip("dispose"),
-			});
-			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle("scene_blocks");
-		},
-	};
-
-	Blockly.Blocks["clone_mesh"] = {
-		init: function () {
-			const variableNamePrefix = "clone";
-			let nextVariableName =
-				variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "clone1"
-
-			this.jsonInit({
-				message0: translate("clone_mesh"),
-				args0: [
-					{
-						type: "field_variable",
-						name: "CLONE_VAR",
-						variable: nextVariableName, // Dynamic variable name
-					},
-					{
-						type: "field_variable",
-						name: "SOURCE_MESH",
-						variable: window.currentMesh,
-					},
-				],
-				inputsInline: true,
-				colour: categoryColours["Scene"],
-				tooltip: getTooltip("clone_mesh"),
-				helpUrl: "",
-				previousStatement: null,
-				nextStatement: null,
-			});
-
-			// Set dynamic variable name handling
-			this.setOnChange((changeEvent) => {
-				handleBlockCreateEvent(
-					this,
-					changeEvent,
-					variableNamePrefix,
-					nextVariableIndexes,
-				);
-			});
-
-			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle("scene_blocks");
-			// Add mutator for "constructor-like" initialisation
-			addDoMutatorWithToggleBehavior(this);
-		},
-	};
-	/*Blockly.Blocks["create_custom_map"] = {
-		init: function () {
-		  this.jsonInit({
-			type: "create_custom_map",
-			message0: `custom map\n%1 %2 %3 %4 %5\n%6 %7 %8 %9 %10\n%11 %12 %13 %14 %15\n%16 %17 %18 %19 %20\n%21 %22 %23 %24 %25`,
-			args0: [
-			  { type: "input_value", name: "COLOR_1", check: "Colour" },
-			  { type: "input_value", name: "COLOR_2", check: "Colour" },
-			  { type: "input_value", name: "COLOR_3", check: "Colour" },
-			  { type: "input_value", name: "COLOR_4", check: "Colour" },
-			  { type: "input_value", name: "COLOR_5", check: "Colour" },
-			  { type: "input_value", name: "COLOR_6", check: "Colour" },
-			  { type: "input_value", name: "COLOR_7", check: "Colour" },
-			  { type: "input_value", name: "COLOR_8", check: "Colour" },
-			  { type: "input_value", name: "COLOR_9", check: "Colour" },
-			  { type: "input_value", name: "COLOR_10", check: "Colour" },
-			  { type: "input_value", name: "COLOR_11", check: "Colour" },
-			  { type: "input_value", name: "COLOR_12", check: "Colour" },
-			  { type: "input_value", name: "COLOR_13", check: "Colour" },
-			  { type: "input_value", name: "COLOR_14", check: "Colour" },
-			  { type: "input_value", name: "COLOR_15", check: "Colour" },
-			  { type: "input_value", name: "COLOR_16", check: "Colour" },
-			  { type: "input_value", name: "COLOR_17", check: "Colour" },
-			  { type: "input_value", name: "COLOR_18", check: "Colour" },
-			  { type: "input_value", name: "COLOR_19", check: "Colour" },
-			  { type: "input_value", name: "COLOR_20", check: "Colour" },
-			  { type: "input_value", name: "COLOR_21", check: "Colour" },
-			  { type: "input_value", name: "COLOR_22", check: "Colour" },
-			  { type: "input_value", name: "COLOR_23", check: "Colour" },
-			  { type: "input_value", name: "COLOR_24", check: "Colour" },
-			  { type: "input_value", name: "COLOR_25", check: "Colour" },
-			],
-			previousStatement: null,
-			nextStatement: null,
-			colour: categoryColours["Scene"],
-			tooltip:
-			  "Creates a 5x5 ground map with specified elevation colors.\nKeyword:map",
-			helpUrl: "",
-		  });
-		},
-	  };*/
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("scene_blocks");
+                        addDoMutatorWithToggleBehavior(this);
+                },
+        };
 }

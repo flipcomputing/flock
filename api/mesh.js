@@ -10,18 +10,16 @@ export const flockMesh = {
   createCapsuleFromBoundingBox(mesh, scene) {
     mesh.computeWorldMatrix(true);
     const boundingInfo = mesh.getBoundingInfo();
-
     // Use LOCAL bounding box coordinates
     const localMin = boundingInfo.boundingBox.minimum;
     const localMax = boundingInfo.boundingBox.maximum;
 
-    const height = localMax.y - localMin.y;
-    const width = localMax.x - localMin.x;
-    const depth = localMax.z - localMin.z;
-    const radius = Math.min(width, depth) / 2;
+    // Apply the mesh's scaling to get actual dimensions
+    const height = (localMax.y - localMin.y) * Math.abs(mesh.scaling.y);
+    const width = (localMax.x - localMin.x) * Math.abs(mesh.scaling.x);
+    const depth = (localMax.z - localMin.z) * Math.abs(mesh.scaling.z);
 
-    //console.log("Create capsule from bounding box", mesh.name, height);
-    //console.log("Local bounding min Y:", localMin.y, "max Y:", localMax.y);
+    const radius = Math.min(width, depth) / 2;
 
     // Shrink the capsule vertically to allow intersections
     const shrinkAmount = 0.01; // Adjust this value as needed
@@ -32,7 +30,7 @@ export const flockMesh = {
     const localCenter = new flock.BABYLON.Vector3(
       (localMin.x + localMax.x) / 2,
       (localMin.y + localMax.y) / 2,
-      (localMin.z + localMax.z) / 2
+      (localMin.z + localMax.z) / 2,
     );
 
     const segmentStart = new flock.BABYLON.Vector3(
@@ -54,12 +52,18 @@ export const flockMesh = {
     );
 
     if (!mesh.metadata) mesh.metadata = {};
-    mesh.metadata.physicsCapsule = { radius, height: adjustedHeight, localCenter };
+    mesh.metadata.physicsCapsule = {
+      radius,
+      height: adjustedHeight,
+      baseY: localCenter.y - adjustedHeight / 2,
+      localCenter,
+    };
+
     return shape;
   },
   createHorizontalCapsuleFromBoundingBox(mesh, scene, yOffsetFactor = 0) {
     // Get dimensions from the current vertical capsule
-    let radius, height;
+    let radius, height, localCenter, baseY;
 
     const physicsMesh = mesh.physics
       ? mesh
@@ -82,45 +86,72 @@ export const flockMesh = {
         );
         radius = currentShape.radius;
         height = cylinderLength + 2 * radius;
+        const centerY =
+          (currentShape.pointA.y + currentShape.pointB.y) / 2 || 0;
+        baseY = centerY - radius;
       }
     }
 
+    const capsuleMetadata =
+      mesh.metadata?.physicsCapsule || physicsMesh?.metadata?.physicsCapsule;
     if (!radius || !height) {
-      if (mesh.metadata?.physicsCapsule) {
-        radius = mesh.metadata.physicsCapsule.radius;
-        height = mesh.metadata.physicsCapsule.height;
+      if (capsuleMetadata) {
+        radius = capsuleMetadata.radius;
+        height = capsuleMetadata.height;
+        localCenter = capsuleMetadata.localCenter;
+        baseY = capsuleMetadata.baseY;
       } else {
         mesh.computeWorldMatrix(true);
         const boundingInfo = mesh.getBoundingInfo();
-        height =
-          boundingInfo.boundingBox.maximumWorld.y -
-          boundingInfo.boundingBox.minimumWorld.y;
-        const width =
-          boundingInfo.boundingBox.maximumWorld.x -
-          boundingInfo.boundingBox.minimumWorld.x;
-        const depth =
-          boundingInfo.boundingBox.maximumWorld.z -
-          boundingInfo.boundingBox.minimumWorld.z;
+        const bb = boundingInfo.boundingBox;
+
+        const localMin = bb.minimum;
+        const localMax = bb.maximum;
+
+        height = localMax.y - localMin.y;
+        const width = localMax.x - localMin.x;
+        const depth = localMax.z - localMin.z;
         radius = Math.min(width, depth) / 2;
+
+        localCenter = bb.center.clone();
+        baseY = localCenter.y - height / 2;
+
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.physicsCapsule = {
+          radius,
+          height,
+          localCenter,
+          baseY,
+        };
       }
+    }
+
+    if (!localCenter) {
+      mesh.computeWorldMatrix(true);
+      const boundingInfo = mesh.getBoundingInfo();
+      localCenter = boundingInfo.boundingBox.center.clone();
+    }
+
+    if (baseY === undefined) {
+      baseY = localCenter.y - height / 2;
     }
 
     // Create horizontal capsule with same dimensions as vertical, rotated along Z-axis
     const cylinderLength = Math.max(0, height - 2 * radius);
-    const center = flock.BABYLON.Vector3.Zero();
 
     // Calculate Y offset relative to mesh height
     const yOffset = yOffsetFactor * height;
+    const centerY = baseY + radius + yOffset;
 
     const segmentStart = new flock.BABYLON.Vector3(
-      center.x,
-      center.y + yOffset,
-      center.z - cylinderLength / 2,
+      localCenter.x,
+      centerY,
+      localCenter.z - cylinderLength / 2,
     );
     const segmentEnd = new flock.BABYLON.Vector3(
-      center.x,
-      center.y + yOffset,
-      center.z + cylinderLength / 2,
+      localCenter.x,
+      centerY,
+      localCenter.z + cylinderLength / 2,
     );
 
     const shape = new flock.BABYLON.PhysicsShapeCapsule(
@@ -134,7 +165,11 @@ export const flockMesh = {
   },
   // backRatio: signed fraction of mesh size along the chosen axis (e.g., 0.25 = 25% back; -0.25 = 25% forward)
   // axis: "z" (default) if your rig faces ±Z; use "x" if it faces ±X
-  createSittingCapsuleFromBoundingBox(mesh, scene, { backRatio = -1, axis = "z" } = {}) {
+  createSittingCapsuleFromBoundingBox(
+    mesh,
+    scene,
+    { backRatio = -1, axis = "z" } = {},
+  ) {
     mesh.computeWorldMatrix(true);
 
     const boundingInfo = mesh.getBoundingInfo();
@@ -145,14 +180,14 @@ export const flockMesh = {
     const localMax = bb.maximum;
 
     const localHeight = localMax.y - localMin.y;
-    const localWidth  = localMax.x - localMin.x;
-    const localDepth  = localMax.z - localMin.z;
+    const localWidth = localMax.x - localMin.x;
+    const localDepth = localMax.z - localMin.z;
 
     // Capsule sizing for sitting pose
     const radius = Math.max(1e-5, Math.min(localWidth, localDepth) * 0.5);
-    const targetHeight   = Math.max(0, localHeight * 0.65);
+    const targetHeight = Math.max(0, localHeight * 0.65);
     const cylinderHeight = Math.max(0, targetHeight - 2 * radius);
-    const halfCylinder   = cylinderHeight * 0.5;
+    const halfCylinder = cylinderHeight * 0.5;
 
     // Base center in LOCAL space
     const centerLocal = bb.center.clone();
@@ -170,13 +205,13 @@ export const flockMesh = {
     const segmentStart = new flock.BABYLON.Vector3(
       centerLocal.x + offsetX,
       centerLocal.y + centerYOffset - halfCylinder,
-      centerLocal.z + offsetZ
+      centerLocal.z + offsetZ,
     );
 
     const segmentEnd = new flock.BABYLON.Vector3(
       centerLocal.x + offsetX,
       centerLocal.y + centerYOffset + halfCylinder,
-      centerLocal.z + offsetZ
+      centerLocal.z + offsetZ,
     );
 
     if (segmentStart.equals(segmentEnd)) {
@@ -187,94 +222,218 @@ export const flockMesh = {
       segmentStart,
       segmentEnd,
       radius,
-      scene
+      scene,
     );
   },
-  initializeMesh(mesh, position, color, shapeType, alpha = 1) {
-    // Set position
-    mesh.position = new flock.BABYLON.Vector3(
-      position[0],
-      position[1],
-      position[2],
-    );
 
-    // Set metadata and unique name
-    mesh.metadata = { shapeType };
+  coerceToMaterialIfNeeded(spec) {
+    // Already a Babylon Material?
+    if (
+      spec &&
+      typeof spec === "object" &&
+      typeof spec.getClassName === "function"
+    ) {
+      return spec;
+    }
+    // Plain spec like { materialName, color, alpha } → build it
+    if (
+      spec &&
+      typeof spec === "object" &&
+      !Array.isArray(spec) &&
+      spec.materialName
+    ) {
+      return flock.createMaterial(spec);
+    }
+    return null;
+  },
+
+  initializeMesh(
+    mesh,
+    position,
+    color,
+    shapeType,
+    alpha = 1,
+    applyColor = true,
+  ) {
+    const px = Array.isArray(position) ? position[0] : (position?.x ?? 0);
+    const py = Array.isArray(position) ? position[1] : (position?.y ?? 0);
+    const pz = Array.isArray(position) ? position[2] : (position?.z ?? 0);
+    const groundLevelSentinel = -999999;
+    const numericY = typeof py === "string" ? Number(py) : py;
+    const shouldResolveGroundLevel =
+      py === "__ground__level__" || numericY === groundLevelSentinel;
+    const resolvedY = shouldResolveGroundLevel
+      ? flock.getGroundLevelAt(px, pz)
+      : py;
+
+    mesh.position = new flock.BABYLON.Vector3(px, resolvedY, pz);
+
+    mesh.metadata = { ...(mesh.metadata || {}), shapeType };
     mesh.metadata.blockKey = mesh.name;
-    //mesh.name = `${mesh.name}_${mesh.uniqueId}`;
 
-    flock.applyMaterialToMesh(mesh, shapeType, color, alpha);
+    if (applyColor) {
+      const colorInput = Array.isArray(color) ? color.flat() : color;
+      flock.applyMaterialToHierarchy(mesh, colorInput, {
+        applyColor: true,
+        blockKey: mesh.metadata.blockKey,
+        alpha,
+      });
+    }
 
-    mesh.metadata.sharedMaterial = false;
-
-    mesh.material.metadata = mesh.material.metadata || {};
-    mesh.material.metadata.internal = true;
-
-    // Enable and make the mesh visible
+    mesh.metadata.sharedMaterial = !applyColor;
     mesh.isVisible = true;
     mesh.setEnabled(true);
-    mesh.material.needDepthPrePass = true;
+
+    if (alpha > 0 && mesh.material) {
+      mesh.material.needDepthPrePass = true;
+    }
+
     mesh.metadata.sharedGeometry = true;
+
+    if (shouldResolveGroundLevel && !flock.ground) {
+      flock.waitForGroundReady().then(() => {
+        const groundY = flock.getGroundLevelAt(px, pz);
+        mesh.position.y = groundY;
+        if (mesh.physics) {
+          mesh.physics.setTargetTransform(
+            mesh.position,
+            mesh.rotationQuaternion,
+          );
+        }
+        mesh.computeWorldMatrix(true);
+      });
+    }
   },
 
+  // 1 tile = `texturePhysicalSize` world units
+  // Sets edge-aligned, per-face planar UVs for a bSox so the pattern has constant physical size.
+  // Works for non-cubes (width ≠ height ≠ depth). Keeps seams consistent by flipping some faces.
   setSizeBasedBoxUVs(mesh, width, height, depth, texturePhysicalSize = 4) {
+    // Ensure we can read/write UVs
     const positions = mesh.getVerticesData(
       flock.BABYLON.VertexBuffer.PositionKind,
     );
     const normals = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
-    const uvs =
-      mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind) ||
-      new Array((positions.length / 3) * 2).fill(0);
+    let uvs = mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind);
+    if (!positions || !normals) return;
+    if (!uvs) uvs = new Float32Array((positions.length / 3) * 2);
 
-    for (let i = 0; i < positions.length / 3; i++) {
-      const normal = new flock.BABYLON.Vector3(
-        normals[i * 3],
-        normals[i * 3 + 1],
-        normals[i * 3 + 2],
-      );
+    // Compute local-space AABB to align tiles to edges (not the centre).
+    // This makes (min edge) map to UV 0, so every face starts on a tile boundary.
+    let minX = +Infinity,
+      maxX = -Infinity;
+    let minY = +Infinity,
+      maxY = -Infinity;
+    let minZ = +Infinity,
+      maxZ = -Infinity;
+    for (let i = 0; i < positions.length; i += 3) {
+      const x = positions[i],
+        y = positions[i + 1],
+        z = positions[i + 2];
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      if (z < minZ) minZ = z;
+      if (z > maxZ) maxZ = z;
+    }
+    // Fallback to provided sizes if the geometry AABB is degenerate
+    const spanX =
+      Number.isFinite(minX) && Number.isFinite(maxX) ? maxX - minX : width;
+    const spanY =
+      Number.isFinite(minY) && Number.isFinite(maxY) ? maxY - minY : height;
+    const spanZ =
+      Number.isFinite(minZ) && Number.isFinite(maxZ) ? maxZ - minZ : depth;
 
-      const position = new flock.BABYLON.Vector3(
-        positions[i * 3],
-        positions[i * 3 + 1],
-        positions[i * 3 + 2],
-      );
+    // Scale factor: converts world/local distance → UV repeats
+    // 1 tile per `texturePhysicalSize` units
+    const invTile = 1 / texturePhysicalSize;
+
+    // Assign per-vertex UVs based on dominant normal (face detection).
+    // Orientation choices below keep seams continuous:
+    // - Front (+Z):   U=X increasing +, V=Y increasing +
+    // - Back  (-Z):   U=X flipped,      V=Y increasing +
+    // - Right (+X):   U=Z flipped,      V=Y increasing +
+    // - Left  (-X):   U=Z increasing +, V=Y increasing +
+    // - Top   (+Y):   U=X increasing +, V=Z flipped
+    // - Bottom(-Y):   U=X increasing +, V=Z increasing +
+    for (let i = 0, vi = 0; i < positions.length; i += 3, vi += 2) {
+      const nx = normals[i],
+        ny = normals[i + 1],
+        nz = normals[i + 2];
+      const x = positions[i],
+        y = positions[i + 1],
+        z = positions[i + 2];
+
+      // Decide which axis the face is aligned to
+      const ax = Math.abs(nx),
+        ay = Math.abs(ny),
+        az = Math.abs(nz);
 
       let u = 0,
         v = 0;
 
-      // Front/Back faces (aligned with Z-axis)
-      if (
-        Math.abs(normal.z) > Math.abs(normal.x) &&
-        Math.abs(normal.z) > Math.abs(normal.y)
-      ) {
-        u = position.x / texturePhysicalSize; // Horizontal scale
-        v = position.y / texturePhysicalSize; // Vertical scale
-      }
-      // Side faces (aligned with X-axis)
-      else if (
-        Math.abs(normal.x) > Math.abs(normal.y) &&
-        Math.abs(normal.x) > Math.abs(normal.z)
-      ) {
-        u = position.z / texturePhysicalSize; // Horizontal scale
-        v = position.y / texturePhysicalSize; // Vertical scale
-      }
-      // Top/Bottom faces (aligned with Y-axis)
-      else if (
-        Math.abs(normal.y) > Math.abs(normal.x) &&
-        Math.abs(normal.y) > Math.abs(normal.z)
-      ) {
-        u = position.x / texturePhysicalSize; // Horizontal scale
-        v = position.z / texturePhysicalSize; // Vertical scale
+      if (az >= ax && az >= ay) {
+        // Z faces (front/back) → map X × Y
+        // edge-aligned: subtract min edge so 0 at the border
+        const uRaw = (x - minX) * invTile; // 0..spanX/texturePhysicalSize
+        const vRaw = (y - minY) * invTile; // 0..spanY/texturePhysicalSize
+        if (nz >= 0) {
+          // Front (+Z): no flip
+          u = uRaw;
+          v = vRaw;
+        } else {
+          // Back (-Z): flip U to keep seam continuity
+          u = spanX * invTile - uRaw;
+          v = vRaw;
+        }
+      } else if (ax >= ay && ax >= az) {
+        // X faces (left/right) → map Z × Y
+        const uRaw = (z - minZ) * invTile; // 0..spanZ/texturePhysicalSize
+        const vRaw = (y - minY) * invTile; // 0..spanY/texturePhysicalSize
+        if (nx >= 0) {
+          // Right (+X): flip U so front-right edge matches
+          u = spanZ * invTile - uRaw;
+          v = vRaw;
+        } else {
+          // Left (-X): no flip
+          u = uRaw;
+          v = vRaw;
+        }
+      } else {
+        // Y faces (top/bottom) → map X × Z
+        const uRaw = (x - minX) * invTile; // 0..spanX/texturePhysicalSize
+        const vRaw = (z - minZ) * invTile; // 0..spanZ/texturePhysicalSize
+        if (ny >= 0) {
+          // Top (+Y): flip V so front-top edge matches
+          u = uRaw;
+          v = spanZ * invTile - vRaw;
+        } else {
+          // Bottom (-Y): no flip
+          u = uRaw;
+          v = vRaw;
+        }
       }
 
-      uvs[i * 2] = u;
-      uvs[i * 2 + 1] = v;
+      uvs[vi] = u;
+      uvs[vi + 1] = v;
     }
 
-    // Apply updated UV mapping
+    // Apply updated UVs
     mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
-  },
 
+    // Make sure any assigned texture will actually tile
+    if (mesh.material && mesh.material.diffuseTexture) {
+      const t = mesh.material.diffuseTexture;
+      t.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+      t.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+      // Per-vertex UVs already encode the repeats; keep global scales neutral
+      t.uScale = 1;
+      t.vScale = 1;
+      t.uOffset = 0;
+      t.vOffset = 0;
+    }
+  },
   setSphereUVs(mesh, diameter, texturePhysicalSize = 1) {
     const positions = mesh.getVerticesData(
       flock.BABYLON.VertexBuffer.PositionKind,
@@ -479,23 +638,49 @@ export const flockMesh = {
     mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
   },
   ensureUniqueGeometry(mesh) {
-    //console.log("Cloning geometry");
+    // Add safety checks
+    if (!mesh || mesh.isDisposed()) {
+      console.warn("Cannot ensure unique geometry: mesh is null or disposed");
+      return false;
+    }
 
     if (mesh.metadata?.sharedGeometry) {
-      // Extract vertex data from mesh
-      const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(mesh);
+      try {
+        // Check if mesh has valid geometry before extracting
+        const positions = mesh.getVerticesData(
+          flock.BABYLON.VertexBuffer.PositionKind,
+        );
+        if (!positions || positions.length === 0) {
+          console.warn("Mesh has no valid position data");
+          return false;
+        }
 
-      // Remove shared geometry by clearing existing bindings
-      mesh.setVerticesData("position", null); // Remove reference to old data
+        // Extract vertex data from mesh
+        const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(mesh);
 
-      // Apply cloned vertex data (creates a new internal geometry)
-      vertexData.applyToMesh(mesh, true); // `true` = updatable
+        // Validate vertex data
+        if (!vertexData) {
+          console.warn("Failed to extract vertex data");
+          return false;
+        }
 
-      // Mark the geometry as no longer shared
-      mesh.metadata.sharedGeometry = false;
+        // Remove shared geometry by clearing existing bindings
+        mesh.setVerticesData("position", null);
 
-      //console.log("Geometry cloned and applied.");
+        // Apply cloned vertex data (creates a new internal geometry)
+        vertexData.applyToMesh(mesh, true); // `true` = updatable
+
+        // Mark the geometry as no longer shared
+        mesh.metadata.sharedGeometry = false;
+
+        return true;
+      } catch (error) {
+        console.error("Error ensuring unique geometry:", error);
+        return false;
+      }
     }
+
+    return true; // Already has unique geometry
   },
   setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color = null) {
     mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
@@ -528,7 +713,15 @@ export const flockMesh = {
     bb.bakeCurrentTransformIntoVertices();
     bb.scaling.set(1, 1, 1);
 
-    bb.position = new flock.BABYLON.Vector3(x, y, z);
+    const groundLevelSentinel = -999999;
+    const numericY = typeof y === "string" ? Number(y) : y;
+    const shouldResolveGroundLevel =
+      y === "__ground__level__" || numericY === groundLevelSentinel;
+    const resolvedY = shouldResolveGroundLevel
+      ? flock.getGroundLevelAt(x, z)
+      : y;
+
+    bb.position = new flock.BABYLON.Vector3(x, resolvedY, z);
 
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
@@ -538,7 +731,7 @@ export const flockMesh = {
     });
 
     bb.metadata = bb.metadata || {};
-    bb.metadata.yOffset = (bb.position.y - y) / scale;
+    bb.metadata.yOffset = (bb.position.y - resolvedY) / scale;
     bb.metadata.modelName = modelName;
     flock.stopAnimationsTargetingMesh(flock.scene, mesh);
 
@@ -553,6 +746,19 @@ export const flockMesh = {
 
     // Set metadata on the root mesh
     setMetadata(bb);
+
+    if (shouldResolveGroundLevel && !flock.ground) {
+      flock.waitForGroundReady().then(() => {
+        const groundY = flock.getGroundLevelAt(x, z);
+        bb.position.y = groundY;
+        bb.metadata.yOffset = (bb.position.y - groundY) / scale;
+        if (bb.physics) {
+          bb.physics.setTargetTransform(bb.position, bb.rotationQuaternion);
+        }
+        bb.computeWorldMatrix(true);
+        bb.refreshBoundingInfo();
+      });
+    }
 
     // Set metadata on all descendants
     bb.getDescendants().forEach((descendant) => {
@@ -578,26 +784,28 @@ export const flockMesh = {
     return bb;
   },
   hold(meshToAttach, targetMesh, xOffset = 0, yOffset = 0, zOffset = 0) {
-    return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
-      flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
-        // Find the first mesh with a skeleton (including descendants)
-        const targetWithSkeleton = targetMeshInstance.skeleton
-          ? targetMeshInstance
-          : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
+    return new Promise((resolve) => {
+      flock.whenModelReady(targetMesh, (targetMeshInstance) => {
+        flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
+          const targetWithSkeleton = targetMeshInstance.skeleton
+            ? targetMeshInstance
+            : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
 
-        if (targetWithSkeleton) {
-          const bone = targetWithSkeleton.skeleton.bones.find(
-            (b) => b.name === "Hold",
-          );
-          if (bone) {
-            meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
-            meshToAttachInstance.position = new flock.BABYLON.Vector3(
-              xOffset,
-              yOffset,
-              zOffset,
+          if (targetWithSkeleton) {
+            const bone = targetWithSkeleton.skeleton.bones.find(
+              (b) => b.name === "Hold",
             );
+            if (bone) {
+              meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
+              meshToAttachInstance.position = new flock.BABYLON.Vector3(
+                xOffset,
+                yOffset,
+                zOffset,
+              );
+            }
           }
-        }
+          resolve();
+        });
       });
     });
   },
@@ -606,141 +814,145 @@ export const flockMesh = {
     targetMesh,
     { boneName = "Hold", x = 0, y = 0, z = 0 } = {},
   ) {
-    return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
-      flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
-        // Save pre-attach world rotation for later restore
-        {
-          const worldMatrix = meshToAttachInstance.getWorldMatrix(true).clone();
-          const scale = new flock.BABYLON.Vector3();
-          const rotation = new flock.BABYLON.Quaternion();
-          const position = new flock.BABYLON.Vector3();
-          worldMatrix.decompose(scale, rotation, position);
-          (meshToAttachInstance.metadata ||= {})._preAttachWorldRotation =
-            rotation.clone();
-        }
-
-        // Pause physics by removing body from Havok world (keep reference)
-        if (
-          meshToAttachInstance.physics &&
-          meshToAttachInstance.physics._pluginData
-        ) {
-          flock.hk._hknp.HP_World_RemoveBody(
-            flock.hk.world,
-            meshToAttachInstance.physics._pluginData.hpBodyId,
-          );
-        }
-
-        const logicalBoneName = boneName;
-        boneName = targetMeshInstance?.metadata?.modelName?.startsWith(
-          "Character",
-        )
-          ? attachBlockMapping[boneName]
-          : attachMixamoMapping[boneName];
-
-        const targetWithSkeleton = targetMeshInstance.skeleton
-          ? targetMeshInstance
-          : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
-
-        if (targetWithSkeleton) {
-          const bone = targetWithSkeleton.skeleton.bones.find(
-            (b) => b.name === boneName,
-          );
-          if (bone) {
-            meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
-
-            if (logicalBoneName === "Head") {
-              let estimatedLength = 0.1;
-              if (bone.children.length > 0) {
-                const headWorld = flock.BABYLON.Vector3.TransformCoordinates(
-                  flock.BABYLON.Vector3.Zero(),
-                  bone.getWorldMatrix(),
-                );
-                const childWorld = flock.BABYLON.Vector3.TransformCoordinates(
-                  flock.BABYLON.Vector3.Zero(),
-                  bone.children[0].getWorldMatrix(),
-                );
-                estimatedLength = childWorld.subtract(headWorld).length();
-              } else {
-                const meshes = targetWithSkeleton.getChildMeshes?.() || [
-                  targetWithSkeleton,
-                ];
-                const minYVals = [];
-                const maxYVals = [];
-                for (const m of meshes) {
-                  const info = m.getBoundingInfo?.();
-                  if (!info) continue;
-                  const minY = info.boundingBox.minimumWorld.y;
-                  const maxY = info.boundingBox.maximumWorld.y;
-                  if (isFinite(minY) && isFinite(maxY)) {
-                    minYVals.push(minY);
-                    maxYVals.push(maxY);
-                  }
-                }
-                let modelHeight = 1;
-                if (minYVals.length && maxYVals.length) {
-                  const allMinY = Math.min(...minYVals);
-                  const allMaxY = Math.max(...maxYVals);
-                  modelHeight = allMaxY - allMinY;
-                }
-                const defaultHeadOffset = 1.3;
-                estimatedLength = defaultHeadOffset * Math.max(modelHeight, 1);
-              }
-              y += estimatedLength;
-            }
-
-            meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
+    return new Promise((resolve) => {
+      flock.whenModelReady(targetMesh, (targetMeshInstance) => {
+        flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
+          {
+            const worldMatrix = meshToAttachInstance.getWorldMatrix(true).clone();
+            const scale = new flock.BABYLON.Vector3();
+            const rotation = new flock.BABYLON.Quaternion();
+            const position = new flock.BABYLON.Vector3();
+            worldMatrix.decompose(scale, rotation, position);
+            (meshToAttachInstance.metadata ||= {})._preAttachWorldRotation =
+              rotation.clone();
           }
-        }
+
+          if (
+            meshToAttachInstance.physics &&
+            meshToAttachInstance.physics._pluginData
+          ) {
+            flock.hk._hknp.HP_World_RemoveBody(
+              flock.hk.world,
+              meshToAttachInstance.physics._pluginData.hpBodyId,
+            );
+          }
+
+          const logicalBoneName = boneName;
+          boneName = targetMeshInstance?.metadata?.modelName?.startsWith(
+            "Character",
+          )
+            ? attachBlockMapping[boneName]
+            : attachMixamoMapping[boneName];
+
+          const targetWithSkeleton = targetMeshInstance.skeleton
+            ? targetMeshInstance
+            : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
+
+          if (targetWithSkeleton) {
+            const bone = targetWithSkeleton.skeleton.bones.find(
+              (b) => b.name === boneName,
+            );
+            if (bone) {
+              meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
+
+              if (logicalBoneName === "Head") {
+                let estimatedLength = 0.1;
+                if (bone.children.length > 0) {
+                  const headWorld = flock.BABYLON.Vector3.TransformCoordinates(
+                    flock.BABYLON.Vector3.Zero(),
+                    bone.getWorldMatrix(),
+                  );
+                  const childWorld = flock.BABYLON.Vector3.TransformCoordinates(
+                    flock.BABYLON.Vector3.Zero(),
+                    bone.children[0].getWorldMatrix(),
+                  );
+                  estimatedLength = childWorld.subtract(headWorld).length();
+                } else {
+                  const meshes = targetWithSkeleton.getChildMeshes?.() || [
+                    targetWithSkeleton,
+                  ];
+                  const minYVals = [];
+                  const maxYVals = [];
+                  for (const m of meshes) {
+                    const info = m.getBoundingInfo?.();
+                    if (!info) continue;
+                    const minY = info.boundingBox.minimumWorld.y;
+                    const maxY = info.boundingBox.maximumWorld.y;
+                    if (isFinite(minY) && isFinite(maxY)) {
+                      minYVals.push(minY);
+                      maxYVals.push(maxY);
+                    }
+                  }
+                  let modelHeight = 1;
+                  if (minYVals.length && maxYVals.length) {
+                    const allMinY = Math.min(...minYVals);
+                    const allMaxY = Math.max(...maxYVals);
+                    modelHeight = allMaxY - allMinY;
+                  }
+                  const defaultHeadOffset = 1.3;
+                  estimatedLength = defaultHeadOffset * Math.max(modelHeight, 1);
+                }
+                y += estimatedLength;
+              }
+
+              meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
+            }
+          }
+          resolve();
+        });
       });
     });
   },
   drop(meshToDetach) {
-    return flock.whenModelReady(meshToDetach, (mesh) => {
-      // Capture current world transform
-      const worldMatrix = mesh.getWorldMatrix(true).clone();
-      const scale = new flock.BABYLON.Vector3();
-      const rotationNow = new flock.BABYLON.Quaternion();
-      const position = new flock.BABYLON.Vector3();
-      worldMatrix.decompose(scale, rotationNow, position);
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshToDetach, (mesh) => {
+        const worldMatrix = mesh.getWorldMatrix(true).clone();
+        const scale = new flock.BABYLON.Vector3();
+        const rotationNow = new flock.BABYLON.Quaternion();
+        const position = new flock.BABYLON.Vector3();
+        worldMatrix.decompose(scale, rotationNow, position);
 
-      // Restore pre-attach world rotation if available
-      const md = mesh.metadata || {};
-      const restoreRotation = md._preAttachWorldRotation || rotationNow;
+        const md = mesh.metadata || {};
+        const restoreRotation = md._preAttachWorldRotation || rotationNow;
 
-      mesh.detachFromBone?.();
-      mesh.parent = null;
-      mesh.rotationQuaternion = restoreRotation.clone();
-      mesh.scaling = scale;
-      mesh.position = position.add(new flock.BABYLON.Vector3(0, 0.002, 0));
-      mesh.computeWorldMatrix(true);
+        mesh.detachFromBone?.();
+        mesh.parent = null;
+        mesh.rotationQuaternion = restoreRotation.clone();
+        mesh.scaling = scale;
+        mesh.position = position.add(new flock.BABYLON.Vector3(0, 0.002, 0));
+        mesh.computeWorldMatrix(true);
 
-      const body = mesh.physics;
-      if (body && body._pluginData) {
-        body.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-        if (body.setTargetTransform)
-          body.setTargetTransform(mesh.position, mesh.rotationQuaternion);
-        body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
-        body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
-
-        flock.hk._hknp.HP_World_AddBody(
-          flock.hk.world,
-          body._pluginData.hpBodyId,
-          true,
-        );
-
-        flock.scene.onBeforeRenderObservable.addOnce(() => {
-          body.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
+        const body = mesh.physics;
+        if (body && body._pluginData) {
+          body.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+          if (body.setTargetTransform)
+            body.setTargetTransform(mesh.position, mesh.rotationQuaternion);
           body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
           body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
-        });
-      }
+
+          flock.hk._hknp.HP_World_AddBody(
+            flock.hk.world,
+            body._pluginData.hpBodyId,
+            true,
+          );
+
+          flock.scene.onBeforeRenderObservable.addOnce(() => {
+            body.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
+            body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
+            body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
+          });
+        }
+        resolve();
+      });
     });
   },
   setParent(parentModelName, childModelName) {
-    return flock.whenModelReady(parentModelName, (parentMesh) => {
-      flock.whenModelReady(childModelName, (childMesh) => {
-        // Set the parent-child relationship
-        childMesh.setParent(parentMesh);
+    return new Promise((resolve) => {
+      flock.whenModelReady(parentModelName, (parentMesh) => {
+        flock.whenModelReady(childModelName, (childMesh) => {
+          childMesh.setParent(parentMesh);
+          resolve();
+        });
       });
     });
   },
@@ -751,26 +963,64 @@ export const flockMesh = {
     offsetY = 0,
     offsetZ = 0,
   ) {
-    return flock.whenModelReady(parentModelName, (parentMesh) => {
-      flock.whenModelReady(childModelName, (childMesh) => {
-        // Set the parent-child relationship
-        childMesh.parent = parentMesh;
+    return new Promise((resolve) => {
+      flock.whenModelReady(parentModelName, (parentMesh) => {
+        flock.whenModelReady(childModelName, (childMesh) => {
+          if (!parentMesh || !childMesh) {
+            resolve();
+            return;
+          }
 
-        // Apply the offset to the child's position relative to the parent
-        childMesh.position.set(offsetX, offsetY, offsetZ);
+          const BABYLON = flock.BABYLON;
+
+          function getLocalPivotOffset(mesh) {
+            const pivotSettings = (mesh.metadata &&
+              mesh.metadata.pivotSettings) || {
+              x: "CENTER",
+              y: "MIN",
+              z: "CENTER",
+            };
+
+            const ext = mesh.getBoundingInfo().boundingBox.extendSize;
+
+            function axisOffset(axis) {
+              const half = ext[axis];
+              const setting = pivotSettings[axis];
+              if (setting === "MIN") return -half;
+              if (setting === "MAX") return half;
+              return 0;
+            }
+
+            return new BABYLON.Vector3(
+              axisOffset("x"),
+              axisOffset("y"),
+              axisOffset("z"),
+            );
+          }
+
+          const offsetLocal = new BABYLON.Vector3(offsetX, offsetY, offsetZ);
+          const parentPivotLocal = getLocalPivotOffset(parentMesh);
+          const childPivotLocal = getLocalPivotOffset(childMesh);
+
+          const desiredChildLocalPos = parentPivotLocal
+            .add(offsetLocal)
+            .subtract(childPivotLocal);
+
+          childMesh.parent = parentMesh;
+          childMesh.position.copyFrom(desiredChildLocalPos);
+          resolve();
+        });
       });
     });
   },
   removeParent(childModelName) {
-    return flock.whenModelReady(childModelName, (childMesh) => {
-      // Calculate the world position before removing the parent
-      const worldPosition = childMesh.getAbsolutePosition();
-
-      // Remove the parent-child relationship
-      childMesh.parent = null;
-
-      // Set the child mesh's position to its world position
-      childMesh.position = worldPosition;
+    return new Promise((resolve) => {
+      flock.whenModelReady(childModelName, (childMesh) => {
+        const worldPosition = childMesh.getAbsolutePosition();
+        childMesh.parent = null;
+        childMesh.position = worldPosition;
+        resolve();
+      });
     });
   },
   makeFollow(
@@ -781,48 +1031,49 @@ export const flockMesh = {
     offsetY = 0,
     offsetZ = 0,
   ) {
-    // Ensure both models are loaded before proceeding
-    return flock.whenModelReady(followerModelName, (followerMesh) => {
-      flock.whenModelReady(targetModelName, (targetMesh) => {
-        // Remove any existing follow observer before adding a new one
-        followerMesh._followObserver &&
-          flock.scene.onBeforeRenderObservable.remove(
-            followerMesh._followObserver,
+    return new Promise((resolve) => {
+      flock.whenModelReady(followerModelName, (followerMesh) => {
+        flock.whenModelReady(targetModelName, (targetMesh) => {
+          followerMesh._followObserver &&
+            flock.scene.onBeforeRenderObservable.remove(
+              followerMesh._followObserver,
+            );
+
+          let getYPosition = () => {
+            if (followPosition === "TOP") {
+              return targetMesh.position.y + targetMesh.scaling.y;
+            } else if (followPosition === "CENTER") {
+              return targetMesh.position.y + targetMesh.scaling.y / 2;
+            } else {
+              return targetMesh.position.y;
+            }
+          };
+
+          followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(
+            () => {
+              followerMesh.position.x =
+                targetMesh.position.x + parseFloat(offsetX);
+              followerMesh.position.y = getYPosition() + parseFloat(offsetY);
+              followerMesh.position.z =
+                targetMesh.position.z + parseFloat(offsetZ);
+            },
           );
-
-        // Calculate Y position based on the follow position option
-        let getYPosition = () => {
-          if (followPosition === "TOP") {
-            return targetMesh.position.y + targetMesh.scaling.y;
-          } else if (followPosition === "CENTER") {
-            return targetMesh.position.y + targetMesh.scaling.y / 2;
-          } else {
-            return targetMesh.position.y;
-          }
-        };
-
-        // Create a new observer to update the follower's position
-        followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(
-          () => {
-            followerMesh.position.x =
-              targetMesh.position.x + parseFloat(offsetX);
-            followerMesh.position.y = getYPosition() + parseFloat(offsetY);
-            followerMesh.position.z =
-              targetMesh.position.z + parseFloat(offsetZ);
-          },
-        );
+          resolve();
+        });
       });
     });
   },
   stopFollow(followerModelName) {
-    return flock.whenModelReady(followerModelName, (followerMesh) => {
-      // Remove the follow observer if it exists
-      if (followerMesh._followObserver) {
-        flock.scene.onBeforeRenderObservable.remove(
-          followerMesh._followObserver,
-        );
-        followerMesh._followObserver = null;
-      }
+    return new Promise((resolve) => {
+      flock.whenModelReady(followerModelName, (followerMesh) => {
+        if (followerMesh._followObserver) {
+          flock.scene.onBeforeRenderObservable.remove(
+            followerMesh._followObserver,
+          );
+          followerMesh._followObserver = null;
+        }
+        resolve();
+      });
     });
   },
 

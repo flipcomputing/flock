@@ -4,6 +4,7 @@ import * as Blockly from "blockly";
 import * as fr from "blockly/msg/fr";
 import * as en from "blockly/msg/en";
 import * as es from "blockly/msg/es";
+import * as it from "blockly/msg/it";
 import * as sv from "blockly/msg/sv";
 import * as pt from "blockly/msg/pt";
 import * as pl from "blockly/msg/pl";
@@ -11,6 +12,7 @@ import * as de from "blockly/msg/de";
 import enLocale from "../locale/en.js";
 import frLocale from "../locale/fr.js";
 import esLocale from "../locale/es.js";
+import itLocale from "../locale/it.js";
 import svLocale from "../locale/sv.js";
 import ptLocale from "../locale/pt.js";
 import plLocale from "../locale/pl.js";
@@ -22,6 +24,7 @@ let isOriginalMessagesCached = false;
 // Load locale files
 const translations = {
   en: enLocale,
+  it: itLocale,
   fr: frLocale,
   es: esLocale,
   sv: svLocale,
@@ -31,7 +34,7 @@ const translations = {
 };
 
 export function getDropdownOption(key) {
-  return [getOption(key), key]
+  return [getOption(key), key];
 }
 
 let currentLanguage = "en";
@@ -51,7 +54,7 @@ async function loadSavedLanguage() {
 async function applySavedLanguageTranslations() {
   if (currentLanguage === "fr") {
     // Apply Blockly's French translations
-    const frMessages = fr.default || fr;
+    const frMessages = fr;
     Object.keys(frMessages).forEach((key) => {
       if (typeof frMessages[key] === "string") {
         Blockly.Msg[key] = frMessages[key];
@@ -59,15 +62,23 @@ async function applySavedLanguageTranslations() {
     });
   } else if (currentLanguage === "es") {
     // Apply Blockly's Spanish translations
-    const esMessages = es.default || es;
+    const esMessages = es;
     Object.keys(esMessages).forEach((key) => {
       if (typeof esMessages[key] === "string") {
         Blockly.Msg[key] = esMessages[key];
       }
     });
+  } else if (currentLanguage === "it") {
+    // Apply Blockly's Italian translations
+    const itMessages = it;
+    Object.keys(itMessages).forEach((key) => {
+      if (typeof itMessages[key] === "string") {
+        Blockly.Msg[key] = itMessages[key];
+      }
+    });
   } else if (currentLanguage === "sv") {
     // Apply Blockly's Swedish translations
-    const svMessages = sv.default || sv;
+    const svMessages = sv;
     Object.keys(svMessages).forEach((key) => {
       if (typeof svMessages[key] === "string") {
         Blockly.Msg[key] = svMessages[key];
@@ -75,7 +86,7 @@ async function applySavedLanguageTranslations() {
     });
   } else if (currentLanguage === "pt") {
     // Apply Blockly's Portuguese translations
-    const ptMessages = pt.default || pt;
+    const ptMessages = pt;
     Object.keys(ptMessages).forEach((key) => {
       if (typeof ptMessages[key] === "string") {
         Blockly.Msg[key] = ptMessages[key];
@@ -83,7 +94,7 @@ async function applySavedLanguageTranslations() {
     });
   } else if (currentLanguage === "pl") {
     // Apply Blockly's Polish translations
-    const plMessages = pl.default || pl;
+    const plMessages = pl;
     Object.keys(plMessages).forEach((key) => {
       if (typeof plMessages[key] === "string") {
         Blockly.Msg[key] = plMessages[key];
@@ -91,7 +102,7 @@ async function applySavedLanguageTranslations() {
     });
   } else if (currentLanguage === "de") {
     // Apply Blockly's German translations
-    const deMessages = de.default || de;
+    const deMessages = de;
     Object.keys(deMessages).forEach((key) => {
       if (typeof deMessages[key] === "string") {
         Blockly.Msg[key] = deMessages[key];
@@ -103,6 +114,8 @@ async function applySavedLanguageTranslations() {
   Object.keys(translations[currentLanguage]).forEach((key) => {
     Blockly.Msg[key] = translations[currentLanguage][key];
   });
+
+  applyContextMenuShortcutTranslations();
 
   // Update colour picker translations if it exists (for initial load)
   if (window.flockColorPicker?.refreshTranslations) {
@@ -125,6 +138,20 @@ function cacheOriginalMessages() {
     isOriginalMessagesCached = true;
     console.log("Original English messages cached");
   }
+}
+
+function applyContextMenuShortcutTranslations() {
+  // Ensure copy/paste/cut shortcuts use localized labels even when Blockly's
+  // built-in locale packs leave them untranslated.
+  Blockly.Msg["COPY_SHORTCUT"] = translate("context_copy_option");
+  Blockly.Msg["PASTE_SHORTCUT"] = translate("context_paste_option");
+  Blockly.Msg["CUT_SHORTCUT"] = translate("context_cut_option");
+
+  // Normalize the delete label to a single localized string without block
+  // counts.
+  const deleteLabel = translate("context_delete_option");
+  Blockly.Msg["DELETE_BLOCK"] = deleteLabel;
+  Blockly.Msg["DELETE_X_BLOCKS"] = deleteLabel;
 }
 
 export async function setLanguage(language) {
@@ -151,6 +178,16 @@ export async function setLanguage(language) {
       }
     });
     console.log("Español seleccionado - Blockly Spanish translations applied!");
+  } else if (language === "it") {
+    // Applica le traduzioni italiane di Blockly
+    Object.keys(it).forEach((key) => {
+      if (typeof it[key] === "string") {
+        Blockly.Msg[key] = it[key];
+      }
+    });
+    console.log(
+      "Italiano selezionato - Traduzioni italiane di Blockly applicate!",
+    );
   } else if (language === "sv") {
     // Apply Blockly's Swedish translations
     Object.keys(sv).forEach((key) => {
@@ -166,7 +203,9 @@ export async function setLanguage(language) {
         Blockly.Msg[key] = pt[key];
       }
     });
-    console.log("Português selecionado - Blockly Portuguese translations applied!");
+    console.log(
+      "Português selecionado - Blockly Portuguese translations applied!",
+    );
   } else if (language === "pl") {
     // Apply Blockly's Polish translations
     Object.keys(pl).forEach((key) => {
@@ -195,15 +234,16 @@ export async function setLanguage(language) {
     console.log(
       "English selected - Blockly English and custom translations applied!",
     );
-
   }
 
-  applyTranslations()
+  applyTranslations();
 
   // Apply custom translations for the selected language
   Object.keys(translations[currentLanguage]).forEach((key) => {
     Blockly.Msg[key] = translations[currentLanguage][key];
   });
+
+  applyContextMenuShortcutTranslations();
 
   // Update colour picker translations if it exists
   if (window.flockColorPicker?.refreshTranslations) {
@@ -239,6 +279,10 @@ export async function setLanguage(language) {
       } finally {
         Blockly.Events.enable();
       }
+    }
+
+    if (workspace.flockSearchCategory?.blockSearcher?.indexBlocks) {
+      workspace.flockSearchCategory.blockSearcher.indexBlocks();
     }
   }
 }
@@ -281,12 +325,18 @@ export function getSnippetOption(blockType) {
 
 // Helper function to get translated dropdown options
 export function getOption(key) {
-  const optionKey 
-    = key == " " ? "space_option"
-    : key == "," ? "comma_option"
-    : key == "." ? "dot_option"
-    : key == "/" ? "slash_option"
-    : (/^\d$/.test(key[0]) ? "_" : "") + key.replace(".", "_").replace("-", "_").replace("/", "_") + "_option";
+  const optionKey =
+    key == " "
+      ? "space_option"
+      : key == ","
+        ? "comma_option"
+        : key == "."
+          ? "dot_option"
+          : key == "/"
+            ? "slash_option"
+            : (/^\d$/.test(key[0]) ? "_" : "") +
+              key.replace(".", "_").replace("-", "_").replace("/", "_") +
+              "_option";
   return (
     translations[currentLanguage]?.[optionKey] ||
     translations["en"]?.[optionKey] ||
@@ -295,24 +345,40 @@ export function getOption(key) {
 }
 
 export function applyTranslations() {
-  document.querySelectorAll('[data-i18n]').forEach(el => {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.dataset.i18n + "_ui";
+    const translation = translate(key) || key;
 
-    let contents = ""
-    for (const element of el.childNodes) {
-      if (element.nodeType == Node.TEXT_NODE || element.nodeName == "STRONG") {
-        contents += element.textContent
-      }
+    if (el.dataset.i18nAttrs) {
+      el.dataset.i18nAttrs
+        .split(",")
+        .map((attr) => attr.trim())
+        .filter(Boolean)
+        .forEach((attr) => el.setAttribute(attr, translation));
     }
-    contents = contents.trim()
-    if (contents != "") { el.innerHTML = translate(key) || key }
-    else if (el.hasAttribute("title")) { el.title = translate(key) || key }
-    else if (el.hasAttribute("placeholder")) {el.setAttribute("placeholder", translate(key) || key) }
+
+    const hasOnlyTextOrStrongChildren = Array.from(el.childNodes).every(
+      (node) => node.nodeType === Node.TEXT_NODE || node.nodeName === "STRONG",
+    );
+
+    if (hasOnlyTextOrStrongChildren) {
+      // Replace the element's textual content only to avoid injecting HTML
+      el.textContent = translation;
+      return;
+    }
+
+    if (el.hasAttribute("title")) {
+      el.title = translation;
+    }
+    if (el.hasAttribute("aria-label")) {
+      el.setAttribute("aria-label", translation);
+    }
+    if (el.hasAttribute("placeholder")) {
+      el.setAttribute("placeholder", translation);
+    }
   });
 }
-document.addEventListener('DOMContentLoaded', () =>
-  applyTranslations()
-);
+document.addEventListener("DOMContentLoaded", () => applyTranslations());
 
 // Function to update custom block translations
 export function updateCustomBlockTranslations() {
@@ -427,5 +493,7 @@ export async function initializeSavedLanguage() {
     Object.keys(translations.en).forEach((key) => {
       Blockly.Msg[key] = translations.en[key];
     });
+
+    applyContextMenuShortcutTranslations();
   }
 }

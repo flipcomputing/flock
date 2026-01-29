@@ -2,8 +2,6 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
-const sesUrl = "/vendor/ses/lockdown.umd.min.js";
-
 import * as acorn from "acorn";
 import * as walk from "acorn-walk";
 import HavokPhysics from "@babylonjs/havok";
@@ -12,7 +10,8 @@ import * as BABYLON_GUI from "@babylonjs/gui";
 import * as BABYLON_LOADER from "@babylonjs/loaders";
 import { GradientMaterial } from "@babylonjs/materials";
 import * as BABYLON_EXPORT from "@babylonjs/serializers";
-// Point Babylon’s Draco loader at your local folder
+import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
+// Point Babylon’s Draco loader at local folder for offline use
 BABYLON.DracoCompression.Configuration = {
         decoder: {
                 wasmUrl: "./draco/draco_wasm_wrapper_gltf.js",
@@ -20,7 +19,7 @@ BABYLON.DracoCompression.Configuration = {
                 fallbackUrl: "./draco/draco_decoder_gltf.js",
         },
 };
-import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
+import earcut from "earcut";
 import "@fontsource/atkinson-hyperlegible-next";
 import "@fontsource/atkinson-hyperlegible-next/500.css";
 import "@fontsource/atkinson-hyperlegible-next/600.css";
@@ -28,8 +27,14 @@ import "@fontsource/atkinson-hyperlegible-next/600.css";
 import "@fontsource/asap";
 import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
-import earcut from "earcut";
 import { characterNames } from "./config";
+
+const optionalBabylonDeps = { earcut, FlowGraphLog10Block, SetMaterialIDBlock };
+const globalEarcutTarget =
+        typeof globalThis !== "undefined" ? globalThis : undefined;
+if (globalEarcutTarget) {
+        Object.assign(globalEarcutTarget, optionalBabylonDeps);
+}
 import { flockCSG, setFlockReference as setFlockCSG } from "./api/csg";
 import {
         flockAnimate,
@@ -59,9 +64,21 @@ import {
         flockPhysics,
         setFlockReference as setFlockPhysics,
 } from "./api/physics";
+import { flockXR, setFlockReference as setFlockXR } from "./api/xr";
+import {
+        flockControl,
+        setFlockReference as setFlockControl,
+} from "./api/control";
 import { flockScene, setFlockReference as setFlockScene } from "./api/scene";
 import { flockMesh, setFlockReference as setFlockMesh } from "./api/mesh";
 import { flockCamera, setFlockReference as setFlockCamera } from "./api/camera";
+import { flockEvents, setFlockReference as setFlockEvents } from "./api/events";
+import { flockMath, setFlockReference as setFlockMath } from "./api/math";
+import {
+        flockSensing,
+        setFlockReference as setFlockSensing,
+} from "./api/sensing";
+import { translate } from "./main/translation.js";
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
 
@@ -76,11 +93,14 @@ export const flock = {
         performanceOverlay: false,
         maxMeshes: 5000,
         console: console,
+        havokAbortHandled: false,
         triggerHandlingDebug: false,
         modelPath: "./models/",
         soundPath: "./sounds/",
         imagePath: "./images/",
         texturePath: "./textures/",
+        // Keep optional Babylon dependencies referenced so bundlers include them.
+        optionalBabylonDeps,
         engine: null,
         engineReady: false,
         eventDebug: false,
@@ -100,6 +120,7 @@ export const flock = {
         mainLight: null,
         hk: null,
         havokInstance: null,
+        initialClearColor: null,
         ground: null,
         sky: null,
         GUI: null,
@@ -109,6 +130,7 @@ export const flock = {
                 pressedKeys: null,
         },
         abortController: null,
+        _renderLoop: null,
         document: document,
         disposed: null,
         events: {},
@@ -135,6 +157,11 @@ export const flock = {
         ...flockScene,
         ...flockMesh,
         ...flockCamera,
+        ...flockXR,
+        ...flockControl,
+        ...flockEvents,
+        ...flockSensing,
+        ...flockMath,
         // Enhanced error reporting with block context
         createEnhancedError(error, code) {
                 const lines = code.split("\n");
@@ -177,9 +204,6 @@ export const flock = {
 
                 return errorContext;
         },
-        createVector3(x, y, z) {
-                return new flock.BABYLON.Vector3(x, y, z);
-        },
         maxMeshesReached() {
                 const scene = flock?.scene;
                 if (!scene || typeof flock.maxMeshes !== "number") return false;
@@ -189,7 +213,9 @@ export const flock = {
 
                 if (meshCount >= max) {
                         flock.printText?.({
-                                text: `⚠️ Limit reached: You can only have ${max} meshes in your world.`,
+                                text: translate(
+                                        "max_mesh_limit_reached",
+                                ).replace("{max}", max),
                                 duration: 30,
                                 color: "#ff0000",
                         });
@@ -213,7 +239,6 @@ export const flock = {
                 const total = performance.memory.totalJSHeapSize / 1024 / 1024;
                 const limit = performance.memory.jsHeapSizeLimit / 1024 / 1024;
 
-                // Log to console (you might want to display in UI instead)
                 console.log(
                         `Memory: ${used.toFixed(1)}MB used / ${total.toFixed(1)}MB allocated / ${limit.toFixed(1)}MB limit`,
                 );
@@ -224,9 +249,11 @@ export const flock = {
                         console.warn(
                                 `High memory usage: ${usagePercent.toFixed(1)}% of limit`,
                         );
-                        // Show user warning in your UI
+                        // Show user warning in UI
                         this.printText({
-                                text: `Warning: High memory usage (${usagePercent.toFixed(1)}%)`,
+                                text: translate(
+                                        "high_memory_usage_warning",
+                                ).replace("{percent}", usagePercent.toFixed(1)),
                                 duration: 3,
                                 color: "#ff9900",
                         });
@@ -283,6 +310,64 @@ export const flock = {
                                 flock.memoryMonitorInterval = null;
                         }
                 });
+        },
+        isPhysicsMemoryAbort(error) {
+                const message = `${error?.message ?? error}`.toLowerCase();
+                const isWasmRuntimeError =
+                        typeof WebAssembly !== "undefined" &&
+                        error instanceof WebAssembly.RuntimeError;
+                return (
+                        message.includes("out of memory") ||
+                        (isWasmRuntimeError && message.includes("abort"))
+                );
+        },
+        handlePhysicsOutOfMemory(error) {
+                if (flock.havokAbortHandled) {
+                        return;
+                }
+
+                flock.havokAbortHandled = true;
+                console.error(translate("physics_out_of_memory_log"), error);
+
+                try {
+                        if (flock._renderLoop) {
+                                flock.engine?.stopRenderLoop(flock._renderLoop);
+                        } else {
+                                flock.engine?.stopRenderLoop();
+                        }
+                        flock.abortController?.abort();
+                } catch {}
+
+                try {
+                        flock.hk?.dispose?.();
+                } catch {}
+
+                const doc = flock.document;
+                if (!doc?.body) return;
+
+                const warningId = "havok-oom-warning";
+                if (doc.getElementById(warningId)) return;
+
+                const banner = doc.createElement("div");
+                banner.id = warningId;
+                banner.textContent = translate(
+                        "physics_out_of_memory_banner_ui",
+                );
+                banner.style.position = "fixed";
+                banner.style.top = "0";
+                banner.style.left = "0";
+                banner.style.right = "0";
+                banner.style.padding = "12px";
+                banner.style.background = "#3b0b0b";
+                banner.style.color = "#ffb3b3";
+                banner.style.fontSize = "16px";
+                banner.style.fontFamily = "'Asap', sans-serif";
+                banner.style.zIndex = "10000";
+                banner.style.textAlign = "center";
+                banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.4)";
+                banner.style.borderBottom = "2px solid #d33";
+
+                doc.body.prepend(banner);
         },
         validateCode(code) {
                 if (typeof code !== "string") {
@@ -415,18 +500,12 @@ export const flock = {
                         "callee",
                         "arguments",
                 ]);
-                let ast;
-                try {
-                        ast = acorn.parse(src, {
-                                ecmaVersion: "latest",
-                                sourceType: "script",
-                                allowAwaitOutsideFunction: true,
-                                locations: false,
-                        });
-                } catch (e) {
-                        // Surface syntax errors directly
-                        throw e;
-                }
+                const ast = acorn.parse(src, {
+                        ecmaVersion: "latest",
+                        sourceType: "script",
+                        allowAwaitOutsideFunction: true,
+                        locations: false,
+                });
 
                 walk.simple(ast, {
                         // Syntax we never allow
@@ -557,29 +636,32 @@ export const flock = {
                         if (oldIframe) {
                                 try {
                                         await oldIframe.contentWindow?.flock?.disposeOldScene?.();
-                                } catch {}
+                                } catch {
+                                        /* ignore cleanup errors */
+                                }
                                 try {
                                         oldIframe.onload = oldIframe.onerror =
                                                 null;
-                                } catch {}
+                                } catch {
+                                        /* ignore cleanup errors */
+                                }
                                 try {
                                         oldIframe.src = "about:blank";
-                                } catch {}
+                                } catch {
+                                        /* ignore cleanup errors */
+                                }
                                 try {
                                         oldIframe.remove();
                                 } catch {
-                                        oldIframe.parentNode?.removeChild(
-                                                oldIframe,
-                                        );
+                                        /* ignore cleanup errors */
                                 }
                         }
 
                         // --- create fresh same-origin iframe ---
-                        const { iframe, win, doc } =
-                                await flock.replaceSandboxIframe({
-                                        id: "flock-iframe",
-                                        sameOrigin: true,
-                                });
+                        const { win, doc } = await flock.replaceSandboxIframe({
+                                id: "flock-iframe",
+                                sameOrigin: true,
+                        });
 
                         // --- load SES text in parent and inject inline into iframe (CSP allows inline) ---
                         const sesResp = await fetch(
@@ -595,14 +677,14 @@ export const flock = {
                         sesScript.text = sesText;
                         doc.head.appendChild(sesScript);
 
-                        // --- lockdown the iframe realm ---
+                        // lockdown the iframe realm
                         win.lockdown();
 
-                        // --- initialise your scene (unchanged) ---
+                        // initialise scene
                         await this.initializeNewScene?.();
                         if (this.memoryDebug) this.startMemoryMonitoring?.();
 
-                        // --- abort plumbing (unchanged) ---
+                        // abort plumbing
                         this.__runToken = (this.__runToken || 0) + 1;
                         const runToken = this.__runToken;
                         this.abortController?.abort?.();
@@ -621,9 +703,7 @@ export const flock = {
 
                         const whitelist = this.createWhitelist({
                                 win,
-                                doc,
                                 signal,
-                                runToken,
                                 guard,
                         });
 
@@ -726,36 +806,6 @@ export const flock = {
                                 endowments[key] = undefined;
                         }
 
-                        function buildConsole(win) {
-                                const src = win.console || {};
-                                const cons = Object.create(null);
-                                const methods = [
-                                        "log",
-                                        "info",
-                                        "warn",
-                                        "error",
-                                        "debug",
-                                        "trace",
-                                        "group",
-                                        "groupCollapsed",
-                                        "groupEnd",
-                                        "table",
-                                        "time",
-                                        "timeEnd",
-                                        "timeLog",
-                                        "clear",
-                                        "assert",
-                                        "count",
-                                        "countReset",
-                                ];
-                                for (const m of methods) {
-                                        if (typeof src[m] === "function")
-                                                cons[m] = src[m].bind(src);
-                                }
-                                return Object.freeze(cons);
-                        }
-                        //endowments.console = buildConsole(win);
-
                         Object.freeze(endowments);
 
                         // Wrap user code to allow top-level await
@@ -801,7 +851,9 @@ export const flock = {
                         console.error("Enhanced error details:", enhancedError);
 
                         this.printText?.({
-                                text: `Error: ${error.message}`,
+                                text: translate(
+                                        "runtime_error_message",
+                                ).replace("{message}", error.message),
                                 duration: 5,
                                 color: "#ff0000",
                         });
@@ -820,7 +872,7 @@ export const flock = {
                         throw error;
                 }
         },
-        createWhitelist({ win, doc, signal, runToken, guard } = {}) {
+        createWhitelist({ win, signal, guard } = {}) {
                 // --- Bind realm-scoped primitives (fallback to parent if win missing) ---
                 const raf =
                         win?.requestAnimationFrame?.bind(win) ??
@@ -844,7 +896,9 @@ export const flock = {
                                 const onAbort = () => {
                                         try {
                                                 caf(id);
-                                        } catch {}
+                                        } catch {
+                                                /* ignore animation cancel errors */
+                                        }
                                         reject(
                                                 new DOMException(
                                                         "Aborted",
@@ -903,8 +957,10 @@ export const flock = {
                         createMap: this.createMap?.bind(this),
                         setSky: this.setSky?.bind(this),
                         lightIntensity: this.lightIntensity?.bind(this),
+                        lightColor: this.lightColor?.bind(this),
                         buttonControls: this.buttonControls?.bind(this),
                         getCamera: this.getCamera?.bind(this),
+                        getMainLight: this.getMainLight?.bind(this),
                         cameraControl: this.cameraControl?.bind(this),
                         setCameraBackground:
                                 this.setCameraBackground?.bind(this),
@@ -912,6 +968,7 @@ export const flock = {
                         applyForce: this.applyForce?.bind(this),
                         moveByVector: this.moveByVector?.bind(this),
                         glideTo: this.glideTo?.bind(this),
+                        glideToObject: this.glideToObject?.bind(this),
                         wait: this.wait?.bind(this),
                         createAnimation: this.createAnimation?.bind(this),
                         animateFrom: this.animateFrom?.bind(this),
@@ -925,7 +982,7 @@ export const flock = {
                         resetParticleSystem:
                                 this.resetParticleSystem?.bind(this),
                         animateKeyFrames: this.animateKeyFrames?.bind(this),
-                        setPivotPoint: this.setPivotPoint?.bind(this),
+                        setAnchor: this.setAnchor?.bind(this),
                         rotate: this.rotate?.bind(this),
                         lookAt: this.lookAt?.bind(this),
                         moveTo: this.moveTo?.bind(this),
@@ -933,6 +990,8 @@ export const flock = {
                         rotateAnim: this.rotateAnim?.bind(this),
                         animateProperty: this.animateProperty?.bind(this),
                         positionAt: this.positionAt?.bind(this),
+                        positionAtSingleCoordinate:
+                                this.positionAtSingleCoordinate?.bind(this),
                         distanceTo: this.distanceTo?.bind(this),
                         safeLoop: this.safeLoop?.bind(this),
                         waitUntil: this.waitUntil?.bind(this),
@@ -945,6 +1004,7 @@ export const flock = {
                         dispose: this.dispose?.bind(this),
                         setFog: this.setFog?.bind(this),
                         keyPressed: this.keyPressed?.bind(this),
+                        actionPressed: this.actionPressed?.bind(this),
                         isTouchingSurface: this.isTouchingSurface?.bind(this),
                         meshExists: this.meshExists?.bind(this),
                         seededRandom: this.seededRandom?.bind(this),
@@ -972,6 +1032,7 @@ export const flock = {
                         broadcastEvent: this.broadcastEvent?.bind(this),
                         start: this.start?.bind(this),
                         forever: this.forever?.bind(this),
+                        whenActionEvent: this.whenActionEvent?.bind(this),
                         whenKeyEvent: this.whenKeyEvent?.bind(this),
                         randomInteger: this.randomInteger?.bind(this),
                         printText: this.printText?.bind(this),
@@ -981,9 +1042,8 @@ export const flock = {
                         UISlider: this.UISlider?.bind(this),
                         onIntersect: this.onIntersect?.bind(this),
                         getProperty: this.getProperty?.bind(this),
+                        getTime: this.getTime?.bind(this),
                         exportMesh: this.exportMesh?.bind(this),
-                        ensureUniqueGeometry:
-                                this.ensureUniqueGeometry?.bind(this),
                         createVector3: this.createVector3?.bind(this),
                 };
 
@@ -1017,6 +1077,7 @@ export const flock = {
                         "setFog",
                         "setCameraBackground",
                         "lightIntensity",
+                        "lightColor",
                         "create3DText",
                         "createModel",
                         "createBox",
@@ -1062,18 +1123,28 @@ export const flock = {
                                 const w = old.contentWindow;
                                 try {
                                         w?.cancelAnimationFrame?.(w.__raf);
-                                } catch {}
+                                } catch {
+                                        /* ignore teardown errors */
+                                }
                                 try {
                                         w?.stop?.();
-                                } catch {} // stops loading
+                                } catch {
+                                        /* ignore teardown errors */
+                                        // stops loading
+                                }
                                 try {
                                         w?.close?.();
-                                } catch {} // some browsers free resources
+                                } catch {
+                                        /* ignore teardown errors */
+                                        // some browsers free resources
+                                }
 
                                 // Navigate to a harmless page to break references, then remove
                                 try {
                                         old.src = "about:blank";
-                                } catch {}
+                                } catch {
+                                        /* ignore teardown errors */
+                                }
                         } finally {
                                 // Remove from DOM to release the realm
                                 old.remove?.();
@@ -1105,7 +1176,7 @@ export const flock = {
                                 iframe.onload = iframe.onerror = null;
                                 resolve();
                         };
-                        iframe.onerror = (e) => {
+                        iframe.onerror = () => {
                                 iframe.onload = iframe.onerror = null;
                                 reject(new Error("iframe failed to load"));
                         };
@@ -1117,7 +1188,7 @@ export const flock = {
                         }
                 });
 
-                // If we fell back to about:blank, inject CSP meta now (runs before your code anyway)
+                // If we fell back to about:blank, inject CSP meta now (runs before user code anyway)
                 if (
                         !("srcdoc" in document.createElement("iframe")) ||
                         !iframe.srcdoc
@@ -1133,7 +1204,6 @@ export const flock = {
                         meta.httpEquiv = "Content-Security-Policy";
                         meta.content = csp;
                         doc.head.appendChild(meta);
-                        // Optionally inject your canvas or boot HTML here if needed
                 }
 
                 const win = iframe.contentWindow;
@@ -1224,6 +1294,204 @@ export const flock = {
 
                 flock.engineReady = true;
         },
+        setupGamepadCameraControls() {
+                if (!flock.scene) {
+                        return;
+                }
+
+                const deadZone = 0.2;
+                const yawSpeed = 2.5;
+                const pitchSpeed = 2.0;
+
+                if (flock._gamepadCameraObserver) {
+                        flock.scene.onBeforeRenderObservable.remove(
+                                flock._gamepadCameraObserver,
+                        );
+                        flock._gamepadCameraObserver = null;
+                }
+
+                flock._gamepadCameraObserver =
+                        flock.scene.onBeforeRenderObservable.add(() => {
+                                if (!navigator.getGamepads) {
+                                        return;
+                                }
+
+                                const gamepads = navigator.getGamepads() || [];
+                                const gamepad = gamepads.find((pad) => pad);
+
+                                if (!gamepad) {
+                                        return;
+                                }
+
+                                const [, , rawRightX = 0, rawRightY = 0] =
+                                        gamepad.axes || [];
+
+                                const rightX =
+                                        Math.abs(rawRightX) > deadZone
+                                                ? rawRightX
+                                                : 0;
+                                const rightY =
+                                        Math.abs(rawRightY) > deadZone
+                                                ? rawRightY
+                                                : 0;
+
+                                const leftShoulder = gamepad.buttons?.[4];
+                                const rightShoulder = gamepad.buttons?.[5];
+                                const normalizeShoulder = (button) =>
+                                        Boolean(
+                                                button?.pressed ||
+                                                        button?.value > 0.5,
+                                        );
+                                const shoulderTurn =
+                                        (normalizeShoulder(rightShoulder)
+                                                ? 1
+                                                : 0) -
+                                        (normalizeShoulder(leftShoulder)
+                                                ? 1
+                                                : 0);
+
+                                const yawInput = rightX + shoulderTurn;
+
+                                if (!yawInput && !rightY) {
+                                        return;
+                                }
+
+                                const camera = flock.scene.activeCamera;
+
+                                if (!camera) {
+                                        return;
+                                }
+
+                                const deltaTime =
+                                        (flock.engine?.getDeltaTime?.() ?? 16) /
+                                        1000;
+                                const yawDelta =
+                                        yawInput * yawSpeed * deltaTime;
+                                const pitchDelta =
+                                        rightY * pitchSpeed * deltaTime;
+
+                                const cameraType = camera.getClassName?.();
+
+                                if (cameraType === "ArcRotateCamera") {
+                                        camera.alpha -= yawDelta;
+                                        camera.beta -= pitchDelta;
+
+                                        const lowerBeta =
+                                                camera.lowerBetaLimit ?? 0.01;
+                                        const upperBeta =
+                                                camera.upperBetaLimit ??
+                                                Math.PI - 0.01;
+
+                                        camera.beta = Math.min(
+                                                upperBeta,
+                                                Math.max(
+                                                        lowerBeta,
+                                                        camera.beta,
+                                                ),
+                                        );
+                                } else {
+                                        camera.rotation.y += yawDelta;
+                                        camera.rotation.x += pitchDelta;
+
+                                        const minPitch = -Math.PI / 2 + 0.01;
+                                        const maxPitch = Math.PI / 2 - 0.01;
+
+                                        camera.rotation.x = Math.min(
+                                                maxPitch,
+                                                Math.max(
+                                                        minPitch,
+                                                        camera.rotation.x,
+                                                ),
+                                        );
+                                }
+                        });
+        },
+        setupGamepadButtonMapping() {
+                if (!flock.scene) {
+                        return;
+                }
+
+                if (flock._gamepadButtonObserver) {
+                        flock.scene.onBeforeRenderObservable.remove(
+                                flock._gamepadButtonObserver,
+                        );
+                        flock._gamepadButtonObserver = null;
+                }
+
+                const buttonToKeys = {
+                        0: [" ", "SPACE"], // Bottom face button (A/Cross) -> Space
+                        1: ["e", "E"], // Right face button (B/Circle) -> E
+                        2: ["f", "F"], // Left face button (X/Square) -> F
+                        3: ["r", "R"], // Top face button (Y/Triangle) -> R
+                };
+
+                const normalizeButtonState = (button) => {
+                        if (!button) return false;
+                        return Boolean(button.pressed || button.value > 0.5);
+                };
+
+                const trackedGamepadKeys = new Set();
+
+                flock._gamepadButtonObserver =
+                        flock.scene.onBeforeRenderObservable.add(() => {
+                                if (!navigator.getGamepads) {
+                                        return;
+                                }
+
+                                const pressedButtons =
+                                        flock.canvas.pressedButtons;
+                                const nextGamepadKeys = new Set();
+
+                                const gamepads = navigator.getGamepads() || [];
+                                const gamepad = gamepads.find((pad) => pad);
+
+                                if (gamepad) {
+                                        Object.entries(buttonToKeys).forEach(
+                                                ([index, keys]) => {
+                                                        const button =
+                                                                gamepad
+                                                                        .buttons?.[
+                                                                        Number(
+                                                                                index,
+                                                                        )
+                                                                ];
+                                                        const isPressed =
+                                                                normalizeButtonState(
+                                                                        button,
+                                                                );
+
+                                                        if (isPressed) {
+                                                                keys.forEach(
+                                                                        (k) =>
+                                                                                nextGamepadKeys.add(
+                                                                                        k,
+                                                                                ),
+                                                                );
+                                                        }
+                                                },
+                                        );
+                                }
+
+                                // Remove only the keys that previously came from
+                                // the gamepad but are no longer active.
+                                trackedGamepadKeys.forEach((key) => {
+                                        if (!nextGamepadKeys.has(key)) {
+                                                pressedButtons.delete(key);
+                                        }
+                                });
+
+                                // Add the currently active gamepad keys without
+                                // disturbing other input sources (e.g. touch).
+                                nextGamepadKeys.forEach((key) =>
+                                        pressedButtons.add(key),
+                                );
+
+                                trackedGamepadKeys.clear();
+                                nextGamepadKeys.forEach((key) =>
+                                        trackedGamepadKeys.add(key),
+                                );
+                        });
+        },
         createEngine() {
                 flock.engine?.dispose();
                 flock.engine = null;
@@ -1232,6 +1500,8 @@ export const flock = {
                         preserveDrawingBuffer: true,
                         stencil: true,
                         powerPreference: "default",
+                        deterministicLockstep: true,
+                        lockstepMaxSteps: 4,
                 });
 
                 flock.engine.enableOfflineSupport = false;
@@ -1261,6 +1531,20 @@ export const flock = {
                                 flock.stopAllSounds();
                                 flock.engine?.stopRenderLoop();
 
+                                if (flock._gamepadCameraObserver) {
+                                        flock.scene.onBeforeRenderObservable.remove(
+                                                flock._gamepadCameraObserver,
+                                        );
+                                        flock._gamepadCameraObserver = null;
+                                }
+
+                                if (flock._gamepadButtonObserver) {
+                                        flock.scene.onBeforeRenderObservable.remove(
+                                                flock._gamepadButtonObserver,
+                                        );
+                                        flock._gamepadButtonObserver = null;
+                                }
+
                                 try {
                                         const canvas =
                                                 flock.engine?.getRenderingCanvas?.();
@@ -1268,7 +1552,9 @@ export const flock = {
                                                 canvas,
                                         );
                                         flock.scene?.detachControl?.();
-                                } catch {}
+                                } catch {
+                                        /* ignore scene cleanup errors */
+                                }
 
                                 try {
                                         const containers = Array.isArray(
@@ -1279,10 +1565,14 @@ export const flock = {
                                         for (const c of containers) {
                                                 try {
                                                         c?.dispose?.();
-                                                } catch {}
+                                                } catch {
+                                                        /* ignore asset disposal errors */
+                                                }
                                         }
                                         flock._assetContainers = [];
-                                } catch {}
+                                } catch {
+                                        /* ignore asset container cleanup errors */
+                                }
 
                                 // Abort any ongoing operations
                                 if (flock.abortController) {
@@ -1602,7 +1892,7 @@ export const flock = {
                                                         console.log(
                                                                 "Forced garbage collection",
                                                         );
-                                                } catch (error) {
+                                                } catch {
                                                         // Silently fail if gc is not available
                                                 }
                                         }, 100);
@@ -1645,18 +1935,42 @@ export const flock = {
                 flock._nameRegistry = new Map();
                 flock._animationFileCache = {};
                 flock.materialCache = {};
+                flock.havokAbortHandled = false;
                 flock.disposed = false;
+
+                const existingOomBanner =
+                        flock.document?.getElementById("havok-oom-warning");
+                existingOomBanner?.remove?.();
 
                 // Create the new scene
                 flock.scene = new flock.BABYLON.Scene(flock.engine);
+
+                flock._renderLoop = () => {
+                        try {
+                                flock.scene.render();
+                        } catch (error) {
+                                if (flock.isPhysicsMemoryAbort(error)) {
+                                        flock.handlePhysicsOutOfMemory(error);
+                                        return;
+                                }
+                                throw error;
+                        }
+                };
+
+                // Apply and remember the app's default clear colour so it can be
+                // restored if the user removes their sky/background blocks later.
+                const defaultClearColor =
+                        flock.BABYLON.Color3.FromHexString("#33334c");
+                flock.scene.clearColor =
+                        defaultClearColor.clone?.() ?? defaultClearColor;
+                flock.initialClearColor =
+                        defaultClearColor.clone?.() ?? defaultClearColor;
 
                 // Abort controller for clean-up
                 flock.abortController = new AbortController();
 
                 // Start the render loop
-                flock.engine.runRenderLoop(() => {
-                        flock.scene.render();
-                });
+                flock.engine.runRenderLoop(flock._renderLoop);
 
                 // Enable physics
                 flock.hk = new flock.BABYLON.HavokPlugin(
@@ -1681,6 +1995,11 @@ export const flock = {
                 setFlockScene(flock);
                 setFlockMesh(flock);
                 setFlockCamera(flock);
+                setFlockXR(flock);
+                setFlockMath(flock);
+                setFlockControl(flock);
+                setFlockEvents(flock);
+                setFlockSensing(flock);
 
                 // Add highlight layer
                 flock.highlighter = new flock.BABYLON.HighlightLayer(
@@ -1703,10 +2022,12 @@ export const flock = {
                 camera.speed = 0.25;
                 flock.scene.activeCamera = camera;
                 camera.attachControl(flock.canvas, false);
+                flock.setupGamepadCameraControls();
+                flock.setupGamepadButtonMapping();
                 // Set up lighting
                 const hemisphericLight = new flock.BABYLON.HemisphericLight(
                         "hemisphericLight",
-                        new flock.BABYLON.Vector3(1, 1, 0),
+                        new flock.BABYLON.Vector3(0, 3, 0),
                         flock.scene,
                 );
                 hemisphericLight.intensity = 1.0;
@@ -1749,19 +2070,7 @@ export const flock = {
                 // Enable collisions
                 flock.scene.collisionsEnabled = true;
 
-                const isTouchScreen =
-                        "ontouchstart" in window ||
-                        navigator.maxTouchPoints > 0 ||
-                        window.matchMedia("(pointer: coarse)").matches;
-
-                if (isTouchScreen) {
-                        flock.controlsTexture =
-                                flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-                                        "UI",
-                                );
-                        flock.createArrowControls("white");
-                        flock.createButtonControls("white");
-                }
+                flock.buttonControls("BOTH", "AUTO", "#ffffff");
 
                 // Create the UI
                 flock.advancedTexture =
@@ -1795,15 +2104,6 @@ export const flock = {
 
                 // Reset XR helper
                 flock.xrHelper = null;
-        },
-        randomInteger(a, b) {
-                if (a > b) {
-                        // Swap a and b to ensure a is smaller.
-                        var c = a;
-                        a = b;
-                        b = c;
-                }
-                return Math.floor(Math.random() * (b - a + 1) + a);
         },
         async initializeXR(mode) {
                 if (flock.xrHelper) return; // Avoid reinitializing
@@ -1955,6 +2255,9 @@ export const flock = {
                                 if (meshId === "__active_camera__") {
                                         yield flock.scene.activeCamera;
                                         return;
+                                } else if (meshId === "__main_light__") {
+                                        yield flock.mainLight;
+                                        return;
                                 } else {
                                         const mesh =
                                                 flock.scene.getMeshByName(
@@ -2027,18 +2330,27 @@ export const flock = {
                 // --- Promise that resolves when ready (or undefined on abort/dispose) ---
                 let settled = false;
                 let resolveP;
-                const promise = new Promise((r) => {
-                        resolveP = r;
+                let rejectP;
+                const promise = new Promise((resolve, reject) => {
+                        resolveP = resolve;
+                        rejectP = reject;
                 });
 
-                const safeCall = (val) => {
+                // The callback often does async setup (e.g. awaiting materials,
+                // loading textures, or chaining other whenModelReady calls).
+                // Await it so the readiness promise only resolves once that
+                // user-provided async work is finished.
+                const settle = async (val) => {
                         if (settled) return;
                         settled = true;
                         try {
+                                // Await the callback so the readiness promise doesn't resolve
+                                // before user async work completes (premature resolution).
                                 if (typeof callback === "function")
-                                        callback(val);
-                        } finally {
+                                        await callback(val);
                                 resolveP(val);
+                        } catch (error) {
+                                rejectP(error);
                         }
                 };
 
@@ -2048,6 +2360,8 @@ export const flock = {
                         if (!scene) return null;
                         if (id === "__active_camera__")
                                 return scene.activeCamera ?? null;
+                        if (id === "__main_light__")
+                                return flock.mainLight ?? null;
 
                         let t = scene.getMeshByName?.(id) ?? null;
                         if (!t && scene.UITexture)
@@ -2073,7 +2387,7 @@ export const flock = {
                         const existing = locate();
                         if (existing) {
                                 if (!flock.abortController?.signal?.aborted)
-                                        safeCall(existing);
+                                        void settle(existing);
                                 return promise; // <— return the promise even in fast path
                         }
                 }
@@ -2088,17 +2402,19 @@ export const flock = {
 
                                 const disposers = [];
                                 let done = false;
-                                const finish = (target /*, source */) => {
+                                const finish = async (target /*, source */) => {
                                         if (done) return;
                                         done = true;
                                         try {
                                                 if (!signal?.aborted)
-                                                        safeCall(target);
+                                                        await settle(target);
                                         } finally {
                                                 while (disposers.length) {
                                                         try {
                                                                 disposers.pop()();
-                                                        } catch {}
+                                                        } catch {
+                                                                /* ignore disposer errors */
+                                                        }
                                                 }
                                         }
                                 };
@@ -2335,23 +2651,23 @@ export const flock = {
                                                 flock.abortController?.signal
                                                         ?.aborted
                                         ) {
-                                                safeCall(undefined);
+                                                await settle(undefined);
                                                 return;
                                         }
-                                        if (target) safeCall(target);
+                                        if (target) await settle(target);
                                         return;
                                 }
                         } catch (err) {
                                 if (flock.abortController?.signal?.aborted) {
                                         // resolve undefined on abort
-                                        safeCall(undefined);
+                                        await settle(undefined);
                                 } else {
                                         console.error(
                                                 `Error in whenModelReady for '${id}':`,
                                                 err,
                                         );
                                         // resolve undefined on error to prevent hangs
-                                        safeCall(undefined);
+                                        await settle(undefined);
                                 }
                         }
                 })();
@@ -2360,6 +2676,11 @@ export const flock = {
         },
         announceMeshReady(meshName, groupName) {
                 //console.log(`[flock] Mesh ready: ${meshName} (group: ${groupName})`);
+
+                const getGroupRoot = (name) =>
+                        name.includes("__")
+                                ? name.split("__")[0]
+                                : name.split("_")[0];
 
                 if (!flock.pendingTriggers.has(groupName)) return;
 
@@ -2375,7 +2696,9 @@ export const flock = {
                         if (applyToGroup) {
                                 // 🔁 Reapply trigger across all matching meshes
                                 const matching = flock.scene.meshes.filter(
-                                        (m) => m.name.startsWith(groupName),
+                                        (m) =>
+                                                getGroupRoot(m.name) ===
+                                                groupName,
                                 );
                                 for (const m of matching) {
                                         flock.onTrigger(m.name, {
@@ -2423,1022 +2746,7 @@ export const flock = {
                 flock._nameRegistry.delete(name);
         },
 
-        /* 
-                Category: Scene>XR
-        */
-
-        setCameraBackground(cameraType) {
-                if (!flock.scene) {
-                        console.error(
-                                "Scene not available. Ensure the scene is initialised before setting the camera background.",
-                        );
-                        return;
-                }
-
-                const videoLayer = new flock.BABYLON.Layer(
-                        "videoLayer",
-                        null,
-                        flock.scene,
-                        true,
-                );
-
-                flock.BABYLON.VideoTexture.CreateFromWebCam(
-                        flock.scene,
-                        (videoTexture) => {
-                                videoTexture._invertY = false; // Correct orientation
-                                videoTexture.uScale = -1; // Flip horizontally for mirror effect
-                                videoLayer.texture = videoTexture; // Assign the video feed to the layer
-                        },
-                        {
-                                facingMode: cameraType, // "user" for front, "environment" for back
-                                minWidth: 640,
-                                minHeight: 480,
-                                maxWidth: 1920,
-                                maxHeight: 1080,
-                                deviceId: "",
-                        },
-                );
-        },
-        async setXRMode(mode) {
-                await flock.initializeXR(mode);
-                flock.printText({
-                        text: "XR Mode!",
-                        duration: 5,
-                        color: "white",
-                });
-        },
-        exportMesh(meshName, format) {
-                //meshName = "scene";
-
-                if (meshName === "scene" && format === "GLB") {
-                        const scene = flock.scene;
-
-                        const cls = (n) => n?.getClassName?.();
-                        const isEnabledDeep = (n) =>
-                                typeof n.isEnabled === "function"
-                                        ? n.isEnabled(true)
-                                        : true;
-
-                        // Treat ALL mesh subclasses as geometry; we'll still skip LinesMesh explicitly
-                        const isAbstractMesh = (n) =>
-                                typeof BABYLON !== "undefined" &&
-                                n instanceof BABYLON.AbstractMesh;
-                        const isLines = (n) => cls(n) === "LinesMesh";
-
-                        // --- Ghost: top-level + enabled + AbstractMesh + no material (not lines)
-                        const targets = scene.meshes.filter(
-                                (m) =>
-                                        !m.parent &&
-                                        isEnabledDeep(m) &&
-                                        isAbstractMesh(m) &&
-                                        !isLines(m) &&
-                                        !m.material,
-                        );
-
-                        // Shared transparent PBR material (GLTF-friendly)
-                        const ghostMat = new BABYLON.PBRMaterial(
-                                "_tmpExportGhost",
-                                scene,
-                        );
-                        ghostMat.alpha = 0;
-                        ghostMat.alphaMode = BABYLON.Engine.ALPHA_BLEND;
-                        ghostMat.transparencyMode =
-                                BABYLON.PBRMaterial.PBRMATERIAL_ALPHABLEND;
-                        ghostMat.disableLighting = true;
-                        ghostMat.metallic = 0;
-                        ghostMat.roughness = 1;
-                        ghostMat.albedoColor = new BABYLON.Color4(1, 1, 1, 0);
-
-                        const patches = targets.map((mesh) => ({
-                                mesh,
-                                prev: mesh.material ?? null,
-                        }));
-                        for (const { mesh } of patches)
-                                mesh.material = ghostMat;
-
-                        // Optional: name allowlist for safety (keeps ground even if disabled, if you want)
-                        const alwaysKeepNames = new Set(["ground", "Ground"]);
-
-                        const shouldExportNode = (node) => {
-                                const c = cls(node);
-                                if (!c) return false;
-
-                                // Always keep ground (by name) before any other checks
-                                if (node.name && alwaysKeepNames.has(node.name))
-                                        return true;
-
-                                // Respect enabled state (includes ancestors)
-                                if (!isEnabledDeep(node)) return false;
-
-                                // Never export cameras/lights
-                                if (c === "Camera" || c === "Light")
-                                        return false;
-
-                                // Skip line helpers entirely
-                                if (c === "LinesMesh") return false;
-
-                                // Keep all transform containers
-                                if (c === "TransformNode") return true;
-
-                                // Keep ALL mesh subclasses (e.g., Mesh, InstancedMesh, GroundMesh, etc.)
-                                if (isAbstractMesh(node)) return true;
-
-                                return false;
-                        };
-
-                        flock.EXPORT.GLTF2Export.GLBAsync(scene, "scene.glb", {
-                                exportMaterials: true,
-                                exportTextures: true,
-                                shouldExportNode,
-                        })
-                                .then((glb) => glb.downloadFiles())
-                                .finally(() => {
-                                        // Restore originals
-                                        for (const { mesh, prev } of patches)
-                                                mesh.material = prev;
-                                        ghostMat.dispose();
-                                });
-
-                        return;
-                }
-
-                return flock.whenModelReady(meshName, async function (mesh) {
-                        const rootChild = mesh
-                                .getChildMeshes()
-                                .find((child) => child.name === "__root__");
-                        if (rootChild) {
-                                mesh = rootChild;
-                        }
-                        const childMeshes = mesh.getChildMeshes(false);
-                        // Combine the parent mesh with its children
-                        const meshList = [mesh, ...childMeshes];
-                        if (format === "STL") {
-                                const stlData =
-                                        flock.EXPORT.STLExport.CreateSTL(
-                                                meshList,
-                                                true,
-                                                mesh.name,
-                                                false,
-                                                false,
-                                        );
-                        } else if (format === "OBJ") {
-                                const objData =
-                                        flock.EXPORT.OBJExport.OBJ(mesh);
-                                //download(mesh.name + ".obj", objData, "text/plain");
-                        } else if (format === "GLB") {
-                                mesh.flipFaces();
-                                flock.EXPORT.GLTF2Export.GLBAsync(
-                                        flock.scene,
-                                        mesh.name + ".glb",
-                                        {
-                                                shouldExportNode: (node) =>
-                                                        node === mesh ||
-                                                        mesh
-                                                                .getChildMeshes()
-                                                                .includes(node),
-                                        },
-                                ).then((glb) => {
-                                        mesh.flipFaces();
-                                        glb.downloadFiles();
-                                });
-                        }
-                });
-        },
-
-        /*
-
-        */
-
-        wait(duration) {
-                return new Promise((resolve, reject) => {
-                        const timeoutId = setTimeout(() => {
-                                if (flock.abortController?.signal) {
-                                        flock.abortController.signal.removeEventListener(
-                                                "abort",
-                                                onAbort,
-                                        );
-                                }
-                                resolve();
-                        }, duration * 1000);
-
-                        const onAbort = () => {
-                                clearTimeout(timeoutId); // Clear the timeout if aborted
-                                if (flock.abortController?.signal) {
-                                        flock.abortController.signal.removeEventListener(
-                                                "abort",
-                                                onAbort,
-                                        );
-                                }
-                                // Instead of throwing an error, resolve gracefully here
-                                reject(new Error("Wait aborted"));
-                        };
-
-                        if (flock.abortController?.signal) {
-                                flock.abortController.signal.addEventListener(
-                                        "abort",
-                                        onAbort,
-                                );
-                        }
-                }).catch((error) => {
-                        // Check if the error is the expected "Wait aborted" error and handle it
-                        if (error.message === "Wait aborted") {
-                                return;
-                        }
-                        // If it's another error, rethrow it
-                        throw error;
-                });
-        },
-        async safeLoop(
-                iteration,
-                loopBody,
-                chunkSize = 100,
-                timing = { lastFrameTime: performance.now() },
-                state = {},
-        ) {
-                if (state.stopExecution) return; // Check if we should stop further iterations
-
-                // Execute the loop body
-                await loopBody(iteration);
-
-                // Yield control after every `chunkSize` iterations
-                if (iteration % chunkSize === 0) {
-                        const currentTime = performance.now();
-
-                        if (currentTime - timing.lastFrameTime > 16) {
-                                await new Promise((resolve) =>
-                                        requestAnimationFrame(resolve),
-                                );
-                                timing.lastFrameTime = performance.now(); // Update timing for this loop
-                        }
-                }
-        },
-        waitUntil(conditionFunc) {
-                return new Promise((resolve, reject) => {
-                        const checkCondition = () => {
-                                try {
-                                        if (conditionFunc()) {
-                                                flock.scene.onBeforeRenderObservable.removeCallback(
-                                                        checkCondition,
-                                                );
-                                                resolve();
-                                        }
-                                } catch (error) {
-                                        flock.scene.onBeforeRenderObservable.removeCallback(
-                                                checkCondition,
-                                        );
-                                        reject(error);
-                                }
-                        };
-                        flock.scene.onBeforeRenderObservable.add(
-                                checkCondition,
-                        );
-                });
-        },
-        getProperty(modelName, propertyName) {
-                const mesh =
-                        modelName === "__active_camera__"
-                                ? flock.scene.activeCamera
-                                : flock.scene.getMeshByName(modelName);
-
-                if (!mesh) return null;
-
-                const position =
-                        modelName === "__active_camera__"
-                                ? mesh.globalPosition
-                                : mesh.getAbsolutePosition();
-
-                let propertyValue = null;
-                let colors = null;
-
-                mesh.computeWorldMatrix(true);
-
-                const rotation =
-                        modelName === "__active_camera__"
-                                ? mesh.absoluteRotation.toEulerAngles()
-                                : mesh.absoluteRotationQuaternion.toEulerAngles();
-
-                let allMeshes, materialNode, materialNodes;
-                switch (propertyName) {
-                        case "POSITION_X":
-                                propertyValue = parseFloat(
-                                        position.x.toFixed(2),
-                                );
-                                break;
-                        case "POSITION_Y":
-                                propertyValue = parseFloat(
-                                        position.y.toFixed(2),
-                                );
-                                break;
-                        case "POSITION_Z":
-                                propertyValue = parseFloat(
-                                        position.z.toFixed(2),
-                                );
-                                break;
-                        case "ROTATION_X":
-                                propertyValue = parseFloat(
-                                        flock.BABYLON.Tools.ToDegrees(
-                                                rotation.x,
-                                        ).toFixed(2),
-                                );
-                                break;
-                        case "ROTATION_Y":
-                                parseFloat(
-                                        (propertyValue =
-                                                flock.BABYLON.Tools.ToDegrees(
-                                                        rotation.y,
-                                                ).toFixed(2)),
-                                );
-                                break;
-                        case "ROTATION_Z":
-                                propertyValue = parseFloat(
-                                        flock.BABYLON.Tools.ToDegrees(
-                                                rotation.z,
-                                        ).toFixed(2),
-                                );
-                                break;
-                        case "SCALE_X":
-                                propertyValue = parseFloat(
-                                        mesh.scaling.x.toFixed(2),
-                                );
-                                break;
-                        case "SCALE_Y":
-                                propertyValue = parseFloat(
-                                        mesh.scaling.y.toFixed(2),
-                                );
-                                break;
-                        case "SCALE_Z":
-                                propertyValue = parseFloat(
-                                        mesh.scaling.z.toFixed(2),
-                                );
-                                break;
-                        case "SIZE_X": {
-                                const bi = mesh.getBoundingInfo();
-                                propertyValue = parseFloat(
-                                        (
-                                                bi.boundingBox.maximumWorld.x -
-                                                bi.boundingBox.minimumWorld.x
-                                        ).toFixed(2),
-                                );
-                                break;
-                        }
-                        case "SIZE_Y": {
-                                const bi = mesh.getBoundingInfo();
-                                propertyValue = parseFloat(
-                                        (
-                                                bi.boundingBox.maximumWorld.y -
-                                                bi.boundingBox.minimumWorld.y
-                                        ).toFixed(2),
-                                );
-                                break;
-                        }
-                        case "SIZE_Z": {
-                                const bi = mesh.getBoundingInfo();
-                                propertyValue = parseFloat(
-                                        (
-                                                bi.boundingBox.maximumWorld.z -
-                                                bi.boundingBox.minimumWorld.z
-                                        ).toFixed(2),
-                                );
-                                break;
-                        }
-                        case "MIN_X":
-                                if (mesh.metadata?.origin?.xOrigin === "LEFT") {
-                                        // Adjust based on LEFT origin
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.x;
-                                } else if (
-                                        mesh.metadata?.origin?.xOrigin ===
-                                        "RIGHT"
-                                ) {
-                                        // Adjust based on RIGHT origin
-                                        const diffX =
-                                                (mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.x -
-                                                        mesh.getBoundingInfo()
-                                                                .boundingBox
-                                                                .minimum.x) *
-                                                (1 - mesh.scaling.x);
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.x - diffX;
-                                } else {
-                                        // Default CENTER origin
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox.minimum.x *
-                                                mesh.scaling.x;
-                                }
-                                break;
-
-                        case "MAX_X":
-                                if (
-                                        mesh.metadata?.origin?.xOrigin ===
-                                        "RIGHT"
-                                ) {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.x;
-                                } else if (
-                                        mesh.metadata?.origin?.xOrigin ===
-                                        "LEFT"
-                                ) {
-                                        const diffX =
-                                                (mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.x -
-                                                        mesh.getBoundingInfo()
-                                                                .boundingBox
-                                                                .minimum.x) *
-                                                mesh.scaling.x;
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.x + diffX;
-                                } else {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.x *
-                                                mesh.scaling.x;
-                                }
-                                break;
-
-                        case "MIN_Y":
-                                if (mesh.metadata?.origin?.yOrigin === "BASE") {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.y;
-                                } else if (
-                                        mesh.metadata?.origin?.yOrigin === "TOP"
-                                ) {
-                                        const diffY =
-                                                (mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.y -
-                                                        mesh.getBoundingInfo()
-                                                                .boundingBox
-                                                                .minimum.y) *
-                                                (1 - mesh.scaling.y);
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.y - diffY;
-                                } else {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.y;
-                                        //mesh.getBoundingInfo().boundingBox.minimum.y *
-                                        //                                              mesh.scaling.y;
-                                }
-
-                                break;
-
-                        case "MAX_Y":
-                                if (mesh.metadata?.origin?.yOrigin === "TOP") {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.y;
-                                } else if (
-                                        mesh.metadata?.origin?.yOrigin ===
-                                        "BASE"
-                                ) {
-                                        const diffY =
-                                                (mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.y -
-                                                        mesh.getBoundingInfo()
-                                                                .boundingBox
-                                                                .minimum.y) *
-                                                mesh.scaling.y;
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.y + diffY;
-                                } else {
-                                        propertyValue = propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.y;
-                                        //mesh.getBoundingInfo().boundingBox.maximum.y *
-                                        //                                              mesh.scaling.y;
-                                }
-                                break;
-
-                        case "MIN_Z":
-                                if (
-                                        mesh.metadata?.origin?.zOrigin ===
-                                        "FRONT"
-                                ) {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.z;
-                                } else if (
-                                        mesh.metadata?.origin?.zOrigin ===
-                                        "BACK"
-                                ) {
-                                        const diffZ =
-                                                (mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.z -
-                                                        mesh.getBoundingInfo()
-                                                                .boundingBox
-                                                                .minimum.z) *
-                                                (1 - mesh.scaling.z);
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.z - diffZ;
-                                } else {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox.minimum.z *
-                                                mesh.scaling.z;
-                                }
-                                break;
-
-                        case "MAX_Z":
-                                if (mesh.metadata?.origin?.zOrigin === "BACK") {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .maximumWorld.z;
-                                } else if (
-                                        mesh.metadata?.origin?.zOrigin ===
-                                        "FRONT"
-                                ) {
-                                        const diffZ =
-                                                (mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.z -
-                                                        mesh.getBoundingInfo()
-                                                                .boundingBox
-                                                                .minimum.z) *
-                                                mesh.scaling.z;
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox
-                                                        .minimumWorld.z + diffZ;
-                                } else {
-                                        propertyValue =
-                                                mesh.getBoundingInfo()
-                                                        .boundingBox.maximum.z *
-                                                mesh.scaling.z;
-                                }
-                                break;
-                        case "VISIBLE":
-                                propertyValue = mesh.isVisible;
-                                break;
-                        case "ALPHA":
-                                allMeshes = [mesh].concat(
-                                        mesh.getDescendants(),
-                                );
-                                materialNode = allMeshes.find(
-                                        (node) => node.material,
-                                );
-
-                                if (materialNode) {
-                                        propertyValue =
-                                                materialNode.material.alpha;
-                                }
-                                break;
-                        case "COLOUR":
-                                allMeshes = [mesh].concat(
-                                        mesh.getDescendants(),
-                                );
-                                materialNodes = allMeshes.filter(
-                                        (node) => node.material,
-                                );
-
-                                // Map to get the diffuseColor or albedoColor of each material as a hex string
-                                colors = materialNodes
-                                        .map((node) => {
-                                                if (
-                                                        node.material
-                                                                .diffuseColor
-                                                ) {
-                                                        return node.material.diffuseColor.toHexString();
-                                                } else if (
-                                                        node.material
-                                                                .albedoColor
-                                                ) {
-                                                        return node.material.albedoColor.toHexString();
-                                                }
-                                                return null;
-                                        })
-                                        .filter((color) => color !== null);
-                                if (colors.length === 1) {
-                                        propertyValue = colors[0];
-                                } else if (colors.length > 1) {
-                                        propertyValue = colors.join(", ");
-                                }
-
-                                break;
-                        default:
-                                console.log("Property not recognized.");
-                }
-                return propertyValue;
-        },
-        keyPressed(key) {
-                // Combine all input sources: keys, buttons, and controllers
-                const pressedKeys = flock.canvas.pressedKeys;
-                const pressedButtons = flock.canvas.pressedButtons;
-
-                // Check VR controller inputs
-                const vrPressed =
-                        flock.xrHelper?.baseExperience?.input?.inputSources.some(
-                                (inputSource) => {
-                                        if (inputSource.gamepad) {
-                                                const gamepad =
-                                                        inputSource.gamepad;
-
-                                                // Thumbstick movement
-                                                if (
-                                                        key === "W" &&
-                                                        gamepad.axes[1] < -0.5
-                                                )
-                                                        return true; // Forward
-                                                if (
-                                                        key === "S" &&
-                                                        gamepad.axes[1] > 0.5
-                                                )
-                                                        return true; // Backward
-                                                if (
-                                                        key === "A" &&
-                                                        gamepad.axes[0] < -0.5
-                                                )
-                                                        return true; // Left
-                                                if (
-                                                        key === "D" &&
-                                                        gamepad.axes[0] > 0.5
-                                                )
-                                                        return true; // Right
-
-                                                // Button mappings
-                                                if (
-                                                        key === "SPACE" &&
-                                                        gamepad.buttons[0]
-                                                                ?.pressed
-                                                )
-                                                        return true; // A button for jump
-                                                if (
-                                                        key === "Q" &&
-                                                        gamepad.buttons[1]
-                                                                ?.pressed
-                                                )
-                                                        return true; // B button for action 1
-                                                if (
-                                                        key === "F" &&
-                                                        gamepad.buttons[2]
-                                                                ?.pressed
-                                                )
-                                                        return true; // X button for action 2
-                                                if (
-                                                        key === "E" &&
-                                                        gamepad.buttons[3]
-                                                                ?.pressed
-                                                )
-                                                        return true; // Y button for action 3
-
-                                                // General button check
-                                                if (
-                                                        key === "ANY" &&
-                                                        gamepad.buttons.some(
-                                                                (button) =>
-                                                                        button.pressed,
-                                                        )
-                                                )
-                                                        return true;
-                                        }
-                                        return false;
-                                },
-                        );
-
-                // Combine all sources
-                if (key === "ANY") {
-                        return (
-                                pressedKeys.size > 0 ||
-                                pressedButtons.size > 0 ||
-                                vrPressed
-                        );
-                } else if (key === "NONE") {
-                        return (
-                                pressedKeys.size === 0 &&
-                                pressedButtons.size === 0 &&
-                                !vrPressed
-                        );
-                } else {
-                        return (
-                                pressedKeys.has(key) ||
-                                pressedKeys.has(key.toLowerCase()) ||
-                                pressedKeys.has(key.toUpperCase()) ||
-                                pressedButtons.has(key) ||
-                                vrPressed
-                        );
-                }
-        },
-        seededRandom(from, to, seed) {
-                const x = Math.sin(seed) * 10000;
-                const random = x - Math.floor(x);
-                const result = Math.floor(random * (to - from + 1)) + from;
-                return result;
-        },
-        randomColour() {
-                const colors = [
-                        "#FF6B6B",
-                        "#4ECDC4",
-                        "#45B7D1",
-                        "#96CEB4",
-                        "#FFEAA7",
-                        "#DDA0DD",
-                        "#98D8C8",
-                        "#F7DC6F",
-                        "#BB8FCE",
-                        "#85C1E9",
-                        "#F8C471",
-                        "#82E0AA",
-                        "#F1948A",
-                        "#85C1E9",
-                        "#D7BDE2",
-                ];
-                return colors[Math.floor(Math.random() * colors.length)];
-        },
-        hexToRgba(hex, alpha = 1) {
-                // Remove the hash if present
-                hex = hex.replace(/^#/, "");
-
-                // Parse the hex values
-                const bigint = parseInt(hex, 16);
-                const r = (bigint >> 16) & 255;
-                const g = (bigint >> 8) & 255;
-                const b = bigint & 255;
-
-                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        },
-        hexToRgb(hex) {
-                // Remove the hash if present
-                hex = hex.replace(/^#/, "");
-
-                // Parse the hex values
-                const bigint = parseInt(hex, 16);
-                const r = (bigint >> 16) & 255;
-                const g = (bigint >> 8) & 255;
-                const b = bigint & 255;
-
-                return { r, g, b };
-        },
-        rgbToHex(r, g, b) {
-                // Ensure values are within valid range
-                r = Math.max(0, Math.min(255, Math.round(r)));
-                g = Math.max(0, Math.min(255, Math.round(g)));
-                b = Math.max(0, Math.min(255, Math.round(b)));
-
-                // Convert to hex and pad with zeros if needed
-                const hex =
-                        "#" +
-                        [r, g, b]
-                                .map((x) => {
-                                        const hex = x.toString(16);
-                                        return hex.length === 1
-                                                ? "0" + hex
-                                                : hex;
-                                })
-                                .join("");
-
-                return hex;
-        },
-        sanitizeEventName(eventName) {
-                if (typeof eventName !== "string") {
-                        return "";
-                }
-                // Remove disallowed characters (symbols, control chars), allow emoji, spaces, letters, numbers
-                // This allows everything except common punctuation and control characters
-                const clean = eventName.replace(
-                        /[!@#\$%\^&\*\(\)\+=\[\]\{\};:'"\\|,<>\?\/\n\r\t]/g,
-                        "",
-                );
-                return clean.substring(0, 50);
-        },
-        isAllowedEventName(eventName) {
-                if (!eventName || typeof eventName !== "string") {
-                        return false;
-                }
-
-                if (eventName.length > 30) {
-                        return false;
-                }
-
-                const lower = eventName.toLowerCase();
-                const reservedPrefixes = [
-                        "_",
-                        "on",
-                        "system",
-                        "internal",
-                        "babylon",
-                        "flock",
-                ];
-                if (
-                        reservedPrefixes.some((prefix) =>
-                                lower.startsWith(prefix),
-                        )
-                ) {
-                        return false;
-                }
-
-                const disallowedChars =
-                        /[!@#\$%\^&\*\(\)\+=\[\]\{\};:'"\\|,<>\?\/\n\r\t]/;
-                if (disallowedChars.test(eventName)) {
-                        return false;
-                }
-
-                return true;
-        },
-        onEvent(eventName, handler, once = false) {
-                eventName = flock.sanitizeEventName(eventName);
-                if (!flock.isAllowedEventName(eventName)) {
-                        console.warn(
-                                `Event name ${eventName} is reserved and cannot be broadcasted.`,
-                        );
-                        return;
-                }
-                if (!flock.events[eventName]) {
-                        flock.events[eventName] =
-                                new flock.BABYLON.Observable();
-                }
-                if (once) {
-                        const wrappedHandler = (data) => {
-                                handler(data);
-                                flock.events[eventName].remove(wrappedHandler);
-                        };
-                        flock.events[eventName].add(wrappedHandler);
-                } else {
-                        flock.events[eventName].add(handler);
-                }
-        },
-        broadcastEvent(eventName, data) {
-                eventName = flock.sanitizeEventName(eventName);
-                if (!flock.isAllowedEventName(eventName)) {
-                        console.warn(
-                                `Event name ${eventName} is reserved and cannot be broadcasted.`,
-                        );
-                        return;
-                }
-                if (flock.events && flock.events[eventName]) {
-                        flock.events[eventName].notifyObservers(data);
-                }
-        },
-        whenKeyEvent(key, callback, isReleased = false) {
-                // Handle keyboard input
-                const eventType = isReleased
-                        ? flock.BABYLON.KeyboardEventTypes.KEYUP
-                        : flock.BABYLON.KeyboardEventTypes.KEYDOWN;
-
-                flock.scene.onKeyboardObservable.add((kbInfo) => {
-                        if (
-                                kbInfo.type === eventType &&
-                                kbInfo.event.key.toLowerCase() === key
-                        ) {
-                                callback();
-                        }
-                });
-
-                // Register the callback for the grid input observable
-                const gridObservable = isReleased
-                        ? flock.gridKeyReleaseObservable
-                        : flock.gridKeyPressObservable;
-
-                gridObservable.add((inputKey) => {
-                        if (inputKey === key) {
-                                callback();
-                        }
-                });
-
-                flock.xrHelper?.input.onControllerAddedObservable.add(
-                        (controller) => {
-                                console.log(
-                                        `DEBUG: Controller added: ${controller.inputSource.handedness}`,
-                                );
-
-                                const handedness =
-                                        controller.inputSource.handedness;
-
-                                // Map button IDs to the corresponding keyboard keys
-                                const buttonMap =
-                                        handedness === "left"
-                                                ? {
-                                                          "y-button": "q",
-                                                          "x-button": "e",
-                                                  } // Left controller: Y -> Q, X -> E
-                                                : handedness === "right"
-                                                  ? {
-                                                            "b-button": "f",
-                                                            "a-button": " ",
-                                                    } // Right controller: B -> F, A -> Space
-                                                  : {}; // Unknown handedness: No mapping
-
-                                controller.onMotionControllerInitObservable.add(
-                                        (motionController) => {
-                                                Object.entries(
-                                                        buttonMap,
-                                                ).forEach(
-                                                        ([
-                                                                buttonId,
-                                                                mappedKey,
-                                                        ]) => {
-                                                                // Trigger the callback only for the specific key
-                                                                if (
-                                                                        mappedKey !==
-                                                                        key
-                                                                ) {
-                                                                        return;
-                                                                }
-                                                                const component =
-                                                                        motionController.getComponent(
-                                                                                buttonId,
-                                                                        );
-
-                                                                if (
-                                                                        !component
-                                                                ) {
-                                                                        console.warn(
-                                                                                `DEBUG: Button ID '${buttonId}' not found for ${handedness} controller.`,
-                                                                        );
-                                                                        return;
-                                                                }
-
-                                                                console.log(
-                                                                        `DEBUG: Observing button ID '${buttonId}' for key '${mappedKey}' on ${handedness} controller.`,
-                                                                );
-
-                                                                // Track the last known pressed state for this specific button
-                                                                let lastPressedState = false;
-
-                                                                // Monitor state changes for this specific button
-                                                                component.onButtonStateChangedObservable.add(
-                                                                        () => {
-                                                                                const isPressed =
-                                                                                        component.pressed;
-
-                                                                                // Debugging to verify button states
-                                                                                console.log(
-                                                                                        `DEBUG: Observable fired for '${buttonId}', pressed: ${isPressed}`,
-                                                                                );
-
-                                                                                // Ensure this logic only processes events for the current button
-                                                                                if (
-                                                                                        motionController.getComponent(
-                                                                                                buttonId,
-                                                                                        ) !==
-                                                                                        component
-                                                                                ) {
-                                                                                        console.log(
-                                                                                                `DEBUG: Skipping event for '${buttonId}' as it doesn't match the triggering component.`,
-                                                                                        );
-                                                                                        return;
-                                                                                }
-
-                                                                                // Ignore repeated callbacks for the same state
-                                                                                if (
-                                                                                        isPressed ===
-                                                                                        lastPressedState
-                                                                                ) {
-                                                                                        console.log(
-                                                                                                `DEBUG: No state change for '${buttonId}', skipping callback.`,
-                                                                                        );
-                                                                                        return;
-                                                                                }
-
-                                                                                // Only handle "released" transitions
-                                                                                if (
-                                                                                        !isPressed &&
-                                                                                        lastPressedState
-                                                                                ) {
-                                                                                        console.log(
-                                                                                                `DEBUG: Key '${mappedKey}' (button ID '${buttonId}') released on ${handedness} controller.`,
-                                                                                        );
-                                                                                        callback(
-                                                                                                mappedKey,
-                                                                                                "released",
-                                                                                        );
-                                                                                }
-
-                                                                                // Update last pressed state
-                                                                                lastPressedState =
-                                                                                        isPressed;
-                                                                        },
-                                                                );
-                                                        },
-                                                );
-                                        },
-                                );
-                        },
-                );
-        },
-        start(action) {
-                flock.scene.onBeforeRenderObservable.addOnce(action);
-        },
-        // Runtime helper must exist where generated code executes.
+        // Runtime helper
         sanitizeInlineText(input) {
                 return String(input)
                         .replace(/\r?\n/g, " ")
@@ -3446,138 +2754,7 @@ export const flock = {
                         .replace(/\/\//g, "∕∕")
                         .replace(/`/g, "ˋ");
         },
-        async forever(action) {
-                let isDisposed = false;
-                let isActionRunning = false;
 
-                // Function to run the action
-                const runAction = async () => {
-                        if (isDisposed) {
-                                console.log(
-                                        "Scene is disposed. Exiting action.",
-                                );
-                                return; // Exit if the scene is disposed
-                        }
-
-                        if (isActionRunning) {
-                                return; // Exit if the action is already running
-                        }
-
-                        isActionRunning = true;
-
-                        try {
-                                if (isDisposed) {
-                                        return;
-                                }
-                                await action();
-                        } catch (error) {
-                                console.log(
-                                        "Error while running action:",
-                                        error,
-                                );
-                        } finally {
-                                isActionRunning = false;
-                                if (!isDisposed) {
-                                        flock.scene.onBeforeRenderObservable.addOnce(
-                                                runAction,
-                                        );
-                                }
-                        }
-                };
-
-                flock.scene.onBeforeRenderObservable.addOnce(runAction);
-                // Handle scene disposal
-                const disposeHandler = () => {
-                        if (isDisposed) {
-                                console.log(
-                                        "Dispose handler already triggered.",
-                                );
-                                return;
-                        }
-
-                        isDisposed = true;
-                        flock.scene.onBeforeRenderObservable.clear(); // Clear the observable
-                };
-                flock.scene.onDisposeObservable.add(disposeHandler);
-        },
-        async forever2(action) {
-                const scene = flock.scene;
-                if (!scene) {
-                        console.warn("[forever] Scene not ready yet");
-                        return;
-                }
-
-                let isDisposed = false;
-                let isActionRunning = false;
-                let tickObserver = null;
-                let disposeObserver = null;
-                let watchdogId = null;
-                const WATCHDOG_MS = 4000; // unlock if an iteration takes too long
-
-                const clearWatchdog = () => {
-                        if (watchdogId) {
-                                clearTimeout(watchdogId);
-                                watchdogId = null;
-                        }
-                };
-
-                const runAction = () => {
-                        if (isDisposed) return;
-
-                        // If previous iteration still running, skip this frame but keep observer alive
-                        if (isActionRunning) return;
-
-                        isActionRunning = true;
-
-                        // Start watchdog so a stuck Promise can't freeze the loop
-                        clearWatchdog();
-                        watchdogId = setTimeout(() => {
-                                console.warn(
-                                        "[forever] Watchdog tripped; unlocking stalled iteration",
-                                );
-                                isActionRunning = false;
-                        }, WATCHDOG_MS);
-
-                        try {
-                                // Fire-and-forget; never await inside the render tick
-                                Promise.resolve(action())
-                                        .catch((err) => {
-                                                console.error(
-                                                        "[forever] Action error:",
-                                                        err,
-                                                );
-                                        })
-                                        .finally(() => {
-                                                clearWatchdog();
-                                                isActionRunning = false;
-                                        });
-                        } catch (err) {
-                                // Synchronous errors still won't kill the observer
-                                clearWatchdog();
-                                isActionRunning = false;
-                                console.error("[forever] Sync error:", err);
-                        }
-                };
-
-                // Persistent observer: stays attached every frame
-                tickObserver = scene.onBeforeRenderObservable.add(runAction);
-
-                // Clean up only our own observers on dispose
-                const disposeHandler = () => {
-                        if (isDisposed) return;
-                        isDisposed = true;
-                        clearWatchdog();
-                        if (tickObserver)
-                                scene.onBeforeRenderObservable.remove(
-                                        tickObserver,
-                                );
-                        if (disposeObserver)
-                                scene.onDisposeObservable.remove(
-                                        disposeObserver,
-                                );
-                };
-                disposeObserver = scene.onDisposeObservable.add(disposeHandler);
-        },
         download(filename, data, mimeType) {
                 const blob = new Blob([data], { type: mimeType });
                 const url = URL.createObjectURL(blob);
@@ -3621,3 +2798,16 @@ window.setBPM = flockSound.setBPM;
 window.updateListenerPositionAndOrientation =
         flockSound.updateListenerPositionAndOrientation;
 window.speak = flockSound.speak;
+
+document.addEventListener("DOMContentLoaded", () => {
+        const scriptElement = document.getElementById("flock");
+        if (scriptElement) {
+                console.log("Standalone Flock 🐦");
+                initializeFlock();
+
+                // Assuming hideLoadingScreen is defined in the HTML's scope.
+                if (typeof hideLoadingScreen === "function") {
+                        setTimeout(hideLoadingScreen, 1000);
+                }
+        }
+});

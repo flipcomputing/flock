@@ -33,7 +33,6 @@
               },
               "next": {
                 "block": {
-                  "type": "create_ground",
                   "id": "S%:d.e-l98E_Phu`CHx?",
                   "icons": {
                     "comment": {
@@ -41,17 +40,6 @@
                       "pinned": false,
                       "height": 80,
                       "width": 160
-                    }
-                  },
-                  "inputs": {
-                    "COLOR": {
-                      "shadow": {
-                        "type": "colour",
-                        "id": "Pe/-b7d5B1Qr*:EvoPsA",
-                        "fields": {
-                          "COLOR": "#71bc78"
-                        }
-                      }
                     }
                   },
                   "next": {
@@ -165,6 +153,41 @@
                                 "id": "q3|e^M~JO%zj;91n0^Ci"
                               },
                               "ANIMATION_NAME": "Idle"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "type": "create_map",
+                  "fields": {
+                    "MAP_NAME": "NONE"
+                  },
+                  "inputs": {
+                    "MATERIAL": {
+                      "shadow": {
+                        "type": "material",
+                        "id": "S%:d.e-l98E_Phu`CHx?:material",
+                        "fields": {
+                          "TEXTURE_SET": "none.png"
+                        },
+                        "inputs": {
+                          "BASE_COLOR": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "Pe/-b7d5B1Qr*:EvoPsA",
+                              "fields": {
+                                "COLOR": "#71bc78"
+                              }
+                            }
+                          },
+                          "ALPHA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "S%:d.e-l98E_Phu`CHx?:alpha",
+                              "fields": {
+                                "NUM": 1
+                              }
                             }
                           }
                         }

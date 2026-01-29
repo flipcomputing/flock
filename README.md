@@ -2,13 +2,21 @@
 **[Flock XR](https://flockxr.com/) - Creative coding in 3D**\
 A project from: [Flip Computing](https://flipcomputing.com/).
 
-Current version: [app.flockxr.com](https://app.flockxr.com/)
+Current pilot version: [app.flockxr.com](https://app.flockxr.com/)
 
-Our prototype 3D block-based programming language is currently a proof of concept and is under development. Lots of features need more work and may change! We're looking for funding to continue with the work - let us know if you can help or have suggestions. 
+## Project Statistics
+[![CodeQL](https://github.com/flipcomputing/flock/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/flipcomputing/flock/actions/workflows/github-code-scanning/codeql)
+[![Mocha tests](https://github.com/flipcomputing/flock/actions/workflows/run-mocha-tests.yml/badge.svg)](https://github.com/flipcomputing/flock/actions/workflows/run-mocha-tests.yml)
 
-Flock XR has been designed as a bridge between Scratch and professional 3D tools, such as Babylon JS, UEFN, Unity and Godot. Flock XR builds on our experience working in schools and clubs to create engaging resources for young people to use and personalise. We are looking for funding to take Flock XR further so please [get in touch](https://flipcomputing.com/contact/) if you can help. 
+Flock XR is a free 3D coding and design tool to allow young people aged around 9-14+ to make interactive experiences, games, animations, VR experiences and more. Flock XR runs in a web browser with no accounts or downloads needed. 
 
-Flock XR is based on Blockly, the Babylon JS library and the Havok physics engine. It uses CC0 3D assets from [Quaternius](https://quaternius.com/) and [Kenney.nl](https://kenney.nl/) as well as our own assets created in Blender.
+Flock XR has been designed as a bridge between Scratch and professional 3D tools, such as Babylon JS, UEFN, Unity and Godot. Flock XR builds on our experience working in schools and clubs to create engaging resources for young people to use and personalise. 
+
+A new version of our 3D block-based programming language is currently under development. Lots of features need more work and may change! 
+
+We are looking for funding to take Flock XR further so please [get in touch](https://flipcomputing.com/contact/) if you can help. 
+
+Flock XR is based on Blockly, the Babylon JS library and the Havok physics engine. Most 3D assets have been created within the project using Blender, with some use of CC0 3D assets from [Quaternius](https://quaternius.com/) and [Kenney.nl](https://kenney.nl/).
 
 ## End user documentation
 
@@ -40,13 +48,40 @@ View the current development version at [flipcomputing.github.io/flock/](https:/
 You should see it here: http://localhost:5173/
 
 ### Run tests
-You can find the tests in the codebase here: `tests/tests.html`
 
-With your npm server running go to: http://localhost:5173/tests/tests.html
+For detailed testing documentation including Playwright end-to-end tests and Mocha unit tests, see the [Testing section in CONTRIBUTING.md](CONTRIBUTING.md#testing).
 
-Select the tests you want to run from the dropdown and 'Run Tests'.
+**Quick start:**
+- Mocha tests (browser): http://localhost:5173/tests/tests.html (with dev server running)
+- Mocha tests (CLI): `npm run test:api @notslow` (automated, headless)
+- Playwright tests: `npx playwright test`
 
-You should see the tests run.
+### API Quality Tools
+
+This project includes automated tools for tracking and improving API documentation and test coverage.
+
+**📚 Documentation:**
+- **[API Quality Tools Guide](docs/API_QUALITY_TOOLS.md)** ⭐ - Complete guide to using the tools
+- [Getting Started](docs/GETTING_STARTED.md) - Quick start for improving API quality
+- [API Strategy](docs/API_RECONCILIATION_PLAN.md) - Overall approach and goals
+- [Current Status](docs/IMPLEMENTATION_STATUS.md) - Metrics and progress tracking
+
+**🔧 Key Commands:**
+```bash
+# Check API documentation and test coverage
+npm run docs:coverage
+
+# Run API tests (automated, headless)
+npm run test:api @notslow    # All fast tests (100 tests)
+npm run test:api babylon     # Specific test suite
+npm run test:api @onlyslow   # All slow tests (94 tests)
+```
+
+**📊 Current Metrics:**
+- 108 total API methods
+- 48% documented in API.md (52 methods)
+- 49% tested (53 methods)
+- 226 total tests across 15 test files
 
 ### Project Structure
 This is a Vite-based project using:

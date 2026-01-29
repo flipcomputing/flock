@@ -1,19 +1,19 @@
 import * as Blockly from "blockly";
 import { KeyboardNavigation } from "@blockly/keyboard-navigation";
-import { javascriptGenerator } from "blockly/javascript";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
-import { CrossTabCopyPaste } from "@blockly/plugin-cross-tab-copy-paste";
 import { initializeTheme } from "./themes.js";
 import { installHoverHighlight } from "./blockhandling.js";
+import { translate } from "./translation.js";
 import {
         options,
         defineBlocks,
-        initializeVariableIndexes,
         handleBlockSelect,
         handleBlockDelete,
         CustomZelosRenderer,
-} from "../blocks";
+        initializeVariableIndexes,
+        nextVariableIndexes,
+} from "../blocks/blocks";
 import { defineBaseBlocks } from "../blocks/base";
 import { defineShapeBlocks } from "../blocks/shapes";
 import { defineSceneBlocks } from "../blocks/scene.js";
@@ -34,7 +34,8 @@ import { defineMaterialsBlocks } from "../blocks/materials.js";
 import { defineColourBlocks } from "../blocks/colour.js";
 import { defineSensingBlocks } from "../blocks/sensing.js";
 import { defineTextBlocks } from "../blocks/text.js";
-import { defineGenerators } from "../generators";
+import { defineGenerators } from "../generators/generators.js";
+import { registerCustomCommentIcon } from "./customCommentIcon.js";
 
 let workspace = null;
 export { workspace };
@@ -67,6 +68,293 @@ export function initializeBlocks() {
 
 Blockly.utils.colour.setHsvSaturation(0.3); // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
 Blockly.utils.colour.setHsvValue(0.85); // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
+
+const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
+
+function initializeIfClauseConnectionChecker(workspace) {
+        const connectionChecker = workspace.connectionChecker;
+
+        // Store the original doTypeChecks method
+        const originalDoTypeChecks =
+                connectionChecker.doTypeChecks.bind(connectionChecker);
+
+        function isRealBlock(block) {
+                return (
+                        !!block &&
+                        !(
+                                typeof block.isInsertionMarker === "function" &&
+                                block.isInsertionMarker()
+                        )
+                );
+        }
+
+        function realTargetBlock(connection) {
+                const t = connection?.targetBlock?.();
+                return isRealBlock(t) ? t : null;
+        }
+
+        function realNext(block) {
+                return realTargetBlock(block?.nextConnection);
+        }
+
+        function realPrev(block) {
+                return realTargetBlock(block?.previousConnection);
+        }
+
+        // Helper function to get all blocks in a stack (excluding insertion markers)
+        function getAllBlocksInStack(block) {
+                const blocks = [block];
+                let current = block;
+
+                while (current?.nextConnection) {
+                        const next = realNext(current);
+                        if (!next) break;
+                        blocks.push(next);
+                        current = next;
+                }
+
+                return blocks;
+        }
+
+        // Helper function to check if a block or its descendants contain if_clause blocks
+        function hasIfClauseInStack(block) {
+                const stack = getAllBlocksInStack(block);
+                // Check if any block after the first one is an if_clause
+                for (let i = 1; i < stack.length; i++) {
+                        if (stack[i].type === "if_clause") {
+                                return true;
+                        }
+                }
+                return false;
+        }
+
+        // Helper function to check if a connection is a statement input (like DO)
+        function isStatementInputConnection(connection) {
+                const block = connection.getSourceBlock();
+                for (let i = 0; i < block.inputList.length; i++) {
+                        const input = block.inputList[i];
+                        if (
+                                input.type === Blockly.INPUT_VALUE ||
+                                input.type === Blockly.DUMMY_INPUT
+                        ) {
+                                continue;
+                        }
+                        if (input.connection === connection) {
+                                return true;
+                        }
+                }
+                return false;
+        }
+
+        // Override the doTypeChecks method
+        connectionChecker.doTypeChecks = function (a, b) {
+                // First do the standard type checking
+                if (!originalDoTypeChecks(a, b)) {
+                        return false;
+                }
+
+                // Get the blocks involved
+                const blockA = a.getSourceBlock();
+                const blockB = b.getSourceBlock();
+
+                // Check if either block is an if_clause
+                const aIsIfClause = blockA.type === "if_clause";
+                const bIsIfClause = blockB.type === "if_clause";
+
+                if (!aIsIfClause && !bIsIfClause) {
+                        return true; // Neither is if_clause, allow
+                }
+
+                // Determine the type of connection
+                let movingBlock,
+                        targetBlock,
+                        movingConnection,
+                        targetConnection;
+
+                if (
+                        a.type === Blockly.PREVIOUS_STATEMENT &&
+                        b.type === Blockly.NEXT_STATEMENT
+                ) {
+                        movingBlock = blockA;
+                        targetBlock = blockB;
+                        movingConnection = a;
+                        targetConnection = b;
+                } else if (
+                        a.type === Blockly.NEXT_STATEMENT &&
+                        b.type === Blockly.PREVIOUS_STATEMENT
+                ) {
+                        movingBlock = blockB;
+                        targetBlock = blockA;
+                        movingConnection = b;
+                        targetConnection = a;
+                } else {
+                        return true; // Not a statement connection
+                }
+
+                // Check if target connection is a statement input (like DO)
+                const isTargetStatementInput =
+                        isStatementInputConnection(targetConnection);
+
+                if (isTargetStatementInput) {
+                        // This is connecting into a statement input (like DO)
+                        // ELSEIF and ELSE cannot go inside DO blocks
+                        if (movingBlock.type === "if_clause") {
+                                const movingMode =
+                                        movingBlock.getFieldValue("MODE");
+                                if (
+                                        movingMode === MODE.ELSEIF ||
+                                        movingMode === MODE.ELSE
+                                ) {
+                                        return false;
+                                }
+                        }
+                        // Everything else (including IF) is allowed in statement inputs
+                        return true;
+                }
+
+                // This is a chain connection (previous connecting to next)
+                const connectingToNext =
+                        targetConnection === targetBlock.nextConnection;
+                const movingIsIfClause = movingBlock.type === "if_clause";
+                const targetIsIfClause = targetBlock.type === "if_clause";
+
+                // If moving block is if_clause, validate its rules
+                if (movingIsIfClause) {
+                        const movingMode = movingBlock.getFieldValue("MODE");
+                        const movingHasIfClauseBelow =
+                                hasIfClauseInStack(movingBlock);
+
+                        // IF blocks can connect anywhere (they start a new chain)
+                        if (movingMode === MODE.IF) {
+                                return true;
+                        }
+
+                        if (connectingToNext) {
+                                // Moving block is connecting AFTER target
+
+                                if (targetIsIfClause) {
+                                        const targetMode =
+                                                targetBlock.getFieldValue(
+                                                        "MODE",
+                                                );
+
+                                        // Rule 1: Nothing can connect after ELSE
+                                        if (targetMode === MODE.ELSE) {
+                                                return false;
+                                        }
+
+                                        // Rule 2: ELSE cannot connect if it has if_clause blocks after it
+                                        if (
+                                                movingMode === MODE.ELSE &&
+                                                movingHasIfClauseBelow
+                                        ) {
+                                                return false;
+                                        }
+
+                                        // Rule 3: ELSE cannot be inserted in middle of chain
+                                        const targetHasNext =
+                                                realNext(targetBlock);
+                                        if (
+                                                targetHasNext &&
+                                                targetHasNext.type ===
+                                                        "if_clause" &&
+                                                movingMode === MODE.ELSE
+                                        ) {
+                                                return false;
+                                        }
+                                } else {
+                                        // Target is NOT if_clause
+                                        // ELSEIF and ELSE cannot connect after non-if_clause blocks
+                                        if (
+                                                movingMode === MODE.ELSEIF ||
+                                                movingMode === MODE.ELSE
+                                        ) {
+                                                return false;
+                                        }
+                                }
+                        } else {
+                                // Moving block is connecting BEFORE target
+
+                                if (targetIsIfClause) {
+                                        // Rule 1: ELSE cannot connect if it has if_clause blocks after it
+                                        if (
+                                                movingMode === MODE.ELSE &&
+                                                movingHasIfClauseBelow
+                                        ) {
+                                                return false;
+                                        }
+
+                                        // Rule 2: Cannot insert if target is part of a chain after ELSE
+                                        let current = targetBlock;
+                                        while (
+                                                current &&
+                                                current.type === "if_clause"
+                                        ) {
+                                                const prev = realPrev(current);
+                                                if (
+                                                        !prev ||
+                                                        prev.type !==
+                                                                "if_clause"
+                                                )
+                                                        break;
+
+                                                const prevMode =
+                                                        prev.getFieldValue(
+                                                                "MODE",
+                                                        );
+                                                if (prevMode === MODE.ELSE) {
+                                                        return false;
+                                                }
+                                                current = prev;
+                                        }
+                                } else {
+                                        // Target is NOT if_clause
+                                        // ELSEIF and ELSE cannot connect before non-if_clause blocks
+                                        if (
+                                                movingMode === MODE.ELSEIF ||
+                                                movingMode === MODE.ELSE
+                                        ) {
+                                                return false;
+                                        }
+                                }
+                        }
+                }
+
+                // If target is if_clause but moving block is not, additional checks
+                if (targetIsIfClause && !movingIsIfClause) {
+                        const targetMode = targetBlock.getFieldValue("MODE");
+
+                        if (connectingToNext) {
+                                // Non-if_clause connecting after if_clause
+                                // Only allow if target is at the end of chain (no if_clause blocks after)
+                                const targetHasNext = realNext(targetBlock);
+
+                                if (
+                                        targetHasNext &&
+                                        targetHasNext.type === "if_clause"
+                                ) {
+                                        // Target has if_clause blocks after it, cannot insert non-if_clause
+                                        return false;
+                                }
+
+                                // Otherwise it's fine - connecting at the end of the chain
+                                return true;
+                        } else {
+                                // Non-if_clause connecting before if_clause
+                                // Only allow before IF (which can start a new chain)
+                                // Don't allow before ELSEIF or ELSE
+                                if (
+                                        targetMode === MODE.ELSEIF ||
+                                        targetMode === MODE.ELSE
+                                ) {
+                                        return false;
+                                }
+                        }
+                }
+
+                return true;
+        };
+}
 
 export function initializeWorkspace() {
         // Set Blockly color configuration
@@ -186,8 +474,6 @@ export function initializeWorkspace() {
         const workspaceSearch = new WorkspaceSearch(workspace);
         workspaceSearch.init();
 
-        
-       
         // Set up auto value behavior
         setupAutoValueBehavior(workspace);
 
@@ -202,82 +488,205 @@ export function createBlocklyWorkspace() {
                 CustomZelosRenderer,
         );
 
+        registerCustomCommentIcon();
+
         KeyboardNavigation.registerKeyboardNavigationStyles();
 
-        const _origOnKeyDown = Blockly.Toolbox && Blockly.Toolbox.prototype.onKeyDown_;
-        if (Blockly.Toolbox && Blockly.Toolbox.prototype) {
-          Blockly.Toolbox.prototype.onKeyDown_ = function /* no-op */ (e) { /* defer to keyboard nav */ };
+        // Manually create a navigation-deferring toolbox
+        class NavigationDeferringToolbox extends Blockly.Toolbox {
+            onKeyDown_(e) {
+                return false; // Defer to keyboard navigation plugin
+            }
         }
+
+        // Register it before inject
+        Blockly.registry.unregister(Blockly.registry.Type.TOOLBOX, Blockly.registry.DEFAULT);
+        Blockly.registry.register(
+            Blockly.registry.Type.TOOLBOX,
+            Blockly.registry.DEFAULT,
+            NavigationDeferringToolbox
+        );
 
         workspace = Blockly.inject("blocklyDiv", options);
 
-        // --- Blockly search flyout accessibility fix ---
-        // Makes the visible search flyout tabbable and allows Tab/↓ from the search input to reach it.
+        // Add a global keydown listener to see what's happening
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown') {
+                console.log('[global] ArrowDown event');
+                console.log('[global] Target:', e.target);
+                console.log('[global] Active element:', document.activeElement);
+                console.trace('[global] Stack trace');
+            }
+        }, true);
 
-        (function enableBlocklySearchFlyoutTabbing() {
-          // 1) Blockly's injection area (always exists when workspace is loaded)
-          const root = document.getElementById('blocklyDiv');
-          if (!root) return;
+        // Initialize keyboard navigation
+        const keyboardNav = new KeyboardNavigation(workspace);
+        console.log('[init] KeyboardNav created:', keyboardNav);
 
-          // 2) Helper to find visible search flyout (the one with actual results)
-          function getVisibleFlyout() {
-            const flyouts = root.querySelectorAll('svg.blocklyToolboxFlyout');
-            return Array.from(flyouts).find(svg => {
-              const r = svg.getBoundingClientRect();
-              return r.width > 0 && r.height > 0;
-            }) || null;
-          }
+        // Monkey-patch
+        const toolbox = workspace.getToolbox();
+        toolbox.onKeyDown_ = function(e) {
+            console.log('[toolbox] onKeyDown_ called');
+            return false;
+        };
 
-          // 3) Make the flyout focusable
-          function ensureFlyoutFocusable() {
-            const flyout = getVisibleFlyout();
-            if (!flyout) return null;
+        (function wireToolboxKeyboardOverrides() {
+                if (!toolbox) return;
+                const toolboxDiv =
+                        toolbox.HtmlDiv ||
+                        document.querySelector(".blocklyToolboxDiv");
+                if (!toolboxDiv) return;
 
-            const ws = flyout.querySelector('g.blocklyWorkspace');
-            const target = ws || flyout;
+                toolboxDiv.addEventListener(
+                        "keydown",
+                        (e) => {
+                                const target = e.target;
+                                if (
+                                        target &&
+                                        (target.tagName === "INPUT" ||
+                                                target.tagName === "TEXTAREA" ||
+                                                target.isContentEditable)
+                                ) {
+                                        return;
+                                }
 
-            // Ensure focusability
-            target.setAttribute('tabindex', '0');
-            target.setAttribute('focusable', 'true');
-            target.setAttribute('role', 'group');
-            target.setAttribute('aria-label', 'Toolbox search results');
+                                const flyout = toolbox.getFlyout?.();
+                                const flyoutVisible =
+                                        !!flyout && !!flyout.isVisible?.();
 
-            return target;
-          }
+                                if (e.key === "ArrowRight" && flyoutVisible) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        e.stopImmediatePropagation();
+                                        const flyoutWorkspace =
+                                                flyout.getWorkspace?.();
+                                        if (flyoutWorkspace) {
+                                                Blockly.getFocusManager().focusTree(
+                                                        flyoutWorkspace,
+                                                );
+                                        }
+                                        return;
+                                }
 
-          // 4) Jump from search input → flyout
-          function wireSearchInput() {
-            const search = root.querySelector('.blocklyToolbox input[type="search"]');
-            if (!search) return;
-
-            // Blockly sets tabindex="-1" by default — fix that
-            if (search.tabIndex < 0) search.tabIndex = 0;
-
-            search.addEventListener('keydown', (e) => {
-              if ((e.key === 'Tab' && !e.shiftKey) || e.key === 'ArrowDown') {
-                const target = ensureFlyoutFocusable();
-                if (!target) return;
-                e.preventDefault();
-                e.stopPropagation();
-                try { target.focus({ preventScroll: true }); } catch {}
-              }
-            });
-          }
-
-          // 5) Keep it alive while Blockly updates dynamically
-          const observer = new MutationObserver(() => ensureFlyoutFocusable());
-          observer.observe(root, { childList: true, subtree: true });
-
-          // Initial setup
-          wireSearchInput();
-          ensureFlyoutFocusable();
+                                if (
+                                        e.key === "Enter" ||
+                                        e.key === " " ||
+                                        e.key === "Spacebar"
+                                ) {
+                                        const selectedItem =
+                                                toolbox.getSelectedItem?.();
+                                        if (
+                                                selectedItem &&
+                                                typeof selectedItem.toggleExpanded ===
+                                                        "function"
+                                        ) {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                e.stopImmediatePropagation();
+                                                selectedItem.toggleExpanded();
+                                        }
+                                }
+                        },
+                        true,
+                );
         })();
 
+        initializeIfClauseConnectionChecker(workspace);
 
-        const keyboardNav = new KeyboardNavigation(workspace);
+        (function wireToolboxSearchArrowDown() {
+                const host = workspace.getInjectionDiv?.() || document;
+                if (!host) {
+                        // console.log("[search-arrow] no host, abort");
+                        return;
+                }
+                //console.log("[search-arrow] attaching listener on host", host);
 
+                host.addEventListener(
+                        "keydown",
+                        (e) => {
+                                const t = e.target;
+                                if (!t || t.tagName !== "INPUT") return;
+                                if (t.type !== "search") return;
+                                if (e.key !== "ArrowDown") return;
 
-        
+                                //console.log("[search-arrow] ArrowDown on search input");
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+
+                                const toolboxDiv =
+                                        document.querySelector(
+                                                ".blocklyToolbox",
+                                        ) ||
+                                        host.querySelector(".blocklyToolbox") ||
+                                        t.closest(".blocklyToolbox");
+
+                                if (toolboxDiv) {
+                                        t.blur();
+                                        toolboxDiv.focus();
+
+                                        setTimeout(() => {
+                                                const arrowEvent =
+                                                        new KeyboardEvent(
+                                                                "keydown",
+                                                                {
+                                                                        key: "ArrowDown",
+                                                                        keyCode: 40,
+                                                                        code: "ArrowDown",
+                                                                        bubbles: true,
+                                                                        cancelable: true,
+                                                                },
+                                                        );
+                                                toolboxDiv.dispatchEvent(
+                                                        arrowEvent,
+                                                );
+                                        }, 10);
+                                }
+                        },
+                        true,
+                );
+        })();
+
+        (function preventToolboxShortcutTextEntry() {
+                const shortcutRegistry = Blockly.ShortcutRegistry.registry;
+                const registry = shortcutRegistry.getRegistry?.();
+                const toolboxShortcut = registry?.toolbox;
+
+                if (!toolboxShortcut) {
+                        return;
+                }
+
+                const wrappedShortcut = {
+                        ...toolboxShortcut,
+                        callback: (ws, event, shortcut, scope) => {
+                                const keyboardEvent =
+                                        event instanceof KeyboardEvent
+                                                ? event
+                                                : null;
+                                if (
+                                        keyboardEvent &&
+                                        (
+                                                keyboardEvent.key || ""
+                                        ).toLowerCase() === "t"
+                                ) {
+                                        keyboardEvent.preventDefault();
+                                }
+
+                                return toolboxShortcut.callback
+                                        ? toolboxShortcut.callback(
+                                                  ws,
+                                                  event,
+                                                  shortcut,
+                                                  scope,
+                                          )
+                                        : false;
+                        },
+                };
+
+                shortcutRegistry.removeAllKeyMappings?.("toolbox");
+                shortcutRegistry.register(wrappedShortcut, true);
+        })();
+
         // Keep scrolling; remove only the obvious flyout-width bump.
         (function simpleNoBumpTranslate() {
                 const ws = Blockly.getMainWorkspace();
@@ -352,425 +761,104 @@ export function createBlocklyWorkspace() {
                 return Blockly.utils.svgMath.screenToWsCoordinates(ws, c);
         }
 
-        // Small helper
-        function hasClipboardData() {
-                return !!Blockly.clipboard.getLastCopiedData?.();
-        }
+        // Add a context menu item that mirrors the keyboard-navigation "detach" (X) shortcut.
+        (function registerDetachContextMenuItem() {
+                const registry = Blockly.ContextMenuRegistry.registry;
+                const id = "detachBlockWithShortcut";
+                if (registry.getItem && registry.getItem(id)) return;
 
-        // ===== 1) COPY on ALL BLOCKS (workspace + flyout) =====
-        Blockly.ContextMenuRegistry.registry.register({
-                id: "fc_copy_block",
-                weight: -1000000,
-                scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-                displayText: () => "Copy",
-                preconditionFn(scope) {
-                        return scope?.block instanceof Blockly.BlockSvg
-                                ? "enabled"
-                                : "hidden";
-                },
-                callback(scope) {
-                        const block = /** @type {Blockly.BlockSvg} */ (
-                                scope.block
-                        );
-                        Blockly.clipboard.copy(block);
+                function renderShortcut(label, shortcut) {
+                        const wrapper = document.createElement("span");
+                        wrapper.style.display = "flex";
+                        wrapper.style.alignItems = "center";
+                        wrapper.style.justifyContent = "space-between";
+                        wrapper.style.gap = "1.5em";
+                        wrapper.style.width = "100%";
 
-                        // If copied from the toolbox flyout, close the flyout.
-                        if (block.isInFlyout) {
-                                const tb =
-                                        Blockly.getMainWorkspace()?.getToolbox?.();
-                                const flyout = tb?.getFlyout?.();
-                                flyout?.hide?.();
+                        const labelEl = document.createElement("span");
+                        labelEl.textContent = label;
 
-                                // (optional) also clear the selected category so it collapses
-                                tb?.getSelectedItem?.()?.setSelected?.(false);
-                        }
-                },
-                checkbox: false,
-        });
+                        const shortcutEl = document.createElement("span");
+                        shortcutEl.textContent = shortcut;
+                        shortcutEl.style.color =
+                                "var(--blockly-text-disabled, #aaa)";
 
-        // ===== 2) PASTE on WORKSPACE (at pointer) =====
-        Blockly.ContextMenuRegistry.registry.register({
-                id: "fc_paste_to_workspace_here",
-                weight: -900000,
-                scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
-                displayText: () => "Paste",
-                preconditionFn(scope) {
-                        // Enable only if clipboard has something AND this is the main workspace (not flyout)
-                        const isMain = scope?.workspace === mainWs;
-                        return isMain && hasClipboardData()
-                                ? "enabled"
-                                : "hidden";
-                },
-                callback(scope) {
-                        const ws = scope.workspace;
-                        const at = screenToWs(ws, lastCM);
-                        const data = Blockly.clipboard.getLastCopiedData();
-                        Blockly.clipboard.paste(data, ws, at);
-                },
-                checkbox: false,
-        });
+                        wrapper.append(labelEl, shortcutEl);
+                        return wrapper;
+                }
 
-        // ===== 3) PASTE on BLOCK (try attach as child; else at pointer) =====
-        Blockly.ContextMenuRegistry.registry.register({
-                id: "fc_paste_as_child_or_here",
-                weight: -800000,
-                scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-                displayText: () => "Paste",
-                preconditionFn(scope) {
-                        const block =
-                                /** @type {Blockly.BlockSvg|undefined} */ (
-                                        scope?.block
-                                );
-                        if (
-                                !hasClipboardData() ||
-                                !(block instanceof Blockly.BlockSvg)
-                        )
-                                return "hidden";
-                        // Never offer paste for flyout blocks
-                        if (block.isInFlyout) return "hidden";
-                        return "enabled";
-                },
-                callback(scope) {
-                        const target = /** @type {Blockly.BlockSvg} */ (
-                                scope.block
-                        );
-                        if (!target || target.isInFlyout) return;
+                registry.register({
+                        id,
+                        weight: 80,
+                        displayText: () => {
+                                const text = translate("detach_block_option");
+                                const label =
+                                        text === "detach_block_option"
+                                                ? "Detach"
+                                                : text;
+                                return renderShortcut(label, "X");
+                        },
+                        preconditionFn: (scope) => {
+                                const block = scope.block;
+                                if (!block || block.isInFlyout) return "hidden";
 
-                        const ws = target.workspace;
-                        const data = Blockly.clipboard?.getLastCopiedData?.();
-                        if (!data) return;
+                                const hasParent =
+                                        !!block.getParent() ||
+                                        !!block.previousConnection
+                                                ?.targetConnection ||
+                                        !!block.outputConnection
+                                                ?.targetConnection;
+                                return hasParent ? "enabled" : "disabled";
+                        },
+                        callback: (scope) => {
+                                const block = scope.block;
+                                if (!block) return;
 
-                        // --- use menu-open point if available; else last pointer; else block XY ---
-                        function screenToWsPoint(xy) {
-                                const c = new Blockly.utils.Coordinate(
-                                        xy.x,
-                                        xy.y,
-                                );
-                                return Blockly.utils.svgMath.screenToWsCoordinates(
-                                        ws,
-                                        c,
-                                );
-                        }
+                                const healStack =
+                                        !block.outputConnection?.isConnected();
+                                const prevGroup = Blockly.Events.getGroup();
+                                Blockly.Events.setGroup("contextmenu_detach");
+                                block.unplug(healStack);
+                                const cursor = block.workspace?.getCursor?.();
+                                if (cursor?.setCurNode)
+                                        cursor.setCurNode(block);
+                                Blockly.Events.setGroup(prevGroup || null);
+                        },
+                        scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+                });
+        })();
 
-                        const fallbackXY = (() => {
-                                const xy = target.getRelativeToSurfaceXY();
-                                return {
-                                        x: xy.x + 16 * (ws.scale || 1),
-                                        y: xy.y + 16 * (ws.scale || 1),
-                                };
-                        })();
+        // Reorder block context menu items for better grouping.
+        (function adjustBlockContextMenuWeights() {
+                const registry = Blockly.ContextMenuRegistry.registry;
 
-                        const screenXY =
-                                __fcMenuPoint || __fcLastPointer || fallbackXY;
-                        const pointerType =
-                                __fcMenuPointerType ||
-                                __fcLastPointerType ||
-                                "mouse";
+                const duplicate = registry.getItem?.("blockDuplicate");
+                if (duplicate) duplicate.weight = 9;
 
-                        // Larger “hit” radius for touch so the intended socket is caught
-                        const HIT_RADIUS_PX = pointerType === "touch" ? 36 : 18;
-                        const REPLACE_REAL_ON_HOVER = true; // replace real children only when explicitly hovering a socket
-                        const REPLACE_REAL_IN_FALLBACKS = false; // in fallbacks, prefer empty inputs (don’t yank real children)
+                const detach = registry.getItem?.("detachBlockWithShortcut");
+                if (detach) detach.weight = 10;
 
-                        // --- Helpers (version-safe) ---
-                        function screenToWsPoint(xy) {
-                                const c = new Blockly.utils.Coordinate(
-                                        xy.x,
-                                        xy.y,
-                                );
-                                return Blockly.utils.svgMath.screenToWsCoordinates(
-                                        ws,
-                                        c,
-                                );
-                        }
-                        function connWsXY(conn) {
-                                if (
-                                        typeof conn.getOffsetInWorkspaceCoordinates ===
-                                        "function"
-                                ) {
-                                        return conn.getOffsetInWorkspaceCoordinates();
-                                }
-                                const inBlock =
-                                        typeof conn.getOffsetInBlock ===
-                                        "function"
-                                                ? conn.getOffsetInBlock()
-                                                : { x: 0, y: 0 };
-                                const b = conn.getSourceBlock();
-                                const base = b.getRelativeToSurfaceXY();
-                                return new Blockly.utils.Coordinate(
-                                        base.x + inBlock.x,
-                                        base.y + inBlock.y,
-                                );
-                        }
-                        // If the input has a shadow, dispose it (no bump). If a real child and allowed, disconnect.
-                        function clearInputForPaste(conn, replaceReal) {
-                                const targetBlock =
-                                        conn.targetBlock && conn.targetBlock();
-                                if (!targetBlock) return true;
-                                if (
-                                        targetBlock.isShadow &&
-                                        targetBlock.isShadow()
-                                ) {
-                                        targetBlock.dispose(
-                                                false /* healStack */,
-                                        ); // remove quietly, no bump
-                                        return true;
-                                }
-                                if (replaceReal && conn.targetConnection) {
-                                        conn.targetConnection.disconnect(); // real child will bump (expected)
-                                        return true;
-                                }
-                                return false; // occupied and we chose not to replace
-                        }
+                const deleteItem = registry.getItem?.("blockDelete");
+                if (deleteItem) deleteItem.weight = 20;
+        })();
 
-                        // --- Determine pointer position (fallback to block position if needed) ---
-                        const lastPoint =
-                                typeof lastCM === "object" &&
-                                lastCM &&
-                                "x" in lastCM &&
-                                "y" in lastCM
-                                        ? lastCM
-                                        : (() => {
-                                                  const xy =
-                                                          target.getRelativeToSurfaceXY();
-                                                  // small offset so we don't land exactly on the block origin
-                                                  return {
-                                                          x:
-                                                                  xy.x +
-                                                                  16 *
-                                                                          (ws.scale ||
-                                                                                  1),
-                                                          y:
-                                                                  xy.y +
-                                                                  16 *
-                                                                          (ws.scale ||
-                                                                                  1),
-                                                  };
-                                          })();
+        // ===== OVERRIDE CLIPBOARD METHODS =====
+        // Save original methods
+        const origCopy = Blockly.clipboard.copy;
 
-                        const wsPoint = screenToWsPoint(screenXY);
+        // Override copy to add flyout-closing behavior
+        Blockly.clipboard.copy = function (block) {
+                // Call original copy
+                origCopy.call(Blockly.clipboard, block);
 
-                        // --- Paste at the pointer first (so we have a block to connect) ---
-                        const pasted = Blockly.clipboard.paste(
-                                data,
-                                ws,
-                                wsPoint,
-                        );
-                        const pb = /** @type {Blockly.BlockSvg} */ (pasted);
-                        const checker =
-                                ws.getConnectionChecker?.() ||
-                                new Blockly.ConnectionChecker();
-                        const can = (a, b) =>
-                                a &&
-                                b &&
-                                checker.canConnect(a, b, /*isDragging=*/ false);
-
-                        // --- Prefer the socket under the cursor (value or statement) ---
-                        const hitR = HIT_RADIUS_PX / (ws.scale || 1);
-                        const hitR2 = hitR * hitR;
-
-                        // Try VALUE inputs first: INPUT_VALUE ⟷ output
-                        if (pb.outputConnection) {
-                                for (const input of target.inputList) {
-                                        if (
-                                                input.type !==
-                                                        Blockly.INPUT_VALUE ||
-                                                !input.connection
-                                        )
-                                                continue;
-                                        const off = connWsXY(input.connection);
-                                        const dx = wsPoint.x - off.x,
-                                                dy = wsPoint.y - off.y;
-                                        if (
-                                                dx * dx + dy * dy <= hitR2 &&
-                                                can(
-                                                        input.connection,
-                                                        pb.outputConnection,
-                                                )
-                                        ) {
-                                                if (
-                                                        !clearInputForPaste(
-                                                                input.connection,
-                                                                REPLACE_REAL_ON_HOVER,
-                                                        )
-                                                )
-                                                        break;
-                                                input.connection.connect(
-                                                        pb.outputConnection,
-                                                );
-                                                return;
-                                        }
-                                }
-                        }
-
-                        // Then STATEMENT inputs: NEXT_STATEMENT ⟷ previous
-                        if (pb.previousConnection) {
-                                for (const input of target.inputList) {
-                                        if (
-                                                input.type !==
-                                                        Blockly.NEXT_STATEMENT ||
-                                                !input.connection
-                                        )
-                                                continue;
-                                        const off = connWsXY(input.connection);
-                                        const dx = wsPoint.x - off.x,
-                                                dy = wsPoint.y - off.y;
-                                        if (
-                                                dx * dx + dy * dy <= hitR2 &&
-                                                can(
-                                                        input.connection,
-                                                        pb.previousConnection,
-                                                )
-                                        ) {
-                                                if (
-                                                        !clearInputForPaste(
-                                                                input.connection,
-                                                                REPLACE_REAL_ON_HOVER,
-                                                        )
-                                                )
-                                                        break;
-                                                input.connection.connect(
-                                                        pb.previousConnection,
-                                                );
-                                                return;
-                                        }
-                                }
-                        }
-
-                        // --- Fallbacks (your original order), preferring empty inputs ---
-                        // 1) stack after: target.next ⟷ pb.previous
-                        if (
-                                target.nextConnection &&
-                                pb.previousConnection &&
-                                can(
-                                        target.nextConnection,
-                                        pb.previousConnection,
-                                )
-                        ) {
-                                target.nextConnection.connect(
-                                        pb.previousConnection,
-                                );
-                                return;
-                        }
-
-                        // 2) an empty statement input ⟷ pb.previous
-                        for (const input of target.inputList) {
-                                if (
-                                        input.type === Blockly.NEXT_STATEMENT &&
-                                        input.connection &&
-                                        pb.previousConnection &&
-                                        can(
-                                                input.connection,
-                                                pb.previousConnection,
-                                        )
-                                ) {
-                                        if (
-                                                !clearInputForPaste(
-                                                        input.connection,
-                                                        REPLACE_REAL_IN_FALLBACKS,
-                                                )
-                                        )
-                                                continue;
-                                        input.connection.connect(
-                                                pb.previousConnection,
-                                        );
-                                        return;
-                                }
-                        }
-
-                        // 3) an empty value input ⟷ pb.output
-                        for (const input of target.inputList) {
-                                if (
-                                        input.type === Blockly.INPUT_VALUE &&
-                                        input.connection &&
-                                        pb.outputConnection &&
-                                        can(
-                                                input.connection,
-                                                pb.outputConnection,
-                                        )
-                                ) {
-                                        if (
-                                                !clearInputForPaste(
-                                                        input.connection,
-                                                        REPLACE_REAL_IN_FALLBACKS,
-                                                )
-                                        )
-                                                continue;
-                                        input.connection.connect(
-                                                pb.outputConnection,
-                                        );
-                                        return;
-                                }
-                        }
-
-                        // 4) insert above: target.previous ⟷ pb.next
-                        if (
-                                target.previousConnection &&
-                                pb.nextConnection &&
-                                can(
-                                        target.previousConnection,
-                                        pb.nextConnection,
-                                )
-                        ) {
-                                target.previousConnection.connect(
-                                        pb.nextConnection,
-                                );
-                                return;
-                        }
-
-                        // else: stays where pasted (at the pointer)
-                },
-                checkbox: false,
-        });
-
-        function getClipboardData() {
-                return Blockly.clipboard?.getLastCopiedData?.() || null;
-        }
-
-        function screenToWs(ws, xy) {
-                const c = new Blockly.utils.Coordinate(xy.x, xy.y);
-                return Blockly.utils.svgMath.screenToWsCoordinates(ws, c);
-        }
-
-        // Clean re-register on hot reloads (optional)
-        try {
-                Blockly.ContextMenuRegistry.registry.unregister("fc_cut_block");
-        } catch (e) {}
-
-        Blockly.ContextMenuRegistry.registry.register({
-                id: "fc_cut_block",
-                // Order: Copy (-1000000), then Cut (-999999.5), then your Paste (-999999)
-                weight: -900000,
-                scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-                displayText: () => "Cut",
-                preconditionFn(scope) {
-                        const b = scope?.block;
-                        if (!(b instanceof Blockly.BlockSvg)) return "hidden";
-                        if (b.isInFlyout) return "hidden"; // never in toolbox
-                        if (b.isShadow()) return "hidden"; // avoid cutting shadows
-                        if (!b.isDeletable() || !b.isMovable()) return "hidden";
-                        return "enabled";
-                },
-                callback(scope) {
-                        const block = /** @type {Blockly.BlockSvg} */ (
-                                scope.block
-                        );
-
-                        // Group copy+delete as one undoable action
-                        const prev = Blockly.Events.getGroup?.();
-                        Blockly.Events.setGroup?.("fc_cut");
-
-                        try {
-                                // Put block on the clipboard
-                                Blockly.clipboard.copy(block);
-                                // Delete block, healing stacks where possible
-                                block.dispose(true /* heal stack */);
-                        } finally {
-                                Blockly.Events.setGroup?.(prev || false);
-                        }
-                },
-                checkbox: false,
-        });
+                // If copied from the toolbox flyout, close the flyout
+                if (block && block.isInFlyout) {
+                        const tb = Blockly.getMainWorkspace()?.getToolbox?.();
+                        const flyout = tb?.getFlyout?.();
+                        flyout?.hide?.();
+                        tb?.getSelectedItem?.()?.setSelected?.(false);
+                }
+        };
 
         function isTypingInInput() {
                 const el = document.activeElement;
@@ -906,14 +994,12 @@ export function createBlocklyWorkspace() {
                         if ((e.key || "").toLowerCase() !== "v") return;
                         if (isTypingInInput()) return;
 
-                        const data = getClipboardData();
+                        const data = Blockly.clipboard?.getLastCopiedData?.();
                         if (!data) return;
 
                         // Selected block (if any, and not from flyout)
                         const selected =
-                                Blockly.common?.getSelected?.() ||
-                                Blockly.selected ||
-                                null;
+                                Blockly.common?.getSelected?.() || null;
                         if (selected && selected.isInFlyout) return; // never paste in the flyout
 
                         e.preventDefault();
@@ -1237,45 +1323,47 @@ function setupAutoValueBehavior(workspace) {
 
 export function overrideSearchPlugin(workspace) {
         function getBlocksFromToolbox(workspace) {
-            const toolboxBlocks = [];
-            const seenTypes = new Set(); // Track which block types we've already added
+                const toolboxBlocks = [];
+                const seenTypes = new Set();
 
-            function processItem(item, categoryName = "") {
-                const currentCategory = item.getName
-                    ? item.getName()
-                    : categoryName;
-
-                if (currentCategory === "Snippets") {
-                    return;
-                }
-
-                if (item.getContents) {
-                    const contents = item.getContents();
-                    const blocks = Array.isArray(contents)
-                        ? contents
-                        : [contents];
-
-                    blocks.forEach((block) => {
-                        if (block.kind === "block" && !seenTypes.has(block.type)) {
-                            seenTypes.add(block.type);
-                            toolboxBlocks.push({
-                                type: block.type,
-                                text: block.type,
-                                full: block,
-                            });
+                function collectBlocks(schema, categoryName = "") {
+                        if (!schema) {
+                                return;
                         }
-                    });
+
+                        if ("contents" in schema) {
+                                const currentCategory =
+                                        schema.name || categoryName;
+                                if (currentCategory === "Snippets") {
+                                        return;
+                                }
+
+                                schema.contents?.forEach((item) => {
+                                        collectBlocks(item, currentCategory);
+                                });
+                                return;
+                        }
+
+                        if (
+                                schema.kind?.toLowerCase() === "block" &&
+                                schema.type &&
+                                !seenTypes.has(schema.type)
+                        ) {
+                                seenTypes.add(schema.type);
+                                toolboxBlocks.push({
+                                        type: schema.type,
+                                        text: schema.type,
+                                        full: schema,
+                                        keyword: schema.keyword,
+                                });
+                        }
                 }
 
-                if (item.getChildToolboxItems) {
-                    item.getChildToolboxItems().forEach((child) => {
-                        processItem(child, currentCategory);
-                    });
-                }
-            }
+                workspace.options.languageTree?.contents?.forEach((item) => {
+                        collectBlocks(item);
+                });
 
-            workspace.getToolbox().getToolboxItems().forEach(processItem);
-            return toolboxBlocks;
+                return toolboxBlocks;
         }
 
         const SearchCategory = Blockly.registry.getClass(
@@ -1288,33 +1376,496 @@ export function overrideSearchPlugin(workspace) {
                 return;
         }
 
-        const toolboxBlocks = getBlocksFromToolbox(workspace);
+        const originalInitBlockSearcher =
+                SearchCategory.prototype.initBlockSearcher;
+
         SearchCategory.prototype.initBlockSearcher = function () {
-                this.blockSearcher.indexBlocks = function () {
-                        this.indexedBlocks_ = toolboxBlocks;
+                // Let the official plugin initialize its own behaviour first.
+                if (typeof originalInitBlockSearcher === "function") {
+                        originalInitBlockSearcher.call(this);
+                }
+
+                const blockSearcher = this.blockSearcher;
+
+                const rebuildSearchIndex = () => {
+                        const cachedIndex = workspace.flockSearchIndexedBlocks;
+                        if (Array.isArray(cachedIndex)) {
+                                blockSearcher.indexedBlocks_ = cachedIndex;
+                                return;
+                        }
+
+                        const newIndex = buildSearchIndex();
+                        workspace.flockSearchIndexedBlocks = newIndex;
+                        blockSearcher.indexedBlocks_ = newIndex;
+
+                        const searchCategory = workspace.flockSearchCategory;
+                        if (searchCategory) {
+                                const showAllBlocksAsync = () => {
+                                        if (
+                                                !isSearchCategorySelected(
+                                                        searchCategory,
+                                                )
+                                        )
+                                                return;
+                                        if (
+                                                searchCategory.searchField?.value
+                                                        .toLowerCase()
+                                                        .trim()
+                                        ) {
+                                                return;
+                                        }
+                                        searchCategory.showMatchingBlocks(
+                                                newIndex,
+                                        );
+                                };
+
+                                if (typeof requestIdleCallback === "function") {
+                                        requestIdleCallback(showAllBlocksAsync);
+                                } else {
+                                        setTimeout(showAllBlocksAsync, 0);
+                                }
+                        }
                 };
-                this.blockSearcher.indexBlocks();
+
+                this.blockSearcher.indexBlocks = rebuildSearchIndex;
+                blockSearcher.indexedBlocks_ =
+                        workspace.flockSearchIndexedBlocks || null;
+
+                if (!workspace.flockSearchIndexScheduled) {
+                        workspace.flockSearchIndexScheduled = true;
+                        const scheduleBuild = () => {
+                                workspace.flockSearchIndexScheduled = false;
+                                if (!workspace.flockSearchIndexedBlocks) {
+                                        rebuildSearchIndex();
+                                }
+                        };
+
+                        if (typeof requestIdleCallback === "function") {
+                                requestIdleCallback(scheduleBuild, {
+                                        timeout: 1000,
+                                });
+                        } else {
+                                setTimeout(scheduleBuild, 0);
+                        }
+                }
+
+                // Keep a reference so other helpers can see the active search category.
+                workspace.flockSearchCategory = this;
         };
+
+        const toolboxBlocks = getBlocksFromToolbox(workspace);
+        const isSearchCategorySelected = (category = null) => {
+                const toolbox = workspace.getToolbox?.();
+                const selectedItem = toolbox?.getSelectedItem?.();
+                const selectedDef =
+                        selectedItem?.getToolboxItemDef?.() ||
+                        selectedItem?.toolboxItemDef;
+                const isSelectedSearch =
+                        selectedDef?.kind === "search" ||
+                        (category && selectedItem === category);
+
+                return isSelectedSearch;
+        };
+
+        function getBlockMessage(blockType) {
+                const definition = Blockly.Blocks?.[blockType];
+                if (!definition) {
+                        return "";
+                }
+
+                const message0 =
+                        (typeof definition.message0 === "string" &&
+                                definition.message0) ||
+                        (typeof definition.json?.message0 === "string" &&
+                                definition.json.message0) ||
+                        "";
+
+                if (!message0) {
+                        return "";
+                }
+
+                const resolvedMessage =
+                        Blockly.utils.replaceMessageReferences(message0);
+                return translate(resolvedMessage);
+        }
+
+        function buildSearchIndex() {
+                const startTime =
+                        typeof performance !== "undefined" &&
+                        typeof performance.now === "function"
+                                ? performance.now()
+                                : Date.now();
+                if (!Object.keys(nextVariableIndexes).length) {
+                        initializeVariableIndexes();
+                }
+
+                const blockCreationWorkspace = new Blockly.Workspace();
+                const indexedBlocks = [];
+
+                function applyFieldValues(block, fieldValues) {
+                        if (!block || !fieldValues) {
+                                return;
+                        }
+
+                        Object.entries(fieldValues).forEach(
+                                ([fieldName, value]) => {
+                                        if (
+                                                value === undefined ||
+                                                value === null ||
+                                                !block.getField(fieldName)
+                                        ) {
+                                                return;
+                                        }
+
+                                        const normalizedValue =
+                                                typeof value === "string"
+                                                        ? value
+                                                        : String(value);
+                                        block.setFieldValue(
+                                                normalizedValue,
+                                                fieldName,
+                                        );
+                                },
+                        );
+                }
+
+                function addBlockFieldTerms(
+                        block,
+                        searchTerms,
+                        runDebugFields,
+                ) {
+                        block.inputList.forEach((input) => {
+                                input.fieldRow.forEach((field) => {
+                                        const fieldText = field.getText();
+                                        if (fieldText) {
+                                                searchTerms.add(fieldText);
+                                                runDebugFields.push({
+                                                        name: field.name,
+                                                        text: fieldText,
+                                                        kind: field.constructor
+                                                                ?.name,
+                                                });
+                                        }
+
+                                        if (
+                                                field instanceof
+                                                Blockly.FieldVariable
+                                        ) {
+                                                return;
+                                        }
+
+                                        if (
+                                                !fieldText &&
+                                                typeof field.getValue ===
+                                                        "function"
+                                        ) {
+                                                const fieldValue =
+                                                        field.getValue();
+                                                if (
+                                                        typeof fieldValue ===
+                                                                "string" &&
+                                                        fieldValue.trim()
+                                                ) {
+                                                        searchTerms.add(
+                                                                fieldValue,
+                                                        );
+                                                        runDebugFields.push({
+                                                                name: field.name,
+                                                                value: fieldValue,
+                                                                kind: field
+                                                                        .constructor
+                                                                        ?.name,
+                                                        });
+                                                }
+                                        }
+
+                                        if (
+                                                field instanceof
+                                                Blockly.FieldDropdown
+                                        ) {
+                                                field.getOptions(true).forEach(
+                                                        (option) => {
+                                                                if (
+                                                                        typeof option[0] ===
+                                                                        "string"
+                                                                ) {
+                                                                        searchTerms.add(
+                                                                                option[0],
+                                                                        );
+                                                                        runDebugFields.push(
+                                                                                {
+                                                                                        name: field.name,
+                                                                                        option: option[0],
+                                                                                        kind: field
+                                                                                                .constructor
+                                                                                                ?.name,
+                                                                                },
+                                                                        );
+                                                                } else if (
+                                                                        "alt" in
+                                                                        option[0]
+                                                                ) {
+                                                                        searchTerms.add(
+                                                                                option[0]
+                                                                                        .alt,
+                                                                        );
+                                                                        runDebugFields.push(
+                                                                                {
+                                                                                        name: field.name,
+                                                                                        option: option[0]
+                                                                                                .alt,
+                                                                                        kind: field
+                                                                                                .constructor
+                                                                                                ?.name,
+                                                                                },
+                                                                        );
+                                                                }
+                                                        },
+                                                );
+                                        }
+                                });
+                        });
+                }
+
+                try {
+                        toolboxBlocks.forEach((blockInfo) => {
+                                const type = blockInfo.type;
+                                if (!type || type === "") {
+                                        return;
+                                }
+
+                                const searchTerms = new Set();
+                                searchTerms.add(type.replaceAll("_", " "));
+
+                                const runDebugFields = [];
+
+                                const keyword =
+                                        blockInfo.keyword ||
+                                        blockInfo.full?.keyword;
+                                if (keyword) {
+                                        searchTerms.add(keyword);
+                                }
+
+                                const block =
+                                        blockCreationWorkspace.newBlock(type);
+                                applyFieldValues(block, blockInfo.full?.fields);
+
+                                const labelText =
+                                        typeof block.toString === "function"
+                                                ? block.toString()
+                                                : "";
+
+                                if (labelText && labelText.trim()) {
+                                        searchTerms.add(labelText);
+                                } else {
+                                        const fallbackMessage =
+                                                getBlockMessage(type);
+                                        if (fallbackMessage) {
+                                                searchTerms.add(
+                                                        fallbackMessage,
+                                                );
+                                        }
+                                }
+
+                                addBlockFieldTerms(
+                                        block,
+                                        searchTerms,
+                                        runDebugFields,
+                                );
+
+                                const inputDefinitions = blockInfo.full?.inputs;
+                                if (inputDefinitions) {
+                                        Object.values(inputDefinitions).forEach(
+                                                (definition) => {
+                                                        const shadowType =
+                                                                definition
+                                                                        ?.shadow
+                                                                        ?.type;
+                                                        if (!shadowType) {
+                                                                return;
+                                                        }
+
+                                                        const shadowBlock =
+                                                                blockCreationWorkspace.newBlock(
+                                                                        shadowType,
+                                                                );
+                                                        applyFieldValues(
+                                                                shadowBlock,
+                                                                definition
+                                                                        ?.shadow
+                                                                        ?.fields,
+                                                        );
+                                                        addBlockFieldTerms(
+                                                                shadowBlock,
+                                                                searchTerms,
+                                                                runDebugFields,
+                                                        );
+                                                        shadowBlock.dispose(
+                                                                true,
+                                                        );
+                                                },
+                                        );
+                                }
+
+                                indexedBlocks.push({
+                                        ...blockInfo,
+                                        text: Array.from(searchTerms).join(" "),
+                                });
+                        });
+                } finally {
+                        blockCreationWorkspace.dispose();
+                }
+
+                const endTime =
+                        typeof performance !== "undefined" &&
+                        typeof performance.now === "function"
+                                ? performance.now()
+                                : Date.now();
+                return indexedBlocks;
+        }
+
+        const searchToolboxItem = workspace
+                .getToolbox()
+                ?.getToolboxItems?.()
+                ?.find(
+                        (item) =>
+                                item instanceof SearchCategory ||
+                                item.getToolboxItemDef?.().kind === "search" ||
+                                item.toolboxItemDef?.kind === "search",
+                );
+
+        if (searchToolboxItem?.initBlockSearcher) {
+                searchToolboxItem.initBlockSearcher();
+        }
 
         SearchCategory.prototype.matchBlocks = function () {
                 if (!this.hasInputStarted) {
                         this.hasInputStarted = true;
-                        return;
                 }
 
                 const query =
                         this.searchField?.value.toLowerCase().trim() || "";
 
-                const matches = this.blockSearcher.indexedBlocks_.filter(
-                        (block) => {
-                                if (block.text) {
-                                        return block.text
-                                                .toLowerCase()
-                                                .includes(query);
+                if (!query) {
+                        const showAllBlocksAsync = () => {
+                                if (!isSearchCategorySelected(this)) {
+                                        return;
                                 }
-                                return false;
-                        },
-                );
+                                if (
+                                        !Array.isArray(
+                                                this.blockSearcher
+                                                        .indexedBlocks_,
+                                        )
+                                ) {
+                                        return;
+                                }
+
+                                if (
+                                        this.searchField?.value
+                                                .toLowerCase()
+                                                .trim()
+                                ) {
+                                        return;
+                                }
+
+                                this.showMatchingBlocks(
+                                        this.blockSearcher.indexedBlocks_,
+                                );
+                        };
+
+                        const requestType =
+                                this.flockSearchAllBlocksRequest?.type;
+                        const requestId = this.flockSearchAllBlocksRequest?.id;
+                        if (
+                                requestType === "idle" &&
+                                typeof cancelIdleCallback === "function" &&
+                                typeof requestId === "number"
+                        ) {
+                                cancelIdleCallback(requestId);
+                        } else if (
+                                requestType === "timeout" &&
+                                typeof requestId === "number"
+                        ) {
+                                clearTimeout(requestId);
+                        }
+
+                        if (
+                                !Array.isArray(
+                                        this.blockSearcher.indexedBlocks_,
+                                ) &&
+                                this.blockSearcher.indexBlocks
+                        ) {
+                                if (typeof requestIdleCallback === "function") {
+                                        const idleId = requestIdleCallback(
+                                                () => {
+                                                        this.blockSearcher.indexBlocks();
+                                                        showAllBlocksAsync();
+                                                },
+                                        );
+                                        this.flockSearchAllBlocksRequest = {
+                                                type: "idle",
+                                                id: idleId,
+                                        };
+                                } else {
+                                        const timeoutId = setTimeout(() => {
+                                                this.blockSearcher.indexBlocks();
+                                                showAllBlocksAsync();
+                                        }, 0);
+                                        this.flockSearchAllBlocksRequest = {
+                                                type: "timeout",
+                                                id: timeoutId,
+                                        };
+                                }
+                        } else if (typeof requestIdleCallback === "function") {
+                                const idleId =
+                                        requestIdleCallback(showAllBlocksAsync);
+                                this.flockSearchAllBlocksRequest = {
+                                        type: "idle",
+                                        id: idleId,
+                                };
+                        } else {
+                                const timeoutId = setTimeout(
+                                        showAllBlocksAsync,
+                                        0,
+                                );
+                                this.flockSearchAllBlocksRequest = {
+                                        type: "timeout",
+                                        id: timeoutId,
+                                };
+                        }
+                        return;
+                }
+
+                if (this.flockSearchAllBlocksRequest?.type === "idle") {
+                        if (typeof cancelIdleCallback === "function") {
+                                cancelIdleCallback(
+                                        this.flockSearchAllBlocksRequest.id,
+                                );
+                        }
+                } else if (
+                        this.flockSearchAllBlocksRequest?.type === "timeout"
+                ) {
+                        clearTimeout(this.flockSearchAllBlocksRequest.id);
+                }
+
+                if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
+                        if (this.blockSearcher.indexBlocks) {
+                                this.blockSearcher.indexBlocks();
+                        }
+                }
+
+                const indexedBlocks = Array.isArray(
+                        this.blockSearcher.indexedBlocks_,
+                )
+                        ? this.blockSearcher.indexedBlocks_
+                        : [];
+
+                const matches = indexedBlocks.filter((block) => {
+                        if (block.text) {
+                                return block.text.toLowerCase().includes(query);
+                        }
+                        return false;
+                });
 
                 this.showMatchingBlocks(matches);
         };
@@ -1398,17 +1949,22 @@ export function overrideSearchPlugin(workspace) {
         }
 
         SearchCategory.prototype.showMatchingBlocks = function (matches) {
-            const flyout = this.workspace_.getToolbox().getFlyout();
-            if (!flyout) {
-                console.error("Flyout not found!");
-                return;
-            }
+                if (!isSearchCategorySelected(this)) {
+                        return;
+                }
+                const flyout = this.workspace_.getToolbox().getFlyout();
+                if (!flyout) {
+                        console.error("Flyout not found!");
+                        return;
+                }
 
-            flyout.hide();
-            flyout.show([]);
+                flyout.hide();
+                flyout.show([]);
 
-            const xmlList = matches.map(match => createXmlFromJson(match.full));
-            flyout.show(xmlList);
+                const xmlList = matches.map((match) =>
+                        createXmlFromJson(match.full),
+                );
+                flyout.show(xmlList);
         };
 
         const toolboxDef = workspace.options.languageTree;
@@ -1440,7 +1996,7 @@ export function initBlocklyPerfOverlay(
         panel.innerHTML = `
         <div style="font-weight:600;margin-bottom:6px;">Blockly Perf</div>
         <div style="display:grid;grid-template-columns:auto 1fr;gap:2px 8px;white-space:nowrap;">
-          <div>Blocks (all/top):</div><div id="bp_blocks">–</div>
+          <div>Blocks (all/top):</div><div id="bp_blocks">d��</div>
           <div>Rendered blocks:</div><div id="bp_rendered">–</div>
           <div>SVG nodes:</div><div id="bp_svg">–</div>
           <div>Events/sec:</div><div id="bp_eps">–</div>

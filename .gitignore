@@ -9,3 +9,6 @@ replit.nix
 test-results/
 playwright-report/
 .last-run.json
+logs/
+*.log
+reports/

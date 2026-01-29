@@ -2,7 +2,7 @@ import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import {
         getHelpUrlFor,
-} from "../blocks.js";
+} from "./blocks.js";
 import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function definePhysicsBlocks() {
@@ -133,5 +133,42 @@ export function definePhysicsBlocks() {
 
                 },
           };
+
+      Blockly.Blocks["move_forward"] = {
+            init: function () {
+                  this.jsonInit({
+                        type: "move",
+                        message0: translate("move_forward"),
+                        args0: [
+                              {
+                                    type: "field_variable",
+                                    name: "MODEL",
+                                    variable: window.currentMesh,
+                              },
+                              {
+                                    type: "field_dropdown",
+                                    name: "DIRECTION",
+                                    options: [
+                                          getDropdownOption("forward"),
+                                          getDropdownOption("sideways"),
+                                          getDropdownOption("strafe"),
+                                    ],
+                              },
+                              {
+                                    type: "input_value",
+                                    name: "SPEED",
+                                    check: "Number",
+                              },
+                        ],
+                        inputsInline: true,
+                        previousStatement: null,
+                        nextStatement: null,
+                        colour: categoryColours["Transform"],
+                        tooltip: getTooltip("move_forward"),
+                  });
+                  this.setHelpUrl(getHelpUrlFor(this.type));
+                  this.setStyle('transform_blocks');
+            },
+      };
 }
 

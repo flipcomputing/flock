@@ -74,20 +74,20 @@ export const audioNames = [
 export const characterNames = [
 	"Liz1.glb",
 	"Liz2.glb",
-	"Liz3.glb",
-	"Liz4.glb",
-	"Liz5.glb",
-	"Liz6.glb",
 	"Block1.glb",
 	"Block2.glb",
 	"Block3.glb",
 	"Block4.glb",
 	"Block5.glb",
 	"Block6.glb",
-	"Character1.glb",
+	"Liz3.glb",
+	"Liz4.glb",
+	"Liz5.glb",
+	"Liz6.glb",
+	/*"Character1.glb",
 	"Character2.glb",
 	"Character3.glb",
-	"Character4.glb",
+	"Character4.glb",*/
 ];
 
 export const multiObjectNames = [
@@ -224,6 +224,7 @@ export const objectColours = {
 
 export const modelNames = [
 	"Flock.glb",
+	//"Flock_Santa.glb",
 	//"Character.glb",
 	//"bird.glb",
 	//"boat.glb",
@@ -237,6 +238,7 @@ export const blockNames = [
 	"Character3.glb",
 	"Character4.glb",
 	"Flock.glb",
+	"Flock_Santa.glb",
 	"Character.glb",
 	"rhino.glb",
 	//"Seagull.glb",
@@ -244,6 +246,7 @@ export const blockNames = [
 
 export const modelAnimationNames = [
 	"Flock.glb",
+	"Flock_Santa.glb",
 	"rhino.glb",
 	//"Seagull.glb",
 ];
@@ -273,6 +276,9 @@ export function animationNames() {
 		getDropdownOption("Fall"),
 		getDropdownOption("Fly"),
 		getDropdownOption("Jump"),
+		getDropdownOption("JumpUp"),
+		getDropdownOption("JumpIdle"),
+		getDropdownOption("JumpLand"),
 		getDropdownOption("Flip"),
 		getDropdownOption("Dance1"),
 		getDropdownOption("Dance2"),
@@ -288,11 +294,13 @@ export function animationNames() {
 		getDropdownOption("Stand_Up"),
 		getDropdownOption("Wobble"),
 		getDropdownOption("Clap"),
+		getDropdownOption("Climb_rope"),
 	];
 }
 
 export const materialNames = [
 	"none.png",
+	"gridxy.png",
 	"arrows.png",
 	"bricks.png",
 	"carbonfibre.png",
@@ -302,9 +310,11 @@ export const materialNames = [
 	"fabric.png",
 	"fishes.png",
 	"flowers.png",
+	"flower_tile.png",
 	"fruit.png",
 	"grass.png",
 	"gravel.png",
+	"Grid.png",
 	"leaves.png",
 	"marble.png",
 	"mushroom.png",
