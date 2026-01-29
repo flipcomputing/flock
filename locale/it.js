@@ -19,11 +19,13 @@ export default {
   CATEGORY_STRINGS: "Stringhe",
   CATEGORY_MATERIALS: "Materiali",
   CATEGORY_SOUND: "Suono",
-  CATEGORY_VARIABLES: "Variabili",
+  CATEGORY_VARIABLES: "Dati",
+  CATEGORY_VARIABLES_SUBCATEGORY: "Variabili",
   CATEGORY_LISTS: "Liste",
   CATEGORY_MATH: "Matematica",
   CATEGORY_FUNCTIONS: "Funzioni",
   CATEGORY_SNIPPETS: "Frammenti",
+  CATEGORY_MOVEMENT: "Movimento",
 
   // Color picker translations
   choose_a_color: "Scegli un colore",
@@ -129,7 +131,7 @@ export default {
   // Custom block translations - Scene blocks
   set_sky_color: "cielo %1",
   create_ground: "suolo %1",
-  set_background_color: "imposta colore di sfondo %1",
+  set_background_color: "sfondo %1",
   create_map: "mappa %1 con materiale %2",
   show: "mostra %1",
   hide: "nascondi %1",
@@ -138,7 +140,7 @@ export default {
 
   // Custom block translations - Models blocks
   load_character:
-    "aggiungi %1 %2 scala: %3 x: %4 y: %5 z: %6\nCapelli: %7 |  Pelle: %8 |  Occhi: %9 |  Maglietta: %10 |  Pantaloncini: %11 |  Dettaglio: %12",
+    "aggiungi %1 %2 scala: %3 x: %4 y: %5 z: %6\ncapelli: %7 |  pelle: %8 |  occhi: %9 |  maglietta: %10 |  pantaloncini: %11 |  dettaglio: %12",
   load_object: "aggiungi %1 %2 %3 scala: %4 x: %5 y: %6 z: %7",
   load_multi_object: "aggiungi %1 %2 scala: %3 x: %4 y: %5 z: %6\ncolori: %7",
   load_model: "aggiungi %1 %2 scala: %3 x: %4 y: %5 z: %6",
@@ -148,6 +150,8 @@ export default {
     "scivola %1 a x %2 y %3 z %4 in %5 ms\n%6 ritorna? %7 ripeti? %8 %9",
   glide_to_seconds:
     "scivola %1 a x %2 y %3 z %4 in %5 secondi \n%6 ritorna? %7 ripeti? %8 %9",
+  glide_to_object:
+    "scivola %1 verso %2 in %6 secondi\noffset x: %3 y: %4 z: %5\n%7 ritorna? %8 ripeti? %9 %10",
   rotate_anim:
     "ruota %1 a x %2 y %3 z %4 in %5 ms\n%6 inverti? %7 ripeti? %8  %9",
   rotate_anim_seconds:
@@ -201,8 +205,9 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  light_intensity: "imposta intensità luce a %1",
-  set_fog: "imposta nebbia colore %1 modalità %2 densità %3",
+  main_light: "intensità luce: %1 colore: %2 suolo: %3",
+  set_fog: "imposta nebbia colore %1 modalità %2 densità %3\ninizio %4 fine %5",
+  get_light: "ottieni luce come %1",
 
   // Custom block translation - Events blocks
   start: "avvio",
@@ -210,6 +215,7 @@ export default {
   when_clicked: "quando %1 %2",
   on_collision: "su %1 collisione %2 %3",
   when_key_event: "quando tasto %1 %2",
+  when_action_event: "quando %1 %2",
   broadcast_event: "trasmetti evento %1",
   on_event: "all'evento %1",
 
@@ -217,10 +223,10 @@ export default {
   change_color: "colora %1 a %2",
   change_material: "applica materiale %1 a %2 con colore %3",
   text_material:
-    "materiale %1 testo %2 colore %3 sfondo %4\nlarghezza %5 altezza %6 dimensione %7",
+    "materiale %1 testo %2 colore %3 sfondo %4\nlarghezza: %5 altezza: %6 dimensione: %7",
   place_decal: "decalcomania %1 angolo %2",
   decal:
-    "decal su %1 da x %2 y %3 z %4 \nangolo x %5 y %6 z %7\ndimensione x %8 y %9 z %10 materiale %11",
+    "decal su %1 da x: %2 y: %3 z: %4 \nangolo x: %5 y: %6 z: %7\ndimensione x: %8 y: %9 z: %10 materiale: %11",
   highlight: "evidenzia %1 %2",
   glow: "alone %1",
   tint: "tinta %1 %2",
@@ -239,14 +245,20 @@ export default {
   add_physics: "aggiungi fisica %1 tipo %2",
   add_physics_shape: "aggiungi forma fisica %1 tipo %2",
   apply_force: "applica forza a %1 x: %2 y: %3 z: %4",
-  show_physics: "mostra fisica %1",
+  show_physics: "mostra formas fisicas %1",
 
   // Custom block translations - Sensing blocks
   key_pressed: "tasto premuto è %1",
+  action_pressed: "%1",
   meshes_touching: "%1 tocca %2",
-  time: "tempo in s",
+  time: "tempo in %1",
+  seconds: "secondi",
+  milliseconds: "millisecondi",
+  minutes: "minuti",
+  ground_level: "livello del suolo",
   distance_to: "distanza da %1 a %2",
   touching_surface: "%1 tocca una superficie",
+  mesh_exists: "%1 esiste?",
   get_property: "ottieni %1 di %2",
   canvas_controls: "controlli canvas %1",
   button_controls: "controlli pulsante %1 abilitati %2 colore %3",
@@ -259,31 +271,31 @@ export default {
     "aggiungi effetto particelle %1 su: %2\nforma: %3 inizio %4 fine %5 alpha: %6 a %7\nfrequenza: %8 dimensione: %9 a %10 durata: %11 a %12\ngravità: %13 forza x: %14 y: %15 z: %16\nvelocità angolare: %17 a %18 angolo iniziale: %19 a %20",
   control_particle_system: "sistema particelle %1 %2",
   create_box:
-    "aggiungi box %1 %2 larghezza %3 altezza %4 profondità %5 \na x %6 y %7 z %8",
+    "aggiungi box %1 %2 larghezza: %3 altezza: %4 profondità: %5 \na x: %6 y: %7 z: %8",
   create_sphere:
-    "aggiungi sfera %1 %2 diametro x %3 diametro y %4 diametro z %5\na x %6 y %7 z %8",
+    "aggiungi sfera %1 %2 diametro x: %3 diametro y: %4 diametro z: %5\na x: %6 y: %7 z: %8",
   create_cylinder:
-    "aggiungi cilindro %1 %2 altezza %3 sopra %4 sotto %5 lati %6\na x %7 y %8 z %9",
+    "aggiungi cilindro %1 %2 altezza: %3 sopra: %4 sotto: %5 lati: %6\na x: %7 y: %8 z: %9",
   create_capsule:
-    "aggiungi capsula %1 %2 diametro %3 altezza %4 \na x %5 y %6 z %7",
+    "aggiungi capsula %1 %2 diametro: %3 altezza: %4 \na x: %5 y: %6 z: %7",
   create_plane:
-    "aggiungi piano %1 %2 larghezza %3 altezza %4 \na x %5 y %6 z %7",
+    "aggiungi piano %1 %2 larghezza: %3 altezza: %4 \na x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
   play_sound:
-    "riproduci suono %1 %2 da %3 \nvelocità %4 volume %5 modalità %6 asincrono %7",
+    "riproduci suono %1 %2 da %3 \nvelocità: %4 volume: %5 modalità: %6 asincrono: %7",
   stop_all_sounds: "ferma tutti i suoni",
   midi_note: "Nota MIDI %1",
   rest: "pausa",
   play_notes:
-    "riproduci note su %1\nnote %2 durate %3\nstrumento %4 modalità %5",
+    "riproduci note su %1\nnote: %2 durate: %3\nstrumento: %4 modalità: %5",
   set_scene_bpm: "imposta BPM scena a %1",
   set_mesh_bpm: "imposta BPM di %1 a %2",
   create_instrument:
-    "strumento %1 onda %2 frequenza %3 attacco %4 decadimento %5 sustain %6 rilascio %7",
+    "strumento %1 onda: %2 frequenza: %3 attacco: %4 decadimento: %5 sustain: %6 rilascio: %7",
   instrument: "strumento %1",
   speak:
-    "parla %1 %2 voce %3 lingua %4\nvelocità %5 intonazione %6 volume %7 modalità %8",
+    "parla %1 %2 voce: %3 lingua: %4\nvelocità: %5 intonazione: %6 volume: %7 modalità: %8",
 
   // Custom block translations - Text blocks
   comment: "// %1",
@@ -291,23 +303,31 @@ export default {
   say: "dici %1 per %2 s %3 \ntesto %4 su %5 alpha %6 dimensione %7 %8 %9",
   ui_text: "testo UI %1 %2 a x: %3 y: %4\nmisura: %5 per %6 secondi colore: %7",
   ui_button:
-    "pulsante UI %1 %2 a x: %3 y: %4\nmisura: %5 dim. testo: %6 colore testo: %7 colore sfondo: %8",
+    "pulsante UI %1 %2 a x: %3 y: %4\nmisura: %5 dim. testo: %6 text: %7 background: %8",
   ui_input:
     "input UI %1 %2 a x: %3 y: %4\nmisura: %5 dim. testo: %6 testo: %7 sfondo: %8",
   create_3d_text:
     "aggiungi %1 testo 3D: %2 font: %3 dimensione: %4 colore: %5\nprofondità: %6 x: %7 y: %8 z: %9 ",
 
+  // Custom block translations - Math blocks
+  random_seeded_int: "numero intero casuale da %1 a %2 seed: %3",
+  to_number: "converti %1 in %2",
+
   // Custom block translations - Transform blocks
-  move_by_xyz: "muovi %1 di x: %2 y: %3 z: %4",
-  move_to_xyz: "muovi %1 a x: %2 y: %3 z: %4 y? %5",
-  move_to: "muovi %1 a %2 y? %3",
+  move_by_xyz: "cambia posizione di %1 di x: %2 y: %3 z: %4",
+  move_by_xyz_single: "cambia la posizione di %1 di %2 %3",
+  move_to_xyz: "imposta la posizione di %1 su x: %2 y: %3 z: %4 y? %5",
+  move_to_xyz_single: "imposta la posizione di %1 a %2 %3",
+  move_to: "imposta la posizione di %1 su %2 y? %3",
   scale: "scala %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7",
   resize: "ridimensiona %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7",
   rotate_model_xyz: "ruota %1 di x: %2 y: %3 z: %4",
   rotate_to: "ruota %1 a x: %2 y: %3 z: %4",
   look_at: "fai guardare %1 a %2 y? %3",
   move_forward: "muovi %1 %2 velocità %3",
-  set_pivot: "imposta perno di %1 x: %2 y: %3 z: %4",
+  rotate_camera: "ruota la camera di %1 gradi",
+  up: "su %1 forza %2",
+  set_pivot: "imposta ancoraggio di %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
 
   // Custom block translations - XR blocks
@@ -362,6 +382,8 @@ export default {
     "Scivola a una posizione in un tempo dato con opzioni di inversione, loop ed easing.",
   glide_to_seconds_tooltip:
     "Scivola a una posizione in un tempo dato con opzioni di inversione, loop ed easing.",
+  glide_to_object_tooltip:
+    "Scivola verso la posizione di un'altra mesh con offset x/y/z opzionali (0 predefinito) e opzioni di inversione, loop ed easing.",
   rotate_anim_tooltip:
     "Ruota una mesh ad angoli specificati in un intervallo, con opzioni di inversione, loop ed easing.",
   rotate_anim_seconds_tooltip:
@@ -439,9 +461,12 @@ export default {
   get_lexical_variable_tooltip: "Ottieni il valore di una variabile lessicale",
 
   // Tooltip translations - Effects blocks
-  light_intensity_tooltip:
+  main_light_tooltip:
     "Imposta l’intensità della luce principale.\nParola chiave: intensità luce",
-  set_fog_tooltip: "Configura la nebbia della scena.\nParola chiave: fog",
+  set_fog_tooltip:
+    "Configura la nebbia della scena. Usa inizio e fine per impostare le distanze vicina e lontana.\nParola chiave: fog",
+  get_light_tooltip:
+    "Ottieni la luce principale della scena corrente.\nParola chiave: light",
 
   // Tooltip translations - Events blocks
   start_tooltip:
@@ -453,7 +478,9 @@ export default {
   on_collision_tooltip:
     "Esegue i blocchi quando la mesh entra o esce dall’intersezione con un’altra mesh.\nParola chiave: collide",
   when_key_event_tooltip:
-    "Esegue i blocchi quando il tasto specificato è premuto o rilasciato.",
+    "Esegue i blocchi quando il tasto specificato viene premuto o rilasciato.",
+  when_action_event_tooltip:
+    "Esegue i blocchi quando l’azione scelta viene premuta o rilasciata su tastiera, touch o XR.",
   broadcast_event_tooltip:
     "Trasmette un evento ricevuto da 'on event'.\nParola chiave: broadcast",
   on_event_tooltip:
@@ -500,12 +527,18 @@ export default {
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip:
     "Restituisce vero se il tasto specificato è premuto.\nParola chiave: ispressed",
+  action_pressed_tooltip:
+    "Restituisce vero se il controllo di movimento o azione selezionato è attivo su tastiera, tocco o XR.",
   meshes_touching_tooltip:
     "Restituisce vero se le due mesh selezionate si toccano.\nParola chiave: istouching",
   time_tooltip: "Restituisce il tempo corrente in secondi.",
+  ground_level_tooltip:
+    "Restituisce l'altezza del suolo alla posizione x/z attuale.",
   distance_to_tooltip: "Calcola la distanza tra due mesh.",
   touching_surface_tooltip:
     "Controlla se la mesh tocca una superficie.\nParola chiave: surface",
+  mesh_exists_tooltip:
+    "Restituisce vero se la mesh con questo nome è presente nella scena.",
   get_property_tooltip:
     "Ottiene il valore della proprietà selezionata di una mesh.\nParola chiave: get",
   canvas_controls_tooltip:
@@ -563,11 +596,20 @@ export default {
     "Chiede all’utente una risposta e attende l’input. Salva il risultato in una variabile.",
   create_3d_text_tooltip: "Crea testo 3D nella scena.",
 
+  // Tooltip translations - Math blocks
+  random_seeded_int_tooltip:
+    "Genera un numero intero casuale con un seed.\nParola chiave: seed",
+  to_number_tooltip: "Converte una stringa in intero o float.",
+
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
     "Muove una mesh di una certa quantità in x, y e z.\nParola chiave: move",
+  move_by_xyz_single_tooltip:
+    "Sposta una mesh di una determinata quantità nella direzione x, y o z.\nParola chiave: move",
   move_to_xyz_tooltip:
     "Teletrasporta la mesh alle coordinate. Facoltativamente usa l’asse Y.\nParola chiave: moveby",
+  move_to_xyz_single_tooltip:
+    "Teletrasporta la mesh alla coordinata singola specificata.\nParola chiave: moveby",
   move_to_tooltip:
     "Teletrasporta la prima mesh alla posizione della seconda mesh.\nParola chiave: moveto",
   scale_tooltip:
@@ -582,8 +624,11 @@ export default {
     "Ruota la prima mesh verso la posizione della seconda mesh.\nParola chiave: look",
   move_forward_tooltip:
     "Muove la mesh nella direzione specificata. 'Avanti' segue la direzione in cui punta; 'laterale' si muove rispetto alla camera; 'strafe' si muove di lato rispetto alla camera.\nParola chiave: push",
+  rotate_camera_tooltip:
+    "Ruota la camera a sinistra o destra dei gradi indicati.\nParola chiave: rotate",
+  up_tooltip: "Applica la forza verso l'alto indicata.\nParola chiave: up",
   set_pivot_tooltip:
-    "Imposta il punto di perno di una mesh sugli assi X, Y e Z\nParola chiave: pivot",
+    "Imposta il punto di ancoraggio di una mesh sugli assi X, Y e Z\nParola chiave: ancora",
   min_centre_max_tooltip:
     "Scegli min, centro o max per il punto di perno\nParola chiave: minmax",
 
@@ -736,6 +781,8 @@ export default {
 
   pressed_option: "premuto",
   released_option: "rilasciato",
+  starts_option: "inizia",
+  ends_option: "termina",
 
   DYNAMIC_option: "dinamica",
   ANIMATED_option: "animata",
@@ -747,10 +794,14 @@ export default {
   FLAT_option: "Piatto", // Duplicate key NONE
 
   ANY_option: "qualsiasi",
-  space_infinity_option: "spazio ∞", // Duplicate key space
+  space_infinity_option: "spazio ❖", // Duplicate key space
   q_icon_option: "Q ■", // Duplicate key q
   e_icon_option: "E ✿", // Duplicate key e
   f_icon_option: "F ✱", // Duplicate key f
+
+  x_coordinate_option: "x",
+  y_coordinate_option: "y",
+  z_coordinate_option: "z",
 
   POSITION_X_option: "posizione x",
   POSITION_Y_option: "posizione y",
@@ -773,10 +824,21 @@ export default {
   VISIBLE_option: "visibile",
   ALPHA_option: "alpha",
   COLOUR_option: "colore",
+  AUTO_option: "automatico",
+  ENABLED_option: "abilitato",
+  DISABLED_option: "disabilitato",
 
   BOTH_option: "entrambi",
   ARROWS_option: "frecce",
   ACTIONS_option: "azioni",
+  ACTION_FORWARD_option: "avanti",
+  ACTION_BACKWARD_option: "indietro",
+  ACTION_LEFT_option: "sinistra",
+  ACTION_RIGHT_option: "destra",
+  ACTION_BUTTON1_option: "pulsante 1",
+  ACTION_BUTTON2_option: "pulsante 2",
+  ACTION_BUTTON3_option: "pulsante 3",
+  ACTION_BUTTON4_option: "pulsante 4",
 
   pin_0_option: "Pin P0 rilasciato", // Duplicate key 0
   pin_1_option: "Pin P1 rilasciato", // Duplicate key 1
@@ -857,8 +919,9 @@ export default {
   Dance2_option: "Danza2",
   Dance3_option: "Danza3",
   Dance4_option: "Danza4",
-  Jump_Idle_option: "Salto fermo",
-  Jump_Land_option: "Atterra",
+  JumpUp_option: "Salto in alto",
+  JumpIdle_option: "Salto fermo",
+  JumpLand_option: "Atterra",
   Punch_option: "Pugno",
   HitReact_option: "Reazione colpo",
   Idle_Hold_option: "Fermo con oggetto",
@@ -872,6 +935,7 @@ export default {
   Stand_Up_option: "Alzati",
   Wobble_option: "Dondola",
   Clap_option: "Applaudi",
+  Climb_rope_option: "Arrampicati sulla corda",
 
   // HTML translations
   loading_ui: "Caricamento di Flock XR...",
@@ -904,6 +968,9 @@ export default {
   tent_lights_ui: "⛺ Tenda festival",
   my_place_ui: "🏠 Il mio posto",
   microbit_monkey_ui: "🐵 micro:bit scimmia",
+  tree_jump_ui: "🌳 Salto dall'albero",
+  shape_push_ui: "🔶 Spinta forma",
+  alien_planet_ui: "👽 Pianeta alieno",
 
   main_menu_ui: "Menu principale",
   menu_button_sr_label_ui: "Menu",
@@ -913,6 +980,7 @@ export default {
   project_save_ui: "Salva",
   language_submenu_ui: "Lingua",
   about_submenu_ui: "Informazioni",
+  hub_submenu_ui: "Hub",
 
   theme_submenu_ui: "Tema",
   light_theme_ui: "Chiaro",
@@ -953,7 +1021,7 @@ export default {
   about_description_disclaimer_ui:
     " Provalo pure, ma tieni presente che le cose possono cambiare e alcune funzionalità non sono ancora complete. Stiamo cercando supporto per sviluppare Flock in modo che tu possa farci affidamento.",
   about_run_intro_ui:
-    "Dai un’occhiata alle demo sopra per vedere cosa puoi fare. Fai qualche modifica e clicca",
+    "Guarda le demo sopra per vedere cosa puoi fare. Fai qualche modifica e clicca su",
   about_run_action_ui: "esegui.",
   about_links_privacy_prefix_ui: "Consulta la ",
   about_links_privacy_label_ui: "privacy policy",
@@ -971,6 +1039,7 @@ export default {
   unmute_audio_aria: "Riattiva l'audio.",
   focused_main_content: "Contenuto principale focalizzato.",
   toolbox_search_results_aria: "Risultati della ricerca nella toolbox.",
+  context_delete_option: "Elimina",
   context_copy_option: "Copia",
   context_paste_option: "Incolla",
   context_cut_option: "Taglia",
@@ -998,9 +1067,31 @@ export default {
   snippet_filename_prompt: "Inserisci un nome file per lo snippet:",
   project_file_description: "Progetto Flock XR",
   file_too_large_alert: "File troppo grande. La dimensione massima è 5 MB.",
-  invalid_filetype_alert: "Sono consentiti solo file di progetto .json o .flock.",
+  invalid_filetype_alert:
+    "Sono consentiti solo file di progetto .json o .flock.",
   invalid_project_alert: "Questo file non è un progetto Flock XR valido.",
   failed_to_read_file_alert: "Impossibile leggere il file.",
+
+  // UI status messages
+  max_mesh_limit_reached:
+    "⚠️ Limite raggiunto: puoi avere solo {max} mesh nel tuo mondo.",
+  high_memory_usage_warning: "Avviso: uso di memoria elevato ({percent}%)",
+  physics_out_of_memory_log:
+    "La fisica Havok si è interrotta, probabilmente per esaurimento della memoria.", // AI-generated; needs validation
+  physics_out_of_memory_banner_ui:
+    "Il motore fisico ha esaurito la memoria. Prova a ridurre il numero di oggetti fisici o a ricaricare il progetto.", // AI-generated; needs validation
+  runtime_error_message: "Errore: {message}",
+  xr_mode_message: "Modalità XR!",
+  fly_camera_instructions: "ℹ️ Telecamera volante, usa le frecce e Pag su/giù",
+  select_mesh_delete_prompt: "⚠️ Seleziona una mesh e poi fai clic su elimina.",
+  select_mesh_duplicate_prompt:
+    "⚠️ Seleziona una mesh, fai clic su duplica e poi fai clic per posizionare le copie.",
+  position_readout: "Posizione: {position}",
+  eyedropper_not_supported_alert:
+    "Lo strumento contagocce non è supportato in questo browser. Prova a usare Chrome o Edge.",
+  blocks_copied_alert: "Blocchi copiati nella memoria locale!",
+  no_blocks_to_copy_alert: "Nessun blocco disponibile da copiare.",
+  copy_blocks_failed_alert: "Copia dei blocchi non riuscita.",
 
   // Context menu option translations
   export_JSON_snippet: "Esporta blocco come frammento JSON",

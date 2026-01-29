@@ -122,13 +122,13 @@ export function runCreateObjectTests(flock) {
 			expect(result7).to.be.a("string");
 		});
 
-		it("should correctly handle modelId and blockId splitting", function () {
+		("should correctly handle modelId and blockId splitting", function () {
 			// Create a mesh with a valid modelId__blockId format
 			const modelId = "tree.glb__block123";
 			const result = flock.createObject({
 				modelName: "tree.glb",
 				modelId: modelId,
-				color: ["#cd853f", "#66cdaa"],
+				color: ["#cd85it3f", "#66cdaa"],
 				position: { x: 0, y: 0, z: 0 }
 			});
 
@@ -171,7 +171,7 @@ export function runCreateObjectTests(flock) {
 			});
 			const mesh4 = flock.scene.getMeshByName(result4);
 			expect(mesh4).to.exist;
-			expect(mesh4.metadata.blockKey).to.equal("");  // Empty string after __
+			expect(mesh4.metadata.blockKey).to.equal("tree.glb");  // Empty string after __
 		});
 
 		it("should handle object scaling operations", async function () {

@@ -19,11 +19,13 @@ export default {
   CATEGORY_STRINGS: "Łańcuchy tekstowe",
   CATEGORY_MATERIALS: "Materiały",
   CATEGORY_SOUND: "Dźwięk",
-  CATEGORY_VARIABLES: "Zmienne",
+  CATEGORY_VARIABLES: "Dane",
+  CATEGORY_VARIABLES_SUBCATEGORY: "Zmienne",
   CATEGORY_LISTS: "Listy",
   CATEGORY_MATH: "Matematyka",
   CATEGORY_FUNCTIONS: "Funkcje",
   CATEGORY_SNIPPETS: "Fragmenty",
+  CATEGORY_MOVEMENT: "Ruch",
 
   // Color picker translations
   choose_a_color: "Wybierz kolor",
@@ -48,7 +50,8 @@ export default {
   more_options: "Więcej opcji",
   hex_placeholder: "ff0000 lub red",
   skin_tone: "Odcień skóry",
-  color_wheel_aria: "Koło kolorów: użyj klawiszy strzałek, aby wybrać odcień i nasycenie",
+  color_wheel_aria:
+    "Koło kolorów: użyj klawiszy strzałek, aby wybrać odcień i nasycenie",
 
   // Palette names
   palette_bright: "Jasny",
@@ -123,7 +126,7 @@ export default {
   // Custom block translations - Scene blocks
   set_sky_color: "niebo %1",
   create_ground: "ziemia %1",
-  set_background_color: "ustaw kolor tła na %1",
+  set_background_color: "tło %1",
   create_map: "stwórz mapę %1 z materiałem %2",
   show: "pokaż %1",
   hide: "ukryj %1",
@@ -131,22 +134,32 @@ export default {
   clone_mesh: "dodaj %1 jako klon obiektu %2",
 
   // Custom block translations - Models blocks
-  load_character: "dodaj %1 %2, skala: %3, x: %4, y: %5, z: %6\nWłosy: %7 | Skóra: %8 | Oczy: %9 | Koszulka: %10 | Spodenki: %11 | Detale: %12",
+  load_character:
+    "dodaj %1 %2, skala: %3, x: %4, y: %5, z: %6\nwłosy: %7 | skóra: %8 | oczy: %9 | koszulka: %10 | spodenki: %11 | detale: %12",
   load_object: "dodaj %1 %2 %3, skala: %4, x: %5, y: %6, z: %7",
   load_multi_object: "dodaj %1 %2, skala: %3, x: %4, y: %5, z: %6\nkolory: %7",
   load_model: "dodaj model %1 %2, skala: %3, x: %4, y: %5, z: %6",
 
   // Custom block translations - Animate blocks
-  glide_to: "przesuń %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 powrót? %7 pętla? %8 %9",
-  glide_to_seconds: "przesuń %1 do x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 powrót? %7 pętla? %8 %9",
-  rotate_anim: "obróć %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 odwróć? %7 pętla? %8 %9",
-  rotate_anim_seconds: "obróć %1 do x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 odwróć? %7 pętla? %8 %9",
-  animate_property: "animuj %1: %2 do %3 w czasie %4 ms, odwróć? %5, pętla? %6 %7",
+  glide_to:
+    "przesuń %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 powrót? %7 pętla? %8 %9",
+  glide_to_seconds:
+    "przesuń %1 do x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 powrót? %7 pętla? %8 %9",
+  glide_to_object:
+    "przesuń %1 do %2 w czasie %6 sekund\nprzesunięcie x: %3, y: %4, z: %5\n%7 powrót? %8 pętla? %9 %10",
+  rotate_anim:
+    "obróć %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 odwróć? %7 pętla? %8 %9",
+  rotate_anim_seconds:
+    "obróć %1 do x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 odwróć? %7 pętla? %8 %9",
+  animate_property:
+    "animuj %1: %2 do %3 w czasie %4 ms, odwróć? %5, pętla? %6 %7",
   colour_keyframe: "w %1 kolor: %2",
   number_keyframe: "w %1 wartość: %2",
   xyz_keyframe: "w %1 x: %2, y: %3, z: %4",
-  animate_keyframes: "animuj klatki kluczowe %1, właściwość: %2\nklatki: %3\nWygładzanie: %4, pętla: %5, odwróć: %6 %7",
-  animation: "animuj klatki kluczowe %1, właściwość: %2, grupa: %3\nklatki: %4\nWygładzanie: %5, pętla: %6, odwróć: %7, tryb: %8",
+  animate_keyframes:
+    "animuj klatki kluczowe %1, właściwość: %2\nklatki: %3\nWygładzanie: %4, pętla: %5, odwróć: %6 %7",
+  animation:
+    "animuj klatki kluczowe %1, właściwość: %2, grupa: %3\nklatki: %4\nWygładzanie: %5, pętla: %6, odwróć: %7, tryb: %8",
   control_animation_group: "grupa animacji %1 %2",
   animate_from: "animuj grupę %1 od %2 sekund",
   stop_animations: "zatrzymaj animacje %1",
@@ -188,8 +201,10 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block blocks - Effects blocks
-  light_intensity: "ustaw intensywność światła na %1",
-  set_fog: "ustaw mgłę, kolor: %1, tryb: %2, gęstość: %3",
+  main_light: "intensywność światła: %1 kolor: %2 podłoże: %3",
+  set_fog:
+    "ustaw mgłę, kolor: %1, tryb: %2, gęstość: %3\npoczątek %4 koniec %5",
+  get_light: "pobierz światło jako %1",
 
   // Custom block translation - Events blocks
   start: "start",
@@ -197,15 +212,18 @@ export default {
   when_clicked: "gdy kliknięto %1 %2",
   on_collision: "gdy %1 zderzy się z %2 %3",
   when_key_event: "gdy klawisz %1 %2",
+  when_action_event: "gdy %1 %2",
   broadcast_event: "wyślij zdarzenie %1",
   on_event: "gdy zdarzenie %1",
 
   // Custom block translations - Materials blocks
   change_color: "zmień kolor %1 na %2",
   change_material: "nałóż materiał %1 na %2 o kolorze %3",
-  text_material: "materiał %1 tekst: %2 kolor: %3 tło: %4\nszerokość: %5 wysokość: %6 rozmiar: %7",
+  text_material:
+    "materiał %1 tekst: %2 kolor: %3 tło: %4\nszerokość: %5 wysokość: %6 rozmiar: %7",
   place_decal: "umieść naklejkę %1 kąt: %2",
-  decal: "naklej na %1 z x: %2 y: %3 z: %4\nkąt x: %5 y: %6 z: %7\nrozmiar x: %8 y: %9 z: %10 materiał: %11",
+  decal:
+    "naklej na %1 z x: %2 y: %3 z: %4\nkąt x: %5 y: %6 z: %7\nrozmiar x: %8 y: %9 z: %10 materiał: %11",
   highlight: "podświetl %1 %2",
   glow: "rozświetl %1",
   tint: "dodaj odcień %1 %2",
@@ -224,61 +242,90 @@ export default {
   add_physics: "dodaj fizykę do %1 typ: %2",
   add_physics_shape: "dodaj kształt fizyczny do %1 typ: %2",
   apply_force: "zastosuj siłę do %1 x: %2 y: %3 z: %4",
-  show_physics: "pokaż fizykę %1",
+  show_physics: "pokaż kształt fizyczne %1",
 
   // Custom block translations - Sensing blocks
   key_pressed: "czy klawisz %1 jest wciśnięty?",
+  action_pressed: "%1",
   meshes_touching: "czy %1 dotyka %2?",
-  time: "czas w s",
+  time: "czas w %1",
+  seconds: "sekundach",
+  milliseconds: "milisekundach",
+  minutes: "minutach",
+  ground_level: "poziom gruntu",
   distance_to: "odległość od %1 do %2",
   touching_surface: "czy %1 dotyka powierzchni?",
+  mesh_exists: "czy %1 istnieje?",
   get_property: "pobierz %1 z %2",
   canvas_controls: "kontrola płótna %1",
   button_controls: "kontrolki przycisku %1 włączone: %2 kolor: %3",
   microbit_input: "gdy zdarzenie micro:bit: %1",
-  ui_slider: "suwak UI %1 od %2 do %3 domyślnie %4 w x: %5 y: %6\nkolor: %7 tło: %8 %9",
+  ui_slider:
+    "suwak UI %1 od %2 do %3 domyślnie %4 w x: %5 y: %6\nkolor: %7 tło: %8 %9",
 
   // Custom block translations - Shapes blocks
-  create_particle_effect: "dodaj efekt cząsteczek %1 na: %2\nkształt: %3 start: %4 koniec: %5 przezroczystość: %6 do %7\nczęstotliwość: %8 rozmiar: %9 do %10 żywotność: %11 do %12\ngrawitacja: %13 siła x: %14 y: %15 z: %16\nprędkość kątowa: %17 do %18 kąt początkowy: %19 do %20",
+  create_particle_effect:
+    "dodaj efekt cząsteczek %1 na: %2\nkształt: %3 start: %4 koniec: %5 przezroczystość: %6 do %7\nczęstotliwość: %8 rozmiar: %9 do %10 żywotność: %11 do %12\ngrawitacja: %13 siła x: %14 y: %15 z: %16\nprędkość kątowa: %17 do %18 kąt początkowy: %19 do %20",
   control_particle_system: "system cząsteczek %1 %2",
-  create_box: "dodaj pudełko %1 %2 szerokość: %3 wysokość: %4 głębokość: %5\nw x: %6 y: %7 z: %8",
-  create_sphere: "dodaj sferę %1 %2 średnica x: %3 średnica y: %4 średnica z: %5\nw x: %6 y: %7 z: %8",
-  create_cylinder: "dodaj cylinder %1 %2 wysokość: %3 góra: %4 dół: %5 boki: %6\nw x: %7 y: %8 z: %9",
-  create_capsule: "dodaj kapsułę %1 %2 średnica: %3 wysokość: %4\nw x: %5 y: %6 z: %7",
-  create_plane: "dodaj płaszczyznę %1 %2 szerokość: %3 wysokość: %4\nw x: %5 y: %6 z: %7",
+  create_box:
+    "dodaj pudełko %1 %2 szerokość: %3 wysokość: %4 głębokość: %5\nw x: %6 y: %7 z: %8",
+  create_sphere:
+    "dodaj sferę %1 %2 średnica x: %3 średnica y: %4 średnica z: %5\nw x: %6 y: %7 z: %8",
+  create_cylinder:
+    "dodaj cylinder %1 %2 wysokość: %3 góra: %4 dół: %5 boki: %6\nw x: %7 y: %8 z: %9",
+  create_capsule:
+    "dodaj kapsułę %1 %2 średnica: %3 wysokość: %4\nw x: %5 y: %6 z: %7",
+  create_plane:
+    "dodaj płaszczyznę %1 %2 szerokość: %3 wysokość: %4\nw x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
-  play_sound: "odtwórz dźwięk %1 %2 od %3\nprędkość: %4 głośność: %5 tryb: %6 async: %7",
+  play_sound:
+    "odtwórz dźwięk %1 %2 od %3\nprędkość: %4 głośność: %5 tryb: %6 async: %7",
   stop_all_sounds: "zatrzymaj wszystkie dźwięki",
   midi_note: "nuta MIDI %1",
   rest: "pauza",
-  play_notes: "odtwórz nuty na %1\nnuty: %2, długości: %3\ninstrument: %4 tryb: %5",
+  play_notes:
+    "odtwórz nuty na %1\nnuty: %2 długości: %3\ninstrument: %4 tryb: %5",
   set_scene_bpm: "ustaw tempo sceny BPM na %1",
   set_mesh_bpm: "ustaw BPM %1 na %2",
-  create_instrument: "instrument %1 fala: %2 częstotliwość: %3 atak: %4 zanikanie: %5 podtrzymanie: %6 uwolnienie: %7",
+  create_instrument:
+    "instrument %1 fala: %2 częstotliwość: %3 atak: %4 zanikanie: %5 podtrzymanie: %6 uwolnienie: %7",
   instrument: "instrument %1",
-  speak: "powiedz %1 %2 głos: %3 język: %4\ntempo: %5 wysokość: %6 głośność: %7 tryb: %8",
+  speak:
+    "powiedz %1 %2 głos: %3 język: %4\ntempo: %5 wysokość: %6 głośność: %7 tryb: %8",
 
   // Custom block translations - Text blocks
   comment: "// %1",
   print_text: "drukuj %1 przez %2 sekund %3",
   say: "powiedz %1 przez %2 s %3\ntekst: %4 na %5 przezroczystość: %6 rozmiar: %7 %8 %9",
   ui_text: "tekst UI %1 %2 w x: %3 y: %4\nrozmiar: %5 przez %6 s kolor: %7",
-  ui_button: "przycisk UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 kolor tekstu: %7 kolor tła: %8",
-  ui_input: "wejście UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 tekst: %7 tło: %8",
-  create_3d_text: "dodaj tekst 3D %1: %2 czcionka: %3 rozmiar: %4 kolor: %5\ngłębokość: %6 x: %7 y: %8 z: %9",
+  ui_button:
+    "przycisk UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 text: %7 background: %8",
+  ui_input:
+    "wejście UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 tekst: %7 tło: %8",
+  create_3d_text:
+    "dodaj tekst 3D %1: %2 czcionka: %3 rozmiar: %4 kolor: %5\ngłębokość: %6 x: %7 y: %8 z: %9",
+
+  // Custom block translations - Math blocks
+  random_seeded_int: "losowa liczba całkowita od %1 do %2 z ziarnem: %3",
+  to_number: "konwertuj %1 na %2",
 
   // Custom block translations - Transform blocks
-  move_by_xyz: "przesuń %1 o x: %2, y: %3, z: %4",
-  move_to_xyz: "przesuń %1 do x: %2, y: %3, z: %4 y? %5",
-  move_to: "przesuń %1 do %2 y? %3",
+  move_by_xyz: "zmień pozycję %1 o x: %2, y: %3, z: %4",
+  move_by_xyz_single: "zmień położenie %1 o %2 %3",
+  move_to_xyz: "ustaw pozycję %1 na x: %2, y: %3, z: %4 y? %5",
+  move_to_xyz_single: "ustaw położenie %1 na %2 %3",
+  move_to: "ustaw pozycję %1 na %2 y? %3",
   scale: "skaluj %1 x: %2, y: %3, z: %4\npunkt odniesienia x: %5, y: %6, z: %7",
-  resize: "zmień rozmiar %1 x: %2, y: %3, z: %4\npunkt odniesienia x: %5, y: %6, z: %7",
+  resize:
+    "zmień rozmiar %1 x: %2, y: %3, z: %4\npunkt odniesienia x: %5, y: %6, z: %7",
   rotate_model_xyz: "obróć %1 o x: %2, y: %3, z: %4",
   rotate_to: "obróć %1 do x: %2, y: %3, z: %4",
   look_at: "spójrz %1 na %2 y? %3",
   move_forward: "przesuń %1 %2 prędkość: %3",
-  set_pivot: "ustaw punkt obrotu %1 x: %2, y: %3, z: %4",
+  rotate_camera: "obróć kamerę o %1 stopni",
+  up: "w górę %1 siła %2",
+  set_pivot: "ustaw punkt kotwiczenia %1\nx: %2, y: %3, z: %4",
   min_centre_max: "%1",
 
   // Custom block translations - XR blocks
@@ -301,173 +348,291 @@ export default {
   BLOCK_WAIT_SECONDS_MESSAGE: "czekaj %1 sekund",
   BLOCK_KEY_PRESSED_MESSAGE: "czy klawisz %1 został wciśnięty?",
   BLOCK_MOVE_FORWARD_MESSAGE: "przesuń %1 do przodu o %2",
-  BLOCK_CREATE_BOX_MESSAGE: "stwórz pudełko %1 kolor: %2 rozmiar: %3 × %4 × %5 w %6, %7, %8",
+  BLOCK_CREATE_BOX_MESSAGE:
+    "stwórz pudełko %1 kolor: %2 rozmiar: %3 × %4 × %5 w %6, %7, %8",
 
   // Add more custom block translations as needed
 
   // Tooltip translations - Scene Blocks
   set_sky_color_tooltip: "Ustaw kolor nieba w scenie.\nSłowo kluczowe: sky",
-  create_ground_tooltip: "Dodaj ziemię z aktywną kolizją do sceny.\nSłowo kluczowe: ground",
-  set_background_color_tooltip: "Ustaw kolor tła sceny.\nSłowo kluczowe: background",
-  create_map_tooltip: "Stwórz mapę o nazwie %1 z materiałem %2.\nSłowo kluczowe: map",
+  create_ground_tooltip:
+    "Dodaj ziemię z aktywną kolizją do sceny.\nSłowo kluczowe: ground",
+  set_background_color_tooltip:
+    "Ustaw kolor tła sceny.\nSłowo kluczowe: background",
+  create_map_tooltip:
+    "Stwórz mapę o nazwie %1 z materiałem %2.\nSłowo kluczowe: map",
   show_tooltip: "Pokaż wybraną siatkę.\nSłowo kluczowe: show",
   hide_tooltip: "Ukryj wybraną siatkę.\nSłowo kluczowe: hide",
   dispose_tooltip: "Usuń wskazaną siatkę ze sceny.\nSłowo kluczowe: dispose",
-  clone_mesh_tooltip: "Sklonuj siatkę i przypisz ją do zmiennej.\nSłowo kluczowe: clone",
+  clone_mesh_tooltip:
+    "Sklonuj siatkę i przypisz ją do zmiennej.\nSłowo kluczowe: clone",
 
   // Tooltip translations - Models blocks
-  load_character_tooltip: "Utwórz konfigurowalną postać.\nSłowo kluczowe: character",
+  load_character_tooltip:
+    "Utwórz konfigurowalną postać.\nSłowo kluczowe: character",
   load_object_tooltip: "Utwórz obiekt.\nSłowo kluczowe: object",
-  load_multi_object_tooltip: "Utwórz obiekt z kolorami.\nSłowo kluczowe: object",
+  load_multi_object_tooltip:
+    "Utwórz obiekt z kolorami.\nSłowo kluczowe: object",
   load_model_tooltip: "Załaduj model.\nSłowo kluczowe: model",
 
   // Tooltip translations - Animate blocks
-  glide_to_tooltip: "Przesuń się do zadanej pozycji w określonym czasie z opcjami odwrócenia, pętli i easing.",
-  glide_to_seconds_tooltip: "Przesuń się do zadanej pozycji w określonym czasie z opcjami odwrócenia, pętli i easing.",
-  rotate_anim_tooltip: "Obróć siatkę do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
-  rotate_anim_seconds_tooltip: "Obróć siatkę do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
+  glide_to_tooltip:
+    "Przesuń się do zadanej pozycji w określonym czasie z opcjami odwrócenia, pętli i easing.",
+  glide_to_seconds_tooltip:
+    "Przesuń się do zadanej pozycji w określonym czasie z opcjami odwrócenia, pętli i easing.",
+  glide_to_object_tooltip:
+    "Przesuń się do pozycji innej siatki z opcjonalnymi przesunięciami x/y/z (domyślnie 0) oraz opcjami odwrócenia, pętli i easing.",
+  rotate_anim_tooltip:
+    "Obróć siatkę do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
+  rotate_anim_seconds_tooltip:
+    "Obróć siatkę do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
   animate_property_tooltip: "Animuj właściwość materiału siatki i jej dzieci.",
   colour_keyframe_tooltip: "Ustaw kolor i czas trwania klatki kluczowej.",
   number_keyframe_tooltip: "Ustaw wartość i czas dla klatki kluczowej.",
   xyz_keyframe_tooltip: "Ustaw klatkę kluczową XYZ z określoną długością.",
-  animate_keyframes_tooltip: "Animuj tablicę klatek kluczowych na wybranej siatce z easingiem, opcjonalną pętlą i odwróceniem.",
-  animation_tooltip: "Stwórz grupę animacji dla wybranej siatki i właściwości, z klatkami, easingiem, opcjonalną pętlą i odwróceniem. Wybierz opcję create, start lub await, by kontrolować działanie.",
-  control_animation_group_tooltip: "Steruj grupą animacji — odtwarzaj, wstrzymuj lub zatrzymuj.",
-  animate_from_tooltip: "Rozpocznij animowanie grupy od określonego czasu (w sekundach).",
-  stop_animations_tooltip: "Zatrzymaj wszystkie animacje klatek kluczowych na wybranej siatce.\nSłowo kluczowe: stop",
-  switch_animation_tooltip: "Zmień animację wybranej siatki na podaną.\nSłowo kluczowe: switch",
-  play_animation_tooltip: "Odtwórz wybraną animację raz na wskazanej siatce.\nSłowo kluczowe: play",
+  animate_keyframes_tooltip:
+    "Animuj tablicę klatek kluczowych na wybranej siatce z easingiem, opcjonalną pętlą i odwróceniem.",
+  animation_tooltip:
+    "Stwórz grupę animacji dla wybranej siatki i właściwości, z klatkami, easingiem, opcjonalną pętlą i odwróceniem. Wybierz opcję create, start lub await, by kontrolować działanie.",
+  control_animation_group_tooltip:
+    "Steruj grupą animacji — odtwarzaj, wstrzymuj lub zatrzymuj.",
+  animate_from_tooltip:
+    "Rozpocznij animowanie grupy od określonego czasu (w sekundach).",
+  stop_animations_tooltip:
+    "Zatrzymaj wszystkie animacje klatek kluczowych na wybranej siatce.\nSłowo kluczowe: stop",
+  switch_animation_tooltip:
+    "Zmień animację wybranej siatki na podaną.\nSłowo kluczowe: switch",
+  play_animation_tooltip:
+    "Odtwórz wybraną animację raz na wskazanej siatce.\nSłowo kluczowe: play",
 
   // Tooltip translations - Base blocks
   xyz_tooltip: "Tworzy wektor z wartości X, Y, Z",
 
   // Tooltip translations - Camera blocks
   camera_control_tooltip: "Powiąż określony klawisz z akcją sterowania kamerą.",
-  camera_follow_tooltip: "Spraw, by kamera śledziła siatkę z ustawioną odległością (promieniem).\nSłowo kluczowe: follow",
+  camera_follow_tooltip:
+    "Spraw, by kamera śledziła siatkę z ustawioną odległością (promieniem).\nSłowo kluczowe: follow",
   get_camera_tooltip: "Pobierz bieżącą kamerę sceny",
 
   // Tooltip translations - Combine blocks
-  merge_meshes_tooltip: "Scal listę siatek w jedną i zapisz wynik.\nSłowo kluczowe: merge",
-  subtract_meshes_tooltip: "Odejmij listę siatek od siatki bazowej i zapisz wynik.\nSłowo kluczowe: subtract",
-  intersection_meshes_tooltip: "Obetnij listę siatek, zachowując wspólną geometrię.\nSłowo kluczowe: intersect",
-  hull_meshes_tooltip: "Stwórz wypukłą otoczkę z listy siatek i zapisz wynik.\nSłowo kluczowe: hull",
+  merge_meshes_tooltip:
+    "Scal listę siatek w jedną i zapisz wynik.\nSłowo kluczowe: merge",
+  subtract_meshes_tooltip:
+    "Odejmij listę siatek od siatki bazowej i zapisz wynik.\nSłowo kluczowe: subtract",
+  intersection_meshes_tooltip:
+    "Obetnij listę siatek, zachowując wspólną geometrię.\nSłowo kluczowe: intersect",
+  hull_meshes_tooltip:
+    "Stwórz wypukłą otoczkę z listy siatek i zapisz wynik.\nSłowo kluczowe: hull",
 
   // Tooltip translations - Connect blocks
-  parent_tooltip: "Ustaw relację rodzic‑dziecko między dwiema siatkami, pozostawiając dziecko w miejscu.\nSłowo kluczowe: parent",
-  parent_child_tooltip: "Ustaw relację rodzic‑dziecko między siatkami z przesunięciem w osiach x, y, z.\nSłowo kluczowe: child",
-  remove_parent_tooltip: "Usuń relację rodzica z podanej siatki.\nSłowo kluczowe: unparent",
-  stop_follow_tooltip: "Zatrzymaj śledzenie jednej siatki przez drugą.\nSłowo kluczowe: stopfollow",
-  hold_tooltip: "Przymocuj siatkę do kości innej siatki z przesunięciem w osiach x, y, z.\nSłowo kluczowe: hold",
-  drop_tooltip: "Odłącz siatkę od kości, do której była przyczepiona.\nSłowo kluczowe: drop",
-  follow_tooltip: "Spraw, by jedna siatka śledziła drugą z wybranej pozycji (top, center, bottom) i przesunięciem w osiach x, y, z.\nSłowo kluczowe: follow",
-  export_mesh_tooltip: "Eksportuj siatkę jako STL, OBJ lub GLB.\nSłowo kluczowe: export",
+  parent_tooltip:
+    "Ustaw relację rodzic‑dziecko między dwiema siatkami, pozostawiając dziecko w miejscu.\nSłowo kluczowe: parent",
+  parent_child_tooltip:
+    "Ustaw relację rodzic‑dziecko między siatkami z przesunięciem w osiach x, y, z.\nSłowo kluczowe: child",
+  remove_parent_tooltip:
+    "Usuń relację rodzica z podanej siatki.\nSłowo kluczowe: unparent",
+  stop_follow_tooltip:
+    "Zatrzymaj śledzenie jednej siatki przez drugą.\nSłowo kluczowe: stopfollow",
+  hold_tooltip:
+    "Przymocuj siatkę do kości innej siatki z przesunięciem w osiach x, y, z.\nSłowo kluczowe: hold",
+  drop_tooltip:
+    "Odłącz siatkę od kości, do której była przyczepiona.\nSłowo kluczowe: drop",
+  follow_tooltip:
+    "Spraw, by jedna siatka śledziła drugą z wybranej pozycji (top, center, bottom) i przesunięciem w osiach x, y, z.\nSłowo kluczowe: follow",
+  export_mesh_tooltip:
+    "Eksportuj siatkę jako STL, OBJ lub GLB.\nSłowo kluczowe: export",
 
   // Tooltip translations - Control blocks
-  wait_tooltip: "Odczekaj określony czas w milisekundach.\nSłowo kluczowe: milli",
-  wait_seconds_tooltip: "Odczekaj określony czas w sekundach.\nSłowo kluczowe: wait",
-  wait_until_tooltip: "Czekaj, aż warunek będzie prawdziwy.\nSłowo kluczowe: until",
-  local_variable_tooltip: "Utwórz lokalną wersję zmiennej. Ukrywa globalną o tej samej nazwie.\nSłowo kluczowe: local",
+  wait_tooltip:
+    "Odczekaj określony czas w milisekundach.\nSłowo kluczowe: milli",
+  wait_seconds_tooltip:
+    "Odczekaj określony czas w sekundach.\nSłowo kluczowe: wait",
+  wait_until_tooltip:
+    "Czekaj, aż warunek będzie prawdziwy.\nSłowo kluczowe: until",
+  local_variable_tooltip:
+    "Utwórz lokalną wersję zmiennej. Ukrywa globalną o tej samej nazwie.\nSłowo kluczowe: local",
   for_loop2_tooltip: "Pętla od wartości startowej do końcowej o zadanym kroku.",
-  for_loop_tooltip: "Pętla od wartości startowej do końcowej o zadanym kroku. Kliknij dropdown, by wybrać zmienną pętli.\nSłowo kluczowe: for",
+  for_loop_tooltip:
+    "Pętla od wartości startowej do końcowej o zadanym kroku. Kliknij dropdown, by wybrać zmienną pętli.\nSłowo kluczowe: for",
   get_lexical_variable_tooltip: "Pobierz wartość zmiennej leksykalnej",
 
   // Tooltip translations - Effects blocks
-  light_intensity_tooltip: "Ustaw intensywność głównego światła.\nSłowo kluczowe: light intensity",
-  set_fog_tooltip: "Skonfiguruj mgłę sceny.\nSłowo kluczowe: fog",
+  main_light_tooltip:
+    "Ustaw intensywność głównego światła.\nSłowo kluczowe: light intensity",
+  set_fog_tooltip:
+    "Skonfiguruj mgłę sceny. Użyj początku i końca, aby ustawić bliską i daleką odległość.\nSłowo kluczowe: fog",
+  get_light_tooltip:
+    "Pobierz bieżącą głównego światła sceny.\nSłowo kluczowe: light intensity",
 
   // Tooltip translations - Events blocks
-  start_tooltip: "Wykonaj bloki po starcie projektu. Możesz mieć wiele bloków start.\nSłowo kluczowe: start",
-  forever_tooltip: "Wykonuj bloki w każdej klatce lub po zakończeniu poprzedniej iteracji.\nSłowo kluczowe: forever",
-  when_clicked_tooltip: "Wykonaj bloki, gdy nastąpi kliknięcie na siatkę.\nSłowo kluczowe: click",
-  on_collision_tooltip: "Wykonaj bloki, gdy siatka wejdzie lub wyjdzie z kolizji.\nSłowo kluczowe: collide",
-  when_key_event_tooltip: "Wykonaj bloki, gdy określony klawisz zostanie wciśnięty lub zwolniony.",
-  broadcast_event_tooltip: "Wyślij zdarzenie odbierane przez blok on_event.\nSłowo kluczowe: broadcast",
-  on_event_tooltip: "Wykonaj kod, gdy otrzymano zdarzenie broadcast.\nSłowo kluczowe: on",
+  start_tooltip:
+    "Wykonaj bloki po starcie projektu. Możesz mieć wiele bloków start.\nSłowo kluczowe: start",
+  forever_tooltip:
+    "Wykonuj bloki w każdej klatce lub po zakończeniu poprzedniej iteracji.\nSłowo kluczowe: forever",
+  when_clicked_tooltip:
+    "Wykonaj bloki, gdy nastąpi kliknięcie na siatkę.\nSłowo kluczowe: click",
+  on_collision_tooltip:
+    "Wykonaj bloki, gdy siatka wejdzie lub wyjdzie z kolizji.\nSłowo kluczowe: collide",
+  when_key_event_tooltip:
+    "Wykonaj bloki, gdy wskazany klawisz zostanie naciśnięty lub puszczony.",
+  when_action_event_tooltip:
+    "Wykonaj bloki, gdy wybrana akcja zostanie naciśnięta lub puszczona na klawiaturze, ekranie dotykowym lub w XR.",
+  broadcast_event_tooltip:
+    "Wyślij zdarzenie odbierane przez blok on_event.\nSłowo kluczowe: broadcast",
+  on_event_tooltip:
+    "Wykonaj kod, gdy otrzymano zdarzenie broadcast.\nSłowo kluczowe: on",
 
   // Tooltip translations - Materials blocks
   change_color_tooltip: "Zmień kolor wybranego obiektu.\nSłowo kluczowe: kolor",
-  change_material_tooltip: "Zastosuj wybrany materiał z odcieniem koloru do określonego obiektu.\nSłowo kluczowe: materiał",
-  text_material_tooltip: "Utwórz materiał z tekstem lub emotką, określając szerokość, wysokość, kolor tła i rozmiar tekstu.",
-  place_decal_tooltip: "Umieść naklejkę (decal) na obiekcie, używając wybranego materiału.",
-  decal_tooltip: "Utwórz naklejkę (decal) na obiekcie, określając pozycję, normalną, rozmiar i materiał.",
+  change_material_tooltip:
+    "Zastosuj wybrany materiał z odcieniem koloru do określonego obiektu.\nSłowo kluczowe: materiał",
+  text_material_tooltip:
+    "Utwórz materiał z tekstem lub emotką, określając szerokość, wysokość, kolor tła i rozmiar tekstu.",
+  place_decal_tooltip:
+    "Umieść naklejkę (decal) na obiekcie, używając wybranego materiału.",
+  decal_tooltip:
+    "Utwórz naklejkę (decal) na obiekcie, określając pozycję, normalną, rozmiar i materiał.",
   highlight_tooltip: "Podświetl wybrany obiekt.\nSłowo kluczowe: podświetlenie",
-  glow_tooltip: "Dodaj efekt poświaty do wybranego obiektu.\nSłowo kluczowe: poświata",
+  glow_tooltip:
+    "Dodaj efekt poświaty do wybranego obiektu.\nSłowo kluczowe: poświata",
   tint_tooltip: "Dodaj efekt zabarwienia kolorem.\nSłowo kluczowe: barwa",
-  set_alpha_tooltip: "Ustaw przezroczystość (alfa) materiałów na określonym obiekcie. Wartości od 0 do 1.\nSłowo kluczowe: alfa",
-  clear_effects_tooltip: "Usuń efekty wizualne z wybranego obiektu.\nSłowo kluczowe: wyczyść",
+  set_alpha_tooltip:
+    "Ustaw przezroczystość (alfa) materiałów na określonym obiekcie. Wartości od 0 do 1.\nSłowo kluczowe: alfa",
+  clear_effects_tooltip:
+    "Usuń efekty wizualne z wybranego obiektu.\nSłowo kluczowe: wyczyść",
   colour_tooltip: "Wybierz kolor.\nSłowo kluczowe: kolor",
   skin_colour_tooltip: "Wybierz kolor skóry.\nSłowo kluczowe: skóra",
-  greyscale_colour_tooltip: "Wybierz odcień szarości dla wysokości.\nSłowo kluczowe: szary",
-  random_colour_tooltip: "Wygeneruj losowy kolor.\nSłowo kluczowe: losowy_kolor",
+  greyscale_colour_tooltip:
+    "Wybierz odcień szarości dla wysokości.\nSłowo kluczowe: szary",
+  random_colour_tooltip:
+    "Wygeneruj losowy kolor.\nSłowo kluczowe: losowy_kolor",
   material_tooltip: "Zdefiniuj właściwości materiału",
   gradient_material_tooltip: "Zdefiniuj właściwości materiału z gradientem",
   set_material_tooltip: "Ustaw podany materiał na wybranym obiekcie.",
 
   // Tooltip translations - Physics blocks
-  add_physics_tooltip: "Dodaj fizykę do obiektu. Opcje: dynamiczny, statyczny, animowany lub brak.\nSłowo kluczowe: fizyka",
-  add_physics_shape_tooltip: "Dodaj kształt fizyczny do obiektu. Opcje: siatka lub kapsuła.\nSłowo kluczowe: fizyka",
-  apply_force_tooltip: "Zastosuj siłę na obiekt w kierunkach XYZ.\nSłowo kluczowe: siła",
-  show_physics_tooltip: "Pokaż lub ukryj kolizje fizyki do debugowania. Zaznacz, aby pokazać, odznacz, aby ukryć.\nSłowo kluczowe: debug physics collider",
+  add_physics_tooltip:
+    "Dodaj fizykę do obiektu. Opcje: dynamiczny, statyczny, animowany lub brak.\nSłowo kluczowe: fizyka",
+  add_physics_shape_tooltip:
+    "Dodaj kształt fizyczny do obiektu. Opcje: siatka lub kapsuła.\nSłowo kluczowe: fizyka",
+  apply_force_tooltip:
+    "Zastosuj siłę na obiekt w kierunkach XYZ.\nSłowo kluczowe: siła",
+  show_physics_tooltip:
+    "Pokaż lub ukryj kolizje fizyki do debugowania. Zaznacz, aby pokazać, odznacz, aby ukryć.\nSłowo kluczowe: debug physics collider",
 
   // Tooltip translations - Sensing blocks
-  key_pressed_tooltip: "Zwraca true, jeśli podany klawisz jest wciśnięty.\nSłowo kluczowe:ispressed",
-  meshes_touching_tooltip: "Zwraca true, jeśli dwie wybrane siatki się stykają.\nSłowo kluczowe: istouching",
+  key_pressed_tooltip:
+    "Zwraca true, jeśli podany klawisz jest wciśnięty.\nSłowo kluczowe:ispressed",
+  action_pressed_tooltip:
+    "Zwraca true, jeśli wybrane sterowanie ruchem lub akcją jest aktywne na klawiaturze, dotyku lub w XR.",
+  meshes_touching_tooltip:
+    "Zwraca true, jeśli dwie wybrane siatki się stykają.\nSłowo kluczowe: istouching",
   time_tooltip: "Zwraca bieżący czas w sekundach.",
+  ground_level_tooltip:
+    "Zwraca wysokość gruntu w bieżącej pozycji x/z.",
   distance_to_tooltip: "Oblicz odległość między siatkami %1 i %2.",
-  touching_surface_tooltip: "Sprawdź, czy siatka %1 dotyka powierzchni.\nSłowo kluczowe: surface",
-  get_property_tooltip: "Pobierz wartość właściwości %1 z siatki %2.\nSłowo kluczowe: get",
-  canvas_controls_tooltip: "Dodaj lub usuń kontrolki ruchu na płótnie.\nSłowo kluczowe: canvas",
-  button_controls_tooltip: "Skonfiguruj kontrolki przycisku %1, aktywność %2, kolor %3.\nSłowo kluczowe: button",
-  microbit_input_tooltip: "Wykonaj bloki, gdy wyzwolone zostanie zdarzenie micro:bit %1.",
-  ui_slider_tooltip: "Dodaj suwak UI 2D %1 od %2 do %3, domyślnie %4, położenie x: %5 y: %6\nkolor: %7 tło: %8 %9",
+  touching_surface_tooltip:
+    "Sprawdź, czy siatka %1 dotyka powierzchni.\nSłowo kluczowe: surface",
+  mesh_exists_tooltip:
+    "Zwraca true, jeśli siatka o tej nazwie znajduje się na scenie.",
+  get_property_tooltip:
+    "Pobierz wartość właściwości %1 z siatki %2.\nSłowo kluczowe: get",
+  canvas_controls_tooltip:
+    "Dodaj lub usuń kontrolki ruchu na płótnie.\nSłowo kluczowe: canvas",
+  button_controls_tooltip:
+    "Skonfiguruj kontrolki przycisku %1, aktywność %2, kolor %3.\nSłowo kluczowe: button",
+  microbit_input_tooltip:
+    "Wykonaj bloki, gdy wyzwolone zostanie zdarzenie micro:bit %1.",
+  ui_slider_tooltip:
+    "Dodaj suwak UI 2D %1 od %2 do %3, domyślnie %4, położenie x: %5 y: %6\nkolor: %7 tło: %8 %9",
 
   // Tooltip translations - Shapes blocks
-  create_particle_effect_tooltip: "Stwórz efekt cząsteczek %1 przy siatce %2\nkształt: %3, start: %4, koniec: %5, przezroczystość: %6–%7\ntempo: %8, rozmiar: %9–%10, żywotność: %11–%12\ngrawitacja: %13, siła x: %14 y: %15 z: %16\nprędkość kątowa: %17–%18, początkowy kąt: %19–%20",
-  control_particle_system_tooltip: "Steruj systemem cząsteczek: uruchom, zatrzymaj lub zresetuj.",
-  create_box_tooltip: "Stwórz kolorowe pudełko %1 %2 szer. %3 wys. %4 gł. %5\npołożenie x: %6 y: %7 z: %8\nSłowo kluczowe: box",
-  create_sphere_tooltip: "Stwórz kolorową kulę %1 %2 śred. x: %3, y: %4, z: %5\npołożenie x: %6 y: %7 z: %8\nSłowo kluczowe: sphere",
-  create_cylinder_tooltip: "Stwórz kolorowy cylinder %1 %2 wysokość: %3 góra: %4 dół: %5 boki: %6\npołożenie x: %7 y: %8 z: %9\nSłowo kluczowe: cylinder",
-  create_capsule_tooltip: "Stwórz kolorową kapsułę %1 %2 średnica: %3 wysokość: %4\npołożenie x: %5 y: %6 z: %7\nSłowo kluczowe: capsule",
-  create_plane_tooltip: "Stwórz kolorową płaszczyznę 2D %1 %2 szer. %3 wys. %4\npołożenie x: %5 y: %6 z: %7\nSłowo kluczowe: plane",
+  create_particle_effect_tooltip:
+    "Stwórz efekt cząsteczek %1 przy siatce %2\nkształt: %3, start: %4, koniec: %5, przezroczystość: %6–%7\ntempo: %8, rozmiar: %9–%10, żywotność: %11–%12\ngrawitacja: %13, siła x: %14 y: %15 z: %16\nprędkość kątowa: %17–%18, początkowy kąt: %19–%20",
+  control_particle_system_tooltip:
+    "Steruj systemem cząsteczek: uruchom, zatrzymaj lub zresetuj.",
+  create_box_tooltip:
+    "Stwórz kolorowe pudełko %1 %2 szer. %3 wys. %4 gł. %5\npołożenie x: %6 y: %7 z: %8\nSłowo kluczowe: box",
+  create_sphere_tooltip:
+    "Stwórz kolorową kulę %1 %2 śred. x: %3, y: %4, z: %5\npołożenie x: %6 y: %7 z: %8\nSłowo kluczowe: sphere",
+  create_cylinder_tooltip:
+    "Stwórz kolorowy cylinder %1 %2 wysokość: %3 góra: %4 dół: %5 boki: %6\npołożenie x: %7 y: %8 z: %9\nSłowo kluczowe: cylinder",
+  create_capsule_tooltip:
+    "Stwórz kolorową kapsułę %1 %2 średnica: %3 wysokość: %4\npołożenie x: %5 y: %6 z: %7\nSłowo kluczowe: capsule",
+  create_plane_tooltip:
+    "Stwórz kolorową płaszczyznę 2D %1 %2 szer. %3 wys. %4\npołożenie x: %5 y: %6 z: %7\nSłowo kluczowe: plane",
 
   // Tooltip translations - Sound blocks
-  play_sound_tooltip: "Odtwórz dźwięk %1 %2 na siatce od %3\nprędkość: %4, głośność: %5, tryb: %6, async: %7\nSłowo kluczowe: sound",
-  stop_all_sounds_tooltip: "Zatrzymaj wszystkie dźwięki odtwarzane w scenie.\nSłowo kluczowe:nosound",
+  play_sound_tooltip:
+    "Odtwórz dźwięk %1 %2 na siatce od %3\nprędkość: %4, głośność: %5, tryb: %6, async: %7\nSłowo kluczowe: sound",
+  stop_all_sounds_tooltip:
+    "Zatrzymaj wszystkie dźwięki odtwarzane w scenie.\nSłowo kluczowe:nosound",
   midi_note_tooltip: "Wartość nuty MIDI (0–127).",
   rest_tooltip: "Przerwa (cisza) w sekwencji muzycznej.",
-  play_notes_tooltip: "Odtwórz sekwencję nut MIDI i pauz z czasami trwania, używając siatki do panoramowania. Zwraca natychmiast lub po zakończeniu.",
+  play_notes_tooltip:
+    "Odtwórz sekwencję nut MIDI i pauz z czasami trwania, używając siatki do panoramowania. Zwraca natychmiast lub po zakończeniu.",
   set_scene_bpm_tooltip: "Ustaw BPM (tempo) całej sceny.",
   set_mesh_bpm_tooltip: "Ustaw BPM (tempo) dla siatki %1.",
   create_instrument_tooltip: "Stwórz instrument i przypisz do zmiennej.",
   instrument_tooltip: "Wybierz instrument do grania nut.",
-  speak_tooltip: "Konwertuj tekst na mowę za pomocą Web Speech API, z opcjonalnym pozycjonowaniem 3D.\nSłowo kluczowe: speak",
+  speak_tooltip:
+    "Konwertuj tekst na mowę za pomocą Web Speech API, z opcjonalnym pozycjonowaniem 3D.\nSłowo kluczowe: speak",
 
   __fonts_FreeSans_Bold_json_option: "Free Sans",
 
   // Tooltip translations - Text blocks
   comment_tooltip: "Linia komentarza, by pomóc zrozumieć kod.",
-  print_text_tooltip: "Wyświetl tekst na panelu wyjścia.\nSłowo kluczowe: print",
+  print_text_tooltip:
+    "Wyświetl tekst na panelu wyjścia.\nSłowo kluczowe: print",
   say_tooltip: "Pokaż tekst w dymku mówionym nad siatką.\nSłowo kluczowe: say",
-  ui_text_tooltip: "Dodaj tekst do interfejsu UI i zapisz referencję w zmiennej do późniejszego użycia lub usunięcia.",
-  ui_button_tooltip: "Dodaj przycisk UI 2D o ustalonym rozmiarze i zapisz referencję w zmiennej.",
-  ui_input_tooltip: "Zadaj użytkownikowi pytanie i poczekaj na odpowiedź. Wynik zapisany w zmiennej.",
+  ui_text_tooltip:
+    "Dodaj tekst do interfejsu UI i zapisz referencję w zmiennej do późniejszego użycia lub usunięcia.",
+  ui_button_tooltip:
+    "Dodaj przycisk UI 2D o ustalonym rozmiarze i zapisz referencję w zmiennej.",
+  ui_input_tooltip:
+    "Zadaj użytkownikowi pytanie i poczekaj na odpowiedź. Wynik zapisany w zmiennej.",
   create_3d_text_tooltip: "Stwórz tekst 3D w scenie.",
 
+  // Tooltip translations - Math blocks
+  random_seeded_int_tooltip:
+    "Wygeneruj losową liczbę całkowitą z ziarnem.\nSłowo kluczowe: seed",
+  to_number_tooltip:
+    "Konwertuje ciąg na liczbę całkowitą lub zmiennoprzecinkową.",
+
   // Tooltip translations - Transform blocks
-  move_by_xyz_tooltip: "Przesuń siatkę o określoną wartość w osiach x, y i z.\nSłowo kluczowe: move",
-  move_to_xyz_tooltip: "Teleportuj siatkę do koordynatów. Opcjonalnie: użyj osi Y.\nSłowo kluczowe: moveby",
-  move_to_tooltip: "Teleportuj pierwszą siatkę do pozycji drugiej.\nSłowo kluczowe: moveto",
-  scale_tooltip: "Zmień rozmiar siatki (x, y, z) i kontroluj punkt odniesienia.\nSłowo kluczowe: scale",
-  resize_tooltip: "Zmień rozmiar siatki (x, y, z) i kontroluj punkt odniesienia.\nSłowo kluczowe: resize",
-  rotate_model_xyz_tooltip: "Obróć siatkę o wartości x, y, z.\nSłowo kluczowe: rotate / rotateby",
-  rotate_to_tooltip: "Obróć siatkę, by wskazywała na dane współrzędne.\nSłowo kluczowe: rotateto",
-  look_at_tooltip: "Obróć pierwszą siatkę w stronę pozycji drugiej.\nSłowo kluczowe: look",
-  move_forward_tooltip: "Przesuń siatkę: 'forward' = w kierunku, 'sideways' = względem kamery, 'strafe' = bocznie.\nSłowo kluczowe: push",
-  set_pivot_tooltip: "Ustaw punkt obrotu siatki na osiach X, Y i Z.\nSłowo kluczowe: pivot",
-  min_centre_max_tooltip: "Wybierz min, centre lub max jako punkt obrotu.\nSłowo kluczowe: minmax",
+  move_by_xyz_tooltip:
+    "Przesuń siatkę o określoną wartość w osiach x, y i z.\nSłowo kluczowe: move",
+  move_by_xyz_single_tooltip:
+    "Przesuń siatkę o podaną wartość w osi x, y lub z.\nSłowo kluczowe: move",
+  move_to_xyz_tooltip:
+    "Teleportuj siatkę do koordynatów. Opcjonalnie: użyj osi Y.\nSłowo kluczowe: moveby",
+  move_to_xyz_single_tooltip:
+    "Teleportuj siatkę do podanej pojedynczej współrzędnej.\nSłowo kluczowe: moveby",
+  move_to_tooltip:
+    "Teleportuj pierwszą siatkę do pozycji drugiej.\nSłowo kluczowe: moveto",
+  scale_tooltip:
+    "Zmień rozmiar siatki (x, y, z) i kontroluj punkt odniesienia.\nSłowo kluczowe: scale",
+  resize_tooltip:
+    "Zmień rozmiar siatki (x, y, z) i kontroluj punkt odniesienia.\nSłowo kluczowe: resize",
+  rotate_model_xyz_tooltip:
+    "Obróć siatkę o wartości x, y, z.\nSłowo kluczowe: rotate / rotateby",
+  rotate_to_tooltip:
+    "Obróć siatkę, by wskazywała na dane współrzędne.\nSłowo kluczowe: rotateto",
+  look_at_tooltip:
+    "Obróć pierwszą siatkę w stronę pozycji drugiej.\nSłowo kluczowe: look",
+  move_forward_tooltip:
+    "Przesuń siatkę: 'forward' = w kierunku, 'sideways' = względem kamery, 'strafe' = bocznie.\nSłowo kluczowe: push",
+  rotate_camera_tooltip:
+    "Obraca kamerę w lewo lub w prawo o podaną liczbę stopni.\nSłowo kluczowe: rotate",
+  up_tooltip: "Zastosuj określoną siłę w górę.\nSłowo kluczowe: up",
+  set_pivot_tooltip:
+    "Ustaw punkt kotwiczenia siatki na osiach X, Y i Z.\nSłowo kluczowe: kotwica",
+  min_centre_max_tooltip:
+    "Wybierz min, centre lub max jako punkt obrotu.\nSłowo kluczowe: minmax",
 
   // Tooltip translations - XR blocks
-  device_camera_background_tooltip: "Użyj kamery urządzenia jako tła sceny. działa na urządzeniach mobilnych i desktopie.",
+  device_camera_background_tooltip:
+    "Użyj kamery urządzenia jako tła sceny. działa na urządzeniach mobilnych i desktopie.",
   set_xr_mode_tooltip: "Ustaw tryb XR sceny.\nOpcje: VR, AR, Magic Window.",
 
   // Dropdown option translations
@@ -613,6 +778,8 @@ export default {
 
   pressed_option: "naciśnięty",
   released_option: "puszczony",
+  starts_option: "zaczyna",
+  ends_option: "kończy",
 
   DYNAMIC_option: "dynamiczny",
   ANIMATED_option: "animowany",
@@ -624,10 +791,14 @@ export default {
   FLAT_option: "Płaski",
 
   ANY_option: "dowolny",
-  space_infinity_option: "przestrzeń ∞",
+  space_infinity_option: "przestrzeń ❖",
   q_icon_option: "Q ■",
   e_icon_option: "E ✿",
   f_icon_option: "F ✱",
+
+  x_coordinate_option: "x",
+  y_coordinate_option: "y",
+  z_coordinate_option: "z",
 
   POSITION_X_option: "pozycja x",
   POSITION_Y_option: "pozycja y",
@@ -650,10 +821,20 @@ export default {
   VISIBLE_option: "widoczny",
   ALPHA_option: "alpha",
   COLOUR_option: "kolor",
-
+  AUTO_option: "auto",
+  ENABLED_option: "włączony",
+  DISABLED_option: "wyłączony",
   BOTH_option: "oba",
   ARROWS_option: "strzałki",
   ACTIONS_option: "akcje",
+  ACTION_FORWARD_option: "do przodu",
+  ACTION_BACKWARD_option: "do tyłu",
+  ACTION_LEFT_option: "w lewo",
+  ACTION_RIGHT_option: "w prawo",
+  ACTION_BUTTON1_option: "przycisk 1",
+  ACTION_BUTTON2_option: "przycisk 2",
+  ACTION_BUTTON3_option: "przycisk 3",
+  ACTION_BUTTON4_option: "przycisk 4",
 
   pin_0_option: "Pin P0 zwolniony",
   pin_1_option: "Pin P1 zwolniony",
@@ -731,13 +912,15 @@ export default {
   Jump_option: "Skok",
   Flip_option: "Salto",
 
+  JumpUp_option: "Skok w górę",
+
   Dance1_option: "Taniec 1",
   Dance2_option: "Taniec 2",
   Dance3_option: "Taniec 3",
   Dance4_option: "Taniec 4",
 
-  Jump_Idle_option: "Skok – bezczynność",
-  Jump_Land_option: "Lądowanie",
+  JumpIdle_option: "Skok – bezczynność",
+  JumpLand_option: "Lądowanie",
   Punch_option: "Cios",
   HitReact_option: "Reakcja na uderzenie",
 
@@ -754,6 +937,7 @@ export default {
   Stand_Up_option: "Wstawanie",
   Wobble_option: "Chwianie",
   Clap_option: "Klaśnięcie",
+  Climb_rope_option: "Wspinaj się po linie",
 
   // HTML translations
   loading_ui: "Ładowanie Flock XR…",
@@ -784,6 +968,9 @@ export default {
   tent_lights_ui: "⛺ Światełka namiotu",
   my_place_ui: "🏠 Moje miejsce",
   microbit_monkey_ui: "🐵 małpa micro:bit",
+  tree_jump_ui: "🌳 Skok z drzewa",
+  shape_push_ui: "🔶 Pchnięcie kształtu",
+  alien_planet_ui: "👽 Obca planeta",
   character_designer_ui: "👚 Kreator postaci",
   sit_down_ui: "🪑 Usiądź",
 
@@ -795,6 +982,7 @@ export default {
   project_save_ui: "Zapisz",
   language_submenu_ui: "Język",
   about_submenu_ui: "O programie",
+  hub_submenu_ui: "Hub",
 
   theme_submenu_ui: "Motyw",
   light_theme_ui: "Jasny",
@@ -834,7 +1022,7 @@ export default {
   about_description_disclaimer_ui:
     " Wypróbuj go, ale miej na uwadze, że rzeczy mogą się zmieniać i niektóre funkcje nie są jeszcze ukończone. Aktualnie poszukujemy wsparcia, aby Flock XR mógł stać się stabilny.",
   about_run_intro_ui:
-    "Spójrz na powyższe dema, aby zobaczyć, co możesz zrobić. Wprowadź zmiany i kliknij",
+    "Zobacz powyższe dema, aby dowiedzieć się, co możesz zrobić. Wprowadź kilka zmian i kliknij",
   about_run_action_ui: "uruchom.",
   about_links_privacy_prefix_ui: "Zobacz ",
   about_links_privacy_label_ui: "politykę prywatności",
@@ -845,12 +1033,14 @@ export default {
   keyboard_menu_ui: "Otwórz menu główne",
   keyboard_play_ui: "Play",
   keyboard_gizmos_ui: "Przejdź do narzędzi",
-  keyboard_navigation_ui: "Przejdź do paska nawigacji przeglądarki (skróty działają tutaj)",
+  keyboard_navigation_ui:
+    "Przejdź do paska nawigacji przeglądarki (skróty działają tutaj)",
 
   // Accessibility and announcements
   unmute_audio_aria: "Włącz dźwięk.",
   focused_main_content: "Skupiono się na głównej treści.",
   toolbox_search_results_aria: "Wyniki wyszukiwania w toolboxie.",
+  context_delete_option: "Usuń",
   context_copy_option: "Kopiuj",
   context_paste_option: "Wklej",
   context_cut_option: "Wytnij",
@@ -882,6 +1072,28 @@ export default {
   invalid_project_alert: "Ten plik nie jest prawidłowym projektem Flock XR.",
   failed_to_read_file_alert: "Nie udało się odczytać pliku.",
 
+  // UI status messages
+  max_mesh_limit_reached:
+    "⚠️ Osiągnięto limit: możesz mieć tylko {max} siatek w swoim świecie.",
+  high_memory_usage_warning: "Ostrzeżenie: wysokie użycie pamięci ({percent}%)",
+  physics_out_of_memory_log:
+    "Silnik fizyki Havok został przerwany, prawdopodobnie z powodu braku pamięci.", // AI-generated; needs validation
+  physics_out_of_memory_banner_ui:
+    "Silnik fizyczny zabrakło pamięci. Spróbuj zmniejszyć liczbę obiektów fizycznych lub ponownie wczytać projekt.", // AI-generated; needs validation
+  runtime_error_message: "Błąd: {message}",
+  xr_mode_message: "Tryb XR!",
+  fly_camera_instructions:
+    "ℹ️ Kamera lotu, użyj klawiszy strzałek i Page Up/Down",
+  select_mesh_delete_prompt: "⚠️ Wybierz siatkę, a następnie kliknij usuń.",
+  select_mesh_duplicate_prompt:
+    "⚠️ Wybierz siatkę, kliknij duplikuj, a potem kliknij, aby umieścić kopie.",
+  position_readout: "Pozycja: {position}",
+  eyedropper_not_supported_alert:
+    "Narzędzie próbnika kolorów nie jest obsługiwane w tej przeglądarce. Spróbuj użyć Chrome lub Edge.",
+  blocks_copied_alert: "Bloki skopiowane do pamięci lokalnej!",
+  no_blocks_to_copy_alert: "Brak bloków do skopiowania.",
+  copy_blocks_failed_alert: "Nie udało się skopiować bloków.",
+
   // Context menu option translations
   export_JSON_snippet: "Eksportuj blok jako fragment JSON",
   import_snippet: "Importuj fragment",
@@ -900,6 +1112,4 @@ export default {
   colour_blend: "zmieszaj %1 i %2 o %3",
 
   dark_contrast_theme_ui: "Ciemny",
-  
-
-}
+};

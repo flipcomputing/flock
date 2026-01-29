@@ -316,6 +316,18 @@ Adjusts the scene lighting intensity.
 #### `setFog(options)`
 Adds fog to the scene for atmospheric effects.
 
+**Parameters:**
+- `fogColorHex` (string): Fog color as a hex string.
+- `fogMode` (string): Fog mode (`"NONE"`, `"LINEAR"`, `"EXP"`, `"EXP2"`).
+- `fogDensity` (number, optional): Fog density. Defaults to `0.1`.
+- `fogStart` (number, optional): Distance from the camera where fog begins. Defaults to `50`.
+- `fogEnd` (number, optional): Distance from the camera where fog ends. Defaults to `100`.
+
+**Example:**
+```javascript
+setFog({ fogColorHex: "#ffffff", fogMode: "LINEAR", fogDensity: 0.1, fogStart: 50, fogEnd: 100 });
+```
+
 ### Camera
 
 #### `getCamera()`
@@ -418,6 +430,34 @@ Checks if a specific key is currently pressed.
 if (keyPressed("w")) {
   // Move forward
 }
+```
+
+#### `actionPressed(action)`
+Checks if a movement or action input is active across keyboard, touch, or XR controllers using a platform-neutral action name.
+
+**Parameters:**
+- `action` (string): One of `FORWARD`, `BACKWARD`, `LEFT`, `RIGHT`, `BUTTON1`, `BUTTON2`, `BUTTON3`, or `BUTTON4`.
+
+**Example:**
+```javascript
+if (actionPressed("FORWARD")) {
+  // Move forward regardless of whether the player is using W, Z, touch, or XR input
+}
+```
+
+#### `whenActionEvent(action, callback, isReleased = false)`
+Run a callback when the chosen action is pressed or released across keyboard, touch, or XR sources.
+
+**Parameters:**
+- `action` (string): One of `FORWARD`, `BACKWARD`, `LEFT`, `RIGHT`, `BUTTON1`, `BUTTON2`, `BUTTON3`, or `BUTTON4`.
+- `callback` (function): Function to run when the action triggers.
+- `isReleased` (boolean, optional): Set to `true` to fire on release instead of press.
+
+**Example:**
+```javascript
+whenActionEvent("BUTTON1", async () => {
+  // Respond to the action button, regardless of whether it came from E, touch, or XR
+});
 ```
 
 #### `getProperty(meshName, propertyName)`

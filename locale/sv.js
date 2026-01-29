@@ -19,11 +19,13 @@ export default {
       CATEGORY_STRINGS: "Strängar",
       CATEGORY_MATERIALS: "Material",
       CATEGORY_SOUND: "Ljud",
-      CATEGORY_VARIABLES: "Variabler",
+      CATEGORY_VARIABLES: "Data",
+      CATEGORY_VARIABLES_SUBCATEGORY: "Variabler",
       CATEGORY_LISTS: "Listor",
       CATEGORY_MATH: "Matematik",
       CATEGORY_FUNCTIONS: "Funktioner",
       CATEGORY_SNIPPETS: "Snippets",
+      CATEGORY_MOVEMENT: "Rörelse",
 
       // Color picker translations
       choose_a_color: "Välj en färg",
@@ -124,7 +126,7 @@ export default {
       // Custom block translations - Scene blocks
       set_sky_color: "himmel %1",
       create_ground: "mark %1",
-      set_background_color: "ställ in bakgrundsfärg %1",
+      set_background_color: "bakgrund %1",
       create_map: "karta %1 med material %2",
       show: "visa %1",
       hide: "dölj %1",
@@ -133,7 +135,7 @@ export default {
 
       // Custom block translations - Models blocks
       load_character:
-            "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nHår: %7 | Hud: %8 | Ögon: %9 | T-shirt: %10 | Shorts: %11 | Detalj: %12",
+            "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nhår: %7 | hud: %8 | ögon: %9 | t-shirt: %10 | shorts: %11 | detalj: %12",
       load_object: "lägg till %1 %2 %3 skala: %4 x: %5 y: %6 z: %7",
       load_multi_object:
             "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nfärger: %7",
@@ -143,6 +145,8 @@ export default {
       glide_to: "glid %1 till x %2 y %3 z %4 på %5 ms\n%6 återvända? %7 loop? %8 %9",
       glide_to_seconds:
             "glid %1 till x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9",
+      glide_to_object:
+            "glid %1 till %2 på %6 sekunder\nförskjutning x: %3 y: %4 z: %5\n%7 återvända? %8 loop? %9 %10",
       rotate_anim:
             "rotera %1 till x %2 y %3 z %4 på %5 ms\n%6 omvänd? %7 loop? %8  %9",
       rotate_anim_seconds:
@@ -197,8 +201,9 @@ export default {
       get_lexical_variable: "%1",
 
       // Custom block translations - Effects blocks
-      light_intensity: "ställ in ljusintensitet till %1",
-      set_fog: "ställ in dimma färg %1 läge %2 densitet %3",
+      main_light: "ljusintensitet: %1 färg: %2 mark: %3",
+      set_fog: "ställ in dimma färg %1 läge %2 densitet %3\nstart %4 slut %5",
+      get_light: "hämta ljus som %1",
 
       // Custom block translation - Events blocks
       start: "starta",
@@ -206,6 +211,7 @@ export default {
       when_clicked: "när %1 %2",
       on_collision: "vid %1 kollision %2 %3",
       when_key_event: "när tangent %1 %2",
+      when_action_event: "när %1 %2",
       broadcast_event: "sänd händelse %1",
       on_event: "vid händelse %1",
 
@@ -213,9 +219,9 @@ export default {
       change_color: "färga %1 till %2",
       change_material: "tillämpa material %1 på %2 med färg %3",
       text_material:
-            "material %1 text %2 färg %3 bakgrund %4\nbredd %5 höjd %6 storlek %7",
+            "material %1 text %2 färg %3 bakgrund %4\nbredd: %5 höjd: %6 storlek: %7",
       place_decal: "dekal %1 vinkel %2",
-      decal: "dekal på %1 från x %2 y %3 z %4\nvinkel x %5 y %6 z %7\nstorlek x %8 y %9 z %10 material %11",
+      decal: "dekal på %1 från x: %2 y: %3 z: %4\nvinkel x: %5 y: %6 z: %7\nstorlek x: %8 y: %9 z: %10 material: %11",
       highlight: "markera %1 %2",
       glow: "glöd %1",
       tint: "toning %1 %2",
@@ -234,14 +240,20 @@ export default {
       add_physics: "lägg till fysik %1 typ %2",
       add_physics_shape: "lägg till fysikform %1 typ %2",
       apply_force: "tillämpa kraft på %1 x: %2 y: %3 z: %4",
-      show_physics: "visa fysik %1",
+      show_physics: "visa fysikformer %1",
 
       // Custom block translations - Sensing blocks
       key_pressed: "tangent nedtryckt är %1",
+      action_pressed: "%1",
       meshes_touching: "%1 vidrör %2",
-      time: "tid i s",
+      time: "tid i %1",
+      seconds: "sekunder",
+      milliseconds: "millisekunder",
+      minutes: "minuter",
+      ground_level: "marknivå",
       distance_to: "avstånd från %1 till %2",
       touching_surface: "är %1 i kontakt med yta",
+      mesh_exists: "finns %1?",
       get_property: "hämta %1 från %2",
       canvas_controls: "canvas kontroller %1",
       button_controls: "knappkontroller %1 aktiverad %2 färg %3",
@@ -254,30 +266,30 @@ export default {
             "lägg till %1 partikeleffekt på: %2\nform: %3 start %4 slut %5 alfa: %6 till %7\nfrekvens: %8 storlek: %9 till %10 livslängd: %11 till %12\ngrundkrafter: %13 kraft x: %14 y: %15 z: %16\nvinkelhastighet: %17 till %18 initial vinkel: %19 till %20",
       control_particle_system: "partikelsystem %1 %2",
       create_box:
-            "lägg till box %1 %2 bredd %3 höjd %4 djup %5 \nvid x %6 y %7 z %8",
+            "lägg till box %1 %2 bredd: %3 höjd: %4 djup: %5 \nvid x: %6 y: %7 z: %8",
       create_sphere:
-            "lägg till sfär %1 %2 diameter x %3 diameter y %4 diameter z %5\nvid x %6 y %7 z %8",
+            "lägg till sfär %1 %2 diameter x: %3 diameter y: %4 diameter z: %5\nvid x: %6 y: %7 z: %8",
       create_cylinder:
-            "lägg till cylinder %1 %2 höjd %3 topp %4 botten %5 sidor %6\nvid x %7 y %8 z %9",
+            "lägg till cylinder %1 %2 höjd: %3 topp: %4 botten: %5 sidor: %6\nvid x: %7 y: %8 z: %9",
       create_capsule:
-            "lägg till kapsel %1 %2 diameter %3 höjd %4 \nvid x %5 y %6 z %7",
+            "lägg till kapsel %1 %2 diameter: %3 höjd: %4 \nvid x: %5 y: %6 z: %7",
       create_plane:
-            "lägg till plan %1 %2 bredd %3 höjd %4 \nvid x %5 y %6 z %7",
+            "lägg till plan %1 %2 bredd: %3 höjd: %4 \nvid x: %5 y: %6 z: %7",
 
       // Custom block translations - Sound blocks
       play_sound:
-            "spela ljud %1 %2 från %3 \nrotation %4 volym %5 läge %6 asynkront %7",
+            "spela ljud %1 %2 från %3 \nrotation: %4 volym: %5 läge: %6 asynkront: %7",
       stop_all_sounds: "stoppa alla ljud",
       midi_note: "MIDI not %1",
       rest: "paus",
       play_notes:
-            "spela noter på %1\nnoter %2 varaktigheter %3\ninstrument %4 läge %5",
+            "spela noter på %1\nnoter: %2 varaktigheter: %3\ninstrument: %4 läge: %5",
       set_scene_bpm: "ställ in scenens BPM till %1",
       set_mesh_bpm: "ställ in BPM för %1 till %2",
       create_instrument:
-            "instrument %1 våg %2 frekvens %3 attack %4 förfall %5 sustain %6 release %7",
+            "instrument %1 våg: %2 frekvens: %3 attack: %4 förfall: %5 sustain: %6 release: %7",
       instrument: "instrument %1",
-      speak: "tala %1 %2 röst %3 språk %4\nhastighet %5 tonhöjd %6 volym %7 läge %8",
+      speak: "tala %1 %2 röst: %3 språk: %4\nhastighet: %5 tonhöjd: %6 volym: %7 läge: %8",
 
       // Custom block translations - Text blocks
       comment: "// %1",
@@ -285,22 +297,30 @@ export default {
       say: "säg %1 för %2 s %3 \ntext %4 på %5 alfa %6 storlek %7 %8 %9",
       ui_text: "ui text %1 %2 vid x: %3 y: %4\nstorlek: %5 för %6 sekunder färg: %7",
       ui_button:
-            "ui knapp %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 textfärg: %7 bakgrundsfärg: %8",
+            "ui knapp %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 background: %8",
       ui_input: "ui inmatning %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 bakgrund: %8",
       create_3d_text:
             "lägg till %1 3D text: %2 font: %3 storlek: %4 färg: %5\ndjup: %6 x: %7 y: %8 z: %9 ",
 
+      // Custom block translations - Math blocks
+      random_seeded_int: "slumpmässigt heltal från %1 till %2 frö: %3",
+      to_number: "konvertera %1 till %2",
+
       // Custom block translations - Transform blocks
-      move_by_xyz: "flytta %1 med x: %2 y: %3 z: %4",
-      move_to_xyz: "flytta %1 till x: %2 y: %3 z: %4 y? %5",
-      move_to: "flytta %1 till %2 y? %3",
+      move_by_xyz: "ändra positionen för %1 med x: %2 y: %3 z: %4",
+      move_by_xyz_single: "ändra positionen för %1 med %2 %3",
+      move_to_xyz: "ställ in positionen för %1 till x: %2 y: %3 z: %4 y? %5",
+      move_to_xyz_single: "ställ in positionen för %1 till %2 %3",
+      move_to: "ställ in positionen för %1 till %2 y? %3",
       scale: "skala %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7",
       resize: "ändra storlek på %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7",
       rotate_model_xyz: "rotera %1 med x: %2 y: %3 z: %4",
       rotate_to: "rotera %1 till x: %2 y: %3 z: %4",
       look_at: "titta %1 på %2 y? %3",
       move_forward: "flytta %1 %2 hastighet %3",
-      set_pivot: "ställ in pivot för %1 x: %2 y: %3 z: %4",
+      rotate_camera: "rotera kamera med %1 grader",
+      up: "upp %1 kraft %2",
+      set_pivot: "ställ in ankare för %1\nx: %2 y: %3 z: %4",
       min_centre_max: "%1",
 
       // Custom block translations - XR blocks
@@ -354,6 +374,8 @@ export default {
             "Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).",
       glide_to_seconds_tooltip:
             "Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).",
+      glide_to_object_tooltip:
+            "Glid till positionen för ett annat objekt med valfria x/y/z‑förskjutningar (standard 0) och alternativ för att reversera, loopa och easing.",
       rotate_anim_tooltip:
             "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
       rotate_anim_seconds_tooltip:
@@ -431,9 +453,11 @@ export default {
       get_lexical_variable_tooltip: "Hämta värdet av en lexikal variabel",
 
       // Tooltip translations - Effects blocks
-      light_intensity_tooltip:
+      main_light_tooltip:
             "Ställ in intensiteten på huvudljuset.\nKeyword: light intensity",
-      set_fog_tooltip: "Konfigurera scenens dimma.\nKeyword: fog",
+      set_fog_tooltip:
+            "Konfigurera scenens dimma. Använd start och slut för att ställa in nära och långt avstånd.\nKeyword: fog",
+      get_light_tooltip: "Hämta huvudljuset på aktuella scen.\nKeyword: light",
 
       // Tooltip translations - Events blocks
       start_tooltip:
@@ -446,6 +470,8 @@ export default {
             "Kör blocken när ett mesh-objekt kolliderar med eller slutar kollidera med ett annat.\nKeyword: collide",
       when_key_event_tooltip:
             "Kör blocken när den angivna tangenten trycks ned eller släpps.",
+      when_action_event_tooltip:
+            "Kör blocken när den valda handlingen trycks ned eller släpps via tangentbord, touch eller XR.",
       broadcast_event_tooltip:
             "Sänd ett event som tas emot av on event.\nKeyword: broadcast",
       on_event_tooltip:
@@ -492,12 +518,18 @@ export default {
       // Tooltip translations - Sensing blocks
       key_pressed_tooltip:
             "Returnerar sant om den angivna tangenten är nedtryckt.\nKeyword:ispressed",
+      action_pressed_tooltip:
+            "Returnerar sant om den valda rörelse- eller åtgärdskontrollen är aktiv via tangentbord, pekskärm eller XR.",
       meshes_touching_tooltip:
             "Returnerar sant om de två valda mesh-objekten rör vid varandra.\nKeyword: istouching",
       time_tooltip: "Returnerar aktuell tid i sekunder.",
+      ground_level_tooltip:
+            "Returnerar markhöjden vid aktuell x/z-position.",
       distance_to_tooltip: "Beräkna avståndet mellan två mesh-objekt.",
       touching_surface_tooltip:
             "Kontrollera om mesh-objektet rör vid en yta.\nKeyword: surface",
+      mesh_exists_tooltip:
+            "Returnerar sant om meshen med det här namnet finns i scenen.",
       get_property_tooltip:
             "Hämta värdet på den valda egenskapen för ett mesh.\nKeyword: get",
       canvas_controls_tooltip:
@@ -560,11 +592,21 @@ export default {
             "Ställ en fråga till användaren och vänta på svar. Sparar resultatet i en variabel.",
       create_3d_text_tooltip: "Skapa 3D-text i scenen.",
 
+      // Tooltip translations - Math blocks
+      random_seeded_int_tooltip:
+            "Genererar ett slumpmässigt heltal med frö.\nKeyword: seed",
+      to_number_tooltip:
+            "Konverterar en sträng till ett heltal eller flyttal.",
+
       // Tooltip translations - Transform blocks
       move_by_xyz_tooltip:
             "Flytta ett mesh ett angivet värde i x-, y- och z-led.\nKeyword: move",
+      move_by_xyz_single_tooltip:
+            "Flytta ett mesh en viss mängd i x-, y- eller z-led.\nKeyword: move",
       move_to_xyz_tooltip:
             "Teleportera mesh-objektet till angivna koordinater. Du kan välja att använda Y-axeln.\nKeyword: moveby",
+      move_to_xyz_single_tooltip:
+            "Teleportera mesh:en till den angivna enskilda koordinaten.\nKeyword: moveby",
       move_to_tooltip:
             "Teleportera det första mesh-objektet till det andra mesh-objektets position.\nKeyword: moveto",
       scale_tooltip:
@@ -579,8 +621,12 @@ export default {
             "Rotera det första mesh-objektet mot det andra objektets position.\nKeyword: look",
       move_forward_tooltip:
             "Flytta mesh-objektet i angiven riktning. 'Framåt' flyttar det i riktningen det pekar, 'sida' i kamerans riktning och 'strafe' i sidled relativt kameran.\nKeyword: push",
+      rotate_camera_tooltip:
+            "Roterar kameran åt vänster eller höger med angivet antal grader.\nKeyword: rotate",
+      up_tooltip:
+            "Applicerar den angivna uppåtriktade kraften.\nKeyword: up",
       set_pivot_tooltip:
-            "Ställ in pivotpunkten för ett mesh längs X-, Y- och Z-axeln\nKeyword: pivot",
+            "Ställ in ankarpunkten för ett mesh längs X-, Y- och Z-axeln\nKeyword: ankare",
       min_centre_max_tooltip:
             "Välj min, center eller max som pivotpunkt\nKeyword: minmax",
 
@@ -733,6 +779,8 @@ export default {
 
       pressed_option: "nedtryckt",
       released_option: "släppt",
+      starts_option: "startar",
+      ends_option: "avslutas",
 
       DYNAMIC_option: "dynamisk",
       ANIMATED_option: "animerad",
@@ -744,10 +792,14 @@ export default {
       FLAT_option: "Platt", // Duplicate key NONE
 
       ANY_option: "vilken som helst",
-      space_infinity_option: "rymd ∞", // Duplicate key space
+      space_infinity_option: "rymd ❖", // Duplicate key space
       q_icon_option: "Q ■", // Duplicate key q
       e_icon_option: "E ✿", // Duplicate key e
       f_icon_option: "F ✱", // Duplicate key f
+
+      x_coordinate_option: "x",
+      y_coordinate_option: "y",
+      z_coordinate_option: "z",
 
       POSITION_X_option: "position x",
       POSITION_Y_option: "position y",
@@ -770,10 +822,20 @@ export default {
       VISIBLE_option: "synlig",
       ALPHA_option: "alfa",
       COLOUR_option: "färg",
-
+      AUTO_option: "auto",
+      ENABLED_option: "aktiverad",
+      DISABLED_option: "inaktiverad",
       BOTH_option: "båda",
       ARROWS_option: "pilar",
       ACTIONS_option: "åtgärder",
+      ACTION_FORWARD_option: "framåt",
+      ACTION_BACKWARD_option: "bakåt",
+      ACTION_LEFT_option: "vänster",
+      ACTION_RIGHT_option: "höger",
+      ACTION_BUTTON1_option: "knapp 1",
+      ACTION_BUTTON2_option: "knapp 2",
+      ACTION_BUTTON3_option: "knapp 3",
+      ACTION_BUTTON4_option: "knapp 4",
 
       pin_0_option: "Stift P0 släppt", // Duplicate key 0
       pin_1_option: "Stift P1 släppt", // Duplicate key 1
@@ -854,8 +916,9 @@ export default {
       Dance2_option: "Dans 2",
       Dance3_option: "Dans 3",
       Dance4_option: "Dans 4",
-      Jump_Idle_option: "Hoppa vila",
-      Jump_Land_option: "Hoppa landa",
+      JumpUp_option: "Hoppa upp",
+      JumpIdle_option: "Hoppa vila",
+      JumpLand_option: "Hoppa landa",
       Punch_option: "Slag",
       HitReact_option: "Reaktion vid träff",
       Idle_Hold_option: "Vila håll",
@@ -869,6 +932,7 @@ export default {
       Stand_Up_option: "Ställ dig upp",
       Wobble_option: "Vingla",
       Clap_option: "Applådera",
+      Climb_rope_option: "Klättra rep",
 
       // HTML translations
       loading_ui: "Laddar Flock XR...",
@@ -899,6 +963,9 @@ export default {
       tent_lights_ui: "⛺ Festivaltält",
       my_place_ui: "🏠 Mitt ställe",
       microbit_monkey_ui: "🐵 micro:bit-apa",
+      tree_jump_ui: "🌳 Träd-hopp",
+      shape_push_ui: "🔶 Skjuta form",
+      alien_planet_ui: "👽 Alienplanet",
       character_designer_ui: "👚 Karaktärsdesign",
       sit_down_ui: "🪑 Sätt dig",
 
@@ -910,6 +977,7 @@ export default {
       project_save_ui: "Spara",
       language_submenu_ui: "Språk",
       about_submenu_ui: "Om",
+      hub_submenu_ui: "Nav",
 
       theme_submenu_ui: "Tema",
       light_theme_ui: "Ljust",
@@ -947,9 +1015,9 @@ export default {
       about_description_made_by_ui: " utvecklat av ",
       about_description_company_ui: "Flip Computing",
       about_description_disclaimer_ui:
-        " Testa gärna, men kom ihåg att saker kan ändras och vissa funktioner är ännu inte färdiga. Vi söker för närvarande stöd för att utveckla Flock så att du kan lita på det.",
+            " Testa gärna, men kom ihåg att saker kan ändras och vissa funktioner är ännu inte färdiga. Vi söker för närvarande stöd för att utveckla Flock så att du kan lita på det.",
       about_run_intro_ui:
-            "Titta på demona ovan för att se vad du kan göra. Gör några ändringar och klicka på",
+            "Titta på demoversionerna ovan för att se vad du kan göra. Gör några ändringar och klicka på",
       about_run_action_ui: "kör.",
       about_links_privacy_prefix_ui: "Se ",
       about_links_privacy_label_ui: "integritetspolicyn",
@@ -967,18 +1035,19 @@ export default {
       unmute_audio_aria: "Slå på ljud.",
       focused_main_content: "Huvudinnehållet har fokus.",
       toolbox_search_results_aria: "Verktygslådans sökresultat.",
+      context_delete_option: "Radera",
       context_copy_option: "Kopiera",
       context_paste_option: "Klistra in",
       context_cut_option: "Klipp ut",
       canvas_focus_navigation:
-        "3D-canvas har fokus. Använd piltangenterna eller WASD för att navigera.",
+            "3D-canvas har fokus. Använd piltangenterna eller WASD för att navigera.",
       design_tool_label: "Designverktyg",
       focused_element_suffix: "{name} har fokus",
       search_toolbox_focused: "Verktygslådesökningen har fokus",
       code_workspace_focused: "Kodarbetsytan har fokus",
       interactive_element_label: "Interaktivt element",
       panel_resizer_focused:
-        "Paneljustering har fokus. Använd piltangenterna för att ändra storlek, Home för att återställa.",
+            "Paneljustering har fokus. Använd piltangenterna för att ändra storlek, Home för att återställa.",
       undo_performed: "Ångra utförd",
       redo_performed: "Gör om utförd",
       camera_moving_forward: "Kameran rör sig framåt",
@@ -995,9 +1064,33 @@ export default {
       project_file_description: "Flock XR-projekt",
       file_too_large_alert: "Filen är för stor. Maxstorlek är 5 MB.",
       invalid_filetype_alert:
-        "Endast .json- eller .flock-projektfiler är tillåtna.",
-      invalid_project_alert: "Den här filen är inte ett giltigt Flock XR-projekt.",
+            "Endast .json- eller .flock-projektfiler är tillåtna.",
+      invalid_project_alert:
+            "Den här filen är inte ett giltigt Flock XR-projekt.",
       failed_to_read_file_alert: "Det gick inte att läsa filen.",
+
+      // UI status messages
+      max_mesh_limit_reached:
+            "⚠️ Gräns nådd: du kan bara ha {max} mesh i din värld.",
+      high_memory_usage_warning: "Varning: hög minnesanvändning ({percent}%)",
+      physics_out_of_memory_log:
+            "Havok-fysiken avbröts, troligen på grund av minnesbrist.", // AI-generated; needs validation
+      physics_out_of_memory_banner_ui:
+            "Fysikmotorn fick slut på minne. Försök minska antalet fysikobjekt eller ladda om projektet.", // AI-generated; needs validation
+      runtime_error_message: "Fel: {message}",
+      xr_mode_message: "XR-läge!",
+      fly_camera_instructions:
+            "ℹ️ Flygkamera, använd piltangenterna och Page Up/Down",
+      select_mesh_delete_prompt:
+            "⚠️ Välj ett mesh och klicka sedan på ta bort.",
+      select_mesh_duplicate_prompt:
+            "⚠️ Välj ett mesh och klicka på duplicera, klicka sedan för att placera kopior.",
+      position_readout: "Position: {position}",
+      eyedropper_not_supported_alert:
+            "Färgväljaren stöds inte i den här webbläsaren. Prova Chrome eller Edge.",
+      blocks_copied_alert: "Block kopierade till lokal lagring!",
+      no_blocks_to_copy_alert: "Inga block att kopiera.",
+      copy_blocks_failed_alert: "Det gick inte att kopiera blocken.",
 
       // Context menu option translations
       export_JSON_snippet: "Exportera block som JSON-utdrag",

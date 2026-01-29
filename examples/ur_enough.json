@@ -368,7 +368,7 @@
 																										"type": "math_number",
 																										"id": "}c=kM`~`dPp+:m#R7taW",
 																										"fields": {
-																											"NUM": 3
+																											"NUM": -1
 																										}
 																									}
 																								},
@@ -870,6 +870,9 @@
 																																								"block": {
 																																									"type": "set_alpha",
 																																									"id": "]WioOsX~$_tNxmZRQ|]7",
+																																									"disabledReasons": [
+																																										"MANUALLY_DISABLED"
+																																									],
 																																									"fields": {
 																																										"MESH": {
 																																											"id": "aDacY.!NB5a{w94+URth"
@@ -1478,7 +1481,7 @@
 															"type": "math_number",
 															"id": ";m?(v~c]lNI~m-@`Y;40",
 															"fields": {
-																"NUM": 3
+																"NUM": -1
 															}
 														}
 													},
@@ -1758,7 +1761,7 @@
 															"type": "math_number",
 															"id": "0{OHT?Y3AM(YaKb7`8=,",
 															"fields": {
-																"NUM": 3
+																"NUM": -1
 															}
 														}
 													},

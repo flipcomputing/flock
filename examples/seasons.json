@@ -53,19 +53,7 @@
               },
               "next": {
                 "block": {
-                  "type": "create_ground",
                   "id": "S%:d.e-l98E_Phu`CHx?",
-                  "inputs": {
-                    "COLOR": {
-                      "shadow": {
-                        "type": "colour",
-                        "id": "Pe/-b7d5B1Qr*:EvoPsA",
-                        "fields": {
-                          "COLOR": "#71bc78"
-                        }
-                      }
-                    }
-                  },
                   "next": {
                     "block": {
                       "type": "create_map",
@@ -167,6 +155,41 @@
                                     }
                                   }
                                 }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "type": "create_map",
+                  "fields": {
+                    "MAP_NAME": "NONE"
+                  },
+                  "inputs": {
+                    "MATERIAL": {
+                      "shadow": {
+                        "type": "material",
+                        "id": "S%:d.e-l98E_Phu`CHx?:material",
+                        "fields": {
+                          "TEXTURE_SET": "none.png"
+                        },
+                        "inputs": {
+                          "BASE_COLOR": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "Pe/-b7d5B1Qr*:EvoPsA",
+                              "fields": {
+                                "COLOR": "#71bc78"
+                              }
+                            }
+                          },
+                          "ALPHA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "S%:d.e-l98E_Phu`CHx?:alpha",
+                              "fields": {
+                                "NUM": 1
                               }
                             }
                           }

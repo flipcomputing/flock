@@ -19,11 +19,13 @@ export default {
   CATEGORY_STRINGS: "Strings",
   CATEGORY_MATERIALS: "Materiais",
   CATEGORY_SOUND: "Som",
-  CATEGORY_VARIABLES: "Variáveis",
+  CATEGORY_VARIABLES: "Dados",
+  CATEGORY_VARIABLES_SUBCATEGORY: "Variáveis",
   CATEGORY_LISTS: "Listas",
   CATEGORY_MATH: "Matemática",
   CATEGORY_FUNCTIONS: "Funções",
   CATEGORY_SNIPPETS: "Trechos",
+  CATEGORY_MOVEMENT: "Movimento",
 
   // Color picker translations
   choose_a_color: "Escolha uma cor",
@@ -124,7 +126,7 @@ export default {
   // Custom block translations - Scene blocks
   set_sky_color: "céu %1",
   create_ground: "chão %1",
-  set_background_color: "definir cor de fundo %1",
+  set_background_color: "fundo %1",
   create_map: "mapa %1 com material %2",
   show: "mostrar %1",
   hide: "ocultar %1",
@@ -133,7 +135,7 @@ export default {
 
   // Custom block translations - Models blocks
   load_character:
-    "adicionar %1 %2 escala: %3 x: %4 y: %5 z: %6\nCabelo: %7 | Pele: %8 | Olhos: %9 | Camiseta: %10 | Shorts: %11 | Detalhe: %12",
+    "adicionar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncabelo: %7 | pele: %8 | olhos: %9 | camiseta: %10 | shorts: %11 | detalhe: %12",
   load_object: "adicionar %1 %2 %3 escala: %4 x: %5 y: %6 z: %7",
   load_multi_object: "adicionar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncores: %7",
   load_model: "adicionar %1 %2 escala: %3 x: %4 y: %5 z: %6",
@@ -143,6 +145,8 @@ export default {
     "deslizar %1 para x %2 y %3 z %4 em %5 ms\n%6 voltar? %7 repetir? %8 %9",
   glide_to_seconds:
     "deslizar %1 para x %2 y %3 z %4 em %5 segundos\n%6 voltar? %7 repetir? %8 %9",
+  glide_to_object:
+    "deslizar %1 até %2 em %6 segundos\ndeslocamento x: %3 y: %4 z: %5\n%7 voltar? %8 repetir? %9 %10",
   rotate_anim:
     "girar %1 para x %2 y %3 z %4 em %5 ms\n%6 inverter? %7 repetir? %8 %9",
   rotate_anim_seconds:
@@ -196,8 +200,9 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  light_intensity: "definir intensidade da luz para %1",
-  set_fog: "definir cor da névoa %1 modo %2 densidade %3",
+  main_light: "intensidade de luz: %1 cor: %2 chão: %3",
+  set_fog: "definir cor da névoa %1 modo %2 densidade %3\ninício %4 fim %5",
+  get_light: "obter luz como %1",
 
   // Custom block translation - Events blocks
   start: "início",
@@ -205,6 +210,7 @@ export default {
   when_clicked: "quando %1 %2",
   on_collision: "ao colidir %1 %2 %3",
   when_key_event: "quando tecla %1 %2",
+  when_action_event: "quando %1 %2",
   broadcast_event: "transmitir evento %1",
   on_event: "ao evento %1",
 
@@ -212,10 +218,10 @@ export default {
   change_color: "cor %1 para %2",
   change_material: "aplicar material %1 em %2 com cor %3",
   text_material:
-    "material %1 texto %2 cor %3 fundo %4\nlargura %5 altura %6 tamanho %7",
+    "material %1 texto %2 cor %3 fundo %4\nlargura: %5 altura: %6 tamanho: %7",
   place_decal: "adesivo %1 ângulo %2",
   decal:
-    "adesivo em %1 de x %2 y %3 z %4\nângulo x %5 y %6 z %7\ntamanho x %8 y %9 z %10 material %11",
+    "adesivo em %1 de x: %2 y: %3 z: %4\nângulo x: %5 y: %6 z: %7\ntamanho x: %8 y: %9 z: %10 material: %11",
   highlight: "destacar %1 %2",
   glow: "brilhar %1",
   tint: "tonalizar %1 %2",
@@ -234,14 +240,20 @@ export default {
   add_physics: "adicionar física %1 tipo %2",
   add_physics_shape: "adicionar forma física %1 tipo %2",
   apply_force: "aplicar força em %1 x: %2 y: %3 z: %4",
-  show_physics: "mostrar física %1",
+  show_physics: "mostrar formas físicas %1",
 
   // Custom block translations - Sensing blocks
   key_pressed: "tecla pressionada é %1",
+  action_pressed: "%1",
   meshes_touching: "%1 tocando %2",
-  time: "tempo em s",
+  time: "tempo em %1",
+  seconds: "segundos",
+  milliseconds: "milissegundos",
+  minutes: "minutos",
+  ground_level: "nível do solo",
   distance_to: "distância de %1 até %2",
   touching_surface: "%1 está tocando superfície",
+  mesh_exists: "o %1 existe?",
   get_property: "obter %1 de %2",
   canvas_controls: "controles de tela %1",
   button_controls: "controles de botão %1 ativado %2 cor %3",
@@ -254,29 +266,31 @@ export default {
     "adicionar efeito de partículas %1 em: %2\nforma: %3 início %4 fim %5 opacidade: %6 até %7\ntaxa: %8 tamanho: %9 até %10 duração: %11 até %12\ngravidade: %13 força x: %14 y: %15 z: %16\nvelocidade angular: %17 até %18 ângulo inicial: %19 até %20",
   control_particle_system: "sistema de partículas %1 %2",
   create_box:
-    "adicionar caixa %1 %2 largura %3 altura %4 profundidade %5 \nem x %6 y %7 z %8",
+    "adicionar caixa %1 %2 largura: %3 altura: %4 profundidade: %5 \nem x: %6 y: %7 z: %8",
   create_sphere:
-    "adicionar esfera %1 %2 diâmetro x %3 diâmetro y %4 diâmetro z %5\nem x %6 y %7 z %8",
+    "adicionar esfera %1 %2 diâmetro x: %3 diâmetro y: %4 diâmetro z: %5\nem x: %6 y: %7 z: %8",
   create_cylinder:
-    "adicionar cilindro %1 %2 altura %3 topo %4 base %5 lados %6\nem x %7 y %8 z %9",
+    "adicionar cilindro %1 %2 altura: %3 topo: %4 base: %5 lados: %6\nem x: %7 y: %8 z: %9",
   create_capsule:
-    "adicionar cápsula %1 %2 diâmetro %3 altura %4 \nem x %5 y %6 z %7",
+    "adicionar cápsula %1 %2 diâmetro: %3 altura: %4 \nem x: %5 y: %6 z: %7",
   create_plane:
-    "adicionar plano %1 %2 largura %3 altura %4 \nem x %5 y %6 z %7",
+    "adicionar plano %1 %2 largura: %3 altura: %4 \nem x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
   play_sound:
-    "tocar som %1 %2 de %3 \nvelocidade %4 volume %5 modo %6 assíncrono %7",
+    "tocar som %1 %2 de %3 \nvelocidade: %4 volume: %5 modo: %6 assíncrono: %7",
   stop_all_sounds: "parar todos os sons",
   midi_note: "nota MIDI %1",
   rest: "pausa",
-  play_notes: "tocar notas em %1\nnotas %2 durações %3\ninstrumento %4 modo %5",
+  play_notes:
+    "tocar notas em %1\nnotas: %2 durações: %3\ninstrumento: %4 modo: %5",
   set_scene_bpm: "definir BPM da cena para %1",
   set_mesh_bpm: "definir BPM de %1 para %2",
   create_instrument:
-    "instrumento %1 onda %2 frequência %3 ataque %4 decaimento %5 sustentação %6 liberação %7",
+    "instrumento %1 onda: %2 frequência: %3 ataque: %4 decaimento: %5 sustentação: %6 liberação: %7",
   instrument: "instrumento %1",
-  speak: "falar %1 %2 voz %3 idioma %4\nvelocidade %5 tom %6 volume %7 modo %8",
+  speak:
+    "falar %1 %2 voz: %3 idioma: %4\nvelocidade: %5 tom: %6 volume: %7 modo: %8",
 
   // Custom block translations - Text blocks
   comment: "// %1",
@@ -284,23 +298,31 @@ export default {
   say: "dizer %1 por %2 s %3 \ntexto %4 em %5 opacidade %6 tamanho %7 %8 %9",
   ui_text: "texto UI %1 %2 em x: %3 y: %4\ntamanho: %5 por %6 segundos cor: %7",
   ui_button:
-    "botão UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 cor do texto: %7 cor de fundo: %8",
+    "botão UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 text: %7 background: %8",
   ui_input:
     "campo de entrada UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 texto: %7 fundo: %8",
   create_3d_text:
     "adicionar texto 3D %1: %2 fonte: %3 tamanho: %4 cor: %5\nprofundidade: %6 x: %7 y: %8 z: %9",
 
+  // Custom block translations - Math blocks
+  random_seeded_int: "inteiro aleatório de %1 a %2 semente: %3",
+  to_number: "converter %1 para %2",
+
   // Custom block translations - Transform blocks
-  move_by_xyz: "mover %1 por x: %2 y: %3 z: %4",
-  move_to_xyz: "mover %1 para x: %2 y: %3 z: %4 y? %5",
-  move_to: "mover %1 para %2 y? %3",
+  move_by_xyz: "alterar posição de %1 em x: %2 y: %3 z: %4",
+  move_by_xyz_single: "alterar posição de %1 em %2 %3",
+  move_to_xyz: "definir posição de %1 para x: %2 y: %3 z: %4 y? %5",
+  move_to_xyz_single: "definir posição de %1 para %2 %3",
+  move_to: "definir posição de %1 para %2 y? %3",
   scale: "escalar %1 x: %2 y: %3 z: %4\norigem x: %5 y: %6 z: %7",
   resize: "redimensionar %1 x: %2 y: %3 z: %4\norigem x: %5 y: %6 z: %7",
   rotate_model_xyz: "girar %1 por x: %2 y: %3 z: %4",
   rotate_to: "girar %1 para x: %2 y: %3 z: %4",
   look_at: "fazer %1 olhar para %2 y? %3",
   move_forward: "mover %1 %2 velocidade %3",
-  set_pivot: "definir pivô de %1 x: %2 y: %3 z: %4",
+  rotate_camera: "girar câmera em %1 graus",
+  up: "para cima %1 força %2",
+  set_pivot: "definir âncora de %1\nx: %2 y: %3 z: %4",
   min_centre_max: "%1",
 
   // Custom block translations - XR blocks
@@ -353,6 +375,8 @@ export default {
     "Desliza para uma posição específica durante um período com opções de reverso, repetição e easing.",
   glide_to_seconds_tooltip:
     "Desliza para uma posição específica durante um período com opções de reverso, repetição e easing.",
+  glide_to_object_tooltip:
+    "Desliza até a posição de outra malha com deslocamentos x/y/z opcionais (padrão 0) e opções de reverso, repetição e easing.",
   rotate_anim_tooltip:
     "Gira um mesh para ângulos específicos durante um tempo com opções de reverso, repetição e easing.",
   rotate_anim_seconds_tooltip:
@@ -431,9 +455,11 @@ export default {
   get_lexical_variable_tooltip: "Obtém o valor de uma variável lexical",
 
   // Tooltip translations - Effects blocks
-  light_intensity_tooltip:
+  main_light_tooltip:
     "Define a intensidade da luz principal.\nPalavra-chave: intensidade da luz",
-  set_fog_tooltip: "Configura a névoa da cena.\nPalavra-chave: névoa",
+  set_fog_tooltip:
+    "Configura a névoa da cena. Use início e fim para definir as distâncias próxima e distante.\nPalavra-chave: névoa",
+  get_light_tooltip: "Obtém a luz principal da cena atual.\nPalavra-chave: luz",
 
   // Tooltip translations - Events blocks
   start_tooltip:
@@ -445,7 +471,9 @@ export default {
   on_collision_tooltip:
     "Executa os blocos quando o mesh colide ou deixa de colidir com outro.\nPalavra-chave: colisão",
   when_key_event_tooltip:
-    "Executa os blocos quando a tecla especificada for pressionada ou liberada.",
+    "Executa os blocos quando a tecla especificada é pressionada ou liberada.",
+  when_action_event_tooltip:
+    "Executa os blocos quando a ação escolhida é pressionada ou liberada no teclado, toque ou XR.",
   broadcast_event_tooltip:
     "Emite um evento que será recebido pelo bloco 'ao receber'.\nPalavra-chave: transmitir",
   on_event_tooltip:
@@ -491,12 +519,18 @@ export default {
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip:
     "Retorna verdadeiro se a tecla especificada estiver pressionada.\nPalavra-chave: estápressionada",
+  action_pressed_tooltip:
+    "Retorna verdadeiro se o controle de movimento ou ação escolhido estiver ativo no teclado, toque ou XR.",
   meshes_touching_tooltip:
     "Retorna verdadeiro se os dois meshes selecionados estiverem tocando.\nPalavra-chave: estátocando",
   time_tooltip: "Retorna o tempo atual em segundos.",
+  ground_level_tooltip:
+    "Retorna a altura do solo na posição x/z atual.",
   distance_to_tooltip: "Calcula a distância entre dois meshes.",
   touching_surface_tooltip:
     "Verifica se o mesh está tocando uma superfície.\nPalavra-chave: superfície",
+  mesh_exists_tooltip:
+    "Retorna verdadeiro se a malha com esse nome estiver presente na cena.",
   get_property_tooltip:
     "Obtém o valor da propriedade selecionada de um mesh.\nPalavra-chave: obter",
   canvas_controls_tooltip:
@@ -558,11 +592,21 @@ export default {
     "Faz uma pergunta ao usuário e aguarda a resposta. Armazena o resultado em uma variável.",
   create_3d_text_tooltip: "Cria um texto 3D na cena.",
 
+  // Tooltip translations - Math blocks
+  random_seeded_int_tooltip:
+    "Gera um inteiro aleatório com uma semente.\nPalavra-chave: seed",
+  to_number_tooltip:
+    "Converte uma string em número inteiro ou decimal.",
+
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
     "Move um mesh uma certa distância nas direções x, y e z.\nPalavra-chave: mover",
+  move_by_xyz_single_tooltip:
+    "Mover uma malha uma determinada quantidade na direção x, y ou z.\nPalavra-chave: mover",
   move_to_xyz_tooltip:
     "Teleporta o mesh para as coordenadas. Opcionalmente, use o eixo Y.\nPalavra-chave: moverpor",
+  move_to_xyz_single_tooltip:
+    "Teletransportar a malha para a coordenada única especificada.\nPalavra-chave: moverpor",
   move_to_tooltip:
     "Teleporta o primeiro mesh para a localização do segundo mesh.\nPalavra-chave: moverte",
   scale_tooltip:
@@ -577,8 +621,11 @@ export default {
     "Gira o primeiro mesh para olhar para a posição do segundo mesh.\nPalavra-chave: olhar",
   move_forward_tooltip:
     "Move o mesh na direção especificada. 'Frente' o move na direção que está apontando, 'lateral' move em relação à câmera e 'deslocamento' move lateralmente em relação à câmera.\nPalavra-chave: empurrar",
+  rotate_camera_tooltip:
+    "Gira a câmera para a esquerda ou direita pelos graus indicados.\nPalavra-chave: rotate",
+  up_tooltip: "Aplica a força para cima especificada.\nPalavra-chave: up",
   set_pivot_tooltip:
-    "Define o ponto de pivô de um mesh nos eixos X, Y e Z.\nPalavra-chave: pivô",
+    "Define o ponto de âncora de um mesh nos eixos X, Y e Z.\nPalavra-chave: âncora",
   min_centre_max_tooltip:
     "Escolhe mínimo, centro ou máximo como ponto de pivô.\nPalavra-chave: minmax",
 
@@ -731,6 +778,8 @@ export default {
 
   pressed_option: "pressionado",
   released_option: "liberado",
+  starts_option: "começa",
+  ends_option: "termina",
 
   DYNAMIC_option: "dinâmico",
   ANIMATED_option: "animado",
@@ -742,10 +791,14 @@ export default {
   FLAT_option: "Plano",
 
   ANY_option: "qualquer",
-  space_infinity_option: "espaço ∞",
+  space_infinity_option: "espaço ❖",
   q_icon_option: "Q ■",
   e_icon_option: "E ✿",
   f_icon_option: "F ✱",
+
+  x_coordinate_option: "x",
+  y_coordinate_option: "y",
+  z_coordinate_option: "z",
 
   POSITION_X_option: "posição x",
   POSITION_Y_option: "posição y",
@@ -768,10 +821,20 @@ export default {
   VISIBLE_option: "visível",
   ALPHA_option: "alpha",
   COLOUR_option: "cor",
-
+  AUTO_option: "automático",
+  ENABLED_option: "ativado",
+  DISABLED_option: "desativado",
   BOTH_option: "ambos",
   ARROWS_option: "setas",
   ACTIONS_option: "ações",
+  ACTION_FORWARD_option: "frente",
+  ACTION_BACKWARD_option: "trás",
+  ACTION_LEFT_option: "esquerda",
+  ACTION_RIGHT_option: "direita",
+  ACTION_BUTTON1_option: "botão 1",
+  ACTION_BUTTON2_option: "botão 2",
+  ACTION_BUTTON3_option: "botão 3",
+  ACTION_BUTTON4_option: "botão 4",
 
   pin_0_option: "Pino P0 libertado",
   pin_1_option: "Pino P1 libertado",
@@ -852,8 +915,9 @@ export default {
   Dance2_option: "Dança2",
   Dance3_option: "Dança3",
   Dance4_option: "Dança4",
-  Jump_Idle_option: "Salto em Espera",
-  Jump_Land_option: "Aterrar",
+  JumpUp_option: "Saltar para cima",
+  JumpIdle_option: "Salto em Espera",
+  JumpLand_option: "Aterrar",
   Punch_option: "Soco",
   HitReact_option: "Reação ao Impacto",
   Idle_Hold_option: "Parado com Objeto",
@@ -867,6 +931,7 @@ export default {
   Stand_Up_option: "Levantar-se",
   Wobble_option: "Oscilar",
   Clap_option: "Bater Palmas",
+  Climb_rope_option: "Subir a corda",
 
   // HTML translations
   loading_ui: "A carregar o Flock XR...",
@@ -897,6 +962,9 @@ export default {
   tent_lights_ui: "⛺ Tenda de Festival",
   my_place_ui: "🏠 O Meu Espaço",
   microbit_monkey_ui: "🐵 Macaco micro:bit",
+  tree_jump_ui: "🌳 Salto da árvore",
+  shape_push_ui: "🔶 Empurrar forma",
+  alien_planet_ui: "👽 Planeta alienígena",
   character_designer_ui: "👚 Criador de personagens",
   sit_down_ui: "🪑 Senta-te",
 
@@ -908,6 +976,7 @@ export default {
   project_save_ui: "Guardar",
   language_submenu_ui: "Idioma",
   about_submenu_ui: "Sobre",
+  hub_submenu_ui: "Hub",
 
   theme_submenu_ui: "Tema",
   light_theme_ui: "Claro",
@@ -947,7 +1016,7 @@ export default {
   about_description_disclaimer_ui:
     " Por favor, experimenta, mas tem em atenção que algumas funcionalidades podem ainda estar por terminar e que o projeto pode sofrer alterações. Estamos à procura de apoio para continuar a desenvolver o Flock de forma fiável.",
   about_run_intro_ui:
-    "Vê as demonstrações acima para veres o que podes fazer. Faz algumas alterações e clica em",
+    "Veja as demonstrações para perceber o que pode fazer. Faça algumas alterações e clique em",
   about_run_action_ui: "executar.",
   about_links_privacy_prefix_ui: "Consulta a ",
   about_links_privacy_label_ui: "política de privacidade",
@@ -964,12 +1033,13 @@ export default {
   // Accessibility and announcements
   unmute_audio_aria: "Ativar som.",
   focused_main_content: "Conteúdo principal focalizado.",
-  toolbox_search_results_aria: "Resultados de pesquisa da caixa de ferramentas.",
+  toolbox_search_results_aria:
+    "Resultados de pesquisa da caixa de ferramentas.",
+  context_delete_option: "Excluir",
   context_copy_option: "Copiar",
   context_paste_option: "Colar",
   context_cut_option: "Cortar",
-  canvas_focus_navigation:
-    "Tela 3D focada. Use as setas ou WASD para navegar.",
+  canvas_focus_navigation: "Tela 3D focada. Use as setas ou WASD para navegar.",
   design_tool_label: "Ferramenta de design",
   focused_element_suffix: "{name} focado",
   search_toolbox_focused: "Pesquisa da caixa de ferramentas focada",
@@ -992,9 +1062,31 @@ export default {
   snippet_filename_prompt: "Insira um nome de arquivo para o snippet:",
   project_file_description: "Projeto Flock XR",
   file_too_large_alert: "Arquivo muito grande. O tamanho máximo é 5 MB.",
-  invalid_filetype_alert: "Somente arquivos de projeto .json ou .flock são permitidos.",
+  invalid_filetype_alert:
+    "Somente arquivos de projeto .json ou .flock são permitidos.",
   invalid_project_alert: "Este arquivo não é um projeto Flock XR válido.",
   failed_to_read_file_alert: "Falha ao ler o arquivo.",
+
+  // UI status messages
+  max_mesh_limit_reached:
+    "⚠️ Limite alcançado: você só pode ter {max} malhas no seu mundo.",
+  high_memory_usage_warning: "Aviso: uso de memória alto ({percent}%)",
+  physics_out_of_memory_log:
+    "A física Havok foi abortada, provavelmente por falta de memória.", // AI-generated; needs validation
+  physics_out_of_memory_banner_ui:
+    "O motor de física ficou sem memória. Tente reduzir o número de objetos físicos ou recarregar o projeto.", // AI-generated; needs validation
+  runtime_error_message: "Erro: {message}",
+  xr_mode_message: "Modo XR!",
+  fly_camera_instructions: "ℹ️ Câmera de voo, use as setas e Page Up/Down",
+  select_mesh_delete_prompt: "⚠️ Selecione uma malha e clique em apagar.",
+  select_mesh_duplicate_prompt:
+    "⚠️ Selecione uma malha, clique em duplicar e depois clique para posicionar as cópias.",
+  position_readout: "Posição: {position}",
+  eyedropper_not_supported_alert:
+    "A ferramenta conta-gotas não é suportada neste navegador. Tente usar o Chrome ou Edge.",
+  blocks_copied_alert: "Blocos copiados para o armazenamento local!",
+  no_blocks_to_copy_alert: "Nenhum bloco disponível para copiar.",
+  copy_blocks_failed_alert: "Falha ao copiar os blocos.",
 
   // Context menu option translations
   export_JSON_snippet: "Exportar bloco como excerto JSON",

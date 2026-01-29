@@ -63,9 +63,15 @@ export const flockModels = {
     const x = Number.isFinite(position?.x)
       ? Math.max(-1000, Math.min(1000, position.x))
       : 0;
-    const y = Number.isFinite(position?.y)
-      ? Math.max(-1000, Math.min(1000, position.y))
-      : 0;
+    const groundLevelSentinel = -999999;
+    const numericY =
+      typeof position?.y === "string" ? Number(position.y) : position?.y;
+    const y =
+      position?.y === "__ground__level__" || numericY === groundLevelSentinel
+        ? position.y
+        : Number.isFinite(position?.y)
+          ? Math.max(-1000, Math.min(1000, position.y))
+          : 0;
     const z = Number.isFinite(position?.z)
       ? Math.max(-1000, Math.min(1000, position.z))
       : 0;
@@ -188,7 +194,6 @@ export const flockModels = {
     callback = null,
     applyColor = true,
   } = {}) {
-    // Helper (do NOT dispose container after addAllToScene; just drop refs)
     const releaseContainer = (container) => {
       try {
         container.meshes = [];
@@ -199,286 +204,105 @@ export const flockModels = {
       } catch (_) {}
     };
 
+    const applyMaterialToHierarchy = (mesh, colorInput) => {
+      if (!applyColor || !colorInput) return;
+
+      flock.applyMaterialToHierarchy(mesh, color);
+    };
+    
+    const setTemplateFlags = (node, tag) => {
+      const list = [
+        node,
+        ...node
+          .getDescendants(false)
+          .filter((n) => n instanceof flock.BABYLON.AbstractMesh),
+      ];
+      list.forEach((m) => {
+        m.metadata = m.metadata || {};
+        m.metadata.isTemplate = true;
+        m.metadata.templateTag = tag;
+        m.isPickable = false;
+        if (typeof m.setEnabled === "function") m.setEnabled(false);
+        m.isVisible = false;
+        m.visibility = 0;
+      });
+    };
+
+    const setInstanceFlags = (node) => {
+      const list = [
+        node,
+        ...node
+          .getDescendants(false)
+          .filter((n) => n instanceof flock.BABYLON.AbstractMesh),
+      ];
+      list.forEach((m) => {
+        if (m.metadata?.isTemplate) {
+          m.metadata = { ...m.metadata, isTemplate: false };
+        }
+        m.isPickable = true;
+        if (typeof m.setEnabled === "function") m.setEnabled(true);
+        m.isVisible = true;
+        m.visibility = 1;
+      });
+    };
+
+    const finalizeMesh = (mesh, mName, gName, bKey) => {
+      flock.setupMesh(
+        mesh,
+        modelName,
+        mName,
+        bKey,
+        scale,
+        position.x,
+        position.y,
+        position.z,
+        color,
+      );
+      applyMaterialToHierarchy(mesh, color);
+      mesh.computeWorldMatrix(true);
+      mesh.refreshBoundingInfo(true);
+      setInstanceFlags(mesh);
+      flock.announceMeshReady(mName, gName);
+      flock._markNameCreated(mName);
+      if (callback) requestAnimationFrame(callback);
+    };
+
     try {
-      // Validate
-      if (
-        !modelName ||
-        typeof modelName !== "string" ||
-        modelName.length > 100
-      ) {
-        console.warn("createObject: Invalid modelName parameter");
-        return "error_" + flock.scene.getUniqueId();
-      }
-      if (!modelId || typeof modelId !== "string" || modelId.length > 100) {
-        console.warn("createObject: Invalid modelId parameter");
-        return "error_" + flock.scene.getUniqueId();
-      }
-
-      // Parse BEFORE sanitizing so blockKey remains RAW (unchanged)
-      let desiredBase = modelId; // e.g. "star__zq?)gH+/2$^1Sh9Cbmky"
-      let blockKey = null;
-      if (desiredBase.includes("__")) {
-        [desiredBase, blockKey] = desiredBase.split("__");
-      }
-      // If no "__" provided, fall back to base as the key (previous behavior)
-      if (!blockKey) blockKey = desiredBase;
-
-      // Sanitize ONLY modelName + BASE (NOT the blockKey)
+      let [desiredBase, bKey] = modelId.includes("__")
+        ? modelId.split("__")
+        : [modelId, modelId];
       modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
       desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
 
-      const desiredFinalName = desiredBase;
-
-      // Position/scale clamps
-      if (!position || typeof position !== "object")
-        position = { x: 0, y: 0, z: 0 };
-      if (typeof scale !== "number" || scale < 0.01 || scale > 100) scale = 1;
-      ["x", "y", "z"].forEach((axis) => {
-        const v = position[axis];
-        position[axis] =
-          typeof v === "number" && isFinite(v)
-            ? Math.max(-1000, Math.min(1000, v))
-            : 0;
-      });
-      const { x, y, z } = position;
-
-      if (applyColor) {
-        if (!color && flock.objectColours && flock.objectColours[modelName]) {
-          color = flock.objectColours[modelName];
-        } else if (!color) {
-          color = ["#FFFFFF", "#FFFFFF"];
-        }
-      }
-
-      // Reserve the actual runtime name; group by BASE (intuitive for onTrigger)
-      let meshName = flock._reserveName(desiredFinalName);
+      const meshName = flock._reserveName(desiredBase);
       const groupName = desiredBase;
 
-      // Create readiness deferred (resolve OR reject) + abort cleanup
-      let resolveReady, rejectReady;
-      const readyPromise = new Promise((res, rej) => {
+      if (applyColor && !color) {
+        color = flock.objectColours?.[modelName] || ["#FFFFFF", "#FFFFFF"];
+      }
+
+      let resolveReady;
+      const readyPromise = new Promise((res) => {
         resolveReady = res;
-        rejectReady = rej;
       });
       flock.modelReadyPromises.set(meshName, readyPromise);
 
-      const signal = flock.abortController?.signal;
-      const onAbort = () => {
-        try {
-          rejectReady(new Error("aborted"));
-        } catch {}
-        flock.modelReadyPromises.delete(meshName);
-        flock._releaseName?.(meshName);
-        signal?.removeEventListener("abort", onAbort);
-      };
-      signal?.addEventListener("abort", onAbort, { once: true });
-      const cleanupAbort = () => signal?.removeEventListener("abort", onAbort);
-
-      // ===== A) CACHE HIT → clone hidden template =====
       if (flock.modelCache[modelName]) {
-        const firstMesh = flock.modelCache[modelName];
-        const mesh = firstMesh.clone(blockKey);
-        mesh.scaling.copyFrom(flock.BABYLON.Vector3.One());
-        mesh.position.copyFrom(flock.BABYLON.Vector3.Zero());
-
-        flock.setupMesh(
-          mesh,
-          modelName,
-          meshName,
-          blockKey,
-          scale,
-          x,
-          y,
-          z,
-          color,
-        );
-
-        if (applyColor) {
-          console.log("Applying color/material to mesh:", color);
-          
-          // Case A: single Babylon material OR plain material object {color, materialName, alpha}
-          if (color && typeof color === "object" && !Array.isArray(color)) {
-            // If it's a plain object with materialName, convert it to a Material
-            let mat = color;
-            if (color.materialName && !color.getClassName) {
-              console.log("Converting plain material object to Babylon Material");
-              mat = flock.createMaterial(color);
-            } else if (color.getClassName && typeof color.getClassName === "function") {
-              console.log("✅ Detected as Babylon Material, applying...");
-            }
-            
-            // Apply the material
-
-            
-            // Match sky’s default tiling if the material has a tileable texture
-            const tex = mat.diffuseTexture || mat.albedoTexture || mat.baseTexture || null;
-            if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
-              if (!tex.uScale) tex.uScale = 10;
-              if (!tex.vScale) tex.vScale = 10;
-            }
-
-            // Apply to root and children
-            if (typeof mesh.getChildMeshes === "function") {
-              for (const m of mesh.getChildMeshes(false)) {
-                if (m && m.material !== undefined) m.material = mat;
-              }
-            }
-            if (mesh.material !== undefined) mesh.material = mat;
-
-          // Case B: array of Babylon materials or plain material objects
-          } else if (Array.isArray(color) && color.length && color.every(c => c && typeof c === "object")) {
-            
-            // Convert plain objects to Materials if needed
-            const mats = color.map(c => {
-              if (c.materialName && !c.getClassName) {
-                return flock.createMaterial(c);
-              }
-              return c;
-            });
-            const children = typeof mesh.getChildMeshes === "function"
-              ? mesh.getChildMeshes(false)
-              : [];
-
-            // Apply by index order to children; root gets first if present
-            if (mesh.material !== undefined && mats[0]) mesh.material = mats[0];
-            for (let i = 0; i < children.length; i++) {
-              if (children[i] && children[i].material !== undefined && mats[i]) {
-                children[i].material = mats[i];
-              }
-            }
-
-          // Case C: colours/gradients -> keep your existing behaviour
-          } else {
-            console.log("⚠️ Falling back to color string/array path");
-            flock.changeColorMesh(mesh, color);
-          }
-        }
-
-        mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
-        mesh.setEnabled(true);
-
-        const all = [
-          mesh,
-          ...mesh
-            .getDescendants(false)
-            .filter((n) => n instanceof flock.BABYLON.AbstractMesh),
-        ];
-        all.forEach((m) => {
-          m.isPickable = true;
-          m.setEnabled(true);
-        });
-
-        flock.announceMeshReady(meshName, groupName);
-        flock._markNameCreated(meshName);
+        const mesh = flock.modelCache[modelName].clone(bKey);
+        finalizeMesh(mesh, meshName, groupName, bKey);
         resolveReady(mesh);
-        cleanupAbort();
-
-        if (callback) requestAnimationFrame(callback);
-
-        setTimeout(() => {
-          flock.modelReadyPromises.delete(meshName);
-        }, 5000);
         return meshName;
       }
 
-      // ===== B) CACHE MISS but model already loading → wait, then clone =====
       if (flock.modelsBeingLoaded[modelName]) {
-        flock.modelsBeingLoaded[modelName]
-          .then(() => {
-            if (!flock.modelCache[modelName])
-              throw new Error("Template missing after load");
-            const firstMesh = flock.modelCache[modelName];
-            const mesh = firstMesh.clone(blockKey);
-            mesh.scaling.copyFrom(flock.BABYLON.Vector3.One());
-            mesh.position.copyFrom(flock.BABYLON.Vector3.Zero());
-
-            flock.setupMesh(
-              mesh,
-              modelName,
-              meshName,
-              blockKey,
-              scale,
-              x,
-              y,
-              z,
-              color,
-            );
-            
-            if (applyColor) {
-              // Handle materials the same way as cache hit path
-              if (color && typeof color === "object" && !Array.isArray(color)) {
-                let mat = color;
-                if (color.materialName && !color.getClassName) {
-                  mat = flock.createMaterial(color);
-                }
-                const tex = mat.diffuseTexture || mat.albedoTexture || mat.baseTexture || null;
-                if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
-                  if (!tex.uScale) tex.uScale = 10;
-                  if (!tex.vScale) tex.vScale = 10;
-                }
-                if (typeof mesh.getChildMeshes === "function") {
-                  for (const m of mesh.getChildMeshes(false)) {
-                    if (m && m.material !== undefined) m.material = mat;
-                  }
-                }
-                if (mesh.material !== undefined) mesh.material = mat;
-              } else if (Array.isArray(color) && color.length && color.every(c => c && typeof c === "object")) {
-                const mats = color.map(c => {
-                  if (c.materialName && !c.getClassName) {
-                    return flock.createMaterial(c);
-                  }
-                  return c;
-                });
-                const children = typeof mesh.getChildMeshes === "function" ? mesh.getChildMeshes(false) : [];
-                if (mesh.material !== undefined && mats[0]) mesh.material = mats[0];
-                for (let i = 0; i < children.length; i++) {
-                  if (children[i] && children[i].material !== undefined && mats[i]) {
-                    children[i].material = mats[i];
-                  }
-                }
-              } else {
-                flock.changeColorMesh(mesh, color);
-              }
-            }
-            mesh.computeWorldMatrix(true);
-            mesh.refreshBoundingInfo();
-
-            const all = [
-              mesh,
-              ...mesh
-                .getDescendants(false)
-                .filter((n) => n instanceof flock.BABYLON.AbstractMesh),
-            ];
-            all.forEach((m) => {
-              m.isPickable = true;
-              m.setEnabled(true);
-            });
-
-            flock.announceMeshReady(meshName, groupName);
-            flock._markNameCreated(meshName);
-            if (callback) requestAnimationFrame(callback);
-
-            resolveReady(mesh);
-            cleanupAbort();
-          })
-          .catch((err) => {
-            console.error("createObject (clone-after-load) failed:", err);
-            rejectReady(err);
-            flock._releaseName(meshName);
-            flock.modelReadyPromises.delete(meshName);
-            cleanupAbort();
-          })
-          .finally(() => {
-            setTimeout(() => {
-              flock.modelReadyPromises.delete(meshName);
-            }, 5000);
-          });
-
+        flock.modelsBeingLoaded[modelName].then(() => {
+          const mesh = flock.modelCache[modelName].clone(bKey);
+          finalizeMesh(mesh, meshName, groupName, bKey);
+          resolveReady(mesh);
+        });
         return meshName;
       }
 
-      // ===== C) First load → AssetContainer → cache hidden template → configure live =====
       const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
         flock.modelPath,
         modelName,
@@ -486,120 +310,45 @@ export const flockModels = {
       );
       flock.modelsBeingLoaded[modelName] = loadPromise;
 
-      loadPromise
-        .then((container) => {
-          if (applyColor) flock.ensureStandardMaterial(container.meshes[0]);
-          container.addAllToScene();
+      // ... inside the loadPromise.then block ...
 
-          // Hidden template for future clones
-          const firstMesh = container.meshes[0].clone(`${modelName}_first`);
-          firstMesh.metadata = firstMesh.metadata || {};
-          firstMesh.setEnabled(false);
-          firstMesh.isPickable = false;
-          firstMesh.getChildMeshes().forEach((child) => {
-            child.isPickable = false;
-            child.setEnabled(false);
-          });
+      loadPromise.then((container) => {
+        container.addAllToScene();
 
-          // Mark internal materials
-          container.meshes.forEach((m) => {
-            if (m.id !== "__root__" && m.material) {
-              m.material.metadata = m.material.metadata || {};
-              m.material.metadata.internal = true;
-            }
-          });
+        container.meshes.forEach((m) => {
+          m.metadata = m.metadata || {};
+          m.metadata.isTemplate = true;
+          m.metadata.templateTag = modelName;
 
-          flock.modelCache[modelName] = firstMesh;
-
-          // Live instance
-          const live = container.meshes[0];
-          live.isPickable = true;
-          live.setEnabled(true);
-          live.getChildMeshes().forEach((child) => {
-            child.isPickable = true;
-            child.setEnabled(true);
-          });
-
-          flock.setupMesh(
-            live,
-            modelName,
-            meshName,
-            blockKey,
-            scale,
-            x,
-            y,
-            z,
-            color,
-          );
-
+          // Only clear materials if we are intending to apply our own color system
           if (applyColor) {
-            // Handle materials the same way as cache hit path
-            if (color && typeof color === "object" && !Array.isArray(color)) {
-              let mat = color;
-              if (color.materialName && !color.getClassName) {
-                mat = flock.createMaterial(color);
-              }
-              const tex = mat.diffuseTexture || mat.albedoTexture || mat.baseTexture || null;
-              if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
-                if (!tex.uScale) tex.uScale = 10;
-                if (!tex.vScale) tex.vScale = 10;
-              }
-              if (typeof live.getChildMeshes === "function") {
-                for (const m of live.getChildMeshes(false)) {
-                  if (m && m.material !== undefined) m.material = mat;
-                }
-              }
-              if (live.material !== undefined) live.material = mat;
-            } else if (Array.isArray(color) && color.length && color.every(c => c && typeof c === "object")) {
-              const mats = color.map(c => {
-                if (c.materialName && !c.getClassName) {
-                  return flock.createMaterial(c);
-                }
-                return c;
-              });
-              const children = typeof live.getChildMeshes === "function" ? live.getChildMeshes(false) : [];
-              if (live.material !== undefined && mats[0]) live.material = mats[0];
-              for (let i = 0; i < children.length; i++) {
-                if (children[i] && children[i].material !== undefined && mats[i]) {
-                  children[i].material = mats[i];
-                }
-              }
-            } else {
-              flock.changeColorMesh(live, color);
+            if (m.material) {
+              m.material.dispose(true, true);
+              m.material = null;
             }
           }
 
-          requestAnimationFrame(() => {
-            const mesh = flock.scene.getMeshByName(meshName) || live;
-
-            flock.announceMeshReady(meshName, groupName);
-            flock._markNameCreated(meshName);
-            if (callback) callback();
-
-            resolveReady(mesh);
-            cleanupAbort();
-
-            // Allow container GC
-            releaseContainer(container);
-          });
-        })
-        .catch((error) => {
-          console.error(`Error loading model: ${modelName}`, error);
-          rejectReady(error);
-          flock._releaseName(meshName);
-          flock.modelReadyPromises.delete(meshName);
-          cleanupAbort();
-        })
-        .finally(() => {
-          delete flock.modelsBeingLoaded[modelName];
-          setTimeout(() => {
-            flock.modelReadyPromises.delete(meshName);
-          }, 5000);
+          m.isPickable = false;
         });
 
+        const root = container.meshes[0];
+
+        // Only force standard material if we are applying custom colors
+        if (applyColor) {
+          flock.ensureStandardMaterial(root);
+        }
+
+        const template = root.clone(`${modelName}_template`);
+        setTemplateFlags(template, modelName);
+        flock.modelCache[modelName] = template;
+
+        finalizeMesh(root, meshName, groupName, bKey);
+        resolveReady(root);
+        releaseContainer(container);
+      });
+
       return meshName;
-    } catch (error) {
-      console.warn("createObject: Error creating object:", error);
+    } catch (e) {
       return "error_" + flock.scene.getUniqueId();
     }
   },

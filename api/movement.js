@@ -12,8 +12,21 @@ export const flockMovement = {
     flock.ensureVerticalConstraint(model);
 
     // --- Tunables ---
-    const capsuleHeightBottomOffset = 1.0;
-    const capsuleRadius = 0.5;
+    const cap = model.metadata?.physicsCapsule;
+    if (
+      !cap ||
+      typeof cap.radius !== "number" ||
+      typeof cap.height !== "number"
+    )
+      return;
+    const capsuleRadius = cap.radius;
+
+    // height is the full capsule height (including hemispherical caps)
+    const capsuleHeightBottomOffset = Math.max(
+      0.001,
+      cap.height * 0.5 - capsuleRadius,
+    );
+
     const maxSlopeAngleDeg = 45;
     const groundCheckDistance = 0.3;
     const coyoteTimeMs = 120; // brief grace after leaving ground
@@ -104,7 +117,8 @@ export const flockMovement = {
       appliedHorizontalVelocity = desiredHorizontalVelocity;
     } else {
       // airborne: no acceleration toward input, apply drag
-      appliedHorizontalVelocity = currentHorizontalVelocity.scale(airDragPerTick);
+      appliedHorizontalVelocity =
+        currentHorizontalVelocity.scale(airDragPerTick);
       if (airControlFactor > 0) {
         appliedHorizontalVelocity = appliedHorizontalVelocity.add(
           desiredHorizontalVelocity.scale(airControlFactor),
@@ -281,7 +295,7 @@ export const flockMovement = {
     const model = flock.scene.getMeshByName(modelName);
     if (!model || speed === 0) return;
 
-    const sidewaysSpeed = speed;
+    const sidewaysSpeed = -speed;
 
     // Get the camera's right direction vector (perpendicular to the forward direction)
     const cameraRight = flock.scene.activeCamera

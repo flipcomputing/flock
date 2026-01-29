@@ -1,6 +1,7 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
+import { getMetadata } from "meta-png";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
@@ -130,6 +131,43 @@ function validateBlocklyJson(json) {
 				);
 			}
 		}
+	}
+
+	function upgradeAnimationInputs(block) {
+		if (!block || typeof block !== "object") return;
+
+		const legacyAnimationName = block.fields?.ANIMATION_NAME;
+		const hasNewAnimationInput = block.inputs?.ANIMATION_NAME;
+
+		if (
+			legacyAnimationName &&
+			!hasNewAnimationInput &&
+			(block.type === "play_animation" ||
+				block.type === "switch_animation")
+		) {
+			block.inputs = block.inputs || {};
+			block.inputs.ANIMATION_NAME = {
+				shadow: {
+					type: "animation_name",
+					fields: { ANIMATION_NAME: legacyAnimationName },
+				},
+			};
+
+			delete block.fields.ANIMATION_NAME;
+
+			if (block.fields && Object.keys(block.fields).length === 0) {
+				delete block.fields;
+			}
+		}
+
+		if (block.inputs) {
+			Object.values(block.inputs).forEach((input) => {
+				upgradeAnimationInputs(input?.block);
+				upgradeAnimationInputs(input?.shadow);
+			});
+		}
+
+		upgradeAnimationInputs(block.next?.block);
 	}
 
 	// 3. Validate it's actually a Blockly workspace structure
@@ -284,6 +322,10 @@ function validateBlocklyJson(json) {
 	checkForDangerousContent(data);
 	validateBlocklyStructure(data);
 
+	if (data?.blocks?.blocks) {
+		data.blocks.blocks.forEach((block) => upgradeAnimationInputs(block));
+	}
+
 	return data;
 }
 
@@ -434,9 +476,7 @@ export async function exportCode(workspace) {
 				suggestedName: `${projectName}${FLOCK_EXT}`,
 				types: [
 					{
-                                            description: translate(
-                                                    "project_file_description",
-                                            ),
+						description: translate("project_file_description"),
 						accept: {
 							[FLOCK_MIME]: [FLOCK_EXT],
 						},
@@ -482,9 +522,7 @@ export function importSnippet() {
 		reader.onload = () => {
 			const content = reader.result;
 
-			if (fileType === "image/svg+xml") {
-				handleSVGImport(content);
-			} else if (fileType === "image/png") {
+			if (fileType === "image/png") {
 				handlePNGImport(content);
 			} else if (
 				fileType === "application/json" ||
@@ -509,34 +547,6 @@ export function importSnippet() {
 	};
 }
 
-// Handle SVG import
-function handleSVGImport(content) {
-	try {
-		const parser = new DOMParser();
-		const svgDoc = parser.parseFromString(content, "image/svg+xml");
-		const metadataElement = svgDoc.querySelector("metadata");
-
-		if (!metadataElement) {
-			console.error("No <metadata> tag found in the SVG file.");
-			return;
-		}
-
-		const metadataContent = metadataElement.textContent.trim();
-		const parsedData = JSON.parse(metadataContent);
-
-		if (!parsedData.blockJson) {
-			console.error("Metadata JSON does not contain 'blockJson'.");
-			return;
-		}
-
-		const blockJson = JSON.parse(parsedData.blockJson);
-		const workspace = Blockly.getMainWorkspace();
-		Blockly.serialization.blocks.append(blockJson, workspace);
-	} catch (error) {
-		console.error("Error processing SVG file:", error);
-	}
-}
-
 // Handle PNG import
 function handlePNGImport(content) {
 	try {
@@ -549,8 +559,9 @@ function handlePNGImport(content) {
 		}
 
 		const decodedMetadata = JSON.parse(decodeURIComponent(encodedMetadata));
+		const validatedBlocks = validateSnippetBlocks(decodedMetadata);
 		const workspace = Blockly.getMainWorkspace();
-		Blockly.serialization.blocks.append(decodedMetadata, workspace);
+		appendSnippetBlocksAtViewport(workspace, validatedBlocks);
 	} catch (error) {
 		console.error("Error processing PNG metadata:", error);
 	}
@@ -560,11 +571,60 @@ function handlePNGImport(content) {
 function handleJSONImport(content) {
 	try {
 		const blockJson = JSON.parse(content);
+		const validatedBlocks = validateSnippetBlocks(blockJson);
 		const workspace = Blockly.getMainWorkspace();
-		Blockly.serialization.blocks.append(blockJson, workspace);
+		appendSnippetBlocksAtViewport(workspace, validatedBlocks);
 	} catch (error) {
 		console.error("Error processing JSON file:", error);
 	}
+}
+
+// Validate snippet content before appending to the workspace
+function validateSnippetBlocks(snippetData) {
+	if (!snippetData) {
+		throw new Error("Snippet data is empty or undefined");
+	}
+
+	// Support both raw block JSON and wrapped workspace snippets
+	const blocks =
+		snippetData?.blocks?.blocks ??
+		(Array.isArray(snippetData) ? snippetData : [snippetData]);
+
+	const wrappedWorkspace = {
+		blocks: {
+			blocks,
+		},
+	};
+
+	const validated = validateBlocklyJson(wrappedWorkspace);
+	return validated.blocks.blocks;
+}
+
+function appendSnippetBlocksAtViewport(workspace, blocksJson) {
+	// Capture the set of existing top blocks so we can detect new ones.
+	const before = new Set(workspace.getTopBlocks(false).map((b) => b.id));
+
+	// Append
+	blocksJson.forEach((b) =>
+		Blockly.serialization.blocks.append(b, workspace),
+	);
+
+	// Collect the newly created top blocks
+	const created = workspace
+		.getTopBlocks(false)
+		.filter((b) => !before.has(b.id));
+	if (!created.length) return;
+
+	// Place them near the current viewport top-left, with a stagger.
+	const m = workspace.getMetrics();
+	const baseX = m.viewLeft + 40;
+	const baseY = m.viewTop + 40;
+
+	created.forEach((b, i) => {
+		// If the block had x/y, keep it. If not, move it.
+		// (Many snippets won't have x/y, so they'll move.)
+		b.moveBy(baseX + i * 40, baseY + i * 40);
+	});
 }
 
 // Function to set up file input handler
@@ -577,14 +637,14 @@ export function setupFileInput(workspace, executeCallback) {
 
 		const maxSize = 5 * 1024 * 1024;
 		if (file.size > maxSize) {
-                    alert(translate("file_too_large_alert"));
+			alert(translate("file_too_large_alert"));
 			event.target.value = ""; // Reset the input
 			return;
 		}
 
 		const lowerName = file.name.toLowerCase();
 		if (!lowerName.endsWith(".json") && !lowerName.endsWith(".flock")) {
-                    alert(translate("invalid_filetype_alert"));
+			alert(translate("invalid_filetype_alert"));
 			event.target.value = ""; // Reset the input
 			return;
 		}
@@ -627,7 +687,7 @@ export function setupFileInput(workspace, executeCallback) {
 				loadWorkspaceAndExecute(json, workspace, executeCallback);
 			} catch (e) {
 				console.error("Error loading Blockly project:", e);
-                            alert(translate("invalid_project_alert"));
+				alert(translate("invalid_project_alert"));
 				window.loadingCode = false;
 			} finally {
 				// Reset the input so the same file can be selected again
@@ -635,7 +695,7 @@ export function setupFileInput(workspace, executeCallback) {
 			}
 		};
 		reader.onerror = function () {
-                    alert(translate("failed_to_read_file_alert"));
+			alert(translate("failed_to_read_file_alert"));
 			window.loadingCode = false;
 			event.target.value = ""; // Reset the input
 		};
@@ -683,7 +743,7 @@ export function newProject() {
 	}
 
 	// Load the empty project template
-	fetch("examples/new.json")
+	fetch("examples/new.flock")
 		.then((response) => response.json())
 		.then((json) => {
 			loadWorkspaceAndExecute(json, workspace, executeCode);

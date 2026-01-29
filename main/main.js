@@ -6,12 +6,12 @@ import * as Blockly from "blockly";
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock, initializeFlock } from "../flock.js";
-import { initializeVariableIndexes } from "../blocks";
-import { meshMap } from "../generators";
+import { initializeVariableIndexes } from "../blocks/blocks";
+import { meshMap } from "../generators/generators.js";
 import { enableGizmos } from "../ui/gizmos.js";
 import { executeCode, stopCode } from "./execution.js";
 import "../ui/addmeshes.js";
-import "../ui/colourpicker-compact.js";
+import "../ui/colourpicker.js";
 import {
         initializeBlocks,
         initializeWorkspace,
@@ -395,16 +395,6 @@ window.onload = async function () {
         window.addEventListener("resize", onResize);
 
         switchView("both");
-
-        const scriptElement = document.getElementById("flock");
-        if (scriptElement) {
-                initializeFlock();
-                console.log("Standalone Flock");
-                // Hide loading screen after a short delay for standalone flock
-                setTimeout(hideLoadingScreen, 1000);
-                return; // standalone flock
-        }
-
         initializeBlocks();
         // Initialize Blockly and add custom context menu options
         addExportContextMenuOptions();
