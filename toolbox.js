@@ -3777,10 +3777,124 @@ const toolboxSnippetsSitDown = {
                                                                                                                                                         },
                                                                                                                                                 },
                                                                                                                                         },
+                                                                                                                                        next: {
+                                                                                                                                                block: {
+                                                                                                                                                        type: "rotate_anim_seconds",
+                                                                                                                                                        fields: {
+                                                                                                                                                                MESH_VAR: {
+                                                                                                                                                                        name: "player",
+                                                                                                                                                                },
+                                                                                                                                                                MODE: "AWAIT",
+                                                                                                                                                                REVERSE: false,
+                                                                                                                                                                LOOP: false,
+                                                                                                                                                                EASING: "Linear",
+                                                                                                                                                        },
+                                                                                                                                                        inputs: {
+                                                                                                                                                                ROT_X: {
+                                                                                                                                                                        shadow: {
+                                                                                                                                                                                type: "math_number",
+                                                                                                                                                                                fields: {
+                                                                                                                                                                                        NUM: 0,
+                                                                                                                                                                                },
+                                                                                                                                                                        },
+                                                                                                                                                                },
+                                                                                                                                                                ROT_Y: {
+                                                                                                                                                                        shadow: {
+                                                                                                                                                                                type: "math_number",
+                                                                                                                                                                                fields: {
+                                                                                                                                                                                        NUM: -180,
+                                                                                                                                                                                },
+                                                                                                                                                                        },
+                                                                                                                                                                },
+                                                                                                                                                                ROT_Z: {
+                                                                                                                                                                        shadow: {
+                                                                                                                                                                                type: "math_number",
+                                                                                                                                                                                fields: {
+                                                                                                                                                                                        NUM: 0,
+                                                                                                                                                                                },
+                                                                                                                                                                        },
+                                                                                                                                                                },
+                                                                                                                                                                DURATION: {
+                                                                                                                                                                        shadow: {
+                                                                                                                                                                                type: "math_number",
+                                                                                                                                                                                fields: {
+                                                                                                                                                                                        NUM: 0.2,
+                                                                                                                                                                                },
+                                                                                                                                                                        },
+                                                                                                                                                                },
+                                                                                                                                                        },
+                                                                                                                                                        next: {
+                                                                                                                                                                block: {
+                                                                                                                                                                        type: "play_animation",
+                                                                                                                                                                        fields: {
+                                                                                                                                                                                MODEL: {
+                                                                                                                                                                                        name: "player",
+                                                                                                                                                                                },
+                                                                                                                                                                        },
+                                                                                                                                                                        inputs: {
+                                                                                                                                                                                ANIMATION_NAME: {
+                                                                                                                                                                                        shadow: {
+                                                                                                                                                                                                type: "animation_name",
+                                                                                                                                                                                                fields: {
+                                                                                                                                                                                                        ANIMATION_NAME: "Sit_Down",
+                                                                                                                                                                                                },
+                                                                                                                                                                                        },
+                                                                                                                                                                                },
+                                                                                                                                                                        },
+                                                                                                                                                                        next: {
+                                                                                                                                                                                block: {
+                                                                                                                                                                                        type: "switch_animation",
+                                                                                                                                                                                        fields: {
+                                                                                                                                                                                                MODEL: {
+                                                                                                                                                                                                        name: "player",
+                                                                                                                                                                                                },
+                                                                                                                                                                                        },
+                                                                                                                                                                                        inputs: {
+                                                                                                                                                                                                ANIMATION_NAME: {
+                                                                                                                                                                                                        shadow: {
+                                                                                                                                                                                                                type: "animation_name",
+                                                                                                                                                                                                                fields: {
+                                                                                                                                                                                                                        ANIMATION_NAME: "Sitting",
+                                                                                                                                                                                                                },
+                                                                                                                                                                                                        },
+                                                                                                                                                                                                },
+                                                                                                                                                                                        },
+                                                                                                                                                                                },
+                                                                                                                                                                        },
+                                                                                                                                                                },
+                                                                                                                                                        },
+                                                                                                                                                },
+                                                                                                                                        },
                                                                                                                                 },
                                                                                                                         },
                                                                                                                 },
                                                                                                         },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                        ELSE: {
+                                                                block: {
+                                                                        type: "variables_set",
+                                                                        fields: {
+                                                                                VAR: {
+                                                                                        name: "sitting"
+                                                                                },
+                                                                        },
+                                                                        inputs: {
+                                                                                VALUE: {
+                                                                                        shadow: {
+                                                                                                type: "math_number",
+                                                                                                fields: {
+                                                                                                        NUM: 0,
+                                                                                                },
+                                                                                        },
+                                                                                        block: {
+                                                                                                type: "logic_boolean",
+                                                                                                fields: {
+                                                                                                        BOOL: "FALSE",
                                                                                                 },
                                                                                         },
                                                                                 },
