@@ -235,6 +235,8 @@
 [data-theme="contrast"] #exampleSelect {
   color: white !important;
   background-color: var(--color-bg) !important;
+  border-style: solid;
+  border-width: 1px;
 }
 
 [data-theme="dark"] #exampleSelect {
