@@ -948,7 +948,6 @@ export default {
   roominator_ui: "🛋️ Roominator",
   sit_down_ui: "🪑 Sit down",
   ball_pit_ui: "🟠 Ball pit",
-  rainball_ui: "🟣 Rainball",
   ur_enough_ui: "💗 UR enough!",
   tallest_buildings_ui: "📊 Tallest buildings",
   candy_dash_ui: "🎃 Candy dash",
