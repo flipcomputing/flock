@@ -99,7 +99,14 @@ function prepareMeshForCSG(mesh) {
         }
 
         if (meshesWithGeometry.length === 1) {
-                return meshesWithGeometry[0];
+                const single = meshesWithGeometry[0];
+                if (single.metadata?.csgPartOf === mesh.uniqueId) {
+                        single.metadata = single.metadata || {};
+                        single.metadata.csgPrepared = true;
+                        single.metadata.csgSourceName = mesh.name;
+                        return single;
+                }
+                return single;
         }
 
         // Multiple children with geometry - merge them into one mesh
@@ -108,6 +115,8 @@ function prepareMeshForCSG(mesh) {
                 m.computeWorldMatrix(true);
                 const worldMatrix = m.getWorldMatrix();
                 const clone = m.clone(`${mesh.name}_part_${i}`);
+                clone.metadata = clone.metadata || {};
+                clone.metadata.csgPartOf = mesh.uniqueId;
                 clone.setParent(null);
                 clone.bakeTransformIntoVertices(worldMatrix);
                 clone.position.set(0, 0, 0);
@@ -137,6 +146,8 @@ function prepareMeshForCSG(mesh) {
                 merged.rotationQuaternion = null;
                 merged.scaling.set(1, 1, 1);
                 merged.computeWorldMatrix(true);
+        } else {
+                clones.forEach((clone) => clone.dispose());
         }
 
         return merged;
@@ -169,6 +180,7 @@ export const flockCSG = {
                                         // Prepare meshes for merging
                                         const meshesToMerge = [];
                                         const tempMeshes = [];
+                                        const tempMeshesSet = new Set();
                                         let referenceMesh =
                                                 flock._findFirstDescendantWithMaterial(validMeshes[0]) ||
                                                 validMeshes[0];
@@ -190,6 +202,7 @@ export const flockCSG = {
 
                                                 if (targetMesh.metadata?.csgPrepared) {
                                                         tempMeshes.push(targetMesh);
+                                                        tempMeshesSet.add(targetMesh);
                                                 }
 
                                                 // Ensure world matrix is updated for correct positioning
@@ -220,6 +233,7 @@ export const flockCSG = {
                                                 if (tempIndex >= 0) {
                                                         tempMeshes.splice(tempIndex, 1);
                                                 }
+                                                tempMeshesSet.delete(mergedMesh);
                                         }
 
                                         // Try CSG2 first for proper boolean union when meshes are not pre-baked.
@@ -316,6 +330,10 @@ export const flockCSG = {
                                         // Dispose temporary and original meshes
                                         tempMeshes.forEach((mesh) => mesh.dispose());
                                         validMeshes.forEach((mesh) => mesh.dispose());
+
+                                        if (mergedMesh.metadata?.csgPrepared && !tempMeshesSet.has(mergedMesh)) {
+                                                mergedMesh.metadata.csgPrepared = false;
+                                        }
 
                                         return modelId;
                                 } else {
