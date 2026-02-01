@@ -126,14 +126,11 @@ function prepareMeshForCSG(mesh) {
                 merged.metadata.csgPrepared = true;
                 merged.metadata.csgSourceName = mesh.name;
 
-                // Copy transform from original mesh
-                mesh.computeWorldMatrix(true);
-                merged.position.copyFrom(mesh.position);
-                merged.rotation.copyFrom(mesh.rotation);
-                if (mesh.rotationQuaternion) {
-                        merged.rotationQuaternion = mesh.rotationQuaternion.clone();
-                }
-                merged.scaling.copyFrom(mesh.scaling);
+                // Child vertices are baked into world space, so keep the merged mesh at identity.
+                merged.position.set(0, 0, 0);
+                merged.rotation.set(0, 0, 0);
+                merged.rotationQuaternion = null;
+                merged.scaling.set(1, 1, 1);
                 merged.computeWorldMatrix(true);
         }
 
