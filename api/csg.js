@@ -139,7 +139,7 @@ function prepareMeshForCSG(mesh) {
                 merged.metadata = merged.metadata || {};
                 merged.metadata.csgPrepared = true;
                 merged.metadata.csgSourceName = mesh.name;
-                merged.name = mesh.name;
+                merged.name = `${mesh.name}_csgPrepared_${merged.uniqueId}`;
 
                 // Child vertices are baked into world space, so keep the merged mesh at identity.
                 merged.position.set(0, 0, 0);
