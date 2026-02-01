@@ -128,7 +128,7 @@ function prepareMeshForCSG(mesh) {
 
         const merged = flock.BABYLON.Mesh.MergeMeshes(
                 clones,
-                true, // disposeSource
+                false, // disposeSource
                 true, // allow32BitsIndices
                 undefined,
                 false,
@@ -146,9 +146,9 @@ function prepareMeshForCSG(mesh) {
                 merged.rotationQuaternion = null;
                 merged.scaling.set(1, 1, 1);
                 merged.computeWorldMatrix(true);
-        } else {
-                clones.forEach((clone) => clone.dispose());
         }
+
+        clones.forEach((clone) => clone.dispose());
 
         return merged;
 }
