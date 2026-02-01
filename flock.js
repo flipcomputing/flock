@@ -2383,6 +2383,25 @@ export const flock = {
                 };
 
                 // --- Fast path ---
+                // Check if there's a pending promise for this mesh first
+                // This ensures we wait for geometry to be attached before returning
+                if (flock.modelReadyPromises.has(id)) {
+                        const pendingPromise = flock.modelReadyPromises.get(id);
+                        pendingPromise.then(() => {
+                                // Re-locate after promise resolves to get mesh with geometry
+                                const meshWithGeometry = locate();
+                                
+                                if (!flock.abortController?.signal?.aborted)
+                                        void settle(meshWithGeometry);
+                        }).catch(() => {
+                                // On error, still try to return what we can find
+                                const meshWithGeometry = locate();
+                                if (!flock.abortController?.signal?.aborted)
+                                        void settle(meshWithGeometry);
+                        });
+                        return promise;
+                }
+
                 if (flock.scene) {
                         const existing = locate();
                         if (existing) {

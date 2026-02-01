@@ -24,7 +24,8 @@ export default {
         { src: 'examples/*.json', dest: 'examples' },
         { src: 'examples/*.flock', dest: 'examples' },
         { src: 'textures/*.png', dest: 'textures' },
-        { src: 'fonts/*.{json,woff2}', dest: 'fonts' },
+        { src: 'fonts/*.{json,woff2,ttf}', dest: 'fonts' },
+        { src: 'node_modules/manifold-3d/manifold.wasm', dest: 'wasm' },
         { src: 'node_modules/blockly/media/*', dest: 'blockly/media' },
         { src: 'images/dropdown-arrow.svg', dest: 'blockly/media' },
         {
@@ -210,7 +211,7 @@ export default {
     ]
   },
 
-  optimizeDeps: { exclude: ['@babylonjs/havok'] },
+  optimizeDeps: { exclude: ['@babylonjs/havok', 'manifold-3d'] },
 
   build: {
     assetsInlineLimit: 100000,   // include font files inline if needed
