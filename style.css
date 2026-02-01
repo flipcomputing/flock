@@ -972,6 +972,18 @@ button {
   cursor: pointer;
 }
 
+[data-theme="dark-contrast"] input {
+  border-style: solid;
+}
+
+[data-theme="dark"] input {
+  border-style: solid;
+}
+
+[data-theme="contrast"] input {
+  border-style: solid;
+}
+
 @media (max-width: 768px) {
   #projectName {
     display: none; /* hid the project name input box for mobile screens*/
