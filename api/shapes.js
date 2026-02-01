@@ -13,12 +13,13 @@ async function getManifold() {
   
   manifoldInitPromise = (async () => {
     try {
-      // Load with explicit WASM location
+      // Load with explicit WASM location using the correct base path
+      const baseUrl = import.meta.env.BASE_URL || '/';
       const wasm = await Module({
         locateFile: (file) => {
           if (file.endsWith('.wasm')) {
-            // In dev, use node_modules path; in prod, use copied wasm path
-            return '/wasm/manifold.wasm';
+            // Use base URL for both dev and production (GitHub Pages)
+            return `${baseUrl}wasm/manifold.wasm`;
           }
           return file;
         }

@@ -90,7 +90,8 @@ export default {
           'examples/**/*',
           'textures/**/*',
           'fonts/**/*',
-          'blockly/media/**/*'
+          'blockly/media/**/*',
+          'wasm/**/*'
         ],
         modifyURLPrefix: isProduction ? { '': BASE_URL } : {},
 
