@@ -104,6 +104,29 @@ function setLogos(themeName) {
         }
 }
 
+function setIconImage(htmlCollectionIcons, imageURL) {
+        for (const icon of htmlCollectionIcons) {
+                for (const image of icon.getElementsByTagName("image")) {
+                        image.setAttribute("xlink:href", imageURL);
+                }
+        }
+}
+
+function setBinAndZoomIcons(themeName) {
+        const binIcon = document.getElementsByClassName("blocklyTrash");
+        const zoomIcons = document.getElementsByClassName("blocklyZoom");
+
+        if (themeName == "contrast") {
+                const iconsURL = "./images/blocklywhitesprites.png";
+                setIconImage(binIcon, iconsURL);
+                setIconImage(zoomIcons, iconsURL);
+        } else {
+                const iconsURL = "/blockly/media/sprites.png";
+                setIconImage(binIcon, iconsURL);
+                setIconImage(zoomIcons, iconsURL);
+        }
+}
+
 // Function to call when switching themes
 function switchTheme(themeName) {
         console.log(`Switching to theme: ${themeName}`);
@@ -129,6 +152,7 @@ function switchTheme(themeName) {
         // }
 
         setLogos(themeName);
+        setBinAndZoomIcons(themeName);
 
         // Create custom theme for all themes
         const themeConfig = createThemeConfig(themeName);
