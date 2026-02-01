@@ -206,12 +206,23 @@ export const flockCSG = {
                                         // Clone the first mesh's material for the merged result
                                         const originalMaterial = referenceMesh.material;
 
-                                        // Try CSG2 first for proper boolean union when meshes are not pre-baked.
+                                        // Single mesh: skip merge/CSG and use the prepared mesh directly.
                                         let mergedMesh = null;
                                         let csgSucceeded = false;
-                                        const shouldUseCSG = meshesToMerge.every(
-                                                (mesh) => !mesh.metadata?.csgPrepared,
-                                        );
+                                        if (meshesToMerge.length === 1) {
+                                                mergedMesh = meshesToMerge[0];
+                                                const tempIndex = tempMeshes.indexOf(mergedMesh);
+                                                if (tempIndex >= 0) {
+                                                        tempMeshes.splice(tempIndex, 1);
+                                                }
+                                        }
+
+                                        // Try CSG2 first for proper boolean union when meshes are not pre-baked.
+                                        const shouldUseCSG =
+                                                !mergedMesh &&
+                                                meshesToMerge.every(
+                                                        (mesh) => !mesh.metadata?.csgPrepared,
+                                                );
 
                                         if (shouldUseCSG) {
                                                 try {
