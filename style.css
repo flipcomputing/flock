@@ -233,7 +233,18 @@
 } 
 
 [data-theme="contrast"] #exampleSelect {
-  color: #000000 !important;
+  color: white !important;
+  background-color: var(--color-bg) !important;
+  border-style: solid;
+  border-width: 1px;
+}
+
+[data-theme="dark"] #exampleSelect {
+  background-color: var(--color-bg) !important;
+}
+
+[data-theme="dark-contrast"] #exampleSelect {
+  background-color: var(--color-bg) !important;
 }
 
 /* Loading Screen Styles */
@@ -466,12 +477,16 @@ button {
   padding: 4px;
   font-size: 18px;
   min-height:30px;
-  background-color: var(--color-button-bg);
+  background-color: var(--color-bg);
   color: var(--color-text-primary);
   border: none;
   border-radius: 15px;
   cursor: pointer;
   touch-action: manipulation;
+}
+
+#exampleSelect {
+  background-color: var(--color-button-bg);
 }
 
 .bigbutton:hover {
@@ -536,7 +551,7 @@ button {
 }
 
 [data-theme="contrast"] .icon path {
-  fill: #000000 !important;
+  fill: #ffffff !important;
 }
 
 [data-theme="contrast"] .gizmo-button img {
