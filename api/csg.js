@@ -139,7 +139,15 @@ function prepareMeshForCSG(mesh) {
                 merged.metadata = merged.metadata || {};
                 merged.metadata.csgPrepared = true;
                 merged.metadata.csgSourceName = mesh.name;
-                merged.name = mesh.name;
+                const originalName = mesh.name;
+                const existing =
+                        mesh.getScene && mesh.getScene().getMeshByName
+                                ? mesh.getScene().getMeshByName(originalName)
+                                : null;
+                if (existing && existing !== merged) {
+                        existing.name = `${originalName}_csgSource_${existing.uniqueId}`;
+                }
+                merged.name = originalName;
 
                 // Child vertices are baked into world space, so keep the merged mesh at identity.
                 merged.position.set(0, 0, 0);
