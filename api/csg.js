@@ -40,7 +40,12 @@ function prepareMeshForCSG(mesh) {
                 mesh.getIndices() &&
                 mesh.getIndices().length > 0;
 
-        if (hasValidGeometry) {
+        const preferChildrenForModelRoot =
+                mesh.metadata?.modelName &&
+                mesh.getChildMeshes &&
+                mesh.getChildMeshes(false).length > 0;
+
+        if (hasValidGeometry && !preferChildrenForModelRoot) {
                 return mesh;
         }
 
@@ -90,7 +95,7 @@ function prepareMeshForCSG(mesh) {
                 console.warn(
                         `[prepareMeshForCSG] No valid geometry found for mesh: ${mesh.name}`,
                 );
-                return null;
+                return hasValidGeometry ? mesh : null;
         }
 
         if (meshesWithGeometry.length === 1) {
