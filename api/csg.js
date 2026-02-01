@@ -122,6 +122,10 @@ function prepareMeshForCSG(mesh) {
         );
 
         if (merged) {
+                merged.metadata = merged.metadata || {};
+                merged.metadata.csgPrepared = true;
+                merged.metadata.csgSourceName = mesh.name;
+
                 // Copy transform from original mesh
                 mesh.computeWorldMatrix(true);
                 merged.position.copyFrom(mesh.position);
@@ -162,24 +166,33 @@ export const flockCSG = {
                                 if (validMeshes.length) {
                                         // Prepare meshes for merging
                                         const meshesToMerge = [];
-                                        let referenceMesh = validMeshes[0];
+                                        const tempMeshes = [];
+                                        let referenceMesh =
+                                                flock._findFirstDescendantWithMaterial(validMeshes[0]) ||
+                                                validMeshes[0];
 
                                         validMeshes.forEach((mesh) => {
-                                                let targetMesh = mesh;
-                                                
-                                                // If metadata exists, use the mesh with material.
-                                                if (mesh.metadata?.modelName) {
+                                                if (!referenceMesh.material) {
                                                         const meshWithMaterial =
                                                                 flock._findFirstDescendantWithMaterial(mesh);
                                                         if (meshWithMaterial) {
-                                                                targetMesh = meshWithMaterial;
-                                                                targetMesh.refreshBoundingInfo();
+                                                                referenceMesh = meshWithMaterial;
                                                         }
+                                                }
+
+                                                const targetMesh = prepareMeshForCSG(mesh);
+                                                if (!targetMesh) {
+                                                        console.warn(`Skipping mesh with no vertices: ${mesh.name}`);
+                                                        return;
+                                                }
+
+                                                if (targetMesh.metadata?.csgPrepared) {
+                                                        tempMeshes.push(targetMesh);
                                                 }
 
                                                 // Ensure world matrix is updated for correct positioning
                                                 targetMesh.computeWorldMatrix(true);
-                                                
+
                                                 // Check if mesh has valid geometry
                                                 if (targetMesh.getTotalVertices() > 0) {
                                                         meshesToMerge.push(targetMesh);
@@ -244,6 +257,7 @@ export const flockCSG = {
                                         }
 
                                         if (!mergedMesh) {
+                                                tempMeshes.forEach((mesh) => mesh.dispose());
                                                 console.warn("Merge failed");
                                                 return null;
                                         }
@@ -275,7 +289,8 @@ export const flockCSG = {
                                                 console.warn("Could not apply physics to merged mesh:", e);
                                         }
 
-                                        // Dispose original meshes
+                                        // Dispose temporary and original meshes
+                                        tempMeshes.forEach((mesh) => mesh.dispose());
                                         validMeshes.forEach((mesh) => mesh.dispose());
 
                                         return modelId;
@@ -373,15 +388,7 @@ export const flockCSG = {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
 
-                                let actualBase = baseMesh;
-                                if (baseMesh.metadata?.modelName) {
-                                        const meshWithMaterial =
-                                                flock._findFirstDescendantWithMaterial(baseMesh);
-                                        if (meshWithMaterial) actualBase = meshWithMaterial;
-                                }
-
-                                // Ensure base mesh has valid geometry for CSG
-                                actualBase = prepareMeshForCSG(actualBase);
+                                const actualBase = prepareMeshForCSG(baseMesh);
                                 if (!actualBase) {
                                         console.warn("[subtractMeshes] Base mesh has no valid geometry for CSG.");
                                         return resolve(null);
@@ -397,7 +404,6 @@ export const flockCSG = {
                                                         actualBase,
                                                         "baseDuplicate",
                                                 );
-                                                
                                                 let outerCSG = tryCSG("FromMesh(baseDuplicate)", () =>
                                                         flock.BABYLON.CSG2.FromMesh(baseDuplicate, false),
                                                 );
@@ -534,6 +540,9 @@ export const flockCSG = {
                                                         modelId,
                                                         blockId,
                                                 );
+                                                if (actualBase.metadata?.csgPrepared) {
+                                                        actualBase.dispose();
+                                                }
 
                                                 // CLEANUP
                                                 baseDuplicate.dispose();
@@ -593,13 +602,7 @@ export const flockCSG = {
                 return new Promise((resolve) => {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
-                                let actualBase = baseMesh.metadata?.modelName
-                                        ? flock._findFirstDescendantWithMaterial(baseMesh) ||
-                                                baseMesh
-                                        : baseMesh;
-
-                                // Ensure base mesh has valid geometry for CSG
-                                actualBase = prepareMeshForCSG(actualBase);
+                                const actualBase = prepareMeshForCSG(baseMesh);
                                 if (!actualBase) {
                                         console.warn("[subtractMeshesMerge] Base mesh has no valid geometry for CSG.");
                                         return resolve(null);
@@ -716,6 +719,9 @@ export const flockCSG = {
                                                         modelId,
                                                         blockId,
                                                 );
+                                                if (actualBase.metadata?.csgPrepared) {
+                                                        actualBase.dispose();
+                                                }
 
                                                 baseDuplicate.dispose();
                                                 subtractDuplicates.forEach((m) => m.dispose());
@@ -751,15 +757,7 @@ export const flockCSG = {
                 return new Promise((resolve) => {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
-                                let actualBase = baseMesh;
-                                if (baseMesh.metadata?.modelName) {
-                                        const meshWithMaterial =
-                                                flock._findFirstDescendantWithMaterial(baseMesh);
-                                        if (meshWithMaterial) actualBase = meshWithMaterial;
-                                }
-
-                                // Ensure base mesh has valid geometry for CSG
-                                actualBase = prepareMeshForCSG(actualBase);
+                                const actualBase = prepareMeshForCSG(baseMesh);
                                 if (!actualBase) {
                                         console.warn("[subtractMeshesIndividual] Base mesh has no valid geometry for CSG.");
                                         return resolve(null);
@@ -780,7 +778,6 @@ export const flockCSG = {
                                                                 ? actualBase.absoluteRotationQuaternion.toEulerAngles()
                                                                 : actualBase.rotation.clone();
                                                 baseDuplicate.computeWorldMatrix(true);
-
                                                 let outerCSG = flock.BABYLON.CSG2.FromMesh(
                                                         baseDuplicate,
                                                         false,
@@ -853,6 +850,9 @@ export const flockCSG = {
                                                         modelId,
                                                         blockId,
                                                 );
+                                                if (actualBase.metadata?.csgPrepared) {
+                                                        actualBase.dispose();
+                                                }
 
                                                 baseDuplicate.dispose();
                                                 allToolParts.forEach((t) => t.dispose());
@@ -905,23 +905,28 @@ export const flockCSG = {
 
                                         const combinedCentre = min.add(max).scale(0.5);
 
-                                        let firstMesh = validMeshes[0];
-                                        // If metadata exists, use the mesh with material.
-                                        if (firstMesh.metadata?.modelName) {
+                                        const baseSourceMesh = validMeshes[0];
+                                        let referenceMesh = baseSourceMesh;
+                                        if (baseSourceMesh.metadata?.modelName) {
                                                 const meshWithMaterial =
-                                                        flock._findFirstDescendantWithMaterial(firstMesh);
+                                                        flock._findFirstDescendantWithMaterial(baseSourceMesh);
                                                 if (meshWithMaterial) {
-                                                        firstMesh = meshWithMaterial;
-                                                        firstMesh.refreshBoundingInfo();
-                                                        firstMesh.flipFaces();
+                                                        referenceMesh = meshWithMaterial;
+                                                        referenceMesh.refreshBoundingInfo();
                                                 }
                                         }
 
                                         // Ensure mesh has valid geometry for CSG
-                                        firstMesh = prepareMeshForCSG(firstMesh);
+                                        let firstMesh = prepareMeshForCSG(baseSourceMesh);
                                         if (!firstMesh) {
                                                 console.warn("First mesh has no valid geometry for CSG intersect.");
                                                 return null;
+                                        }
+                                        if (
+                                                baseSourceMesh.metadata?.modelName &&
+                                                typeof firstMesh.flipFaces === "function"
+                                        ) {
+                                                firstMesh.flipFaces();
                                         }
 
                                         // Create the base CSG
@@ -936,29 +941,25 @@ export const flockCSG = {
 
                                         // Intersect each subsequent mesh
                                         let csgFailed = false;
+                                        const tempMeshes = [];
                                         validMeshes.slice(1).forEach((mesh) => {
                                                 if (csgFailed) return;
-                                                
-                                                if (mesh.metadata?.modelName) {
-                                                        const meshWithMaterial =
-                                                                flock._findFirstDescendantWithMaterial(mesh);
-                                                        if (meshWithMaterial) {
-                                                                mesh = meshWithMaterial;
-                                                                mesh.refreshBoundingInfo();
-                                                                mesh.flipFaces();
-                                                        }
-                                                }
 
-                                                // Ensure mesh has valid geometry for CSG
-                                                mesh = prepareMeshForCSG(mesh);
-                                                if (!mesh) {
+                                                const preparedMesh = prepareMeshForCSG(mesh);
+                                                if (!preparedMesh) {
                                                         console.warn("Skipping mesh with no valid geometry for CSG intersect.");
                                                         return;
+                                                }
+                                                if (mesh.metadata?.modelName && typeof preparedMesh.flipFaces === "function") {
+                                                        preparedMesh.flipFaces();
+                                                }
+                                                if (preparedMesh.metadata?.csgPrepared) {
+                                                        tempMeshes.push(preparedMesh);
                                                 }
 
                                                 try {
                                                         const meshCSG = flock.BABYLON.CSG2.FromMesh(
-                                                                mesh,
+                                                                preparedMesh,
                                                                 false,
                                                         );
                                                         baseCSG = baseCSG.intersect(meshCSG);
@@ -970,6 +971,10 @@ export const flockCSG = {
 
                                         if (csgFailed) {
                                                 console.warn("[intersectMeshes] Note: CSG operations require watertight (manifold) geometry.");
+                                                if (firstMesh.metadata?.csgPrepared) {
+                                                        firstMesh.dispose();
+                                                }
+                                                tempMeshes.forEach((mesh) => mesh.dispose());
                                                 return null;
                                         }
 
@@ -993,6 +998,10 @@ export const flockCSG = {
                                                         m.name === "intersectedMesh" && m.getTotalVertices() === 0
                                                 ).forEach(m => m.dispose());
                                                 
+                                                if (firstMesh.metadata?.csgPrepared) {
+                                                        firstMesh.dispose();
+                                                }
+                                                tempMeshes.forEach((mesh) => mesh.dispose());
                                                 return null;
                                         }
 
@@ -1002,11 +1011,15 @@ export const flockCSG = {
                                         // Apply properties to the resulting mesh
                                         flock.applyResultMeshProperties(
                                                 intersectedMesh,
-                                                firstMesh,
+                                                referenceMesh,
                                                 modelId,
                                                 blockId,
                                         );
 
+                                        if (firstMesh.metadata?.csgPrepared) {
+                                                firstMesh.dispose();
+                                        }
+                                        tempMeshes.forEach((mesh) => mesh.dispose());
                                         validMeshes.forEach((mesh) => mesh.dispose());
 
                                         return modelId; // Return the modelId as per original functionality
@@ -1044,18 +1057,23 @@ export const flockCSG = {
                                         const combinedCentre = min.add(max).scale(0.5);
 
                                         // Merge the valid meshes into a single mesh
-                                        const updatedValidMeshes = validMeshes.map((mesh) => {
-                                                if (mesh.metadata?.modelName) {
-                                                        const meshWithMaterial =
-                                                                flock._findFirstDescendantWithMaterial(mesh);
-                                                        if (meshWithMaterial) {
-                                                                meshWithMaterial.refreshBoundingInfo();
-                                                                meshWithMaterial.flipFaces();
-                                                                return meshWithMaterial;
+                                        const tempMeshes = [];
+                                        const updatedValidMeshes = validMeshes
+                                                .map((mesh) => {
+                                                        const preparedMesh = prepareMeshForCSG(mesh);
+                                                        if (!preparedMesh) return null;
+                                                        if (
+                                                                mesh.metadata?.modelName &&
+                                                                typeof preparedMesh.flipFaces === "function"
+                                                        ) {
+                                                                preparedMesh.flipFaces();
                                                         }
-                                                }
-                                                return mesh;
-                                        });
+                                                        if (preparedMesh.metadata?.csgPrepared) {
+                                                                tempMeshes.push(preparedMesh);
+                                                        }
+                                                        return preparedMesh;
+                                                })
+                                                .filter(Boolean);
 
                                         const mergedMesh = flock.BABYLON.Mesh.MergeMeshes(
                                                 updatedValidMeshes,
@@ -1063,6 +1081,7 @@ export const flockCSG = {
                                         );
 
                                         if (!mergedMesh) {
+                                                tempMeshes.forEach((mesh) => mesh.dispose());
                                                 console.warn(
                                                         "Failed to merge meshes for hull creation.",
                                                 );
@@ -1105,6 +1124,7 @@ export const flockCSG = {
                                                 blockId,
                                         );
                                         // Dispose of original meshes after creating the hull
+                                        tempMeshes.forEach((mesh) => mesh.dispose());
                                         validMeshes.forEach((mesh) => mesh.dispose());
                                         mergedMesh.dispose();
 
