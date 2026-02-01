@@ -206,42 +206,53 @@ export const flockCSG = {
                                         // Clone the first mesh's material for the merged result
                                         const originalMaterial = referenceMesh.material;
 
-                                        // Try CSG2 first, fall back to simple merge if it fails
+                                        // Try CSG2 first for proper boolean union when meshes are not pre-baked.
                                         let mergedMesh = null;
                                         let csgSucceeded = false;
+                                        const shouldUseCSG = meshesToMerge.every(
+                                                (mesh) => !mesh.metadata?.csgPrepared,
+                                        );
 
-                                        try {
-                                                // Attempt CSG2 merge for proper boolean union
-                                                let baseCSG = flock.BABYLON.CSG2.FromMesh(meshesToMerge[0], false);
-                                                
-                                                for (let i = 1; i < meshesToMerge.length; i++) {
-                                                        const meshCSG = flock.BABYLON.CSG2.FromMesh(meshesToMerge[i], false);
-                                                        baseCSG = baseCSG.add(meshCSG);
-                                                }
+                                        if (shouldUseCSG) {
+                                                try {
+                                                        // Attempt CSG2 merge for proper boolean union
+                                                        let baseCSG = flock.BABYLON.CSG2.FromMesh(
+                                                                meshesToMerge[0],
+                                                                false,
+                                                        );
+                                                        
+                                                        for (let i = 1; i < meshesToMerge.length; i++) {
+                                                                const meshCSG = flock.BABYLON.CSG2.FromMesh(
+                                                                        meshesToMerge[i],
+                                                                        false,
+                                                                );
+                                                                baseCSG = baseCSG.add(meshCSG);
+                                                        }
 
-                                                mergedMesh = baseCSG.toMesh(
-                                                        modelId,
-                                                        meshesToMerge[0].getScene(),
-                                                        { centerMesh: false, rebuildNormals: true }
-                                                );
-                                                
-                                                if (mergedMesh && mergedMesh.getTotalVertices() > 0) {
-                                                        csgSucceeded = true;
-                                                } else {
-                                                        if (mergedMesh) mergedMesh.dispose();
-                                                        mergedMesh = null;
+                                                        mergedMesh = baseCSG.toMesh(
+                                                                modelId,
+                                                                meshesToMerge[0].getScene(),
+                                                                { centerMesh: false, rebuildNormals: true },
+                                                        );
+                                                        
+                                                        if (mergedMesh && mergedMesh.getTotalVertices() > 0) {
+                                                                csgSucceeded = true;
+                                                        } else {
+                                                                if (mergedMesh) mergedMesh.dispose();
+                                                                mergedMesh = null;
+                                                        }
+                                                } catch (e) {
+                                                        // CSG2.toMesh may have created an empty mesh before failing - clean it up
+                                                        const emptyMeshes = flock.scene.meshes.filter((m) => 
+                                                                m.name === modelId && m.getTotalVertices() === 0,
+                                                        );
+                                                        emptyMeshes.forEach((m) => {
+                                                                m.dispose();
+                                                        });
                                                 }
-                                        } catch (e) {
-                                                // CSG2.toMesh may have created an empty mesh before failing - clean it up
-                                                const emptyMeshes = flock.scene.meshes.filter(m => 
-                                                        m.name === modelId && m.getTotalVertices() === 0
-                                                );
-                                                emptyMeshes.forEach(m => {
-                                                        m.dispose();
-                                                });
                                         }
 
-                                        // Fallback to simple Mesh.MergeMeshes if CSG2 failed
+                                        // Fallback to simple Mesh.MergeMeshes if CSG2 failed or should be skipped
                                         if (!csgSucceeded) {
                                                 mergedMesh = flock.BABYLON.Mesh.MergeMeshes(
                                                         meshesToMerge,
@@ -249,7 +260,7 @@ export const flockCSG = {
                                                         true,
                                                         undefined,
                                                         false,
-                                                        false
+                                                        false,
                                                 );
                                         }
 
