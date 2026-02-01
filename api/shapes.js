@@ -14,7 +14,10 @@ async function getManifold() {
   manifoldInitPromise = (async () => {
     try {
       // Load with explicit WASM location using the correct base path
-      const baseUrl = import.meta.env.BASE_URL || '/';
+      // Ensure base URL ends with a slash
+      let baseUrl = import.meta.env.BASE_URL || '/';
+      if (!baseUrl.endsWith('/')) baseUrl += '/';
+      
       const wasm = await Module({
         locateFile: (file) => {
           if (file.endsWith('.wasm')) {
