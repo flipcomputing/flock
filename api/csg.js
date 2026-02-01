@@ -340,6 +340,14 @@ export const flockCSG = {
                                                                 sourceIds.has(mesh.metadata.csgPartOf),
                                                 )
                                                 .forEach((mesh) => mesh.dispose());
+                                        flock.scene.meshes
+                                                .filter(
+                                                        (mesh) =>
+                                                                mesh.name.includes("_part_") &&
+                                                                mesh.name.endsWith("_merged") &&
+                                                                !mesh.material,
+                                                )
+                                                .forEach((mesh) => mesh.dispose());
 
                                         if (mergedMesh.metadata?.csgPrepared && !tempMeshesSet.has(mergedMesh)) {
                                                 mergedMesh.metadata.csgPrepared = false;
