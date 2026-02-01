@@ -112,6 +112,12 @@ function setIconImage(htmlCollectionIcons, imageURL) {
         }
 }
 
+function getBlocklyMediaPath() {
+        let baseUrl = import.meta.env.BASE_URL || '/';
+        if (!baseUrl.endsWith('/')) baseUrl += '/';
+        return `${baseUrl}blockly/media/`;
+}
+
 function setBinAndZoomIcons(themeName) {
         const binIcon = document.getElementsByClassName("blocklyTrash");
         const zoomIcons = document.getElementsByClassName("blocklyZoom");
@@ -121,7 +127,7 @@ function setBinAndZoomIcons(themeName) {
                 setIconImage(binIcon, iconsURL);
                 setIconImage(zoomIcons, iconsURL);
         } else {
-                const iconsURL = "/blockly/media/sprites.png";
+                const iconsURL = getBlocklyMediaPath() + "sprites.png";
                 setIconImage(binIcon, iconsURL);
                 setIconImage(zoomIcons, iconsURL);
         }
