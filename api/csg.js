@@ -329,7 +329,17 @@ export const flockCSG = {
 
                                         // Dispose temporary and original meshes
                                         tempMeshes.forEach((mesh) => mesh.dispose());
+                                        const sourceIds = new Set(
+                                                validMeshes.map((mesh) => mesh.uniqueId),
+                                        );
                                         validMeshes.forEach((mesh) => mesh.dispose());
+                                        flock.scene.meshes
+                                                .filter(
+                                                        (mesh) =>
+                                                                mesh.metadata?.csgPartOf &&
+                                                                sourceIds.has(mesh.metadata.csgPartOf),
+                                                )
+                                                .forEach((mesh) => mesh.dispose());
 
                                         if (mergedMesh.metadata?.csgPrepared && !tempMeshesSet.has(mergedMesh)) {
                                                 mergedMesh.metadata.csgPrepared = false;
