@@ -102,6 +102,14 @@ function prepareMeshForCSG(mesh) {
                 const single = meshesWithGeometry[0];
                 const originalName = mesh.name;
                 if (single !== mesh) {
+                        single.computeWorldMatrix(true);
+                        const worldMatrix = single.getWorldMatrix().clone();
+                        single.setParent(null);
+                        single.bakeTransformIntoVertices(worldMatrix);
+                        single.position.set(0, 0, 0);
+                        single.rotation.set(0, 0, 0);
+                        single.rotationQuaternion = null;
+                        single.scaling.set(1, 1, 1);
                         mesh.dispose();
                         single.name = originalName;
                 }
