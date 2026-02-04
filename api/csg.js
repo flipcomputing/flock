@@ -167,39 +167,70 @@ function prepareMeshForCSG(mesh) {
         return merged;
 }
 
-function createCSGFromMesh(mesh, preferredType = null) {
-        const wrapCSG2 = (csg2) => ({
-                type: "csg2",
-                csg: csg2,
-                add: (other) => wrapCSG2(csg2.add(other.csg)),
-                subtract: (other) => wrapCSG2(csg2.subtract(other.csg)),
-                intersect: (other) => wrapCSG2(csg2.intersect(other.csg)),
-                toMesh: (name, scene, options) => csg2.toMesh(name, scene, options),
-        });
-
-        const wrapLegacy = (csg) => ({
-                type: "csg",
-                csg,
-                add: (other) => wrapLegacy(csg.add(other.csg)),
-                subtract: (other) => wrapLegacy(csg.subtract(other.csg)),
-                intersect: (other) => wrapLegacy(csg.intersect(other.csg)),
-                toMesh: (name, scene) => csg.toMesh(name, null, scene),
-        });
-
+function createCSGFromMesh(mesh) {
         if (!mesh) return null;
-
-        if (preferredType !== "csg") {
-                try {
-                        const csg2 = flock.BABYLON.CSG2.FromMesh(mesh, false);
-                        return wrapCSG2(csg2);
-                } catch (e) {
-                        // fall through
-                }
-        }
-
         try {
-                const csg = flock.BABYLON.CSG.FromMesh(mesh);
-                return wrapLegacy(csg);
+                const csg2 = flock.BABYLON.CSG2.FromMesh(mesh, false);
+                return {
+                        type: "csg2",
+                        csg: csg2,
+                        add: (other) => ({
+                                type: "csg2",
+                                csg: csg2.add(other.csg),
+                                add: (next) => ({
+                                        type: "csg2",
+                                        csg: csg2.add(next.csg),
+                                        subtract: (next) => ({
+                                                type: "csg2",
+                                                csg: csg2.subtract(next.csg),
+                                                intersect: (next) => ({
+                                                        type: "csg2",
+                                                        csg: csg2.intersect(next.csg),
+                                                        toMesh: (name, scene, options) =>
+                                                                csg2.toMesh(name, scene, options),
+                                                }),
+                                                toMesh: (name, scene, options) =>
+                                                        csg2.toMesh(name, scene, options),
+                                        }),
+                                        intersect: (next) => ({
+                                                type: "csg2",
+                                                csg: csg2.intersect(next.csg),
+                                                toMesh: (name, scene, options) =>
+                                                        csg2.toMesh(name, scene, options),
+                                        }),
+                                        toMesh: (name, scene, options) =>
+                                                csg2.toMesh(name, scene, options),
+                                }),
+                                subtract: (next) => ({
+                                        type: "csg2",
+                                        csg: csg2.subtract(next.csg),
+                                        toMesh: (name, scene, options) =>
+                                                csg2.toMesh(name, scene, options),
+                                }),
+                                intersect: (next) => ({
+                                        type: "csg2",
+                                        csg: csg2.intersect(next.csg),
+                                        toMesh: (name, scene, options) =>
+                                                csg2.toMesh(name, scene, options),
+                                }),
+                                toMesh: (name, scene, options) =>
+                                        csg2.toMesh(name, scene, options),
+                        }),
+                        subtract: (other) => ({
+                                type: "csg2",
+                                csg: csg2.subtract(other.csg),
+                                toMesh: (name, scene, options) =>
+                                        csg2.toMesh(name, scene, options),
+                        }),
+                        intersect: (other) => ({
+                                type: "csg2",
+                                csg: csg2.intersect(other.csg),
+                                toMesh: (name, scene, options) =>
+                                        csg2.toMesh(name, scene, options),
+                        }),
+                        toMesh: (name, scene, options) =>
+                                csg2.toMesh(name, scene, options),
+                };
         } catch (e) {
                 return null;
         }
@@ -574,10 +605,7 @@ export const flockCSG = {
 
                                                 // EXECUTE SUBTRACTION
                                                 subtractDuplicates.forEach((m, idx) => {
-                                                        const meshCSG = createCSGFromMesh(
-                                                                m,
-                                                                outerCSG.type,
-                                                        );
+                                                        const meshCSG = createCSGFromMesh(m);
                                                         if (!meshCSG) {
                                                                 console.warn(`[subtractMeshes] Failed to create CSG from tool[${idx}]`);
                                                                 return;
@@ -768,10 +796,7 @@ export const flockCSG = {
 
                                                 subtractDuplicates.forEach((m, idx) => {
                                                         try {
-                                                                const meshCSG = createCSGFromMesh(
-                                                                        m,
-                                                                        outerCSG.type,
-                                                                );
+                                                                const meshCSG = createCSGFromMesh(m);
                                                                 if (!meshCSG) {
                                                                         console.warn(
                                                                                 `[subtractMeshesMerge] Failed to create CSG from tool[${idx}]`,
@@ -901,10 +926,7 @@ export const flockCSG = {
 
                                                 allToolParts.forEach((part) => {
                                                         try {
-                                                                const partCSG = createCSGFromMesh(
-                                                                        part,
-                                                                        outerCSG.type,
-                                                                );
+                                                                const partCSG = createCSGFromMesh(part);
                                                                 if (!partCSG) {
                                                                         console.warn(
                                                                                 "[subtractMeshesIndividual] Failed to create CSG from tool",
@@ -1067,10 +1089,7 @@ export const flockCSG = {
                                                 }
 
                                                 try {
-                                                        const meshCSG = createCSGFromMesh(
-                                                                preparedMesh,
-                                                                baseCSG.type,
-                                                        );
+                                                        const meshCSG = createCSGFromMesh(preparedMesh);
                                                         if (!meshCSG) {
                                                                 console.warn(
                                                                         "[intersectMeshes] Failed to create CSG from mesh",
