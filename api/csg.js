@@ -167,6 +167,44 @@ function prepareMeshForCSG(mesh) {
         return merged;
 }
 
+function createCSGFromMesh(mesh, preferredType = null) {
+        const wrapCSG2 = (csg2) => ({
+                type: "csg2",
+                csg: csg2,
+                add: (other) => wrapCSG2(csg2.add(other.csg)),
+                subtract: (other) => wrapCSG2(csg2.subtract(other.csg)),
+                intersect: (other) => wrapCSG2(csg2.intersect(other.csg)),
+                toMesh: (name, scene, options) => csg2.toMesh(name, scene, options),
+        });
+
+        const wrapLegacy = (csg) => ({
+                type: "csg",
+                csg,
+                add: (other) => wrapLegacy(csg.add(other.csg)),
+                subtract: (other) => wrapLegacy(csg.subtract(other.csg)),
+                intersect: (other) => wrapLegacy(csg.intersect(other.csg)),
+                toMesh: (name, scene) => csg.toMesh(name, null, scene),
+        });
+
+        if (!mesh) return null;
+
+        if (preferredType !== "csg") {
+                try {
+                        const csg2 = flock.BABYLON.CSG2.FromMesh(mesh, false);
+                        return wrapCSG2(csg2);
+                } catch (e) {
+                        // fall through
+                }
+        }
+
+        try {
+                const csg = flock.BABYLON.CSG.FromMesh(mesh);
+                return wrapLegacy(csg);
+        } catch (e) {
+                return null;
+        }
+}
+
 export const flockCSG = {
         mergeCompositeMesh(meshes) {
                 if (!meshes || meshes.length === 0) return null;
@@ -450,14 +488,6 @@ export const flockCSG = {
                         return dup;
                 };
 
-                const tryCSG = (label, fn) => {
-                        try {
-                                return fn();
-                        } catch (e) {
-                                return null;
-                        }
-                };
-
                 return new Promise((resolve) => {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
@@ -478,9 +508,7 @@ export const flockCSG = {
                                                         actualBase,
                                                         "baseDuplicate",
                                                 );
-                                                let outerCSG = tryCSG("FromMesh(baseDuplicate)", () =>
-                                                        flock.BABYLON.CSG2.FromMesh(baseDuplicate, false),
-                                                );
+                                                let outerCSG = createCSGFromMesh(baseDuplicate);
 
                                                 if (!outerCSG) {
                                                         console.warn('[subtractMeshes] Failed to create CSG from base mesh');
@@ -546,21 +574,16 @@ export const flockCSG = {
 
                                                 // EXECUTE SUBTRACTION
                                                 subtractDuplicates.forEach((m, idx) => {
-                                                        const meshCSG = tryCSG(
-                                                                `FromMesh(tool[${idx}])`,
-                                                                () => flock.BABYLON.CSG2.FromMesh(m, false),
+                                                        const meshCSG = createCSGFromMesh(
+                                                                m,
+                                                                outerCSG.type,
                                                         );
                                                         if (!meshCSG) {
                                                                 console.warn(`[subtractMeshes] Failed to create CSG from tool[${idx}]`);
                                                                 return;
                                                         }
 
-                                                        const next = tryCSG(`subtract tool[${idx}]`, () =>
-                                                                outerCSG.subtract(meshCSG),
-                                                        );
-                                                        if (next) {
-                                                                outerCSG = next;
-                                                        }
+                                                        outerCSG = outerCSG.subtract(meshCSG);
                                                 });
 
                                                 // GENERATE RESULT
@@ -690,10 +713,7 @@ export const flockCSG = {
                                                         actualBase,
                                                         "baseDuplicate",
                                                 );
-                                                let outerCSG = flock.BABYLON.CSG2.FromMesh(
-                                                        baseDuplicate,
-                                                        false,
-                                                );
+                                                let outerCSG = createCSGFromMesh(baseDuplicate);
                                                 const subtractDuplicates = [];
 
                                                 validMeshes.forEach((mesh, meshIndex) => {
@@ -748,10 +768,16 @@ export const flockCSG = {
 
                                                 subtractDuplicates.forEach((m, idx) => {
                                                         try {
-                                                                const meshCSG = flock.BABYLON.CSG2.FromMesh(
+                                                                const meshCSG = createCSGFromMesh(
                                                                         m,
-                                                                        false,
+                                                                        outerCSG.type,
                                                                 );
+                                                                if (!meshCSG) {
+                                                                        console.warn(
+                                                                                `[subtractMeshesMerge] Failed to create CSG from tool[${idx}]`,
+                                                                        );
+                                                                        return;
+                                                                }
                                                                 outerCSG = outerCSG.subtract(meshCSG);
                                                         } catch (e) {
                                                                 console.warn(`[subtractMeshesMerge] Subtraction ${idx} failed:`, e.message);
@@ -852,10 +878,15 @@ export const flockCSG = {
                                                                 ? actualBase.absoluteRotationQuaternion.toEulerAngles()
                                                                 : actualBase.rotation.clone();
                                                 baseDuplicate.computeWorldMatrix(true);
-                                                let outerCSG = flock.BABYLON.CSG2.FromMesh(
-                                                        baseDuplicate,
-                                                        false,
-                                                );
+                                                let outerCSG = createCSGFromMesh(baseDuplicate);
+                                                if (!outerCSG) {
+                                                        console.warn(
+                                                                "[subtractMeshesIndividual] Failed to create CSG from base mesh",
+                                                        );
+                                                        baseDuplicate.dispose();
+                                                        allToolParts.forEach((t) => t.dispose());
+                                                        return resolve(null);
+                                                }
                                                 const allToolParts = [];
                                                 validMeshes.forEach((mesh) => {
                                                         const parts = collectMaterialMeshesDeep(mesh);
@@ -870,10 +901,16 @@ export const flockCSG = {
 
                                                 allToolParts.forEach((part) => {
                                                         try {
-                                                                const partCSG = flock.BABYLON.CSG2.FromMesh(
+                                                                const partCSG = createCSGFromMesh(
                                                                         part,
-                                                                        false,
+                                                                        outerCSG.type,
                                                                 );
+                                                                if (!partCSG) {
+                                                                        console.warn(
+                                                                                "[subtractMeshesIndividual] Failed to create CSG from tool",
+                                                                        );
+                                                                        return;
+                                                                }
                                                                 outerCSG = outerCSG.subtract(partCSG);
                                                         } catch (e) {
                                                                 console.warn(e);
@@ -1004,11 +1041,9 @@ export const flockCSG = {
                                         }
 
                                         // Create the base CSG
-                                        let baseCSG;
-                                        try {
-                                                baseCSG = flock.BABYLON.CSG2.FromMesh(firstMesh, false);
-                                        } catch (e) {
-                                                console.warn("[intersectMeshes] CSG2.FromMesh failed on first mesh:", e.message);
+                                        let baseCSG = createCSGFromMesh(firstMesh);
+                                        if (!baseCSG) {
+                                                console.warn("[intersectMeshes] Failed to create CSG from first mesh.");
                                                 console.warn("[intersectMeshes] Note: CSG operations require watertight (manifold) geometry. 3D text and merged meshes are typically non-manifold.");
                                                 return null;
                                         }
@@ -1032,10 +1067,17 @@ export const flockCSG = {
                                                 }
 
                                                 try {
-                                                        const meshCSG = flock.BABYLON.CSG2.FromMesh(
+                                                        const meshCSG = createCSGFromMesh(
                                                                 preparedMesh,
-                                                                false,
+                                                                baseCSG.type,
                                                         );
+                                                        if (!meshCSG) {
+                                                                console.warn(
+                                                                        "[intersectMeshes] Failed to create CSG from mesh",
+                                                                );
+                                                                csgFailed = true;
+                                                                return;
+                                                        }
                                                         baseCSG = baseCSG.intersect(meshCSG);
                                                 } catch (e) {
                                                         console.warn("[intersectMeshes] CSG intersect failed:", e.message);
