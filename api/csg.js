@@ -102,7 +102,7 @@ function prepareMeshForCSG(mesh) {
                 const single = meshesWithGeometry[0];
                 const originalName = mesh.name;
                 if (single !== mesh) {
-                        mesh.name = `${originalName}_csgSource_${mesh.uniqueId}`;
+                        mesh.dispose();
                         single.name = originalName;
                 }
                 single.metadata = single.metadata || {};
