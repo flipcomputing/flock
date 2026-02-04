@@ -297,7 +297,7 @@ export const flockCSG = {
                                         }
 
                                         // Fallback to simple Mesh.MergeMeshes if CSG2 failed or should be skipped
-                                        if (!csgSucceeded) {
+                                        if (!csgSucceeded && !mergedMesh) {
                                                 mergedMesh = flock.BABYLON.Mesh.MergeMeshes(
                                                         meshesToMerge,
                                                         false,
