@@ -100,12 +100,14 @@ function prepareMeshForCSG(mesh) {
 
         if (meshesWithGeometry.length === 1) {
                 const single = meshesWithGeometry[0];
-                if (single.metadata?.csgPartOf === mesh.uniqueId) {
-                        single.metadata = single.metadata || {};
-                        single.metadata.csgPrepared = true;
-                        single.metadata.csgSourceName = mesh.name;
-                        return single;
+                const originalName = mesh.name;
+                if (single !== mesh) {
+                        mesh.name = `${originalName}_csgSource_${mesh.uniqueId}`;
+                        single.name = originalName;
                 }
+                single.metadata = single.metadata || {};
+                single.metadata.csgPrepared = true;
+                single.metadata.csgSourceName = originalName;
                 return single;
         }
 
