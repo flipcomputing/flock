@@ -137,7 +137,6 @@ function prepareMeshForCSG(mesh) {
         });
 
         const originalName = mesh.name;
-        mesh.name = `${originalName}_csgSource_${mesh.uniqueId}`;
 
         const merged = flock.BABYLON.Mesh.MergeMeshes(
                 clones,
@@ -153,6 +152,7 @@ function prepareMeshForCSG(mesh) {
                 merged.metadata.csgPrepared = true;
                 merged.metadata.csgSourceName = mesh.name;
                 merged.name = originalName;
+                mesh.dispose();
 
                 // Child vertices are baked into world space, so keep the merged mesh at identity.
                 merged.position.set(0, 0, 0);
