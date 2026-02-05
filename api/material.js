@@ -538,7 +538,10 @@ export const flockMaterial = {
   },
   changeColor(meshName, options = {}) {
     const resolvedColor =
-      options && typeof options === "object" && "color" in options
+      options &&
+      typeof options === "object" &&
+      "color" in options &&
+      Object.keys(options).length === 1
         ? options.color
         : options;
 
@@ -579,13 +582,55 @@ export const flockMaterial = {
       mesh.metadata?.modelName,
     );
 
-    if (isColorMap) {
+    const extractNamedColorMap = (value) => {
+      if (!value) return null;
+
+      if (Array.isArray(value)) {
+        const entries = value
+          .filter((v) => v && typeof v === "object")
+          .map((v) => {
+            const name = v.materialName || v.name;
+            const c = v.color || v.baseColor;
+            return name && c ? [name, c] : null;
+          })
+          .filter(Boolean);
+        return entries.length > 0 ? Object.fromEntries(entries) : null;
+      }
+
+      if (typeof value === "object") {
+        if (value.materialName && (value.color || value.baseColor)) {
+          return {
+            [value.materialName]: value.color || value.baseColor,
+          };
+        }
+
+        const hasNonNamedKeys = Object.keys(value).some((key) =>
+          ["color", "baseColor", "alpha", "materialName", "textureSet", "glow"].includes(
+            key,
+          ),
+        );
+        if (!hasNonNamedKeys) return value;
+
+        if (value.color && typeof value.color === "object") {
+          return extractNamedColorMap(value.color);
+        }
+      }
+
+      return null;
+    };
+
+    const namedColorMap = extractNamedColorMap(color);
+    if (namedColorMap) {
       if (isCharacterModel) {
-        flock.applyColorsToCharacter(mesh, color);
+        flock.applyColorsToCharacter(mesh, namedColorMap);
       } else {
-        flock.applyColorsByMaterialName(mesh, color);
+        flock.applyColorsByMaterialName(mesh, namedColorMap);
       }
       return;
+    }
+
+    if (isColorMap && color?.color) {
+      color = color.color;
     }
 
     // Ensure color is an array
