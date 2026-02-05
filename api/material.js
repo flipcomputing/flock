@@ -568,6 +568,21 @@ export const flockMaterial = {
     )
       flock.ensureUniqueMaterial(mesh);
 
+    const isColorMap =
+      color && typeof color === "object" && !Array.isArray(color);
+    const isCharacterModel = flock.characterNames.includes(
+      mesh.metadata?.modelName,
+    );
+
+    if (isColorMap) {
+      if (isCharacterModel) {
+        flock.applyColorsToCharacter(mesh, color);
+      } else {
+        flock.applyColorsByMaterialName(mesh, color);
+      }
+      return;
+    }
+
     // Ensure color is an array
     const colors = Array.isArray(color) ? color : [color];
     let colorIndex = 0;
@@ -625,7 +640,7 @@ export const flockMaterial = {
 
     // Start applying colours to the main mesh and its hierarchy
 
-    if (!flock.characterNames.includes(mesh.metadata?.meshName)) {
+    if (!isCharacterModel) {
       applyColorInOrder(mesh);
     } else {
       const characterColors = {
@@ -694,6 +709,28 @@ export const flockMaterial = {
     flock.applyColorToMaterial(mesh, "Tshirt", tshirtColor);
     flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
     flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
+  },
+  applyColorsByMaterialName(mesh, colorsByMaterialName = {}) {
+    const normalizedMap = new Map(
+      Object.entries(colorsByMaterialName).map(([name, colour]) => [
+        name.toLowerCase(),
+        colour,
+      ]),
+    );
+
+    const allMeshes = [mesh, ...mesh.getChildMeshes()];
+    allMeshes.forEach((part) => {
+      const materialName = part.material?.name;
+      if (!materialName) return;
+
+      const color = normalizedMap.get(materialName.toLowerCase());
+      if (!color) return;
+
+      const resolvedColor = flock.getColorFromString(color);
+      const babylonColor = flock.BABYLON.Color3.FromHexString(resolvedColor);
+      part.material.diffuseColor = babylonColor;
+      part.material.albedoColor = babylonColor;
+    });
   },
   changeMaterial(meshName, materialName, color) {
     return new Promise((resolve) => {
