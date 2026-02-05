@@ -536,20 +536,25 @@ export const flockMaterial = {
       oldMaterial.dispose();
     });
   },
-  changeColor(meshName, { color } = {}) {
+  changeColor(meshName, options = {}) {
+    const resolvedColor =
+      options && typeof options === "object" && "color" in options
+        ? options.color
+        : options;
+
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         if (flock.materialsDebug)
-          console.log(`Change colour of ${meshName} to ${color}:`);
+          console.log(`Change colour of ${meshName} to ${resolvedColor}:`);
         if (!mesh) {
           flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(color),
+            flock.getColorFromString(resolvedColor),
           );
           resolve();
           return;
         }
 
-        flock.changeColorMesh(mesh, color);
+        flock.changeColorMesh(mesh, resolvedColor);
         resolve();
       });
     });
@@ -711,25 +716,63 @@ export const flockMaterial = {
     flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
   },
   applyColorsByMaterialName(mesh, colorsByMaterialName = {}) {
-    const normalizedMap = new Map(
-      Object.entries(colorsByMaterialName).map(([name, colour]) => [
-        name.toLowerCase(),
-        colour,
-      ]),
-    );
+    const normalizeName = (name = "") =>
+      String(name)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
 
-    const allMeshes = [mesh, ...mesh.getChildMeshes()];
-    allMeshes.forEach((part) => {
-      const materialName = part.material?.name;
+    const entries = Object.entries(colorsByMaterialName).map(([name, colour]) => ({
+      raw: String(name),
+      normalized: normalizeName(name),
+      colour,
+    }));
+
+    const findColorForMaterial = (materialName = "") => {
+      const matRaw = String(materialName).toLowerCase();
+      const matNormalized = normalizeName(materialName);
+
+      const exact = entries.find((entry) => entry.raw.toLowerCase() === matRaw);
+      if (exact) return exact.colour;
+
+      const normalizedExact = entries.find(
+        (entry) => entry.normalized && entry.normalized === matNormalized,
+      );
+      if (normalizedExact) return normalizedExact.colour;
+
+      const partial = entries.find(
+        (entry) =>
+          entry.normalized &&
+          matNormalized.includes(entry.normalized),
+      );
+      if (partial) return partial.colour;
+
+      return null;
+    };
+
+    const applyToMaterial = (material) => {
+      const materialName = material?.name;
       if (!materialName) return;
 
-      const color = normalizedMap.get(materialName.toLowerCase());
+      const color = findColorForMaterial(materialName);
       if (!color) return;
 
       const resolvedColor = flock.getColorFromString(color);
       const babylonColor = flock.BABYLON.Color3.FromHexString(resolvedColor);
-      part.material.diffuseColor = babylonColor;
-      part.material.albedoColor = babylonColor;
+      material.diffuseColor = babylonColor;
+      material.albedoColor = babylonColor;
+    };
+
+    const allMeshes = [mesh, ...mesh.getChildMeshes()];
+    allMeshes.forEach((part) => {
+      if (!part.material) return;
+
+      if (part.material.subMaterials?.length) {
+        part.material.subMaterials.forEach((subMaterial) => {
+          applyToMaterial(subMaterial);
+        });
+      }
+
+      applyToMaterial(part.material);
     });
   },
   changeMaterial(meshName, materialName, color) {
