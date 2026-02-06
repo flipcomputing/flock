@@ -843,15 +843,21 @@ export const flockMaterial = {
 
     ensurePartMetadata(mesh);
 
-    flock.applyColorToMaterial(mesh, "Hair", hairColor);
-    flock.applyColorToMaterial(mesh, "Skin", skinColor);
-    flock.applyColorToMaterial(mesh, "Eyes", eyesColor);
-    flock.applyColorToMaterial(mesh, "Detail", sleevesColor);
-    flock.applyColorToMaterial(mesh, "Shorts", shortsColor);
-    flock.applyColorToMaterial(mesh, "TShirt", tshirtColor);
-    flock.applyColorToMaterial(mesh, "Tshirt", tshirtColor);
-    flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
-    flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
+    if (hairColor != null) flock.applyColorToMaterial(mesh, "Hair", hairColor);
+    if (skinColor != null) flock.applyColorToMaterial(mesh, "Skin", skinColor);
+    if (eyesColor != null) flock.applyColorToMaterial(mesh, "Eyes", eyesColor);
+    if (sleevesColor != null)
+      flock.applyColorToMaterial(mesh, "Detail", sleevesColor);
+    if (shortsColor != null)
+      flock.applyColorToMaterial(mesh, "Shorts", shortsColor);
+    if (tshirtColor != null)
+      flock.applyColorToMaterial(mesh, "TShirt", tshirtColor);
+    if (tshirtColor != null)
+      flock.applyColorToMaterial(mesh, "Tshirt", tshirtColor);
+    if (sleevesColor != null)
+      flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
+    if (sleevesColor != null)
+      flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
   },
   changeMaterial(meshName, materialName, color) {
     return new Promise((resolve) => {
