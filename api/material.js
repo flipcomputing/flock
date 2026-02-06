@@ -687,14 +687,38 @@ export const flockMaterial = {
     if (!isCharacterLike) {
       applyColorInOrder(mesh);
     } else {
-      const characterColors = {
-        hair: colors[0],
-        skin: colors[1],
-        eyes: colors[2],
-        tshirt: colors[3],
-        shorts: colors[4],
-        sleeves: colors[5],
-      };
+      const root = getRootMesh(mesh);
+      const currentPalette = {};
+      const parts = [root, ...root.getChildMeshes()];
+      parts.forEach((part) => {
+        const partName = getPartNameFromMesh(part);
+        if (!partName || currentPalette[partName]) return;
+        const mat = part.material;
+        const color = mat?.albedoColor || mat?.diffuseColor || null;
+        if (color?.toHexString) currentPalette[partName] = color.toHexString();
+      });
+
+      let characterColors;
+      if (Array.isArray(color)) {
+        characterColors = {
+          hair: colors[0] ?? currentPalette.hair,
+          skin: colors[1] ?? currentPalette.skin,
+          eyes: colors[2] ?? currentPalette.eyes,
+          tshirt: colors[3] ?? currentPalette.tshirt,
+          shorts: colors[4] ?? currentPalette.shorts,
+          sleeves: colors[5] ?? currentPalette.sleeves,
+        };
+      } else {
+        characterColors = {
+          hair: color,
+          skin: color,
+          eyes: color,
+          tshirt: color,
+          shorts: color,
+          sleeves: color,
+        };
+      }
+
       flock.applyColorsToCharacter(mesh, characterColors);
       return;
     }
