@@ -627,8 +627,25 @@ export const flockMaterial = {
     )
       flock.ensureUniqueMaterial(mesh);
 
-    // Ensure color is an array
-    const colors = Array.isArray(color) ? color : [color];
+    const normalizeColorInput = (input) => {
+      if (Array.isArray(input)) return input;
+      if (typeof input === "string") {
+        const trimmed = input.trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+          try {
+            return JSON.parse(trimmed.replace(/'/g, "\""));
+          } catch {
+            return input;
+          }
+        }
+      }
+      return input;
+    };
+
+    const normalizedColor = normalizeColorInput(color);
+    const colors = Array.isArray(normalizedColor)
+      ? normalizedColor
+      : [normalizedColor];
     let colorIndex = 0;
 
     if (flock.materialsDebug)
