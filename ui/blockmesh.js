@@ -1055,11 +1055,27 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     return;
   }
 
+  if (block.type === "change_color") {
+    if (flock.meshDebug)
+      console.log("Skipping live update for change_color block");
+    return;
+  }
+
   const changedBlock = changeEvent.blockId
     ? Blockly.getMainWorkspace().getBlockById(changeEvent.blockId)
     : null;
 
   const parent = changedBlock?.getParent() || changedBlock;
+
+  let cursor = changedBlock;
+  while (cursor) {
+    if (cursor.type === "change_color") {
+      if (flock.meshDebug)
+        console.log("Skipping live update for change_color subtree");
+      return;
+    }
+    cursor = cursor.getParent?.();
+  }
 
   let changed;
 
@@ -1745,6 +1761,7 @@ function replaceMeshModel(currentMesh, block) {
           const idx = subMeshes[i].materialIndex;
           const sm = subMats[idx] || null;
           const part =
+            partFromName(n.metadata?.materialPartName) ||
             partFromName(sm?.name) ||
             partFromName(n.name) ||
             partFromName(mat.name);
@@ -1753,7 +1770,10 @@ function replaceMeshModel(currentMesh, block) {
           if (part && hex && !found[part]) found[part] = hex;
         }
       } else {
-        const part = partFromName(mat.name) || partFromName(n.name);
+        const part =
+          partFromName(n.metadata?.materialPartName) ||
+          partFromName(mat.name) ||
+          partFromName(n.name);
         const color = mat?.albedoColor || mat?.diffuseColor || null;
         const hex = _colToHex(color);
         if (part && hex && !found[part]) found[part] = hex;
