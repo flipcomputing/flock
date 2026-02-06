@@ -562,6 +562,19 @@ export const flockMaterial = {
       return;
     }
 
+    const getRootMesh = (node) => {
+      let current = node;
+      while (current?.parent) current = current.parent;
+      return current || node;
+    };
+
+    const isCharacterMesh = (node) => {
+      const root = getRootMesh(node);
+      const modelName = root?.metadata?.modelName;
+      const meshName = root?.metadata?.meshName;
+      return flock.characterNames.includes(modelName || meshName);
+    };
+
     if (
       mesh.metadata?.sharedMaterial &&
       !(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)
@@ -625,7 +638,7 @@ export const flockMaterial = {
 
     // Start applying colours to the main mesh and its hierarchy
 
-    if (!flock.characterNames.includes(mesh.metadata?.meshName)) {
+    if (!isCharacterMesh(mesh)) {
       applyColorInOrder(mesh);
     } else {
       const characterColors = {
