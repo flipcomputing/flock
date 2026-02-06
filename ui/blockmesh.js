@@ -1055,6 +1055,12 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     return;
   }
 
+  if (block.type === "change_color") {
+    if (flock.meshDebug)
+      console.log("Skipping live update for change_color block");
+    return;
+  }
+
   const changedBlock = changeEvent.blockId
     ? Blockly.getMainWorkspace().getBlockById(changeEvent.blockId)
     : null;
