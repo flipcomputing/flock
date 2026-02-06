@@ -152,6 +152,8 @@ export const flockPhysics = {
   },
   updatePhysics(mesh, parent = null) {
     if (!parent) parent = mesh;
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo(true);
     // If the mesh has a physics body, update its shape
     if (parent.physics) {
       // Preserve the disablePreStep setting if it exists

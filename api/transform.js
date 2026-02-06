@@ -580,7 +580,7 @@ export const flockTransform = {
 
         mesh.scaling = new flock.BABYLON.Vector3(x, y, z);
 
-        mesh.refreshBoundingInfo();
+        mesh.refreshBoundingInfo(true);
         mesh.computeWorldMatrix(true);
 
         const newBoundingInfo = mesh.getBoundingInfo();
@@ -615,7 +615,7 @@ export const flockTransform = {
           mesh.position.z -= diffZ;
         }
 
-        mesh.refreshBoundingInfo();
+        mesh.refreshBoundingInfo(true);
         mesh.computeWorldMatrix(true);
         let physicsTarget = mesh;
         while (physicsTarget.parent) {
