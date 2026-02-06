@@ -387,12 +387,15 @@ export const flockTransform = {
           return;
         }
 
-        const incrementalRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-          flock.BABYLON.Tools.ToRadians(y),
-          flock.BABYLON.Tools.ToRadians(x),
-          flock.BABYLON.Tools.ToRadians(z),
-        );
-        mesh.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
+        const incrementalRotation =
+          flock.BABYLON.Quaternion.RotationYawPitchRoll(
+            flock.BABYLON.Tools.ToRadians(y),
+            flock.BABYLON.Tools.ToRadians(x),
+            flock.BABYLON.Tools.ToRadians(z),
+          );
+        mesh.rotationQuaternion
+          .multiplyInPlace(incrementalRotation)
+          .normalize();
 
         if (mesh.physics) {
           mesh.physics.disablePreStep = false;
@@ -438,11 +441,12 @@ export const flockTransform = {
           return;
         }
         if (!mesh.rotationQuaternion && mesh.name != "hemisphericLight") {
-          mesh.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-            mesh.rotation.y,
-            mesh.rotation.x,
-            mesh.rotation.z,
-          );
+          mesh.rotationQuaternion =
+            flock.BABYLON.Quaternion.RotationYawPitchRoll(
+              mesh.rotation.y,
+              mesh.rotation.x,
+              mesh.rotation.z,
+            );
         }
 
         const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
@@ -622,6 +626,8 @@ export const flockTransform = {
           physicsTarget = physicsTarget.parent;
         }
 
+        console.log("Updating physics", mesh.name);
+
         if (physicsTarget.physics && physicsTarget !== mesh) {
           flock.updatePhysics(mesh, physicsTarget);
         } else {
@@ -645,90 +651,115 @@ export const flockTransform = {
   ) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
-      mesh.metadata = mesh.metadata || {};
+        mesh.metadata = mesh.metadata || {};
 
-      if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
-        const bi = mesh.getBoundingInfo();
-        mesh.metadata.originalMin = bi.boundingBox.minimum.clone();
-        mesh.metadata.originalMax = bi.boundingBox.maximum.clone();
-      }
+        if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
+          const bi = mesh.getBoundingInfo();
+          mesh.metadata.originalMin = bi.boundingBox.minimum.clone();
+          mesh.metadata.originalMax = bi.boundingBox.maximum.clone();
+        }
 
-      const origMin = mesh.metadata.originalMin;
-      const origMax = mesh.metadata.originalMax;
-      const origWidth = origMax.x - origMin.x;
-      const origHeight = origMax.y - origMin.y;
-      const origDepth = origMax.z - origMin.z;
+        const origMin = mesh.metadata.originalMin;
+        const origMax = mesh.metadata.originalMax;
+        const origWidth = origMax.x - origMin.x;
+        const origHeight = origMax.y - origMin.y;
+        const origDepth = origMax.z - origMin.z;
 
-      const scaleX = origWidth && width !== null ? width / origWidth : 1;
-      const scaleY = origHeight && height !== null ? height / origHeight : 1;
-      const scaleZ = origDepth && depth !== null ? depth / origDepth : 1;
+        const scaleX = origWidth && width !== null ? width / origWidth : 1;
+        const scaleY = origHeight && height !== null ? height / origHeight : 1;
+        const scaleZ = origDepth && depth !== null ? depth / origDepth : 1;
 
-      mesh.computeWorldMatrix(true);
-      mesh.refreshBoundingInfo();
-      const oldBI = mesh.getBoundingInfo();
-      const oldMinWorld = oldBI.boundingBox.minimumWorld;
-      const oldMaxWorld = oldBI.boundingBox.maximumWorld;
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        const oldBI = mesh.getBoundingInfo();
+        const oldMinWorld = oldBI.boundingBox.minimumWorld;
+        const oldMaxWorld = oldBI.boundingBox.maximumWorld;
 
-      const oldAnchor = new flock.BABYLON.Vector3(
-        xOrigin === "LEFT" ? oldMinWorld.x : xOrigin === "RIGHT" ? oldMaxWorld.x : (oldMinWorld.x + oldMaxWorld.x) / 2,
-        yOrigin === "BASE" ? oldMinWorld.y : yOrigin === "TOP" ? oldMaxWorld.y : (oldMinWorld.y + oldMaxWorld.y) / 2,
-        zOrigin === "FRONT" ? oldMinWorld.z : zOrigin === "BACK" ? oldMaxWorld.z : (oldMinWorld.z + oldMaxWorld.z) / 2,
-      );
+        const oldAnchor = new flock.BABYLON.Vector3(
+          xOrigin === "LEFT"
+            ? oldMinWorld.x
+            : xOrigin === "RIGHT"
+              ? oldMaxWorld.x
+              : (oldMinWorld.x + oldMaxWorld.x) / 2,
+          yOrigin === "BASE"
+            ? oldMinWorld.y
+            : yOrigin === "TOP"
+              ? oldMaxWorld.y
+              : (oldMinWorld.y + oldMaxWorld.y) / 2,
+          zOrigin === "FRONT"
+            ? oldMinWorld.z
+            : zOrigin === "BACK"
+              ? oldMaxWorld.z
+              : (oldMinWorld.z + oldMaxWorld.z) / 2,
+        );
 
-      mesh.scaling = new flock.BABYLON.Vector3(scaleX, scaleY, scaleZ);
+        mesh.scaling = new flock.BABYLON.Vector3(scaleX, scaleY, scaleZ);
 
-      if (maintainTextureScale) {
-        const allMeshes = [mesh, ...mesh.getChildMeshes()];
-        allMeshes.forEach((m) => {
-          if (!m.material) return;
-          const mats = m.material.subMaterials || [m.material];
-          mats.forEach((mat) => {
-            const textures = [mat.albedoTexture, mat.diffuseTexture, mat.bumpTexture];
-            textures.forEach((tex) => {
-              if (tex && typeof tex.uScale === "number") {
-                const unitsPerTile = 4.0; 
-                // Use the intended target dimensions for consistency
-                const currentW = width !== null ? width : origWidth * scaleX;
-                const currentH = height !== null ? height : origHeight * scaleY;
-                const currentD = depth !== null ? depth : origDepth * scaleZ;
+        if (maintainTextureScale) {
+          const allMeshes = [mesh, ...mesh.getChildMeshes()];
+          allMeshes.forEach((m) => {
+            if (!m.material) return;
+            const mats = m.material.subMaterials || [m.material];
+            mats.forEach((mat) => {
+              const textures = [
+                mat.albedoTexture,
+                mat.diffuseTexture,
+                mat.bumpTexture,
+              ];
+              textures.forEach((tex) => {
+                if (tex && typeof tex.uScale === "number") {
+                  const unitsPerTile = 4.0;
+                  // Use the intended target dimensions for consistency
+                  const currentW = width !== null ? width : origWidth * scaleX;
+                  const currentH =
+                    height !== null ? height : origHeight * scaleY;
+                  const currentD = depth !== null ? depth : origDepth * scaleZ;
 
-                tex.uScale = currentW / unitsPerTile;
-                tex.vScale = Math.max(currentH, currentD) / unitsPerTile;
-                tex.wrapU = 1;
-                tex.wrapV = 1;
-              }
+                  tex.uScale = currentW / unitsPerTile;
+                  tex.vScale = Math.max(currentH, currentD) / unitsPerTile;
+                  tex.wrapU = 1;
+                  tex.wrapV = 1;
+                }
+              });
             });
           });
-        });
-      }
+        }
 
-      mesh.computeWorldMatrix(true);
-      mesh.refreshBoundingInfo();
-      const newBI = mesh.getBoundingInfo();
-      const newMinWorld = newBI.boundingBox.minimumWorld;
-      const newMaxWorld = newBI.boundingBox.maximumWorld;
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        const newBI = mesh.getBoundingInfo();
+        const newMinWorld = newBI.boundingBox.minimumWorld;
+        const newMaxWorld = newBI.boundingBox.maximumWorld;
 
-      const newAnchor = new flock.BABYLON.Vector3(
-        xOrigin === "LEFT" ? newMinWorld.x : xOrigin === "RIGHT" ? newMaxWorld.x : (newMinWorld.x + newMaxWorld.x) / 2,
-        yOrigin === "BASE" ? newMinWorld.y : yOrigin === "TOP" ? newMaxWorld.y : (newMinWorld.y + newMaxWorld.y) / 2,
-        zOrigin === "FRONT" ? newMinWorld.z : zOrigin === "BACK" ? newMaxWorld.z : (newMinWorld.z + newMaxWorld.z) / 2,
-      );
+        const newAnchor = new flock.BABYLON.Vector3(
+          xOrigin === "LEFT"
+            ? newMinWorld.x
+            : xOrigin === "RIGHT"
+              ? newMaxWorld.x
+              : (newMinWorld.x + newMaxWorld.x) / 2,
+          yOrigin === "BASE"
+            ? newMinWorld.y
+            : yOrigin === "TOP"
+              ? newMaxWorld.y
+              : (newMinWorld.y + newMaxWorld.y) / 2,
+          zOrigin === "FRONT"
+            ? newMinWorld.z
+            : zOrigin === "BACK"
+              ? newMaxWorld.z
+              : (newMinWorld.z + newMaxWorld.z) / 2,
+        );
 
-      const diff = newAnchor.subtract(oldAnchor);
-      mesh.position.subtractInPlace(diff);
+        const diff = newAnchor.subtract(oldAnchor);
+        mesh.position.subtractInPlace(diff);
 
-      flock.updatePhysics(mesh);
+        flock.updatePhysics(mesh);
         resolve();
       });
     });
   },
   setAnchor(
     meshName,
-    {
-      xPivot = "CENTER",
-      yPivot = "MIN",
-      zPivot = "CENTER",
-    } = {},
+    { xPivot = "CENTER", yPivot = "MIN", zPivot = "CENTER" } = {},
   ) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
@@ -737,91 +768,91 @@ export const flockTransform = {
           return;
         }
 
-      const BABYLON = flock.BABYLON;
+        const BABYLON = flock.BABYLON;
 
-      const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
-      function resolvePivotValue(value, axis) {
-        if (typeof value === "string") {
-          switch (value) {
-            case "MIN":
-              return -bounding[axis];
-            case "MAX":
-              return bounding[axis];
-            case "CENTER":
-            default:
-              return 0;
+        const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
+        function resolvePivotValue(value, axis) {
+          if (typeof value === "string") {
+            switch (value) {
+              case "MIN":
+                return -bounding[axis];
+              case "MAX":
+                return bounding[axis];
+              case "CENTER":
+              default:
+                return 0;
+            }
           }
+          return typeof value === "number" ? value : 0;
         }
-        return typeof value === "number" ? value : 0;
-      }
 
-      // OLD pivot from metadata; default Y is MIN, X/Z are CENTER
-      const prev = (mesh.metadata && mesh.metadata.pivotSettings) || {
-        x: "CENTER",
-        y: "MIN",
-        z: "CENTER",
-      };
-      const oldPivotLocal = new BABYLON.Vector3(
-        resolvePivotValue(prev.x, "x"),
-        resolvePivotValue(prev.y, "y"),
-        resolvePivotValue(prev.z, "z"),
-      );
+        // OLD pivot from metadata; default Y is MIN, X/Z are CENTER
+        const prev = (mesh.metadata && mesh.metadata.pivotSettings) || {
+          x: "CENTER",
+          y: "MIN",
+          z: "CENTER",
+        };
+        const oldPivotLocal = new BABYLON.Vector3(
+          resolvePivotValue(prev.x, "x"),
+          resolvePivotValue(prev.y, "y"),
+          resolvePivotValue(prev.z, "z"),
+        );
 
-      // NEW pivot from args (Y defaults to MIN above)
-      const newPivotLocal = new BABYLON.Vector3(
-        resolvePivotValue(xPivot, "x"),
-        resolvePivotValue(yPivot, "y"),
-        resolvePivotValue(zPivot, "z"),
-      );
+        // NEW pivot from args (Y defaults to MIN above)
+        const newPivotLocal = new BABYLON.Vector3(
+          resolvePivotValue(xPivot, "x"),
+          resolvePivotValue(yPivot, "y"),
+          resolvePivotValue(zPivot, "z"),
+        );
 
-      // World position of OLD pivot (before change)
-      mesh.computeWorldMatrix(true);
-      const wmBefore = mesh.getWorldMatrix().clone();
-      const oldPivotWorld = BABYLON.Vector3.TransformCoordinates(
-        oldPivotLocal,
-        wmBefore,
-      );
+        // World position of OLD pivot (before change)
+        mesh.computeWorldMatrix(true);
+        const wmBefore = mesh.getWorldMatrix().clone();
+        const oldPivotWorld = BABYLON.Vector3.TransformCoordinates(
+          oldPivotLocal,
+          wmBefore,
+        );
 
-      // Apply new pivot to mesh (and children, per your existing behavior)
-      mesh.setPivotPoint(newPivotLocal);
-      mesh
-        .getChildMeshes()
-        .forEach((child) => child.setPivotPoint(newPivotLocal));
+        // Apply new pivot to mesh (and children, per your existing behavior)
+        mesh.setPivotPoint(newPivotLocal);
+        mesh
+          .getChildMeshes()
+          .forEach((child) => child.setPivotPoint(newPivotLocal));
 
-      // World position of NEW pivot (after change)
-      mesh.computeWorldMatrix(true);
-      const wmAfter = mesh.getWorldMatrix().clone();
-      const newPivotWorld = BABYLON.Vector3.TransformCoordinates(
-        newPivotLocal,
-        wmAfter,
-      );
+        // World position of NEW pivot (after change)
+        mesh.computeWorldMatrix(true);
+        const wmAfter = mesh.getWorldMatrix().clone();
+        const newPivotWorld = BABYLON.Vector3.TransformCoordinates(
+          newPivotLocal,
+          wmAfter,
+        );
 
-      // Reposition to preserve visual placement
-      const delta = oldPivotWorld.subtract(newPivotWorld);
-      mesh.position.addInPlace(delta);
+        // Reposition to preserve visual placement
+        const delta = oldPivotWorld.subtract(newPivotWorld);
+        mesh.position.addInPlace(delta);
 
-      // Physics sync
-      if (mesh.physics) {
-        if (
-          mesh.physics.getMotionType() !== BABYLON.PhysicsMotionType.DYNAMIC
-        ) {
-          mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+        // Physics sync
+        if (mesh.physics) {
+          if (
+            mesh.physics.getMotionType() !== BABYLON.PhysicsMotionType.DYNAMIC
+          ) {
+            mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+          }
+          const rq =
+            mesh.rotationQuaternion ||
+            BABYLON.Quaternion.FromEulerAngles(
+              mesh.rotation.x,
+              mesh.rotation.y,
+              mesh.rotation.z,
+            );
+          mesh.physics.disablePreStep = false;
+          mesh.physics.setTargetTransform(mesh.position, rq);
         }
-        const rq =
-          mesh.rotationQuaternion ||
-          BABYLON.Quaternion.FromEulerAngles(
-            mesh.rotation.x,
-            mesh.rotation.y,
-            mesh.rotation.z,
-          );
-        mesh.physics.disablePreStep = false;
-        mesh.physics.setTargetTransform(mesh.position, rq);
-      }
 
-      mesh.computeWorldMatrix(true);
+        mesh.computeWorldMatrix(true);
 
-      mesh.metadata = mesh.metadata || {};
-      mesh.metadata.pivotSettings = { x: xPivot, y: yPivot, z: zPivot };
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.pivotSettings = { x: xPivot, y: yPivot, z: zPivot };
         resolve();
       });
     });
