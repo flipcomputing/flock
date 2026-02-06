@@ -663,14 +663,51 @@ export const flockMaterial = {
     }
   },
   applyColorToMaterial(part, materialName, color) {
-    if (part.material && part.material.name === materialName) {
+    const CHARACTER_PART_ALIASES = {
+      hair: "hair",
+      skin: "skin",
+      eyes: "eyes",
+      shorts: "shorts",
+      tshirt: "tshirt",
+      "t-shirt": "tshirt",
+      tee: "tshirt",
+      sleeves: "sleeves",
+      sleeve: "sleeves",
+      detail: "sleeves",
+      shoes: "sleeves",
+    };
+
+    const canonicalizePartName = (name = "") => {
+      const s = String(name).toLowerCase();
+      for (const key of Object.keys(CHARACTER_PART_ALIASES)) {
+        if (s === key || s.includes(key)) return CHARACTER_PART_ALIASES[key];
+      }
+      return null;
+    };
+
+    const getPartNameFromMesh = (mesh) => {
+      const metaName = mesh?.metadata?.materialPartName;
+      return (
+        canonicalizePartName(metaName) ||
+        canonicalizePartName(mesh?.material?.name) ||
+        canonicalizePartName(mesh?.name)
+      );
+    };
+
+    const targetPart = canonicalizePartName(materialName);
+    const partName = getPartNameFromMesh(part);
+
+    if (part.material && targetPart && partName === targetPart) {
       part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(
         flock.getColorFromString(color),
       );
       part.material.albedoColor = flock.BABYLON.Color3.FromHexString(
         flock.getColorFromString(color),
       );
+      part.metadata = part.metadata || {};
+      part.metadata.materialPartName = targetPart;
     }
+
     part.getChildMeshes().forEach((child) => {
       flock.applyColorToMaterial(child, materialName, color);
     });
@@ -684,6 +721,44 @@ export const flockMaterial = {
       shorts: shortsColor,
       tshirt: tshirtColor,
     } = colors;
+
+    const seedPartMetadata = (part, label) => {
+      if (!part) return;
+      part.metadata = part.metadata || {};
+      if (!part.metadata.materialPartName) {
+        part.metadata.materialPartName = label;
+      }
+    };
+
+    const ensurePartMetadata = (root) => {
+      if (!root) return;
+      const parts = [root, ...root.getChildMeshes()];
+      parts.forEach((part) => {
+        if (!part) return;
+        const rawName =
+          part.metadata?.materialPartName || part.material?.name || part.name;
+        const lower = String(rawName || "").toLowerCase();
+        if (lower.includes("hair")) seedPartMetadata(part, "hair");
+        else if (lower.includes("skin")) seedPartMetadata(part, "skin");
+        else if (lower.includes("eyes")) seedPartMetadata(part, "eyes");
+        else if (lower.includes("shorts")) seedPartMetadata(part, "shorts");
+        else if (
+          lower.includes("tshirt") ||
+          lower.includes("t-shirt") ||
+          lower.includes("tee")
+        )
+          seedPartMetadata(part, "tshirt");
+        else if (
+          lower.includes("sleeves") ||
+          lower.includes("sleeve") ||
+          lower.includes("detail") ||
+          lower.includes("shoes")
+        )
+          seedPartMetadata(part, "sleeves");
+      });
+    };
+
+    ensurePartMetadata(mesh);
 
     flock.applyColorToMaterial(mesh, "Hair", hairColor);
     flock.applyColorToMaterial(mesh, "Skin", skinColor);

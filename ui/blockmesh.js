@@ -1745,6 +1745,7 @@ function replaceMeshModel(currentMesh, block) {
           const idx = subMeshes[i].materialIndex;
           const sm = subMats[idx] || null;
           const part =
+            partFromName(n.metadata?.materialPartName) ||
             partFromName(sm?.name) ||
             partFromName(n.name) ||
             partFromName(mat.name);
@@ -1753,7 +1754,10 @@ function replaceMeshModel(currentMesh, block) {
           if (part && hex && !found[part]) found[part] = hex;
         }
       } else {
-        const part = partFromName(mat.name) || partFromName(n.name);
+        const part =
+          partFromName(n.metadata?.materialPartName) ||
+          partFromName(mat.name) ||
+          partFromName(n.name);
         const color = mat?.albedoColor || mat?.diffuseColor || null;
         const hex = _colToHex(color);
         if (part && hex && !found[part]) found[part] = hex;
