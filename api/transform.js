@@ -618,11 +618,15 @@ export const flockTransform = {
         mesh.refreshBoundingInfo(true);
         mesh.computeWorldMatrix(true);
         let physicsTarget = mesh;
-        while (physicsTarget.parent) {
+        while (physicsTarget.parent && !physicsTarget.physics) {
           physicsTarget = physicsTarget.parent;
         }
 
-        flock.updatePhysics(physicsTarget);
+        if (physicsTarget.physics && physicsTarget !== mesh) {
+          flock.updatePhysics(mesh, physicsTarget);
+        } else {
+          flock.updatePhysics(mesh);
+        }
         resolve();
       });
     });
