@@ -728,6 +728,21 @@ export const flockMaterial = {
     }
   },
   applyColorToMaterial(part, materialName, color) {
+    const materialNameMap = flock.getMaterialNameMap(part);
+    const materials = flock.findMaterialsForName(materialNameMap, materialName);
+
+    if (materials.length > 0) {
+      materials.forEach((material) => {
+        material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color),
+        );
+        material.albedoColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color),
+        );
+      });
+      return;
+    }
+
     if (part.material && part.material.name === materialName) {
       part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(
         flock.getColorFromString(color),
@@ -761,64 +776,84 @@ export const flockMaterial = {
     flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
   },
   applyColorsByMaterialName(mesh, colorsByMaterialName = {}) {
+    const materialNameMap = flock.getMaterialNameMap(mesh);
+
+    Object.entries(colorsByMaterialName).forEach(([name, colour]) => {
+      const materials = flock.findMaterialsForName(materialNameMap, name);
+      if (materials.length === 0) return;
+
+      const resolvedColor = flock.getColorFromString(colour);
+      const babylonColor = flock.BABYLON.Color3.FromHexString(resolvedColor);
+
+      materials.forEach((material) => {
+        material.diffuseColor = babylonColor;
+        material.albedoColor = babylonColor;
+      });
+    });
+  },
+  getMaterialNameMap(mesh) {
     const normalizeName = (name = "") =>
       String(name)
         .toLowerCase()
         .replace(/[^a-z0-9]/g, "");
 
-    const entries = Object.entries(colorsByMaterialName).map(([name, colour]) => ({
-      raw: String(name),
-      normalized: normalizeName(name),
-      colour,
-    }));
+    if (!mesh) return new Map();
+    if (mesh.metadata?.materialNameMap) return mesh.metadata.materialNameMap;
 
-    const findColorForMaterial = (materialName = "") => {
-      const matRaw = String(materialName).toLowerCase();
-      const matNormalized = normalizeName(materialName);
+    const map = new Map();
 
-      const exact = entries.find((entry) => entry.raw.toLowerCase() === matRaw);
-      if (exact) return exact.colour;
+    const addMaterial = (material) => {
+      if (!material?.name) return;
+      const normalized = normalizeName(material.name);
+      if (!normalized) return;
 
-      const normalizedExact = entries.find(
-        (entry) => entry.normalized && entry.normalized === matNormalized,
-      );
-      if (normalizedExact) return normalizedExact.colour;
-
-      const partial = entries.find(
-        (entry) =>
-          entry.normalized &&
-          matNormalized.includes(entry.normalized),
-      );
-      if (partial) return partial.colour;
-
-      return null;
+      if (!map.has(normalized)) {
+        map.set(normalized, new Set());
+      }
+      map.get(normalized).add(material);
     };
 
-    const applyToMaterial = (material) => {
-      const materialName = material?.name;
-      if (!materialName) return;
-
-      const color = findColorForMaterial(materialName);
-      if (!color) return;
-
-      const resolvedColor = flock.getColorFromString(color);
-      const babylonColor = flock.BABYLON.Color3.FromHexString(resolvedColor);
-      material.diffuseColor = babylonColor;
-      material.albedoColor = babylonColor;
-    };
-
-    const allMeshes = [mesh, ...mesh.getChildMeshes()];
-    allMeshes.forEach((part) => {
-      if (!part.material) return;
-
-      if (part.material.subMaterials?.length) {
-        part.material.subMaterials.forEach((subMaterial) => {
-          applyToMaterial(subMaterial);
+    const collectFromMaterial = (material) => {
+      if (!material) return;
+      addMaterial(material);
+      if (material.subMaterials?.length) {
+        material.subMaterials.forEach((subMaterial) => {
+          addMaterial(subMaterial);
         });
       }
+    };
 
-      applyToMaterial(part.material);
+    const allMeshes = [mesh, ...(mesh.getChildMeshes?.() || [])];
+    allMeshes.forEach((node) => {
+      if (node.material) collectFromMaterial(node.material);
     });
+
+    mesh.metadata = mesh.metadata || {};
+    mesh.metadata.materialNameMap = map;
+
+    return map;
+  },
+  findMaterialsForName(materialNameMap, name) {
+    if (!materialNameMap) return [];
+    const normalizeName = (value = "") =>
+      String(value)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+    const normalized = normalizeName(name);
+    if (!normalized) return [];
+
+    const matches = new Set();
+    if (materialNameMap.has(normalized)) {
+      materialNameMap.get(normalized).forEach((mat) => matches.add(mat));
+    } else {
+      materialNameMap.forEach((materials, key) => {
+        if (key.includes(normalized) || normalized.includes(key)) {
+          materials.forEach((mat) => matches.add(mat));
+        }
+      });
+    }
+
+    return Array.from(matches);
   },
   changeMaterial(meshName, materialName, color) {
     return new Promise((resolve) => {
