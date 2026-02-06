@@ -615,6 +615,12 @@ export const flockMaterial = {
       return false;
     };
 
+    const isCharacterLike = isCharacterMesh(mesh) || isCharacterLikeMesh(mesh);
+    if (isCharacterLike) {
+      const root = getRootMesh(mesh);
+      flock.ensureStandardMaterial(root);
+    }
+
     if (
       mesh.metadata?.sharedMaterial &&
       !(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)
@@ -678,7 +684,7 @@ export const flockMaterial = {
 
     // Start applying colours to the main mesh and its hierarchy
 
-    if (!isCharacterMesh(mesh) && !isCharacterLikeMesh(mesh)) {
+    if (!isCharacterLike) {
       applyColorInOrder(mesh);
     } else {
       const characterColors = {
