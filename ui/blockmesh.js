@@ -1067,6 +1067,16 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
 
   const parent = changedBlock?.getParent() || changedBlock;
 
+  let cursor = changedBlock;
+  while (cursor) {
+    if (cursor.type === "change_color") {
+      if (flock.meshDebug)
+        console.log("Skipping live update for change_color subtree");
+      return;
+    }
+    cursor = cursor.getParent?.();
+  }
+
   let changed;
 
   if (flock.meshDebug) {
