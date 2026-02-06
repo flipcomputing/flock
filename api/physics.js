@@ -162,15 +162,17 @@ export const flockPhysics = {
       // Recreate the physics shape based on the new scale
       //console.log(parent.physics.shape.constructor.name);
 
+      const physicsShape = parent.physics.shape;
+
       // Handling Capsule shape
-      if (parent.physics.shape.constructor.name === "_PhysicsShapeCapsule") {
+      if (physicsShape instanceof flock.BABYLON.PhysicsShapeCapsule) {
         const newShape = flock.createCapsuleFromBoundingBox(mesh, flock.scene);
         parent.physics.shape = newShape;
         parent.physics.setMassProperties({ mass: 1, restitution: 0.5 }); // Adjust properties as needed
       }
 
       // Handling Box shape
-      else if (parent.physics.shape.constructor.name === "_PhysicsShapeBox") {
+      else if (physicsShape instanceof flock.BABYLON.PhysicsShapeBox) {
         // Extract bounding box dimensions in world space (after scaling)
         const boundingBox = mesh.getBoundingInfo().boundingBox;
         const width = boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
@@ -189,7 +191,7 @@ export const flockPhysics = {
       }
 
       // Handling Mesh shape
-      else if (parent.physics.shape.constructor.name === "_PhysicsShapeMesh") {
+      else if (physicsShape instanceof flock.BABYLON.PhysicsShapeMesh) {
         // Create a new mesh shape based on the updated geometry of the mesh
         const newMeshShape = new flock.BABYLON.PhysicsShapeMesh(
           mesh,
@@ -288,111 +290,113 @@ export const flockPhysics = {
   setPhysicsShape(meshName, shapeType) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
-      const capturePhysicsState = (targetMesh) => ({
-        motionType: targetMesh.physics?.getMotionType?.(),
-        disablePreStep: targetMesh.physics?.disablePreStep,
-      });
+        const capturePhysicsState = (targetMesh) => ({
+          motionType: targetMesh.physics?.getMotionType?.(),
+          disablePreStep: targetMesh.physics?.disablePreStep,
+        });
 
-      mesh.metadata = mesh.metadata || {};
+        mesh.metadata = mesh.metadata || {};
 
-      // --- CAPSULE path (player collider) ---
-      const applyCapsuleToRoot = (targetMesh) => {
-        targetMesh.computeWorldMatrix(true);
-        const { motionType, disablePreStep } = capturePhysicsState(targetMesh);
-        disposePhysics(targetMesh);
-
-        // IMPORTANT: use targetMesh (not outer mesh)
-        const physicsShape = flock.createCapsuleFromBoundingBox(
-          targetMesh,
-          flock.scene,
-        );
-        if (!physicsShape) {
-          console.error(
-            "[setPhysicsShape] Failed to create capsule for",
-            targetMesh.name,
-          );
-          return;
-        }
-
-        const physicsBody = new flock.BABYLON.PhysicsBody(
-          targetMesh,
-          flock.BABYLON.PhysicsMotionType.DYNAMIC,
-          false,
-          flock.scene,
-        );
-        physicsBody.shape = physicsShape;
-        physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
-        physicsBody.disablePreStep = disablePreStep ?? false;
-
-        targetMesh.physics = physicsBody;
-        if (motionType != null) {
-          physicsBody.setMotionType(motionType);
-        }
-
-        targetMesh.metadata.physicsShapeType = "CAPSULE";
-        targetMesh.metadata.physicsCache = {
-          motionType: physicsBody.getMotionType?.(),
-          disablePreStep: physicsBody.disablePreStep,
-          shapeType: "CAPSULE",
-        };
-      };
-
-      const applyMeshPhysicsShape = (targetMesh) => {
-        const { motionType, disablePreStep } = capturePhysicsState(targetMesh);
-        // Keep your original material gate
-        if (!targetMesh.material) {
+        // --- CAPSULE path (player collider) ---
+        const applyCapsuleToRoot = (targetMesh) => {
+          targetMesh.computeWorldMatrix(true);
+          const { motionType, disablePreStep } =
+            capturePhysicsState(targetMesh);
           disposePhysics(targetMesh);
-          return;
-        }
 
-        disposePhysics(targetMesh);
-
-        const physicsShape = new flock.BABYLON.PhysicsShapeMesh(
-          targetMesh,
-          flock.scene,
-        );
-
-        const physicsBody = new flock.BABYLON.PhysicsBody(
-          targetMesh,
-          motionType ?? flock.BABYLON.PhysicsMotionType.STATIC,
-          false,
-          flock.scene,
-        );
-        physicsBody.shape = physicsShape;
-        physicsBody.setMassProperties({ mass: 1, restitution: 0.5 }); // unchanged
-        physicsBody.disablePreStep = disablePreStep ?? false;
-
-        targetMesh.physics = physicsBody;
-
-        targetMesh.metadata.physicsShapeType = "MESH";
-        targetMesh.metadata.physicsCache = {
-          motionType: physicsBody.getMotionType?.(),
-          disablePreStep: physicsBody.disablePreStep,
-          shapeType: "MESH",
-        };
-      };
-
-      // --- Dispatch by shape type ---
-      switch (shapeType) {
-        case "CAPSULE":
-          // Only on root (player), no children
-          applyCapsuleToRoot(mesh);
-          break;
-
-        case "MESH":
-          applyMeshPhysicsShape(mesh);
-          if (mesh.getChildMeshes) {
-            mesh.getChildMeshes().forEach((subMesh) => {
-              applyMeshPhysicsShape(subMesh);
-            });
+          // IMPORTANT: use targetMesh (not outer mesh)
+          const physicsShape = flock.createCapsuleFromBoundingBox(
+            targetMesh,
+            flock.scene,
+          );
+          if (!physicsShape) {
+            console.error(
+              "[setPhysicsShape] Failed to create capsule for",
+              targetMesh.name,
+            );
+            return;
           }
-          break;
 
-        default:
-          console.error("Invalid shape type provided:", shapeType);
-          resolve();
-          return;
-      }
+          const physicsBody = new flock.BABYLON.PhysicsBody(
+            targetMesh,
+            flock.BABYLON.PhysicsMotionType.DYNAMIC,
+            false,
+            flock.scene,
+          );
+          physicsBody.shape = physicsShape;
+          physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
+          physicsBody.disablePreStep = disablePreStep ?? false;
+
+          targetMesh.physics = physicsBody;
+          if (motionType != null) {
+            physicsBody.setMotionType(motionType);
+          }
+
+          targetMesh.metadata.physicsShapeType = "CAPSULE";
+          targetMesh.metadata.physicsCache = {
+            motionType: physicsBody.getMotionType?.(),
+            disablePreStep: physicsBody.disablePreStep,
+            shapeType: "CAPSULE",
+          };
+        };
+
+        const applyMeshPhysicsShape = (targetMesh) => {
+          const { motionType, disablePreStep } =
+            capturePhysicsState(targetMesh);
+          // Keep your original material gate
+          if (!targetMesh.material) {
+            disposePhysics(targetMesh);
+            return;
+          }
+
+          disposePhysics(targetMesh);
+
+          const physicsShape = new flock.BABYLON.PhysicsShapeMesh(
+            targetMesh,
+            flock.scene,
+          );
+
+          const physicsBody = new flock.BABYLON.PhysicsBody(
+            targetMesh,
+            motionType ?? flock.BABYLON.PhysicsMotionType.STATIC,
+            false,
+            flock.scene,
+          );
+          physicsBody.shape = physicsShape;
+          physicsBody.setMassProperties({ mass: 1, restitution: 0.5 }); // unchanged
+          physicsBody.disablePreStep = disablePreStep ?? false;
+
+          targetMesh.physics = physicsBody;
+
+          targetMesh.metadata.physicsShapeType = "MESH";
+          targetMesh.metadata.physicsCache = {
+            motionType: physicsBody.getMotionType?.(),
+            disablePreStep: physicsBody.disablePreStep,
+            shapeType: "MESH",
+          };
+        };
+
+        // --- Dispatch by shape type ---
+        switch (shapeType) {
+          case "CAPSULE":
+            // Only on root (player), no children
+            applyCapsuleToRoot(mesh);
+            break;
+
+          case "MESH":
+            applyMeshPhysicsShape(mesh);
+            if (mesh.getChildMeshes) {
+              mesh.getChildMeshes().forEach((subMesh) => {
+                applyMeshPhysicsShape(subMesh);
+              });
+            }
+            break;
+
+          default:
+            console.error("Invalid shape type provided:", shapeType);
+            resolve();
+            return;
+        }
         resolve();
       });
     });
@@ -484,100 +488,100 @@ export const flockPhysics = {
           return;
         }
 
-      let isExecuting = false;
-      let hasExecuted = false;
-      let callbacks = Array.isArray(callback) ? callback : [callback];
-      let currentIndex = 0;
+        let isExecuting = false;
+        let hasExecuted = false;
+        let callbacks = Array.isArray(callback) ? callback : [callback];
+        let currentIndex = 0;
 
-      function registerMeshAction(mesh, trigger, action) {
-        mesh.isPickable = true;
-        if (!mesh.actionManager)
-          mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
-        mesh.actionManager.isRecursive = false; // 🛡️ Fix for sibling bleed
+        function registerMeshAction(mesh, trigger, action) {
+          mesh.isPickable = true;
+          if (!mesh.actionManager)
+            mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+          mesh.actionManager.isRecursive = false; // 🛡️ Fix for sibling bleed
 
-        let actionSequence = new flock.BABYLON.ExecuteCodeAction(
-          flock.BABYLON.ActionManager[trigger],
-          action,
-        );
-        for (let i = 1; i < callbacks.length; i++) {
-          actionSequence = actionSequence.then(
-            new flock.BABYLON.ExecuteCodeAction(
-              flock.BABYLON.ActionManager[trigger],
-              async () => await callbacks[i](),
-            ),
+          let actionSequence = new flock.BABYLON.ExecuteCodeAction(
+            flock.BABYLON.ActionManager[trigger],
+            action,
           );
+          for (let i = 1; i < callbacks.length; i++) {
+            actionSequence = actionSequence.then(
+              new flock.BABYLON.ExecuteCodeAction(
+                flock.BABYLON.ActionManager[trigger],
+                async () => await callbacks[i](),
+              ),
+            );
+          }
+          mesh.actionManager.registerAction(actionSequence);
         }
-        mesh.actionManager.registerAction(actionSequence);
-      }
 
-      function registerButtonAction(button, trigger, action) {
-        if (trigger === "OnPointerUpTrigger")
-          button.onPointerUpObservable.add(action);
-        else button.onPointerClickObservable.add(action);
-      }
-
-      async function executeAction(meshId) {
-        // 🛡️ THE ROOT CAUSE FIX: Identity Guard
-        if (meshId !== target.name) return;
-
-        if (mode === "once" && hasExecuted) return;
-        if (mode === "wait" && isExecuting) return;
-        if (mode === "once") hasExecuted = true;
-        if (mode === "wait") isExecuting = true;
-
-        try {
-          await callbacks[currentIndex](meshId);
-          currentIndex = (currentIndex + 1) % callbacks.length;
-        } catch (e) {
-          console.error("Action execution failed:", e);
-        } finally {
-          if (mode === "wait") isExecuting = false;
+        function registerButtonAction(button, trigger, action) {
+          if (trigger === "OnPointerUpTrigger")
+            button.onPointerUpObservable.add(action);
+          else button.onPointerClickObservable.add(action);
         }
-      }
 
-      if (target instanceof flock.BABYLON.AbstractMesh) {
-        registerMeshAction(target, trigger, async (evt) => {
-          const clickedMesh = evt?.source || evt?.meshUnderPointer;
-          const meshId = clickedMesh ? clickedMesh.name : target.name;
-          await executeAction(meshId);
-        });
+        async function executeAction(meshId) {
+          // 🛡️ THE ROOT CAUSE FIX: Identity Guard
+          if (meshId !== target.name) return;
 
-        // 👓 Re-integrating your XR Logic
-        if (flock.xrHelper && flock.xrHelper.baseExperience) {
-          flock.xrHelper.baseExperience.onStateChangedObservable.add(
-            (state) => {
-              if (
-                state === flock.BABYLON.WebXRState.IN_XR &&
-                flock.xrHelper.baseExperience.sessionManager.sessionMode ===
-                  "immersive-ar"
-              ) {
-                // Keep the Hit Test feature for positioning
-                flock.xrHelper.baseExperience.featuresManager.enableFeature(
-                  flock.BABYLON.WebXRHitTest.Name,
-                  "latest",
-                  {
-                    onHitTestResultObservable: (results) => {
-                      if (results.length > 0) {
-                        const position =
-                          results[0].transformationMatrix.getTranslation();
-                        target.position.copyFrom(position);
-                        target.isVisible = true;
-                      }
+          if (mode === "once" && hasExecuted) return;
+          if (mode === "wait" && isExecuting) return;
+          if (mode === "once") hasExecuted = true;
+          if (mode === "wait") isExecuting = true;
+
+          try {
+            await callbacks[currentIndex](meshId);
+            currentIndex = (currentIndex + 1) % callbacks.length;
+          } catch (e) {
+            console.error("Action execution failed:", e);
+          } finally {
+            if (mode === "wait") isExecuting = false;
+          }
+        }
+
+        if (target instanceof flock.BABYLON.AbstractMesh) {
+          registerMeshAction(target, trigger, async (evt) => {
+            const clickedMesh = evt?.source || evt?.meshUnderPointer;
+            const meshId = clickedMesh ? clickedMesh.name : target.name;
+            await executeAction(meshId);
+          });
+
+          // 👓 Re-integrating your XR Logic
+          if (flock.xrHelper && flock.xrHelper.baseExperience) {
+            flock.xrHelper.baseExperience.onStateChangedObservable.add(
+              (state) => {
+                if (
+                  state === flock.BABYLON.WebXRState.IN_XR &&
+                  flock.xrHelper.baseExperience.sessionManager.sessionMode ===
+                    "immersive-ar"
+                ) {
+                  // Keep the Hit Test feature for positioning
+                  flock.xrHelper.baseExperience.featuresManager.enableFeature(
+                    flock.BABYLON.WebXRHitTest.Name,
+                    "latest",
+                    {
+                      onHitTestResultObservable: (results) => {
+                        if (results.length > 0) {
+                          const position =
+                            results[0].transformationMatrix.getTranslation();
+                          target.position.copyFrom(position);
+                          target.isVisible = true;
+                        }
+                      },
                     },
-                  },
-                );
-                // We removed flock.scene.onPointerDown here because ActionManager handles it more safely!
-              }
-            },
+                  );
+                  // We removed flock.scene.onPointerDown here because ActionManager handles it more safely!
+                }
+              },
+            );
+          }
+        } else if (target instanceof flock.GUI.Button) {
+          registerButtonAction(
+            target,
+            trigger,
+            async () => await executeAction(target.name),
           );
         }
-      } else if (target instanceof flock.GUI.Button) {
-        registerButtonAction(
-          target,
-          trigger,
-          async () => await executeAction(target.name),
-        );
-      }
         resolve();
       });
     });
@@ -585,44 +589,44 @@ export const flockPhysics = {
   onIntersect(meshName, otherMeshName, { trigger, callback }) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
-      if (!mesh) {
-        console.error("Model not loaded:", meshName);
-        resolve();
-        return;
-      }
-
-      flock.whenModelReady(otherMeshName, async function (otherMesh) {
-        if (!otherMesh) {
-          console.error("Model not loaded:", otherMeshName);
+        if (!mesh) {
+          console.error("Model not loaded:", meshName);
           resolve();
           return;
         }
 
-        if (!mesh.actionManager) {
-          mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
-          mesh.actionManager.isRecursive = true;
-        }
+        flock.whenModelReady(otherMeshName, async function (otherMesh) {
+          if (!otherMesh) {
+            console.error("Model not loaded:", otherMeshName);
+            resolve();
+            return;
+          }
 
-        const action = new flock.BABYLON.ExecuteCodeAction(
-          {
-            trigger: flock.BABYLON.ActionManager[trigger],
-            parameter: {
-              mesh: otherMesh,
-              usePreciseIntersection: true,
+          if (!mesh.actionManager) {
+            mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+            mesh.actionManager.isRecursive = true;
+          }
+
+          const action = new flock.BABYLON.ExecuteCodeAction(
+            {
+              trigger: flock.BABYLON.ActionManager[trigger],
+              parameter: {
+                mesh: otherMesh,
+                usePreciseIntersection: true,
+              },
             },
-          },
-          async function () {
-            await callback(mesh.name, otherMesh.name);
-          },
-          new flock.BABYLON.PredicateCondition(
-            flock.BABYLON.ActionManager,
-            () => otherMesh.isEnabled(),
-          ),
-        );
+            async function () {
+              await callback(mesh.name, otherMesh.name);
+            },
+            new flock.BABYLON.PredicateCondition(
+              flock.BABYLON.ActionManager,
+              () => otherMesh.isEnabled(),
+            ),
+          );
 
-        mesh.actionManager.registerAction(action);
-        resolve();
-      });
+          mesh.actionManager.registerAction(action);
+          resolve();
+        });
       });
     });
   },
@@ -653,181 +657,181 @@ export const flockPhysics = {
             return;
           }
 
-        const scene = flock.scene;
-        const B = flock.BABYLON;
+          const scene = flock.scene;
+          const B = flock.BABYLON;
 
-        // ---- config / mode resolution (back-compat) ----
-        const bothHaveBodies = !!(mesh.physicsBody && otherMesh.physicsBody);
-        let resolvedMode = mode;
-        if (mode !== "either") {
-          if (usePhysics === true) resolvedMode = "physics";
-          else if (usePhysics === false) resolvedMode = "intersection";
-          else if (mode === "auto")
-            resolvedMode = bothHaveBodies ? "physics" : "intersection";
-        }
-
-        // ---- shared state (per pair) ----
-        const key = `${mesh.uniqueId}_${otherMesh.uniqueId}`;
-        const state = {
-          inContact: false, // are we "inside" a contact session?
-          lastFireMs: 0, // for debounce
-          physicsFramesSinceHit: 0, // physics separation counter
-          intersectingNow: false, // action-manager says we're intersecting
-          lastFrameFired: -1, // dedupe same-frame double reports
-        };
-
-        const cleanups = [];
-
-        const timeNow = () =>
-          typeof performance !== "undefined" ? performance.now() : Date.now();
-        const tryFireEnter = (sourceTag) => {
-          // If both systems shout on the same frame, only fire once
-          if (scene.getFrameId() === state.lastFrameFired) return;
-
-          const now = timeNow();
-          if (!state.inContact && now - state.lastFireMs >= debounce) {
-            state.inContact = true;
-            state.lastFireMs = now;
-            state.lastFrameFired = scene.getFrameId();
-            // Fire user callback
-            Promise.resolve(callback(mesh.name, otherMesh.name)).catch(
-              console.error,
-            );
+          // ---- config / mode resolution (back-compat) ----
+          const bothHaveBodies = !!(mesh.physicsBody && otherMesh.physicsBody);
+          let resolvedMode = mode;
+          if (mode !== "either") {
+            if (usePhysics === true) resolvedMode = "physics";
+            else if (usePhysics === false) resolvedMode = "intersection";
+            else if (mode === "auto")
+              resolvedMode = bothHaveBodies ? "physics" : "intersection";
           }
-        };
 
-        const markExit = () => {
-          state.inContact = false;
-          state.intersectingNow = false;
-          state.physicsFramesSinceHit = 0;
-        };
+          // ---- shared state (per pair) ----
+          const key = `${mesh.uniqueId}_${otherMesh.uniqueId}`;
+          const state = {
+            inContact: false, // are we "inside" a contact session?
+            lastFireMs: 0, // for debounce
+            physicsFramesSinceHit: 0, // physics separation counter
+            intersectingNow: false, // action-manager says we're intersecting
+            lastFrameFired: -1, // dedupe same-frame double reports
+          };
 
-        // ---- PHYSICS LISTENER (Havok v2) ----
-        const enablePhysicsPath =
-          (resolvedMode === "physics" || resolvedMode === "either") &&
-          bothHaveBodies;
-        if (enablePhysicsPath) {
-          try {
-            // Enable collision callbacks (safe to enable on both)
-            mesh.physicsBody.setCollisionCallbackEnabled(true);
-            otherMesh.physicsBody.setCollisionCallbackEnabled(true);
+          const cleanups = [];
 
-            const observable = mesh.physicsBody.getCollisionObservable();
-            const physicsObserver = observable.add((evt) => {
-              const other = evt.collidedAgainst?.transformNode;
-              if (other === otherMesh && otherMesh.isEnabled()) {
-                state.physicsFramesSinceHit = 0;
-                tryFireEnter("physics");
-              }
-            });
-            cleanups.push(() => observable.remove(physicsObserver));
+          const timeNow = () =>
+            typeof performance !== "undefined" ? performance.now() : Date.now();
+          const tryFireEnter = (sourceTag) => {
+            // If both systems shout on the same frame, only fire once
+            if (scene.getFrameId() === state.lastFrameFired) return;
 
-            // Separation via frames without physics contact (only if AM path isn’t actively intersecting)
-            const tickObserver = scene.onBeforeRenderObservable.add(() => {
-              if (state.inContact && !state.intersectingNow) {
-                state.physicsFramesSinceHit++;
-                if (state.physicsFramesSinceHit > separationFrames) {
-                  markExit();
+            const now = timeNow();
+            if (!state.inContact && now - state.lastFireMs >= debounce) {
+              state.inContact = true;
+              state.lastFireMs = now;
+              state.lastFrameFired = scene.getFrameId();
+              // Fire user callback
+              Promise.resolve(callback(mesh.name, otherMesh.name)).catch(
+                console.error,
+              );
+            }
+          };
+
+          const markExit = () => {
+            state.inContact = false;
+            state.intersectingNow = false;
+            state.physicsFramesSinceHit = 0;
+          };
+
+          // ---- PHYSICS LISTENER (Havok v2) ----
+          const enablePhysicsPath =
+            (resolvedMode === "physics" || resolvedMode === "either") &&
+            bothHaveBodies;
+          if (enablePhysicsPath) {
+            try {
+              // Enable collision callbacks (safe to enable on both)
+              mesh.physicsBody.setCollisionCallbackEnabled(true);
+              otherMesh.physicsBody.setCollisionCallbackEnabled(true);
+
+              const observable = mesh.physicsBody.getCollisionObservable();
+              const physicsObserver = observable.add((evt) => {
+                const other = evt.collidedAgainst?.transformNode;
+                if (other === otherMesh && otherMesh.isEnabled()) {
+                  state.physicsFramesSinceHit = 0;
+                  tryFireEnter("physics");
                 }
-              } else {
-                // reset counter when not in contact
-                state.physicsFramesSinceHit = 0;
-              }
-            });
-            cleanups.push(() =>
-              scene.onBeforeRenderObservable.remove(tickObserver),
-            );
-          } catch (e) {
-            console.warn(
-              "Physics collision subscription failed, falling back to intersections:",
-              e,
-            );
+              });
+              cleanups.push(() => observable.remove(physicsObserver));
+
+              // Separation via frames without physics contact (only if AM path isn’t actively intersecting)
+              const tickObserver = scene.onBeforeRenderObservable.add(() => {
+                if (state.inContact && !state.intersectingNow) {
+                  state.physicsFramesSinceHit++;
+                  if (state.physicsFramesSinceHit > separationFrames) {
+                    markExit();
+                  }
+                } else {
+                  // reset counter when not in contact
+                  state.physicsFramesSinceHit = 0;
+                }
+              });
+              cleanups.push(() =>
+                scene.onBeforeRenderObservable.remove(tickObserver),
+              );
+            } catch (e) {
+              console.warn(
+                "Physics collision subscription failed, falling back to intersections:",
+                e,
+              );
+            }
           }
-        }
 
-        // ---- ACTION MANAGER INTERSECTION LISTENER ----
-        const enableAMPath =
-          resolvedMode === "intersection" ||
-          resolvedMode === "either" ||
-          (!bothHaveBodies && resolvedMode === "auto");
-        if (enableAMPath) {
-          if (!mesh.actionManager) {
-            mesh.actionManager = new B.ActionManager(scene);
-            mesh.actionManager.isRecursive = true;
-          }
+          // ---- ACTION MANAGER INTERSECTION LISTENER ----
+          const enableAMPath =
+            resolvedMode === "intersection" ||
+            resolvedMode === "either" ||
+            (!bothHaveBodies && resolvedMode === "auto");
+          if (enableAMPath) {
+            if (!mesh.actionManager) {
+              mesh.actionManager = new B.ActionManager(scene);
+              mesh.actionManager.isRecursive = true;
+            }
 
-          // Always register Enter & Exit for robust state (even if caller passed Exit)
-          const ENTER = B.ActionManager.OnIntersectionEnterTrigger;
-          const EXIT = B.ActionManager.OnIntersectionExitTrigger;
+            // Always register Enter & Exit for robust state (even if caller passed Exit)
+            const ENTER = B.ActionManager.OnIntersectionEnterTrigger;
+            const EXIT = B.ActionManager.OnIntersectionExitTrigger;
 
-          const enterAction = new B.ExecuteCodeAction(
-            {
-              trigger: ENTER,
-              parameter: { mesh: otherMesh, usePreciseIntersection: true },
-            },
-            () => {
-              if (otherMesh.isEnabled()) {
-                state.intersectingNow = true;
-                tryFireEnter("am");
-              }
-            },
-            new B.PredicateCondition(B.ActionManager, () =>
-              otherMesh.isEnabled(),
-            ),
-          );
-
-          const exitAction = new B.ExecuteCodeAction(
-            {
-              trigger: EXIT,
-              parameter: { mesh: otherMesh, usePreciseIntersection: true },
-            },
-            () => {
-              state.intersectingNow = false;
-              markExit();
-            },
-          );
-
-          const enterReg = mesh.actionManager.registerAction(enterAction);
-          const exitReg = mesh.actionManager.registerAction(exitAction);
-          cleanups.push(() => {
-            try {
-              enterReg?.dispose();
-            } catch (_) {}
-            try {
-              exitReg?.dispose();
-            } catch (_) {}
-          });
-
-          // If the caller asked for a specific trigger callback semantics (e.g. Exit),
-          // also register their requested trigger to invoke the callback directly.
-          // This preserves your original API behavior.
-          if (
-            trigger &&
-            B.ActionManager[trigger] &&
-            trigger !== "OnIntersectionEnterTrigger"
-          ) {
-            const specific = new B.ExecuteCodeAction(
+            const enterAction = new B.ExecuteCodeAction(
               {
-                trigger: B.ActionManager[trigger],
+                trigger: ENTER,
                 parameter: { mesh: otherMesh, usePreciseIntersection: true },
               },
               () => {
-                if (otherMesh.isEnabled())
-                  Promise.resolve(callback(mesh.name, otherMesh.name)).catch(
-                    console.error,
-                  );
+                if (otherMesh.isEnabled()) {
+                  state.intersectingNow = true;
+                  tryFireEnter("am");
+                }
+              },
+              new B.PredicateCondition(B.ActionManager, () =>
+                otherMesh.isEnabled(),
+              ),
+            );
+
+            const exitAction = new B.ExecuteCodeAction(
+              {
+                trigger: EXIT,
+                parameter: { mesh: otherMesh, usePreciseIntersection: true },
+              },
+              () => {
+                state.intersectingNow = false;
+                markExit();
               },
             );
-            const reg = mesh.actionManager.registerAction(specific);
+
+            const enterReg = mesh.actionManager.registerAction(enterAction);
+            const exitReg = mesh.actionManager.registerAction(exitAction);
             cleanups.push(() => {
               try {
-                reg?.dispose();
+                enterReg?.dispose();
+              } catch (_) {}
+              try {
+                exitReg?.dispose();
               } catch (_) {}
             });
-          }
-        }
 
-        resolve();
+            // If the caller asked for a specific trigger callback semantics (e.g. Exit),
+            // also register their requested trigger to invoke the callback directly.
+            // This preserves your original API behavior.
+            if (
+              trigger &&
+              B.ActionManager[trigger] &&
+              trigger !== "OnIntersectionEnterTrigger"
+            ) {
+              const specific = new B.ExecuteCodeAction(
+                {
+                  trigger: B.ActionManager[trigger],
+                  parameter: { mesh: otherMesh, usePreciseIntersection: true },
+                },
+                () => {
+                  if (otherMesh.isEnabled())
+                    Promise.resolve(callback(mesh.name, otherMesh.name)).catch(
+                      console.error,
+                    );
+                },
+              );
+              const reg = mesh.actionManager.registerAction(specific);
+              cleanups.push(() => {
+                try {
+                  reg?.dispose();
+                } catch (_) {}
+              });
+            }
+          }
+
+          resolve();
         });
       });
     });
