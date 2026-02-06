@@ -562,6 +562,37 @@ export const flockMaterial = {
       return;
     }
 
+    const CHARACTER_PART_ALIASES = {
+      hair: "hair",
+      skin: "skin",
+      eyes: "eyes",
+      shorts: "shorts",
+      tshirt: "tshirt",
+      "t-shirt": "tshirt",
+      tee: "tshirt",
+      sleeves: "sleeves",
+      sleeve: "sleeves",
+      detail: "sleeves",
+      shoes: "sleeves",
+    };
+
+    const canonicalizePartName = (name = "") => {
+      const s = String(name).toLowerCase();
+      for (const key of Object.keys(CHARACTER_PART_ALIASES)) {
+        if (s === key || s.includes(key)) return CHARACTER_PART_ALIASES[key];
+      }
+      return null;
+    };
+
+    const getPartNameFromMesh = (node) => {
+      const metaName = node?.metadata?.materialPartName;
+      return (
+        canonicalizePartName(metaName) ||
+        canonicalizePartName(node?.material?.name) ||
+        canonicalizePartName(node?.name)
+      );
+    };
+
     const getRootMesh = (node) => {
       let current = node;
       while (current?.parent) current = current.parent;
@@ -573,6 +604,15 @@ export const flockMaterial = {
       const modelName = root?.metadata?.modelName;
       const meshName = root?.metadata?.meshName;
       return flock.characterNames.includes(modelName || meshName);
+    };
+
+    const isCharacterLikeMesh = (node) => {
+      const root = getRootMesh(node);
+      const meshes = [root, ...root.getChildMeshes()];
+      for (const part of meshes) {
+        if (getPartNameFromMesh(part)) return true;
+      }
+      return false;
     };
 
     if (
@@ -638,7 +678,7 @@ export const flockMaterial = {
 
     // Start applying colours to the main mesh and its hierarchy
 
-    if (!isCharacterMesh(mesh)) {
+    if (!isCharacterMesh(mesh) && !isCharacterLikeMesh(mesh)) {
       applyColorInOrder(mesh);
     } else {
       const characterColors = {
