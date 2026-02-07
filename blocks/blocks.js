@@ -478,6 +478,7 @@ function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
     type,
     pickedSuffix: n,
     existing: workspace
+      .getVariableMap()
       .getVariablesOfType(type)
       .filter((v) => v.name?.startsWith(prefix))
       .map((v) => v.name),
@@ -594,7 +595,7 @@ function adoptIsolatedDefaultVarsTo(
       // clean up orphan if now unused
       if (countVarUses(workspace, vid, BlocklyNS) === 0) {
         try {
-          workspace.deleteVariableById(vid);
+          workspace.getVariableMap().deleteVariable(vid);
         } catch (_) {
           /* ignore */
         }
@@ -616,7 +617,7 @@ function lowestAvailableSuffix(workspace, prefix, type) {
 function maxExistingSuffix(workspace, prefix, type) {
   let max = 0;
   const vars = type
-    ? workspace.getVariablesOfType(type)
+    ? workspace.getVariableMap().getVariablesOfType(type)
     : workspace.getAllVariables();
   for (const v of vars) {
     const n = parseNumericSuffix(v.name, prefix);
@@ -642,24 +643,38 @@ function normalizeVarNameAndIndex(
 
   const currentSuffix = parseNumericSuffix(model.name, prefix);
   const targetSuffix = lowestAvailableSuffix(workspace, prefix, type);
+  const targetName = `${prefix}${targetSuffix}`;
+  const nameTakenByOtherType = workspace
+    .getAllVariables()
+    .some((v) => v.name === targetName && v.getId?.() !== model.getId?.());
 
   // If our current name isn't the lowest available, and the lowest is different, rename.
   if (targetSuffix && targetSuffix !== currentSuffix) {
-    debugVarNaming("normalizeVarNameAndIndex: renaming", {
-      varId,
-      from: model.name,
-      to: `${prefix}${targetSuffix}`,
-      prefix,
-      type,
-      currentSuffix,
-      targetSuffix,
-    });
-    try {
-      workspace
-        .getVariableMap()
-        .renameVariable(model, `${prefix}${targetSuffix}`);
-    } catch (_) {
-      /* ignore rename failures */
+    if (nameTakenByOtherType) {
+      debugVarNaming("normalizeVarNameAndIndex: skip rename (name taken)", {
+        varId,
+        from: model.name,
+        to: targetName,
+        prefix,
+        type,
+        currentSuffix,
+        targetSuffix,
+      });
+    } else {
+      debugVarNaming("normalizeVarNameAndIndex: renaming", {
+        varId,
+        from: model.name,
+        to: targetName,
+        prefix,
+        type,
+        currentSuffix,
+        targetSuffix,
+      });
+      try {
+        workspace.getVariableMap().renameVariable(model, targetName);
+      } catch (_) {
+        /* ignore rename failures */
+      }
     }
   } else {
     debugVarNaming("normalizeVarNameAndIndex: keeping name", {
