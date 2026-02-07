@@ -617,6 +617,7 @@ function normalizeVarNameAndIndex(
   prefix,
   type,
   nextVariableIndexes,
+  opts = {},
 ) {
   const model = workspace.getVariableById(varId);
   if (!model) return;
@@ -635,8 +636,10 @@ function normalizeVarNameAndIndex(
     }
   }
 
-  const maxSuffix = maxExistingSuffix(workspace, prefix, type);
-  nextVariableIndexes[prefix] = maxSuffix + 1;
+  if (opts.updateIndex !== false) {
+    const maxSuffix = maxExistingSuffix(workspace, prefix, type);
+    nextVariableIndexes[prefix] = maxSuffix + 1;
+  }
 }
 
 /**
@@ -650,7 +653,7 @@ export function ensureFreshVarOnDuplicate(
   opts = {},
 ) {
   const BlocklyNS = getBlockly(opts);
-  if (!BlocklyNS) return;
+  if (!BlocklyNS) return false;
 
   const fieldName = opts.fieldName || "ID_VAR";
 
@@ -676,6 +679,7 @@ export function ensureFreshVarOnDuplicate(
         pending.prefix,
         pending.type,
         nextVariableIndexes,
+        { updateIndex: false },
       );
 
       if (!subtreeHasVarId(block, pending.from, BlocklyNS)) {
@@ -688,18 +692,19 @@ export function ensureFreshVarOnDuplicate(
   }
 
   // Only act on *this block's* create event.
-  if (changeEvent.type !== BlocklyNS.Events.BLOCK_CREATE) return;
-  if (changeEvent.blockId !== block.id) return;
+  if (changeEvent.type !== BlocklyNS.Events.BLOCK_CREATE) return false;
+  if (changeEvent.blockId !== block.id) return false;
 
   const ws = block.workspace;
   const idField = block.getField(fieldName);
-  if (!idField) return;
+  if (!idField) return false;
 
   const oldVarId = idField.getValue && idField.getValue();
-  if (!oldVarId) return;
+  if (!oldVarId) return false;
 
   // Duplicate/copy/duplicate-parent case?
-  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS)) return;
+  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS))
+    return false;
 
   const varType = getFieldVariableType(block, fieldName, BlocklyNS);
   const group = changeEvent.group || `auto-split-${block.id}-${Date.now()}`;
@@ -718,7 +723,7 @@ export function ensureFreshVarOnDuplicate(
     const newVarId =
       newVarModel.id ||
       (typeof newVarModel.getId === "function" ? newVarModel.getId() : null);
-    if (!newVarId) return;
+    if (!newVarId) return false;
 
     // Point the creator at the fresh variable.
     idField.setValue(newVarId);
@@ -752,10 +757,12 @@ export function ensureFreshVarOnDuplicate(
       type: varType,
       prefix: variableNamePrefix,
     });
+    return true;
   } finally {
     BlocklyNS.Events.enable();
     BlocklyNS.Events.setGroup(false);
   }
+  return false;
 }
 
 /*
@@ -1061,6 +1068,8 @@ export function initializeVariableIndexes() {
     sound: 1,
     character: 1,
     object: 1,
+    item: 1,
+    multiitem: 1,
     instrument: 1,
     animation: 1,
     clone: 1,
@@ -1075,27 +1084,11 @@ export function initializeVariableIndexes() {
     hull: 1,
   };
 
-  const allVariables = Blockly.getMainWorkspace()
-    .getVariableMap()
-    .getAllVariables(); // Retrieve all variables in the workspace
+  const workspace = Blockly.getMainWorkspace();
 
-  // Process each type of variable
+  // Process each type of variable and use the lowest available suffix.
   Object.keys(nextVariableIndexes).forEach(function (type) {
-    let maxIndex = 0; // To keep track of the highest index used so far
-    // Regular expression to match variable names like 'type1', 'type2', etc.
-    const varPattern = new RegExp(`^${type}(\\d+)$`);
-
-    allVariables.forEach(function (variable) {
-      const match = variable.name.match(varPattern);
-      if (match) {
-        const currentIndex = parseInt(match[1], 10);
-        if (currentIndex > maxIndex) {
-          maxIndex = currentIndex;
-        }
-      }
-    });
-
-    nextVariableIndexes[type] = maxIndex + 1;
+    nextVariableIndexes[type] = lowestAvailableSuffix(workspace, type, "");
   });
 
   // Optionally return the indexes if needed elsewhere
@@ -1543,7 +1536,7 @@ export function handleBlockCreateEvent(
 ) {
   if (window.loadingCode) return; // Don't rename variables during code loading
 
-  ensureFreshVarOnDuplicate(
+  const handledDuplicate = ensureFreshVarOnDuplicate(
     blockInstance,
     changeEvent,
     variableNamePrefix,
@@ -1552,6 +1545,7 @@ export function handleBlockCreateEvent(
       fieldName: "ID_VAR",
     },
   );
+  if (handledDuplicate) return;
   if (blockInstance.id !== changeEvent.blockId) return;
   // Check if this is an undo/redo operation
   const isUndo = !changeEvent.recordUndo;
@@ -1597,22 +1591,20 @@ export function handleBlockCreateEvent(
           variableField.setValue(newVariable.getId());
         }
       } else {
-        // Handle prefix-numbered variables (existing logic)
+        // Handle prefix-numbered variables without renaming existing selections.
         if (!nextVariableIndexes[variableNamePrefix]) {
           nextVariableIndexes[variableNamePrefix] = 1;
         }
-        let newVariableName =
-          variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-        let newVariable = blockInstance.workspace
-          .getVariableMap()
-          .getVariable(newVariableName);
-        if (!newVariable) {
-          newVariable = blockInstance.workspace
-            .getVariableMap()
-            .createVariable(newVariableName, null);
+        const currentSuffix = parseNumericSuffix(
+          variableName,
+          variableNamePrefix,
+        );
+        if (currentSuffix) {
+          nextVariableIndexes[variableNamePrefix] = Math.max(
+            nextVariableIndexes[variableNamePrefix],
+            currentSuffix + 1,
+          );
         }
-        variableField.setValue(newVariable.getId());
-        nextVariableIndexes[variableNamePrefix] += 1;
       }
     }
   }

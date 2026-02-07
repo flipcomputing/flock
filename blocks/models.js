@@ -149,7 +149,7 @@ export function defineModelBlocks() {
                         const defaultColour = Array.isArray(defaultColours)
                                 ? defaultColours[0]
                                 : defaultColours || "#FFD700";
-                        const variableNamePrefix = "object";
+                        const variableNamePrefix = "item";
                         let nextVariableName =
                                 variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
