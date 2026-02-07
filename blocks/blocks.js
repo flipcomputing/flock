@@ -1084,27 +1084,11 @@ export function initializeVariableIndexes() {
     hull: 1,
   };
 
-  const allVariables = Blockly.getMainWorkspace()
-    .getVariableMap()
-    .getAllVariables(); // Retrieve all variables in the workspace
+  const workspace = Blockly.getMainWorkspace();
 
-  // Process each type of variable
+  // Process each type of variable and use the lowest available suffix.
   Object.keys(nextVariableIndexes).forEach(function (type) {
-    let maxIndex = 0; // To keep track of the highest index used so far
-    // Regular expression to match variable names like 'type1', 'type2', etc.
-    const varPattern = new RegExp(`^${type}(\\d+)$`);
-
-    allVariables.forEach(function (variable) {
-      const match = variable.name.match(varPattern);
-      if (match) {
-        const currentIndex = parseInt(match[1], 10);
-        if (currentIndex > maxIndex) {
-          maxIndex = currentIndex;
-        }
-      }
-    });
-
-    nextVariableIndexes[type] = maxIndex + 1;
+    nextVariableIndexes[type] = lowestAvailableSuffix(workspace, type, "");
   });
 
   // Optionally return the indexes if needed elsewhere
