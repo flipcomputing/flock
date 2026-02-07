@@ -1607,24 +1607,19 @@ export function handleBlockCreateEvent(
           variableField.setValue(newVariable.getId());
         }
       } else {
-        // Handle prefix-numbered variables (existing logic)
+        // Handle prefix-numbered variables without renaming existing selections.
         if (!nextVariableIndexes[variableNamePrefix]) {
           nextVariableIndexes[variableNamePrefix] = 1;
         }
-        let newVariableName =
-          variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-        let newVariable = blockInstance.workspace
-          .getVariableMap()
-          .getVariable(newVariableName);
-        const createdNew = !newVariable;
-        if (createdNew) {
-          newVariable = blockInstance.workspace
-            .getVariableMap()
-            .createVariable(newVariableName, null);
-        }
-        variableField.setValue(newVariable.getId());
-        if (createdNew) {
-          nextVariableIndexes[variableNamePrefix] += 1;
+        const currentSuffix = parseNumericSuffix(
+          variableName,
+          variableNamePrefix,
+        );
+        if (currentSuffix) {
+          nextVariableIndexes[variableNamePrefix] = Math.max(
+            nextVariableIndexes[variableNamePrefix],
+            currentSuffix + 1,
+          );
         }
       }
     }
