@@ -460,10 +460,28 @@ function parseNumericSuffix(name, prefix) {
   return parseInt(rest, 10);
 }
 
+function shouldDebugVarNaming() {
+  return typeof window !== "undefined" && window.FLOCK_DEBUG_VAR_NAMING;
+}
+
+function debugVarNaming(...args) {
+  if (!shouldDebugVarNaming()) return;
+  console.debug("[VarNaming]", ...args);
+}
+
 function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   // Pick the smallest available suffix >= 1 (not just "next"), to be robust to temp vars.
   let n = 1;
   while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
+  debugVarNaming("createFreshVariable: picked suffix", {
+    prefix,
+    type,
+    pickedSuffix: n,
+    existing: workspace
+      .getVariablesOfType(type)
+      .filter((v) => v.name?.startsWith(prefix))
+      .map((v) => v.name),
+  });
   // Also keep your counter roughly in sync (but we’ll normalize later).
   nextVariableIndexes[prefix] = Math.max(
     nextVariableIndexes[prefix] || 1,
@@ -627,6 +645,15 @@ function normalizeVarNameAndIndex(
 
   // If our current name isn't the lowest available, and the lowest is different, rename.
   if (targetSuffix && targetSuffix !== currentSuffix) {
+    debugVarNaming("normalizeVarNameAndIndex: renaming", {
+      varId,
+      from: model.name,
+      to: `${prefix}${targetSuffix}`,
+      prefix,
+      type,
+      currentSuffix,
+      targetSuffix,
+    });
     try {
       workspace
         .getVariableMap()
@@ -634,11 +661,26 @@ function normalizeVarNameAndIndex(
     } catch (_) {
       /* ignore rename failures */
     }
+  } else {
+    debugVarNaming("normalizeVarNameAndIndex: keeping name", {
+      varId,
+      name: model.name,
+      prefix,
+      type,
+      currentSuffix,
+      targetSuffix,
+    });
   }
 
   if (opts.updateIndex !== false) {
     const maxSuffix = maxExistingSuffix(workspace, prefix, type);
     nextVariableIndexes[prefix] = maxSuffix + 1;
+    debugVarNaming("normalizeVarNameAndIndex: updated index", {
+      prefix,
+      type,
+      maxSuffix,
+      nextIndex: nextVariableIndexes[prefix],
+    });
   }
 }
 
@@ -660,6 +702,14 @@ export function ensureFreshVarOnDuplicate(
   // Finish any pending work (retarget, adopt, normalize) from earlier in the same dup group.
   const pending = _pendingRetarget.get(block);
   if (pending && pending.from && pending.to) {
+    debugVarNaming("ensureFreshVarOnDuplicate: finishing pending retarget", {
+      blockId: block.id,
+      from: pending.from,
+      to: pending.to,
+      prefix: pending.prefix,
+      type: pending.type,
+      group: changeEvent.group,
+    });
     BlocklyNS.Events.setGroup(changeEvent.group || null);
     try {
       BlocklyNS.Events.disable();
@@ -701,13 +751,32 @@ export function ensureFreshVarOnDuplicate(
 
   const oldVarId = idField.getValue && idField.getValue();
   if (!oldVarId) return false;
+  debugVarNaming("ensureFreshVarOnDuplicate: candidate", {
+    blockId: block.id,
+    group: changeEvent.group,
+    prefix: variableNamePrefix,
+    fieldName,
+    oldVarId,
+    oldVarName: ws.getVariableById(oldVarId)?.name,
+  });
 
   // Duplicate/copy/duplicate-parent case?
-  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS))
+  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS)) {
+    debugVarNaming("ensureFreshVarOnDuplicate: variable not used elsewhere", {
+      blockId: block.id,
+      oldVarId,
+    });
     return false;
+  }
 
   const varType = getFieldVariableType(block, fieldName, BlocklyNS);
   const group = changeEvent.group || `auto-split-${block.id}-${Date.now()}`;
+  debugVarNaming("ensureFreshVarOnDuplicate: splitting duplicate", {
+    blockId: block.id,
+    group,
+    prefix: variableNamePrefix,
+    varType,
+  });
 
   BlocklyNS.Events.setGroup(group);
   try {
@@ -724,6 +793,14 @@ export function ensureFreshVarOnDuplicate(
       newVarModel.id ||
       (typeof newVarModel.getId === "function" ? newVarModel.getId() : null);
     if (!newVarId) return false;
+
+    debugVarNaming("ensureFreshVarOnDuplicate: created new var", {
+      blockId: block.id,
+      newVarId,
+      newVarName: newVarModel.name,
+      oldVarId,
+      oldVarName: ws.getVariableById(oldVarId)?.name,
+    });
 
     // Point the creator at the fresh variable.
     idField.setValue(newVarId);
