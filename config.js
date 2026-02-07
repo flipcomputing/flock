@@ -309,6 +309,7 @@ export const materialNames = [
 	"eyeball.png",
 	"fabric.png",
 	"fishes.png",
+	"fish_above.png",
 	"flowers.png",
 	"flower_tile.png",
 	"fruit.png",
