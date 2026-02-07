@@ -399,13 +399,6 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
   }
 }
 
-// smart-variable-duplication.js (final)
-// - Split variable on duplicate (duplicate-parent safe)
-// - Retarget descendants oldVar -> newVar
-// - Adopt isolated default-looking vars in subtree -> newVar
-// - Normalize creator var name to the LOWEST available suffix (fixes “skipped 3”)
-// - Recompute nextVariableIndexes[prefix] from workspace state
-
 const _pendingRetarget = new WeakMap(); // block -> { from, to, type, prefix } | undefined
 
 function getBlockly(opts) {
@@ -461,15 +454,28 @@ function parseNumericSuffix(name, prefix) {
 }
 
 function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
-  // Pick the smallest available suffix >= 1 (not just "next"), to be robust to temp vars.
+  // Pick the smallest available suffix >= 1
   let n = 1;
   while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
-  // Also keep your counter roughly in sync (but we’ll normalize later).
+
+  // Update the counter
   nextVariableIndexes[prefix] = Math.max(
     nextVariableIndexes[prefix] || 1,
     n + 1,
   );
-  return workspace.getVariableMap().createVariable(`${prefix}${n}`, type); // VariableModel
+
+  const newVarName = `${prefix}${n}`;
+
+  // Make absolutely sure this variable doesn't exist
+  let existingVar = workspace.getVariable(newVarName, type);
+  if (existingVar) {
+    // This shouldn't happen, but if it does, increment and try again
+    console.warn(`Variable ${newVarName} already exists, incrementing`);
+    n += 1;
+    nextVariableIndexes[prefix] = n + 1;
+  }
+
+  return workspace.getVariableMap().createVariable(`${prefix}${n}`, type);
 }
 
 function retargetDescendantsVariables(
@@ -477,19 +483,41 @@ function retargetDescendantsVariables(
   fromVarId,
   toVarId,
   BlocklyNS,
+  createdIds = null,
 ) {
   if (!fromVarId || !toVarId || fromVarId === toVarId) return 0;
-  const descendants = rootBlock.getDescendants(false);
+
+  // Get descendants but ONLY through input connections, not next/previous
+  const descendants = [];
+
+  function collectInputDescendants(block) {
+   
+    for (const input of block.inputList || []) {
+      if (input.connection && input.connection.targetBlock()) {
+        const childBlock = input.connection.targetBlock();
+        // Only include if it was created in the same event (if createdIds is provided)
+        if (!createdIds || createdIds.has(childBlock.id)) {
+          descendants.push(childBlock);
+          collectInputDescendants(childBlock);
+        }
+      }
+    }
+  }
+
+  collectInputDescendants(rootBlock);
+
   let changes = 0;
   for (const b of descendants) {
     const fields = getVariableFieldsOnBlock(b, BlocklyNS);
     for (const f of fields) {
       if (f.getValue && f.getValue() === fromVarId) {
+       
         f.setValue(toVarId);
         changes++;
       }
     }
   }
+
   return changes;
 }
 
@@ -522,12 +550,6 @@ function countVarUses(workspace, varId, BlocklyNS) {
   return count;
 }
 
-/**
- * Adopt single-use "default-looking" variables inside the creator's subtree:
- * - type matches
- * - name startsWith prefix
- * - ALL uses are inside this subtree (none outside)
- */
 function adoptIsolatedDefaultVarsTo(
   rootBlock,
   toVarId,
@@ -535,11 +557,25 @@ function adoptIsolatedDefaultVarsTo(
   prefix,
   workspace,
   BlocklyNS,
+  createdIds,
 ) {
+
   const descendantIds = buildDescendantIdSet(rootBlock);
   let adopted = 0;
 
-  for (const b of rootBlock.getDescendants(false)) {
+  function collectInputDescendants(block) {
+    const descendants = [];
+    for (const input of block.inputList || []) {
+      if (input.connection && input.connection.targetBlock()) {
+        const childBlock = input.connection.targetBlock();
+        descendants.push(childBlock);
+        descendants.push(...collectInputDescendants(childBlock));
+      }
+    }
+    return descendants;
+  }
+
+  for (const b of collectInputDescendants(rootBlock)) {
     const fields = getVariableFieldsOnBlock(b, BlocklyNS);
     for (const f of fields) {
       const vid = f.getValue && f.getValue();
@@ -552,7 +588,7 @@ function adoptIsolatedDefaultVarsTo(
       if (!typeOk) continue;
       if (!model.name || !model.name.startsWith(prefix)) continue;
 
-      // ensure all uses are within subtree
+       // ensure all uses are within subtree
       let usedOutside = false;
       const allBlocks = workspace.getAllBlocks(false);
       for (const bb of allBlocks) {
@@ -569,7 +605,6 @@ function adoptIsolatedDefaultVarsTo(
       }
       if (usedOutside) continue;
 
-      // adopt
       f.setValue(toVarId);
       adopted++;
 
@@ -642,9 +677,6 @@ function normalizeVarNameAndIndex(
   }
 }
 
-/**
- * Public entry: call from your existing handleBlockCreateEvent (or in setOnChange).
- */
 export function ensureFreshVarOnDuplicate(
   block,
   changeEvent,
@@ -664,7 +696,14 @@ export function ensureFreshVarOnDuplicate(
     try {
       BlocklyNS.Events.disable();
 
-      retargetDescendantsVariables(block, pending.from, pending.to, BlocklyNS);
+      // Only retarget blocks that were created in the same copy operation
+      retargetDescendantsVariables(
+        block,
+        pending.from,
+        pending.to,
+        BlocklyNS,
+        pending.createdIds,
+      );
       adoptIsolatedDefaultVarsTo(
         block,
         pending.to,
@@ -672,17 +711,12 @@ export function ensureFreshVarOnDuplicate(
         pending.prefix,
         block.workspace,
         BlocklyNS,
-      );
-      normalizeVarNameAndIndex(
-        block.workspace,
-        pending.to,
-        pending.prefix,
-        pending.type,
-        nextVariableIndexes,
-        { updateIndex: false },
+        pending.createdIds,
       );
 
-      if (!subtreeHasVarId(block, pending.from, BlocklyNS)) {
+      if (
+        !subtreeHasVarId(block, pending.from, BlocklyNS, pending.createdIds)
+      ) {
         _pendingRetarget.set(block, undefined);
       }
     } finally {
@@ -703,11 +737,13 @@ export function ensureFreshVarOnDuplicate(
   if (!oldVarId) return false;
 
   // Duplicate/copy/duplicate-parent case?
-  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS))
-    return false;
+  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS)) return false;
 
   const varType = getFieldVariableType(block, fieldName, BlocklyNS);
   const group = changeEvent.group || `auto-split-${block.id}-${Date.now()}`;
+
+  // Track which blocks were created in this event
+  const createdIds = new Set(changeEvent.ids || [changeEvent.blockId]);
 
   BlocklyNS.Events.setGroup(group);
   try {
@@ -728,8 +764,14 @@ export function ensureFreshVarOnDuplicate(
     // Point the creator at the fresh variable.
     idField.setValue(newVarId);
 
-    // Pass 1: retarget descendants old -> new (for those already present)
-    retargetDescendantsVariables(block, oldVarId, newVarId, BlocklyNS);
+    // Pass 1: retarget descendants old -> new (ONLY blocks created in this event)
+    retargetDescendantsVariables(
+      block,
+      oldVarId,
+      newVarId,
+      BlocklyNS,
+      createdIds,
+    );
 
     // Pass 2: adopt any isolated default-looking vars inside subtree to the new var
     adoptIsolatedDefaultVarsTo(
@@ -739,15 +781,7 @@ export function ensureFreshVarOnDuplicate(
       variableNamePrefix,
       ws,
       BlocklyNS,
-    );
-
-    // Normalize the creator var’s name to the LOWEST free suffix (fixes visible gaps)
-    normalizeVarNameAndIndex(
-      ws,
-      newVarId,
-      variableNamePrefix,
-      varType,
-      nextVariableIndexes,
+      createdIds,
     );
 
     // If more children will connect later, remember to finish on subsequent events.
@@ -756,6 +790,7 @@ export function ensureFreshVarOnDuplicate(
       to: newVarId,
       type: varType,
       prefix: variableNamePrefix,
+      createdIds: createdIds,
     });
     return true;
   } finally {
@@ -1714,11 +1749,7 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
             // Set the new variable as selected
             this.doValueUpdate_(newVariable.getId());
             this.forceRerender(); // Refresh the UI to show the new selection
-          } else {
-            console.log("New variable not found in workspace.");
-          }
-        } else {
-          console.log("Variable creation was cancelled.");
+          } 
         }
       },
     );
