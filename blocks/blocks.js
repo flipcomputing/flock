@@ -617,6 +617,7 @@ function normalizeVarNameAndIndex(
   prefix,
   type,
   nextVariableIndexes,
+  opts = {},
 ) {
   const model = workspace.getVariableById(varId);
   if (!model) return;
@@ -635,8 +636,10 @@ function normalizeVarNameAndIndex(
     }
   }
 
-  const maxSuffix = maxExistingSuffix(workspace, prefix, type);
-  nextVariableIndexes[prefix] = maxSuffix + 1;
+  if (opts.updateIndex !== false) {
+    const maxSuffix = maxExistingSuffix(workspace, prefix, type);
+    nextVariableIndexes[prefix] = maxSuffix + 1;
+  }
 }
 
 /**
@@ -676,6 +679,7 @@ export function ensureFreshVarOnDuplicate(
         pending.prefix,
         pending.type,
         nextVariableIndexes,
+        { updateIndex: false },
       );
 
       if (!subtreeHasVarId(block, pending.from, BlocklyNS)) {
@@ -1606,13 +1610,16 @@ export function handleBlockCreateEvent(
         let newVariable = blockInstance.workspace
           .getVariableMap()
           .getVariable(newVariableName);
-        if (!newVariable) {
+        const createdNew = !newVariable;
+        if (createdNew) {
           newVariable = blockInstance.workspace
             .getVariableMap()
             .createVariable(newVariableName, null);
         }
         variableField.setValue(newVariable.getId());
-        nextVariableIndexes[variableNamePrefix] += 1;
+        if (createdNew) {
+          nextVariableIndexes[variableNamePrefix] += 1;
+        }
       }
     }
   }
