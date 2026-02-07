@@ -471,17 +471,17 @@ function debugVarNaming(...args) {
 
 function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   // Pick the smallest available suffix >= 1 (not just "next"), to be robust to temp vars.
+  const existingVars = workspace
+    .getAllVariables()
+    .filter((v) => v.name?.startsWith(prefix));
+  const existingNames = new Set(existingVars.map((v) => v.name));
   let n = 1;
-  while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
+  while (existingNames.has(`${prefix}${n}`)) n += 1;
   debugVarNaming("createFreshVariable: picked suffix", {
     prefix,
     type,
     pickedSuffix: n,
-    existing: workspace
-      .getVariableMap()
-      .getVariablesOfType(type)
-      .filter((v) => v.name?.startsWith(prefix))
-      .map((v) => v.name),
+    existing: existingVars.map((v) => ({ name: v.name, type: v.type })),
   });
   // Also keep your counter roughly in sync (but we’ll normalize later).
   nextVariableIndexes[prefix] = Math.max(
@@ -606,19 +606,23 @@ function adoptIsolatedDefaultVarsTo(
   return adopted;
 }
 
-/** Find the LOWEST available numeric suffix for prefix+N (type-scoped). */
+/** Find the LOWEST available numeric suffix for prefix+N (name-scoped). */
 function lowestAvailableSuffix(workspace, prefix, type) {
   let n = 1;
-  while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
+  const existingNames = new Set(
+    workspace
+      .getAllVariables()
+      .filter((v) => v.name?.startsWith(prefix))
+      .map((v) => v.name),
+  );
+  while (existingNames.has(`${prefix}${n}`)) n += 1;
   return n;
 }
 
-/** Compute the max numeric suffix currently present for prefix (type-scoped). */
+/** Compute the max numeric suffix currently present for prefix (name-scoped). */
 function maxExistingSuffix(workspace, prefix, type) {
   let max = 0;
-  const vars = type
-    ? workspace.getVariableMap().getVariablesOfType(type)
-    : workspace.getAllVariables();
+  const vars = workspace.getAllVariables();
   for (const v of vars) {
     const n = parseNumericSuffix(v.name, prefix);
     if (n && n > max) max = n;
@@ -644,13 +648,13 @@ function normalizeVarNameAndIndex(
   const currentSuffix = parseNumericSuffix(model.name, prefix);
   const targetSuffix = lowestAvailableSuffix(workspace, prefix, type);
   const targetName = `${prefix}${targetSuffix}`;
-  const nameTakenByOtherType = workspace
+  const nameTakenByOtherVar = workspace
     .getAllVariables()
     .some((v) => v.name === targetName && v.getId?.() !== model.getId?.());
 
   // If our current name isn't the lowest available, and the lowest is different, rename.
   if (targetSuffix && targetSuffix !== currentSuffix) {
-    if (nameTakenByOtherType) {
+    if (nameTakenByOtherVar) {
       debugVarNaming("normalizeVarNameAndIndex: skip rename (name taken)", {
         varId,
         from: model.name,
