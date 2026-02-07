@@ -5,6 +5,15 @@ import { getMetadata } from "meta-png";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
+	if (workspace && workspace.getAllBlocks) {
+		const usedModels = Blockly.Variables.allUsedVarModels(workspace);
+		const allModels = workspace.getVariableMap().getAllVariables();
+		for (const model of allModels) {
+			if (!usedModels.find((element) => element.getId() === model.getId())) {
+				workspace.deleteVariableById(model.getId());
+			}
+		}
+	}
 	const state = Blockly.serialization.workspaces.save(workspace);
 	const key = "flock_autosave.json";
 	localStorage.setItem(key, JSON.stringify(state));
