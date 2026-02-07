@@ -653,7 +653,7 @@ export function ensureFreshVarOnDuplicate(
   opts = {},
 ) {
   const BlocklyNS = getBlockly(opts);
-  if (!BlocklyNS) return;
+  if (!BlocklyNS) return false;
 
   const fieldName = opts.fieldName || "ID_VAR";
 
@@ -692,18 +692,19 @@ export function ensureFreshVarOnDuplicate(
   }
 
   // Only act on *this block's* create event.
-  if (changeEvent.type !== BlocklyNS.Events.BLOCK_CREATE) return;
-  if (changeEvent.blockId !== block.id) return;
+  if (changeEvent.type !== BlocklyNS.Events.BLOCK_CREATE) return false;
+  if (changeEvent.blockId !== block.id) return false;
 
   const ws = block.workspace;
   const idField = block.getField(fieldName);
-  if (!idField) return;
+  if (!idField) return false;
 
   const oldVarId = idField.getValue && idField.getValue();
-  if (!oldVarId) return;
+  if (!oldVarId) return false;
 
   // Duplicate/copy/duplicate-parent case?
-  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS)) return;
+  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS))
+    return false;
 
   const varType = getFieldVariableType(block, fieldName, BlocklyNS);
   const group = changeEvent.group || `auto-split-${block.id}-${Date.now()}`;
@@ -722,7 +723,7 @@ export function ensureFreshVarOnDuplicate(
     const newVarId =
       newVarModel.id ||
       (typeof newVarModel.getId === "function" ? newVarModel.getId() : null);
-    if (!newVarId) return;
+    if (!newVarId) return false;
 
     // Point the creator at the fresh variable.
     idField.setValue(newVarId);
@@ -756,10 +757,12 @@ export function ensureFreshVarOnDuplicate(
       type: varType,
       prefix: variableNamePrefix,
     });
+    return true;
   } finally {
     BlocklyNS.Events.enable();
     BlocklyNS.Events.setGroup(false);
   }
+  return false;
 }
 
 /*
@@ -1549,7 +1552,7 @@ export function handleBlockCreateEvent(
 ) {
   if (window.loadingCode) return; // Don't rename variables during code loading
 
-  ensureFreshVarOnDuplicate(
+  const handledDuplicate = ensureFreshVarOnDuplicate(
     blockInstance,
     changeEvent,
     variableNamePrefix,
@@ -1558,6 +1561,7 @@ export function handleBlockCreateEvent(
       fieldName: "ID_VAR",
     },
   );
+  if (handledDuplicate) return;
   if (blockInstance.id !== changeEvent.blockId) return;
   // Check if this is an undo/redo operation
   const isUndo = !changeEvent.recordUndo;
