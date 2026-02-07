@@ -460,16 +460,87 @@ function parseNumericSuffix(name, prefix) {
   return parseInt(rest, 10);
 }
 
+function shouldDebugVarNaming() {
+  return true;
+}
+
+function debugVarNaming(...args) {
+  if (!shouldDebugVarNaming()) return;
+  console.debug("[VarNaming]", ...args);
+}
+
 function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   // Pick the smallest available suffix >= 1 (not just "next"), to be robust to temp vars.
+  const existingVars = workspace.getAllVariables();
+  const existingIds = new Set(existingVars.map((v) => v.getId?.() || v.id));
+  const existingNames = new Set(
+    existingVars.filter((v) => v.name?.startsWith(prefix)).map((v) => v.name),
+  );
+  debugVarNaming("createFreshVariable: existing names", {
+    prefix,
+    type,
+    names: Array.from(existingNames),
+  });
+  debugVarNaming("createFreshVariable: existing variables", {
+    prefix,
+    type,
+    vars: existingVars.map((v) => ({
+      id: v.getId?.() || v.id,
+      name: v.name,
+      type: v.type,
+    })),
+  });
   let n = 1;
-  while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
+  let newVarModel = null;
+  while (!newVarModel) {
+    const candidateName = `${prefix}${n}`;
+    if (existingNames.has(candidateName)) {
+      debugVarNaming("createFreshVariable: candidate name exists", {
+        prefix,
+        type,
+        candidateName,
+        n,
+      });
+      n += 1;
+      continue;
+    }
+    const created = workspace
+      .getVariableMap()
+      .createVariable(candidateName, type);
+    const createdId = created?.getId?.() || created?.id;
+    if (createdId && !existingIds.has(createdId)) {
+      newVarModel = created;
+    } else {
+      debugVarNaming("createFreshVariable: candidate reused existing var", {
+        prefix,
+        type,
+        candidateName,
+        createdId,
+      });
+      n += 1;
+    }
+  }
+  debugVarNaming("createFreshVariable: picked suffix", {
+    prefix,
+    type,
+    pickedSuffix: n,
+    newName: newVarModel?.name,
+    existingNames: Array.from(existingNames),
+  });
+  if (newVarModel?.name && existingNames.has(newVarModel.name)) {
+    debugVarNaming("createFreshVariable: ERROR new name already exists", {
+      prefix,
+      type,
+      newName: newVarModel.name,
+      existingNames: Array.from(existingNames),
+    });
+  }
   // Also keep your counter roughly in sync (but we’ll normalize later).
   nextVariableIndexes[prefix] = Math.max(
     nextVariableIndexes[prefix] || 1,
     n + 1,
   );
-  return workspace.getVariableMap().createVariable(`${prefix}${n}`, type); // VariableModel
+  return newVarModel; // VariableModel
 }
 
 function retargetDescendantsVariables(
@@ -576,7 +647,7 @@ function adoptIsolatedDefaultVarsTo(
       // clean up orphan if now unused
       if (countVarUses(workspace, vid, BlocklyNS) === 0) {
         try {
-          workspace.deleteVariableById(vid);
+          workspace.getVariableMap().deleteVariable(vid);
         } catch (_) {
           /* ignore */
         }
@@ -587,19 +658,23 @@ function adoptIsolatedDefaultVarsTo(
   return adopted;
 }
 
-/** Find the LOWEST available numeric suffix for prefix+N (type-scoped). */
+/** Find the LOWEST available numeric suffix for prefix+N (name-scoped). */
 function lowestAvailableSuffix(workspace, prefix, type) {
   let n = 1;
-  while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
+  const existingNames = new Set(
+    workspace
+      .getAllVariables()
+      .filter((v) => v.name?.startsWith(prefix))
+      .map((v) => v.name),
+  );
+  while (existingNames.has(`${prefix}${n}`)) n += 1;
   return n;
 }
 
-/** Compute the max numeric suffix currently present for prefix (type-scoped). */
+/** Compute the max numeric suffix currently present for prefix (name-scoped). */
 function maxExistingSuffix(workspace, prefix, type) {
   let max = 0;
-  const vars = type
-    ? workspace.getVariablesOfType(type)
-    : workspace.getAllVariables();
+  const vars = workspace.getAllVariables();
   for (const v of vars) {
     const n = parseNumericSuffix(v.name, prefix);
     if (n && n > max) max = n;
@@ -624,21 +699,59 @@ function normalizeVarNameAndIndex(
 
   const currentSuffix = parseNumericSuffix(model.name, prefix);
   const targetSuffix = lowestAvailableSuffix(workspace, prefix, type);
+  const targetName = `${prefix}${targetSuffix}`;
+  const nameTakenByOtherVar = workspace
+    .getAllVariables()
+    .some((v) => v.name === targetName && v.getId?.() !== model.getId?.());
 
   // If our current name isn't the lowest available, and the lowest is different, rename.
   if (targetSuffix && targetSuffix !== currentSuffix) {
-    try {
-      workspace
-        .getVariableMap()
-        .renameVariable(model, `${prefix}${targetSuffix}`);
-    } catch (_) {
-      /* ignore rename failures */
+    if (nameTakenByOtherVar) {
+      debugVarNaming("normalizeVarNameAndIndex: skip rename (name taken)", {
+        varId,
+        from: model.name,
+        to: targetName,
+        prefix,
+        type,
+        currentSuffix,
+        targetSuffix,
+      });
+    } else {
+      debugVarNaming("normalizeVarNameAndIndex: renaming", {
+        varId,
+        from: model.name,
+        to: targetName,
+        prefix,
+        type,
+        currentSuffix,
+        targetSuffix,
+      });
+      try {
+        workspace.getVariableMap().renameVariable(model, targetName);
+      } catch (_) {
+        /* ignore rename failures */
+      }
     }
+  } else {
+    debugVarNaming("normalizeVarNameAndIndex: keeping name", {
+      varId,
+      name: model.name,
+      prefix,
+      type,
+      currentSuffix,
+      targetSuffix,
+    });
   }
 
   if (opts.updateIndex !== false) {
     const maxSuffix = maxExistingSuffix(workspace, prefix, type);
     nextVariableIndexes[prefix] = maxSuffix + 1;
+    debugVarNaming("normalizeVarNameAndIndex: updated index", {
+      prefix,
+      type,
+      maxSuffix,
+      nextIndex: nextVariableIndexes[prefix],
+    });
   }
 }
 
@@ -660,6 +773,14 @@ export function ensureFreshVarOnDuplicate(
   // Finish any pending work (retarget, adopt, normalize) from earlier in the same dup group.
   const pending = _pendingRetarget.get(block);
   if (pending && pending.from && pending.to) {
+    debugVarNaming("ensureFreshVarOnDuplicate: finishing pending retarget", {
+      blockId: block.id,
+      from: pending.from,
+      to: pending.to,
+      prefix: pending.prefix,
+      type: pending.type,
+      group: changeEvent.group,
+    });
     BlocklyNS.Events.setGroup(changeEvent.group || null);
     try {
       BlocklyNS.Events.disable();
@@ -701,13 +822,32 @@ export function ensureFreshVarOnDuplicate(
 
   const oldVarId = idField.getValue && idField.getValue();
   if (!oldVarId) return false;
+  debugVarNaming("ensureFreshVarOnDuplicate: candidate", {
+    blockId: block.id,
+    group: changeEvent.group,
+    prefix: variableNamePrefix,
+    fieldName,
+    oldVarId,
+    oldVarName: ws.getVariableById(oldVarId)?.name,
+  });
 
   // Duplicate/copy/duplicate-parent case?
-  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS))
+  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS)) {
+    debugVarNaming("ensureFreshVarOnDuplicate: variable not used elsewhere", {
+      blockId: block.id,
+      oldVarId,
+    });
     return false;
+  }
 
   const varType = getFieldVariableType(block, fieldName, BlocklyNS);
   const group = changeEvent.group || `auto-split-${block.id}-${Date.now()}`;
+  debugVarNaming("ensureFreshVarOnDuplicate: splitting duplicate", {
+    blockId: block.id,
+    group,
+    prefix: variableNamePrefix,
+    varType,
+  });
 
   BlocklyNS.Events.setGroup(group);
   try {
@@ -724,6 +864,14 @@ export function ensureFreshVarOnDuplicate(
       newVarModel.id ||
       (typeof newVarModel.getId === "function" ? newVarModel.getId() : null);
     if (!newVarId) return false;
+
+    debugVarNaming("ensureFreshVarOnDuplicate: created new var", {
+      blockId: block.id,
+      newVarId,
+      newVarName: newVarModel.name,
+      oldVarId,
+      oldVarName: ws.getVariableById(oldVarId)?.name,
+    });
 
     // Point the creator at the fresh variable.
     idField.setValue(newVarId);
