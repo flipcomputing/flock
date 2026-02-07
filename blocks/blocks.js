@@ -476,6 +476,11 @@ function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   const existingNames = new Set(
     existingVars.filter((v) => v.name?.startsWith(prefix)).map((v) => v.name),
   );
+  debugVarNaming("createFreshVariable: existing names", {
+    prefix,
+    type,
+    names: Array.from(existingNames),
+  });
   debugVarNaming("createFreshVariable: existing variables", {
     prefix,
     type,
@@ -519,16 +524,17 @@ function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
     prefix,
     type,
     pickedSuffix: n,
-    existing: existingVars
-      .filter((v) => v.name?.startsWith(prefix))
-      .map((v) => ({
-        id: v.getId?.() || v.id,
-        name: v.name,
-        type: v.type,
-      })),
+    newName: newVarModel?.name,
     existingNames: Array.from(existingNames),
-    existingIds: Array.from(existingIds),
   });
+  if (newVarModel?.name && existingNames.has(newVarModel.name)) {
+    debugVarNaming("createFreshVariable: ERROR new name already exists", {
+      prefix,
+      type,
+      newName: newVarModel.name,
+      existingNames: Array.from(existingNames),
+    });
+  }
   // Also keep your counter roughly in sync (but we’ll normalize later).
   nextVariableIndexes[prefix] = Math.max(
     nextVariableIndexes[prefix] || 1,
