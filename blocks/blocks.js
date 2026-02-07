@@ -490,6 +490,12 @@ function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   while (!newVarModel) {
     const candidateName = `${prefix}${n}`;
     if (existingNames.has(candidateName)) {
+      debugVarNaming("createFreshVariable: candidate name exists", {
+        prefix,
+        type,
+        candidateName,
+        n,
+      });
       n += 1;
       continue;
     }
@@ -515,7 +521,13 @@ function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
     pickedSuffix: n,
     existing: existingVars
       .filter((v) => v.name?.startsWith(prefix))
-      .map((v) => ({ name: v.name, type: v.type })),
+      .map((v) => ({
+        id: v.getId?.() || v.id,
+        name: v.name,
+        type: v.type,
+      })),
+    existingNames: Array.from(existingNames),
+    existingIds: Array.from(existingIds),
   });
   // Also keep your counter roughly in sync (but we’ll normalize later).
   nextVariableIndexes[prefix] = Math.max(
