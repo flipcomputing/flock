@@ -471,24 +471,49 @@ function debugVarNaming(...args) {
 
 function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   // Pick the smallest available suffix >= 1 (not just "next"), to be robust to temp vars.
-  const existingVars = workspace
-    .getAllVariables()
-    .filter((v) => v.name?.startsWith(prefix));
-  const existingNames = new Set(existingVars.map((v) => v.name));
+  const existingVars = workspace.getAllVariables();
+  const existingIds = new Set(existingVars.map((v) => v.getId?.() || v.id));
+  const existingNames = new Set(
+    existingVars.filter((v) => v.name?.startsWith(prefix)).map((v) => v.name),
+  );
   let n = 1;
-  while (existingNames.has(`${prefix}${n}`)) n += 1;
+  let newVarModel = null;
+  while (!newVarModel) {
+    const candidateName = `${prefix}${n}`;
+    if (existingNames.has(candidateName)) {
+      n += 1;
+      continue;
+    }
+    const created = workspace
+      .getVariableMap()
+      .createVariable(candidateName, type);
+    const createdId = created?.getId?.() || created?.id;
+    if (createdId && !existingIds.has(createdId)) {
+      newVarModel = created;
+    } else {
+      debugVarNaming("createFreshVariable: candidate reused existing var", {
+        prefix,
+        type,
+        candidateName,
+        createdId,
+      });
+      n += 1;
+    }
+  }
   debugVarNaming("createFreshVariable: picked suffix", {
     prefix,
     type,
     pickedSuffix: n,
-    existing: existingVars.map((v) => ({ name: v.name, type: v.type })),
+    existing: existingVars
+      .filter((v) => v.name?.startsWith(prefix))
+      .map((v) => ({ name: v.name, type: v.type })),
   });
   // Also keep your counter roughly in sync (but we’ll normalize later).
   nextVariableIndexes[prefix] = Math.max(
     nextVariableIndexes[prefix] || 1,
     n + 1,
   );
-  return workspace.getVariableMap().createVariable(`${prefix}${n}`, type); // VariableModel
+  return newVarModel; // VariableModel
 }
 
 function retargetDescendantsVariables(
