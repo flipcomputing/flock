@@ -149,7 +149,7 @@ export function defineModelBlocks() {
                         const defaultColour = Array.isArray(defaultColours)
                                 ? defaultColours[0]
                                 : defaultColours || "#FFD700";
-                        const variableNamePrefix = "item";
+                        const variableNamePrefix = "multiitem";
                         let nextVariableName =
                                 variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
@@ -249,7 +249,7 @@ export function defineModelBlocks() {
 
         Blockly.Blocks["load_multi_object"] = {
                 init: function () {
-                        const variableNamePrefix = "item";
+                        const variableNamePrefix = "multiitem";
                         let nextVariableName =
                                 variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 

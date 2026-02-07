@@ -1066,6 +1066,7 @@ export function initializeVariableIndexes() {
     character: 1,
     object: 1,
     item: 1,
+    multiitem: 1,
     instrument: 1,
     animation: 1,
     clone: 1,
