@@ -476,6 +476,15 @@ function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   const existingNames = new Set(
     existingVars.filter((v) => v.name?.startsWith(prefix)).map((v) => v.name),
   );
+  debugVarNaming("createFreshVariable: existing variables", {
+    prefix,
+    type,
+    vars: existingVars.map((v) => ({
+      id: v.getId?.() || v.id,
+      name: v.name,
+      type: v.type,
+    })),
+  });
   let n = 1;
   let newVarModel = null;
   while (!newVarModel) {
