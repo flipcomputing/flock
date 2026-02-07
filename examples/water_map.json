@@ -151,7 +151,7 @@
                     "type": "material",
                     "id": "LrZHzr^OR0sOE;CtMirE",
                     "fields": {
-                      "TEXTURE_SET": "fishes.png"
+                      "TEXTURE_SET": "fish_above.png"
                     },
                     "inputs": {
                       "BASE_COLOR": {
