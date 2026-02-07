@@ -461,7 +461,21 @@ function parseNumericSuffix(name, prefix) {
 }
 
 function shouldDebugVarNaming() {
-  return typeof window !== "undefined" && window.FLOCK_DEBUG_VAR_NAMING;
+  if (typeof window === "undefined") return false;
+  if (window.FLOCK_DEBUG_VAR_NAMING) return true;
+  try {
+    const search = window.location?.search || "";
+    if (new URLSearchParams(search).get("debugVarNaming") === "1") return true;
+  } catch (_) {
+    /* ignore */
+  }
+  try {
+    const stored = window.localStorage?.getItem("FLOCK_DEBUG_VAR_NAMING");
+    if (stored === "1" || stored === "true") return true;
+  } catch (_) {
+    /* ignore */
+  }
+  return false;
 }
 
 function debugVarNaming(...args) {
