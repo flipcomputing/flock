@@ -429,11 +429,18 @@ function isVariableUsedElsewhere(
   varId,
   excludingBlockId,
   BlocklyNS,
+  excludeBlockIds = null,
 ) {
   if (!varId) return false;
+  const excludeSet = Array.isArray(excludeBlockIds)
+    ? new Set(excludeBlockIds)
+    : excludeBlockIds instanceof Set
+      ? excludeBlockIds
+      : null;
   const blocks = workspace.getAllBlocks(false);
   for (const b of blocks) {
     if (b.id === excludingBlockId) continue;
+    if (excludeSet && excludeSet.has(b.id)) continue;
     const fields = getVariableFieldsOnBlock(b, BlocklyNS);
     for (const f of fields) {
       if (f.getValue && f.getValue() === varId) return true;
@@ -703,7 +710,8 @@ export function ensureFreshVarOnDuplicate(
   if (!oldVarId) return false;
 
   // Duplicate/copy/duplicate-parent case?
-  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS))
+  const createdIds = Array.isArray(changeEvent.ids) ? changeEvent.ids : null;
+  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS, createdIds))
     return false;
 
   const varType = getFieldVariableType(block, fieldName, BlocklyNS);
