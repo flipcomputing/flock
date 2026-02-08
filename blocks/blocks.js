@@ -1334,6 +1334,7 @@ export function defineBlocks() {
         tooltip: getTooltip("random_seeded_int"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("math_blocks");
     },
   };
 
