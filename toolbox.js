@@ -4343,6 +4343,298 @@ const toolboxSnippetsMovement = {
                                 },
                         },
                 },
+                {
+                        kind: "block",
+                        type: "forever",
+                        inputs: {
+                                DO: {
+                                        block: {
+                                                type: "if_clause",
+                                                extraState: {
+                                                        mode: "IF",
+                                                        stashedCondState: null,
+                                                },
+                                                fields: {
+                                                        MODE: "IF",
+                                                },
+                                                inputs: {
+                                                        COND: {
+                                                                block: {
+                                                                        type: "action_pressed",
+                                                                        fields: {
+                                                                                ACTION: "FORWARD",
+                                                                        },
+                                                                },
+                                                        },
+                                                        DO: {
+                                                                block: {
+                                                                        type: "move_forward",
+                                                                        fields: {
+                                                                                MODEL: {
+                                                                                        name: "player",
+                                                                                },
+                                                                                DIRECTION: "forward",
+                                                                        },
+                                                                        inputs: {
+                                                                                SPEED: {
+                                                                                        shadow: {
+                                                                                                type: "math_number",
+                                                                                                fields: {
+                                                                                                        NUM: 3,
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        next: {
+                                                                                block: {
+                                                                                        type: "switch_animation",
+                                                                                        fields: {
+                                                                                                MODEL: {
+                                                                                                        name: "player",
+                                                                                                },
+                                                                                        },
+                                                                                        inputs: {
+                                                                                                ANIMATION_NAME: {
+                                                                                                        shadow: {
+                                                                                                                type: "animation_name",
+                                                                                                                fields: {
+                                                                                                                        ANIMATION_NAME: "Walk",
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                                next: {
+                                                        block: {
+                                                                type: "if_clause",
+                                                                extraState: {
+                                                                        mode: "ELSEIF",
+                                                                        stashedCondState: null,
+                                                                },
+                                                                fields: {
+                                                                        MODE: "ELSEIF",
+                                                                },
+                                                                inputs: {
+                                                                        COND: {
+                                                                                block: {
+                                                                                        type: "action_pressed",
+                                                                                        fields: {
+                                                                                                ACTION: "BACKWARD",
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                        DO: {
+                                                                                block: {
+                                                                                        type: "move_forward",
+                                                                                        fields: {
+                                                                                                MODEL: {
+                                                                                                        name: "player",
+                                                                                                },
+                                                                                                DIRECTION: "forward",
+                                                                                        },
+                                                                                        inputs: {
+                                                                                                SPEED: {
+                                                                                                        shadow: {
+                                                                                                                type: "math_number",
+                                                                                                                fields: {
+                                                                                                                        NUM: -3,
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                        next: {
+                                                                                                block: {
+                                                                                                        type: "switch_animation",
+                                                                                                        fields: {
+                                                                                                                MODEL: {
+                                                                                                                        name: "player",
+                                                                                                                },
+                                                                                                        },
+                                                                                                        inputs: {
+                                                                                                                ANIMATION_NAME: {
+                                                                                                                        shadow: {
+                                                                                                                                type: "animation_name",
+                                                                                                                                fields: {
+                                                                                                                                        ANIMATION_NAME: "Walk",
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                                next:  {
+                                                                        block: {
+                                                                                type: "if_clause",
+                                                                                extraState: {
+                                                                                        mode: "ELSEIF",
+                                                                                        stashedCondState: null,
+                                                                                },
+                                                                                fields: {
+                                                                                        MODE: "ELSEIF",
+                                                                                },
+                                                                                inputs: {
+                                                                                        COND: {
+                                                                                                block: {
+                                                                                                        type: "action_pressed",
+                                                                                                        fields: {
+                                                                                                                ACTION: "LEFT",
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                        DO: {
+                                                                                                block: {
+                                                                                                        type: "move_forward",
+                                                                                                        fields: {
+                                                                                                                MODEL: {
+                                                                                                                        name: "player",
+                                                                                                                },
+                                                                                                                DIRECTION: "sideways",
+                                                                                                        },
+                                                                                                        inputs: {
+                                                                                                                SPEED: {
+                                                                                                                        shadow: {
+                                                                                                                                type: "math_number",
+                                                                                                                                fields: {
+                                                                                                                                        NUM: -3,
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
+                                                                                                        next: {
+                                                                                                                block: {
+                                                                                                                        type: "switch_animation",
+                                                                                                                        fields: {
+                                                                                                                                MODEL: {
+                                                                                                                                        name: "player",
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                        inputs: {
+                                                                                                                                ANIMATION_NAME: {
+                                                                                                                                        shadow: {
+                                                                                                                                                type: "animation_name",
+                                                                                                                                                fields: {
+                                                                                                                                                        ANIMATION_NAME: "Walk",
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                                next: {
+                                                                                        block: {
+                                                                                                type: "if_clause",
+                                                                                                extraState: {
+                                                                                                        mode: "ELSEIF",
+                                                                                                        stashedCondState: null,
+                                                                                                },
+                                                                                                fields: {
+                                                                                                        MODE: "ELSEIF",
+                                                                                                },
+                                                                                                inputs: {
+                                                                                                        COND: {
+                                                                                                                block: {
+                                                                                                                        type: "action_pressed",
+                                                                                                                        fields: {
+                                                                                                                                ACTION: "RIGHT",
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
+                                                                                                        DO: {
+                                                                                                                block: {
+                                                                                                                        type: "move_forward",
+                                                                                                                        fields: {
+                                                                                                                                MODEL: {
+                                                                                                                                        name: "player",
+                                                                                                                                },
+                                                                                                                                DIRECTION: "sideways",
+                                                                                                                        },
+                                                                                                                        inputs: {
+                                                                                                                                SPEED: {
+                                                                                                                                        shadow: {
+                                                                                                                                                type: "math_number",
+                                                                                                                                                fields: {
+                                                                                                                                                        NUM: 3,
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                        next: {
+                                                                                                                                block: {
+                                                                                                                                        type: "switch_animation",
+                                                                                                                                        fields: {
+                                                                                                                                                MODEL: {
+                                                                                                                                                        name: "player",
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                        inputs: {
+                                                                                                                                                ANIMATION_NAME: {
+                                                                                                                                                        shadow: {
+                                                                                                                                                                type: "animation_name",
+                                                                                                                                                                fields: {
+                                                                                                                                                                        ANIMATION_NAME: "Walk",
+                                                                                                                                                                },
+                                                                                                                                                        },
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                                next: {
+                                                                                                        block: {
+                                                                                                                type: "if_clause",
+                                                                                                                extraState: {
+                                                                                                                        mode: "ELSE",
+                                                                                                                        stashedCondState: null,
+                                                                                                                },
+                                                                                                                fields: {
+                                                                                                                        MODE: "ELSE",
+                                                                                                                },
+                                                                                                                inputs: {
+                                                                                                                        DO: {
+                                                                                                                                block: {
+                                                                                                                                        type: "switch_animation",
+                                                                                                                                        fields: {
+                                                                                                                                                MODEL: {
+                                                                                                                                                        name: "player",
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                        inputs: {
+                                                                                                                                                ANIMATION_NAME: {
+                                                                                                                                                        shadow: {
+                                                                                                                                                                type: "animation_name",
+                                                                                                                                                                fields: {
+                                                                                                                                                                        ANIMATION_NAME: "Idle",
+                                                                                                                                                                },
+                                                                                                                                                        },
+                                                                                                                                                },
+                                                                                                                                        },
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
         ],
 };
 
