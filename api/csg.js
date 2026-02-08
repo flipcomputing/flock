@@ -40,7 +40,12 @@ function prepareMeshForCSG(mesh) {
                 mesh.getIndices() &&
                 mesh.getIndices().length > 0;
 
-        if (hasValidGeometry) {
+        const preferChildrenForModelRoot =
+                mesh.metadata?.modelName &&
+                mesh.getChildMeshes &&
+                mesh.getChildMeshes(false).length > 0;
+
+        if (hasValidGeometry && !preferChildrenForModelRoot) {
                 return mesh;
         }
 
@@ -90,11 +95,28 @@ function prepareMeshForCSG(mesh) {
                 console.warn(
                         `[prepareMeshForCSG] No valid geometry found for mesh: ${mesh.name}`,
                 );
-                return null;
+                return hasValidGeometry ? mesh : null;
         }
 
         if (meshesWithGeometry.length === 1) {
-                return meshesWithGeometry[0];
+                const single = meshesWithGeometry[0];
+                const originalName = mesh.name;
+                if (single !== mesh) {
+                        single.computeWorldMatrix(true);
+                        const worldMatrix = single.getWorldMatrix().clone();
+                        single.setParent(null);
+                        single.bakeTransformIntoVertices(worldMatrix);
+                        single.position.set(0, 0, 0);
+                        single.rotation.set(0, 0, 0);
+                        single.rotationQuaternion = null;
+                        single.scaling.set(1, 1, 1);
+                        mesh.dispose();
+                        single.name = originalName;
+                }
+                single.metadata = single.metadata || {};
+                single.metadata.csgPrepared = true;
+                single.metadata.csgSourceName = originalName;
+                return single;
         }
 
         // Multiple children with geometry - merge them into one mesh
@@ -103,6 +125,8 @@ function prepareMeshForCSG(mesh) {
                 m.computeWorldMatrix(true);
                 const worldMatrix = m.getWorldMatrix();
                 const clone = m.clone(`${mesh.name}_part_${i}`);
+                clone.metadata = clone.metadata || {};
+                clone.metadata.csgPartOf = mesh.uniqueId;
                 clone.setParent(null);
                 clone.bakeTransformIntoVertices(worldMatrix);
                 clone.position.set(0, 0, 0);
@@ -112,9 +136,11 @@ function prepareMeshForCSG(mesh) {
                 return clone;
         });
 
+        const originalName = mesh.name;
+
         const merged = flock.BABYLON.Mesh.MergeMeshes(
                 clones,
-                true, // disposeSource
+                false, // disposeSource
                 true, // allow32BitsIndices
                 undefined,
                 false,
@@ -122,18 +148,92 @@ function prepareMeshForCSG(mesh) {
         );
 
         if (merged) {
-                // Copy transform from original mesh
-                mesh.computeWorldMatrix(true);
-                merged.position.copyFrom(mesh.position);
-                merged.rotation.copyFrom(mesh.rotation);
-                if (mesh.rotationQuaternion) {
-                        merged.rotationQuaternion = mesh.rotationQuaternion.clone();
-                }
-                merged.scaling.copyFrom(mesh.scaling);
+                merged.metadata = merged.metadata || {};
+                merged.metadata.csgPrepared = true;
+                merged.metadata.csgSourceName = mesh.name;
+                merged.name = originalName;
+                mesh.dispose();
+
+                // Child vertices are baked into world space, so keep the merged mesh at identity.
+                merged.position.set(0, 0, 0);
+                merged.rotation.set(0, 0, 0);
+                merged.rotationQuaternion = null;
+                merged.scaling.set(1, 1, 1);
                 merged.computeWorldMatrix(true);
         }
 
+        clones.forEach((clone) => clone.dispose());
+
         return merged;
+}
+
+function createCSGFromMesh(mesh) {
+        if (!mesh) return null;
+        try {
+                const csg2 = flock.BABYLON.CSG2.FromMesh(mesh, false);
+                return {
+                        type: "csg2",
+                        csg: csg2,
+                        add: (other) => ({
+                                type: "csg2",
+                                csg: csg2.add(other.csg),
+                                add: (next) => ({
+                                        type: "csg2",
+                                        csg: csg2.add(next.csg),
+                                        subtract: (next) => ({
+                                                type: "csg2",
+                                                csg: csg2.subtract(next.csg),
+                                                intersect: (next) => ({
+                                                        type: "csg2",
+                                                        csg: csg2.intersect(next.csg),
+                                                        toMesh: (name, scene, options) =>
+                                                                csg2.toMesh(name, scene, options),
+                                                }),
+                                                toMesh: (name, scene, options) =>
+                                                        csg2.toMesh(name, scene, options),
+                                        }),
+                                        intersect: (next) => ({
+                                                type: "csg2",
+                                                csg: csg2.intersect(next.csg),
+                                                toMesh: (name, scene, options) =>
+                                                        csg2.toMesh(name, scene, options),
+                                        }),
+                                        toMesh: (name, scene, options) =>
+                                                csg2.toMesh(name, scene, options),
+                                }),
+                                subtract: (next) => ({
+                                        type: "csg2",
+                                        csg: csg2.subtract(next.csg),
+                                        toMesh: (name, scene, options) =>
+                                                csg2.toMesh(name, scene, options),
+                                }),
+                                intersect: (next) => ({
+                                        type: "csg2",
+                                        csg: csg2.intersect(next.csg),
+                                        toMesh: (name, scene, options) =>
+                                                csg2.toMesh(name, scene, options),
+                                }),
+                                toMesh: (name, scene, options) =>
+                                        csg2.toMesh(name, scene, options),
+                        }),
+                        subtract: (other) => ({
+                                type: "csg2",
+                                csg: csg2.subtract(other.csg),
+                                toMesh: (name, scene, options) =>
+                                        csg2.toMesh(name, scene, options),
+                        }),
+                        intersect: (other) => ({
+                                type: "csg2",
+                                csg: csg2.intersect(other.csg),
+                                toMesh: (name, scene, options) =>
+                                        csg2.toMesh(name, scene, options),
+                        }),
+                        toMesh: (name, scene, options) =>
+                                csg2.toMesh(name, scene, options),
+                };
+        } catch (e) {
+                return null;
+        }
 }
 
 export const flockCSG = {
@@ -162,24 +262,35 @@ export const flockCSG = {
                                 if (validMeshes.length) {
                                         // Prepare meshes for merging
                                         const meshesToMerge = [];
-                                        let referenceMesh = validMeshes[0];
+                                        const tempMeshes = [];
+                                        const tempMeshesSet = new Set();
+                                        let referenceMesh =
+                                                flock._findFirstDescendantWithMaterial(validMeshes[0]) ||
+                                                validMeshes[0];
 
                                         validMeshes.forEach((mesh) => {
-                                                let targetMesh = mesh;
-                                                
-                                                // If metadata exists, use the mesh with material.
-                                                if (mesh.metadata?.modelName) {
+                                                if (!referenceMesh.material) {
                                                         const meshWithMaterial =
                                                                 flock._findFirstDescendantWithMaterial(mesh);
                                                         if (meshWithMaterial) {
-                                                                targetMesh = meshWithMaterial;
-                                                                targetMesh.refreshBoundingInfo();
+                                                                referenceMesh = meshWithMaterial;
                                                         }
+                                                }
+
+                                                const targetMesh = prepareMeshForCSG(mesh);
+                                                if (!targetMesh) {
+                                                        console.warn(`Skipping mesh with no vertices: ${mesh.name}`);
+                                                        return;
+                                                }
+
+                                                if (targetMesh.metadata?.csgPrepared) {
+                                                        tempMeshes.push(targetMesh);
+                                                        tempMeshesSet.add(targetMesh);
                                                 }
 
                                                 // Ensure world matrix is updated for correct positioning
                                                 targetMesh.computeWorldMatrix(true);
-                                                
+
                                                 // Check if mesh has valid geometry
                                                 if (targetMesh.getTotalVertices() > 0) {
                                                         meshesToMerge.push(targetMesh);
@@ -196,54 +307,78 @@ export const flockCSG = {
                                         // Clone the first mesh's material for the merged result
                                         const originalMaterial = referenceMesh.material;
 
-                                        // Try CSG2 first, fall back to simple merge if it fails
+                                        // Single mesh: skip merge/CSG and use the prepared mesh directly.
                                         let mergedMesh = null;
                                         let csgSucceeded = false;
-
-                                        try {
-                                                // Attempt CSG2 merge for proper boolean union
-                                                let baseCSG = flock.BABYLON.CSG2.FromMesh(meshesToMerge[0], false);
-                                                
-                                                for (let i = 1; i < meshesToMerge.length; i++) {
-                                                        const meshCSG = flock.BABYLON.CSG2.FromMesh(meshesToMerge[i], false);
-                                                        baseCSG = baseCSG.add(meshCSG);
+                                        if (meshesToMerge.length === 1) {
+                                                mergedMesh = meshesToMerge[0];
+                                                const tempIndex = tempMeshes.indexOf(mergedMesh);
+                                                if (tempIndex >= 0) {
+                                                        tempMeshes.splice(tempIndex, 1);
                                                 }
-
-                                                mergedMesh = baseCSG.toMesh(
-                                                        modelId,
-                                                        meshesToMerge[0].getScene(),
-                                                        { centerMesh: false, rebuildNormals: true }
-                                                );
-                                                
-                                                if (mergedMesh && mergedMesh.getTotalVertices() > 0) {
-                                                        csgSucceeded = true;
-                                                } else {
-                                                        if (mergedMesh) mergedMesh.dispose();
-                                                        mergedMesh = null;
-                                                }
-                                        } catch (e) {
-                                                // CSG2.toMesh may have created an empty mesh before failing - clean it up
-                                                const emptyMeshes = flock.scene.meshes.filter(m => 
-                                                        m.name === modelId && m.getTotalVertices() === 0
-                                                );
-                                                emptyMeshes.forEach(m => {
-                                                        m.dispose();
-                                                });
+                                                tempMeshesSet.delete(mergedMesh);
                                         }
 
-                                        // Fallback to simple Mesh.MergeMeshes if CSG2 failed
-                                        if (!csgSucceeded) {
+                                        // Try CSG2 first for proper boolean union when meshes are not pre-baked.
+                                        const shouldUseCSG =
+                                                !mergedMesh &&
+                                                meshesToMerge.every(
+                                                        (mesh) => !mesh.metadata?.csgPrepared,
+                                                );
+
+                                        if (shouldUseCSG) {
+                                                try {
+                                                        // Attempt CSG2 merge for proper boolean union
+                                                        let baseCSG = flock.BABYLON.CSG2.FromMesh(
+                                                                meshesToMerge[0],
+                                                                false,
+                                                        );
+                                                        
+                                                        for (let i = 1; i < meshesToMerge.length; i++) {
+                                                                const meshCSG = flock.BABYLON.CSG2.FromMesh(
+                                                                        meshesToMerge[i],
+                                                                        false,
+                                                                );
+                                                                baseCSG = baseCSG.add(meshCSG);
+                                                        }
+
+                                                        mergedMesh = baseCSG.toMesh(
+                                                                modelId,
+                                                                meshesToMerge[0].getScene(),
+                                                                { centerMesh: false, rebuildNormals: true },
+                                                        );
+                                                        
+                                                        if (mergedMesh && mergedMesh.getTotalVertices() > 0) {
+                                                                csgSucceeded = true;
+                                                        } else {
+                                                                if (mergedMesh) mergedMesh.dispose();
+                                                                mergedMesh = null;
+                                                        }
+                                                } catch (e) {
+                                                        // CSG2.toMesh may have created an empty mesh before failing - clean it up
+                                                        const emptyMeshes = flock.scene.meshes.filter((m) => 
+                                                                m.name === modelId && m.getTotalVertices() === 0,
+                                                        );
+                                                        emptyMeshes.forEach((m) => {
+                                                                m.dispose();
+                                                        });
+                                                }
+                                        }
+
+                                        // Fallback to simple Mesh.MergeMeshes if CSG2 failed or should be skipped
+                                        if (!csgSucceeded && !mergedMesh) {
                                                 mergedMesh = flock.BABYLON.Mesh.MergeMeshes(
                                                         meshesToMerge,
                                                         false,
                                                         true,
                                                         undefined,
                                                         false,
-                                                        false
+                                                        false,
                                                 );
                                         }
 
                                         if (!mergedMesh) {
+                                                tempMeshes.forEach((mesh) => mesh.dispose());
                                                 console.warn("Merge failed");
                                                 return null;
                                         }
@@ -275,8 +410,31 @@ export const flockCSG = {
                                                 console.warn("Could not apply physics to merged mesh:", e);
                                         }
 
-                                        // Dispose original meshes
+                                        // Dispose temporary and original meshes
+                                        tempMeshes.forEach((mesh) => mesh.dispose());
+                                        const sourceIds = new Set(
+                                                validMeshes.map((mesh) => mesh.uniqueId),
+                                        );
                                         validMeshes.forEach((mesh) => mesh.dispose());
+                                        flock.scene.meshes
+                                                .filter(
+                                                        (mesh) =>
+                                                                mesh.metadata?.csgPartOf &&
+                                                                sourceIds.has(mesh.metadata.csgPartOf),
+                                                )
+                                                .forEach((mesh) => mesh.dispose());
+                                        flock.scene.meshes
+                                                .filter(
+                                                        (mesh) =>
+                                                                mesh.name.includes("_part_") &&
+                                                                mesh.name.endsWith("_merged") &&
+                                                                !mesh.material,
+                                                )
+                                                .forEach((mesh) => mesh.dispose());
+
+                                        if (mergedMesh.metadata?.csgPrepared && !tempMeshesSet.has(mergedMesh)) {
+                                                mergedMesh.metadata.csgPrepared = false;
+                                        }
 
                                         return modelId;
                                 } else {
@@ -361,27 +519,11 @@ export const flockCSG = {
                         return dup;
                 };
 
-                const tryCSG = (label, fn) => {
-                        try {
-                                return fn();
-                        } catch (e) {
-                                return null;
-                        }
-                };
-
                 return new Promise((resolve) => {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
 
-                                let actualBase = baseMesh;
-                                if (baseMesh.metadata?.modelName) {
-                                        const meshWithMaterial =
-                                                flock._findFirstDescendantWithMaterial(baseMesh);
-                                        if (meshWithMaterial) actualBase = meshWithMaterial;
-                                }
-
-                                // Ensure base mesh has valid geometry for CSG
-                                actualBase = prepareMeshForCSG(actualBase);
+                                const actualBase = prepareMeshForCSG(baseMesh);
                                 if (!actualBase) {
                                         console.warn("[subtractMeshes] Base mesh has no valid geometry for CSG.");
                                         return resolve(null);
@@ -397,10 +539,7 @@ export const flockCSG = {
                                                         actualBase,
                                                         "baseDuplicate",
                                                 );
-                                                
-                                                let outerCSG = tryCSG("FromMesh(baseDuplicate)", () =>
-                                                        flock.BABYLON.CSG2.FromMesh(baseDuplicate, false),
-                                                );
+                                                let outerCSG = createCSGFromMesh(baseDuplicate);
 
                                                 if (!outerCSG) {
                                                         console.warn('[subtractMeshes] Failed to create CSG from base mesh');
@@ -466,21 +605,13 @@ export const flockCSG = {
 
                                                 // EXECUTE SUBTRACTION
                                                 subtractDuplicates.forEach((m, idx) => {
-                                                        const meshCSG = tryCSG(
-                                                                `FromMesh(tool[${idx}])`,
-                                                                () => flock.BABYLON.CSG2.FromMesh(m, false),
-                                                        );
+                                                        const meshCSG = createCSGFromMesh(m);
                                                         if (!meshCSG) {
                                                                 console.warn(`[subtractMeshes] Failed to create CSG from tool[${idx}]`);
                                                                 return;
                                                         }
 
-                                                        const next = tryCSG(`subtract tool[${idx}]`, () =>
-                                                                outerCSG.subtract(meshCSG),
-                                                        );
-                                                        if (next) {
-                                                                outerCSG = next;
-                                                        }
+                                                        outerCSG = outerCSG.subtract(meshCSG);
                                                 });
 
                                                 // GENERATE RESULT
@@ -534,6 +665,9 @@ export const flockCSG = {
                                                         modelId,
                                                         blockId,
                                                 );
+                                                if (actualBase.metadata?.csgPrepared) {
+                                                        actualBase.dispose();
+                                                }
 
                                                 // CLEANUP
                                                 baseDuplicate.dispose();
@@ -593,13 +727,7 @@ export const flockCSG = {
                 return new Promise((resolve) => {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
-                                let actualBase = baseMesh.metadata?.modelName
-                                        ? flock._findFirstDescendantWithMaterial(baseMesh) ||
-                                                baseMesh
-                                        : baseMesh;
-
-                                // Ensure base mesh has valid geometry for CSG
-                                actualBase = prepareMeshForCSG(actualBase);
+                                const actualBase = prepareMeshForCSG(baseMesh);
                                 if (!actualBase) {
                                         console.warn("[subtractMeshesMerge] Base mesh has no valid geometry for CSG.");
                                         return resolve(null);
@@ -613,10 +741,7 @@ export const flockCSG = {
                                                         actualBase,
                                                         "baseDuplicate",
                                                 );
-                                                let outerCSG = flock.BABYLON.CSG2.FromMesh(
-                                                        baseDuplicate,
-                                                        false,
-                                                );
+                                                let outerCSG = createCSGFromMesh(baseDuplicate);
                                                 const subtractDuplicates = [];
 
                                                 validMeshes.forEach((mesh, meshIndex) => {
@@ -671,10 +796,13 @@ export const flockCSG = {
 
                                                 subtractDuplicates.forEach((m, idx) => {
                                                         try {
-                                                                const meshCSG = flock.BABYLON.CSG2.FromMesh(
-                                                                        m,
-                                                                        false,
-                                                                );
+                                                                const meshCSG = createCSGFromMesh(m);
+                                                                if (!meshCSG) {
+                                                                        console.warn(
+                                                                                `[subtractMeshesMerge] Failed to create CSG from tool[${idx}]`,
+                                                                        );
+                                                                        return;
+                                                                }
                                                                 outerCSG = outerCSG.subtract(meshCSG);
                                                         } catch (e) {
                                                                 console.warn(`[subtractMeshesMerge] Subtraction ${idx} failed:`, e.message);
@@ -716,6 +844,9 @@ export const flockCSG = {
                                                         modelId,
                                                         blockId,
                                                 );
+                                                if (actualBase.metadata?.csgPrepared) {
+                                                        actualBase.dispose();
+                                                }
 
                                                 baseDuplicate.dispose();
                                                 subtractDuplicates.forEach((m) => m.dispose());
@@ -751,15 +882,7 @@ export const flockCSG = {
                 return new Promise((resolve) => {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
-                                let actualBase = baseMesh;
-                                if (baseMesh.metadata?.modelName) {
-                                        const meshWithMaterial =
-                                                flock._findFirstDescendantWithMaterial(baseMesh);
-                                        if (meshWithMaterial) actualBase = meshWithMaterial;
-                                }
-
-                                // Ensure base mesh has valid geometry for CSG
-                                actualBase = prepareMeshForCSG(actualBase);
+                                const actualBase = prepareMeshForCSG(baseMesh);
                                 if (!actualBase) {
                                         console.warn("[subtractMeshesIndividual] Base mesh has no valid geometry for CSG.");
                                         return resolve(null);
@@ -780,11 +903,15 @@ export const flockCSG = {
                                                                 ? actualBase.absoluteRotationQuaternion.toEulerAngles()
                                                                 : actualBase.rotation.clone();
                                                 baseDuplicate.computeWorldMatrix(true);
-
-                                                let outerCSG = flock.BABYLON.CSG2.FromMesh(
-                                                        baseDuplicate,
-                                                        false,
-                                                );
+                                                let outerCSG = createCSGFromMesh(baseDuplicate);
+                                                if (!outerCSG) {
+                                                        console.warn(
+                                                                "[subtractMeshesIndividual] Failed to create CSG from base mesh",
+                                                        );
+                                                        baseDuplicate.dispose();
+                                                        allToolParts.forEach((t) => t.dispose());
+                                                        return resolve(null);
+                                                }
                                                 const allToolParts = [];
                                                 validMeshes.forEach((mesh) => {
                                                         const parts = collectMaterialMeshesDeep(mesh);
@@ -799,10 +926,13 @@ export const flockCSG = {
 
                                                 allToolParts.forEach((part) => {
                                                         try {
-                                                                const partCSG = flock.BABYLON.CSG2.FromMesh(
-                                                                        part,
-                                                                        false,
-                                                                );
+                                                                const partCSG = createCSGFromMesh(part);
+                                                                if (!partCSG) {
+                                                                        console.warn(
+                                                                                "[subtractMeshesIndividual] Failed to create CSG from tool",
+                                                                        );
+                                                                        return;
+                                                                }
                                                                 outerCSG = outerCSG.subtract(partCSG);
                                                         } catch (e) {
                                                                 console.warn(e);
@@ -853,6 +983,9 @@ export const flockCSG = {
                                                         modelId,
                                                         blockId,
                                                 );
+                                                if (actualBase.metadata?.csgPrepared) {
+                                                        actualBase.dispose();
+                                                }
 
                                                 baseDuplicate.dispose();
                                                 allToolParts.forEach((t) => t.dispose());
@@ -905,62 +1038,65 @@ export const flockCSG = {
 
                                         const combinedCentre = min.add(max).scale(0.5);
 
-                                        let firstMesh = validMeshes[0];
-                                        // If metadata exists, use the mesh with material.
-                                        if (firstMesh.metadata?.modelName) {
+                                        const baseSourceMesh = validMeshes[0];
+                                        let referenceMesh = baseSourceMesh;
+                                        if (baseSourceMesh.metadata?.modelName) {
                                                 const meshWithMaterial =
-                                                        flock._findFirstDescendantWithMaterial(firstMesh);
+                                                        flock._findFirstDescendantWithMaterial(baseSourceMesh);
                                                 if (meshWithMaterial) {
-                                                        firstMesh = meshWithMaterial;
-                                                        firstMesh.refreshBoundingInfo();
-                                                        firstMesh.flipFaces();
+                                                        referenceMesh = meshWithMaterial;
+                                                        referenceMesh.refreshBoundingInfo();
                                                 }
                                         }
 
                                         // Ensure mesh has valid geometry for CSG
-                                        firstMesh = prepareMeshForCSG(firstMesh);
+                                        let firstMesh = prepareMeshForCSG(baseSourceMesh);
                                         if (!firstMesh) {
                                                 console.warn("First mesh has no valid geometry for CSG intersect.");
                                                 return null;
                                         }
+                                        if (
+                                                baseSourceMesh.metadata?.modelName &&
+                                                typeof firstMesh.flipFaces === "function"
+                                        ) {
+                                                firstMesh.flipFaces();
+                                        }
 
                                         // Create the base CSG
-                                        let baseCSG;
-                                        try {
-                                                baseCSG = flock.BABYLON.CSG2.FromMesh(firstMesh, false);
-                                        } catch (e) {
-                                                console.warn("[intersectMeshes] CSG2.FromMesh failed on first mesh:", e.message);
+                                        let baseCSG = createCSGFromMesh(firstMesh);
+                                        if (!baseCSG) {
+                                                console.warn("[intersectMeshes] Failed to create CSG from first mesh.");
                                                 console.warn("[intersectMeshes] Note: CSG operations require watertight (manifold) geometry. 3D text and merged meshes are typically non-manifold.");
                                                 return null;
                                         }
 
                                         // Intersect each subsequent mesh
                                         let csgFailed = false;
+                                        const tempMeshes = [];
                                         validMeshes.slice(1).forEach((mesh) => {
                                                 if (csgFailed) return;
-                                                
-                                                if (mesh.metadata?.modelName) {
-                                                        const meshWithMaterial =
-                                                                flock._findFirstDescendantWithMaterial(mesh);
-                                                        if (meshWithMaterial) {
-                                                                mesh = meshWithMaterial;
-                                                                mesh.refreshBoundingInfo();
-                                                                mesh.flipFaces();
-                                                        }
-                                                }
 
-                                                // Ensure mesh has valid geometry for CSG
-                                                mesh = prepareMeshForCSG(mesh);
-                                                if (!mesh) {
+                                                const preparedMesh = prepareMeshForCSG(mesh);
+                                                if (!preparedMesh) {
                                                         console.warn("Skipping mesh with no valid geometry for CSG intersect.");
                                                         return;
                                                 }
+                                                if (mesh.metadata?.modelName && typeof preparedMesh.flipFaces === "function") {
+                                                        preparedMesh.flipFaces();
+                                                }
+                                                if (preparedMesh.metadata?.csgPrepared) {
+                                                        tempMeshes.push(preparedMesh);
+                                                }
 
                                                 try {
-                                                        const meshCSG = flock.BABYLON.CSG2.FromMesh(
-                                                                mesh,
-                                                                false,
-                                                        );
+                                                        const meshCSG = createCSGFromMesh(preparedMesh);
+                                                        if (!meshCSG) {
+                                                                console.warn(
+                                                                        "[intersectMeshes] Failed to create CSG from mesh",
+                                                                );
+                                                                csgFailed = true;
+                                                                return;
+                                                        }
                                                         baseCSG = baseCSG.intersect(meshCSG);
                                                 } catch (e) {
                                                         console.warn("[intersectMeshes] CSG intersect failed:", e.message);
@@ -970,6 +1106,10 @@ export const flockCSG = {
 
                                         if (csgFailed) {
                                                 console.warn("[intersectMeshes] Note: CSG operations require watertight (manifold) geometry.");
+                                                if (firstMesh.metadata?.csgPrepared) {
+                                                        firstMesh.dispose();
+                                                }
+                                                tempMeshes.forEach((mesh) => mesh.dispose());
                                                 return null;
                                         }
 
@@ -993,6 +1133,10 @@ export const flockCSG = {
                                                         m.name === "intersectedMesh" && m.getTotalVertices() === 0
                                                 ).forEach(m => m.dispose());
                                                 
+                                                if (firstMesh.metadata?.csgPrepared) {
+                                                        firstMesh.dispose();
+                                                }
+                                                tempMeshes.forEach((mesh) => mesh.dispose());
                                                 return null;
                                         }
 
@@ -1002,11 +1146,15 @@ export const flockCSG = {
                                         // Apply properties to the resulting mesh
                                         flock.applyResultMeshProperties(
                                                 intersectedMesh,
-                                                firstMesh,
+                                                referenceMesh,
                                                 modelId,
                                                 blockId,
                                         );
 
+                                        if (firstMesh.metadata?.csgPrepared) {
+                                                firstMesh.dispose();
+                                        }
+                                        tempMeshes.forEach((mesh) => mesh.dispose());
                                         validMeshes.forEach((mesh) => mesh.dispose());
 
                                         return modelId; // Return the modelId as per original functionality
@@ -1044,18 +1192,23 @@ export const flockCSG = {
                                         const combinedCentre = min.add(max).scale(0.5);
 
                                         // Merge the valid meshes into a single mesh
-                                        const updatedValidMeshes = validMeshes.map((mesh) => {
-                                                if (mesh.metadata?.modelName) {
-                                                        const meshWithMaterial =
-                                                                flock._findFirstDescendantWithMaterial(mesh);
-                                                        if (meshWithMaterial) {
-                                                                meshWithMaterial.refreshBoundingInfo();
-                                                                meshWithMaterial.flipFaces();
-                                                                return meshWithMaterial;
+                                        const tempMeshes = [];
+                                        const updatedValidMeshes = validMeshes
+                                                .map((mesh) => {
+                                                        const preparedMesh = prepareMeshForCSG(mesh);
+                                                        if (!preparedMesh) return null;
+                                                        if (
+                                                                mesh.metadata?.modelName &&
+                                                                typeof preparedMesh.flipFaces === "function"
+                                                        ) {
+                                                                preparedMesh.flipFaces();
                                                         }
-                                                }
-                                                return mesh;
-                                        });
+                                                        if (preparedMesh.metadata?.csgPrepared) {
+                                                                tempMeshes.push(preparedMesh);
+                                                        }
+                                                        return preparedMesh;
+                                                })
+                                                .filter(Boolean);
 
                                         const mergedMesh = flock.BABYLON.Mesh.MergeMeshes(
                                                 updatedValidMeshes,
@@ -1063,6 +1216,7 @@ export const flockCSG = {
                                         );
 
                                         if (!mergedMesh) {
+                                                tempMeshes.forEach((mesh) => mesh.dispose());
                                                 console.warn(
                                                         "Failed to merge meshes for hull creation.",
                                                 );
@@ -1105,6 +1259,7 @@ export const flockCSG = {
                                                 blockId,
                                         );
                                         // Dispose of original meshes after creating the hull
+                                        tempMeshes.forEach((mesh) => mesh.dispose());
                                         validMeshes.forEach((mesh) => mesh.dispose());
                                         mergedMesh.dispose();
 
