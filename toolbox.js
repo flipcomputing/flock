@@ -4087,6 +4087,40 @@ const toolboxSnippetsMovement = {
                                                                                 },
                                                                         },
                                                                 },
+                                                                next: {
+                                                                        block: {
+                                                                                type: "if_clause",
+                                                                                extraState: {
+                                                                                        mode: "ELSE",
+                                                                                        stashedCondState: null,
+                                                                                },
+                                                                                fields: {
+                                                                                        MODE: "ELSE",
+                                                                                },
+                                                                                inputs: {
+                                                                                        DO: {
+                                                                                                block: {
+                                                                                                        type: "switch_animation",
+                                                                                                        fields: {
+                                                                                                                MODEL: {
+                                                                                                                        name: "player",
+                                                                                                                },
+                                                                                                        },
+                                                                                                        inputs: {
+                                                                                                                ANIMATION_NAME: {
+                                                                                                                        shadow: {
+                                                                                                                                type: "animation_name",
+                                                                                                                                fields: {
+                                                                                                                                        ANIMATION_NAME: "Idle",
+                                                                                                                                },
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
                                                         },
                                                 },
                                         },
