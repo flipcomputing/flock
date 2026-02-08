@@ -432,6 +432,9 @@ export const flockCSG = {
 
                                 // Ensure base mesh has valid geometry for CSG
                                 const baseMeshes = prepareMeshesForCSG(actualBase);
+                                console.debug(
+                                        `[subtractMeshes] Base mesh candidates: ${baseMeshes.length}`,
+                                );
                                 if (!baseMeshes.length) {
                                         console.warn("[subtractMeshes] Base mesh has no valid geometry for CSG.");
                                         return resolve(null);
@@ -445,6 +448,9 @@ export const flockCSG = {
                                                 // Prepare Base
                                                 const baseDuplicates = baseMeshes.map((base, index) =>
                                                         cloneForCSG(base, `baseDuplicate_${index}`),
+                                                );
+                                                console.debug(
+                                                        `[subtractMeshes] Base duplicates created: ${baseDuplicates.length}`,
                                                 );
 
                                                 let outerCSG = tryCSG(
@@ -677,6 +683,9 @@ export const flockCSG = {
 
                                 // Ensure base mesh has valid geometry for CSG
                                 const baseMeshes = prepareMeshesForCSG(actualBase);
+                                console.debug(
+                                        `[subtractMeshesMerge] Base mesh candidates: ${baseMeshes.length}`,
+                                );
                                 if (!baseMeshes.length) {
                                         console.warn("[subtractMeshesMerge] Base mesh has no valid geometry for CSG.");
                                         return resolve(null);
@@ -688,6 +697,9 @@ export const flockCSG = {
                                                 const scene = baseMesh.getScene();
                                                 const baseDuplicates = baseMeshes.map((base, index) =>
                                                         cloneForCSG(base, `baseDuplicate_${index}`),
+                                                );
+                                                console.debug(
+                                                        `[subtractMeshesMerge] Base duplicates created: ${baseDuplicates.length}`,
                                                 );
                                                 let outerCSG = flock.BABYLON.CSG2.FromMesh(
                                                         baseDuplicates[0],
@@ -849,6 +861,9 @@ export const flockCSG = {
 
                                 // Ensure base mesh has valid geometry for CSG
                                 const baseMeshes = prepareMeshesForCSG(actualBase);
+                                console.debug(
+                                        `[subtractMeshesIndividual] Base mesh candidates: ${baseMeshes.length}`,
+                                );
                                 if (!baseMeshes.length) {
                                         console.warn("[subtractMeshesIndividual] Base mesh has no valid geometry for CSG.");
                                         return resolve(null);
@@ -869,6 +884,9 @@ export const flockCSG = {
                                                         dup.computeWorldMatrix(true);
                                                         return dup;
                                                 });
+                                                console.debug(
+                                                        `[subtractMeshesIndividual] Base duplicates created: ${baseDuplicates.length}`,
+                                                );
 
                                                 let outerCSG = flock.BABYLON.CSG2.FromMesh(
                                                         baseDuplicates[0],
