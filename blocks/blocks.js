@@ -1364,6 +1364,7 @@ export function defineBlocks() {
         tooltip: getTooltip("to_number"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("math_blocks");
     },
   };
 
