@@ -453,14 +453,30 @@ export const flockCSG = {
                                                         `[subtractMeshes] Base duplicates created: ${baseDuplicates.length}`,
                                                 );
 
-                                                let outerCSG = tryCSG(
-                                                        "FromMesh(baseDuplicate_0)",
-                                                        () =>
-                                                                flock.BABYLON.CSG2.FromMesh(
-                                                                        baseDuplicates[0],
-                                                                        false,
-                                                                ),
-                                                );
+                                                let outerCSG = null;
+                                                baseDuplicates.forEach((dup, index) => {
+                                                        const baseCSG = tryCSG(
+                                                                `FromMesh(baseDuplicate_${index})`,
+                                                                () => flock.BABYLON.CSG2.FromMesh(dup, false),
+                                                        );
+                                                        if (!baseCSG) {
+                                                                console.warn(
+                                                                        `[subtractMeshes] Skipping non-manifold base part ${index}`,
+                                                                );
+                                                                return;
+                                                        }
+                                                        if (!outerCSG) {
+                                                                outerCSG = baseCSG;
+                                                                return;
+                                                        }
+                                                        const combined = tryCSG(
+                                                                `add baseDuplicate_${index}`,
+                                                                () => outerCSG.add(baseCSG),
+                                                        );
+                                                        if (combined) {
+                                                                outerCSG = combined;
+                                                        }
+                                                });
 
                                                 if (!outerCSG) {
                                                         console.warn(
@@ -469,26 +485,6 @@ export const flockCSG = {
                                                         baseDuplicates.forEach((dup) => dup.dispose());
                                                         validMeshes.forEach((m) => m.dispose());
                                                         return resolve(null);
-                                                }
-
-                                                for (let i = 1; i < baseDuplicates.length; i++) {
-                                                        const baseCSG = tryCSG(
-                                                                `FromMesh(baseDuplicate_${i})`,
-                                                                () =>
-                                                                        flock.BABYLON.CSG2.FromMesh(
-                                                                                baseDuplicates[i],
-                                                                                false,
-                                                                        ),
-                                                        );
-                                                        if (baseCSG) {
-                                                                const combined = tryCSG(
-                                                                        `add baseDuplicate_${i}`,
-                                                                        () => outerCSG.add(baseCSG),
-                                                                );
-                                                                if (combined) {
-                                                                        outerCSG = combined;
-                                                                }
-                                                        }
                                                 }
 
                                                 const subtractDuplicates = [];
@@ -701,24 +697,33 @@ export const flockCSG = {
                                                 console.debug(
                                                         `[subtractMeshesMerge] Base duplicates created: ${baseDuplicates.length}`,
                                                 );
-                                                let outerCSG = flock.BABYLON.CSG2.FromMesh(
-                                                        baseDuplicates[0],
-                                                        false,
-                                                );
-                                                for (let i = 1; i < baseDuplicates.length; i++) {
+                                                let outerCSG = null;
+                                                baseDuplicates.forEach((dup, index) => {
                                                         try {
                                                                 const baseCSG =
                                                                         flock.BABYLON.CSG2.FromMesh(
-                                                                                baseDuplicates[i],
+                                                                                dup,
                                                                                 false,
                                                                         );
+                                                                if (!outerCSG) {
+                                                                        outerCSG = baseCSG;
+                                                                        return;
+                                                                }
                                                                 outerCSG = outerCSG.add(baseCSG);
                                                         } catch (e) {
                                                                 console.warn(
-                                                                        `[subtractMeshesMerge] Base merge ${i} failed:`,
+                                                                        `[subtractMeshesMerge] Skipping non-manifold base part ${index}:`,
                                                                         e.message,
                                                                 );
                                                         }
+                                                });
+                                                if (!outerCSG) {
+                                                        console.warn(
+                                                                "[subtractMeshesMerge] Failed to create CSG from base mesh",
+                                                        );
+                                                        baseDuplicates.forEach((dup) => dup.dispose());
+                                                        validMeshes.forEach((m) => m.dispose());
+                                                        return resolve(null);
                                                 }
                                                 const subtractDuplicates = [];
 
@@ -888,24 +893,33 @@ export const flockCSG = {
                                                         `[subtractMeshesIndividual] Base duplicates created: ${baseDuplicates.length}`,
                                                 );
 
-                                                let outerCSG = flock.BABYLON.CSG2.FromMesh(
-                                                        baseDuplicates[0],
-                                                        false,
-                                                );
-                                                for (let i = 1; i < baseDuplicates.length; i++) {
+                                                let outerCSG = null;
+                                                baseDuplicates.forEach((dup, index) => {
                                                         try {
                                                                 const baseCSG =
                                                                         flock.BABYLON.CSG2.FromMesh(
-                                                                                baseDuplicates[i],
+                                                                                dup,
                                                                                 false,
                                                                         );
+                                                                if (!outerCSG) {
+                                                                        outerCSG = baseCSG;
+                                                                        return;
+                                                                }
                                                                 outerCSG = outerCSG.add(baseCSG);
                                                         } catch (e) {
                                                                 console.warn(
-                                                                        `[subtractMeshesIndividual] Base merge ${i} failed:`,
+                                                                        `[subtractMeshesIndividual] Skipping non-manifold base part ${index}:`,
                                                                         e.message,
                                                                 );
                                                         }
+                                                });
+                                                if (!outerCSG) {
+                                                        console.warn(
+                                                                "[subtractMeshesIndividual] Failed to create CSG from base mesh",
+                                                        );
+                                                        baseDuplicates.forEach((dup) => dup.dispose());
+                                                        validMeshes.forEach((m) => m.dispose());
+                                                        return resolve(null);
                                                 }
                                                 const allToolParts = [];
                                                 validMeshes.forEach((mesh) => {
