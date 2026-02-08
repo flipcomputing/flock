@@ -550,7 +550,7 @@ export function defineControlBlocks() {
 
         Blockly.Blocks["if_clause"] = {
                 init: function () {
-                        this.setColour(210);
+                        this.setStyle("logic_blocks");
                         this.setPreviousStatement(true);
                         this.setNextStatement(true);
                         this.setInputsInline(true);
