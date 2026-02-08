@@ -142,9 +142,10 @@ function prepareMeshForCSG(mesh) {
  * @param {BABYLON.Mesh} mesh - The mesh to inspect
  * @returns {BABYLON.Mesh[]} - Meshes suitable for CSG operations
  */
-function prepareMeshesForCSG(mesh) {
+function prepareMeshesForCSG(mesh, options = {}) {
         if (!mesh) return [];
 
+        const { requireMaterial = false } = options;
         const meshes = [];
         const queue = [mesh];
 
@@ -175,7 +176,7 @@ function prepareMeshesForCSG(mesh) {
                         current.getIndices() &&
                         current.getIndices().length > 0;
 
-                if (hasValidGeometry) {
+                if (hasValidGeometry && (!requireMaterial || current.material)) {
                         meshes.push(current);
                 }
 
@@ -431,7 +432,12 @@ export const flockCSG = {
                                 let actualBase = baseMesh;
 
                                 // Ensure base mesh has valid geometry for CSG
-                                const baseMeshes = prepareMeshesForCSG(actualBase);
+                                let baseMeshes = prepareMeshesForCSG(actualBase, {
+                                        requireMaterial: true,
+                                });
+                                if (!baseMeshes.length) {
+                                        baseMeshes = prepareMeshesForCSG(actualBase);
+                                }
                                 console.debug(
                                         `[subtractMeshes] Base mesh candidates: ${baseMeshes.length}`,
                                 );
@@ -678,7 +684,12 @@ export const flockCSG = {
                                 let actualBase = baseMesh;
 
                                 // Ensure base mesh has valid geometry for CSG
-                                const baseMeshes = prepareMeshesForCSG(actualBase);
+                                let baseMeshes = prepareMeshesForCSG(actualBase, {
+                                        requireMaterial: true,
+                                });
+                                if (!baseMeshes.length) {
+                                        baseMeshes = prepareMeshesForCSG(actualBase);
+                                }
                                 console.debug(
                                         `[subtractMeshesMerge] Base mesh candidates: ${baseMeshes.length}`,
                                 );
@@ -865,7 +876,12 @@ export const flockCSG = {
                                 let actualBase = baseMesh;
 
                                 // Ensure base mesh has valid geometry for CSG
-                                const baseMeshes = prepareMeshesForCSG(actualBase);
+                                let baseMeshes = prepareMeshesForCSG(actualBase, {
+                                        requireMaterial: true,
+                                });
+                                if (!baseMeshes.length) {
+                                        baseMeshes = prepareMeshesForCSG(actualBase);
+                                }
                                 console.debug(
                                         `[subtractMeshesIndividual] Base mesh candidates: ${baseMeshes.length}`,
                                 );
