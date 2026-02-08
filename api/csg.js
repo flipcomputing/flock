@@ -136,6 +136,59 @@ function prepareMeshForCSG(mesh) {
         return merged;
 }
 
+/**
+ * Collects all meshes with valid geometry for CSG operations.
+ * Falls back to converting non-indexed meshes when possible.
+ * @param {BABYLON.Mesh} mesh - The mesh to inspect
+ * @returns {BABYLON.Mesh[]} - Meshes suitable for CSG operations
+ */
+function prepareMeshesForCSG(mesh, options = {}) {
+        if (!mesh) return [];
+
+        const { requireMaterial = false } = options;
+        const meshes = [];
+        const queue = [mesh];
+
+        while (queue.length) {
+                const current = queue.pop();
+                if (!current) continue;
+
+                const hasVertices =
+                        current.getTotalVertices && current.getTotalVertices() > 0;
+                const hasPositions =
+                        current.getVerticesData &&
+                        current.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+                const hasIndices = current.getIndices && current.getIndices();
+
+                if (hasPositions && !hasIndices) {
+                        try {
+                                current.convertToUnIndexedMesh();
+                                current.forceSharedVertices();
+                        } catch (e) {
+                                // Ignore errors, continue with other approaches
+                        }
+                }
+
+                const hasValidGeometry =
+                        current.getTotalVertices &&
+                        current.getTotalVertices() > 0 &&
+                        current.getIndices &&
+                        current.getIndices() &&
+                        current.getIndices().length > 0;
+
+                if (hasValidGeometry && (!requireMaterial || current.material)) {
+                        meshes.push(current);
+                }
+
+                const children = current.getChildMeshes
+                        ? current.getChildMeshes(true)
+                        : [];
+                children.forEach((child) => queue.push(child));
+        }
+
+        return meshes;
+}
+
 export const flockCSG = {
         mergeCompositeMesh(meshes) {
                 if (!meshes || meshes.length === 0) return null;
@@ -373,16 +426,22 @@ export const flockCSG = {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
 
+                                const referenceMesh = baseMesh.metadata?.modelName
+                                        ? flock._findFirstDescendantWithMaterial(baseMesh) || baseMesh
+                                        : baseMesh;
                                 let actualBase = baseMesh;
-                                if (baseMesh.metadata?.modelName) {
-                                        const meshWithMaterial =
-                                                flock._findFirstDescendantWithMaterial(baseMesh);
-                                        if (meshWithMaterial) actualBase = meshWithMaterial;
-                                }
 
                                 // Ensure base mesh has valid geometry for CSG
-                                actualBase = prepareMeshForCSG(actualBase);
-                                if (!actualBase) {
+                                let baseMeshes = prepareMeshesForCSG(actualBase, {
+                                        requireMaterial: true,
+                                });
+                                if (!baseMeshes.length) {
+                                        baseMeshes = prepareMeshesForCSG(actualBase);
+                                }
+                                console.debug(
+                                        `[subtractMeshes] Base mesh candidates: ${baseMeshes.length}`,
+                                );
+                                if (!baseMeshes.length) {
                                         console.warn("[subtractMeshes] Base mesh has no valid geometry for CSG.");
                                         return resolve(null);
                                 }
@@ -393,18 +452,43 @@ export const flockCSG = {
                                                 const scene = baseMesh.getScene();
 
                                                 // Prepare Base
-                                                const baseDuplicate = cloneForCSG(
-                                                        actualBase,
-                                                        "baseDuplicate",
+                                                const baseDuplicates = baseMeshes.map((base, index) =>
+                                                        cloneForCSG(base, `baseDuplicate_${index}`),
                                                 );
-                                                
-                                                let outerCSG = tryCSG("FromMesh(baseDuplicate)", () =>
-                                                        flock.BABYLON.CSG2.FromMesh(baseDuplicate, false),
+                                                console.debug(
+                                                        `[subtractMeshes] Base duplicates created: ${baseDuplicates.length}`,
                                                 );
 
+                                                let outerCSG = null;
+                                                baseDuplicates.forEach((dup, index) => {
+                                                        const baseCSG = tryCSG(
+                                                                `FromMesh(baseDuplicate_${index})`,
+                                                                () => flock.BABYLON.CSG2.FromMesh(dup, false),
+                                                        );
+                                                        if (!baseCSG) {
+                                                                console.warn(
+                                                                        `[subtractMeshes] Skipping non-manifold base part ${index}`,
+                                                                );
+                                                                return;
+                                                        }
+                                                        if (!outerCSG) {
+                                                                outerCSG = baseCSG;
+                                                                return;
+                                                        }
+                                                        const combined = tryCSG(
+                                                                `add baseDuplicate_${index}`,
+                                                                () => outerCSG.add(baseCSG),
+                                                        );
+                                                        if (combined) {
+                                                                outerCSG = combined;
+                                                        }
+                                                });
+
                                                 if (!outerCSG) {
-                                                        console.warn('[subtractMeshes] Failed to create CSG from base mesh');
-                                                        baseDuplicate.dispose();
+                                                        console.warn(
+                                                                "[subtractMeshes] Failed to create CSG from base mesh",
+                                                        );
+                                                        baseDuplicates.forEach((dup) => dup.dispose());
                                                         validMeshes.forEach((m) => m.dispose());
                                                         return resolve(null);
                                                 }
@@ -506,7 +590,7 @@ export const flockCSG = {
                                                         ).forEach(m => m.dispose());
                                                         
                                                         // Cleanup
-                                                        baseDuplicate.dispose();
+                                                        baseDuplicates.forEach((dup) => dup.dispose());
                                                         subtractDuplicates.forEach((m) => m.dispose());
                                                         // Don't dispose original meshes so user can still use them
                                                         
@@ -530,13 +614,13 @@ export const flockCSG = {
 
                                                 flock.applyResultMeshProperties(
                                                         resultMesh,
-                                                        actualBase,
+                                                        referenceMesh,
                                                         modelId,
                                                         blockId,
                                                 );
 
                                                 // CLEANUP
-                                                baseDuplicate.dispose();
+                                                baseDuplicates.forEach((dup) => dup.dispose());
                                                 subtractDuplicates.forEach((m) => m.dispose());
                                                 baseMesh.dispose();
                                                 validMeshes.forEach((m) => m.dispose());
@@ -593,14 +677,23 @@ export const flockCSG = {
                 return new Promise((resolve) => {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
-                                let actualBase = baseMesh.metadata?.modelName
+                                const referenceMesh = baseMesh.metadata?.modelName
                                         ? flock._findFirstDescendantWithMaterial(baseMesh) ||
                                                 baseMesh
                                         : baseMesh;
+                                let actualBase = baseMesh;
 
                                 // Ensure base mesh has valid geometry for CSG
-                                actualBase = prepareMeshForCSG(actualBase);
-                                if (!actualBase) {
+                                let baseMeshes = prepareMeshesForCSG(actualBase, {
+                                        requireMaterial: true,
+                                });
+                                if (!baseMeshes.length) {
+                                        baseMeshes = prepareMeshesForCSG(actualBase);
+                                }
+                                console.debug(
+                                        `[subtractMeshesMerge] Base mesh candidates: ${baseMeshes.length}`,
+                                );
+                                if (!baseMeshes.length) {
                                         console.warn("[subtractMeshesMerge] Base mesh has no valid geometry for CSG.");
                                         return resolve(null);
                                 }
@@ -609,14 +702,40 @@ export const flockCSG = {
                                         .prepareMeshes(modelId, meshNames, blockId)
                                         .then((validMeshes) => {
                                                 const scene = baseMesh.getScene();
-                                                const baseDuplicate = cloneForCSG(
-                                                        actualBase,
-                                                        "baseDuplicate",
+                                                const baseDuplicates = baseMeshes.map((base, index) =>
+                                                        cloneForCSG(base, `baseDuplicate_${index}`),
                                                 );
-                                                let outerCSG = flock.BABYLON.CSG2.FromMesh(
-                                                        baseDuplicate,
-                                                        false,
+                                                console.debug(
+                                                        `[subtractMeshesMerge] Base duplicates created: ${baseDuplicates.length}`,
                                                 );
+                                                let outerCSG = null;
+                                                baseDuplicates.forEach((dup, index) => {
+                                                        try {
+                                                                const baseCSG =
+                                                                        flock.BABYLON.CSG2.FromMesh(
+                                                                                dup,
+                                                                                false,
+                                                                        );
+                                                                if (!outerCSG) {
+                                                                        outerCSG = baseCSG;
+                                                                        return;
+                                                                }
+                                                                outerCSG = outerCSG.add(baseCSG);
+                                                        } catch (e) {
+                                                                console.warn(
+                                                                        `[subtractMeshesMerge] Skipping non-manifold base part ${index}:`,
+                                                                        e.message,
+                                                                );
+                                                        }
+                                                });
+                                                if (!outerCSG) {
+                                                        console.warn(
+                                                                "[subtractMeshesMerge] Failed to create CSG from base mesh",
+                                                        );
+                                                        baseDuplicates.forEach((dup) => dup.dispose());
+                                                        validMeshes.forEach((m) => m.dispose());
+                                                        return resolve(null);
+                                                }
                                                 const subtractDuplicates = [];
 
                                                 validMeshes.forEach((mesh, meshIndex) => {
@@ -701,7 +820,7 @@ export const flockCSG = {
                                                                 m.name === "resultMesh" && m.getTotalVertices() === 0
                                                         ).forEach(m => m.dispose());
                                                         
-                                                        baseDuplicate.dispose();
+                                                        baseDuplicates.forEach((dup) => dup.dispose());
                                                         subtractDuplicates.forEach((m) => m.dispose());
                                                         return resolve(null);
                                                 }
@@ -712,12 +831,12 @@ export const flockCSG = {
                                                 resultMesh.computeWorldMatrix(true);
                                                 flock.applyResultMeshProperties(
                                                         resultMesh,
-                                                        actualBase,
+                                                        referenceMesh,
                                                         modelId,
                                                         blockId,
                                                 );
 
-                                                baseDuplicate.dispose();
+                                                baseDuplicates.forEach((dup) => dup.dispose());
                                                 subtractDuplicates.forEach((m) => m.dispose());
                                                 baseMesh.dispose();
                                                 validMeshes.forEach((m) => m.dispose());
@@ -751,16 +870,22 @@ export const flockCSG = {
                 return new Promise((resolve) => {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
+                                const referenceMesh = baseMesh.metadata?.modelName
+                                        ? flock._findFirstDescendantWithMaterial(baseMesh) || baseMesh
+                                        : baseMesh;
                                 let actualBase = baseMesh;
-                                if (baseMesh.metadata?.modelName) {
-                                        const meshWithMaterial =
-                                                flock._findFirstDescendantWithMaterial(baseMesh);
-                                        if (meshWithMaterial) actualBase = meshWithMaterial;
-                                }
 
                                 // Ensure base mesh has valid geometry for CSG
-                                actualBase = prepareMeshForCSG(actualBase);
-                                if (!actualBase) {
+                                let baseMeshes = prepareMeshesForCSG(actualBase, {
+                                        requireMaterial: true,
+                                });
+                                if (!baseMeshes.length) {
+                                        baseMeshes = prepareMeshesForCSG(actualBase);
+                                }
+                                console.debug(
+                                        `[subtractMeshesIndividual] Base mesh candidates: ${baseMeshes.length}`,
+                                );
+                                if (!baseMeshes.length) {
                                         console.warn("[subtractMeshesIndividual] Base mesh has no valid geometry for CSG.");
                                         return resolve(null);
                                 }
@@ -769,22 +894,49 @@ export const flockCSG = {
                                         .prepareMeshes(modelId, meshNames, blockId)
                                         .then((validMeshes) => {
                                                 const scene = baseMesh.getScene();
-                                                const baseDuplicate = actualBase.clone("baseDuplicate");
-                                                baseDuplicate.setParent(null);
-                                                baseDuplicate.position = actualBase
-                                                        .getAbsolutePosition()
-                                                        .clone();
-                                                baseDuplicate.rotationQuaternion = null;
-                                                baseDuplicate.rotation =
-                                                        actualBase.absoluteRotationQuaternion
-                                                                ? actualBase.absoluteRotationQuaternion.toEulerAngles()
-                                                                : actualBase.rotation.clone();
-                                                baseDuplicate.computeWorldMatrix(true);
-
-                                                let outerCSG = flock.BABYLON.CSG2.FromMesh(
-                                                        baseDuplicate,
-                                                        false,
+                                                const baseDuplicates = baseMeshes.map((base, index) => {
+                                                        const dup = base.clone(`baseDuplicate_${index}`);
+                                                        dup.setParent(null);
+                                                        dup.position = base.getAbsolutePosition().clone();
+                                                        dup.rotationQuaternion = null;
+                                                        dup.rotation = base.absoluteRotationQuaternion
+                                                                ? base.absoluteRotationQuaternion.toEulerAngles()
+                                                                : base.rotation.clone();
+                                                        dup.computeWorldMatrix(true);
+                                                        return dup;
+                                                });
+                                                console.debug(
+                                                        `[subtractMeshesIndividual] Base duplicates created: ${baseDuplicates.length}`,
                                                 );
+
+                                                let outerCSG = null;
+                                                baseDuplicates.forEach((dup, index) => {
+                                                        try {
+                                                                const baseCSG =
+                                                                        flock.BABYLON.CSG2.FromMesh(
+                                                                                dup,
+                                                                                false,
+                                                                        );
+                                                                if (!outerCSG) {
+                                                                        outerCSG = baseCSG;
+                                                                        return;
+                                                                }
+                                                                outerCSG = outerCSG.add(baseCSG);
+                                                        } catch (e) {
+                                                                console.warn(
+                                                                        `[subtractMeshesIndividual] Skipping non-manifold base part ${index}:`,
+                                                                        e.message,
+                                                                );
+                                                        }
+                                                });
+                                                if (!outerCSG) {
+                                                        console.warn(
+                                                                "[subtractMeshesIndividual] Failed to create CSG from base mesh",
+                                                        );
+                                                        baseDuplicates.forEach((dup) => dup.dispose());
+                                                        validMeshes.forEach((m) => m.dispose());
+                                                        return resolve(null);
+                                                }
                                                 const allToolParts = [];
                                                 validMeshes.forEach((mesh) => {
                                                         const parts = collectMaterialMeshesDeep(mesh);
@@ -829,7 +981,7 @@ export const flockCSG = {
                                                                 m.name === "resultMesh" && m.getTotalVertices() === 0
                                                         ).forEach(m => m.dispose());
                                                         
-                                                        baseDuplicate.dispose();
+                                                        baseDuplicates.forEach((dup) => dup.dispose());
                                                         allToolParts.forEach((t) => t.dispose());
                                                         return resolve(null);
                                                 }
@@ -849,12 +1001,12 @@ export const flockCSG = {
                                                 resultMesh.computeWorldMatrix(true);
                                                 flock.applyResultMeshProperties(
                                                         resultMesh,
-                                                        actualBase,
+                                                        referenceMesh,
                                                         modelId,
                                                         blockId,
                                                 );
 
-                                                baseDuplicate.dispose();
+                                                baseDuplicates.forEach((dup) => dup.dispose());
                                                 allToolParts.forEach((t) => t.dispose());
                                                 baseMesh.dispose();
                                                 validMeshes.forEach((m) => m.dispose());
