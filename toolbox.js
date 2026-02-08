@@ -2187,9 +2187,14 @@ const toolboxCondition = {
         //colour: categoryColours["Logic"],
         categorystyle: "logic_category",
         contents: [
+                // {
+                //         kind: "block",
+                //         type: "controls_if",
+                //         keyword: "if",
+                // },
                 {
                         kind: "block",
-                        type: "controls_if",
+                        type: "if_clause",
                         keyword: "if",
                 },
                 {
@@ -2231,11 +2236,6 @@ const toolboxCondition = {
                         kind: "block",
                         type: "logic_ternary",
                         keyword: "ternary",
-                },
-                {
-                        kind: "block",
-                        type: "if_clause",
-                        keyword: "if",
                 },
         ],
 };
