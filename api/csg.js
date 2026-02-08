@@ -373,12 +373,10 @@ export const flockCSG = {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
 
+                                const referenceMesh = baseMesh.metadata?.modelName
+                                        ? flock._findFirstDescendantWithMaterial(baseMesh) || baseMesh
+                                        : baseMesh;
                                 let actualBase = baseMesh;
-                                if (baseMesh.metadata?.modelName) {
-                                        const meshWithMaterial =
-                                                flock._findFirstDescendantWithMaterial(baseMesh);
-                                        if (meshWithMaterial) actualBase = meshWithMaterial;
-                                }
 
                                 // Ensure base mesh has valid geometry for CSG
                                 actualBase = prepareMeshForCSG(actualBase);
@@ -530,7 +528,7 @@ export const flockCSG = {
 
                                                 flock.applyResultMeshProperties(
                                                         resultMesh,
-                                                        actualBase,
+                                                        referenceMesh,
                                                         modelId,
                                                         blockId,
                                                 );
@@ -593,10 +591,11 @@ export const flockCSG = {
                 return new Promise((resolve) => {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
-                                let actualBase = baseMesh.metadata?.modelName
+                                const referenceMesh = baseMesh.metadata?.modelName
                                         ? flock._findFirstDescendantWithMaterial(baseMesh) ||
                                                 baseMesh
                                         : baseMesh;
+                                let actualBase = baseMesh;
 
                                 // Ensure base mesh has valid geometry for CSG
                                 actualBase = prepareMeshForCSG(actualBase);
@@ -712,7 +711,7 @@ export const flockCSG = {
                                                 resultMesh.computeWorldMatrix(true);
                                                 flock.applyResultMeshProperties(
                                                         resultMesh,
-                                                        actualBase,
+                                                        referenceMesh,
                                                         modelId,
                                                         blockId,
                                                 );
@@ -751,12 +750,10 @@ export const flockCSG = {
                 return new Promise((resolve) => {
                         flock.whenModelReady(baseMeshName, (baseMesh) => {
                                 if (!baseMesh) return resolve(null);
+                                const referenceMesh = baseMesh.metadata?.modelName
+                                        ? flock._findFirstDescendantWithMaterial(baseMesh) || baseMesh
+                                        : baseMesh;
                                 let actualBase = baseMesh;
-                                if (baseMesh.metadata?.modelName) {
-                                        const meshWithMaterial =
-                                                flock._findFirstDescendantWithMaterial(baseMesh);
-                                        if (meshWithMaterial) actualBase = meshWithMaterial;
-                                }
 
                                 // Ensure base mesh has valid geometry for CSG
                                 actualBase = prepareMeshForCSG(actualBase);
@@ -849,7 +846,7 @@ export const flockCSG = {
                                                 resultMesh.computeWorldMatrix(true);
                                                 flock.applyResultMeshProperties(
                                                         resultMesh,
-                                                        actualBase,
+                                                        referenceMesh,
                                                         modelId,
                                                         blockId,
                                                 );
