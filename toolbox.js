@@ -4419,8 +4419,82 @@ const toolboxSnippetsMovement = {
                                 },
                         },
                 },
+                {
+                        kind: "block",
+                        type: "when_action_event",
+                        icons: {
+                                comment: {
+                                        text: "Press \"Space\" to jump!",
+                                        pinned: true,
+                                        height: 80,
+                                        width: 180,
+                                },
+                        },
+                        fields: {
+                                ACTION: "BUTTON4",
+                                EVENT: "pressed",
+                        },
+                        inputs: {
+                                DO: {
+                                        block: {
+                                                type: "apply_force",
+                                                fields: {
+                                                        MESH_VAR: {
+                                                                name: "player",
+                                                        },
+                                                },
+                                                inputs: {
+                                                        X: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
+                                                        },
+                                                        Y: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 5,
+                                                                        },
+                                                                },
+                                                        },
+                                                        Z: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                                next: {
+                                                        block: {
+                                                                type: "play_animation",
+                                                                fields: {
+                                                                        MODEL: {
+                                                                                name: "player",
+                                                                        },
+                                                                },
+                                                                inputs: {
+                                                                        ANIMATION_NAME: {
+                                                                                shadow: {
+                                                                                        type: "animation_name",
+                                                                                        fields: {
+                                                                                                ANIMATION_NAME: "Jump",
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
         ],
-};
+}
 
 const toolboxSnippets = {
         kind: "category",
