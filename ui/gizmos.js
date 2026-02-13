@@ -353,6 +353,24 @@ function resetBoundingBoxVisibilityIfManuallyChanged(mesh) {
   if (mesh && mesh.visibility === 0.001) mesh.visibility = 0;
 }
 
+function showBoundingBox(mesh, focusMode = false) {
+  if (mesh.parent) {
+    mesh = getRootMesh(mesh.parent);
+    mesh.visibility = 0.001;
+  } else if (focusMode && !mesh.visibility) {
+    // Set mesh visibility even if mesh has no parent
+    // focusMode is only used when camera focused on mesh
+
+    /* With this, non-composite meshes can still have their
+    visibility set to 0.001. However, this will not be a big
+    issue here as, even in past testing, non-composite meshes
+    still were not showing, so this may even be preferred. */
+
+    mesh.visibility = 0.001;
+  }
+  mesh.showBoundingBox = true;
+}
+
 function hideBoundingBox(mesh) {
   mesh.showBoundingBox = false;
 }
@@ -455,6 +473,14 @@ function focusCameraOnMesh() {
   const newTarget = boundingInfo.boundingBox.centerWorld; // Center of the new mesh
   const camera = flock.scene.activeCamera;
 
+  let selectFocusedMesh = () => {
+    // "Select" the focused mesh
+    window.currentMesh = mesh;
+    gizmoManager.selectGizmoEnabled = true;
+    gizmoManager.attachToMesh(mesh); // Unfortunately needed to ensure bounding box gets hidden 
+    showBoundingBox(mesh, true);
+  }
+
   if (camera.metadata && camera.metadata.following) {
     const player = camera.metadata.following; // The player (mesh) the camera is following
     const playerDistance = 5; // Fixed distance between player and target
@@ -505,11 +531,13 @@ function focusCameraOnMesh() {
     camera.position = newCameraPosition;
     camera.setTarget(newTarget);
   }
+  selectFocusedMesh();
 }
 
 export function disableGizmos() {
   if (!gizmoManager) return;
   // Disable all gizmos
+  gizmoManager.selectGizmoEnabled = false;
   gizmoManager.positionGizmoEnabled = false;
   gizmoManager.rotationGizmoEnabled = false;
   gizmoManager.scaleGizmoEnabled = false;
@@ -665,7 +693,7 @@ export function toggleGizmo(gizmoType) {
             gizmoManager.attachToMesh(pickedMesh);
 
             // Show bounding box for the selected mesh
-            pickedMesh.showBoundingBox = true;
+            showBoundingBox(pickedMesh);
           } else {
             if (pickedMesh && pickedMesh.name === "ground") {
               const position = event.pickInfo.pickedPoint;
@@ -1228,6 +1256,7 @@ export function enableGizmos() {
   // Initialize undo handler for DO section cleanup
   addUndoHandler();
 
+  const focusButton = document.getElementById("focusButton");
   const positionButton = document.getElementById("positionButton");
   const rotationButton = document.getElementById("rotationButton");
   const scaleButton = document.getElementById("scaleButton");
@@ -1261,6 +1290,7 @@ export function enableGizmos() {
   // Enable the buttons
 
   const buttons = [
+    focusButton,
     positionButton,
     rotationButton,
     scaleButton,
@@ -1282,6 +1312,7 @@ export function enableGizmos() {
   buttons.forEach((button) => button.removeAttribute("disabled"));
 
   // Attach event listeners
+  focusButton.addEventListener("click", () => toggleGizmo("focus"));
   positionButton.addEventListener("click", () => toggleGizmo("position"));
   rotationButton.addEventListener("click", () => toggleGizmo("rotation"));
   scaleButton.addEventListener("click", () => toggleGizmo("scale"));
