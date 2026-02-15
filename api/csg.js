@@ -177,6 +177,14 @@ export const flockCSG = {
                                                         }
                                                 }
 
+                                                targetMesh = prepareMeshForCSG(targetMesh);
+                                                if (!targetMesh) {
+                                                        console.warn(
+                                                                `[mergeMeshes] Skipping mesh after preparation failure: ${mesh.name}`,
+                                                        );
+                                                        return;
+                                                }
+
                                                 // Ensure world matrix is updated for correct positioning
                                                 targetMesh.computeWorldMatrix(true);
                                                 
@@ -193,6 +201,21 @@ export const flockCSG = {
                                                 return null;
                                         }
 
+                                        if (meshesToMerge.length === 1) {
+                                                const singleMesh = meshesToMerge[0];
+                                                let mergedMesh = singleMesh.clone(modelId);
+                                                if (!mergedMesh) {
+                                                        mergedMesh = singleMesh;
+                                                }
+
+                                                mergedMesh.name = modelId;
+                                                mergedMesh.metadata = mergedMesh.metadata || {};
+                                                mergedMesh.metadata.blockKey = blockId;
+                                                mergedMesh.metadata.sharedMaterial = false;
+
+                                                return mergedMesh;
+                                        }
+
                                         // Keep a reference material only for fallback replacement.
                                         const originalMaterial = referenceMesh.material;
 
@@ -202,10 +225,34 @@ export const flockCSG = {
 
                                         try {
                                                 // Attempt CSG2 merge for proper boolean union
-                                                let baseCSG = flock.BABYLON.CSG2.FromMesh(meshesToMerge[0], false);
+                                                let baseCSG;
+                                                try {
+                                                        baseCSG = flock.BABYLON.CSG2.FromMesh(
+                                                                meshesToMerge[0],
+                                                                false,
+                                                        );
+                                                } catch (e) {
+                                                        console.warn(
+                                                                `[mergeMeshes] CSG2.FromMesh failed for mesh: ${meshesToMerge[0].name}`,
+                                                                e,
+                                                        );
+                                                        throw e;
+                                                }
                                                 
                                                 for (let i = 1; i < meshesToMerge.length; i++) {
-                                                        const meshCSG = flock.BABYLON.CSG2.FromMesh(meshesToMerge[i], false);
+                                                        let meshCSG;
+                                                        try {
+                                                                meshCSG = flock.BABYLON.CSG2.FromMesh(
+                                                                        meshesToMerge[i],
+                                                                        false,
+                                                                );
+                                                        } catch (e) {
+                                                                console.warn(
+                                                                        `[mergeMeshes] CSG2.FromMesh failed for mesh: ${meshesToMerge[i].name}`,
+                                                                        e,
+                                                                );
+                                                                throw e;
+                                                        }
                                                         baseCSG = baseCSG.add(meshCSG);
                                                 }
 
