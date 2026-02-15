@@ -148,6 +148,28 @@ function getMeshKindsSummary(meshes) {
         }));
 }
 
+function recenterMeshLocalOrigin(mesh) {
+        if (!mesh) return;
+
+        mesh.computeWorldMatrix?.(true);
+        mesh.refreshBoundingInfo?.();
+
+        const boundingInfo = mesh.getBoundingInfo ? mesh.getBoundingInfo() : null;
+        const worldCenter = boundingInfo?.boundingBox?.centerWorld;
+        if (!worldCenter) return;
+
+        mesh.bakeTransformIntoVertices(
+                flock.BABYLON.Matrix.Translation(
+                        -worldCenter.x,
+                        -worldCenter.y,
+                        -worldCenter.z,
+                ),
+        );
+        mesh.position.copyFrom(worldCenter);
+        mesh.computeWorldMatrix?.(true);
+        mesh.refreshBoundingInfo?.();
+}
+
 function normalizeMeshAttributesForMerge(meshes) {
         if (!meshes || meshes.length < 2) return;
 
@@ -402,6 +424,9 @@ export const flockCSG = {
                                                 console.warn("Merge failed");
                                                 return null;
                                         }
+
+                                        // Keep local origin aligned with mesh bounds while preserving world placement.
+                                        recenterMeshLocalOrigin(mergedMesh);
 
                                         // Apply result properties
                                         mergedMesh.name = modelId;
@@ -1162,23 +1187,8 @@ export const flockCSG = {
                                                 return null;
                                         }
 
-                                        // Recenter local geometry to its own bounds while preserving world-space placement.
-                                        // This keeps the mesh pivot/position meaningful for downstream merge-space operations.
-                                        intersectedMesh.computeWorldMatrix(true);
-                                        intersectedMesh.refreshBoundingInfo();
-                                        const worldCenter = intersectedMesh
-                                                .getBoundingInfo()
-                                                .boundingBox.centerWorld.clone();
-                                        intersectedMesh.bakeTransformIntoVertices(
-                                                flock.BABYLON.Matrix.Translation(
-                                                        -worldCenter.x,
-                                                        -worldCenter.y,
-                                                        -worldCenter.z,
-                                                ),
-                                        );
-                                        intersectedMesh.position.copyFrom(worldCenter);
-                                        intersectedMesh.computeWorldMatrix(true);
-                                        intersectedMesh.refreshBoundingInfo();
+                                        // Keep local origin aligned with mesh bounds while preserving world placement.
+                                        recenterMeshLocalOrigin(intersectedMesh);
 
                                         // Apply properties to the resulting mesh
                                         flock.applyResultMeshProperties(
