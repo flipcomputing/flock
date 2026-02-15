@@ -193,7 +193,7 @@ export const flockCSG = {
                                                 return null;
                                         }
 
-                                        // Clone the first mesh's material for the merged result
+                                        // Keep a reference material only for fallback replacement.
                                         const originalMaterial = referenceMesh.material;
 
                                         // Try CSG2 first, fall back to simple merge if it fails
@@ -238,8 +238,8 @@ export const flockCSG = {
                                                         false,
                                                         true,
                                                         undefined,
-                                                        false,
-                                                        false
+                                                        true,
+                                                        true
                                                 );
                                         }
 
@@ -254,8 +254,38 @@ export const flockCSG = {
                                         mergedMesh.metadata.blockKey = blockId;
                                         mergedMesh.metadata.sharedMaterial = false;
 
-                                        // Apply the original material
-                                        if (originalMaterial) {
+                                        // Preserve CSG/merge MultiMaterial output where possible.
+                                        // Only replace missing/default materials with a clone of the reference material.
+                                        const isDefaultMaterial = (material) => {
+                                                return (
+                                                        material instanceof flock.BABYLON.StandardMaterial &&
+                                                        material.name === "default material"
+                                                );
+                                        };
+
+                                        if (mergedMesh.material) {
+                                                if (mergedMesh.material instanceof flock.BABYLON.MultiMaterial) {
+                                                        mergedMesh.material.subMaterials =
+                                                                mergedMesh.material.subMaterials.map((subMaterial) => {
+                                                                        if (
+                                                                                subMaterial &&
+                                                                                isDefaultMaterial(subMaterial) &&
+                                                                                originalMaterial
+                                                                        ) {
+                                                                                const replacement = originalMaterial.clone(
+                                                                                        modelId + "_material",
+                                                                                );
+                                                                                replacement.backFaceCulling = false;
+                                                                                return replacement;
+                                                                        }
+                                                                        return subMaterial;
+                                                                });
+                                                } else if (isDefaultMaterial(mergedMesh.material) && originalMaterial) {
+                                                        const newMat = originalMaterial.clone(modelId + "_material");
+                                                        newMat.backFaceCulling = false;
+                                                        mergedMesh.material = newMat;
+                                                }
+                                        } else if (originalMaterial) {
                                                 const newMat = originalMaterial.clone(modelId + "_material");
                                                 newMat.backFaceCulling = false;
                                                 mergedMesh.material = newMat;
