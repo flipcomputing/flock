@@ -136,6 +136,102 @@ function prepareMeshForCSG(mesh) {
         return merged;
 }
 
+function getMeshAttributeKinds(mesh) {
+        if (!mesh || !mesh.getVerticesDataKinds) return [];
+        return mesh.getVerticesDataKinds() || [];
+}
+
+function getMeshKindsSummary(meshes) {
+        return meshes.map((mesh) => ({
+                name: mesh?.name,
+                kinds: getMeshAttributeKinds(mesh),
+        }));
+}
+
+function normalizeMeshAttributesForMerge(meshes) {
+        if (!meshes || meshes.length < 2) return;
+
+        const kindUnion = new Set();
+        meshes.forEach((mesh) => {
+                getMeshAttributeKinds(mesh).forEach((kind) => kindUnion.add(kind));
+        });
+
+        let normalizationRequired = false;
+        meshes.forEach((mesh) => {
+                const meshKinds = new Set(getMeshAttributeKinds(mesh));
+                for (const kind of kindUnion) {
+                        if (!meshKinds.has(kind)) {
+                                normalizationRequired = true;
+                                break;
+                        }
+                }
+        });
+
+        if (!normalizationRequired) return;
+
+        console.warn("[mergeMeshes] Normalizing vertex attributes before fallback merge", {
+                meshes: getMeshKindsSummary(meshes),
+                requiredKinds: Array.from(kindUnion),
+        });
+
+        const vertexBuffer = flock.BABYLON.VertexBuffer;
+
+        const strideByKind = new Map([
+                [vertexBuffer.UVKind, 2],
+                [vertexBuffer.UV2Kind, 2],
+                [vertexBuffer.UV3Kind, 2],
+                [vertexBuffer.UV4Kind, 2],
+                [vertexBuffer.UV5Kind, 2],
+                [vertexBuffer.UV6Kind, 2],
+                [vertexBuffer.ColorKind, 4],
+                [vertexBuffer.MatricesIndicesKind, 4],
+                [vertexBuffer.MatricesWeightsKind, 4],
+                [vertexBuffer.MatricesIndicesExtraKind, 4],
+                [vertexBuffer.MatricesWeightsExtraKind, 4],
+        ]);
+
+        meshes.forEach((mesh) => {
+                const vertexCount = mesh.getTotalVertices ? mesh.getTotalVertices() : 0;
+                if (!vertexCount) return;
+
+                const existingKinds = new Set(getMeshAttributeKinds(mesh));
+
+                for (const kind of kindUnion) {
+                        if (existingKinds.has(kind)) continue;
+
+                        if (kind === vertexBuffer.NormalKind) {
+                                const positions = mesh.getVerticesData(vertexBuffer.PositionKind);
+                                const indices = mesh.getIndices();
+                                if (positions && indices && indices.length) {
+                                        const normals = [];
+                                        flock.BABYLON.VertexData.ComputeNormals(
+                                                positions,
+                                                indices,
+                                                normals,
+                                        );
+                                        mesh.setVerticesData(vertexBuffer.NormalKind, normals, true);
+                                }
+                                continue;
+                        }
+
+                        const stride = strideByKind.get(kind);
+                        if (!stride) continue;
+
+                        const buffer = new Float32Array(vertexCount * stride);
+                        if (kind === vertexBuffer.ColorKind) {
+                                for (let i = 3; i < buffer.length; i += 4) {
+                                        buffer[i] = 1;
+                                }
+                        }
+
+                        mesh.setVerticesData(kind, buffer, true);
+                }
+
+                mesh.refreshBoundingInfo?.();
+                mesh.computeWorldMatrix?.(true);
+        });
+}
+
 export const flockCSG = {
         mergeCompositeMesh(meshes) {
                 if (!meshes || meshes.length === 0) return null;
@@ -280,14 +376,26 @@ export const flockCSG = {
 
                                         // Fallback to simple Mesh.MergeMeshes if CSG2 failed
                                         if (!csgSucceeded) {
-                                                mergedMesh = flock.BABYLON.Mesh.MergeMeshes(
-                                                        meshesToMerge,
-                                                        false,
-                                                        true,
-                                                        undefined,
-                                                        true,
-                                                        true
-                                                );
+                                                try {
+                                                        normalizeMeshAttributesForMerge(meshesToMerge);
+                                                        mergedMesh = flock.BABYLON.Mesh.MergeMeshes(
+                                                                meshesToMerge,
+                                                                false,
+                                                                true,
+                                                                undefined,
+                                                                true,
+                                                                true,
+                                                        );
+                                                } catch (mergeError) {
+                                                        console.warn(
+                                                                "[mergeMeshes] Fallback Mesh.MergeMeshes failed",
+                                                                {
+                                                                        error: mergeError,
+                                                                        meshes: getMeshKindsSummary(meshesToMerge),
+                                                                },
+                                                        );
+                                                        return null;
+                                                }
                                         }
 
                                         if (!mergedMesh) {
