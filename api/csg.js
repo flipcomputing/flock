@@ -1162,8 +1162,23 @@ export const flockCSG = {
                                                 return null;
                                         }
 
-                                        // Keep CSG output in world-space placement for stable downstream merges
+                                        // Recenter local geometry to its own bounds while preserving world-space placement.
+                                        // This keeps the mesh pivot/position meaningful for downstream merge-space operations.
                                         intersectedMesh.computeWorldMatrix(true);
+                                        intersectedMesh.refreshBoundingInfo();
+                                        const worldCenter = intersectedMesh
+                                                .getBoundingInfo()
+                                                .boundingBox.centerWorld.clone();
+                                        intersectedMesh.bakeTransformIntoVertices(
+                                                flock.BABYLON.Matrix.Translation(
+                                                        -worldCenter.x,
+                                                        -worldCenter.y,
+                                                        -worldCenter.z,
+                                                ),
+                                        );
+                                        intersectedMesh.position.copyFrom(worldCenter);
+                                        intersectedMesh.computeWorldMatrix(true);
+                                        intersectedMesh.refreshBoundingInfo();
 
                                         // Apply properties to the resulting mesh
                                         flock.applyResultMeshProperties(
