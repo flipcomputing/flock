@@ -148,6 +148,28 @@ function getMeshKindsSummary(meshes) {
         }));
 }
 
+function recenterMeshLocalOrigin(mesh) {
+        if (!mesh) return;
+
+        mesh.computeWorldMatrix?.(true);
+        mesh.refreshBoundingInfo?.();
+
+        const boundingInfo = mesh.getBoundingInfo ? mesh.getBoundingInfo() : null;
+        const worldCenter = boundingInfo?.boundingBox?.centerWorld;
+        if (!worldCenter) return;
+
+        mesh.bakeTransformIntoVertices(
+                flock.BABYLON.Matrix.Translation(
+                        -worldCenter.x,
+                        -worldCenter.y,
+                        -worldCenter.z,
+                ),
+        );
+        mesh.position.copyFrom(worldCenter);
+        mesh.computeWorldMatrix?.(true);
+        mesh.refreshBoundingInfo?.();
+}
+
 function normalizeMeshAttributesForMerge(meshes) {
         if (!meshes || meshes.length < 2) return;
 
@@ -402,6 +424,9 @@ export const flockCSG = {
                                                 console.warn("Merge failed");
                                                 return null;
                                         }
+
+                                        // Keep local origin aligned with mesh bounds while preserving world placement.
+                                        recenterMeshLocalOrigin(mergedMesh);
 
                                         // Apply result properties
                                         mergedMesh.name = modelId;
@@ -1067,29 +1092,6 @@ export const flockCSG = {
                         .prepareMeshes(modelId, meshList, blockId)
                         .then((validMeshes) => {
                                 if (validMeshes.length) {
-                                        // Calculate the combined bounding box centre
-                                        let min = new flock.BABYLON.Vector3(
-                                                Number.MAX_VALUE,
-                                                Number.MAX_VALUE,
-                                                Number.MAX_VALUE,
-                                        );
-                                        let max = new flock.BABYLON.Vector3(
-                                                Number.MIN_VALUE,
-                                                Number.MIN_VALUE,
-                                                Number.MIN_VALUE,
-                                        );
-
-                                        validMeshes.forEach((mesh) => {
-                                                const boundingInfo = mesh.getBoundingInfo();
-                                                const meshMin = boundingInfo.boundingBox.minimumWorld;
-                                                const meshMax = boundingInfo.boundingBox.maximumWorld;
-
-                                                min = flock.BABYLON.Vector3.Minimize(min, meshMin);
-                                                max = flock.BABYLON.Vector3.Maximize(max, meshMax);
-                                        });
-
-                                        const combinedCentre = min.add(max).scale(0.5);
-
                                         let firstMesh = validMeshes[0];
                                         // If metadata exists, use the mesh with material.
                                         if (firstMesh.metadata?.modelName) {
@@ -1164,6 +1166,10 @@ export const flockCSG = {
                                                 intersectedMesh = baseCSG.toMesh(
                                                         "intersectedMesh",
                                                         validMeshes[0].getScene(),
+                                                        {
+                                                                centerMesh: false,
+                                                                rebuildNormals: true,
+                                                        },
                                                 );
                                                 
                                                 if (!intersectedMesh || intersectedMesh.getTotalVertices() === 0) {
@@ -1181,8 +1187,8 @@ export const flockCSG = {
                                                 return null;
                                         }
 
-                                        // Align the resulting mesh to the combined centre
-                                        intersectedMesh.position = combinedCentre;
+                                        // Keep local origin aligned with mesh bounds while preserving world placement.
+                                        recenterMeshLocalOrigin(intersectedMesh);
 
                                         // Apply properties to the resulting mesh
                                         flock.applyResultMeshProperties(
@@ -1346,7 +1352,6 @@ export const flockCSG = {
                         resultMesh.rotation.copyFrom(referenceMesh.rotation);
                 }
                 resultMesh.scaling.copyFrom(referenceMesh.scaling);
-                resultMesh.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
                 resultMesh.name = modelId;
                 resultMesh.metadata = resultMesh.metadata || {};
                 resultMesh.metadata.blockKey = blockId;
