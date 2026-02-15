@@ -719,5 +719,131 @@ export function runMaterialsTests(flock) {
 				});
 			});
 		});
+	describe("mergeMeshes geometry preparation @materials", function () {
+		const meshIds = [];
+
+		afterEach(function () {
+			meshIds.forEach((meshId) => {
+				flock.dispose(meshId);
+			});
+			meshIds.length = 0;
+		});
+
+		it("merges a single simple mesh", async function () {
+			await flock.createBox("singleMergeBox", {
+				color: "#9932cc",
+				width: 1,
+				height: 1,
+				depth: 1,
+				position: [0, 0, 0],
+			});
+			meshIds.push("singleMergeBox");
+
+			const singleMesh = await flock.whenModelReady("singleMergeBox");
+			const merged = await flock.mergeMeshes("singleSimpleMerge", [singleMesh]);
+			meshIds.push("singleSimpleMerge");
+
+			expect(merged).to.exist;
+			expect(merged.name).to.include("singleSimpleMerge");
+			expect(merged.getTotalVertices()).to.be.greaterThan(0);
+		});
+
+		it("merges multiple valid meshes", async function () {
+			await flock.createBox("mergeBoxA", {
+				color: "#ff0000",
+				width: 1,
+				height: 1,
+				depth: 1,
+				position: [0, 0, 0],
+			});
+			await flock.createBox("mergeBoxB", {
+				color: "#00ff00",
+				width: 1,
+				height: 1,
+				depth: 1,
+				position: [0.5, 0.5, 0],
+			});
+			meshIds.push("mergeBoxA", "mergeBoxB");
+
+			const boxA = await flock.whenModelReady("mergeBoxA");
+			const boxB = await flock.whenModelReady("mergeBoxB");
+			const merged = await flock.mergeMeshes("multiValidMerge", [boxA, boxB]);
+			meshIds.push("multiValidMerge");
+
+			expect(merged).to.exist;
+			expect(merged.getTotalVertices()).to.be.greaterThan(0);
+		});
+
+		it("merges one valid mesh and one composite child-only mesh", async function () {
+			await flock.createBox("mergeBaseBox", {
+				color: "#00ffff",
+				width: 1,
+				height: 1,
+				depth: 1,
+				position: [0, 0, 0],
+			});
+			const treeId = flock.createObject({
+				modelName: "tree.glb",
+				modelId: "treeForMerge",
+				color: ["#66cdaa", "#cd853f"],
+				scale: 0.6,
+				position: { x: 0.5, y: 0, z: 0 },
+			});
+			meshIds.push("mergeBaseBox", treeId);
+
+			const base = await flock.whenModelReady("mergeBaseBox");
+			const tree = await flock.whenModelReady(treeId);
+			const merged = await flock.mergeMeshes("validPlusCompositeMerge", [
+				base,
+				tree,
+			]);
+			meshIds.push("validPlusCompositeMerge");
+
+			expect(merged).to.exist;
+			expect(merged.getTotalVertices()).to.be.greaterThan(0);
+		});
+
+		it("skips invalid meshes and still returns a valid result", async function () {
+			await flock.createBox("mergeGoodBox", {
+				color: "#ffaa00",
+				width: 1,
+				height: 1,
+				depth: 1,
+				position: [0, 0, 0],
+			});
+			meshIds.push("mergeGoodBox");
+
+			const goodMesh = await flock.whenModelReady("mergeGoodBox");
+			const invalidMesh = new flock.BABYLON.Mesh(
+				"mergeInvalidMesh",
+				flock.scene,
+			);
+
+			const warningMessages = [];
+			const originalWarn = console.warn;
+			console.warn = (...args) => {
+				warningMessages.push(args.join(" "));
+				return originalWarn(...args);
+			};
+
+			let merged;
+			try {
+				merged = await flock.mergeMeshes("mergeWithInvalid", [goodMesh, invalidMesh]);
+			} finally {
+				console.warn = originalWarn;
+				invalidMesh.dispose();
+			}
+			meshIds.push("mergeWithInvalid");
+
+			expect(merged).to.exist;
+			expect(merged.getTotalVertices()).to.be.greaterThan(0);
+			expect(
+				warningMessages.some((message) =>
+					message.includes("Skipping mesh after preparation failure"),
+				),
+			).to.equal(true);
+		});
+	});
+
 	});
 }
