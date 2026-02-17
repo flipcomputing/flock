@@ -4766,6 +4766,21 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
                 return focusedTree === this.parentToolbox_;
         }
 
+        ensurePointerFocusedSelection_() {
+                this.parentToolbox_?.setSelectedItem?.(this);
+                this.setSelected(true);
+                this.setExpanded(true);
+
+                const flyout = this.parentToolbox_?.getFlyout?.();
+                if (flyout && !flyout.isVisible?.()) {
+                        const contents = this.getContents?.();
+                        if (contents) flyout.show?.(contents);
+                }
+
+                this.parentToolbox_?.getHtmlDiv?.()?.focus?.();
+                this.htmlDiv_?.focus?.();
+        }
+
         // Preserve the original icon
         createIconDom_() {
                 const img = document.createElement("img");
@@ -4815,9 +4830,17 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
 
                 this.rowDiv_.addEventListener(
                         "pointerdown",
-                        () => {
+                        (e) => {
                                 this.preventNextPointerClickToggle_ =
                                         !this.toolboxHasFocus_();
+
+                                if (!this.preventNextPointerClickToggle_) return;
+
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+
+                                this.ensurePointerFocusedSelection_();
                         },
                         { capture: true },
                 );
@@ -4831,11 +4854,7 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
                                 e.stopPropagation();
                                 e.stopImmediatePropagation();
 
-                                this.setSelected(true);
-                                this.setExpanded(true);
-
-                                this.parentToolbox_?.getHtmlDiv?.()?.focus?.();
-                                this.htmlDiv_?.focus?.();
+                                this.ensurePointerFocusedSelection_();
 
                                 this.preventNextPointerClickToggle_ = false;
                         },
