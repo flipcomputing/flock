@@ -4746,6 +4746,49 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
                 // Store the original icon and color
                 this.originalIcon = categoryDef.icon || "./default_icon.svg";
                 this.originalColor = categoryDef.colour || "#000000";
+                this.preventNextPointerClickToggle_ = false;
+        }
+
+        toolboxHasFocus_() {
+                const toolboxDiv =
+                        this.parentToolbox_?.HtmlDiv ||
+                        this.parentToolbox_?.getHtmlDiv?.();
+                const active = document.activeElement;
+                if (
+                        toolboxDiv &&
+                        active &&
+                        (active === toolboxDiv || toolboxDiv.contains(active))
+                ) {
+                        return true;
+                }
+
+                const focusedTree = Blockly.getFocusManager?.()?.getFocusedTree?.();
+                return focusedTree === this.parentToolbox_;
+        }
+
+        categoryHasFocus_() {
+                const active = document.activeElement;
+                if (this.htmlDiv_ && active && this.htmlDiv_.contains(active)) {
+                        return true;
+                }
+
+                const selectedItem = this.parentToolbox_?.getSelectedItem?.();
+                return this.toolboxHasFocus_() && selectedItem === this;
+        }
+
+        ensurePointerFocusedSelection_() {
+                this.parentToolbox_?.setSelectedItem?.(this);
+                this.setSelected(true);
+                this.setExpanded(true);
+
+                const flyout = this.parentToolbox_?.getFlyout?.();
+                if (flyout && !flyout.isVisible?.()) {
+                        const contents = this.getContents?.();
+                        if (contents) flyout.show?.(contents);
+                }
+
+                this.parentToolbox_?.getHtmlDiv?.()?.focus?.();
+                this.htmlDiv_?.focus?.();
         }
 
         // Preserve the original icon
@@ -4794,6 +4837,39 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
                                 "important",
                         );
                 }
+
+                this.rowDiv_.addEventListener(
+                        "pointerdown",
+                        (e) => {
+                                this.preventNextPointerClickToggle_ =
+                                        !this.categoryHasFocus_();
+
+                                if (!this.preventNextPointerClickToggle_) return;
+
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+
+                                this.ensurePointerFocusedSelection_();
+                        },
+                        { capture: true },
+                );
+
+                this.rowDiv_.addEventListener(
+                        "click",
+                        (e) => {
+                                if (!this.preventNextPointerClickToggle_) return;
+
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+
+                                this.ensurePointerFocusedSelection_();
+
+                                this.preventNextPointerClickToggle_ = false;
+                        },
+                        { capture: true },
+                );
 
                 return this.htmlDiv_;
         }
