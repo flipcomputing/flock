@@ -4766,6 +4766,16 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
                 return focusedTree === this.parentToolbox_;
         }
 
+        categoryHasFocus_() {
+                const active = document.activeElement;
+                if (this.htmlDiv_ && active && this.htmlDiv_.contains(active)) {
+                        return true;
+                }
+
+                const selectedItem = this.parentToolbox_?.getSelectedItem?.();
+                return this.toolboxHasFocus_() && selectedItem === this;
+        }
+
         ensurePointerFocusedSelection_() {
                 this.parentToolbox_?.setSelectedItem?.(this);
                 this.setSelected(true);
@@ -4832,7 +4842,7 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
                         "pointerdown",
                         (e) => {
                                 this.preventNextPointerClickToggle_ =
-                                        !this.toolboxHasFocus_();
+                                        !this.categoryHasFocus_();
 
                                 if (!this.preventNextPointerClickToggle_) return;
 
