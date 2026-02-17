@@ -4746,6 +4746,24 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
                 // Store the original icon and color
                 this.originalIcon = categoryDef.icon || "./default_icon.svg";
                 this.originalColor = categoryDef.colour || "#000000";
+                this.lastPointerDownHadToolboxFocus_ = false;
+        }
+
+        toolboxHasFocus_() {
+                const toolboxDiv =
+                        this.parentToolbox_?.HtmlDiv ||
+                        this.parentToolbox_?.getHtmlDiv?.();
+                const active = document.activeElement;
+                if (
+                        toolboxDiv &&
+                        active &&
+                        (active === toolboxDiv || toolboxDiv.contains(active))
+                ) {
+                        return true;
+                }
+
+                const focusedTree = Blockly.getFocusManager?.()?.getFocusedTree?.();
+                return focusedTree === this.parentToolbox_;
         }
 
         // Preserve the original icon
@@ -4795,7 +4813,31 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
                         );
                 }
 
+                this.rowDiv_.addEventListener(
+                        "pointerdown",
+                        () => {
+                                this.lastPointerDownHadToolboxFocus_ =
+                                        this.toolboxHasFocus_();
+                        },
+                        { capture: true },
+                );
+
                 return this.htmlDiv_;
+        }
+
+        /** @override */
+        onClick(e) {
+                const pointerClick = (e?.detail || 0) > 0;
+                if (pointerClick && !this.lastPointerDownHadToolboxFocus_) {
+                        this.setSelected(true);
+                        this.setExpanded(true);
+                        this.htmlDiv_?.focus?.();
+                        this.lastPointerDownHadToolboxFocus_ = false;
+                        return;
+                }
+
+                this.lastPointerDownHadToolboxFocus_ = false;
+                super.onClick(e);
         }
 }
 
