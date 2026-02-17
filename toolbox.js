@@ -4746,7 +4746,7 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
                 // Store the original icon and color
                 this.originalIcon = categoryDef.icon || "./default_icon.svg";
                 this.originalColor = categoryDef.colour || "#000000";
-                this.lastPointerDownHadToolboxFocus_ = false;
+                this.preventNextPointerClickToggle_ = false;
         }
 
         toolboxHasFocus_() {
@@ -4816,28 +4816,33 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
                 this.rowDiv_.addEventListener(
                         "pointerdown",
                         () => {
-                                this.lastPointerDownHadToolboxFocus_ =
-                                        this.toolboxHasFocus_();
+                                this.preventNextPointerClickToggle_ =
+                                        !this.toolboxHasFocus_();
+                        },
+                        { capture: true },
+                );
+
+                this.rowDiv_.addEventListener(
+                        "click",
+                        (e) => {
+                                if (!this.preventNextPointerClickToggle_) return;
+
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+
+                                this.setSelected(true);
+                                this.setExpanded(true);
+
+                                this.parentToolbox_?.getHtmlDiv?.()?.focus?.();
+                                this.htmlDiv_?.focus?.();
+
+                                this.preventNextPointerClickToggle_ = false;
                         },
                         { capture: true },
                 );
 
                 return this.htmlDiv_;
-        }
-
-        /** @override */
-        onClick(e) {
-                const pointerClick = (e?.detail || 0) > 0;
-                if (pointerClick && !this.lastPointerDownHadToolboxFocus_) {
-                        this.setSelected(true);
-                        this.setExpanded(true);
-                        this.htmlDiv_?.focus?.();
-                        this.lastPointerDownHadToolboxFocus_ = false;
-                        return;
-                }
-
-                this.lastPointerDownHadToolboxFocus_ = false;
-                super.onClick(e);
         }
 }
 
