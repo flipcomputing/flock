@@ -563,9 +563,9 @@ export function defineControlBlocks() {
                         this.appendDummyInput("HEAD").appendField(
                                 new Blockly.FieldDropdown(
                                         [
-                                                ["if", MODE.IF],
-                                                ["else if", MODE.ELSEIF],
-                                                ["else", MODE.ELSE],
+                                                ["%{BKY_CONTROLS_IF_MSG_IF}", MODE.IF],
+                                                ["%{BKY_CONTROLS_IF_MSG_ELSEIF}", MODE.ELSEIF],
+                                                ["%{BKY_CONTROLS_IF_MSG_ELSE}", MODE.ELSE],
                                         ],
                                         (newValue) => {
                                                 this.updateShape_(newValue);
