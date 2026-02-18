@@ -340,7 +340,7 @@ export default {
   CONTROLS_FOR_INPUT_DO: "",
   CONTROLS_FOREACH_INPUT_DO: "",
   CONTROLS_IF_MSG_THEN: "",
-  CONTROLS_IF_MSG_ELSE: "else\n",
+  CONTROLS_IF_MSG_ELSE: "w przeciwnym razie\n",
   CONTROLS_FOR_TITLE: "dla każdego %1 od %2 do %3 co %4",
 
   // Block message translations
