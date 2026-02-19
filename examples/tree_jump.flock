@@ -126,15 +126,22 @@
         "type": "forever",
         "id": "rzARP?f-rL_OMXQ]LzxO",
         "x": 10,
-        "y": 879,
+        "y": 894,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
             "block": {
-              "type": "controls_if",
-              "id": "iVo]ukYO9I+wQn`*H)CK",
+              "type": "if_clause",
+              "id": "7(sjYeRU+1EtsbX-#k_(",
+              "extraState": {
+                "mode": "IF",
+                "stashedCondState": null
+              },
+              "fields": {
+                "MODE": "IF"
+              },
               "inputs": {
-                "IF0": {
+                "COND": {
                   "block": {
                     "type": "logic_operation",
                     "id": "s-;}V0N+upGf6#)=myhq",
@@ -167,7 +174,7 @@
                     }
                   }
                 },
-                "DO0": {
+                "DO": {
                   "block": {
                     "type": "variables_set",
                     "id": "yIoOSuG(jOqAv|(mndDq",
@@ -209,10 +216,17 @@
               },
               "next": {
                 "block": {
-                  "type": "controls_if",
-                  "id": "TzLJVJO%Pg-F$$?cLSqN",
+                  "type": "if_clause",
+                  "id": "*{XxZ3D9wricl:N[bSYV",
+                  "extraState": {
+                    "mode": "IF",
+                    "stashedCondState": null
+                  },
+                  "fields": {
+                    "MODE": "IF"
+                  },
                   "inputs": {
-                    "IF0": {
+                    "COND": {
                       "block": {
                         "type": "logic_operation",
                         "id": "MX[@dxJ^~Bc,=g0m2J_g",
@@ -251,7 +265,7 @@
                         }
                       }
                     },
-                    "DO0": {
+                    "DO": {
                       "block": {
                         "type": "apply_force",
                         "id": "/16X7gajx#K]svapIx^n",
@@ -590,7 +604,7 @@
         "type": "on_event",
         "id": "gdeL9Um:-2~=((Hg5Ofl",
         "x": 10,
-        "y": 1429,
+        "y": 1486,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -674,7 +688,7 @@
         "type": "on_event",
         "id": "JyO)XxgG$Q6={SNIy1c^",
         "x": 10,
-        "y": 1705,
+        "y": 1774,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -714,15 +728,22 @@
         "type": "forever",
         "id": "R+v79M[uMwbMpxaa[2f8",
         "x": 10,
-        "y": 3147,
+        "y": 3258,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
             "block": {
-              "type": "controls_if",
-              "id": "r)e/;qGNV+;DTrakxif2",
+              "type": "if_clause",
+              "id": "8Lh*9#e)5HK(H%6p4C[~",
+              "extraState": {
+                "mode": "IF",
+                "stashedCondState": null
+              },
+              "fields": {
+                "MODE": "IF"
+              },
               "inputs": {
-                "IF0": {
+                "COND": {
                   "block": {
                     "type": "logic_compare",
                     "id": "6qwZUOXR9%P:)`}1pJH%",
@@ -754,7 +775,7 @@
                     }
                   }
                 },
-                "DO0": {
+                "DO": {
                   "block": {
                     "type": "math_change",
                     "id": "wJ6AAPA8lxoq;*s0vi+s",
@@ -880,7 +901,7 @@
         "type": "start",
         "id": "g9yF_3lM^xfOJr:1ZCk]",
         "x": 10,
-        "y": 1883,
+        "y": 1958,
         "inputs": {
           "DO": {
             "block": {
@@ -1088,6 +1109,33 @@
                                           }
                                         }
                                       }
+                                    },
+                                    "block": {
+                                      "type": "material",
+                                      "id": "fPH`T`N,PB3%aX27yYX%",
+                                      "fields": {
+                                        "TEXTURE_SET": "wood.png"
+                                      },
+                                      "inputs": {
+                                        "BASE_COLOR": {
+                                          "shadow": {
+                                            "type": "colour",
+                                            "id": "qS#!FsP_V79YLt#,n},W",
+                                            "fields": {
+                                              "COLOR": "#cc9933"
+                                            }
+                                          }
+                                        },
+                                        "ALPHA": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": ".#jA0lgmX//==C=R5)gN",
+                                            "fields": {
+                                              "NUM": 1
+                                            }
+                                          }
+                                        }
+                                      }
                                     }
                                   }
                                 }
@@ -1108,7 +1156,7 @@
         "type": "on_collision",
         "id": "cGn+SL5%Ei):{Nasps:2",
         "x": 10,
-        "y": 2564,
+        "y": 2654,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -1275,7 +1323,7 @@
         "type": "forever",
         "id": "9/1PX3?Ug_{riW6G9r1-",
         "x": 10,
-        "y": 2937,
+        "y": 3042,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -1337,7 +1385,7 @@
         "type": "forever",
         "id": "NP}pWn+l/?((4~+,A[Jj",
         "x": 10,
-        "y": 2395,
+        "y": 2482,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
