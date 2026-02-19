@@ -38,11 +38,11 @@
 }
 
 [data-theme="dark-contrast"] .blocklyInsertionMarker path {
-  fill: blue !important;
+  fill: grey !important;
 }
 
 [data-theme="contrast"] .blocklyInsertionMarker path {
-  fill: blue !important;
+  fill: grey !important;
 }
 
 /* Only target text inputs with cursor: text */
