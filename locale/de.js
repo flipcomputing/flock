@@ -468,7 +468,7 @@ export default {
   CONTROLS_FOR_INPUT_DO: "",
   CONTROLS_FOREACH_INPUT_DO: "",
   CONTROLS_IF_MSG_THEN: "",
-  CONTROLS_IF_MSG_ELSE: "else\n",
+  CONTROLS_IF_MSG_ELSE: "sonst\n",
   CONTROLS_FOR_TITLE: "für jede(n) %1 von %2 bis %3 mit Schritt %4",
 
   // Block messages

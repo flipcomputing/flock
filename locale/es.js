@@ -335,7 +335,7 @@ export default {
   CONTROLS_FOR_INPUT_DO: "", // human
   CONTROLS_FOREACH_INPUT_DO: "", // human
   CONTROLS_IF_MSG_THEN: "", // human
-  CONTROLS_IF_MSG_ELSE: "else\n", // human
+  CONTROLS_IF_MSG_ELSE: "sino\n", // human
   CONTROLS_FOR_TITLE: "para cada %1 desde %2 hasta %3 por %4", // human
 
   // Block message translations
