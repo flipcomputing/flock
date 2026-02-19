@@ -37,6 +37,14 @@
   --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0,0,0,0.1));
 }
 
+[data-theme="dark-contrast"] .blocklyInsertionMarker path {
+  fill: blue !important;
+}
+
+[data-theme="contrast"] .blocklyInsertionMarker path {
+  fill: blue !important;
+}
+
 /* Only target text inputs with cursor: text */
 .blocklyEditableText[style*="cursor: text"] > rect {
   fill: var(--color-bg) !important;
