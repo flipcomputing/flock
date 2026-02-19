@@ -261,7 +261,11 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
   for (const changed of changedBlocks) {
     const parent = findCreateBlock(changed);
 
-    if (parent === containerBlock && changed) {
+    if (
+      changed &&
+      parent === containerBlock &&
+      isValueInputDescendantOf(containerBlock, changed)
+    ) {
       if (!window.loadingCode) {
         updateOrCreateMeshFromBlock(containerBlock, changeEvent);
       }
