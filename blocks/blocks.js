@@ -197,6 +197,28 @@ export function handleMeshLifecycleChange(block, changeEvent) {
   return false;
 }
 
+export function isValueInputDescendantOf(containerBlock, changedBlock) {
+  if (!containerBlock || !changedBlock) return false;
+  if (changedBlock.id === containerBlock.id) return true;
+
+  let child = changedBlock;
+  while (child && child.id !== containerBlock.id) {
+    const parent = child.getParent?.();
+    if (!parent) return false;
+
+    const viaValueInput = (parent.inputList || []).some(
+      (inp) =>
+        inp?.type === Blockly.INPUT_VALUE &&
+        inp?.connection?.targetBlock?.() === child,
+    );
+
+    if (!viaValueInput) return false;
+    child = parent;
+  }
+
+  return child?.id === containerBlock.id;
+}
+
 export function handleFieldOrChildChange(containerBlock, changeEvent) {
   if (
     changeEvent.type !== Blockly.Events.BLOCK_CHANGE ||
@@ -214,53 +236,9 @@ export function handleFieldOrChildChange(containerBlock, changeEvent) {
     return true;
   }
 
-  const parent = changedBlock.getParent?.();
-  if (parent && parent.id === containerBlock.id) {
-    if (changedBlock.nextConnection || changedBlock.previousConnection)
-      return false;
+  if (isValueInputDescendantOf(containerBlock, changedBlock)) {
     updateOrCreateMeshFromBlock(containerBlock, changeEvent);
     return true;
-  }
-
-  if (containerBlock.type === "create_map") {
-    const materialBlock = containerBlock.getInputTargetBlock?.("MATERIAL");
-    if (materialBlock) {
-      // If the MATERIAL block itself changed, forward.
-      if (changedBlock.id === materialBlock.id) {
-        updateOrCreateMeshFromBlock(containerBlock, changeEvent);
-        return true;
-      }
-
-      // Forward if the change occurred in the MATERIAL subtree via VALUE inputs only (not statement chains).
-      const INPUT_VALUE =
-        typeof Blockly?.INPUT_VALUE !== "undefined" ? Blockly.INPUT_VALUE : 1;
-
-      // Walk up from the changed block to the MATERIAL block,
-      // ensuring each step is through a VALUE input connection.
-      let node = changedBlock;
-      while (node && node !== materialBlock) {
-        const p = node.getParent?.();
-        if (!p) break;
-
-        const viaValueInput = (p.inputList || []).some(
-          (inp) =>
-            inp?.type === INPUT_VALUE &&
-            inp?.connection?.targetBlock?.() === node,
-        );
-
-        if (!viaValueInput) {
-          // Left the MATERIAL value-input subtree → do not forward.
-          node = null;
-          break;
-        }
-        node = p;
-      }
-
-      if (node === materialBlock) {
-        updateOrCreateMeshFromBlock(containerBlock, changeEvent);
-        return true;
-      }
-    }
   }
 
   return false;
@@ -283,7 +261,11 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
   for (const changed of changedBlocks) {
     const parent = findCreateBlock(changed);
 
-    if (parent === containerBlock && changed) {
+    if (
+      changed &&
+      parent === containerBlock &&
+      isValueInputDescendantOf(containerBlock, changed)
+    ) {
       if (!window.loadingCode) {
         updateOrCreateMeshFromBlock(containerBlock, changeEvent);
       }
@@ -388,7 +370,12 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
     if (flock.blockDebug) console.log("This block is", block.id);
     // if (flock.blockDebug) console.log("The parent is", parent);
     if (flock.blockDebug) console.log("The type of this block is", block.type);
-    if (parents.includes(block)) {
+    if (
+      changedBlock &&
+      parents.includes(block) &&
+      isValueInputDescendantOf(block, changedBlock)
+    ) {
+      // Only configuration inputs (value-input subtree) affect preview mesh; runtime statement blocks do not.
       const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
         block.id,
       );
@@ -491,7 +478,6 @@ function retargetDescendantsVariables(
   const descendants = [];
 
   function collectInputDescendants(block) {
-   
     for (const input of block.inputList || []) {
       if (input.connection && input.connection.targetBlock()) {
         const childBlock = input.connection.targetBlock();
@@ -511,7 +497,6 @@ function retargetDescendantsVariables(
     const fields = getVariableFieldsOnBlock(b, BlocklyNS);
     for (const f of fields) {
       if (f.getValue && f.getValue() === fromVarId) {
-       
         f.setValue(toVarId);
         changes++;
       }
@@ -559,7 +544,6 @@ function adoptIsolatedDefaultVarsTo(
   BlocklyNS,
   createdIds,
 ) {
-
   const descendantIds = buildDescendantIdSet(rootBlock);
   let adopted = 0;
 
@@ -588,7 +572,7 @@ function adoptIsolatedDefaultVarsTo(
       if (!typeOk) continue;
       if (!model.name || !model.name.startsWith(prefix)) continue;
 
-       // ensure all uses are within subtree
+      // ensure all uses are within subtree
       let usedOutside = false;
       const allBlocks = workspace.getAllBlocks(false);
       for (const bb of allBlocks) {
@@ -1751,7 +1735,7 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
             // Set the new variable as selected
             this.doValueUpdate_(newVariable.getId());
             this.forceRerender(); // Refresh the UI to show the new selection
-          } 
+          }
         }
       },
     );
