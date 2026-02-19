@@ -141,7 +141,7 @@
         "type": "start",
         "id": "?4|E|C=aEa.eXYAR5_bu",
         "x": 10,
-        "y": 925,
+        "y": 946,
         "inputs": {
           "DO": {
             "block": {
@@ -619,7 +619,7 @@
         "type": "start",
         "id": "j!S#ObRXk%A$`8-xwd~d",
         "x": 10,
-        "y": 431,
+        "y": 434,
         "inputs": {
           "DO": {
             "block": {
@@ -845,7 +845,7 @@
         "type": "procedures_defnoreturn",
         "id": "FsMyz;jLc$/Y%%~(PSZ^",
         "x": 10,
-        "y": 3047,
+        "y": 3122,
         "extraState": {
           "params": [
             {
@@ -4196,7 +4196,7 @@
         "type": "start",
         "id": "KGsy{~g-A.9p0:shr0;z",
         "x": 10,
-        "y": 2201,
+        "y": 2234,
         "inputs": {
           "DO": {
             "block": {
@@ -4717,7 +4717,7 @@
         "type": "when_clicked",
         "id": ":CL.Q-!R:bMX}y0a0A,k",
         "x": 10,
-        "y": 6074,
+        "y": 6230,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -4728,13 +4728,20 @@
         "inputs": {
           "DO": {
             "block": {
-              "type": "controls_if",
-              "id": "7.T4$Tb`XO{c!G4$LD-A",
+              "type": "if_clause",
+              "id": "+c22=dqmd(eZ]C^=Z.}]",
+              "extraState": {
+                "mode": "IF",
+                "stashedCondState": null
+              },
+              "fields": {
+                "MODE": "IF"
+              },
               "inputs": {
-                "IF0": {
+                "COND": {
                   "block": {
                     "type": "logic_compare",
-                    "id": "Oas|b[bJXfyx%6hq%Eu`",
+                    "id": "=YDeS5I7e([aiSI=hB;t",
                     "fields": {
                       "OP": "EQ"
                     },
@@ -4742,7 +4749,7 @@
                       "A": {
                         "block": {
                           "type": "variables_get",
-                          "id": "$D7=SxR9].o~/:0Na{S$",
+                          "id": "UBQYCFZ7XG0{-/tt9c4:",
                           "fields": {
                             "VAR": {
                               "id": "!Fx/X,+KpP#xZ}VR1[w`"
@@ -4760,7 +4767,7 @@
                         },
                         "block": {
                           "type": "text",
-                          "id": "gudFEB.EXVpftYL32j%d",
+                          "id": "(yfIYw)nwlD_jQ-?/kH0",
                           "fields": {
                             "TEXT": "Player 1"
                           }
@@ -4769,7 +4776,7 @@
                     }
                   }
                 },
-                "DO0": {
+                "DO": {
                   "block": {
                     "type": "procedures_callnoreturn",
                     "id": "5~QSg@}Bm;kp9cj/p4@v",
@@ -4816,18 +4823,25 @@
                     },
                     "next": {
                       "block": {
-                        "type": "controls_if",
-                        "id": "][0KUksM0YvifewR1MdM",
+                        "type": "if_clause",
+                        "id": "osR]4XF-$Q[5~erYNTkW",
+                        "extraState": {
+                          "mode": "IF",
+                          "stashedCondState": null
+                        },
+                        "fields": {
+                          "MODE": "IF"
+                        },
                         "inputs": {
-                          "IF0": {
+                          "COND": {
                             "block": {
                               "type": "logic_negate",
-                              "id": "@j+T0+cJ1C:HbRMppE/Q",
+                              "id": "_$DZdGbC91?/{=V8Pd[B",
                               "inputs": {
                                 "BOOL": {
                                   "block": {
                                     "type": "logic_compare",
-                                    "id": "x;:T|?+U`$YG3~yho8A(",
+                                    "id": "Qt?cGD-Welk2ydHSVCgi",
                                     "fields": {
                                       "OP": "EQ"
                                     },
@@ -4835,7 +4849,7 @@
                                       "A": {
                                         "block": {
                                           "type": "variables_get",
-                                          "id": "p+f*`5xK4uHIFmVH]24B",
+                                          "id": "[tQ`B;joVr?Nt*!];I7y",
                                           "fields": {
                                             "VAR": {
                                               "id": "!Fx/X,+KpP#xZ}VR1[w`"
@@ -4853,7 +4867,7 @@
                                         },
                                         "block": {
                                           "type": "text",
-                                          "id": ".+olVC)[@NBrl]_~X@j`",
+                                          "id": "/4uMFdewrZu(=n:0,lXe",
                                           "fields": {
                                             "TEXT": "Game Ended"
                                           }
@@ -4865,7 +4879,7 @@
                               }
                             }
                           },
-                          "DO0": {
+                          "DO": {
                             "block": {
                               "type": "variables_set",
                               "id": "Z83V0o3S8$d~[1:-N%k?",
@@ -4998,7 +5012,7 @@
         "type": "procedures_defnoreturn",
         "id": "$2r6j)vjL!LG!(,_xF-?",
         "x": 10,
-        "y": 8239,
+        "y": 8506,
         "extraState": {
           "params": [
             {
@@ -5200,17 +5214,20 @@
                           },
                           "next": {
                             "block": {
-                              "type": "controls_if",
-                              "id": "8-azy1*X)%|5ETGA!+.o",
+                              "type": "if_clause",
+                              "id": "5#w0mWlyvU?vi*EGVL9N",
                               "extraState": {
-                                "elseIfCount": 4,
-                                "hasElse": true
+                                "mode": "IF",
+                                "stashedCondState": null
+                              },
+                              "fields": {
+                                "MODE": "IF"
                               },
                               "inputs": {
-                                "IF0": {
+                                "COND": {
                                   "block": {
                                     "type": "logic_compare",
-                                    "id": "D5f^8;|ksMqjEREFnQW?",
+                                    "id": "!cbR@(?TNlm3xfTHSq_o",
                                     "fields": {
                                       "OP": "EQ"
                                     },
@@ -5218,7 +5235,7 @@
                                       "A": {
                                         "block": {
                                           "type": "variables_get",
-                                          "id": "l;T)(U14c6cK?61}#[x*",
+                                          "id": "v1hV%i##!(vt=6[HD-,I",
                                           "fields": {
                                             "VAR": {
                                               "id": ",QKTU0;f^X#avH{Y)Rl%"
@@ -5229,7 +5246,7 @@
                                       "B": {
                                         "shadow": {
                                           "type": "math_number",
-                                          "id": ";p|$|7[}Pc;zT.f0Lyo^",
+                                          "id": "dU?a`uq~+L^c#NM~{_%6",
                                           "fields": {
                                             "NUM": 1
                                           }
@@ -5238,7 +5255,7 @@
                                     }
                                   }
                                 },
-                                "DO0": {
+                                "DO": {
                                   "block": {
                                     "type": "procedures_callnoreturn",
                                     "id": "9=sq=;Fg,tNb5Ng2GX/o",
@@ -5312,465 +5329,80 @@
                                       }
                                     }
                                   }
-                                },
-                                "IF1": {
-                                  "block": {
-                                    "type": "logic_compare",
-                                    "id": "K{dNCF05ig2Bat)~--yK",
-                                    "fields": {
-                                      "OP": "EQ"
-                                    },
-                                    "inputs": {
-                                      "A": {
-                                        "block": {
-                                          "type": "variables_get",
-                                          "id": "taL+r@y7KqpwXdjjK/D[",
-                                          "fields": {
-                                            "VAR": {
-                                              "id": ",QKTU0;f^X#avH{Y)Rl%"
-                                            }
-                                          }
-                                        }
-                                      },
-                                      "B": {
-                                        "shadow": {
-                                          "type": "math_number",
-                                          "id": "1?ka7Li+`~P(1h~~k*k$",
-                                          "fields": {
-                                            "NUM": 2
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                "DO1": {
-                                  "block": {
-                                    "type": "procedures_callnoreturn",
-                                    "id": "{*0AN?Kd0SHDBIS$0;.D",
-                                    "extraState": {
-                                      "name": "handleDiceRoll",
-                                      "params": [
-                                        "partName",
-                                        "beetle",
-                                        "constraint",
-                                        "first",
-                                        "last",
-                                        "parts"
-                                      ]
-                                    },
-                                    "inputs": {
-                                      "ARG0": {
-                                        "block": {
-                                          "type": "text",
-                                          "id": "^|q9$if$y]?47WB]5nj*",
-                                          "fields": {
-                                            "TEXT": "Head"
-                                          }
-                                        }
-                                      },
-                                      "ARG1": {
-                                        "block": {
-                                          "type": "variables_get",
-                                          "id": "}zRq9?wH3V94WB.3CqpS",
-                                          "fields": {
-                                            "VAR": {
-                                              "id": "s#*Ka8sw(AhBHqfnqay%"
-                                            }
-                                          }
-                                        }
-                                      },
-                                      "ARG2": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "TOJ,ed;UNPHPw#_}%nXB",
-                                          "fields": {
-                                            "NUM": 0
-                                          }
-                                        }
-                                      },
-                                      "ARG3": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "`w7A3lzHsta7)2Svbf:/",
-                                          "fields": {
-                                            "NUM": 1
-                                          }
-                                        }
-                                      },
-                                      "ARG4": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "@n)[#m5H,klh*qZYe9pp",
-                                          "fields": {
-                                            "NUM": 1
-                                          }
-                                        }
-                                      },
-                                      "ARG5": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "AbLyjql$?w#SyP0~zRPM",
-                                          "fields": {
-                                            "NUM": 1
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                "IF2": {
-                                  "block": {
-                                    "type": "logic_compare",
-                                    "id": "ugUz6afMg*ex+C^Sec*!",
-                                    "fields": {
-                                      "OP": "EQ"
-                                    },
-                                    "inputs": {
-                                      "A": {
-                                        "block": {
-                                          "type": "variables_get",
-                                          "id": "OBL~9DCYsF@r[Fq%g_Bv",
-                                          "fields": {
-                                            "VAR": {
-                                              "id": ",QKTU0;f^X#avH{Y)Rl%"
-                                            }
-                                          }
-                                        }
-                                      },
-                                      "B": {
-                                        "shadow": {
-                                          "type": "math_number",
-                                          "id": "t.AaApuW_zhJPLSV_rAQ",
-                                          "fields": {
-                                            "NUM": 3
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                "DO2": {
-                                  "block": {
-                                    "type": "procedures_callnoreturn",
-                                    "id": "Naf94FDpj}.meF0SZ}+u",
-                                    "extraState": {
-                                      "name": "handleDiceRoll",
-                                      "params": [
-                                        "partName",
-                                        "beetle",
-                                        "constraint",
-                                        "first",
-                                        "last",
-                                        "parts"
-                                      ]
-                                    },
-                                    "inputs": {
-                                      "ARG0": {
-                                        "block": {
-                                          "type": "text",
-                                          "id": "O6+i+?H+;*kd;J{lDlrK",
-                                          "fields": {
-                                            "TEXT": "Antenna"
-                                          }
-                                        }
-                                      },
-                                      "ARG1": {
-                                        "block": {
-                                          "type": "variables_get",
-                                          "id": "+skNfj./aFoVMwX*r!mm",
-                                          "fields": {
-                                            "VAR": {
-                                              "id": "s#*Ka8sw(AhBHqfnqay%"
-                                            }
-                                          }
-                                        }
-                                      },
-                                      "ARG2": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "`to{6reZ#O4oYOSd-4P2",
-                                          "fields": {
-                                            "NUM": 1
-                                          }
-                                        }
-                                      },
-                                      "ARG3": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "MI@~1}#~o2KzgadZ/n)R",
-                                          "fields": {
-                                            "NUM": 2
-                                          }
-                                        }
-                                      },
-                                      "ARG4": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "EElZ.Dx.#;fcdH$sm/}B",
-                                          "fields": {
-                                            "NUM": 5
-                                          }
-                                        }
-                                      },
-                                      "ARG5": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "Qt?GbYn[+dWsbFZO#AFi",
-                                          "fields": {
-                                            "NUM": 2
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                "IF3": {
-                                  "block": {
-                                    "type": "logic_compare",
-                                    "id": "xhtNw-5B~yL,P43f,dMS",
-                                    "fields": {
-                                      "OP": "EQ"
-                                    },
-                                    "inputs": {
-                                      "A": {
-                                        "block": {
-                                          "type": "variables_get",
-                                          "id": "bVE5WU/gMB$VE5*l$zc+",
-                                          "fields": {
-                                            "VAR": {
-                                              "id": ",QKTU0;f^X#avH{Y)Rl%"
-                                            }
-                                          }
-                                        }
-                                      },
-                                      "B": {
-                                        "shadow": {
-                                          "type": "math_number",
-                                          "id": "^+:8cAq0%Johgf1p!}~9",
-                                          "fields": {
-                                            "NUM": 4
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                "DO3": {
-                                  "block": {
-                                    "type": "procedures_callnoreturn",
-                                    "id": "c*iXrFm)^^,SGHP[,?(-",
-                                    "extraState": {
-                                      "name": "handleDiceRoll",
-                                      "params": [
-                                        "partName",
-                                        "beetle",
-                                        "constraint",
-                                        "first",
-                                        "last",
-                                        "parts"
-                                      ]
-                                    },
-                                    "inputs": {
-                                      "ARG0": {
-                                        "block": {
-                                          "type": "text",
-                                          "id": "b@4M)U1y{*;AV@~YyD+D",
-                                          "fields": {
-                                            "TEXT": "Eye"
-                                          }
-                                        }
-                                      },
-                                      "ARG1": {
-                                        "block": {
-                                          "type": "variables_get",
-                                          "id": "Q+)oa39CO+EktGwWCZFk",
-                                          "fields": {
-                                            "VAR": {
-                                              "id": "s#*Ka8sw(AhBHqfnqay%"
-                                            }
-                                          }
-                                        }
-                                      },
-                                      "ARG2": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "LcvRF?oy=t~NuT82G4!b",
-                                          "fields": {
-                                            "NUM": 1
-                                          }
-                                        }
-                                      },
-                                      "ARG3": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "=sG[*wWj_8[m(JwM)tC{",
-                                          "fields": {
-                                            "NUM": 6
-                                          }
-                                        }
-                                      },
-                                      "ARG4": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": ".`v=~3|rPfIiR1rwh~Qb",
-                                          "fields": {
-                                            "NUM": 7
-                                          }
-                                        }
-                                      },
-                                      "ARG5": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "`Z1f[`6uH;WoktI9a5[:",
-                                          "fields": {
-                                            "NUM": 1
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                "IF4": {
-                                  "block": {
-                                    "type": "logic_compare",
-                                    "id": "7eRO`3:NC_zq4j5^oEBp",
-                                    "fields": {
-                                      "OP": "EQ"
-                                    },
-                                    "inputs": {
-                                      "A": {
-                                        "block": {
-                                          "type": "variables_get",
-                                          "id": "oz5Q3rr#^BHsqOa[PZWU",
-                                          "fields": {
-                                            "VAR": {
-                                              "id": ",QKTU0;f^X#avH{Y)Rl%"
-                                            }
-                                          }
-                                        }
-                                      },
-                                      "B": {
-                                        "shadow": {
-                                          "type": "math_number",
-                                          "id": "r7Vuv|)mE(F3Kt6OPbOt",
-                                          "fields": {
-                                            "NUM": 5
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                "DO4": {
-                                  "block": {
-                                    "type": "procedures_callnoreturn",
-                                    "id": "uga[AP[sA4M-{q=${UR-",
-                                    "extraState": {
-                                      "name": "handleDiceRoll",
-                                      "params": [
-                                        "partName",
-                                        "beetle",
-                                        "constraint",
-                                        "first",
-                                        "last",
-                                        "parts"
-                                      ]
-                                    },
-                                    "inputs": {
-                                      "ARG0": {
-                                        "block": {
-                                          "type": "text",
-                                          "id": "PY}]#LD?Jf!AMV2y0P#o",
-                                          "fields": {
-                                            "TEXT": "Leg"
-                                          }
-                                        }
-                                      },
-                                      "ARG1": {
-                                        "block": {
-                                          "type": "variables_get",
-                                          "id": "T[!ho_S%cpSjj|xS(W8:",
-                                          "fields": {
-                                            "VAR": {
-                                              "id": "s#*Ka8sw(AhBHqfnqay%"
-                                            }
-                                          }
-                                        }
-                                      },
-                                      "ARG2": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "3K$oZ*Ki1vi[P{vM))aM",
-                                          "fields": {
-                                            "NUM": 0
-                                          }
-                                        }
-                                      },
-                                      "ARG3": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "Q?H:xHaIZfCS[+3B8VHv",
-                                          "fields": {
-                                            "NUM": 8
-                                          }
-                                        }
-                                      },
-                                      "ARG4": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "?J+TgPr%dO.HCVU^@W1/",
-                                          "fields": {
-                                            "NUM": 13
-                                          }
-                                        }
-                                      },
-                                      "ARG5": {
-                                        "block": {
-                                          "type": "math_number",
-                                          "id": "M,Whg;W*U))egCkU,k9$",
-                                          "fields": {
-                                            "NUM": 1
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                "ELSE": {
-                                  "block": {
-                                    "type": "variables_set",
-                                    "id": "D`jo.iHhXX/OMVq|=epS",
-                                    "fields": {
-                                      "VAR": {
-                                        "id": "nqb0^o2%4?XQeb^Tt)iK"
-                                      }
-                                    },
-                                    "inputs": {
-                                      "VALUE": {
-                                        "shadow": {
-                                          "type": "math_number",
-                                          "id": "JOSI70gq)Dwc)dlF[9?e",
-                                          "fields": {
-                                            "NUM": 1
-                                          }
-                                        }
-                                      }
-                                    },
-                                    "next": {
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "if_clause",
+                                  "id": "{if05xcZ1m`1wd|n.grZ",
+                                  "extraState": {
+                                    "mode": "ELSEIF",
+                                    "stashedCondState": null
+                                  },
+                                  "fields": {
+                                    "MODE": "ELSEIF"
+                                  },
+                                  "inputs": {
+                                    "COND": {
                                       "block": {
-                                        "type": "controls_forEach",
-                                        "id": "#:ZoNnJWWCQZ:w]3wFK{",
+                                        "type": "logic_compare",
+                                        "id": "!tqX{1sU)T#l^d+Y`bOy",
                                         "fields": {
-                                          "VAR": {
-                                            "id": "9UDI+X!D]ORh^[}}Imt+"
-                                          }
+                                          "OP": "EQ"
                                         },
                                         "inputs": {
-                                          "LIST": {
+                                          "A": {
                                             "block": {
                                               "type": "variables_get",
-                                              "id": "hb~P8/qEgdvt!7D@v^Is",
+                                              "id": "_[]~c:wX$|#Y|SKCyC{q",
+                                              "fields": {
+                                                "VAR": {
+                                                  "id": ",QKTU0;f^X#avH{Y)Rl%"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "B": {
+                                            "shadow": {
+                                              "type": "math_number",
+                                              "id": "-rwFU)/TqfqUk,^lsK%{",
+                                              "fields": {
+                                                "NUM": 2
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "DO": {
+                                      "block": {
+                                        "type": "procedures_callnoreturn",
+                                        "id": "{*0AN?Kd0SHDBIS$0;.D",
+                                        "extraState": {
+                                          "name": "handleDiceRoll",
+                                          "params": [
+                                            "partName",
+                                            "beetle",
+                                            "constraint",
+                                            "first",
+                                            "last",
+                                            "parts"
+                                          ]
+                                        },
+                                        "inputs": {
+                                          "ARG0": {
+                                            "block": {
+                                              "type": "text",
+                                              "id": "^|q9$if$y]?47WB]5nj*",
+                                              "fields": {
+                                                "TEXT": "Head"
+                                              }
+                                            }
+                                          },
+                                          "ARG1": {
+                                            "block": {
+                                              "type": "variables_get",
+                                              "id": "}zRq9?wH3V94WB.3CqpS",
                                               "fields": {
                                                 "VAR": {
                                                   "id": "s#*Ka8sw(AhBHqfnqay%"
@@ -5778,44 +5410,394 @@
                                               }
                                             }
                                           },
-                                          "DO": {
+                                          "ARG2": {
                                             "block": {
-                                              "type": "controls_if",
-                                              "id": "ShBur^i^2(?fz?5V_N1y",
+                                              "type": "math_number",
+                                              "id": "TOJ,ed;UNPHPw#_}%nXB",
+                                              "fields": {
+                                                "NUM": 0
+                                              }
+                                            }
+                                          },
+                                          "ARG3": {
+                                            "block": {
+                                              "type": "math_number",
+                                              "id": "`w7A3lzHsta7)2Svbf:/",
+                                              "fields": {
+                                                "NUM": 1
+                                              }
+                                            }
+                                          },
+                                          "ARG4": {
+                                            "block": {
+                                              "type": "math_number",
+                                              "id": "@n)[#m5H,klh*qZYe9pp",
+                                              "fields": {
+                                                "NUM": 1
+                                              }
+                                            }
+                                          },
+                                          "ARG5": {
+                                            "block": {
+                                              "type": "math_number",
+                                              "id": "AbLyjql$?w#SyP0~zRPM",
+                                              "fields": {
+                                                "NUM": 1
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "next": {
+                                    "block": {
+                                      "type": "if_clause",
+                                      "id": "n*4J*wYm7-}4h5bZz%R(",
+                                      "extraState": {
+                                        "mode": "ELSEIF",
+                                        "stashedCondState": null
+                                      },
+                                      "fields": {
+                                        "MODE": "ELSEIF"
+                                      },
+                                      "inputs": {
+                                        "COND": {
+                                          "block": {
+                                            "type": "logic_compare",
+                                            "id": "wb`q)PalK8Fw-HqXD$^(",
+                                            "fields": {
+                                              "OP": "EQ"
+                                            },
+                                            "inputs": {
+                                              "A": {
+                                                "block": {
+                                                  "type": "variables_get",
+                                                  "id": "Eo,MbG3dF0vkzn0R_63q",
+                                                  "fields": {
+                                                    "VAR": {
+                                                      "id": ",QKTU0;f^X#avH{Y)Rl%"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "B": {
+                                                "shadow": {
+                                                  "type": "math_number",
+                                                  "id": "X`%#E8_LKx-5TLlQ=6@Z",
+                                                  "fields": {
+                                                    "NUM": 3
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "DO": {
+                                          "block": {
+                                            "type": "procedures_callnoreturn",
+                                            "id": "Naf94FDpj}.meF0SZ}+u",
+                                            "extraState": {
+                                              "name": "handleDiceRoll",
+                                              "params": [
+                                                "partName",
+                                                "beetle",
+                                                "constraint",
+                                                "first",
+                                                "last",
+                                                "parts"
+                                              ]
+                                            },
+                                            "inputs": {
+                                              "ARG0": {
+                                                "block": {
+                                                  "type": "text",
+                                                  "id": "O6+i+?H+;*kd;J{lDlrK",
+                                                  "fields": {
+                                                    "TEXT": "Antenna"
+                                                  }
+                                                }
+                                              },
+                                              "ARG1": {
+                                                "block": {
+                                                  "type": "variables_get",
+                                                  "id": "+skNfj./aFoVMwX*r!mm",
+                                                  "fields": {
+                                                    "VAR": {
+                                                      "id": "s#*Ka8sw(AhBHqfnqay%"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "ARG2": {
+                                                "block": {
+                                                  "type": "math_number",
+                                                  "id": "`to{6reZ#O4oYOSd-4P2",
+                                                  "fields": {
+                                                    "NUM": 1
+                                                  }
+                                                }
+                                              },
+                                              "ARG3": {
+                                                "block": {
+                                                  "type": "math_number",
+                                                  "id": "MI@~1}#~o2KzgadZ/n)R",
+                                                  "fields": {
+                                                    "NUM": 2
+                                                  }
+                                                }
+                                              },
+                                              "ARG4": {
+                                                "block": {
+                                                  "type": "math_number",
+                                                  "id": "EElZ.Dx.#;fcdH$sm/}B",
+                                                  "fields": {
+                                                    "NUM": 5
+                                                  }
+                                                }
+                                              },
+                                              "ARG5": {
+                                                "block": {
+                                                  "type": "math_number",
+                                                  "id": "Qt?GbYn[+dWsbFZO#AFi",
+                                                  "fields": {
+                                                    "NUM": 2
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "next": {
+                                        "block": {
+                                          "type": "if_clause",
+                                          "id": "^S6R,kp6#/I.-A13oQT~",
+                                          "extraState": {
+                                            "mode": "ELSEIF",
+                                            "stashedCondState": null
+                                          },
+                                          "fields": {
+                                            "MODE": "ELSEIF"
+                                          },
+                                          "inputs": {
+                                            "COND": {
+                                              "block": {
+                                                "type": "logic_compare",
+                                                "id": "U:-_KN@!K6}v[,FsQx(-",
+                                                "fields": {
+                                                  "OP": "EQ"
+                                                },
+                                                "inputs": {
+                                                  "A": {
+                                                    "block": {
+                                                      "type": "variables_get",
+                                                      "id": "M:|*|wnz:mOots*#4b2=",
+                                                      "fields": {
+                                                        "VAR": {
+                                                          "id": ",QKTU0;f^X#avH{Y)Rl%"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "B": {
+                                                    "shadow": {
+                                                      "type": "math_number",
+                                                      "id": "^h7fDY$$ikK]Zz+6VX(P",
+                                                      "fields": {
+                                                        "NUM": 4
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "DO": {
+                                              "block": {
+                                                "type": "procedures_callnoreturn",
+                                                "id": "c*iXrFm)^^,SGHP[,?(-",
+                                                "extraState": {
+                                                  "name": "handleDiceRoll",
+                                                  "params": [
+                                                    "partName",
+                                                    "beetle",
+                                                    "constraint",
+                                                    "first",
+                                                    "last",
+                                                    "parts"
+                                                  ]
+                                                },
+                                                "inputs": {
+                                                  "ARG0": {
+                                                    "block": {
+                                                      "type": "text",
+                                                      "id": "b@4M)U1y{*;AV@~YyD+D",
+                                                      "fields": {
+                                                        "TEXT": "Eye"
+                                                      }
+                                                    }
+                                                  },
+                                                  "ARG1": {
+                                                    "block": {
+                                                      "type": "variables_get",
+                                                      "id": "Q+)oa39CO+EktGwWCZFk",
+                                                      "fields": {
+                                                        "VAR": {
+                                                          "id": "s#*Ka8sw(AhBHqfnqay%"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "ARG2": {
+                                                    "block": {
+                                                      "type": "math_number",
+                                                      "id": "LcvRF?oy=t~NuT82G4!b",
+                                                      "fields": {
+                                                        "NUM": 1
+                                                      }
+                                                    }
+                                                  },
+                                                  "ARG3": {
+                                                    "block": {
+                                                      "type": "math_number",
+                                                      "id": "=sG[*wWj_8[m(JwM)tC{",
+                                                      "fields": {
+                                                        "NUM": 6
+                                                      }
+                                                    }
+                                                  },
+                                                  "ARG4": {
+                                                    "block": {
+                                                      "type": "math_number",
+                                                      "id": ".`v=~3|rPfIiR1rwh~Qb",
+                                                      "fields": {
+                                                        "NUM": 7
+                                                      }
+                                                    }
+                                                  },
+                                                  "ARG5": {
+                                                    "block": {
+                                                      "type": "math_number",
+                                                      "id": "`Z1f[`6uH;WoktI9a5[:",
+                                                      "fields": {
+                                                        "NUM": 1
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "next": {
+                                            "block": {
+                                              "type": "if_clause",
+                                              "id": "LgaxSNMBwUpQ0^zU$HI0",
+                                              "extraState": {
+                                                "mode": "ELSEIF",
+                                                "stashedCondState": null
+                                              },
+                                              "fields": {
+                                                "MODE": "ELSEIF"
+                                              },
                                               "inputs": {
-                                                "IF0": {
+                                                "COND": {
                                                   "block": {
-                                                    "type": "logic_negate",
-                                                    "id": "=1x.?uqHXV]w:tKls+#M",
+                                                    "type": "logic_compare",
+                                                    "id": "cFcln5Z|c41e$i?9B~To",
+                                                    "fields": {
+                                                      "OP": "EQ"
+                                                    },
                                                     "inputs": {
-                                                      "BOOL": {
+                                                      "A": {
                                                         "block": {
                                                           "type": "variables_get",
-                                                          "id": "UQ=1D+RuW`^UT3zuc(wt",
+                                                          "id": ")b@uO4|q{xA)7^DoLWj8",
                                                           "fields": {
                                                             "VAR": {
-                                                              "id": "9UDI+X!D]ORh^[}}Imt+"
+                                                              "id": ",QKTU0;f^X#avH{Y)Rl%"
                                                             }
+                                                          }
+                                                        }
+                                                      },
+                                                      "B": {
+                                                        "shadow": {
+                                                          "type": "math_number",
+                                                          "id": "moc`;,)R~~`RX%SJrn{R",
+                                                          "fields": {
+                                                            "NUM": 5
                                                           }
                                                         }
                                                       }
                                                     }
                                                   }
                                                 },
-                                                "DO0": {
+                                                "DO": {
                                                   "block": {
-                                                    "type": "math_change",
-                                                    "id": "{%`Um~W;n0w=Rllm65=Q",
-                                                    "fields": {
-                                                      "VAR": {
-                                                        "id": "nqb0^o2%4?XQeb^Tt)iK"
-                                                      }
+                                                    "type": "procedures_callnoreturn",
+                                                    "id": "uga[AP[sA4M-{q=${UR-",
+                                                    "extraState": {
+                                                      "name": "handleDiceRoll",
+                                                      "params": [
+                                                        "partName",
+                                                        "beetle",
+                                                        "constraint",
+                                                        "first",
+                                                        "last",
+                                                        "parts"
+                                                      ]
                                                     },
                                                     "inputs": {
-                                                      "DELTA": {
-                                                        "shadow": {
+                                                      "ARG0": {
+                                                        "block": {
+                                                          "type": "text",
+                                                          "id": "PY}]#LD?Jf!AMV2y0P#o",
+                                                          "fields": {
+                                                            "TEXT": "Leg"
+                                                          }
+                                                        }
+                                                      },
+                                                      "ARG1": {
+                                                        "block": {
+                                                          "type": "variables_get",
+                                                          "id": "T[!ho_S%cpSjj|xS(W8:",
+                                                          "fields": {
+                                                            "VAR": {
+                                                              "id": "s#*Ka8sw(AhBHqfnqay%"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "ARG2": {
+                                                        "block": {
                                                           "type": "math_number",
-                                                          "id": "Noo!!L7?AkR@{=%Y?)1U",
+                                                          "id": "3K$oZ*Ki1vi[P{vM))aM",
+                                                          "fields": {
+                                                            "NUM": 0
+                                                          }
+                                                        }
+                                                      },
+                                                      "ARG3": {
+                                                        "block": {
+                                                          "type": "math_number",
+                                                          "id": "Q?H:xHaIZfCS[+3B8VHv",
+                                                          "fields": {
+                                                            "NUM": 8
+                                                          }
+                                                        }
+                                                      },
+                                                      "ARG4": {
+                                                        "block": {
+                                                          "type": "math_number",
+                                                          "id": "?J+TgPr%dO.HCVU^@W1/",
+                                                          "fields": {
+                                                            "NUM": 13
+                                                          }
+                                                        }
+                                                      },
+                                                      "ARG5": {
+                                                        "block": {
+                                                          "type": "math_number",
+                                                          "id": "M,Whg;W*U))egCkU,k9$",
                                                           "fields": {
                                                             "NUM": 1
                                                           }
@@ -5824,346 +5806,489 @@
                                                     }
                                                   }
                                                 }
-                                              }
-                                            }
-                                          }
-                                        },
-                                        "next": {
-                                          "block": {
-                                            "type": "controls_if",
-                                            "id": "/LKtmP1`wX5b6yD;046s",
-                                            "inputs": {
-                                              "IF0": {
+                                              },
+                                              "next": {
                                                 "block": {
-                                                  "type": "logic_compare",
-                                                  "id": "]?Ez;4?`WRw33%*^P!fq",
+                                                  "type": "if_clause",
+                                                  "id": "ZVD3eH^sj,.g.LY0(^u3",
+                                                  "extraState": {
+                                                    "mode": "ELSE",
+                                                    "stashedCondState": null
+                                                  },
                                                   "fields": {
-                                                    "OP": "EQ"
+                                                    "MODE": "ELSE"
                                                   },
                                                   "inputs": {
-                                                    "A": {
+                                                    "DO": {
                                                       "block": {
-                                                        "type": "variables_get",
-                                                        "id": "-l6N^dUnHZu!{~[!`/?O",
+                                                        "type": "variables_set",
+                                                        "id": "D`jo.iHhXX/OMVq|=epS",
                                                         "fields": {
                                                           "VAR": {
                                                             "id": "nqb0^o2%4?XQeb^Tt)iK"
                                                           }
-                                                        }
-                                                      }
-                                                    },
-                                                    "B": {
-                                                      "shadow": {
-                                                        "type": "math_number",
-                                                        "id": "6klm?Hzr/Kx=Uf_%Iv-d",
-                                                        "fields": {
-                                                          "NUM": 0
-                                                        }
-                                                      },
-                                                      "block": {
-                                                        "type": "lists_length",
-                                                        "id": "M5.M8J~p6%]Z0XZE2DJ~",
-                                                        "inputs": {
-                                                          "VALUE": {
-                                                            "block": {
-                                                              "type": "variables_get",
-                                                              "id": "L,sPAJym4O@rYZo)h{9Z",
-                                                              "fields": {
-                                                                "VAR": {
-                                                                  "id": "s#*Ka8sw(AhBHqfnqay%"
-                                                                }
-                                                              }
-                                                            }
-                                                          }
-                                                        }
-                                                      }
-                                                    }
-                                                  }
-                                                }
-                                              },
-                                              "DO0": {
-                                                "block": {
-                                                  "type": "print_text",
-                                                  "id": "sXGwuW0EtxHaw3{y%?=N",
-                                                  "inputs": {
-                                                    "TEXT": {
-                                                      "shadow": {
-                                                        "type": "text",
-                                                        "id": "1{v!qLriP/r+`m4;9+No",
-                                                        "fields": {
-                                                          "TEXT": "🌈 Hello"
-                                                        }
-                                                      },
-                                                      "block": {
-                                                        "type": "text_join",
-                                                        "id": "Pah]Z[z3M,e94n*A6|#j",
-                                                        "extraState": {
-                                                          "itemCount": 3
                                                         },
                                                         "inputs": {
-                                                          "ADD0": {
-                                                            "block": {
-                                                              "type": "text",
-                                                              "id": "aVEz7^/IdYuV/hmF5J1B",
+                                                          "VALUE": {
+                                                            "shadow": {
+                                                              "type": "math_number",
+                                                              "id": "JOSI70gq)Dwc)dlF[9?e",
                                                               "fields": {
-                                                                "TEXT": "🪲 "
-                                                              }
-                                                            }
-                                                          },
-                                                          "ADD1": {
-                                                            "block": {
-                                                              "type": "variables_get",
-                                                              "id": "k/pK7.[5JxkFGq5n+vzL",
-                                                              "fields": {
-                                                                "VAR": {
-                                                                  "id": "@9w()@s(ZW$3KjZ.JnQx"
-                                                                }
-                                                              }
-                                                            }
-                                                          },
-                                                          "ADD2": {
-                                                            "block": {
-                                                              "type": "text",
-                                                              "id": "pV=MgLq8x`h^uI!:ti1e",
-                                                              "fields": {
-                                                                "TEXT": " wins!🪲 "
+                                                                "NUM": 1
                                                               }
                                                             }
                                                           }
-                                                        }
-                                                      }
-                                                    },
-                                                    "DURATION": {
-                                                      "shadow": {
-                                                        "type": "math_number",
-                                                        "id": "p)dEdAvL};a_o8kfdHVX",
-                                                        "fields": {
-                                                          "NUM": 30
-                                                        }
-                                                      }
-                                                    },
-                                                    "COLOR": {
-                                                      "shadow": {
-                                                        "type": "colour",
-                                                        "id": "ro9,T$$2Za~h;+)#QP]M",
-                                                        "fields": {
-                                                          "COLOR": "#000080"
-                                                        }
-                                                      }
-                                                    }
-                                                  },
-                                                  "next": {
-                                                    "block": {
-                                                      "type": "variables_set",
-                                                      "id": "/k/Z}(;Y~9N{#oR=-g$d",
-                                                      "fields": {
-                                                        "VAR": {
-                                                          "id": "!jU/WeGipmMs4y{]8Ol;"
-                                                        }
-                                                      },
-                                                      "inputs": {
-                                                        "VALUE": {
-                                                          "shadow": {
-                                                            "type": "math_number",
-                                                            "id": "ybZA7n-W/kC0HeY(WTI6",
-                                                            "fields": {
-                                                              "NUM": 0
-                                                            }
-                                                          },
+                                                        },
+                                                        "next": {
                                                           "block": {
-                                                            "type": "lists_getIndex",
-                                                            "id": "|NqwWB4{Yqm#KZZ-,0gW",
+                                                            "type": "controls_forEach",
+                                                            "id": "#:ZoNnJWWCQZ:w]3wFK{",
                                                             "fields": {
-                                                              "MODE": "GET",
-                                                              "WHERE": "LAST"
+                                                              "VAR": {
+                                                                "id": "9UDI+X!D]ORh^[}}Imt+"
+                                                              }
                                                             },
                                                             "inputs": {
-                                                              "VALUE": {
+                                                              "LIST": {
                                                                 "block": {
                                                                   "type": "variables_get",
-                                                                  "id": "6k]Y*,xfe;2f!hK.-Gn7",
+                                                                  "id": "hb~P8/qEgdvt!7D@v^Is",
                                                                   "fields": {
                                                                     "VAR": {
                                                                       "id": "s#*Ka8sw(AhBHqfnqay%"
                                                                     }
                                                                   }
                                                                 }
-                                                              }
-                                                            }
-                                                          }
-                                                        }
-                                                      },
-                                                      "next": {
-                                                        "block": {
-                                                          "type": "say",
-                                                          "id": "RML/9Wuy+`?^JBeIjOR7",
-                                                          "fields": {
-                                                            "MESH_VAR": {
-                                                              "id": "!jU/WeGipmMs4y{]8Ol;"
-                                                            },
-                                                            "MODE": "ADD",
-                                                            "ASYNC": "START"
-                                                          },
-                                                          "inputs": {
-                                                            "TEXT": {
-                                                              "shadow": {
-                                                                "type": "text",
-                                                                "id": "(1}?zbLSwO6G*+_(~E!z",
-                                                                "fields": {
-                                                                  "TEXT": "Win!"
-                                                                }
-                                                              }
-                                                            },
-                                                            "DURATION": {
-                                                              "shadow": {
-                                                                "type": "math_number",
-                                                                "id": "zYu_J1#.!fUR4$=}!ECj",
-                                                                "fields": {
-                                                                  "NUM": 3
-                                                                }
-                                                              }
-                                                            },
-                                                            "TEXT_COLOR": {
-                                                              "shadow": {
-                                                                "type": "colour",
-                                                                "id": "=hdY.fLnuB=gqMzTCwe]",
-                                                                "fields": {
-                                                                  "COLOR": "#000000"
-                                                                }
-                                                              }
-                                                            },
-                                                            "BACKGROUND_COLOR": {
-                                                              "shadow": {
-                                                                "type": "colour",
-                                                                "id": "pwEzD-QSWrOv28!cOv2m",
-                                                                "fields": {
-                                                                  "COLOR": "#ffffff"
-                                                                }
-                                                              }
-                                                            },
-                                                            "ALPHA": {
-                                                              "shadow": {
-                                                                "type": "math_number",
-                                                                "id": "l`%U*Me65gR;v9?dF-h6",
-                                                                "fields": {
-                                                                  "NUM": 1
-                                                                }
-                                                              }
-                                                            },
-                                                            "SIZE": {
-                                                              "shadow": {
-                                                                "type": "math_number",
-                                                                "id": "z{.@nHHU37k[fvMQ7WtJ",
-                                                                "fields": {
-                                                                  "NUM": 20
-                                                                }
-                                                              }
-                                                            }
-                                                          },
-                                                          "next": {
-                                                            "block": {
-                                                              "type": "controls_if",
-                                                              "id": "#IS_ZlRr,p:sxgE2~)?%",
-                                                              "extraState": {
-                                                                "hasElse": true
                                                               },
-                                                              "inputs": {
-                                                                "IF0": {
-                                                                  "block": {
-                                                                    "type": "logic_compare",
-                                                                    "id": "G_r].3qCXz,oS$t[w!b#",
-                                                                    "fields": {
-                                                                      "OP": "EQ"
+                                                              "DO": {
+                                                                "block": {
+                                                                  "type": "if_clause",
+                                                                  "id": "9nN;.zy-DE?L~:cOb4/R",
+                                                                  "extraState": {
+                                                                    "mode": "IF",
+                                                                    "stashedCondState": null
+                                                                  },
+                                                                  "fields": {
+                                                                    "MODE": "IF"
+                                                                  },
+                                                                  "inputs": {
+                                                                    "COND": {
+                                                                      "block": {
+                                                                        "type": "logic_negate",
+                                                                        "id": "=1x.?uqHXV]w:tKls+#M",
+                                                                        "inputs": {
+                                                                          "BOOL": {
+                                                                            "block": {
+                                                                              "type": "variables_get",
+                                                                              "id": "UQ=1D+RuW`^UT3zuc(wt",
+                                                                              "fields": {
+                                                                                "VAR": {
+                                                                                  "id": "9UDI+X!D]ORh^[}}Imt+"
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
                                                                     },
-                                                                    "inputs": {
-                                                                      "A": {
-                                                                        "block": {
-                                                                          "type": "variables_get",
-                                                                          "id": "u.!#Rxqg`bjipAKDEkl)",
-                                                                          "fields": {
-                                                                            "VAR": {
-                                                                              "id": "@9w()@s(ZW$3KjZ.JnQx"
+                                                                    "DO": {
+                                                                      "block": {
+                                                                        "type": "math_change",
+                                                                        "id": "{%`Um~W;n0w=Rllm65=Q",
+                                                                        "fields": {
+                                                                          "VAR": {
+                                                                            "id": "nqb0^o2%4?XQeb^Tt)iK"
+                                                                          }
+                                                                        },
+                                                                        "inputs": {
+                                                                          "DELTA": {
+                                                                            "shadow": {
+                                                                              "type": "math_number",
+                                                                              "id": "Noo!!L7?AkR@{=%Y?)1U",
+                                                                              "fields": {
+                                                                                "NUM": 1
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "next": {
+                                                              "block": {
+                                                                "type": "if_clause",
+                                                                "id": "!$4:y[zv.sr0q#YLv2jp",
+                                                                "extraState": {
+                                                                  "mode": "IF",
+                                                                  "stashedCondState": null
+                                                                },
+                                                                "fields": {
+                                                                  "MODE": "IF"
+                                                                },
+                                                                "inputs": {
+                                                                  "COND": {
+                                                                    "block": {
+                                                                      "type": "logic_compare",
+                                                                      "id": "5O{hP{4n6D,TDMvUM6/(",
+                                                                      "fields": {
+                                                                        "OP": "EQ"
+                                                                      },
+                                                                      "inputs": {
+                                                                        "A": {
+                                                                          "block": {
+                                                                            "type": "variables_get",
+                                                                            "id": "0Kbj;dv,G6Y]T:_V.v%?",
+                                                                            "fields": {
+                                                                              "VAR": {
+                                                                                "id": "nqb0^o2%4?XQeb^Tt)iK"
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "B": {
+                                                                          "shadow": {
+                                                                            "type": "math_number",
+                                                                            "id": "6klm?Hzr/Kx=Uf_%Iv-d",
+                                                                            "fields": {
+                                                                              "NUM": 0
+                                                                            }
+                                                                          },
+                                                                          "block": {
+                                                                            "type": "lists_length",
+                                                                            "id": ",*(+np0zG6M*2s|0,Gex",
+                                                                            "inputs": {
+                                                                              "VALUE": {
+                                                                                "block": {
+                                                                                  "type": "variables_get",
+                                                                                  "id": "r7Y+IPR%5f.1y^|wu,4J",
+                                                                                  "fields": {
+                                                                                    "VAR": {
+                                                                                      "id": "s#*Ka8sw(AhBHqfnqay%"
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "DO": {
+                                                                    "block": {
+                                                                      "type": "print_text",
+                                                                      "id": "sXGwuW0EtxHaw3{y%?=N",
+                                                                      "inputs": {
+                                                                        "TEXT": {
+                                                                          "shadow": {
+                                                                            "type": "text",
+                                                                            "id": "1{v!qLriP/r+`m4;9+No",
+                                                                            "fields": {
+                                                                              "TEXT": "🌈 Hello"
+                                                                            }
+                                                                          },
+                                                                          "block": {
+                                                                            "type": "text_join",
+                                                                            "id": "Pah]Z[z3M,e94n*A6|#j",
+                                                                            "extraState": {
+                                                                              "itemCount": 3
+                                                                            },
+                                                                            "inputs": {
+                                                                              "ADD0": {
+                                                                                "block": {
+                                                                                  "type": "text",
+                                                                                  "id": "aVEz7^/IdYuV/hmF5J1B",
+                                                                                  "fields": {
+                                                                                    "TEXT": "🪲 "
+                                                                                  }
+                                                                                }
+                                                                              },
+                                                                              "ADD1": {
+                                                                                "block": {
+                                                                                  "type": "variables_get",
+                                                                                  "id": "k/pK7.[5JxkFGq5n+vzL",
+                                                                                  "fields": {
+                                                                                    "VAR": {
+                                                                                      "id": "@9w()@s(ZW$3KjZ.JnQx"
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              },
+                                                                              "ADD2": {
+                                                                                "block": {
+                                                                                  "type": "text",
+                                                                                  "id": "pV=MgLq8x`h^uI!:ti1e",
+                                                                                  "fields": {
+                                                                                    "TEXT": " wins!🪲 "
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "DURATION": {
+                                                                          "shadow": {
+                                                                            "type": "math_number",
+                                                                            "id": "p)dEdAvL};a_o8kfdHVX",
+                                                                            "fields": {
+                                                                              "NUM": 30
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "COLOR": {
+                                                                          "shadow": {
+                                                                            "type": "colour",
+                                                                            "id": "ro9,T$$2Za~h;+)#QP]M",
+                                                                            "fields": {
+                                                                              "COLOR": "#000080"
                                                                             }
                                                                           }
                                                                         }
                                                                       },
-                                                                      "B": {
-                                                                        "shadow": {
-                                                                          "type": "math_number",
-                                                                          "id": "(8ZC:y;5UGhZ~dTOCs}/",
-                                                                          "fields": {
-                                                                            "NUM": 0
-                                                                          }
-                                                                        },
+                                                                      "next": {
                                                                         "block": {
-                                                                          "type": "text",
-                                                                          "id": "UrjTWL8Ri3{ibcWgDKwH",
+                                                                          "type": "variables_set",
+                                                                          "id": "/k/Z}(;Y~9N{#oR=-g$d",
                                                                           "fields": {
-                                                                            "TEXT": "Player 1"
+                                                                            "VAR": {
+                                                                              "id": "!jU/WeGipmMs4y{]8Ol;"
+                                                                            }
+                                                                          },
+                                                                          "inputs": {
+                                                                            "VALUE": {
+                                                                              "shadow": {
+                                                                                "type": "math_number",
+                                                                                "id": "ybZA7n-W/kC0HeY(WTI6",
+                                                                                "fields": {
+                                                                                  "NUM": 0
+                                                                                }
+                                                                              },
+                                                                              "block": {
+                                                                                "type": "lists_getIndex",
+                                                                                "id": "|NqwWB4{Yqm#KZZ-,0gW",
+                                                                                "fields": {
+                                                                                  "MODE": "GET",
+                                                                                  "WHERE": "LAST"
+                                                                                },
+                                                                                "inputs": {
+                                                                                  "VALUE": {
+                                                                                    "block": {
+                                                                                      "type": "variables_get",
+                                                                                      "id": "6k]Y*,xfe;2f!hK.-Gn7",
+                                                                                      "fields": {
+                                                                                        "VAR": {
+                                                                                          "id": "s#*Ka8sw(AhBHqfnqay%"
+                                                                                        }
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          },
+                                                                          "next": {
+                                                                            "block": {
+                                                                              "type": "say",
+                                                                              "id": "RML/9Wuy+`?^JBeIjOR7",
+                                                                              "fields": {
+                                                                                "MESH_VAR": {
+                                                                                  "id": "!jU/WeGipmMs4y{]8Ol;"
+                                                                                },
+                                                                                "MODE": "ADD",
+                                                                                "ASYNC": "START"
+                                                                              },
+                                                                              "inputs": {
+                                                                                "TEXT": {
+                                                                                  "shadow": {
+                                                                                    "type": "text",
+                                                                                    "id": "(1}?zbLSwO6G*+_(~E!z",
+                                                                                    "fields": {
+                                                                                      "TEXT": "Win!"
+                                                                                    }
+                                                                                  }
+                                                                                },
+                                                                                "DURATION": {
+                                                                                  "shadow": {
+                                                                                    "type": "math_number",
+                                                                                    "id": "zYu_J1#.!fUR4$=}!ECj",
+                                                                                    "fields": {
+                                                                                      "NUM": 3
+                                                                                    }
+                                                                                  }
+                                                                                },
+                                                                                "TEXT_COLOR": {
+                                                                                  "shadow": {
+                                                                                    "type": "colour",
+                                                                                    "id": "=hdY.fLnuB=gqMzTCwe]",
+                                                                                    "fields": {
+                                                                                      "COLOR": "#000000"
+                                                                                    }
+                                                                                  }
+                                                                                },
+                                                                                "BACKGROUND_COLOR": {
+                                                                                  "shadow": {
+                                                                                    "type": "colour",
+                                                                                    "id": "pwEzD-QSWrOv28!cOv2m",
+                                                                                    "fields": {
+                                                                                      "COLOR": "#ffffff"
+                                                                                    }
+                                                                                  }
+                                                                                },
+                                                                                "ALPHA": {
+                                                                                  "shadow": {
+                                                                                    "type": "math_number",
+                                                                                    "id": "l`%U*Me65gR;v9?dF-h6",
+                                                                                    "fields": {
+                                                                                      "NUM": 1
+                                                                                    }
+                                                                                  }
+                                                                                },
+                                                                                "SIZE": {
+                                                                                  "shadow": {
+                                                                                    "type": "math_number",
+                                                                                    "id": "z{.@nHHU37k[fvMQ7WtJ",
+                                                                                    "fields": {
+                                                                                      "NUM": 20
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              },
+                                                                              "next": {
+                                                                                "block": {
+                                                                                  "type": "if_clause",
+                                                                                  "id": "6Q)kSAH^Evdus{uswysh",
+                                                                                  "extraState": {
+                                                                                    "mode": "IF",
+                                                                                    "stashedCondState": null
+                                                                                  },
+                                                                                  "fields": {
+                                                                                    "MODE": "IF"
+                                                                                  },
+                                                                                  "inputs": {
+                                                                                    "COND": {
+                                                                                      "block": {
+                                                                                        "type": "logic_compare",
+                                                                                        "id": "d2*(!6`2exc^Km(q8(pg",
+                                                                                        "fields": {
+                                                                                          "OP": "EQ"
+                                                                                        },
+                                                                                        "inputs": {
+                                                                                          "A": {
+                                                                                            "block": {
+                                                                                              "type": "variables_get",
+                                                                                              "id": "OoDN[^hS|A|0OR=YM#Ie",
+                                                                                              "fields": {
+                                                                                                "VAR": {
+                                                                                                  "id": "@9w()@s(ZW$3KjZ.JnQx"
+                                                                                                }
+                                                                                              }
+                                                                                            }
+                                                                                          },
+                                                                                          "B": {
+                                                                                            "shadow": {
+                                                                                              "type": "math_number",
+                                                                                              "id": "(8ZC:y;5UGhZ~dTOCs}/",
+                                                                                              "fields": {
+                                                                                                "NUM": 0
+                                                                                              }
+                                                                                            },
+                                                                                            "block": {
+                                                                                              "type": "text",
+                                                                                              "id": "!%ly283?mrF;cWUNT1N$",
+                                                                                              "fields": {
+                                                                                                "TEXT": "Player 1"
+                                                                                              }
+                                                                                            }
+                                                                                          }
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "DO": {
+                                                                                      "block": {
+                                                                                        "type": "broadcast_event",
+                                                                                        "id": "D0Z{md]y_q+ou:/Bo!?{",
+                                                                                        "inputs": {
+                                                                                          "EVENT_NAME": {
+                                                                                            "shadow": {
+                                                                                              "type": "text",
+                                                                                              "id": "9~78(.U4UxZKhdan*$R}",
+                                                                                              "fields": {
+                                                                                                "TEXT": "Player 1 Wins"
+                                                                                              }
+                                                                                            }
+                                                                                          }
+                                                                                        }
+                                                                                      }
+                                                                                    }
+                                                                                  },
+                                                                                  "next": {
+                                                                                    "block": {
+                                                                                      "type": "if_clause",
+                                                                                      "id": "{vcvbQb!@kg+4YzdF5*-",
+                                                                                      "extraState": {
+                                                                                        "mode": "ELSE",
+                                                                                        "stashedCondState": null
+                                                                                      },
+                                                                                      "fields": {
+                                                                                        "MODE": "ELSE"
+                                                                                      },
+                                                                                      "inputs": {
+                                                                                        "DO": {
+                                                                                          "block": {
+                                                                                            "type": "broadcast_event",
+                                                                                            "id": "+BQ0AwXWTZ%,6o!nrT^9",
+                                                                                            "inputs": {
+                                                                                              "EVENT_NAME": {
+                                                                                                "shadow": {
+                                                                                                  "type": "text",
+                                                                                                  "id": "t!Z#KXci-y,0$)jClCg*",
+                                                                                                  "fields": {
+                                                                                                    "TEXT": "Player 2 Wins"
+                                                                                                  }
+                                                                                                }
+                                                                                              }
+                                                                                            }
+                                                                                          }
+                                                                                        }
+                                                                                      },
+                                                                                      "next": {
+                                                                                        "block": {
+                                                                                          "type": "variables_set",
+                                                                                          "id": "3~*vTk[Tg`N-eYS,tJFs",
+                                                                                          "fields": {
+                                                                                            "VAR": {
+                                                                                              "id": "!Fx/X,+KpP#xZ}VR1[w`"
+                                                                                            }
+                                                                                          },
+                                                                                          "inputs": {
+                                                                                            "VALUE": {
+                                                                                              "shadow": {
+                                                                                                "type": "math_number",
+                                                                                                "id": "vxuMI02vX$N]HW4DC~9T",
+                                                                                                "fields": {
+                                                                                                  "NUM": 0
+                                                                                                }
+                                                                                              },
+                                                                                              "block": {
+                                                                                                "type": "text",
+                                                                                                "id": "5[bY=_m98q/aYxB/AZxQ",
+                                                                                                "fields": {
+                                                                                                  "TEXT": "Game Ended"
+                                                                                                }
+                                                                                              }
+                                                                                            }
+                                                                                          }
+                                                                                        }
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
                                                                           }
-                                                                        }
-                                                                      }
-                                                                    }
-                                                                  }
-                                                                },
-                                                                "DO0": {
-                                                                  "block": {
-                                                                    "type": "broadcast_event",
-                                                                    "id": "_t[,#.Cn~[cO=s;`4ICp",
-                                                                    "inputs": {
-                                                                      "EVENT_NAME": {
-                                                                        "shadow": {
-                                                                          "type": "text",
-                                                                          "id": "K0{~p|CsT;PiBwG7%NJd",
-                                                                          "fields": {
-                                                                            "TEXT": "Player 1 Wins"
-                                                                          }
-                                                                        }
-                                                                      }
-                                                                    }
-                                                                  }
-                                                                },
-                                                                "ELSE": {
-                                                                  "block": {
-                                                                    "type": "broadcast_event",
-                                                                    "id": "=bWzpQLq{lmakV_Vxmv5",
-                                                                    "inputs": {
-                                                                      "EVENT_NAME": {
-                                                                        "shadow": {
-                                                                          "type": "text",
-                                                                          "id": "]kGLeg5prZM(`Y]2qt-=",
-                                                                          "fields": {
-                                                                            "TEXT": "Player 2 Wins"
-                                                                          }
-                                                                        }
-                                                                      }
-                                                                    }
-                                                                  }
-                                                                }
-                                                              },
-                                                              "next": {
-                                                                "block": {
-                                                                  "type": "variables_set",
-                                                                  "id": "3~*vTk[Tg`N-eYS,tJFs",
-                                                                  "fields": {
-                                                                    "VAR": {
-                                                                      "id": "!Fx/X,+KpP#xZ}VR1[w`"
-                                                                    }
-                                                                  },
-                                                                  "inputs": {
-                                                                    "VALUE": {
-                                                                      "shadow": {
-                                                                        "type": "math_number",
-                                                                        "id": "vxuMI02vX$N]HW4DC~9T",
-                                                                        "fields": {
-                                                                          "NUM": 0
-                                                                        }
-                                                                      },
-                                                                      "block": {
-                                                                        "type": "text",
-                                                                        "id": "5[bY=_m98q/aYxB/AZxQ",
-                                                                        "fields": {
-                                                                          "TEXT": "Game Ended"
                                                                         }
                                                                       }
                                                                     }
@@ -6202,7 +6327,7 @@
         "type": "on_event",
         "id": "=Gb]IYsB0}{~9PaZuBjO",
         "x": 10,
-        "y": 6922,
+        "y": 7126,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -6216,13 +6341,20 @@
           },
           "DO": {
             "block": {
-              "type": "controls_if",
-              "id": "S_[~`EnS(DrxOV]-,}A#",
+              "type": "if_clause",
+              "id": "xE]28Q:wi`|Wx5o7QUP!",
+              "extraState": {
+                "mode": "IF",
+                "stashedCondState": null
+              },
+              "fields": {
+                "MODE": "IF"
+              },
               "inputs": {
-                "IF0": {
+                "COND": {
                   "block": {
                     "type": "logic_compare",
-                    "id": "deGDLB1izsvuU=NM,u)^",
+                    "id": ".h}(l;rc,,i$#3abawpo",
                     "fields": {
                       "OP": "EQ"
                     },
@@ -6230,7 +6362,7 @@
                       "A": {
                         "block": {
                           "type": "variables_get",
-                          "id": "`*VaHuE5PJUqLtOpT8`a",
+                          "id": "qRNh!*$m~60Mt;yN1VTo",
                           "fields": {
                             "VAR": {
                               "id": "!Fx/X,+KpP#xZ}VR1[w`"
@@ -6248,7 +6380,7 @@
                         },
                         "block": {
                           "type": "text",
-                          "id": "g%;i;9GQQPE,T[,wIssN",
+                          "id": "{*6]-K?DZ8ds;{)^OYkZ",
                           "fields": {
                             "TEXT": "Player 2"
                           }
@@ -6257,7 +6389,7 @@
                     }
                   }
                 },
-                "DO0": {
+                "DO": {
                   "block": {
                     "type": "procedures_callnoreturn",
                     "id": "a|/m[Q!%rrKw*nZ)CO=B",
@@ -6304,18 +6436,25 @@
                     },
                     "next": {
                       "block": {
-                        "type": "controls_if",
-                        "id": "Y9p%K7|!YB7Le(x9g,{X",
+                        "type": "if_clause",
+                        "id": "L!cc1:QDPVS73ki3sM$A",
+                        "extraState": {
+                          "mode": "IF",
+                          "stashedCondState": null
+                        },
+                        "fields": {
+                          "MODE": "IF"
+                        },
                         "inputs": {
-                          "IF0": {
+                          "COND": {
                             "block": {
                               "type": "logic_negate",
-                              "id": "Rc}CZW3Pcd7SvU,JuJWH",
+                              "id": "bDWr4D.n2Wa#W)muEBiQ",
                               "inputs": {
                                 "BOOL": {
                                   "block": {
                                     "type": "logic_compare",
-                                    "id": "W@@yQwy/7w,.^+1|nf,]",
+                                    "id": "//.h8}DkZVT5bp31rOSq",
                                     "fields": {
                                       "OP": "EQ"
                                     },
@@ -6323,7 +6462,7 @@
                                       "A": {
                                         "block": {
                                           "type": "variables_get",
-                                          "id": "g@?X%kZU=Qp3/~rpev39",
+                                          "id": "|S*neM5?$B|mC6~u6*Jx",
                                           "fields": {
                                             "VAR": {
                                               "id": "!Fx/X,+KpP#xZ}VR1[w`"
@@ -6341,7 +6480,7 @@
                                         },
                                         "block": {
                                           "type": "text",
-                                          "id": "*]?=Iwg!0(V})m*M`|8w",
+                                          "id": "B[!%E~#I~Qv}k5W:+%I%",
                                           "fields": {
                                             "TEXT": "Game Ended"
                                           }
@@ -6353,7 +6492,7 @@
                               }
                             }
                           },
-                          "DO0": {
+                          "DO": {
                             "block": {
                               "type": "variables_set",
                               "id": "$vS^U=P%I@tjB6tM~x8X",
@@ -6452,7 +6591,7 @@
         "type": "on_event",
         "id": "T]_9B~BR32Q_rf;pnQc#",
         "x": 10,
-        "y": 7673,
+        "y": 7922,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -6582,7 +6721,7 @@
         "type": "on_event",
         "id": "^I(#vUuaJS]j3w^eJGFi",
         "x": 10,
-        "y": 7956,
+        "y": 8214,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -6712,7 +6851,7 @@
         "type": "procedures_defnoreturn",
         "id": "ZNtUW8Xqkw9mot2,fpPM",
         "x": 10,
-        "y": 11708,
+        "y": 12318,
         "extraState": {
           "params": [
             {
@@ -6759,13 +6898,20 @@
         "inputs": {
           "STACK": {
             "block": {
-              "type": "controls_if",
-              "id": "#/q.!Y+_(E%rJM~qg`3r",
+              "type": "if_clause",
+              "id": "0^mFxTuy+I@06([Nh?7,",
+              "extraState": {
+                "mode": "IF",
+                "stashedCondState": null
+              },
+              "fields": {
+                "MODE": "IF"
+              },
               "inputs": {
-                "IF0": {
+                "COND": {
                   "block": {
                     "type": "logic_operation",
-                    "id": "Raxof#Rbmmi}h.%GMF%l",
+                    "id": "qI#MLaqd~u:v6?*i$SEU",
                     "fields": {
                       "OP": "OR"
                     },
@@ -6773,7 +6919,7 @@
                       "A": {
                         "block": {
                           "type": "logic_compare",
-                          "id": "2)w)a(93a8BjOz(a%f}=",
+                          "id": "qh@Wn#N-kxh!Qo~HERth",
                           "fields": {
                             "OP": "EQ"
                           },
@@ -6781,7 +6927,7 @@
                             "A": {
                               "block": {
                                 "type": "variables_get",
-                                "id": "?2N6NT6jfLMq%YOFE`q_",
+                                "id": "U2eVv+U`UvQ9(|UNyRRA",
                                 "fields": {
                                   "VAR": {
                                     "id": "@BE/2bSIy@Zq=/6@]p}0"
@@ -6792,7 +6938,7 @@
                             "B": {
                               "shadow": {
                                 "type": "math_number",
-                                "id": "{VWh):#,^ohhZl/U~~Cc",
+                                "id": "H^px5AJ@|**0x7Lg$DG;",
                                 "fields": {
                                   "NUM": -1
                                 }
@@ -6804,12 +6950,12 @@
                       "B": {
                         "block": {
                           "type": "logic_negate",
-                          "id": ",dj)y-LR$Y+;geeO|p`a",
+                          "id": "z]*HvwFr,R`u|e8QR9HI",
                           "inputs": {
                             "BOOL": {
                               "block": {
                                 "type": "lists_getIndex",
-                                "id": "#yw#sQ6HQ^RUIfTb%;`A",
+                                "id": "0aqB?54C]~D=]Sz:Ro!E",
                                 "fields": {
                                   "MODE": "GET",
                                   "WHERE": "FROM_START"
@@ -6818,7 +6964,7 @@
                                   "VALUE": {
                                     "block": {
                                       "type": "variables_get",
-                                      "id": "DgVgasW;~{T2IO(-{0@m",
+                                      "id": ".7J4P$P*GmI_Xa#?DFL;",
                                       "fields": {
                                         "VAR": {
                                           "id": "s#*Ka8sw(AhBHqfnqay%"
@@ -6829,7 +6975,7 @@
                                   "AT": {
                                     "block": {
                                       "type": "variables_get",
-                                      "id": "vrrxWLAgrgjq.@h9O0gz",
+                                      "id": "~oc_xKM{Zk~J[{]v.Quj",
                                       "fields": {
                                         "VAR": {
                                           "id": "@BE/2bSIy@Zq=/6@]p}0"
@@ -6846,7 +6992,7 @@
                     }
                   }
                 },
-                "DO0": {
+                "DO": {
                   "block": {
                     "type": "variables_set",
                     "id": "B}%??,,:ccPJ|g~A?PTa",
@@ -6939,13 +7085,20 @@
                           },
                           "DO": {
                             "block": {
-                              "type": "controls_if",
-                              "id": "z(V|ZNl4$naF{tg}|]gJ",
+                              "type": "if_clause",
+                              "id": "W7{`r)Ml5e=`%JP)~$PH",
+                              "extraState": {
+                                "mode": "IF",
+                                "stashedCondState": null
+                              },
+                              "fields": {
+                                "MODE": "IF"
+                              },
                               "inputs": {
-                                "IF0": {
+                                "COND": {
                                   "block": {
                                     "type": "logic_operation",
-                                    "id": "03/?^Bu,EMa;Akx=kg^6",
+                                    "id": "-)2B)]D[Q8pXpzFj_M4S",
                                     "fields": {
                                       "OP": "AND"
                                     },
@@ -6953,12 +7106,12 @@
                                       "A": {
                                         "block": {
                                           "type": "logic_negate",
-                                          "id": "RS_GZ(C=M]JzR!727.{y",
+                                          "id": "I!4+#s?-J0a*{xQ-|TVW",
                                           "inputs": {
                                             "BOOL": {
                                               "block": {
                                                 "type": "variables_get",
-                                                "id": "~0b9vL=GlBWBxmK0M{G.",
+                                                "id": "qyc5.McCODcer{4@d}OG",
                                                 "fields": {
                                                   "VAR": {
                                                     "id": ")q#,;~YoguE5on,03_*x"
@@ -6972,7 +7125,7 @@
                                       "B": {
                                         "block": {
                                           "type": "lists_getIndex",
-                                          "id": "+OaO/Krql$=;:+w_]=JB",
+                                          "id": "Vt`3L+iW~UneO~)PosW8",
                                           "fields": {
                                             "MODE": "GET",
                                             "WHERE": "FROM_START"
@@ -6981,7 +7134,7 @@
                                             "VALUE": {
                                               "block": {
                                                 "type": "variables_get",
-                                                "id": "LL^N/(ec#h:CMr}Ato5H",
+                                                "id": "||@}).c{mf2nc$tL1IAW",
                                                 "fields": {
                                                   "VAR": {
                                                     "id": "s#*Ka8sw(AhBHqfnqay%"
@@ -6992,7 +7145,7 @@
                                             "AT": {
                                               "block": {
                                                 "type": "variables_get",
-                                                "id": "+k%=kohR!~UsCK:MCJk%",
+                                                "id": "%[~P?.49eMoKt=3%;j)E",
                                                 "fields": {
                                                   "VAR": {
                                                     "id": "i?/cTCDgr$p5!J{w9i0("
@@ -7006,7 +7159,7 @@
                                     }
                                   }
                                 },
-                                "DO0": {
+                                "DO": {
                                   "block": {
                                     "type": "controls_for",
                                     "id": "pe.D(Cc`nc^J31_?T3!C",
@@ -7275,13 +7428,20 @@
                                     },
                                     "next": {
                                       "block": {
-                                        "type": "controls_if",
-                                        "id": "tuY#*CmNgScOo@{APL#j",
+                                        "type": "if_clause",
+                                        "id": "mozoNBx$}j|4v(d;3(L[",
+                                        "extraState": {
+                                          "mode": "IF",
+                                          "stashedCondState": null
+                                        },
+                                        "fields": {
+                                          "MODE": "IF"
+                                        },
                                         "inputs": {
-                                          "IF0": {
+                                          "COND": {
                                             "block": {
                                               "type": "variables_get",
-                                              "id": "pl6vO@{^yxQe/6:x~:+8",
+                                              "id": "/b@cy#2QHQT3YxDdH2fl",
                                               "fields": {
                                                 "VAR": {
                                                   "id": ")q#,;~YoguE5on,03_*x"
@@ -7289,7 +7449,7 @@
                                               }
                                             }
                                           },
-                                          "DO0": {
+                                          "DO": {
                                             "block": {
                                               "type": "variables_set",
                                               "id": "O/w@[G%rc$A,it5(NeK+",
