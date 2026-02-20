@@ -1798,13 +1798,9 @@ export const flockCSG = {
         applyResultMeshProperties(resultMesh, referenceMesh, modelId, blockId) {
                 // Copy transformation properties
                 referenceMesh.material.backFaceCulling = false;
-                if (referenceMesh.rotationQuaternion) {
-                        resultMesh.rotationQuaternion =
-                                referenceMesh.rotationQuaternion.clone();
-                } else {
-                        resultMesh.rotation.copyFrom(referenceMesh.rotation);
-                }
+               
                 resultMesh.scaling.copyFrom(referenceMesh.scaling);
+                
                 resultMesh.name = modelId;
                 resultMesh.metadata = resultMesh.metadata || {};
                 resultMesh.metadata.blockKey = blockId;
