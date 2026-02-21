@@ -51,7 +51,7 @@
     "@babylonjs/inspector": "^8.42.0",
     "@eslint/js": "^9.39.2",
     "@isaacs/brace-expansion": "^5.0.1",
-    "@playwright/test": "^1.57.0",
+    "@playwright/test": "^1.58.2",
     "@types/estree": "^1.0.8",
     "ajv": "^8.18.0",
     "chai": "^6.2.1",
@@ -61,8 +61,8 @@
     "lodash": "^4.17.23",
     "meta-png": "^1.0.6",
     "mocha": "^11.7.5",
-    "playwright": "^1.57.0",
-    "vite": "^7.3.0",
+    "playwright": "^1.58.2",
+    "vite": "^7.3.1",
     "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-static-copy": "^3.1.4"
   }
