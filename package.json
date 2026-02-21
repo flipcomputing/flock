@@ -35,7 +35,7 @@
     "@fontsource/asap": "^5.2.9",
     "@fontsource/atkinson-hyperlegible-next": "^5.2.7",
     "acorn": "^8.15.0",
-    "acorn-walk": "^8.3.4",
+    "acorn-walk": "^8.3.5",
     "babylonjs": "^8.42.0",
     "babylonjs-gui": "^8.42.0",
     "babylonjs-serializers": "^8.42.0",
@@ -54,7 +54,7 @@
     "@playwright/test": "^1.58.2",
     "@types/estree": "^1.0.8",
     "ajv": "^8.18.0",
-    "chai": "^6.2.1",
+    "chai": "^6.2.2",
     "eslint": "^10.0.1",
     "ffmpeg": "^0.0.4",
     "globals": "^16.5.0",
@@ -64,6 +64,6 @@
     "playwright": "^1.58.2",
     "vite": "^7.3.1",
     "vite-plugin-pwa": "^1.2.0",
-    "vite-plugin-static-copy": "^3.1.4"
+    "vite-plugin-static-copy": "^3.2.0"
   }
 }
