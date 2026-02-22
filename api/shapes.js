@@ -276,7 +276,6 @@ export const flockShapes = {
     // Initialise the mesh with position, color, and other properties
     flock.initializeMesh(newBox, position, color, "Box", alpha);
 
-    newBox.position.y += height / 2; // Middle of the box
     newBox.metadata = newBox.metadata || {};
     newBox.metadata.blockKey = blockKey;
 
@@ -349,7 +348,6 @@ export const flockShapes = {
 
     // Initialise the mesh with position, color, and other properties
     flock.initializeMesh(newSphere, position, color, "Sphere", alpha);
-    newSphere.position.y += diameterY / 2;
 
     newSphere.metadata = newSphere.metadata || {};
     newSphere.metadata.blockKey = blockKey;
@@ -433,7 +431,6 @@ export const flockShapes = {
 
     // Initialise the mesh with position, color, and other properties
     flock.initializeMesh(newCylinder, position, color, "Cylinder", alpha);
-    newCylinder.position.y += height / 2;
     // Initialise the mesh with position, color, and other properties
 
     newCylinder.metadata = newCylinder.metadata || {};
@@ -504,7 +501,6 @@ export const flockShapes = {
 
     // Initialise the mesh with position, color, and other properties
     flock.initializeMesh(newCapsule, position, color, "Capsule", alpha);
-    newCapsule.position.y += height / 2;
 
     flock.setCapsuleUVs(newCapsule, radius, height, 1); // Adjust texturePhysicalSize as needed
 
@@ -576,11 +572,13 @@ export const flockShapes = {
     newPlane.metadata.shape = "plane";
     newPlane.metadata.blockKey = blockKey;
 
-    newPlane.position = new flock.BABYLON.Vector3(
-      position[0],
-      position[1] + height / 2,
-      position[2],
-    );
+    flock.setBlockPositionOnMesh(newPlane, {
+      x: position[0],
+      y: position[1],
+      z: position[2],
+      useY: true,
+      meshName: newPlane.name,
+    });
 
     const planeBody = new flock.BABYLON.PhysicsBody(
       newPlane,

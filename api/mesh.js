@@ -266,7 +266,7 @@ export const flockMesh = {
       ? flock.getGroundLevelAt(px, pz)
       : py;
 
-    mesh.position = new flock.BABYLON.Vector3(px, resolvedY, pz);
+    flock.setBlockPositionOnMesh(mesh, { x: px, y: resolvedY, z: pz, useY: true });
 
     mesh.metadata = { ...(mesh.metadata || {}), shapeType };
     mesh.metadata.blockKey = mesh.name;
@@ -293,7 +293,7 @@ export const flockMesh = {
     if (shouldResolveGroundLevel && !flock.ground) {
       flock.waitForGroundReady().then(() => {
         const groundY = flock.getGroundLevelAt(px, pz);
-        mesh.position.y = groundY;
+        flock.setBlockPositionOnMesh(mesh, { x: px, y: groundY, z: pz, useY: true });
         if (mesh.physics) {
           mesh.physics.setTargetTransform(
             mesh.position,

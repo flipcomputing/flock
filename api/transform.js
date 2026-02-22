@@ -62,6 +62,28 @@ export function setFlockReference(ref) {
 }
 
 export const flockTransform = {
+  async setBlockPositionOnMesh(
+    mesh,
+    { x = 0, y = 0, z = 0, useY = true, meshName = "" } = {},
+  ) {
+    if (!mesh) return;
+
+    let nextY = y;
+    const groundLevelSentinel = -999999;
+    const numericY = typeof nextY === "string" ? Number(nextY) : nextY;
+    if (nextY === "__ground__level__" || numericY === groundLevelSentinel) {
+      await flock.waitForGroundReady();
+      nextY = flock.getGroundLevelAt(x, z);
+    }
+
+    applyPositionWithCurrentBaseRule(mesh, {
+      x,
+      y: nextY,
+      z,
+      useY,
+      meshName: meshName || mesh.name || "",
+    });
+  },
   positionAt(meshName, { x = 0, y = 0, z = 0, useY = true } = {}) {
     return new Promise((resolve, reject) => {
       flock.whenModelReady(meshName, async (mesh) => {
@@ -74,13 +96,6 @@ export const flockTransform = {
         y ??= mesh.position.y;
         z ??= mesh.position.z;
 
-        const groundLevelSentinel = -999999;
-        const numericY = typeof y === "string" ? Number(y) : y;
-        if (y === "__ground__level__" || numericY === groundLevelSentinel) {
-          await flock.waitForGroundReady();
-          y = flock.getGroundLevelAt(x, z);
-        }
-
         if (mesh.physics) {
           if (
             mesh.physics.getMotionType() !==
@@ -92,7 +107,7 @@ export const flockTransform = {
           }
         }
 
-        applyPositionWithCurrentBaseRule(mesh, {
+        await this.setBlockPositionOnMesh(mesh, {
           x,
           y,
           z,
