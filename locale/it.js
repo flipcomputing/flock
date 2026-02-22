@@ -156,6 +156,8 @@ export default {
     "ruota %1 a x %2 y %3 z %4 in %5 ms\n%6 inverti? %7 ripeti? %8  %9",
   rotate_anim_seconds:
     "ruota %1 a x %2 y %3 z %4 in %5 secondi\n%6 inverti? %7 ripeti? %8  %9",
+  rotate_to_object:
+    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property: "anima %1 %2 a %3 in %4 ms inverti? %5 ripeti? %6 %7",
   colour_keyframe: "a %1 colore: %2",
   number_keyframe: "a: %1 valore: %2",
@@ -388,6 +390,8 @@ export default {
     "Ruota una mesh ad angoli specificati in un intervallo, con opzioni di inversione, loop ed easing.",
   rotate_anim_seconds_tooltip:
     "Ruota una mesh ad angoli specificati in un intervallo, con opzioni di inversione, loop ed easing.",
+  rotate_to_object_tooltip:
+    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
   animate_property_tooltip:
     "Anima una proprietà del materiale della mesh e dei suoi figli.",
   colour_keyframe_tooltip: "Imposta un colore e una durata per un keyframe.",
@@ -651,6 +655,8 @@ export default {
   BounceEase_option: "Rimbalzo",
   ElasticEase_option: "Elastica",
   BackEase_option: "Indietro",
+  TOWARDS_option: "towards",
+  SAME_ROTATION_option: "same rotation as",
 
   EASEIN_option: "ease-in",
   EASEOUT_option: "ease-out",

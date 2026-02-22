@@ -362,6 +362,30 @@ export function defineGenerators() {
                 return `${asyncWrapper}rotateAnim(${meshName}, { x: ${rotX}, y: ${rotY}, z: ${rotZ}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
         };
 
+
+        javascriptGenerator.forBlock["rotate_to_object"] = function (block) {
+                const meshName1 = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL1"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const meshName2 = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL2"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const rotateMode = block.getFieldValue("ROTATE_MODE");
+                const apiRotateMode =
+                        rotateMode === "SAME_ROTATION" ? "same_rotation" : "towards";
+                const duration = getFieldValue(block, "DURATION", "0");
+                const mode = block.getFieldValue("MODE");
+                const reverse = block.getFieldValue("REVERSE") === "TRUE";
+                const loop = block.getFieldValue("LOOP") === "TRUE";
+                const easing = block.getFieldValue("EASING");
+
+                const asyncWrapper = mode === "AWAIT" ? "await " : "";
+
+                return `${asyncWrapper}rotateToObject(${meshName1}, ${meshName2}, { mode: "${apiRotateMode}", duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+        };
+
         javascriptGenerator.forBlock["animation"] = function (block) {
                 const meshVariable = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MESH"),

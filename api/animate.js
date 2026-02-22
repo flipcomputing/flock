@@ -168,17 +168,19 @@ export const flockAnimate = {
           "rotation",
           fps,
           BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-          reverse
-            ? BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
-            : loop
-              ? BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-              : BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+          loop || reverse
+            ? BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+            : BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
         );
 
-        rotateAnimation.setKeys([
+        const rotateKeys = [
           { frame: 0, value: startRotation },
           { frame: frames, value: targetRotation },
-        ]);
+        ];
+        if (reverse || loop) {
+          rotateKeys.push({ frame: frames * 2, value: startRotation });
+        }
+        rotateAnimation.setKeys(rotateKeys);
 
         if (easing !== "Linear") {
           const ease = new BABYLON[easing]();
@@ -203,12 +205,13 @@ export const flockAnimate = {
           mesh,
           [rotateAnimation],
           0,
-          frames,
+          reverse || loop ? frames * 2 : frames,
           loop,
         );
 
         animatable.onAnimationEndObservable.add(() => {
           flock.scene.onAfterAnimationsObservable.remove(syncObserver);
+          if (!reverse) mesh.rotation = targetRotation.clone();
           resolve();
         });
       });
@@ -385,6 +388,93 @@ export const flockAnimate = {
             x: baseX + worldOffsetX,
             y: baseY + worldOffsetY,
             z: baseZ + worldOffsetZ,
+            duration,
+            reverse,
+            loop,
+            easing,
+          });
+
+          resolve();
+        });
+      });
+    });
+  },
+  async rotateToObject(
+    meshName1,
+    meshName2,
+    {
+      mode = "towards",
+      duration = 1,
+      reverse = false,
+      loop = false,
+      easing = "Linear",
+    } = {},
+  ) {
+    return new Promise(async (resolve) => {
+      await flock.whenModelReady(meshName1, async function (mesh1) {
+        if (!mesh1) {
+          resolve();
+          return;
+        }
+
+        flock.whenModelReady(meshName2, async function (mesh2) {
+          if (!mesh2) {
+            resolve();
+            return;
+          }
+
+          const BABYLON = flock.BABYLON;
+          let targetRotation;
+          const normalizedMode = String(mode || "towards").toLowerCase();
+
+          if (normalizedMode === "same_rotation") {
+            mesh2.computeWorldMatrix(true);
+            const targetQuaternion = new BABYLON.Quaternion();
+            mesh2.getWorldMatrix().decompose(undefined, targetQuaternion);
+
+            mesh1.computeWorldMatrix(true);
+            let localTargetQuaternion = targetQuaternion;
+            if (mesh1.parent?.getWorldMatrix) {
+              mesh1.parent.computeWorldMatrix(true);
+              const parentRotation = new BABYLON.Quaternion();
+              mesh1.parent
+                .getWorldMatrix()
+                .decompose(undefined, parentRotation);
+              localTargetQuaternion = parentRotation
+                .conjugate()
+                .multiply(targetQuaternion)
+                .normalize();
+            }
+
+            const euler = localTargetQuaternion.toEulerAngles();
+            targetRotation = {
+              x: BABYLON.Tools.ToDegrees(euler.x),
+              y: BABYLON.Tools.ToDegrees(euler.y),
+              z: BABYLON.Tools.ToDegrees(euler.z),
+            };
+          } else {
+            const p1 = mesh1.getAbsolutePosition?.() ?? mesh1.absolutePosition;
+            const p2 = mesh2.getAbsolutePosition?.() ?? mesh2.absolutePosition;
+            const dir = p2.subtract(p1);
+
+            if (dir.lengthSquared() === 0) {
+              resolve();
+              return;
+            }
+
+            dir.normalize();
+            const q = BABYLON.Quaternion.FromLookDirectionLH(dir, BABYLON.Axis.Y);
+            const euler = q.toEulerAngles();
+
+            targetRotation = {
+              x: BABYLON.Tools.ToDegrees(euler.x),
+              y: BABYLON.Tools.ToDegrees(euler.y),
+              z: BABYLON.Tools.ToDegrees(euler.z),
+            };
+          }
+
+          await flockAnimate.rotateAnim(meshName1, {
+            ...targetRotation,
             duration,
             reverse,
             loop,

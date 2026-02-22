@@ -151,6 +151,8 @@ export default {
     "rotar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿invertir? %7 ¿repetir? %8 %9", // human
   rotate_anim_seconds:
     "rotar %1 a x %2 y %3 z %4 en %5 segundos\n%6 ¿invertir? %7 ¿repetir? %8 %9", // human
+  rotate_to_object:
+    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property: "animar %1 %2 a %3 en %4 ms ¿invertir? %5 ¿repetir? %6 %7", // human
   colour_keyframe: "en %1 color: %2", // human
   number_keyframe: "en: %1 valor: %2", // human
@@ -382,6 +384,8 @@ export default {
     "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y facilidando.", // human
   rotate_anim_seconds_tooltip:
     "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y facilidando.", // human
+  rotate_to_object_tooltip:
+    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
   animate_property_tooltip:
     "Anima una propiedad de material de la malla y sus hijos.", // human
   colour_keyframe_tooltip: "Establece un fotograma clave de color y duración.", // human
@@ -645,6 +649,8 @@ export default {
   BounceEase_option: "Suavizado rebote", // human
   ElasticEase_option: "Suavizado elástico", // human
   BackEase_option: "Suavizado retroceso", // human
+  TOWARDS_option: "towards",
+  SAME_ROTATION_option: "same rotation as",
 
   EASEIN_option: "entrada suavizado", // human
   EASEOUT_option: "salida suavizado", // human

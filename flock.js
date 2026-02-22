@@ -969,6 +969,7 @@ export const flock = {
                         moveByVector: this.moveByVector?.bind(this),
                         glideTo: this.glideTo?.bind(this),
                         glideToObject: this.glideToObject?.bind(this),
+                        rotateToObject: this.rotateToObject?.bind(this),
                         wait: this.wait?.bind(this),
                         createAnimation: this.createAnimation?.bind(this),
                         animateFrom: this.animateFrom?.bind(this),

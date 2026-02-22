@@ -2030,6 +2030,21 @@ const toolboxAnimate = {
                 },
                 {
                         kind: "block",
+                        type: "rotate_to_object",
+                        keyword: "rotate",
+                        inputs: {
+                                DURATION: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 1,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
                         type: "stop_animations",
                         keyword: "anistop",
                 },

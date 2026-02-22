@@ -156,6 +156,8 @@ export default {
     "rotiere %1 zu x %2 y %3 z %4 in %5 ms\n%6 rückwärts? %7 Schleife? %8 %9",
   rotate_anim_seconds:
     "rotiere %1 zu x %2 y %3 z %4 in %5 Sekunden\n%6 rückwärts? %7 Schleife? %8 %9",
+  rotate_to_object:
+    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property:
     "animieren %1 %2 zu %3 in %4 ms rückwärts? %5 Schleife? %6 %7",
   colour_keyframe: "bei %1 Farbe: %2",
@@ -514,6 +516,8 @@ export default {
     "Rotiert ein Objekt zu angegebenen Winkeln über eine Dauer mit Optionen für Rückwärts, Schleife und Easing.",
   rotate_anim_seconds_tooltip:
     "Rotiert ein Objekt über Sekunden mit Unterstützung für Rückläufe, Schleifen und Easing.",
+  rotate_to_object_tooltip:
+    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
   animate_property_tooltip:
     "Animiert eine Materialeigenschaft des Objekts und seiner Kinder.",
   colour_keyframe_tooltip: "Setze Farbe und Dauer für ein Schlüsselbild.",
@@ -777,6 +781,8 @@ export default {
   BounceEase_option: "Sprung-Easing",
   ElasticEase_option: "Elastisch-Easing",
   BackEase_option: "Zurück-Easing",
+  TOWARDS_option: "towards",
+  SAME_ROTATION_option: "same rotation as",
 
   EASEIN_option: "ease-in",
   EASEOUT_option: "ease-out",
