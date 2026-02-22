@@ -876,6 +876,22 @@ export const flockTransform = {
       });
     });
   },
+
+  getBlockPositionFromMesh(mesh) {
+    if (!mesh) return { x: 0, y: 0, z: 0 };
+
+    mesh.computeWorldMatrix?.(true);
+    mesh.refreshBoundingInfo?.();
+
+    const boundingInfo = mesh.getBoundingInfo?.();
+    const minY = boundingInfo?.boundingBox?.minimumWorld?.y;
+
+    return {
+      x: mesh.position?.x ?? 0,
+      y: Number.isFinite(minY) ? minY : (mesh.position?.y ?? 0),
+      z: mesh.position?.z ?? 0,
+    };
+  },
   _getAnchor(mesh) {
     if (!mesh) return null;
 
