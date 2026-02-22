@@ -13,6 +13,21 @@ function getHorizontalDirection(vector) {
   return horizontalDirection.normalize();
 }
 
+function getModelHorizontalAxes(model) {
+  // Use local -Z as the mesh-facing "forward" to match lookAt/rotateTo facing.
+  const forward = getHorizontalDirection(
+    model.getDirection(flock.BABYLON.Vector3.Backward()),
+  );
+  if (!forward) return null;
+
+  const right = getHorizontalDirection(
+    flock.BABYLON.Vector3.Up().cross(forward),
+  );
+  if (!right) return null;
+
+  return { forward, right };
+}
+
 export const flockMovement = {
   moveForward(modelName, speed) {
     const model = flock.scene.getMeshByName(modelName);
@@ -330,12 +345,10 @@ export const flockMovement = {
 
     flock.ensureVerticalConstraint(model);
 
-    const localForward = getHorizontalDirection(
-      model.getDirection(flock.BABYLON.Vector3.Forward()),
-    );
-    if (!localForward) return;
+    const axes = getModelHorizontalAxes(model);
+    if (!axes) return;
 
-    const moveDirection = localForward.scale(speed);
+    const moveDirection = axes.forward.scale(speed);
     const currentVelocity = model.physics.getLinearVelocity();
 
     model.physics.setLinearVelocity(
@@ -352,12 +365,10 @@ export const flockMovement = {
 
     flock.ensureVerticalConstraint(model);
 
-    const localRight = getHorizontalDirection(
-      model.getDirection(flock.BABYLON.Vector3.Right()),
-    );
-    if (!localRight) return;
+    const axes = getModelHorizontalAxes(model);
+    if (!axes) return;
 
-    const moveDirection = localRight.scale(speed);
+    const moveDirection = axes.right.scale(speed);
     const currentVelocity = model.physics.getLinearVelocity();
 
     model.physics.setLinearVelocity(
@@ -374,12 +385,10 @@ export const flockMovement = {
 
     flock.ensureVerticalConstraint(model);
 
-    const localRight = getHorizontalDirection(
-      model.getDirection(flock.BABYLON.Vector3.Right()),
-    );
-    if (!localRight) return;
+    const axes = getModelHorizontalAxes(model);
+    if (!axes) return;
 
-    const moveDirection = localRight.scale(-speed);
+    const moveDirection = axes.right.scale(-speed);
     const currentVelocity = model.physics.getLinearVelocity();
 
     model.physics.setLinearVelocity(
