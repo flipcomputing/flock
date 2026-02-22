@@ -1059,23 +1059,34 @@ export const flockMesh = {
               followerMesh._followObserver,
             );
 
-          let getYPosition = () => {
-            if (followPosition === "TOP") {
-              return targetMesh.position.y + targetMesh.scaling.y;
-            } else if (followPosition === "CENTER") {
-              return targetMesh.position.y + targetMesh.scaling.y / 2;
-            } else {
-              return targetMesh.position.y;
+          const getFollowAnchorWorld = () => {
+            targetMesh.computeWorldMatrix?.(true);
+            targetMesh.refreshBoundingInfo?.();
+
+            const bb = targetMesh.getBoundingInfo?.()?.boundingBox;
+            if (!bb) {
+              return targetMesh.getAbsolutePosition
+                ? targetMesh.getAbsolutePosition().clone()
+                : targetMesh.position.clone();
             }
+
+            const center = bb.centerWorld.clone();
+            if (followPosition === "TOP") {
+              center.y = bb.maximumWorld.y;
+            } else if (followPosition === "CENTER") {
+              center.y = (bb.minimumWorld.y + bb.maximumWorld.y) / 2;
+            } else {
+              center.y = bb.minimumWorld.y;
+            }
+            return center;
           };
 
           followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(
             () => {
-              followerMesh.position.x =
-                targetMesh.position.x + parseFloat(offsetX);
-              followerMesh.position.y = getYPosition() + parseFloat(offsetY);
-              followerMesh.position.z =
-                targetMesh.position.z + parseFloat(offsetZ);
+              const anchor = getFollowAnchorWorld();
+              followerMesh.position.x = anchor.x + parseFloat(offsetX);
+              followerMesh.position.y = anchor.y + parseFloat(offsetY);
+              followerMesh.position.z = anchor.z + parseFloat(offsetZ);
             },
           );
           resolve();
