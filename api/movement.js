@@ -13,7 +13,20 @@ function getHorizontalDirection(vector) {
   return horizontalDirection.normalize();
 }
 
+function ensureModelRotationQuaternion(model) {
+  if (!model.rotationQuaternion) {
+    const rotation = model.rotation || flock.BABYLON.Vector3.Zero();
+    model.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+      rotation.y || 0,
+      rotation.x || 0,
+      rotation.z || 0,
+    );
+  }
+  model.computeWorldMatrix?.(true);
+}
+
 function getModelHorizontalAxes(model) {
+  ensureModelRotationQuaternion(model);
   const metadata = (model.metadata = model.metadata || {});
 
   // Prefer local +Z for self-forward; fallback to -Z if needed.
