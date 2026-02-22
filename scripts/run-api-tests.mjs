@@ -37,6 +37,7 @@ const AVAILABLE_SUITES = [
   { id: 'scale', name: 'Scale Tests (45 tests)', pattern: '@scale' },
   { id: 'rotation', name: 'Rotation Tests', pattern: '@rotation' },
   { id: 'translation', name: 'Translation/Movement Tests', pattern: '@translation' },
+  { id: 'translate', name: 'Translation/Movement Tests (alias)', pattern: '@translation' },
   { id: 'animate', name: 'Animation API Tests', pattern: 'Animation API Tests' },
   { id: 'glide', name: 'Glide Animation Tests', pattern: 'glideTo function tests' },
   { id: 'ui', name: 'UI Text/Button Tests', pattern: 'UIText, UIButton, UIInput, and UISlider function tests' },
@@ -55,7 +56,12 @@ const verbose = args.includes('--verbose') || args.includes('-v');
 const logTests = args.includes('--log-tests');
 const logApi = args.includes('--log-api');
 const logAll = args.includes('--log-all');
-const suite = args.find(arg => !arg.startsWith('--')) || 'all';
+const requestedSuite = args.find(arg => !arg.startsWith('--')) || 'all';
+const suiteAliases = {
+  translate: 'translation',
+  movement: 'translation',
+};
+const suite = suiteAliases[requestedSuite] || requestedSuite;
 
 // Enable both logs if --log-all is specified
 if (logAll) {
