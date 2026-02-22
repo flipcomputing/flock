@@ -75,6 +75,10 @@ import { flockCamera, setFlockReference as setFlockCamera } from "./api/camera";
 import { flockEvents, setFlockReference as setFlockEvents } from "./api/events";
 import { flockMath, setFlockReference as setFlockMath } from "./api/math";
 import {
+        flockAnchorTransform,
+        setFlockReference as setFlockAnchorTransform,
+} from "./api/anchorTransform";
+import {
         flockSensing,
         setFlockReference as setFlockSensing,
 } from "./api/sensing";
@@ -162,6 +166,7 @@ export const flock = {
         ...flockEvents,
         ...flockSensing,
         ...flockMath,
+        ...flockAnchorTransform,
         // Enhanced error reporting with block context
         createEnhancedError(error, code) {
                 const lines = code.split("\n");
@@ -2000,6 +2005,7 @@ export const flock = {
                 setFlockControl(flock);
                 setFlockEvents(flock);
                 setFlockSensing(flock);
+                setFlockAnchorTransform(flock);
 
                 // Add highlight layer
                 flock.highlighter = new flock.BABYLON.HighlightLayer(
