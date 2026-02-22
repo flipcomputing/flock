@@ -611,7 +611,7 @@ export default {
   look_at_tooltip:
     "Rotate the first mesh towards the position of the second mesh.\nKeyword: look",
   move_forward_tooltip:
-    "Move the mesh in the specified direction. 'Forward' moves it in the direction it's pointing, 'sideways' moves it relative to the camera's direction, and 'strafe' moves it sideways relative to the camera's direction.\nKeyword: push",
+    "Move the mesh in the specified direction. 'forward', 'sideways', and 'strafe' are camera-relative. 'forward (self)', 'sideways (self)', and 'strafe (self)' use the mesh's own facing direction.\nKeyword: push",
   rotate_camera_tooltip:
     "Rotate the camera left or right by the given degrees.\nKeyword: rotate",
   up_tooltip: "Apply the specified upwards force.\nKeyword: up",
@@ -703,6 +703,9 @@ export default {
   forward_option: "forward",
   sideways_option: "sideways",
   strafe_option: "strafe",
+  forward_self_option: "forward (self)",
+  sideways_self_option: "sideways (self)",
+  strafe_self_option: "strafe (self)",
   MIN_option: "min",
   MAX_option: "max",
   user_option: "front",

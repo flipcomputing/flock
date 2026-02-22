@@ -4,6 +4,107 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+function getHorizontalDirection(vector) {
+  const horizontalDirection = new flock.BABYLON.Vector3(vector.x, 0, vector.z);
+  if (horizontalDirection.lengthSquared() <= 1e-8) {
+    return null;
+  }
+
+  return horizontalDirection.normalize();
+}
+
+function ensureModelRotationQuaternion(model) {
+  if (!model.rotationQuaternion) {
+    const rotation = model.rotation || flock.BABYLON.Vector3.Zero();
+    model.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+      rotation.y || 0,
+      rotation.x || 0,
+      rotation.z || 0,
+    );
+  }
+  model.computeWorldMatrix?.(true);
+}
+
+function getHorizontalAxisFromQuaternion(model, localAxis) {
+  const q = model.rotationQuaternion;
+  if (!q) return null;
+
+  const rotationMatrix = new flock.BABYLON.Matrix();
+  q.toRotationMatrix(rotationMatrix);
+  const worldAxis = flock.BABYLON.Vector3.TransformNormal(localAxis, rotationMatrix);
+  return getHorizontalDirection(worldAxis);
+}
+
+function withReadyModel(modelName, onReady) {
+  const model = flock.scene.getMeshByName(modelName);
+  if (model) {
+    onReady(model);
+    return;
+  }
+
+  if (typeof flock.whenModelReady === "function") {
+    flock.whenModelReady(modelName, (readyModel) => {
+      if (readyModel) onReady(readyModel);
+    });
+  }
+}
+
+function getModelHorizontalAxes(model) {
+  ensureModelRotationQuaternion(model);
+  const metadata = (model.metadata = model.metadata || {});
+
+  // Prefer quaternion-derived local axes so imported models work before lookAt.
+  let forward = getHorizontalAxisFromQuaternion(
+    model,
+    flock.BABYLON.Vector3.Forward(),
+  );
+  if (!forward) {
+    forward = getHorizontalDirection(
+      model.getDirection(flock.BABYLON.Vector3.Forward()),
+    );
+  }
+  if (!forward) {
+    forward = getHorizontalDirection(
+      model.getDirection(flock.BABYLON.Vector3.Backward()),
+    );
+  }
+
+  let right = getHorizontalAxisFromQuaternion(
+    model,
+    flock.BABYLON.Vector3.Right(),
+  );
+  if (!right && forward) {
+    right = getHorizontalDirection(flock.BABYLON.Vector3.Up().cross(forward));
+  }
+  if (!right) {
+    right = getHorizontalDirection(
+      model.getDirection(flock.BABYLON.Vector3.Right()),
+    );
+  }
+
+  // Cache the first valid axes we see (useful for imported models before lookAt).
+  if (forward && right) {
+    metadata.defaultFacingAxes = {
+      forward: forward.clone(),
+      right: right.clone(),
+    };
+    return { forward, right };
+  }
+
+  // If orientation hasn't been established yet, fall back to cached/default world axes.
+  if (metadata.defaultFacingAxes?.forward && metadata.defaultFacingAxes?.right) {
+    return {
+      forward: metadata.defaultFacingAxes.forward.clone(),
+      right: metadata.defaultFacingAxes.right.clone(),
+    };
+  }
+
+  return {
+    forward: flock.BABYLON.Vector3.Forward(),
+    right: flock.BABYLON.Vector3.Right(),
+  };
+}
+
 export const flockMovement = {
   moveForward(modelName, speed) {
     const model = flock.scene.getMeshByName(modelName);
@@ -235,7 +336,7 @@ export const flockMovement = {
   },
   moveSideways(modelName, speed) {
     const model = flock.scene.getMeshByName(modelName);
-    if (!model || speed === 0) return;
+    if (!model || !model.physics || speed === 0) return;
 
     flock.ensureVerticalConstraint(model);
 
@@ -293,7 +394,7 @@ export const flockMovement = {
   },
   strafe(modelName, speed) {
     const model = flock.scene.getMeshByName(modelName);
-    if (!model || speed === 0) return;
+    if (!model || !model.physics || speed === 0) return;
 
     const sidewaysSpeed = -speed;
 
@@ -314,6 +415,100 @@ export const flockMovement = {
         moveDirection.z,
       ),
     );
+  },
+  moveForwardLocal(modelName, speed) {
+    if (speed === 0) return;
+
+    withReadyModel(modelName, (model) => {
+      if (!model || !model.physics) return;
+
+      flock.ensureVerticalConstraint(model);
+
+      const axes = getModelHorizontalAxes(model);
+      if (!axes) return;
+
+      const moveDirection = axes.forward.scale(speed);
+      const currentVelocity = model.physics.getLinearVelocity();
+
+      model.physics.setLinearVelocity(
+        new flock.BABYLON.Vector3(
+          moveDirection.x,
+          currentVelocity.y,
+          moveDirection.z,
+        ),
+      );
+    });
+  },
+  moveSidewaysLocal(modelName, speed) {
+    if (speed === 0) return;
+
+    withReadyModel(modelName, (model) => {
+      if (!model || !model.physics) return;
+
+      flock.ensureVerticalConstraint(model);
+
+      const axes = getModelHorizontalAxes(model);
+      if (!axes) return;
+
+      const moveDirection = axes.right.scale(speed);
+      const currentVelocity = model.physics.getLinearVelocity();
+
+      model.physics.setLinearVelocity(
+        new flock.BABYLON.Vector3(
+          moveDirection.x,
+          currentVelocity.y,
+          moveDirection.z,
+        ),
+      );
+
+      const facingDirection = speed >= 0 ? axes.right : axes.right.scale(-1);
+      const targetRotation = flock.BABYLON.Quaternion.FromLookDirectionLH(
+        facingDirection,
+        flock.BABYLON.Vector3.Up(),
+      );
+      const currentRotation =
+        model.rotationQuaternion || flock.BABYLON.Quaternion.Identity();
+      const deltaRotation = targetRotation.multiply(currentRotation.conjugate());
+      const deltaEuler = deltaRotation.toEulerAngles();
+
+      model.physics.setAngularVelocity(
+        new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0),
+      );
+
+      if (!model.rotationQuaternion) {
+        model.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+          model.rotation.y,
+          model.rotation.x,
+          model.rotation.z,
+        );
+      }
+      model.rotationQuaternion.x = 0;
+      model.rotationQuaternion.z = 0;
+      model.rotationQuaternion.normalize();
+    });
+  },
+  strafeLocal(modelName, speed) {
+    if (speed === 0) return;
+
+    withReadyModel(modelName, (model) => {
+      if (!model || !model.physics) return;
+
+      flock.ensureVerticalConstraint(model);
+
+      const axes = getModelHorizontalAxes(model);
+      if (!axes) return;
+
+      const moveDirection = axes.right.scale(-speed);
+      const currentVelocity = model.physics.getLinearVelocity();
+
+      model.physics.setLinearVelocity(
+        new flock.BABYLON.Vector3(
+          moveDirection.x,
+          currentVelocity.y,
+          moveDirection.z,
+        ),
+      );
+    });
   },
   updateDynamicMeshPositions(scene, dynamicMeshes) {
     const capsuleHalfHeight = 1;

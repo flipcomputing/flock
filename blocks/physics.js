@@ -152,6 +152,9 @@ export function definePhysicsBlocks() {
                                           getDropdownOption("forward"),
                                           getDropdownOption("sideways"),
                                           getDropdownOption("strafe"),
+                                          getDropdownOption("forward_self"),
+                                          getDropdownOption("sideways_self"),
+                                          getDropdownOption("strafe_self"),
                                     ],
                               },
                               {
@@ -171,4 +174,3 @@ export function definePhysicsBlocks() {
             },
       };
 }
-
