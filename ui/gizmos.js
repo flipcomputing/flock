@@ -779,9 +779,7 @@ export function toggleGizmo(gizmoType) {
         const block = meshMap[mesh.metadata.blockKey];
 
         if (block) {
-          let meshY = calculateYPosition(mesh, block);
-          meshY -=
-            mesh.getBoundingInfo().boundingBox.extendSize.y * mesh.scaling.y;
+          const meshY = calculateYPosition(mesh, block);
           setBlockXYZ(block, mesh.position.x, meshY, mesh.position.z);
         }
       });

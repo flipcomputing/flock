@@ -723,6 +723,22 @@ export const flockMesh = {
 
     bb.position = new flock.BABYLON.Vector3(x, resolvedY, z);
 
+    const alignMeshBaseToY = (targetY) => {
+      bb.computeWorldMatrix(true);
+      bb.refreshBoundingInfo();
+
+      const minWorldY = bb.getBoundingInfo().boundingBox.minimumWorld.y;
+      const deltaY = targetY - minWorldY;
+
+      if (Math.abs(deltaY) > 1e-6) {
+        bb.position.y += deltaY;
+        bb.computeWorldMatrix(true);
+        bb.refreshBoundingInfo();
+      }
+    };
+
+    alignMeshBaseToY(resolvedY);
+
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
     mesh.isPickable = true;
@@ -731,7 +747,6 @@ export const flockMesh = {
     });
 
     bb.metadata = bb.metadata || {};
-    bb.metadata.yOffset = (bb.position.y - resolvedY) / scale;
     bb.metadata.modelName = modelName;
     flock.stopAnimationsTargetingMesh(flock.scene, mesh);
 
@@ -751,7 +766,7 @@ export const flockMesh = {
       flock.waitForGroundReady().then(() => {
         const groundY = flock.getGroundLevelAt(x, z);
         bb.position.y = groundY;
-        bb.metadata.yOffset = (bb.position.y - groundY) / scale;
+        alignMeshBaseToY(groundY);
         if (bb.physics) {
           bb.physics.setTargetTransform(bb.position, bb.rotationQuaternion);
         }
@@ -764,8 +779,6 @@ export const flockMesh = {
     bb.getDescendants().forEach((descendant) => {
       setMetadata(descendant);
     });
-
-    bb.position.y += bb.getBoundingInfo().boundingBox.extendSizeWorld.y;
 
     const boxBody = new flock.BABYLON.PhysicsBody(
       bb,

@@ -426,32 +426,16 @@ export function findParentWithBlockId(mesh) {
 	return null;
 }
 
-export function calculateYPosition(mesh, block) {
-	let finalY = mesh.position.y;
+export function calculateYPosition(mesh) {
+	if (!mesh) return 0;
 
-	if (
-		mesh.metadata &&
-		mesh.metadata.yOffset &&
-		mesh.metadata.yOffset !== 0 &&
-		block
-	) {
-		console.log(
-			"Updating y position for mesh:",
-			mesh.name,
-			"with block:",
-			block.type,
-		);
-		const scaleInput = block.getInput("SCALE");
+	mesh.computeWorldMatrix?.(true);
+	mesh.refreshBoundingInfo?.();
 
-		if (scaleInput && scaleInput.connection.targetBlock()) {
-			const scale = scaleInput.connection
-				.targetBlock()
-				.getFieldValue("NUM");
-			finalY -= scale * mesh.metadata.yOffset;
-		}
-	}
+	const boundingInfo = mesh.getBoundingInfo?.();
+	const minY = boundingInfo?.boundingBox?.minimumWorld?.y;
 
-	return finalY;
+	return Number.isFinite(minY) ? minY : mesh.position.y;
 }
 
 export function setNumberInputs(block, valuesByInputName) {
