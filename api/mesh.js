@@ -715,7 +715,7 @@ export const flockMesh = {
 
     return true; // Already has unique geometry
   },
-  setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color = null) {
+  setupMesh(mesh, _modelName, modelId, blockId, scale, x, y, z, color = null) {
     mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
 
     const bb =
@@ -728,23 +728,13 @@ export const flockMesh = {
     //console.log("Model setup", bb.name, bb.metadata.blockKey);
     bb.isPickable = false;
 
-    const objectNames = [
-      "Star.glb",
-      "Heart.glb",
-      "Coin.glb",
-      "Gem1.glb",
-      "Gem2.glb",
-      "Gem3.glb",
-    ];
-
-    if (!objectNames.includes(modelName)) {
-      const boundingInfo = bb.getBoundingInfo();
-      const halfHeight = boundingInfo.boundingBox.extendSizeWorld.y;
-
-      bb.position.y -= halfHeight;
-    }
     bb.bakeCurrentTransformIntoVertices();
     bb.scaling.set(1, 1, 1);
+    flock.normalizeMeshGeometry(bb, {
+      centerX: true,
+      baseY: true,
+      centerZ: true,
+    });
 
     const groundLevelSentinel = -999999;
     const numericY = typeof y === "string" ? Number(y) : y;
@@ -765,7 +755,7 @@ export const flockMesh = {
     });
 
     bb.metadata = bb.metadata || {};
-    bb.metadata.modelName = modelName;
+    bb.metadata.modelName = _modelName;
     flock.stopAnimationsTargetingMesh(flock.scene, mesh);
 
     const setMetadata = (mesh) => {
