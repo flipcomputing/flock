@@ -4,6 +4,15 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+function getHorizontalDirection(vector) {
+  const horizontalDirection = new flock.BABYLON.Vector3(vector.x, 0, vector.z);
+  if (horizontalDirection.lengthSquared() <= 1e-8) {
+    return null;
+  }
+
+  return horizontalDirection.normalize();
+}
+
 export const flockMovement = {
   moveForward(modelName, speed) {
     const model = flock.scene.getMeshByName(modelName);
@@ -307,6 +316,72 @@ export const flockMovement = {
     const currentVelocity = model.physics.getLinearVelocity();
 
     // Set linear velocity in the sideways direction (left or right)
+    model.physics.setLinearVelocity(
+      new flock.BABYLON.Vector3(
+        moveDirection.x,
+        currentVelocity.y,
+        moveDirection.z,
+      ),
+    );
+  },
+  moveForwardLocal(modelName, speed) {
+    const model = flock.scene.getMeshByName(modelName);
+    if (!model || speed === 0) return;
+
+    flock.ensureVerticalConstraint(model);
+
+    const localForward = getHorizontalDirection(
+      model.getDirection(flock.BABYLON.Vector3.Forward()),
+    );
+    if (!localForward) return;
+
+    const moveDirection = localForward.scale(speed);
+    const currentVelocity = model.physics.getLinearVelocity();
+
+    model.physics.setLinearVelocity(
+      new flock.BABYLON.Vector3(
+        moveDirection.x,
+        currentVelocity.y,
+        moveDirection.z,
+      ),
+    );
+  },
+  moveSidewaysLocal(modelName, speed) {
+    const model = flock.scene.getMeshByName(modelName);
+    if (!model || speed === 0) return;
+
+    flock.ensureVerticalConstraint(model);
+
+    const localRight = getHorizontalDirection(
+      model.getDirection(flock.BABYLON.Vector3.Right()),
+    );
+    if (!localRight) return;
+
+    const moveDirection = localRight.scale(speed);
+    const currentVelocity = model.physics.getLinearVelocity();
+
+    model.physics.setLinearVelocity(
+      new flock.BABYLON.Vector3(
+        moveDirection.x,
+        currentVelocity.y,
+        moveDirection.z,
+      ),
+    );
+  },
+  strafeLocal(modelName, speed) {
+    const model = flock.scene.getMeshByName(modelName);
+    if (!model || speed === 0) return;
+
+    flock.ensureVerticalConstraint(model);
+
+    const localRight = getHorizontalDirection(
+      model.getDirection(flock.BABYLON.Vector3.Right()),
+    );
+    if (!localRight) return;
+
+    const moveDirection = localRight.scale(-speed);
+    const currentVelocity = model.physics.getLinearVelocity();
+
     model.physics.setLinearVelocity(
       new flock.BABYLON.Vector3(
         moveDirection.x,

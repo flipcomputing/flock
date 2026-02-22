@@ -2575,6 +2575,15 @@ export function defineGenerators() {
                         case "strafe":
                                 helperFunction = "strafe";
                                 break;
+                        case "forward_self":
+                                helperFunction = "moveForwardLocal";
+                                break;
+                        case "sideways_self":
+                                helperFunction = "moveSidewaysLocal";
+                                break;
+                        case "strafe_self":
+                                helperFunction = "strafeLocal";
+                                break;
                         default:
                                 helperFunction = "moveForward";
                 }
