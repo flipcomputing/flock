@@ -1991,21 +1991,6 @@ const toolboxAnimate = {
                 },
                 {
                         kind: "block",
-                        type: "rotate_to_object",
-                        keyword: "rotate",
-                        inputs: {
-                                DURATION: {
-                                        shadow: {
-                                                type: "math_number",
-                                                fields: {
-                                                        NUM: 1,
-                                                },
-                                        },
-                                },
-                        },
-                },
-                {
-                        kind: "block",
                         type: "rotate_anim_seconds",
                         keyword: "rotate",
                         inputs: {
@@ -2033,6 +2018,21 @@ const toolboxAnimate = {
                                                 },
                                         },
                                 },
+                                DURATION: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 1,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
+                        type: "rotate_to_object",
+                        keyword: "rotate",
+                        inputs: {
                                 DURATION: {
                                         shadow: {
                                                 type: "math_number",

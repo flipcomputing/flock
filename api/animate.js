@@ -424,10 +424,25 @@ export const flockAnimate = {
           let targetRotation;
 
           if (mode === "same_rotation") {
-            const targetQuaternion =
-              mesh2.absoluteRotationQuaternion ||
-              BABYLON.Quaternion.FromEulerVector(mesh2.rotation);
-            const euler = targetQuaternion.toEulerAngles();
+            mesh2.computeWorldMatrix(true);
+            const targetQuaternion = new BABYLON.Quaternion();
+            mesh2.getWorldMatrix().decompose(undefined, targetQuaternion);
+
+            mesh1.computeWorldMatrix(true);
+            let localTargetQuaternion = targetQuaternion;
+            if (mesh1.parent?.getWorldMatrix) {
+              mesh1.parent.computeWorldMatrix(true);
+              const parentRotation = new BABYLON.Quaternion();
+              mesh1.parent
+                .getWorldMatrix()
+                .decompose(undefined, parentRotation);
+              localTargetQuaternion = parentRotation
+                .conjugate()
+                .multiply(targetQuaternion)
+                .normalize();
+            }
+
+            const euler = localTargetQuaternion.toEulerAngles();
             targetRotation = {
               x: BABYLON.Tools.ToDegrees(euler.x),
               y: BABYLON.Tools.ToDegrees(euler.y),
