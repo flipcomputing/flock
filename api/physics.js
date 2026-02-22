@@ -122,7 +122,7 @@ export function setFlockReference(ref) {
 }
 
 export const flockPhysics = {
-  getImpulseApplicationPoint(mesh) {
+  getPhysicsCenterWorld(mesh) {
     if (!mesh) return flock.BABYLON.Vector3.Zero();
 
     mesh.computeWorldMatrix?.(true);
@@ -130,6 +130,9 @@ export const flockPhysics = {
 
     const centerWorld = mesh.getBoundingInfo?.()?.boundingBox?.centerWorld;
     return centerWorld?.clone?.() || mesh.getAbsolutePosition();
+  },
+  getImpulseApplicationPoint(mesh) {
+    return this.getPhysicsCenterWorld(mesh);
   },
   createPhysicsBody(
     mesh,
