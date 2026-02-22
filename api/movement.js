@@ -14,6 +14,8 @@ function getHorizontalDirection(vector) {
 }
 
 function getModelHorizontalAxes(model) {
+  const metadata = (model.metadata = model.metadata || {});
+
   // Prefer local +Z for self-forward; fallback to -Z if needed.
   let forward = getHorizontalDirection(
     model.getDirection(flock.BABYLON.Vector3.Forward()),
@@ -23,20 +25,38 @@ function getModelHorizontalAxes(model) {
       model.getDirection(flock.BABYLON.Vector3.Backward()),
     );
   }
-  if (!forward) return null;
 
   // Build a horizontal right axis from forward to avoid roll/pitch artifacts.
-  let right = getHorizontalDirection(
-    flock.BABYLON.Vector3.Up().cross(forward),
-  );
+  let right = forward
+    ? getHorizontalDirection(flock.BABYLON.Vector3.Up().cross(forward))
+    : null;
   if (!right) {
     right = getHorizontalDirection(
       model.getDirection(flock.BABYLON.Vector3.Right()),
     );
   }
-  if (!right) return null;
 
-  return { forward, right };
+  // Cache the first valid axes we see (useful for imported models before lookAt).
+  if (forward && right) {
+    metadata.defaultFacingAxes = {
+      forward: forward.clone(),
+      right: right.clone(),
+    };
+    return { forward, right };
+  }
+
+  // If orientation hasn't been established yet, fall back to cached/default world axes.
+  if (metadata.defaultFacingAxes?.forward && metadata.defaultFacingAxes?.right) {
+    return {
+      forward: metadata.defaultFacingAxes.forward.clone(),
+      right: metadata.defaultFacingAxes.right.clone(),
+    };
+  }
+
+  return {
+    forward: flock.BABYLON.Vector3.Forward(),
+    right: flock.BABYLON.Vector3.Right(),
+  };
 }
 
 export const flockMovement = {
