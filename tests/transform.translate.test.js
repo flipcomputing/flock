@@ -113,6 +113,63 @@ export function runTranslationTests(flock) {
 		});
 	});
 
+	describe("Current inspector-vs-block placement semantics @translation", function () {
+		let boxId;
+
+		beforeEach(async function () {
+			boxId = `box_semantics_${Date.now()}`;
+			flock.createBox(boxId, {
+				color: "#00AAFF",
+				width: 2,
+				height: 2,
+				depth: 2,
+				position: [0, 0, 0],
+			});
+
+			await flock.setAnchor(boxId, {
+				xPivot: "CENTER",
+				yPivot: "MIN",
+				zPivot: "CENTER",
+			});
+		});
+
+		afterEach(function () {
+			if (boxId) flock.dispose(boxId);
+		});
+
+		it("should keep requested Y aligned to base/pivot while mesh.position.y stays offset", async function () {
+			await flock.positionAt(boxId, { x: 2, y: 3, z: 4, useY: true });
+
+			const box = flock.scene.getMeshByName(boxId);
+			const bounds = box.getBoundingInfo().boundingBox;
+			const pivotWorld = box.getAbsolutePivotPoint();
+
+			expect(bounds.minimumWorld.y).to.be.closeTo(3, 0.01);
+			expect(pivotWorld.y).to.be.closeTo(3, 0.01);
+			expect(box.position.y).to.be.greaterThan(3.9);
+			expect(box.position.y).to.be.lessThan(4.1);
+		});
+
+		it("should preserve existing Y offset semantics when useY is false", async function () {
+			await flock.positionAt(boxId, { x: 0, y: 10, z: 0, useY: true });
+
+			const box = flock.scene.getMeshByName(boxId);
+			const beforeMinY = box.getBoundingInfo().boundingBox.minimumWorld.y;
+			const beforePositionY = box.position.y;
+
+			await flock.positionAt(boxId, { x: 5, y: 999, z: -3, useY: false });
+
+			box.computeWorldMatrix(true);
+			box.refreshBoundingInfo();
+			const afterMinY = box.getBoundingInfo().boundingBox.minimumWorld.y;
+
+			expect(afterMinY).to.be.closeTo(beforeMinY, 0.01);
+			expect(box.position.y).to.be.closeTo(beforePositionY, 0.01);
+			expect(box.position.x).to.be.closeTo(5, 0.01);
+			expect(box.position.z).to.be.closeTo(-3, 0.01);
+		});
+	});
+
 	describe("moveTo API Tests @translation", function () {
 		let box1Id, box2Id;
 
