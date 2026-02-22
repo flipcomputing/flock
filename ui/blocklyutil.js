@@ -428,14 +428,7 @@ export function findParentWithBlockId(mesh) {
 
 export function calculateYPosition(mesh) {
 	if (!mesh) return 0;
-
-	mesh.computeWorldMatrix?.(true);
-	mesh.refreshBoundingInfo?.();
-
-	const boundingInfo = mesh.getBoundingInfo?.();
-	const minY = boundingInfo?.boundingBox?.minimumWorld?.y;
-
-	return Number.isFinite(minY) ? minY : mesh.position.y;
+	return mesh.position?.y ?? 0;
 }
 
 export function setNumberInputs(block, valuesByInputName) {

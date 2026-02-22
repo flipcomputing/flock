@@ -7,6 +7,39 @@ export function setFlockReference(ref) {
 }
 
 export const flockMesh = {
+  normalizeMeshGeometry(mesh, { centerX = true, baseY = true, centerZ = true } = {}) {
+    if (!mesh?.bakeTransformIntoVertices) return;
+
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo?.();
+
+    const boundingInfo = mesh.getBoundingInfo?.();
+    const minimum = boundingInfo?.boundingBox?.minimum;
+    const maximum = boundingInfo?.boundingBox?.maximum;
+
+    if (!minimum || !maximum) return;
+
+    const centerXValue = (minimum.x + maximum.x) * 0.5;
+    const centerZValue = (minimum.z + maximum.z) * 0.5;
+
+    const translateX = centerX ? -centerXValue : 0;
+    const translateY = baseY ? -minimum.y : 0;
+    const translateZ = centerZ ? -centerZValue : 0;
+
+    if (
+      Math.abs(translateX) < 1e-6 &&
+      Math.abs(translateY) < 1e-6 &&
+      Math.abs(translateZ) < 1e-6
+    ) {
+      return;
+    }
+
+    mesh.bakeTransformIntoVertices(
+      flock.BABYLON.Matrix.Translation(translateX, translateY, translateZ),
+    );
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo?.();
+  },
   createCapsuleFromBoundingBox(mesh, scene) {
     mesh.computeWorldMatrix(true);
     const boundingInfo = mesh.getBoundingInfo();
@@ -723,21 +756,6 @@ export const flockMesh = {
 
     bb.position = new flock.BABYLON.Vector3(x, resolvedY, z);
 
-    const alignMeshBaseToY = (targetY) => {
-      bb.computeWorldMatrix(true);
-      bb.refreshBoundingInfo();
-
-      const minWorldY = bb.getBoundingInfo().boundingBox.minimumWorld.y;
-      const deltaY = targetY - minWorldY;
-
-      if (Math.abs(deltaY) > 1e-6) {
-        bb.position.y += deltaY;
-        bb.computeWorldMatrix(true);
-        bb.refreshBoundingInfo();
-      }
-    };
-
-    alignMeshBaseToY(resolvedY);
 
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
@@ -766,7 +784,6 @@ export const flockMesh = {
       flock.waitForGroundReady().then(() => {
         const groundY = flock.getGroundLevelAt(x, z);
         bb.position.y = groundY;
-        alignMeshBaseToY(groundY);
         if (bb.physics) {
           bb.physics.setTargetTransform(bb.position, bb.rotationQuaternion);
         }

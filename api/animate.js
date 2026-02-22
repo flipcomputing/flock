@@ -880,26 +880,10 @@ export const flockAnimate = {
       console.warn(`Animation group '${groupName}' not found.`);
     }
   },
-  // Helper: Get the MIN position of a mesh on a given axis, accounting for its pivot
+  // Helper: Get anchor position on a given axis using the shared anchor resolver.
   _getMeshPivotPosition(mesh, axis) {
-    // Match setAnchor defaults: x=CENTER, y=MIN, z=CENTER
-    const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
-      x: "CENTER",
-      y: "MIN",
-      z: "CENTER",
-    };
-    const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
-    const halfSize = bounding[axis] * mesh.scaling[axis];
-
-    const pivotSetting = pivotSettings[axis];
-
-    if (pivotSetting === "CENTER") {
-      return mesh.position[axis]; // No adjustment for CENTER
-    } else if (pivotSetting === "MIN") {
-      return mesh.position[axis] - halfSize;
-    } else if (pivotSetting === "MAX") {
-      return mesh.position[axis] + halfSize;
-    }
+    const anchor = flock._getAnchor(mesh);
+    return anchor?.[axis] ?? mesh?.position?.[axis] ?? 0;
   },
   _resolvePropertyToAnimate(property, mesh) {
     if (!mesh) {

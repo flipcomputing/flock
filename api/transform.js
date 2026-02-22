@@ -17,7 +17,7 @@ function resolvePositionInputs(
   };
 }
 
-function applyPositionWithCurrentBaseRule(
+function applyPositionDirect(
   mesh,
   { x = 0, y = 0, z = 0, useY = true, meshName = "" } = {},
 ) {
@@ -34,21 +34,12 @@ function applyPositionWithCurrentBaseRule(
 
   mesh.position.set(nextX, useY ? nextY : mesh.position.y, nextZ);
 
-  if (useY && !isCamera && typeof mesh.getBoundingInfo === "function") {
+  if (isCamera) {
+    mesh.computeWorldMatrix(true);
+  } else {
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo?.();
-    const boundingInfo = mesh.getBoundingInfo();
-    const minWorldY = boundingInfo?.boundingBox?.minimumWorld?.y;
-
-    if (Number.isFinite(minWorldY)) {
-      const deltaY = nextY - minWorldY;
-      if (Math.abs(deltaY) > 1e-6) {
-        mesh.position.y += deltaY;
-      }
-    }
   }
-
-  mesh.computeWorldMatrix(true);
 
   return {
     x: mesh.position.x,
@@ -76,7 +67,7 @@ export const flockTransform = {
       nextY = flock.getGroundLevelAt(x, z);
     }
 
-    applyPositionWithCurrentBaseRule(mesh, {
+    applyPositionDirect(mesh, {
       x,
       y: nextY,
       z,
@@ -898,12 +889,9 @@ export const flockTransform = {
     mesh.computeWorldMatrix?.(true);
     mesh.refreshBoundingInfo?.();
 
-    const boundingInfo = mesh.getBoundingInfo?.();
-    const minY = boundingInfo?.boundingBox?.minimumWorld?.y;
-
     return {
       x: mesh.position?.x ?? 0,
-      y: Number.isFinite(minY) ? minY : (mesh.position?.y ?? 0),
+      y: mesh.position?.y ?? 0,
       z: mesh.position?.z ?? 0,
     };
   },

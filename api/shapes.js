@@ -49,6 +49,18 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+function getLocalBounds(mesh) {
+  mesh.computeWorldMatrix(true);
+  mesh.refreshBoundingInfo?.();
+  const bb = mesh.getBoundingInfo().boundingBox;
+  return {
+    min: bb.minimum.clone(),
+    max: bb.maximum.clone(),
+    center: bb.center.clone(),
+    size: bb.maximum.subtract(bb.minimum),
+  };
+}
+
 /**
  * Convert font path commands to polygons suitable for Manifold CrossSection.
  * Handles curves by subdividing them into line segments.
@@ -273,6 +285,8 @@ export const flockShapes = {
     // Reset scaling to (1,1,1) since the transformation is now baked
     newBox.scaling.set(1, 1, 1);
 
+    flock.normalizeMeshGeometry(newBox, { centerX: true, baseY: true, centerZ: true });
+
     // Initialise the mesh with position, color, and other properties
     flock.initializeMesh(newBox, position, color, "Box", alpha);
 
@@ -280,10 +294,11 @@ export const flockShapes = {
     newBox.metadata.blockKey = blockKey;
 
     // Define and apply the physics shape
+    const boxBounds = getLocalBounds(newBox);
     const boxShape = new flock.BABYLON.PhysicsShapeBox(
-      flock.BABYLON.Vector3.Zero(),
+      boxBounds.center,
       new flock.BABYLON.Quaternion(0, 0, 0, 1),
-      new flock.BABYLON.Vector3(width, height, depth),
+      boxBounds.size,
       flock.scene,
     );
     flock.applyPhysics(newBox, boxShape);
@@ -346,6 +361,8 @@ export const flockShapes = {
     // Reset scaling to (1,1,1) since the transformation is now baked
     newSphere.scaling.set(1, 1, 1);
 
+    flock.normalizeMeshGeometry(newSphere, { centerX: true, baseY: true, centerZ: true });
+
     // Initialise the mesh with position, color, and other properties
     flock.initializeMesh(newSphere, position, color, "Sphere", alpha);
 
@@ -353,9 +370,10 @@ export const flockShapes = {
     newSphere.metadata.blockKey = blockKey;
 
     // Define and apply the physics shape
+    const sphereBounds = getLocalBounds(newSphere);
     const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
-      flock.BABYLON.Vector3.Zero(),
-      Math.max(diameterX, diameterY, diameterZ) / 2,
+      sphereBounds.center,
+      Math.max(sphereBounds.size.x, sphereBounds.size.y, sphereBounds.size.z) / 2,
       flock.scene,
     );
     flock.applyPhysics(newSphere, sphereShape);
@@ -429,20 +447,31 @@ export const flockShapes = {
     // Reset scaling to (1,1,1) since the transformation is now baked
     newCylinder.scaling.set(1, 1, 1);
 
+    flock.normalizeMeshGeometry(newCylinder, { centerX: true, baseY: true, centerZ: true });
+
     // Initialise the mesh with position, color, and other properties
     flock.initializeMesh(newCylinder, position, color, "Cylinder", alpha);
-    // Initialise the mesh with position, color, and other properties
 
     newCylinder.metadata = newCylinder.metadata || {};
     newCylinder.metadata.blockKey = blockKey;
 
     // Create and apply physics shape
-    const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
-    const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
+    const cylinderBounds = getLocalBounds(newCylinder);
+    const cylinderRadius = Math.max(cylinderBounds.size.x, cylinderBounds.size.z) / 2;
+    const startPoint = new flock.BABYLON.Vector3(
+      cylinderBounds.center.x,
+      cylinderBounds.min.y,
+      cylinderBounds.center.z,
+    );
+    const endPoint = new flock.BABYLON.Vector3(
+      cylinderBounds.center.x,
+      cylinderBounds.max.y,
+      cylinderBounds.center.z,
+    );
     const cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
       startPoint,
       endPoint,
-      diameterBottom / 2,
+      cylinderRadius,
       flock.scene,
     );
     flock.applyPhysics(newCylinder, cylinderShape);
@@ -499,6 +528,8 @@ export const flockShapes = {
     // Reset scaling to (1,1,1) since the transformation is now baked
     newCapsule.scaling.set(1, 1, 1);
 
+    flock.normalizeMeshGeometry(newCapsule, { centerX: true, baseY: true, centerZ: true });
+
     // Initialise the mesh with position, color, and other properties
     flock.initializeMesh(newCapsule, position, color, "Capsule", alpha);
 
@@ -506,32 +537,9 @@ export const flockShapes = {
 
     newCapsule.metadata = newCapsule.metadata || {};
     newCapsule.metadata.blockKey = blockKey;
-    // Define central point for the capsule
-    const center = flock.BABYLON.Vector3.Zero();
 
-    // Calculate physics shape parameters
-    const capsuleRadius = radius;
-    const cylinderHeight = Math.max(0, height - 2 * capsuleRadius);
-
-    // Define the start and end points of the cylindrical segment
-    const segmentStart = new flock.BABYLON.Vector3(
-      center.x,
-      center.y - cylinderHeight / 2 + 0.1,
-      center.z,
-    );
-    const segmentEnd = new flock.BABYLON.Vector3(
-      center.x,
-      center.y + cylinderHeight / 2 + 0.1,
-      center.z,
-    );
-
-    // Create and apply the physics shape using the central reference
-    const capsuleShape = new flock.BABYLON.PhysicsShapeCapsule(
-      segmentStart,
-      segmentEnd,
-      capsuleRadius,
-      flock.scene,
-    );
+    // Create and apply the physics shape using normalized geometry bounds
+    const capsuleShape = flock.createCapsuleFromBoundingBox(newCapsule, flock.scene);
     flock.applyPhysics(newCapsule, capsuleShape);
 
     flock.announceMeshReady(newCapsule.name, groupName);
