@@ -580,6 +580,12 @@ export const flockShapes = {
     newPlane.metadata.shape = "plane";
     newPlane.metadata.blockKey = blockKey;
 
+    flock.normalizeMeshGeometry(newPlane, {
+      centerX: true,
+      baseY: true,
+      centerZ: true,
+    });
+
     flock.setBlockPositionOnMesh(newPlane, {
       x: position[0],
       y: position[1],
@@ -595,10 +601,11 @@ export const flockShapes = {
       flock.scene,
     );
 
+    const planeBounds = getLocalBounds(newPlane);
     const planeShape = new flock.BABYLON.PhysicsShapeBox(
-      flock.BABYLON.Vector3.Zero(),
+      planeBounds.center,
       new flock.BABYLON.Quaternion(0, 0, 0, 1),
-      new flock.BABYLON.Vector3(width, height, 0.001),
+      new flock.BABYLON.Vector3(planeBounds.size.x, planeBounds.size.y, 0.001),
       flock.scene,
     );
 

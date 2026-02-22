@@ -52,6 +52,13 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+function normalizeOriginToken(value, fallback = "CENTER") {
+  const token = String(value ?? fallback).toUpperCase();
+  if (token === "CENTRE") return "CENTER";
+  if (token === "BOTTOM") return "BASE";
+  return token;
+}
+
 export const flockTransform = {
   async setBlockPositionOnMesh(
     mesh,
@@ -594,6 +601,9 @@ export const flockTransform = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         mesh.metadata = mesh.metadata || {};
+        xOrigin = normalizeOriginToken(xOrigin, "CENTER");
+        yOrigin = normalizeOriginToken(yOrigin, "BASE");
+        zOrigin = normalizeOriginToken(zOrigin, "CENTER");
         mesh.metadata.origin = { xOrigin, yOrigin, zOrigin };
 
         if (mesh.physics) {
@@ -677,6 +687,9 @@ export const flockTransform = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         mesh.metadata = mesh.metadata || {};
+        xOrigin = normalizeOriginToken(xOrigin, "CENTER");
+        yOrigin = normalizeOriginToken(yOrigin, "BASE");
+        zOrigin = normalizeOriginToken(zOrigin, "CENTER");
 
         if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
           const bi = mesh.getBoundingInfo();
