@@ -14,9 +14,9 @@ function getHorizontalDirection(vector) {
 }
 
 function getModelHorizontalAxes(model) {
-  // Use local -Z as the mesh-facing "forward" to match lookAt/rotateTo facing.
+  // Use the mesh local +Z axis for self-forward movement.
   const forward = getHorizontalDirection(
-    model.getDirection(flock.BABYLON.Vector3.Backward()),
+    model.getDirection(flock.BABYLON.Vector3.Forward()),
   );
   if (!forward) return null;
 
