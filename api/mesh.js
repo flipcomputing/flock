@@ -9,20 +9,24 @@ export function setFlockReference(ref) {
 export const flockMesh = {
   createCapsuleFromBoundingBox(mesh, scene) {
     mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo?.();
     const boundingInfo = mesh.getBoundingInfo();
     // Use LOCAL bounding box coordinates
     const localMin = boundingInfo.boundingBox.minimum;
     const localMax = boundingInfo.boundingBox.maximum;
 
-    // Apply the mesh's scaling to get actual dimensions
-    const height = (localMax.y - localMin.y) * Math.abs(mesh.scaling.y);
-    const width = (localMax.x - localMin.x) * Math.abs(mesh.scaling.x);
-    const depth = (localMax.z - localMin.z) * Math.abs(mesh.scaling.z);
+    // Physics shape points/radius are provided in local space.
+    // Using scaled dimensions here can collapse capsules into spheres when
+    // transforms are already represented in the local bounds (common for wrapped glTF models).
+    const height = localMax.y - localMin.y;
+    const width = localMax.x - localMin.x;
+    const depth = localMax.z - localMin.z;
 
-    const radius = Math.min(width, depth) / 2;
+    const maxRadiusFromHeight = Math.max(1e-4, height / 2 - 1e-4);
+    const radius = Math.min(Math.max(1e-4, Math.min(width, depth) / 2), maxRadiusFromHeight);
 
     // Shrink the capsule vertically to allow intersections
-    const shrinkAmount = 0.01; // Adjust this value as needed
+    const shrinkAmount = 0.01;
     const adjustedHeight = Math.max(0, height - shrinkAmount);
     const cylinderHeight = Math.max(0, adjustedHeight - 2 * radius);
 
