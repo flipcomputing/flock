@@ -14,15 +14,26 @@ function getHorizontalDirection(vector) {
 }
 
 function getModelHorizontalAxes(model) {
-  // Use the mesh local +Z axis for self-forward movement.
-  const forward = getHorizontalDirection(
+  // Prefer local +Z for self-forward; fallback to -Z if needed.
+  let forward = getHorizontalDirection(
     model.getDirection(flock.BABYLON.Vector3.Forward()),
   );
+  if (!forward) {
+    forward = getHorizontalDirection(
+      model.getDirection(flock.BABYLON.Vector3.Backward()),
+    );
+  }
   if (!forward) return null;
 
-  const right = getHorizontalDirection(
-    model.getDirection(flock.BABYLON.Vector3.Right()),
+  // Build a horizontal right axis from forward to avoid roll/pitch artifacts.
+  let right = getHorizontalDirection(
+    flock.BABYLON.Vector3.Up().cross(forward),
   );
+  if (!right) {
+    right = getHorizontalDirection(
+      model.getDirection(flock.BABYLON.Vector3.Right()),
+    );
+  }
   if (!right) return null;
 
   return { forward, right };
