@@ -7,13 +7,67 @@ export function setFlockReference(ref) {
 }
 
 export const flockMesh = {
+  getLocalBoundsFromRenderableDescendants(mesh) {
+    if (!mesh) return null;
+
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo?.();
+
+    const inverseRootWorld = mesh.getWorldMatrix().clone().invert();
+
+    const descendants = [mesh, ...(mesh.getChildMeshes?.(false) || [])];
+    const renderables = descendants.filter(
+      (m) => typeof m.getTotalVertices === "function" && m.getTotalVertices() > 0,
+    );
+
+    if (renderables.length === 0) return null;
+
+    const min = new flock.BABYLON.Vector3(Infinity, Infinity, Infinity);
+    const max = new flock.BABYLON.Vector3(-Infinity, -Infinity, -Infinity);
+
+    const updateExtents = (p) => {
+      min.x = Math.min(min.x, p.x);
+      min.y = Math.min(min.y, p.y);
+      min.z = Math.min(min.z, p.z);
+      max.x = Math.max(max.x, p.x);
+      max.y = Math.max(max.y, p.y);
+      max.z = Math.max(max.z, p.z);
+    };
+
+    const corners = new Array(8);
+    for (let i = 0; i < 8; i++) {
+      corners[i] = new flock.BABYLON.Vector3();
+    }
+
+    renderables.forEach((part) => {
+      part.computeWorldMatrix(true);
+      part.refreshBoundingInfo?.();
+
+      const bb = part.getBoundingInfo?.()?.boundingBox;
+      if (!bb) return;
+
+      bb.vectorsWorld.forEach((worldCorner, idx) => {
+        flock.BABYLON.Vector3.TransformCoordinatesToRef(
+          worldCorner,
+          inverseRootWorld,
+          corners[idx],
+        );
+        updateExtents(corners[idx]);
+      });
+    });
+
+    if (!Number.isFinite(min.x) || !Number.isFinite(max.x)) return null;
+
+    return { min, max };
+  },
+
   createCapsuleFromBoundingBox(mesh, scene) {
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo?.();
+    const localBounds = flock.getLocalBoundsFromRenderableDescendants(mesh);
     const boundingInfo = mesh.getBoundingInfo();
-    // Use LOCAL bounding box coordinates
-    const localMin = boundingInfo.boundingBox.minimum;
-    const localMax = boundingInfo.boundingBox.maximum;
+    const localMin = localBounds?.min || boundingInfo.boundingBox.minimum;
+    const localMax = localBounds?.max || boundingInfo.boundingBox.maximum;
 
     // Physics shape points/radius are provided in local space.
     // Using scaled dimensions here can collapse capsules into spheres when
