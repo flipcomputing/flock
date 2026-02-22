@@ -422,8 +422,9 @@ export const flockAnimate = {
 
           const BABYLON = flock.BABYLON;
           let targetRotation;
+          const normalizedMode = String(mode || "towards").toLowerCase();
 
-          if (mode === "same_rotation") {
+          if (normalizedMode === "same_rotation") {
             mesh2.computeWorldMatrix(true);
             const targetQuaternion = new BABYLON.Quaternion();
             mesh2.getWorldMatrix().decompose(undefined, targetQuaternion);

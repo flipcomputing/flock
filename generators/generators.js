@@ -373,6 +373,8 @@ export function defineGenerators() {
                         Blockly.Names.NameType.VARIABLE,
                 );
                 const rotateMode = block.getFieldValue("ROTATE_MODE");
+                const apiRotateMode =
+                        rotateMode === "SAME_ROTATION" ? "same_rotation" : "towards";
                 const duration = getFieldValue(block, "DURATION", "0");
                 const mode = block.getFieldValue("MODE");
                 const reverse = block.getFieldValue("REVERSE") === "TRUE";
@@ -381,7 +383,7 @@ export function defineGenerators() {
 
                 const asyncWrapper = mode === "AWAIT" ? "await " : "";
 
-                return `${asyncWrapper}rotateToObject(${meshName1}, ${meshName2}, { mode: "${rotateMode}", duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+                return `${asyncWrapper}rotateToObject(${meshName1}, ${meshName2}, { mode: "${apiRotateMode}", duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
         };
 
         javascriptGenerator.forBlock["animation"] = function (block) {
