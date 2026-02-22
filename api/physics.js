@@ -178,9 +178,15 @@ export const flockPhysics = {
         const width = boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
         const height = boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
         const depth = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
+        const centerWorld = boundingBox.centerWorld;
+        const centerLocal = mesh
+          .getWorldMatrix()
+          .clone()
+          .invert()
+          .transformCoordinates(centerWorld);
 
         const boxShape = new flock.BABYLON.PhysicsShapeBox(
-          flock.BABYLON.Vector3.Zero(),
+          centerLocal,
           new flock.BABYLON.Quaternion(0, 0, 0, 1), // No rotation
           new flock.BABYLON.Vector3(width, height, depth), // Updated dimensions
           flock.scene,

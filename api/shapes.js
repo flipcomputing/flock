@@ -280,8 +280,11 @@ export const flockShapes = {
     newBox.metadata.blockKey = blockKey;
 
     // Define and apply the physics shape
+    newBox.computeWorldMatrix(true);
+    newBox.refreshBoundingInfo();
+    const boxCenter = newBox.getBoundingInfo().boundingBox.center;
     const boxShape = new flock.BABYLON.PhysicsShapeBox(
-      flock.BABYLON.Vector3.Zero(),
+      boxCenter,
       new flock.BABYLON.Quaternion(0, 0, 0, 1),
       new flock.BABYLON.Vector3(width, height, depth),
       flock.scene,
@@ -353,8 +356,11 @@ export const flockShapes = {
     newSphere.metadata.blockKey = blockKey;
 
     // Define and apply the physics shape
+    newSphere.computeWorldMatrix(true);
+    newSphere.refreshBoundingInfo();
+    const sphereCenter = newSphere.getBoundingInfo().boundingBox.center;
     const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
-      flock.BABYLON.Vector3.Zero(),
+      sphereCenter,
       Math.max(diameterX, diameterY, diameterZ) / 2,
       flock.scene,
     );
@@ -437,8 +443,19 @@ export const flockShapes = {
     newCylinder.metadata.blockKey = blockKey;
 
     // Create and apply physics shape
-    const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
-    const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
+    newCylinder.computeWorldMatrix(true);
+    newCylinder.refreshBoundingInfo();
+    const cylinderCenter = newCylinder.getBoundingInfo().boundingBox.center;
+    const startPoint = new flock.BABYLON.Vector3(
+      cylinderCenter.x,
+      cylinderCenter.y - height / 2,
+      cylinderCenter.z,
+    );
+    const endPoint = new flock.BABYLON.Vector3(
+      cylinderCenter.x,
+      cylinderCenter.y + height / 2,
+      cylinderCenter.z,
+    );
     const cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
       startPoint,
       endPoint,
@@ -507,7 +524,9 @@ export const flockShapes = {
     newCapsule.metadata = newCapsule.metadata || {};
     newCapsule.metadata.blockKey = blockKey;
     // Define central point for the capsule
-    const center = flock.BABYLON.Vector3.Zero();
+    newCapsule.computeWorldMatrix(true);
+    newCapsule.refreshBoundingInfo();
+    const center = newCapsule.getBoundingInfo().boundingBox.center;
 
     // Calculate physics shape parameters
     const capsuleRadius = radius;
