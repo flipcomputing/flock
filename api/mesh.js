@@ -721,23 +721,13 @@ export const flockMesh = {
       ? flock.getGroundLevelAt(x, z)
       : y;
 
-    bb.position = new flock.BABYLON.Vector3(x, resolvedY, z);
-
-    const alignMeshBaseToY = (targetY) => {
-      bb.computeWorldMatrix(true);
-      bb.refreshBoundingInfo();
-
-      const minWorldY = bb.getBoundingInfo().boundingBox.minimumWorld.y;
-      const deltaY = targetY - minWorldY;
-
-      if (Math.abs(deltaY) > 1e-6) {
-        bb.position.y += deltaY;
-        bb.computeWorldMatrix(true);
-        bb.refreshBoundingInfo();
-      }
-    };
-
-    alignMeshBaseToY(resolvedY);
+    flock.setBlockPositionOnMesh(bb, {
+      x,
+      y: resolvedY,
+      z,
+      useY: true,
+      meshName: bb.name,
+    });
 
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
@@ -765,8 +755,13 @@ export const flockMesh = {
     if (shouldResolveGroundLevel && !flock.ground) {
       flock.waitForGroundReady().then(() => {
         const groundY = flock.getGroundLevelAt(x, z);
-        bb.position.y = groundY;
-        alignMeshBaseToY(groundY);
+        flock.setBlockPositionOnMesh(bb, {
+          x,
+          y: groundY,
+          z,
+          useY: true,
+          meshName: bb.name,
+        });
         if (bb.physics) {
           bb.physics.setTargetTransform(bb.position, bb.rotationQuaternion);
         }
