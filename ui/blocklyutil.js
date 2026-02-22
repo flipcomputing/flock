@@ -426,32 +426,8 @@ export function findParentWithBlockId(mesh) {
 	return null;
 }
 
-export function calculateYPosition(mesh, block) {
-	let finalY = mesh.position.y;
-
-	if (
-		mesh.metadata &&
-		mesh.metadata.yOffset &&
-		mesh.metadata.yOffset !== 0 &&
-		block
-	) {
-		console.log(
-			"Updating y position for mesh:",
-			mesh.name,
-			"with block:",
-			block.type,
-		);
-		const scaleInput = block.getInput("SCALE");
-
-		if (scaleInput && scaleInput.connection.targetBlock()) {
-			const scale = scaleInput.connection
-				.targetBlock()
-				.getFieldValue("NUM");
-			finalY -= scale * mesh.metadata.yOffset;
-		}
-	}
-
-	return finalY;
+export function calculateYPosition(mesh, _block) {
+	return mesh.position.y;
 }
 
 export function setNumberInputs(block, valuesByInputName) {
