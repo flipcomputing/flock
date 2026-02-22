@@ -151,6 +151,8 @@ export default {
             "rotera %1 till x %2 y %3 z %4 på %5 ms\n%6 omvänd? %7 loop? %8  %9",
       rotate_anim_seconds:
             "rotera %1 till x %2 y %3 z %4 på %5 sekunder\n%6 omvänd? %7 loop? %8  %9",
+      rotate_to_object:
+        "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
       animate_property:
             "animerar %1 %2 till %3 på %4 ms omvänd? %5 loop? %6 %7",
       colour_keyframe: "vid %1 färg: %2",
@@ -380,6 +382,8 @@ export default {
             "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
       rotate_anim_seconds_tooltip:
             "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
+      rotate_to_object_tooltip:
+        "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
       animate_property_tooltip:
             "Animera ett materialegenskap på objektet och dess barn.",
       colour_keyframe_tooltip:
@@ -649,6 +653,8 @@ export default {
       BounceEase_option: "Studsinterpolering",
       ElasticEase_option: "Elastisk interpolering",
       BackEase_option: "Tillbaka-interpolering",
+      TOWARDS_option: "towards",
+      SAME_ROTATION_option: "same rotation as",
 
       EASEIN_option: "ease-in",
       EASEOUT_option: "ease-out",

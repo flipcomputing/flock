@@ -396,6 +396,77 @@ export const flockAnimate = {
       });
     });
   },
+  async rotateToObject(
+    meshName1,
+    meshName2,
+    {
+      mode = "towards",
+      duration = 1,
+      reverse = false,
+      loop = false,
+      easing = "Linear",
+    } = {},
+  ) {
+    return new Promise(async (resolve) => {
+      await flock.whenModelReady(meshName1, async function (mesh1) {
+        if (!mesh1) {
+          resolve();
+          return;
+        }
+
+        flock.whenModelReady(meshName2, async function (mesh2) {
+          if (!mesh2) {
+            resolve();
+            return;
+          }
+
+          const BABYLON = flock.BABYLON;
+          let targetRotation;
+
+          if (mode === "same_rotation") {
+            const targetQuaternion =
+              mesh2.absoluteRotationQuaternion ||
+              BABYLON.Quaternion.FromEulerVector(mesh2.rotation);
+            const euler = targetQuaternion.toEulerAngles();
+            targetRotation = {
+              x: BABYLON.Tools.ToDegrees(euler.x),
+              y: BABYLON.Tools.ToDegrees(euler.y),
+              z: BABYLON.Tools.ToDegrees(euler.z),
+            };
+          } else {
+            const p1 = mesh1.getAbsolutePosition?.() ?? mesh1.absolutePosition;
+            const p2 = mesh2.getAbsolutePosition?.() ?? mesh2.absolutePosition;
+            const dir = p2.subtract(p1);
+
+            if (dir.lengthSquared() === 0) {
+              resolve();
+              return;
+            }
+
+            dir.normalize();
+            const q = BABYLON.Quaternion.FromLookDirectionLH(dir, BABYLON.Axis.Y);
+            const euler = q.toEulerAngles();
+
+            targetRotation = {
+              x: BABYLON.Tools.ToDegrees(euler.x),
+              y: BABYLON.Tools.ToDegrees(euler.y),
+              z: BABYLON.Tools.ToDegrees(euler.z),
+            };
+          }
+
+          await flockAnimate.rotateAnim(meshName1, {
+            ...targetRotation,
+            duration,
+            reverse,
+            loop,
+            easing,
+          });
+
+          resolve();
+        });
+      });
+    });
+  },
   animateKeyFrames(
     meshName,
     {

@@ -151,6 +151,8 @@ export default {
     "tourner %1 vers x %2 y %3 z %4 en %5 ms\n%6 inverse? %7 boucle? %8 %9",
   rotate_anim_seconds:
     "tourner %1 vers x %2 y %3 z %4 en %5 secondes\n%6 inverse? %7 boucle? %8 %9",
+  rotate_to_object:
+    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property: "animer %1 %2 vers %3 en %4 ms inverse? %5 boucle? %6 %7",
   colour_keyframe: "à %1 couleur: %2",
   number_keyframe: "à: %1 valeur: %2",
@@ -387,6 +389,8 @@ export default {
     "Faire pivoter une forme vers des angles spécifiés sur une durée avec des options pour inverser, boucler et appliquer une accélération.",
   rotate_anim_seconds_tooltip:
     "Faire pivoter une forme vers des angles spécifiés sur une durée avec des options pour inverser, boucler et appliquer une accélération.",
+  rotate_to_object_tooltip:
+    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
   animate_property_tooltip:
     "Animer une propriété de matériau de la forme et de ses enfants.",
   colour_keyframe_tooltip:
@@ -655,6 +659,8 @@ export default {
   BounceEase_option: "Rebond Facile",
   ElasticEase_option: "Élastique Facile",
   BackEase_option: "Retour Facile",
+  TOWARDS_option: "towards",
+  SAME_ROTATION_option: "same rotation as",
 
   EASEIN_option: "accélération",
   EASEOUT_option: "décélération",

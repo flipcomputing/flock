@@ -150,6 +150,8 @@ export default {
     "glide %1 to x: %2 y: %3 z: %4 in %5 seconds \n%6 return? %7 loop? %8 %9",
   glide_to_object:
     "glide %1 to %2 in %6 seconds \noffset x: %3 y: %4 z: %5\n%7 return? %8 loop? %9 %10",
+  rotate_to_object:
+    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   rotate_anim:
     "rotate %1 to x: %2 y: %3 z: %4 in %5 ms\n%6 reverse? %7 loop? %8  %9",
   rotate_anim_seconds:
@@ -381,6 +383,8 @@ export default {
     "Glide to a specified position over a duration with options for reversing, looping, and easing.",
   glide_to_object_tooltip:
     "Glide to the position of a specified mesh over a duration with optional x/y/z offsets (default 0) plus reversing, looping, and easing controls.",
+  rotate_to_object_tooltip:
+    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
   rotate_anim_tooltip:
     "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
   rotate_anim_seconds_tooltip:
@@ -639,6 +643,8 @@ export default {
   BounceEase_option: "Bounce Ease",
   ElasticEase_option: "Elastic Ease",
   BackEase_option: "Back Ease",
+  TOWARDS_option: "towards",
+  SAME_ROTATION_option: "same rotation as",
 
   EASEIN_option: "ease-in",
   EASEOUT_option: "ease-out",

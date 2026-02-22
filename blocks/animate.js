@@ -414,6 +414,80 @@ export function defineAnimateBlocks() {
                 },
         };
 
+        Blockly.Blocks["rotate_to_object"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "rotate_to_object",
+                                message0: translate("rotate_to_object"),
+                                args0: [
+                                        {
+                                                type: "field_variable",
+                                                name: "MODEL1",
+                                                variable: window.currentMesh,
+                                        },
+                                        {
+                                                type: "field_dropdown",
+                                                name: "ROTATE_MODE",
+                                                options: [
+                                                        getDropdownOption("TOWARDS"),
+                                                        getDropdownOption("SAME_ROTATION"),
+                                                ],
+                                        },
+                                        {
+                                                type: "field_variable",
+                                                name: "MODEL2",
+                                                variable: "object2",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "DURATION",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "field_dropdown",
+                                                name: "MODE",
+                                                options: [
+                                                        getDropdownOption("AWAIT"),
+                                                        getDropdownOption("START"),
+                                                ],
+                                        },
+                                        {
+                                                type: "field_checkbox",
+                                                name: "REVERSE",
+                                                checked: false,
+                                                text: "reverse",
+                                        },
+                                        {
+                                                type: "field_checkbox",
+                                                name: "LOOP",
+                                                checked: false,
+                                                text: "loop",
+                                        },
+                                        {
+                                                type: "field_dropdown",
+                                                name: "EASING",
+                                                options: [
+                                                        getDropdownOption("Linear"),
+                                                        getDropdownOption("SineEase"),
+                                                        getDropdownOption("CubicEase"),
+                                                        getDropdownOption("QuadraticEase"),
+                                                        getDropdownOption("ExponentialEase"),
+                                                        getDropdownOption("BounceEase"),
+                                                        getDropdownOption("ElasticEase"),
+                                                        getDropdownOption("BackEase"),
+                                                ],
+                                        },
+                                ],
+                                previousStatement: null,
+                                nextStatement: null,
+                                colour: categoryColours["Animate"],
+                                tooltip: getTooltip("rotate_to_object"),
+                        });
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("animate_blocks");
+                },
+        };
+
         Blockly.Blocks["animate_property"] = {
                 init: function () {
                         this.jsonInit({

@@ -151,6 +151,8 @@ export default {
     "girar %1 para x %2 y %3 z %4 em %5 ms\n%6 inverter? %7 repetir? %8 %9",
   rotate_anim_seconds:
     "girar %1 para x %2 y %3 z %4 em %5 segundos\n%6 inverter? %7 repetir? %8 %9",
+  rotate_to_object:
+    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property: "animar %1 %2 até %3 em %4 ms inverter? %5 repetir? %6 %7",
   colour_keyframe: "em %1 cor: %2",
   number_keyframe: "em: %1 valor: %2",
@@ -381,6 +383,8 @@ export default {
     "Gira um mesh para ângulos específicos durante um tempo com opções de reverso, repetição e easing.",
   rotate_anim_seconds_tooltip:
     "Gira um mesh para ângulos específicos durante um tempo com opções de reverso, repetição e easing.",
+  rotate_to_object_tooltip:
+    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
   animate_property_tooltip:
     "Anima uma propriedade de material do mesh e seus filhos.",
   colour_keyframe_tooltip: "Define uma cor e duração para um quadro-chave.",
@@ -648,6 +652,8 @@ export default {
   BounceEase_option: "Facilidade com Quique",
   ElasticEase_option: "Facilidade Elástica",
   BackEase_option: "Facilidade Reversa",
+  TOWARDS_option: "towards",
+  SAME_ROTATION_option: "same rotation as",
 
   EASEIN_option: "aceleração",
   EASEOUT_option: "desaceleração",

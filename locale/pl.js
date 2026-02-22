@@ -151,6 +151,8 @@ export default {
     "obróć %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 odwróć? %7 pętla? %8 %9",
   rotate_anim_seconds:
     "obróć %1 do x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 odwróć? %7 pętla? %8 %9",
+  rotate_to_object:
+    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property:
     "animuj %1: %2 do %3 w czasie %4 ms, odwróć? %5, pętla? %6 %7",
   colour_keyframe: "w %1 kolor: %2",
@@ -386,6 +388,8 @@ export default {
     "Obróć siatkę do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
   rotate_anim_seconds_tooltip:
     "Obróć siatkę do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
+  rotate_to_object_tooltip:
+    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
   animate_property_tooltip: "Animuj właściwość materiału siatki i jej dzieci.",
   colour_keyframe_tooltip: "Ustaw kolor i czas trwania klatki kluczowej.",
   number_keyframe_tooltip: "Ustaw wartość i czas dla klatki kluczowej.",
@@ -648,6 +652,8 @@ export default {
   BounceEase_option: "Bounce Ease",
   ElasticEase_option: "Elastic Ease",
   BackEase_option: "Back Ease",
+  TOWARDS_option: "towards",
+  SAME_ROTATION_option: "same rotation as",
 
   EASEIN_option: "ease-in",
   EASEOUT_option: "ease-out",
