@@ -4,6 +4,37 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+function getFollowTarget(mesh) {
+        if (!mesh) return null;
+
+        mesh.metadata = mesh.metadata || {};
+        let followTarget = mesh.metadata._cameraFollowTarget;
+        if (followTarget && followTarget.isDisposed?.()) {
+                followTarget = null;
+        }
+
+        if (!followTarget) {
+                followTarget = new flock.BABYLON.TransformNode(
+                        `${mesh.name || "mesh"}_cameraFollowTarget`,
+                        flock.scene,
+                );
+                followTarget.parent = mesh;
+                mesh.metadata._cameraFollowTarget = followTarget;
+        }
+
+        mesh.computeWorldMatrix?.(true);
+        mesh.refreshBoundingInfo?.();
+
+        const localCenter = mesh.getBoundingInfo?.()?.boundingBox?.center;
+        if (localCenter) {
+                followTarget.position.copyFrom(localCenter);
+        } else {
+                followTarget.position.set(0, 0, 0);
+        }
+
+        return followTarget;
+}
+
 export const flockCamera = {
         /* 
                 Category: Scene>Camera
@@ -27,6 +58,7 @@ export const flockCamera = {
                         flock.ensureVerticalConstraint(mesh);
 
                         let camera;
+                        const followTarget = getFollowTarget(mesh) || mesh;
 
                         if (front) {
                                 // Original attachCamera behavior - start in front then move behind
@@ -43,11 +75,11 @@ export const flockCamera = {
                                         Math.PI / 2,
                                         Math.PI,
                                         radius,
-                                        mesh.position.add(forward.scale(3)), // in front
+                                        followTarget.getAbsolutePosition().add(forward.scale(3)), // in front
                                         flock.scene
                                 );
 
-                                camera.lockedTarget = mesh;
+                                camera.lockedTarget = followTarget;
                                 camera.attachControl(flock.canvas, false);
                                 flock.scene.activeCamera = camera;
 
@@ -69,7 +101,7 @@ export const flockCamera = {
 
                                 // Move camera behind the character
                                 const behind = forward.scale(-radius);
-                                camera.setPosition(mesh.position.add(behind));
+                                camera.setPosition(followTarget.getAbsolutePosition().add(behind));
 
                                 camera.metadata = camera.metadata || {};
                                 camera.metadata.following = mesh;
@@ -83,7 +115,7 @@ export const flockCamera = {
                                         Math.PI / 2,
                                         Math.PI,
                                         radius,
-                                        mesh.position,
+                                        followTarget.getAbsolutePosition(),
                                         flock.scene,
                                 );
                                 
@@ -103,7 +135,7 @@ export const flockCamera = {
                                 camera.inputs.attached.pointers.pinchInwards = false;
                                 camera.inputs.attached.pointers.useNaturalPinchZoom = false;
                                 
-                                camera.lockedTarget = mesh;
+                                camera.lockedTarget = followTarget;
                                 camera.metadata = camera.metadata || {};
                                 camera.metadata.following = mesh;
                                 camera.attachControl(flock.canvas, false);
