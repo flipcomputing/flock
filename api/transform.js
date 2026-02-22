@@ -17,11 +17,11 @@ function resolvePositionInputs(
   };
 }
 
-function applyPositionWithCurrentBaseRule(
+function applyPositionWithTransformRule(
   mesh,
   { x = 0, y = 0, z = 0, useY = true, meshName = "" } = {},
 ) {
-  const { x: nextX, y: nextY, z: nextZ, isCamera } = resolvePositionInputs(
+  const { x: nextX, y: nextY, z: nextZ } = resolvePositionInputs(
     mesh,
     {
       x,
@@ -33,20 +33,6 @@ function applyPositionWithCurrentBaseRule(
   );
 
   mesh.position.set(nextX, useY ? nextY : mesh.position.y, nextZ);
-
-  if (useY && !isCamera && typeof mesh.getBoundingInfo === "function") {
-    mesh.computeWorldMatrix(true);
-    mesh.refreshBoundingInfo?.();
-    const boundingInfo = mesh.getBoundingInfo();
-    const minWorldY = boundingInfo?.boundingBox?.minimumWorld?.y;
-
-    if (Number.isFinite(minWorldY)) {
-      const deltaY = nextY - minWorldY;
-      if (Math.abs(deltaY) > 1e-6) {
-        mesh.position.y += deltaY;
-      }
-    }
-  }
 
   mesh.computeWorldMatrix(true);
 
@@ -76,7 +62,7 @@ export const flockTransform = {
       nextY = flock.getGroundLevelAt(x, z);
     }
 
-    applyPositionWithCurrentBaseRule(mesh, {
+    applyPositionWithTransformRule(mesh, {
       x,
       y: nextY,
       z,
@@ -896,14 +882,10 @@ export const flockTransform = {
     if (!mesh) return { x: 0, y: 0, z: 0 };
 
     mesh.computeWorldMatrix?.(true);
-    mesh.refreshBoundingInfo?.();
-
-    const boundingInfo = mesh.getBoundingInfo?.();
-    const minY = boundingInfo?.boundingBox?.minimumWorld?.y;
 
     return {
       x: mesh.position?.x ?? 0,
-      y: Number.isFinite(minY) ? minY : (mesh.position?.y ?? 0),
+      y: mesh.position?.y ?? 0,
       z: mesh.position?.z ?? 0,
     };
   },

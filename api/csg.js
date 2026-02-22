@@ -867,21 +867,12 @@ export const flockCSG = {
                                                 return resolve(null);
                                         }
 
-                                        // Align pivot and position (Maintain your original behavior)
-                                        const localCenter = resultMesh
-                                                .getBoundingInfo()
-                                                .boundingBox.center.clone();
-                                        resultMesh.setPivotMatrix(
-                                                flock.BABYLON.Matrix.Translation(
-                                                        localCenter.x,
-                                                        localCenter.y,
-                                                        localCenter.z,
-                                                ),
-                                                false,
-                                        );
-                                        resultMesh.position.subtractInPlace(
-                                                localCenter,
-                                        );
+                                        // Normalize geometry anchor instead of compensating transform position.
+                                        flock.offsetGeometryToAnchor(resultMesh, {
+                                                x: "CENTER",
+                                                y: "MIN",
+                                                z: "CENTER",
+                                        });
                                         resultMesh.computeWorldMatrix(true);
 
                                         flock.applyResultMeshProperties(

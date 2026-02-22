@@ -247,6 +247,41 @@ export const flockMesh = {
     return null;
   },
 
+
+  offsetGeometryToAnchor(mesh, { x = "CENTER", y = "MIN", z = "CENTER" } = {}) {
+    if (!mesh || typeof mesh.getBoundingInfo !== "function") return;
+
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo?.();
+
+    const bi = mesh.getBoundingInfo();
+    const min = bi?.boundingBox?.minimum;
+    const max = bi?.boundingBox?.maximum;
+    if (!min || !max) return;
+
+    const resolveOffset = (axis, mode) => {
+      const minVal = min[axis];
+      const maxVal = max[axis];
+      if (mode === "MIN") return -minVal;
+      if (mode === "MAX") return -maxVal;
+      return -((minVal + maxVal) / 2);
+    };
+
+    const tx = resolveOffset("x", x);
+    const ty = resolveOffset("y", y);
+    const tz = resolveOffset("z", z);
+
+    if (Math.abs(tx) < 1e-6 && Math.abs(ty) < 1e-6 && Math.abs(tz) < 1e-6) {
+      return;
+    }
+
+    mesh.bakeTransformIntoVertices(
+      flock.BABYLON.Matrix.Translation(tx, ty, tz),
+    );
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo?.();
+  },
+
   initializeMesh(
     mesh,
     position,
@@ -265,6 +300,12 @@ export const flockMesh = {
     const resolvedY = shouldResolveGroundLevel
       ? flock.getGroundLevelAt(px, pz)
       : py;
+
+    if (!mesh.metadata?.geometryAnchorOffsetApplied) {
+      flock.offsetGeometryToAnchor(mesh, { x: "CENTER", y: "MIN", z: "CENTER" });
+      mesh.metadata = mesh.metadata || {};
+      mesh.metadata.geometryAnchorOffsetApplied = true;
+    }
 
     flock.setBlockPositionOnMesh(mesh, { x: px, y: resolvedY, z: pz, useY: true });
 
@@ -695,22 +736,11 @@ export const flockMesh = {
     //console.log("Model setup", bb.name, bb.metadata.blockKey);
     bb.isPickable = false;
 
-    const objectNames = [
-      "Star.glb",
-      "Heart.glb",
-      "Coin.glb",
-      "Gem1.glb",
-      "Gem2.glb",
-      "Gem3.glb",
-    ];
-
-    if (!objectNames.includes(modelName)) {
-      const boundingInfo = bb.getBoundingInfo();
-      const halfHeight = boundingInfo.boundingBox.extendSizeWorld.y;
-
-      bb.position.y -= halfHeight;
+    if (!bb.metadata?.geometryAnchorOffsetApplied) {
+      flock.offsetGeometryToAnchor(bb, { x: "CENTER", y: "MIN", z: "CENTER" });
+      bb.metadata = bb.metadata || {};
+      bb.metadata.geometryAnchorOffsetApplied = true;
     }
-    bb.bakeCurrentTransformIntoVertices();
     bb.scaling.set(1, 1, 1);
 
     const groundLevelSentinel = -999999;
@@ -721,23 +751,13 @@ export const flockMesh = {
       ? flock.getGroundLevelAt(x, z)
       : y;
 
-    bb.position = new flock.BABYLON.Vector3(x, resolvedY, z);
-
-    const alignMeshBaseToY = (targetY) => {
-      bb.computeWorldMatrix(true);
-      bb.refreshBoundingInfo();
-
-      const minWorldY = bb.getBoundingInfo().boundingBox.minimumWorld.y;
-      const deltaY = targetY - minWorldY;
-
-      if (Math.abs(deltaY) > 1e-6) {
-        bb.position.y += deltaY;
-        bb.computeWorldMatrix(true);
-        bb.refreshBoundingInfo();
-      }
-    };
-
-    alignMeshBaseToY(resolvedY);
+    flock.setBlockPositionOnMesh(bb, {
+      x,
+      y: resolvedY,
+      z,
+      useY: true,
+      meshName: bb.name,
+    });
 
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
@@ -765,8 +785,13 @@ export const flockMesh = {
     if (shouldResolveGroundLevel && !flock.ground) {
       flock.waitForGroundReady().then(() => {
         const groundY = flock.getGroundLevelAt(x, z);
-        bb.position.y = groundY;
-        alignMeshBaseToY(groundY);
+        flock.setBlockPositionOnMesh(bb, {
+          x,
+          y: groundY,
+          z,
+          useY: true,
+          meshName: bb.name,
+        });
         if (bb.physics) {
           bb.physics.setTargetTransform(bb.position, bb.rotationQuaternion);
         }
