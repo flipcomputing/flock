@@ -25,24 +25,43 @@ function ensureModelRotationQuaternion(model) {
   model.computeWorldMatrix?.(true);
 }
 
+function getHorizontalAxisFromQuaternion(model, localAxis) {
+  const q = model.rotationQuaternion;
+  if (!q) return null;
+
+  const rotationMatrix = new flock.BABYLON.Matrix();
+  q.toRotationMatrix(rotationMatrix);
+  const worldAxis = flock.BABYLON.Vector3.TransformNormal(localAxis, rotationMatrix);
+  return getHorizontalDirection(worldAxis);
+}
+
 function getModelHorizontalAxes(model) {
   ensureModelRotationQuaternion(model);
   const metadata = (model.metadata = model.metadata || {});
 
-  // Prefer local +Z for self-forward; fallback to -Z if needed.
-  let forward = getHorizontalDirection(
-    model.getDirection(flock.BABYLON.Vector3.Forward()),
+  // Prefer quaternion-derived local axes so imported models work before lookAt.
+  let forward = getHorizontalAxisFromQuaternion(
+    model,
+    flock.BABYLON.Vector3.Forward(),
   );
+  if (!forward) {
+    forward = getHorizontalDirection(
+      model.getDirection(flock.BABYLON.Vector3.Forward()),
+    );
+  }
   if (!forward) {
     forward = getHorizontalDirection(
       model.getDirection(flock.BABYLON.Vector3.Backward()),
     );
   }
 
-  // Build a horizontal right axis from forward to avoid roll/pitch artifacts.
-  let right = forward
-    ? getHorizontalDirection(flock.BABYLON.Vector3.Up().cross(forward))
-    : null;
+  let right = getHorizontalAxisFromQuaternion(
+    model,
+    flock.BABYLON.Vector3.Right(),
+  );
+  if (!right && forward) {
+    right = getHorizontalDirection(flock.BABYLON.Vector3.Up().cross(forward));
+  }
   if (!right) {
     right = getHorizontalDirection(
       model.getDirection(flock.BABYLON.Vector3.Right()),
