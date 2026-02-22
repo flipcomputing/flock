@@ -568,14 +568,19 @@ export const flockShapes = {
       flock.scene,
     );
 
+    const px = Array.isArray(position) ? position[0] : (position?.x ?? 0);
+    const py = Array.isArray(position) ? position[1] : (position?.y ?? 0);
+    const pz = Array.isArray(position) ? position[2] : (position?.z ?? 0);
+
     newPlane.metadata = newPlane.metadata || {};
     newPlane.metadata.shape = "plane";
+    newPlane.metadata.shapeType = "Plane";
     newPlane.metadata.blockKey = blockKey;
 
     flock.setBlockPositionOnMesh(newPlane, {
-      x: position[0],
-      y: position[1],
-      z: position[2],
+      x: px,
+      y: py,
+      z: pz,
       useY: true,
       meshName: newPlane.name,
     });
