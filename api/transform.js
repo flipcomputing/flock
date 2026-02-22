@@ -1,10 +1,89 @@
 let flock;
 
+function resolvePositionInputs(
+  mesh,
+  { x = 0, y = 0, z = 0, useY = true, meshName = "" } = {},
+) {
+  const nextX = x ?? mesh.position.x;
+  const nextY = y ?? mesh.position.y;
+  const nextZ = z ?? mesh.position.z;
+
+  return {
+    x: nextX,
+    y: nextY,
+    z: nextZ,
+    useY,
+    isCamera: meshName === "__active_camera__",
+  };
+}
+
+function applyPositionWithCurrentBaseRule(
+  mesh,
+  { x = 0, y = 0, z = 0, useY = true, meshName = "" } = {},
+) {
+  const { x: nextX, y: nextY, z: nextZ, isCamera } = resolvePositionInputs(
+    mesh,
+    {
+      x,
+      y,
+      z,
+      useY,
+      meshName,
+    },
+  );
+
+  mesh.position.set(nextX, useY ? nextY : mesh.position.y, nextZ);
+
+  if (useY && !isCamera && typeof mesh.getBoundingInfo === "function") {
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo?.();
+    const boundingInfo = mesh.getBoundingInfo();
+    const minWorldY = boundingInfo?.boundingBox?.minimumWorld?.y;
+
+    if (Number.isFinite(minWorldY)) {
+      const deltaY = nextY - minWorldY;
+      if (Math.abs(deltaY) > 1e-6) {
+        mesh.position.y += deltaY;
+      }
+    }
+  }
+
+  mesh.computeWorldMatrix(true);
+
+  return {
+    x: mesh.position.x,
+    y: mesh.position.y,
+    z: mesh.position.z,
+  };
+}
+
 export function setFlockReference(ref) {
   flock = ref;
 }
 
 export const flockTransform = {
+  async setBlockPositionOnMesh(
+    mesh,
+    { x = 0, y = 0, z = 0, useY = true, meshName = "" } = {},
+  ) {
+    if (!mesh) return;
+
+    let nextY = y;
+    const groundLevelSentinel = -999999;
+    const numericY = typeof nextY === "string" ? Number(nextY) : nextY;
+    if (nextY === "__ground__level__" || numericY === groundLevelSentinel) {
+      await flock.waitForGroundReady();
+      nextY = flock.getGroundLevelAt(x, z);
+    }
+
+    applyPositionWithCurrentBaseRule(mesh, {
+      x,
+      y: nextY,
+      z,
+      useY,
+      meshName: meshName || mesh.name || "",
+    });
+  },
   positionAt(meshName, { x = 0, y = 0, z = 0, useY = true } = {}) {
     return new Promise((resolve, reject) => {
       flock.whenModelReady(meshName, async (mesh) => {
@@ -17,13 +96,6 @@ export const flockTransform = {
         y ??= mesh.position.y;
         z ??= mesh.position.z;
 
-        const groundLevelSentinel = -999999;
-        const numericY = typeof y === "string" ? Number(y) : y;
-        if (y === "__ground__level__" || numericY === groundLevelSentinel) {
-          await flock.waitForGroundReady();
-          y = flock.getGroundLevelAt(x, z);
-        }
-
         if (mesh.physics) {
           if (
             mesh.physics.getMotionType() !==
@@ -35,31 +107,13 @@ export const flockTransform = {
           }
         }
 
-        // Use a consistent placement rule: requested Y is mesh base (minimumWorld.y)
-        // so imported models and primitives share the same semantics.
-        mesh.position.set(
+        await this.setBlockPositionOnMesh(mesh, {
           x,
-          useY ? y : mesh.position.y,
+          y,
           z,
-        );
-
-        if (
-          useY &&
-          meshName !== "__active_camera__" &&
-          typeof mesh.getBoundingInfo === "function"
-        ) {
-          mesh.computeWorldMatrix(true);
-          mesh.refreshBoundingInfo?.();
-          const boundingInfo = mesh.getBoundingInfo();
-          const minWorldY = boundingInfo?.boundingBox?.minimumWorld?.y;
-
-          if (Number.isFinite(minWorldY)) {
-            const deltaY = y - minWorldY;
-            if (Math.abs(deltaY) > 1e-6) {
-              mesh.position.y += deltaY;
-            }
-          }
-        }
+          useY,
+          meshName,
+        });
 
         // Update physics and world matrix
         if (mesh.physics) {
@@ -836,6 +890,22 @@ export const flockTransform = {
         resolve();
       });
     });
+  },
+
+  getBlockPositionFromMesh(mesh) {
+    if (!mesh) return { x: 0, y: 0, z: 0 };
+
+    mesh.computeWorldMatrix?.(true);
+    mesh.refreshBoundingInfo?.();
+
+    const boundingInfo = mesh.getBoundingInfo?.();
+    const minY = boundingInfo?.boundingBox?.minimumWorld?.y;
+
+    return {
+      x: mesh.position?.x ?? 0,
+      y: Number.isFinite(minY) ? minY : (mesh.position?.y ?? 0),
+      z: mesh.position?.z ?? 0,
+    };
   },
   _getAnchor(mesh) {
     if (!mesh) return null;

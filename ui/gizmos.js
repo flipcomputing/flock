@@ -13,7 +13,6 @@ import {
   setBlockXYZ,
   duplicateBlockAndInsert,
   findParentWithBlockId,
-  calculateYPosition,
   setNumberInputs,
   getNumberInput,
 } from "./blocklyutil.js";
@@ -732,8 +731,13 @@ export function toggleGizmo(gizmoType) {
         const block = meshMap[mesh.metadata.blockKey];
 
         if (block) {
-          const meshY = calculateYPosition(mesh, block);
-          setBlockXYZ(block, mesh.position.x, meshY, mesh.position.z);
+          const blockPosition = flock.getBlockPositionFromMesh(mesh);
+          setBlockXYZ(
+            block,
+            blockPosition.x,
+            blockPosition.y,
+            blockPosition.z,
+          );
         }
       });
 
@@ -779,8 +783,13 @@ export function toggleGizmo(gizmoType) {
         const block = meshMap[mesh.metadata.blockKey];
 
         if (block) {
-          const meshY = calculateYPosition(mesh, block);
-          setBlockXYZ(block, mesh.position.x, meshY, mesh.position.z);
+          const blockPosition = flock.getBlockPositionFromMesh(mesh);
+          setBlockXYZ(
+            block,
+            blockPosition.x,
+            blockPosition.y,
+            blockPosition.z,
+          );
         }
       });
 
