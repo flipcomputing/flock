@@ -275,9 +275,27 @@ export const flockMesh = {
       return;
     }
 
-    mesh.bakeTransformIntoVertices(
-      flock.BABYLON.Matrix.Translation(tx, ty, tz),
-    );
+    const offset = new flock.BABYLON.Vector3(tx, ty, tz);
+
+    const hasOwnGeometry =
+      typeof mesh.getTotalVertices === "function" && mesh.getTotalVertices() > 0;
+
+    if (hasOwnGeometry) {
+      mesh.bakeTransformIntoVertices(
+        flock.BABYLON.Matrix.Translation(tx, ty, tz),
+      );
+    } else {
+      // Wrappers used for loaded glTF models typically have no geometry on the parent.
+      // Move immediate children in local space so the parent transform remains the
+      // inspector/blockly source of truth while preserving visual output.
+      const children = typeof mesh.getChildren === "function" ? mesh.getChildren() : [];
+      children.forEach((child) => {
+        if (child?.position?.addInPlace) {
+          child.position.addInPlace(offset);
+        }
+      });
+    }
+
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo?.();
   },
