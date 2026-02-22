@@ -1,5 +1,62 @@
 let flock;
 
+function resolvePositionInputs(
+  mesh,
+  { x = 0, y = 0, z = 0, useY = true, meshName = "" } = {},
+) {
+  const nextX = x ?? mesh.position.x;
+  const nextY = y ?? mesh.position.y;
+  const nextZ = z ?? mesh.position.z;
+
+  return {
+    x: nextX,
+    y: nextY,
+    z: nextZ,
+    useY,
+    isCamera: meshName === "__active_camera__",
+  };
+}
+
+function applyPositionWithCurrentBaseRule(
+  mesh,
+  { x = 0, y = 0, z = 0, useY = true, meshName = "" } = {},
+) {
+  const { x: nextX, y: nextY, z: nextZ, isCamera } = resolvePositionInputs(
+    mesh,
+    {
+      x,
+      y,
+      z,
+      useY,
+      meshName,
+    },
+  );
+
+  mesh.position.set(nextX, useY ? nextY : mesh.position.y, nextZ);
+
+  if (useY && !isCamera && typeof mesh.getBoundingInfo === "function") {
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo?.();
+    const boundingInfo = mesh.getBoundingInfo();
+    const minWorldY = boundingInfo?.boundingBox?.minimumWorld?.y;
+
+    if (Number.isFinite(minWorldY)) {
+      const deltaY = nextY - minWorldY;
+      if (Math.abs(deltaY) > 1e-6) {
+        mesh.position.y += deltaY;
+      }
+    }
+  }
+
+  mesh.computeWorldMatrix(true);
+
+  return {
+    x: mesh.position.x,
+    y: mesh.position.y,
+    z: mesh.position.z,
+  };
+}
+
 export function setFlockReference(ref) {
   flock = ref;
 }
@@ -35,31 +92,13 @@ export const flockTransform = {
           }
         }
 
-        // Use a consistent placement rule: requested Y is mesh base (minimumWorld.y)
-        // so imported models and primitives share the same semantics.
-        mesh.position.set(
+        applyPositionWithCurrentBaseRule(mesh, {
           x,
-          useY ? y : mesh.position.y,
+          y,
           z,
-        );
-
-        if (
-          useY &&
-          meshName !== "__active_camera__" &&
-          typeof mesh.getBoundingInfo === "function"
-        ) {
-          mesh.computeWorldMatrix(true);
-          mesh.refreshBoundingInfo?.();
-          const boundingInfo = mesh.getBoundingInfo();
-          const minWorldY = boundingInfo?.boundingBox?.minimumWorld?.y;
-
-          if (Number.isFinite(minWorldY)) {
-            const deltaY = y - minWorldY;
-            if (Math.abs(deltaY) > 1e-6) {
-              mesh.position.y += deltaY;
-            }
-          }
-        }
+          useY,
+          meshName,
+        });
 
         // Update physics and world matrix
         if (mesh.physics) {
