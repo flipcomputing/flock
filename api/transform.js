@@ -17,7 +17,7 @@ function resolvePositionInputs(
   };
 }
 
-function applyPositionWithCurrentBaseRule(
+function applyPositionDirect(
   mesh,
   { x = 0, y = 0, z = 0, useY = true, meshName = "" } = {},
 ) {
@@ -34,21 +34,12 @@ function applyPositionWithCurrentBaseRule(
 
   mesh.position.set(nextX, useY ? nextY : mesh.position.y, nextZ);
 
-  if (useY && !isCamera && typeof mesh.getBoundingInfo === "function") {
+  if (isCamera) {
+    mesh.computeWorldMatrix(true);
+  } else {
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo?.();
-    const boundingInfo = mesh.getBoundingInfo();
-    const minWorldY = boundingInfo?.boundingBox?.minimumWorld?.y;
-
-    if (Number.isFinite(minWorldY)) {
-      const deltaY = nextY - minWorldY;
-      if (Math.abs(deltaY) > 1e-6) {
-        mesh.position.y += deltaY;
-      }
-    }
   }
-
-  mesh.computeWorldMatrix(true);
 
   return {
     x: mesh.position.x,
@@ -59,6 +50,13 @@ function applyPositionWithCurrentBaseRule(
 
 export function setFlockReference(ref) {
   flock = ref;
+}
+
+function normalizeOriginToken(value, fallback = "CENTER") {
+  const token = String(value ?? fallback).toUpperCase();
+  if (token === "CENTRE") return "CENTER";
+  if (token === "BOTTOM") return "BASE";
+  return token;
 }
 
 export const flockTransform = {
@@ -76,7 +74,7 @@ export const flockTransform = {
       nextY = flock.getGroundLevelAt(x, z);
     }
 
-    applyPositionWithCurrentBaseRule(mesh, {
+    applyPositionDirect(mesh, {
       x,
       y: nextY,
       z,
@@ -603,6 +601,9 @@ export const flockTransform = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         mesh.metadata = mesh.metadata || {};
+        xOrigin = normalizeOriginToken(xOrigin, "CENTER");
+        yOrigin = normalizeOriginToken(yOrigin, "BASE");
+        zOrigin = normalizeOriginToken(zOrigin, "CENTER");
         mesh.metadata.origin = { xOrigin, yOrigin, zOrigin };
 
         if (mesh.physics) {
@@ -686,6 +687,9 @@ export const flockTransform = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         mesh.metadata = mesh.metadata || {};
+        xOrigin = normalizeOriginToken(xOrigin, "CENTER");
+        yOrigin = normalizeOriginToken(yOrigin, "BASE");
+        zOrigin = normalizeOriginToken(zOrigin, "CENTER");
 
         if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
           const bi = mesh.getBoundingInfo();
@@ -804,20 +808,25 @@ export const flockTransform = {
 
         const BABYLON = flock.BABYLON;
 
-        const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo?.();
+        const boundingBox = mesh.getBoundingInfo().boundingBox;
+        const localMin = boundingBox.minimum;
+        const localMax = boundingBox.maximum;
+
         function resolvePivotValue(value, axis) {
           if (typeof value === "string") {
             switch (value) {
               case "MIN":
-                return -bounding[axis];
+                return localMin[axis];
               case "MAX":
-                return bounding[axis];
+                return localMax[axis];
               case "CENTER":
               default:
-                return 0;
+                return (localMin[axis] + localMax[axis]) / 2;
             }
           }
-          return typeof value === "number" ? value : 0;
+          return typeof value === "number" ? value : (localMin[axis] + localMax[axis]) / 2;
         }
 
         // OLD pivot from metadata; default Y is MIN, X/Z are CENTER
@@ -898,12 +907,9 @@ export const flockTransform = {
     mesh.computeWorldMatrix?.(true);
     mesh.refreshBoundingInfo?.();
 
-    const boundingInfo = mesh.getBoundingInfo?.();
-    const minY = boundingInfo?.boundingBox?.minimumWorld?.y;
-
     return {
       x: mesh.position?.x ?? 0,
-      y: Number.isFinite(minY) ? minY : (mesh.position?.y ?? 0),
+      y: mesh.position?.y ?? 0,
       z: mesh.position?.z ?? 0,
     };
   },

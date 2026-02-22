@@ -49,7 +49,8 @@ export const flockMovement = {
     const desiredHorizontalVelocity = horizontalForward.scale(speed);
 
     // --- Grounded check via capsule shapeCast ---
-    const groundCheckStart = model.position.clone();
+    const physicsCenter = (flock.getPhysicsCenterWorld && flock.getPhysicsCenterWorld(model)) || model.position.clone();
+    const groundCheckStart = physicsCenter.clone();
     const groundCheckEnd = groundCheckStart.add(
       new flock.BABYLON.Vector3(0, -groundCheckDistance, 0),
     );
@@ -128,7 +129,7 @@ export const flockMovement = {
 
     // --- Step-up probe to allow ledge hops when near ground ---
     if (grounded || withinCoyoteTime) {
-      const probeStartLow = model.position.add(
+      const probeStartLow = physicsCenter.add(
         new flock.BABYLON.Vector3(0, 0.05, 0),
       );
       const probeEndLow = probeStartLow.add(

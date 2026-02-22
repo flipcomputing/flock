@@ -7,6 +7,39 @@ export function setFlockReference(ref) {
 }
 
 export const flockMesh = {
+  normalizeMeshGeometry(mesh, { centerX = true, baseY = true, centerZ = true } = {}) {
+    if (!mesh?.bakeTransformIntoVertices) return;
+
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo?.();
+
+    const boundingInfo = mesh.getBoundingInfo?.();
+    const minimum = boundingInfo?.boundingBox?.minimum;
+    const maximum = boundingInfo?.boundingBox?.maximum;
+
+    if (!minimum || !maximum) return;
+
+    const centerXValue = (minimum.x + maximum.x) * 0.5;
+    const centerZValue = (minimum.z + maximum.z) * 0.5;
+
+    const translateX = centerX ? -centerXValue : 0;
+    const translateY = baseY ? -minimum.y : 0;
+    const translateZ = centerZ ? -centerZValue : 0;
+
+    if (
+      Math.abs(translateX) < 1e-6 &&
+      Math.abs(translateY) < 1e-6 &&
+      Math.abs(translateZ) < 1e-6
+    ) {
+      return;
+    }
+
+    mesh.bakeTransformIntoVertices(
+      flock.BABYLON.Matrix.Translation(translateX, translateY, translateZ),
+    );
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo?.();
+  },
   createCapsuleFromBoundingBox(mesh, scene) {
     mesh.computeWorldMatrix(true);
     const boundingInfo = mesh.getBoundingInfo();
@@ -682,7 +715,7 @@ export const flockMesh = {
 
     return true; // Already has unique geometry
   },
-  setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color = null) {
+  setupMesh(mesh, _modelName, modelId, blockId, scale, x, y, z, color = null) {
     mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
 
     const bb =
@@ -695,23 +728,13 @@ export const flockMesh = {
     //console.log("Model setup", bb.name, bb.metadata.blockKey);
     bb.isPickable = false;
 
-    const objectNames = [
-      "Star.glb",
-      "Heart.glb",
-      "Coin.glb",
-      "Gem1.glb",
-      "Gem2.glb",
-      "Gem3.glb",
-    ];
-
-    if (!objectNames.includes(modelName)) {
-      const boundingInfo = bb.getBoundingInfo();
-      const halfHeight = boundingInfo.boundingBox.extendSizeWorld.y;
-
-      bb.position.y -= halfHeight;
-    }
     bb.bakeCurrentTransformIntoVertices();
     bb.scaling.set(1, 1, 1);
+    flock.normalizeMeshGeometry(bb, {
+      centerX: true,
+      baseY: true,
+      centerZ: true,
+    });
 
     const groundLevelSentinel = -999999;
     const numericY = typeof y === "string" ? Number(y) : y;
@@ -723,21 +746,6 @@ export const flockMesh = {
 
     bb.position = new flock.BABYLON.Vector3(x, resolvedY, z);
 
-    const alignMeshBaseToY = (targetY) => {
-      bb.computeWorldMatrix(true);
-      bb.refreshBoundingInfo();
-
-      const minWorldY = bb.getBoundingInfo().boundingBox.minimumWorld.y;
-      const deltaY = targetY - minWorldY;
-
-      if (Math.abs(deltaY) > 1e-6) {
-        bb.position.y += deltaY;
-        bb.computeWorldMatrix(true);
-        bb.refreshBoundingInfo();
-      }
-    };
-
-    alignMeshBaseToY(resolvedY);
 
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
@@ -747,7 +755,7 @@ export const flockMesh = {
     });
 
     bb.metadata = bb.metadata || {};
-    bb.metadata.modelName = modelName;
+    bb.metadata.modelName = _modelName;
     flock.stopAnimationsTargetingMesh(flock.scene, mesh);
 
     const setMetadata = (mesh) => {
@@ -766,7 +774,6 @@ export const flockMesh = {
       flock.waitForGroundReady().then(() => {
         const groundY = flock.getGroundLevelAt(x, z);
         bb.position.y = groundY;
-        alignMeshBaseToY(groundY);
         if (bb.physics) {
           bb.physics.setTargetTransform(bb.position, bb.rotationQuaternion);
         }
@@ -1052,23 +1059,34 @@ export const flockMesh = {
               followerMesh._followObserver,
             );
 
-          let getYPosition = () => {
-            if (followPosition === "TOP") {
-              return targetMesh.position.y + targetMesh.scaling.y;
-            } else if (followPosition === "CENTER") {
-              return targetMesh.position.y + targetMesh.scaling.y / 2;
-            } else {
-              return targetMesh.position.y;
+          const getFollowAnchorWorld = () => {
+            targetMesh.computeWorldMatrix?.(true);
+            targetMesh.refreshBoundingInfo?.();
+
+            const bb = targetMesh.getBoundingInfo?.()?.boundingBox;
+            if (!bb) {
+              return targetMesh.getAbsolutePosition
+                ? targetMesh.getAbsolutePosition().clone()
+                : targetMesh.position.clone();
             }
+
+            const center = bb.centerWorld.clone();
+            if (followPosition === "TOP") {
+              center.y = bb.maximumWorld.y;
+            } else if (followPosition === "CENTER") {
+              center.y = (bb.minimumWorld.y + bb.maximumWorld.y) / 2;
+            } else {
+              center.y = bb.minimumWorld.y;
+            }
+            return center;
           };
 
           followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(
             () => {
-              followerMesh.position.x =
-                targetMesh.position.x + parseFloat(offsetX);
-              followerMesh.position.y = getYPosition() + parseFloat(offsetY);
-              followerMesh.position.z =
-                targetMesh.position.z + parseFloat(offsetZ);
+              const anchor = getFollowAnchorWorld();
+              followerMesh.position.x = anchor.x + parseFloat(offsetX);
+              followerMesh.position.y = anchor.y + parseFloat(offsetY);
+              followerMesh.position.z = anchor.z + parseFloat(offsetZ);
             },
           );
           resolve();

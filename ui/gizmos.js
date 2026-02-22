@@ -933,18 +933,11 @@ export function toggleGizmo(gizmoType) {
         highlightBlockById(Blockly.getMainWorkspace(), blockId);
       });
 
-      // Track bottom for correct visual anchoring
-      let originalBottomY = 0;
-
       gizmoManager.gizmos.scaleGizmo.onDragObservable.add(() => {
         const mesh = gizmoManager.attachedMesh;
 
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
-
-        const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
-        const deltaY = originalBottomY - newBottomY;
-        mesh.position.y += deltaY;
 
         const block = Blockly.getMainWorkspace().getBlockById(
           mesh.metadata.blockKey,
@@ -964,7 +957,6 @@ export function toggleGizmo(gizmoType) {
         flock.ensureUniqueGeometry(mesh);
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
-        originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
 
         const motionType = mesh.physics?.getMotionType();
         mesh.savedMotionType = motionType;
@@ -998,9 +990,6 @@ export function toggleGizmo(gizmoType) {
           };
 
           const bbox = ensureFreshBounds(mesh);
-
-          const newBottomY = bbox.minimumWorld.y;
-          mesh.position.y += originalBottomY - newBottomY;
 
           const sizeLocal = bbox.extendSize.scale(2);
           const w = sizeLocal.x * mesh.scaling.x;

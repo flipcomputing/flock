@@ -164,17 +164,34 @@ function recenterMeshLocalOrigin(mesh) {
         const boundingInfo = mesh.getBoundingInfo
                 ? mesh.getBoundingInfo()
                 : null;
-        const worldCenter = boundingInfo?.boundingBox?.centerWorld;
-        if (!worldCenter) return;
+        const boundingBox = boundingInfo?.boundingBox;
+        if (!boundingBox) return;
+
+        const localMin = boundingBox.minimum;
+        const localMax = boundingBox.maximum;
+        const worldMin = boundingBox.minimumWorld;
+        const worldMax = boundingBox.maximumWorld;
+
+        const localAnchor = new flock.BABYLON.Vector3(
+                (localMin.x + localMax.x) * 0.5,
+                localMin.y,
+                (localMin.z + localMax.z) * 0.5,
+        );
+
+        const worldAnchor = new flock.BABYLON.Vector3(
+                (worldMin.x + worldMax.x) * 0.5,
+                worldMin.y,
+                (worldMin.z + worldMax.z) * 0.5,
+        );
 
         mesh.bakeTransformIntoVertices(
                 flock.BABYLON.Matrix.Translation(
-                        -worldCenter.x,
-                        -worldCenter.y,
-                        -worldCenter.z,
+                        -localAnchor.x,
+                        -localAnchor.y,
+                        -localAnchor.z,
                 ),
         );
-        mesh.position.copyFrom(worldCenter);
+        mesh.position.copyFrom(worldAnchor);
         mesh.computeWorldMatrix?.(true);
         mesh.refreshBoundingInfo?.();
 }
@@ -1326,21 +1343,7 @@ export const flockCSG = {
                                                 return resolve(null);
                                         }
 
-                                        const localCenter = resultMesh
-                                                .getBoundingInfo()
-                                                .boundingBox.center.clone();
-                                        resultMesh.setPivotMatrix(
-                                                BABYLON.Matrix.Translation(
-                                                        localCenter.x,
-                                                        localCenter.y,
-                                                        localCenter.z,
-                                                ),
-                                                false,
-                                        );
-                                        resultMesh.position.subtractInPlace(
-                                                localCenter,
-                                        );
-                                        resultMesh.computeWorldMatrix(true);
+                                        recenterMeshLocalOrigin(resultMesh);
                                         flock.applyResultMeshProperties(
                                                 resultMesh,
                                                 actualBase,
