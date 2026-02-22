@@ -175,10 +175,14 @@ export const flockAnimate = {
               : BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
         );
 
-        rotateAnimation.setKeys([
+        const rotateKeys = [
           { frame: 0, value: startRotation },
           { frame: frames, value: targetRotation },
-        ]);
+        ];
+        if (reverse || loop) {
+          rotateKeys.push({ frame: frames * 2, value: startRotation });
+        }
+        rotateAnimation.setKeys(rotateKeys);
 
         if (easing !== "Linear") {
           const ease = new BABYLON[easing]();
@@ -203,12 +207,17 @@ export const flockAnimate = {
           mesh,
           [rotateAnimation],
           0,
-          frames,
+          reverse || loop ? frames * 2 : frames,
           loop,
         );
 
         animatable.onAnimationEndObservable.add(() => {
           flock.scene.onAfterAnimationsObservable.remove(syncObserver);
+          if (reverse) {
+            mesh.rotation = startRotation.clone();
+          } else {
+            mesh.rotation = targetRotation.clone();
+          }
           resolve();
         });
       });
