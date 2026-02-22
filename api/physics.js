@@ -362,9 +362,14 @@ export const flockPhysics = {
         const applyMeshPhysicsShape = (targetMesh) => {
           const { motionType, disablePreStep } =
             capturePhysicsState(targetMesh);
-          // Keep your original material gate
-          if (!targetMesh.material) {
-            disposePhysics(targetMesh);
+          const hasGeometry =
+            typeof targetMesh.getTotalVertices === "function" &&
+            targetMesh.getTotalVertices() > 0;
+
+          // Loaded glTF root wrappers often have no direct geometry; don't
+          // clear existing physics for these wrappers, child meshes are handled
+          // below.
+          if (!hasGeometry) {
             return;
           }
 

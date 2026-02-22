@@ -836,6 +836,12 @@ export const flockMesh = {
     boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
     boxBody.disablePreStep = false;
     bb.physics = boxBody;
+    bb.metadata.physicsShapeType = "CAPSULE";
+    bb.metadata.physicsCache = {
+      motionType: boxBody.getMotionType?.(),
+      disablePreStep: boxBody.disablePreStep,
+      shapeType: "CAPSULE",
+    };
 
     return bb;
   },
