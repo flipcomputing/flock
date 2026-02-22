@@ -35,50 +35,30 @@ export const flockTransform = {
           }
         }
 
-        // Check if we have pivot settings in metadata
-        if (mesh.metadata && mesh.metadata.pivotSettings) {
-          const pivotSettings = mesh.metadata.pivotSettings;
-          const boundingBox = mesh.getBoundingInfo().boundingBox.extendSize;
+        // Use a consistent placement rule: requested Y is mesh base (minimumWorld.y)
+        // so imported models and primitives share the same semantics.
+        mesh.position.set(
+          x,
+          useY ? y : mesh.position.y,
+          z,
+        );
 
-          // Helper to resolve pivot values
-          function resolvePivotValue(value, axis) {
-            if (typeof value === "string") {
-              switch (value) {
-                case "MIN":
-                  return -boundingBox[axis];
-                case "MAX":
-                  return boundingBox[axis];
-                case "CENTER":
-                default:
-                  return 0;
-              }
-            } else if (typeof value === "number") {
-              return value;
-            } else {
-              return 0;
+        if (
+          useY &&
+          meshName !== "__active_camera__" &&
+          typeof mesh.getBoundingInfo === "function"
+        ) {
+          mesh.computeWorldMatrix(true);
+          mesh.refreshBoundingInfo?.();
+          const boundingInfo = mesh.getBoundingInfo();
+          const minWorldY = boundingInfo?.boundingBox?.minimumWorld?.y;
+
+          if (Number.isFinite(minWorldY)) {
+            const deltaY = y - minWorldY;
+            if (Math.abs(deltaY) > 1e-6) {
+              mesh.position.y += deltaY;
             }
           }
-
-          // Calculate offset based on pivot settings
-          const pivotOffsetX = resolvePivotValue(pivotSettings.x, "x");
-          const pivotOffsetY = resolvePivotValue(pivotSettings.y, "y");
-          const pivotOffsetZ = resolvePivotValue(pivotSettings.z, "z");
-
-          // Apply position with pivot offset
-          mesh.position.set(
-            x - pivotOffsetX,
-            useY ? y - pivotOffsetY : mesh.position.y,
-            z - pivotOffsetZ,
-          );
-        } else {
-          // Original behavior if no pivot settings
-          const addY =
-            meshName === "__active_camera__"
-              ? 0
-              : mesh.getBoundingInfo().boundingBox.extendSize.y *
-                mesh.scaling.y;
-          let targetY = useY ? y + addY : mesh.position.y;
-          mesh.position.set(x, targetY, z);
         }
 
         // Update physics and world matrix
