@@ -122,6 +122,17 @@ export function setFlockReference(ref) {
 }
 
 export const flockPhysics = {
+  getPhysicsImpulsePoint(mesh) {
+    if (!mesh) return flock.BABYLON.Vector3.Zero();
+
+    mesh.computeWorldMatrix?.(true);
+    mesh.refreshBoundingInfo?.();
+
+    const centerWorld = mesh.getBoundingInfo?.()?.boundingBox?.centerWorld;
+    if (centerWorld) return centerWorld;
+
+    return mesh.getAbsolutePosition?.() ?? mesh.position;
+  },
   createPhysicsBody(
     mesh,
     shape,
@@ -222,10 +233,11 @@ export const flockPhysics = {
   },
   up(meshName, upForce = 10) {
     const mesh = flock.scene.getMeshByName(meshName);
-    if (mesh) {
+    if (mesh?.physics) {
+      const impulsePoint = this.getPhysicsImpulsePoint(mesh);
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(0, upForce, 0),
-        mesh.getAbsolutePosition(),
+        impulsePoint,
       );
     } else {
       console.log("Model not loaded (up):", meshName);
@@ -234,9 +246,10 @@ export const flockPhysics = {
   applyForce(meshName, { forceX = 0, forceY = 0, forceZ = 0 } = {}) {
     const mesh = flock.scene.getMeshByName(meshName);
     if (mesh && mesh.physics) {
+      const impulsePoint = this.getPhysicsImpulsePoint(mesh);
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(forceX, forceY, forceZ),
-        mesh.getAbsolutePosition(),
+        impulsePoint,
       );
     } else {
       console.error(
