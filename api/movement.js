@@ -4,6 +4,46 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+function getHorizontalDirection(vector) {
+  const horizontal = new flock.BABYLON.Vector3(vector.x, 0, vector.z);
+  if (horizontal.lengthSquared() < 1e-6) {
+    return null;
+  }
+  return horizontal.normalize();
+}
+
+function getMovementBasis(model) {
+  const camera = flock.scene?.activeCamera;
+  const cameraFollowingModel = camera?.metadata?.following === model;
+
+  if (camera && cameraFollowingModel) {
+    const cameraForward = getHorizontalDirection(camera.getForwardRay().direction);
+    const cameraRight = getHorizontalDirection(
+      camera.getDirection(flock.BABYLON.Vector3.Right()),
+    );
+
+    if (cameraForward && cameraRight) {
+      return { forward: cameraForward, right: cameraRight };
+    }
+  }
+
+  const modelForward = getHorizontalDirection(
+    model.getDirection(flock.BABYLON.Vector3.Forward()),
+  );
+  const modelRight = getHorizontalDirection(
+    model.getDirection(flock.BABYLON.Vector3.Right()),
+  );
+
+  if (modelForward && modelRight) {
+    return { forward: modelForward, right: modelRight };
+  }
+
+  return {
+    forward: new flock.BABYLON.Vector3(0, 0, 1),
+    right: new flock.BABYLON.Vector3(1, 0, 0),
+  };
+}
+
 export const flockMovement = {
   moveForward(modelName, speed) {
     const model = flock.scene.getMeshByName(modelName);
@@ -39,13 +79,8 @@ export const flockMovement = {
     const up = flock.BABYLON.Vector3.Up();
     const scene = flock.scene;
 
-    // Desired horizontal direction from camera
-    const cameraForward = scene.activeCamera.getForwardRay().direction;
-    const horizontalForward = new flock.BABYLON.Vector3(
-      cameraForward.x,
-      0,
-      cameraForward.z,
-    ).normalize();
+    // Movement basis is camera-relative only when camera is attached to this model.
+    const { forward: horizontalForward } = getMovementBasis(model);
     const desiredHorizontalVelocity = horizontalForward.scale(speed);
 
     // --- Grounded check via capsule shapeCast ---
@@ -241,12 +276,10 @@ export const flockMovement = {
 
     const sidewaysSpeed = speed;
 
-    // Get the camera's right direction vector (perpendicular to the forward direction)
-    const cameraRight = flock.scene.activeCamera
-      .getDirection(flock.BABYLON.Vector3.Right())
-      .normalize();
+    // Movement basis is camera-relative only when camera is attached to this model.
+    const { right: horizontalRight } = getMovementBasis(model);
 
-    const moveDirection = cameraRight.scale(sidewaysSpeed);
+    const moveDirection = horizontalRight.scale(sidewaysSpeed);
     const currentVelocity = model.physics.getLinearVelocity();
 
     // Set linear velocity in the sideways direction
@@ -262,14 +295,14 @@ export const flockMovement = {
     const facingDirection =
       sidewaysSpeed <= 0
         ? new flock.BABYLON.Vector3(
-            -cameraRight.x,
+            -horizontalRight.x,
             0,
-            -cameraRight.z,
+            -horizontalRight.z,
           ).normalize() // Right
         : new flock.BABYLON.Vector3(
-            cameraRight.x,
+            horizontalRight.x,
             0,
-            cameraRight.z,
+            horizontalRight.z,
           ).normalize(); // Left
 
     const targetRotation = flock.BABYLON.Quaternion.FromLookDirectionLH(
@@ -297,13 +330,10 @@ export const flockMovement = {
 
     const sidewaysSpeed = -speed;
 
-    // Get the camera's right direction vector (perpendicular to the forward direction)
-    const cameraRight = flock.scene.activeCamera
-      .getForwardRay()
-      .direction.cross(flock.BABYLON.Vector3.Up())
-      .normalize();
+    // Movement basis is camera-relative only when camera is attached to this model.
+    const { right: horizontalRight } = getMovementBasis(model);
 
-    const moveDirection = cameraRight.scale(sidewaysSpeed);
+    const moveDirection = horizontalRight.scale(sidewaysSpeed);
     const currentVelocity = model.physics.getLinearVelocity();
 
     // Set linear velocity in the sideways direction (left or right)
