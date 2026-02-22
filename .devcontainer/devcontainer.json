@@ -1,0 +1,5 @@
+{
+  "name": "Playwright",
+  "image": "mcr.microsoft.com/playwright:v1.58.2-noble",
+  "postCreateCommand": "npm ci"
+}
