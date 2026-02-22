@@ -808,20 +808,25 @@ export const flockTransform = {
 
         const BABYLON = flock.BABYLON;
 
-        const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo?.();
+        const boundingBox = mesh.getBoundingInfo().boundingBox;
+        const localMin = boundingBox.minimum;
+        const localMax = boundingBox.maximum;
+
         function resolvePivotValue(value, axis) {
           if (typeof value === "string") {
             switch (value) {
               case "MIN":
-                return -bounding[axis];
+                return localMin[axis];
               case "MAX":
-                return bounding[axis];
+                return localMax[axis];
               case "CENTER":
               default:
-                return 0;
+                return (localMin[axis] + localMax[axis]) / 2;
             }
           }
-          return typeof value === "number" ? value : 0;
+          return typeof value === "number" ? value : (localMin[axis] + localMax[axis]) / 2;
         }
 
         // OLD pivot from metadata; default Y is MIN, X/Z are CENTER
