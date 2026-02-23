@@ -530,6 +530,21 @@ export function initializeWorkspace() {
                         ),
                 );
 
+                const addItemBlock = document.createElement("block");
+                addItemBlock.setAttribute("type", "lists_setIndex");
+
+                const modeField = document.createElement("field");
+                modeField.setAttribute("name", "MODE");
+                modeField.textContent = "INSERT";
+                addItemBlock.appendChild(modeField);
+
+                const whereField = document.createElement("field");
+                whereField.setAttribute("name", "WHERE");
+                whereField.textContent = "LAST";
+                addItemBlock.appendChild(whereField);
+
+                xmlList.push(addItemBlock);
+
                 [
                         "lists_create_empty",
                         "lists_create_with",
