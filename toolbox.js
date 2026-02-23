@@ -3273,6 +3273,7 @@ const toolboxLists = {
         icon: "./images/lists.svg",
         //colour: categoryColours["Lists"],
         categorystyle: "variables_category",
+        custom: "LIST",
         contents: [
                 {
                         kind: "block",

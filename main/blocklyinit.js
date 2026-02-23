@@ -441,6 +441,119 @@ export function initializeWorkspace() {
                 return xmlList;
         });
 
+        workspace.registerToolboxCategoryCallback("LIST", function (ws) {
+                const xmlList = [];
+                const variableMap = ws.getVariableMap();
+                const getNextListName = () => {
+                        const vars = variableMap.getAllVariables();
+                        let maxSuffix = 0;
+                        vars.forEach((model) => {
+                                const match = model.name.match(/^list(\d+)$/);
+                                if (match) {
+                                        maxSuffix = Math.max(
+                                                maxSuffix,
+                                                parseInt(match[1], 10),
+                                        );
+                                }
+                        });
+                        return `list${maxSuffix + 1}`;
+                };
+
+                const createSetListBlock = (valueBuilder) => {
+                        const block = document.createElement("block");
+                        block.setAttribute("type", "variables_set");
+
+                        const field = document.createElement("field");
+                        field.setAttribute("name", "VAR");
+                        field.setAttribute("variabletype", "");
+                        field.textContent = getNextListName();
+                        block.appendChild(field);
+
+                        const value = document.createElement("value");
+                        value.setAttribute("name", "VALUE");
+                        value.appendChild(valueBuilder());
+                        block.appendChild(value);
+
+                        return block;
+                };
+
+                const createListShadow = (shadowType, values) => {
+                        const shadow = document.createElement("shadow");
+                        shadow.setAttribute("type", "lists_create_with");
+                        shadow.setAttribute("inline", "true");
+
+                        const mutation = document.createElement("mutation");
+                        mutation.setAttribute("items", "2");
+                        shadow.appendChild(mutation);
+
+                        values.forEach((value, index) => {
+                                const valueNode = document.createElement("value");
+                                valueNode.setAttribute("name", `ADD${index}`);
+                                const childShadow = document.createElement("shadow");
+                                childShadow.setAttribute("type", shadowType);
+                                const field = document.createElement("field");
+                                field.setAttribute(
+                                        "name",
+                                        shadowType === "math_number"
+                                                ? "NUM"
+                                                : shadowType === "colour"
+                                                        ? "COLOR"
+                                                        : "TEXT",
+                                );
+                                field.textContent = String(value);
+                                childShadow.appendChild(field);
+                                valueNode.appendChild(childShadow);
+                                shadow.appendChild(valueNode);
+                        });
+
+                        return shadow;
+                };
+
+                xmlList.push(
+                        createSetListBlock(() => {
+                                const shadow = document.createElement("shadow");
+                                shadow.setAttribute("type", "lists_create_empty");
+                                return shadow;
+                        }),
+                );
+                xmlList.push(
+                        createSetListBlock(() =>
+                                createListShadow("math_number", [1, 2]),
+                        ),
+                );
+                xmlList.push(
+                        createSetListBlock(() => createListShadow("text", ["", ""])),
+                );
+                xmlList.push(
+                        createSetListBlock(() =>
+                                createListShadow("colour", ["#ff0000", "#0000ff"]),
+                        ),
+                );
+
+                [
+                        "lists_create_empty",
+                        "lists_create_with",
+                        "lists_repeat",
+                        "lists_length",
+                        "lists_isEmpty",
+                        "lists_indexOf",
+                        "lists_getIndex",
+                        "lists_setIndex",
+                        "lists_getSublist",
+                        "lists_split",
+                        "lists_sort",
+                ].forEach((type) => {
+                        const block = document.createElement("block");
+                        block.setAttribute("type", type);
+                        if (type === "lists_create_with") {
+                                block.setAttribute("inline", "true");
+                        }
+                        xmlList.push(block);
+                });
+
+                return xmlList;
+        });
+
         // Add change listeners
         workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
         workspace.addChangeListener(handleBlockSelect);
