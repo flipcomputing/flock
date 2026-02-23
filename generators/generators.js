@@ -4087,6 +4087,21 @@ javascriptGenerator.forBlock["lists_setIndex"] = function (block) {
         throw Error("Unhandled combination (lists_setIndex).");
 };
 
+javascriptGenerator.forBlock["lists_add_item"] = function (block) {
+        const listName = javascriptGenerator.nameDB_.getName(
+                block.getFieldValue("LIST"),
+                Blockly.Names.NameType.VARIABLE,
+        );
+        const value =
+                javascriptGenerator.valueToCode(
+                        block,
+                        "TO",
+                        javascriptGenerator.ORDER_ASSIGNMENT,
+                ) || '""';
+
+        return `${listName}.push(${value});\n`;
+};
+
 javascriptGenerator.forBlock["keyword"] = function (block) {
         return "";
 };

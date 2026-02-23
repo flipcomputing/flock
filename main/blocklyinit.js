@@ -530,26 +530,8 @@ export function initializeWorkspace() {
                         ),
                 );
 
-                const getDefaultListName = () => {
-                        const vars = variableMap.getAllVariables();
-                        if (vars.length > 0) {
-                                return vars[0].name;
-                        }
-                        return "list1";
-                };
-
                 const addItemBlock = document.createElement("block");
-                addItemBlock.setAttribute("type", "lists_setIndex");
-
-                const modeField = document.createElement("field");
-                modeField.setAttribute("name", "MODE");
-                modeField.textContent = "INSERT";
-                addItemBlock.appendChild(modeField);
-
-                const whereField = document.createElement("field");
-                whereField.setAttribute("name", "WHERE");
-                whereField.textContent = "LAST";
-                addItemBlock.appendChild(whereField);
+                addItemBlock.setAttribute("type", "lists_add_item");
 
                 const toValue = document.createElement("value");
                 toValue.setAttribute("name", "TO");
@@ -561,18 +543,6 @@ export function initializeWorkspace() {
                 toShadow.appendChild(toField);
                 toValue.appendChild(toShadow);
                 addItemBlock.appendChild(toValue);
-
-                const listValue = document.createElement("value");
-                listValue.setAttribute("name", "LIST");
-                const listShadow = document.createElement("shadow");
-                listShadow.setAttribute("type", "variables_get");
-                const listField = document.createElement("field");
-                listField.setAttribute("name", "VAR");
-                listField.setAttribute("variabletype", "");
-                listField.textContent = getDefaultListName();
-                listShadow.appendChild(listField);
-                listValue.appendChild(listShadow);
-                addItemBlock.appendChild(listValue);
 
                 xmlList.push(addItemBlock);
 

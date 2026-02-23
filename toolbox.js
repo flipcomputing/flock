@@ -3277,11 +3277,7 @@ const toolboxLists = {
         contents: [
                 {
                         kind: "block",
-                        type: "lists_setIndex",
-                        fields: {
-                                MODE: "INSERT",
-                                WHERE: "LAST",
-                        },
+                        type: "lists_add_item",
                         keyword: "add",
                 },
                 {
