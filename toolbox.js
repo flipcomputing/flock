@@ -3277,6 +3277,15 @@ const toolboxLists = {
         contents: [
                 {
                         kind: "block",
+                        type: "lists_setIndex",
+                        fields: {
+                                MODE: "INSERT",
+                                WHERE: "LAST",
+                        },
+                        keyword: "add",
+                },
+                {
+                        kind: "block",
                         type: "lists_create_empty",
                         keyword: "list",
                 },
