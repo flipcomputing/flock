@@ -3282,6 +3282,11 @@ const toolboxLists = {
                 },
                 {
                         kind: "block",
+                        type: "lists_delete_nth",
+                        keyword: "delete",
+                },
+                {
+                        kind: "block",
                         type: "lists_create_empty",
                         keyword: "list",
                 },

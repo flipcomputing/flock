@@ -546,6 +546,22 @@ export function initializeWorkspace() {
 
                 xmlList.push(addItemBlock);
 
+                const deleteItemBlock = document.createElement("block");
+                deleteItemBlock.setAttribute("type", "lists_delete_nth");
+
+                const indexValue = document.createElement("value");
+                indexValue.setAttribute("name", "INDEX");
+                const indexShadow = document.createElement("shadow");
+                indexShadow.setAttribute("type", "math_number");
+                const indexField = document.createElement("field");
+                indexField.setAttribute("name", "NUM");
+                indexField.textContent = "1";
+                indexShadow.appendChild(indexField);
+                indexValue.appendChild(indexShadow);
+                deleteItemBlock.appendChild(indexValue);
+
+                xmlList.push(deleteItemBlock);
+
                 [
                         "lists_create_empty",
                         "lists_create_with",
