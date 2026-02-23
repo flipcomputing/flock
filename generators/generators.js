@@ -4099,7 +4099,7 @@ javascriptGenerator.forBlock["lists_add_item"] = function (block) {
                         javascriptGenerator.ORDER_ASSIGNMENT,
                 ) || '""';
 
-        return `${listName}.push(${value});\n`;
+        return `if (!Array.isArray(${listName})) {\n  ${listName} = [];\n}\n${listName}.push(${value});\n`;
 };
 
 javascriptGenerator.forBlock["keyword"] = function (block) {
