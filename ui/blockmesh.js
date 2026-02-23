@@ -2111,6 +2111,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     Skin: "SKIN_COLOR",
     Eyes: "EYES_COLOR",
     Sleeves: "SLEEVES_COLOR",
+    Detail: "SLEEVES_COLOR",
     Shorts: "SHORTS_COLOR",
     TShirt: "TSHIRT_COLOR",
   };
