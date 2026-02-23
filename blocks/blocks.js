@@ -1322,6 +1322,57 @@ export function defineBlocks() {
     },
   };
 
+  Blockly.Blocks["lists_add_item"] = {
+    init: function () {
+      this.jsonInit({
+        type: "lists_add_item",
+        message0: "add %1 to %2",
+        args0: [
+          {
+            type: "input_value",
+            name: "TO",
+          },
+          {
+            type: "field_variable",
+            name: "LIST",
+            variable: "list1",
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        tooltip: "Add an item to the end of a list.",
+      });
+      this.setStyle("list_blocks");
+      this.setHelpUrl(getHelpUrlFor(this.type));
+    },
+  };
+
+  Blockly.Blocks["lists_delete_nth"] = {
+    init: function () {
+      this.jsonInit({
+        type: "lists_delete_nth",
+        message0: "delete %1 from %2",
+        args0: [
+          {
+            type: "input_value",
+            name: "INDEX",
+            check: "Number",
+          },
+          {
+            type: "field_variable",
+            name: "LIST",
+            variable: "list1",
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        tooltip: "Delete item at index n from a list (0-based).",
+      });
+      this.setStyle("list_blocks");
+      this.setHelpUrl(getHelpUrlFor(this.type));
+    },
+  };
+
   Blockly.Blocks["to_number"] = {
     init: function () {
       this.jsonInit({

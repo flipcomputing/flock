@@ -530,6 +530,38 @@ export function initializeWorkspace() {
                         ),
                 );
 
+                const addItemBlock = document.createElement("block");
+                addItemBlock.setAttribute("type", "lists_add_item");
+
+                const toValue = document.createElement("value");
+                toValue.setAttribute("name", "TO");
+                const toShadow = document.createElement("shadow");
+                toShadow.setAttribute("type", "text");
+                const toField = document.createElement("field");
+                toField.setAttribute("name", "TEXT");
+                toField.textContent = "";
+                toShadow.appendChild(toField);
+                toValue.appendChild(toShadow);
+                addItemBlock.appendChild(toValue);
+
+                xmlList.push(addItemBlock);
+
+                const deleteItemBlock = document.createElement("block");
+                deleteItemBlock.setAttribute("type", "lists_delete_nth");
+
+                const indexValue = document.createElement("value");
+                indexValue.setAttribute("name", "INDEX");
+                const indexShadow = document.createElement("shadow");
+                indexShadow.setAttribute("type", "math_number");
+                const indexField = document.createElement("field");
+                indexField.setAttribute("name", "NUM");
+                indexField.textContent = "1";
+                indexShadow.appendChild(indexField);
+                indexValue.appendChild(indexShadow);
+                deleteItemBlock.appendChild(indexValue);
+
+                xmlList.push(deleteItemBlock);
+
                 [
                         "lists_create_empty",
                         "lists_create_with",

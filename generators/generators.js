@@ -4087,6 +4087,39 @@ javascriptGenerator.forBlock["lists_setIndex"] = function (block) {
         throw Error("Unhandled combination (lists_setIndex).");
 };
 
+javascriptGenerator.forBlock["lists_add_item"] = function (block) {
+        const listName = javascriptGenerator.nameDB_.getName(
+                block.getFieldValue("LIST"),
+                Blockly.Names.NameType.VARIABLE,
+        );
+        const value =
+                javascriptGenerator.valueToCode(
+                        block,
+                        "TO",
+                        javascriptGenerator.ORDER_ASSIGNMENT,
+                ) || '""';
+
+        return `if (!Array.isArray(${listName})) {\n  ${listName} = [];\n}\n${listName}.push(${value});\n`;
+};
+
+javascriptGenerator.forBlock["lists_delete_nth"] = function (block) {
+        const listName = javascriptGenerator.nameDB_.getName(
+                block.getFieldValue("LIST"),
+                Blockly.Names.NameType.VARIABLE,
+        );
+        const index =
+                javascriptGenerator.valueToCode(
+                        block,
+                        "INDEX",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "0";
+
+        return `if (Array.isArray(${listName})) {
+  ${listName}.splice(${index}, 1);
+}
+`;
+};
+
 javascriptGenerator.forBlock["keyword"] = function (block) {
         return "";
 };
