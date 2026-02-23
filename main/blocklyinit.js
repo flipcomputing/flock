@@ -530,6 +530,14 @@ export function initializeWorkspace() {
                         ),
                 );
 
+                const getDefaultListName = () => {
+                        const vars = variableMap.getAllVariables();
+                        if (vars.length > 0) {
+                                return vars[0].name;
+                        }
+                        return "list1";
+                };
+
                 const addItemBlock = document.createElement("block");
                 addItemBlock.setAttribute("type", "lists_setIndex");
 
@@ -542,6 +550,29 @@ export function initializeWorkspace() {
                 whereField.setAttribute("name", "WHERE");
                 whereField.textContent = "LAST";
                 addItemBlock.appendChild(whereField);
+
+                const toValue = document.createElement("value");
+                toValue.setAttribute("name", "TO");
+                const toShadow = document.createElement("shadow");
+                toShadow.setAttribute("type", "text");
+                const toField = document.createElement("field");
+                toField.setAttribute("name", "TEXT");
+                toField.textContent = "";
+                toShadow.appendChild(toField);
+                toValue.appendChild(toShadow);
+                addItemBlock.appendChild(toValue);
+
+                const listValue = document.createElement("value");
+                listValue.setAttribute("name", "LIST");
+                const listShadow = document.createElement("shadow");
+                listShadow.setAttribute("type", "variables_get");
+                const listField = document.createElement("field");
+                listField.setAttribute("name", "VAR");
+                listField.setAttribute("variabletype", "");
+                listField.textContent = getDefaultListName();
+                listShadow.appendChild(listField);
+                listValue.appendChild(listShadow);
+                addItemBlock.appendChild(listValue);
 
                 xmlList.push(addItemBlock);
 
