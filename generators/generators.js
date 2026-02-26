@@ -163,6 +163,12 @@ function emitSafeIdentifierLiteral(code) {
 }
 
 export function defineGenerators() {
+        const reservedWordsWithoutName = javascriptGenerator.RESERVED_WORDS_
+                .split(",")
+                .map((word) => word.trim())
+                .filter((word) => word && word !== "name")
+                .join(",");
+
         // Force re-initialization of animation generators
         delete javascriptGenerator.forBlock["play_animation"];
         delete javascriptGenerator.forBlock["switch_animation"];
@@ -3311,7 +3317,7 @@ export function defineGenerators() {
                 console.log("Initializing JavaScript generator...");
                 if (!javascriptGenerator.nameDB_) {
                         javascriptGenerator.nameDB_ = new Blockly.Names(
-                                javascriptGenerator.RESERVED_WORDS_,
+                                reservedWordsWithoutName,
                         );
                 } else {
                         javascriptGenerator.nameDB_.reset();
@@ -3373,7 +3379,7 @@ export function defineGenerators() {
 
                 if (!javascriptGenerator.nameDB_) {
                         javascriptGenerator.nameDB_ = new Blockly.Names(
-                                javascriptGenerator.RESERVED_WORDS_,
+                                reservedWordsWithoutName,
                         );
                 } else {
                         javascriptGenerator.nameDB_.reset();
