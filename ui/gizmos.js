@@ -39,9 +39,9 @@ let colorPickingCirclePosition = { x: 0, y: 0 };
 let _onPickMeshRef = null;
 let paintModeActive = false;
 let paintModeExplicit = false;
-let pickerPointerType = "mouse";
 let pickerContentElement = null;
 let colorButtonLastPointerType = "mouse";
+let pickerPointerMoveBound = false;
 
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
       },
       onClose: () => {
         deactivatePaintMode({ clearExplicit: true });
-        detachPickerHoverHandlers();
+        detachPickerPointerTracking();
       },
       target: document.body,
     });
@@ -123,10 +123,11 @@ document.addEventListener("DOMContentLoaded", function () {
     colorButton.addEventListener("click", (event) => {
       event.preventDefault();
       if (colorPicker) {
-        pickerPointerType = colorButtonLastPointerType || detectPickerPointerType();
+        colorButtonLastPointerType =
+          colorButtonLastPointerType || detectPickerPointerType();
         paintModeExplicit = false;
         colorPicker.open(window.selectedColor);
-        bindPickerHoverHandlers();
+        bindPickerPointerTracking();
         updatePaintToolVisualState();
       }
     });
@@ -186,38 +187,63 @@ function deactivatePaintMode({ clearExplicit = false } = {}) {
   updatePaintToolVisualState();
 }
 
-function bindPickerHoverHandlers() {
-  detachPickerHoverHandlers();
+function bindPickerPointerTracking() {
+  detachPickerPointerTracking();
   if (!colorPicker?.container) return;
 
   pickerContentElement = colorPicker.container.querySelector(".color-picker-content");
-  if (!pickerContentElement || pickerPointerType !== "mouse") return;
+  if (!pickerContentElement) return;
 
-  pickerContentElement.addEventListener("pointerleave", handlePickerPointerLeave);
-  pickerContentElement.addEventListener("pointerenter", handlePickerPointerEnter);
+  document.addEventListener("pointermove", handlePickerPointerMove, true);
+  pickerPointerMoveBound = true;
 }
 
-function detachPickerHoverHandlers() {
-  if (!pickerContentElement) return;
-  pickerContentElement.removeEventListener("pointerleave", handlePickerPointerLeave);
-  pickerContentElement.removeEventListener("pointerenter", handlePickerPointerEnter);
+function detachPickerPointerTracking() {
+  if (pickerPointerMoveBound) {
+    document.removeEventListener("pointermove", handlePickerPointerMove, true);
+    pickerPointerMoveBound = false;
+  }
+
   pickerContentElement = null;
 }
 
-function handlePickerPointerLeave(event) {
+function handlePickerPointerMove(event) {
   if (!colorPicker?.isOpen) return;
+
   if (event.pointerType && event.pointerType !== "mouse") return;
+
+  if (!pickerContentElement) return;
+
+  const rect = pickerContentElement.getBoundingClientRect();
+  const isInsidePicker =
+    event.clientX >= rect.left &&
+    event.clientX <= rect.right &&
+    event.clientY >= rect.top &&
+    event.clientY <= rect.bottom;
+
+  if (isInsidePicker) {
+    deactivatePaintMode();
+    return;
+  }
+
   activatePaintMode();
 }
 
-function handlePickerPointerEnter(event) {
-  if (!colorPicker?.isOpen) return;
-  if (event.pointerType && event.pointerType !== "mouse") return;
-  deactivatePaintMode();
-}
-
 function updatePaintToolVisualState() {
-  colorPicker?.updatePaintModeButtonVisual?.(paintModeExplicit || paintModeActive);
+  const colorPickerButton = document.getElementById("colorPickerButton");
+  if (!colorPickerButton) return;
+
+  const shouldShowActive = paintModeExplicit || paintModeActive;
+  colorPickerButton.classList.toggle("paint-mode-active", shouldShowActive);
+
+  if (shouldShowActive) {
+    colorPickerButton.style.setProperty("--paint-mode-color", window.selectedColor);
+  } else {
+    colorPickerButton.style.removeProperty("--paint-mode-color");
+  }
+
+  // Keep the in-dialog paint button neutral; active indicator belongs on the canvas tool button.
+  colorPicker?.updatePaintModeButtonVisual?.(false);
 }
 
 function applyColorAtPosition(canvasX, canvasY) {
