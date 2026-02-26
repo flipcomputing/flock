@@ -897,8 +897,15 @@ class CustomColorPicker {
       const parentRect = parent.getBoundingClientRect();
       const pickerRect = this.container.getBoundingClientRect();
 
-      const newLeft = Math.max(0, Math.min(startLeft + dx, parentRect.width - pickerRect.width));
-      const newTop = Math.max(0, Math.min(startTop + dy, parentRect.height - pickerRect.height));
+      const maxLeft = Math.max(0, parentRect.width - pickerRect.width);
+      const dragHandleHeight = Math.max(1, handle.offsetHeight || 24);
+      const maxTopInViewport = Math.max(
+        0,
+        window.innerHeight - parentRect.top - dragHandleHeight,
+      );
+
+      const newLeft = Math.max(0, Math.min(startLeft + dx, maxLeft));
+      const newTop = Math.max(0, Math.min(startTop + dy, maxTopInViewport));
 
       this.container.style.left = `${newLeft}px`;
       this.container.style.top = `${newTop}px`;
@@ -1856,35 +1863,37 @@ class CustomColorPicker {
         this.container.style.maxWidth = "none";
         this.container.style.marginLeft = "10px";
         this.container.style.marginRight = "10px";
-        const topPosition = Math.max(10, buttonRect.top - canvasRect.top - 200);
-        const pickerHeight = 250;
-        const bottomBarHeight = 40;
-        const maxTop = canvasRect.height - pickerHeight - bottomBarHeight;
-        this.container.style.top = `${Math.min(topPosition, Math.max(10, maxTop))}px`;
       } else {
         this.container.style.left = `${buttonRect.left - canvasRect.left}px`;
-        this.container.style.top = `${buttonRect.top - canvasRect.top - 180}px`;
         this.container.style.width = "360px";
         this.container.style.right = "auto";
 
         const containerWidth = 360;
-        if (
-          buttonRect.left - canvasRect.left + containerWidth >
-          canvasRect.width
-        ) {
+        if (buttonRect.left - canvasRect.left + containerWidth > canvasRect.width) {
           this.container.style.left = `${canvasRect.width - containerWidth - 10}px`;
         }
-        if (buttonRect.top - canvasRect.top - 180 < 10) {
-          this.container.style.top = "10px";
-        }
-        const pickerHeight = 250;
-        const bottomBarHeight = 40;
-        const maxTop = canvasRect.height - pickerHeight - bottomBarHeight;
-        const currentTop = parseInt(this.container.style.top, 10);
-        if (currentTop > maxTop) {
-          this.container.style.top = `${Math.max(10, maxTop)}px`;
-        }
       }
+
+      const content = this.container.querySelector(".color-picker-content");
+      const measuredPickerHeight =
+        content?.getBoundingClientRect().height || this.container.offsetHeight || 250;
+      const bottomBarHeight = 40;
+      const maxTop = canvasRect.height - measuredPickerHeight - bottomBarHeight;
+      const bottomAlignedTop = Math.max(10, maxTop);
+
+      const gizmoButtons = document.getElementById("gizmoButtons");
+      const gizmosVisible =
+        gizmoButtons &&
+        getComputedStyle(gizmoButtons).display !== "none" &&
+        getComputedStyle(gizmoButtons).visibility !== "hidden";
+      const gizmoRect = gizmosVisible
+        ? gizmoButtons.getBoundingClientRect()
+        : buttonRect;
+      const belowGizmosTop = Math.max(10, gizmoRect.bottom - canvasRect.top + 8);
+
+      const topPosition =
+        belowGizmosTop <= bottomAlignedTop ? belowGizmosTop : bottomAlignedTop;
+      this.container.style.top = `${topPosition}px`;
     }
 
     // After visible: size canvases, pick a usable start color, then draw & place handles
