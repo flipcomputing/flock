@@ -298,6 +298,8 @@ class CustomColorPicker {
     this.container.innerHTML = `
       <div class="color-picker-backdrop"></div>
       <div class="color-picker-content">
+        <div class="color-picker-drag-handle" aria-hidden="true"></div>
+        <div class="color-picker-inner">
         <div class="color-picker-body">
           <div class="color-picker-left">
             <div class="color-wheel-section">
@@ -375,6 +377,7 @@ class CustomColorPicker {
           <button class="color-picker-use" type="button" aria-label="${translate('use_this_color')}" title="${translate('use_this_color')}">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free v6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="white" d="M41.4 9.4C53.9-3.1 74.1-3.1 86.6 9.4L168 90.7l53.1-53.1c28.1-28.1 73.7-28.1 101.8 0L474.3 189.1c28.1 28.1 28.1 73.7 0 101.8L283.9 481.4c-37.5 37.5-98.3 37.5-135.8 0L30.6 363.9c-37.5-37.5-37.5-98.3 0-135.8L122.7 136 41.4 54.6c-12.5-12.5-12.5-32.8 0-45.3zm176 221.3L168 181.3 75.9 273.4c-4.2 4.2-7 9.3-8.4 14.6l319.2 0 42.3-42.3c3.1-3.1 3.1-8.2 0-11.3L277.7 82.9c-3.1-3.1-8.2-3.1-11.3 0L213.3 136l49.4 49.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0zM512 512c-35.3 0-64-28.7-64-64c0-25.2 32.6-79.6 51.2-108.7c6-9.4 19.5-9.4 25.5 0C543.4 368.4 576 422.8 576 448c0 35.3-28.7 64-64 64z"/></svg>
           </button>
+        </div>
         </div>
       </div>
     `;
@@ -852,9 +855,61 @@ class CustomColorPicker {
       });
     }
 
+    // Drag handle for repositioning the picker
+    this.setupDragHandle();
+
     // Focus trap + hue slider keyboard
     this.setupFocusTrapping();
     this.setupHueSliderKeyboard();
+  }
+
+  setupDragHandle() {
+    const handle = this.container.querySelector(".color-picker-drag-handle");
+    if (!handle) return;
+
+    let dragging = false;
+    let startX = 0;
+    let startY = 0;
+    let startLeft = 0;
+    let startTop = 0;
+
+    handle.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      dragging = true;
+      handle.setPointerCapture(e.pointerId);
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = parseInt(this.container.style.left, 10) || 0;
+      startTop = parseInt(this.container.style.top, 10) || 0;
+      handle.style.cursor = "grabbing";
+    });
+
+    handle.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      e.preventDefault();
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      const parent = this.container.parentElement;
+      if (!parent) return;
+      const parentRect = parent.getBoundingClientRect();
+      const pickerRect = this.container.getBoundingClientRect();
+
+      const newLeft = Math.max(0, Math.min(startLeft + dx, parentRect.width - pickerRect.width));
+      const newTop = Math.max(0, Math.min(startTop + dy, parentRect.height - pickerRect.height));
+
+      this.container.style.left = `${newLeft}px`;
+      this.container.style.top = `${newTop}px`;
+    });
+
+    const endDrag = () => {
+      if (!dragging) return;
+      dragging = false;
+      handle.style.cursor = "";
+    };
+
+    handle.addEventListener("pointerup", endDrag);
+    handle.addEventListener("pointercancel", endDrag);
   }
 
   _setWheelNormalized(nx, ny) {
