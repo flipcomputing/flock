@@ -898,9 +898,10 @@ class CustomColorPicker {
       const pickerRect = this.container.getBoundingClientRect();
 
       const maxLeft = Math.max(0, parentRect.width - pickerRect.width);
+      const dragHandleHeight = Math.max(1, handle.offsetHeight || 24);
       const maxTopInViewport = Math.max(
         0,
-        window.innerHeight - parentRect.top - pickerRect.height,
+        window.innerHeight - parentRect.top - dragHandleHeight,
       );
 
       const newLeft = Math.max(0, Math.min(startLeft + dx, maxLeft));
