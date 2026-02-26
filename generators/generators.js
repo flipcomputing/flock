@@ -3241,7 +3241,12 @@ export function defineGenerators() {
                         block.getFieldValue("NAME"),
                         Blockly.PROCEDURE_CATEGORY_NAME,
                 );
-                const args = block.argData_.map((elem) => elem.model.name);
+                const args = block.argData_.map((elem) =>
+                        javascriptGenerator.nameDB_.getName(
+                                elem.model.name,
+                                Blockly.Names.NameType.VARIABLE,
+                        ),
+                );
                 const params = args.join(", ");
 
                 const branch =
@@ -3283,7 +3288,12 @@ export function defineGenerators() {
                         block.getFieldValue("NAME"),
                         Blockly.PROCEDURE_CATEGORY_NAME,
                 );
-                const args = block.argData_.map((elem) => elem.model.name);
+                const args = block.argData_.map((elem) =>
+                        javascriptGenerator.nameDB_.getName(
+                                elem.model.name,
+                                Blockly.Names.NameType.VARIABLE,
+                        ),
+                );
                 const params = args.join(", ");
                 const branch =
                         javascriptGenerator.statementToCode(
