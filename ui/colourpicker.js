@@ -1864,9 +1864,11 @@ class CustomColorPicker {
         this.container.style.marginLeft = "10px";
         this.container.style.marginRight = "10px";
 
-        const pickerHeight = 250;
+        const content = this.container.querySelector(".color-picker-content");
+        const measuredPickerHeight =
+          content?.getBoundingClientRect().height || this.container.offsetHeight || 250;
         const bottomBarHeight = 40;
-        const maxTop = canvasRect.height - pickerHeight - bottomBarHeight;
+        const maxTop = canvasRect.height - measuredPickerHeight - bottomBarHeight;
         const bottomAlignedTop = Math.max(10, maxTop);
 
         const gizmoButtons = document.getElementById("gizmoButtons");
@@ -1879,7 +1881,9 @@ class CustomColorPicker {
           : buttonRect;
         const belowGizmosTop = Math.max(10, gizmoRect.bottom - canvasRect.top + 8);
 
-        this.container.style.top = `${Math.min(belowGizmosTop, bottomAlignedTop)}px`;
+        const topPosition =
+          belowGizmosTop <= bottomAlignedTop ? belowGizmosTop : bottomAlignedTop;
+        this.container.style.top = `${topPosition}px`;
       } else {
         this.container.style.left = `${buttonRect.left - canvasRect.left}px`;
         this.container.style.top = `${buttonRect.top - canvasRect.top - 180}px`;
