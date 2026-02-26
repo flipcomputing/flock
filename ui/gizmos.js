@@ -116,8 +116,12 @@ let _onPickMeshRef = null;
 
 function pickMeshFromCanvas() {
   const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const activatedAt = performance.now();
 
   const onPickMesh = function (event) {
+    // Ignore the click that triggered paint mode activation.
+    if (event.timeStamp <= activatedAt + 16) return;
+
     const canvasRect = canvas.getBoundingClientRect();
 
     // Exit if outside canvas
@@ -140,9 +144,7 @@ function pickMeshFromCanvas() {
   document.body.style.cursor = "crosshair";
   canvas.style.cursor = "crosshair";
 
-  setTimeout(() => {
-    window.addEventListener("click", onPickMesh);
-  }, 200);
+  window.addEventListener("click", onPickMesh);
 }
 
 function applyColorAtPosition(canvasX, canvasY) {
