@@ -897,8 +897,14 @@ class CustomColorPicker {
       const parentRect = parent.getBoundingClientRect();
       const pickerRect = this.container.getBoundingClientRect();
 
-      const newLeft = Math.max(0, Math.min(startLeft + dx, parentRect.width - pickerRect.width));
-      const newTop = Math.max(0, Math.min(startTop + dy, parentRect.height - pickerRect.height));
+      const maxLeft = Math.max(0, parentRect.width - pickerRect.width);
+      const maxTopInViewport = Math.max(
+        0,
+        window.innerHeight - parentRect.top - pickerRect.height,
+      );
+
+      const newLeft = Math.max(0, Math.min(startLeft + dx, maxLeft));
+      const newTop = Math.max(0, Math.min(startTop + dy, maxTopInViewport));
 
       this.container.style.left = `${newLeft}px`;
       this.container.style.top = `${newTop}px`;
