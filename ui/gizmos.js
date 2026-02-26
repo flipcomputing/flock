@@ -116,11 +116,14 @@ let _onPickMeshRef = null;
 
 function pickMeshFromCanvas() {
   const canvas = flock.scene.getEngine().getRenderingCanvas();
-  const activatedAt = performance.now();
+  let ignoreActivationClick = true;
 
   const onPickMesh = function (event) {
-    // Ignore the click that triggered paint mode activation.
-    if (event.timeStamp <= activatedAt + 16) return;
+    // Ignore exactly one click: the one that triggered paint mode activation.
+    if (ignoreActivationClick) {
+      ignoreActivationClick = false;
+      return;
+    }
 
     const canvasRect = canvas.getBoundingClientRect();
 
