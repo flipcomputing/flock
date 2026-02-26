@@ -616,6 +616,9 @@ export const flockMaterial = {
     };
 
     const isCharacterLike = isCharacterMesh(mesh) || isCharacterLikeMesh(mesh);
+    const isTextPlaneMesh = (part) =>
+      part?.name === "textPlane" || part?.metadata?.isTextPlane;
+
     if (isCharacterLike) {
       const root = getRootMesh(mesh);
       flock.ensureStandardMaterial(root);
@@ -655,6 +658,8 @@ export const flockMaterial = {
     const materialToColorMap = new Map();
 
     function applyColorInOrder(part) {
+      if (isTextPlaneMesh(part)) return;
+
       if (part.material) {
         // Check if the material is already processed
         if (!materialToColorMap.has(part.material)) {
@@ -695,6 +700,7 @@ export const flockMaterial = {
       // Process the submeshes (children) of the current mesh, sorted alphabetically
       const sortedChildMeshes = part
         .getChildMeshes()
+        .filter((child) => !isTextPlaneMesh(child))
         .sort((a, b) => a.name.localeCompare(b.name));
       sortedChildMeshes.forEach((child) => applyColorInOrder(child));
     }
@@ -924,8 +930,13 @@ export const flockMaterial = {
     material.alpha = alpha;
     material.backFaceCulling = false;
 
+    const isTextPlaneMesh = (part) =>
+      part?.name === "textPlane" || part?.metadata?.isTextPlane;
+
     // Assign the material to the mesh and its descendants
-    const allMeshes = [mesh].concat(mesh.getDescendants());
+    const allMeshes = [mesh]
+      .concat(mesh.getDescendants())
+      .filter((part) => !isTextPlaneMesh(part));
     allMeshes.forEach((part) => {
       part.material = material;
       flock.adjustMaterialTilingToMesh(part, material);
@@ -1485,10 +1496,16 @@ export const flockMaterial = {
     const applyColor = opts.applyColor ?? true;
     if (!applyColor || !rootMesh || !colorInput) return rootMesh;
 
+    const isTextPlaneMesh = (part) =>
+      part?.name === "textPlane" || part?.metadata?.isTextPlane;
+
     const geometryMeshes = rootMesh
       .getDescendants(false)
       .filter(
-        (n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0,
+        (n) =>
+          n instanceof flock.BABYLON.Mesh &&
+          n.getTotalVertices() > 0 &&
+          !isTextPlaneMesh(n),
       )
       .sort((a, b) =>
         a.name.localeCompare(b.name, undefined, {
