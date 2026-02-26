@@ -95,10 +95,31 @@ document.addEventListener("DOMContentLoaded", function () {
         // After color picker closes, start mesh selection
         pickMeshFromCanvas();
       },
+      excludeFromClose: (target) => {
+        // Don't close picker when clicking on the 3D canvas — we handle it directly
+        const canvas = document.getElementById("renderCanvas");
+        return canvas && (canvas === target || canvas.contains(target));
+      },
       target: document.body,
     });
     // Make accessible globally for translation updates
     window.flockColorPicker = colorPicker;
+
+    // Direct painting: clicking/tapping the canvas while picker is open applies colour
+    const renderCanvas = document.getElementById("renderCanvas");
+    if (renderCanvas) {
+      renderCanvas.addEventListener("click", (event) => {
+        if (!colorPicker?.isOpen) return;
+        // Use picker's live colour (not yet confirmed via "Use")
+        window.selectedColor = colorPicker.currentColor || window.selectedColor;
+        const canvasRect = renderCanvas.getBoundingClientRect();
+        const [canvasX, canvasY] = getCanvasXAndCanvasYValues(
+          event,
+          canvasRect,
+        );
+        applyColorAtPosition(canvasX, canvasY);
+      });
+    }
   }
 
   // Attach click event to open custom color picker

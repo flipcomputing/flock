@@ -86,6 +86,7 @@ class CustomColorPicker {
     this.onColorChange = options.onColorChange || (() => {});
     this.onClose = options.onClose || (() => {});
     this.targetElement = options.target || document.body;
+    this.excludeFromClose = options.excludeFromClose || null;
 
     this.isOpen = false;
 
@@ -647,6 +648,7 @@ class CustomColorPicker {
     // Click outside to close (guarded during eyedropper)
     this.outsideClickHandler = (e) => {
       if (this._eyedropperActive) return; // don't close while eyedropper overlay is up
+      if (this.excludeFromClose && this.excludeFromClose(e.target)) return; // e.g. canvas click
       if (this.isOpen && !this.container.contains(e.target)) {
         this.close();
       }
@@ -1829,12 +1831,13 @@ class CustomColorPicker {
 
   open(color = this.currentColor) {
     disableGizmos();
-    
+
     // Show first so layout has real sizes
     this.container.style.display = "block";
     this.container.style.opacity = "1";
     this.container.style.pointerEvents = "auto";
     this.isOpen = true;
+    document.body.classList.add("color-picker-open");
 
     // --- Positioning (unchanged) ---
     const colorButton = document.getElementById("colorPickerButton");
@@ -2020,6 +2023,7 @@ class CustomColorPicker {
   close() {
     this.container.style.display = "none";
     this.isOpen = false;
+    document.body.classList.remove("color-picker-open");
     document.removeEventListener("click", this.outsideClickHandler, true);
   }
 
