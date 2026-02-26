@@ -88,6 +88,7 @@ class CustomColorPicker {
     this.targetElement = options.target || document.body;
 
     this.isOpen = false;
+    this.userMovedPicker = false;
 
     // Eyedropper state
     this._eyedropperActive = false;
@@ -298,6 +299,9 @@ class CustomColorPicker {
     this.container.innerHTML = `
       <div class="color-picker-backdrop"></div>
       <div class="color-picker-content">
+        <div class="color-picker-drag-handle" aria-label="${translate('move_color_picker') || 'Move color picker'}" title="${translate('move_color_picker') || 'Move color picker'}">
+          <span class="color-picker-drag-grip" aria-hidden="true">⋮⋮</span>
+        </div>
         <div class="color-picker-body">
           <div class="color-picker-left">
             <div class="color-wheel-section">
@@ -406,6 +410,7 @@ class CustomColorPicker {
     // Palette UI refs
     this.paletteSelect = this.container.querySelector("#palette-select");
     this.paletteGrid = this.container.querySelector(".color-palette");
+    this.dragHandle = this.container.querySelector(".color-picker-drag-handle");
 
     // Build dropdown options + render default swatches before events bind
     this._initPaletteUI();
@@ -422,6 +427,7 @@ class CustomColorPicker {
     this.drawColorWheel();
     this.drawHueSlider();
     this.setupLightnessCanvasScaling();
+    this.makePopupDraggable();
   }
 
   _initPaletteUI() {
@@ -456,8 +462,8 @@ class CustomColorPicker {
         const label = translate(c.name) || c.hex;
         const hex = c.hex;
         return `
-        <button 
-          class="color-swatch" 
+        <button
+          class="color-swatch"
           style="background-color: ${hex}"
           data-color="${hex}"
           title="${label}"
@@ -638,14 +644,16 @@ class CustomColorPicker {
     // Close on backdrop click
     const backdrop = this.container.querySelector(".color-picker-backdrop");
     if (backdrop) {
-      backdrop.addEventListener("click", () => this.close());
+      backdrop.addEventListener("click", () =>
+        this.close({ commitColor: true, triggerOnClose: true }),
+      );
     }
 
     // Click outside to close (guarded during eyedropper)
     this.outsideClickHandler = (e) => {
       if (this._eyedropperActive) return; // don't close while eyedropper overlay is up
       if (this.isOpen && !this.container.contains(e.target)) {
-        this.close();
+        this.close({ commitColor: true, triggerOnClose: true });
       }
     };
 
@@ -1774,7 +1782,7 @@ class CustomColorPicker {
 
   open(color = this.currentColor) {
     disableGizmos();
-    
+
     // Show first so layout has real sizes
     this.container.style.display = "block";
     this.container.style.opacity = "1";
@@ -1784,7 +1792,7 @@ class CustomColorPicker {
     // --- Positioning (unchanged) ---
     const colorButton = document.getElementById("colorPickerButton");
     const canvasArea = document.getElementById("canvasArea");
-    if (colorButton && canvasArea) {
+    if (colorButton && canvasArea && !this.userMovedPicker) {
       const buttonRect = colorButton.getBoundingClientRect();
       const canvasRect = canvasArea.getBoundingClientRect();
 
@@ -1962,18 +1970,80 @@ class CustomColorPicker {
     }
   }
 
-  close() {
+  close(options = {}) {
+    const { commitColor = false, triggerOnClose = false } = options;
+    if (commitColor) {
+      this.onColorChange(this.currentColor);
+    }
     this.container.style.display = "none";
     this.isOpen = false;
     document.removeEventListener("click", this.outsideClickHandler, true);
+
+    if (triggerOnClose && this.onClose) {
+      setTimeout(() => this.onClose(), 100);
+    }
   }
 
   confirmColor() {
-    this.onColorChange(this.currentColor);
-    this.close();
-    if (this.onClose) {
-      setTimeout(() => this.onClose(), 100);
-    }
+    this.close({ commitColor: true, triggerOnClose: true });
+  }
+
+  makePopupDraggable() {
+    if (!this.dragHandle) return;
+
+    let dragging = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    const updatePosition = (clientX, clientY) => {
+      const parent = this.container.parentElement;
+      if (!parent) return;
+
+      const parentRect = parent.getBoundingClientRect();
+      const pickerRect = this.container.getBoundingClientRect();
+
+      const minX = 0;
+      const minY = 0;
+      const maxX = Math.max(0, parentRect.width - pickerRect.width);
+      const maxY = Math.max(0, parentRect.height - pickerRect.height);
+
+      const nextX = Math.min(Math.max(clientX - parentRect.left - dragOffsetX, minX), maxX);
+      const nextY = Math.min(Math.max(clientY - parentRect.top - dragOffsetY, minY), maxY);
+
+      this.container.style.left = `${nextX}px`;
+      this.container.style.top = `${nextY}px`;
+      this.container.style.right = "auto";
+      this.container.style.marginLeft = "0";
+      this.container.style.marginRight = "0";
+      this.userMovedPicker = true;
+    };
+
+    const onPointerMove = (e) => {
+      if (!dragging) return;
+      e.preventDefault();
+      updatePosition(e.clientX, e.clientY);
+    };
+
+    const onPointerUp = (e) => {
+      dragging = false;
+      try {
+        this.dragHandle.releasePointerCapture?.(e.pointerId);
+      } catch {}
+      document.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("pointerup", onPointerUp);
+    };
+
+    this.dragHandle.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      const pickerRect = this.container.getBoundingClientRect();
+      dragOffsetX = e.clientX - pickerRect.left;
+      dragOffsetY = e.clientY - pickerRect.top;
+      dragging = true;
+      this.dragHandle.setPointerCapture?.(e.pointerId);
+      document.addEventListener("pointermove", onPointerMove);
+      document.addEventListener("pointerup", onPointerUp);
+    });
   }
 }
 

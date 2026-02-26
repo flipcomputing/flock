@@ -21,6 +21,25 @@
   z-index: 1000;
 }
 
+
+.color-picker-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -6px -6px 8px;
+  padding: 4px 0;
+  color: #511d91;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+
+.color-picker-drag-grip {
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 2px;
+  opacity: 0.75;
+}
 .color-picker-tools-row {
   display: flex;
   align-items: center;
