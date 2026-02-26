@@ -288,6 +288,11 @@
   background-color: var(--color-button-bg-hover);
 }
 
+.color-picker-use.paint-mode-active {
+  border: 2px solid var(--paint-mode-color, #ffffff);
+  box-shadow: 0 0 0 2px rgba(81, 29, 145, 0.45);
+}
+
 .color-picker-cancel {
   background-color: var(--color-button-primary);
   color: white;

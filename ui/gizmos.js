@@ -36,6 +36,14 @@ let colorPickingCallback = null;
 let colorPickingCircle = null;
 let colorPickingCirclePosition = { x: 0, y: 0 };
 
+let _onPickMeshRef = null;
+let paintModeActive = false;
+let paintModeExplicit = false;
+let pickerPointerType = "mouse";
+let pickerContentElement = null;
+let colorButtonLastPointerType = "mouse";
+
+
 document.addEventListener("DOMContentLoaded", function () {
   const colorButton = document.getElementById("colorPickerButton");
 
@@ -90,10 +98,15 @@ document.addEventListener("DOMContentLoaded", function () {
       color: window.selectedColor,
       onColorChange: (newColor) => {
         window.selectedColor = newColor;
+        updatePaintToolVisualState();
+      },
+      onPaintButtonClick: () => {
+        paintModeExplicit = true;
+        activatePaintMode();
       },
       onClose: () => {
-        // After color picker closes, start mesh selection
-        pickMeshFromCanvas();
+        deactivatePaintMode({ clearExplicit: true });
+        detachPickerHoverHandlers();
       },
       target: document.body,
     });
@@ -103,46 +116,108 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Attach click event to open custom color picker
   if (colorButton) {
+    colorButton.addEventListener("pointerdown", (event) => {
+      colorButtonLastPointerType = event.pointerType || "mouse";
+    });
+
     colorButton.addEventListener("click", (event) => {
       event.preventDefault();
       if (colorPicker) {
+        pickerPointerType = colorButtonLastPointerType || detectPickerPointerType();
+        paintModeExplicit = false;
         colorPicker.open(window.selectedColor);
+        bindPickerHoverHandlers();
+        updatePaintToolVisualState();
       }
     });
   }
 });
 
-let _onPickMeshRef = null;
+function detectPickerPointerType() {
+  return window.matchMedia?.("(pointer: coarse)").matches ? "touch" : "mouse";
+}
 
-function pickMeshFromCanvas() {
+function onPaintMeshClick(event) {
+  if (!paintModeActive) return;
+
   const canvas = flock.scene.getEngine().getRenderingCanvas();
+  if (!canvas) return;
 
-  const onPickMesh = function (event) {
-    const canvasRect = canvas.getBoundingClientRect();
+  const canvasRect = canvas.getBoundingClientRect();
+  if (eventIsOutOfCanvasBounds(event, canvasRect)) return;
 
-    // Exit if outside canvas
-    if (eventIsOutOfCanvasBounds(event, canvasRect)) {
-      window.removeEventListener("click", onPickMesh);
-      endColorPickingMode();
-      // restore cursors
-      document.body.style.cursor = "default";
-      canvas.style.cursor = "auto";
-      return;
-    }
+  const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
+  applyColorAtPosition(canvasX, canvasY);
+}
 
-    const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
-    applyColorAtPosition(canvasX, canvasY);
-    document.body.style.cursor = "crosshair";
-    canvas.style.cursor = "crosshair";
-  };
+function activatePaintMode() {
+  if (paintModeActive) {
+    updatePaintToolVisualState();
+    return;
+  }
 
-  startColorPickingKeyboardMode(onPickMesh);
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  if (!canvas) return;
+
+  paintModeActive = true;
+  startColorPickingKeyboardMode(onPaintMeshClick);
+  window.addEventListener("click", onPaintMeshClick);
   document.body.style.cursor = "crosshair";
   canvas.style.cursor = "crosshair";
 
-  setTimeout(() => {
-    window.addEventListener("click", onPickMesh);
-  }, 200);
+  updatePaintToolVisualState();
+}
+
+function deactivatePaintMode({ clearExplicit = false } = {}) {
+  if (!paintModeActive && !clearExplicit) return;
+
+  paintModeActive = false;
+  if (clearExplicit) paintModeExplicit = false;
+
+  window.removeEventListener("click", onPaintMeshClick);
+  endColorPickingMode();
+
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  document.body.style.cursor = "default";
+  if (canvas) {
+    canvas.style.cursor = "auto";
+  }
+
+  updatePaintToolVisualState();
+}
+
+function bindPickerHoverHandlers() {
+  detachPickerHoverHandlers();
+  if (!colorPicker?.container) return;
+
+  pickerContentElement = colorPicker.container.querySelector(".color-picker-content");
+  if (!pickerContentElement || pickerPointerType !== "mouse") return;
+
+  pickerContentElement.addEventListener("pointerleave", handlePickerPointerLeave);
+  pickerContentElement.addEventListener("pointerenter", handlePickerPointerEnter);
+}
+
+function detachPickerHoverHandlers() {
+  if (!pickerContentElement) return;
+  pickerContentElement.removeEventListener("pointerleave", handlePickerPointerLeave);
+  pickerContentElement.removeEventListener("pointerenter", handlePickerPointerEnter);
+  pickerContentElement = null;
+}
+
+function handlePickerPointerLeave(event) {
+  if (!colorPicker?.isOpen) return;
+  if (event.pointerType && event.pointerType !== "mouse") return;
+  activatePaintMode();
+}
+
+function handlePickerPointerEnter(event) {
+  if (!colorPicker?.isOpen) return;
+  if (event.pointerType && event.pointerType !== "mouse") return;
+  deactivatePaintMode();
+}
+
+function updatePaintToolVisualState() {
+  colorPicker?.updatePaintModeButtonVisual?.(paintModeExplicit || paintModeActive);
 }
 
 function applyColorAtPosition(canvasX, canvasY) {
@@ -160,10 +235,10 @@ function applyColorAtPosition(canvasX, canvasY) {
   const pickedMesh = pickLeafFromRay(pickRay, scene);
 
   if (pickedMesh) {
-    updateBlockColorAndHighlight(pickedMesh, selectedColor);
+    updateBlockColorAndHighlight(pickedMesh, window.selectedColor);
   } else {
-    flock.setSky(selectedColor);
-    updateBlockColorAndHighlight(meshMap?.["sky"], selectedColor);
+    flock.setSky(window.selectedColor);
+    updateBlockColorAndHighlight(meshMap?.["sky"], window.selectedColor);
   }
 }
 

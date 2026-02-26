@@ -85,9 +85,11 @@ class CustomColorPicker {
     this.currentColor = options.color || "#ff0000";
     this.onColorChange = options.onColorChange || (() => {});
     this.onClose = options.onClose || (() => {});
+    this.onPaintButtonClick = options.onPaintButtonClick || (() => {});
     this.targetElement = options.target || document.body;
 
     this.isOpen = false;
+    this._isClosing = false;
 
     // Eyedropper state
     this._eyedropperActive = false;
@@ -396,6 +398,7 @@ class CustomColorPicker {
       ".current-color-display",
     );
     this.currentColorText = this.container.querySelector(".current-color-text");
+    this.useButton = this.container.querySelector(".color-picker-use");
 
     // Lightness slider refs
     this.lightSlider = this.container.querySelector(".lightness-slider");
@@ -763,9 +766,12 @@ class CustomColorPicker {
     });
 
     // Confirm / general keyboard handling on the container (Esc/Enter/Space)
-    this.container
-      .querySelector(".color-picker-footer")
-      .addEventListener("click", () => this.confirmColor());
+    if (this.useButton) {
+      this.useButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.onPaintButtonClick(this.currentColor);
+      });
+    }
     this.container.addEventListener("keydown", (e) => this.handleKeydown(e));
 
     if (this.lightSlider) {
@@ -1042,7 +1048,7 @@ class CustomColorPicker {
       // Is the Use button (or inside it)?
       if (t.closest(".color-picker-use")) {
         e.preventDefault();
-        this.confirmColor();
+        this.onPaintButtonClick(this.currentColor);
         return;
       }
 
@@ -1187,6 +1193,8 @@ class CustomColorPicker {
     if (colorDisplay) {
       colorDisplay.style.backgroundColor = this.currentColor;
     }
+
+    this.updatePaintModeButtonVisual(this._paintModeButtonActive === true);
 
     // Sync inputs + sliders
     this.updateCssInput();
@@ -1963,17 +1971,37 @@ class CustomColorPicker {
   }
 
   close() {
+    if (this._isClosing) return;
+    this._isClosing = true;
+
     this.container.style.display = "none";
     this.isOpen = false;
     document.removeEventListener("click", this.outsideClickHandler, true);
+
+    this.updatePaintModeButtonVisual(false);
+
+    if (this.onClose) {
+      this.onClose();
+    }
+
+    this._isClosing = false;
+  }
+
+  updatePaintModeButtonVisual(isActive) {
+    this._paintModeButtonActive = isActive;
+    if (!this.useButton) return;
+
+    this.useButton.classList.toggle("paint-mode-active", isActive);
+    if (isActive) {
+      this.useButton.style.setProperty("--paint-mode-color", this.currentColor);
+    } else {
+      this.useButton.style.removeProperty("--paint-mode-color");
+    }
   }
 
   confirmColor() {
     this.onColorChange(this.currentColor);
     this.close();
-    if (this.onClose) {
-      setTimeout(() => this.onClose(), 100);
-    }
   }
 }
 
