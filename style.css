@@ -1053,6 +1053,11 @@ details summary:focus,
   background-color: var(--color-button-bg-hover);
 }
 
+/* Show crosshair on canvas whenever colour picker is open */
+body.color-picker-open #renderCanvas {
+  cursor: crosshair;
+}
+
       /* Focus management for modal */
       .modal:focus-within .modal-content {
         outline: 2px solid var(--color-focus-ring);
