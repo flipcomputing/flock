@@ -89,6 +89,7 @@ class CustomColorPicker {
 
     this.isOpen = false;
     this.userMovedPicker = false;
+    this.paintModeActiveFromOutside = false;
 
     // Eyedropper state
     this._eyedropperActive = false;
@@ -644,16 +645,16 @@ class CustomColorPicker {
     // Close on backdrop click
     const backdrop = this.container.querySelector(".color-picker-backdrop");
     if (backdrop) {
-      backdrop.addEventListener("click", () =>
-        this.close({ commitColor: true, triggerOnClose: true }),
-      );
+      backdrop.addEventListener("click", () => {
+        this.activatePaintModeWithCurrentColor();
+      });
     }
 
     // Click outside to close (guarded during eyedropper)
     this.outsideClickHandler = (e) => {
       if (this._eyedropperActive) return; // don't close while eyedropper overlay is up
       if (this.isOpen && !this.container.contains(e.target)) {
-        this.close({ commitColor: true, triggerOnClose: true });
+        this.activatePaintModeWithCurrentColor();
       }
     };
 
@@ -1788,6 +1789,7 @@ class CustomColorPicker {
     this.container.style.opacity = "1";
     this.container.style.pointerEvents = "auto";
     this.isOpen = true;
+    this.paintModeActiveFromOutside = false;
 
     // --- Positioning (unchanged) ---
     const colorButton = document.getElementById("colorPickerButton");
@@ -1977,6 +1979,7 @@ class CustomColorPicker {
     }
     this.container.style.display = "none";
     this.isOpen = false;
+    this.paintModeActiveFromOutside = false;
     document.removeEventListener("click", this.outsideClickHandler, true);
 
     if (triggerOnClose && this.onClose) {
@@ -1986,6 +1989,15 @@ class CustomColorPicker {
 
   confirmColor() {
     this.close({ commitColor: true, triggerOnClose: true });
+  }
+
+  activatePaintModeWithCurrentColor() {
+    this.onColorChange(this.currentColor);
+
+    if (!this.paintModeActiveFromOutside && this.onClose) {
+      this.paintModeActiveFromOutside = true;
+      setTimeout(() => this.onClose(), 100);
+    }
   }
 
   makePopupDraggable() {
