@@ -1863,51 +1863,37 @@ class CustomColorPicker {
         this.container.style.maxWidth = "none";
         this.container.style.marginLeft = "10px";
         this.container.style.marginRight = "10px";
-
-        const content = this.container.querySelector(".color-picker-content");
-        const measuredPickerHeight =
-          content?.getBoundingClientRect().height || this.container.offsetHeight || 250;
-        const bottomBarHeight = 40;
-        const maxTop = canvasRect.height - measuredPickerHeight - bottomBarHeight;
-        const bottomAlignedTop = Math.max(10, maxTop);
-
-        const gizmoButtons = document.getElementById("gizmoButtons");
-        const gizmosVisible =
-          gizmoButtons &&
-          getComputedStyle(gizmoButtons).display !== "none" &&
-          getComputedStyle(gizmoButtons).visibility !== "hidden";
-        const gizmoRect = gizmosVisible
-          ? gizmoButtons.getBoundingClientRect()
-          : buttonRect;
-        const belowGizmosTop = Math.max(10, gizmoRect.bottom - canvasRect.top + 8);
-
-        const topPosition =
-          belowGizmosTop <= bottomAlignedTop ? belowGizmosTop : bottomAlignedTop;
-        this.container.style.top = `${topPosition}px`;
       } else {
         this.container.style.left = `${buttonRect.left - canvasRect.left}px`;
-        this.container.style.top = `${buttonRect.top - canvasRect.top - 180}px`;
         this.container.style.width = "360px";
         this.container.style.right = "auto";
 
         const containerWidth = 360;
-        if (
-          buttonRect.left - canvasRect.left + containerWidth >
-          canvasRect.width
-        ) {
+        if (buttonRect.left - canvasRect.left + containerWidth > canvasRect.width) {
           this.container.style.left = `${canvasRect.width - containerWidth - 10}px`;
         }
-        if (buttonRect.top - canvasRect.top - 180 < 10) {
-          this.container.style.top = "10px";
-        }
-        const pickerHeight = 250;
-        const bottomBarHeight = 40;
-        const maxTop = canvasRect.height - pickerHeight - bottomBarHeight;
-        const currentTop = parseInt(this.container.style.top, 10);
-        if (currentTop > maxTop) {
-          this.container.style.top = `${Math.max(10, maxTop)}px`;
-        }
       }
+
+      const content = this.container.querySelector(".color-picker-content");
+      const measuredPickerHeight =
+        content?.getBoundingClientRect().height || this.container.offsetHeight || 250;
+      const bottomBarHeight = 40;
+      const maxTop = canvasRect.height - measuredPickerHeight - bottomBarHeight;
+      const bottomAlignedTop = Math.max(10, maxTop);
+
+      const gizmoButtons = document.getElementById("gizmoButtons");
+      const gizmosVisible =
+        gizmoButtons &&
+        getComputedStyle(gizmoButtons).display !== "none" &&
+        getComputedStyle(gizmoButtons).visibility !== "hidden";
+      const gizmoRect = gizmosVisible
+        ? gizmoButtons.getBoundingClientRect()
+        : buttonRect;
+      const belowGizmosTop = Math.max(10, gizmoRect.bottom - canvasRect.top + 8);
+
+      const topPosition =
+        belowGizmosTop <= bottomAlignedTop ? belowGizmosTop : bottomAlignedTop;
+      this.container.style.top = `${topPosition}px`;
     }
 
     // After visible: size canvases, pick a usable start color, then draw & place handles
