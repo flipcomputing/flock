@@ -220,6 +220,7 @@ export function defineGenerators() {
 
                 for (const variableModel of usedVariables) {
                         const preferredName = variableModel.name;
+                        const preferredKey = preferredName?.toLowerCase?.();
                         if (!preferredName || reservedWords?.has(preferredName)) {
                                 continue;
                         }
@@ -231,7 +232,7 @@ export function defineGenerators() {
 
                         if (generatedName === preferredName) continue;
 
-                        variableDb.set(preferredName, preferredName);
+                        variableDb.set(preferredKey, preferredName);
                         javascriptGenerator.nameDB_.dbReverse.delete(generatedName);
                         javascriptGenerator.nameDB_.dbReverse.add(preferredName);
                 }
