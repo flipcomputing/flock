@@ -13,12 +13,53 @@
   position: absolute;
   background: white;
   border-radius: 6px;
-  padding: 12px;
+  padding: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   width: 360px;
   border: 2px solid #511d91;
   font-size: 12px;
   z-index: 1000;
+}
+
+.color-picker-drag-handle {
+  height: 8px;
+  background-color: #aaa;
+  cursor: grab;
+  position: relative;
+  transition: background-color 0.2s ease;
+  border-radius: 4px 4px 0 0;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.color-picker-drag-handle:hover {
+  background-color: var(--color-focus);
+}
+
+.color-picker-drag-handle:active {
+  background-color: var(--color-focus);
+  cursor: grabbing;
+}
+
+.color-picker-drag-handle:focus {
+  background-color: var(--color-focus);
+  outline: 3px solid var(--color-focus);
+}
+
+.color-picker-drag-handle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 3px;
+  background-color: #999;
+  border-radius: 2px;
+}
+
+.color-picker-inner {
+  padding: 12px;
 }
 
 .color-picker-tools-row {
