@@ -209,35 +209,6 @@ export function defineGenerators() {
                 return { generatedName, userVariableName };
         }
 
-        function preferUserVariableNames(workspace) {
-                const variableDb = javascriptGenerator.nameDB_?.db?.get(
-                        Blockly.Names.NameType.VARIABLE,
-                );
-                if (!variableDb) return;
-
-                const reservedWords = javascriptGenerator.nameDB_.reservedWords;
-                const usedVariables = Blockly.Variables.allUsedVarModels(workspace);
-
-                for (const variableModel of usedVariables) {
-                        const preferredName = variableModel.name;
-                        const preferredKey = preferredName?.toLowerCase?.();
-                        if (!preferredName || reservedWords?.has(preferredName)) {
-                                continue;
-                        }
-
-                        const generatedName = javascriptGenerator.nameDB_.getName(
-                                variableModel.getId(),
-                                Blockly.Names.NameType.VARIABLE,
-                        );
-
-                        if (generatedName === preferredName) continue;
-
-                        variableDb.set(preferredKey, preferredName);
-                        javascriptGenerator.nameDB_.dbReverse.delete(generatedName);
-                        javascriptGenerator.nameDB_.dbReverse.add(preferredName);
-                }
-        }
-
         javascriptGenerator.forBlock["wait"] = function (block) {
                 const duration =
                         javascriptGenerator.valueToCode(
@@ -3350,7 +3321,6 @@ export function defineGenerators() {
                 );
                 javascriptGenerator.nameDB_.populateVariables(workspace);
                 javascriptGenerator.nameDB_.populateProcedures(workspace);
-                preferUserVariableNames(workspace);
 
                 const defvars = [];
                 const userVariableDefaults = new Map();
@@ -3413,7 +3383,6 @@ export function defineGenerators() {
                 );
                 javascriptGenerator.nameDB_.populateVariables(workspace);
                 javascriptGenerator.nameDB_.populateProcedures(workspace);
-                preferUserVariableNames(workspace);
 
                 const defvars = [];
                 const userVariableDefaults = new Map();
