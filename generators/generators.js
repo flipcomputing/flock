@@ -195,6 +195,20 @@ export function defineGenerators() {
                 );
         }
 
+        function getVariableInfo(block, fieldName) {
+                const variableId = block.getFieldValue(fieldName);
+                const generatedName = javascriptGenerator.nameDB_.getName(
+                        variableId,
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const variableModel = block.workspace
+                        ?.getVariableMap?.()
+                        ?.getVariableById(variableId);
+                const userVariableName = variableModel?.name || generatedName;
+
+                return { generatedName, userVariableName };
+        }
+
         javascriptGenerator.forBlock["wait"] = function (block) {
                 const duration =
                         javascriptGenerator.valueToCode(
@@ -1195,12 +1209,10 @@ export function defineGenerators() {
                 const x = getFieldValue(block, "X", "0");
                 const y = getFieldValue(block, "Y", "0");
                 const z = getFieldValue(block, "Z", "0");
-                const variableName = javascriptGenerator.nameDB_.getName(
-                        block.getFieldValue("ID_VAR"),
-                        Blockly.Names.NameType.VARIABLE,
-                );
+                const { generatedName: variableName, userVariableName } =
+                        getVariableInfo(block, "ID_VAR");
 
-                const meshId = `${variableName}__${block.id}`;
+                const meshId = `${userVariableName}__${block.id}`;
                 meshMap[block.id] = block;
                 meshBlockIdMap[block.id] = block.id;
 
@@ -1246,12 +1258,10 @@ export function defineGenerators() {
                         "TSHIRT_COLOR",
                         "#FF0000",
                 );
-                const variableName = javascriptGenerator.nameDB_.getName(
-                        block.getFieldValue("ID_VAR"),
-                        Blockly.Names.NameType.VARIABLE,
-                );
+                const { generatedName: variableName, userVariableName } =
+                        getVariableInfo(block, "ID_VAR");
 
-                const meshId = `${variableName}__${block.id}`;
+                const meshId = `${userVariableName}__${block.id}`;
                 meshMap[block.id] = block;
                 meshBlockIdMap[block.id] = block.id;
                 // Generate the code for the "do" part (if present)
@@ -1291,12 +1301,10 @@ export function defineGenerators() {
                 const z = getFieldValue(block, "Z", "0");
                 const color = getFieldValue(block, "COLOR", '"#000000"');
 
-                const variableName = javascriptGenerator.nameDB_.getName(
-                        block.getFieldValue("ID_VAR"),
-                        Blockly.Names.NameType.VARIABLE,
-                );
+                const { generatedName: variableName, userVariableName } =
+                        getVariableInfo(block, "ID_VAR");
 
-                const meshId = `${variableName}__${block.id}`;
+                const meshId = `${userVariableName}__${block.id}`;
                 meshMap[block.id] = block;
                 meshBlockIdMap[block.id] = block.id;
                 //```text
@@ -1330,13 +1338,11 @@ export function defineGenerators() {
                 const z = getFieldValue(block, "Z", "0");
                 const color = getFieldValue(block, "COLOR", '"#000000"');
 
-                const variableName = javascriptGenerator.nameDB_.getName(
-                        block.getFieldValue("ID_VAR"),
-                        Blockly.Names.NameType.VARIABLE,
-                );
+                const { generatedName: variableName, userVariableName } =
+                        getVariableInfo(block, "ID_VAR");
 
                 //const meshId = modelName + "_" + generateUniqueId();
-                const meshId = `${variableName}__${block.id}`;
+                const meshId = `${userVariableName}__${block.id}`;
                 meshMap[block.id] = block;
                 meshBlockIdMap[block.id] = block.id;
                 // Generate the code for the "do" part (if present)
@@ -1369,12 +1375,10 @@ export function defineGenerators() {
                 const z = getFieldValue(block, "Z", "0");
                 const color = getFieldValue(block, "COLORS", "#000000");
 
-                const variableName = javascriptGenerator.nameDB_.getName(
-                        block.getFieldValue("ID_VAR"),
-                        Blockly.Names.NameType.VARIABLE,
-                );
+                const { generatedName: variableName, userVariableName } =
+                        getVariableInfo(block, "ID_VAR");
 
-                const meshId = `${variableName}__${block.id}`;
+                const meshId = `${userVariableName}__${block.id}`;
                 meshMap[block.id] = block;
                 meshBlockIdMap[block.id] = block.id;
                 // Generate the code for the "do" part (if present)
@@ -1657,12 +1661,10 @@ export function defineGenerators() {
         };
 
         function createMesh(block, meshType, params) {
-                const variableName = javascriptGenerator.nameDB_.getName(
-                        block.getFieldValue("ID_VAR"),
-                        Blockly.Names.NameType.VARIABLE,
-                );
+                const { generatedName: variableName, userVariableName } =
+                        getVariableInfo(block, "ID_VAR");
 
-                const meshId = `${variableName}__${block.id}`;
+                const meshId = `${userVariableName}__${block.id}`;
 
                 meshMap[block.id] = block;
                 meshBlockIdMap[block.id] = block.id;
@@ -3311,6 +3313,7 @@ export function defineGenerators() {
                 javascriptGenerator.nameDB_.populateProcedures(workspace);
 
                 const defvars = [];
+                const userVariableDefaults = new Map();
                 // Add developer variables (not created or named by the user).
                 const devVarList =
                         Blockly.Variables.allDeveloperVariables(workspace);
@@ -3327,18 +3330,22 @@ export function defineGenerators() {
                 // Add user variables, but only ones that are being used.
                 const variables = Blockly.Variables.allUsedVarModels(workspace);
                 for (let i = 0; i < variables.length; i++) {
-                        defvars.push(
-                                javascriptGenerator.nameDB_.getName(
-                                        variables[i].getId(),
-                                        Blockly.Names.NameType.VARIABLE,
-                                ),
+                        const variableModel = variables[i];
+                        const generatedName = javascriptGenerator.nameDB_.getName(
+                                variableModel.getId(),
+                                Blockly.Names.NameType.VARIABLE,
                         );
+                        defvars.push(generatedName);
+                        userVariableDefaults.set(generatedName, variableModel.name);
                 }
 
                 // Declare all of the variables.
                 if (defvars.length) {
                         let defvarsmesh = defvars.map(function (name) {
-                                return `let ${name} = '${name}';`;
+                                const initialValue = userVariableDefaults.has(name)
+                                        ? userVariableDefaults.get(name)
+                                        : name;
+                                return `let ${name} = ${JSON.stringify(initialValue)};`;
                         });
                         javascriptGenerator.definitions_["variables"] =
                                 `// Made with Flock XR\n` +
@@ -3368,6 +3375,7 @@ export function defineGenerators() {
                 javascriptGenerator.nameDB_.populateProcedures(workspace);
 
                 const defvars = [];
+                const userVariableDefaults = new Map();
 
                 // Add developer variables
                 const devVarList =
@@ -3385,18 +3393,22 @@ export function defineGenerators() {
                 // Add user variables (used only)
                 const variables = Blockly.Variables.allUsedVarModels(workspace);
                 for (let i = 0; i < variables.length; i++) {
-                        defvars.push(
-                                javascriptGenerator.nameDB_.getName(
-                                        variables[i].getId(),
-                                        Blockly.Names.NameType.VARIABLE,
-                                ),
+                        const variableModel = variables[i];
+                        const generatedName = javascriptGenerator.nameDB_.getName(
+                                variableModel.getId(),
+                                Blockly.Names.NameType.VARIABLE,
                         );
+                        defvars.push(generatedName);
+                        userVariableDefaults.set(generatedName, variableModel.name);
                 }
 
                 // Declare all of the variables.
                 if (defvars.length) {
                         let defvarsmesh = defvars.map(function (name) {
-                                return `let ${name} = '${name}';`;
+                                const initialValue = userVariableDefaults.has(name)
+                                        ? userVariableDefaults.get(name)
+                                        : name;
+                                return `let ${name} = ${JSON.stringify(initialValue)};`;
                         });
                         javascriptGenerator.definitions_["variables"] =
                                 `// Made with Flock XR\n` +
