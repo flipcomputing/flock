@@ -637,6 +637,10 @@ export const flockUI = {
           );
           plane.name = "textPlane";
           plane.parent = targetMesh;
+          plane.metadata = {
+            ...(plane.metadata || {}),
+            isTextPlane: true,
+          };
           plane.checkCollisions = false;
           plane.isPickable = false;
           plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
