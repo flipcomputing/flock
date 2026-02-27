@@ -741,6 +741,63 @@ textarea.blocklyCommentText.blocklyTextarea.blocklyText {
   box-sizing: border-box !important;
 }
 
+/* ── Toolbox search: category results ─────────────────────────────────── */
+
+/* "Categories" header label */
+.blocklyFlyoutLabelText.flockSearchCategoryHeader {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: #888;
+}
+
+/* Category button background */
+.blocklyFlyoutButton.flockSearchCategoryButton rect.blocklyFlyoutButtonBackground {
+  rx: 6;
+  ry: 6;
+  fill: #5b67a5;
+  opacity: 0.92;
+}
+.blocklyFlyoutButton.flockSearchCategoryButton rect.blocklyFlyoutButtonShadow {
+  rx: 6;
+  ry: 6;
+  fill: rgba(0, 0, 0, 0.15);
+}
+.blocklyFlyoutButton.flockSearchCategoryButton .blocklyFlyoutButtonLabel {
+  fill: #fff;
+  font-weight: 600;
+  font-size: 13px;
+}
+.blocklyFlyoutButton.flockSearchCategoryButton:hover rect.blocklyFlyoutButtonBackground {
+  opacity: 1;
+  fill: #4a57a0;
+}
+
+/* Per-categorystyle colours for the button background */
+.blocklyFlyoutButton.flock-cat-scene_category rect.blocklyFlyoutButtonBackground      { fill: #5c8a40; }
+.blocklyFlyoutButton.flock-cat-events_category rect.blocklyFlyoutButtonBackground     { fill: #a04040; }
+.blocklyFlyoutButton.flock-cat-transform_category rect.blocklyFlyoutButtonBackground  { fill: #8a7e40; }
+.blocklyFlyoutButton.flock-cat-animate_category rect.blocklyFlyoutButtonBackground    { fill: #7a7040; }
+.blocklyFlyoutButton.flock-cat-materials_category rect.blocklyFlyoutButtonBackground  { fill: #6b3b8a; }
+.blocklyFlyoutButton.flock-cat-sound_category rect.blocklyFlyoutButtonBackground      { fill: #a06040; }
+.blocklyFlyoutButton.flock-cat-sensing_category rect.blocklyFlyoutButtonBackground    { fill: #3b7a8a; }
+.blocklyFlyoutButton.flock-cat-control_category rect.blocklyFlyoutButtonBackground    { fill: #508a50; }
+.blocklyFlyoutButton.flock-cat-logic_category rect.blocklyFlyoutButtonBackground      { fill: #4a5ab0; }
+.blocklyFlyoutButton.flock-cat-variables_category rect.blocklyFlyoutButtonBackground  { fill: #963065; }
+.blocklyFlyoutButton.flock-cat-text_category rect.blocklyFlyoutButtonBackground       { fill: #5545be; }
+.blocklyFlyoutButton.flock-cat-math_category rect.blocklyFlyoutButtonBackground       { fill: #3a4ab0; }
+.blocklyFlyoutButton.flock-cat-procedures_category rect.blocklyFlyoutButtonBackground { fill: #7a3a8a; }
+.blocklyFlyoutButton.flock-cat-snippets_category rect.blocklyFlyoutButtonBackground   { fill: #387091; }
+
+/* Dark theme adjustments */
+[data-theme="dark"] .blocklyFlyoutLabelText.flockSearchCategoryHeader {
+  fill: #aaa;
+}
+[data-theme="dark"] .blocklyFlyoutButton.flockSearchCategoryButton rect.blocklyFlyoutButtonBackground {
+  opacity: 0.85;
+}
+
 
 
 

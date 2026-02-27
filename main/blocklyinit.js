@@ -1869,6 +1869,119 @@ export function overrideSearchPlugin(workspace) {
                 return indexedBlocks;
         }
 
+        function buildCategoryIndex() {
+                const categories = [];
+                let idCounter = 0;
+
+                function resolveDisplayName(name) {
+                        if (!name) return "";
+                        return (
+                                Blockly.utils.replaceMessageReferences(name) ||
+                                name
+                        );
+                }
+
+                function collectCategories(schema, parentPath, parentDisplayName) {
+                        if (
+                                !schema ||
+                                schema.kind?.toLowerCase() !== "category"
+                        )
+                                return;
+                        const rawName = schema.name;
+                        if (!rawName) return;
+
+                        const displayName = resolveDisplayName(rawName);
+                        const categoryPath = [...parentPath, rawName];
+                        const id = `cat${idCounter++}`;
+
+                        const searchText = parentDisplayName
+                                ? `${displayName} ${parentDisplayName}`
+                                : displayName;
+
+                        categories.push({
+                                kind: "category",
+                                id,
+                                name: rawName,
+                                displayName,
+                                parentDisplayName,
+                                categoryPath,
+                                icon: schema.icon,
+                                categorystyle: schema.categorystyle,
+                                text: searchText,
+                        });
+
+                        schema.contents?.forEach((item) => {
+                                if (item.kind?.toLowerCase() === "category") {
+                                        collectCategories(
+                                                item,
+                                                categoryPath,
+                                                displayName,
+                                        );
+                                }
+                        });
+                }
+
+                workspace.options.languageTree?.contents?.forEach((item) => {
+                        if (item.kind?.toLowerCase() === "category") {
+                                collectCategories(item, [], null);
+                        }
+                });
+
+                return categories;
+        }
+
+        function navigateToCategory(categoryPath) {
+                const toolbox = workspace.getToolbox?.();
+                if (!toolbox) return;
+
+                let currentItems = toolbox.getToolboxItems?.() || [];
+                let targetItem = null;
+
+                for (let i = 0; i < categoryPath.length; i++) {
+                        const rawName = categoryPath[i];
+                        const found = currentItems.find(
+                                (item) =>
+                                        item.getToolboxItemDef?.()?.name ===
+                                                rawName ||
+                                        item.toolboxItemDef_?.name === rawName,
+                        );
+
+                        if (!found) return;
+
+                        if (i < categoryPath.length - 1) {
+                                if (typeof found.setExpanded === "function") {
+                                        found.setExpanded(true);
+                                }
+                                currentItems =
+                                        found.getChildToolboxItems?.() || [];
+                        } else {
+                                targetItem = found;
+                        }
+                }
+
+                if (!targetItem) return;
+
+                if (
+                        typeof targetItem.ensurePointerFocusedSelection_ ===
+                        "function"
+                ) {
+                        targetItem.ensurePointerFocusedSelection_();
+                } else {
+                        toolbox.setSelectedItem?.(targetItem);
+                        if (typeof targetItem.setSelected === "function") {
+                                targetItem.setSelected(true);
+                        }
+                        if (typeof targetItem.setExpanded === "function") {
+                                targetItem.setExpanded(true);
+                        }
+                        const flyout = toolbox.getFlyout?.();
+                        if (flyout) {
+                                const contents = targetItem.getContents?.();
+                                if (contents) flyout.show?.(contents);
+                        }
+                }
+        }
+
         const searchToolboxItem = workspace
                 .getToolbox()
                 ?.getToolboxItems?.()
@@ -2012,7 +2125,14 @@ export function overrideSearchPlugin(workspace) {
                         return false;
                 });
 
-                this.showMatchingBlocks(matches);
+                if (!Array.isArray(workspace.flockCategoryIndex)) {
+                        workspace.flockCategoryIndex = buildCategoryIndex();
+                }
+                const categoryMatches = workspace.flockCategoryIndex.filter(
+                        (cat) => cat.text.toLowerCase().includes(query),
+                );
+
+                this.showMatchingBlocks(matches, categoryMatches);
         };
 
         function createXmlFromJson(
@@ -2093,7 +2213,10 @@ export function overrideSearchPlugin(workspace) {
                 return blockXml;
         }
 
-        SearchCategory.prototype.showMatchingBlocks = function (matches) {
+        SearchCategory.prototype.showMatchingBlocks = function (
+                matches,
+                categoryMatches = [],
+        ) {
                 if (!isSearchCategorySelected(this)) {
                         return;
                 }
@@ -2106,10 +2229,53 @@ export function overrideSearchPlugin(workspace) {
                 flyout.hide();
                 flyout.show([]);
 
-                const xmlList = matches.map((match) =>
+                const xmlItems = [];
+
+                if (categoryMatches.length > 0) {
+                        const label = document.createElement("label");
+                        label.setAttribute("text", "Categories");
+                        label.setAttribute(
+                                "web-class",
+                                "flockSearchCategoryHeader",
+                        );
+                        xmlItems.push(label);
+
+                        categoryMatches.forEach((cat) => {
+                                const key = `flockCatNav_${cat.id}`;
+                                this.workspace_.registerButtonCallback(
+                                        key,
+                                        () => {
+                                                navigateToCategory(
+                                                        cat.categoryPath,
+                                                );
+                                        },
+                                );
+                                const btn = document.createElement("button");
+                                const btnText = cat.parentDisplayName
+                                        ? `${cat.parentDisplayName} \u203a ${cat.displayName}`
+                                        : cat.displayName;
+                                btn.setAttribute("text", btnText);
+                                btn.setAttribute("callbackKey", key);
+                                btn.setAttribute(
+                                        "web-class",
+                                        `flockSearchCategoryButton${cat.categorystyle ? ` flock-cat-${cat.categorystyle}` : ""}`,
+                                );
+                                xmlItems.push(btn);
+                        });
+
+                        if (matches.length > 0) {
+                                const sep = document.createElement("sep");
+                                sep.setAttribute("gap", "24");
+                                xmlItems.push(sep);
+                        }
+                }
+
+                const blockXmlList = matches.map((match) =>
                         createXmlFromJson(match.full),
                 );
-                flyout.show(xmlList);
+                xmlItems.push(...blockXmlList);
+
+                flyout.show(xmlItems);
         };
 
         const toolboxDef = workspace.options.languageTree;
