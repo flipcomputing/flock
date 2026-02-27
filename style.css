@@ -1058,6 +1058,29 @@ body.color-picker-open #renderCanvas {
   cursor: crosshair;
 }
 
+/* Drag-and-drop overlay */
+#drag-drop-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(81, 29, 145, 0.75);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  pointer-events: none;
+  border: 4px dashed white;
+  border-radius: 8px;
+  margin: 8px;
+  box-sizing: border-box;
+}
+
+#drag-drop-overlay.visible {
+  display: flex;
+}
+
       /* Focus management for modal */
       .modal:focus-within .modal-content {
         outline: 2px solid var(--color-focus-ring);

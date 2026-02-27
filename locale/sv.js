@@ -1074,6 +1074,9 @@ export default {
       invalid_project_alert:
             "Den här filen är inte ett giltigt Flock XR-projekt.",
       failed_to_read_file_alert: "Det gick inte att läsa filen.",
+      drag_drop_hint: "Släpp för att öppna projekt eller importera ett utdrag",
+      drop_unsupported_file_alert:
+        "Endast .flock-, .json-, .fsnip- eller .png-filer kan släppas.",
 
       // UI status messages
       max_mesh_limit_reached:

@@ -1072,6 +1072,9 @@ export default {
     "Somente arquivos de projeto .json ou .flock são permitidos.",
   invalid_project_alert: "Este arquivo não é um projeto Flock XR válido.",
   failed_to_read_file_alert: "Falha ao ler o arquivo.",
+  drag_drop_hint: "Solte para abrir o projeto ou importar um trecho",
+  drop_unsupported_file_alert:
+    "Apenas arquivos .flock, .json, .fsnip ou .png podem ser soltos.",
 
   // UI status messages
   max_mesh_limit_reached:
