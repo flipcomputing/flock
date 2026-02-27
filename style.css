@@ -883,6 +883,28 @@ button {
   text-align: center;
 }
 
+.blocklyFlyoutButton.search-category-result {
+  --search-category-colour: #777777;
+}
+
+.blocklyFlyoutButton.search-category-result .blocklyFlyoutButtonBackground {
+  fill: var(--search-category-colour);
+  stroke: var(--search-category-colour);
+  rx: 4;
+  ry: 4;
+}
+
+.blocklyFlyoutButton.search-category-result .blocklyFlyoutLabelText,
+.blocklyFlyoutButton.search-category-result text {
+  fill: #ffffff;
+  font-weight: 600;
+}
+
+.blocklyFlyoutButton.search-category-result:focus-visible .blocklyFlyoutButtonBackground,
+.blocklyFlyoutButton.search-category-result:hover .blocklyFlyoutButtonBackground {
+  filter: brightness(1.08);
+}
+
 /* menu and project name styling for mobile screens */
 #menuBtn {
     display: inline-flex; 
@@ -1233,5 +1255,4 @@ body.color-picker-open #renderCanvas {
   overflow: visible !important; /* override old scrollbar-hiding rule */
   list-style: none;
 }
-
 

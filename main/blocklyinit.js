@@ -1467,24 +1467,128 @@ function setupAutoValueBehavior(workspace) {
 }
 
 export function overrideSearchPlugin(workspace) {
-        function getBlocksFromToolbox(workspace) {
-                const toolboxBlocks = [];
-                const seenTypes = new Set();
+        function normalizeSearchSegment(value) {
+                return String(value || "")
+                        .toLowerCase()
+                        .trim()
+                        .replace(/\s+/g, " ");
+        }
 
-                function collectBlocks(schema, categoryName = "") {
+        function normalizePathKey(path = []) {
+                return path
+                        .map((segment) => normalizeSearchSegment(segment))
+                        .filter(Boolean)
+                        .join(">");
+        }
+
+        function resolveToolboxName(name) {
+                if (!name) {
+                        return "";
+                }
+
+                const resolvedName =
+                        typeof Blockly.utils.replaceMessageReferences ===
+                        "function"
+                                ? Blockly.utils.replaceMessageReferences(name)
+                                : name;
+
+                return translate(resolvedName);
+        }
+
+        function resolveCategoryColour(categoryDef) {
+                const colour = categoryDef?.colour;
+                if (typeof colour === "string" && colour.trim()) {
+                        const numericColour = Number(colour);
+                        if (!Number.isNaN(numericColour)) {
+                                return Blockly.utils.colour.hsvToHex(
+                                        numericColour,
+                                        0.3,
+                                        0.85,
+                                );
+                        }
+                        return colour;
+                }
+
+                const styleName = categoryDef?.categorystyle;
+                const categoryStyle = workspace
+                        .getTheme?.()
+                        ?.categoryStyles?.[styleName];
+                const styleColour =
+                        categoryStyle?.colour || categoryStyle?.colourPrimary;
+                if (typeof styleColour === "number") {
+                        return Blockly.utils.colour.hsvToHex(
+                                styleColour,
+                                0.3,
+                                0.85,
+                        );
+                }
+                return styleColour || "#777777";
+        }
+
+        function getSearchableToolboxItems(workspace) {
+                const toolboxBlocks = [];
+                const toolboxCategories = [];
+                const seenTypes = new Set();
+                const seenCategoryPaths = new Set();
+
+                function collectBlocks(schema, categoryPath = []) {
                         if (!schema) {
                                 return;
                         }
 
-                        if ("contents" in schema) {
-                                const currentCategory =
-                                        schema.name || categoryName;
-                                if (currentCategory === "Snippets") {
-                                        return;
+                        if (schema.kind?.toLowerCase() === "search") {
+                                return;
+                        }
+
+                        if (schema.kind?.toLowerCase() === "category") {
+                                const categoryName = resolveToolboxName(
+                                        schema.name,
+                                );
+                                const nextCategoryPath = [
+                                        ...categoryPath,
+                                        categoryName,
+                                ];
+                                const categoryPathKey =
+                                        normalizePathKey(nextCategoryPath);
+                                const displayPath =
+                                        nextCategoryPath.join(" > ");
+
+                                if (
+                                        categoryPathKey &&
+                                        !seenCategoryPaths.has(categoryPathKey)
+                                ) {
+                                        seenCategoryPaths.add(categoryPathKey);
+                                        toolboxCategories.push({
+                                                kind: "category",
+                                                name: categoryName,
+                                                displayPath,
+                                                categoryPath: nextCategoryPath,
+                                                categoryPathKey,
+                                                categoryColour:
+                                                        resolveCategoryColour(
+                                                                schema,
+                                                        ),
+                                                text: [
+                                                        categoryName,
+                                                        displayPath,
+                                                        nextCategoryPath.join(
+                                                                " ",
+                                                        ),
+                                                ]
+                                                        .filter(Boolean)
+                                                        .join(" "),
+                                        });
                                 }
 
                                 schema.contents?.forEach((item) => {
-                                        collectBlocks(item, currentCategory);
+                                        collectBlocks(item, nextCategoryPath);
+                                });
+                                return;
+                        }
+
+                        if ("contents" in schema) {
+                                schema.contents?.forEach((item) => {
+                                        collectBlocks(item, categoryPath);
                                 });
                                 return;
                         }
@@ -1496,6 +1600,7 @@ export function overrideSearchPlugin(workspace) {
                         ) {
                                 seenTypes.add(schema.type);
                                 toolboxBlocks.push({
+                                        kind: "block",
                                         type: schema.type,
                                         text: schema.type,
                                         full: schema,
@@ -1508,7 +1613,7 @@ export function overrideSearchPlugin(workspace) {
                         collectBlocks(item);
                 });
 
-                return toolboxBlocks;
+                return { toolboxBlocks, toolboxCategories };
         }
 
         const SearchCategory = Blockly.registry.getClass(
@@ -1598,7 +1703,8 @@ export function overrideSearchPlugin(workspace) {
                 workspace.flockSearchCategory = this;
         };
 
-        const toolboxBlocks = getBlocksFromToolbox(workspace);
+        const { toolboxBlocks, toolboxCategories } =
+                getSearchableToolboxItems(workspace);
         const isSearchCategorySelected = (category = null) => {
                 const toolbox = workspace.getToolbox?.();
                 const selectedItem = toolbox?.getSelectedItem?.();
@@ -1857,6 +1963,10 @@ export function overrideSearchPlugin(workspace) {
                                         text: Array.from(searchTerms).join(" "),
                                 });
                         });
+
+                        toolboxCategories.forEach((categoryInfo) => {
+                                indexedBlocks.push(categoryInfo);
+                        });
                 } finally {
                         blockCreationWorkspace.dispose();
                 }
@@ -1913,9 +2023,12 @@ export function overrideSearchPlugin(workspace) {
                                         return;
                                 }
 
-                                this.showMatchingBlocks(
-                                        this.blockSearcher.indexedBlocks_,
-                                );
+                                const allBlockMatches =
+                                        this.blockSearcher.indexedBlocks_.filter(
+                                                (entry) =>
+                                                        entry.kind === "block",
+                                        );
+                                this.showMatchingBlocks(allBlockMatches);
                         };
 
                         const requestType =
@@ -2012,6 +2125,42 @@ export function overrideSearchPlugin(workspace) {
                         return false;
                 });
 
+                const scoreMatch = (entry) => {
+                        const searchText = (entry.text || "").toLowerCase();
+                        const displayText = (
+                                entry.displayPath || entry.name || entry.type || ""
+                        ).toLowerCase();
+
+                        const exactMatch =
+                                displayText === query || searchText === query;
+                        const prefixMatch =
+                                displayText.startsWith(query) ||
+                                searchText.startsWith(query);
+
+                        return {
+                                typeRank: entry.kind === "category" ? 0 : 1,
+                                exactRank: exactMatch ? 0 : 1,
+                                prefixRank: prefixMatch ? 0 : 1,
+                                alpha: displayText,
+                        };
+                };
+
+                matches.sort((a, b) => {
+                        const aScore = scoreMatch(a);
+                        const bScore = scoreMatch(b);
+
+                        if (aScore.typeRank !== bScore.typeRank) {
+                                return aScore.typeRank - bScore.typeRank;
+                        }
+                        if (aScore.exactRank !== bScore.exactRank) {
+                                return aScore.exactRank - bScore.exactRank;
+                        }
+                        if (aScore.prefixRank !== bScore.prefixRank) {
+                                return aScore.prefixRank - bScore.prefixRank;
+                        }
+                        return aScore.alpha.localeCompare(bScore.alpha);
+                });
+
                 this.showMatchingBlocks(matches);
         };
 
@@ -2106,11 +2255,165 @@ export function overrideSearchPlugin(workspace) {
                 flyout.hide();
                 flyout.show([]);
 
-                const xmlList = matches.map((match) =>
-                        createXmlFromJson(match.full),
+                const categoryResults = matches.filter(
+                        (match) => match.kind === "category",
                 );
+                this.flockCategorySearchResults = new Map(
+                        categoryResults.map((result) => [
+                                result.displayPath,
+                                {
+                                        pathKey: result.categoryPathKey,
+                                        colour: result.categoryColour,
+                                },
+                        ]),
+                );
+
+                const xmlList = matches.map((match) => {
+                        if (match.kind === "category") {
+                                const buttonXml =
+                                        Blockly.utils.xml.createElement(
+                                                "button",
+                                        );
+                                buttonXml.setAttribute(
+                                        "text",
+                                        match.displayPath,
+                                );
+                                buttonXml.setAttribute(
+                                        "callbackKey",
+                                        "SEARCH_OPEN_CATEGORY",
+                                );
+                                return buttonXml;
+                        }
+
+                        return createXmlFromJson(match.full);
+                });
                 flyout.show(xmlList);
+
+                requestAnimationFrame(() => {
+                        const flyoutButtons = document.querySelectorAll(
+                                ".blocklyFlyoutButton",
+                        );
+                        flyoutButtons.forEach((button) => {
+                                const label =
+                                        button
+                                                .querySelector(
+                                                        ".blocklyFlyoutLabelText, text",
+                                                )
+                                                ?.textContent?.trim() || "";
+                                const categoryResult =
+                                        this.flockCategorySearchResults?.get(
+                                                label,
+                                        );
+
+                                if (!categoryResult) {
+                                        return;
+                                }
+
+                                button.classList.add("search-category-result");
+                                button.style.setProperty(
+                                        "--search-category-colour",
+                                        categoryResult.colour || "#777777",
+                                );
+                        });
+                });
         };
+
+        workspace.registerButtonCallback(
+                "SEARCH_OPEN_CATEGORY",
+                function (button) {
+                        const buttonText =
+                                button?.getButtonText?.() || button?.text_ || "";
+                        const searchCategory = workspace.flockSearchCategory;
+                        const categoryResult =
+                                searchCategory?.flockCategorySearchResults?.get(
+                                        buttonText,
+                                );
+
+                        if (!categoryResult?.pathKey) {
+                                return;
+                        }
+
+                        const toolbox = workspace.getToolbox?.();
+                        if (!toolbox) {
+                                return;
+                        }
+
+                        const findCategory = (
+                                items,
+                                categoryPath = [],
+                                parents = [],
+                        ) => {
+                                for (const item of items || []) {
+                                        const def =
+                                                item.getToolboxItemDef?.() ||
+                                                item.toolboxItemDef;
+                                        if (def?.kind !== "category") {
+                                                continue;
+                                        }
+
+                                        const categoryName = resolveToolboxName(
+                                                def.name,
+                                        );
+                                        const nextPath = [
+                                                ...categoryPath,
+                                                categoryName,
+                                        ];
+                                        const currentPathKey =
+                                                normalizePathKey(nextPath);
+
+                                        if (
+                                                currentPathKey ===
+                                                categoryResult.pathKey
+                                        ) {
+                                                return {
+                                                        item,
+                                                        parents,
+                                                };
+                                        }
+
+                                        const children =
+                                                item.getChildToolboxItems?.() ||
+                                                [];
+                                        const match = findCategory(
+                                                children,
+                                                nextPath,
+                                                [...parents, item],
+                                        );
+                                        if (match) {
+                                                return match;
+                                        }
+                                }
+                                return null;
+                        };
+
+                        const result = findCategory(
+                                toolbox.getToolboxItems?.() || [],
+                        );
+
+                        if (!result?.item) {
+                                return;
+                        }
+
+                        result.parents?.forEach((parent) => {
+                                parent.setExpanded?.(true);
+                        });
+
+                        toolbox.setSelectedItem?.(result.item);
+                        result.item.setSelected?.(true);
+                        result.item.setExpanded?.(true);
+
+                        const flyout = toolbox.getFlyout?.();
+                        if (flyout && !flyout.isVisible?.()) {
+                                const contents = result.item.getContents?.();
+                                if (contents) {
+                                        flyout.show?.(contents);
+                                }
+                        }
+
+                        toolbox.getHtmlDiv?.()?.focus?.();
+                        result.item.htmlDiv_?.focus?.();
+                },
+        );
 
         const toolboxDef = workspace.options.languageTree;
         workspace.updateToolbox(toolboxDef);
