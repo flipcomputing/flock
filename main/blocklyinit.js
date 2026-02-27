@@ -1630,7 +1630,7 @@ export function overrideSearchPlugin(workspace) {
                 }
 
                 const resolvedMessage =
-                        Blockly.utils.replaceMessageReferences(message0);
+                        Blockly.utils.parsing.replaceMessageReferences(message0);
                 return translate(resolvedMessage);
         }
 
@@ -1876,8 +1876,9 @@ export function overrideSearchPlugin(workspace) {
                 function resolveDisplayName(name) {
                         if (!name) return "";
                         return (
-                                Blockly.utils.replaceMessageReferences(name) ||
-                                name
+                                Blockly.utils.parsing.replaceMessageReferences(
+                                        name,
+                                ) || name
                         );
                 }
 
