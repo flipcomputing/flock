@@ -448,6 +448,9 @@ export function stripFilename(inputString) {
 	return removeEnd.substring(lastIndex + 1).trim();
 }
 
+// Holds the FileSystemFileHandle from the last explicit save (File System Access API)
+let currentFileHandle = null;
+
 // Function to export project code
 export async function exportCode(workspace) {
 	try {
@@ -497,6 +500,7 @@ export async function exportCode(workspace) {
 			const writable = await fileHandle.createWritable();
 			await writable.write(jsonString);
 			await writable.close();
+			currentFileHandle = fileHandle;
 		} else {
 			const blob = new Blob([jsonString], { type: FLOCK_MIME });
 			const link = document.createElement("a");
@@ -508,6 +512,26 @@ export async function exportCode(workspace) {
 		}
 	} catch (e) {
 		console.error("Error exporting project:", e);
+	}
+}
+
+// Autosave to the last explicitly-saved file handle (no picker shown)
+export async function autoSaveToFile(workspace) {
+	if (!currentFileHandle) return;
+	try {
+		const ws =
+			workspace && workspace.getAllBlocks
+				? workspace
+				: Blockly.getMainWorkspace();
+		if (!ws || !ws.getAllBlocks) return;
+
+		const json = Blockly.serialization.workspaces.save(ws);
+		const jsonString = JSON.stringify(json, null, 2);
+		const writable = await currentFileHandle.createWritable();
+		await writable.write(jsonString);
+		await writable.close();
+	} catch (e) {
+		console.error("Error during file autosave:", e);
 	}
 }
 
