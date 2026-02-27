@@ -451,6 +451,11 @@ export function stripFilename(inputString) {
 // Holds the FileSystemFileHandle from the last explicit save (File System Access API)
 let currentFileHandle = null;
 
+// Clears the stored file handle (call whenever a new project is loaded)
+export function clearFileHandle() {
+	currentFileHandle = null;
+}
+
 // Function to export project code
 export async function exportCode(workspace) {
 	try {
@@ -703,6 +708,7 @@ function processProjectFileDrop(file, workspace, executeCallback) {
 			const baseName = sanitizedName.replace(/\.(json|flock)$/i, "");
 			document.getElementById("projectName").value =
 				stripFilename(baseName);
+			clearFileHandle();
 			loadWorkspaceAndExecute(json, workspace, executeCallback);
 		} catch (e) {
 			console.error("Error loading Blockly project:", e);
@@ -857,6 +863,7 @@ export function setupFileInput(workspace, executeCallback) {
 				document.getElementById("projectName").value =
 					stripFilename(baseName);
 
+				clearFileHandle();
 				loadWorkspaceAndExecute(json, workspace, executeCallback);
 			} catch (e) {
 				console.error("Error loading Blockly project:", e);
@@ -893,6 +900,7 @@ export function loadExample(workspace, executeCallback) {
 			.then((response) => response.json())
 			.then((json) => {
 				console.log("Loading:", selectedOption);
+				clearFileHandle();
 				loadWorkspaceAndExecute(json, workspace, executeCallback);
 			})
 			.catch((error) => {
@@ -919,6 +927,7 @@ export function newProject() {
 	fetch("examples/new.flock")
 		.then((response) => response.json())
 		.then((json) => {
+			clearFileHandle();
 			loadWorkspaceAndExecute(json, workspace, executeCode);
 		})
 		.catch((error) => {
