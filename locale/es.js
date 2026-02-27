@@ -322,6 +322,8 @@ export default {
   rotate_to: "rotar %1 a x: %2 y: %3 z: %4", // human
   look_at: "hacer que %1 mire a %2 y? %3", // human
   move_forward: "mover %1 %2 velocidad %3", // human
+  rotate_camera: "rotar cámara %1 grados", // ai
+  up: "arriba %1 fuerza %2", // ai
   set_pivot: "establecer ancla de %1\nx: %2 y: %3 z: %4", // human
   min_centre_max: "%1", // human
 
@@ -625,6 +627,9 @@ export default {
     "Rota la primera malla hacia la posición de la segunda.\nPalabra clave: mira", // human
   move_forward_tooltip:
     "Mueve la malla en la dirección especificada. 'adelante' sigue su dirección, 'al lado' lo mueve relativo a la posición de la cámara, y 'strafear' lo mueve al lado relative a la posición de la cámara.\nPalabra clave: empuja", // human
+  rotate_camera_tooltip:
+    "Rota la cámara a la izquierda o derecha los grados indicados.\nPalabra clave: rotate", // ai
+  up_tooltip: "Aplica la fuerza hacia arriba especificada.\nPalabra clave: up", // ai
   set_pivot_tooltip:
     "Establece el punto de anclaje para una malla en los ejes X, Y, y Z.\nPalabra clave: ancla", // human
   min_centre_max_tooltip:
@@ -1074,6 +1079,9 @@ export default {
     "Solo se permiten archivos de proyecto .json o .flock.", // human
   invalid_project_alert: "Este archivo no es un proyecto válido de Flock XR.", // human
   failed_to_read_file_alert: "No pudo leer el archivo.", // human
+  drag_drop_hint: "Suelta para abrir el proyecto o importar un fragmento", // ai
+  drop_unsupported_file_alert:
+    "Solo se pueden soltar archivos .flock, .json, .fsnip o .png.", // ai
 
   // UI status messages
   max_mesh_limit_reached:
