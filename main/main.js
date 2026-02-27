@@ -23,6 +23,7 @@ import {
         saveWorkspace,
         loadWorkspace,
         exportCode,
+        autoSaveToFile,
         setupFileInput,
         setupDragAndDrop,
         loadExampleWrapper,
@@ -414,8 +415,11 @@ window.onload = async function () {
 
         console.log("Welcome to Flock 🐑🐑🐑");
 
-        // Call this function to autosave periodically
-        setInterval(() => saveWorkspace(workspace), 30000); // Autosave every 30 seconds
+        // Autosave every 30 seconds: to localStorage and (if a file was saved) to that file
+        setInterval(() => {
+                saveWorkspace(workspace);
+                autoSaveToFile(workspace);
+        }, 30000);
 
         (async () => {
                 await flock.initialize();
