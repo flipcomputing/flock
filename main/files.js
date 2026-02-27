@@ -636,6 +636,146 @@ function appendSnippetBlocksAtViewport(workspace, blocksJson) {
 	});
 }
 
+// Private helper: process a project file (used by file input and drag-and-drop)
+function processProjectFileDrop(file, workspace, executeCallback) {
+	const maxSize = 5 * 1024 * 1024;
+	if (file.size > maxSize) {
+		alert(translate("file_too_large_alert"));
+		return;
+	}
+
+	const lowerName = file.name.toLowerCase();
+	if (!lowerName.endsWith(".json") && !lowerName.endsWith(".flock")) {
+		alert(translate("invalid_filetype_alert"));
+		return;
+	}
+
+	const reader = new FileReader();
+	reader.onload = function () {
+		window.loadingCode = true;
+		try {
+			const text = reader.result;
+			if (typeof text !== "string") {
+				throw new Error("File content is invalid (not a string)");
+			}
+			if (text.length > 4 * 1024 * 1024) {
+				throw new Error("File content is too large");
+			}
+			const json = JSON.parse(text);
+			if (
+				!json ||
+				typeof json !== "object" ||
+				!json.blocks ||
+				typeof json.blocks !== "object" ||
+				!json.blocks.blocks
+			) {
+				throw new Error("Invalid Blockly project file structure");
+			}
+
+			const rawName = file.name || "untitled";
+			const sanitizedName =
+				rawName.replace(/[^a-zA-Z0-9_.-]/g, "").substring(0, 50) ||
+				"untitled";
+			const baseName = sanitizedName.replace(/\.(json|flock)$/i, "");
+			document.getElementById("projectName").value =
+				stripFilename(baseName);
+			loadWorkspaceAndExecute(json, workspace, executeCallback);
+		} catch (e) {
+			console.error("Error loading Blockly project:", e);
+			alert(translate("invalid_project_alert"));
+			window.loadingCode = false;
+		}
+	};
+	reader.onerror = function () {
+		alert(translate("failed_to_read_file_alert"));
+		window.loadingCode = false;
+	};
+	reader.readAsText(file);
+}
+
+// Private helper: process a dropped snippet or PNG file
+function processSnippetFileDrop(file) {
+	const reader = new FileReader();
+	reader.onload = () => {
+		const content = reader.result;
+		if (file.type === "image/png") {
+			handlePNGImport(content);
+		} else {
+			handleJSONImport(content);
+		}
+	};
+	if (file.type === "image/png") {
+		reader.readAsArrayBuffer(file);
+	} else {
+		reader.readAsText(file);
+	}
+}
+
+// Set up drag-and-drop for .flock, .json, .fsnip, and .png files
+export function setupDragAndDrop(workspace, executeCallback) {
+	// Create the drop overlay
+	const overlay = document.createElement("div");
+	overlay.id = "drag-drop-overlay";
+	overlay.setAttribute("aria-hidden", "true");
+	overlay.textContent = translate("drag_drop_hint");
+	document.body.appendChild(overlay);
+
+	let dragCounter = 0;
+
+	function isFileDrag(e) {
+		return (
+			e.dataTransfer?.types &&
+			Array.from(e.dataTransfer.types).includes("Files")
+		);
+	}
+
+	document.addEventListener("dragenter", (e) => {
+		if (!isFileDrag(e)) return;
+		e.preventDefault();
+		dragCounter++;
+		overlay.classList.add("visible");
+	});
+
+	document.addEventListener("dragover", (e) => {
+		if (!isFileDrag(e)) return;
+		e.preventDefault();
+		e.dataTransfer.dropEffect = "copy";
+	});
+
+	document.addEventListener("dragleave", (e) => {
+		if (!isFileDrag(e)) return;
+		dragCounter = Math.max(0, dragCounter - 1);
+		if (dragCounter === 0) {
+			overlay.classList.remove("visible");
+		}
+	});
+
+	document.addEventListener("drop", (e) => {
+		dragCounter = 0;
+		overlay.classList.remove("visible");
+
+		const files = e.dataTransfer?.files;
+		if (!files || files.length === 0) return;
+
+		e.preventDefault();
+		e.stopPropagation();
+
+		const file = files[0];
+		const lowerName = file.name.toLowerCase();
+
+		if (lowerName.endsWith(".flock") || lowerName.endsWith(".json")) {
+			processProjectFileDrop(file, workspace, executeCallback);
+		} else if (
+			lowerName.endsWith(".fsnip") ||
+			file.type === "image/png"
+		) {
+			processSnippetFileDrop(file);
+		} else {
+			alert(translate("drop_unsupported_file_alert"));
+		}
+	});
+}
+
 // Function to set up file input handler
 export function setupFileInput(workspace, executeCallback) {
 	const fileInput = document.getElementById("fileInput");

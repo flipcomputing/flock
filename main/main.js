@@ -24,6 +24,7 @@ import {
         loadWorkspace,
         exportCode,
         setupFileInput,
+        setupDragAndDrop,
         loadExampleWrapper,
         newProject,
         importSnippet,
@@ -475,6 +476,7 @@ window.onload = async function () {
         initializeApp();
 
         setupFileInput(workspace, executeCode);
+        setupDragAndDrop(workspace, executeCode);
 
         setupInput();
 
