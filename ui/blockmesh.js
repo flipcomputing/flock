@@ -130,7 +130,11 @@ export function getMeshFromBlock(block) {
     return flock?.scene?.getMeshByName("ground");
   }
 
-  if (block.type === "rotate_to" || block.type === "resize") {
+  if (
+    block.type === "rotate_to" ||
+    block.type === "resize" ||
+    block.type === "scale"
+  ) {
     let container = null;
     let node = block;
 
@@ -186,7 +190,11 @@ export function getMeshesFromBlock(block) {
     return mesh ? [mesh] : [];
   }
 
-  if (block.type === "rotate_to" || block.type === "resize") {
+  if (
+    block.type === "rotate_to" ||
+    block.type === "resize" ||
+    block.type === "scale"
+  ) {
     let container = null;
     let node = block;
 
@@ -1026,6 +1034,168 @@ function getXYZFromBlock(block) {
   };
 }
 
+// Walks up from a DO-chain block to find its containing create_*/load_* block.
+function getContainerBlock(block) {
+  let node = block;
+  while (node) {
+    const parent = node.getParent();
+    if (!parent) break;
+    // Walk to the top of this node's stack within parent
+    let top = node;
+    while (
+      top.getPrevious &&
+      top.getPrevious() &&
+      top.getPrevious().getParent() === parent
+    ) {
+      top = top.getPrevious();
+    }
+    const input = parent.getInputWithBlock
+      ? parent.getInputWithBlock(top)
+      : null;
+    if (input && input.type === Blockly.NEXT_STATEMENT && input.name === "DO") {
+      return parent;
+    }
+    node = parent;
+  }
+  return null;
+}
+
+// Applies a single transform block's effect to the given list of meshes.
+function applyTransformBlockToMeshes(block, meshes) {
+  if (!block || !meshes || meshes.length === 0) return;
+  switch (block.type) {
+    case "resize": {
+      const dims = getXYZFromBlock(block);
+      meshes.forEach((mesh) => {
+        if (!mesh) return;
+        flock.resize(mesh.name, {
+          width: dims.x != null ? Number(dims.x) : null,
+          height: dims.y != null ? Number(dims.y) : null,
+          depth: dims.z != null ? Number(dims.z) : null,
+          xOrigin: block.getFieldValue("X_ORIGIN") || "CENTRE",
+          yOrigin: block.getFieldValue("Y_ORIGIN") || "BASE",
+          zOrigin: block.getFieldValue("Z_ORIGIN") || "CENTRE",
+        });
+      });
+      break;
+    }
+    case "rotate_to": {
+      const rot = getXYZFromBlock(block);
+      meshes.forEach((mesh) => {
+        if (!mesh) return;
+        flock.rotateTo(mesh.name, {
+          x: rot.x != null ? Number(rot.x) : 0,
+          y: rot.y != null ? Number(rot.y) : 0,
+          z: rot.z != null ? Number(rot.z) : 0,
+        });
+      });
+      break;
+    }
+    case "rotate_model_xyz": {
+      const rot = getXYZFromBlock(block);
+      meshes.forEach((mesh) => {
+        if (!mesh) return;
+        flock.rotate(mesh.name, {
+          x: rot.x != null ? Number(rot.x) : 0,
+          y: rot.y != null ? Number(rot.y) : 0,
+          z: rot.z != null ? Number(rot.z) : 0,
+        });
+      });
+      break;
+    }
+    case "scale": {
+      const dims = getXYZFromBlock(block);
+      meshes.forEach((mesh) => {
+        if (!mesh) return;
+        flock.scale(mesh.name, {
+          x: dims.x != null ? Number(dims.x) : 1,
+          y: dims.y != null ? Number(dims.y) : 1,
+          z: dims.z != null ? Number(dims.z) : 1,
+          xOrigin: block.getFieldValue("X_ORIGIN") || "CENTRE",
+          yOrigin: block.getFieldValue("Y_ORIGIN") || "BASE",
+          zOrigin: block.getFieldValue("Z_ORIGIN") || "CENTRE",
+        });
+      });
+      break;
+    }
+    case "move_to_xyz": {
+      const pos = getXYZFromBlock(block);
+      meshes.forEach((mesh) => {
+        if (!mesh) return;
+        flock.positionAt(mesh.name, {
+          x: pos.x != null ? Number(pos.x) : 0,
+          y: pos.y != null ? Number(pos.y) : 0,
+          z: pos.z != null ? Number(pos.z) : 0,
+          useY: true,
+        });
+      });
+      break;
+    }
+    case "move_by_xyz": {
+      const delta = getXYZFromBlock(block);
+      meshes.forEach((mesh) => {
+        if (!mesh) return;
+        flock.moveByVector(mesh.name, {
+          x: delta.x != null ? Number(delta.x) : 0,
+          y: delta.y != null ? Number(delta.y) : 0,
+          z: delta.z != null ? Number(delta.z) : 0,
+        });
+      });
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+// Resets a mesh to its pre-transform base state, then replays every DO-chain
+// transform block in order. This ensures the live preview matches runtime when
+// a chain like resize → rotate_to → resize is used (where the anchor
+// compensation in resize() must operate on an unrotated mesh to be correct).
+function applyDoChainToMeshes(containerBlock, meshes) {
+  if (!containerBlock || !meshes || meshes.length === 0) return;
+
+  // Step 1: Reset each mesh to its creation-time transform state.
+  meshes.forEach((mesh) => {
+    if (!mesh) return;
+    // Identity rotation
+    if (mesh.rotationQuaternion) {
+      mesh.rotationQuaternion.copyFrom(flock.BABYLON.Quaternion.Identity());
+    }
+    mesh.rotation.set(0, 0, 0);
+    // Unit scale – primitives bake their geometry so the base scale is always 1
+    mesh.scaling.set(1, 1, 1);
+    // Clear resize metadata so the next resize() re-captures from the reset geometry
+    if (mesh.metadata) {
+      delete mesh.metadata.originalMin;
+      delete mesh.metadata.originalMax;
+    }
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo?.();
+  });
+
+  // Step 2: Restore base position from the container block's X/Y/Z inputs.
+  const posXYZ = getXYZFromBlock(containerBlock);
+  const baseX = posXYZ.x != null ? Number(posXYZ.x) : 0;
+  const baseY = posXYZ.y != null ? Number(posXYZ.y) : 0;
+  const baseZ = posXYZ.z != null ? Number(posXYZ.z) : 0;
+  meshes.forEach((mesh) => {
+    if (!mesh) return;
+    flock.positionAt(mesh.name, { x: baseX, y: baseY, z: baseZ, useY: true });
+  });
+
+  // Step 3: Walk the DO chain and apply each enabled transform block in order.
+  const doInput = containerBlock.getInput("DO");
+  if (!doInput || !doInput.connection) return;
+  let current = doInput.connection.targetBlock();
+  while (current) {
+    if (current.isEnabled()) {
+      applyTransformBlockToMeshes(current, meshes);
+    }
+    current = current.getNextBlock();
+  }
+}
+
 export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   if (flock.meshDebug) {
     console.log("=== UPDATE MESH FROM BLOCK ===");
@@ -1058,6 +1228,21 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   if (block.type === "change_color") {
     if (flock.meshDebug)
       console.log("Skipping live update for change_color block");
+    return;
+  }
+
+  // For BLOCK_MOVE events on DO-chain transform blocks, replay the full chain
+  // so the mesh reflects the new block order without touching the changed logic below.
+  if (
+    changeEvent.type === Blockly.Events.BLOCK_MOVE &&
+    (block.type === "resize" ||
+      block.type === "rotate_to" ||
+      block.type === "scale")
+  ) {
+    const containerBlock = getContainerBlock(block);
+    if (containerBlock) {
+      applyDoChainToMeshes(containerBlock, meshes);
+    }
     return;
   }
 
@@ -1234,49 +1419,39 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       changeEvent.element === "field";
 
     // Decide which block actually owns the X/Y/Z inputs:
-    // - rotate_to / resize child (nested inside DO)
+    // - rotate_to / resize / scale child (nested inside DO)
     // - otherwise the root block itself
     const contextBlock =
-      parent && (parent.type === "rotate_to" || parent.type === "resize")
+      parent &&
+      (parent.type === "rotate_to" ||
+        parent.type === "resize" ||
+        parent.type === "scale")
         ? parent
         : block;
 
-    // --- rotate_to: allow gizmo / non-field events ---
-    if (contextBlock.type === "rotate_to") {
-      const rotation = getXYZFromBlock(contextBlock);
-      meshes.forEach((mesh) => flock.rotateTo(mesh.name, rotation));
-      return;
-    }
-
-    // --- resize: also allow gizmo / non-field events ---
-    if (contextBlock.type === "resize") {
-      const dims = getXYZFromBlock(contextBlock);
-      const resizeOptions = {
-        width: dims.x ?? null,
-        height: dims.y ?? null,
-        depth: dims.z ?? null,
-        xOrigin: contextBlock.getFieldValue("X_ORIGIN") || "CENTRE",
-        yOrigin: contextBlock.getFieldValue("Y_ORIGIN") || "BASE",
-        zOrigin: contextBlock.getFieldValue("Z_ORIGIN") || "CENTRE",
-      };
-
-      if (flock.meshDebug) {
-        console.log(
-          "Resize",
-          resizeOptions,
-          "on mesh",
-          meshes[0]?.name,
-          "from block",
-          block.type,
-          "event type",
-          changeEvent.type,
-        );
+    // --- rotate_to / resize / scale: replay the entire DO chain from the
+    // initial mesh state so anchor compensation in resize() always operates
+    // on an unrotated mesh, matching exactly what happens at runtime. ---
+    if (
+      contextBlock.type === "rotate_to" ||
+      contextBlock.type === "resize" ||
+      contextBlock.type === "scale"
+    ) {
+      const containerBlock = getContainerBlock(contextBlock);
+      if (containerBlock) {
+        if (flock.meshDebug) {
+          console.log(
+            "Replaying DO chain for container",
+            containerBlock.type,
+            "triggered by",
+            contextBlock.type,
+          );
+        }
+        applyDoChainToMeshes(containerBlock, meshes);
+      } else {
+        // Fallback: no DO container found, apply just this block's transform
+        applyTransformBlockToMeshes(contextBlock, meshes);
       }
-
-      meshes.forEach((mesh) => {
-        flock.resize(mesh.name, resizeOptions);
-        if (flock.meshDebug) console.log("After resize", mesh);
-      });
       return;
     }
 
