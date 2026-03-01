@@ -26,6 +26,7 @@ export default {
   CATEGORY_FUNCTIONS: "Funciones", // human
   CATEGORY_SNIPPETS: "Fragmentos", // human
   CATEGORY_MOVEMENT: "Movimiento", // human
+  CATEGORY_SIT_DOWN: "Sentarse", // human
 
   // Color picker translations
   choose_a_color: "Elige un color", // human
