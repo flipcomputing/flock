@@ -547,6 +547,7 @@ export function defineControlBlocks() {
         };
 
         const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
+        const INVALID_IF_STACK_REASON = "INVALID_IF_STACK";
 
         Blockly.Blocks["if_clause"] = {
                 init: function () {
@@ -585,6 +586,7 @@ export function defineControlBlocks() {
                         // Clear restore flag after Blockly has had a chance to reconnect blocks.
                         setTimeout(() => {
                                 this._isRestoring = false;
+                                this.recomputeIfClauseValidity_();
                         }, 0);
                 },
 
@@ -611,6 +613,7 @@ export function defineControlBlocks() {
 
                         setTimeout(() => {
                                 this._isRestoring = false;
+                                this.recomputeIfClauseValidity_();
                         }, 0);
                 },
 
@@ -688,8 +691,111 @@ export function defineControlBlocks() {
 
                         // Validate and disconnect invalid subsequent blocks
                         this.validateAndDisconnectInvalidChain_(mode);
+                        this.recomputeIfClauseValidity_();
 
                         if (this.rendered) this.render();
+                },
+
+                onchange: function (event) {
+                        if (!this.workspace || this._isRestoring || this.isDisposed()) {
+                                return;
+                        }
+
+                        const isRelevantEvent =
+                                event.type === Blockly.Events.BLOCK_MOVE ||
+                                event.type === Blockly.Events.BLOCK_CHANGE ||
+                                event.type === Blockly.Events.BLOCK_CREATE;
+
+                        if (!isRelevantEvent) {
+                                return;
+                        }
+
+                        // Ignore block-level disabled toggles to avoid event loops and undo noise.
+                        if (
+                                event.type === Blockly.Events.BLOCK_CHANGE &&
+                                event.element === "disabled"
+                        ) {
+                                return;
+                        }
+
+                        this.recomputeIfClauseValidity_();
+                },
+
+                getRealTargetBlock_: function (connection) {
+                        const maybeTarget = connection?.targetBlock?.();
+                        if (
+                                maybeTarget &&
+                                typeof maybeTarget.isInsertionMarker === "function" &&
+                                maybeTarget.isInsertionMarker()
+                        ) {
+                                return null;
+                        }
+                        return maybeTarget || null;
+                },
+
+                getIfClauseChainHead_: function () {
+                        let head = this;
+                        let prev = this.getRealTargetBlock_(head.previousConnection);
+                        while (prev?.type === "if_clause") {
+                                head = prev;
+                                prev = this.getRealTargetBlock_(head.previousConnection);
+                        }
+                        return head;
+                },
+
+                getContiguousIfClauseChainFrom_: function (head) {
+                        const chain = [];
+                        let current = head;
+
+                        while (current?.type === "if_clause") {
+                                chain.push(current);
+                                current = this.getRealTargetBlock_(current.nextConnection);
+                        }
+
+                        return chain;
+                },
+
+                recomputeIfClauseValidity_: function () {
+                        if (!this.workspace || this._isRestoring || this.isDisposed()) {
+                                return;
+                        }
+
+                        const head = this.getIfClauseChainHead_();
+                        const chain = this.getContiguousIfClauseChainFrom_(head);
+                        let hasIfHead = false;
+                        let seenElse = false;
+
+                        const eventsWereEnabled = Blockly.Events.isEnabled();
+                        Blockly.Events.disable();
+
+                        try {
+                                for (const block of chain) {
+                                        const mode = block.getFieldValue("MODE");
+                                        let isValid = false;
+
+                                        if (mode === MODE.IF) {
+                                                isValid = true;
+                                                hasIfHead = true;
+                                                seenElse = false;
+                                        } else if (mode === MODE.ELSEIF) {
+                                                isValid = hasIfHead && !seenElse;
+                                        } else if (mode === MODE.ELSE) {
+                                                isValid = hasIfHead && !seenElse;
+                                                if (isValid) {
+                                                        seenElse = true;
+                                                }
+                                        }
+
+                                        block.setDisabledReason(
+                                                !isValid,
+                                                INVALID_IF_STACK_REASON,
+                                        );
+                                }
+                        } finally {
+                                if (eventsWereEnabled) {
+                                        Blockly.Events.enable();
+                                }
+                        }
                 },
 
                 validateAndDisconnectInvalidChain_: function (currentMode) {
