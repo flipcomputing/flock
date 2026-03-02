@@ -718,14 +718,6 @@ export function defineControlBlocks() {
                                 return;
                         }
 
-                        if (
-                                event?.blockId !== this.id &&
-                                event?.newParentId !== this.id &&
-                                event?.oldParentId !== this.id
-                        ) {
-                                return;
-                        }
-
                         this.recomputeIfClauseValidity_();
                 },
 
@@ -770,7 +762,8 @@ export function defineControlBlocks() {
 
                         const head = this.getIfClauseChainHead_();
                         const chain = this.getContiguousIfClauseChainFrom_(head);
-                        let canAcceptElseBranch = false;
+                        let hasIfHead = false;
+                        let seenElse = false;
 
                         const eventsWereEnabled = Blockly.Events.isEnabled();
                         Blockly.Events.disable();
@@ -782,16 +775,15 @@ export function defineControlBlocks() {
 
                                         if (mode === MODE.IF) {
                                                 isValid = true;
-                                                canAcceptElseBranch = true;
+                                                hasIfHead = true;
+                                                seenElse = false;
                                         } else if (mode === MODE.ELSEIF) {
-                                                isValid = canAcceptElseBranch;
+                                                isValid = hasIfHead && !seenElse;
                                         } else if (mode === MODE.ELSE) {
-                                                isValid = canAcceptElseBranch;
-                                                canAcceptElseBranch = false;
-                                        }
-
-                                        if (mode === MODE.ELSEIF && !isValid) {
-                                                canAcceptElseBranch = false;
+                                                isValid = hasIfHead && !seenElse;
+                                                if (isValid) {
+                                                        seenElse = true;
+                                                }
                                         }
 
                                         block.setDisabledReason(
