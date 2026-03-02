@@ -701,20 +701,28 @@ export function defineControlBlocks() {
                                 return;
                         }
 
-                        if (
-                                event?.blockId !== this.id &&
-                                event?.newParentId !== this.id &&
-                                event?.oldParentId !== this.id
-                        ) {
-                                return;
-                        }
-
                         const isRelevantEvent =
                                 event.type === Blockly.Events.BLOCK_MOVE ||
                                 event.type === Blockly.Events.BLOCK_CHANGE ||
                                 event.type === Blockly.Events.BLOCK_CREATE;
 
                         if (!isRelevantEvent) {
+                                return;
+                        }
+
+                        // Ignore block-level disabled toggles to avoid event loops and undo noise.
+                        if (
+                                event.type === Blockly.Events.BLOCK_CHANGE &&
+                                event.element === "disabled"
+                        ) {
+                                return;
+                        }
+
+                        if (
+                                event?.blockId !== this.id &&
+                                event?.newParentId !== this.id &&
+                                event?.oldParentId !== this.id
+                        ) {
                                 return;
                         }
 
@@ -764,25 +772,37 @@ export function defineControlBlocks() {
                         const chain = this.getContiguousIfClauseChainFrom_(head);
                         let canAcceptElseBranch = false;
 
-                        for (const block of chain) {
-                                const mode = block.getFieldValue("MODE");
-                                let isValid = false;
+                        const eventsWereEnabled = Blockly.Events.isEnabled();
+                        Blockly.Events.disable();
 
-                                if (mode === MODE.IF) {
-                                        isValid = true;
-                                        canAcceptElseBranch = true;
-                                } else if (mode === MODE.ELSEIF) {
-                                        isValid = canAcceptElseBranch;
-                                } else if (mode === MODE.ELSE) {
-                                        isValid = canAcceptElseBranch;
-                                        canAcceptElseBranch = false;
+                        try {
+                                for (const block of chain) {
+                                        const mode = block.getFieldValue("MODE");
+                                        let isValid = false;
+
+                                        if (mode === MODE.IF) {
+                                                isValid = true;
+                                                canAcceptElseBranch = true;
+                                        } else if (mode === MODE.ELSEIF) {
+                                                isValid = canAcceptElseBranch;
+                                        } else if (mode === MODE.ELSE) {
+                                                isValid = canAcceptElseBranch;
+                                                canAcceptElseBranch = false;
+                                        }
+
+                                        if (mode === MODE.ELSEIF && !isValid) {
+                                                canAcceptElseBranch = false;
+                                        }
+
+                                        block.setDisabledReason(
+                                                !isValid,
+                                                INVALID_IF_STACK_REASON,
+                                        );
                                 }
-
-                                if (mode === MODE.ELSEIF && !isValid) {
-                                        canAcceptElseBranch = false;
+                        } finally {
+                                if (eventsWereEnabled) {
+                                        Blockly.Events.enable();
                                 }
-
-                                block.setDisabledReason(!isValid, INVALID_IF_STACK_REASON);
                         }
                 },
 
