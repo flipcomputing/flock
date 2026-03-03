@@ -147,7 +147,7 @@ export const flockMaterial = {
     }
     if (flock.materialsDebug)
       console.log(`  Generated the random colour ${colour}`);
-    return colour;
+    return colour.toLowerCase();
   },
   rgbToHex(rgb) {
     const matches = rgb.match(/\d+/g);
@@ -185,7 +185,7 @@ export const flockMaterial = {
     // if (flock.materialsDebug) console.log(` Getting a colour from ${colourString}`);
 
     if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
-      return colourString;
+      return colourString.toLowerCase();
     }
 
     try {
@@ -204,7 +204,7 @@ export const flockMaterial = {
       const g = parseInt(matches[1]);
       const b = parseInt(matches[2]);
       const result = flock.rgbToHex(r, g, b);
-      return result;
+      return result.toLowerCase();
     } catch (e) {
       return "#000000";
     }
