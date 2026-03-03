@@ -186,9 +186,9 @@ export const flockSensing = {
         colors = materialNodes
           .map((node) => {
             if (node.material.diffuseColor) {
-              return node.material.diffuseColor.toHexString();
+              return node.material.diffuseColor.toHexString().toLowerCase();
             } else if (node.material.albedoColor) {
-              return node.material.albedoColor.toHexString();
+              return node.material.albedoColor.toHexString().toLowerCase();
             }
             return null;
           })
