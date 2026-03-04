@@ -82,6 +82,8 @@ import { translate } from "./main/translation.js";
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
 
+import { enableSceneDescription, announce } from "./accessibility/accessibility.js"; //Accessibility layer
+
 export const flock = {
         blockDebug: false,
         callbackMode: true,
@@ -1219,6 +1221,9 @@ export const flock = {
                 flock.EXPORT = BABYLON_EXPORT;
                 flock.document = document;
                 flock.canvas = flock.document.getElementById("renderCanvas");
+                // Make canvas focusable for keyboard events
+                flock.canvas.tabIndex = 0; 
+                flock.canvas.setAttribute("aria-label", "Flock 3D world canvas");
                 flock.scene = null;
                 flock.havokInstance = null;
                 flock.ground = null;
@@ -1945,6 +1950,11 @@ export const flock = {
 
                 // Create the new scene
                 flock.scene = new flock.BABYLON.Scene(flock.engine);
+
+                //Enable accessibility layer
+                enableSceneDescription(flock.scene, flock.canvas);
+                announce("Flock world loaded. Press Control + I to hear a description of your surroundings.", { canvas: flock.canvas });
+
 
                 flock._renderLoop = () => {
                         try {
