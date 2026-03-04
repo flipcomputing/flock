@@ -851,17 +851,25 @@ export function toggleGizmo(gizmoType) {
 
       gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(function () {
         let mesh = gizmoManager.attachedMesh;
-        while (mesh?.parent && !mesh.parent.physics) {
-          mesh = mesh.parent;
+        if (!mesh) return;
+
+        // Walk up to find the ancestor that actually owns the physics body.
+        // Fix: check the CURRENT mesh for physics (not mesh.parent), so we
+        // stop AT the physics mesh rather than one level below it.
+        let physicsMesh = mesh;
+        while (physicsMesh?.parent && !physicsMesh.physics) {
+          physicsMesh = physicsMesh.parent;
         }
 
-        if (!mesh?.physics) return;
-
-        if (mesh.savedMotionType) {
-          mesh.physics.setMotionType(mesh.savedMotionType);
+        // Restore the saved motion type (set in onDragStartObservable).
+        if (physicsMesh?.physics && physicsMesh.savedMotionType) {
+          physicsMesh.physics.setMotionType(physicsMesh.savedMotionType);
         }
 
-        const block = meshMap[mesh.metadata.blockKey];
+        // Use findParentWithBlockId so compound / child-mesh picks still find
+        // the correct container block (non-physics meshes included).
+        const blockMesh = findParentWithBlockId(mesh) ?? mesh;
+        const block = meshMap[blockMesh.metadata?.blockKey];
 
         if (!block) return;
 
@@ -927,7 +935,8 @@ export function toggleGizmo(gizmoType) {
           });
         }
 
-        const currentRotation = getMeshRotationInDegrees(mesh);
+        // Read rotation from blockMesh (the mesh the gizmo acts on).
+        const currentRotation = getMeshRotationInDegrees(blockMesh);
 
         setBlockXYZ(
           rotateBlock,

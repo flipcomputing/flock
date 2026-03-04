@@ -11,6 +11,15 @@ import { flock } from "../flock.js";
 
 export function defineTransformBlocks() {
         function handleBlockChange(block, changeEvent) {
+                // When this block itself is moved/connected, replay its DO chain
+                if (
+                        changeEvent.type === Blockly.Events.BLOCK_MOVE &&
+                        changeEvent.blockId === block.id
+                ) {
+                        updateOrCreateMeshFromBlock(block, changeEvent);
+                        return;
+                }
+
                 const changeEventBlock = Blockly.getMainWorkspace().getBlockById(
                         changeEvent.blockId,
                 );
@@ -27,7 +36,8 @@ export function defineTransformBlocks() {
                         );
                 if (
                         changeEventBlockType != "rotate_to" &&
-                        changeEventBlockType != "resize"
+                        changeEventBlockType != "resize" &&
+                        changeEventBlockType != "scale"
                 )
                         return;
                 const handleChange = handleFieldOrChildChange(block, changeEvent);
