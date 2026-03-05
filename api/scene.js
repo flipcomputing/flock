@@ -26,7 +26,7 @@ export const flockScene = {
 
     if (!color) return;
 
-    const { clear = false } = options;
+    const { clear = false, flipV = true } = options;
 
     if (flock.sky) {
       flock.disposeMesh(flock.sky);
@@ -66,17 +66,17 @@ export const flockScene = {
         color.diffuseTexture || color.albedoTexture || color.baseTexture;
 
       if (tex || isShader) {
-        
         const scaleValue = 10;
+        const verticalScale = flipV ? -scaleValue : scaleValue;
 
         if (tex) {
           tex.uScale = scaleValue;
-          tex.vScale = scaleValue;
+          tex.vScale = verticalScale;
         }
 
         if (isShader) {
           color.setFloat("uScale", scaleValue);
-          color.setFloat("vScale", scaleValue);
+          color.setFloat("vScale", verticalScale);
         }
       }
 
