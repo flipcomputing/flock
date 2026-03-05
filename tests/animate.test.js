@@ -211,6 +211,32 @@ export function runAnimateTests(flock) {
 				expect(actualDuration).to.be.at.least(180); // Allow some tolerance
 				expect(actualDuration).to.be.at.most(300);
 			});
+
+			it("should return to the start rotation when reverse is true", async function () {
+				const boxId = "rotateAnimReverse";
+				await flock.createBox(boxId, {
+					width: 1,
+					height: 1,
+					depth: 1,
+					position: [0, 0, 0],
+				});
+				boxIds.push(boxId);
+
+				const mesh = flock.scene.getMeshByName(boxId);
+				expect(mesh).to.exist;
+
+				const initialRotation = mesh.rotation.clone();
+
+				await flock.rotateAnim(boxId, {
+					y: 90,
+					duration: 0.1,
+					reverse: true,
+				});
+
+				expect(mesh.rotation.x).to.be.closeTo(initialRotation.x, 0.01);
+				expect(mesh.rotation.y).to.be.closeTo(initialRotation.y, 0.01);
+				expect(mesh.rotation.z).to.be.closeTo(initialRotation.z, 0.01);
+			});
 		});
 
 		describe("animateProperty function", function () {
