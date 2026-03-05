@@ -275,13 +275,18 @@ async function generateSVG(block) {
 	});
 
 
-	const uiTexts = svgBlock.querySelectorAll(
-		"text.blocklyCheckbox, text.blocklyText",
-	);
+	const uiTexts = svgBlock.querySelectorAll("text.blocklyText");
 	uiTexts.forEach((textElement) => {
-		textElement.setAttribute("style", "fill: #000000 !important;");
-		textElement.setAttribute("stroke", "none");
-		textElement.setAttribute("font-weight", "500");
+		const isCheckbox = textElement.classList.contains("blocklyCheckbox");
+
+		textElement.style.fill = "#000000";
+
+		if (isCheckbox) {
+			return;
+		}
+
+		textElement.style.stroke = "none";
+		textElement.style.fontWeight = "500";
 	});
 
 	const fontBase64 = await convertFontToBase64(w500);
