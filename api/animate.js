@@ -168,7 +168,7 @@ export const flockAnimate = {
           "rotation",
           fps,
           BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-          loop || reverse
+          loop
             ? BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
             : BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
         );
@@ -176,10 +176,8 @@ export const flockAnimate = {
         const rotateKeys = [
           { frame: 0, value: startRotation },
           { frame: frames, value: targetRotation },
+          ...(reverse ? [{ frame: frames * 2, value: startRotation }] : []),
         ];
-        if (reverse || loop) {
-          rotateKeys.push({ frame: frames * 2, value: startRotation });
-        }
         rotateAnimation.setKeys(rotateKeys);
 
         if (easing !== "Linear") {
@@ -205,13 +203,17 @@ export const flockAnimate = {
           mesh,
           [rotateAnimation],
           0,
-          reverse || loop ? frames * 2 : frames,
+          reverse ? frames * 2 : frames,
           loop,
         );
 
         animatable.onAnimationEndObservable.add(() => {
           flock.scene.onAfterAnimationsObservable.remove(syncObserver);
-          if (!reverse) mesh.rotation = targetRotation.clone();
+          if (reverse) {
+            mesh.rotation = startRotation.clone();
+          } else {
+            mesh.rotation = targetRotation.clone();
+          }
           resolve();
         });
       });
