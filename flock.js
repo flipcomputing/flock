@@ -1288,16 +1288,44 @@ export const flock = {
                         { passive: false },
                 );
 
-                flock.canvas.addEventListener("keydown", function (event) {
+                const shouldIgnoreKeyboardEvent = (event) => {
+                        const target = event.target;
+                        if (!target) {
+                                return false;
+                        }
+
+                        const tagName = target.tagName?.toLowerCase();
+                        return (
+                                target.isContentEditable ||
+                                tagName === "input" ||
+                                tagName === "textarea" ||
+                                tagName === "select"
+                        );
+                };
+
+                const handleKeyDown = (event) => {
+                        if (shouldIgnoreKeyboardEvent(event)) {
+                                return;
+                        }
+
                         flock.canvas.currentKeyPressed = event.key;
                         flock.canvas.pressedKeys.add(event.key);
-                });
+                };
 
-                flock.canvas.addEventListener("keyup", function (event) {
+                const handleKeyUp = (event) => {
+                        if (shouldIgnoreKeyboardEvent(event)) {
+                                return;
+                        }
+
                         flock.canvas.pressedKeys.delete(event.key);
-                });
+                };
 
-                flock.canvas.addEventListener("blur", () => {
+                flock.canvas.addEventListener("keydown", handleKeyDown);
+                flock.canvas.addEventListener("keyup", handleKeyUp);
+                window.addEventListener("keydown", handleKeyDown);
+                window.addEventListener("keyup", handleKeyUp);
+
+                window.addEventListener("blur", () => {
                         // Clear all pressed keys when window loses focus
                         flock.canvas.pressedKeys.clear();
                         flock.canvas.pressedButtons.clear();
