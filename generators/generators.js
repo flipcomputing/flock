@@ -3517,6 +3517,11 @@ export function defineGenerators() {
                 return `await setXRMode("${mode}");\n`;
         };
 
+        javascriptGenerator.forBlock["play_rumble_pattern"] = function (block) {
+                const pattern = block.getFieldValue("PATTERN");
+                return `playRumblePattern("${pattern}");\n`;
+        };
+
         javascriptGenerator.forBlock["controller_rumble"] = function (block) {
                 const motor = block.getFieldValue("MOTOR");
                 const strength = javascriptGenerator.valueToCode(

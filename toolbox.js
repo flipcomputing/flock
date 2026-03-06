@@ -610,6 +610,11 @@ const toolboxSceneXR = {
                 },
                 {
                         kind: "block",
+                        type: "play_rumble_pattern",
+                        keyword: "rumble preset",
+                },
+                {
+                        kind: "block",
                         type: "controller_rumble",
                         keyword: "rumble",
                         inputs: {

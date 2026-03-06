@@ -363,6 +363,18 @@ export default {
   COLOUR_option: "Farbe",
   ANY_option: "beliebig",
   all_option: "alle",
+  objectGrab_option: "greifen",
+  objectDrop_option: "fallen lassen",
+  smallCollision_option: "kleiner Stoß",
+  heavyCollision_option: "harter Aufprall",
+  snapToGrid_option: "einrasten",
+  errorInvalid_option: "Fehler",
+  successConfirmation_option: "Erfolg",
+  slidingGravel_option: "Kies gleiten",
+  slidingMetal_option: "Metall gleiten",
+  machineRunning_option: "Maschine",
+  explosion_option: "Explosion",
+  teleport_option: "teleportieren",
 
   a_option: "A",
   b_option: "B",
@@ -463,6 +475,7 @@ export default {
   // XR blocks
   device_camera_background: "verwende %1 Kamera als Hintergrund",
   set_xr_mode: "XR‑Modus auf %1 setzen",
+  play_rumble_pattern: "Vibrationsmuster abspielen %1",
   controller_rumble: "Controller %1 Motor mit Stärke %2 für %3 ms vibrieren",
   controller_rumble_pattern: "Controller %1 Motor Stärke %2 an %3 ms aus %4 ms %5 mal",
 
@@ -776,6 +789,8 @@ export default {
     "Verwende Gerätekamera als Hintergrund für die Szene. Funktioniert auf Mobilgeräten und Desktop.",
   set_xr_mode_tooltip:
     "Setze XR‑Modus der Szene.\nOptionen: VR, AR, Magic Window.",
+  play_rumble_pattern_tooltip:
+    "Spielt ein vordefiniertes Vibrationsmuster auf allen angeschlossenen Controllern ab.\nStichwort: rumble preset",
   controller_rumble_tooltip:
     "Lässt einen verbundenen Gamecontroller vibrieren. Wähle alle, linken oder rechten Motor, stelle die Stärke (0 bis 1) und die Dauer in Millisekunden ein.\nStichwort: rumble",
   controller_rumble_pattern_tooltip:

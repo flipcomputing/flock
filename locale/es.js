@@ -330,6 +330,7 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: "usar cámara %1 como fondo", // human
   set_xr_mode: "establecer modo XR a %1", // human
+  play_rumble_pattern: "reproducir patrón de vibración %1", // ai
   controller_rumble: "vibrar motor %1 con fuerza %2 durante %3 ms", // ai
   controller_rumble_pattern: "vibrar motor %1 fuerza %2 encendido %3 ms apagado %4 ms %5 veces", // ai
 
@@ -650,6 +651,8 @@ export default {
     "Usa la cámara del dispositivo como fondo para la escena. Funciona en móvil y computadora.", // human
   set_xr_mode_tooltip:
     "Establece el modo XR para la escena.\nOpciones: VR, RA, Ventana Mágica.", // human
+  play_rumble_pattern_tooltip:
+    "Reproduce un patrón de vibración predefinido en todos los mandos conectados.\nPalabra clave: rumble preset", // ai
   controller_rumble_tooltip:
     "Hace vibrar un mando de juego conectado. Elige el motor todos, izquierdo o derecho, establece la fuerza (0 a 1) y cuánto tiempo vibrar en milisegundos.\nPalabra clave: rumble", // ai
   controller_rumble_pattern_tooltip:
@@ -814,6 +817,18 @@ export default {
 
   ANY_option: "cualquiera", // human
   all_option: "todos", // ai
+  objectGrab_option: "agarrar", // ai
+  objectDrop_option: "soltar", // ai
+  smallCollision_option: "golpe leve", // ai
+  heavyCollision_option: "choque fuerte", // ai
+  snapToGrid_option: "ajustar", // ai
+  errorInvalid_option: "error", // ai
+  successConfirmation_option: "éxito", // ai
+  slidingGravel_option: "deslizar grava", // ai
+  slidingMetal_option: "deslizar metal", // ai
+  machineRunning_option: "máquina", // ai
+  explosion_option: "explosión", // ai
+  teleport_option: "teletransportar", // ai
   space_infinity_option: "espacio ❖", // human, Duplicate key space
   q_icon_option: "Q ■", // human, Duplicate key q
   e_icon_option: "E ✿", // human, Duplicate key e

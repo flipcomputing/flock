@@ -334,6 +334,7 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: "użyj kamery urządzenia %1 jako tło",
   set_xr_mode: "ustaw tryb XR na %1",
+  play_rumble_pattern: "odtwórz wzór wibracji %1",
   controller_rumble: "wibruj silnik %1 z siłą %2 przez %3 ms",
   controller_rumble_pattern: "wibruj silnik %1 siła %2 włączony %3 ms wyłączony %4 ms %5 razy",
 
@@ -646,6 +647,8 @@ export default {
   device_camera_background_tooltip:
     "Użyj kamery urządzenia jako tła sceny. działa na urządzeniach mobilnych i desktopie.",
   set_xr_mode_tooltip: "Ustaw tryb XR sceny.\nOpcje: VR, AR, Magic Window.",
+  play_rumble_pattern_tooltip:
+    "Odtwarza predefiniowany wzór wibracji na wszystkich podłączonych kontrolerach.\nSłowo kluczowe: rumble preset",
   controller_rumble_tooltip:
     "Sprawia, że podłączony kontroler wibruje. Wybierz silnik wszystkie, lewy lub prawy, ustaw siłę (od 0 do 1) i czas trwania w milisekundach.\nSłowo kluczowe: rumble",
   controller_rumble_pattern_tooltip:
@@ -810,6 +813,18 @@ export default {
 
   ANY_option: "dowolny",
   all_option: "wszystkie",
+  objectGrab_option: "chwytanie",
+  objectDrop_option: "upuszczenie",
+  smallCollision_option: "małe uderzenie",
+  heavyCollision_option: "mocne zderzenie",
+  snapToGrid_option: "przyciąganie",
+  errorInvalid_option: "błąd",
+  successConfirmation_option: "sukces",
+  slidingGravel_option: "ślizg po żwirze",
+  slidingMetal_option: "ślizg po metalu",
+  machineRunning_option: "maszyna",
+  explosion_option: "eksplozja",
+  teleport_option: "teleportacja",
   space_infinity_option: "przestrzeń ❖",
   q_icon_option: "Q ■",
   e_icon_option: "E ✿",

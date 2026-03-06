@@ -4,6 +4,71 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+const rumblePatterns = {
+  objectGrab: [
+    { duration: 40, weakMagnitude: 0.1, strongMagnitude: 0.8, pauseAfter: 30 },
+    { duration: 25, weakMagnitude: 0.1, strongMagnitude: 0.4, pauseAfter:  0 },
+  ],
+  objectDrop: [
+    { duration: 60, weakMagnitude: 0.3, strongMagnitude: 1.0, pauseAfter: 20 },
+    { duration: 30, weakMagnitude: 0.1, strongMagnitude: 0.4, pauseAfter:  0 },
+  ],
+  smallCollision: [
+    { duration: 30, weakMagnitude: 0.5, strongMagnitude: 0.2, pauseAfter: 40 },
+    { duration: 20, weakMagnitude: 0.2, strongMagnitude: 0.1, pauseAfter:  0 },
+  ],
+  heavyCollision: [
+    { duration: 100, weakMagnitude: 0.5, strongMagnitude: 1.0, pauseAfter: 30 },
+    { duration:  60, weakMagnitude: 0.3, strongMagnitude: 0.7, pauseAfter: 40 },
+    { duration:  30, weakMagnitude: 0.1, strongMagnitude: 0.3, pauseAfter:  0 },
+  ],
+  snapToGrid: [
+    { duration: 20, weakMagnitude: 0.0, strongMagnitude: 0.9, pauseAfter: 25 },
+    { duration: 20, weakMagnitude: 0.0, strongMagnitude: 0.9, pauseAfter:  0 },
+  ],
+  errorInvalid: [
+    { duration: 50, weakMagnitude: 0.9, strongMagnitude: 0.1, pauseAfter: 25 },
+    { duration: 40, weakMagnitude: 0.7, strongMagnitude: 0.1, pauseAfter: 20 },
+    { duration: 50, weakMagnitude: 0.9, strongMagnitude: 0.1, pauseAfter: 30 },
+    { duration: 30, weakMagnitude: 0.5, strongMagnitude: 0.0, pauseAfter:  0 },
+  ],
+  successConfirmation: [
+    { duration: 30, weakMagnitude: 0.1, strongMagnitude: 0.3, pauseAfter: 40 },
+    { duration: 40, weakMagnitude: 0.2, strongMagnitude: 0.6, pauseAfter: 40 },
+    { duration: 50, weakMagnitude: 0.3, strongMagnitude: 0.9, pauseAfter:  0 },
+  ],
+  slidingGravel: [
+    { duration: 40, weakMagnitude: 0.6, strongMagnitude: 0.2, pauseAfter: 25 },
+    { duration: 25, weakMagnitude: 0.4, strongMagnitude: 0.1, pauseAfter: 20 },
+    { duration: 50, weakMagnitude: 0.7, strongMagnitude: 0.3, pauseAfter: 30 },
+    { duration: 30, weakMagnitude: 0.4, strongMagnitude: 0.1, pauseAfter: 20 },
+    { duration: 45, weakMagnitude: 0.6, strongMagnitude: 0.2, pauseAfter:  0 },
+  ],
+  slidingMetal: [
+    { duration: 90, weakMagnitude: 0.05, strongMagnitude: 0.40, pauseAfter: 25 },
+    { duration: 70, weakMagnitude: 0.05, strongMagnitude: 0.25, pauseAfter:  0 },
+  ],
+  machineRunning: [
+    { duration: 60, weakMagnitude: 0.2, strongMagnitude: 0.5, pauseAfter: 30 },
+    { duration: 60, weakMagnitude: 0.2, strongMagnitude: 0.5, pauseAfter: 30 },
+    { duration: 60, weakMagnitude: 0.2, strongMagnitude: 0.5, pauseAfter: 30 },
+    { duration: 60, weakMagnitude: 0.2, strongMagnitude: 0.5, pauseAfter:  0 },
+  ],
+  explosion: [
+    { duration: 120, weakMagnitude: 0.8, strongMagnitude: 1.0, pauseAfter: 20 },
+    { duration:  80, weakMagnitude: 0.6, strongMagnitude: 0.8, pauseAfter: 30 },
+    { duration:  60, weakMagnitude: 0.3, strongMagnitude: 0.5, pauseAfter: 40 },
+    { duration:  40, weakMagnitude: 0.1, strongMagnitude: 0.2, pauseAfter:  0 },
+  ],
+  teleport: [
+    { duration: 30, weakMagnitude: 0.1, strongMagnitude: 0.2, pauseAfter: 20 },
+    { duration: 50, weakMagnitude: 0.3, strongMagnitude: 0.5, pauseAfter: 20 },
+    { duration: 70, weakMagnitude: 0.5, strongMagnitude: 0.9, pauseAfter: 20 },
+    { duration: 50, weakMagnitude: 0.3, strongMagnitude: 0.5, pauseAfter: 20 },
+    { duration: 30, weakMagnitude: 0.1, strongMagnitude: 0.2, pauseAfter:  0 },
+  ],
+};
+
 export const flockXR = {
   /* 
           Category: Scene>XR
@@ -68,6 +133,24 @@ export const flockXR = {
           weakMagnitude: weakMagnitude,
           strongMagnitude: strongMagnitude,
         });
+      }
+    }
+  },
+  playRumblePattern(patternName) {
+    const pattern = rumblePatterns[patternName];
+    if (!pattern) return;
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (const gamepad of gamepads) {
+      if (!gamepad || !gamepad.vibrationActuator) continue;
+      let startDelay = 0;
+      for (const pulse of pattern) {
+        gamepad.vibrationActuator.playEffect("dual-rumble", {
+          startDelay,
+          duration: pulse.duration,
+          weakMagnitude: pulse.weakMagnitude,
+          strongMagnitude: pulse.strongMagnitude,
+        });
+        startDelay += pulse.duration + pulse.pauseAfter;
       }
     }
   },

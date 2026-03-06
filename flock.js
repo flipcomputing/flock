@@ -969,6 +969,8 @@ export const flock = {
                                 this.setCameraBackground?.bind(this),
                         setXRMode: this.setXRMode?.bind(this),
                         controllerRumble: this.controllerRumble?.bind(this),
+                        controllerRumblePattern: this.controllerRumblePattern?.bind(this),
+                        playRumblePattern: this.playRumblePattern?.bind(this),
                         applyForce: this.applyForce?.bind(this),
                         moveByVector: this.moveByVector?.bind(this),
                         glideTo: this.glideTo?.bind(this),

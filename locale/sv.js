@@ -329,6 +329,7 @@ export default {
       // Custom block translations - XR blocks
       device_camera_background: "använd %1 kamera som bakgrund",
       set_xr_mode: "ställ in XR-läge till %1",
+      play_rumble_pattern: "spela vibrationsmönster %1",
       controller_rumble: "vibrera %1 motor med styrka %2 i %3 ms",
       controller_rumble_pattern: "vibrera %1 motor styrka %2 på %3 ms av %4 ms %5 gånger",
 
@@ -647,6 +648,8 @@ export default {
             "Använd enhetens kamera som bakgrund för scenen. Fungerar på både mobil och dator.",
       set_xr_mode_tooltip:
             "Ställ in XR-läget för scenen.\nAlternativ: VR, AR, Magic Window.",
+      play_rumble_pattern_tooltip:
+            "Spelar ett fördefinierat vibrationsmönster på alla anslutna kontroller.\nNyckelord: rumble preset",
       controller_rumble_tooltip:
             "Gör att en ansluten spelkontroll vibrerar. Välj alla, vänster eller höger motor, ange styrka (0 till 1) och hur länge den ska vibrera i millisekunder.\nNyckelord: rumble",
       controller_rumble_pattern_tooltip:
@@ -811,6 +814,18 @@ export default {
 
       ANY_option: "vilken som helst",
       all_option: "alla",
+      objectGrab_option: "ta tag",
+      objectDrop_option: "släppa",
+      smallCollision_option: "liten stöt",
+      heavyCollision_option: "hård kollision",
+      snapToGrid_option: "snäppa",
+      errorInvalid_option: "fel",
+      successConfirmation_option: "lyckat",
+      slidingGravel_option: "grus glid",
+      slidingMetal_option: "metall glid",
+      machineRunning_option: "maskin",
+      explosion_option: "explosion",
+      teleport_option: "teleporterar",
       space_infinity_option: "rymd ❖", // Duplicate key space
       q_icon_option: "Q ■", // Duplicate key q
       e_icon_option: "E ✿", // Duplicate key e

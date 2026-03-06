@@ -331,6 +331,7 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: "usar câmera %1 como fundo",
   set_xr_mode: "definir modo XR para %1",
+  play_rumble_pattern: "reproduzir padrão de vibração %1",
   controller_rumble: "vibrar motor %1 com intensidade %2 por %3 ms",
   controller_rumble_pattern: "vibrar motor %1 intensidade %2 ligado %3 ms desligado %4 ms %5 vezes",
 
@@ -646,6 +647,8 @@ export default {
     "Usa a câmera do dispositivo como fundo da cena. Funciona em dispositivos móveis e desktop.",
   set_xr_mode_tooltip:
     "Define o modo XR da cena.\nOpções: VR, AR, Magic Window.",
+  play_rumble_pattern_tooltip:
+    "Reproduz um padrão de vibração predefinido em todos os controles conectados.\nPalavra-chave: rumble preset",
   controller_rumble_tooltip:
     "Faz um controle de jogo conectado vibrar. Escolha o motor todos, esquerdo ou direito, defina a intensidade (0 a 1) e a duração em milissegundos.\nPalavra-chave: rumble",
   controller_rumble_pattern_tooltip:
@@ -810,6 +813,18 @@ export default {
 
   ANY_option: "qualquer",
   all_option: "todos",
+  objectGrab_option: "pegar",
+  objectDrop_option: "soltar",
+  smallCollision_option: "leve colisão",
+  heavyCollision_option: "colisão forte",
+  snapToGrid_option: "encaixar",
+  errorInvalid_option: "erro",
+  successConfirmation_option: "sucesso",
+  slidingGravel_option: "deslizar cascalho",
+  slidingMetal_option: "deslizar metal",
+  machineRunning_option: "máquina",
+  explosion_option: "explosão",
+  teleport_option: "teleportar",
   space_infinity_option: "espaço ❖",
   q_icon_option: "Q ■",
   e_icon_option: "E ✿",
