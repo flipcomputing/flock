@@ -53,103 +53,128 @@ export const flockXR = {
   },
   async rumbleController(controller = "ANY", strength = 1, durationMs = 200) {
     const normalizedController = String(controller || "ANY").toUpperCase();
-    const normalizedStrength = Math.min(1, Math.max(0, Number(strength) || 1));
+    const normalizedStrength = Math.min(
+      1,
+      Math.max(0, Number.isFinite(strength) ? strength : 1),
+    );
     const normalizedDuration = Math.max(
       0,
-      Math.floor(Number(durationMs) || 200),
+      Math.floor(Number.isFinite(durationMs) ? durationMs : 200),
     );
 
     const xrSources = flock.xrHelper?.baseExperience?.input?.inputSources || [];
+    const handednessByGamepadKey = new Map();
 
-    const xrTargets = xrSources
-      .filter((source) => source?.gamepad)
-      .map((source) => ({
-        source,
-        gamepad: source.gamepad,
-        handedness: String(source.inputSource?.handedness || "").toLowerCase(),
-      }));
+    const xrCandidates = xrSources
+      .filter(
+        (source) =>
+          (source && source.motionController?.handness) ||
+          source.inputSource?.handedness,
+      )
+      .map((source) => {
+        const handedness = String(
+          source.motionController?.handness ||
+            source.inputSource?.handedness ||
+            "",
+        ).toLowerCase();
+        const gamepad =
+          source.motionController?.rootMesh?.deviceGamepad ||
+          source.gamepad ||
+          source.inputSource?.gamepad;
 
-    const navigatorTargets =
-      typeof navigator !== "undefined" && navigator.getGamepads
-        ? Array.from(navigator.getGamepads() || [])
-            .filter(Boolean)
-            .map((gamepad) => ({
-              gamepad,
-              handedness: String(gamepad.hand || "").toLowerCase(),
-            }))
-        : [];
+        if (gamepad) {
+          const key = `${gamepad.id || "unknown"}:${gamepad.index ?? "na"}`;
+          handednessByGamepadKey.set(key, handedness);
+        }
 
-    let targets = [];
-    const wanted = normalizedController.toLowerCase();
+        return {
+          gamepad,
+          handedness,
+        };
+      })
+      .filter((candidate) => !!candidate.gamepad);
 
-    if (normalizedController === "LEFT" || normalizedController === "RIGHT") {
-      // First try true handed targeting (two-controller XR setups).
-      targets = xrTargets.filter((target) => target.handedness === wanted);
-      if (!targets.length) {
-        targets = navigatorTargets.filter((target) => target.handedness === wanted);
+    const navigatorCandidates = (() => {
+      if (typeof navigator === "undefined" || !navigator.getGamepads) {
+        return [];
       }
 
-      // If no handed controller exists (single gamepad), fallback to first
-      // connected target and treat LEFT/RIGHT as motor channels.
-      if (!targets.length) {
-        targets = xrTargets.length ? xrTargets.slice(0, 1) : navigatorTargets.slice(0, 1);
+      return Array.from(navigator.getGamepads() || [])
+        .filter(Boolean)
+        .map((gamepad) => {
+          const key = `${gamepad.id || "unknown"}:${gamepad.index ?? "na"}`;
+          return {
+            key,
+            gamepad,
+            handedness:
+              handednessByGamepadKey.get(key) ||
+              String(gamepad.hand || "").toLowerCase(),
+          };
+        });
+    })();
+
+    const allCandidates = [...xrCandidates, ...navigatorCandidates];
+
+    const dedupedCandidates = (() => {
+      const byKey = new Map();
+      for (const candidate of allCandidates) {
+        const key = `${candidate.gamepad.id || "unknown"}:${candidate.gamepad.index ?? "na"}`;
+        const existing = byKey.get(key);
+        if (!existing || (!existing.handedness && candidate.handedness)) {
+          byKey.set(key, { ...candidate, key });
+        }
       }
-    } else {
-      targets = xrTargets.length ? xrTargets : navigatorTargets;
+      return Array.from(byKey.values());
+    })();
+
+    if (!dedupedCandidates.length) {
+      return false;
     }
+
+    const matchesByHandedness = (candidate) => {
+      if (normalizedController === "ANY") return true;
+
+      const target = normalizedController.toLowerCase();
+      const id = String(candidate.gamepad.id || "").toLowerCase();
+      const hand = String(candidate.handedness || "").toLowerCase();
+
+      return hand === target || id.includes(target);
+    };
+
+    const targets = dedupedCandidates.filter(matchesByHandedness);
 
     if (!targets.length) {
       return false;
     }
 
-    const getMotorMagnitudes = () => {
-      if (normalizedController === "LEFT") {
-        return { weakMagnitude: 0, strongMagnitude: normalizedStrength };
-      }
-      if (normalizedController === "RIGHT") {
-        return { weakMagnitude: normalizedStrength, strongMagnitude: 0 };
-      }
-
-      return {
-        weakMagnitude: normalizedStrength,
-        strongMagnitude: normalizedStrength,
-      };
-    };
+    const finalTargets = normalizedController === "ANY" ? targets : [targets[0]];
 
     const tryActuator = async (actuator) => {
-      if (!actuator) {
-        return false;
-      }
+      if (!actuator) return false;
 
-      if (typeof actuator.playEffect === "function") {
-        try {
-          const { weakMagnitude, strongMagnitude } = getMotorMagnitudes();
-          await actuator.playEffect("dual-rumble", {
+      try {
+        if (typeof actuator.playEffect === "function") {
+          await actuator.playEffect(actuator.type || "dual-rumble", {
             startDelay: 0,
             duration: normalizedDuration,
-            weakMagnitude,
-            strongMagnitude,
+            weakMagnitude: normalizedStrength,
+            strongMagnitude: normalizedStrength,
           });
           return true;
-        } catch {
-          // Fallback to pulse when available.
         }
-      }
 
-      if (typeof actuator.pulse === "function") {
-        try {
+        if (typeof actuator.pulse === "function") {
           await actuator.pulse(normalizedStrength, normalizedDuration);
           return true;
-        } catch {
-          // Ignore actuator pulse errors and continue checking others.
         }
+      } catch {
+        return false;
       }
-
       return false;
     };
 
     let didRumble = false;
-    for (const { gamepad } of targets) {
+    for (const { gamepad } of finalTargets) {
       const actuators = [
         gamepad.vibrationActuator,
         ...(Array.isArray(gamepad.hapticActuators)
