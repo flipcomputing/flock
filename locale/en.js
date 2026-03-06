@@ -332,6 +332,9 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: "use %1 camera as background",
   set_xr_mode: "set XR mode to %1",
+  play_rumble_pattern: "play rumble pattern %1",
+  controller_rumble: "rumble %1 motor at strength %2 for %3 ms",
+  controller_rumble_pattern: "rumble %1 motor strength %2 on %3 ms off %4 ms %5 times",
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "list",
@@ -633,6 +636,12 @@ export default {
     "Use the device camera as the background for the scene. Works on both mobile and desktop.",
   set_xr_mode_tooltip:
     "Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.",
+  play_rumble_pattern_tooltip:
+    "Play a preset haptic rumble pattern on all connected controllers.\nKeyword: rumble preset",
+  controller_rumble_tooltip:
+    "Make a connected game controller rumble. Choose all, left, or right motor, set the strength (0 to 1), and how long to rumble in milliseconds.\nKeyword: rumble",
+  controller_rumble_pattern_tooltip:
+    "Make a connected game controller rumble in a repeating pattern. Set the motor, strength (0 to 1), on time, off time, and number of repeats.\nKeyword: rumble pattern",
 
   // Dropdown option translations
   AWAIT_option: "await",
@@ -792,6 +801,19 @@ export default {
   FLAT_option: "Flat", // Duplicate key NONE
 
   ANY_option: "any",
+  all_option: "all",
+  objectGrab_option: "grab",
+  objectDrop_option: "drop",
+  smallCollision_option: "small bump",
+  heavyCollision_option: "heavy crash",
+  snapToGrid_option: "snap",
+  errorInvalid_option: "error",
+  successConfirmation_option: "success",
+  slidingGravel_option: "gravel slide",
+  slidingMetal_option: "metal slide",
+  machineRunning_option: "machine",
+  explosion_option: "explosion",
+  teleport_option: "teleport",
   space_infinity_option: "space ❖", // Duplicate key space
   q_icon_option: "Q ■", // Duplicate key q
   e_icon_option: "E ✿", // Duplicate key e

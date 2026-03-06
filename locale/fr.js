@@ -333,6 +333,9 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: "utiliser la caméra %1 comme arrière-plan",
   set_xr_mode: "définir le mode XR sur %1",
+  play_rumble_pattern: "jouer le motif de vibration %1",
+  controller_rumble: "faire vibrer le moteur %1 à force %2 pendant %3 ms",
+  controller_rumble_pattern: "faire vibrer le moteur %1 force %2 allumé %3 ms éteint %4 ms %5 fois",
 
   // Blockly message overrides for French
   LISTS_CREATE_WITH_INPUT_WITH: "liste",
@@ -651,6 +654,12 @@ export default {
     "Utilise la caméra de l’appareil comme arrière-plan pour la scène. Fonctionne sur mobile et ordinateur.",
   set_xr_mode_tooltip:
     "Définit le mode XR pour la scène.\nOptions: VR, AR, Magic Window.",
+  play_rumble_pattern_tooltip:
+    "Joue un motif de vibration prédéfini sur toutes les manettes connectées.\nMot-clé: rumble preset",
+  controller_rumble_tooltip:
+    "Fait vibrer une manette de jeu connectée. Choisissez le moteur tous, gauche ou droite, définissez la force (0 à 1) et la durée en millisecondes.\nMot-clé: rumble",
+  controller_rumble_pattern_tooltip:
+    "Fait vibrer une manette de jeu en motif répété. Définissez le moteur, la force (0 à 1), le temps allumé, le temps éteint et le nombre de répétitions.\nMot-clé: rumble pattern",
 
   // Dropdown option translations
   AWAIT_option: "attendre",
@@ -810,6 +819,19 @@ export default {
   FLAT_option: "Plat",
 
   ANY_option: "n'importe lequel",
+  all_option: "tous",
+  objectGrab_option: "saisir",
+  objectDrop_option: "lâcher",
+  smallCollision_option: "petit choc",
+  heavyCollision_option: "choc violent",
+  snapToGrid_option: "aimanter",
+  errorInvalid_option: "erreur",
+  successConfirmation_option: "succès",
+  slidingGravel_option: "glisser gravier",
+  slidingMetal_option: "glisser métal",
+  machineRunning_option: "machine",
+  explosion_option: "explosion",
+  teleport_option: "téléporter",
   space_infinity_option: "espace ❖",
   q_icon_option: "Q ■",
   e_icon_option: "E ✿",

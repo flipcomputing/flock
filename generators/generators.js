@@ -3517,6 +3517,53 @@ export function defineGenerators() {
                 return `await setXRMode("${mode}");\n`;
         };
 
+        javascriptGenerator.forBlock["play_rumble_pattern"] = function (block) {
+                const pattern = block.getFieldValue("PATTERN");
+                return `playRumblePattern("${pattern}");\n`;
+        };
+
+        javascriptGenerator.forBlock["controller_rumble"] = function (block) {
+                const motor = block.getFieldValue("MOTOR");
+                const strength = javascriptGenerator.valueToCode(
+                        block,
+                        "STRENGTH",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "1";
+                const duration = javascriptGenerator.valueToCode(
+                        block,
+                        "DURATION",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "500";
+
+                return `controllerRumble("${motor}", ${strength}, ${duration});\n`;
+        };
+
+        javascriptGenerator.forBlock["controller_rumble_pattern"] = function (block) {
+                const motor = block.getFieldValue("MOTOR");
+                const strength = javascriptGenerator.valueToCode(
+                        block,
+                        "STRENGTH",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "1";
+                const onDuration = javascriptGenerator.valueToCode(
+                        block,
+                        "ON_DURATION",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "200";
+                const offDuration = javascriptGenerator.valueToCode(
+                        block,
+                        "OFF_DURATION",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "100";
+                const repeats = javascriptGenerator.valueToCode(
+                        block,
+                        "REPEATS",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "3";
+
+                return `controllerRumblePattern("${motor}", ${strength}, ${onDuration}, ${offDuration}, ${repeats});\n`;
+        };
+
         javascriptGenerator.forBlock["camera_control"] = function (block) {
                 const key = block.getFieldValue("KEY");
                 const action = block.getFieldValue("ACTION");

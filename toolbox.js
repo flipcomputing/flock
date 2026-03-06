@@ -608,6 +608,73 @@ const toolboxSceneXR = {
                         type: "export_mesh",
                         keyword: "export",
                 },
+                {
+                        kind: "block",
+                        type: "play_rumble_pattern",
+                        keyword: "rumble preset",
+                },
+                {
+                        kind: "block",
+                        type: "controller_rumble",
+                        keyword: "rumble",
+                        inputs: {
+                                STRENGTH: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 1,
+                                                },
+                                        },
+                                },
+                                DURATION: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 500,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
+                        type: "controller_rumble_pattern",
+                        keyword: "rumble pattern",
+                        inputs: {
+                                STRENGTH: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 1,
+                                                },
+                                        },
+                                },
+                                ON_DURATION: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 200,
+                                                },
+                                        },
+                                },
+                                OFF_DURATION: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 100,
+                                                },
+                                        },
+                                },
+                                REPEATS: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 3,
+                                                },
+                                        },
+                                },
+                        },
+                },
         ],
 };
 
