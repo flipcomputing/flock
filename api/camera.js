@@ -282,47 +282,47 @@ export const flockCamera = {
                 if (camera.keysRotateLeft) {
                         switch (action) {
                                 case "moveUp":
-                                        camera.keysUp.push(normalizedKey);
+                                        camera.keysUp = [normalizedKey];
                                         break;
                                 case "moveDown":
-                                        camera.keysDown.push(normalizedKey);
+                                        camera.keysDown = [normalizedKey];
                                         break;
                                 case "moveLeft":
-                                        camera.keysLeft.push(normalizedKey);
+                                        camera.keysLeft = [normalizedKey];
                                         break;
                                 case "moveRight":
-                                        camera.keysRight.push(normalizedKey);
+                                        camera.keysRight = [normalizedKey];
                                         break;
                                 case "rotateUp":
-                                        camera.keysRotateUp.push(normalizedKey);
+                                        camera.keysRotateUp = [normalizedKey];
                                         break;
                                 case "rotateDown":
-                                        camera.keysRotateDown.push(normalizedKey);
+                                        camera.keysRotateDown = [normalizedKey];
                                         break;
                                 case "rotateLeft":
-                                        camera.keysRotateLeft.push(normalizedKey);
+                                        camera.keysRotateLeft = [normalizedKey];
                                         break;
                                 case "rotateRight":
-                                        camera.keysRotateRight.push(normalizedKey);
+                                        camera.keysRotateRight = [normalizedKey];
                                         break;
                         }
                 } else {
                         switch (action) {
                                 case "rotateLeft":
                                 case "moveLeft":
-                                        camera.keysLeft.push(normalizedKey);
+                                        camera.keysLeft = [normalizedKey];
                                         break;
                                 case "rotateRight":
                                 case "moveRight":
-                                        camera.keysRight.push(normalizedKey);
+                                        camera.keysRight = [normalizedKey];
                                         break;
                                 case "moveUp":
                                 case "rotateUp":
-                                        camera.keysUp.push(normalizedKey);
+                                        camera.keysUp = [normalizedKey];
                                         break;
                                 case "moveDown":
                                 case "rotateDown":
-                                        camera.keysDown.push(normalizedKey);
+                                        camera.keysDown = [normalizedKey];
                                         break;
                         }
                 }
