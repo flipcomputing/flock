@@ -144,6 +144,19 @@ function modelNameToDisplayName(modelName) {
 }
 
 export const objectDisplayNameTranslationKeys = {
+	"Liz1.glb": "model_display_liz1",
+	"Liz2.glb": "model_display_liz2",
+	"Liz3.glb": "model_display_liz3",
+	"Liz4.glb": "model_display_liz4",
+	"Liz5.glb": "model_display_liz5",
+	"Liz6.glb": "model_display_liz6",
+	"Block1.glb": "model_display_block1",
+	"Block2.glb": "model_display_block2",
+	"Block3.glb": "model_display_block3",
+	"Block4.glb": "model_display_block4",
+	"Block5.glb": "model_display_block5",
+	"Block6.glb": "model_display_block6",
+
 	"tree.glb": "model_display_tree",
 	"tree2.glb": "model_display_tree2",
 	"tree3.glb": "model_display_tree3",

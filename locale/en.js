@@ -1089,6 +1089,18 @@ export default {
   copy_blocks_failed_alert: "Failed to copy blocks.",
 
   // Model display names
+  model_display_liz1: "Liz 1",
+  model_display_liz2: "Liz 2",
+  model_display_liz3: "Liz 3",
+  model_display_liz4: "Liz 4",
+  model_display_liz5: "Liz 5",
+  model_display_liz6: "Liz 6",
+  model_display_block1: "Block 1",
+  model_display_block2: "Block 2",
+  model_display_block3: "Block 3",
+  model_display_block4: "Block 4",
+  model_display_block5: "Block 5",
+  model_display_block6: "Block 6",
   model_display_tree: "Tree",
   model_display_tree2: "Tree 2",
   model_display_tree3: "Tree 3",
