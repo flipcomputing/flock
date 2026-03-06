@@ -968,6 +968,7 @@ export const flock = {
                         setCameraBackground:
                                 this.setCameraBackground?.bind(this),
                         setXRMode: this.setXRMode?.bind(this),
+                        rumbleController: this.rumbleController?.bind(this),
                         applyForce: this.applyForce?.bind(this),
                         moveByVector: this.moveByVector?.bind(this),
                         glideTo: this.glideTo?.bind(this),
@@ -1083,6 +1084,7 @@ export const flock = {
                         "setSky",
                         "setFog",
                         "setCameraBackground",
+                        "rumbleController",
                         "lightIntensity",
                         "lightColor",
                         "create3DText",

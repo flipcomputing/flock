@@ -49,6 +49,74 @@ export const flockXR = {
       color: "white",
     });
   },
+  async rumbleController(controller = "ANY", strength = 1, durationMs = 200) {
+    const normalizedController = String(controller || "ANY").toUpperCase();
+    const normalizedStrength = Math.min(
+      1,
+      Math.max(0, Number.isFinite(strength) ? strength : 1),
+    );
+    const normalizedDuration = Math.max(
+      0,
+      Math.floor(Number.isFinite(durationMs) ? durationMs : 200),
+    );
+
+    if (typeof navigator === "undefined" || !navigator.getGamepads) {
+      return false;
+    }
+
+    const gamepads = Array.from(navigator.getGamepads() || []).filter(Boolean);
+    if (!gamepads.length) {
+      return false;
+    }
+
+    const matchesController = (gamepad) => {
+      if (normalizedController === "ANY") {
+        return true;
+      }
+
+      const hand = String(gamepad.hand || "").toLowerCase();
+      const id = String(gamepad.id || "").toLowerCase();
+      if (normalizedController === "LEFT") {
+        return hand === "left" || id.includes("left");
+      }
+      if (normalizedController === "RIGHT") {
+        return hand === "right" || id.includes("right");
+      }
+      return true;
+    };
+
+    const targetPad = gamepads.find(matchesController);
+    if (!targetPad) {
+      return false;
+    }
+
+    const actuator =
+      targetPad.vibrationActuator || targetPad.hapticActuators?.[0] || null;
+    if (!actuator) {
+      return false;
+    }
+
+    try {
+      if (typeof actuator.playEffect === "function") {
+        await actuator.playEffect("dual-rumble", {
+          startDelay: 0,
+          duration: normalizedDuration,
+          weakMagnitude: normalizedStrength,
+          strongMagnitude: normalizedStrength,
+        });
+        return true;
+      }
+
+      if (typeof actuator.pulse === "function") {
+        await actuator.pulse(normalizedStrength, normalizedDuration);
+        return true;
+      }
+    } catch {
+      return false;
+    }
+
+    return false;
+  },
   exportMesh(meshName, format) {
     //meshName = "scene";
 
