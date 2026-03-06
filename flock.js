@@ -132,6 +132,7 @@ export const flock = {
         canvas: {
                 pressedKeys: null,
         },
+        actionKeyMap: {},
         abortController: null,
         _renderLoop: null,
         document: document,
@@ -1240,6 +1241,7 @@ export const flock = {
                 flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
                 flock.canvas.pressedButtons = new Set();
                 flock.canvas.pressedKeys = new Set();
+                flock.actionKeyMap = {};
                 const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
                 flock.displayScale = displayScale;
                 flock.BABYLON.Database.IDBStorageEnabled = true;

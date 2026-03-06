@@ -326,8 +326,8 @@ export const flockSensing = {
       );
     }
   },
-  actionPressed(action) {
-    const actionMap = {
+  getActionKeys(action) {
+    const defaultActionMap = {
       FORWARD: ["W", "Z"],
       BACKWARD: ["S"],
       LEFT: ["A", "Q"],
@@ -338,9 +338,29 @@ export const flockSensing = {
       BUTTON4: ["SPACE", " ", "4"],
     };
 
-    const actionKeys = actionMap[action];
+    const customKeys = flock.actionKeyMap?.[action] ?? [];
+    const defaultKeys = defaultActionMap[action] ?? [];
 
-    if (!actionKeys) {
+    return [...new Set([...customKeys, ...defaultKeys])];
+  },
+  setActionKey(action, key) {
+    if (!action || typeof key !== "string") {
+      return;
+    }
+
+    if (!flock.actionKeyMap) {
+      flock.actionKeyMap = {};
+    }
+
+    const normalizedKey = key === " " ? "SPACE" : key.toUpperCase();
+    const existingKeys = flock.actionKeyMap[action] ?? [];
+
+    flock.actionKeyMap[action] = [...new Set([...existingKeys, normalizedKey])];
+  },
+  actionPressed(action) {
+    const actionKeys = this.getActionKeys(action);
+
+    if (!actionKeys.length) {
       return false;
     }
 

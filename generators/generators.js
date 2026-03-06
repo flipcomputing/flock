@@ -3081,6 +3081,12 @@ export function defineGenerators() {
                 ];
         };
 
+        javascriptGenerator.forBlock["action_control"] = function (block) {
+                const action = block.getFieldValue("ACTION");
+                const key = block.getFieldValue("KEY");
+                return `setActionKey("${action}", ${JSON.stringify(key)});\n`;
+        };
+
         javascriptGenerator.forBlock["key_pressed"] = function (block) {
                 const key = block.getFieldValue("KEY");
                 return [`keyPressed("${key}")`, javascriptGenerator.ORDER_NONE];

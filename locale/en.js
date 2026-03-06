@@ -249,6 +249,7 @@ export default {
   // Custom block translations - Sensing blocks
   key_pressed: "key pressed is %1",
   action_pressed: "%1",
+  action_control: "set %1 key %2",
   meshes_touching: "%1 touching %2",
   time: "time in %1",
   seconds: "seconds",
@@ -522,6 +523,8 @@ export default {
     "Return true if the specified key is pressed.\nKeyword:ispressed",
   action_pressed_tooltip:
     "Return true if the specified movement or action control is active across keyboard, touch, or XR inputs.",
+  action_control_tooltip:
+    "Set an extra keyboard key for a movement or action input.",
   meshes_touching_tooltip:
     "Return true if the two selected meshes are touching.\nKeyword: istouching",
   time_tooltip: "Return the current time in seconds.",
