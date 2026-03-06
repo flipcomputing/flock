@@ -151,8 +151,7 @@ export default {
     "rotar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿invertir? %7 ¿repetir? %8 %9", // human
   rotate_anim_seconds:
     "rotar %1 a x %2 y %3 z %4 en %5 segundos\n%6 ¿invertir? %7 ¿repetir? %8 %9", // human
-  rotate_to_object:
-    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
+  rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property: "animar %1 %2 a %3 en %4 ms ¿invertir? %5 ¿repetir? %6 %7", // human
   colour_keyframe: "en %1 color: %2", // human
   number_keyframe: "en: %1 valor: %2", // human
@@ -303,6 +302,7 @@ export default {
     "UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 text: %7 background: %8", // human
   ui_input:
     "UI aporte %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8", // human
+  describe: "describir %1 como %2", // ai
   create_3d_text:
     "añadir %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9", // human
 
@@ -353,7 +353,8 @@ export default {
   // Add more custom block translations as needed
 
   // Tooltip translations - Scene Blocks
-  set_sky_color_tooltip: "Establece el cielo del cielo de la escena.\nPalabra clave: cielo", // human
+  set_sky_color_tooltip:
+    "Establece el cielo del cielo de la escena.\nPalabra clave: cielo", // human
   create_ground_tooltip:
     "Añide un plano de tierra con collisions habilitadas a la escena.\nPalabra clave: suelo", // human
   set_background_color_tooltip:
@@ -391,7 +392,8 @@ export default {
   animate_property_tooltip:
     "Anima una propiedad de material de la malla y sus hijos.", // human
   colour_keyframe_tooltip: "Establece un fotograma clave de color y duración.", // human
-  number_keyframe_tooltip: "Establece un fotograma clave numérico con duración.", // human
+  number_keyframe_tooltip:
+    "Establece un fotograma clave numérico con duración.", // human
   xyz_keyframe_tooltip: "Establece un fotograma clave XYZ con duración.", // human
   animate_keyframes_tooltip:
     "Anima un conjunto de fotogramas clave en la malla seleccionada, con facilidando, bucle opcional e inversión.", // human
@@ -510,10 +512,12 @@ export default {
   skin_colour_tooltip: "Selecciona un color de piel.\nPalabra clave: piel", // human
   greyscale_colour_tooltip:
     "Selecciona un color en escala de grises para elevación.\nPalabra clave: gris", // human
-  random_colour_tooltip: "Genera un color aleatorio.\nPalabra clave: color aleatorio", // human
+  random_colour_tooltip:
+    "Genera un color aleatorio.\nPalabra clave: color aleatorio", // human
   material_tooltip: "Define propiedades del material", // human
   gradient_material_tooltip: "Define propiedades del material (gradiente)", // human
-  set_material_tooltip: "Establecer el material especificado a la malla indicada.", // human
+  set_material_tooltip:
+    "Establecer el material especificado a la malla indicada.", // human
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
@@ -590,6 +594,8 @@ export default {
   print_text_tooltip: "Texto en el panel de salida.\nPalabra clave: imprimir", // human
   say_tooltip:
     "Muestra un texto como burbuja de diálogo en una malla.\nPalabra clave: di", // human
+  describe_tooltip:
+    "Establece el nombre visible de una malla. Actualiza los metadatos para accesibilidad.\nPalabra clave: describe", // ai
   ui_text_tooltip:
     "Añade texto a la pantalla UI y almacena el control en una variable para usar o eliminar luego.", // human
   ui_button_tooltip:
@@ -601,8 +607,7 @@ export default {
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip:
     "Generar un entero aleatorio con una semilla.\nPalabra clave: semilla", // human
-  to_number_tooltip:
-    "Convertir una cadena en un entero o un flotante", // human
+  to_number_tooltip: "Convertir una cadena en un entero o un flotante", // human
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:

@@ -360,6 +360,34 @@ export function defineTextBlocks() {
     },
   };
 
+  Blockly.Blocks["describe"] = {
+    init: function () {
+      this.jsonInit({
+        type: "describe",
+        message0: translate("describe"),
+        args0: [
+          {
+            type: "field_variable",
+            name: "MESH_VAR",
+            variable: window.currentMesh,
+          },
+          {
+            type: "input_value",
+            name: "TEXT",
+            check: "String",
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Text"],
+        tooltip: getTooltip("describe"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("text_blocks");
+    },
+  };
+
   Blockly.Blocks["create_3d_text"] = {
     init: function () {
       const variableNamePrefix = "3dtext";

@@ -1031,6 +1031,7 @@ export const flock = {
                         checkMeshesTouching:
                                 this.checkMeshesTouching?.bind(this),
                         say: this.say?.bind(this),
+                        describeMesh: this.describeMesh?.bind(this),
                         onTrigger: this.onTrigger?.bind(this),
                         onEvent: this.onEvent?.bind(this),
                         broadcastEvent: this.broadcastEvent?.bind(this),
@@ -1093,6 +1094,7 @@ export const flock = {
                         "subtractMeshes",
                         "intersectMeshes",
                         "createHull",
+                        "describeMesh",
                         "dispose",
                         "clearEffects",
                         "stopAnimations",
@@ -2778,6 +2780,31 @@ export const flock = {
         },
 
         // Runtime helper
+        describeMesh(meshName, text) {
+                const safeText = flock.sanitizeInlineText(
+                        String(text ?? "").substring(0, 256),
+                );
+                if (!safeText) return;
+
+                flock.whenModelReady(meshName, (mesh) => {
+                        if (!mesh) return;
+                        const root =
+                                mesh.metadata?.boundingBox ??
+                                mesh;
+                        if (root.metadata) {
+                                root.metadata.displayName = safeText;
+                        }
+                        const setOnChildren = (m) => {
+                                if (m.metadata) {
+                                        m.metadata.displayName = safeText;
+                                }
+                        };
+                        if (typeof root.getChildMeshes === "function") {
+                                root.getChildMeshes(false).forEach(setOnChildren);
+                        }
+                });
+        },
+
         sanitizeInlineText(input) {
                 return String(input)
                         .replace(/\r?\n/g, " ")

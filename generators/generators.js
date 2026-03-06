@@ -874,6 +874,24 @@ export function defineGenerators() {
                 return `// ${safe}\n`;
         };
 
+        javascriptGenerator.forBlock["describe"] = function (block) {
+                const textCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "TEXT",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '""';
+
+                const meshVariable = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MESH_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const safeTextArg = emitSafeTextArg(textCode);
+
+                return `describeMesh(${meshVariable}, ${safeTextArg});\n`;
+        };
+
         javascriptGenerator.forBlock["print_text"] = function (block) {
                 const textCode =
                         javascriptGenerator.valueToCode(

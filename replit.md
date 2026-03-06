@@ -8,6 +8,9 @@ The platform combines Blockly visual programming with Babylon.js 3D rendering an
 
 ## Recent Changes
 
+### March 2026
+- **Describe Block**: Added new "describe" block to the Text category (`blocks/text.js`) that sets a mesh's `metadata.displayName`. Takes a mesh variable and a text string. Security: text is sanitized at code-generation time via `emitSafeTextArg`/`sanitizeForCode`, and at runtime via `sanitizeInlineText` with a 256-character length limit. The `describeMesh` API function is whitelisted and guarded in the SES sandbox. Fully internationalized across all 8 supported languages.
+
 ### October 2025
 - **Colour Picker Internationalization**: Fully internationalized the compact colour picker component (`ui/colourpicker-compact.js`) with translations for all user-facing text including palette names, color names, UI labels, ARIA labels, and tooltips across all 7 supported languages (English, French, Spanish, Swedish, Portuguese, Polish, and German). Added approximately 80 translation keys to each locale file.
   - Fixed dynamic translation update: Added `refreshTranslations()` method to colour picker that updates all text when language changes. Integrated with `setLanguage()` function to ensure colour picker updates in real-time when users switch languages.

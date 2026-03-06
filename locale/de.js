@@ -309,6 +309,7 @@ export default {
     "UI‑Button %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 text: %7 background: %8",
   ui_input:
     "UI‑Eingabe %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 Text: %7 Hintergrund: %8",
+  describe: "beschreibe %1 als %2",
   create_3d_text:
     "Füge 3D‑Text hinzu %1: %2 Schrift: %3 Größe: %4 Farbe: %5\nTiefe: %6 x: %7 y: %8 z: %9",
 
@@ -717,6 +718,8 @@ export default {
   print_text_tooltip: "Gibt Text im Ausgabebereich aus.\nSchlüsselwort: print",
   say_tooltip:
     "Zeigt einen Text als Sprechblase auf einem Objekt an.\nSchlüsselwort: say",
+  describe_tooltip:
+    "Setzt den Anzeigenamen eines Objekts. Aktualisiert die Metadaten für Barrierefreiheit.\nSchlüsselwort: describe",
   ui_text_tooltip:
     "Füge Text zur UI hinzu und speichere die Kontrolle in einer Variable für spätere Nutzung oder Entfernung.",
   ui_button_tooltip:

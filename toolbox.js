@@ -2676,6 +2676,21 @@ const toolboxText = {
                 },
                 {
                         kind: "block",
+                        type: "describe",
+                        keyword: "describe",
+                        inputs: {
+                                TEXT: {
+                                        shadow: {
+                                                type: "text",
+                                                fields: {
+                                                        TEXT: "My Object",
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
                         type: "create_3d_text",
                         keyword: "text",
                         inputs: {

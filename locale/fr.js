@@ -305,6 +305,7 @@ export default {
     "bouton UI %1 %2 à x: %3 y: %4\ntaille: %5 taille du texte: %6 texte: %7 fond: %8",
   ui_input:
     "champ de saisie UI %1 %2 à x: %3 y: %4\ntaille: %5 taille du texte: %6 texte: %7 fond: %8",
+  describe: "décrire %1 comme %2",
   create_3d_text:
     "ajouter texte 3D %1: %2 police: %3 taille: %4 couleur: %5\nprofondeur: %6 x: %7 y: %8 z: %9",
 
@@ -595,6 +596,8 @@ export default {
     "Affiche un texte dans le panneau de sortie.\nMot-clé: print",
   say_tooltip:
     "Affiche un texte comme bulle de dialogue sur un maillage.\nMot-clé: say",
+  describe_tooltip:
+    "Définir le nom d'affichage d'un maillage. Met à jour les métadonnées pour l'accessibilité.\nMot-clé: describe",
   ui_text_tooltip:
     "Ajoute un texte à l’interface utilisateur et stocke le contrôle dans une variable pour une utilisation ultérieure.",
   ui_button_tooltip:

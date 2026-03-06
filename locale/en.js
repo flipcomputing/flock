@@ -304,6 +304,7 @@ export default {
     "ui button %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 background: %8",
   ui_input:
     "ui input %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 background: %8",
+  describe: "describe %1 as %2",
   create_3d_text:
     "add %1 3D text: %2 font: %3 size: %4 color: %5\ndepth: %6 x: %7 y: %8 z: %9 ",
 
@@ -578,6 +579,8 @@ export default {
   print_text_tooltip: "A text to the output panel.\nKeyword: print",
   say_tooltip:
     "Display a piece of text as a speech bubble on a mesh.\nKeyword: say",
+  describe_tooltip:
+    "Set the display name for a mesh. This updates the mesh metadata for accessibility.\nKeyword: describe",
   ui_text_tooltip:
     "Add text to the UI screen, and store control in a variable for later use or disposal.",
   ui_button_tooltip:

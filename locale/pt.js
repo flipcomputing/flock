@@ -303,6 +303,7 @@ export default {
     "botão UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 text: %7 background: %8",
   ui_input:
     "campo de entrada UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 texto: %7 fundo: %8",
+  describe: "descrever %1 como %2",
   create_3d_text:
     "adicionar texto 3D %1: %2 fonte: %3 tamanho: %4 cor: %5\nprofundidade: %6 x: %7 y: %8 z: %9",
 
@@ -585,6 +586,8 @@ export default {
     "Mostra um texto no painel de saída.\nPalavra-chave: imprimir",
   say_tooltip:
     "Exibe um texto como balão de fala em um mesh.\nPalavra-chave: dizer",
+  describe_tooltip:
+    "Define o nome de exibição de um mesh. Atualiza os metadados para acessibilidade.\nPalavra-chave: describe",
   ui_text_tooltip:
     "Adiciona um texto à interface e armazena o controle em uma variável para uso posterior.",
 

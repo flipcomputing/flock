@@ -305,6 +305,7 @@ export default {
     "przycisk UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 text: %7 background: %8",
   ui_input:
     "wejście UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 tekst: %7 tło: %8",
+  describe: "opisz %1 jako %2",
   create_3d_text:
     "dodaj tekst 3D %1: %2 czcionka: %3 rozmiar: %4 kolor: %5\ngłębokość: %6 x: %7 y: %8 z: %9",
 
@@ -589,6 +590,8 @@ export default {
   print_text_tooltip:
     "Wyświetl tekst na panelu wyjścia.\nSłowo kluczowe: print",
   say_tooltip: "Pokaż tekst w dymku mówionym nad siatką.\nSłowo kluczowe: say",
+  describe_tooltip:
+    "Ustaw nazwę wyświetlaną siatki. Aktualizuje metadane dla dostępności.\nSłowo kluczowe: describe",
   ui_text_tooltip:
     "Dodaj tekst do interfejsu UI i zapisz referencję w zmiennej do późniejszego użycia lub usunięcia.",
   ui_button_tooltip:

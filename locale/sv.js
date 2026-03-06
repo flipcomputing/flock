@@ -301,6 +301,7 @@ export default {
       ui_button:
             "ui knapp %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 background: %8",
       ui_input: "ui inmatning %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 bakgrund: %8",
+      describe: "beskriv %1 som %2",
       create_3d_text:
             "lägg till %1 3D text: %2 font: %3 storlek: %4 färg: %5\ndjup: %6 x: %7 y: %8 z: %9 ",
 
@@ -585,6 +586,8 @@ export default {
             "Skriv ut text till utmatningspanelen.\nKeyword: print",
       say_tooltip:
             "Visa en textruta som ett pratmoln på ett mesh.\nKeyword: say",
+      describe_tooltip:
+            "Ange visningsnamnet för ett mesh. Uppdaterar metadata för tillgänglighet.\nNyckelord: describe",
       ui_text_tooltip:
             "Lägg till text på UI-skärmen och spara kontrollen i en variabel för senare användning.",
 

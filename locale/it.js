@@ -308,6 +308,7 @@ export default {
     "pulsante UI %1 %2 a x: %3 y: %4\nmisura: %5 dim. testo: %6 text: %7 background: %8",
   ui_input:
     "input UI %1 %2 a x: %3 y: %4\nmisura: %5 dim. testo: %6 testo: %7 sfondo: %8",
+  describe: "descrivi %1 come %2",
   create_3d_text:
     "aggiungi %1 testo 3D: %2 font: %3 dimensione: %4 colore: %5\nprofondità: %6 x: %7 y: %8 z: %9 ",
 
@@ -592,6 +593,8 @@ export default {
   print_text_tooltip:
     "Testo verso il pannello di output.\nParola chiave: print",
   say_tooltip: "Mostra un fumetto di testo su una mesh.\nParola chiave: say",
+  describe_tooltip:
+    "Imposta il nome visualizzato di una mesh. Aggiorna i metadati per l'accessibilità.\nParola chiave: describe",
   ui_text_tooltip:
     "Aggiunge testo allo schermo UI e salva il controllo in una variabile per uso o rimozione successivi.",
   ui_button_tooltip:
