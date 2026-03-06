@@ -237,34 +237,79 @@ export const flockCamera = {
                 return "__active_camera__";
         },
         cameraControl(key, action) {
+                const keyMap = {
+                        ArrowLeft: 37,
+                        ArrowUp: 38,
+                        ArrowRight: 39,
+                        ArrowDown: 40,
+                        " ": 32,
+                        ",": 188,
+                        ".": 190,
+                        "/": 191,
+                };
+
+                const normalizeKeyCode = (inputKey) => {
+                        if (typeof inputKey === "number") {
+                                return inputKey;
+                        }
+
+                        if (typeof inputKey !== "string") {
+                                return null;
+                        }
+
+                        if (/^[0-9]$/.test(inputKey)) {
+                                return inputKey.charCodeAt(0);
+                        }
+
+                        if (/^\d{2,}$/.test(inputKey)) {
+                                return Number(inputKey);
+                        }
+
+                        if (keyMap[inputKey] != null) {
+                                return keyMap[inputKey];
+                        }
+
+                        if (/^[a-z]$/i.test(inputKey)) {
+                                return inputKey.toUpperCase().charCodeAt(0);
+                        }
+
+                        return null;
+                };
+
+                const normalizedKey = normalizeKeyCode(key);
+                if (normalizedKey == null) {
+                        console.warn("Unsupported camera control key:", key);
+                        return;
+                }
+
                 // Define a local function to handle the camera actions
                 function handleCameraAction() {
                         if (flock.scene.activeCamera.keysRotateLeft) {
                                 // FreeCamera specific controls
                                 switch (action) {
                                         case "moveUp":
-                                                flock.scene.activeCamera.keysUp.push(key);
+                                                flock.scene.activeCamera.keysUp.push(normalizedKey);
                                                 break;
                                         case "moveDown":
-                                                flock.scene.activeCamera.keysDown.push(key);
+                                                flock.scene.activeCamera.keysDown.push(normalizedKey);
                                                 break;
                                         case "moveLeft":
-                                                flock.scene.activeCamera.keysLeft.push(key);
+                                                flock.scene.activeCamera.keysLeft.push(normalizedKey);
                                                 break;
                                         case "moveRight":
-                                                flock.scene.activeCamera.keysRight.push(key);
+                                                flock.scene.activeCamera.keysRight.push(normalizedKey);
                                                 break;
                                         case "rotateUp":
-                                                flock.scene.activeCamera.keysRotateUp.push(key);
+                                                flock.scene.activeCamera.keysRotateUp.push(normalizedKey);
                                                 break;
                                         case "rotateDown":
-                                                flock.scene.activeCamera.keysRotateDown.push(key);
+                                                flock.scene.activeCamera.keysRotateDown.push(normalizedKey);
                                                 break;
                                         case "rotateLeft":
-                                                flock.scene.activeCamera.keysRotateLeft.push(key);
+                                                flock.scene.activeCamera.keysRotateLeft.push(normalizedKey);
                                                 break;
                                         case "rotateRight":
-                                                flock.scene.activeCamera.keysRotateRight.push(key);
+                                                flock.scene.activeCamera.keysRotateRight.push(normalizedKey);
                                                 break;
                                 }
                         } else {
@@ -272,19 +317,19 @@ export const flockCamera = {
                                 switch (action) {
                                         case "rotateLeft":
                                         case "moveLeft":
-                                                flock.scene.activeCamera.keysLeft.push(key);
+                                                flock.scene.activeCamera.keysLeft.push(normalizedKey);
                                                 break;
                                         case "rotateRight":
                                         case "moveRight":
-                                                flock.scene.activeCamera.keysRight.push(key);
+                                                flock.scene.activeCamera.keysRight.push(normalizedKey);
                                                 break;
                                         case "moveUp":
                                         case "rotateUp":
-                                                flock.scene.activeCamera.keysUp.push(key);
+                                                flock.scene.activeCamera.keysUp.push(normalizedKey);
                                                 break;
                                         case "moveDown":
                                         case "rotateDown":
-                                                flock.scene.activeCamera.keysDown.push(key);
+                                                flock.scene.activeCamera.keysDown.push(normalizedKey);
                                                 break;
                                 }
                         }
