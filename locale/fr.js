@@ -334,6 +334,7 @@ export default {
   device_camera_background: "utiliser la caméra %1 comme arrière-plan",
   set_xr_mode: "définir le mode XR sur %1",
   controller_rumble: "faire vibrer le moteur %1 à force %2 pendant %3 ms",
+  controller_rumble_pattern: "faire vibrer le moteur %1 force %2 allumé %3 ms éteint %4 ms %5 fois",
 
   // Blockly message overrides for French
   LISTS_CREATE_WITH_INPUT_WITH: "liste",
@@ -654,6 +655,8 @@ export default {
     "Définit le mode XR pour la scène.\nOptions: VR, AR, Magic Window.",
   controller_rumble_tooltip:
     "Fait vibrer une manette de jeu connectée. Choisissez le moteur tous, gauche ou droite, définissez la force (0 à 1) et la durée en millisecondes.\nMot-clé: rumble",
+  controller_rumble_pattern_tooltip:
+    "Fait vibrer une manette de jeu en motif répété. Définissez le moteur, la force (0 à 1), le temps allumé, le temps éteint et le nombre de répétitions.\nMot-clé: rumble pattern",
 
   // Dropdown option translations
   AWAIT_option: "attendre",

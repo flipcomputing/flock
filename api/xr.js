@@ -55,6 +55,22 @@ export const flockXR = {
       });
     }
   },
+  controllerRumblePattern(motor, strength, onDuration, offDuration, repeats) {
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (const gamepad of gamepads) {
+      if (!gamepad || !gamepad.vibrationActuator) continue;
+      const weakMagnitude = motor === "left" ? 0 : strength;
+      const strongMagnitude = motor === "right" ? 0 : strength;
+      for (let i = 0; i < repeats; i++) {
+        gamepad.vibrationActuator.playEffect("dual-rumble", {
+          startDelay: i * (onDuration + offDuration),
+          duration: onDuration,
+          weakMagnitude: weakMagnitude,
+          strongMagnitude: strongMagnitude,
+        });
+      }
+    }
+  },
   async setXRMode(mode) {
     await flock.initializeXR(mode);
     flock.printText({

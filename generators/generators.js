@@ -3533,6 +3533,32 @@ export function defineGenerators() {
                 return `controllerRumble("${motor}", ${strength}, ${duration});\n`;
         };
 
+        javascriptGenerator.forBlock["controller_rumble_pattern"] = function (block) {
+                const motor = block.getFieldValue("MOTOR");
+                const strength = javascriptGenerator.valueToCode(
+                        block,
+                        "STRENGTH",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "1";
+                const onDuration = javascriptGenerator.valueToCode(
+                        block,
+                        "ON_DURATION",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "200";
+                const offDuration = javascriptGenerator.valueToCode(
+                        block,
+                        "OFF_DURATION",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "100";
+                const repeats = javascriptGenerator.valueToCode(
+                        block,
+                        "REPEATS",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "3";
+
+                return `controllerRumblePattern("${motor}", ${strength}, ${onDuration}, ${offDuration}, ${repeats});\n`;
+        };
+
         javascriptGenerator.forBlock["camera_control"] = function (block) {
                 const key = block.getFieldValue("KEY");
                 const action = block.getFieldValue("ACTION");

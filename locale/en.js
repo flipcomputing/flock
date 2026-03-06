@@ -333,6 +333,7 @@ export default {
   device_camera_background: "use %1 camera as background",
   set_xr_mode: "set XR mode to %1",
   controller_rumble: "rumble %1 motor at strength %2 for %3 ms",
+  controller_rumble_pattern: "rumble %1 motor strength %2 on %3 ms off %4 ms %5 times",
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "list",
@@ -636,6 +637,8 @@ export default {
     "Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.",
   controller_rumble_tooltip:
     "Make a connected game controller rumble. Choose all, left, or right motor, set the strength (0 to 1), and how long to rumble in milliseconds.\nKeyword: rumble",
+  controller_rumble_pattern_tooltip:
+    "Make a connected game controller rumble in a repeating pattern. Set the motor, strength (0 to 1), on time, off time, and number of repeats.\nKeyword: rumble pattern",
 
   // Dropdown option translations
   AWAIT_option: "await",

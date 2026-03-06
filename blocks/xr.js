@@ -95,5 +95,52 @@ export function defineXRBlocks() {
 
                 },
           };
+
+          Blockly.Blocks["controller_rumble_pattern"] = {
+                init: function () {
+                  this.jsonInit({
+                        type: "controller_rumble_pattern",
+                        message0: translate("controller_rumble_pattern"),
+                        args0: [
+                          {
+                                type: "field_dropdown",
+                                name: "MOTOR",
+                                options: [
+                                  getDropdownOption("all"),
+                                  getDropdownOption("left"),
+                                  getDropdownOption("right"),
+                                ],
+                          },
+                          {
+                                type: "input_value",
+                                name: "STRENGTH",
+                                check: "Number",
+                          },
+                          {
+                                type: "input_value",
+                                name: "ON_DURATION",
+                                check: "Number",
+                          },
+                          {
+                                type: "input_value",
+                                name: "OFF_DURATION",
+                                check: "Number",
+                          },
+                          {
+                                type: "input_value",
+                                name: "REPEATS",
+                                check: "Number",
+                          },
+                        ],
+                        previousStatement: null,
+                        nextStatement: null,
+                        colour: categoryColours["Scene"],
+                        tooltip: getTooltip("controller_rumble_pattern"),
+                  });
+                  this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle('scene_blocks');
+
+                },
+          };
 }
 

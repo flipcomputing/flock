@@ -332,6 +332,7 @@ export default {
   device_camera_background: "usar câmera %1 como fundo",
   set_xr_mode: "definir modo XR para %1",
   controller_rumble: "vibrar motor %1 com intensidade %2 por %3 ms",
+  controller_rumble_pattern: "vibrar motor %1 intensidade %2 ligado %3 ms desligado %4 ms %5 vezes",
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "lista",
@@ -647,6 +648,8 @@ export default {
     "Define o modo XR da cena.\nOpções: VR, AR, Magic Window.",
   controller_rumble_tooltip:
     "Faz um controle de jogo conectado vibrar. Escolha o motor todos, esquerdo ou direito, defina a intensidade (0 a 1) e a duração em milissegundos.\nPalavra-chave: rumble",
+  controller_rumble_pattern_tooltip:
+    "Faz um controle de jogo vibrar em padrão repetido. Defina o motor, a intensidade (0 a 1), o tempo ligado, o tempo desligado e o número de repetições.\nPalavra-chave: rumble pattern",
 
   // Dropdown option translations
   AWAIT_option: "aguardar",

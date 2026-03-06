@@ -631,6 +631,45 @@ const toolboxSceneXR = {
                                 },
                         },
                 },
+                {
+                        kind: "block",
+                        type: "controller_rumble_pattern",
+                        keyword: "rumble pattern",
+                        inputs: {
+                                STRENGTH: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 1,
+                                                },
+                                        },
+                                },
+                                ON_DURATION: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 200,
+                                                },
+                                        },
+                                },
+                                OFF_DURATION: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 100,
+                                                },
+                                        },
+                                },
+                                REPEATS: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 3,
+                                                },
+                                        },
+                                },
+                        },
+                },
         ],
 };
 

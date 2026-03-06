@@ -330,6 +330,7 @@ export default {
       device_camera_background: "använd %1 kamera som bakgrund",
       set_xr_mode: "ställ in XR-läge till %1",
       controller_rumble: "vibrera %1 motor med styrka %2 i %3 ms",
+      controller_rumble_pattern: "vibrera %1 motor styrka %2 på %3 ms av %4 ms %5 gånger",
 
       // Blockly message overrides for English
       LISTS_CREATE_WITH_INPUT_WITH: "lista",
@@ -648,6 +649,8 @@ export default {
             "Ställ in XR-läget för scenen.\nAlternativ: VR, AR, Magic Window.",
       controller_rumble_tooltip:
             "Gör att en ansluten spelkontroll vibrerar. Välj alla, vänster eller höger motor, ange styrka (0 till 1) och hur länge den ska vibrera i millisekunder.\nNyckelord: rumble",
+      controller_rumble_pattern_tooltip:
+            "Gör att en spelkontroll vibrerar i ett upprepat mönster. Ange motor, styrka (0 till 1), på-tid, av-tid och antal upprepningar.\nNyckelord: rumble pattern",
 
       // Dropdown option translations
       AWAIT_option: "await",

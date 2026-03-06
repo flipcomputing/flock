@@ -335,6 +335,7 @@ export default {
   device_camera_background: "użyj kamery urządzenia %1 jako tło",
   set_xr_mode: "ustaw tryb XR na %1",
   controller_rumble: "wibruj silnik %1 z siłą %2 przez %3 ms",
+  controller_rumble_pattern: "wibruj silnik %1 siła %2 włączony %3 ms wyłączony %4 ms %5 razy",
 
   // Blockly message overrides
   LISTS_CREATE_WITH_INPUT_WITH: "lista",
@@ -647,6 +648,8 @@ export default {
   set_xr_mode_tooltip: "Ustaw tryb XR sceny.\nOpcje: VR, AR, Magic Window.",
   controller_rumble_tooltip:
     "Sprawia, że podłączony kontroler wibruje. Wybierz silnik wszystkie, lewy lub prawy, ustaw siłę (od 0 do 1) i czas trwania w milisekundach.\nSłowo kluczowe: rumble",
+  controller_rumble_pattern_tooltip:
+    "Sprawia, że kontroler wibruje w powtarzającym się wzorze. Ustaw silnik, siłę (od 0 do 1), czas włączenia, czas wyłączenia i liczbę powtórzeń.\nSłowo kluczowe: rumble pattern",
 
   // Dropdown option translations
   AWAIT_option: "await",

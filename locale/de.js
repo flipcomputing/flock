@@ -464,6 +464,7 @@ export default {
   device_camera_background: "verwende %1 Kamera als Hintergrund",
   set_xr_mode: "XR‑Modus auf %1 setzen",
   controller_rumble: "Controller %1 Motor mit Stärke %2 für %3 ms vibrieren",
+  controller_rumble_pattern: "Controller %1 Motor Stärke %2 an %3 ms aus %4 ms %5 mal",
 
   // Blockly overrides
   LISTS_CREATE_WITH_INPUT_WITH: "Liste",
@@ -777,6 +778,8 @@ export default {
     "Setze XR‑Modus der Szene.\nOptionen: VR, AR, Magic Window.",
   controller_rumble_tooltip:
     "Lässt einen verbundenen Gamecontroller vibrieren. Wähle alle, linken oder rechten Motor, stelle die Stärke (0 bis 1) und die Dauer in Millisekunden ein.\nStichwort: rumble",
+  controller_rumble_pattern_tooltip:
+    "Lässt einen Gamecontroller in einem Wiederholungsmuster vibrieren. Wähle Motor, Stärke (0 bis 1), An-Zeit, Aus-Zeit und Anzahl der Wiederholungen.\nStichwort: rumble pattern",
 
   // Dropdown option translations
   AWAIT_option: "warten",
