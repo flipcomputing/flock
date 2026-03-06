@@ -3519,8 +3519,16 @@ export function defineGenerators() {
 
         javascriptGenerator.forBlock["controller_rumble"] = function (block) {
                 const motor = block.getFieldValue("MOTOR");
-                const strength = block.getFieldValue("STRENGTH");
-                const duration = block.getFieldValue("DURATION");
+                const strength = javascriptGenerator.valueToCode(
+                        block,
+                        "STRENGTH",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "1";
+                const duration = javascriptGenerator.valueToCode(
+                        block,
+                        "DURATION",
+                        javascriptGenerator.ORDER_NONE,
+                ) || "500";
 
                 return `controllerRumble("${motor}", ${strength}, ${duration});\n`;
         };

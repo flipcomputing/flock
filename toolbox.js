@@ -612,6 +612,24 @@ const toolboxSceneXR = {
                         kind: "block",
                         type: "controller_rumble",
                         keyword: "rumble",
+                        inputs: {
+                                STRENGTH: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 1,
+                                                },
+                                        },
+                                },
+                                DURATION: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 500,
+                                                },
+                                        },
+                                },
+                        },
                 },
         ],
 };
