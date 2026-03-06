@@ -330,6 +330,7 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: "usar cámara %1 como fondo", // human
   set_xr_mode: "establecer modo XR a %1", // human
+  controller_rumble: "vibrar motor %1 con fuerza %2 durante %3 ms", // ai
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "lista", // human
@@ -648,6 +649,8 @@ export default {
     "Usa la cámara del dispositivo como fondo para la escena. Funciona en móvil y computadora.", // human
   set_xr_mode_tooltip:
     "Establece el modo XR para la escena.\nOpciones: VR, RA, Ventana Mágica.", // human
+  controller_rumble_tooltip:
+    "Hace vibrar un mando de juego conectado. Elige el motor todos, izquierdo o derecho, establece la fuerza (0 a 1) y cuánto tiempo vibrar en milisegundos.\nPalabra clave: rumble", // ai
 
   // Dropdown option translations
   AWAIT_option: "esperar", // human
@@ -807,6 +810,7 @@ export default {
   FLAT_option: "Plano", // human, Duplicate key NONE
 
   ANY_option: "cualquiera", // human
+  all_option: "todos", // ai
   space_infinity_option: "espacio ❖", // human, Duplicate key space
   q_icon_option: "Q ■", // human, Duplicate key q
   e_icon_option: "E ✿", // human, Duplicate key e

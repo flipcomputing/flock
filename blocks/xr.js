@@ -69,7 +69,7 @@ export function defineXRBlocks() {
                                 type: "field_dropdown",
                                 name: "MOTOR",
                                 options: [
-                                  getDropdownOption("any"),
+                                  getDropdownOption("all"),
                                   getDropdownOption("left"),
                                   getDropdownOption("right"),
                                 ],

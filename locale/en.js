@@ -635,7 +635,7 @@ export default {
   set_xr_mode_tooltip:
     "Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.",
   controller_rumble_tooltip:
-    "Make a connected game controller rumble. Choose any, left, or right motor, set the strength (0 to 1), and how long to rumble in milliseconds.\nKeyword: rumble",
+    "Make a connected game controller rumble. Choose all, left, or right motor, set the strength (0 to 1), and how long to rumble in milliseconds.\nKeyword: rumble",
 
   // Dropdown option translations
   AWAIT_option: "await",
@@ -795,6 +795,7 @@ export default {
   FLAT_option: "Flat", // Duplicate key NONE
 
   ANY_option: "any",
+  all_option: "all",
   space_infinity_option: "space ❖", // Duplicate key space
   q_icon_option: "Q ■", // Duplicate key q
   e_icon_option: "E ✿", // Duplicate key e

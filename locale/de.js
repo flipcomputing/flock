@@ -362,6 +362,7 @@ export default {
   ALPHA_option: "Alpha",
   COLOUR_option: "Farbe",
   ANY_option: "beliebig",
+  all_option: "alle",
 
   a_option: "A",
   b_option: "B",
@@ -462,6 +463,7 @@ export default {
   // XR blocks
   device_camera_background: "verwende %1 Kamera als Hintergrund",
   set_xr_mode: "XR‑Modus auf %1 setzen",
+  controller_rumble: "Controller %1 Motor mit Stärke %2 für %3 ms vibrieren",
 
   // Blockly overrides
   LISTS_CREATE_WITH_INPUT_WITH: "Liste",
@@ -773,6 +775,8 @@ export default {
     "Verwende Gerätekamera als Hintergrund für die Szene. Funktioniert auf Mobilgeräten und Desktop.",
   set_xr_mode_tooltip:
     "Setze XR‑Modus der Szene.\nOptionen: VR, AR, Magic Window.",
+  controller_rumble_tooltip:
+    "Lässt einen verbundenen Gamecontroller vibrieren. Wähle alle, linken oder rechten Motor, stelle die Stärke (0 bis 1) und die Dauer in Millisekunden ein.\nStichwort: rumble",
 
   // Dropdown option translations
   AWAIT_option: "warten",

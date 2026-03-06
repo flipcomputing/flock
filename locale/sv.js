@@ -329,6 +329,7 @@ export default {
       // Custom block translations - XR blocks
       device_camera_background: "använd %1 kamera som bakgrund",
       set_xr_mode: "ställ in XR-läge till %1",
+      controller_rumble: "vibrera %1 motor med styrka %2 i %3 ms",
 
       // Blockly message overrides for English
       LISTS_CREATE_WITH_INPUT_WITH: "lista",
@@ -645,6 +646,8 @@ export default {
             "Använd enhetens kamera som bakgrund för scenen. Fungerar på både mobil och dator.",
       set_xr_mode_tooltip:
             "Ställ in XR-läget för scenen.\nAlternativ: VR, AR, Magic Window.",
+      controller_rumble_tooltip:
+            "Gör att en ansluten spelkontroll vibrerar. Välj alla, vänster eller höger motor, ange styrka (0 till 1) och hur länge den ska vibrera i millisekunder.\nNyckelord: rumble",
 
       // Dropdown option translations
       AWAIT_option: "await",
@@ -804,6 +807,7 @@ export default {
       FLAT_option: "Platt", // Duplicate key NONE
 
       ANY_option: "vilken som helst",
+      all_option: "alla",
       space_infinity_option: "rymd ❖", // Duplicate key space
       q_icon_option: "Q ■", // Duplicate key q
       e_icon_option: "E ✿", // Duplicate key e
