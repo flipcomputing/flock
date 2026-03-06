@@ -53,110 +53,50 @@ export const flockXR = {
   },
   async rumbleController(controller = "ANY", strength = 1, durationMs = 200) {
     const normalizedController = String(controller || "ANY").toUpperCase();
-    const normalizedStrength = Math.min(
-      1,
-      Math.max(0, Number.isFinite(strength) ? strength : 1),
-    );
+    const normalizedStrength = Math.min(1, Math.max(0, Number(strength) || 1));
     const normalizedDuration = Math.max(
       0,
-      Math.floor(Number.isFinite(durationMs) ? durationMs : 200),
+      Math.floor(Number(durationMs) || 200),
     );
 
     const xrSources = flock.xrHelper?.baseExperience?.input?.inputSources || [];
-    const handednessByGamepadKey = new Map();
-    for (const source of xrSources) {
-      const sourceGamepad = source?.gamepad;
-      if (!sourceGamepad) {
-        continue;
-      }
 
-      const sourceHandedness = String(
-        source?.inputSource?.handedness || "",
-      ).toLowerCase();
-      if (!sourceHandedness || sourceHandedness === "none") {
-        continue;
-      }
-
-      const sourceKey = `${sourceGamepad.id || "unknown"}:${sourceGamepad.index ?? "na"}`;
-      handednessByGamepadKey.set(sourceKey, sourceHandedness);
-    }
-
-    const xrCandidates = xrSources
+    const xrTargets = xrSources
+      .filter((source) => source?.gamepad)
       .map((source) => ({
+        source,
         gamepad: source.gamepad,
-        handedness:
-          String(source.inputSource?.handedness || "").toLowerCase() || "",
-      }))
-      .filter((candidate) => Boolean(candidate.gamepad));
+        handedness: String(source.inputSource?.handedness || "").toLowerCase(),
+      }));
 
-    const navigatorCandidates = (() => {
-      if (typeof navigator === "undefined" || !navigator.getGamepads) {
-        return [];
-      }
+    const navigatorTargets =
+      typeof navigator !== "undefined" && navigator.getGamepads
+        ? Array.from(navigator.getGamepads() || [])
+            .filter(Boolean)
+            .map((gamepad) => ({
+              gamepad,
+              handedness: String(gamepad.hand || "").toLowerCase(),
+            }))
+        : [];
 
-      return Array.from(navigator.getGamepads() || [])
-        .filter(Boolean)
-        .map((gamepad) => ({
-          key: `${gamepad.id || "unknown"}:${gamepad.index ?? "na"}`,
-          gamepad,
-          handedness:
-            handednessByGamepadKey.get(
-              `${gamepad.id || "unknown"}:${gamepad.index ?? "na"}`,
-            ) || String(gamepad.hand || "").toLowerCase(),
-        }));
-    })();
+    let targets = [];
 
-    const allCandidates = [...xrCandidates, ...navigatorCandidates];
-    if (!allCandidates.length) {
-      return false;
-    }
-
-    const dedupedCandidates = (() => {
-      const byKey = new Map();
-      for (const candidate of allCandidates) {
-        const key = `${candidate.gamepad.id || "unknown"}:${candidate.gamepad.index ?? "na"}`;
-        const existing = byKey.get(key);
-        if (!existing) {
-          byKey.set(key, { ...candidate, key });
-          continue;
-        }
-
-        const existingScore = existing.handedness ? 1 : 0;
-        const incomingScore = candidate.handedness ? 1 : 0;
-        if (incomingScore > existingScore) {
-          byKey.set(key, { ...candidate, key });
-        }
-      }
-      return Array.from(byKey.values());
-    })();
-
-    const matchesByHandedness = (candidate) => {
-      const id = String(candidate.gamepad.id || "").toLowerCase();
-      const effectiveHand =
-        candidate.handedness || String(candidate.gamepad.hand || "").toLowerCase();
-      if (normalizedController === "LEFT") {
-        return effectiveHand === "left" || id.includes("left");
-      }
-      if (normalizedController === "RIGHT") {
-        return effectiveHand === "right" || id.includes("right");
-      }
-      return true;
-    };
-
-    // Prefer XR input sources for left/right targeting because they provide
-    // reliable handedness metadata in immersive sessions.
-    const candidatesByPriority =
-      normalizedController === "ANY"
-        ? [dedupedCandidates]
-        : [
-            xrCandidates.filter(matchesByHandedness),
-            dedupedCandidates.filter(matchesByHandedness),
-          ];
-
-    let targets = candidatesByPriority.find((items) => items.length > 0) || [];
     if (normalizedController === "LEFT" || normalizedController === "RIGHT") {
+      const wanted = normalizedController.toLowerCase();
+
+      // In XR sessions, this is the cleanest and most reliable path.
+      targets = xrTargets.filter((target) => target.handedness === wanted);
+
+      // Optional non-XR fallback.
+      if (!targets.length) {
+        targets = navigatorTargets.filter((target) => target.handedness === wanted);
+      }
+
       targets = targets.slice(0, 1);
+    } else {
+      targets = xrTargets.length ? xrTargets : navigatorTargets;
     }
+
     if (!targets.length) {
       return false;
     }
@@ -167,9 +107,8 @@ export const flockXR = {
       }
 
       if (typeof actuator.playEffect === "function") {
-        const effectType = actuator.type || "dual-rumble";
         try {
-          await actuator.playEffect(effectType, {
+          await actuator.playEffect("dual-rumble", {
             startDelay: 0,
             duration: normalizedDuration,
             weakMagnitude: normalizedStrength,
@@ -186,7 +125,7 @@ export const flockXR = {
           await actuator.pulse(normalizedStrength, normalizedDuration);
           return true;
         } catch {
-          return false;
+          // Ignore actuator pulse errors and continue checking others.
         }
       }
 
