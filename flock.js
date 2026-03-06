@@ -1010,6 +1010,8 @@ export const flock = {
                         setFog: this.setFog?.bind(this),
                         keyPressed: this.keyPressed?.bind(this),
                         actionPressed: this.actionPressed?.bind(this),
+                        setActionKey: this.setActionKey?.bind(this),
+                        getActionKeys: this.getActionKeys?.bind(this),
                         isTouchingSurface: this.isTouchingSurface?.bind(this),
                         meshExists: this.meshExists?.bind(this),
                         seededRandom: this.seededRandom?.bind(this),
