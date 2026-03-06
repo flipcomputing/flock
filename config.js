@@ -134,6 +134,26 @@ export const objectNames = [
 	"headphones.glb",
 ];
 
+function modelNameToDisplayName(modelName) {
+	return String(modelName || "")
+		.replace(/\.[^/.]+$/, "")
+		.replace(/[_-]+/g, " ")
+		.replace(/\s+/g, " ")
+		.trim()
+		.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+export const objectDisplayNames = Object.fromEntries(
+	[...multiObjectNames, ...objectNames].map((modelName) => [
+		modelName,
+		modelNameToDisplayName(modelName),
+	]),
+);
+
+export function getModelDisplayName(modelName) {
+	return objectDisplayNames[modelName] || modelNameToDisplayName(modelName);
+}
+
 export const objectColours = {
 	"Star.glb": ["#FFD700", "#FFD700", "#FFD700"],
 	"Heart.glb": ["#FF69B4", "#FF69B4", "#FF69B4"],
