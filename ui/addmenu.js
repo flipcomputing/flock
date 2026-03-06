@@ -218,22 +218,14 @@ function addShapeToWorkspace(shapeType, position) {
 function selectCharacter(characterName) {
   const dd = document.getElementById("shapes-dropdown");
   if (dd) dd.style.display = "none";
+  removeKeyboardNavigation();
 
   const workspace = Blockly.getMainWorkspace();
   const canvas =
     flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
 
-  if (flock.activePickHandler) {
-    window.removeEventListener("click", flock.activePickHandler, true);
-    flock.activePickHandler = null;
-  }
-
   function cleanup() {
-    document.body.style.cursor = "default";
-    if (flock.activePickHandler) {
-      window.removeEventListener("click", flock.activePickHandler, true);
-      flock.activePickHandler = null;
-    }
+    cleanupPlacementMode();
   }
 
   flock.activePickHandler = function onPick(event) {
@@ -269,21 +261,21 @@ function selectCharacter(characterName) {
 
   try {
     startKeyboardPlacementMode?.(flock.activePickHandler);
-  } catch {}
+  } catch (error) {
+    console.warn("Unable to start keyboard placement mode.", error);
+  }
 
   document.body.style.cursor = "crosshair";
-  setTimeout(() => {
-    window.addEventListener("click", flock.activePickHandler, true);
-  }, 0);
+  registerActivePickHandler(flock.activePickHandler, {
+    capture: true,
+    delay: 0,
+  });
 }
 
 function selectShape(shapeType) {
   document.getElementById("shapes-dropdown").style.display = "none";
-
-  if (flock.activePickHandler) {
-    window.removeEventListener("click", flock.activePickHandler);
-    flock.activePickHandler = null;
-  }
+  removeKeyboardNavigation();
+  detachActivePickHandler();
 
   flock.activePickHandler = function onPick(event) {
     const canvasRect = flock.canvas.getBoundingClientRect();
@@ -294,9 +286,7 @@ function selectShape(shapeType) {
       addShapeToWorkspace(shapeType, pickResult.pickedPoint);
     }
 
-    document.body.style.cursor = "default";
-    window.removeEventListener("click", flock.activePickHandler);
-    flock.activePickHandler = null;
+    cleanupPlacementMode();
   };
 
   // Start keyboard placement mode with singleton handler
@@ -304,9 +294,10 @@ function selectShape(shapeType) {
 
   // Also set up mouse click as fallback
   document.body.style.cursor = "crosshair";
-  setTimeout(() => {
-    window.addEventListener("click", flock.activePickHandler);
-  }, 300);
+  registerActivePickHandler(flock.activePickHandler, {
+    capture: false,
+    delay: 300,
+  });
 }
 
 function selectObject(objectName) {
@@ -321,22 +312,13 @@ function selectObjectWithCommand(objectName, menu, command) {
   // Hide menu
   const menuEl = document.getElementById(menu);
   if (menuEl) menuEl.style.display = "none";
+  removeKeyboardNavigation();
 
   const workspace = Blockly.getMainWorkspace();
   const canvas = flock.scene.getEngine().getRenderingCanvas();
 
-  // Remove previous handler
-  if (flock.activePickHandler) {
-    window.removeEventListener("click", flock.activePickHandler, true);
-    flock.activePickHandler = null;
-  }
-
   function cleanup() {
-    document.body.style.cursor = "default";
-    if (flock.activePickHandler) {
-      window.removeEventListener("click", flock.activePickHandler, true);
-      flock.activePickHandler = null;
-    }
+    cleanupPlacementMode();
   }
 
   flock.activePickHandler = function onPickMesh(event) {
@@ -378,14 +360,16 @@ function selectObjectWithCommand(objectName, menu, command) {
 
   try {
     startKeyboardPlacementMode?.(flock.activePickHandler);
-  } catch {}
+  } catch (error) {
+    console.warn("Unable to start keyboard placement mode.", error);
+  }
 
   // Mouse click fallback (capture=true)
   document.body.style.cursor = "crosshair";
-  setTimeout(
-    () => window.addEventListener("click", flock.activePickHandler, true),
-    0,
-  );
+  registerActivePickHandler(flock.activePickHandler, {
+    capture: true,
+    delay: 0,
+  });
 }
 
 // Scroll function to move the object row left or right
@@ -623,6 +607,37 @@ function loadObjectImages() {
 
 if (!window.flock) window.flock = {};
 flock.activePickHandler = null; // Mouse handler singleton
+flock.activePickHandlerCapture = false;
+
+function detachActivePickHandler() {
+  if (flock.activePickHandler) {
+    window.removeEventListener(
+      "click",
+      flock.activePickHandler,
+      flock.activePickHandlerCapture,
+    );
+    flock.activePickHandler = null;
+  }
+  flock.activePickHandlerCapture = false;
+}
+
+function registerActivePickHandler(handler, { capture = false, delay = 0 } = {}) {
+  detachActivePickHandler();
+  flock.activePickHandler = handler;
+  flock.activePickHandlerCapture = capture;
+
+  setTimeout(() => {
+    if (flock.activePickHandler === handler) {
+      window.addEventListener("click", handler, flock.activePickHandlerCapture);
+    }
+  }, delay);
+}
+
+function cleanupPlacementMode() {
+  detachActivePickHandler();
+  endKeyboardPlacementMode();
+  document.body.style.cursor = "default";
+}
 
 let placementCallback = null; // Keyboard placement callback singleton
 let keyboardPlacementMode = false;
@@ -653,6 +668,7 @@ document.addEventListener("click", function (event) {
   if (!dropdown) return;
 
   const isClickInside = dropdown.contains(event.target);
+  const showShapesButton = document.getElementById("showShapesButton");
   const isClickOnToggle =
     showShapesButton && showShapesButton.contains(event.target);
 
@@ -665,13 +681,7 @@ document.addEventListener("click", function (event) {
 
 // --- Singleton Placement Cancellation ---
 function cancelPlacement() {
-  if (flock.activeMousePickHandler) {
-    window.removeEventListener("click", flock.activeMousePickHandler);
-    flock.activeMousePickHandler = null;
-    console.log("[cancelPlacement] Mouse handler removed.");
-  }
-  endKeyboardPlacementMode();
-  document.body.style.cursor = "default";
+  cleanupPlacementMode();
 }
 
 // --- Keyboard Navigation ---
@@ -830,7 +840,7 @@ function handleShapeMenuKeydown(event) {
         }
       }
       break;
-    case "Escape":
+    case "Escape": {
       event.preventDefault();
       document.getElementById("shapes-dropdown").style.display = "none";
       removeKeyboardNavigation();
@@ -838,6 +848,7 @@ function handleShapeMenuKeydown(event) {
       const shapesButton = document.getElementById("showShapesButton");
       if (shapesButton) shapesButton.focus();
       break;
+    }
   }
 }
 
@@ -924,13 +935,6 @@ function triggerPlacement() {
   };
 
   placementCallback(syntheticEvent);
-
-  // Clean up the active handler to match mouse behavior
-  if (flock.activePickHandler) {
-    window.removeEventListener("click", flock.activePickHandler);
-    flock.activePickHandler = null;
-  }
-
   cancelPlacement();
 }
 
