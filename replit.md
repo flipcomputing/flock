@@ -9,6 +9,7 @@ The platform combines Blockly visual programming with Babylon.js 3D rendering an
 ## Recent Changes
 
 ### March 2026
+- **Set Action Key Block**: Added new "set action key" block to the Sensing category (`blocks/sensing.js`) that allows users to rebind the key for any action (forward, backward, left, right, buttons 1-4). Works like the camera key setting block in Scene > Camera, with an ACTION dropdown and a KEY grid dropdown. API function `setActionKey` in `api/sensing.js` overrides the default action-to-key mapping. Registered in sandbox and SIDE_EFFECT_APIS in `flock.js`.
 - **Describe Block**: Added new "describe" block to the Text category (`blocks/text.js`) that sets a mesh's `metadata.displayName`. Takes a mesh variable and a text string. Security: text is sanitized at code-generation time via `emitSafeTextArg`/`sanitizeForCode`, and at runtime via `sanitizeInlineText` with a 256-character length limit. The `describeMesh` API function is whitelisted and guarded in the SES sandbox. Fully internationalized across all 8 supported languages.
 
 ### October 2025

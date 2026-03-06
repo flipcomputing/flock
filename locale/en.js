@@ -522,6 +522,9 @@ export default {
     "Return true if the specified key is pressed.\nKeyword:ispressed",
   action_pressed_tooltip:
     "Return true if the specified movement or action control is active across keyboard, touch, or XR inputs.",
+  set_action_key: "set %1 key to %2",
+  set_action_key_tooltip:
+    "Set the key that triggers a specific action (forward, backward, left, right, or buttons).",
   meshes_touching_tooltip:
     "Return true if the two selected meshes are touching.\nKeyword: istouching",
   time_tooltip: "Return the current time in seconds.",
