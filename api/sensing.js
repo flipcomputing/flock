@@ -339,9 +339,11 @@ export const flockSensing = {
     };
 
     const customKeys = flock.actionKeyMap?.[action] ?? [];
-    const defaultKeys = defaultActionMap[action] ?? [];
+    if (customKeys.length) {
+      return [...new Set(customKeys)];
+    }
 
-    return [...new Set([...customKeys, ...defaultKeys])];
+    return defaultActionMap[action] ?? [];
   },
   setActionKey(action, key) {
     if (!action || typeof key !== "string") {
@@ -355,9 +357,10 @@ export const flockSensing = {
     // Keep special keys (e.g. ArrowLeft, " ") as-is so runtime checks match
     // browser keyboard event values.
     const normalizedKey = /^[a-z]$/i.test(key) ? key.toUpperCase() : key;
-    const existingKeys = flock.actionKeyMap[action] ?? [];
 
-    flock.actionKeyMap[action] = [...new Set([...existingKeys, normalizedKey])];
+    // Rebind behavior: setting an action key replaces previous/default bindings
+    // for that action instead of appending to them.
+    flock.actionKeyMap[action] = [normalizedKey];
   },
   actionPressed(action) {
     const actionKeys = this.getActionKeys(action);
