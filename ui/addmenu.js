@@ -218,6 +218,7 @@ function addShapeToWorkspace(shapeType, position) {
 function selectCharacter(characterName) {
   const dd = document.getElementById("shapes-dropdown");
   if (dd) dd.style.display = "none";
+  removeKeyboardNavigation();
 
   const workspace = Blockly.getMainWorkspace();
   const canvas =
@@ -260,7 +261,9 @@ function selectCharacter(characterName) {
 
   try {
     startKeyboardPlacementMode?.(flock.activePickHandler);
-  } catch {}
+  } catch (error) {
+    console.warn("Unable to start keyboard placement mode.", error);
+  }
 
   document.body.style.cursor = "crosshair";
   registerActivePickHandler(flock.activePickHandler, {
@@ -271,6 +274,7 @@ function selectCharacter(characterName) {
 
 function selectShape(shapeType) {
   document.getElementById("shapes-dropdown").style.display = "none";
+  removeKeyboardNavigation();
   detachActivePickHandler();
 
   flock.activePickHandler = function onPick(event) {
@@ -308,6 +312,7 @@ function selectObjectWithCommand(objectName, menu, command) {
   // Hide menu
   const menuEl = document.getElementById(menu);
   if (menuEl) menuEl.style.display = "none";
+  removeKeyboardNavigation();
 
   const workspace = Blockly.getMainWorkspace();
   const canvas = flock.scene.getEngine().getRenderingCanvas();
@@ -355,7 +360,9 @@ function selectObjectWithCommand(objectName, menu, command) {
 
   try {
     startKeyboardPlacementMode?.(flock.activePickHandler);
-  } catch {}
+  } catch (error) {
+    console.warn("Unable to start keyboard placement mode.", error);
+  }
 
   // Mouse click fallback (capture=true)
   document.body.style.cursor = "crosshair";
@@ -661,6 +668,7 @@ document.addEventListener("click", function (event) {
   if (!dropdown) return;
 
   const isClickInside = dropdown.contains(event.target);
+  const showShapesButton = document.getElementById("showShapesButton");
   const isClickOnToggle =
     showShapesButton && showShapesButton.contains(event.target);
 
@@ -832,7 +840,7 @@ function handleShapeMenuKeydown(event) {
         }
       }
       break;
-    case "Escape":
+    case "Escape": {
       event.preventDefault();
       document.getElementById("shapes-dropdown").style.display = "none";
       removeKeyboardNavigation();
@@ -840,6 +848,7 @@ function handleShapeMenuKeydown(event) {
       const shapesButton = document.getElementById("showShapesButton");
       if (shapesButton) shapesButton.focus();
       break;
+    }
   }
 }
 
