@@ -3517,6 +3517,24 @@ export function defineGenerators() {
                 return `await setXRMode("${mode}");\n`;
         };
 
+        javascriptGenerator.forBlock["rumble_controller"] = function (block) {
+                const controller = block.getFieldValue("CONTROLLER");
+                const strength =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "STRENGTH",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || "1";
+                const durationMs =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "DURATION_MS",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || "200";
+
+                return `await rumbleController("${controller}", ${strength}, ${durationMs});\n`;
+        };
+
         javascriptGenerator.forBlock["camera_control"] = function (block) {
                 const key = block.getFieldValue("KEY");
                 const action = block.getFieldValue("ACTION");

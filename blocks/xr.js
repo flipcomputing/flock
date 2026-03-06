@@ -58,5 +58,41 @@ export function defineXRBlocks() {
 
                 },
           };
-}
 
+          Blockly.Blocks["rumble_controller"] = {
+                init: function () {
+                  this.jsonInit({
+                        type: "rumble_controller",
+                        message0: translate("rumble_controller"),
+                        args0: [
+                          {
+                                type: "field_dropdown",
+                                name: "CONTROLLER",
+                                options: [
+                                  getDropdownOption("ANY"),
+                                  getDropdownOption("LEFT"),
+                                  getDropdownOption("RIGHT"),
+                                ],
+                          },
+                          {
+                                type: "input_value",
+                                name: "STRENGTH",
+                                check: "Number",
+                          },
+                          {
+                                type: "input_value",
+                                name: "DURATION_MS",
+                                check: "Number",
+                          },
+                        ],
+                        previousStatement: null,
+                        nextStatement: null,
+                        colour: categoryColours["Scene"],
+                        tooltip: getTooltip("rumble_controller"),
+                  });
+                  this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle('scene_blocks');
+
+                },
+          };
+}

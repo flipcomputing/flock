@@ -1,3 +1,5 @@
+import { translate } from "../main/translation.js";
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -48,6 +50,147 @@ export const flockXR = {
       duration: 5,
       color: "white",
     });
+  },
+  async rumbleController(controller = "ANY", strength = 1, durationMs = 200) {
+    const normalizedController = String(controller || "ANY").toUpperCase();
+    const normalizedStrength = Math.min(
+      1,
+      Math.max(0, Number.isFinite(strength) ? strength : 1),
+    );
+    const normalizedDuration = Math.max(
+      0,
+      Math.floor(Number.isFinite(durationMs) ? durationMs : 200),
+    );
+
+    const xrSources = flock.xrHelper?.baseExperience?.input?.inputSources || [];
+    const handednessByGamepadKey = new Map();
+
+    const xrCandidates = xrSources
+      .filter(
+        (source) =>
+          (source && source.motionController?.handness) ||
+          source.inputSource?.handedness,
+      )
+      .map((source) => {
+        const handedness = String(
+          source.motionController?.handness ||
+            source.inputSource?.handedness ||
+            "",
+        ).toLowerCase();
+        const gamepad =
+          source.motionController?.rootMesh?.deviceGamepad ||
+          source.gamepad ||
+          source.inputSource?.gamepad;
+
+        if (gamepad) {
+          const key = `${gamepad.id || "unknown"}:${gamepad.index ?? "na"}`;
+          handednessByGamepadKey.set(key, handedness);
+        }
+
+        return {
+          gamepad,
+          handedness,
+        };
+      })
+      .filter((candidate) => !!candidate.gamepad);
+
+    const navigatorCandidates = (() => {
+      if (typeof navigator === "undefined" || !navigator.getGamepads) {
+        return [];
+      }
+
+      return Array.from(navigator.getGamepads() || [])
+        .filter(Boolean)
+        .map((gamepad) => {
+          const key = `${gamepad.id || "unknown"}:${gamepad.index ?? "na"}`;
+          return {
+            key,
+            gamepad,
+            handedness:
+              handednessByGamepadKey.get(key) ||
+              String(gamepad.hand || "").toLowerCase(),
+          };
+        });
+    })();
+
+    const allCandidates = [...xrCandidates, ...navigatorCandidates];
+
+    const dedupedCandidates = (() => {
+      const byKey = new Map();
+      for (const candidate of allCandidates) {
+        const key = `${candidate.gamepad.id || "unknown"}:${candidate.gamepad.index ?? "na"}`;
+        const existing = byKey.get(key);
+        if (!existing || (!existing.handedness && candidate.handedness)) {
+          byKey.set(key, { ...candidate, key });
+        }
+      }
+      return Array.from(byKey.values());
+    })();
+
+    if (!dedupedCandidates.length) {
+      return false;
+    }
+
+    const matchesByHandedness = (candidate) => {
+      if (normalizedController === "ANY") return true;
+
+      const target = normalizedController.toLowerCase();
+      const id = String(candidate.gamepad.id || "").toLowerCase();
+      const hand = String(candidate.handedness || "").toLowerCase();
+
+      return hand === target || id.includes(target);
+    };
+
+    const targets = dedupedCandidates.filter(matchesByHandedness);
+
+    if (!targets.length) {
+      return false;
+    }
+
+    const finalTargets = normalizedController === "ANY" ? targets : [targets[0]];
+
+    const tryActuator = async (actuator) => {
+      if (!actuator) return false;
+
+      try {
+        if (typeof actuator.playEffect === "function") {
+          await actuator.playEffect(actuator.type || "dual-rumble", {
+            startDelay: 0,
+            duration: normalizedDuration,
+            weakMagnitude: normalizedStrength,
+            strongMagnitude: normalizedStrength,
+          });
+          return true;
+        }
+
+        if (typeof actuator.pulse === "function") {
+          await actuator.pulse(normalizedStrength, normalizedDuration);
+          return true;
+        }
+      } catch {
+        return false;
+      }
+      return false;
+    };
+
+    let didRumble = false;
+    for (const { gamepad } of finalTargets) {
+      const actuators = [
+        gamepad.vibrationActuator,
+        ...(Array.isArray(gamepad.hapticActuators)
+          ? gamepad.hapticActuators
+          : gamepad.hapticActuators
+            ? [gamepad.hapticActuators]
+            : []),
+      ].filter(Boolean);
+
+      for (const actuator of actuators) {
+        const success = await tryActuator(actuator);
+        didRumble = didRumble || success;
+      }
+    }
+
+    return didRumble;
   },
   exportMesh(meshName, format) {
     //meshName = "scene";
