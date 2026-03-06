@@ -223,17 +223,8 @@ function selectCharacter(characterName) {
   const canvas =
     flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
 
-  if (flock.activePickHandler) {
-    window.removeEventListener("click", flock.activePickHandler, true);
-    flock.activePickHandler = null;
-  }
-
   function cleanup() {
-    document.body.style.cursor = "default";
-    if (flock.activePickHandler) {
-      window.removeEventListener("click", flock.activePickHandler, true);
-      flock.activePickHandler = null;
-    }
+    cleanupPlacementMode();
   }
 
   flock.activePickHandler = function onPick(event) {
@@ -272,18 +263,15 @@ function selectCharacter(characterName) {
   } catch {}
 
   document.body.style.cursor = "crosshair";
-  setTimeout(() => {
-    window.addEventListener("click", flock.activePickHandler, true);
-  }, 0);
+  registerActivePickHandler(flock.activePickHandler, {
+    capture: true,
+    delay: 0,
+  });
 }
 
 function selectShape(shapeType) {
   document.getElementById("shapes-dropdown").style.display = "none";
-
-  if (flock.activePickHandler) {
-    window.removeEventListener("click", flock.activePickHandler);
-    flock.activePickHandler = null;
-  }
+  detachActivePickHandler();
 
   flock.activePickHandler = function onPick(event) {
     const canvasRect = flock.canvas.getBoundingClientRect();
@@ -294,9 +282,7 @@ function selectShape(shapeType) {
       addShapeToWorkspace(shapeType, pickResult.pickedPoint);
     }
 
-    document.body.style.cursor = "default";
-    window.removeEventListener("click", flock.activePickHandler);
-    flock.activePickHandler = null;
+    cleanupPlacementMode();
   };
 
   // Start keyboard placement mode with singleton handler
@@ -304,9 +290,10 @@ function selectShape(shapeType) {
 
   // Also set up mouse click as fallback
   document.body.style.cursor = "crosshair";
-  setTimeout(() => {
-    window.addEventListener("click", flock.activePickHandler);
-  }, 300);
+  registerActivePickHandler(flock.activePickHandler, {
+    capture: false,
+    delay: 300,
+  });
 }
 
 function selectObject(objectName) {
@@ -325,18 +312,8 @@ function selectObjectWithCommand(objectName, menu, command) {
   const workspace = Blockly.getMainWorkspace();
   const canvas = flock.scene.getEngine().getRenderingCanvas();
 
-  // Remove previous handler
-  if (flock.activePickHandler) {
-    window.removeEventListener("click", flock.activePickHandler, true);
-    flock.activePickHandler = null;
-  }
-
   function cleanup() {
-    document.body.style.cursor = "default";
-    if (flock.activePickHandler) {
-      window.removeEventListener("click", flock.activePickHandler, true);
-      flock.activePickHandler = null;
-    }
+    cleanupPlacementMode();
   }
 
   flock.activePickHandler = function onPickMesh(event) {
@@ -382,10 +359,10 @@ function selectObjectWithCommand(objectName, menu, command) {
 
   // Mouse click fallback (capture=true)
   document.body.style.cursor = "crosshair";
-  setTimeout(
-    () => window.addEventListener("click", flock.activePickHandler, true),
-    0,
-  );
+  registerActivePickHandler(flock.activePickHandler, {
+    capture: true,
+    delay: 0,
+  });
 }
 
 // Scroll function to move the object row left or right
@@ -623,6 +600,37 @@ function loadObjectImages() {
 
 if (!window.flock) window.flock = {};
 flock.activePickHandler = null; // Mouse handler singleton
+flock.activePickHandlerCapture = false;
+
+function detachActivePickHandler() {
+  if (flock.activePickHandler) {
+    window.removeEventListener(
+      "click",
+      flock.activePickHandler,
+      flock.activePickHandlerCapture,
+    );
+    flock.activePickHandler = null;
+  }
+  flock.activePickHandlerCapture = false;
+}
+
+function registerActivePickHandler(handler, { capture = false, delay = 0 } = {}) {
+  detachActivePickHandler();
+  flock.activePickHandler = handler;
+  flock.activePickHandlerCapture = capture;
+
+  setTimeout(() => {
+    if (flock.activePickHandler === handler) {
+      window.addEventListener("click", handler, flock.activePickHandlerCapture);
+    }
+  }, delay);
+}
+
+function cleanupPlacementMode() {
+  detachActivePickHandler();
+  endKeyboardPlacementMode();
+  document.body.style.cursor = "default";
+}
 
 let placementCallback = null; // Keyboard placement callback singleton
 let keyboardPlacementMode = false;
@@ -665,13 +673,7 @@ document.addEventListener("click", function (event) {
 
 // --- Singleton Placement Cancellation ---
 function cancelPlacement() {
-  if (flock.activeMousePickHandler) {
-    window.removeEventListener("click", flock.activeMousePickHandler);
-    flock.activeMousePickHandler = null;
-    console.log("[cancelPlacement] Mouse handler removed.");
-  }
-  endKeyboardPlacementMode();
-  document.body.style.cursor = "default";
+  cleanupPlacementMode();
 }
 
 // --- Keyboard Navigation ---
@@ -924,13 +926,6 @@ function triggerPlacement() {
   };
 
   placementCallback(syntheticEvent);
-
-  // Clean up the active handler to match mouse behavior
-  if (flock.activePickHandler) {
-    window.removeEventListener("click", flock.activePickHandler);
-    flock.activePickHandler = null;
-  }
-
   cancelPlacement();
 }
 
