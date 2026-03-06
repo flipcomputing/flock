@@ -332,6 +332,7 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: "use %1 camera as background",
   set_xr_mode: "set XR mode to %1",
+  rumble_controller: "rumble %1 strength %2 for %3 ms",
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "list",
@@ -633,6 +634,8 @@ export default {
     "Use the device camera as the background for the scene. Works on both mobile and desktop.",
   set_xr_mode_tooltip:
     "Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.",
+  rumble_controller_tooltip:
+    "Trigger controller rumble on supported gamepads using strength from 0 to 1 and duration in milliseconds.",
 
   // Dropdown option translations
   AWAIT_option: "await",

@@ -492,6 +492,22 @@ Broadcasts a custom event.
 #### `onTrigger(meshName, callback)`
 Sets up collision/trigger detection for a mesh.
 
+#### `rumbleController(controller = "ANY", strength = 1, durationMs = 200)`
+Triggers rumble/haptic feedback on supported gamepads and controllers.
+
+**Parameters:**
+- `controller` (string): `"ANY"`, `"LEFT"`, or `"RIGHT"`.
+- `strength` (number): Intensity from `0` to `1`.
+- `durationMs` (number): Rumble duration in milliseconds.
+
+**Returns:**
+- `Promise<boolean>`: `true` when a rumble command was sent, otherwise `false` (for unsupported devices/browsers).
+
+**Example:**
+```javascript
+await rumbleController("ANY", 0.8, 250);
+```
+
 ## Examples
 
 For a complete working example, see [example.html](example.html) in the repository, which demonstrates a full Flock XR application with character movement, physics, and camera controls.

@@ -605,6 +605,29 @@ const toolboxSceneXR = {
                 },
                 {
                         kind: "block",
+                        type: "rumble_controller",
+                        keyword: "rumble",
+                        inputs: {
+                                STRENGTH: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 1,
+                                                },
+                                        },
+                                },
+                                DURATION_MS: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 200,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
                         type: "export_mesh",
                         keyword: "export",
                 },
