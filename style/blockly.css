@@ -413,6 +413,12 @@ color: var(--color-menu-item-text) !important;
 
 }
 
+
+/* Ensure key labels in field_grid_dropdown are readable on light dropdowns. */
+.blocklyFieldGrid .blocklyFieldGridItem {
+  color: #000000 !important;
+}
+
 body .blocklyHtmlInput {
    font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
 }
