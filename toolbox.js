@@ -2274,6 +2274,11 @@ const toolboxSensing = {
                 },
                 {
                         kind: "block",
+                        type: "action_control",
+                        keyword: "action",
+                },
+                {
+                        kind: "block",
                         type: "mesh_exists",
                         keyword: "exists",
                 },

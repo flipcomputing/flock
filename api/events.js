@@ -43,24 +43,20 @@ export const flockEvents = {
     }
   },
   whenActionEvent(action, callback, isReleased = false) {
-    const actionMap = {
-      FORWARD: ["w", "z"],
-      BACKWARD: ["s"],
-      LEFT: ["a", "q"],
-      RIGHT: ["d"],
-      BUTTON1: ["e", "1"],
-      BUTTON2: ["r", "2"],
-      BUTTON3: ["f", "3"],
-      BUTTON4: [" ", "4"],
-    };
+    const actionKeys = flock.getActionKeys?.(action) ?? [];
 
-    const actionKeys = actionMap[action];
-
-    if (!actionKeys?.length) {
+    if (!actionKeys.length) {
       return;
     }
 
-    [...new Set(actionKeys.map((key) => key.toLowerCase()))].forEach((key) => {
+    const eventKeys = actionKeys.map((key) => {
+      if (key === "SPACE" || key === " ") {
+        return " ";
+      }
+      return key.toLowerCase();
+    });
+
+    [...new Set(eventKeys)].forEach((key) => {
       this.whenKeyEvent(key, callback, isReleased);
     });
 

@@ -143,6 +143,128 @@ export function defineSensingBlocks() {
                 },
         };
 
+        Blockly.Blocks["action_control"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "action_control",
+                                message0: translate("action_control"),
+                                args0: [
+                                        {
+                                                type: "field_dropdown",
+                                                name: "ACTION",
+                                                options: [
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_FORWARD",
+                                                                ),
+                                                                "FORWARD",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_BACKWARD",
+                                                                ),
+                                                                "BACKWARD",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_LEFT",
+                                                                ),
+                                                                "LEFT",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_RIGHT",
+                                                                ),
+                                                                "RIGHT",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_BUTTON1",
+                                                                ),
+                                                                "BUTTON1",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_BUTTON2",
+                                                                ),
+                                                                "BUTTON2",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_BUTTON3",
+                                                                ),
+                                                                "BUTTON3",
+                                                        ],
+                                                        [
+                                                                getOption(
+                                                                        "ACTION_BUTTON4",
+                                                                ),
+                                                                "BUTTON4",
+                                                        ],
+                                                ],
+                                        },
+                                        {
+                                                type: "field_grid_dropdown",
+                                                name: "KEY",
+                                                columns: 10,
+                                                options: [
+                                                        getDropdownOption("0"),
+                                                        getDropdownOption("1"),
+                                                        getDropdownOption("2"),
+                                                        getDropdownOption("3"),
+                                                        getDropdownOption("4"),
+                                                        getDropdownOption("5"),
+                                                        getDropdownOption("6"),
+                                                        getDropdownOption("7"),
+                                                        getDropdownOption("8"),
+                                                        getDropdownOption("9"),
+                                                        getDropdownOption("a"),
+                                                        getDropdownOption("b"),
+                                                        getDropdownOption("c"),
+                                                        getDropdownOption("d"),
+                                                        getDropdownOption("e"),
+                                                        getDropdownOption("f"),
+                                                        getDropdownOption("g"),
+                                                        getDropdownOption("h"),
+                                                        getDropdownOption("i"),
+                                                        getDropdownOption("j"),
+                                                        getDropdownOption("k"),
+                                                        getDropdownOption("l"),
+                                                        getDropdownOption("m"),
+                                                        getDropdownOption("n"),
+                                                        getDropdownOption("o"),
+                                                        getDropdownOption("p"),
+                                                        getDropdownOption("q"),
+                                                        getDropdownOption("r"),
+                                                        getDropdownOption("s"),
+                                                        getDropdownOption("t"),
+                                                        getDropdownOption("u"),
+                                                        getDropdownOption("v"),
+                                                        getDropdownOption("w"),
+                                                        getDropdownOption("x"),
+                                                        getDropdownOption("y"),
+                                                        getDropdownOption("z"),
+                                                        getDropdownOption(" "),
+                                                        getDropdownOption(","),
+                                                        getDropdownOption("."),
+                                                        getDropdownOption("/"),
+                                                        getDropdownOption("ArrowLeft"),
+                                                        getDropdownOption("ArrowUp"),
+                                                        getDropdownOption("ArrowRight"),
+                                                        getDropdownOption("ArrowDown"),
+                                                ],
+                                        },
+                                ],
+                                previousStatement: null,
+                                nextStatement: null,
+                                colour: categoryColours["Sensing"],
+                                tooltip: getTooltip("action_control"),
+                        });
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("sensing_blocks");
+                },
+        };
+
         Blockly.Blocks["meshes_touching"] = {
                 init: function () {
                         this.jsonInit({

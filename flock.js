@@ -132,6 +132,7 @@ export const flock = {
         canvas: {
                 pressedKeys: null,
         },
+        actionKeyMap: {},
         abortController: null,
         _renderLoop: null,
         document: document,
@@ -1009,6 +1010,8 @@ export const flock = {
                         setFog: this.setFog?.bind(this),
                         keyPressed: this.keyPressed?.bind(this),
                         actionPressed: this.actionPressed?.bind(this),
+                        setActionKey: this.setActionKey?.bind(this),
+                        getActionKeys: this.getActionKeys?.bind(this),
                         isTouchingSurface: this.isTouchingSurface?.bind(this),
                         meshExists: this.meshExists?.bind(this),
                         seededRandom: this.seededRandom?.bind(this),
@@ -1240,6 +1243,7 @@ export const flock = {
                 flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
                 flock.canvas.pressedButtons = new Set();
                 flock.canvas.pressedKeys = new Set();
+                flock.actionKeyMap = {};
                 const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
                 flock.displayScale = displayScale;
                 flock.BABYLON.Database.IDBStorageEnabled = true;
@@ -1286,16 +1290,44 @@ export const flock = {
                         { passive: false },
                 );
 
-                flock.canvas.addEventListener("keydown", function (event) {
+                const shouldIgnoreKeyboardEvent = (event) => {
+                        const target = event.target;
+                        if (!target) {
+                                return false;
+                        }
+
+                        const tagName = target.tagName?.toLowerCase();
+                        return (
+                                target.isContentEditable ||
+                                tagName === "input" ||
+                                tagName === "textarea" ||
+                                tagName === "select"
+                        );
+                };
+
+                const handleKeyDown = (event) => {
+                        if (shouldIgnoreKeyboardEvent(event)) {
+                                return;
+                        }
+
                         flock.canvas.currentKeyPressed = event.key;
                         flock.canvas.pressedKeys.add(event.key);
-                });
+                };
 
-                flock.canvas.addEventListener("keyup", function (event) {
+                const handleKeyUp = (event) => {
+                        if (shouldIgnoreKeyboardEvent(event)) {
+                                return;
+                        }
+
                         flock.canvas.pressedKeys.delete(event.key);
-                });
+                };
 
-                flock.canvas.addEventListener("blur", () => {
+                flock.canvas.addEventListener("keydown", handleKeyDown);
+                flock.canvas.addEventListener("keyup", handleKeyUp);
+                window.addEventListener("keydown", handleKeyDown);
+                window.addEventListener("keyup", handleKeyUp);
+
+                window.addEventListener("blur", () => {
                         // Clear all pressed keys when window loses focus
                         flock.canvas.pressedKeys.clear();
                         flock.canvas.pressedButtons.clear();

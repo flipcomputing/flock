@@ -326,8 +326,8 @@ export const flockSensing = {
       );
     }
   },
-  actionPressed(action) {
-    const actionMap = {
+  getActionKeys(action) {
+    const defaultActionMap = {
       FORWARD: ["W", "Z"],
       BACKWARD: ["S"],
       LEFT: ["A", "Q"],
@@ -338,9 +338,34 @@ export const flockSensing = {
       BUTTON4: ["SPACE", " ", "4"],
     };
 
-    const actionKeys = actionMap[action];
+    const customKeys = flock.actionKeyMap?.[action] ?? [];
+    if (customKeys.length) {
+      return [...new Set(customKeys)];
+    }
 
-    if (!actionKeys) {
+    return defaultActionMap[action] ?? [];
+  },
+  setActionKey(action, key) {
+    if (!action || typeof key !== "string") {
+      return;
+    }
+
+    if (!flock.actionKeyMap) {
+      flock.actionKeyMap = {};
+    }
+
+    // Keep special keys (e.g. ArrowLeft, " ") as-is so runtime checks match
+    // browser keyboard event values.
+    const normalizedKey = /^[a-z]$/i.test(key) ? key.toUpperCase() : key;
+
+    // Rebind behavior: setting an action key replaces previous/default bindings
+    // for that action instead of appending to them.
+    flock.actionKeyMap[action] = [normalizedKey];
+  },
+  actionPressed(action) {
+    const actionKeys = this.getActionKeys(action);
+
+    if (!actionKeys.length) {
       return false;
     }
 
