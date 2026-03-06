@@ -80,19 +80,20 @@ export const flockXR = {
         : [];
 
     let targets = [];
+    const wanted = normalizedController.toLowerCase();
 
     if (normalizedController === "LEFT" || normalizedController === "RIGHT") {
-      const wanted = normalizedController.toLowerCase();
-
-      // In XR sessions, this is the cleanest and most reliable path.
+      // First try true handed targeting (two-controller XR setups).
       targets = xrTargets.filter((target) => target.handedness === wanted);
-
-      // Optional non-XR fallback.
       if (!targets.length) {
         targets = navigatorTargets.filter((target) => target.handedness === wanted);
       }
 
-      targets = targets.slice(0, 1);
+      // If no handed controller exists (single gamepad), fallback to first
+      // connected target and treat LEFT/RIGHT as motor channels.
+      if (!targets.length) {
+        targets = xrTargets.length ? xrTargets.slice(0, 1) : navigatorTargets.slice(0, 1);
+      }
     } else {
       targets = xrTargets.length ? xrTargets : navigatorTargets;
     }
@@ -101,6 +102,20 @@ export const flockXR = {
       return false;
     }
 
+    const getMotorMagnitudes = () => {
+      if (normalizedController === "LEFT") {
+        return { weakMagnitude: 0, strongMagnitude: normalizedStrength };
+      }
+      if (normalizedController === "RIGHT") {
+        return { weakMagnitude: normalizedStrength, strongMagnitude: 0 };
+      }
+
+      return {
+        weakMagnitude: normalizedStrength,
+        strongMagnitude: normalizedStrength,
+      };
+    };
+
     const tryActuator = async (actuator) => {
       if (!actuator) {
         return false;
@@ -108,11 +123,12 @@ export const flockXR = {
 
       if (typeof actuator.playEffect === "function") {
         try {
+          const { weakMagnitude, strongMagnitude } = getMotorMagnitudes();
           await actuator.playEffect("dual-rumble", {
             startDelay: 0,
             duration: normalizedDuration,
-            weakMagnitude: normalizedStrength,
-            strongMagnitude: normalizedStrength,
+            weakMagnitude,
+            strongMagnitude,
           });
           return true;
         } catch {

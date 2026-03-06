@@ -496,7 +496,7 @@ Sets up collision/trigger detection for a mesh.
 Triggers rumble/haptic feedback on supported gamepads and controllers.
 
 **Parameters:**
-- `controller` (string): `"ANY"`, `"LEFT"`, or `"RIGHT"`.
+- `controller` (string): `"ANY"`, `"LEFT"`, or `"RIGHT"`. In XR this targets handed controllers when available; on single gamepads it targets left/right rumble motor channels when supported.
 - `strength` (number): Intensity from `0` to `1`.
 - `durationMs` (number): Rumble duration in milliseconds.
 
