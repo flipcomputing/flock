@@ -88,23 +88,10 @@ export const flockXR = {
       return false;
     }
 
-    const seen = new Set();
-    const uniqueCandidates = allCandidates.filter(({ gamepad }) => {
-      const key = `${gamepad.id || "unknown"}:${gamepad.index ?? "na"}`;
-      if (seen.has(key)) {
-        return false;
-      }
-      seen.add(key);
-      return true;
-    });
-
-    const matchesController = ({ gamepad, handedness }) => {
-      if (normalizedController === "ANY") {
-        return true;
-      }
-
-      const id = String(gamepad.id || "").toLowerCase();
-      const effectiveHand = handedness || String(gamepad.hand || "").toLowerCase();
+    const matchesByHandedness = (candidate) => {
+      const id = String(candidate.gamepad.id || "").toLowerCase();
+      const effectiveHand =
+        candidate.handedness || String(candidate.gamepad.hand || "").toLowerCase();
       if (normalizedController === "LEFT") {
         return effectiveHand === "left" || id.includes("left");
       }
@@ -114,7 +101,14 @@ export const flockXR = {
       return true;
     };
 
-    const targets = uniqueCandidates.filter(matchesController);
+    // Prefer XR input sources for left/right targeting because they provide
+    // reliable handedness metadata in immersive sessions.
+    const candidatesByPriority =
+      normalizedController === "ANY"
+        ? [allCandidates]
+        : [xrCandidates.filter(matchesByHandedness), allCandidates.filter(matchesByHandedness)];
+
+    const targets = candidatesByPriority.find((items) => items.length > 0) || [];
     if (!targets.length) {
       return false;
     }
