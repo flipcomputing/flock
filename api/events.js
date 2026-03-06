@@ -49,7 +49,14 @@ export const flockEvents = {
       return;
     }
 
-    [...new Set(actionKeys.map((key) => key.toLowerCase()))].forEach((key) => {
+    const eventKeys = actionKeys.map((key) => {
+      if (key === "SPACE" || key === " ") {
+        return " ";
+      }
+      return key.toLowerCase();
+    });
+
+    [...new Set(eventKeys)].forEach((key) => {
       this.whenKeyEvent(key, callback, isReleased);
     });
 

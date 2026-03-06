@@ -352,7 +352,9 @@ export const flockSensing = {
       flock.actionKeyMap = {};
     }
 
-    const normalizedKey = key === " " ? "SPACE" : key.toUpperCase();
+    // Keep special keys (e.g. ArrowLeft, " ") as-is so runtime checks match
+    // browser keyboard event values.
+    const normalizedKey = /^[a-z]$/i.test(key) ? key.toUpperCase() : key;
     const existingKeys = flock.actionKeyMap[action] ?? [];
 
     flock.actionKeyMap[action] = [...new Set([...existingKeys, normalizedKey])];
