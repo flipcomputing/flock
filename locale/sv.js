@@ -525,6 +525,9 @@ export default {
             "Returnerar sant om den angivna tangenten är nedtryckt.\nKeyword:ispressed",
       action_pressed_tooltip:
             "Returnerar sant om den valda rörelse- eller åtgärdskontrollen är aktiv via tangentbord, pekskärm eller XR.",
+  set_action_key: "ställ in %1 tangent till %2",
+  set_action_key_tooltip:
+    "Ställer in tangenten som utlöser en specifik åtgärd (framåt, bakåt, vänster, höger eller knappar).",
       meshes_touching_tooltip:
             "Returnerar sant om de två valda mesh-objekten rör vid varandra.\nKeyword: istouching",
       time_tooltip: "Returnerar aktuell tid i sekunder.",

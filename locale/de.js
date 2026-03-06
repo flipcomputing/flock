@@ -658,6 +658,9 @@ export default {
     "Gibt true zurück, wenn die angegebene Taste gedrückt ist.\nSchlüsselwort: ispressed",
   action_pressed_tooltip:
     "Gibt true zurück, wenn die gewählte Bewegungs- oder Aktionssteuerung auf Tastatur, Touch oder XR aktiv ist.",
+  set_action_key: "setze %1 Taste auf %2",
+  set_action_key_tooltip:
+    "Legt die Taste fest, die eine bestimmte Aktion auslöst (vorwärts, rückwärts, links, rechts oder Tasten).",
   meshes_touching_tooltip:
     "Gibt true zurück, wenn die zwei gewählten Objekte sich berühren.\nSchlüsselwort: istouching",
   time_tooltip: "Gibt die aktuelle Zeit in Sekunden zurück.",

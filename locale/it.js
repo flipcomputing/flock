@@ -534,6 +534,9 @@ export default {
     "Restituisce vero se il tasto specificato è premuto.\nParola chiave: ispressed",
   action_pressed_tooltip:
     "Restituisce vero se il controllo di movimento o azione selezionato è attivo su tastiera, tocco o XR.",
+  set_action_key: "imposta il tasto %1 su %2",
+  set_action_key_tooltip:
+    "Imposta il tasto che attiva un'azione specifica (avanti, indietro, sinistra, destra o pulsanti).",
   meshes_touching_tooltip:
     "Restituisce vero se le due mesh selezionate si toccano.\nParola chiave: istouching",
   time_tooltip: "Restituisce il tempo corrente in secondi.",

@@ -536,6 +536,9 @@ export default {
     "Renvoie vrai si la touche spécifiée est enfoncée.\nMot-clé: ispressed",
   action_pressed_tooltip:
     "Renvoie vrai si le contrôle de déplacement ou d’action choisi est actif sur clavier, tactile ou XR.",
+  set_action_key: "définir la touche %1 sur %2",
+  set_action_key_tooltip:
+    "Définit la touche qui déclenche une action spécifique (avant, arrière, gauche, droite ou boutons).",
   meshes_touching_tooltip:
     "Renvoie vrai si les deux maillages sélectionnés se touchent.\nMot-clé: istouching",
   time_tooltip: "Renvoie le temps actuel en secondes.",

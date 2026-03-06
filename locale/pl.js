@@ -530,6 +530,9 @@ export default {
     "Zwraca true, jeśli podany klawisz jest wciśnięty.\nSłowo kluczowe:ispressed",
   action_pressed_tooltip:
     "Zwraca true, jeśli wybrane sterowanie ruchem lub akcją jest aktywne na klawiaturze, dotyku lub w XR.",
+  set_action_key: "ustaw klawisz %1 na %2",
+  set_action_key_tooltip:
+    "Ustawia klawisz, który wyzwala określoną akcję (do przodu, do tyłu, w lewo, w prawo lub przyciski).",
   meshes_touching_tooltip:
     "Zwraca true, jeśli dwie wybrane siatki się stykają.\nSłowo kluczowe: istouching",
   time_tooltip: "Zwraca bieżący czas w sekundach.",

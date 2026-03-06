@@ -526,6 +526,9 @@ export default {
     "Retorna verdadeiro se a tecla especificada estiver pressionada.\nPalavra-chave: estápressionada",
   action_pressed_tooltip:
     "Retorna verdadeiro se o controle de movimento ou ação escolhido estiver ativo no teclado, toque ou XR.",
+  set_action_key: "definir tecla %1 para %2",
+  set_action_key_tooltip:
+    "Define a tecla que aciona uma ação específica (frente, trás, esquerda, direita ou botões).",
   meshes_touching_tooltip:
     "Retorna verdadeiro se os dois meshes selecionados estiverem tocando.\nPalavra-chave: estátocando",
   time_tooltip: "Retorna o tempo atual em segundos.",

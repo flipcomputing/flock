@@ -534,6 +534,9 @@ export default {
     "Devuelve verdadero si la tecla especificada está pulsado.\nPalabra clave: estápulsado", // human
   action_pressed_tooltip:
     "Devuelve verdadero si el control de movimiento o acción specificado está activo en teclado, toque o XR.", // human
+  set_action_key: "establecer tecla %1 a %2", // ai
+  set_action_key_tooltip:
+    "Establece la tecla que activa una acción específica (adelante, atrás, izquierda, derecha o botones).", // ai
   meshes_touching_tooltip:
     "Devuelve verdadero si las dos mallas seleccionadas se están tocando.\nPalabra clave: estántocando", // human
   time_tooltip: "Devuelve el tiempo actual en segundos.", // human
