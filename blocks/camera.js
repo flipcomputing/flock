@@ -27,8 +27,9 @@ export function defineCameraBlocks() {
                                                 ],
                                         },
                                         {
-                                                type: "field_dropdown",
+                                                type: "field_grid_dropdown",
                                                 name: "KEY",
+                                                columns: 10,
                                                 options: [
                                                         getDropdownOption("0"),
                                                         getDropdownOption("1"),
