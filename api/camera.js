@@ -73,6 +73,8 @@ export const flockCamera = {
 
                                 camera.metadata = camera.metadata || {};
                                 camera.metadata.following = mesh;
+
+                                flockCamera._reapplyCameraBindings(camera);
                         } else {
                                 // Original attachCamera2 behavior - position directly behind
                                 let savedCamera = flock.scene.activeCamera;
@@ -108,6 +110,8 @@ export const flockCamera = {
                                 camera.metadata.following = mesh;
                                 camera.attachControl(flock.canvas, false);
                                 flock.scene.activeCamera = camera;
+
+                                flockCamera._reapplyCameraBindings(camera);
                         }
                         resolve();
                         });
@@ -236,7 +240,7 @@ export const flockCamera = {
         getCamera() {
                 return "__active_camera__";
         },
-        cameraControl(key, action) {
+        _normalizeKeyCode(inputKey) {
                 const keyMap = {
                         ArrowLeft: 37,
                         ArrowUp: 38,
@@ -248,95 +252,101 @@ export const flockCamera = {
                         "/": 191,
                 };
 
-                const normalizeKeyCode = (inputKey) => {
-                        if (typeof inputKey === "number") {
-                                return inputKey;
-                        }
+                if (typeof inputKey === "number") {
+                        return inputKey;
+                }
 
-                        if (typeof inputKey !== "string") {
-                                return null;
-                        }
-
-                        if (/^[0-9]$/.test(inputKey)) {
-                                return inputKey.charCodeAt(0);
-                        }
-
-                        if (/^\d{2,}$/.test(inputKey)) {
-                                return Number(inputKey);
-                        }
-
-                        if (keyMap[inputKey] != null) {
-                                return keyMap[inputKey];
-                        }
-
-                        if (/^[a-z]$/i.test(inputKey)) {
-                                return inputKey.toUpperCase().charCodeAt(0);
-                        }
-
+                if (typeof inputKey !== "string") {
                         return null;
-                };
+                }
 
-                const normalizedKey = normalizeKeyCode(key);
+                if (/^[0-9]$/.test(inputKey)) {
+                        return inputKey.charCodeAt(0);
+                }
+
+                if (/^\d{2,}$/.test(inputKey)) {
+                        return Number(inputKey);
+                }
+
+                if (keyMap[inputKey] != null) {
+                        return keyMap[inputKey];
+                }
+
+                if (/^[a-z]$/i.test(inputKey)) {
+                        return inputKey.toUpperCase().charCodeAt(0);
+                }
+
+                return null;
+        },
+        _applyCameraBinding(camera, normalizedKey, action) {
+                if (camera.keysRotateLeft) {
+                        switch (action) {
+                                case "moveUp":
+                                        camera.keysUp.push(normalizedKey);
+                                        break;
+                                case "moveDown":
+                                        camera.keysDown.push(normalizedKey);
+                                        break;
+                                case "moveLeft":
+                                        camera.keysLeft.push(normalizedKey);
+                                        break;
+                                case "moveRight":
+                                        camera.keysRight.push(normalizedKey);
+                                        break;
+                                case "rotateUp":
+                                        camera.keysRotateUp.push(normalizedKey);
+                                        break;
+                                case "rotateDown":
+                                        camera.keysRotateDown.push(normalizedKey);
+                                        break;
+                                case "rotateLeft":
+                                        camera.keysRotateLeft.push(normalizedKey);
+                                        break;
+                                case "rotateRight":
+                                        camera.keysRotateRight.push(normalizedKey);
+                                        break;
+                        }
+                } else {
+                        switch (action) {
+                                case "rotateLeft":
+                                case "moveLeft":
+                                        camera.keysLeft.push(normalizedKey);
+                                        break;
+                                case "rotateRight":
+                                case "moveRight":
+                                        camera.keysRight.push(normalizedKey);
+                                        break;
+                                case "moveUp":
+                                case "rotateUp":
+                                        camera.keysUp.push(normalizedKey);
+                                        break;
+                                case "moveDown":
+                                case "rotateDown":
+                                        camera.keysDown.push(normalizedKey);
+                                        break;
+                        }
+                }
+        },
+        _reapplyCameraBindings(camera) {
+                if (!flock._cameraControlBindings) return;
+                for (const { normalizedKey, action } of flock._cameraControlBindings) {
+                        this._applyCameraBinding(camera, normalizedKey, action);
+                }
+        },
+        cameraControl(key, action) {
+                const normalizedKey = this._normalizeKeyCode(key);
                 if (normalizedKey == null) {
                         console.warn("Unsupported camera control key:", key);
                         return;
                 }
 
-                // Define a local function to handle the camera actions
-                function handleCameraAction() {
-                        if (flock.scene.activeCamera.keysRotateLeft) {
-                                // FreeCamera specific controls
-                                switch (action) {
-                                        case "moveUp":
-                                                flock.scene.activeCamera.keysUp.push(normalizedKey);
-                                                break;
-                                        case "moveDown":
-                                                flock.scene.activeCamera.keysDown.push(normalizedKey);
-                                                break;
-                                        case "moveLeft":
-                                                flock.scene.activeCamera.keysLeft.push(normalizedKey);
-                                                break;
-                                        case "moveRight":
-                                                flock.scene.activeCamera.keysRight.push(normalizedKey);
-                                                break;
-                                        case "rotateUp":
-                                                flock.scene.activeCamera.keysRotateUp.push(normalizedKey);
-                                                break;
-                                        case "rotateDown":
-                                                flock.scene.activeCamera.keysRotateDown.push(normalizedKey);
-                                                break;
-                                        case "rotateLeft":
-                                                flock.scene.activeCamera.keysRotateLeft.push(normalizedKey);
-                                                break;
-                                        case "rotateRight":
-                                                flock.scene.activeCamera.keysRotateRight.push(normalizedKey);
-                                                break;
-                                }
-                        } else {
-                                // ArcRotateCamera specific controls
-                                switch (action) {
-                                        case "rotateLeft":
-                                        case "moveLeft":
-                                                flock.scene.activeCamera.keysLeft.push(normalizedKey);
-                                                break;
-                                        case "rotateRight":
-                                        case "moveRight":
-                                                flock.scene.activeCamera.keysRight.push(normalizedKey);
-                                                break;
-                                        case "moveUp":
-                                        case "rotateUp":
-                                                flock.scene.activeCamera.keysUp.push(normalizedKey);
-                                                break;
-                                        case "moveDown":
-                                        case "rotateDown":
-                                                flock.scene.activeCamera.keysDown.push(normalizedKey);
-                                                break;
-                                }
-                        }
+                if (!flock._cameraControlBindings) {
+                        flock._cameraControlBindings = [];
                 }
+                flock._cameraControlBindings.push({ normalizedKey, action });
 
                 if (flock.scene.activeCamera) {
-                        handleCameraAction();
+                        this._applyCameraBinding(flock.scene.activeCamera, normalizedKey, action);
                 } else {
                         console.error("No active camera found in the scene.");
                 }
