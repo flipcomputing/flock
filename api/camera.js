@@ -343,6 +343,9 @@ export const flockCamera = {
                 if (!flock._cameraControlBindings) {
                         flock._cameraControlBindings = [];
                 }
+                flock._cameraControlBindings = flock._cameraControlBindings.filter(
+                        (b) => b.action !== action
+                );
                 flock._cameraControlBindings.push({ normalizedKey, action });
 
                 if (flock.scene.activeCamera) {

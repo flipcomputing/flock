@@ -1542,6 +1542,9 @@ export const flock = {
                                 flock.stopAllSounds();
                                 flock.engine?.stopRenderLoop();
 
+                                flock._cameraControlBindings = null;
+                                flock._actionMapOverrides = null;
+
                                 if (flock._gamepadCameraObserver) {
                                         flock.scene.onBeforeRenderObservable.remove(
                                                 flock._gamepadCameraObserver,
