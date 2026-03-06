@@ -30,18 +30,50 @@ export function defineCameraBlocks() {
                                                 type: "field_dropdown",
                                                 name: "KEY",
                                                 options: [
-                                                        getDropdownOption("65"), // A key
-                                                        getDropdownOption("68"), // D key
-                                                        getDropdownOption("87"), // W key
-                                                        getDropdownOption("83"), // S key
-                                                        getDropdownOption("81"), // Q key
-                                                        getDropdownOption("69"), // E key
-                                                        getDropdownOption("70"), // F key
-                                                        getDropdownOption("32"), // Space key
-                                                        getDropdownOption("38"), // Up arrow key
-                                                        getDropdownOption("40"), // Down arrow key
-                                                        getDropdownOption("37"), // Left arrow key
-                                                        getDropdownOption("39"), // Right arrow key
+                                                        getDropdownOption("0"),
+                                                        getDropdownOption("1"),
+                                                        getDropdownOption("2"),
+                                                        getDropdownOption("3"),
+                                                        getDropdownOption("4"),
+                                                        getDropdownOption("5"),
+                                                        getDropdownOption("6"),
+                                                        getDropdownOption("7"),
+                                                        getDropdownOption("8"),
+                                                        getDropdownOption("9"),
+                                                        getDropdownOption("a"),
+                                                        getDropdownOption("b"),
+                                                        getDropdownOption("c"),
+                                                        getDropdownOption("d"),
+                                                        getDropdownOption("e"),
+                                                        getDropdownOption("f"),
+                                                        getDropdownOption("g"),
+                                                        getDropdownOption("h"),
+                                                        getDropdownOption("i"),
+                                                        getDropdownOption("j"),
+                                                        getDropdownOption("k"),
+                                                        getDropdownOption("l"),
+                                                        getDropdownOption("m"),
+                                                        getDropdownOption("n"),
+                                                        getDropdownOption("o"),
+                                                        getDropdownOption("p"),
+                                                        getDropdownOption("q"),
+                                                        getDropdownOption("r"),
+                                                        getDropdownOption("s"),
+                                                        getDropdownOption("t"),
+                                                        getDropdownOption("u"),
+                                                        getDropdownOption("v"),
+                                                        getDropdownOption("w"),
+                                                        getDropdownOption("x"),
+                                                        getDropdownOption("y"),
+                                                        getDropdownOption("z"),
+                                                        getDropdownOption(" "),
+                                                        getDropdownOption(","),
+                                                        getDropdownOption("."),
+                                                        getDropdownOption("/"),
+                                                        getDropdownOption("ArrowLeft"),
+                                                        getDropdownOption("ArrowUp"),
+                                                        getDropdownOption("ArrowRight"),
+                                                        getDropdownOption("ArrowDown"),
                                                 ],
                                         },
                                 ],

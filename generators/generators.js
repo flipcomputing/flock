@@ -3515,7 +3515,7 @@ export function defineGenerators() {
                 const key = block.getFieldValue("KEY");
                 const action = block.getFieldValue("ACTION");
 
-                return `cameraControl(${key}, "${action}");\n`;
+                return `cameraControl(${JSON.stringify(key)}, "${action}");\n`;
         };
 
         javascriptGenerator.forBlock["keyword_block"] = function (block) {
