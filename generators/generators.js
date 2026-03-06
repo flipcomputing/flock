@@ -3517,6 +3517,14 @@ export function defineGenerators() {
                 return `await setXRMode("${mode}");\n`;
         };
 
+        javascriptGenerator.forBlock["controller_rumble"] = function (block) {
+                const motor = block.getFieldValue("MOTOR");
+                const strength = block.getFieldValue("STRENGTH");
+                const duration = block.getFieldValue("DURATION");
+
+                return `controllerRumble("${motor}", ${strength}, ${duration});\n`;
+        };
+
         javascriptGenerator.forBlock["camera_control"] = function (block) {
                 const key = block.getFieldValue("KEY");
                 const action = block.getFieldValue("ACTION");

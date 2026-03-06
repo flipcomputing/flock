@@ -608,6 +608,11 @@ const toolboxSceneXR = {
                         type: "export_mesh",
                         keyword: "export",
                 },
+                {
+                        kind: "block",
+                        type: "controller_rumble",
+                        keyword: "rumble",
+                },
         ],
 };
 
