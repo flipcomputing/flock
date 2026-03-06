@@ -384,6 +384,15 @@ export const flockMaterial = {
 
           if (flock.glowLayer) {
             flock.glowLayer.removeIncludedOnlyMesh(targetMesh);
+
+            const hasIncludedMeshes =
+              flock.glowLayer.includedOnlyMeshes &&
+              flock.glowLayer.includedOnlyMeshes.length > 0;
+
+            if (!hasIncludedMeshes) {
+              flock.glowLayer.dispose();
+              flock.glowLayer = null;
+            }
           }
 
           flock.highlighter.removeMesh(targetMesh);
