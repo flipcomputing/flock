@@ -27,7 +27,7 @@ import "@fontsource/atkinson-hyperlegible-next/600.css";
 import "@fontsource/asap";
 import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
-import { characterNames } from "./config";
+import { characterNames, getModelDisplayName } from "./config";
 
 const optionalBabylonDeps = { earcut, FlowGraphLog10Block, SetMaterialIDBlock };
 const globalEarcutTarget =
@@ -111,6 +111,7 @@ export const flock = {
         pendingTriggers: new Map(),
         _nameRegistry: new Map(),
         _animationFileCache: {},
+        getModelDisplayName,
         characterNames: characterNames,
         alert: alert,
         BABYLON: BABYLON,

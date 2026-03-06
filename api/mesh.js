@@ -746,8 +746,11 @@ export const flockMesh = {
       child.isPickable = true;
     });
 
+    const displayName = flock.getModelDisplayName?.(modelName) || modelName;
+
     bb.metadata = bb.metadata || {};
     bb.metadata.modelName = modelName;
+    bb.metadata.displayName = displayName;
     flock.stopAnimationsTargetingMesh(flock.scene, mesh);
 
     const setMetadata = (mesh) => {
@@ -755,6 +758,7 @@ export const flockMesh = {
       mesh.metadata = mesh.metadata || {};
 
       // Add or update specific properties without overwriting existing metadata
+      mesh.metadata.displayName = displayName;
       mesh.metadata.sharedMaterial = true;
       mesh.metadata.sharedGeometry = true;
     };

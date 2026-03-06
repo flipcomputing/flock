@@ -1,4 +1,4 @@
-import { getDropdownOption } from "./main/translation.js";
+import { getDropdownOption, translate } from "./main/translation.js";
 
 export const audioNames = [
 	"theme-bright.mp3",
@@ -133,6 +133,78 @@ export const objectNames = [
 	"starboppers.glb",
 	"headphones.glb",
 ];
+
+function modelNameToDisplayName(modelName) {
+	return String(modelName || "")
+		.replace(/\.[^/.]+$/, "")
+		.replace(/[_-]+/g, " ")
+		.replace(/\s+/g, " ")
+		.trim()
+		.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+export const objectDisplayNameTranslationKeys = {
+	"Liz1.glb": "model_display_liz1",
+	"Liz2.glb": "model_display_liz2",
+	"Liz3.glb": "model_display_liz3",
+	"Liz4.glb": "model_display_liz4",
+	"Liz5.glb": "model_display_liz5",
+	"Liz6.glb": "model_display_liz6",
+	"Block1.glb": "model_display_block1",
+	"Block2.glb": "model_display_block2",
+	"Block3.glb": "model_display_block3",
+	"Block4.glb": "model_display_block4",
+	"Block5.glb": "model_display_block5",
+	"Block6.glb": "model_display_block6",
+
+	"tree.glb": "model_display_tree",
+	"tree2.glb": "model_display_tree2",
+	"tree3.glb": "model_display_tree3",
+	"tree4.glb": "model_display_tree4",
+	"hut.glb": "model_display_hut",
+	"hut2.glb": "model_display_hut2",
+	"hut3.glb": "model_display_hut3",
+	"hut4.glb": "model_display_hut4",
+	"rocks.glb": "model_display_rocks",
+	"rocks2.glb": "model_display_rocks2",
+	"rocks3.glb": "model_display_rocks3",
+	"rocks4.glb": "model_display_rocks4",
+	"pond.glb": "model_display_pond",
+	"boat.glb": "model_display_boat",
+	"airplane.glb": "model_display_airplane",
+	"airplane2.glb": "model_display_airplane2",
+	"skateboard.glb": "model_display_skateboard",
+	"humped.glb": "model_display_humped",
+	"jetty.glb": "model_display_jetty",
+	"flower.glb": "model_display_flower",
+	"flower2.glb": "model_display_flower2",
+	"Star.glb": "model_display_star",
+	"Heart.glb": "model_display_heart",
+	"Coin.glb": "model_display_coin",
+	"egg.glb": "model_display_egg",
+	"Gem1.glb": "model_display_gem1",
+	"Gem2.glb": "model_display_gem2",
+	"Gem3.glb": "model_display_gem3",
+	"Key.glb": "model_display_key",
+	"Wand.glb": "model_display_wand",
+	"Hat.glb": "model_display_hat",
+	"donut.glb": "model_display_donut",
+	"pumpkin.glb": "model_display_pumpkin",
+	"apple.glb": "model_display_apple",
+	"starboppers.glb": "model_display_starboppers",
+	"headphones.glb": "model_display_headphones",
+};
+
+export function getModelDisplayName(modelName) {
+	const key = objectDisplayNameTranslationKeys[modelName];
+	if (key) {
+		const translated = translate(key);
+		if (translated && translated !== key) {
+			return translated;
+		}
+	}
+	return modelNameToDisplayName(modelName);
+}
 
 export const objectColours = {
 	"Star.glb": ["#FFD700", "#FFD700", "#FFD700"],
