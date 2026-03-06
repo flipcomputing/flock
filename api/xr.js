@@ -63,10 +63,29 @@ export const flockXR = {
     );
 
     const xrSources = flock.xrHelper?.baseExperience?.input?.inputSources || [];
+    const handednessByGamepadKey = new Map();
+    for (const source of xrSources) {
+      const sourceGamepad = source?.gamepad;
+      if (!sourceGamepad) {
+        continue;
+      }
+
+      const sourceHandedness = String(
+        source?.inputSource?.handedness || "",
+      ).toLowerCase();
+      if (!sourceHandedness || sourceHandedness === "none") {
+        continue;
+      }
+
+      const sourceKey = `${sourceGamepad.id || "unknown"}:${sourceGamepad.index ?? "na"}`;
+      handednessByGamepadKey.set(sourceKey, sourceHandedness);
+    }
+
     const xrCandidates = xrSources
       .map((source) => ({
         gamepad: source.gamepad,
-        handedness: String(source.inputSource?.handedness || "").toLowerCase(),
+        handedness:
+          String(source.inputSource?.handedness || "").toLowerCase() || "",
       }))
       .filter((candidate) => Boolean(candidate.gamepad));
 
@@ -78,8 +97,12 @@ export const flockXR = {
       return Array.from(navigator.getGamepads() || [])
         .filter(Boolean)
         .map((gamepad) => ({
+          key: `${gamepad.id || "unknown"}:${gamepad.index ?? "na"}`,
           gamepad,
-          handedness: String(gamepad.hand || "").toLowerCase(),
+          handedness:
+            handednessByGamepadKey.get(
+              `${gamepad.id || "unknown"}:${gamepad.index ?? "na"}`,
+            ) || String(gamepad.hand || "").toLowerCase(),
         }));
     })();
 
@@ -87,6 +110,25 @@ export const flockXR = {
     if (!allCandidates.length) {
       return false;
     }
+
+    const dedupedCandidates = (() => {
+      const byKey = new Map();
+      for (const candidate of allCandidates) {
+        const key = `${candidate.gamepad.id || "unknown"}:${candidate.gamepad.index ?? "na"}`;
+        const existing = byKey.get(key);
+        if (!existing) {
+          byKey.set(key, { ...candidate, key });
+          continue;
+        }
+
+        const existingScore = existing.handedness ? 1 : 0;
+        const incomingScore = candidate.handedness ? 1 : 0;
+        if (incomingScore > existingScore) {
+          byKey.set(key, { ...candidate, key });
+        }
+      }
+      return Array.from(byKey.values());
+    })();
 
     const matchesByHandedness = (candidate) => {
       const id = String(candidate.gamepad.id || "").toLowerCase();
@@ -105,10 +147,16 @@ export const flockXR = {
     // reliable handedness metadata in immersive sessions.
     const candidatesByPriority =
       normalizedController === "ANY"
-        ? [allCandidates]
-        : [xrCandidates.filter(matchesByHandedness), allCandidates.filter(matchesByHandedness)];
+        ? [dedupedCandidates]
+        : [
+            xrCandidates.filter(matchesByHandedness),
+            dedupedCandidates.filter(matchesByHandedness),
+          ];
 
-    const targets = candidatesByPriority.find((items) => items.length > 0) || [];
+    let targets = candidatesByPriority.find((items) => items.length > 0) || [];
+    if (normalizedController === "LEFT" || normalizedController === "RIGHT") {
+      targets = targets.slice(0, 1);
+    }
     if (!targets.length) {
       return false;
     }
