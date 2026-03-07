@@ -1431,6 +1431,13 @@ export const flock = {
                         );
                         flock._gamepadButtonObserver = null;
                 }
+                if (flock._gamepadPointerMoveListener) {
+                        flock.canvas.removeEventListener(
+                                "pointermove",
+                                flock._gamepadPointerMoveListener,
+                        );
+                        flock._gamepadPointerMoveListener = null;
+                }
 
                 const buttonToKeys = {
                         0: [" ", "SPACE"], // Bottom face button (A/Cross) -> Space
@@ -1445,6 +1452,37 @@ export const flock = {
                 };
 
                 const trackedGamepadKeys = new Set();
+
+                // Track touchpad button (button 17 on PS4/PS5 controllers)
+                // state to detect press/release transitions.
+                let lastTouchpadPressed = false;
+
+                // Track last pointer position so the touchpad click fires at
+                // the current pointer location.
+                let lastPointerClientX = flock.canvas.getBoundingClientRect().left + flock.canvas.getBoundingClientRect().width / 2;
+                let lastPointerClientY = flock.canvas.getBoundingClientRect().top + flock.canvas.getBoundingClientRect().height / 2;
+
+                const onPointerMove = (e) => {
+                        lastPointerClientX = e.clientX;
+                        lastPointerClientY = e.clientY;
+                };
+                flock._gamepadPointerMoveListener = onPointerMove;
+                flock.canvas.addEventListener("pointermove", onPointerMove);
+
+                const fireTouchpadPointerEvent = (type) => {
+                        flock.canvas.dispatchEvent(
+                                new PointerEvent(type, {
+                                        bubbles: true,
+                                        cancelable: true,
+                                        pointerId: 1,
+                                        pointerType: "mouse",
+                                        clientX: lastPointerClientX,
+                                        clientY: lastPointerClientY,
+                                        button: 0,
+                                        buttons: type === "pointerdown" ? 1 : 0,
+                                }),
+                        );
+                };
 
                 flock._gamepadButtonObserver =
                         flock.scene.onBeforeRenderObservable.add(() => {
@@ -1484,6 +1522,33 @@ export const flock = {
                                                         }
                                                 },
                                         );
+
+                                        // Touchpad click (button 17 on PS4/PS5)
+                                        // dispatches a synthetic pointer event at
+                                        // the last pointer position so the existing
+                                        // Babylon.js pick-trigger pipeline fires naturally.
+                                        const touchpadButton =
+                                                gamepad.buttons?.[17];
+                                        const touchpadPressed =
+                                                normalizeButtonState(
+                                                        touchpadButton,
+                                                );
+                                        if (
+                                                touchpadPressed &&
+                                                !lastTouchpadPressed
+                                        ) {
+                                                fireTouchpadPointerEvent(
+                                                        "pointerdown",
+                                                );
+                                        } else if (
+                                                !touchpadPressed &&
+                                                lastTouchpadPressed
+                                        ) {
+                                                fireTouchpadPointerEvent(
+                                                        "pointerup",
+                                                );
+                                        }
+                                        lastTouchpadPressed = touchpadPressed;
                                 }
 
                                 // Remove only the keys that previously came from
