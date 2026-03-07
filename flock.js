@@ -1525,8 +1525,8 @@ export const flock = {
 
                                         // Touchpad click (button 17 on PS4/PS5)
                                         // dispatches a synthetic pointer event at
-                                        // the canvas centre so the existing Babylon.js
-                                        // pick-trigger pipeline fires naturally.
+                                        // the last pointer position so the existing
+                                        // Babylon.js pick-trigger pipeline fires naturally.
                                         const touchpadButton =
                                                 gamepad.buttons?.[17];
                                         const touchpadPressed =
