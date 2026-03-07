@@ -1446,6 +1446,29 @@ export const flock = {
 
                 const trackedGamepadKeys = new Set();
 
+                // Track touchpad button (button 17 on PS4/PS5 controllers)
+                // state to detect press/release transitions.
+                let lastTouchpadPressed = false;
+
+                const fireTouchpadPointerEvent = (type) => {
+                        const canvas = flock.canvas;
+                        const rect = canvas.getBoundingClientRect();
+                        const cx = rect.left + rect.width / 2;
+                        const cy = rect.top + rect.height / 2;
+                        canvas.dispatchEvent(
+                                new PointerEvent(type, {
+                                        bubbles: true,
+                                        cancelable: true,
+                                        pointerId: 1,
+                                        pointerType: "mouse",
+                                        clientX: cx,
+                                        clientY: cy,
+                                        button: 0,
+                                        buttons: type === "pointerdown" ? 1 : 0,
+                                }),
+                        );
+                };
+
                 flock._gamepadButtonObserver =
                         flock.scene.onBeforeRenderObservable.add(() => {
                                 if (!navigator.getGamepads) {
@@ -1484,6 +1507,33 @@ export const flock = {
                                                         }
                                                 },
                                         );
+
+                                        // Touchpad click (button 17 on PS4/PS5)
+                                        // dispatches a synthetic pointer event at
+                                        // the canvas centre so the existing Babylon.js
+                                        // pick-trigger pipeline fires naturally.
+                                        const touchpadButton =
+                                                gamepad.buttons?.[17];
+                                        const touchpadPressed =
+                                                normalizeButtonState(
+                                                        touchpadButton,
+                                                );
+                                        if (
+                                                touchpadPressed &&
+                                                !lastTouchpadPressed
+                                        ) {
+                                                fireTouchpadPointerEvent(
+                                                        "pointerdown",
+                                                );
+                                        } else if (
+                                                !touchpadPressed &&
+                                                lastTouchpadPressed
+                                        ) {
+                                                fireTouchpadPointerEvent(
+                                                        "pointerup",
+                                                );
+                                        }
+                                        lastTouchpadPressed = touchpadPressed;
                                 }
 
                                 // Remove only the keys that previously came from
