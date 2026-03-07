@@ -69,7 +69,7 @@ const rumblePatterns = {
   ],
 };
 
-function triggerHaptics({ motor = "both", strength = 1, effects = [], vibrationPattern }) {
+export function triggerHaptics({ motor = "both", strength = 1, effects = [], vibrationPattern }) {
   const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
   let hasActuator = false;
 
