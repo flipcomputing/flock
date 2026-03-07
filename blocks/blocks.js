@@ -1006,9 +1006,13 @@ export class CustomZelosRenderer extends Blockly.zelos.Renderer {
   }
 }
 
-const mediaPath = window.location.pathname.includes("/flock")
-  ? "/flock/blockly/media/" // For GitHub Pages
-  : "/blockly/media/"; // For local dev
+function getBlocklyMediaPath() {
+  let baseUrl = import.meta.env.BASE_URL || "/";
+  if (!baseUrl.endsWith("/")) baseUrl += "/";
+  return `${baseUrl}blockly/media/`;
+}
+
+const mediaPath = getBlocklyMediaPath();
 
 export const options = {
   //theme: FlockTheme,
