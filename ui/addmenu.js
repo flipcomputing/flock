@@ -317,8 +317,8 @@ function selectShape(shapeType) {
   // Also set up mouse click as fallback
   document.body.style.cursor = "crosshair";
   registerActivePickHandler(flock.activePickHandler, {
-    capture: false,
-    delay: 300,
+    capture: true,
+    delay: 0,
   });
 }
 
