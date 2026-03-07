@@ -1458,7 +1458,7 @@ export const flock = {
                 let lastTouchpadPressed = false;
 
                 // Track last pointer position so the touchpad click fires at
-                // the current mouse cursor location rather than a fixed point.
+                // the current pointer location.
                 let lastPointerClientX = flock.canvas.getBoundingClientRect().left + flock.canvas.getBoundingClientRect().width / 2;
                 let lastPointerClientY = flock.canvas.getBoundingClientRect().top + flock.canvas.getBoundingClientRect().height / 2;
 
