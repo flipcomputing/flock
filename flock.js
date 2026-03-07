@@ -1431,6 +1431,13 @@ export const flock = {
                         );
                         flock._gamepadButtonObserver = null;
                 }
+                if (flock._gamepadPointerMoveListener) {
+                        flock.canvas.removeEventListener(
+                                "pointermove",
+                                flock._gamepadPointerMoveListener,
+                        );
+                        flock._gamepadPointerMoveListener = null;
+                }
 
                 const buttonToKeys = {
                         0: [" ", "SPACE"], // Bottom face button (A/Cross) -> Space
@@ -1450,19 +1457,27 @@ export const flock = {
                 // state to detect press/release transitions.
                 let lastTouchpadPressed = false;
 
+                // Track last pointer position so the touchpad click fires at
+                // the current mouse cursor location rather than a fixed point.
+                let lastPointerClientX = flock.canvas.getBoundingClientRect().left + flock.canvas.getBoundingClientRect().width / 2;
+                let lastPointerClientY = flock.canvas.getBoundingClientRect().top + flock.canvas.getBoundingClientRect().height / 2;
+
+                const onPointerMove = (e) => {
+                        lastPointerClientX = e.clientX;
+                        lastPointerClientY = e.clientY;
+                };
+                flock._gamepadPointerMoveListener = onPointerMove;
+                flock.canvas.addEventListener("pointermove", onPointerMove);
+
                 const fireTouchpadPointerEvent = (type) => {
-                        const canvas = flock.canvas;
-                        const rect = canvas.getBoundingClientRect();
-                        const cx = rect.left + rect.width / 2;
-                        const cy = rect.top + rect.height / 2;
-                        canvas.dispatchEvent(
+                        flock.canvas.dispatchEvent(
                                 new PointerEvent(type, {
                                         bubbles: true,
                                         cancelable: true,
                                         pointerId: 1,
                                         pointerType: "mouse",
-                                        clientX: cx,
-                                        clientY: cy,
+                                        clientX: lastPointerClientX,
+                                        clientY: lastPointerClientY,
                                         button: 0,
                                         buttons: type === "pointerdown" ? 1 : 0,
                                 }),
