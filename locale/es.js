@@ -859,6 +859,7 @@ export default {
   VISIBLE_option: "visible", // human
   ALPHA_option: "alfa", // human
   COLOUR_option: "color", // human
+  DESCRIPTION_option: "descripción", // ai
   AUTO_option: "automático", // human
   ENABLED_option: "habilitado", // human
   DISABLED_option: "deshabilitado", // human

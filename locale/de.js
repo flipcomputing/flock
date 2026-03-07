@@ -361,6 +361,7 @@ export default {
 
   ALPHA_option: "Alpha",
   COLOUR_option: "Farbe",
+  DESCRIPTION_option: "Beschreibung",
   ANY_option: "beliebig",
   all_option: "alle",
   objectGrab_option: "greifen",

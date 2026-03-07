@@ -2794,7 +2794,7 @@ export const flock = {
                 );
                 if (!safeText) return;
 
-                flock.whenModelReady(meshName, (mesh) => {
+                return flock.whenModelReady(meshName, (mesh) => {
                         if (!mesh) return;
                         const root =
                                 mesh.metadata?.boundingBox ??

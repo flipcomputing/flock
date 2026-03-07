@@ -255,5 +255,50 @@ export function runGetPropertyTests(flock) {
 	  await tick();
 	  expect(flock.getProperty(meshId, "VISIBLE")).to.be.true;
 	});
+
+	it("returns null for DESCRIPTION when not set", function () {
+	  const meshId = flock.createBox("getProperty-description-unset", {
+		width: 1,
+		height: 1,
+		depth: 1,
+		position: [0, 0, 0],
+	  });
+	  createdIds.push(meshId);
+
+	  expect(flock.getProperty(meshId, "DESCRIPTION")).to.be.null;
+	});
+
+	it("reads DESCRIPTION set by describeMesh", async function () {
+	  const meshId = flock.createBox("getProperty-description", {
+		width: 1,
+		height: 1,
+		depth: 1,
+		position: [0, 0, 0],
+	  });
+	  createdIds.push(meshId);
+
+	  await flock.describeMesh(meshId, "a red cube");
+	  await tick();
+
+	  expect(flock.getProperty(meshId, "DESCRIPTION")).to.equal("a red cube");
+	});
+
+	it("reads updated DESCRIPTION after describeMesh is called again", async function () {
+	  const meshId = flock.createBox("getProperty-description-update", {
+		width: 1,
+		height: 1,
+		depth: 1,
+		position: [0, 0, 0],
+	  });
+	  createdIds.push(meshId);
+
+	  await flock.describeMesh(meshId, "first description");
+	  await tick();
+	  expect(flock.getProperty(meshId, "DESCRIPTION")).to.equal("first description");
+
+	  await flock.describeMesh(meshId, "updated description");
+	  await tick();
+	  expect(flock.getProperty(meshId, "DESCRIPTION")).to.equal("updated description");
+	});
   });
 }

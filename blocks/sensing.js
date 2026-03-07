@@ -473,6 +473,9 @@ export function defineSensingBlocks() {
                                                         getDropdownOption(
                                                                 "COLOUR",
                                                         ),
+                                                        getDropdownOption(
+                                                                "DESCRIPTION",
+                                                        ),
                                                 ],
                                         },
                                         {

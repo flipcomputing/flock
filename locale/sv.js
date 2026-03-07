@@ -856,6 +856,7 @@ export default {
       VISIBLE_option: "synlig",
       ALPHA_option: "alfa",
       COLOUR_option: "färg",
+  DESCRIPTION_option: "beskrivning",
       AUTO_option: "auto",
       ENABLED_option: "aktiverad",
       DISABLED_option: "inaktiverad",
