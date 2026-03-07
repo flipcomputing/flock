@@ -889,7 +889,7 @@ export function defineGenerators() {
 
                 const safeTextArg = emitSafeTextArg(textCode);
 
-                return `describeMesh(${meshVariable}, ${safeTextArg});\n`;
+                return `await describeMesh(${meshVariable}, ${safeTextArg});\n`;
         };
 
         javascriptGenerator.forBlock["print_text"] = function (block) {
