@@ -855,6 +855,7 @@ export default {
   VISIBLE_option: "widoczny",
   ALPHA_option: "alpha",
   COLOUR_option: "kolor",
+  DESCRIPTION_option: "opis",
   AUTO_option: "auto",
   ENABLED_option: "włączony",
   DISABLED_option: "wyłączony",

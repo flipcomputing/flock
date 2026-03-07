@@ -201,6 +201,12 @@ export const flockSensing = {
         }
         break;
 
+      case "DESCRIPTION": {
+        const root = mesh.metadata?.boundingBox ?? mesh;
+        propertyValue = root.metadata?.displayName ?? null;
+        break;
+      }
+
       default:
         console.log("Property not recognized.");
     }
