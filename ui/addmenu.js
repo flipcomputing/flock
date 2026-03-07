@@ -277,11 +277,33 @@ function selectShape(shapeType) {
   removeKeyboardNavigation();
   detachActivePickHandler();
 
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+
   flock.activePickHandler = function onPick(event) {
-    const canvasRect = flock.canvas.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
+    if (
+      event.clientX < canvasRect.left ||
+      event.clientX > canvasRect.right ||
+      event.clientY < canvasRect.top ||
+      event.clientY > canvasRect.bottom
+    ) {
+      cleanupPlacementMode();
+      return;
+    }
+
     const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
-    const pickResult = flock.scene.pick(canvasX, canvasY);
+    const pickRay = flock.scene.createPickingRay(
+      canvasX,
+      canvasY,
+      flock.BABYLON.Matrix.Identity(),
+      flock.scene.activeCamera,
+    );
+
+    const pickResult = flock.scene.pickWithRay(
+      pickRay,
+      (mesh) => mesh.isPickable,
+    );
     if (pickResult && pickResult.hit) {
       addShapeToWorkspace(shapeType, pickResult.pickedPoint);
     }
@@ -295,8 +317,8 @@ function selectShape(shapeType) {
   // Also set up mouse click as fallback
   document.body.style.cursor = "crosshair";
   registerActivePickHandler(flock.activePickHandler, {
-    capture: false,
-    delay: 300,
+    capture: true,
+    delay: 0,
   });
 }
 
