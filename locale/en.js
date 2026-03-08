@@ -1164,6 +1164,10 @@ export default {
   model_display_apple: "Apple",
   model_display_starboppers: "Starboppers",
   model_display_headphones: "Headphones",
+  model_display_flock: "Flock bird",
+  model_display_flock_santa: "Flock bird with Santa hat",
+  model_display_character: "Character",
+  model_display_rhino: "Rhino",
 
   // Context menu option translations
   export_JSON_snippet: "Export block as snippet",
