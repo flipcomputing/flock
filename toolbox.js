@@ -608,7 +608,7 @@ const toolboxSceneXR = {
                         type: "export_mesh",
                         keyword: "export",
                 },
-                {
+/*{
                         kind: "block",
                         type: "play_rumble_pattern",
                         keyword: "rumble preset",
@@ -674,7 +674,7 @@ const toolboxSceneXR = {
                                         },
                                 },
                         },
-                },
+                },*/
         ],
 };
 
