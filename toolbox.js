@@ -4830,10 +4830,6 @@ class IconCategory extends Blockly.ToolboxCategory {
         setSelected(isSelected) {
                 super.setSelected(isSelected);
 
-                if (isSelected) {
-                        this.ensureKeyboardFocusedSelection_();
-                }
-
                 // Get the category color
                 const categoryColour = this.colour_;
 
