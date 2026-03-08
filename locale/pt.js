@@ -1062,6 +1062,8 @@ export default {
   keyboard_menu_ui: "Abrir o menu principal",
   keyboard_play_ui: "Reproduzir",
   keyboard_gizmos_ui: "Ir para os controlos",
+
+  keyboard_workspace_ui: "Focus code workspace",
   keyboard_navigation_ui:
     "Ir para a barra de navegação do browser (os atalhos sobrepostos funcionam a partir daqui)",
 

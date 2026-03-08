@@ -1067,6 +1067,8 @@ export default {
   keyboard_menu_ui: "Apri il menu principale",
   keyboard_play_ui: "Play",
   keyboard_gizmos_ui: "Vai ai gizmo",
+
+  keyboard_workspace_ui: "Focus code workspace",
   keyboard_navigation_ui:
     "Vai alla barra di navigazione del browser (le scorciatoie sovrascritte funzionano da qui)",
 

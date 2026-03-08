@@ -1068,6 +1068,8 @@ export default {
   keyboard_menu_ui: "Otwórz menu główne",
   keyboard_play_ui: "Play",
   keyboard_gizmos_ui: "Przejdź do narzędzi",
+
+  keyboard_workspace_ui: "Focus code workspace",
   keyboard_navigation_ui:
     "Przejdź do paska nawigacji przeglądarki (skróty działają tutaj)",
 
