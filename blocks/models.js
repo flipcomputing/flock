@@ -231,6 +231,14 @@ export function defineModelBlocks() {
                         updateColorField();
 
                         this.setOnChange((changeEvent) => {
+                                if (
+                                        changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+                                        changeEvent.element === "field" &&
+                                        changeEvent.name === "MODELS" &&
+                                        changeEvent.blockId === this.id
+                                ) {
+                                        updateColorField();
+                                }
 
                                 handleBlockChange(this, changeEvent, variableNamePrefix);
 
