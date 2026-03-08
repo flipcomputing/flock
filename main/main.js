@@ -205,6 +205,7 @@ function initializeApp() {
 
                 let key = e.key.toLowerCase();
                 if (e.code === "KeyM" && key !== "m") key = "m";
+                if (e.code === "KeyE" && key !== "e") key = "e";
 
                 switch (key) {
                         case "o": // Ctrl+O - Open file
