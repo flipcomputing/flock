@@ -4904,6 +4904,18 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
                 this.htmlDiv_?.focus?.();
         }
 
+        ensureKeyboardFocusedSelection_() {
+                this.parentToolbox_?.setSelectedItem?.(this);
+                this.setSelected(true);
+                this.setExpanded(true);
+
+                const flyout = this.parentToolbox_?.getFlyout?.();
+                if (flyout && !flyout.isVisible?.()) {
+                        const contents = this.getContents?.();
+                        if (contents) flyout.show?.(contents);
+                }
+        }
+
         // Preserve the original icon
         createIconDom_() {
                 const img = document.createElement("img");
@@ -4983,6 +4995,12 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
                         },
                         { capture: true },
                 );
+
+                this.rowDiv_.addEventListener("focusin", () => {
+                        if (this.toolboxHasFocus_()) {
+                                this.ensureKeyboardFocusedSelection_();
+                        }
+                });
 
                 return this.htmlDiv_;
         }
