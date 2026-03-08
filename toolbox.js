@@ -4830,6 +4830,10 @@ class IconCategory extends Blockly.ToolboxCategory {
         setSelected(isSelected) {
                 super.setSelected(isSelected);
 
+                if (isSelected) {
+                        this.ensureKeyboardFocusedSelection_();
+                }
+
                 // Get the category color
                 const categoryColour = this.colour_;
 
@@ -4905,8 +4909,6 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
         }
 
         ensureKeyboardFocusedSelection_() {
-                this.parentToolbox_?.setSelectedItem?.(this);
-                this.setSelected(true);
                 this.setExpanded(true);
 
                 const flyout = this.parentToolbox_?.getFlyout?.();
@@ -4929,6 +4931,10 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
 
         setSelected(isSelected) {
                 super.setSelected(isSelected);
+
+                if (isSelected) {
+                        this.ensureKeyboardFocusedSelection_();
+                }
 
                 // Get the category color
                 const categoryColour = this.colour_;
@@ -4998,6 +5004,7 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
 
                 this.rowDiv_.addEventListener("focusin", () => {
                         if (this.toolboxHasFocus_()) {
+                                this.parentToolbox_?.setSelectedItem?.(this);
                                 this.ensureKeyboardFocusedSelection_();
                         }
                 });
