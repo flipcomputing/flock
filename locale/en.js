@@ -1049,13 +1049,13 @@ export default {
   about_links_contact_label_ui: "Get in touch",
 
   keyboard_controls_ui: "Keyboard controls info [Ctrl + /]",
-  keyboard_menu_ui: "Open the main menu",
+  keyboard_menu_ui: "Main menu",
   keyboard_play_ui: "Play",
-  keyboard_gizmos_ui: "Go to gizmos",
+  keyboard_gizmos_ui: "Gizmos",
 
-  keyboard_workspace_ui: "Focus code workspace",
+  keyboard_workspace_ui: "Code editor",
   keyboard_navigation_ui:
-    "Go to browser navigation bar (overridden shortcuts work from here)",
+    "Browser navigation bar (overridden shortcuts work from here)",
 
   // Accessibility and announcements
   unmute_audio_aria: "Unmute audio.",

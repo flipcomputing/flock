@@ -1051,11 +1051,11 @@ export default {
   info_panel_link_ui: "Flock XR Webseite (neuer Tab)",
   project_name_ui: "Projektname",
   keyboard_controls_ui: "Tastatursteuerung [Ctrl + /]",
-  keyboard_menu_ui: "Hauptmenü öffnen",
+  keyboard_menu_ui: "Hauptmenü",
   keyboard_play_ui: "Abspielen",
-  keyboard_gizmos_ui: "Gizmos öffnen",
+  keyboard_gizmos_ui: "Gizmos",
 
-  keyboard_workspace_ui: "Focus code workspace",
+  keyboard_workspace_ui: "Code-Editor",
   keyboard_navigation_ui: "Navigationsleiste (überschriebene Shortcuts)",
 
   // Accessibility and announcements

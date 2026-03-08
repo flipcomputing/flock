@@ -1065,13 +1065,13 @@ export default {
   about_links_contact_label_ui: "Skontaktuj się z nami",
 
   keyboard_controls_ui: "Informacje o kontrolach klawiatury [Ctrl + /]",
-  keyboard_menu_ui: "Otwórz menu główne",
+  keyboard_menu_ui: "Menu główne",
   keyboard_play_ui: "Play",
-  keyboard_gizmos_ui: "Przejdź do narzędzi",
+  keyboard_gizmos_ui: "Narzędzia",
 
-  keyboard_workspace_ui: "Focus code workspace",
+  keyboard_workspace_ui: "Edytor kodu",
   keyboard_navigation_ui:
-    "Przejdź do paska nawigacji przeglądarki (skróty działają tutaj)",
+    "Pasek nawigacji przeglądarki (skróty działają tutaj)",
 
   // Accessibility and announcements
   unmute_audio_aria: "Włącz dźwięk.",

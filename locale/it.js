@@ -1064,13 +1064,13 @@ export default {
   about_links_contact_label_ui: "Contattaci",
 
   keyboard_controls_ui: "Info controlli da tastiera [Ctrl + /]",
-  keyboard_menu_ui: "Apri il menu principale",
+  keyboard_menu_ui: "Menu principale",
   keyboard_play_ui: "Play",
-  keyboard_gizmos_ui: "Vai ai gizmo",
+  keyboard_gizmos_ui: "Gizmo",
 
-  keyboard_workspace_ui: "Focus code workspace",
+  keyboard_workspace_ui: "Editor di codice",
   keyboard_navigation_ui:
-    "Vai alla barra di navigazione del browser (le scorciatoie sovrascritte funzionano da qui)",
+    "Barra di navigazione del browser (le scorciatoie sovrascritte funzionano da qui)",
 
   // Accessibility and announcements
   unmute_audio_aria: "Riattiva l'audio.",

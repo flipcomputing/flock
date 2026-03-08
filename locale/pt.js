@@ -1059,13 +1059,13 @@ export default {
   about_links_contact_label_ui: "Entra em contacto",
 
   keyboard_controls_ui: "Informações dos atalhos de teclado [Ctrl + /]",
-  keyboard_menu_ui: "Abrir o menu principal",
+  keyboard_menu_ui: "Menu principal",
   keyboard_play_ui: "Reproduzir",
-  keyboard_gizmos_ui: "Ir para os controlos",
+  keyboard_gizmos_ui: "Controlos",
 
-  keyboard_workspace_ui: "Focus code workspace",
+  keyboard_workspace_ui: "Editor de código",
   keyboard_navigation_ui:
-    "Ir para a barra de navegação do browser (os atalhos sobrepostos funcionam a partir daqui)",
+    "Barra de navegação do browser (os atalhos sobrepostos funcionam a partir daqui)",
 
   // Accessibility and announcements
   unmute_audio_aria: "Ativar som.",
