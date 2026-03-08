@@ -2940,9 +2940,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.log("Standalone Flock 🐦");
                 initializeFlock();
 
-                // Assuming hideLoadingScreen is defined in the HTML's scope.
-                if (typeof hideLoadingScreen === "function") {
-                        setTimeout(hideLoadingScreen, 1000);
+                if (window.hideLoadingScreen && typeof window.hideLoadingScreen === "function") {
+                        setTimeout(window.hideLoadingScreen, 1000);
                 }
         }
 });
