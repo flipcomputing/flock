@@ -339,11 +339,15 @@ export const flock = {
                                 flock.engine?.stopRenderLoop();
                         }
                         flock.abortController?.abort();
-                } catch {}
+                } catch (e) {
+                        console.log("Failed to stop render loop during physics OOM handling:", e);
+                }
 
                 try {
                         flock.hk?.dispose?.();
-                } catch {}
+                } catch (e) {
+                        console.log("Failed to dispose Havok instance during physics OOM handling:", e);
+                }
 
                 const doc = flock.document;
                 if (!doc?.body) return;
