@@ -1067,11 +1067,13 @@ export default {
   about_links_contact_label_ui: "Contactanos", // human
 
   keyboard_controls_ui: "Información de controles del teclado [Ctrl + /]", // human
-  keyboard_menu_ui: "Abrir el menú principal", // human
+  keyboard_menu_ui: "Menú principal", // human
   keyboard_play_ui: "Reproducir", // human
-  keyboard_gizmos_ui: "Ir a los artilugios", // human
+  keyboard_gizmos_ui: "Artilugios", // human
+
+  keyboard_workspace_ui: "Editor de código",
   keyboard_navigation_ui:
-    "Ir a la barra de navegación del navegador (los atajos sobrescritos funcionan desde aquí)", // human
+    "Barra de navegación del navegador (los atajos sobrescritos funcionan desde aquí)", // human
 
   // Accessibility and announcements
   unmute_audio_aria: "Activar sonido.", // human

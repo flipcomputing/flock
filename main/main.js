@@ -205,6 +205,7 @@ function initializeApp() {
 
                 let key = e.key.toLowerCase();
                 if (e.code === "KeyM" && key !== "m") key = "m";
+                if (e.code === "KeyE" && key !== "e") key = "e";
 
                 switch (key) {
                         case "o": // Ctrl+O - Open file
@@ -265,6 +266,13 @@ function initializeApp() {
                                 ) {
                                         btn.focus();
                                 }
+                                break;
+
+                        case "e": // Ctrl+E - Focus Blockly workspace/editor
+                                e.preventDefault();
+                                Blockly.getFocusManager()?.focusTree?.(
+                                        workspace,
+                                );
                                 break;
 
                         /* Uncomment if needed:

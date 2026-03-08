@@ -1060,11 +1060,13 @@ export default {
       about_links_contact_label_ui: "Kontakta oss",
 
       keyboard_controls_ui: "Tangentbordsgenvägar [Ctrl + /]",
-      keyboard_menu_ui: "Öppna huvudmenyn",
+      keyboard_menu_ui: "Huvudmenyn",
       keyboard_play_ui: "Spela",
-      keyboard_gizmos_ui: "Gå till gizmos",
+      keyboard_gizmos_ui: "Gizmos",
+
+      keyboard_workspace_ui: "Kodredigerare",
       keyboard_navigation_ui:
-            "Gå till webbläsarens adressfält (överskrivna genvägar fungerar härifrån)",
+            "Webbläsarens adressfält (överskrivna genvägar fungerar härifrån)",
 
       // Accessibility and announcements
       unmute_audio_aria: "Slå på ljud.",

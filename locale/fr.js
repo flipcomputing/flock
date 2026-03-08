@@ -1070,11 +1070,13 @@ export default {
   about_links_contact_label_ui: "Contactez-nous",
 
   keyboard_controls_ui: "Infos sur les raccourcis clavier [Ctrl + /]",
-  keyboard_menu_ui: "Ouvrir le menu principal",
+  keyboard_menu_ui: "Menu principal",
   keyboard_play_ui: "Lire",
-  keyboard_gizmos_ui: "Aller aux gadgets",
+  keyboard_gizmos_ui: "Gadgets",
+
+  keyboard_workspace_ui: "Éditeur de code",
   keyboard_navigation_ui:
-    "Aller à la barre de navigation du navigateur (les raccourcis remplacés fonctionnent à partir d'ici)",
+    "Barre de navigation du navigateur (les raccourcis remplacés fonctionnent à partir d'ici)",
 
   // Accessibility and announcements
   unmute_audio_aria: "Activer le son.",
