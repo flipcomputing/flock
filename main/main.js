@@ -188,7 +188,8 @@ function initializeApp() {
         // Enable the file input after initialization
         fileInput.removeAttribute("disabled");
 
-        // keydown event listener
+        // keydown event listener (capture phase to ensure shortcuts
+        // are handled before any other handler can stop propagation)
         document.addEventListener("keydown", function (e) {
                 // Avoid in inputs
                 const tag = (e.target.tagName || "").toLowerCase();
@@ -202,7 +203,8 @@ function initializeApp() {
                 // Check for modifier key (Ctrl on Windows/Linux, Cmd on Mac)
                 if (!(e.ctrlKey || e.metaKey)) return;
 
-                const key = e.key.toLowerCase();
+                let key = e.key.toLowerCase();
+                if (e.code === "KeyM" && key !== "m") key = "m";
 
                 switch (key) {
                         case "o": // Ctrl+O - Open file
@@ -239,15 +241,14 @@ function initializeApp() {
 
                         case "m": // Ctrl+M - Open menu
                                 e.preventDefault();
-                                menuButton.click(); // Simulate click to open the menu
-                                // Focus the first menu item
+                                menuButton.click();
                                 const menuDropdown =
                                         document.getElementById("menuDropdown");
                                 const firstMenuItem = menuDropdown
                                         ? menuDropdown.querySelector("li")
                                         : null;
                                 if (firstMenuItem) {
-                                        firstMenuItem.focus(); // Set focus on the first item
+                                        firstMenuItem.focus();
                                 }
                                 break;
 
@@ -280,7 +281,7 @@ function initializeApp() {
                                 break;
                         */
                 }
-        });
+        }, true);
         toggleDesignButton.addEventListener("click", toggleDesignMode);
 
         togglePlayButton.addEventListener("click", togglePlayMode);
