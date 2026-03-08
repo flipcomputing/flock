@@ -1073,6 +1073,8 @@ export default {
   keyboard_menu_ui: "Ouvrir le menu principal",
   keyboard_play_ui: "Lire",
   keyboard_gizmos_ui: "Aller aux gadgets",
+
+  keyboard_workspace_ui: "Focus code workspace",
   keyboard_navigation_ui:
     "Aller à la barre de navigation du navigateur (les raccourcis remplacés fonctionnent à partir d'ici)",
 

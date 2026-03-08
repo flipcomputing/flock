@@ -1054,6 +1054,8 @@ export default {
   keyboard_menu_ui: "Hauptmenü öffnen",
   keyboard_play_ui: "Abspielen",
   keyboard_gizmos_ui: "Gizmos öffnen",
+
+  keyboard_workspace_ui: "Focus code workspace",
   keyboard_navigation_ui: "Navigationsleiste (überschriebene Shortcuts)",
 
   // Accessibility and announcements

@@ -1052,6 +1052,8 @@ export default {
   keyboard_menu_ui: "Open the main menu",
   keyboard_play_ui: "Play",
   keyboard_gizmos_ui: "Go to gizmos",
+
+  keyboard_workspace_ui: "Focus code workspace",
   keyboard_navigation_ui:
     "Go to browser navigation bar (overridden shortcuts work from here)",
 

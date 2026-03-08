@@ -1063,6 +1063,8 @@ export default {
       keyboard_menu_ui: "Öppna huvudmenyn",
       keyboard_play_ui: "Spela",
       keyboard_gizmos_ui: "Gå till gizmos",
+
+      keyboard_workspace_ui: "Focus code workspace",
       keyboard_navigation_ui:
             "Gå till webbläsarens adressfält (överskrivna genvägar fungerar härifrån)",
 

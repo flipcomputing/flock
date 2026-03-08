@@ -267,6 +267,13 @@ function initializeApp() {
                                 }
                                 break;
 
+                        case "e": // Ctrl+E - Focus Blockly workspace/editor
+                                e.preventDefault();
+                                Blockly.getFocusManager()?.focusTree?.(
+                                        workspace,
+                                );
+                                break;
+
                         /* Uncomment if needed:
                         case "k": // Ctrl+K - Stop code
                                 e.preventDefault();

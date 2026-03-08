@@ -1070,6 +1070,8 @@ export default {
   keyboard_menu_ui: "Abrir el menú principal", // human
   keyboard_play_ui: "Reproducir", // human
   keyboard_gizmos_ui: "Ir a los artilugios", // human
+
+  keyboard_workspace_ui: "Focus code workspace",
   keyboard_navigation_ui:
     "Ir a la barra de navegación del navegador (los atajos sobrescritos funcionan desde aquí)", // human
 
