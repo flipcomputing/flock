@@ -126,6 +126,23 @@ export function runMaterialsTests(flock) {
 			});
 		});
 
+		it("should restore opaque rendering when setAlpha is called with 1", async function () {
+			const { id } = await createBoxWithColorAndPosition("boxAlphaOpaque");
+			boxIds.push(id);
+
+			await flock.setAlpha(id, { value: 0.5 });
+			await flock.setAlpha(id, { value: 1 });
+
+			const mesh = flock.scene.getMeshByName(id);
+			const allMeshes = [mesh, ...mesh.getChildMeshes()];
+
+			allMeshes.forEach((m) => {
+				expect(m.material.alpha).to.be.closeTo(1, 0.01);
+				expect(m.material.transparencyMode).to.be.null;
+				expect(m.material.needDepthPrePass).to.be.false;
+			});
+		});
+
 		it("should clear effects from a mesh", async function () {
 			const { id, color } =
 				await createBoxWithColorAndPosition("boxClear");

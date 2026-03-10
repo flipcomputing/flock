@@ -359,7 +359,9 @@ export const flockMaterial = {
 
           if (nextMesh.material) {
             nextMesh.material.transparencyMode =
-              flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+              value < 1
+                ? flock.BABYLON.Material.MATERIAL_ALPHABLEND
+                : null;
             nextMesh.material.needDepthPrePass = value > 0 && value < 1;
           }
         });
