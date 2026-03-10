@@ -44,7 +44,7 @@ export const flockEffects = {
       rotation,
     } = {},
   ) {
-    let resultName = name + "_" + flock.scene.getUniqueId();
+    const resultName = flock._reserveName(name + "_" + flock.scene.getUniqueId());
 
     const particlePromise = new Promise((resolve, reject) => {
       flock.whenModelReady(emitterMesh, (meshInstance) => {
@@ -111,14 +111,15 @@ export const flockEffects = {
           }
 
           particleSystem.start();
+          flock._markNameCreated(resultName, particleSystem);
           resolve(particleSystem);
         } catch (error) {
+          flock._releaseName(resultName);
           reject(error);
         }
       });
     });
 
-    flock.modelReadyPromises.set(resultName, particlePromise);
     return resultName;
   },
   startParticleSystem(systemName) {

@@ -246,10 +246,7 @@ export const flockShapes = {
     }
 
     let groupName = boxId;
-
-    if (flock.scene.getMeshByName(boxId)) {
-      boxId = boxId + "_" + flock.scene.getUniqueId();
-    }
+    boxId = flock._reserveName(boxId);
 
     const dimensions = { width, height, depth };
 
@@ -289,14 +286,10 @@ export const flockShapes = {
     flock.applyPhysics(newBox, boxShape);
 
     flock.announceMeshReady(newBox.name, groupName);
+    flock._markNameCreated(newBox.name, newBox);
 
     if (callback) {
       requestAnimationFrame(() => callback());
-    }
-
-    if (!flock.callbackMode) {
-      const readyPromise = Promise.resolve();
-      flock.modelReadyPromises.set(boxId, readyPromise);
     }
 
     return newBox.name;
@@ -320,10 +313,7 @@ export const flockShapes = {
     }
 
     let groupName = sphereId;
-
-    if (flock.scene.getMeshByName(sphereId)) {
-      sphereId = sphereId + "_" + flock.scene.getUniqueId();
-    }
+    sphereId = flock._reserveName(sphereId);
 
     const dimensions = { diameterX, diameterY, diameterZ };
 
@@ -361,14 +351,10 @@ export const flockShapes = {
     flock.applyPhysics(newSphere, sphereShape);
 
     flock.announceMeshReady(newSphere.name, groupName);
+    flock._markNameCreated(newSphere.name, newSphere);
 
     if (callback) {
       requestAnimationFrame(() => callback());
-    }
-
-    if (!flock.callbackMode) {
-      const readyPromise = Promise.resolve();
-      flock.modelReadyPromises.set(sphereId, readyPromise);
     }
 
     return newSphere.name;
@@ -401,10 +387,7 @@ export const flockShapes = {
     }
 
     let groupName = cylinderId;
-
-    if (flock.scene.getMeshByName(cylinderId)) {
-      cylinderId = cylinderId + "_" + flock.scene.getUniqueId();
-    }
+    cylinderId = flock._reserveName(cylinderId);
 
     // Get or create cached VertexData
     const vertexData = flock.getOrCreateGeometry(
@@ -448,14 +431,10 @@ export const flockShapes = {
     flock.applyPhysics(newCylinder, cylinderShape);
 
     flock.announceMeshReady(newCylinder.name, groupName);
+    flock._markNameCreated(newCylinder.name, newCylinder);
 
     if (callback) {
       requestAnimationFrame(() => callback());
-    }
-
-    if (!flock.callbackMode) {
-      const readyPromise = Promise.resolve();
-      flock.modelReadyPromises.set(cylinderId, readyPromise);
     }
 
     return newCylinder.name;
@@ -480,9 +459,7 @@ export const flockShapes = {
       updatable: false,
     };
 
-    if (flock.scene.getMeshByName(capsuleId)) {
-      capsuleId = capsuleId + "_" + flock.scene.getUniqueId();
-    }
+    capsuleId = flock._reserveName(capsuleId);
 
     // Get or create cached VertexData
     const vertexData = flock.getOrCreateGeometry(
@@ -535,14 +512,10 @@ export const flockShapes = {
     flock.applyPhysics(newCapsule, capsuleShape);
 
     flock.announceMeshReady(newCapsule.name, groupName);
+    flock._markNameCreated(newCapsule.name, newCapsule);
 
     if (callback) {
       requestAnimationFrame(() => callback());
-    }
-
-    if (!flock.callbackMode) {
-      const readyPromise = Promise.resolve();
-      flock.modelReadyPromises.set(capsuleId, readyPromise);
     }
 
     return newCapsule.name;
@@ -554,9 +527,7 @@ export const flockShapes = {
     }
 
     let groupName = planeId;
-    if (flock.scene.getMeshByName(planeId)) {
-      planeId = planeId + "_" + flock.scene.getUniqueId();
-    }
+    planeId = flock._reserveName(planeId);
 
     const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
       planeId,
@@ -610,14 +581,10 @@ export const flockShapes = {
     newPlane.metadata.blockKey = blockKey;
 
     flock.announceMeshReady(newPlane.name, groupName);
+    flock._markNameCreated(newPlane.name, newPlane);
 
     if (callback) {
       requestAnimationFrame(() => callback());
-    }
-
-    if (!flock.callbackMode) {
-      const readyPromise = Promise.resolve();
-      flock.modelReadyPromises.set(planeId, readyPromise);
     }
 
     return newPlane.name;
@@ -634,6 +601,7 @@ export const flockShapes = {
     useManifold = true, // Use manifold by default for CSG compatibility
   }) {
     const { x, y, z } = position;
+    const finalId = flock._reserveName(modelId);
 
     // Create the loading promise
     const loadPromise = new Promise(async (resolve, reject) => {
@@ -661,7 +629,7 @@ export const flockShapes = {
             });
             
             // Create Babylon.js mesh from manifold data
-            mesh = new flock.BABYLON.Mesh(modelId, flock.scene);
+            mesh = new flock.BABYLON.Mesh(finalId, flock.scene);
             const vertexData = new flock.BABYLON.VertexData();
             
             vertexData.positions = meshData.positions;
@@ -717,7 +685,7 @@ export const flockShapes = {
           const fontData = await (await fetch(font)).json();
 
           mesh = flock.BABYLON.MeshBuilder.CreateText(
-            modelId,
+            finalId,
             text,
             fontData,
             {
@@ -731,13 +699,14 @@ export const flockShapes = {
         }
 
         if (!mesh) {
+          flock._releaseName(finalId);
           reject(new Error('CreateText returned null'));
           return;
         }
 
         mesh.position.set(x, y, z);
         const material = new flock.BABYLON.StandardMaterial(
-          "textMaterial_" + modelId,
+          "textMaterial_" + finalId,
           flock.scene,
         );
 
@@ -761,16 +730,15 @@ export const flockShapes = {
           requestAnimationFrame(callback);
         }
 
-        resolve();
+        flock._markNameCreated(finalId, mesh);
+        resolve(mesh);
       } catch (error) {
-        console.error(`Error creating 3D text '${modelId}':`, error);
+        console.error(`Error creating 3D text '${finalId}':`, error);
+        flock._releaseName(finalId);
         reject(error);
       }
     });
 
-    // Store promise for whenModelReady coordination
-    flock.modelReadyPromises.set(modelId, loadPromise);
-
-    return modelId;
+    return finalId;
   },
 };

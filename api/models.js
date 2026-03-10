@@ -78,20 +78,10 @@ export const flockModels = {
     if (!(typeof scale === "number" && scale >= 0.01 && scale <= 100))
       scale = 1;
 
-    // --- create readiness deferred (resolve OR reject) + abort hookup ---
-    let resolveReady, rejectReady;
-    const readyPromise = new Promise((res, rej) => {
-      resolveReady = res;
-      rejectReady = rej;
-    });
-    flock.modelReadyPromises.set(meshName, readyPromise);
-
+    // The lazy-init lock was already created by _reserveName above.
+    // Wire up an abort handler so a cancelled run rejects the lock cleanly.
     const signal = flock.abortController?.signal;
     const onAbort = () => {
-      try {
-        rejectReady(new Error("aborted"));
-      } catch {}
-      flock.modelReadyPromises.delete(meshName);
       flock._releaseName?.(meshName);
       signal?.removeEventListener("abort", onAbort);
     };
@@ -161,8 +151,7 @@ export const flockModels = {
 
         // Announce readiness as soon as mesh is configured
         flock.announceMeshReady(meshName, groupName);
-        flock._markNameCreated(meshName);
-        resolveReady(mesh);
+        flock._markNameCreated(meshName, mesh);
         cleanupAbort();
 
         // Allow the container to be GC'd (anims/skeletons are now in the scene)
@@ -170,16 +159,8 @@ export const flockModels = {
       })
       .catch((error) => {
         console.log("❌ Error loading character:", error);
-        rejectReady(error);
         flock._releaseName(meshName);
-        flock.modelReadyPromises.delete(meshName);
         cleanupAbort();
-      })
-      .finally(() => {
-        // Optional: drop resolved entry after a short TTL to avoid map growth
-        setTimeout(() => {
-          flock.modelReadyPromises.delete(meshName);
-        }, 5000);
       });
 
     // Return the final (possibly suffixed) id
@@ -263,7 +244,7 @@ export const flockModels = {
       mesh.refreshBoundingInfo(true);
       setInstanceFlags(mesh);
       flock.announceMeshReady(mName, gName);
-      flock._markNameCreated(mName);
+      flock._markNameCreated(mName, mesh);
       if (callback) requestAnimationFrame(callback);
     };
 
@@ -281,16 +262,12 @@ export const flockModels = {
         color = flock.objectColours?.[modelName] || ["#FFFFFF", "#FFFFFF"];
       }
 
-      let resolveReady;
-      const readyPromise = new Promise((res) => {
-        resolveReady = res;
-      });
-      flock.modelReadyPromises.set(meshName, readyPromise);
+      // The lazy-init lock was created by _reserveName above.
+      // finalizeMesh calls _markNameCreated which resolves it.
 
       if (flock.modelCache[modelName]) {
         const mesh = flock.modelCache[modelName].clone(bKey);
         finalizeMesh(mesh, meshName, groupName, bKey);
-        resolveReady(mesh);
         return meshName;
       }
 
@@ -298,7 +275,6 @@ export const flockModels = {
         flock.modelsBeingLoaded[modelName].then(() => {
           const mesh = flock.modelCache[modelName].clone(bKey);
           finalizeMesh(mesh, meshName, groupName, bKey);
-          resolveReady(mesh);
         });
         return meshName;
       }
@@ -309,8 +285,6 @@ export const flockModels = {
         flock.scene,
       );
       flock.modelsBeingLoaded[modelName] = loadPromise;
-
-      // ... inside the loadPromise.then block ...
 
       loadPromise.then((container) => {
         container.addAllToScene();
@@ -343,7 +317,6 @@ export const flockModels = {
         flock.modelCache[modelName] = template;
 
         finalizeMesh(root, meshName, groupName, bKey);
-        resolveReady(root);
         releaseContainer(container);
       });
 

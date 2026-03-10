@@ -471,7 +471,7 @@ export const flockPhysics = {
 
     const tryNow =
       flock.scene?.getMeshByName(meshName) ||
-      flock.modelReadyPromises.has(meshName) ||
+      flock._objectRegistry.has(meshName) ||
       guiButton;
 
     if (!tryNow) {

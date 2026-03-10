@@ -106,10 +106,9 @@ export const flock = {
         engine: null,
         engineReady: false,
         eventDebug: false,
-        modelReadyPromises: new Map(),
+        _objectRegistry: new Map(),
         pendingMeshCreations: 0,
         pendingTriggers: new Map(),
-        _nameRegistry: new Map(),
         _animationFileCache: {},
         getModelDisplayName,
         characterNames: characterNames,
@@ -1959,7 +1958,7 @@ export const flock = {
                                 flock.geometryCache = {};
                                 flock.materialCache = {};
                                 flock.pendingTriggers = new Map();
-                                flock._nameRegistry = new Map();
+                                flock._objectRegistry = new Map();
                                 flock._animationFileCache = {};
                                 flock.ground = null;
                                 flock.sky = null;
@@ -2018,7 +2017,7 @@ export const flock = {
                 flock.originalModelTransformations = {};
                 flock.geometryCache = {};
                 flock.pendingTriggers = new Map();
-                flock._nameRegistry = new Map();
+                flock._objectRegistry = new Map();
                 flock._animationFileCache = {};
                 flock.materialCache = {};
                 flock.havokAbortHandled = false;
@@ -2473,26 +2472,26 @@ export const flock = {
                         return t ?? null;
                 };
 
-                // --- Fast path ---
-                // Check if there's a pending promise for this mesh first
-                // This ensures we wait for geometry to be attached before returning
-                if (flock.modelReadyPromises.has(id)) {
-                        const pendingPromise = flock.modelReadyPromises.get(id);
-                        pendingPromise.then(() => {
-                                // Re-locate after promise resolves to get mesh with geometry
-                                const meshWithGeometry = locate();
-                                
-                                if (!flock.abortController?.signal?.aborted)
-                                        void settle(meshWithGeometry);
-                        }).catch(() => {
-                                // On error, still try to return what we can find
-                                const meshWithGeometry = locate();
-                                if (!flock.abortController?.signal?.aborted)
-                                        void settle(meshWithGeometry);
-                        });
+                // --- Fast path: unified lazy-init registry ---
+                // _objectRegistry covers both "pending" (loading) and "already created"
+                // cases: the stored promise resolves with the mesh once it is ready, so
+                // any number of concurrent callers are naturally serialised here.
+                if (flock._objectRegistry.has(id)) {
+                        const entry = flock._objectRegistry.get(id);
+                        entry.promise
+                                .then((mesh) => {
+                                        if (!flock.abortController?.signal?.aborted)
+                                                void settle(mesh ?? locate());
+                                })
+                                .catch(() => {
+                                        if (!flock.abortController?.signal?.aborted)
+                                                void settle(locate());
+                                });
                         return promise;
                 }
 
+                // Mesh already in scene but was not created through the registry
+                // (e.g. special IDs, or objects added by Babylon internals).
                 if (flock.scene) {
                         const existing = locate();
                         if (existing) {
@@ -2829,31 +2828,42 @@ export const flock = {
                         }
                 }
         },
-        /** Reserve a unique name. If desired is taken or pending, suffix it. */
+        /**
+         * Reserve a unique name and create a lazy-init concurrent lock for it.
+         * Returns the final (possibly suffixed) name.  The lock — a Promise that
+         * resolves with the mesh once it is ready — is stored in _objectRegistry
+         * so that any number of concurrent whenModelReady callers can await it.
+         */
         _reserveName(desired) {
                 const has = (n) =>
-                        flock._nameRegistry.has(n) ||
+                        flock._objectRegistry.has(n) ||
                         !!flock.scene?.getMeshByName(n);
                 let name = desired;
                 while (has(name)) {
                         name = `${desired}_${flock.scene.getUniqueId()}`;
                 }
-                flock._nameRegistry.set(name, { pending: true, exists: false });
+                let resolve, reject;
+                const promise = new Promise((res, rej) => {
+                        resolve = res;
+                        reject = rej;
+                });
+                flock._objectRegistry.set(name, { promise, resolve, reject });
                 return name;
         },
 
-        /** Mark a reserved name as created (exists in scene). */
-        _markNameCreated(name) {
-                const rec = flock._nameRegistry.get(name);
-                if (rec) {
-                        rec.pending = false;
-                        rec.exists = true;
-                }
+        /** Resolve the lazy-init lock once the object is ready. */
+        _markNameCreated(name, mesh = null) {
+                const entry = flock._objectRegistry.get(name);
+                if (entry) entry.resolve(mesh);
         },
 
-        /** Release a reservation on failure/disposal. */
+        /** Reject the lazy-init lock and remove the reservation (on failure/abort). */
         _releaseName(name) {
-                flock._nameRegistry.delete(name);
+                const entry = flock._objectRegistry.get(name);
+                if (entry) {
+                        try { entry.reject(new Error("released")); } catch {}
+                }
+                flock._objectRegistry.delete(name);
         },
 
         // Runtime helper
