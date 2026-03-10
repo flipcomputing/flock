@@ -327,27 +327,41 @@ export const flockMaterial = {
 
         allMeshes.forEach((nextMesh) => {
           const oldMat = nextMesh.material;
-          if (!oldMat || !oldMat.metadata?.cacheKey) return;
+          if (!oldMat) return;
 
-          const parts = oldMat.metadata.cacheKey.split("_");
-          const colorPart = parts[1];
-          const texPart = parts[3];
+          let color, texPart, glowFlag;
 
-          const color = colorPart.includes("-")
-            ? colorPart.split("-")
-            : colorPart;
+          if (oldMat.metadata?.cacheKey) {
+            const parts = oldMat.metadata.cacheKey.split("_");
+            const colorPart = parts[1];
+            texPart = parts[3];
+            glowFlag = parts[4] === "glow";
+            color = colorPart.includes("-") ? colorPart.split("-") : colorPart;
+          } else {
+            // Raw GLTF material (e.g. character with no managed material yet)
+            // Extract color from the material directly
+            const matColor = oldMat.diffuseColor || oldMat.albedoColor;
+            color = matColor
+              ? "#" + matColor.toHexString().slice(1)
+              : "#ffffff";
+            texPart = "none.png";
+            glowFlag = nextMesh.metadata?.glow ?? false;
+          }
 
           const materialParams = {
             color: color,
             materialName: texPart,
             alpha: value,
+            glow: glowFlag,
           };
 
           flock.setMaterialWithCleanup(nextMesh, materialParams);
 
           if (nextMesh.material) {
             nextMesh.material.transparencyMode =
-              flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+              value < 1
+                ? flock.BABYLON.Material.MATERIAL_ALPHABLEND
+                : null;
             nextMesh.material.needDepthPrePass = value > 0 && value < 1;
           }
         });

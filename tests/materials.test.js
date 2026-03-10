@@ -75,6 +75,27 @@ export function runMaterialsTests(flock) {
 			expect(actualColor.equals(expectedColor)).to.be.true;
 		});
 
+		it("should apply glow after alpha", async function () {
+			const { id, color } =
+				await createBoxWithColorAndPosition("boxGlowAfterAlpha");
+			boxIds.push(id);
+
+			await flock.setAlpha(id, { value: 0.5 });
+			await flock.glow(id, { color });
+
+			const mesh = flock.scene.getMeshByName(id);
+			expect(mesh.metadata.glow).to.be.true;
+
+			const expectedColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color),
+			);
+			const actualColor = mesh.material?.emissiveColor;
+
+			expect(actualColor).to.exist;
+			expect(actualColor.equals(expectedColor)).to.be.true;
+			expect(mesh.material.alpha).to.be.closeTo(0.5, 0.01);
+		});
+
 		it("should apply highlight to a mesh", async function () {
 			const { id, color } =
 				await createBoxWithColorAndPosition("boxHighlight");
@@ -102,6 +123,23 @@ export function runMaterialsTests(flock) {
 				expect(m.material.transparencyMode).to.equal(
 					flock.BABYLON.Material.MATERIAL_ALPHABLEND,
 				);
+			});
+		});
+
+		it("should restore opaque rendering when setAlpha is called with 1", async function () {
+			const { id } = await createBoxWithColorAndPosition("boxAlphaOpaque");
+			boxIds.push(id);
+
+			await flock.setAlpha(id, { value: 0.5 });
+			await flock.setAlpha(id, { value: 1 });
+
+			const mesh = flock.scene.getMeshByName(id);
+			const allMeshes = [mesh, ...mesh.getChildMeshes()];
+
+			allMeshes.forEach((m) => {
+				expect(m.material.alpha).to.be.closeTo(1, 0.01);
+				expect(m.material.transparencyMode).to.be.null;
+				expect(m.material.needDepthPrePass).to.be.false;
 			});
 		});
 
