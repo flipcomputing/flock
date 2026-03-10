@@ -2417,6 +2417,11 @@ export const flock = {
                 yield null;
         },
         whenModelReady(id, callback) {
+                // A falsy id means the variable was never assigned (still false/null).
+                // Resolve immediately with undefined rather than falling through to
+                // the polling path and timing out after ~200 s.
+                if (!id) return Promise.resolve(undefined);
+
                 // --- Promise that resolves when ready (or undefined on abort/dispose) ---
                 let settled = false;
                 let resolveP;
