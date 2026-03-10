@@ -342,7 +342,7 @@ export const flockMaterial = {
             // Extract color from the material directly
             const matColor = oldMat.diffuseColor || oldMat.albedoColor;
             color = matColor
-              ? "#" + matColor.toHexString().slice(0, 6)
+              ? "#" + matColor.toHexString().slice(1)
               : "#ffffff";
             texPart = "none.png";
             glowFlag = nextMesh.metadata?.glow ?? false;
