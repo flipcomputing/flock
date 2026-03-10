@@ -272,10 +272,12 @@ export const flockModels = {
       }
 
       if (flock.modelsBeingLoaded[modelName]) {
-        flock.modelsBeingLoaded[modelName].then(() => {
-          const mesh = flock.modelCache[modelName].clone(bKey);
-          finalizeMesh(mesh, meshName, groupName, bKey);
-        });
+        flock.modelsBeingLoaded[modelName]
+          .then(() => {
+            const mesh = flock.modelCache[modelName].clone(bKey);
+            finalizeMesh(mesh, meshName, groupName, bKey);
+          })
+          .catch(() => flock._releaseName(meshName));
         return meshName;
       }
 
@@ -286,39 +288,44 @@ export const flockModels = {
       );
       flock.modelsBeingLoaded[modelName] = loadPromise;
 
-      loadPromise.then((container) => {
-        container.addAllToScene();
+      loadPromise
+        .then((container) => {
+          container.addAllToScene();
 
-        container.meshes.forEach((m) => {
-          m.metadata = m.metadata || {};
-          m.metadata.isTemplate = true;
-          m.metadata.templateTag = modelName;
+          container.meshes.forEach((m) => {
+            m.metadata = m.metadata || {};
+            m.metadata.isTemplate = true;
+            m.metadata.templateTag = modelName;
 
-          // Only clear materials if we are intending to apply our own color system
-          if (applyColor) {
-            if (m.material) {
-              m.material.dispose(true, true);
-              m.material = null;
+            // Only clear materials if we are intending to apply our own color system
+            if (applyColor) {
+              if (m.material) {
+                m.material.dispose(true, true);
+                m.material = null;
+              }
             }
+
+            m.isPickable = false;
+          });
+
+          const root = container.meshes[0];
+
+          // Only force standard material if we are applying custom colors
+          if (applyColor) {
+            flock.ensureStandardMaterial(root);
           }
 
-          m.isPickable = false;
+          const template = root.clone(`${modelName}_template`);
+          setTemplateFlags(template, modelName);
+          flock.modelCache[modelName] = template;
+
+          finalizeMesh(root, meshName, groupName, bKey);
+          releaseContainer(container);
+        })
+        .catch((error) => {
+          console.error(`Failed to load model '${modelName}':`, error);
+          flock._releaseName(meshName);
         });
-
-        const root = container.meshes[0];
-
-        // Only force standard material if we are applying custom colors
-        if (applyColor) {
-          flock.ensureStandardMaterial(root);
-        }
-
-        const template = root.clone(`${modelName}_template`);
-        setTemplateFlags(template, modelName);
-        flock.modelCache[modelName] = template;
-
-        finalizeMesh(root, meshName, groupName, bKey);
-        releaseContainer(container);
-      });
 
       return meshName;
     } catch (e) {
