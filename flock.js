@@ -1614,6 +1614,15 @@ export const flock = {
                                 flock.stopAllSounds();
                                 flock.engine?.stopRenderLoop();
 
+                                // Remove visibility change handler
+                                if (flock._visibilityChangeHandler) {
+                                        document.removeEventListener(
+                                                "visibilitychange",
+                                                flock._visibilityChangeHandler,
+                                        );
+                                        flock._visibilityChangeHandler = null;
+                                }
+
                                 flock._cameraControlBindings = null;
                                 flock._actionMapOverrides = null;
 
@@ -2062,6 +2071,19 @@ export const flock = {
 
                 // Start the render loop
                 flock.engine.runRenderLoop(flock._renderLoop);
+
+                // Pause rendering when the tab is hidden to save energy
+                flock._visibilityChangeHandler = () => {
+                        if (document.hidden) {
+                                flock.engine.stopRenderLoop();
+                        } else if (!flock.flockNotReady) {
+                                flock.engine.runRenderLoop(flock._renderLoop);
+                        }
+                };
+                document.addEventListener(
+                        "visibilitychange",
+                        flock._visibilityChangeHandler,
+                );
 
                 // Enable physics
                 flock.hk = new flock.BABYLON.HavokPlugin(

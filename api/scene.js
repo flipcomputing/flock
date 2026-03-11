@@ -45,7 +45,7 @@ export const flockScene = {
       const s = flock.BABYLON.MeshBuilder.CreateSphere(
         "sky",
         {
-          segments: 32,
+          segments: 16,
           diameter: 1000,
           sideOrientation: flock.BABYLON.Mesh.BACKSIDE,
         },

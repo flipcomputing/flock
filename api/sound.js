@@ -466,18 +466,6 @@ export const flockSound = {
       mode = "start",
     } = {},
   ) {
-    // Debug logging to check parameters
-    console.log(`[SPEAK DEBUG] Called with:`, {
-      meshName: meshName,
-      text: text,
-      voice: voice,
-      language: language,
-      rate: rate,
-      pitch: pitch,
-      volume: volume,
-      mode: mode,
-    });
-
     // Check for Web Speech API support
     if (!("speechSynthesis" in window)) {
       console.warn("Text-to-speech not supported in this browser");
@@ -498,19 +486,11 @@ export const flockSound = {
 
     // Handle spatial audio if meshName is provided and not "__everywhere__"
     let spatialAudioSetup = null;
-    console.log(
-      `[SPEAK DEBUG] Checking spatial audio setup for meshName: "${meshName}"`,
-    );
     if (meshName && meshName !== "__everywhere__") {
-      console.log(
-        `[SPEAK DEBUG] Setting up spatial audio for mesh: "${meshName}"`,
-      );
       spatialAudioSetup = await flockSound.setupSpatialSpeech(
         utterance,
         meshName,
       );
-    } else {
-      console.log(`[SPEAK DEBUG] Using non-spatial audio (everywhere mode)`);
     }
 
     // Set voice if available - handle voice loading timing
@@ -537,19 +517,6 @@ export const flockSound = {
 
     if (voices.length > 0) {
       let selectedVoice = null;
-
-      // Debug: Log available voices for troubleshooting
-      console.log(
-        "Available voices:",
-        voices.map((v) => ({
-          name: v.name,
-          lang: v.lang,
-          localService: v.localService,
-          default: v.default,
-        })),
-      );
-
-      console.log("Requested voice type:", voice, "language:", language);
 
       // Common voice names by platform and gender
       const commonVoices = {
@@ -721,12 +688,6 @@ export const flockSound = {
 
       if (selectedVoice) {
         utterance.voice = selectedVoice;
-        console.log("Selected voice:", {
-          name: selectedVoice.name,
-          requestedType: voice,
-          lang: selectedVoice.lang,
-          localService: selectedVoice.localService,
-        });
       } else {
         console.warn("No voice found for type:", voice, "using default");
       }
@@ -770,22 +731,10 @@ export const flockSound = {
   },
 
   async setupSpatialSpeech(utterance, meshName) {
-    console.log(
-      `[SPATIAL AUDIO DEBUG] Setting up spatial speech for mesh: ${meshName}`,
-    );
-
     const mesh = flock.scene.getMeshByName(meshName);
     if (!mesh) {
-      console.warn(
-        `[SPATIAL AUDIO DEBUG] Mesh '${meshName}' not found for spatial speech`,
-      );
       return null;
     }
-
-    console.log(
-      `[SPATIAL AUDIO DEBUG] Found mesh '${meshName}' at position:`,
-      mesh.position,
-    );
 
     // Get or create audio context
     const audioContext = flockSound.getAudioContext();
@@ -853,29 +802,6 @@ export const flockSound = {
         audioContext,
         flock.scene.activeCamera,
       );
-
-      // Debug info (throttled)
-      if (Math.random() < 0.01) {
-        // ~1% chance per frame
-        const distance = flock.BABYLON.Vector3.Distance(
-          cameraPosition,
-          meshPosition,
-        );
-        console.log(`[SPATIAL AUDIO DEBUG] Position update:`, {
-          meshPosition: {
-            x: meshPosition.x.toFixed(2),
-            y: meshPosition.y.toFixed(2),
-            z: meshPosition.z.toFixed(2),
-          },
-          cameraPosition: {
-            x: cameraPosition.x.toFixed(2),
-            y: cameraPosition.y.toFixed(2),
-            z: cameraPosition.z.toFixed(2),
-          },
-          distance: distance.toFixed(2),
-          panValue: panValue.toFixed(2),
-        });
-      }
     };
 
     // Start position updates
@@ -886,9 +812,7 @@ export const flockSound = {
     // Initial position update
     updateSpatialPosition();
 
-    // Try to use the more advanced approach with MediaStream
     let spatialAudioSource = null;
-    let isPlayingThroughSpatialAudio = false;
 
     // Fallback: Use the original utterance but with enhanced volume calculation
     const originalVolume = utterance.volume;
@@ -937,23 +861,11 @@ export const flockSound = {
       }
     };
 
-    // Set initial volume and log the result
+    // Set initial volume
     updateVolumeBasedOnDistance();
-
-    console.log(`[SPATIAL AUDIO DEBUG] Initial spatial setup:`, {
-      originalVolume: originalVolume,
-      currentVolume: utterance.volume,
-      meshName: meshName,
-      meshPosition: mesh.position,
-    });
-
-    console.log(
-      `[SPATIAL AUDIO DEBUG] Spatial audio setup complete for '${meshName}'`,
-    );
 
     return {
       cleanup: () => {
-        console.log("[SPATIAL AUDIO DEBUG] Cleaning up spatial speech");
 
         // Remove render observer
         if (renderObserver && flock.scene?.onBeforeRenderObservable) {
@@ -984,8 +896,6 @@ export const flockSound = {
             console.warn("Error disconnecting panner:", e);
           }
         }
-
-        console.log("[SPATIAL AUDIO DEBUG] Spatial speech cleanup complete");
       },
     };
   },
