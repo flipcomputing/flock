@@ -987,7 +987,7 @@ export default {
       collect_the_gems_ui: "💎 Samla ädelstenarna",
       water_map_ui: "💧 Vattenkarta",
       skittles_ui: "🎳 Käglor",
-      beetle_ui: "🪲 Skalbagge",
+      beetle_ui: "🎲 Skalbagge",
       roominator_ui: "🛋️ Rumsdesign",
       ball_pit_ui: "🟠 Bollhav",
       ur_enough_ui: "💗 Du är nog!",
