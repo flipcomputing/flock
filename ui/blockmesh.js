@@ -687,6 +687,13 @@ function updateGroundFromBlock(mesh, block, changeEvent) {
 }
 
 function updateMapFromBlock(mesh, block, changeEvent) {
+  // Don't steal ground ownership from another block while this block is floating/unconnected.
+  // This prevents a duplicated map block from interfering with the original's ground.
+  const currentOwnerId = meshBlockIdMap["ground"];
+  if (currentOwnerId && currentOwnerId !== block.id && !block.getParent()) {
+    return;
+  }
+
   meshMap["ground"] = block;
   meshBlockIdMap["ground"] = block.id;
 
