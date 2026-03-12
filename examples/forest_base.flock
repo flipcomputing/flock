@@ -126,7 +126,7 @@
         "type": "start",
         "id": "8s$*ox(T?3eAC1O!3N|v",
         "x": 10,
-        "y": 494,
+        "y": 488,
         "inputs": {
           "DO": {
             "block": {
@@ -243,7 +243,7 @@
                       },
                       "block": {
                         "type": "material",
-                        "id": "gFGh7Arzq4b[URFGw;ti",
+                        "id": "-2B,0._ajj2aKlq[UmDj",
                         "fields": {
                           "TEXTURE_SET": "planks.png"
                         },
@@ -325,7 +325,7 @@
                         "type": "text",
                         "id": "V8;_4T!B,V:$GY2AWQ*t",
                         "fields": {
-                          "TEXT": "W - forward; S - backward; Space - Jump"
+                          "TEXT": "W - forward; S - backward"
                         }
                       }
                     },
@@ -358,7 +358,7 @@
         "type": "start",
         "id": "NE/9)5bz4F)yulJ$MAd/",
         "x": 10,
-        "y": 790,
+        "y": 773,
         "inputs": {
           "DO": {
             "block": {
@@ -517,7 +517,7 @@
         "type": "procedures_defnoreturn",
         "id": "%6CG-tkp5Z0nX(~e6^Z5",
         "x": 10,
-        "y": 2314,
+        "y": 2252,
         "extraState": {
           "params": [
             {
@@ -1598,7 +1598,7 @@
         "type": "start",
         "id": "I_zBad|Vs4|xy8j^3MJT",
         "x": 10,
-        "y": 2098,
+        "y": 2036,
         "inputs": {
           "DO": {
             "block": {
@@ -1629,7 +1629,7 @@
         "type": "forever",
         "id": "+-%,!$X@ve.0)P[0$/Cf",
         "x": 10,
-        "y": 1182,
+        "y": 1156,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
