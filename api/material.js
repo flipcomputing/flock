@@ -386,11 +386,16 @@ export const flockMaterial = {
             const materialParams = {
               color: color,
               materialName: currentMat.metadata?.cacheKey?.split("_")[3] || "none.png",
-              alpha: currentMat.alpha ?? 1,
+              alpha: 1,
               glow: false,
             };
 
             flock.setMaterialWithCleanup(targetMesh, materialParams);
+
+            if (targetMesh.material) {
+              targetMesh.material.transparencyMode = null;
+              targetMesh.material.needDepthPrePass = false;
+            }
           }
 
           targetMesh.metadata = targetMesh.metadata || {};

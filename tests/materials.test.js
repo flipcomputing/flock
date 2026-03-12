@@ -152,6 +152,7 @@ export function runMaterialsTests(flock) {
 			await flock.tint(id, { color });
 			await flock.glow(id, { color });
 			await flock.highlight(id, { color });
+			await flock.setAlpha(id, { value: 0.5 });
 
 			// Clear effects
 			await flock.clearEffects(id);
@@ -169,6 +170,9 @@ export function runMaterialsTests(flock) {
 				if (flock.glowLayer) {
 					expect(m.metadata.glow).to.be.false;
 				}
+				expect(m.material.alpha).to.be.closeTo(1, 0.01);
+				expect(m.material.transparencyMode).to.be.null;
+				expect(m.material.needDepthPrePass).to.be.false;
 			});
 		});
 	});
