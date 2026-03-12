@@ -4551,10 +4551,27 @@ const toolboxSnippets = {
                                                 type: "set_sky_color",
                                                 inputs: {
                                                         COLOR: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#6495ed",
+                                                                block: {
+                                                                        type: "lists_create_with",
+                                                                        extraState: { itemCount: 2 },
+                                                                        inline: true,
+                                                                        inputs: {
+                                                                                ADD0: {
+                                                                                        shadow: {
+                                                                                                type: "colour",
+                                                                                                fields: {
+                                                                                                        COLOR: "#6495ed",
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                                ADD1: {
+                                                                                        shadow: {
+                                                                                                type: "colour",
+                                                                                                fields: {
+                                                                                                        COLOR: "#87ceeb",
+                                                                                                },
+                                                                                        },
+                                                                                },
                                                                         },
                                                                 },
                                                         },
