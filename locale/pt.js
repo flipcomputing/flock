@@ -986,7 +986,7 @@ export default {
   collect_the_gems_ui: "💎 Apanha as Gemas",
   water_map_ui: "💧 Mapa de Água",
   skittles_ui: "🎳 Skittles",
-  beetle_ui: "🪲 Escaravelho",
+  beetle_ui: "🎲 Escaravelho",
   roominator_ui: "🛋️ Roominator",
   ball_pit_ui: "🟠 Piscina de Bolas",
   ur_enough_ui: "💗 És Suficiente!",
