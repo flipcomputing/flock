@@ -755,7 +755,7 @@ export const flockMaterial = {
       });
 
       let characterColors;
-      if (Array.isArray(color)) {
+      if (Array.isArray(color) && color.length > 1) {
         characterColors = {
           hair: colors[0] ?? currentPalette.hair,
           skin: colors[1] ?? currentPalette.skin,
@@ -765,13 +765,14 @@ export const flockMaterial = {
           sleeves: colors[5] ?? currentPalette.sleeves,
         };
       } else {
+        const singleColor = Array.isArray(color) ? color[0] : color;
         characterColors = {
-          hair: color,
-          skin: color,
-          eyes: color,
-          tshirt: color,
-          shorts: color,
-          sleeves: color,
+          hair: singleColor,
+          skin: singleColor,
+          eyes: singleColor,
+          tshirt: singleColor,
+          shorts: singleColor,
+          sleeves: singleColor,
         };
       }
 
@@ -1013,6 +1014,9 @@ export const flockMaterial = {
     if (flock?.materialsDebug) console.log(`Create material: ${materialName}`);
     let material;
     const texturePath = flock.texturePath + materialName;
+
+    // Normalize single-element array to plain value
+    if (Array.isArray(color) && color.length === 1) color = color[0];
 
     // Handle two-color case
     if (Array.isArray(color) && color.length === 2) {
