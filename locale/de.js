@@ -1000,7 +1000,7 @@ export default {
   collect_the_gems_ui: "💎 Sammle die Edelsteine",
   water_map_ui: "💧 Wasserkarte",
   skittles_ui: "🎳 Kegeln",
-  beetle_ui: "🪲 Käfer",
+  beetle_ui: "🎲 Käfer",
   roominator_ui: "🛋️ Raum-Designer",
   sit_down_ui: "🪑 Hinsetzen",
   ball_pit_ui: "🟠 Bällebad",
