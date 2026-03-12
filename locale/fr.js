@@ -994,7 +994,7 @@ export default {
   collect_the_gems_ui: "💎 Ramasse les gemmes",
   water_map_ui: "💧 Carte aquatique",
   skittles_ui: "🎳 Quilles",
-  beetle_ui: "🪲 Scarabée",
+  beetle_ui: "🎲 Scarabée",
   roominator_ui: "🛋️ Roominator",
   ball_pit_ui: "🟠 Piscine à balles",
   ur_enough_ui: "💗 Tu es suffisant·e !",
