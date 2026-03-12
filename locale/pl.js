@@ -992,7 +992,7 @@ export default {
   collect_the_gems_ui: "💎 Zbierz klejnoty",
   water_map_ui: "💧 Mapa wodna",
   skittles_ui: "🎳 Skittles",
-  beetle_ui: "🪲 Żuk",
+  beetle_ui: "🎲 Żuk",
   roominator_ui: "🛋️ Roominator",
   ball_pit_ui: "🟠 Basen z kulkami",
   ur_enough_ui: "💗 Jesteś wystarczający!",
