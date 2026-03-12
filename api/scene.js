@@ -85,6 +85,8 @@ export const flockScene = {
       return;
     }
 
+    if (Array.isArray(color) && color.length === 1) color = color[0];
+
     if (Array.isArray(color) && color.length >= 2) {
       const skySphere = createSkySphere();
       flock.sky = skySphere;
@@ -166,10 +168,11 @@ export const flockScene = {
     const grad = horizontal
       ? ctx.createLinearGradient(0, 0, w, 0)
       : ctx.createLinearGradient(0, 0, 0, h);
-    const n = Math.max(2, colors.length);
+    const normalizedColors = colors.length === 1 ? [colors[0], colors[0]] : colors;
+    const n = normalizedColors.length;
     for (let i = 0; i < n; i++) {
       const stop = i / (n - 1);
-      const hex = flock.getColorFromString(colors[i]);
+      const hex = flock.getColorFromString(normalizedColors[i]);
       const c3 = flock.BABYLON.Color3.FromHexString(hex);
       const rgb = `rgb(${Math.round(c3.r * 255)}, ${Math.round(c3.g * 255)}, ${Math.round(c3.b * 255)})`;
       grad.addColorStop(stop, rgb);
@@ -196,6 +199,7 @@ export const flockScene = {
     const mapTexturePhysicalSize = 4;
 
     const applyMaterialToGround = (mesh, mat) => {
+      if (Array.isArray(mat) && mat.length === 1) mat = mat[0];
       if (Array.isArray(mat) && mat.length >= 2) {
         const standardMat = new flock.BABYLON.StandardMaterial(
           "mapGradientMat",
