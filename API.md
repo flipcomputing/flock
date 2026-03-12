@@ -498,7 +498,7 @@ For a complete working example, see [example.html](example.html) in the reposito
 
 ### Basic Scene Setup
 ```javascript
-setSky("#ffffff");
+setSky(["#87CEEB", "#1E90FF"]);
 createGround("#ffffff", "ground");
 printText('🌈 Hello', 30, "#000080");
 buttonControls("ARROWS", true, "#cc33cc");
