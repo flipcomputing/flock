@@ -3035,21 +3035,6 @@ const toolboxMaterials = {
                         keyword: "colour",
                         inputs: {
                                 COLOR: {
-                                        shadow: {
-                                                type: "colour",
-                                                fields: {
-                                                        COLOR: "#008080",
-                                                },
-                                        },
-                                },
-                        },
-                },
-                {
-                        kind: "block",
-                        type: "change_color",
-                        keyword: "colour",
-                        inputs: {
-                                COLOR: {
                                         block: {
                                                 type: "lists_create_with",
                                                 extraState: { itemCount: 1 },
