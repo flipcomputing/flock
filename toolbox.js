@@ -3046,6 +3046,29 @@ const toolboxMaterials = {
                 },
                 {
                         kind: "block",
+                        type: "change_color",
+                        keyword: "colour",
+                        inputs: {
+                                COLOR: {
+                                        block: {
+                                                type: "lists_create_with",
+                                                extraState: { itemCount: 1 },
+                                                inputs: {
+                                                        ADD0: {
+                                                                shadow: {
+                                                                        type: "colour",
+                                                                        fields: {
+                                                                                COLOR: "#008080",
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
                         type: "set_alpha",
                         keyword: "alpha",
                         inputs: {
