@@ -3038,6 +3038,7 @@ const toolboxMaterials = {
                                         block: {
                                                 type: "lists_create_with",
                                                 extraState: { itemCount: 1 },
+                                                inline: true,
                                                 inputs: {
                                                         ADD0: {
                                                                 shadow: {
