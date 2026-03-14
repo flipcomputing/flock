@@ -20,9 +20,11 @@ async function getManifold() {
       
       const wasm = await Module({
         locateFile: (file) => {
-          if (file.endsWith('.wasm')) {
-            // Use base URL for both dev and production (GitHub Pages)
-            return `${baseUrl}wasm/manifold.wasm`;
+          if (file.endsWith('.wasm') || file.endsWith('.js')) {
+            // Serve both the WASM and its JS companion from the local wasm/ directory,
+            // preventing any fetch to unpkg.com (where the package was originally published).
+            const name = file.split('/').pop();
+            return `${baseUrl}wasm/${name}`;
           }
           return file;
         }
