@@ -461,8 +461,8 @@ function parseNumericSuffix(name, prefix) {
 }
 
 function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
-  // Pick the smallest available suffix >= 1
-  let n = 1;
+  // Pick the smallest available suffix, starting from the tracked counter.
+  let n = nextVariableIndexes[prefix] || 1;
   while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
 
   // Update the counter
