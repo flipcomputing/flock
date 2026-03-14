@@ -117,11 +117,12 @@ function validateBlocklyJson(json) {
 				/%[0-9a-f]{2}/i, // URL encoded characters
 			];
 
-			// Count suspicious patterns - allow a few for legitimate use, but flag excessive use
+			// Flag any obfuscation pattern - legitimate Blockly field values should not
+			// contain escape sequences, HTML entities, or URL-encoded characters.
 			const suspiciousCount = obfuscationPatterns.filter((pattern) =>
 				pattern.test(obj),
 			).length;
-			if (suspiciousCount >= 2) {
+			if (suspiciousCount >= 1) {
 				throw new Error(`Potential obfuscation detected at ${path}`);
 			}
 		}
@@ -283,12 +284,12 @@ function validateBlocklyJson(json) {
 			}
 		}
 
-		// Validate field values (but skip extraState - it can contain XML)
+		// Validate field values
 		if (block.fields) {
 			Object.entries(block.fields).forEach(([fieldName, fieldValue]) => {
 				if (fieldValue && typeof fieldValue === "object") {
 					// Field values can be objects with 'id' property for variables
-					if (!fieldValue.id && fieldName !== "extraState") {
+					if (!fieldValue.id) {
 						checkForDangerousContent(
 							fieldValue,
 							`${path}.fields.${fieldName}`,
@@ -562,6 +563,13 @@ export function importSnippet() {
 	fileInput.onchange = (event) => {
 		const file = event.target.files[0];
 		if (!file) return;
+
+		const maxSize = 5 * 1024 * 1024;
+		if (file.size > maxSize) {
+			console.error("Snippet file is too large:", file.size);
+			event.target.value = "";
+			return;
+		}
 
 		const fileType = file.type;
 		const fileName = file.name.toLowerCase();
