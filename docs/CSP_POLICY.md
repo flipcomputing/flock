@@ -35,7 +35,7 @@ default-src 'self';
 base-uri 'self';
 form-action 'self';
 object-src 'none';
-script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://unpkg.com;
+script-src 'self' 'wasm-unsafe-eval' https://www.googletagmanager.com https://unpkg.com;
 style-src 'self' 'unsafe-inline';
 img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com;
 font-src 'self' data:;
@@ -53,10 +53,16 @@ Meta fallback policy (for static hosting without headers): same as above but wit
 
 The policy uses strict defaults (`default-src 'self'`, `object-src 'none'`, explicit `connect-src`/`script-src`/`worker-src`) while preserving required runtime behavior.
 
-Two allowances remain intentionally broad enough for current implementation:
+One allowance remains intentionally broad:
 
-- `'unsafe-inline'` in `script-src` / `style-src` due to inline scripts/styles in `index.html` and iframe sandbox bootstrap.
-- `'unsafe-eval'` + `'wasm-unsafe-eval'` in `script-src` to support current sandbox/runtime execution stack.
+- `'unsafe-inline'` in `style-src` — required for Blockly's runtime-injected inline styles (block colours, toolbox layout). Dynamically injected styles cannot be hashed, so this cannot be removed without modifying Blockly's theming internals.
+
+`script-src` no longer requires `'unsafe-inline'` or `'unsafe-eval'`:
+
+- The Google Analytics initialisation script was moved from an inline `<script>` block to `ga-init.js` (served from `self`), eliminating the only inline script in `index.html`.
+- The `new Function(code)` syntax-check in `validateCode()` was removed; the AST-based `validateUserCodeAST()` already provides a stricter check before code reaches the sandbox.
+- WASM execution (Draco, Manifold) is covered by `'wasm-unsafe-eval'`, which allows only WASM compilation rather than arbitrary JS `eval`.
+- The sandbox iframe sets its own CSP (`script-src 'unsafe-inline' 'unsafe-eval'`) inside the iframe document — this is separate from the parent page's policy and governs only sandboxed user-code execution.
 
 ## CSP regression checks before merge
 

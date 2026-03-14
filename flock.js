@@ -386,13 +386,6 @@ export const flock = {
                         throw new Error("Code too long (max 100KB)");
                 }
 
-                // Basic syntax check
-                try {
-                        new Function(code); // Just check if it parses
-                } catch (e) {
-                        throw new Error(`Syntax error: ${e.message}`);
-                }
-
                 // Optional: Warn about patterns (don't block)
                 const warnings = [];
                 if (/eval\s*\(/.test(code)) {
