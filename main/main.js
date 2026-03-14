@@ -91,19 +91,50 @@ if ("serviceWorker" in navigator) {
 }
 
 async function showUpdateNotification() {
+        // Build the notification using DOM APIs instead of innerHTML to avoid
+        // any risk of XSS from translated strings or future changes.
         const notification = document.createElement("div");
-        notification.innerHTML = `
-        <div style="position: fixed; bottom: 0; left: 0; width: 100%; background: #511D91; color: white; text-align: center; padding: 10px; z-index: 1000;">
-          <span data-i18n="update_available">A new version of Flock is available.</span> <button id="reload-btn" style="background: white; color: #511D91; padding: 5px 10px; border: none; cursor: pointer;" data-i18n="reload_button">Reload</button>
-        </div>
-  `;
+
+        const banner = document.createElement("div");
+        Object.assign(banner.style, {
+                position: "fixed",
+                bottom: "0",
+                left: "0",
+                width: "100%",
+                background: "#511D91",
+                color: "white",
+                textAlign: "center",
+                padding: "10px",
+                zIndex: "1000",
+        });
+
+        const messageSpan = document.createElement("span");
+        messageSpan.setAttribute("data-i18n", "update_available");
+        messageSpan.textContent = "A new version of Flock is available.";
+
+        const reloadBtn = document.createElement("button");
+        reloadBtn.id = "reload-btn";
+        Object.assign(reloadBtn.style, {
+                background: "white",
+                color: "#511D91",
+                padding: "5px 10px",
+                border: "none",
+                cursor: "pointer",
+                marginLeft: "8px",
+        });
+        reloadBtn.setAttribute("data-i18n", "reload_button");
+        reloadBtn.textContent = "Reload";
+
+        banner.appendChild(messageSpan);
+        banner.appendChild(reloadBtn);
+        notification.appendChild(banner);
         document.body.appendChild(notification);
 
         // Apply translations to the new elements
         const { applyTranslations } = await import("./translation.js");
         applyTranslations();
 
-        document.getElementById("reload-btn").addEventListener("click", () => {
+        reloadBtn.addEventListener("click", () => {
                 // Reload the page to activate the new service worker
                 window.location.reload();
         });

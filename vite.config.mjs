@@ -210,6 +210,10 @@ export default {
     host: '0.0.0.0',
     headers: {
       'Content-Security-Policy': CSP_POLICY,
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'geolocation=(), payment=(), usb=(self)',
     },
     fs: { allow: ['../..'] },
     allowedHosts: [
@@ -221,6 +225,10 @@ export default {
   preview: {
     headers: {
       'Content-Security-Policy': CSP_POLICY,
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'geolocation=(), payment=(), usb=(self)',
     },
   },
 

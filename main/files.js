@@ -409,7 +409,23 @@ export function loadWorkspace(workspace, executeCallback) {
 		if (projectUrl === "starter") {
 			loadStarter();
 		} else {
-			fetch(projectUrl)
+			// Validate the project URL before fetching to prevent loading from
+			// arbitrary external origins (SSRF-style abuse).
+			let safeUrl;
+			try {
+				const parsed = new URL(projectUrl, window.location.origin);
+				const isSameOrigin = parsed.origin === window.location.origin;
+				const hasValidExtension = /\.(json|flock)$/i.test(parsed.pathname);
+				if (!isSameOrigin || !hasValidExtension) {
+					throw new Error("Project URL must be same-origin with a .json or .flock extension");
+				}
+				safeUrl = parsed.href;
+			} catch (validationError) {
+				console.error("Invalid project URL:", validationError);
+				loadStarter();
+				return;
+			}
+			fetch(safeUrl)
 				.then((response) => {
 					if (!response.ok) throw new Error("Invalid response");
 					return response.json();
