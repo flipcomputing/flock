@@ -9,6 +9,7 @@ import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
+  getActiveSceneControllerBlockId,
   clearSkyMesh,
   setClearSkyToBlack,
 } from "../ui/blockmesh.js";
@@ -147,6 +148,8 @@ export function handleBlockSelect(event) {
 
 export function handleBlockDelete(event) {
   if (event.type === Blockly.Events.BLOCK_DELETE) {
+    const activeControllerBlockId = getActiveSceneControllerBlockId();
+
     // Recursively delete meshes for qualifying blocks
     function deleteMeshesRecursively(blockJson) {
       // Check if block type matches the prefixes
@@ -157,11 +160,15 @@ export function handleBlockDelete(event) {
         deleteMeshFromBlock(blockJson.id);
       } else if (blockJson.type === "set_background_color") {
         deleteMeshFromBlock(blockJson.id);
-        clearSkyMesh();
-        setClearSkyToBlack();
+        if (activeControllerBlockId === blockJson.id) {
+          clearSkyMesh();
+          setClearSkyToBlack();
+        }
       } else if (blockJson.type === "set_sky_color") {
-        clearSkyMesh();
-        setClearSkyToBlack();
+        if (activeControllerBlockId === blockJson.id) {
+          clearSkyMesh();
+          setClearSkyToBlack();
+        }
       }
 
       // Check inputs for child blocks
@@ -225,10 +232,11 @@ export function handleMeshLifecycleChange(block, changeEvent) {
       }, 0);
     } else {
       deleteMeshFromBlock(block.id);
-      if (block.type === "set_background_color") {
-        clearSkyMesh();
-        setClearSkyToBlack();
-      } else if (block.type === "set_sky_color") {
+      if (
+        (block.type === "set_background_color" ||
+          block.type === "set_sky_color") &&
+        getActiveSceneControllerBlockId() === block.id
+      ) {
         clearSkyMesh();
         setClearSkyToBlack();
       }
