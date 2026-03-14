@@ -11,7 +11,8 @@
     "test:api:watch": "node scripts/run-api-tests.mjs --watch",
     "docs:coverage": "node scripts/api-coverage-report.mjs",
     "docs:matrix": "node scripts/test-coverage-matrix.mjs",
-    "validate:api-docs": "node scripts/validate-api-docs.mjs"
+    "validate:api-docs": "node scripts/validate-api-docs.mjs",
+    "test:csp-smoke": "node scripts/csp-smoke.mjs"
   },
   "dependencies": {
     "@babylonjs/addons": "^8.52.0",
