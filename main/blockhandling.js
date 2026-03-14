@@ -80,22 +80,16 @@ export function initializeBlockHandling() {
 				} catch {}
 			}
 
-			// Original z-order behaviour: top-level blocks (any type) to the front
+			// Original z-order behaviour: top-level blocks (any type) to the front.
+			// Reuse topBlocks (already computed above) instead of getAllBlocks() to
+			// avoid iterating every block in the workspace and triggering unnecessary
+			// DOM reflows.
 			try {
 				const canvas = workspace.getBlockCanvas?.();
 				if (canvas) {
-					for (const b of workspace.getAllBlocks(false) || []) {
-						if (!b || b.isInFlyout || b.isShadow?.()) continue;
-						const hasParent =
-							typeof b.getParent === "function"
-								? !!b.getParent()
-								: !!b.parentBlock_;
-						if (hasParent) continue;
-
-						// Only adjust z-order if needed; avoid DOM churn
+					for (const b of topBlocks) {
 						const svg = b.getSvgRoot?.();
 						if (svg && svg.parentNode === canvas) {
-							// If this is the selected block, remember its SVG to re-focus later
 							const isSelected =
 								prevSelected && b.id === prevSelected.id;
 							canvas.appendChild(svg);
