@@ -164,6 +164,7 @@
   <body class="loading">
     <script>
     (function(){
+      if (!new URLSearchParams(window.location.search).has('touchDebug')) return;
       const overlay = document.createElement('div');
       Object.assign(overlay.style, {
         position:'fixed', left:'0', bottom:'0', width:'100%', maxHeight:'45vh',
