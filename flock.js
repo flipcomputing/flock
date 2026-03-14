@@ -97,6 +97,7 @@ export const flock = {
         console: console,
         havokAbortHandled: false,
         triggerHandlingDebug: false,
+        _sesText: null,
         modelPath: "./models/",
         soundPath: "./sounds/",
         imagePath: "./images/",
@@ -642,18 +643,8 @@ export const flock = {
                                 document.getElementById("flock-iframe");
                         if (oldIframe) {
                                 try {
-                                        await oldIframe.contentWindow?.flock?.disposeOldScene?.();
-                                } catch {
-                                        /* ignore cleanup errors */
-                                }
-                                try {
                                         oldIframe.onload = oldIframe.onerror =
                                                 null;
-                                } catch {
-                                        /* ignore cleanup errors */
-                                }
-                                try {
-                                        oldIframe.src = "about:blank";
                                 } catch {
                                         /* ignore cleanup errors */
                                 }
@@ -664,28 +655,45 @@ export const flock = {
                                 }
                         }
 
-                        // --- create fresh same-origin iframe ---
-                        const { win, doc } = await flock.replaceSandboxIframe({
-                                id: "flock-iframe",
-                                sameOrigin: true,
-                        });
-
-                        // --- load SES text in parent and inject inline into iframe (CSP allows inline) ---
-                        const sesResp = await fetch(
-                                "vendor/ses/lockdown.umd.min.js",
-                        );
-                        if (!sesResp.ok)
-                                throw new Error(
-                                        `Failed to fetch SES: ${sesResp.status}`,
+                        // --- cache SES text once per session ---
+                        if (!flock._sesText) {
+                                const sesResp = await fetch(
+                                        "vendor/ses/lockdown.umd.min.js",
                                 );
-                        const sesText = await sesResp.text();
-                        const sesScript = doc.createElement("script");
-                        sesScript.type = "text/javascript";
-                        sesScript.text = sesText;
-                        doc.head.appendChild(sesScript);
+                                if (!sesResp.ok)
+                                        throw new Error(
+                                                `Failed to fetch SES: ${sesResp.status}`,
+                                        );
+                                flock._sesText = await sesResp.text();
+                        }
 
-                        // lockdown the iframe realm
-                        win.lockdown();
+                        // --- listen for sandbox 'ready' message BEFORE creating iframe ---
+                        let _sandboxPortResolve;
+                        const sandboxPortPromise = new Promise(
+                                (resolve) => (_sandboxPortResolve = resolve),
+                        );
+                        const _sandboxReadyHandler = (event) => {
+                                if (
+                                        event.data?.__flockSandbox === "ready" &&
+                                        event.ports?.[0]
+                                ) {
+                                        window.removeEventListener(
+                                                "message",
+                                                _sandboxReadyHandler,
+                                        );
+                                        _sandboxPortResolve(event.ports[0]);
+                                }
+                        };
+                        window.addEventListener("message", _sandboxReadyHandler);
+
+                        // --- create sandboxed iframe (allow-scripts only, no allow-same-origin) ---
+                        const srcdocHtml = flock._buildSandboxSrcdoc(
+                                flock._sesText,
+                        );
+                        await flock.replaceSandboxIframe({
+                                id: "flock-iframe",
+                                srcdocHtml,
+                        });
 
                         // initialise scene
                         await this.initializeNewScene?.();
@@ -708,149 +716,145 @@ export const flock = {
                                         return fn(...args);
                                 };
 
-                        const whitelist = this.createWhitelist({
-                                win,
-                                signal,
-                                guard,
+                        // --- get the MessageChannel port from the sandbox ---
+                        const sandboxPort = await sandboxPortPromise;
+
+                        // Forward abort signal to sandbox
+                        signal.addEventListener(
+                                "abort",
+                                () => {
+                                        try {
+                                                sandboxPort.postMessage({
+                                                        __type: "abort",
+                                                });
+                                        } catch {
+                                                /* ignore if port is closed */
+                                        }
+                                },
+                                { once: true },
+                        );
+
+                        // Build whitelist (functions the sandbox may call via RPC)
+                        const whitelist = this.createWhitelist({ signal, guard });
+                        const functionNames = Object.keys(whitelist).filter(
+                                (k) => typeof whitelist[k] === "function",
+                        );
+
+                        // Pending callback invocations (parent→sandbox→parent)
+                        const pendingInvocations = new Map();
+                        let invokeIdCounter = 0;
+                        const nextInvokeId = () => ++invokeIdCounter;
+
+                        // --- wait for eval-done / eval-error from sandbox ---
+                        await new Promise((resolve, reject) => {
+                                sandboxPort.onmessage = async (event) => {
+                                        const msg = event.data;
+                                        if (!msg?.__type) return;
+
+                                        if (msg.__type === "eval-done") {
+                                                resolve();
+                                        } else if (msg.__type === "eval-error") {
+                                                // Treat abort-related errors as normal completion
+                                                if (
+                                                        msg.name === "AbortError" ||
+                                                        signal.aborted ||
+                                                        msg.error === "Aborted" ||
+                                                        msg.error === "Wait aborted"
+                                                ) {
+                                                        resolve();
+                                                } else {
+                                                        reject(new Error(msg.error));
+                                                }
+                                        } else if (msg.__type === "call") {
+                                                // RPC: sandbox is calling a flock function
+                                                if (
+                                                        signal.aborted ||
+                                                        runToken !== this.__runToken
+                                                ) {
+                                                        sandboxPort.postMessage({
+                                                                __type: "call-result",
+                                                                id: msg.id,
+                                                                result: undefined,
+                                                        });
+                                                        return;
+                                                }
+                                                const fn = whitelist[msg.fnName];
+                                                if (typeof fn !== "function") {
+                                                        sandboxPort.postMessage({
+                                                                __type: "call-result",
+                                                                id: msg.id,
+                                                                error: `Unknown function: ${msg.fnName}`,
+                                                        });
+                                                        return;
+                                                }
+                                                const args = (msg.args || []).map(
+                                                        (a) =>
+                                                                flock._deserializeSandboxArg(
+                                                                        a,
+                                                                        sandboxPort,
+                                                                        pendingInvocations,
+                                                                        nextInvokeId,
+                                                                ),
+                                                );
+                                                try {
+                                                        const result = await fn(...args);
+                                                        if (
+                                                                !signal.aborted &&
+                                                                runToken === this.__runToken
+                                                        ) {
+                                                                sandboxPort.postMessage({
+                                                                        __type: "call-result",
+                                                                        id: msg.id,
+                                                                        result,
+                                                                });
+                                                        }
+                                                } catch (err) {
+                                                        if (
+                                                                !signal.aborted &&
+                                                                runToken === this.__runToken
+                                                        ) {
+                                                                sandboxPort.postMessage({
+                                                                        __type: "call-result",
+                                                                        id: msg.id,
+                                                                        error: err.message,
+                                                                });
+                                                        }
+                                                }
+                                        } else if (msg.__type === "callback-done") {
+                                                const pending = pendingInvocations.get(
+                                                        msg.invokeId,
+                                                );
+                                                if (pending) {
+                                                        pendingInvocations.delete(
+                                                                msg.invokeId,
+                                                        );
+                                                        pending.resolve();
+                                                }
+                                        } else if (msg.__type === "callback-error") {
+                                                const pending = pendingInvocations.get(
+                                                        msg.invokeId,
+                                                );
+                                                if (pending) {
+                                                        pendingInvocations.delete(
+                                                                msg.invokeId,
+                                                        );
+                                                        pending.reject(
+                                                                new Error(msg.error),
+                                                        );
+                                                }
+                                        }
+                                };
+
+                                // Send code to sandbox for evaluation
+                                sandboxPort.postMessage({
+                                        __type: "evaluate",
+                                        code,
+                                        functionNames,
+                                });
                         });
 
-                        // Create an endowments object in the iframe's realm
-                        const endowments = new win.Object();
-
-                        for (const [key, value] of Object.entries(whitelist)) {
-                                const t = typeof value;
-                                if (t === "function") {
-                                        // Bind to null so we don't leak host `this`
-                                        endowments[key] = value.bind(null);
-                                } else if (
-                                        value == null ||
-                                        (t !== "object" && t !== "symbol")
-                                ) {
-                                        // primitives only
-                                        endowments[key] = value;
-                                } else {
-                                        // skip complex objects (meshes, DOM nodes, etc). Expose via functions instead.
-                                }
-                        }
-
-                        endowments.performance = {
-                                now: win.performance.now.bind(win.performance),
-                        };
-
-                        endowments.requestAnimationFrame =
-                                win.requestAnimationFrame.bind(win);
-
-                        endowments.Date = { now: win.Date.now.bind(win.Date) };
-
-                        // Undefine unwanted globals
-                        // --- shadow unsafe / unneeded globals ---
-                        const toUndefine = [
-                                // Host / DOM / cross-frame
-                                "flock",
-                                "window",
-                                "self",
-                                "globalThis",
-                                "parent",
-                                "top",
-                                "frames",
-                                "opener",
-                                "frameElement",
-                                "document",
-
-                                // SES meta
-                                "lockdown",
-                                "harden",
-                                "Compartment",
-
-                                // Legacy / GC / crypto
-                                "escape",
-                                "unescape",
-                                "FinalizationRegistry",
-                                "WeakRef",
-                                "crypto",
-
-                                // Dynamic code creation
-                                "eval",
-                                "Function",
-                                "AsyncFunction",
-                                "GeneratorFunction",
-                                "AsyncGeneratorFunction",
-
-                                // Threads / native
-                                "SharedArrayBuffer",
-                                "Atomics",
-                                "WebAssembly",
-
-                                // Workers & messaging
-                                "Worker",
-                                "SharedWorker",
-                                "MessageChannel",
-                                "BroadcastChannel",
-                                "queueMicrotask",
-
-                                // Network / storage / env
-                                "fetch",
-                                "XMLHttpRequest",
-                                "navigator",
-                                "location",
-                                "localStorage",
-                                "sessionStorage",
-                                "indexedDB",
-                                "caches",
-
-                                // UX
-                                "Notification",
-
-                                //Events
-                                "addEventListener",
-                                "removeEventListener",
-                                "dispatchEvent",
-                        ];
-
-                        for (const k of toUndefine) endowments[k] = undefined;
-
-                        for (const key of toUndefine) {
-                                endowments[key] = undefined;
-                        }
-
-                        Object.freeze(endowments);
-
-                        // Wrap user code to allow top-level await
-                        /*const wrapped =
-                                '(async () => {\n"use strict";\n' +
-                                code +
-                                "\n})()\n//# sourceURL=user-code.js";*/
-
-                        const wrapped =
-                                '(async function () {\n"use strict";\n' +
-                                code +
-                                "\n}).call(undefined)\n//# sourceURL=user-code.js";
-
-                        // Evaluate in SES Compartment
-                        const c = new win.Compartment(endowments);
-
-                        const MAX_MS = 5000;
-                        const hostSetTimeout = window.setTimeout.bind(window);
-                        await Promise.race([
-                                c.evaluate(wrapped),
-                                new Promise((_, rej) =>
-                                        hostSetTimeout(
-                                                () =>
-                                                        rej(
-                                                                new Error(
-                                                                        "User code timed out",
-                                                                ),
-                                                        ),
-                                                MAX_MS,
-                                        ),
-                                ),
-                        ]);
-
                         // focus canvas if present
-                        (
-                                document.getElementById("renderCanvas") ||
-                                doc.getElementById("renderCanvas")
-                        )?.focus();
+                        document.getElementById("renderCanvas")?.focus();
                 } catch (error) {
                         const enhancedError =
                                 this.createEnhancedError?.(error, code) ??
@@ -879,51 +883,10 @@ export const flock = {
                         throw error;
                 }
         },
-        createWhitelist({ win, signal, guard } = {}) {
-                // --- Bind realm-scoped primitives (fallback to parent if win missing) ---
-                const raf =
-                        win?.requestAnimationFrame?.bind(win) ??
-                        window.requestAnimationFrame.bind(window);
-                const caf =
-                        win?.cancelAnimationFrame?.bind(win) ??
-                        window.cancelAnimationFrame.bind(window);
-
-                // RAF-based nextTick tied to the iframe realm
-                const nextFrame = () =>
-                        new Promise((resolve, reject) => {
-                                if (signal?.aborted) {
-                                        return reject(
-                                                new DOMException(
-                                                        "Aborted",
-                                                        "AbortError",
-                                                ),
-                                        );
-                                }
-                                const id = raf(() => resolve());
-                                const onAbort = () => {
-                                        try {
-                                                caf(id);
-                                        } catch {
-                                                /* ignore animation cancel errors */
-                                        }
-                                        reject(
-                                                new DOMException(
-                                                        "Aborted",
-                                                        "AbortError",
-                                                ),
-                                        );
-                                };
-                                signal?.addEventListener?.("abort", onAbort, {
-                                        once: true,
-                                });
-                        });
-
+        createWhitelist({ signal, guard } = {}) {
                 const api = {
-                        // Per-run helpers
-                        nextFrame,
-                        isAborted: () => !!signal?.aborted,
-
                         // Flock API methods — bound to host `this`
+                        // (nextFrame and isAborted are provided directly in the sandbox script)
                         initialize: this.initialize?.bind(this),
                         createEngine: this.createEngine?.bind(this),
                         playAnimation: this.playAnimation?.bind(this),
@@ -1120,9 +1083,132 @@ export const flock = {
                         return api;
                 }
         },
+        // --- Sandbox RPC helpers ---
+
+        /** Build the srcdoc HTML for the sandboxed execution iframe.
+         *  Embeds SES inline so the iframe needs only allow-scripts (no allow-same-origin). */
+        _buildSandboxSrcdoc(sesText) {
+                const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval'`;
+                // Escape </script> sequences inside the SES text to prevent premature tag closure.
+                // The HTML parser won't recognise <\/script> as an end tag; JS treats \/ as /.
+                const safeSes = sesText.replace(/<\/script>/gi, '<\\/script>');
+                const rpc = flock._getSandboxRpcScript();
+                // flock.js is a JS module (not inline HTML), so </script> here is fine.
+                return (
+                        `<!doctype html>` +
+                        `\n<meta http-equiv="Content-Security-Policy" content="${csp}">` +
+                        `\n<script>${safeSes}</` + `script>` +
+                        `\n<script>lockdown();\n${rpc}\n</` + `script>`
+                );
+        },
+
+        /** Returns the RPC bootstrap script that runs inside the sandbox after lockdown(). */
+        _getSandboxRpcScript() {
+                // NOTE: inside this string \\n becomes \n in the embedded JS (newline escape).
+                return `(function(){
+  var _pc=new Map(),_cb=new Map(),_ci=0,_bi=0,_ii=0,_ab=false;
+  var _mc=new MessageChannel(),_p=_mc.port1;
+  window.parent.postMessage({__flockSandbox:'ready'},'*',[_mc.port2]);
+  _p.onmessage=function(e){
+    var m=e.data; if(!m||!m.__type) return;
+    if(m.__type==='evaluate'){ _ab=false; _run(m.code,m.functionNames); }
+    else if(m.__type==='abort'){ _ab=true; }
+    else if(m.__type==='call-result'){
+      var r=_pc.get(m.id); if(r){ _pc.delete(m.id); if(m.error) r.reject(new Error(m.error)); else r.resolve(m.result); }
+    } else if(m.__type==='invoke-callback'){
+      var fn=_cb.get(m.callbackId),iid=m.invokeId,as=(m.args||[]);
+      if(fn){ Promise.resolve().then(function(){ return fn.apply(null,as); })
+        .then(function(){ _p.postMessage({__type:'callback-done',invokeId:iid}); })
+        .catch(function(er){ _p.postMessage({__type:'callback-error',invokeId:iid,error:er.message}); });
+      } else { _p.postMessage({__type:'callback-done',invokeId:iid}); }
+    }
+  };
+  function _sv(v){
+    if(typeof v==='function'){ var id=++_bi; _cb.set(id,v); return {__flockCallback:id}; }
+    if(v!==null&&v!==undefined&&typeof v==='object'){
+      if(v.__type==='Vector3') return {__flockVector3:true,x:v.x,y:v.y,z:v.z};
+      if(Array.isArray(v)) return v.map(_sv);
+      var o={},ks=Object.keys(v); for(var i=0;i<ks.length;i++) o[ks[i]]=_sv(v[ks[i]]); return o;
+    }
+    return v;
+  }
+  function _cp(fn,args){
+    var id=++_ci;
+    return new Promise(function(rs,rj){ _pc.set(id,{resolve:rs,reject:rj}); _p.postMessage({__type:'call',id:id,fnName:fn,args:args.map(_sv)}); });
+  }
+  function _run(code,fns){
+    var e={};
+    for(var i=0;i<fns.length;i++){ (function(n){ e[n]=function(){ return _cp(n,Array.prototype.slice.call(arguments)); }; })(fns[i]); }
+    e.createVector3=function(x,y,z){ return {__type:'Vector3',x:+x,y:+y,z:+z}; };
+    e.performance={now:function(){ return performance.now(); }};
+    e.Date={now:function(){ return Date.now(); }};
+    e.requestAnimationFrame=function(cb){ return requestAnimationFrame(cb); };
+    e.cancelAnimationFrame=function(id){ return cancelAnimationFrame(id); };
+    e.nextFrame=function(){
+      return new Promise(function(rs,rj){
+        if(_ab){ rj(new DOMException('Aborted','AbortError')); return; }
+        requestAnimationFrame(function(){ if(_ab) rj(new DOMException('Aborted','AbortError')); else rs(); });
+      });
+    };
+    e.isAborted=function(){ return _ab; };
+    var tu=['flock','window','self','globalThis','parent','top','frames','opener','frameElement','document',
+      'lockdown','harden','Compartment','escape','unescape','FinalizationRegistry','WeakRef','crypto',
+      'eval','Function','AsyncFunction','GeneratorFunction','AsyncGeneratorFunction',
+      'SharedArrayBuffer','Atomics','WebAssembly','Worker','SharedWorker','MessageChannel',
+      'BroadcastChannel','queueMicrotask','fetch','XMLHttpRequest','navigator','location',
+      'localStorage','sessionStorage','indexedDB','caches','Notification',
+      'addEventListener','removeEventListener','dispatchEvent'];
+    for(var j=0;j<tu.length;j++) e[tu[j]]=undefined;
+    Object.freeze(e);
+    var c=new Compartment(e);
+    var w='(async function(){\\n"use strict";\\n'+code+'\\n}).call(undefined)\\n//# sourceURL=user-code.js';
+    var tp=new Promise(function(_,rj){ setTimeout(function(){ rj(new Error('User code timed out')); },5000); });
+    Promise.race([c.evaluate(w),tp])
+      .then(function(){ _p.postMessage({__type:'eval-done'}); })
+      .catch(function(er){ _p.postMessage({__type:'eval-error',error:er.message,name:er.name}); });
+  }
+})();`;
+        },
+
+        /** Deep-deserialize an argument coming from the sandbox.
+         *  Converts {__flockCallback} proxies to async wrapper functions,
+         *  and {__flockVector3} to BABYLON.Vector3. */
+        _deserializeSandboxArg(val, port, pendingInvocations, nextInvokeId) {
+                if (val !== null && val !== undefined && typeof val === "object") {
+                        if (typeof val.__flockCallback === "number") {
+                                const cbId = val.__flockCallback;
+                                return async (...args) => {
+                                        const iid = nextInvokeId();
+                                        return new Promise((resolve, reject) => {
+                                                pendingInvocations.set(iid, { resolve, reject });
+                                                port.postMessage({
+                                                        __type: "invoke-callback",
+                                                        callbackId: cbId,
+                                                        invokeId: iid,
+                                                        args,
+                                                });
+                                        });
+                                };
+                        }
+                        if (val.__flockVector3) {
+                                return new flock.BABYLON.Vector3(val.x, val.y, val.z);
+                        }
+                        if (Array.isArray(val)) {
+                                return val.map((v) =>
+                                        flock._deserializeSandboxArg(v, port, pendingInvocations, nextInvokeId),
+                                );
+                        }
+                        const out = {};
+                        for (const [k, v] of Object.entries(val)) {
+                                out[k] = flock._deserializeSandboxArg(v, port, pendingInvocations, nextInvokeId);
+                        }
+                        return out;
+                }
+                return val;
+        },
+
         async replaceSandboxIframe({
                 id = "flock-iframe",
-                sameOrigin = true,
                 srcdocHtml,
         } = {}) {
                 const old = document.getElementById(id);
@@ -1166,23 +1252,16 @@ export const flock = {
                         }
                 }
 
-                // --- 2) Create a brand-new iframe (fresh realm) ---
+                // --- 2) Create a brand-new sandboxed iframe ---
                 const iframe = document.createElement("iframe");
                 iframe.id = id;
                 iframe.style.display = "none";
 
-                // Keep same-origin only if you need to touch iframe DOM/Canvas/WebGL from parent
-                iframe.sandbox = `allow-scripts${sameOrigin ? " allow-same-origin" : ""}`;
+                // allow-scripts only: srcdoc includes SES+lockdown+RPC, so same-origin
+                // access from the parent is not needed and would trigger a browser warning.
+                iframe.sandbox = "allow-scripts";
 
-                // Prefer srcdoc so CSP is present before any script runs
-                const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval'`;
-                const html =
-                        srcdocHtml ??
-                        `<!doctype html>
-        <meta http-equiv="Content-Security-Policy" content="${csp}">
-        <canvas id="renderCanvas"></canvas>`;
-
-                // Attach to DOM before setting src/srcdoc to ensure load events fire consistently
+                // Attach to DOM before setting srcdoc to ensure load events fire consistently
                 document.body.appendChild(iframe);
 
                 // Load and await readiness
@@ -1195,37 +1274,10 @@ export const flock = {
                                 iframe.onload = iframe.onerror = null;
                                 reject(new Error("iframe failed to load"));
                         };
-                        // Use srcdoc when possible; fallback to about:blank + injected head if needed
-                        try {
-                                iframe.srcdoc = html;
-                        } catch {
-                                iframe.src = "about:blank";
-                        }
+                        iframe.srcdoc = srcdocHtml ?? "<!doctype html>";
                 });
 
-                // If we fell back to about:blank, inject CSP meta now (runs before user code anyway)
-                if (
-                        !("srcdoc" in document.createElement("iframe")) ||
-                        !iframe.srcdoc
-                ) {
-                        const doc =
-                                iframe.contentDocument ||
-                                iframe.contentWindow?.document;
-                        if (!doc.head)
-                                doc.documentElement.appendChild(
-                                        doc.createElement("head"),
-                                );
-                        const meta = doc.createElement("meta");
-                        meta.httpEquiv = "Content-Security-Policy";
-                        meta.content = csp;
-                        doc.head.appendChild(meta);
-                }
-
-                const win = iframe.contentWindow;
-                const doc = iframe.contentDocument || win?.document;
-                if (!win || !doc) throw new Error("New iframe is unavailable");
-
-                return { iframe, win, doc };
+                return { iframe };
         },
         async initialize() {
                 flock.BABYLON = BABYLON;

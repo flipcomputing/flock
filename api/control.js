@@ -63,15 +63,20 @@ export const flockControl = {
   },
   waitUntil(conditionFunc) {
     return new Promise((resolve, reject) => {
-      const checkCondition = () => {
+      let checking = false;
+      const checkCondition = async () => {
+        if (checking) return;
+        checking = true;
         try {
-          if (conditionFunc()) {
+          if (await conditionFunc()) {
             flock.scene.onBeforeRenderObservable.removeCallback(checkCondition);
             resolve();
           }
         } catch (error) {
           flock.scene.onBeforeRenderObservable.removeCallback(checkCondition);
           reject(error);
+        } finally {
+          checking = false;
         }
       };
       flock.scene.onBeforeRenderObservable.add(checkCondition);
