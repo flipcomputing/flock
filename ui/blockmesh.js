@@ -1,5 +1,10 @@
 import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap } from "../generators/generators.js";
+import {
+  meshMap,
+  meshBlockIdMap,
+  blockKeyByBlock,
+  blockKeyByBlockId,
+} from "../generators/generators.js";
 import { flock } from "../flock.js";
 import { objectColours } from "../config.js";
 import { createMeshOnCanvas } from "./addmeshes.js";
@@ -15,10 +20,47 @@ const colorFields = {
   SLEEVES_COLOR: true,
 };
 
-// Caches avoid repeated O(n) scans across mesh maps during high-frequency
-// Blockly change events. Entries are validated before use and repaired on miss.
-const blockKeyByBlockRef = new WeakMap();
-const blockKeyByBlockId = new Map();
+// blockKeyToMeshes: O(1) reverse index from blockKey → Set<mesh>, maintained via
+// scene observables. Rebuilt lazily whenever new meshes are added to the scene.
+const blockKeyToMeshes = new Map();
+let _meshIndexScene = null;
+let _meshIndexDirty = true;
+let _meshRemovedHandle = null;
+let _meshAddedHandle = null;
+
+function ensureMeshIndex() {
+  const scene = flock.scene;
+  if (!scene) return;
+
+  if (scene !== _meshIndexScene) {
+    if (_meshIndexScene) {
+      _meshIndexScene.onMeshRemovedObservable?.remove(_meshRemovedHandle);
+      _meshIndexScene.onNewMeshAddedObservable?.remove(_meshAddedHandle);
+    }
+    _meshIndexScene = scene;
+    _meshIndexDirty = true;
+
+    _meshRemovedHandle = scene.onMeshRemovedObservable?.add((mesh) => {
+      const key = mesh.metadata?.blockKey;
+      if (key) blockKeyToMeshes.get(key)?.delete(mesh);
+    });
+    _meshAddedHandle = scene.onNewMeshAddedObservable?.add(() => {
+      _meshIndexDirty = true;
+    });
+  }
+
+  if (_meshIndexDirty) {
+    blockKeyToMeshes.clear();
+    for (const mesh of scene.meshes) {
+      const key = mesh.metadata?.blockKey;
+      if (!key) continue;
+      let s = blockKeyToMeshes.get(key);
+      if (!s) { s = new Set(); blockKeyToMeshes.set(key, s); }
+      s.add(mesh);
+    }
+    _meshIndexDirty = false;
+  }
+}
 
 let activeSceneControllerBlockId = null;
 
@@ -116,56 +158,26 @@ export function deleteMeshFromBlock(blockId) {
 
 export function getBlockKeyFromBlock(block) {
   if (!block) return null;
-
-  // Common path: most mesh keys are the block id.
-  if (meshMap[block.id] === block) {
-    blockKeyByBlockRef.set(block, block.id);
-    return block.id;
-  }
-
-  const cachedKey = blockKeyByBlockRef.get(block);
-  if (cachedKey && meshMap[cachedKey] === block) {
-    return cachedKey;
-  }
-
-  const foundKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
-  if (foundKey) blockKeyByBlockRef.set(block, foundKey);
-  return foundKey || null;
+  return blockKeyByBlock.get(block) ?? null;
 }
 
 export function getBlockKeyFromBlockID(blockId) {
   if (!blockId) return null;
-
-  // Common path: most mesh keys are the same as block id.
-  if (meshBlockIdMap[blockId] === blockId) {
-    blockKeyByBlockId.set(blockId, blockId);
-    return blockId;
-  }
-
-  const cachedKey = blockKeyByBlockId.get(blockId);
-  if (cachedKey && meshBlockIdMap[cachedKey] === blockId) {
-    return cachedKey;
-  }
-
-  const foundKey = Object.keys(meshBlockIdMap).find(
-    (key) => meshBlockIdMap[key] === blockId,
-  );
-  if (foundKey) blockKeyByBlockId.set(blockId, foundKey);
-  return foundKey || null;
+  return blockKeyByBlockId.get(blockId) ?? null;
 }
 
 export function getMeshFromBlockKey(blockKey) {
-  return flock.scene?.meshes?.find(
-    (mesh) => mesh.metadata?.blockKey === blockKey,
-  );
+  if (!blockKey) return undefined;
+  ensureMeshIndex();
+  const set = blockKeyToMeshes.get(blockKey);
+  return set?.values().next().value;
 }
 
 export function getMeshesFromBlockKey(blockKey) {
-  return (
-    flock.scene?.meshes?.filter(
-      (mesh) => mesh.metadata?.blockKey === blockKey,
-    ) || []
-  );
+  if (!blockKey) return [];
+  ensureMeshIndex();
+  const set = blockKeyToMeshes.get(blockKey);
+  return set ? [...set] : [];
 }
 
 export function getMeshFromBlock(block) {
