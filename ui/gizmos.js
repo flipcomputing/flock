@@ -3,6 +3,7 @@ import { meshMap, meshBlockIdMap } from "../generators/generators.js";
 import { flock } from "../flock.js";
 import { translate } from "../main/translation.js";
 import {
+  getBlockKeyFromBlock,
   getMeshFromBlockKey,
   getRootMesh,
   updateBlockColorAndHighlight,
@@ -463,9 +464,7 @@ function focusCameraOnMesh() {
   let mesh = gizmoManager.attachedMesh;
   if (mesh && mesh.name === "ground") mesh = null;
   if (!mesh && window.currentMesh) {
-    const blockKey = Object.keys(meshMap).find(
-      (key) => meshMap[key] === window.currentBlock,
-    );
+    const blockKey = getBlockKeyFromBlock(window.currentBlock);
     mesh = getMeshFromBlockKey(blockKey);
   }
   if (!mesh) return;
