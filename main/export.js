@@ -43,11 +43,17 @@ async function exportBlockSnippet(block) {
 			await writable.close();
 		} else {
 			// Fallback for browsers that don't support the File System Access API
-			const filename =
+			const rawFilename =
 				prompt(
 					translate("snippet_filename_prompt"),
 					"blockly_snippet",
 				) || "blockly_snippet";
+
+			// Sanitize the filename: keep only safe characters
+			const filename =
+				rawFilename
+					.replace(/[^a-zA-Z0-9_.-]/g, "_")
+					.substring(0, 50) || "blockly_snippet";
 
 			const blob = new Blob([jsonString], { type: FLOCK_SNIP_MIME });
 			const link = document.createElement("a");
