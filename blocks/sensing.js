@@ -8,6 +8,7 @@ import {
         nextVariableIndexes,
         handleBlockCreateEvent,
         updateShape,
+        registerBlockHandler,
 } from "./blocks.js";
 import {
         translate,
@@ -791,7 +792,7 @@ export function defineSensingBlocks() {
 
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("text_blocks");
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockCreateEvent(
                                         this,
                                         changeEvent,

@@ -7,6 +7,7 @@ import {
         handleFieldOrChildChange,
         addDoMutatorWithToggleBehavior,
         getHelpUrlFor,
+        registerBlockHandler,
 } from "./blocks.js";
 import { mapNames } from "../config.js";
 import { updateOrCreateMeshFromBlock } from "../ui/blockmesh.js";
@@ -412,7 +413,7 @@ export function defineSceneBlocks() {
                                 nextStatement: null,
                         });
 
-                        this.setOnChange((changeEvent) => {
+                        registerBlockHandler(this, (changeEvent) => {
                                 handleBlockCreateEvent(
                                         this,
                                         changeEvent,

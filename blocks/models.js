@@ -9,6 +9,7 @@ import {
         addDoMutatorWithToggleBehavior,
         handleParentLinkedUpdate,
         getHelpUrlFor,
+        registerBlockHandler,
 } from "./blocks.js";
 import {
         characterNames,
@@ -111,7 +112,7 @@ export function defineModelBlocks() {
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("scene_blocks");
 
-                        this.setOnChange((changeEvent) => {
+                        registerBlockHandler(this, (changeEvent) => {
                                 // Always handle variable naming first (even if mesh is skipped)
                                 handleBlockCreateEvent(
                                         this,
@@ -230,7 +231,7 @@ export function defineModelBlocks() {
 
                         updateColorField();
 
-                        this.setOnChange((changeEvent) => {
+                        registerBlockHandler(this, (changeEvent) => {
                                 if (
                                         changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
                                         changeEvent.element === "field" &&
@@ -462,7 +463,7 @@ export function defineModelBlocks() {
                                 listBlock.render();
                         };
 
-                        this.setOnChange((changeEvent) => {
+                        registerBlockHandler(this, (changeEvent) => {
                                 // PRIORITY: Handle MODELS field change first (before other handlers can return early)
                                 if (
                                         changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
@@ -565,7 +566,7 @@ export function defineModelBlocks() {
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("scene_blocks");
 
-                        this.setOnChange((changeEvent) => {
+                        registerBlockHandler(this, (changeEvent) => {
                                 handleBlockCreateEvent(
                                         this,
                                         changeEvent,

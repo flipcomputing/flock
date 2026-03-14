@@ -19,6 +19,32 @@ registerFieldColour();
 
 export let nextVariableIndexes = {};
 
+// ---------------------------------------------------------------------------
+// Workspace-level block-change dispatcher
+//
+// Instead of each create_*/load_* block registering its own setOnChange
+// listener (which causes every workspace event to fan out to all N blocks),
+// blocks register a handler here.  A single workspace addChangeListener in
+// blockhandling.js iterates this map once per event – reducing N listener
+// invocations to 1.
+// ---------------------------------------------------------------------------
+
+/** @type {Map<string, (changeEvent: object) => void>} */
+export const blockHandlerRegistry = new Map();
+
+/**
+ * Register a block's change handler with the workspace dispatcher.
+ * Flyout blocks are silently skipped because the dispatcher is attached to
+ * the main workspace only.
+ *
+ * @param {Blockly.Block} block
+ * @param {(changeEvent: object) => void} handler
+ */
+export function registerBlockHandler(block, handler) {
+  if (!block.workspace || block.workspace.isFlyout) return;
+  blockHandlerRegistry.set(block.id, handler);
+}
+
 export const inlineIcon =
   "data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22utf-8%22%3F%3E%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20x%3D%220px%22%20y%3D%220px%22%20width%3D%22122.88px%22%20height%3D%2280.593px%22%20viewBox%3D%220%200%20122.88%2080.593%22%20enable-background%3D%22new%200%200%20122.88%2080.593%22%20xml%3Aspace%3D%22preserve%22%3E%3Cg%3E%3Cpolygon%20fill%3D%22white%22%20points%3D%22122.88%2C80.593%20122.88%2C49.772%2061.44%2C0%200%2C49.772%200%2C80.593%2061.44%2C30.82%20122.88%2C80.593%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
 
@@ -1207,7 +1233,7 @@ export function defineBlocks() {
           "Create a wall with the selected type and color between specified start and end positions.\nKeyword: wall",
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setOnChange((changeEvent) => {
+      registerBlockHandler(this, (changeEvent) => {
         if (
           changeEvent.type === Blockly.Events.BLOCK_CREATE ||
           changeEvent.type === Blockly.Events.BLOCK_CHANGE

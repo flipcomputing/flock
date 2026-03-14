@@ -4,6 +4,7 @@ import {
         nextVariableIndexes,
         handleBlockCreateEvent,
         getHelpUrlFor,
+        registerBlockHandler,
 } from "./blocks.js";
 import { audioNames } from "../config.js";
 import {
@@ -95,7 +96,7 @@ export function defineSoundBlocks() {
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("sound_blocks");
 
-                        this.setOnChange((changeEvent) => {
+                        registerBlockHandler(this, (changeEvent) => {
                                 handleBlockCreateEvent(
                                         this,
                                         changeEvent,
@@ -341,7 +342,7 @@ export function defineSoundBlocks() {
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("sound_blocks");
 
-                        this.setOnChange((changeEvent) => {
+                        registerBlockHandler(this, (changeEvent) => {
                                 handleBlockCreateEvent(
                                         this,
                                         changeEvent,
