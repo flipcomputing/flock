@@ -413,6 +413,11 @@ export function loadWorkspace(workspace, executeCallback) {
 			let validatedUrl;
 			try {
 				validatedUrl = new URL(projectUrl, window.location.href);
+				if (!["http:", "https:"].includes(validatedUrl.protocol)) {
+					throw new Error(
+						"Project URL must use http or https protocol",
+					);
+				}
 				const path = validatedUrl.pathname.toLowerCase();
 				if (!path.endsWith(".json") && !path.endsWith(".flock")) {
 					throw new Error(
