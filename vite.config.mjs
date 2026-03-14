@@ -9,8 +9,9 @@ import { writeFileSync } from 'fs';
 const isProduction = process.env.NODE_ENV === 'production';
 const BASE_URL = process.env.VITE_BASE_URL || '/';
 
-// Keep this in sync with index.html's CSP meta fallback.
-const CSP_POLICY = "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://unpkg.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
+// `frame-ancestors` is only enforced from HTTP headers (ignored in CSP meta tags).
+const CSP_META_POLICY = "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://unpkg.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
+const CSP_HEADER_POLICY = `${CSP_META_POLICY}; frame-ancestors 'self'`;
 
 export default {
   // Ensure assets/chunk URLs are correct in standalone/PWA and under subpaths
@@ -209,7 +210,7 @@ export default {
   server: {
     host: '0.0.0.0',
     headers: {
-      'Content-Security-Policy': CSP_POLICY,
+      'Content-Security-Policy': CSP_HEADER_POLICY,
     },
     fs: { allow: ['../..'] },
     allowedHosts: [
@@ -220,7 +221,7 @@ export default {
 
   preview: {
     headers: {
-      'Content-Security-Policy': CSP_POLICY,
+      'Content-Security-Policy': CSP_HEADER_POLICY,
     },
   },
 

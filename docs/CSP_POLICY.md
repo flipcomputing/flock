@@ -28,12 +28,13 @@ Core flows tested (app load, Blockly interaction, run code in sandbox, project e
 
 ## Current CSP
 
+Header policy (authoritative):
+
 ```text
 default-src 'self';
 base-uri 'self';
 form-action 'self';
 object-src 'none';
-frame-ancestors 'self';
 script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://unpkg.com;
 style-src 'self' 'unsafe-inline';
 img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com;
@@ -42,8 +43,11 @@ connect-src 'self' https://www.googletagmanager.com https://www.google-analytics
 media-src 'self' data: blob:;
 worker-src 'self' blob:;
 frame-src 'self';
-manifest-src 'self'
+manifest-src 'self';
+frame-ancestors 'self'
 ```
+
+Meta fallback policy (for static hosting without headers): same as above but without `frame-ancestors`, because browsers ignore that directive when delivered in a `<meta>` tag.
 
 ## Notes on tightening
 
