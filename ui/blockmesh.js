@@ -15,6 +15,11 @@ const colorFields = {
   SLEEVES_COLOR: true,
 };
 
+// Caches avoid repeated O(n) scans across mesh maps during high-frequency
+// Blockly change events. Entries are validated before use and repaired on miss.
+const blockKeyByBlockRef = new WeakMap();
+const blockKeyByBlockId = new Map();
+
 function isMainWorkspaceEvent(changeEvent, block) {
   const mainWs = Blockly.getMainWorkspace();
   const ws = block?.workspace;
@@ -100,13 +105,43 @@ export function deleteMeshFromBlock(blockId) {
 }
 
 export function getBlockKeyFromBlock(block) {
-  return Object.keys(meshMap).find((key) => meshMap[key] === block);
+  if (!block) return null;
+
+  // Common path: most mesh keys are the block id.
+  if (meshMap[block.id] === block) {
+    blockKeyByBlockRef.set(block, block.id);
+    return block.id;
+  }
+
+  const cachedKey = blockKeyByBlockRef.get(block);
+  if (cachedKey && meshMap[cachedKey] === block) {
+    return cachedKey;
+  }
+
+  const foundKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
+  if (foundKey) blockKeyByBlockRef.set(block, foundKey);
+  return foundKey || null;
 }
 
 export function getBlockKeyFromBlockID(blockId) {
-  return Object.keys(meshBlockIdMap).find(
+  if (!blockId) return null;
+
+  // Common path: most mesh keys are the same as block id.
+  if (meshBlockIdMap[blockId] === blockId) {
+    blockKeyByBlockId.set(blockId, blockId);
+    return blockId;
+  }
+
+  const cachedKey = blockKeyByBlockId.get(blockId);
+  if (cachedKey && meshBlockIdMap[cachedKey] === blockId) {
+    return cachedKey;
+  }
+
+  const foundKey = Object.keys(meshBlockIdMap).find(
     (key) => meshBlockIdMap[key] === blockId,
   );
+  if (foundKey) blockKeyByBlockId.set(blockId, foundKey);
+  return foundKey || null;
 }
 
 export function getMeshFromBlockKey(blockKey) {
