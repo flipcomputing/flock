@@ -185,9 +185,7 @@ export function handleMeshLifecycleChange(block, changeEvent) {
 
     if (!isDisabling) {
       setTimeout(() => {
-        const stillExists = Blockly.getMainWorkspace()?.getBlockById?.(
-          block.id,
-        );
+        const stillExists = block.workspace?.getBlockById?.(block.id);
 
         if (stillExists) {
           updateOrCreateMeshFromBlock(block, changeEvent);
@@ -208,7 +206,7 @@ export function handleMeshLifecycleChange(block, changeEvent) {
 
   if (
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-    Blockly.getMainWorkspace().getBlockById(block.id)
+    block.workspace.getBlockById(block.id)
   ) {
     const createdBlockIds = Array.isArray(changeEvent.ids)
       ? changeEvent.ids
@@ -277,7 +275,7 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
   )
     return false;
 
-  const ws = Blockly.getMainWorkspace();
+  const ws = containerBlock.workspace;
   const changedBlocks =
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
     Array.isArray(changeEvent.ids)
@@ -351,26 +349,23 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
   if (handleFieldOrChildChange(block, changeEvent)) return;
 
   // Handle BLOCK_CREATE or BLOCK_CHANGE if a child is attached
+  const ws = block.workspace;
   if (
     (changeEvent.type === Blockly.Events.BLOCK_CREATE ||
       changeEvent.type === Blockly.Events.BLOCK_CHANGE ||
       changeEvent.type === Blockly.Events.BLOCK_MOVE) &&
-    changeEvent.workspaceId === Blockly.getMainWorkspace().id
+    changeEvent.workspaceId === ws.id
   ) {
     if (flock.blockDebug)
       console.log("The changed block is", changeEvent.block);
     if (flock.blockDebug)
       console.log("The changed block is", changeEvent.blockId);
-    const changedBlock = Blockly.getMainWorkspace().getBlockById(
-      changeEvent.blockId,
-    );
+    const changedBlock = ws.getBlockById(changeEvent.blockId);
 
     const createdBlocks =
       changeEvent.type === Blockly.Events.BLOCK_CREATE &&
       Array.isArray(changeEvent.ids)
-        ? changeEvent.ids
-            .map((id) => Blockly.getMainWorkspace().getBlockById(id))
-            .filter(Boolean)
+        ? changeEvent.ids.map((id) => ws.getBlockById(id)).filter(Boolean)
         : [changedBlock].filter(Boolean);
 
     if (!createdBlocks.length) {
@@ -402,9 +397,7 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
       isValueInputDescendantOf(block, changedBlock)
     ) {
       // Only configuration inputs (value-input subtree) affect preview mesh; runtime statement blocks do not.
-      const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-        block.id,
-      );
+      const blockInWorkspace = ws.getBlockById(block.id);
       if (blockInWorkspace) {
         updateOrCreateMeshFromBlock(block, changeEvent);
       }
@@ -1242,9 +1235,7 @@ export function defineBlocks() {
           changeEvent.type === Blockly.Events.BLOCK_CREATE ||
           changeEvent.type === Blockly.Events.BLOCK_CHANGE
         ) {
-          const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id,
-          ); // Check if block is in the main workspace
+          const blockInWorkspace = this.workspace?.getBlockById(this.id); // Check if block is in the main workspace
 
           if (blockInWorkspace) {
             window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
@@ -1576,9 +1567,7 @@ export function defineBlocks() {
     for (const inputName in inputs) {
       const input = inputs[inputName];
       if (input.shadow) {
-        const shadowBlock = Blockly.getMainWorkspace().newBlock(
-          input.shadow.type,
-        );
+        const shadowBlock = newBlock.workspace.newBlock(input.shadow.type);
         shadowBlock.setShadow(true);
         // Apply fields (default values) to the shadow block
         for (const fieldName in input.shadow.fields) {
@@ -1590,7 +1579,7 @@ export function defineBlocks() {
           .getInput(inputName)
           .connection.connect(shadowBlock.outputConnection);
 
-        Blockly.getMainWorkspace().cleanUp();
+        newBlock.workspace.cleanUp();
       }
     }
   }
