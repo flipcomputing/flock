@@ -20,7 +20,7 @@ function isMainWorkspaceEvent(changeEvent, block) {
   const ws = block?.workspace;
 
   if (!ws) {
-    console.log("[isMainWorkspaceEvent] false: block has no workspace", {
+    if (flock.meshDebug) console.log("[isMainWorkspaceEvent] false: block has no workspace", {
       blockId: block?.id,
       eventType: changeEvent?.type,
       eventWorkspaceId: changeEvent?.workspaceId,
@@ -29,7 +29,7 @@ function isMainWorkspaceEvent(changeEvent, block) {
   }
 
   if (ws.isFlyout) {
-    console.log("[isMainWorkspaceEvent] false: block is in flyout workspace", {
+    if (flock.meshDebug) console.log("[isMainWorkspaceEvent] false: block is in flyout workspace", {
       blockId: block?.id,
       eventType: changeEvent?.type,
       eventWorkspaceId: changeEvent?.workspaceId,
@@ -40,7 +40,7 @@ function isMainWorkspaceEvent(changeEvent, block) {
   }
 
   if (ws !== mainWs) {
-    console.log(
+    if (flock.meshDebug) console.log(
       "[isMainWorkspaceEvent] false: block is in a non-main, non-flyout workspace",
       {
         blockId: block?.id,
@@ -54,7 +54,7 @@ function isMainWorkspaceEvent(changeEvent, block) {
   }
 
   if (changeEvent?.workspaceId && changeEvent.workspaceId !== ws.id) {
-    console.log("[isMainWorkspaceEvent] false: event workspaceId mismatch", {
+    if (flock.meshDebug) console.log("[isMainWorkspaceEvent] false: event workspaceId mismatch", {
       blockId: block?.id,
       eventType: changeEvent?.type,
       eventWorkspaceId: changeEvent.workspaceId,
@@ -390,7 +390,7 @@ export function clearSkyMesh({ preserveClearColor = true } = {}) {
 }
 
 export function setClearSkyToBlack() {
-  console.log("*** Setting clear sky to black");
+  if (flock.meshDebug) console.log("*** Setting clear sky to black");
   const fallbackColor =
     flock.initialClearColor?.toHexString?.() ??
     flock.initialClearColor ??
@@ -642,7 +642,7 @@ function handleMaterialOrColorChange(
       changed.startsWith?.("ADD")
     )
   ) {
-    console.log("Returning");
+    if (flock.meshDebug) console.log("Returning");
     return mesh;
   }
 
@@ -683,7 +683,7 @@ function handleMaterialOrColorChange(
 }
 
 function updateGroundFromBlock(mesh, block, changeEvent) {
-  console.log("Use map block instead of ground");
+  if (flock.meshDebug) console.log("Use map block instead of ground");
 }
 
 function updateMapFromBlock(mesh, block, changeEvent) {
