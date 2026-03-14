@@ -409,7 +409,21 @@ export function loadWorkspace(workspace, executeCallback) {
 		if (projectUrl === "starter") {
 			loadStarter();
 		} else {
-			fetch(projectUrl)
+			let validatedUrl;
+			try {
+				validatedUrl = new URL(projectUrl, window.location.href);
+				const path = validatedUrl.pathname.toLowerCase();
+				if (!path.endsWith(".json") && !path.endsWith(".flock")) {
+					throw new Error(
+						"Project URL must point to a .json or .flock file",
+					);
+				}
+			} catch (error) {
+				console.error("Invalid project URL:", error);
+				loadStarter();
+				return;
+			}
+			fetch(validatedUrl.href)
 				.then((response) => {
 					if (!response.ok) throw new Error("Invalid response");
 					return response.json();
