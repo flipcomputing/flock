@@ -214,8 +214,8 @@ export default {
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'SAMEORIGIN',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
-      // usb=() blocks WebUSB API only — USB game controllers use the Gamepad API and are unaffected
-      'Permissions-Policy': 'geolocation=(), payment=(), usb=()',
+      // usb=() blocks WebUSB API only — gamepad=(self) explicitly permits the Gamepad API for controllers
+      'Permissions-Policy': 'geolocation=(), payment=(), usb=(), gamepad=(self)',
     },
     fs: { allow: ['../..'] },
     allowedHosts: [
@@ -230,8 +230,8 @@ export default {
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'SAMEORIGIN',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
-      // usb=() blocks WebUSB API only — USB game controllers use the Gamepad API and are unaffected
-      'Permissions-Policy': 'geolocation=(), payment=(), usb=()',
+      // usb=() blocks WebUSB API only — gamepad=(self) explicitly permits the Gamepad API for controllers
+      'Permissions-Policy': 'geolocation=(), payment=(), usb=(), gamepad=(self)',
     },
   },
 
