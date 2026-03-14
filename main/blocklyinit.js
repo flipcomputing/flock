@@ -654,16 +654,6 @@ export function createBlocklyWorkspace() {
 
         workspace = Blockly.inject("blocklyDiv", options);
 
-        // Add a global keydown listener to see what's happening
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowDown') {
-                console.log('[global] ArrowDown event');
-                console.log('[global] Target:', e.target);
-                console.log('[global] Active element:', document.activeElement);
-                console.trace('[global] Stack trace');
-            }
-        }, true);
-
         // Initialize keyboard navigation
         const keyboardNav = new KeyboardNavigation(workspace);
         console.log('[init] KeyboardNav created:', keyboardNav);
