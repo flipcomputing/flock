@@ -547,6 +547,22 @@ function adoptIsolatedDefaultVarsTo(
   const descendantIds = buildDescendantIdSet(rootBlock);
   let adopted = 0;
 
+  // Single O(n) pass over all workspace blocks to build:
+  //   varCountMap  – total field-reference count per varId (for orphan detection)
+  //   outsideVarIds – varIds referenced by at least one block outside the subtree
+  // This replaces the O(d×n) pattern of calling getAllBlocks inside the inner loop.
+  const varCountMap = new Map();
+  const outsideVarIds = new Set();
+  for (const bb of workspace.getAllBlocks(false)) {
+    const isOutside = !descendantIds.has(bb.id);
+    for (const f2 of getVariableFieldsOnBlock(bb, BlocklyNS)) {
+      const vid2 = f2.getValue && f2.getValue();
+      if (!vid2) continue;
+      varCountMap.set(vid2, (varCountMap.get(vid2) ?? 0) + 1);
+      if (isOutside) outsideVarIds.add(vid2);
+    }
+  }
+
   function collectInputDescendants(block) {
     const descendants = [];
     for (const input of block.inputList || []) {
@@ -572,28 +588,17 @@ function adoptIsolatedDefaultVarsTo(
       if (!typeOk) continue;
       if (!model.name || !model.name.startsWith(prefix)) continue;
 
-      // ensure all uses are within subtree
-      let usedOutside = false;
-      const allBlocks = workspace.getAllBlocks(false);
-      for (const bb of allBlocks) {
-        const fields2 = getVariableFieldsOnBlock(bb, BlocklyNS);
-        for (const f2 of fields2) {
-          if (f2.getValue && f2.getValue() === vid) {
-            if (!descendantIds.has(bb.id)) {
-              usedOutside = true;
-              break;
-            }
-          }
-        }
-        if (usedOutside) break;
-      }
-      if (usedOutside) continue;
+      // O(1) containment check using the pre-built set
+      if (outsideVarIds.has(vid)) continue;
 
       f.setValue(toVarId);
       adopted++;
 
-      // clean up orphan if now unused
-      if (countVarUses(workspace, vid, BlocklyNS) === 0) {
+      // Decrement count to reflect the field no longer referencing vid,
+      // then clean up the variable if it is now completely unreferenced.
+      const remaining = (varCountMap.get(vid) ?? 1) - 1;
+      varCountMap.set(vid, remaining);
+      if (remaining === 0) {
         try {
           workspace.deleteVariableById(vid);
         } catch (_) {
