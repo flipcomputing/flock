@@ -31,6 +31,24 @@ function originOf(url) {
   }
 }
 
+
+function hostnameMatches(hostname, domain) {
+  return hostname === domain || hostname.endsWith(`.${domain}`);
+}
+
+function isAnalyticsOrigin(origin) {
+  try {
+    const hostname = new URL(origin).hostname;
+    return (
+      hostnameMatches(hostname, 'googletagmanager.com') ||
+      hostnameMatches(hostname, 'google-analytics.com') ||
+      hostnameMatches(hostname, 'doubleclick.net')
+    );
+  } catch {
+    return false;
+  }
+}
+
 const devServer = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'], {
   stdio: 'pipe',
   env: { ...process.env, FORCE_COLOR: '0' },
@@ -104,7 +122,7 @@ try {
 
   const analyticsOriginsSeen = new Set();
   for (const origin of [...requestSources.script, ...requestSources.fetch, ...requestSources.xhr, ...requestSources.image]) {
-    if (origin.includes('googletagmanager.com') || origin.includes('google-analytics.com') || origin.includes('doubleclick.net')) {
+    if (isAnalyticsOrigin(origin)) {
       analyticsOriginsSeen.add(origin);
     }
   }
