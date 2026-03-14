@@ -91,12 +91,41 @@ if ("serviceWorker" in navigator) {
 }
 
 async function showUpdateNotification() {
+        const banner = document.createElement("div");
+        Object.assign(banner.style, {
+                position: "fixed",
+                bottom: "0",
+                left: "0",
+                width: "100%",
+                background: "#511D91",
+                color: "white",
+                textAlign: "center",
+                padding: "10px",
+                zIndex: "1000",
+        });
+
+        const message = document.createElement("span");
+        message.dataset.i18n = "update_available";
+        message.textContent = "A new version of Flock is available.";
+
+        const reloadBtn = document.createElement("button");
+        reloadBtn.id = "reload-btn";
+        reloadBtn.dataset.i18n = "reload_button";
+        reloadBtn.textContent = "Reload";
+        Object.assign(reloadBtn.style, {
+                background: "white",
+                color: "#511D91",
+                padding: "5px 10px",
+                border: "none",
+                cursor: "pointer",
+        });
+
+        banner.appendChild(message);
+        banner.appendChild(document.createTextNode(" "));
+        banner.appendChild(reloadBtn);
+
         const notification = document.createElement("div");
-        notification.innerHTML = `
-        <div style="position: fixed; bottom: 0; left: 0; width: 100%; background: #511D91; color: white; text-align: center; padding: 10px; z-index: 1000;">
-          <span data-i18n="update_available">A new version of Flock is available.</span> <button id="reload-btn" style="background: white; color: #511D91; padding: 5px 10px; border: none; cursor: pointer;" data-i18n="reload_button">Reload</button>
-        </div>
-  `;
+        notification.appendChild(banner);
         document.body.appendChild(notification);
 
         // Apply translations to the new elements
