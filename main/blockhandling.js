@@ -131,35 +131,9 @@ export function initializeBlockHandling() {
 		}
 	};
 
-	// ──────────────────────────────────────────────────────────────
-	// Trigger: debounce on structural changes; run with events disabled
-	// ──────────────────────────────────────────────────────────────
 	workspace.addChangeListener(Blockly.Events.disableOrphans);
 
 	let cleanupTimeout = null;
-
-	workspace.addChangeListener((e) => {
-		if (e.isUiEvent) return;
-
-		if (
-			e.type === Blockly.Events.BLOCK_MOVE ||
-			e.type === Blockly.Events.BLOCK_CREATE ||
-			e.type === Blockly.Events.BLOCK_DELETE
-		) {
-			clearTimeout(cleanupTimeout);
-			cleanupTimeout = setTimeout(() => {
-				const wasEnabled = Blockly.Events.isEnabled();
-				try {
-					if (wasEnabled) Blockly.Events.disable(); // don’t create undo entries
-					workspace.cleanUp();
-				} finally {
-					if (wasEnabled) Blockly.Events.enable();
-				}
-
-				Blockly.Events.disableOrphans(workspace);
-			}, 300); // adjust if you want snappier/slower cleanup
-		}
-	});
 
 	// Global keyboard shortcuts
 	document.addEventListener("keydown", function (event) {
@@ -217,20 +191,6 @@ export function initializeBlockHandling() {
 		}
 	});
 
-	// Add a click handler to track block selection
-	workspace.addChangeListener(function (event) {
-		if (event.type === Blockly.Events.SELECTED) {
-			if (event.newElementId) {
-				// A block was selected
-				window.currentBlock = workspace.getBlockById(
-					event.newElementId,
-				);
-			} else {
-				// Selection was cleared
-				window.currentBlock = null;
-			}
-		}
-	});
 	// Handle Enter key for adding new blocks
 	document.addEventListener("keydown", function (event) {
 		if (event.ctrlKey && event.key === "]") {
@@ -424,38 +384,58 @@ export function initializeBlockHandling() {
 	}
 });*/
 
-	Blockly.getMainWorkspace().addChangeListener((event) => {
-		// Check if the event is a block collapse/expand action
+	// -------------------------------------------------------------------------
+	// Single consolidated workspace listener.
+	//
+	// Combines four previously separate addChangeListener calls:
+	//   1. Track window.currentBlock on SELECTED events.
+	//   2. Debounced workspace.cleanUp() on structural changes
+	//      (BLOCK_MOVE / BLOCK_CREATE / BLOCK_DELETE).
+	//   3. Immediate workspace.cleanUp() when a top-level block
+	//      collapses or expands (BLOCK_CHANGE + element === "collapsed").
+	//   4. Registry dispatcher — purge deleted block IDs then fan out to
+	//      all registered block handlers (O(1) listeners vs O(N blocks)).
+	// -------------------------------------------------------------------------
+	workspace.addChangeListener((event) => {
+		// 1. Track the currently selected block.
+		if (event.type === Blockly.Events.SELECTED) {
+			window.currentBlock = event.newElementId
+				? workspace.getBlockById(event.newElementId)
+				: null;
+		}
+
+		// 2. Debounced cleanup on structural changes.
+		if (
+			!event.isUiEvent &&
+			(event.type === Blockly.Events.BLOCK_MOVE ||
+				event.type === Blockly.Events.BLOCK_CREATE ||
+				event.type === Blockly.Events.BLOCK_DELETE)
+		) {
+			clearTimeout(cleanupTimeout);
+			cleanupTimeout = setTimeout(() => {
+				const wasEnabled = Blockly.Events.isEnabled();
+				try {
+					if (wasEnabled) Blockly.Events.disable(); // don't create undo entries
+					workspace.cleanUp();
+				} finally {
+					if (wasEnabled) Blockly.Events.enable();
+				}
+				Blockly.Events.disableOrphans(workspace);
+			}, 300); // adjust if you want snappier/slower cleanup
+		}
+
+		// 3. Immediate cleanup when a top-level block is collapsed/expanded.
 		if (
 			event.type === Blockly.Events.BLOCK_CHANGE &&
 			event.element === "collapsed"
 		) {
-			const block = Blockly.getMainWorkspace().getBlockById(
-				event.blockId,
-			);
-
-			// Check if the block is a top-level block (no parent)
+			const block = workspace.getBlockById(event.blockId);
 			if (block && !block.getParent()) {
-				// Call Blockly's built-in clean up function when the block is collapsed or expanded
-				Blockly.getMainWorkspace().cleanUp();
+				workspace.cleanUp();
 			}
 		}
-	});
 
-	// -------------------------------------------------------------------------
-	// Single workspace-level dispatcher for all registered block handlers.
-	//
-	// Blocks that previously called setOnChange() now call registerBlockHandler()
-	// instead, storing their handler in blockHandlerRegistry.  This listener
-	// replaces the N per-block workspace listeners with a single one, reducing
-	// the Blockly listener fan-out from O(N blocks) to O(1) per event.
-	//
-	// Cleanup: when blocks are deleted their IDs are purged from the registry
-	// before the remaining handlers are dispatched, so disposed blocks are
-	// never invoked.
-	// -------------------------------------------------------------------------
-	workspace.addChangeListener((event) => {
-		// Purge deleted blocks from the registry so they are never invoked.
+		// 4. Purge deleted blocks from the registry, then dispatch to handlers.
 		if (
 			event.type === Blockly.Events.BLOCK_DELETE &&
 			Array.isArray(event.ids)
