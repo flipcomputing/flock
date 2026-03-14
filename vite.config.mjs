@@ -211,6 +211,11 @@ export default {
     host: '0.0.0.0',
     headers: {
       'Content-Security-Policy': CSP_HEADER_POLICY,
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      // usb=() blocks WebUSB API only — USB game controllers use the Gamepad API and are unaffected
+      'Permissions-Policy': 'geolocation=(), payment=(), usb=()',
     },
     fs: { allow: ['../..'] },
     allowedHosts: [
@@ -222,6 +227,11 @@ export default {
   preview: {
     headers: {
       'Content-Security-Policy': CSP_HEADER_POLICY,
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      // usb=() blocks WebUSB API only — USB game controllers use the Gamepad API and are unaffected
+      'Permissions-Policy': 'geolocation=(), payment=(), usb=()',
     },
   },
 
