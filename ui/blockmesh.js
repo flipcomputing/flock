@@ -20,6 +20,16 @@ const colorFields = {
 const blockKeyByBlockRef = new WeakMap();
 const blockKeyByBlockId = new Map();
 
+let activeSceneControllerBlockId = null;
+
+export function getActiveSceneControllerBlockId() {
+  return activeSceneControllerBlockId;
+}
+
+function setActiveSceneControllerBlockId(block) {
+  activeSceneControllerBlockId = block?.id ?? null;
+}
+
 function isMainWorkspaceEvent(changeEvent, block) {
   const mainWs = Blockly.getMainWorkspace();
   const ws = block?.workspace;
@@ -397,10 +407,13 @@ export function extractMaterialInfo(materialBlock) {
 
 function applyBackgroundColorFromBlock(block) {
   if (!block.isEnabled()) {
-    setClearSkyToBlack();
+    if (getActiveSceneControllerBlockId() === block.id) {
+      setClearSkyToBlack();
+    }
     return;
   }
 
+  setActiveSceneControllerBlockId(block);
   const read = readColourFromInputOrShadow(block, "COLOR");
   flock.setSky(read.value, { clear: true });
 }
@@ -431,6 +444,7 @@ export function setClearSkyToBlack() {
     flock.initialClearColor ??
     "#000000";
 
+  setActiveSceneControllerBlockId(null);
   flock.setSky(fallbackColor, { clear: true });
 }
 
@@ -520,9 +534,13 @@ function safeGetFieldValue(block, fieldName) {
 
 function updateSkyFromBlock(mesh, block, changeEvent) {
   if (!block.isEnabled()) {
-    setClearSkyToBlack();
+    if (getActiveSceneControllerBlockId() === block.id) {
+      setClearSkyToBlack();
+    }
     return;
   }
+
+  setActiveSceneControllerBlockId(block);
 
   const colorInput = block.getInputTargetBlock("COLOR");
   if (!colorInput) return;
