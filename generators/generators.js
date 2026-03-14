@@ -2,8 +2,36 @@ import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import "@blockly/block-plus-minus";
 import { FlowGraphLog10Block } from "babylonjs";
-export let meshMap = {};
-export let meshBlockIdMap = {};
+// Reverse-lookup Maps for O(1) access: block → blockKey and blockId → blockKey.
+// Maintained automatically via Proxy traps on meshMap / meshBlockIdMap.
+export const blockKeyByBlock = new Map();
+export const blockKeyByBlockId = new Map();
+
+function makeTrackedMap(raw, reverseMap) {
+	return new Proxy(raw, {
+		set(target, key, value, receiver) {
+			const old = target[key];
+			if (old !== undefined) reverseMap.delete(old);
+			if (value != null) reverseMap.set(value, key);
+			return Reflect.set(target, key, value, receiver);
+		},
+		deleteProperty(target, key) {
+			const old = target[key];
+			if (old !== undefined) reverseMap.delete(old);
+			return Reflect.deleteProperty(target, key);
+		},
+	});
+}
+
+const _meshMap = Object.create(null);
+const _meshBlockIdMap = Object.create(null);
+export const meshMap = makeTrackedMap(_meshMap, blockKeyByBlock);
+export const meshBlockIdMap = makeTrackedMap(_meshBlockIdMap, blockKeyByBlockId);
+
+function clearMeshMaps() {
+	for (const key of Object.keys(_meshMap)) delete meshMap[key];
+	for (const key of Object.keys(_meshBlockIdMap)) delete meshBlockIdMap[key];
+}
 
 let uniqueIdCounter = 0;
 
@@ -3336,8 +3364,7 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.init = function (workspace) {
-                meshMap = {};
-                meshBlockIdMap = {};
+                clearMeshMaps();
                 console.log("Initializing JavaScript generator...");
                 if (!javascriptGenerator.nameDB_) {
                         javascriptGenerator.nameDB_ = new Blockly.Names(
@@ -3397,8 +3424,7 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.init2 = function (workspace) {
-                meshMap = {};
-                meshBlockIdMap = {};
+                clearMeshMaps();
                 console.log("Initializing JavaScript generator...");
 
                 if (!javascriptGenerator.nameDB_) {
