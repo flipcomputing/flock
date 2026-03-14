@@ -4,6 +4,17 @@ import "@blockly/block-plus-minus";
 import { FlowGraphLog10Block } from "babylonjs";
 export let meshMap = {};
 export let meshBlockIdMap = {};
+export let blockToKeyMap = new Map();
+export let blockIdToKeyMap = new Map();
+export let blockKeyMeshesMap = new Map();
+
+export function registerMeshForBlockKey(mesh, blockKey) {
+  if (!blockKey || !mesh) return;
+  if (!blockKeyMeshesMap.has(blockKey)) {
+    blockKeyMeshesMap.set(blockKey, new Set());
+  }
+  blockKeyMeshesMap.get(blockKey).add(mesh);
+}
 
 let uniqueIdCounter = 0;
 
@@ -760,6 +771,8 @@ export function defineGenerators() {
                 const meshId = "ground";
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
+                blockToKeyMap.set(block, meshId);
+                blockIdToKeyMap.set(block.id, meshId);
                 let color =
                         javascriptGenerator.valueToCode(
                                 block,
@@ -804,6 +817,8 @@ export function defineGenerators() {
                 const meshId = "sky";
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
+                blockToKeyMap.set(block, meshId);
+                blockIdToKeyMap.set(block.id, meshId);
                 let color =
                         javascriptGenerator.valueToCode(
                                 block,
@@ -1239,6 +1254,8 @@ export function defineGenerators() {
                 const meshId = `${userVariableName}__${block.id}`;
                 meshMap[block.id] = block;
                 meshBlockIdMap[block.id] = block.id;
+                blockToKeyMap.set(block, block.id);
+                blockIdToKeyMap.set(block.id, block.id);
 
                 let doCode = "";
                 if (block.getInput("DO")) {
@@ -1288,6 +1305,8 @@ export function defineGenerators() {
                 const meshId = `${userVariableName}__${block.id}`;
                 meshMap[block.id] = block;
                 meshBlockIdMap[block.id] = block.id;
+                blockToKeyMap.set(block, block.id);
+                blockIdToKeyMap.set(block.id, block.id);
                 // Generate the code for the "do" part (if present)
                 let doCode = "";
 
@@ -1331,6 +1350,8 @@ export function defineGenerators() {
                 const meshId = `${userVariableName}__${block.id}`;
                 meshMap[block.id] = block;
                 meshBlockIdMap[block.id] = block.id;
+                blockToKeyMap.set(block, block.id);
+                blockIdToKeyMap.set(block.id, block.id);
                 //```text
                 // Generate the code for the "do" part (if present)
                 let doCode = "";
@@ -1369,6 +1390,8 @@ export function defineGenerators() {
                 const meshId = `${userVariableName}__${block.id}`;
                 meshMap[block.id] = block;
                 meshBlockIdMap[block.id] = block.id;
+                blockToKeyMap.set(block, block.id);
+                blockIdToKeyMap.set(block.id, block.id);
                 // Generate the code for the "do" part (if present)
                 let doCode = "";
 
@@ -1405,6 +1428,8 @@ export function defineGenerators() {
                 const meshId = `${userVariableName}__${block.id}`;
                 meshMap[block.id] = block;
                 meshBlockIdMap[block.id] = block.id;
+                blockToKeyMap.set(block, block.id);
+                blockIdToKeyMap.set(block.id, block.id);
                 // Generate the code for the "do" part (if present)
                 let doCode = "";
 
@@ -1444,6 +1469,8 @@ export function defineGenerators() {
                 const cloneId = sourceMeshName + "_" + generateUniqueId();
                 meshMap[cloneId] = block;
                 meshBlockIdMap[cloneId] = block.id;
+                blockToKeyMap.set(block, cloneId);
+                blockIdToKeyMap.set(block.id, cloneId);
 
                 // Generate the code for the "do" part (if present)
                 let doCode = "";
@@ -1496,6 +1523,8 @@ export function defineGenerators() {
                 const meshId = "text_" + generateUniqueId();
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
+                blockToKeyMap.set(block, meshId);
+                blockIdToKeyMap.set(block.id, meshId);
 
                 let doCode = "";
                 if (block.getInput("DO")) {
@@ -1692,6 +1721,8 @@ export function defineGenerators() {
 
                 meshMap[block.id] = block;
                 meshBlockIdMap[block.id] = block.id;
+                blockToKeyMap.set(block, block.id);
+                blockIdToKeyMap.set(block.id, block.id);
 
                 const doCode = block.getInput("DO")
                         ? javascriptGenerator.statementToCode(block, "DO") || ""
@@ -1831,6 +1862,8 @@ export function defineGenerators() {
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
 
+                blockToKeyMap.set(block, meshId);
+                blockIdToKeyMap.set(block.id, meshId);
                 // Background block should always request clear-color behaviour
                 return `setSky(${color}, { clear: true });\n`;
         };
@@ -1852,6 +1885,8 @@ export function defineGenerators() {
                 const wallId = `wall_${generateUniqueId()}`;
                 meshMap[wallId] = block;
                 meshBlockIdMap[wallId] = block.id;
+                blockToKeyMap.set(block, wallId);
+                blockIdToKeyMap.set(block.id, wallId);
                 // Directly passing all parameters to the helper function
                 return `${variableName} = newWall(${color}, ${startX}, ${startZ}, ${endX}, ${endZ}, ${yPosition}, "${wallType}", "${wallId}");\n`;
         };
@@ -2600,6 +2635,8 @@ export function defineGenerators() {
                 const meshId = "ground";
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
+                blockToKeyMap.set(block, meshId);
+                blockIdToKeyMap.set(block.id, meshId);
                 return `createMap("${mapName}", ${material});\n`;
         };
 
@@ -2788,6 +2825,8 @@ export function defineGenerators() {
                 const meshId = "merged" + "_" + generateUniqueId();
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
+                blockToKeyMap.set(block, meshId);
+                blockIdToKeyMap.set(block.id, meshId);
 
                 // Use helper function to merge the meshes
                 return `${resultVar} = await mergeMeshes("${meshId}", ${meshList});\n`;
@@ -2813,6 +2852,8 @@ export function defineGenerators() {
                 const meshId = "subtracted" + "_" + generateUniqueId();
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
+                blockToKeyMap.set(block, meshId);
+                blockIdToKeyMap.set(block.id, meshId);
 
                 // Use helper function to subtract meshes from the base mesh
                 return `${resultVar} = await subtractMeshes("${meshId}", ${baseMesh}, ${meshList});\n`;
@@ -2834,6 +2875,8 @@ export function defineGenerators() {
                 const meshId = "intersected" + "_" + generateUniqueId();
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
+                blockToKeyMap.set(block, meshId);
+                blockIdToKeyMap.set(block.id, meshId);
 
                 // Use helper function to intersect the meshes
                 return `${resultVar} = await intersectMeshes("${meshId}", ${meshList});\n`;
@@ -2854,6 +2897,8 @@ export function defineGenerators() {
                 const meshId = "hull" + "_" + generateUniqueId();
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
+                blockToKeyMap.set(block, meshId);
+                blockIdToKeyMap.set(block.id, meshId);
 
                 // Use helper function to create the hull
                 return `${resultVar} = await createHull("${meshId}", ${meshList});\n`;
@@ -3338,6 +3383,9 @@ export function defineGenerators() {
         javascriptGenerator.init = function (workspace) {
                 meshMap = {};
                 meshBlockIdMap = {};
+                blockToKeyMap = new Map();
+                blockIdToKeyMap = new Map();
+                blockKeyMeshesMap = new Map();
                 console.log("Initializing JavaScript generator...");
                 if (!javascriptGenerator.nameDB_) {
                         javascriptGenerator.nameDB_ = new Blockly.Names(
@@ -3399,6 +3447,9 @@ export function defineGenerators() {
         javascriptGenerator.init2 = function (workspace) {
                 meshMap = {};
                 meshBlockIdMap = {};
+                blockToKeyMap = new Map();
+                blockIdToKeyMap = new Map();
+                blockKeyMeshesMap = new Map();
                 console.log("Initializing JavaScript generator...");
 
                 if (!javascriptGenerator.nameDB_) {

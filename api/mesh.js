@@ -1,4 +1,5 @@
 import { attachBlockMapping, attachMixamoMapping } from "../config.js";
+import { registerMeshForBlockKey } from "../generators/generators.js";
 
 let flock;
 
@@ -270,6 +271,7 @@ export const flockMesh = {
 
     mesh.metadata = { ...(mesh.metadata || {}), shapeType };
     mesh.metadata.blockKey = mesh.name;
+    registerMeshForBlockKey(mesh, mesh.name);
 
     if (applyColor) {
       const colorInput = Array.isArray(color) ? color.flat() : color;
@@ -691,6 +693,7 @@ export const flockMesh = {
     bb.name = modelId;
     bb.metadata = bb.metadata || {};
     bb.metadata.blockKey = blockId;
+    registerMeshForBlockKey(bb, blockId);
 
     //console.log("Model setup", bb.name, bb.metadata.blockKey);
     bb.isPickable = false;

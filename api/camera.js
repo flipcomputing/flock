@@ -1,3 +1,5 @@
+import { registerMeshForBlockKey } from "../generators/generators.js";
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -141,6 +143,7 @@ export const flockCamera = {
                 );
                 constraintBox.metadata = constraintBox.metadata || {};
                 constraintBox.metadata.blockKey = constraintBox.name;
+                registerMeshForBlockKey(constraintBox, constraintBox.name);
                 constraintBox.name = constraintBox.name + "_" + constraintBox.uniqueId;
                 constraintBox.isVisible = false;
                 constraintBox.material = constraintBox.material || new flock.BABYLON.StandardMaterial("staticMaterial", scene);

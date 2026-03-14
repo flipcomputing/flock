@@ -1,5 +1,5 @@
 import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap } from "../generators/generators.js";
+import { meshMap, meshBlockIdMap, blockToKeyMap, blockIdToKeyMap, blockKeyMeshesMap } from "../generators/generators.js";
 import { flock } from "../flock.js";
 import { objectColours } from "../config.js";
 import { createMeshOnCanvas } from "./addmeshes.js";
@@ -95,32 +95,36 @@ export function deleteMeshFromBlock(blockId) {
   });
 
   // Remove mappings
+  const block = meshMap[blockKey];
+  const mappedBlockId = meshBlockIdMap[blockKey];
+  if (block) blockToKeyMap.delete(block);
+  if (mappedBlockId) blockIdToKeyMap.delete(mappedBlockId);
+  blockKeyMeshesMap.delete(blockKey);
   delete meshMap[blockKey];
   delete meshBlockIdMap[blockKey];
 }
 
 export function getBlockKeyFromBlock(block) {
-  return Object.keys(meshMap).find((key) => meshMap[key] === block);
+  return blockToKeyMap.get(block);
 }
 
 export function getBlockKeyFromBlockID(blockId) {
-  return Object.keys(meshBlockIdMap).find(
-    (key) => meshBlockIdMap[key] === blockId,
-  );
+  return blockIdToKeyMap.get(blockId);
 }
 
 export function getMeshFromBlockKey(blockKey) {
-  return flock.scene?.meshes?.find(
-    (mesh) => mesh.metadata?.blockKey === blockKey,
-  );
+  const meshes = blockKeyMeshesMap.get(blockKey);
+  if (!meshes) return undefined;
+  for (const mesh of meshes) {
+    if (!mesh.isDisposed()) return mesh;
+  }
+  return undefined;
 }
 
 export function getMeshesFromBlockKey(blockKey) {
-  return (
-    flock.scene?.meshes?.filter(
-      (mesh) => mesh.metadata?.blockKey === blockKey,
-    ) || []
-  );
+  const meshes = blockKeyMeshesMap.get(blockKey);
+  if (!meshes) return [];
+  return [...meshes].filter((mesh) => !mesh.isDisposed());
 }
 
 export function getMeshFromBlock(block) {

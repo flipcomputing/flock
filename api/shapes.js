@@ -1,6 +1,7 @@
 import earcut from "earcut";
 import Module from "manifold-3d";
 import opentype from "opentype.js";
+import { registerMeshForBlockKey } from "../generators/generators.js";
 
 let flock;
 let manifoldModule = null;
@@ -278,6 +279,7 @@ export const flockShapes = {
 
     newBox.metadata = newBox.metadata || {};
     newBox.metadata.blockKey = blockKey;
+    registerMeshForBlockKey(newBox, blockKey);
 
     // Define and apply the physics shape
     const boxShape = new flock.BABYLON.PhysicsShapeBox(
@@ -351,6 +353,7 @@ export const flockShapes = {
 
     newSphere.metadata = newSphere.metadata || {};
     newSphere.metadata.blockKey = blockKey;
+    registerMeshForBlockKey(newSphere, blockKey);
 
     // Define and apply the physics shape
     const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
@@ -435,6 +438,7 @@ export const flockShapes = {
 
     newCylinder.metadata = newCylinder.metadata || {};
     newCylinder.metadata.blockKey = blockKey;
+    registerMeshForBlockKey(newCylinder, blockKey);
 
     // Create and apply physics shape
     const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
@@ -506,6 +510,7 @@ export const flockShapes = {
 
     newCapsule.metadata = newCapsule.metadata || {};
     newCapsule.metadata.blockKey = blockKey;
+    registerMeshForBlockKey(newCapsule, blockKey);
     // Define central point for the capsule
     const center = flock.BABYLON.Vector3.Zero();
 
@@ -608,6 +613,7 @@ export const flockShapes = {
     });
 
     newPlane.metadata.blockKey = blockKey;
+    registerMeshForBlockKey(newPlane, blockKey);
 
     flock.announceMeshReady(newPlane.name, groupName);
 

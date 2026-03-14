@@ -1,3 +1,5 @@
+import { registerMeshForBlockKey } from "../generators/generators.js";
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -357,6 +359,7 @@ export const flockCSG = {
                                                         {};
                                                 mergedMesh.metadata.blockKey =
                                                         blockId;
+                                                registerMeshForBlockKey(mergedMesh, blockId);
                                                 mergedMesh.metadata.sharedMaterial = false;
 
                                                 return mergedMesh;
@@ -455,6 +458,7 @@ export const flockCSG = {
                                         mergedMesh.metadata =
                                                 mergedMesh.metadata || {};
                                         mergedMesh.metadata.blockKey = blockId;
+                                        registerMeshForBlockKey(mergedMesh, blockId);
                                         mergedMesh.metadata.sharedMaterial = false;
 
                                         const isDefaultMaterial = (
@@ -1714,6 +1718,7 @@ export const flockCSG = {
                                                                         {};
                                                                 mesh.metadata.blockKey =
                                                                         blockId;
+                                                                registerMeshForBlockKey(mesh, blockId);
                                                                 resolve(mesh);
                                                         } else {
                                                                 console.warn(
@@ -1736,6 +1741,7 @@ export const flockCSG = {
                 resultMesh.name = modelId;
                 resultMesh.metadata = resultMesh.metadata || {};
                 resultMesh.metadata.blockKey = blockId;
+                registerMeshForBlockKey(resultMesh, blockId);
 
                 // Apply physics
                 flock.applyPhysics(
