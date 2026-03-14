@@ -4,6 +4,7 @@ import {
         nextVariableIndexes,
         handleBlockCreateEvent,
         getHelpUrlFor,
+        registerBlockHandler,
 } from "./blocks.js";
 import { animationNames } from "../config.js";
 import {
@@ -791,7 +792,7 @@ export function defineAnimateBlocks() {
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("animate_blocks");
-                        this.setOnChange((changeEvent) => {
+                        registerBlockHandler(this, (changeEvent) => {
                                 handleBlockCreateEvent(
                                         this,
                                         changeEvent,

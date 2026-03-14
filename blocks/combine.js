@@ -4,6 +4,7 @@ import {
         getHelpUrlFor,
         nextVariableIndexes,
         handleBlockCreateEvent,
+        registerBlockHandler,
 } from "./blocks.js";
 import { translate, getTooltip } from "../main/translation.js";
 
@@ -39,7 +40,7 @@ export function defineCombineBlocks() {
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("transform_blocks");
 
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockCreateEvent(
                                         this,
                                         changeEvent,
@@ -87,7 +88,7 @@ export function defineCombineBlocks() {
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("transform_blocks");
 
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockCreateEvent(
                                         this,
                                         changeEvent,
@@ -130,7 +131,7 @@ export function defineCombineBlocks() {
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("transform_blocks");
 
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockCreateEvent(
                                         this,
                                         changeEvent,
@@ -173,7 +174,7 @@ export function defineCombineBlocks() {
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("transform_blocks");
 
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockCreateEvent(
                                         this,
                                         changeEvent,

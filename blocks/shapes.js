@@ -6,6 +6,7 @@ import {
         addDoMutatorWithToggleBehavior,
         handleBlockCreateEvent,
         getHelpUrlFor,
+        registerBlockHandler,
 } from "./blocks.js";
 import {
         translate,
@@ -558,7 +559,7 @@ export function defineShapeBlocks() {
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("scene_blocks");
 
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockCreateEvent(
                                         this,
                                         changeEvent,
@@ -630,7 +631,7 @@ export function defineShapeBlocks() {
                         this.setStyle("scene_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(
                                         this,
                                         changeEvent,
@@ -703,7 +704,7 @@ export function defineShapeBlocks() {
                         this.setStyle("scene_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(
                                         this,
                                         changeEvent,
@@ -781,7 +782,7 @@ export function defineShapeBlocks() {
                         this.setStyle("scene_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(
                                         this,
                                         changeEvent,
@@ -849,7 +850,7 @@ export function defineShapeBlocks() {
                         this.setStyle("scene_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(
                                         this,
                                         changeEvent,
@@ -917,7 +918,7 @@ export function defineShapeBlocks() {
                         this.setStyle("scene_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(
                                         this,
                                         changeEvent,

@@ -1,6 +1,6 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
-import { getHelpUrlFor, handleFieldOrChildChange } from "./blocks.js";
+import { getHelpUrlFor, handleFieldOrChildChange, registerBlockHandler } from "./blocks.js";
 import {
         translate,
         getTooltip,
@@ -74,7 +74,7 @@ export function defineTransformBlocks() {
                         this.setStyle("transform_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(this, changeEvent),
                         );
                 },
@@ -117,7 +117,7 @@ export function defineTransformBlocks() {
                         this.setStyle('transform_blocks');
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(this, changeEvent),
                         );
                 },
@@ -169,7 +169,7 @@ export function defineTransformBlocks() {
                         this.setStyle("transform_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(this, changeEvent),
                         );
                 },
@@ -212,7 +212,7 @@ export function defineTransformBlocks() {
                         this.setStyle('transform_blocks');
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(this, changeEvent),
                         );
                 },
@@ -251,7 +251,7 @@ export function defineTransformBlocks() {
                         this.setStyle("transform_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(this, changeEvent),
                         );
                 },
@@ -321,7 +321,7 @@ export function defineTransformBlocks() {
                         this.setStyle("transform_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(this, changeEvent),
                         );
                 },
@@ -391,7 +391,7 @@ export function defineTransformBlocks() {
                         this.setStyle("transform_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(this, changeEvent),
                         );
                 },
@@ -437,7 +437,7 @@ export function defineTransformBlocks() {
                         this.setStyle("transform_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(this, changeEvent),
                         );
                 },
@@ -483,7 +483,7 @@ export function defineTransformBlocks() {
                         this.setStyle("transform_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(this, changeEvent),
                         );
                 },
@@ -522,7 +522,7 @@ export function defineTransformBlocks() {
                         this.setStyle("transform_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(this, changeEvent),
                         );
                 },
@@ -565,7 +565,7 @@ export function defineTransformBlocks() {
                         this.setStyle("transform_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(this, changeEvent),
                         );
                 },
@@ -595,7 +595,7 @@ export function defineTransformBlocks() {
                         this.setStyle("transform_blocks");
 
                         // Set up the change handler.
-                        this.setOnChange((changeEvent) =>
+                        registerBlockHandler(this, (changeEvent) =>
                                 handleBlockChange(this, changeEvent),
                         );
                 },

@@ -1,6 +1,7 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
+import { blockHandlerRegistry } from "../blocks/blocks.js";
 
 export function initializeBlockHandling() {
 	observeBlocklyInputs();
@@ -446,6 +447,37 @@ export function initializeBlockHandling() {
 				// Call Blockly's built-in clean up function when the block is collapsed or expanded
 				Blockly.getMainWorkspace().cleanUp();
 			}
+		}
+	});
+
+	// -------------------------------------------------------------------------
+	// Single workspace-level dispatcher for all registered block handlers.
+	//
+	// Blocks that previously called setOnChange() now call registerBlockHandler()
+	// instead, storing their handler in blockHandlerRegistry.  This listener
+	// replaces the N per-block workspace listeners with a single one, reducing
+	// the Blockly listener fan-out from O(N blocks) to O(1) per event.
+	//
+	// Cleanup: when blocks are deleted their IDs are purged from the registry
+	// before the remaining handlers are dispatched, so disposed blocks are
+	// never invoked.
+	// -------------------------------------------------------------------------
+	workspace.addChangeListener((event) => {
+		// Purge deleted blocks from the registry so they are never invoked.
+		if (
+			event.type === Blockly.Events.BLOCK_DELETE &&
+			Array.isArray(event.ids)
+		) {
+			for (const id of event.ids) {
+				blockHandlerRegistry.delete(id);
+			}
+		}
+
+		// Take a snapshot of current handlers to guard against mid-iteration
+		// mutations (e.g. a handler that creates or deletes blocks).
+		const handlers = [...blockHandlerRegistry.values()];
+		for (const handler of handlers) {
+			handler(event);
 		}
 	});
 
