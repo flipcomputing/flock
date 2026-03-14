@@ -29,8 +29,40 @@ export let nextVariableIndexes = {};
 // invocations to 1.
 // ---------------------------------------------------------------------------
 
-/** @type {Map<string, (changeEvent: object) => void>} */
-export const blockHandlerRegistry = new Map();
+/**
+ * Map subclass that caches its values array and invalidates the cache
+ * whenever the map is mutated. This avoids allocating a fresh array on every
+ * workspace event (including high-frequency viewport pans) while still
+ * providing a stable snapshot that is safe to iterate even if a handler
+ * registers or removes entries mid-loop.
+ */
+class HandlerRegistry extends Map {
+  #snapshot = null;
+
+  set(key, value) {
+    this.#snapshot = null;
+    return super.set(key, value);
+  }
+
+  delete(key) {
+    this.#snapshot = null;
+    return super.delete(key);
+  }
+
+  clear() {
+    this.#snapshot = null;
+    return super.clear();
+  }
+
+  /** Returns a cached snapshot of current handler values. */
+  cachedValues() {
+    if (!this.#snapshot) this.#snapshot = [...super.values()];
+    return this.#snapshot;
+  }
+}
+
+/** @type {HandlerRegistry} */
+export const blockHandlerRegistry = new HandlerRegistry();
 
 /**
  * Register a block's change handler with the workspace dispatcher.
