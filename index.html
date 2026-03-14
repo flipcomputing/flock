@@ -379,6 +379,7 @@
                 <span data-i18n="about_description_made_by"></span>
                 <a
                   target="_blank"
+                  rel="noopener noreferrer"
                   href="https://flipcomputing.com/flockxr/"
                   data-i18n="about_description_company"
                 ></a>.
@@ -416,6 +417,7 @@
                 <span data-i18n="about_links_privacy_prefix"></span>
                 <a
                   target="_blank"
+                  rel="noopener noreferrer"
                   href="https://flockxr.com/privacy-policy/"
                   data-i18n="about_links_privacy_label"
                 ></a>
@@ -423,6 +425,7 @@
                 <a
                   href="https://flipcomputing.com/contact/"
                   target="_blank"
+                  rel="noopener noreferrer"
                   data-i18n="about_links_contact_label"
                 ></a>
               </p>
@@ -724,7 +727,7 @@
 
             hubMenuItem.addEventListener("click", (e) => {
               e.preventDefault();
-              window.open("https://hub.flockxr.com/", "_blank", "noopener");
+              window.open("https://hub.flockxr.com/", "_blank", "noopener,noreferrer");
               menuDropdown.classList.add("hidden");
               menuBtn.setAttribute("aria-expanded", "false");
             });
@@ -1267,6 +1270,7 @@
                 <a
                   href="https://flockxr.com/"
                   target="_blank"
+                  rel="noopener noreferrer"
                   id="info-panel-link"
                   data-i18n="info_panel_link"
                   
