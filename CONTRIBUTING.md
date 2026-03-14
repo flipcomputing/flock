@@ -149,6 +149,17 @@ npm run test:api glide -- --log-all
 
 **CI/GitHub Actions:** The test runner is optimized for CI environments with automatic environment detection and robust server startup handling. See `docs/TEST_RUNNER_CI_FIX_SUMMARY.md` for details.
 
+### CSP smoke checks
+
+If you change CSP policy, security headers, analytics loading, or runtime asset origins, run:
+
+```bash
+npm run build
+npm run test:csp-smoke
+```
+
+This validates core CSP-sensitive flows and fails if browser `securitypolicyviolation` events are detected.
+
 ### End-to-End Tests (Playwright)
 
 Playwright tests are located in `tests/playwright/`. These are automated end-to-end tests that verify the UI loads correctly, blocks function properly, and the overall user experience works as expected.

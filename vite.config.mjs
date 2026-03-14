@@ -9,6 +9,9 @@ import { writeFileSync } from 'fs';
 const isProduction = process.env.NODE_ENV === 'production';
 const BASE_URL = process.env.VITE_BASE_URL || '/';
 
+// Keep this in sync with index.html's CSP meta fallback.
+const CSP_POLICY = "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://unpkg.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
+
 export default {
   // Ensure assets/chunk URLs are correct in standalone/PWA and under subpaths
   base: BASE_URL,
@@ -205,11 +208,20 @@ export default {
 
   server: {
     host: '0.0.0.0',
+    headers: {
+      'Content-Security-Policy': CSP_POLICY,
+    },
     fs: { allow: ['../..'] },
     allowedHosts: [
       '27c4c3b0-9860-47aa-a95d-03ca8acd6af0-00-2qj22wjmgrujn.picard.replit.dev',
       '1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev'
     ]
+  },
+
+  preview: {
+    headers: {
+      'Content-Security-Policy': CSP_POLICY,
+    },
   },
 
   optimizeDeps: { exclude: ['@babylonjs/havok', 'manifold-3d'] },

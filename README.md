@@ -51,6 +51,8 @@ You should see it here: http://localhost:5173/
 
 For detailed testing documentation including Playwright end-to-end tests and Mocha unit tests, see the [Testing section in CONTRIBUTING.md](CONTRIBUTING.md#testing).
 
+For CSP constraints and required runtime origins, see [docs/CSP_POLICY.md](docs/CSP_POLICY.md).
+
 **Quick start:**
 - Mocha tests (browser): http://localhost:5173/tests/tests.html (with dev server running)
 - Mocha tests (CLI): `npm run test:api @notslow` (automated, headless)
