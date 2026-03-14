@@ -445,9 +445,10 @@ export function initializeBlockHandling() {
 			}
 		}
 
-		// Take a snapshot of current handlers to guard against mid-iteration
-		// mutations (e.g. a handler that creates or deletes blocks).
-		const handlers = [...blockHandlerRegistry.values()];
+		// cachedValues() returns a stable snapshot that guards against
+		// mid-iteration mutations (e.g. a handler that creates or deletes blocks)
+		// without allocating a new array on every event.
+		const handlers = blockHandlerRegistry.cachedValues();
 		for (const handler of handlers) {
 			handler(event);
 		}
