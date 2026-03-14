@@ -2129,16 +2129,13 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   // Special case: background/sky fallback
   if (!mesh || mesh.type === "set_sky_color") {
     const ws = Blockly.getMainWorkspace();
+    const wsBlocks = ws?.getAllBlocks(false) ?? [];
     const backgroundBlock =
-      ws
-        ?.getAllBlocks(false)
-        .find((b) => b.type === "set_background_color" && b.isEnabled()) ??
-      ws?.getAllBlocks(false).find((b) => b.type === "set_background_color");
+      wsBlocks.find((b) => b.type === "set_background_color" && b.isEnabled()) ??
+      wsBlocks.find((b) => b.type === "set_background_color");
     const skyBlock =
-      ws
-        ?.getAllBlocks(false)
-        .find((b) => b.type === "set_sky_color" && b.isEnabled()) ??
-      ws?.getAllBlocks(false).find((b) => b.type === "set_sky_color");
+      wsBlocks.find((b) => b.type === "set_sky_color" && b.isEnabled()) ??
+      wsBlocks.find((b) => b.type === "set_sky_color");
 
     block = backgroundBlock || skyBlock || meshMap?.["sky"];
 

@@ -435,9 +435,10 @@ function isVariableUsedElsewhere(
   varId,
   excludingBlockId,
   BlocklyNS,
+  allBlocks,
 ) {
   if (!varId) return false;
-  const blocks = workspace.getAllBlocks(false);
+  const blocks = allBlocks ?? workspace.getAllBlocks(false);
   for (const b of blocks) {
     if (b.id === excludingBlockId) continue;
     const fields = getVariableFieldsOnBlock(b, BlocklyNS);
@@ -569,6 +570,7 @@ function adoptIsolatedDefaultVarsTo(
   workspace,
   BlocklyNS,
   createdIds,
+  allBlocks,
 ) {
   const descendantIds = buildDescendantIdSet(rootBlock);
   let adopted = 0;
@@ -579,7 +581,7 @@ function adoptIsolatedDefaultVarsTo(
   // This replaces the O(d×n) pattern of calling getAllBlocks inside the inner loop.
   const varCountMap = new Map();
   const outsideVarIds = new Set();
-  for (const bb of workspace.getAllBlocks(false)) {
+  for (const bb of allBlocks ?? workspace.getAllBlocks(false)) {
     const isOutside = !descendantIds.has(bb.id);
     for (const f2 of getVariableFieldsOnBlock(bb, BlocklyNS)) {
       const vid2 = f2.getValue && f2.getValue();
@@ -752,7 +754,8 @@ export function ensureFreshVarOnDuplicate(
   if (!oldVarId) return false;
 
   // Duplicate/copy/duplicate-parent case?
-  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS)) return false;
+  const allBlocks = ws.getAllBlocks(false);
+  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS, allBlocks)) return false;
 
   const varType = getFieldVariableType(block, fieldName, BlocklyNS);
   const group = changeEvent.group || `auto-split-${block.id}-${Date.now()}`;
@@ -797,6 +800,7 @@ export function ensureFreshVarOnDuplicate(
       ws,
       BlocklyNS,
       createdIds,
+      allBlocks,
     );
 
     // If more children will connect later, remember to finish on subsequent events.
