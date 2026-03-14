@@ -1,6 +1,6 @@
 # CSP policy rationale
 
-Flock XR now defines Content Security Policy (CSP) in two places:
+Content Security Policy (CSP) is defined in two places:
 
 1. **Primary enforcement**: response headers via Vite `server.headers` and `preview.headers`.
 2. **Fallback**: `<meta http-equiv="Content-Security-Policy">` in `index.html`.
@@ -47,7 +47,7 @@ manifest-src 'self'
 
 ## Notes on tightening
 
-Policy was tightened to strict defaults (`default-src 'self'`, `object-src 'none'`, explicit `connect-src`/`script-src`/`worker-src`) while preserving required runtime behavior.
+The policy uses strict defaults (`default-src 'self'`, `object-src 'none'`, explicit `connect-src`/`script-src`/`worker-src`) while preserving required runtime behavior.
 
 Two allowances remain intentionally broad enough for current implementation:
 
