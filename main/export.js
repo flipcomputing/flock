@@ -238,28 +238,6 @@ async function generateSVG(block) {
 
 	const bbox = block.getSvgRoot().getBBox();
 
-	const images = svgBlock.querySelectorAll("image");
-	await Promise.all(
-		Array.from(images).map(async (img) => {
-			const href =
-				img.getAttribute("xlink:href") || img.getAttribute("href");
-			if (href && !href.startsWith("data:")) {
-				try {
-					const response = await fetch(href);
-					const blob = await response.blob();
-					const reader = new FileReader();
-					const dataUrl = await new Promise((resolve) => {
-						reader.onload = () => resolve(reader.result);
-						reader.readAsDataURL(blob);
-					});
-					img.setAttribute("xlink:href", dataUrl);
-					img.setAttribute("href", dataUrl);
-				} catch (error) {
-					console.error(`Failed to embed image: ${href}`, error);
-				}
-			}
-		}),
-	);
 
 	const uiElements = svgBlock.querySelectorAll("rect.blocklyFieldRect");
 	uiElements.forEach((rect) => {
