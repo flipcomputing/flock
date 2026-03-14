@@ -11,6 +11,7 @@ import {
   getMeshFromBlock,
   clearSkyMesh,
   setClearSkyToBlack,
+  handleSkyBlockDeletion,
 } from "../ui/blockmesh.js";
 import { registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "../main/themes.js";
@@ -160,8 +161,7 @@ export function handleBlockDelete(event) {
         clearSkyMesh();
         setClearSkyToBlack();
       } else if (blockJson.type === "set_sky_color") {
-        clearSkyMesh();
-        setClearSkyToBlack();
+        handleSkyBlockDeletion(blockJson.id);
       }
 
       // Check inputs for child blocks
@@ -229,8 +229,7 @@ export function handleMeshLifecycleChange(block, changeEvent) {
         clearSkyMesh();
         setClearSkyToBlack();
       } else if (block.type === "set_sky_color") {
-        clearSkyMesh();
-        setClearSkyToBlack();
+        handleSkyBlockDeletion(block.id);
       }
     }
     return true;

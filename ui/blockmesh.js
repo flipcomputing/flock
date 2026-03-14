@@ -389,6 +389,33 @@ export function clearSkyMesh({ preserveClearColor = true } = {}) {
   delete meshMap["sky"];
 }
 
+/**
+ * Called when a set_sky_color block is deleted or disabled.
+ * Only clears the sky if the given block was the active one; if another
+ * enabled sky block remains in the workspace it is reapplied automatically.
+ */
+export function handleSkyBlockDeletion(blockId) {
+  // If the removed block wasn't the one controlling the sky, leave it alone.
+  if (meshBlockIdMap["sky"] !== blockId) {
+    return;
+  }
+
+  clearSkyMesh();
+
+  const workspace = Blockly.getMainWorkspace();
+  const remainingSky = workspace
+    ?.getAllBlocks(false)
+    .find((b) => b.type === "set_sky_color" && b.isEnabled());
+
+  if (remainingSky) {
+    meshMap["sky"] = remainingSky;
+    meshBlockIdMap["sky"] = remainingSky.id;
+    updateSkyFromBlock(null, remainingSky, null);
+  } else {
+    setClearSkyToBlack();
+  }
+}
+
 export function setClearSkyToBlack() {
   if (flock.meshDebug) console.log("*** Setting clear sky to black");
   const fallbackColor =
