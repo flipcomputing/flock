@@ -454,7 +454,18 @@ window.onload = async function () {
         console.log("Welcome to Flock 🐑🐑🐑");
 
         // Autosave every 30 seconds: to localStorage and (if a file was saved) to that file
+        let _workspaceChangedSinceLastSave = false;
+        workspace.addChangeListener((event) => {
+                if (
+                        event.type !== Blockly.Events.UI &&
+                        event.type !== Blockly.Events.VIEWPORT_CHANGE
+                ) {
+                        _workspaceChangedSinceLastSave = true;
+                }
+        });
         setInterval(() => {
+                if (!_workspaceChangedSinceLastSave) return;
+                _workspaceChangedSinceLastSave = false;
                 saveWorkspace(workspace);
                 autoSaveToFile(workspace);
         }, 30000);

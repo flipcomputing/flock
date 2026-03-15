@@ -104,6 +104,7 @@ export const flockEvents = {
     };
 
     let lastGamepadState = getGamepadActiveState();
+    let rafHandle;
 
     const monitorGamepad = () => {
       const isActive = getGamepadActiveState();
@@ -117,10 +118,17 @@ export const flockEvents = {
       }
 
       lastGamepadState = isActive;
-      requestAnimationFrame(monitorGamepad);
+      rafHandle = requestAnimationFrame(monitorGamepad);
     };
 
-    requestAnimationFrame(monitorGamepad);
+    rafHandle = requestAnimationFrame(monitorGamepad);
+
+    // Cancel the RAF loop when the current code run is aborted (e.g. on re-run or stop)
+    flock.abortController?.signal.addEventListener(
+      "abort",
+      () => cancelAnimationFrame(rafHandle),
+      { once: true },
+    );
   },
   whenKeyEvent(key, callback, isReleased = false) {
     // Handle keyboard input
@@ -146,10 +154,6 @@ export const flockEvents = {
     });
 
     flock.xrHelper?.input.onControllerAddedObservable.add((controller) => {
-      console.log(
-        `DEBUG: Controller added: ${controller.inputSource.handedness}`,
-      );
-
       const handedness = controller.inputSource.handedness;
 
       // Map button IDs to the corresponding keyboard keys
@@ -175,15 +179,8 @@ export const flockEvents = {
           const component = motionController.getComponent(buttonId);
 
           if (!component) {
-            console.warn(
-              `DEBUG: Button ID '${buttonId}' not found for ${handedness} controller.`,
-            );
             return;
           }
-
-          console.log(
-            `DEBUG: Observing button ID '${buttonId}' for key '${mappedKey}' on ${handedness} controller.`,
-          );
 
           // Track the last known pressed state for this specific button
           let lastPressedState = false;
@@ -192,32 +189,18 @@ export const flockEvents = {
           component.onButtonStateChangedObservable.add(() => {
             const isPressed = component.pressed;
 
-            // Debugging to verify button states
-            console.log(
-              `DEBUG: Observable fired for '${buttonId}', pressed: ${isPressed}`,
-            );
-
             // Ensure this logic only processes events for the current button
             if (motionController.getComponent(buttonId) !== component) {
-              console.log(
-                `DEBUG: Skipping event for '${buttonId}' as it doesn't match the triggering component.`,
-              );
               return;
             }
 
             // Ignore repeated callbacks for the same state
             if (isPressed === lastPressedState) {
-              console.log(
-                `DEBUG: No state change for '${buttonId}', skipping callback.`,
-              );
               return;
             }
 
             // Only handle "released" transitions
             if (!isPressed && lastPressedState) {
-              console.log(
-                `DEBUG: Key '${mappedKey}' (button ID '${buttonId}') released on ${handedness} controller.`,
-              );
               callback(mappedKey, "released");
             }
 

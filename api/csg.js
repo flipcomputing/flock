@@ -551,25 +551,6 @@ export const flockCSG = {
         subtractMeshes(modelId, baseMeshName, meshNames) {
                 const blockId = modelId;
                 modelId += "_" + flock.scene.getUniqueId();
-                const debug = true;
-
-                const nodeInfo = (n, depth = undefined) => {
-                        if (!n) return null;
-                        const isMesh = typeof n.getTotalVertices === "function";
-                        return {
-                                depth,
-                                name: n.name,
-                                uniqueId: n.uniqueId,
-                                className:
-                                        typeof n.getClassName === "function"
-                                                ? n.getClassName()
-                                                : undefined,
-                                isMesh,
-                                verts: isMesh
-                                        ? n.getTotalVertices()
-                                        : undefined,
-                        };
-                };
 
                 const collectMaterialMeshesDeep = (root) => {
                         const out = [];
