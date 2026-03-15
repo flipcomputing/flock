@@ -46,7 +46,7 @@ export default {
     VitePWA({
       base: BASE_URL,
       registerType: 'autoUpdate',
-      devOptions: { enabled: true, type: 'module' },
+      devOptions: { enabled: false },
 
       assetsInclude: [
         '**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3',
