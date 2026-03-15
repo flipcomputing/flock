@@ -251,6 +251,8 @@ export const flockShapes = {
       boxId = boxId + "_" + flock.scene.getUniqueId();
     }
 
+    if (flock.maxMeshesReached()) return null;
+
     const dimensions = { width, height, depth };
 
     // Retrieve cached VertexData or create it if this is the first instance
@@ -324,6 +326,8 @@ export const flockShapes = {
     if (flock.scene.getMeshByName(sphereId)) {
       sphereId = sphereId + "_" + flock.scene.getUniqueId();
     }
+
+    if (flock.maxMeshesReached()) return null;
 
     const dimensions = { diameterX, diameterY, diameterZ };
 
@@ -406,6 +410,8 @@ export const flockShapes = {
       cylinderId = cylinderId + "_" + flock.scene.getUniqueId();
     }
 
+    if (flock.maxMeshesReached()) return null;
+
     // Get or create cached VertexData
     const vertexData = flock.getOrCreateGeometry(
       "Cylinder",
@@ -483,6 +489,8 @@ export const flockShapes = {
     if (flock.scene.getMeshByName(capsuleId)) {
       capsuleId = capsuleId + "_" + flock.scene.getUniqueId();
     }
+
+    if (flock.maxMeshesReached()) return null;
 
     // Get or create cached VertexData
     const vertexData = flock.getOrCreateGeometry(

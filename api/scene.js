@@ -536,12 +536,31 @@ export const flockScene = {
     });
   },
   cloneMesh({ sourceMeshName, cloneId, callback = null }) {
+    if (flock.maxMeshesReached()) return cloneId + "_error";
+
     const uniqueCloneId = cloneId + "_" + flock.scene.getUniqueId();
 
     flock.whenModelReady(sourceMeshName, (sourceMesh) => {
+      // Prune any previously disposed clones from the tracking list
+      sourceMesh.metadata = sourceMesh.metadata || {};
+      sourceMesh.metadata.clones = (sourceMesh.metadata.clones || []).filter(
+        (name) => {
+          const m = flock.scene.getMeshByName(name);
+          return m && !m.isDisposed();
+        },
+      );
+
+      // Auto-recycle the oldest clone when the per-source limit is reached
+      const maxClones = flock.maxClonesPerSource ?? 100;
+      if (sourceMesh.metadata.clones.length >= maxClones) {
+        const oldestName = sourceMesh.metadata.clones[0];
+        const oldest = flock.scene.getMeshByName(oldestName);
+        if (oldest) flock.disposeMesh(oldest);
+        sourceMesh.metadata.clones = sourceMesh.metadata.clones.slice(1);
+      }
+
       const clone = sourceMesh.clone(uniqueCloneId);
 
-      sourceMesh.metadata.clones = sourceMesh.metadata.clones || [];
       sourceMesh.metadata.clones = sourceMesh.metadata.clones.concat(
         clone.name,
       );

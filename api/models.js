@@ -54,6 +54,8 @@ export const flockModels = {
     modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
     desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
 
+    if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
+
     // --- compose final runtime name using RAW key, and reserve it ---
     const desiredFinalName = desiredBase;
     const meshName = flock._reserveName(desiredFinalName); // may suffix on true collision
@@ -268,6 +270,8 @@ export const flockModels = {
     };
 
     try {
+      if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
+
       let [desiredBase, bKey] = modelId.includes("__")
         ? modelId.split("__")
         : [modelId, modelId];
