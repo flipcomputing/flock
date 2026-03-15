@@ -100,6 +100,7 @@ export const flock = {
         console: console,
         havokAbortHandled: false,
         triggerHandlingDebug: false,
+        soundDebug: false,
         modelPath: "./models/",
         soundPath: "./sounds/",
         imagePath: "./images/",
