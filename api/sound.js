@@ -466,18 +466,6 @@ export const flockSound = {
       mode = "start",
     } = {},
   ) {
-    // Debug logging to check parameters
-    console.log(`[SPEAK DEBUG] Called with:`, {
-      meshName: meshName,
-      text: text,
-      voice: voice,
-      language: language,
-      rate: rate,
-      pitch: pitch,
-      volume: volume,
-      mode: mode,
-    });
-
     // Check for Web Speech API support
     if (!("speechSynthesis" in window)) {
       console.warn("Text-to-speech not supported in this browser");
@@ -498,19 +486,11 @@ export const flockSound = {
 
     // Handle spatial audio if meshName is provided and not "__everywhere__"
     let spatialAudioSetup = null;
-    console.log(
-      `[SPEAK DEBUG] Checking spatial audio setup for meshName: "${meshName}"`,
-    );
     if (meshName && meshName !== "__everywhere__") {
-      console.log(
-        `[SPEAK DEBUG] Setting up spatial audio for mesh: "${meshName}"`,
-      );
       spatialAudioSetup = await flockSound.setupSpatialSpeech(
         utterance,
         meshName,
       );
-    } else {
-      console.log(`[SPEAK DEBUG] Using non-spatial audio (everywhere mode)`);
     }
 
     // Set voice if available - handle voice loading timing
@@ -537,19 +517,6 @@ export const flockSound = {
 
     if (voices.length > 0) {
       let selectedVoice = null;
-
-      // Debug: Log available voices for troubleshooting
-      console.log(
-        "Available voices:",
-        voices.map((v) => ({
-          name: v.name,
-          lang: v.lang,
-          localService: v.localService,
-          default: v.default,
-        })),
-      );
-
-      console.log("Requested voice type:", voice, "language:", language);
 
       // Common voice names by platform and gender
       const commonVoices = {
@@ -721,12 +688,6 @@ export const flockSound = {
 
       if (selectedVoice) {
         utterance.voice = selectedVoice;
-        console.log("Selected voice:", {
-          name: selectedVoice.name,
-          requestedType: voice,
-          lang: selectedVoice.lang,
-          localService: selectedVoice.localService,
-        });
       } else {
         console.warn("No voice found for type:", voice, "using default");
       }

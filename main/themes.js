@@ -135,8 +135,6 @@ function setBinAndZoomIcons(themeName) {
 
 // Function to call when switching themes
 function switchTheme(themeName) {
-        console.log(`Switching to theme: ${themeName}`);
-
         document.body.setAttribute("data-theme", themeName);
 
         const workspace = Blockly.getMainWorkspace();

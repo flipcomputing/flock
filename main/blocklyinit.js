@@ -613,8 +613,6 @@ export function initializeWorkspace() {
                 originalScrollBoundsIntoView.call(this, bounds);
         };
 
-        console.log("Workspace initialized", workspace);
-
         // Initialize workspace search
         const workspaceSearch = new WorkspaceSearch(workspace);
         workspaceSearch.init();
@@ -656,12 +654,10 @@ export function createBlocklyWorkspace() {
 
         // Initialize keyboard navigation
         const keyboardNav = new KeyboardNavigation(workspace);
-        console.log('[init] KeyboardNav created:', keyboardNav);
 
         // Monkey-patch
         const toolbox = workspace.getToolbox();
         toolbox.onKeyDown_ = function(e) {
-            console.log('[toolbox] onKeyDown_ called');
             return false;
         };
 

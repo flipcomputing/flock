@@ -861,11 +861,9 @@ export function setupFileInput(workspace, executeCallback) {
 			try {
 				const text = reader.result;
 				if (typeof text !== "string") {
-					console.log("Invalid file content: not a string");
 					throw new Error("File content is invalid (not a string)");
 				}
 				if (text.length > 4 * 1024 * 1024) {
-					console.log("Invalid file content: too large");
 					throw new Error("File content is too large");
 				}
 				const json = JSON.parse(text);
@@ -926,7 +924,6 @@ export function loadExample(workspace, executeCallback) {
 		fetch(exampleFile)
 			.then((response) => response.json())
 			.then((json) => {
-				console.log("Loading:", selectedOption);
 				clearFileHandle();
 				loadWorkspaceAndExecute(json, workspace, executeCallback);
 			})

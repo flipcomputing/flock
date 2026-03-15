@@ -137,19 +137,12 @@ const RESERVED_IDENTIFIERS = new Set([
 
 function emitSafeIdentifierLiteral(code) {
         if (!code) {
-                console.debug(
-                        "[emitSafeIdentifierLiteral] No code → undefined",
-                );
                 return "undefined";
         }
 
         // Match single, double, or template quoted literals
         const m = code.match(/^(['"`])(.*)\1$/s);
         if (!m) {
-                console.debug(
-                        "[emitSafeIdentifierLiteral] Not quoted → undefined:",
-                        code,
-                );
                 return "undefined";
         }
 
@@ -157,36 +150,22 @@ function emitSafeIdentifierLiteral(code) {
 
         // Reject escapes entirely
         if (rawBody.includes("\\")) {
-                console.debug(
-                        "[emitSafeIdentifierLiteral] Contains backslash → undefined:",
-                        rawBody,
-                );
                 return "undefined";
         }
 
         // Replace spaces and other whitespace with underscores
         const normalized = rawBody.replace(/\s+/g, "_");
-        console.debug("[emitSafeIdentifierLiteral] Normalized:", normalized);
 
         // Validate identifier
         if (!/^[A-Za-z$_][A-Za-z0-9$_]*$/.test(normalized)) {
-                console.debug(
-                        "[emitSafeIdentifierLiteral] Invalid identifier → undefined:",
-                        normalized,
-                );
                 return "undefined";
         }
 
         // Check reserved keywords
         if (RESERVED_IDENTIFIERS.has(normalized)) {
-                console.debug(
-                        "[emitSafeIdentifierLiteral] Reserved identifier → undefined:",
-                        normalized,
-                );
                 return "undefined";
         }
 
-        console.debug("[emitSafeIdentifierLiteral] OK →", normalized);
         return JSON.stringify(normalized);
 }
 
@@ -2311,32 +2290,18 @@ export function defineGenerators() {
 
                 // Get the mesh variable name from the dynamic dropdown - same approach as play_sound block
                 const meshInput = block.getInput("MESH_INPUT");
-                console.log(`[SPEAK GENERATOR DEBUG] meshInput:`, meshInput);
-                console.log(
-                        `[SPEAK GENERATOR DEBUG] meshInput.fieldRow:`,
-                        meshInput ? meshInput.fieldRow : "null",
-                );
 
                 const meshDropdownField = meshInput
                         ? meshInput.fieldRow.find(
                                   (field) => field.name === "MESH_NAME",
                           )
                         : null;
-                console.log(
-                        `[SPEAK GENERATOR DEBUG] meshDropdownField:`,
-                        meshDropdownField,
-                );
 
                 const meshValue = meshDropdownField
                         ? meshDropdownField.getValue()
                         : "__everywhere__";
-                console.log(`[SPEAK GENERATOR DEBUG] meshValue:`, meshValue);
 
                 const meshVariable = `"${meshValue}"`;
-                console.log(
-                        `[SPEAK GENERATOR DEBUG] Final meshVariable:`,
-                        meshVariable,
-                );
 
                 // Safely handle asyncMode - ensure it's not null
                 const safeAsyncMode = asyncMode || "START";
@@ -2519,9 +2484,7 @@ export function defineGenerators() {
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "";
 
-                console.debug("[on_event] Raw EVENT_NAME:", raw);
                 const safe = emitSafeIdentifierLiteral(raw);
-                console.debug("[on_event] Safe result:", safe);
 
                 const statements_do = javascriptGenerator.statementToCode(
                         block,
@@ -3365,7 +3328,6 @@ export function defineGenerators() {
 
         javascriptGenerator.init = function (workspace) {
                 clearMeshMaps();
-                console.log("Initializing JavaScript generator...");
                 if (!javascriptGenerator.nameDB_) {
                         javascriptGenerator.nameDB_ = new Blockly.Names(
                                 reservedWordsWithoutName,
@@ -3425,7 +3387,6 @@ export function defineGenerators() {
 
         javascriptGenerator.init2 = function (workspace) {
                 clearMeshMaps();
-                console.log("Initializing JavaScript generator...");
 
                 if (!javascriptGenerator.nameDB_) {
                         javascriptGenerator.nameDB_ = new Blockly.Names(
