@@ -45,6 +45,8 @@ async function getManifold() {
   return manifoldInitPromise;
 }
 
+export { getManifold };
+
 export function setFlockReference(ref) {
   flock = ref;
 }

@@ -13,34 +13,11 @@ const BASE_URL = process.env.VITE_BASE_URL || '/';
 const CSP_META_POLICY = "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
 const CSP_HEADER_POLICY = `${CSP_META_POLICY}; frame-ancestors 'self'`;
 
-/**
- * Strips the hardcoded https://unpkg.com/manifold-3d… scriptDirectory from
- * the Emscripten-compiled manifold.js so Emscripten resolves assets relative
- * to where the file is actually served, instead of reaching out to unpkg.com.
- */
-function manifoldUnpkgPatchPlugin() {
-  const MANIFOLD_RE = /node_modules[/\\]manifold-3d[/\\]manifold\.js$/;
-  return {
-    name: 'manifold-unpkg-patch',
-    transform(code, id) {
-      if (!MANIFOLD_RE.test(id)) return null;
-      if (!code.includes('unpkg.com/manifold-3d')) return null;
-      // Replace every occurrence of the absolute unpkg.com origin so
-      // Emscripten falls back to the script's own URL as scriptDirectory.
-      return {
-        code: code.replace(/https:\/\/unpkg\.com\/manifold-3d[^'"\s]*/g, ''),
-        map: null,
-      };
-    },
-  };
-}
-
 export default {
   // Ensure assets/chunk URLs are correct in standalone/PWA and under subpaths
   base: BASE_URL,
 
   plugins: [
-    manifoldUnpkgPatchPlugin(),
     cssInjectedByJsPlugin(),
     viteStaticCopy({
       targets: [
