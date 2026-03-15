@@ -632,9 +632,71 @@ export const flock = {
                         },
                 });
         },
+        injectLoopGuards(src) {
+                const ast = acorn.parse(src, {
+                        ecmaVersion: "latest",
+                        sourceType: "script",
+                        allowAwaitOutsideFunction: true,
+                });
+
+                // Check whether a BlockStatement already contains any await expression
+                // (at any nesting depth). Loops that already yield don't need an extra guard.
+                function bodyHasAwait(node) {
+                        let found = false;
+                        walk.simple(node, {
+                                AwaitExpression() {
+                                        found = true;
+                                },
+                        });
+                        return found;
+                }
+
+                // Collect positions (just before the closing '}') where we'll inject
+                const insertions = [];
+
+                function addGuardIfNeeded(loopBody) {
+                        if (
+                                loopBody?.type === "BlockStatement" &&
+                                !bodyHasAwait(loopBody)
+                        ) {
+                                insertions.push(loopBody.end - 1);
+                        }
+                }
+
+                walk.simple(ast, {
+                        WhileStatement(node) {
+                                addGuardIfNeeded(node.body);
+                        },
+                        DoWhileStatement(node) {
+                                addGuardIfNeeded(node.body);
+                        },
+                        ForStatement(node) {
+                                addGuardIfNeeded(node.body);
+                        },
+                        ForInStatement(node) {
+                                addGuardIfNeeded(node.body);
+                        },
+                        ForOfStatement(node) {
+                                addGuardIfNeeded(node.body);
+                        },
+                });
+
+                // Apply from last to first so earlier positions stay valid
+                insertions.sort((a, b) => b - a);
+
+                let result = src;
+                for (const pos of insertions) {
+                        result =
+                                result.slice(0, pos) +
+                                "await wait(0);\n" +
+                                result.slice(pos);
+                }
+                return result;
+        },
         async runCode(code) {
                 try {
                         flock.validateUserCodeAST(code);
+                        const instrumentedCode = flock.injectLoopGuards(code);
                         await flock.disposeOldScene();
 
                         // --- remove any existing iframe ---
@@ -818,12 +880,12 @@ export const flock = {
                         // Wrap user code to allow top-level await
                         /*const wrapped =
                                 '(async () => {\n"use strict";\n' +
-                                code +
+                                instrumentedCode +
                                 "\n})()\n//# sourceURL=user-code.js";*/
 
                         const wrapped =
                                 '(async function () {\n"use strict";\n' +
-                                code +
+                                instrumentedCode +
                                 "\n}).call(undefined)\n//# sourceURL=user-code.js";
 
                         // Evaluate in SES Compartment
