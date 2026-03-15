@@ -208,6 +208,31 @@ export const flock = {
 
                 return errorContext;
         },
+        // Prune disposed entries and auto-recycle the oldest live instance
+        // when the per-key cap is hit. Used by all mesh creation paths.
+        _recycleOldestByKey(key) {
+                flock._modelInstances = flock._modelInstances || {};
+                flock._modelInstances[key] = (
+                        flock._modelInstances[key] || []
+                ).filter((name) => {
+                        const m = flock.scene?.getMeshByName(name);
+                        return m && !m.isDisposed();
+                });
+                const max = flock.maxClonesPerSource ?? 100;
+                if (flock._modelInstances[key].length >= max) {
+                        const oldestName = flock._modelInstances[key][0];
+                        const oldest = flock.scene?.getMeshByName(oldestName);
+                        if (oldest) flock.disposeMesh(oldest);
+                        flock._modelInstances[key] =
+                                flock._modelInstances[key].slice(1);
+                }
+        },
+        _registerInstance(key, meshName) {
+                flock._modelInstances = flock._modelInstances || {};
+                flock._modelInstances[key] = (
+                        flock._modelInstances[key] || []
+                ).concat(meshName);
+        },
         maxMeshesReached() {
                 const scene = flock?.scene;
                 if (!scene || typeof flock.maxMeshes !== "number") return false;

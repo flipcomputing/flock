@@ -56,23 +56,7 @@ export const flockModels = {
 
     if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
 
-    // Prune disposed character instances and recycle the oldest when the
-    // per-model cap is reached (handles looping character creation blocks).
-    flock._modelInstances = flock._modelInstances || {};
-    flock._modelInstances[modelName] = (
-      flock._modelInstances[modelName] || []
-    ).filter((name) => {
-      const m = flock.scene.getMeshByName(name);
-      return m && !m.isDisposed();
-    });
-    const _maxCharInstances = flock.maxClonesPerSource ?? 100;
-    if (flock._modelInstances[modelName].length >= _maxCharInstances) {
-      const oldestName = flock._modelInstances[modelName][0];
-      const oldest = flock.scene.getMeshByName(oldestName);
-      if (oldest) flock.disposeMesh(oldest);
-      flock._modelInstances[modelName] =
-        flock._modelInstances[modelName].slice(1);
-    }
+    flock._recycleOldestByKey(modelName);
 
     // --- compose final runtime name using RAW key, and reserve it ---
     const desiredFinalName = desiredBase;
@@ -185,11 +169,7 @@ export const flockModels = {
         resolveReady(mesh);
         cleanupAbort();
 
-        // Track this instance for per-model recycling
-        flock._modelInstances = flock._modelInstances || {};
-        flock._modelInstances[modelName] = (
-          flock._modelInstances[modelName] || []
-        ).concat(meshName);
+        flock._registerInstance(modelName, meshName);
 
         // Allow the container to be GC'd (anims/skeletons are now in the scene)
         releaseContainer(container);
@@ -315,37 +295,10 @@ export const flockModels = {
       });
       flock.modelReadyPromises.set(meshName, readyPromise);
 
-      // Prune disposed instances and auto-recycle the oldest when the
-      // per-model cap is reached (applies to both cache-hit paths).
-      const recycleOldestIfNeeded = (template) => {
-        template.metadata = template.metadata || {};
-        template.metadata.instances = (
-          template.metadata.instances || []
-        ).filter((name) => {
-          const m = flock.scene.getMeshByName(name);
-          return m && !m.isDisposed();
-        });
-        const maxInstances = flock.maxClonesPerSource ?? 100;
-        if (template.metadata.instances.length >= maxInstances) {
-          const oldestName = template.metadata.instances[0];
-          const oldest = flock.scene.getMeshByName(oldestName);
-          if (oldest) flock.disposeMesh(oldest);
-          template.metadata.instances = template.metadata.instances.slice(1);
-        }
-      };
-
-      const registerInstance = (template, name) => {
-        template.metadata = template.metadata || {};
-        template.metadata.instances = (
-          template.metadata.instances || []
-        ).concat(name);
-      };
-
       if (flock.modelCache[modelName]) {
-        const template = flock.modelCache[modelName];
-        recycleOldestIfNeeded(template);
-        const mesh = template.clone(bKey);
-        registerInstance(template, meshName);
+        flock._recycleOldestByKey(modelName);
+        const mesh = flock.modelCache[modelName].clone(bKey);
+        flock._registerInstance(modelName, meshName);
         finalizeMesh(mesh, meshName, groupName, bKey);
         resolveReady(mesh);
         return meshName;
@@ -353,10 +306,9 @@ export const flockModels = {
 
       if (flock.modelsBeingLoaded[modelName]) {
         flock.modelsBeingLoaded[modelName].then(() => {
-          const template = flock.modelCache[modelName];
-          recycleOldestIfNeeded(template);
-          const mesh = template.clone(bKey);
-          registerInstance(template, meshName);
+          flock._recycleOldestByKey(modelName);
+          const mesh = flock.modelCache[modelName].clone(bKey);
+          flock._registerInstance(modelName, meshName);
           finalizeMesh(mesh, meshName, groupName, bKey);
           resolveReady(mesh);
         });
@@ -402,9 +354,7 @@ export const flockModels = {
         setTemplateFlags(template, modelName);
         flock.modelCache[modelName] = template;
 
-        // Register the first instance on the template so subsequent calls
-        // can recycle it if needed.
-        registerInstance(template, meshName);
+        flock._registerInstance(modelName, meshName);
 
         finalizeMesh(root, meshName, groupName, bKey);
         resolveReady(root);

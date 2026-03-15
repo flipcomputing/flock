@@ -252,6 +252,7 @@ export const flockShapes = {
     }
 
     if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
 
     const dimensions = { width, height, depth };
 
@@ -291,6 +292,7 @@ export const flockShapes = {
     flock.applyPhysics(newBox, boxShape);
 
     flock.announceMeshReady(newBox.name, groupName);
+    flock._registerInstance(blockKey, newBox.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -328,6 +330,7 @@ export const flockShapes = {
     }
 
     if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
 
     const dimensions = { diameterX, diameterY, diameterZ };
 
@@ -365,6 +368,7 @@ export const flockShapes = {
     flock.applyPhysics(newSphere, sphereShape);
 
     flock.announceMeshReady(newSphere.name, groupName);
+    flock._registerInstance(blockKey, newSphere.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -411,6 +415,7 @@ export const flockShapes = {
     }
 
     if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
 
     // Get or create cached VertexData
     const vertexData = flock.getOrCreateGeometry(
@@ -454,6 +459,7 @@ export const flockShapes = {
     flock.applyPhysics(newCylinder, cylinderShape);
 
     flock.announceMeshReady(newCylinder.name, groupName);
+    flock._registerInstance(blockKey, newCylinder.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -491,6 +497,7 @@ export const flockShapes = {
     }
 
     if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
 
     // Get or create cached VertexData
     const vertexData = flock.getOrCreateGeometry(
@@ -543,6 +550,7 @@ export const flockShapes = {
     flock.applyPhysics(newCapsule, capsuleShape);
 
     flock.announceMeshReady(newCapsule.name, groupName);
+    flock._registerInstance(blockKey, newCapsule.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
