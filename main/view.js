@@ -36,10 +36,11 @@ export function onResize(mode) {
 }
 
 let resizeTimer;
-window.onresize = () => {
+const handleWindowResize = () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(onResize, 100);
 };
+window.addEventListener("resize", handleWindowResize);
 
 // Function to maintain a 16:9 aspect ratio for the canvas
 function resizeCanvas() {
