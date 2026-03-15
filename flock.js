@@ -663,19 +663,24 @@ export const flock = {
                                 sameOrigin: true,
                         });
 
-                        // --- load SES text in parent and inject inline into iframe (CSP allows inline) ---
-                        const sesResp = await fetch(
-                                "vendor/ses/lockdown.umd.min.js",
-                        );
-                        if (!sesResp.ok)
-                                throw new Error(
-                                        `Failed to fetch SES: ${sesResp.status}`,
-                                );
-                        const sesText = await sesResp.text();
-                        const sesScript = doc.createElement("script");
-                        sesScript.type = "text/javascript";
-                        sesScript.text = sesText;
-                        doc.head.appendChild(sesScript);
+                        // Load SES lockdown via src= so the parent's script-src 'self' policy
+                        // is satisfied — injecting inline text would require 'unsafe-inline'.
+                        await new Promise((resolve, reject) => {
+                                const sesScript = doc.createElement("script");
+                                sesScript.type = "text/javascript";
+                                sesScript.onload = resolve;
+                                sesScript.onerror = () =>
+                                        reject(
+                                                new Error(
+                                                        "Failed to load SES lockdown",
+                                                ),
+                                        );
+                                sesScript.src = new URL(
+                                        "vendor/ses/lockdown.umd.min.js",
+                                        document.baseURI,
+                                ).href;
+                                doc.head.appendChild(sesScript);
+                        });
 
                         // lockdown the iframe realm
                         win.lockdown();

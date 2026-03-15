@@ -243,6 +243,7 @@ export default {
   build: {
     assetsInlineLimit: 100000,   // include font files inline if needed
     cssCodeSplit: false,         // inline CSS into JS
+    modulePreload: { polyfill: false },  // avoid injecting an inline script that violates script-src CSP
     rollupOptions: { input: 'index.html' },
   }
 }
