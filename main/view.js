@@ -35,7 +35,11 @@ export function onResize(mode) {
         });
 }
 
-window.onresize = onResize;
+let resizeTimer;
+window.onresize = () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(onResize, 100);
+};
 
 // Function to maintain a 16:9 aspect ratio for the canvas
 function resizeCanvas() {
