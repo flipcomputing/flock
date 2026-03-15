@@ -69,6 +69,37 @@ const rumblePatterns = {
   ],
 };
 
+export function triggerHaptics({ motor = "both", strength = 1, effects = [], vibrationPattern }) {
+  const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+  let hasActuator = false;
+
+  for (const gamepad of gamepads) {
+    const actuator = gamepad?.vibrationActuator;
+    if (!actuator || typeof actuator.playEffect !== "function") continue;
+    hasActuator = true;
+
+    for (const effect of effects) {
+      const weakMagnitude =
+        effect.weakMagnitude ?? (motor === "left" ? 0 : strength);
+      const strongMagnitude =
+        effect.strongMagnitude ?? (motor === "right" ? 0 : strength);
+
+      actuator.playEffect("dual-rumble", {
+        startDelay: effect.startDelay ?? 0,
+        duration: effect.duration,
+        weakMagnitude,
+        strongMagnitude,
+      });
+    }
+  }
+
+  if (hasActuator) return;
+  if (typeof navigator.vibrate !== "function") return;
+  if (vibrationPattern == null) return;
+
+  navigator.vibrate(vibrationPattern);
+}
+
 export const flockXR = {
   /* 
           Category: Scene>XR
@@ -107,52 +138,52 @@ export const flockXR = {
     );
   },
   controllerRumble(motor, strength, duration) {
-    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    for (const gamepad of gamepads) {
-      if (!gamepad || !gamepad.vibrationActuator) continue;
-      const weakMagnitude = motor === "left" ? 0 : strength;
-      const strongMagnitude = motor === "right" ? 0 : strength;
-      gamepad.vibrationActuator.playEffect("dual-rumble", {
-        startDelay: 0,
-        duration: duration,
-        weakMagnitude: weakMagnitude,
-        strongMagnitude: strongMagnitude,
-      });
-    }
+    triggerHaptics({
+      motor,
+      strength,
+      effects: [{ duration }],
+      vibrationPattern: duration,
+    });
   },
   controllerRumblePattern(motor, strength, onDuration, offDuration, repeats) {
-    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    for (const gamepad of gamepads) {
-      if (!gamepad || !gamepad.vibrationActuator) continue;
-      const weakMagnitude = motor === "left" ? 0 : strength;
-      const strongMagnitude = motor === "right" ? 0 : strength;
-      for (let i = 0; i < repeats; i++) {
-        gamepad.vibrationActuator.playEffect("dual-rumble", {
-          startDelay: i * (onDuration + offDuration),
-          duration: onDuration,
-          weakMagnitude: weakMagnitude,
-          strongMagnitude: strongMagnitude,
-        });
-      }
+    const effects = [];
+    const vibrationPattern = [];
+
+    for (let i = 0; i < repeats; i++) {
+      effects.push({
+        startDelay: i * (onDuration + offDuration),
+        duration: onDuration,
+      });
+      vibrationPattern.push(onDuration, offDuration);
     }
+
+    triggerHaptics({ motor, strength, effects, vibrationPattern });
   },
   playRumblePattern(patternName) {
     const pattern = rumblePatterns[patternName];
     if (!pattern) return;
-    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    for (const gamepad of gamepads) {
-      if (!gamepad || !gamepad.vibrationActuator) continue;
-      let startDelay = 0;
-      for (const pulse of pattern) {
-        gamepad.vibrationActuator.playEffect("dual-rumble", {
-          startDelay,
-          duration: pulse.duration,
-          weakMagnitude: pulse.weakMagnitude,
-          strongMagnitude: pulse.strongMagnitude,
-        });
-        startDelay += pulse.duration + pulse.pauseAfter;
+
+    const effects = [];
+    const vibrationPattern = [];
+    let startDelay = 0;
+
+    for (const pulse of pattern) {
+      effects.push({
+        startDelay,
+        duration: pulse.duration,
+        weakMagnitude: pulse.weakMagnitude,
+        strongMagnitude: pulse.strongMagnitude,
+      });
+
+      vibrationPattern.push(pulse.duration);
+      if (pulse.pauseAfter > 0) {
+        vibrationPattern.push(pulse.pauseAfter);
       }
+
+      startDelay += pulse.duration + pulse.pauseAfter;
     }
+
+    triggerHaptics({ effects, vibrationPattern });
   },
   async setXRMode(mode) {
     await flock.initializeXR(mode);
