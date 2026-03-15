@@ -104,6 +104,7 @@ export const flockEvents = {
     };
 
     let lastGamepadState = getGamepadActiveState();
+    let rafId;
 
     const monitorGamepad = () => {
       const isActive = getGamepadActiveState();
@@ -117,10 +118,14 @@ export const flockEvents = {
       }
 
       lastGamepadState = isActive;
-      requestAnimationFrame(monitorGamepad);
+      rafId = requestAnimationFrame(monitorGamepad);
     };
 
-    requestAnimationFrame(monitorGamepad);
+    rafId = requestAnimationFrame(monitorGamepad);
+
+    flock.abortController?.signal?.addEventListener("abort", () => {
+      cancelAnimationFrame(rafId);
+    });
   },
   whenKeyEvent(key, callback, isReleased = false) {
     // Handle keyboard input
