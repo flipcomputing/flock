@@ -564,9 +564,13 @@ export const flockMaterial = {
     replaceIfPBRMaterial(mesh);
     // Replace materials on all child meshes
     mesh.getChildMeshes().forEach(replaceIfPBRMaterial);
-    // Dispose of all replaced materials
+    // Dispose replaced PBR materials only if no other mesh still references them
+    // (the cached template may still hold references to the same material objects)
     replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
-      oldMaterial.dispose();
+      const stillInUse = flock.scene.meshes.some(
+        (m) => !m.isDisposed() && m.material === oldMaterial,
+      );
+      if (!stillInUse) oldMaterial.dispose();
     });
   },
   changeColor(meshName, { color } = {}) {
