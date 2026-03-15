@@ -661,7 +661,6 @@ export function createBlocklyWorkspace() {
         // Monkey-patch
         const toolbox = workspace.getToolbox();
         toolbox.onKeyDown_ = function(e) {
-            console.log('[toolbox] onKeyDown_ called');
             return false;
         };
 

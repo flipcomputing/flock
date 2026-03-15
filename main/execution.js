@@ -12,7 +12,6 @@ let isExecuting = false;
 export async function executeCode() {
 	// Check if the function is already running
 	if (isExecuting) {
-		console.log("Function already running, skipping execution.");
 		return; // Exit if already running
 	}
 
