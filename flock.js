@@ -1926,9 +1926,10 @@ export const flock = {
                                 flock.scene.dispose();
                                 flock.scene = null;
 
-                                // Dispose physics engine
+                                // Dispose physics engine and release WASM heap
                                 flock.hk?.dispose();
                                 flock.hk = null;
+                                flock.havokInstance = null;
 
                                 // Dispose the Babylon.js engine
                                 flock.engine?.dispose();
@@ -2063,7 +2064,8 @@ export const flock = {
                 // Start the render loop
                 flock.engine.runRenderLoop(flock._renderLoop);
 
-                // Enable physics
+                // Enable physics — reinitialize Havok WASM so the old heap is freed
+                flock.havokInstance = await HavokPhysics();
                 flock.hk = new flock.BABYLON.HavokPlugin(
                         true,
                         flock.havokInstance,
