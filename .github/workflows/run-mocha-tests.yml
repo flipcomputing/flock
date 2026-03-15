@@ -5,7 +5,7 @@ name: Run mocha tests
 
 on:
   push:
-    branches: [ "main", "testable" ]
+    branches: [ "main", "testable", "claude/**" ]
   pull_request:
     branches: [ "main", "testable" ]
 
@@ -21,8 +21,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        ref: testable
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
