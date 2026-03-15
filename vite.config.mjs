@@ -22,6 +22,8 @@ export default {
     viteStaticCopy({
       targets: [
         { src: 'ga-init.js', dest: '.' },
+        { src: 'touch-debug.js', dest: '.' },
+        { src: 'menu.js', dest: '.' },
         { src: 'models/*.{glb,gltf}', dest: 'models' },
         { src: 'animations/*.{glb,gltf}', dest: 'animations' },
         { src: 'sounds/*.{ogg,mp3,aac,wav}', dest: 'sounds' },
