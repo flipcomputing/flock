@@ -2071,24 +2071,6 @@ export const flock = {
                 // Start the render loop
                 flock.engine.runRenderLoop(flock._renderLoop);
 
-                // Stop rendering entirely when the page is hidden (e.g. tab switch,
-                // phone screen-off) and resume when it becomes visible again.
-                // The AbortController signal ensures this listener is removed
-                // automatically when disposeOldScene() aborts the controller.
-                document.addEventListener(
-                        "visibilitychange",
-                        () => {
-                                if (document.hidden) {
-                                        flock.engine.stopRenderLoop();
-                                } else {
-                                        flock.engine.runRenderLoop(
-                                                flock._renderLoop,
-                                        );
-                                }
-                        },
-                        { signal: flock.abortController.signal },
-                );
-
                 // Enable physics
                 flock.hk = new flock.BABYLON.HavokPlugin(
                         true,
