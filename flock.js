@@ -94,6 +94,9 @@ export const flock = {
         meshDebug: false,
         performanceOverlay: false,
         maxMeshes: 5000,
+        maxClonesPerSource: 500,
+        meshLimitEnabled: false,
+        meshRecyclingEnabled: false,
         console: console,
         havokAbortHandled: false,
         triggerHandlingDebug: false,
@@ -207,7 +210,37 @@ export const flock = {
 
                 return errorContext;
         },
+        // Prune disposed entries and auto-recycle the oldest live instance
+        // when the per-key cap is hit. Used by all mesh creation paths.
+        // Only active when flock.meshRecyclingEnabled is true.
+        _recycleOldestByKey(key) {
+                if (!flock.meshRecyclingEnabled) return;
+                if (!flock._modelInstances) flock._modelInstances = Object.create(null);
+                const current = Array.isArray(flock._modelInstances[key])
+                        ? flock._modelInstances[key]
+                        : [];
+                flock._modelInstances[key] = current.filter((name) => {
+                        const m = flock.scene?.getMeshByName(name);
+                        return m && !m.isDisposed();
+                });
+                const max = flock.maxClonesPerSource ?? 500;
+                if (flock._modelInstances[key].length >= max) {
+                        const oldestName = flock._modelInstances[key][0];
+                        const oldest = flock.scene?.getMeshByName(oldestName);
+                        if (oldest) flock.disposeMesh(oldest);
+                        flock._modelInstances[key] =
+                                flock._modelInstances[key].slice(1);
+                }
+        },
+        _registerInstance(key, meshName) {
+                if (!flock._modelInstances) flock._modelInstances = Object.create(null);
+                const current = Array.isArray(flock._modelInstances[key])
+                        ? flock._modelInstances[key]
+                        : [];
+                flock._modelInstances[key] = current.concat(meshName);
+        },
         maxMeshesReached() {
+                if (!flock.meshLimitEnabled) return false;
                 const scene = flock?.scene;
                 if (!scene || typeof flock.maxMeshes !== "number") return false;
 

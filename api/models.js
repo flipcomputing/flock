@@ -54,6 +54,10 @@ export const flockModels = {
     modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
     desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
 
+    if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
+
+    flock._recycleOldestByKey(modelName);
+
     // --- compose final runtime name using RAW key, and reserve it ---
     const desiredFinalName = desiredBase;
     const meshName = flock._reserveName(desiredFinalName); // may suffix on true collision
@@ -165,6 +169,8 @@ export const flockModels = {
         resolveReady(mesh);
         cleanupAbort();
 
+        flock._registerInstance(modelName, meshName);
+
         // Allow the container to be GC'd (anims/skeletons are now in the scene)
         releaseContainer(container);
       })
@@ -268,6 +274,8 @@ export const flockModels = {
     };
 
     try {
+      if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
+
       let [desiredBase, bKey] = modelId.includes("__")
         ? modelId.split("__")
         : [modelId, modelId];
@@ -288,7 +296,9 @@ export const flockModels = {
       flock.modelReadyPromises.set(meshName, readyPromise);
 
       if (flock.modelCache[modelName]) {
+        flock._recycleOldestByKey(modelName);
         const mesh = flock.modelCache[modelName].clone(bKey);
+        flock._registerInstance(modelName, meshName);
         finalizeMesh(mesh, meshName, groupName, bKey);
         resolveReady(mesh);
         return meshName;
@@ -296,7 +306,9 @@ export const flockModels = {
 
       if (flock.modelsBeingLoaded[modelName]) {
         flock.modelsBeingLoaded[modelName].then(() => {
+          flock._recycleOldestByKey(modelName);
           const mesh = flock.modelCache[modelName].clone(bKey);
+          flock._registerInstance(modelName, meshName);
           finalizeMesh(mesh, meshName, groupName, bKey);
           resolveReady(mesh);
         });
@@ -341,6 +353,8 @@ export const flockModels = {
         const template = root.clone(`${modelName}_template`);
         setTemplateFlags(template, modelName);
         flock.modelCache[modelName] = template;
+
+        flock._registerInstance(modelName, meshName);
 
         finalizeMesh(root, meshName, groupName, bKey);
         resolveReady(root);

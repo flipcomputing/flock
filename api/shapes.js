@@ -251,6 +251,9 @@ export const flockShapes = {
       boxId = boxId + "_" + flock.scene.getUniqueId();
     }
 
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
+
     const dimensions = { width, height, depth };
 
     // Retrieve cached VertexData or create it if this is the first instance
@@ -289,6 +292,7 @@ export const flockShapes = {
     flock.applyPhysics(newBox, boxShape);
 
     flock.announceMeshReady(newBox.name, groupName);
+    flock._registerInstance(blockKey, newBox.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -324,6 +328,9 @@ export const flockShapes = {
     if (flock.scene.getMeshByName(sphereId)) {
       sphereId = sphereId + "_" + flock.scene.getUniqueId();
     }
+
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
 
     const dimensions = { diameterX, diameterY, diameterZ };
 
@@ -361,6 +368,7 @@ export const flockShapes = {
     flock.applyPhysics(newSphere, sphereShape);
 
     flock.announceMeshReady(newSphere.name, groupName);
+    flock._registerInstance(blockKey, newSphere.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -406,6 +414,9 @@ export const flockShapes = {
       cylinderId = cylinderId + "_" + flock.scene.getUniqueId();
     }
 
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
+
     // Get or create cached VertexData
     const vertexData = flock.getOrCreateGeometry(
       "Cylinder",
@@ -448,6 +459,7 @@ export const flockShapes = {
     flock.applyPhysics(newCylinder, cylinderShape);
 
     flock.announceMeshReady(newCylinder.name, groupName);
+    flock._registerInstance(blockKey, newCylinder.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -483,6 +495,9 @@ export const flockShapes = {
     if (flock.scene.getMeshByName(capsuleId)) {
       capsuleId = capsuleId + "_" + flock.scene.getUniqueId();
     }
+
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
 
     // Get or create cached VertexData
     const vertexData = flock.getOrCreateGeometry(
@@ -535,6 +550,7 @@ export const flockShapes = {
     flock.applyPhysics(newCapsule, capsuleShape);
 
     flock.announceMeshReady(newCapsule.name, groupName);
+    flock._registerInstance(blockKey, newCapsule.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -557,6 +573,9 @@ export const flockShapes = {
     if (flock.scene.getMeshByName(planeId)) {
       planeId = planeId + "_" + flock.scene.getUniqueId();
     }
+
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
 
     const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
       planeId,
@@ -610,6 +629,7 @@ export const flockShapes = {
     newPlane.metadata.blockKey = blockKey;
 
     flock.announceMeshReady(newPlane.name, groupName);
+    flock._registerInstance(blockKey, newPlane.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
