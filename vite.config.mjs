@@ -46,7 +46,7 @@ export default {
     VitePWA({
       base: BASE_URL,
       registerType: 'autoUpdate',
-      devOptions: { enabled: false },
+      devOptions: { enabled: true, type: 'module' },
 
       assetsInclude: [
         '**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3',
@@ -219,8 +219,11 @@ export default {
     },
     fs: { allow: ['../..'] },
     allowedHosts: [
+      // Replit dev environments
       '27c4c3b0-9860-47aa-a95d-03ca8acd6af0-00-2qj22wjmgrujn.picard.replit.dev',
-      '1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev'
+      '1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev',
+      // GitHub Codespaces (dynamic hostnames — allow all *.app.github.dev)
+      '.app.github.dev',
     ]
   },
 
