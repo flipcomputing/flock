@@ -207,7 +207,7 @@ export const flockModels = {
     const applyMaterialToHierarchy = (mesh, colorInput) => {
       if (!applyColor || !colorInput) return;
 
-      flock.applyMaterialToHierarchy(mesh, color);
+      flock.applyMaterialToHierarchy(mesh, colorInput);
     };
     
     const setTemplateFlags = (node, tag) => {
@@ -345,6 +345,7 @@ export const flockModels = {
         finalizeMesh(root, meshName, groupName, bKey);
         resolveReady(root);
         releaseContainer(container);
+        delete flock.modelsBeingLoaded[modelName];
       });
 
       return meshName;
