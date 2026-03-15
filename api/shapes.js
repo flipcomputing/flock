@@ -574,6 +574,9 @@ export const flockShapes = {
       planeId = planeId + "_" + flock.scene.getUniqueId();
     }
 
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
+
     const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
       planeId,
       {
@@ -626,6 +629,7 @@ export const flockShapes = {
     newPlane.metadata.blockKey = blockKey;
 
     flock.announceMeshReady(newPlane.name, groupName);
+    flock._registerInstance(blockKey, newPlane.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());

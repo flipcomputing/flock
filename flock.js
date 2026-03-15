@@ -214,14 +214,15 @@ export const flock = {
         // Only active when flock.meshRecyclingEnabled is true.
         _recycleOldestByKey(key) {
                 if (!flock.meshRecyclingEnabled) return;
-                flock._modelInstances = flock._modelInstances || {};
-                flock._modelInstances[key] = (
-                        flock._modelInstances[key] || []
-                ).filter((name) => {
+                if (!flock._modelInstances) flock._modelInstances = Object.create(null);
+                const current = Array.isArray(flock._modelInstances[key])
+                        ? flock._modelInstances[key]
+                        : [];
+                flock._modelInstances[key] = current.filter((name) => {
                         const m = flock.scene?.getMeshByName(name);
                         return m && !m.isDisposed();
                 });
-                const max = flock.maxClonesPerSource ?? 100;
+                const max = flock.maxClonesPerSource ?? 500;
                 if (flock._modelInstances[key].length >= max) {
                         const oldestName = flock._modelInstances[key][0];
                         const oldest = flock.scene?.getMeshByName(oldestName);
@@ -231,10 +232,11 @@ export const flock = {
                 }
         },
         _registerInstance(key, meshName) {
-                flock._modelInstances = flock._modelInstances || {};
-                flock._modelInstances[key] = (
-                        flock._modelInstances[key] || []
-                ).concat(meshName);
+                if (!flock._modelInstances) flock._modelInstances = Object.create(null);
+                const current = Array.isArray(flock._modelInstances[key])
+                        ? flock._modelInstances[key]
+                        : [];
+                flock._modelInstances[key] = current.concat(meshName);
         },
         maxMeshesReached() {
                 const scene = flock?.scene;

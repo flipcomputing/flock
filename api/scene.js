@@ -536,11 +536,13 @@ export const flockScene = {
     });
   },
   cloneMesh({ sourceMeshName, cloneId, callback = null }) {
-    if (flock.maxMeshesReached()) return cloneId + "_error";
+    if (flock.maxMeshesReached()) return "error_" + cloneId;
 
     const uniqueCloneId = cloneId + "_" + flock.scene.getUniqueId();
 
     flock.whenModelReady(sourceMeshName, (sourceMesh) => {
+      if (!sourceMesh || sourceMesh.isDisposed?.()) return;
+
       flock._recycleOldestByKey(sourceMeshName);
 
       const clone = sourceMesh.clone(uniqueCloneId);
