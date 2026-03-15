@@ -3585,7 +3585,6 @@ javascriptGenerator.forBlock["controls_whileUntil"] = function (block) {
                 argument0 +
                 ") {\n" +
                 branch +
-                `\nawait wait(0);\n` +
                 "}\n"
         );
 };
@@ -3602,8 +3601,6 @@ javascriptGenerator.forBlock["controls_doWhile"] = function (block) {
         return `
         do {
                 ${branch}
-
-                await wait(0);
         } while (${condition});\n`;
 };
 
@@ -3651,7 +3648,6 @@ javascriptGenerator.forBlock["controls_repeat_ext"] = function (
                 loopVar +
                 "++) {\n" +
                 branch +
-                "await wait(0);\n" +
                 "}\n";
 
         return code;
@@ -3807,7 +3803,6 @@ javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
                 listVar +
                 ") {\n" +
                 branch +
-                "\n  await wait(0);\n" +
                 "}\n";
 
         return code;
