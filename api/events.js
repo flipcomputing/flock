@@ -105,8 +105,13 @@ export const flockEvents = {
 
     let lastGamepadState = getGamepadActiveState();
     let rafId;
+    const abortSignal = flock.abortController?.signal;
 
     const monitorGamepad = () => {
+      if (abortSignal?.aborted) {
+        return;
+      }
+
       const isActive = getGamepadActiveState();
 
       const shouldTrigger = isReleased
@@ -118,14 +123,25 @@ export const flockEvents = {
       }
 
       lastGamepadState = isActive;
-      rafId = requestAnimationFrame(monitorGamepad);
+      if (!abortSignal?.aborted) {
+        rafId = requestAnimationFrame(monitorGamepad);
+      }
     };
 
+    if (abortSignal?.aborted) {
+      return;
+    }
     rafId = requestAnimationFrame(monitorGamepad);
 
-    flock.abortController?.signal?.addEventListener("abort", () => {
-      cancelAnimationFrame(rafId);
-    });
+    abortSignal?.addEventListener(
+      "abort",
+      () => {
+        if (rafId != null) {
+          cancelAnimationFrame(rafId);
+        }
+      },
+      { once: true },
+    );
   },
   whenKeyEvent(key, callback, isReleased = false) {
     // Handle keyboard input
