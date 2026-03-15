@@ -3328,6 +3328,7 @@ export function defineGenerators() {
 
         javascriptGenerator.init = function (workspace) {
                 clearMeshMaps();
+                console.log("Initializing JavaScript generator...");
                 if (!javascriptGenerator.nameDB_) {
                         javascriptGenerator.nameDB_ = new Blockly.Names(
                                 reservedWordsWithoutName,
@@ -3387,6 +3388,7 @@ export function defineGenerators() {
 
         javascriptGenerator.init2 = function (workspace) {
                 clearMeshMaps();
+                console.log("Initializing JavaScript generator...");
 
                 if (!javascriptGenerator.nameDB_) {
                         javascriptGenerator.nameDB_ = new Blockly.Names(

@@ -26,6 +26,8 @@ export async function executeCode() {
 		await delay(100);
 	}
 
+	console.log("Engine ready");
+
 	// Cache DOM elements
 	const container = document.getElementById("maincontent");
 	const switchViewsBtn = document.getElementById("switchViews");
@@ -48,6 +50,7 @@ export async function executeCode() {
 	const code = javascriptGenerator.workspaceToCode(workspace);
 
 	try {
+		console.log(code);
 		await flock.runCode(code);
 		// Focus canvas so user can immediately interact with 3D scene
 		renderCanvas?.focus();
@@ -96,6 +99,7 @@ export function stopCode() {
 
 	// Stop rendering
 	flock.engine.stopRenderLoop();
+	console.log("Render loop stopped.");
 
 	// Remove event listeners
 	flock.removeEventListeners();
@@ -104,6 +108,8 @@ export function stopCode() {
 	if (isNarrowScreen() && currentView === "code") {
 	  showCanvasView();
 	}
+
+	console.log("Switched view.");
 }
 
 window.stopCode = stopCode;

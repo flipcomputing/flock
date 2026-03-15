@@ -924,6 +924,7 @@ export function loadExample(workspace, executeCallback) {
 		fetch(exampleFile)
 			.then((response) => response.json())
 			.then((json) => {
+				console.log("Loading:", selectedOption);
 				clearFileHandle();
 				loadWorkspaceAndExecute(json, workspace, executeCallback);
 			})
