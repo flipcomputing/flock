@@ -95,6 +95,7 @@ export const flock = {
         performanceOverlay: false,
         maxMeshes: 5000,
         maxClonesPerSource: 500,
+        meshLimitEnabled: false,
         meshRecyclingEnabled: false,
         console: console,
         havokAbortHandled: false,
@@ -239,6 +240,7 @@ export const flock = {
                 flock._modelInstances[key] = current.concat(meshName);
         },
         maxMeshesReached() {
+                if (!flock.meshLimitEnabled) return false;
                 const scene = flock?.scene;
                 if (!scene || typeof flock.maxMeshes !== "number") return false;
 
