@@ -289,6 +289,7 @@ export const objectColours = {
         "skateboard.glb": ["#E769D3", "#484848", "#251BE7"],
 
         "rhino.glb": ["#6D6B6C", "#F6F6F6", "#373737", "#230F0F"],
+        "lion.glb": ["#000000", "#DECC9C", "#8A4900", "#C69452"],
 
         "humped.glb": ["#FFA869", "#7E5024", "#E76F31"],
         "jetty.glb": ["#FFA869", "#7E5024", "#E76F31"],
