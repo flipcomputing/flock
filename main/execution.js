@@ -95,6 +95,10 @@ export async function executeCode() {
 }
 
 export function stopCode() {
+	// Abort the run signal so stale setTimeout/setInterval callbacks can no
+	// longer create new meshes or play new sounds via guarded APIs.
+	flock.abortController?.abort?.();
+
 	flock.stopAllSounds();
 
 	// Stop rendering
@@ -103,6 +107,9 @@ export function stopCode() {
 
 	// Remove event listeners
 	flock.removeEventListeners();
+
+	// Allow a fresh run to start immediately after stop.
+	isExecuting = false;
 
 	// If on a narrow screen and currently showing code, switch to canvas
 	if (isNarrowScreen() && currentView === "code") {
