@@ -47,6 +47,7 @@ export const flockControl = {
     state = {},
   ) {
     if (state.stopExecution) return; // Check if we should stop further iterations
+    if (flock.abortController?.signal?.aborted) return;
 
     // Execute the loop body
     await loopBody(iteration);
@@ -62,19 +63,39 @@ export const flockControl = {
     }
   },
   waitUntil(conditionFunc) {
+    const signal = flock.abortController?.signal;
     return new Promise((resolve, reject) => {
+      if (signal?.aborted) {
+        resolve();
+        return;
+      }
+
       const checkCondition = () => {
+        if (signal?.aborted) {
+          flock.scene?.onBeforeRenderObservable?.remove(observer);
+          resolve();
+          return;
+        }
         try {
           if (conditionFunc()) {
-            flock.scene.onBeforeRenderObservable.removeCallback(checkCondition);
+            flock.scene.onBeforeRenderObservable.remove(observer);
             resolve();
           }
         } catch (error) {
-          flock.scene.onBeforeRenderObservable.removeCallback(checkCondition);
+          flock.scene.onBeforeRenderObservable.remove(observer);
           reject(error);
         }
       };
-      flock.scene.onBeforeRenderObservable.add(checkCondition);
+      const observer = flock.scene.onBeforeRenderObservable.add(checkCondition);
+
+      signal?.addEventListener(
+        "abort",
+        () => {
+          flock.scene?.onBeforeRenderObservable?.remove(observer);
+          resolve();
+        },
+        { once: true },
+      );
     });
   },
 };
