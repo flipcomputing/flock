@@ -10,8 +10,8 @@ Content Security Policy (CSP) is defined in two places:
 Core flows tested (app load, Blockly interaction, run code in sandbox, project export/import trigger, analytics path) observed these runtime source origins:
 
 - **document / stylesheet / image / font / xhr**: `self` (`http://127.0.0.1:4173` in local smoke run)
-- **script**: `self`, `https://www.googletagmanager.com`, `https://unpkg.com`
-- **fetch / connect**: `self`, `https://www.google-analytics.com`, `https://unpkg.com`
+- **script**: `self`, `https://www.googletagmanager.com`
+- **fetch / connect**: `self`, `https://www.google-analytics.com`
 
 ## Why each non-self origin is required
 
@@ -23,9 +23,6 @@ Core flows tested (app load, Blockly interaction, run code in sandbox, project e
   - Optional Google Analytics transport endpoint used by some environments.
 - `https://region1.google-analytics.com`
   - Regional Google Analytics endpoint used by some environments.
-- `https://unpkg.com`
-  - Used by `manifold-3d` runtime assets (`manifold.js` / `manifold.wasm`) in browser execution.
-
 ## Current CSP
 
 Header policy (authoritative):
@@ -35,11 +32,11 @@ default-src 'self';
 base-uri 'self';
 form-action 'self';
 object-src 'none';
-script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://unpkg.com;
+script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com;
 style-src 'self' 'unsafe-inline';
 img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com;
 font-src 'self' data:;
-connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://unpkg.com;
+connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net;
 media-src 'self' data: blob:;
 worker-src 'self' blob:;
 frame-src 'self';
