@@ -135,6 +135,23 @@ export function initializeBlockHandling() {
 
 	let cleanupTimeout = null;
 
+	// Debounced wrapper for workspace.cleanUp(). All callers funnel through
+	// here so the O(n log n) getTopBlocks sort is never triggered more than
+	// once per quiet period, regardless of how many change events fire.
+	function scheduleCleanup(delay = 300) {
+		clearTimeout(cleanupTimeout);
+		cleanupTimeout = setTimeout(() => {
+			const wasEnabled = Blockly.Events.isEnabled();
+			try {
+				if (wasEnabled) Blockly.Events.disable();
+				workspace.cleanUp();
+			} finally {
+				if (wasEnabled) Blockly.Events.enable();
+			}
+			Blockly.Events.disableOrphans(workspace);
+		}, delay);
+	}
+
 	// Global keyboard shortcuts
 	document.addEventListener("keydown", function (event) {
 		// Skip to main content (Alt+M)
@@ -411,27 +428,19 @@ export function initializeBlockHandling() {
 				event.type === Blockly.Events.BLOCK_CREATE ||
 				event.type === Blockly.Events.BLOCK_DELETE)
 		) {
-			clearTimeout(cleanupTimeout);
-			cleanupTimeout = setTimeout(() => {
-				const wasEnabled = Blockly.Events.isEnabled();
-				try {
-					if (wasEnabled) Blockly.Events.disable(); // don't create undo entries
-					workspace.cleanUp();
-				} finally {
-					if (wasEnabled) Blockly.Events.enable();
-				}
-				Blockly.Events.disableOrphans(workspace);
-			}, 300); // adjust if you want snappier/slower cleanup
+			scheduleCleanup(300);
 		}
 
-		// 3. Immediate cleanup when a top-level block is collapsed/expanded.
+		// 3. Debounced cleanup when a top-level block is collapsed/expanded.
+		// Uses a shorter delay so the layout update feels immediate to the user
+		// while still coalescing rapid collapse/expand events into one sort.
 		if (
 			event.type === Blockly.Events.BLOCK_CHANGE &&
 			event.element === "collapsed"
 		) {
 			const block = workspace.getBlockById(event.blockId);
 			if (block && !block.getParent()) {
-				workspace.cleanUp();
+				scheduleCleanup(50);
 			}
 		}
 
