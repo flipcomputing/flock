@@ -95,6 +95,7 @@ export const flock = {
         performanceOverlay: false,
         maxMeshes: 5000,
         maxClonesPerSource: 500,
+        meshRecyclingEnabled: false,
         console: console,
         havokAbortHandled: false,
         triggerHandlingDebug: false,
@@ -210,7 +211,9 @@ export const flock = {
         },
         // Prune disposed entries and auto-recycle the oldest live instance
         // when the per-key cap is hit. Used by all mesh creation paths.
+        // Only active when flock.meshRecyclingEnabled is true.
         _recycleOldestByKey(key) {
+                if (!flock.meshRecyclingEnabled) return;
                 flock._modelInstances = flock._modelInstances || {};
                 flock._modelInstances[key] = (
                         flock._modelInstances[key] || []
