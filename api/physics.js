@@ -612,7 +612,7 @@ export const flockPhysics = {
               trigger: flock.BABYLON.ActionManager[trigger],
               parameter: {
                 mesh: otherMesh,
-                usePreciseIntersection: true,
+                usePreciseIntersection: false,
               },
             },
             async function () {
