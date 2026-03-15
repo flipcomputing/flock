@@ -3580,12 +3580,15 @@ javascriptGenerator.forBlock["controls_whileUntil"] = function (block) {
         if (until) {
                 argument0 = "!" + argument0;
         }
+        // Only add a safety yield if the branch doesn't already contain an await;
+        // if it does, the loop already yields naturally and a second wait is redundant.
+        const safetyYield = branch.includes("await") ? "" : `\nawait wait(0);\n`;
         return (
                 "while (" +
                 argument0 +
                 ") {\n" +
                 branch +
-                `\nawait wait(0);\n` +
+                safetyYield +
                 "}\n"
         );
 };
@@ -3640,6 +3643,9 @@ javascriptGenerator.forBlock["controls_repeat_ext"] = function (
                 code += "let " + endVar + " = " + repeats + ";\n";
         }
 
+        // Only add a safety yield if the branch doesn't already contain an await;
+        // if it does, the loop already yields naturally and a second wait is redundant.
+        const safetyYield = branch.includes("await") ? "" : "await wait(0);\n";
         code +=
                 "for (let " +
                 loopVar +
@@ -3651,7 +3657,7 @@ javascriptGenerator.forBlock["controls_repeat_ext"] = function (
                 loopVar +
                 "++) {\n" +
                 branch +
-                "await wait(0);\n" +
+                safetyYield +
                 "}\n";
 
         return code;
