@@ -304,6 +304,7 @@ export const modelNames = [
         //"Character.glb",
         //"bird.glb",
         //"boat.glb",
+        "lion.glb",
         "rhino.glb",
         //"Seagull.glb",
 ];
@@ -316,6 +317,7 @@ export const blockNames = [
         "Flock.glb",
         "Flock_Santa.glb",
         "Character.glb",
+        "lion.glb",
         "rhino.glb",
         //"Seagull.glb",
 ];
@@ -324,6 +326,7 @@ export const modelAnimationNames = [
         "Flock.glb",
         "Flock_Santa.glb",
         "rhino.glb",
+        "lion.glb",
         //"Seagull.glb",
 ];
 
