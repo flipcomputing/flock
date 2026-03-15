@@ -72,26 +72,26 @@ export const flockControl = {
 
       const checkCondition = () => {
         if (signal?.aborted) {
-          flock.scene?.onBeforeRenderObservable?.removeCallback(checkCondition);
+          flock.scene?.onBeforeRenderObservable?.remove(observer);
           resolve();
           return;
         }
         try {
           if (conditionFunc()) {
-            flock.scene.onBeforeRenderObservable.removeCallback(checkCondition);
+            flock.scene.onBeforeRenderObservable.remove(observer);
             resolve();
           }
         } catch (error) {
-          flock.scene.onBeforeRenderObservable.removeCallback(checkCondition);
+          flock.scene.onBeforeRenderObservable.remove(observer);
           reject(error);
         }
       };
-      flock.scene.onBeforeRenderObservable.add(checkCondition);
+      const observer = flock.scene.onBeforeRenderObservable.add(checkCondition);
 
       signal?.addEventListener(
         "abort",
         () => {
-          flock.scene?.onBeforeRenderObservable?.removeCallback(checkCondition);
+          flock.scene?.onBeforeRenderObservable?.remove(observer);
           resolve();
         },
         { once: true },

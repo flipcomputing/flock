@@ -169,7 +169,7 @@ export const flockEvents = {
         callback();
       }
     };
-    flock.scene.onKeyboardObservable.add(kbHandler);
+    const kbObserver = flock.scene.onKeyboardObservable.add(kbHandler);
 
     // Register the callback for the grid input observable
     const gridObservable = isReleased
@@ -181,10 +181,11 @@ export const flockEvents = {
         callback();
       }
     };
-    gridObservable.add(gridHandler);
+    const gridObserver = gridObservable.add(gridHandler);
 
     // XR controller support
     let xrObserver = null;
+    const buttonStateObservers = [];
     if (flock.xrHelper?.input) {
       const xrHandler = (controller) => {
         const handedness = controller.inputSource.handedness;
@@ -203,15 +204,17 @@ export const flockEvents = {
             if (!component) return;
 
             let lastPressedState = false;
-            component.onButtonStateChangedObservable.add(() => {
+            const btnObserver = component.onButtonStateChangedObservable.add(() => {
               const isPressed = component.pressed;
               if (motionController.getComponent(buttonId) !== component) return;
               if (isPressed === lastPressedState) return;
-              if (!isPressed && lastPressedState) {
-                callback(mappedKey, "released");
+              const shouldFire = isReleased ? (!isPressed && lastPressedState) : (isPressed && !lastPressedState);
+              if (shouldFire) {
+                callback(mappedKey, isReleased ? "released" : "pressed");
               }
               lastPressedState = isPressed;
             });
+            buttonStateObservers.push({ observable: component.onButtonStateChangedObservable, observer: btnObserver });
           });
         });
       };
@@ -222,10 +225,13 @@ export const flockEvents = {
     signal?.addEventListener(
       "abort",
       () => {
-        flock.scene?.onKeyboardObservable?.remove(kbHandler);
-        gridObservable?.remove(gridHandler);
+        flock.scene?.onKeyboardObservable?.remove(kbObserver);
+        gridObservable?.remove(gridObserver);
         if (xrObserver) {
           flock.xrHelper?.input?.onControllerAddedObservable?.remove(xrObserver);
+        }
+        for (const { observable, observer } of buttonStateObservers) {
+          observable?.remove(observer);
         }
       },
       { once: true },
