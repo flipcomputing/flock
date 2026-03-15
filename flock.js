@@ -3,6 +3,7 @@
 // Flip Computing Limited - flipcomputing.com
 
 import * as acorn from "acorn";
+import ManifoldInit from "manifold-3d";
 import * as walk from "acorn-walk";
 import HavokPhysics from "@babylonjs/havok";
 import * as BABYLON from "@babylonjs/core";
@@ -1256,7 +1257,17 @@ export const flock = {
                 flock.abortController = new AbortController();
 
                 try {
-                        await flock.BABYLON.InitializeCSG2Async();
+                        // Pre-initialize manifold-3d here so we can pass the instances
+                        // directly to InitializeCSG2Async, bypassing its _LoadScriptModuleAsync
+                        // path which injects an inline <script type="module"> — blocked by CSP.
+                        const manifoldWasm = await ManifoldInit({
+                                locateFile: (f) => "./wasm/" + f,
+                        });
+                        manifoldWasm.setup();
+                        await flock.BABYLON.InitializeCSG2Async({
+                                manifoldInstance: manifoldWasm.Manifold,
+                                manifoldMeshInstance: manifoldWasm.Mesh,
+                        });
                 } catch (error) {
                         console.error("Error initializing CSG2:", error);
                 }
