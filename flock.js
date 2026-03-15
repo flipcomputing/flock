@@ -94,7 +94,7 @@ export const flock = {
         meshDebug: false,
         performanceOverlay: false,
         maxMeshes: 5000,
-        maxClonesPerSource: 100,
+        maxClonesPerSource: 500,
         console: console,
         havokAbortHandled: false,
         triggerHandlingDebug: false,
