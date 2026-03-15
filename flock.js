@@ -2036,7 +2036,15 @@ export const flock = {
                 announce("Flock world loaded. Press Control + I to hear a description of your surroundings.", { canvas: flock.canvas });
 
 
+                // Cap rendering at 60 fps so high-refresh-rate displays (120 Hz+)
+                // don't burn twice the GPU/CPU budget for no visible benefit.
+                const _targetFrameInterval = 1000 / 60;
+                let _lastRenderTime = 0;
+
                 flock._renderLoop = () => {
+                        const now = performance.now();
+                        if (now - _lastRenderTime < _targetFrameInterval) return;
+                        _lastRenderTime = now;
                         try {
                                 flock.scene.render();
                         } catch (error) {
@@ -2062,6 +2070,24 @@ export const flock = {
 
                 // Start the render loop
                 flock.engine.runRenderLoop(flock._renderLoop);
+
+                // Stop rendering entirely when the page is hidden (e.g. tab switch,
+                // phone screen-off) and resume when it becomes visible again.
+                // The AbortController signal ensures this listener is removed
+                // automatically when disposeOldScene() aborts the controller.
+                document.addEventListener(
+                        "visibilitychange",
+                        () => {
+                                if (document.hidden) {
+                                        flock.engine.stopRenderLoop();
+                                } else {
+                                        flock.engine.runRenderLoop(
+                                                flock._renderLoop,
+                                        );
+                                }
+                        },
+                        { signal: flock.abortController.signal },
+                );
 
                 // Enable physics
                 flock.hk = new flock.BABYLON.HavokPlugin(
