@@ -185,6 +185,12 @@ async function exportWorkspaceAsSVG(workspace) {
 }
 
 async function convertFontToBase64(fontUrl) {
+	// Vite may inline the font as a data URL — extract base64 directly to avoid
+	// a fetch() call that would be blocked by connect-src CSP.
+	if (fontUrl.startsWith("data:")) {
+		return fontUrl.split(",")[1];
+	}
+
 	const response = await fetch(fontUrl);
 	const fontBlob = await response.blob();
 	const reader = new FileReader();
