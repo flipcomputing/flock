@@ -184,7 +184,47 @@ async function exportWorkspaceAsSVG(workspace) {
 	document.body.removeChild(link);
 }
 
+async function urlToDataURL(url) {
+	if (url.startsWith("data:")) return url;
+	const response = await fetch(url);
+	const blob = await response.blob();
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onloadend = () => resolve(reader.result);
+		reader.onerror = reject;
+		reader.readAsDataURL(blob);
+	});
+}
+
+async function inlineSVGImages(svgElement) {
+	const images = svgElement.querySelectorAll("image");
+	await Promise.all(
+		Array.from(images).map(async (img) => {
+			const href =
+				img.getAttribute("href") || img.getAttribute("xlink:href");
+			if (!href || href.startsWith("data:")) return;
+			try {
+				const dataUrl = await urlToDataURL(href);
+				img.setAttribute("href", dataUrl);
+				img.removeAttribute("xlink:href");
+			} catch (e) {
+				console.warn("Could not inline SVG image:", href, e);
+			}
+		}),
+	);
+}
+
 async function convertFontToBase64(fontUrl) {
+	// Vite may inline the font as a data URL — extract base64 directly to avoid
+	// a fetch() call that would be blocked by connect-src CSP.
+	if (fontUrl.startsWith("data:")) {
+		const commaIndex = fontUrl.indexOf(",");
+		if (commaIndex === -1 || !fontUrl.includes(";base64,")) {
+			throw new Error(`Invalid base64 data URL for font: ${fontUrl.slice(0, 64)}`);
+		}
+		return fontUrl.slice(commaIndex + 1);
+	}
+
 	const response = await fetch(fontUrl);
 	const fontBlob = await response.blob();
 	const reader = new FileReader();
@@ -272,6 +312,8 @@ async function generateSVG(block) {
 		textElement.style.stroke = "none";
 		textElement.style.fontWeight = "500";
 	});
+
+	await inlineSVGImages(svgBlock);
 
 	const fontBase64 = await convertFontToBase64(w500);
 
