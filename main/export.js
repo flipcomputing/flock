@@ -218,7 +218,11 @@ async function convertFontToBase64(fontUrl) {
 	// Vite may inline the font as a data URL — extract base64 directly to avoid
 	// a fetch() call that would be blocked by connect-src CSP.
 	if (fontUrl.startsWith("data:")) {
-		return fontUrl.split(",")[1];
+		const commaIndex = fontUrl.indexOf(",");
+		if (commaIndex === -1 || !fontUrl.includes(";base64,")) {
+			throw new Error(`Invalid base64 data URL for font: ${fontUrl.slice(0, 64)}`);
+		}
+		return fontUrl.slice(commaIndex + 1);
 	}
 
 	const response = await fetch(fontUrl);
