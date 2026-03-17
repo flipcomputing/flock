@@ -1155,7 +1155,13 @@ body.color-picker-open #renderCanvas {
   margin-right: 2px;
   height: 1em; 
   width: 1em; 
-  padding: 0px
+  padding: 0;
+}
+
+.icon--inline svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* Make the gamepad icon wider */
