@@ -2454,22 +2454,6 @@ export const flock = {
                 yield null;
         },
         whenModelReady(id, callback) {
-                // Normalize id the same way createCharacter/createObject do:
-                // strip any __blockKey suffix, then remove non-alphanumeric chars.
-                // This handles the case where an event handler (e.g. onIntersect)
-                // is registered before the mesh is created, using the variable's
-                // initial human-readable value (e.g. "dimnnd monkey") instead of
-                // the sanitized mesh name that createCharacter will produce
-                // ("dimnndmonkey"). Without this, the observer path watches for
-                // the unsanitized name and never fires.
-                if (id && !id.startsWith("__")) {
-                        let normalizedId = id;
-                        if (normalizedId.includes("__"))
-                                normalizedId = normalizedId.split("__")[0];
-                        normalizedId = normalizedId.replace(/[^a-zA-Z0-9._-]/g, "");
-                        if (normalizedId) id = normalizedId;
-                }
-
                 // --- Promise that resolves when ready (or undefined on abort/dispose) ---
                 let settled = false;
                 let resolveP;
@@ -2530,10 +2514,12 @@ export const flock = {
                 // This ensures we wait for geometry to be attached before returning
                 if (flock.modelReadyPromises.has(id)) {
                         const pendingPromise = flock.modelReadyPromises.get(id);
-                        pendingPromise.then(() => {
-                                // Re-locate after promise resolves to get mesh with geometry
-                                const meshWithGeometry = locate();
-                                
+                        pendingPromise.then((resolvedMesh) => {
+                                // Re-locate after promise resolves to get mesh with geometry.
+                                // Fall back to the resolved mesh value for alias lookups where
+                                // id is the pre-sanitization name (e.g. "dimnnd monkey") but
+                                // the actual mesh is named differently ("dimnndmonkey").
+                                const meshWithGeometry = locate() ?? resolvedMesh ?? null;
                                 if (!flock.abortController?.signal?.aborted)
                                         void settle(meshWithGeometry);
                         }).catch(() => {
@@ -2641,14 +2627,31 @@ export const flock = {
                                         const h =
                                                 scene.onNewMeshAddedObservable.add(
                                                         (mesh) => {
-                                                                if (
-                                                                        !done &&
-                                                                        mesh?.name ===
-                                                                                id
-                                                                )
-                                                                        finish(
-                                                                                mesh,
-                                                                        );
+                                                                if (done) return;
+                                                                if (mesh?.name === id) {
+                                                                        finish(mesh);
+                                                                        return;
+                                                                }
+                                                                // Handle the case where this observer was set up before
+                                                                // createCharacter ran. createCharacter registers the
+                                                                // pre-sanitization name (e.g. "dimnnd monkey") in
+                                                                // modelReadyPromises pointing to the same promise as the
+                                                                // sanitized name ("dimnndmonkey"). When any mesh is added
+                                                                // to the scene (triggering this callback), check whether id
+                                                                // is now in modelReadyPromises and if so switch to waiting
+                                                                // for that promise instead.
+                                                                if (flock.modelReadyPromises?.has(id)) {
+                                                                        done = true;
+                                                                        while (disposers.length) {
+                                                                                try { disposers.pop()(); } catch { /* ignore */ }
+                                                                        }
+                                                                        flock.modelReadyPromises.get(id)
+                                                                                .then((resolvedMesh) => {
+                                                                                        const m = locate() ?? resolvedMesh ?? null;
+                                                                                        if (!signal?.aborted) void settle(m);
+                                                                                })
+                                                                                .catch(() => void settle(undefined));
+                                                                }
                                                         },
                                                 );
                                         disposers.push(() =>
