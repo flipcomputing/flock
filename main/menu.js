@@ -1,4 +1,3 @@
-console.log("Menu script loaded");
 const menuBtn = document.getElementById("menuBtn");
 const menuDropdown = document.getElementById("menuDropdown");
 const openAbout = document.getElementById("about-menu-item");
@@ -64,8 +63,7 @@ class AccessibleFlyoutMenu {
                         this.handleSubmenuKeydown(e, subItem, submenuItems, subIndex, item);
                     });
 
-                    subItem.addEventListener('click', (e) => {
-                        console.log(`Clicked: ${subItem.textContent}`);
+                    subItem.addEventListener('click', (e) => {                        
                         this.closeAllMenus();
                     });
                 });
@@ -286,8 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
 hubMenuItem.addEventListener("click", (e) => {
     e.preventDefault();
     window.open("https://hub.flockxr.com/", "_blank", "noopener,noreferrer");
-    menuDropdown.classList.add("hidden");
-    menuBtn.setAttribute("aria-expanded", "false");
+    menuFlyout.closeAllMenus();
 });
 
 // Language menu interactions are now handled in main/translation.js

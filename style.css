@@ -1123,6 +1123,11 @@ body.color-picker-open #renderCanvas {
   margin-bottom: 10px;
 }
 
+/* Add an icon colour, so that svgs don't have a hardcoded fill colour */
+.icon {
+  color: var(--color-text-brand);
+}
+
 .bigbutton .icon {
   display: flex;
   align-items: center;
