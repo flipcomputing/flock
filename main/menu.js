@@ -1,9 +1,11 @@
+console.log("Menu script loaded");
 const menuBtn = document.getElementById("menuBtn");
 const menuDropdown = document.getElementById("menuDropdown");
 const openAbout = document.getElementById("about-menu-item");
 const hubMenuItem = document.getElementById("hub-menu-item");
 const infoModal = document.getElementById("infoModal");
 const closeInfoModal = document.getElementById("closeInfoModal");
+let previouslyFocused = null;
 
 
 class AccessibleFlyoutMenu {
@@ -78,12 +80,12 @@ class AccessibleFlyoutMenu {
         });
 
         // Close menu on Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isMenuOpen) {
+        window.addEventListener('keydown', (e) => {                      
+            if (e.key === 'Escape' && this.isMenuOpen) {                            
                 this.closeAllMenus();
-                this.menuButton.focus();
+                this.menuButton.focus();                
             }
-        });
+        }, true); // Fire before blockly handles escape
     }
 
     toggleMainMenu() {
@@ -276,18 +278,9 @@ class AccessibleFlyoutMenu {
 }
 
 // Initialize the menu when DOM is loaded
+let menuFlyout;
 document.addEventListener('DOMContentLoaded', () => {
-    new AccessibleFlyoutMenu();
-});
-
-// Handle keyboard navigation within dropdown
-openAbout.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-    e.preventDefault();
-    menuDropdown.classList.add("hidden");
-    menuBtn.setAttribute("aria-expanded", "false");
-    menuBtn.focus();
-    } 
+    menuFlyout = new AccessibleFlyoutMenu();
 });
 
 hubMenuItem.addEventListener("click", (e) => {
@@ -346,20 +339,11 @@ infoModal.addEventListener("keydown", (e) => {
 // Close menu when clicking outside
 window.addEventListener("click", (e) => {
     if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
-    menuDropdown.classList.add("hidden");
-    menuBtn.setAttribute("aria-expanded", "false");
+        menuFlyout.closeAllMenus();
     }
 
     if (e.target === infoModal) {
-    closeInfoModal.click();
+        closeInfoModal.click();
     }
 });
 
-// Close menu on Escape key
-document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !menuDropdown.classList.contains("hidden")) {
-    menuDropdown.classList.add("hidden");
-    menuBtn.setAttribute("aria-expanded", "false");
-    menuBtn.focus();
-    }
-});

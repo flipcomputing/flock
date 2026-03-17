@@ -1160,6 +1160,13 @@ body.color-picker-open #renderCanvas {
   margin-right: 10px;
 }
 
+#projectName {
+  flex-shrink: 1;
+  width: 100%;
+  min-width: 10px;
+  max-width: 80px;
+}
+
 .menu-item, #menuDropdown [role="menuitem"] {
   display: flex !important;
   align-items: center;
