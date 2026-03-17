@@ -566,6 +566,13 @@ button {
   color: #ffffff !important;
 }
 
+/* Make links in 'About' modal visible in dark and contrast themes */
+[data-theme="dark"] .modal-content a,
+[data-theme="dark-contrast"] .modal-content a,
+[data-theme="contrast"] .modal-content a {
+  color: var(--color-primary-light);
+}
+
 /* Shape Menu */
 #shape-menu {
   position: relative;
