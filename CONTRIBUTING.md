@@ -65,9 +65,7 @@ Before starting, we suggest you [get in touch](https://flipcomputing.com/contact
 
 ### Deploying your fork to GitHub Pages
 1. **Push your fork to GitHub**:
-   ```bash
-   git push origin
-   ```
+
 2. **Set up GitHub Actions** 
    - Go to your fork on GitHub at https://github.com/YOUR_USERNAME/flock/
    - Click Settings > Pages
