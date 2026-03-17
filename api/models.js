@@ -106,7 +106,10 @@ export const flockModels = {
         rejectReady(new Error("aborted"));
       } catch {}
       flock.modelReadyPromises.delete(meshName);
-      if (originalBase !== meshName)
+      if (
+        originalBase !== meshName &&
+        flock.modelReadyPromises.get(originalBase) === readyPromise
+      )
         flock.modelReadyPromises.delete(originalBase);
       flock._releaseName?.(meshName);
       signal?.removeEventListener("abort", onAbort);
@@ -191,7 +194,10 @@ export const flockModels = {
         rejectReady(error);
         flock._releaseName(meshName);
         flock.modelReadyPromises.delete(meshName);
-        if (originalBase !== meshName)
+        if (
+          originalBase !== meshName &&
+          flock.modelReadyPromises.get(originalBase) === readyPromise
+        )
           flock.modelReadyPromises.delete(originalBase);
         cleanupAbort();
       })
@@ -199,7 +205,10 @@ export const flockModels = {
         // Optional: drop resolved entry after a short TTL to avoid map growth
         setTimeout(() => {
           flock.modelReadyPromises.delete(meshName);
-          if (originalBase !== meshName)
+          if (
+            originalBase !== meshName &&
+            flock.modelReadyPromises.get(originalBase) === readyPromise
+          )
             flock.modelReadyPromises.delete(originalBase);
         }, 5000);
       });

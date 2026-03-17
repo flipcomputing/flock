@@ -2540,6 +2540,55 @@ export const flock = {
                         }
                 }
 
+                // --- Normalize-as-fallback for createCharacter/createObject names ---
+                // createCharacter and createObject strip special characters from names
+                // (e.g. "dimnnd monkey" → "dimnndmonkey"). createBox/createSphere etc.
+                // do NOT sanitize, so "centre platform" stays "centre platform". We must
+                // NOT apply normalization upfront or those box lookups break.
+                // Instead: only redirect to the normalized id when the exact id is absent
+                // but the normalized form IS present in modelReadyPromises or the scene.
+                // This also handles the stale-alias case (after the 5s TTL cleanup).
+                if (id && !id.startsWith("__")) {
+                        let norm = id.includes("__") ? id.split("__")[0] : id;
+                        norm = norm.replace(/[^a-zA-Z0-9._-]/g, "");
+                        if (norm && norm !== id) {
+                                if (flock.modelReadyPromises.has(norm)) {
+                                        const pendingPromise =
+                                                flock.modelReadyPromises.get(norm);
+                                        pendingPromise
+                                                .then((resolvedMesh) => {
+                                                        const meshWithGeometry =
+                                                                flock.scene?.getMeshByName(
+                                                                        norm,
+                                                                ) ??
+                                                                resolvedMesh ??
+                                                                null;
+                                                        if (
+                                                                !flock.abortController
+                                                                        ?.signal?.aborted
+                                                        )
+                                                                void settle(
+                                                                        meshWithGeometry,
+                                                                );
+                                                })
+                                                .catch(() => {
+                                                        if (
+                                                                !flock.abortController
+                                                                        ?.signal?.aborted
+                                                        )
+                                                                void settle(null);
+                                                });
+                                        return promise;
+                                }
+                                const existing = flock.scene?.getMeshByName(norm);
+                                if (existing) {
+                                        if (!flock.abortController?.signal?.aborted)
+                                                void settle(existing);
+                                        return promise;
+                                }
+                        }
+                }
+
                 // --- CallbackMode (observer) path ---
                 if (flock.callbackMode) {
                         const signal = flock.abortController?.signal;
