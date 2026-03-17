@@ -84,7 +84,7 @@ Before starting, we suggest you [get in touch](https://flipcomputing.com/contact
    - Go back to your fork at https://github.com/YOUR_USERNAME/flock/ 
    - Click the 'Actions' tab
    - Click 'I understand my workflows, go ahead and enable them'
-   - Click on the new option 'Vite Github Pages Deploy' 
+   - Click on the new option 'Vite GitHub Pages Deploy' 
    - Click 'Run workflow' dropdown, then select 'Run workflow' to deploy manually
 
 5. **Visit your deployment**
