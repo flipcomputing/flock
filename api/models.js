@@ -52,6 +52,10 @@ export const flockModels = {
 
     // --- sanitize ONLY modelName + BASE (NOT the blockKey) ---
     modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
+    // Capture the original base name before sanitization so we can register it as
+    // an alias in modelReadyPromises. This lets whenModelReady("dimnnd monkey", ...)
+    // resolve correctly even though the actual mesh name is "dimnndmonkey".
+    const originalBase = desiredBase;
     desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
 
     if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
@@ -89,6 +93,12 @@ export const flockModels = {
       rejectReady = rej;
     });
     flock.modelReadyPromises.set(meshName, readyPromise);
+    // Also register the pre-sanitization name (e.g. "dimnnd monkey" → "dimnndmonkey").
+    // This lets event handlers declared before createCharacter (which still hold the
+    // original variable value) resolve correctly via whenModelReady.
+    if (originalBase !== meshName) {
+      flock.modelReadyPromises.set(originalBase, readyPromise);
+    }
 
     const signal = flock.abortController?.signal;
     const onAbort = () => {
@@ -96,6 +106,11 @@ export const flockModels = {
         rejectReady(new Error("aborted"));
       } catch {}
       flock.modelReadyPromises.delete(meshName);
+      if (
+        originalBase !== meshName &&
+        flock.modelReadyPromises.get(originalBase) === readyPromise
+      )
+        flock.modelReadyPromises.delete(originalBase);
       flock._releaseName?.(meshName);
       signal?.removeEventListener("abort", onAbort);
     };
@@ -179,12 +194,22 @@ export const flockModels = {
         rejectReady(error);
         flock._releaseName(meshName);
         flock.modelReadyPromises.delete(meshName);
+        if (
+          originalBase !== meshName &&
+          flock.modelReadyPromises.get(originalBase) === readyPromise
+        )
+          flock.modelReadyPromises.delete(originalBase);
         cleanupAbort();
       })
       .finally(() => {
         // Optional: drop resolved entry after a short TTL to avoid map growth
         setTimeout(() => {
           flock.modelReadyPromises.delete(meshName);
+          if (
+            originalBase !== meshName &&
+            flock.modelReadyPromises.get(originalBase) === readyPromise
+          )
+            flock.modelReadyPromises.delete(originalBase);
         }, 5000);
       });
 

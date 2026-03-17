@@ -2514,10 +2514,12 @@ export const flock = {
                 // This ensures we wait for geometry to be attached before returning
                 if (flock.modelReadyPromises.has(id)) {
                         const pendingPromise = flock.modelReadyPromises.get(id);
-                        pendingPromise.then(() => {
-                                // Re-locate after promise resolves to get mesh with geometry
-                                const meshWithGeometry = locate();
-                                
+                        pendingPromise.then((resolvedMesh) => {
+                                // Re-locate after promise resolves to get mesh with geometry.
+                                // Fall back to the resolved mesh value for alias lookups where
+                                // id is the pre-sanitization name (e.g. "dimnnd monkey") but
+                                // the actual mesh is named differently ("dimnndmonkey").
+                                const meshWithGeometry = locate() ?? resolvedMesh ?? null;
                                 if (!flock.abortController?.signal?.aborted)
                                         void settle(meshWithGeometry);
                         }).catch(() => {
@@ -2535,6 +2537,55 @@ export const flock = {
                                 if (!flock.abortController?.signal?.aborted)
                                         void settle(existing);
                                 return promise; // <— return the promise even in fast path
+                        }
+                }
+
+                // --- Normalize-as-fallback for createCharacter/createObject names ---
+                // createCharacter and createObject strip special characters from names
+                // (e.g. "dimnnd monkey" → "dimnndmonkey"). createBox/createSphere etc.
+                // do NOT sanitize, so "centre platform" stays "centre platform". We must
+                // NOT apply normalization upfront or those box lookups break.
+                // Instead: only redirect to the normalized id when the exact id is absent
+                // but the normalized form IS present in modelReadyPromises or the scene.
+                // This also handles the stale-alias case (after the 5s TTL cleanup).
+                if (id && !id.startsWith("__")) {
+                        let norm = id.includes("__") ? id.split("__")[0] : id;
+                        norm = norm.replace(/[^a-zA-Z0-9._-]/g, "");
+                        if (norm && norm !== id) {
+                                if (flock.modelReadyPromises.has(norm)) {
+                                        const pendingPromise =
+                                                flock.modelReadyPromises.get(norm);
+                                        pendingPromise
+                                                .then((resolvedMesh) => {
+                                                        const meshWithGeometry =
+                                                                flock.scene?.getMeshByName(
+                                                                        norm,
+                                                                ) ??
+                                                                resolvedMesh ??
+                                                                null;
+                                                        if (
+                                                                !flock.abortController
+                                                                        ?.signal?.aborted
+                                                        )
+                                                                void settle(
+                                                                        meshWithGeometry,
+                                                                );
+                                                })
+                                                .catch(() => {
+                                                        if (
+                                                                !flock.abortController
+                                                                        ?.signal?.aborted
+                                                        )
+                                                                void settle(null);
+                                                });
+                                        return promise;
+                                }
+                                const existing = flock.scene?.getMeshByName(norm);
+                                if (existing) {
+                                        if (!flock.abortController?.signal?.aborted)
+                                                void settle(existing);
+                                        return promise;
+                                }
                         }
                 }
 
@@ -2625,14 +2676,31 @@ export const flock = {
                                         const h =
                                                 scene.onNewMeshAddedObservable.add(
                                                         (mesh) => {
-                                                                if (
-                                                                        !done &&
-                                                                        mesh?.name ===
-                                                                                id
-                                                                )
-                                                                        finish(
-                                                                                mesh,
-                                                                        );
+                                                                if (done) return;
+                                                                if (mesh?.name === id) {
+                                                                        finish(mesh);
+                                                                        return;
+                                                                }
+                                                                // Handle the case where this observer was set up before
+                                                                // createCharacter ran. createCharacter registers the
+                                                                // pre-sanitization name (e.g. "dimnnd monkey") in
+                                                                // modelReadyPromises pointing to the same promise as the
+                                                                // sanitized name ("dimnndmonkey"). When any mesh is added
+                                                                // to the scene (triggering this callback), check whether id
+                                                                // is now in modelReadyPromises and if so switch to waiting
+                                                                // for that promise instead.
+                                                                if (flock.modelReadyPromises?.has(id)) {
+                                                                        done = true;
+                                                                        while (disposers.length) {
+                                                                                try { disposers.pop()(); } catch { /* ignore */ }
+                                                                        }
+                                                                        flock.modelReadyPromises.get(id)
+                                                                                .then((resolvedMesh) => {
+                                                                                        const m = locate() ?? resolvedMesh ?? null;
+                                                                                        if (!signal?.aborted) void settle(m);
+                                                                                })
+                                                                                .catch(() => void settle(undefined));
+                                                                }
                                                         },
                                                 );
                                         disposers.push(() =>
