@@ -2454,6 +2454,22 @@ export const flock = {
                 yield null;
         },
         whenModelReady(id, callback) {
+                // Normalize id the same way createCharacter/createObject do:
+                // strip any __blockKey suffix, then remove non-alphanumeric chars.
+                // This handles the case where an event handler (e.g. onIntersect)
+                // is registered before the mesh is created, using the variable's
+                // initial human-readable value (e.g. "dimnnd monkey") instead of
+                // the sanitized mesh name that createCharacter will produce
+                // ("dimnndmonkey"). Without this, the observer path watches for
+                // the unsanitized name and never fires.
+                if (id && !id.startsWith("__")) {
+                        let normalizedId = id;
+                        if (normalizedId.includes("__"))
+                                normalizedId = normalizedId.split("__")[0];
+                        normalizedId = normalizedId.replace(/[^a-zA-Z0-9._-]/g, "");
+                        if (normalizedId) id = normalizedId;
+                }
+
                 // --- Promise that resolves when ready (or undefined on abort/dispose) ---
                 let settled = false;
                 let resolveP;
