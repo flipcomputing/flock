@@ -984,6 +984,7 @@ button {
   overflow-y: auto;
 }
 
+/* Always skip the top margin for h2s in modals */
 .modal-content h2 {
   margin-top: 0;
 }
@@ -1157,6 +1158,7 @@ body.color-picker-open #renderCanvas {
   padding: 0px
 }
 
+/* Make the gamepad icon wider */
 #togglePlay .icon {
   width: 2em;
 }
