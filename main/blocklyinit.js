@@ -730,10 +730,8 @@ export function createBlocklyWorkspace() {
         (function wireToolboxSearchArrowDown() {
                 const host = workspace.getInjectionDiv?.() || document;
                 if (!host) {
-                        // console.log("[search-arrow] no host, abort");
                         return;
                 }
-                //console.log("[search-arrow] attaching listener on host", host);
 
                 host.addEventListener(
                         "keydown",
@@ -743,7 +741,6 @@ export function createBlocklyWorkspace() {
                                 if (t.type !== "search") return;
                                 if (e.key !== "ArrowDown") return;
 
-                                //console.log("[search-arrow] ArrowDown on search input");
                                 e.preventDefault();
                                 e.stopPropagation();
                                 e.stopImmediatePropagation();

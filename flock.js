@@ -1321,7 +1321,6 @@ export const flock = {
                                                                 flock.canvas,
                                                                 true,
                                                         );
-                                                        //console.log("Camera inputs reset!");
                                                 }, 100); // Small delay
                                         }
                                 }
@@ -2443,7 +2442,6 @@ export const flock = {
 
                         interval = Math.min(interval * 2, maxInterval);
                         attempt++;
-                        //console.log(`Attempt ${attempt}: Retrying in ${interval}ms...`);
                 }
 
                 console.warn(
@@ -2889,8 +2887,6 @@ export const flock = {
                 return promise; // <— important: always return the promise
         },
         announceMeshReady(meshName, groupName) {
-                //console.log(`[flock] Mesh ready: ${meshName} (group: ${groupName})`);
-
                 const getGroupRoot = (name) =>
                         name.includes("__")
                                 ? name.split("__")[0]
@@ -2898,7 +2894,6 @@ export const flock = {
 
                 if (!flock.pendingTriggers.has(groupName)) return;
 
-                //console.log(`[flock] Registering pending triggers for group: '${groupName}'`);
                 const triggers = flock.pendingTriggers.get(groupName);
 
                 for (const {

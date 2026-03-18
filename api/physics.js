@@ -160,8 +160,6 @@ export const flockPhysics = {
       const disablePreStep = parent.physics.disablePreStep || false;
 
       // Recreate the physics shape based on the new scale
-      //console.log(parent.physics.shape.constructor.name);
-
       const physicsShape = parent.physics.shape;
 
       // Handling Capsule shape
@@ -851,7 +849,6 @@ export const flockPhysics = {
 
     const minY = boundingInfo.boundingBox.minimumWorld.y;
 
-    //console.log("Min bounding", minY);
     const rayOrigin = new flock.BABYLON.Vector3(
       boundingInfo.boundingBox.centerWorld.x,
       minY + 0.01,

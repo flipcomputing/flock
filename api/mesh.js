@@ -692,7 +692,6 @@ export const flockMesh = {
     bb.metadata = bb.metadata || {};
     bb.metadata.blockKey = blockId;
 
-    //console.log("Model setup", bb.name, bb.metadata.blockKey);
     bb.isPickable = false;
 
     const objectNames = [

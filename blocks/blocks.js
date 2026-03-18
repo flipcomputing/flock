@@ -342,7 +342,6 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
 
 export function findCreateBlock(block) {
   if (!block || typeof block.getParent !== "function") {
-    //console.log("no id");
     return null;
   }
 
@@ -429,7 +428,6 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
         );
     }
     if (flock.blockDebug) console.log("This block is", block.id);
-    // if (flock.blockDebug) console.log("The parent is", parent);
     if (flock.blockDebug) console.log("The type of this block is", block.type);
     if (
       changedBlock &&

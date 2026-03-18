@@ -551,7 +551,6 @@ export const flockCSG = {
         subtractMeshes(modelId, baseMeshName, meshNames) {
                 const blockId = modelId;
                 modelId += "_" + flock.scene.getUniqueId();
-                const debug = true;
 
                 const nodeInfo = (n, depth = undefined) => {
                         if (!n) return null;

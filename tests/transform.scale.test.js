@@ -201,9 +201,6 @@ export function runScaleTests(flock) {
 
 			const originalBase = flock.getProperty(boxId, "MIN_Y");
 
-			// --- DEBUG: Log MIN_Y before resize ---
-			console.log(`DEBUG: MIN_Y before resize is: ${originalBase}`);
-
 			await flock.resize(boxId, {
 				width: 4,
 				height: 6,
@@ -211,9 +208,6 @@ export function runScaleTests(flock) {
 				yOrigin: "BASE",
 			});
 			const newBase = flock.getProperty(boxId, "MIN_Y");
-
-			// --- DEBUG: Log MIN_Y after resize ---
-			console.log(`DEBUG: MIN_Y after resize is: ${newBase}`);
 
 			expect(Math.abs(newBase - originalBase)).to.be.lessThan(0.001);
 		});

@@ -167,7 +167,6 @@ export const flockMaterial = {
     let r = parseInt(hex.substring(0, 2), 16);
     let g = parseInt(hex.substring(2, 4), 16);
     let b = parseInt(hex.substring(4, 6), 16);
-    // if (flock.materialsDebug) console.log(`  Converted ${hex} with alpha ${alpha} to rgba(${r}, ${g}, ${b}, ${alpha})`);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   },
   // Helper function to convert hex to RGB
@@ -182,8 +181,6 @@ export const flockMaterial = {
       : null;
   },
   getColorFromString(colourString) {
-    // if (flock.materialsDebug) console.log(` Getting a colour from ${colourString}`);
-
     if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
       return colourString.toLowerCase();
     }

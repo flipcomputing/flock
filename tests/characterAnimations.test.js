@@ -162,8 +162,6 @@ export function runCharacterAnimationTests(flock) {
       const expectedDuration = getAnimationDurationInSeconds(jumpGroup);
       const realTimeElapsed = (Date.now() - start) / 1000;
 
-      console.log(`[DEBUG] Animation ${jumpGroup.name} finished in ${realTimeElapsed.toFixed(2)}s`);
-
       const info = flock._getCurrentAnimationInfo(root);
       expect(info?.name).to.equal("Jump");
       expect(jumpGroup.isPlaying).to.equal(false);

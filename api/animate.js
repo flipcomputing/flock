@@ -634,9 +634,6 @@ export const flockAnimate = {
         // Combine forward and reverse keyframes
         const allKeyframes = [...forwardKeyframes, ...reverseKeyframes];
 
-        // Log generated keyframes for debugging
-        //console.log("Generated Keyframes: ", allKeyframes);
-
         if (allKeyframes.length > 1) {
           keyframeAnimation.setKeys(allKeyframes);
         } else {
@@ -653,12 +650,9 @@ export const flockAnimate = {
 
         const lastFrame = allKeyframes[allKeyframes.length - 1].frame;
 
-        //console.log(`Animating from frame 0 to ${lastFrame}`);
-
         const animatable = flock.scene.beginAnimation(mesh, 0, lastFrame, loop);
 
         animatable.onAnimationEndObservable.add(() => {
-          //console.log("Animation completed.");
           resolve();
         });
       });
@@ -689,7 +683,6 @@ export const flockAnimate = {
           animationGroupName,
           flock.scene,
         );
-        //console.log(`Created new animation group: ${animationGroupName}`);
       }
 
       await flock.whenModelReady(meshName, async (mesh) => {
@@ -810,7 +803,6 @@ export const flockAnimate = {
             targetMesh,
           );
 
-          //console.log(`Added animation to group "${animationGroupName}" for property "${property}" on mesh "${targetMesh.name}".`);
         }
 
         if (animationGroup.targetedAnimations.length === 0) {
@@ -834,7 +826,6 @@ export const flockAnimate = {
           // Do not start the animation group and prevent automatic playback
           animationGroup.stop(); // Explicitly ensure animations do not play
           animationGroup.onAnimationGroupPlayObservable.clear(); // Clear any unintended triggers
-          //console.log("Animation group created but not started.");
           resolve(animationGroupName);
         } else {
           console.warn(`Unknown mode: ${mode}`);
@@ -1150,7 +1141,6 @@ export const flockAnimate = {
 
         if (runtimeAnimation) {
           runtimeAnimation.goToFrame(currentFrame);
-          //console.log(`New animation synchronised to frame ${currentFrame}.`);
         }
       } else {
         console.warn(
@@ -1207,7 +1197,6 @@ export const flockAnimate = {
 
     if (easingFunction) {
       animation.setEasingFunction(easingFunction);
-      //console.log(`Applied easing: ${easing}`);
     }
   },
   stopAnimations(modelName) {

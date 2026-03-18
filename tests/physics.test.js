@@ -194,7 +194,6 @@ export function runPhysicsTests(flock) {
 			// Allow time for physics engine to update
 			await new Promise((r) => setTimeout(r, 200));
 
-			console.log("Physics", mesh.physics, mesh.velocity)
 			const velocity = mesh.physics.getLinearVelocity();
 			expect(velocity.x).to.be.greaterThan(0);
 			expect(velocity.y).to.be.greaterThan(0);
