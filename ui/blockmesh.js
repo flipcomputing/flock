@@ -1866,9 +1866,6 @@ function replaceMeshModel(currentMesh, block) {
     ? originalDirectChildren[0]
     : null;
   const oldChildScale = oldFirstChild?.scaling?.clone?.() || null;
-  //const originalNames = originalDirectChildren.map(n => n?.name);
-  //console.log("[replaceMeshModel] Snapshot direct children:", originalNames);
-
   // Debug old tree before removal
   /*for (const oc of originalDirectChildren) {
     if (oc && !oc.isDisposed?.()) {
@@ -1893,7 +1890,6 @@ function replaceMeshModel(currentMesh, block) {
     createArgs = { modelName, modelId: tempId };
   }
 
-  //console.log("[replaceMeshModel] create() args:", createArgs);
   const newMeshName = isCharacter
     ? flock.createCharacter(createArgs)
     : flock.createObject(createArgs);
@@ -1943,7 +1939,6 @@ function replaceMeshModel(currentMesh, block) {
 
         nonCharacterColors =
           blockColors && blockColors.length ? blockColors : cols;
-        //console.log("[NONCHAR_COLORS]", nonCharacterColors);
       }
 
       // Measure old base (world) before removing originals
@@ -1977,9 +1972,6 @@ function replaceMeshModel(currentMesh, block) {
         disposeTree(child);
         removed.push(child.name);
       }
-      //console.log("[replaceMeshModel] Disposed original direct children:", removed);
-      //if (skipped.length) console.log("[replaceMeshModel] Skipped (not removed):", skipped);
-
       // Parent the replacement under the existing parent
       newChild.parent = currentMesh;
 

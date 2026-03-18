@@ -91,8 +91,6 @@ export const flockMovement = {
       }
     }
 
-    //console.log("Grounded", grounded);
-
     // --- Coyote time window ---
     const nowMs =
       typeof performance !== "undefined" && performance.now
@@ -330,8 +328,6 @@ export const flockMovement = {
       mesh.physics.setCollisionCallbackEnabled(true);
       const observable = mesh.physics.getCollisionObservable();
       const observer = observable.add((collisionEvent) => {
-        //console.log("Collision event", collisionEvent);
-
         const penetration = Math.abs(collisionEvent.distance);
         // If the penetration is extremely small (indicating minor clipping)
         if (penetration < 0.001) {

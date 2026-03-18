@@ -432,7 +432,6 @@ export function defineModelBlocks() {
                                 colour,
                                 colourIndex,
                         ) {
-                                //console.log("Update colour", colour, colourIndex);
                                 const colorsInput = this.getInput("COLORS");
                                 if (!colorsInput || !colorsInput.connection) {
                                         return;
