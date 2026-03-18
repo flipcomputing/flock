@@ -1,355 +1,374 @@
 import { translate } from "./translation.js";
 
-export function setupInput() {
-  // Get the canvas element
-  const canvas = document.getElementById("renderCanvas");
+export function setupInput(){
 
-  // For mouse events
-  canvas.addEventListener("mousedown", disableSelection);
-  document.addEventListener("mousedown", enableSelection);
+	// Get the canvas element
+	const canvas = document.getElementById("renderCanvas");
 
-  // For touch events (mobile)
-  canvas.addEventListener("touchstart", disableSelection);
-  document.addEventListener("touchstart", enableSelection);
+	// For mouse events
+	canvas.addEventListener("mousedown", disableSelection);
+	document.addEventListener("mousedown", enableSelection);
 
-  // Disable text selection on the body when the canvas is touched or clicked
-  function disableSelection() {
-    document.body.style.userSelect = "none"; // Disable text selection
-  }
+	// For touch events (mobile)
+	canvas.addEventListener("touchstart", disableSelection);
+	document.addEventListener("touchstart", enableSelection);
 
-  // Enable text selection when touching or clicking outside the canvas
-  function enableSelection(event) {
-    // Check if the event target is outside the canvas
-    if (!canvas.contains(event.target)) {
-      document.body.style.userSelect = "auto"; // Enable text selection
-    }
-  }
+	// Disable text selection on the body when the canvas is touched or clicked
+	function disableSelection() {
+		document.body.style.userSelect = "none"; // Disable text selection
+	}
 
-  // Focus management and keyboard navigation
-  function initializeFocusManagement() {
-    // Modal focus trapping
-    const modal = document.getElementById("infoModal");
-    if (modal) {
-      modal.addEventListener("keydown", trapFocus);
-    }
+	// Enable text selection when touching or clicking outside the canvas
+	function enableSelection(event) {
+		// Check if the event target is outside the canvas
+		if (!canvas.contains(event.target)) {
+			document.body.style.userSelect = "auto"; // Enable text selection
+		}
+	}
 
-    // Enhanced canvas keyboard support
-    const canvas = document.getElementById("renderCanvas");
-    if (canvas) {
-      canvas.addEventListener("keydown", handleCanvasKeyboard);
-    }
+	// Focus management and keyboard navigation
+	function initializeFocusManagement() {
+		// Modal focus trapping
+		const modal = document.getElementById("infoModal");
+		if (modal) {
+			modal.addEventListener("keydown", trapFocus);
+		}
 
-    // Set up custom tab order management
-    setupTabOrder();
-  }
+		// Enhanced canvas keyboard support
+		const canvas = document.getElementById("renderCanvas");
+		if (canvas) {
+			canvas.addEventListener("keydown", handleCanvasKeyboard);
+		}
 
-  function setupTabOrder() {
-    function getFocusableElements() {
-      const elements = [];
+		// Set up custom tab order management
+		setupTabOrder();
+	}
 
-      // Helper: add once if visible & enabled
-      const pushUnique = (el) => {
-        if (!el) return;
-        const disabled = "disabled" in el && el.disabled;
-        if (isElementVisible(el) && !disabled && !elements.includes(el)) {
-          elements.push(el);
-        }
-      };
+	function setupTabOrder() {
+		function getFocusableElements() {
+		  const elements = [];
 
-      // 1) Canvas
-      pushUnique(document.getElementById("renderCanvas"));
+		  // Helper: add once if visible & enabled
+		  const pushUnique = (el) => {
+			if (!el) return;
+			const disabled = 'disabled' in el && el.disabled;
+			if (isElementVisible(el) && !disabled && !elements.includes(el)) {
+			  elements.push(el);
+			}
+		  };
 
-      // 2) Gizmo buttons
-      document
-        .querySelectorAll("#gizmoButtons button, #gizmoButtons input")
-        .forEach(pushUnique);
+		  // 1) Canvas
+		  pushUnique(document.getElementById('renderCanvas'));
 
-      // 3) Info panel
-      pushUnique(document.querySelector("#info-details summary"));
-      const infoDetails = document.getElementById("info-details");
-      if (infoDetails && infoDetails.open) {
-        pushUnique(infoDetails.querySelector(".content"));
-      }
+		  // 2) Gizmo buttons
+		  document
+			.querySelectorAll('#gizmoButtons button, #gizmoButtons input')
+			.forEach(pushUnique);
 
-      // 4) Logo link + resizer
-      pushUnique(document.querySelector("#info-panel-link"));
-      pushUnique(document.querySelector("#resizer"));
+		  // 3) Info panel
+		  pushUnique(document.querySelector('#info-details summary'));
+		  const infoDetails = document.getElementById('info-details');
+		  if (infoDetails && infoDetails.open) {
+			pushUnique(infoDetails.querySelector('.content'));
+		  }
 
-      // 5) Search inputs (toolbox flyout etc.)
-      document
-        .querySelectorAll(
-          '.blocklySearchInput, .blocklyTreeSearch input, input[placeholder*="Search"]',
-        )
-        .forEach(pushUnique);
+		  // 4) Logo link + resizer
+		  pushUnique(document.querySelector('#info-panel-link'));
+		  pushUnique(document.querySelector('#resizer'));
 
-      // Find the *visible* search flyout
-      const flyout = Array.from(
-        document.querySelectorAll("svg.blocklyToolboxFlyout"),
-      ).find((svg) => {
-        const r = svg.getBoundingClientRect();
-        return r.width > 0 && r.height > 0;
-      });
+		  // 5) Search inputs (toolbox flyout etc.)
+		  document
+			.querySelectorAll(
+			  '.blocklySearchInput, .blocklyTreeSearch input, input[placeholder*="Search"]'
+			)
+			.forEach(pushUnique);
 
-      if (flyout) {
-        // Prefer the inner workspace <g>, fall back to the svg
-        const ws = flyout.querySelector("g.blocklyWorkspace");
-        const target = ws || flyout;
+			// Find the *visible* search flyout
+			  const flyout = Array.from(
+				document.querySelectorAll('svg.blocklyToolboxFlyout')
+			  ).find(svg => {
+				const r = svg.getBoundingClientRect();
+				return r.width > 0 && r.height > 0;
+			  });
 
-        // Ensure it can receive focus
-        if (!target.hasAttribute("tabindex") || target.tabIndex < 0) {
-          target.setAttribute("tabindex", "0");
-        }
-        target.setAttribute("focusable", "true");
-        target.setAttribute("role", "group");
-        if (!target.getAttribute("aria-label")) {
-          target.setAttribute("aria-label", "Toolbox search results");
-        }
+			  if (flyout) {
+				// Prefer the inner workspace <g>, fall back to the svg
+				const ws = flyout.querySelector('g.blocklyWorkspace');
+				const target = ws || flyout;
 
-        // Return just the flyout target (you can merge this into your larger list)
-        elements.push(target);
-      }
+				// Ensure it can receive focus
+				if (!target.hasAttribute('tabindex') || target.tabIndex < 0) {
+				  target.setAttribute('tabindex', '0');
+				}
+				target.setAttribute('focusable', 'true');
+				target.setAttribute('role', 'group');
+				if (!target.getAttribute('aria-label')) {
+				  target.setAttribute('aria-label', 'Toolbox search results');
+				}
 
-      // 6) Blockly MAIN WORKSPACE (one level above blocks)
-      // Your DOM shows:
-      // <svg class="blocklySvg"> <g class="blocklyWorkspace" tabindex="0"> ... <g class="blocklyBlockCanvas">...</g> ... </g> </svg>
-      // We want the g.blocklyWorkspace INSIDE a blocklySvg, but NOT inside any svg.blocklyFlyout.
-      const workspaceGroup = Array.from(
-        document.querySelectorAll("svg.blocklySvg g.blocklyWorkspace"),
-      )
-        .filter((ws) => !ws.closest("svg.blocklyFlyout")) // exclude flyout workspaces
-        // If there are multiple, prefer the one that actually contains the block canvas
-        .sort((a, b) => {
-          const aHasCanvas = !!a.querySelector("g.blocklyBlockCanvas");
-          const bHasCanvas = !!b.querySelector("g.blocklyBlockCanvas");
-          return Number(bHasCanvas) - Number(aHasCanvas);
-        })[0];
+				// Return just the flyout target (you can merge this into your larger list)
+				elements.push(target);
+			  }
 
-      if (workspaceGroup && isElementVisible(workspaceGroup)) {
-        if (workspaceGroup.getAttribute("tabindex") !== "0") {
-          workspaceGroup.setAttribute("tabindex", "0");
-        }
-        workspaceGroup.setAttribute("role", "group"); // lets AT know it's an interactive region
-        workspaceGroup.setAttribute("aria-label", "Blocks workspace");
-        workspaceGroup.setAttribute("focusable", "true"); // helpful for SVG focus on some browsers
-        pushUnique(workspaceGroup);
-      }
 
-      // 7) Main UI controls (in natural order)
-      [
-        "#menuBtn",
-        "#runCodeButton",
-        "#stopCodeButton",
-        "#openButton",
-        "#colorPickerButton",
-        "#projectName",
-        "#exportCodeButton",
-        "#exampleSelect",
-        "#toggleDesign",
-        "#togglePlay",
-        "#fullscreenToggle",
-      ].forEach((sel) => pushUnique(document.querySelector(sel)));
+		  // 6) Blockly MAIN WORKSPACE (one level above blocks)
+		  // Your DOM shows:
+		  // <svg class="blocklySvg"> <g class="blocklyWorkspace" tabindex="0"> ... <g class="blocklyBlockCanvas">...</g> ... </g> </svg>
+		  // We want the g.blocklyWorkspace INSIDE a blocklySvg, but NOT inside any svg.blocklyFlyout.
+		  const workspaceGroup = Array.from(
+			document.querySelectorAll('svg.blocklySvg g.blocklyWorkspace')
+		  )
+			.filter((ws) => !ws.closest('svg.blocklyFlyout')) // exclude flyout workspaces
+			// If there are multiple, prefer the one that actually contains the block canvas
+			.sort((a, b) => {
+			  const aHasCanvas = !!a.querySelector('g.blocklyBlockCanvas');
+			  const bHasCanvas = !!b.querySelector('g.blocklyBlockCanvas');
+			  return Number(bHasCanvas) - Number(aHasCanvas);
+			})[0];
 
-      return elements;
-    }
+		  if (workspaceGroup && isElementVisible(workspaceGroup)) {
+			if (workspaceGroup.getAttribute('tabindex') !== '0') {
+			  workspaceGroup.setAttribute('tabindex', '0');
+			}
+			workspaceGroup.setAttribute('role', 'group');      // lets AT know it's an interactive region
+			workspaceGroup.setAttribute('aria-label', 'Blocks workspace');
+			workspaceGroup.setAttribute('focusable', 'true');  // helpful for SVG focus on some browsers
+			pushUnique(workspaceGroup);
+		  }
 
-    function isElementVisible(element) {
-      if (!element) return false;
+		  // 7) Main UI controls (in natural order)
+		  [
+			'#menuBtn',
+			'#runCodeButton',
+			'#stopCodeButton',
+			'#openButton',
+			'#colorPickerButton',
+			'#projectName',
+			'#exportCodeButton',
+			'#exampleSelect',
+			'#toggleDesign',
+			'#togglePlay',
+			'#fullscreenToggle',
+		  ].forEach((sel) => pushUnique(document.querySelector(sel)));
 
-      // Check if element or its parent is hidden
-      let currentElement = element;
-      while (currentElement) {
-        const style = window.getComputedStyle(currentElement);
-        if (style.display === "none" || style.visibility === "hidden") {
-          return false;
-        }
-        currentElement = currentElement.parentElement;
-      }
+		  return elements;
+		}
 
-      // Check if element has actual dimensions
-      const rect = element.getBoundingClientRect();
-      return rect.width > 0 && rect.height > 0;
-    }
+		function isElementVisible(element) {
+			if (!element) return false;
 
-    document.addEventListener("keydown", (e) => {
-      if (
-        document.activeElement.id === "resizer" &&
-        ["ArrowLeft", "ArrowRight", "Home"].includes(e.key)
-      ) {
-        return; // Don't prevent default, let resizer handle it
-      }
+			// Check if element or its parent is hidden
+			let currentElement = element;
+			while (currentElement) {
+				const style = window.getComputedStyle(currentElement);
+				if (style.display === "none" || style.visibility === "hidden") {
+					return false;
+				}
+				currentElement = currentElement.parentElement;
+			}
 
-      if (e.key !== "Tab") return;
-      const activeElement = document.activeElement;
+			// Check if element has actual dimensions
+			const rect = element.getBoundingClientRect();
+			return rect.width > 0 && rect.height > 0;
+		}
 
-      // Special handling for details navigation
-      const detailsElement = document.getElementById("info-details");
+		document.addEventListener("keydown", (e) => {
+			if (document.activeElement.id === "resizer" && 
+				["ArrowLeft", "ArrowRight", "Home"].includes(e.key)) {
+				
+				return; // Don't prevent default, let resizer handle it
+			}
 
-      // If we're on the summary and details is closed, use custom management
-      if (
-        activeElement.matches("#info-details summary") &&
-        !detailsElement.open
-      ) {
-        // Let custom management handle this - will go to next UI element
-      }
-      // If we're on the summary and details is open, let browser handle the Tab into content
-      else if (
-        activeElement.matches("#info-details summary") &&
-        detailsElement.open
-      ) {
-        return; // Let browser handle tab into details content
-      }
-      // If we're anywhere inside open details content, let browser handle it
-      else if (activeElement.closest("#info-details") && detailsElement.open) {
-        return; // Let browser handle navigation within details
-      }
+			if (e.key !== "Tab") return;
+			const activeElement = document.activeElement;
 
-      const focusableElements = getFocusableElements();
-      if (focusableElements.length === 0) return;
+			// Special handling for details navigation
+			const detailsElement = document.getElementById("info-details");
 
-      const currentElement = document.activeElement;
-      const currentIndex = focusableElements.indexOf(currentElement);
+			// If we're on the summary and details is closed, use custom management
+			if (activeElement.matches("#info-details summary") && !detailsElement.open) {
+				// Let custom management handle this - will go to next UI element
+			}
+			// If we're on the summary and details is open, let browser handle the Tab into content
+			else if (activeElement.matches("#info-details summary") && detailsElement.open) {
+				return; // Let browser handle tab into details content
+			}
+			// If we're anywhere inside open details content, let browser handle it
+			else if (activeElement.closest("#info-details") && detailsElement.open) {
+				return; // Let browser handle navigation within details
+			}
 
-      // Only manage tab navigation for our tracked elements
-      if (currentIndex === -1 || currentElement.closest("details[open]"))
-        return;
+			const focusableElements = getFocusableElements();
+			if (focusableElements.length === 0) return;
 
-      e.preventDefault();
+			const currentElement = document.activeElement;
+			const currentIndex = focusableElements.indexOf(currentElement);
 
-      // Calculate next index with wraparound
-      let nextIndex;
-      if (e.shiftKey) {
-        nextIndex =
-          currentIndex === 0 ? focusableElements.length - 1 : currentIndex - 1;
-      } else {
-        nextIndex =
-          currentIndex === focusableElements.length - 1 ? 0 : currentIndex + 1;
-      }
+			// Only manage tab navigation for our tracked elements
+			if (currentIndex === -1 || currentElement.closest("details[open]")) return;
 
-      const nextElement = focusableElements[nextIndex];
-      if (nextElement) {
-        // Ensure element is still focusable before focusing
-        if (!nextElement.disabled && isElementVisible(nextElement)) {
-          nextElement.focus();
+			e.preventDefault();
 
-          // Announce for screen readers
-          if (nextElement.id === "renderCanvas") {
-            announceToScreenReader(translate("canvas_focus_navigation"));
-          } else if (nextElement.closest("#gizmoButtons")) {
-            const label =
-              nextElement.getAttribute("aria-label") ||
-              nextElement.title ||
-              translate("design_tool_label");
-            const focusedMessage = translate("focused_element_suffix").replace(
-              "{name}",
-              label,
-            );
-            announceToScreenReader(focusedMessage);
-          } else if (
-            nextElement.classList?.contains("blocklySearchInput") ||
-            nextElement.type === "search"
-          ) {
-            announceToScreenReader(translate("search_toolbox_focused"));
-          } else if (nextElement.id === "blocklyDiv") {
-            announceToScreenReader(translate("code_workspace_focused"));
-          } else if (
-            nextElement.tagName === "BUTTON" ||
-            nextElement.tagName === "LABEL"
-          ) {
-            const text =
-              nextElement.getAttribute("aria-label") ||
-              nextElement.title ||
-              nextElement.textContent ||
-              translate("interactive_element_label");
-            const focusedMessage = translate("focused_element_suffix").replace(
-              "{name}",
-              text,
-            );
-            announceToScreenReader(focusedMessage);
-          } else if (nextElement.id === "resizer") {
-            announceToScreenReader(translate("panel_resizer_focused"));
-          }
-        }
-      }
-    });
-  }
+			// Calculate next index with wraparound
+			let nextIndex;
+			if (e.shiftKey) {
+				nextIndex =
+					currentIndex === 0
+						? focusableElements.length - 1
+						: currentIndex - 1;
+			} else {
+				nextIndex =
+					currentIndex === focusableElements.length - 1
+						? 0
+						: currentIndex + 1;
+			}
 
-  function trapFocus(e) {
-    if (e.key !== "Tab") return;
+			const nextElement = focusableElements[nextIndex];
+			if (nextElement) {
+				// Ensure element is still focusable before focusing
+				if (!nextElement.disabled && isElementVisible(nextElement)) {
+					nextElement.focus();
 
-    const modal = e.currentTarget;
-    const focusableElements = modal.querySelectorAll(
-      'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])',
-    );
+					// Announce for screen readers
+                                        if (nextElement.id === "renderCanvas") {
+                                                announceToScreenReader(
+                                                        translate(
+                                                                "canvas_focus_navigation",
+                                                        ),
+                                                );
+                                        } else if (nextElement.closest("#gizmoButtons")) {
+                                                const label =
+                                                        nextElement.getAttribute(
+                                                                "aria-label",
+                                                        ) ||
+                                                        nextElement.title ||
+                                                        translate("design_tool_label");
+                                                const focusedMessage = translate(
+                                                        "focused_element_suffix",
+                                                ).replace("{name}", label);
+                                                announceToScreenReader(focusedMessage);
+                                        } else if (
+                                                nextElement.classList?.contains("blocklySearchInput") ||
+                                                nextElement.type === "search"
+                                        ) {
+                                                announceToScreenReader(
+                                                        translate(
+                                                                "search_toolbox_focused",
+                                                        ),
+                                                );
+                                        } else if (nextElement.id === "blocklyDiv") {
+                                                announceToScreenReader(
+                                                        translate(
+                                                                "code_workspace_focused",
+                                                        ),
+                                                );
+                                        } else if (
+                                                nextElement.tagName === "BUTTON" ||
+                                                nextElement.tagName === "LABEL"
+                                        ) {
+                                                const text =
+                                                        nextElement.getAttribute("aria-label") ||
+                                                        nextElement.title ||
+                                                        nextElement.textContent ||
+                                                        translate("interactive_element_label");
+                                                const focusedMessage = translate(
+                                                        "focused_element_suffix",
+                                                ).replace("{name}", text);
+                                                announceToScreenReader(focusedMessage);
+                                        }
+                                        else if (nextElement.id === "resizer") {
+                                                announceToScreenReader(
+                                                        translate(
+                                                                "panel_resizer_focused",
+                                                        ),
+                                                );
+                                        }
 
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
+				}
+			}
+		});
+	}
 
-    if (e.shiftKey && document.activeElement === firstElement) {
-      e.preventDefault();
-      lastElement.focus();
-    } else if (!e.shiftKey && document.activeElement === lastElement) {
-      e.preventDefault();
-      firstElement.focus();
-    }
-  }
+	function trapFocus(e) {
+		if (e.key !== "Tab") return;
 
-  function handleCanvasKeyboard(e) {
-    // Handle Ctrl+Z for undo when canvas is focused
-    if (e.ctrlKey && e.key.toLowerCase() === "z" && !e.shiftKey) {
-      e.preventDefault();
-      const workspace = window.mainWorkspace || Blockly.getMainWorkspace();
-      if (workspace) {
-        workspace.undo(false);
-        announceToScreenReader(translate("undo_performed"));
-      }
-      return;
-    }
+		const modal = e.currentTarget;
+		const focusableElements = modal.querySelectorAll(
+			'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])',
+		);
 
-    // Handle Ctrl+Shift+Z or Ctrl+Y for redo when canvas is focused
-    if (
-      (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "z") ||
-      (e.ctrlKey && e.key.toLowerCase() === "y")
-    ) {
-      e.preventDefault();
-      const workspace = window.mainWorkspace || Blockly.getMainWorkspace();
-      if (workspace) {
-        workspace.undo(true);
-        announceToScreenReader(translate("redo_performed"));
-      }
-      return;
-    }
+		const firstElement = focusableElements[0];
+		const lastElement = focusableElements[focusableElements.length - 1];
 
-    // Announce camera movements to screen readers
-    const announcements = {
-      ArrowUp: translate("camera_moving_forward"),
-      ArrowDown: translate("camera_moving_backward"),
-      ArrowLeft: translate("camera_moving_left"),
-      ArrowRight: translate("camera_moving_right"),
-      w: translate("moving_forward"),
-      s: translate("moving_backward"),
-      a: translate("moving_left"),
-      d: translate("moving_right"),
-      " ": translate("action_triggered"),
-    };
+		if (e.shiftKey && document.activeElement === firstElement) {
+			e.preventDefault();
+			lastElement.focus();
+		} else if (!e.shiftKey && document.activeElement === lastElement) {
+			e.preventDefault();
+			firstElement.focus();
+		}
+	}
 
-    if (announcements[e.key]) {
-      announceToScreenReader(announcements[e.key]);
-    }
+	function handleCanvasKeyboard(e) {
+		// Handle Ctrl+Z for undo when canvas is focused
+		if (e.ctrlKey && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+			e.preventDefault();
+			const workspace = window.mainWorkspace || Blockly.getMainWorkspace();
+			if (workspace) {
+                                workspace.undo(false);
+                                announceToScreenReader(
+                                        translate("undo_performed"),
+                                );
+			}
+			return;
+		}
 
-    // Tab navigation is now handled by the main setupTabOrder function
-    // No need to prevent default here - let the main handler manage it
-  }
+		// Handle Ctrl+Shift+Z or Ctrl+Y for redo when canvas is focused
+		if ((e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'z') || 
+			(e.ctrlKey && e.key.toLowerCase() === 'y')) {
+			e.preventDefault();
+			const workspace = window.mainWorkspace || Blockly.getMainWorkspace();
+			if (workspace) {
+                                workspace.undo(true);
+                                announceToScreenReader(
+                                        translate("redo_performed"),
+                                );
+			}
+			return;
+		}
 
-  function announceToScreenReader(message) {
-    const announcer = document.getElementById("announcements");
-    if (announcer) {
-      announcer.textContent = message;
-      // Clear after announcement
-      setTimeout(() => {
-        announcer.textContent = "";
-      }, 1000);
-    }
-  }
+		// Announce camera movements to screen readers
+                const announcements = {
+                        ArrowUp: translate("camera_moving_forward"),
+                        ArrowDown: translate("camera_moving_backward"),
+                        ArrowLeft: translate("camera_moving_left"),
+                        ArrowRight: translate("camera_moving_right"),
+                        w: translate("moving_forward"),
+                        s: translate("moving_backward"),
+                        a: translate("moving_left"),
+                        d: translate("moving_right"),
+                        " ": translate("action_triggered"),
+                };
 
-  initializeFocusManagement();
+		if (announcements[e.key]) {
+			announceToScreenReader(announcements[e.key]);
+		}
+
+		// Tab navigation is now handled by the main setupTabOrder function
+		// No need to prevent default here - let the main handler manage it
+	}
+
+	function announceToScreenReader(message) {
+		const announcer = document.getElementById("announcements");
+		if (announcer) {
+			announcer.textContent = message;
+			// Clear after announcement
+			setTimeout(() => {
+				announcer.textContent = "";
+			}, 1000);
+		}
+	}
+
+	initializeFocusManagement();
+
 }

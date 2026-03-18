@@ -156,7 +156,8 @@ export default {
     "ruota %1 a x %2 y %3 z %4 in %5 ms\n%6 inverti? %7 ripeti? %8  %9",
   rotate_anim_seconds:
     "ruota %1 a x %2 y %3 z %4 in %5 secondi\n%6 inverti? %7 ripeti? %8  %9",
-  rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
+  rotate_to_object:
+    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property: "anima %1 %2 a %3 in %4 ms inverti? %5 ripeti? %6 %7",
   colour_keyframe: "a %1 colore: %2",
   number_keyframe: "a: %1 valore: %2",
@@ -337,8 +338,7 @@ export default {
   set_xr_mode: "imposta modalità XR su %1",
   play_rumble_pattern: "riproduci motivo di vibrazione %1",
   controller_rumble: "fai vibrare il motore %1 con intensità %2 per %3 ms",
-  controller_rumble_pattern:
-    "vibra motore %1 intensità %2 acceso %3 ms spento %4 ms %5 volte",
+  controller_rumble_pattern: "vibra motore %1 intensità %2 acceso %3 ms spento %4 ms %5 volte",
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "lista",

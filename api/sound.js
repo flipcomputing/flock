@@ -151,9 +151,8 @@ export const flockSound = {
   },
   getAudioContext() {
     if (!flock.audioContext) {
-      flock.audioContext = new (
-        window.AudioContext || window.webkitAudioContext
-      )();
+      flock.audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
     }
     return flock.audioContext;
   },
@@ -186,9 +185,8 @@ export const flockSound = {
         let context = flock.audioContext; // Ensure a global audio context
         if (!context || context.state === "closed") {
           try {
-            flock.audioContext = new (
-              window.AudioContext || window.webkitAudioContext
-            )();
+            flock.audioContext = new (window.AudioContext ||
+              window.webkitAudioContext)();
             context = flock.audioContext;
             console.log("Created new audio context (previous was closed)");
           } catch (error) {
@@ -287,11 +285,7 @@ export const flockSound = {
 
     // Validate numeric parameters to prevent Web Audio API errors
     if (!isFinite(duration) || !isFinite(playTime) || !isFinite(bpm)) {
-      console.warn("playMidiNote: Invalid parameters", {
-        duration,
-        playTime,
-        bpm,
-      });
+      console.warn('playMidiNote: Invalid parameters', { duration, playTime, bpm });
       return;
     }
 
@@ -737,31 +731,27 @@ export const flockSound = {
   },
 
   async setupSpatialSpeech(utterance, meshName) {
-    if (flock.soundDebug)
-      console.log(
-        `[SPATIAL AUDIO DEBUG] Setting up spatial speech for mesh: ${meshName}`,
-      );
+    if (flock.soundDebug) console.log(
+      `[SPATIAL AUDIO DEBUG] Setting up spatial speech for mesh: ${meshName}`,
+    );
 
     const mesh = flock.scene.getMeshByName(meshName);
     if (!mesh) {
-      if (flock.soundDebug)
-        console.warn(
-          `[SPATIAL AUDIO DEBUG] Mesh '${meshName}' not found for spatial speech`,
-        );
+      if (flock.soundDebug) console.warn(
+        `[SPATIAL AUDIO DEBUG] Mesh '${meshName}' not found for spatial speech`,
+      );
       return null;
     }
 
-    if (flock.soundDebug)
-      console.log(
-        `[SPATIAL AUDIO DEBUG] Found mesh '${meshName}' at position:`,
-        mesh.position,
-      );
+    if (flock.soundDebug) console.log(
+      `[SPATIAL AUDIO DEBUG] Found mesh '${meshName}' at position:`,
+      mesh.position,
+    );
 
     // Get or create audio context
     const audioContext = flockSound.getAudioContext();
     if (!audioContext || audioContext.state === "closed") {
-      if (flock.soundDebug)
-        console.warn("[SPATIAL AUDIO DEBUG] Audio context not available");
+      if (flock.soundDebug) console.warn("[SPATIAL AUDIO DEBUG] Audio context not available");
       return null;
     }
 
@@ -911,23 +901,20 @@ export const flockSound = {
     // Set initial volume and log the result
     updateVolumeBasedOnDistance();
 
-    if (flock.soundDebug)
-      console.log(`[SPATIAL AUDIO DEBUG] Initial spatial setup:`, {
-        originalVolume: originalVolume,
-        currentVolume: utterance.volume,
-        meshName: meshName,
-        meshPosition: mesh.position,
-      });
+    if (flock.soundDebug) console.log(`[SPATIAL AUDIO DEBUG] Initial spatial setup:`, {
+      originalVolume: originalVolume,
+      currentVolume: utterance.volume,
+      meshName: meshName,
+      meshPosition: mesh.position,
+    });
 
-    if (flock.soundDebug)
-      console.log(
-        `[SPATIAL AUDIO DEBUG] Spatial audio setup complete for '${meshName}'`,
-      );
+    if (flock.soundDebug) console.log(
+      `[SPATIAL AUDIO DEBUG] Spatial audio setup complete for '${meshName}'`,
+    );
 
     return {
       cleanup: () => {
-        if (flock.soundDebug)
-          console.log("[SPATIAL AUDIO DEBUG] Cleaning up spatial speech");
+        if (flock.soundDebug) console.log("[SPATIAL AUDIO DEBUG] Cleaning up spatial speech");
 
         // Remove render observer
         if (renderObserver && flock.scene?.onBeforeRenderObservable) {
@@ -959,9 +946,9 @@ export const flockSound = {
           }
         }
 
-        if (flock.soundDebug)
-          console.log("[SPATIAL AUDIO DEBUG] Spatial speech cleanup complete");
+        if (flock.soundDebug) console.log("[SPATIAL AUDIO DEBUG] Spatial speech cleanup complete");
       },
     };
   },
 };
+
