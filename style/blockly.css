@@ -1,45 +1,40 @@
 /* 1. Semantic colour tokens */
 :root {
   /* Core colours */
-  --color-bg: white;
-  --color-text: black;
-  --color-text-label: var(--color-text);
-  --color-border-highlight: #ee5d6c;
-  --color-search-highlight: #ed808b;
-  --color-shadow: grey;
-  --color-outline-focus: #fc3;
+  --color-bg:                   white;
+  --color-text:                 black;
+  --color-text-label:           var(--color-text);
+  --color-border-highlight:     #ee5d6c;
+  --color-search-highlight:     #ed808b;
+  --color-shadow:               grey;
+  --color-outline-focus:        #fc3;
 
   /* Dropdown & menu semantics */
-  --color-dropdown-text: var(--color-text);
-  --color-menu-item-text: var(--color-text);
-  --color-dropdown-menu-bg: var(--color-bg);
-  --color-dropdown-menu-hover: rgba(0, 0, 0, 0.05);
-  --color-dropdown-menu-border: var(
-    --color-dropdown-menu-border,
-    1px solid rgba(0, 0, 0, 0.1)
-  );
+  --color-dropdown-text:        var(--color-text);
+  --color-menu-item-text:       var(--color-text);
+  --color-dropdown-menu-bg:     var(--color-bg);
+  --color-dropdown-menu-hover:  rgba(0, 0, 0, 0.05);
+  --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0,0,0,0.1));
+
 }
 
 [data-theme="dark-contrast"] {
   /* Core colours */
-  --color-bg: black;
-  --color-text: white;
-  --color-text-label: black; /* Makes category text more visible in high contrast mode */
-  --color-text-primary: var(--color-text);
-  --color-border-highlight: #ee5d6c;
-  --color-search-highlight: #ed808b;
-  --color-shadow: grey;
-  --color-outline-focus: #fc3;
+  --color-bg:                   black;
+  --color-text:                 white;
+  --color-text-label:           black; /* Makes category text more visible in high contrast mode */
+  --color-text-primary:         var(--color-text);
+  --color-border-highlight:     #ee5d6c;
+  --color-search-highlight:     #ed808b;
+  --color-shadow:               grey;
+  --color-outline-focus:        #fc3;
 
   /* Dropdown & menu semantics */
-  --color-dropdown-text: var(--color-text);
-  --color-menu-item-text: var(--color-text);
-  --color-dropdown-menu-bg: var(--color-bg);
-  --color-dropdown-menu-hover: rgba(0, 0, 0, 0.05);
-  --color-dropdown-menu-border: var(
-    --color-dropdown-menu-border,
-    1px solid rgba(0, 0, 0, 0.1)
-  );
+  --color-dropdown-text:        var(--color-text);
+  --color-menu-item-text:       var(--color-text);
+  --color-dropdown-menu-bg:     var(--color-bg);
+  --color-dropdown-menu-hover:  rgba(0, 0, 0, 0.05);
+  --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0,0,0,0.1));
 }
 
 [data-theme="dark-contrast"] .blocklyInsertionMarker path {
@@ -66,9 +61,7 @@ body[data-theme="dark"] .blocklyWidgetDiv input.blocklyHtmlInput {
 }
 
 /* Same as standard light theme */
-body[data-theme="dark"]
-  .blocklyWidgetDiv
-  input.blocklyHtmlInput.blocklyInvalidInput {
+body[data-theme="dark"] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
   background: #ffaaaa !important;
   color: #575e75 !important;
 }
@@ -80,9 +73,7 @@ body[data-theme="dark-contrast"] .blocklyWidgetDiv input.blocklyHtmlInput {
 }
 
 /* Same as standard light theme */
-body[data-theme="dark-contrast"]
-  .blocklyWidgetDiv
-  input.blocklyHtmlInput.blocklyInvalidInput {
+body[data-theme="dark-contrast"] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
   background: #ffaaaa !important;
   color: #575e75 !important;
 }
@@ -94,15 +85,13 @@ body[data-theme="contrast"] .blocklyWidgetDiv input.blocklyHtmlInput {
 }
 
 /* Same as standard light theme */
-body[data-theme="contrast"]
-  .blocklyWidgetDiv
-  input.blocklyHtmlInput.blocklyInvalidInput {
+body[data-theme="contrast"] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
   background: #ffaaaa !important;
   color: #575e75 !important;
 }
 
 text.blocklyText.blocklyFieldText.blocklyDropdownText {
-  fill: var(--color-dropdown-text) !important;
+ fill: var(--color-dropdown-text) !important; 
 }
 
 body[data-theme="dark"] {
@@ -116,7 +105,7 @@ body[data-theme="dark-contrast"] {
     fill: black !important;
   }
   text.blocklyText.blocklyFieldText.blocklyDropdownText {
-    fill: white !important;
+    fill: white !important; 
   }
   .blocklyMenuItemContent {
     color: white !important;
@@ -150,9 +139,7 @@ textarea.blocklyCommentText.blocklyTextarea.blocklyText {
   fill: rgba(186, 186, 186, 0.5) !important;
 }
 
-[data-theme="dark-contrast"]
-  .blocklyMainWorkspaceScrollbar
-  .blocklyScrollbarHandle {
+[data-theme="dark-contrast"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
   fill: rgba(205, 205, 205, 0.5) !important;
 }
 
@@ -211,38 +198,38 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 
 @media (min-width: 769px) {
   .blocklyTreeRow {
-    flex-direction: row;
-    justify-content: start;
-    height: 25px;
-    line-height: 25px;
-    margin-bottom: 2px;
-    margin-top: 0;
-    padding: 3px;
-    white-space: nowrap;
-    padding-left: 5px;
-    min-width: 120px;
+  flex-direction: row;
+  justify-content:start;
+  height:         25px;
+  line-height:    25px;
+  margin-bottom:  2px;
+  margin-top:     0;
+  padding:        3px;
+  white-space:    nowrap;
+  padding-left:   5px;
+  min-width: 120px;
   }
 
   .blocklyTreeRowContentContainer {
-    flex-direction: row !important;
-    justify-content: start;
-    gap: 4px;
-    color: var(--color-bg);
-    font-size: 10px;
-    display: flex !important;
-    align-items: flex-start !important;
+  flex-direction: row !important;
+  justify-content:start;
+  gap:            4px;
+  color:          var(--color-bg);
+  font-size:      10px;
+  display:        flex !important;
+  align-items:    flex-start !important;
   }
 
   .blocklyTreeRowContentContainer img {
-    height: 18px;
-    width: 18px;
-    padding: 4px;
-    padding-left: 8px;
+  height: 18px;
+  width:  18px;
+  padding:4px;
+  padding-left:8px;
   }
 }
 
 .blocklyDropDownContent img {
-  object-fit: contain;
+  object-fit:       contain;
 }
 
 .blocklyTreeRowContentContainer {
@@ -251,39 +238,37 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 
 .blocklyTreeRowContentContainer input[type="search"] {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: auto;
-  box-sizing: border-box;
-  padding: 2px;
-  margin: 0 !important;
-  font-size: 14px;
-  min-width: 0;
+  top:      0;
+  left:     0;
+  right:    0;
+  width:    auto;
+  box-sizing:border-box;
+  padding:  2px;
+  margin:   0 !important;
+  font-size:14px;
+  min-width:0;
   z-index: 10;
 }
 
 .blocklyTreeRowContentContainer input[type="search"]:focus {
-  outline: 3px solid var(--color-outline-focus);
+  outline:        3px solid var(--color-outline-focus);
   outline-offset: 2px;
   background-color: var(--color-bg);
 }
 
 #blocklyDiv {
   height: 100%;
-  width: 100%;
+  width:  100%;
   border: none;
-  outline: none;
+  outline:none;
 }
 
 /* Toolbox category selection outline */
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
-  > .blocklyToolboxCategory,
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"]
-  > .blocklyToolboxCategory {
-  outline: 2px solid var(--color-outline-focus);
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
+  outline:        2px solid var(--color-outline-focus);
   outline-offset: -2px;
-  border-radius: 4px;
+  border-radius:   4px;
 }
 
 .blocklyZoomReset {
@@ -297,21 +282,24 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   color: #4c4c4c !important;
 }
 
-[data-theme="dark"] .blocklyTrash,
+[data-theme="dark"]
+.blocklyTrash,
 .blocklyZoomIn > image,
 .blocklyZoomOut > image {
   opacity: 1 !important;
   color: #bababa !important;
 }
 
-[data-theme="dark-contrast"] .blocklyTrash,
+[data-theme="dark-contrast"]
+.blocklyTrash,
 .blocklyZoomIn > image,
 .blocklyZoomOut > image {
   opacity: 1 !important;
   color: #cdcdcd !important;
 }
 
-[data-theme="contrast"] .blocklyTrash,
+[data-theme="contrast"]
+.blocklyTrash,
 .blocklyZoomIn > image,
 .blocklyZoomOut > image {
   opacity: 1 !important;
@@ -325,8 +313,8 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 .blocklyToolboxCategoryIconClosed,
 .blocklyToolboxCategoryIconOpen {
   margin-left: 4px !important;
-  padding-left: 4px !important;
-  background: none !important;
+  padding-left:4px !important;
+  background:   none !important;
 }
 
 /* Core Blockly text and dropdown fill */
@@ -337,55 +325,57 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 .custom_zelos_renderer-renderer.classic-theme .blocklyDropdownText,
 .custom_zelos_renderer-renderer.classic-theme .blocklyDropDownText,
 .custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
-  fill: var(--color-dropdown-text) !important;
+fill: var(--color-dropdown-text) !important;
 }
 
-[data-theme="dark-contrast"] .blocklyText,
+[data-theme="dark-contrast"]
+.blocklyText,
 .blocklyDropdownField,
 .blocklyDropdownDiv,
 .blocklyDropdownContent,
 .custom_zelos_renderer-renderer.classic-theme .blocklyDropdownText,
 .custom_zelos_renderer-renderer.classic-theme .blocklyDropDownText,
 .custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
-  fill: var(--color-dropdown-text) !important;
+fill: var(--color-dropdown-text) !important;
 }
 
+
 /* Menu item text in classic‑theme dropdowns */
-.custom_zelos_renderer-renderer.classic-theme.blocklyDropDownDiv
-  .goog-menuitem-content {
-  color: var(--color-menu-item-text) !important;
+.custom_zelos_renderer-renderer.classic-theme.blocklyDropDownDiv .goog-menuitem-content {
+color: var(--color-menu-item-text) !important;
 }
 
 /* Blockly Styles */
 .custom_zelos_renderer-renderer.classic-theme .blocklyEditableText {
-  cursor: pointer !important;
+cursor: pointer !important;
 }
+
 
 /* Search Highlight Styles */
 .blockly-ws-search {
-  background: var(--color-bg);
-  margin-top: 5px;
-  border: solid var(--color-border-highlight) 4px;
-  box-shadow: 0px 10px 20px var(--color-shadow);
-  justify-content: center;
-  padding: 0.25em;
-  position: absolute;
-  z-index: 70;
+background: var(--color-bg);
+margin-top: 5px;
+border: solid var(--color-border-highlight) 4px;
+box-shadow: 0px 10px 20px var(--color-shadow);
+justify-content: center;
+padding: 0.25em;
+position: absolute;
+z-index: 70;
 }
 
 path.blocklyPath.blockly-ws-search-highlight {
-  fill: var(--color-search-highlight);
+fill: var(--color-search-highlight);
 }
 
 path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
-  fill: var(--color-border-highlight);
+fill: var(--color-border-highlight);
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-  :root {
-    --dynamic-offset: 65px;
-  }
+:root {
+  --dynamic-offset: 65px;
+}
 }
 
 /* Override code area colour */
@@ -406,22 +396,23 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 }
 
 /* Toolbox category selection outline */
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
-  > .blocklyToolboxCategory,
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"]
-  > .blocklyToolboxCategory {
-  outline: 2px solid var(--color-outline-focus);
-  outline-offset: -2px;
-  border-radius: 4px;
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
+outline:        2px solid var(--color-outline-focus);
+outline-offset: -2px;
+border-radius:   4px;
 }
+
 
 /* 2. Default item text color */
 .blocklyDropDownDiv .goog-menuitem-content,
 .blocklyWidgetDiv .goog-menuitem-content,
 .blocklyDropDownDiv .blocklyMenuItemContent,
 .blocklyWidgetDiv .blocklyMenuItemContent {
-  color: var(--color-menu-item-text) !important;
+color: var(--color-menu-item-text) !important;
+
 }
+
 
 /* Ensure key labels in field_grid_dropdown are readable on light dropdowns. */
 .blocklyFieldGrid .blocklyFieldGridItem {
@@ -429,55 +420,48 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 }
 
 body .blocklyHtmlInput {
-  font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+   font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
 }
 
 body .blocklyText {
   font-weight: 500 !important;
-  font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
 }
 
 body .blocklyTreeLabel {
   font-weight: 500 !important;
-  font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
 }
 
 body[data-theme="contrast"] .blocklyText {
-  font-weight: 600 !important;
-  font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+   font-weight: 600 !important;
+  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+
 }
 
 body[data-theme="dark-contrast"] .blocklyText {
   font-weight: 600 !important;
-  font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+
 }
 
 body[data-theme="dark-contrast"] .blocklyTreeLabel {
   font-weight: 500 !important;
-  font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
 }
 
 body[data-theme="contrast"] .blocklyTreeLabel {
   font-weight: 500 !important;
-  font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
 }
 
 body[data-theme="dark"] .blocklyText {
   font-weight: 500 !important;
-  font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
 }
 
 body[data-theme="dark"] .blocklyTreeLabel {
-  font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+   font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
 }
 
 .blocklyFlyoutBackground {
@@ -488,7 +472,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
 }
 
 .blocklyTreeSelected {
-  border-left: 4px solid #fc3 !important;
+  border-left: 4px solid #fc3  !important;
 }
 
 .blocklyToolboxCategory {
@@ -507,10 +491,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
 }
 
 /* Add custom selection outline for both level 1 and 2 categories */
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
-  > .blocklyToolboxCategory,
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"]
-  > .blocklyToolboxCategory {
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
   outline: 2px solid #fc3;
   outline-offset: -2px;
   border-radius: 4px;
@@ -526,12 +508,13 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
 /* === Blockly v12 desktop: center icon + label within the full row === */
 @media (min-width: 769px) {
+
   .blocklyToolboxCategoryContainer[aria-level="2"] > .blocklyToolboxCategory {
-    border-left: 8px solid transparent !important;
+    border-left: 8px solid transparent  !important;
   }
 
   .blocklyToolbox {
-    background: #f3f3f3 !important;
+    background: #F3F3F3 !important;
     min-width: 130px;
   }
 
@@ -546,16 +529,16 @@ body[data-theme="dark"] .blocklyTreeLabel {
   [data-theme="contrast"] .blocklyToolbox {
     background: #1f1f1f !important;
   }
-
+  
   .blocklyToolboxCategoryGroup {
-    background-color: #d3d3d3 !important;
+    background-color: #D3D3D3 !important;
   }
 
   /* The row element */
   .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {
     display: flex !important;
-    align-items: center !important; /* <-- centers within the full row */
-    min-height: 26px !important; /* pick your row height */
+    align-items: center !important;   /* <-- centers within the full row */
+    min-height: 26px !important;      /* pick your row height */
     padding-top: 1.25px !important;
     padding-bottom: 1.25px !important;
     padding-left: 8px !important;
@@ -593,13 +576,12 @@ body[data-theme="dark"] .blocklyTreeLabel {
   .blocklyToolbox .blocklyTreeRowContentContainer input[type="search"] {
     display: block;
     height: 30px;
-    margin: 0;
+    margin: 0;      
     box-sizing: border-box;
   }
+  
 
-  .blocklyToolbox
-    .blocklyToolboxCategory:has(input[type="search"])
-    > .blocklyTreeRowContentContainer {
+  .blocklyToolbox .blocklyToolboxCategory:has(input[type="search"]) > .blocklyTreeRowContentContainer {
     display: block !important;
     position: static !important;
     /*pointer-events: auto !important;*/
@@ -607,13 +589,14 @@ body[data-theme="dark"] .blocklyTreeLabel {
 }
 
 @media (max-width: 768px) {
+
   /* NORMAL rows: stack icon over label; taps go to the row container */
   .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 44px; /* comfy tap target */
+    min-height: 44px;        /* comfy tap target */
     padding: 6px 4px;
   }
   .blocklyToolbox .blocklyToolboxCategory > .blocklyTreeRowContentContainer {
@@ -621,7 +604,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    pointer-events: none; /* <-- let taps hit the parent row */
+    pointer-events: none;     /* <-- let taps hit the parent row */
     min-width: 0;
   }
 
@@ -646,9 +629,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
     padding: 6px 8px;
     margin: 0 0 0 0;
   }
-  .blocklyToolbox
-    .blocklyToolboxCategory:has(input[type="search"])
-    > .blocklyTreeRowContentContainer {
+  .blocklyToolbox .blocklyToolboxCategory:has(input[type="search"]) > .blocklyTreeRowContentContainer {
     display: block;
     position: static;
     /*pointer-events: auto;*/
@@ -669,10 +650,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
   border-radius: 4px;
 }
 
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
-  > .blocklyToolboxCategory,
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"]
-  > .blocklyToolboxCategory {
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
   outline: 2px solid #fc3;
   outline-offset: -2px;
   border-radius: 4px;
@@ -680,17 +659,15 @@ body[data-theme="dark"] .blocklyTreeLabel {
 /* Your injection container */
 #blocklyDiv {
   position: relative;
-  overflow: hidden; /* clip overlay so it can't grow layout */
-  min-width: 0; /* if any ancestor is flex/grid */
+  overflow: hidden;        /* clip overlay so it can't grow layout */
+  min-width: 0;            /* if any ancestor is flex/grid */
   min-height: 0;
 }
 
 /* v12 toolbox container (renamed; was .blocklyToolboxDiv in v11) */
 .blocklyToolbox {
-  position: absolute !important; /* keep it out of normal flow */
-  top: 0;
-  left: 0;
-  height: 100%;
+  position: absolute !important;   /* keep it out of normal flow */
+  top: 0; left: 0; height: 100%;
   z-index: 22;
   /* Optional: pin the tree width so it never expands with contents */
   /* width: 120px; */
@@ -724,14 +701,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
   stroke: #555;
 }
 
-[data-theme="dark"]
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  .blocklyBubbleTail,
-[data-theme="dark"]
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  rect.blocklyDraggable {
+[data-theme="dark"] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
+[data-theme="dark"] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
   fill: #c9b85a !important;
   stroke: #a89940 !important;
   stroke-width: 2px !important;
@@ -743,14 +714,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
   stroke: #333;
 }
 
-[data-theme="dark-contrast"]
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  .blocklyBubbleTail,
-[data-theme="dark-contrast"]
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  rect.blocklyDraggable {
+[data-theme="dark-contrast"] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
+[data-theme="dark-contrast"] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
   fill: #c9b85a !important;
   stroke: #a89940 !important;
   stroke-width: 2px !important;
@@ -762,14 +727,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
   stroke: #333;
 }
 
-[data-theme="contrast"]
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  .blocklyBubbleTail,
-[data-theme="contrast"]
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  rect.blocklyDraggable {
+[data-theme="contrast"] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
+[data-theme="contrast"] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
   fill: #c9b85a !important;
   stroke: #a89940 !important;
   stroke-width: 2px !important;
@@ -777,7 +736,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
 /* Wrap long lines inside the workspace-comment editor */
 textarea.blocklyCommentText.blocklyTextarea.blocklyText {
-  color: black;
+  color: black;  
 }
 
 /* Keep block comment editor constrained to its bubble */
@@ -787,3 +746,7 @@ textarea.blocklyCommentText.blocklyTextarea.blocklyText {
   max-width: 100% !important;
   box-sizing: border-box !important;
 }
+
+
+
+

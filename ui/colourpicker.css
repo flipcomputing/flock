@@ -1,7 +1,8 @@
+
 .custom-color-picker {
   position: fixed;
   z-index: 10000;
-  font-family: "Asap", sans-serif;
+  font-family: 'Asap', sans-serif;
 }
 
 .color-picker-backdrop {
@@ -47,7 +48,7 @@
 }
 
 .color-picker-drag-handle::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -69,7 +70,7 @@
   margin: 12px 0;
   justify-content: space-between;
   width: 100%;
-  margin-right: 20px;
+  margin-right: 20px; 
 }
 
 .palette-row {
@@ -77,14 +78,13 @@
   justify-content: flex-end;
   align-items: center;
   gap: 8px;
-  margin: 6px 0 8px;
+   margin: 6px 0 8px;
 }
 
 .palette-dropdown {
   max-width: 50%;
   padding: 3px;
-  font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
+  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
   font-size: 14px;
 }
 
@@ -105,13 +105,13 @@
 /* ——— Lightness track remains 15×100; handle can overhang ——— */
 .lightness-slider {
   position: relative;
-  width: 15px; /* fixed old width */
-  height: 100px; /* fixed old height */
+  width: 15px;           /* fixed old width */
+  height: 100px;         /* fixed old height */
   box-sizing: content-box;
   border: 1px solid #ddd;
   border-radius: 4px;
   cursor: pointer;
-  overflow: visible; /* allow handle to extend outside */
+  overflow: visible;      /* allow handle to extend outside */
   background: linear-gradient(to bottom, #ffffff 0%, #808080 50%, #000000 100%);
   background-size: 100% 100%;
   background-repeat: no-repeat;
@@ -124,8 +124,8 @@
 
 .lightness-canvas {
   display: block;
-  width: 15px !important; /* match track width */
-  height: 100px !important; /* match track height */
+  width: 15px !important;    /* match track width */
+  height: 100px !important;  /* match track height */
 }
 
 /* Wider/taller handle that doesn't change track size */
@@ -135,12 +135,12 @@
   transform: translateX(-50%);
   width: 20px;
   height: 12px;
-  background: rgba(255, 255, 255);
-  border: 2px solid #511d91; /* outer purple ring */
+  background: rgba(255,255,255);          
+  border: 2px solid #511d91;                   /* outer purple ring */
   border-radius: 8px;
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.9) inset,
-    /* thin inner white ring for contrast */ 0 0 2px rgba(0, 0, 0, 0.5); /* subtle outer shadow */
+    0 0 0 1px rgba(255,255,255,0.9) inset,     /* thin inner white ring for contrast */
+    0 0 2px rgba(0,0,0,0.5);                   /* subtle outer shadow */
   pointer-events: none;
 }
 
@@ -196,22 +196,12 @@
   width: 80px;
   height: 8px;
   -webkit-appearance: none;
-  background: linear-gradient(
-    to right,
-    #ff0000,
-    #ffff00,
-    #00ff00,
-    #00ffff,
-    #0000ff,
-    #ff00ff,
-    #ff0000
-  );
+  background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
   border-radius: 4px;
   outline: none;
 }
 
-.hue-slider::-webkit-slider-thumb,
-.lightness-slider::-webkit-slider-thumb {
+.hue-slider::-webkit-slider-thumb, .lightness-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 12px;
   height: 12px;
@@ -263,13 +253,11 @@
   border-top: 1px solid #f0f0f0;
 }
 
-.input-group,
-.rgb-group {
+.input-group, .rgb-group {
   margin-bottom: 6px;
 }
 
-.input-group label,
-.rgb-group label {
+.input-group label, .rgb-group label {
   font-size: 10px;
   color: #666;
   display: block;
@@ -304,17 +292,15 @@
   gap: 8px;
   padding: 10px 14px;
   border: 1px solid #888888;
-  border-radius: 12px; /* rounded corners */
-  background: #ffffff; /* solid base */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* soft shadow */
-  transition:
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+  border-radius: 12px;          /* rounded corners */
+  background: #ffffff;          /* solid base */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);  /* soft shadow */
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .color-picker-footer:hover {
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25); /* stronger shadow on hover */
-  transform: translateY(-2px); /* subtle lift */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25); /* stronger shadow on hover */
+  transform: translateY(-2px);             /* subtle lift */
 }
 
 .color-picker-footer .current-color-display {
@@ -395,9 +381,9 @@
   top: 6px;
   width: 12px;
   height: 24px;
-  background: rgba(255, 255, 255); /* transparent/glassy */
-  border: 2px solid #511d91; /* purple outline */
-  border-radius: 8px; /* rounded corners */
+  background: rgba(255,255,255);          /* transparent/glassy */
+  border: 2px solid #511d91;                  /* purple outline */
+  border-radius: 8px;                         /* rounded corners */
   cursor: grab;
   pointer-events: auto;
   transition: box-shadow 0.2s ease;
@@ -933,7 +919,7 @@
     flex-direction: row;
     gap: 8px;
     margin-bottom: 8px;
-    margin-right: 20px;
+    margin-right: 20px; 
   }
 
   .color-picker-header h3 {
@@ -1028,14 +1014,12 @@
 .custom-color-picker .color-picker-body {
   display: grid;
   grid-template-columns: auto 1fr; /* left column then right column */
-  align-items: start; /* top-align rows */
+  align-items: start;              /* top-align rows */
   column-gap: 12px;
 }
 
 /* Kill baseline offsets */
-.custom-color-picker canvas {
-  display: block;
-}
+.custom-color-picker canvas { display: block; }
 
 /* Ensure no extra top spacing */
 .custom-color-picker .color-picker-left,

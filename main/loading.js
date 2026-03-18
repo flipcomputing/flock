@@ -1,30 +1,30 @@
-import { translate } from "./translation.js";
+import { translate } from "./translation.js"
 
 // Function to hide loading screen
 export function hideLoadingScreen() {
-  const loadingScreen = document.getElementById("loadingScreen");
-  const loadingText = document.getElementById("loading-description");
-  const body = document.body;
+	const loadingScreen = document.getElementById('loadingScreen');
+	const loadingText = document.getElementById('loading-description');
+	const body = document.body;
 
-  if (loadingScreen) {
-    // Announce completion to screen readers
-    if (loadingText) {
-      loadingText.textContent = translate("loading_success_ui");
-    }
+	if (loadingScreen) {
+		// Announce completion to screen readers
+		if (loadingText) {
+			loadingText.textContent = translate("loading_success_ui");
+		}
 
-    // First fade out loading screen
-    loadingScreen.classList.add("fade-out");
+		// First fade out loading screen
+		loadingScreen.classList.add('fade-out');
 
-    // Then show main content after a brief delay
-    setTimeout(() => {
-      body.classList.remove("loading");
-    }, 250);
+		// Then show main content after a brief delay
+		setTimeout(() => {
+			body.classList.remove('loading');
+		}, 250);
 
-    // Remove loading screen from DOM after transition
-    setTimeout(() => {
-      if (loadingScreen.parentNode) {
-        loadingScreen.parentNode.removeChild(loadingScreen);
-      }
-    }, 500);
-  }
+		// Remove loading screen from DOM after transition
+		setTimeout(() => {
+			if (loadingScreen.parentNode) {
+				loadingScreen.parentNode.removeChild(loadingScreen);
+			}
+		}, 500);
+	}
 }

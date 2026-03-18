@@ -4,6 +4,7 @@ import { getHelpUrlFor } from "./blocks.js";
 import { translate, getTooltip } from "../main/translation.js";
 
 export function defineColourBlocks() {
+
   // Basic colour picker block
   Blockly.Blocks["colour_picker"] = {
     init: function () {
@@ -14,17 +15,17 @@ export function defineColourBlocks() {
           {
             type: "field_colour",
             name: "COLOUR",
-            colour: "#ff0000",
-          },
+            colour: "#ff0000"
+          }
         ],
         output: "Colour",
         colour: categoryColours["Materials"],
         tooltip: getTooltip("colour_picker"),
-        helpUrl: "",
+        helpUrl: ""
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("materials_blocks");
-    },
+      this.setStyle('materials_blocks');
+    }
   };
 
   // Random colour block
@@ -36,11 +37,11 @@ export function defineColourBlocks() {
         output: "Colour",
         colour: categoryColours["Materials"],
         tooltip: getTooltip("colour_random"),
-        helpUrl: "",
+        helpUrl: ""
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("materials_blocks");
-    },
+      this.setStyle('materials_blocks');
+    }
   };
 
   // RGB colour block
@@ -53,28 +54,28 @@ export function defineColourBlocks() {
           {
             type: "input_value",
             name: "RED",
-            check: "Number",
+            check: "Number"
           },
           {
             type: "input_value",
-            name: "GREEN",
-            check: "Number",
+            name: "GREEN", 
+            check: "Number"
           },
           {
             type: "input_value",
             name: "BLUE",
-            check: "Number",
-          },
+            check: "Number"
+          }
         ],
         inputsInline: true,
         output: "Colour",
         colour: categoryColours["Materials"],
         tooltip: getTooltip("colour_rgb"),
-        helpUrl: "",
+        helpUrl: ""
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("materials_blocks");
-    },
+      this.setStyle('materials_blocks');
+    }
   };
 
   // Blend colours block
@@ -87,27 +88,27 @@ export function defineColourBlocks() {
           {
             type: "input_value",
             name: "COLOUR1",
-            check: "Colour",
+            check: "Colour"
           },
           {
             type: "input_value",
             name: "COLOUR2",
-            check: "Colour",
+            check: "Colour"
           },
           {
             type: "input_value",
             name: "RATIO",
-            check: "Number",
-          },
+            check: "Number"
+          }
         ],
         inputsInline: true,
         output: "Colour",
         colour: categoryColours["Materials"],
         tooltip: getTooltip("colour_blend"),
-        helpUrl: "",
+        helpUrl: ""
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("materials_blocks");
-    },
+      this.setStyle('materials_blocks');
+    }
   };
 }

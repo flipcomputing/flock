@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-import { chromium } from "playwright";
-import { spawn } from "child_process";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
+import { chromium } from 'playwright';
+import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,191 +17,102 @@ const __dirname = path.dirname(__filename);
 // Available test suites (from tests/tests.html)
 // Note: 228 tests total are registered, but most are tagged
 const AVAILABLE_SUITES = [
-  {
-    id: "@notslow",
-    name: "🚀 Run Most Tests (97 tests, ~1s)",
-    pattern: "/^(?!.*@slow).*$/",
-  },
-  { id: "@onlyslow", name: "🐌 Run Slow Tests Only", pattern: "@slow" },
-  { id: "@new", name: "🆕 Run Tests tagged @new", pattern: "@new" },
-  {
-    id: "babylon",
-    name: "Basic Babylon Tests (3 tests)",
-    pattern: "Flock API Tests",
-  },
-  { id: "sound", name: "Sound Tests (1 test)", pattern: "@sound" },
-  {
-    id: "sound-integration",
-    name: "Sound Integration Tests",
-    pattern: "@sound-integration",
-  },
-  {
-    id: "sound-verification",
-    name: "Sound Verification Tests",
-    pattern: "@sound-verification",
-  },
-  {
-    id: "sound-investigation",
-    name: "Sound API Investigation",
-    pattern: "@investigation",
-  },
-  {
-    id: "sound-diagnostic",
-    name: "Sound Replacement Diagnostic",
-    pattern: "@diagnostic",
-  },
-  { id: "physics", name: "Physics Tests (6 tests)", pattern: "@physics" },
-  {
-    id: "materials",
-    name: "Materials Tests (22 tests)",
-    pattern: "@materials",
-  },
-  { id: "effects", name: "Effects Tests (3 tests)", pattern: "Effects API" },
+  { id: '@notslow', name: '🚀 Run Most Tests (97 tests, ~1s)', pattern: '/^(?!.*@slow).*$/' },
+  { id: '@onlyslow', name: '🐌 Run Slow Tests Only', pattern: '@slow' },
+  { id: '@new', name: '🆕 Run Tests tagged @new', pattern: '@new' },
+  { id: 'babylon', name: 'Basic Babylon Tests (3 tests)', pattern: 'Flock API Tests' },
+  { id: 'sound', name: 'Sound Tests (1 test)', pattern: '@sound' },
+  { id: 'sound-integration', name: 'Sound Integration Tests', pattern: '@sound-integration' },
+  { id: 'sound-verification', name: 'Sound Verification Tests', pattern: '@sound-verification' },
+  { id: 'sound-investigation', name: 'Sound API Investigation', pattern: '@investigation' },
+  { id: 'sound-diagnostic', name: 'Sound Replacement Diagnostic', pattern: '@diagnostic' },
+  { id: 'physics', name: 'Physics Tests (6 tests)', pattern: '@physics' },
+  { id: 'materials', name: 'Materials Tests (22 tests)', pattern: '@materials' },
+  { id: 'effects', name: 'Effects Tests (3 tests)', pattern: 'Effects API' },
   {
     id: "property",
     name: "Sensing getProperty Tests",
     pattern: "@property",
   },
-  { id: "scale", name: "Scale Tests (45 tests)", pattern: "@scale" },
-  { id: "rotation", name: "Rotation Tests", pattern: "@rotation" },
-  {
-    id: "translation",
-    name: "Translation/Movement Tests",
-    pattern: "@translation",
-  },
-  {
-    id: "translate",
-    name: "Translation/Movement Tests (alias)",
-    pattern: "@translation",
-  },
-  {
-    id: "animate",
-    name: "Animation API Tests",
-    pattern: "Animation API Tests",
-  },
-  {
-    id: "glide",
-    name: "Glide Animation Tests",
-    pattern: "glideTo function tests",
-  },
-  {
-    id: "ui",
-    name: "UI Text/Button Tests",
-    pattern: "UIText, UIButton, UIInput, and UISlider function tests",
-  },
-  {
-    id: "stress",
-    name: "Stress Tests (Boxes)",
-    pattern: "Stress test for many boxes",
-  },
-  {
-    id: "objects",
-    name: "Object Creation Tests",
-    pattern: "createObject tests",
-  },
-  {
-    id: "concurrency",
-    name: "Concurrency Tests",
-    pattern: "Concurrency and Stress Tests",
-  },
-  { id: "blocks", name: "Block Tests", pattern: "blocks.js tests" },
-  {
-    id: "characterAnimations",
-    name: "Character Animation API",
-    pattern: "Character Animation API",
-  },
+  { id: 'scale', name: 'Scale Tests (45 tests)', pattern: '@scale' },
+  { id: 'rotation', name: 'Rotation Tests', pattern: '@rotation' },
+  { id: 'translation', name: 'Translation/Movement Tests', pattern: '@translation' },
+  { id: 'translate', name: 'Translation/Movement Tests (alias)', pattern: '@translation' },
+  { id: 'animate', name: 'Animation API Tests', pattern: 'Animation API Tests' },
+  { id: 'glide', name: 'Glide Animation Tests', pattern: 'glideTo function tests' },
+  { id: 'ui', name: 'UI Text/Button Tests', pattern: 'UIText, UIButton, UIInput, and UISlider function tests' },
+  { id: 'stress', name: 'Stress Tests (Boxes)', pattern: 'Stress test for many boxes' },
+  { id: 'objects', name: 'Object Creation Tests', pattern: 'createObject tests' },
+  { id: 'concurrency', name: 'Concurrency Tests', pattern: 'Concurrency and Stress Tests' },
+  { id: 'blocks', name: 'Block Tests', pattern: 'blocks.js tests' },
+  { id: 'characterAnimations', name: 'Character Animation API', pattern: 'Character Animation API' },
+
 ];
 
 const args = process.argv.slice(2);
-const showHelp = args.includes("--help") || args.includes("-h");
-const watch = args.includes("--watch");
-const verbose = args.includes("--verbose") || args.includes("-v");
-const logTests = args.includes("--log-tests");
-const logApi = args.includes("--log-api");
-const logAll = args.includes("--log-all");
-const requestedSuite = args.find((arg) => !arg.startsWith("--")) || "all";
+const showHelp = args.includes('--help') || args.includes('-h');
+const watch = args.includes('--watch');
+const verbose = args.includes('--verbose') || args.includes('-v');
+const logTests = args.includes('--log-tests');
+const logApi = args.includes('--log-api');
+const logAll = args.includes('--log-all');
+const requestedSuite = args.find(arg => !arg.startsWith('--')) || 'all';
 const suiteAliases = {
-  translate: "translation",
-  movement: "translation",
+  translate: 'translation',
+  movement: 'translation',
 };
 const suite = suiteAliases[requestedSuite] || requestedSuite;
 
 // Enable both logs if --log-all is specified
 if (logAll) {
-  console.log("📊 Logging enabled: Tests + API calls\n");
+  console.log('📊 Logging enabled: Tests + API calls\n');
 }
 
 if (showHelp) {
-  console.log(
-    "\n╔════════════════════════════════════════════════════════════════╗",
-  );
-  console.log(
-    "║             Flock XR API Test Runner - Help                   ║",
-  );
-  console.log(
-    "╚════════════════════════════════════════════════════════════════╝\n",
-  );
+  console.log('\n╔════════════════════════════════════════════════════════════════╗');
+  console.log('║             Flock XR API Test Runner - Help                   ║');
+  console.log('╚════════════════════════════════════════════════════════════════╝\n');
 
-  console.log("Usage: npm run test:api [suite] [options]\n");
+  console.log('Usage: npm run test:api [suite] [options]\n');
 
-  console.log("Available Test Suites:");
-  console.log(
-    "─────────────────────────────────────────────────────────────────\n",
-  );
+  console.log('Available Test Suites:');
+  console.log('─────────────────────────────────────────────────────────────────\n');
 
-  AVAILABLE_SUITES.forEach((s) => {
+  AVAILABLE_SUITES.forEach(s => {
     const paddedId = s.id.padEnd(15);
     console.log(`  ${paddedId} ${s.name}`);
   });
 
-  console.log("\nOptions:");
-  console.log("  --help, -h       Show this help message");
-  console.log("  --verbose, -v    Show detailed output");
-  console.log(
-    "  --log-tests      Log which tests are executed (saves to logs/tests.log)",
-  );
-  console.log(
-    "  --log-api        Log API method calls with counters (saves to logs/api-calls.log)",
-  );
-  console.log("  --log-all        Enable both test and API logging");
-  console.log("  --watch          Watch mode (not yet implemented)");
+  console.log('\nOptions:');
+  console.log('  --help, -h       Show this help message');
+  console.log('  --verbose, -v    Show detailed output');
+  console.log('  --log-tests      Log which tests are executed (saves to logs/tests.log)');
+  console.log('  --log-api        Log API method calls with counters (saves to logs/api-calls.log)');
+  console.log('  --log-all        Enable both test and API logging');
+  console.log('  --watch          Watch mode (not yet implemented)');
 
-  console.log("\nExamples:");
-  console.log("  npm run test:api                         # Run all tests");
-  console.log(
-    "  npm run test:api babylon                 # Run Basic Babylon Tests",
-  );
-  console.log("  npm run test:api sound                   # Run Sound Tests");
-  console.log(
-    "  npm run test:api @onlyslow -- --log-all  # Run slow tests with logging",
-  );
-  console.log(
-    "  npm run test:api materials -- --log-api  # Log API calls only",
-  );
-  console.log("  npm run test:api -- --help               # Show this help");
+  console.log('\nExamples:');
+  console.log('  npm run test:api                         # Run all tests');
+  console.log('  npm run test:api babylon                 # Run Basic Babylon Tests');
+  console.log('  npm run test:api sound                   # Run Sound Tests');
+  console.log('  npm run test:api @onlyslow -- --log-all  # Run slow tests with logging');
+  console.log('  npm run test:api materials -- --log-api  # Log API calls only');
+  console.log('  npm run test:api -- --help               # Show this help');
 
-  console.log("\nLogging:");
-  console.log("  Test logs:      logs/test-execution.log  (which tests ran)");
-  console.log(
-    "  API call logs:  logs/api-calls.log       (which API methods called)",
-  );
-  console.log("  View logs:      cat logs/test-execution.log\n");
+  console.log('\nLogging:');
+  console.log('  Test logs:      logs/test-execution.log  (which tests ran)');
+  console.log('  API call logs:  logs/api-calls.log       (which API methods called)');
+  console.log('  View logs:      cat logs/test-execution.log\n');
 
   process.exit(0);
 }
 
-console.log(
-  "\n╔════════════════════════════════════════════════════════════════╗",
-);
-console.log(
-  "║             Flock XR API Test Runner                          ║",
-);
-console.log(
-  "╚════════════════════════════════════════════════════════════════╝\n",
-);
+console.log('\n╔════════════════════════════════════════════════════════════════╗');
+console.log('║             Flock XR API Test Runner                          ║');
+console.log('╚════════════════════════════════════════════════════════════════╝\n');
 
 if (watch) {
-  console.log("⚠️  Watch mode not yet implemented\n");
+  console.log('⚠️  Watch mode not yet implemented\n');
 }
 
 let server;
@@ -236,7 +147,7 @@ async function checkServerHealth(url, maxAttempts = 30) {
     }
 
     // Wait 1 second between attempts
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
   return false;
@@ -247,92 +158,83 @@ async function checkServerHealth(url, maxAttempts = 30) {
  */
 function startServer() {
   return new Promise((resolve, reject) => {
-    console.log("🚀 Starting development server...");
+    console.log('🚀 Starting development server...');
 
-    const isCI =
-      process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true";
+    const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
     if (isCI) {
-      console.log("   📋 CI environment detected");
+      console.log('   📋 CI environment detected');
     }
 
     // Capture all output for diagnostics
     const outputBuffer = [];
     const errorBuffer = [];
 
-    server = spawn("npm", ["run", "dev"], {
-      cwd: path.resolve(__dirname, ".."),
-      stdio: "pipe",
+    server = spawn('npm', ['run', 'dev'], {
+      cwd: path.resolve(__dirname, '..'),
+      stdio: 'pipe',
       shell: true,
-      env: { ...process.env },
+      env: { ...process.env }
     });
 
-    server.stdout.on("data", (data) => {
+    server.stdout.on('data', (data) => {
       const output = data.toString();
       outputBuffer.push(output);
 
       if (verbose) {
-        console.log("   [stdout]", output.trim());
+        console.log('   [stdout]', output.trim());
       }
 
       // Look for Vite server ready message
-      if (output.includes("Local:") && !serverReady) {
+      if (output.includes('Local:') && !serverReady) {
         serverReady = true;
-        console.log("   ✓ Vite ready message detected");
+        console.log('   ✓ Vite ready message detected');
         verifyServerWithHealthCheck();
       }
     });
 
-    server.stderr.on("data", (data) => {
+    server.stderr.on('data', (data) => {
       // Vite outputs to stderr for some messages
       const output = data.toString();
       errorBuffer.push(output);
 
       if (verbose) {
-        console.log("   [stderr]", output.trim());
+        console.log('   [stderr]', output.trim());
       }
 
-      if (output.includes("Local:") && !serverReady) {
+      if (output.includes('Local:') && !serverReady) {
         serverReady = true;
-        console.log("   ✓ Vite ready message detected");
+        console.log('   ✓ Vite ready message detected');
         verifyServerWithHealthCheck();
       }
     });
 
-    server.on("error", (error) => {
+    server.on('error', (error) => {
       reject(new Error(`Failed to start server: ${error.message}`));
     });
 
-    server.on("exit", (code, signal) => {
+    server.on('exit', (code, signal) => {
       if (!serverReady) {
-        console.error("❌ Server exited prematurely");
+        console.error('❌ Server exited prematurely');
         console.error(`   Exit code: ${code}, Signal: ${signal}`);
-        console.error("\n   Last stdout output:");
-        outputBuffer
-          .slice(-5)
-          .forEach((line) => console.error("   ", line.trim()));
-        console.error("\n   Last stderr output:");
-        errorBuffer
-          .slice(-5)
-          .forEach((line) => console.error("   ", line.trim()));
+        console.error('\n   Last stdout output:');
+        outputBuffer.slice(-5).forEach(line => console.error('   ', line.trim()));
+        console.error('\n   Last stderr output:');
+        errorBuffer.slice(-5).forEach(line => console.error('   ', line.trim()));
         reject(new Error(`Server exited with code ${code}`));
       }
     });
 
     // Health check function that verifies server is actually responding
     async function verifyServerWithHealthCheck() {
-      console.log("   🔍 Verifying server is responsive...");
+      console.log('   🔍 Verifying server is responsive...');
 
-      const isHealthy = await checkServerHealth("http://localhost:5173", 10);
+      const isHealthy = await checkServerHealth('http://localhost:5173', 10);
 
       if (isHealthy) {
-        console.log("✅ Development server started and responding\n");
+        console.log('✅ Development server started and responding\n');
         resolve();
       } else {
-        reject(
-          new Error(
-            "Server appeared to start but is not responding to HTTP requests",
-          ),
-        );
+        reject(new Error('Server appeared to start but is not responding to HTTP requests'));
       }
     }
 
@@ -342,33 +244,23 @@ function startServer() {
 
     setTimeout(async () => {
       if (!serverReady) {
-        console.log(
-          '   ⚠️  No "Local:" message detected yet, trying health check...',
-        );
-        console.log("   📊 Output received so far:");
-        console.log("      stdout lines:", outputBuffer.length);
-        console.log("      stderr lines:", errorBuffer.length);
+        console.log('   ⚠️  No "Local:" message detected yet, trying health check...');
+        console.log('   📊 Output received so far:');
+        console.log('      stdout lines:', outputBuffer.length);
+        console.log('      stderr lines:', errorBuffer.length);
 
         if (outputBuffer.length > 0) {
-          console.log(
-            "   Last stdout:",
-            outputBuffer[outputBuffer.length - 1].trim(),
-          );
+          console.log('   Last stdout:', outputBuffer[outputBuffer.length - 1].trim());
         }
         if (errorBuffer.length > 0) {
-          console.log(
-            "   Last stderr:",
-            errorBuffer[errorBuffer.length - 1].trim(),
-          );
+          console.log('   Last stderr:', errorBuffer[errorBuffer.length - 1].trim());
         }
 
-        const isHealthy = await checkServerHealth("http://localhost:5173", 20);
+        const isHealthy = await checkServerHealth('http://localhost:5173', 20);
 
         if (isHealthy) {
           serverReady = true;
-          console.log(
-            "✅ Development server started and responding (detected via health check)\n",
-          );
+          console.log('✅ Development server started and responding (detected via health check)\n');
           resolve();
         }
       }
@@ -377,35 +269,27 @@ function startServer() {
     // Final timeout after 30 seconds
     setTimeout(() => {
       if (!serverReady) {
-        console.error("❌ Server failed to start within 30 seconds");
-        console.error("\n📊 Diagnostic Information:");
-        console.error(`   Environment: ${isCI ? "CI" : "Local"}`);
+        console.error('❌ Server failed to start within 30 seconds');
+        console.error('\n📊 Diagnostic Information:');
+        console.error(`   Environment: ${isCI ? 'CI' : 'Local'}`);
         console.error(`   stdout lines captured: ${outputBuffer.length}`);
         console.error(`   stderr lines captured: ${errorBuffer.length}`);
 
         if (outputBuffer.length > 0) {
-          console.error("\n   Recent stdout:");
-          outputBuffer
-            .slice(-10)
-            .forEach((line) => console.error("   ", line.trim()));
+          console.error('\n   Recent stdout:');
+          outputBuffer.slice(-10).forEach(line => console.error('   ', line.trim()));
         } else {
-          console.error("\n   ⚠️  No stdout captured (buffering issue?)");
+          console.error('\n   ⚠️  No stdout captured (buffering issue?)');
         }
 
         if (errorBuffer.length > 0) {
-          console.error("\n   Recent stderr:");
-          errorBuffer
-            .slice(-10)
-            .forEach((line) => console.error("   ", line.trim()));
+          console.error('\n   Recent stderr:');
+          errorBuffer.slice(-10).forEach(line => console.error('   ', line.trim()));
         } else {
-          console.error("\n   ⚠️  No stderr captured");
+          console.error('\n   ⚠️  No stderr captured');
         }
 
-        reject(
-          new Error(
-            "Server failed to start within 30 seconds - see diagnostic output above",
-          ),
-        );
+        reject(new Error('Server failed to start within 30 seconds - see diagnostic output above'));
       }
     }, 30000);
   });
@@ -414,16 +298,16 @@ function startServer() {
 /**
  * Run tests in headless browser
  */
-async function runTests(suiteId = "all") {
-  console.log("🌐 Launching headless browser...");
+async function runTests(suiteId = 'all') {
+  console.log('🌐 Launching headless browser...');
 
   browser = await chromium.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
   const context = await browser.newContext({
-    viewport: { width: 1280, height: 720 },
+    viewport: { width: 1280, height: 720 }
   });
 
   const page = await context.newPage();
@@ -435,6 +319,7 @@ async function runTests(suiteId = "all") {
     console.log("[browser:pageerror]", err);
   });
 
+
   // Inject script to expose flock globally when it's created
   if (logApi || logAll) {
     await page.addInitScript(() => {
@@ -443,7 +328,7 @@ async function runTests(suiteId = "all") {
 
       // Hook into module loading to capture flock when it's imported
       const observer = new MutationObserver(() => {
-        const iframe = document.getElementById("flock-iframe");
+        const iframe = document.getElementById('flock-iframe');
         if (iframe && iframe.contentWindow && iframe.contentWindow.flock) {
           window.__testFlock = iframe.contentWindow.flock;
           observer.disconnect();
@@ -452,99 +337,89 @@ async function runTests(suiteId = "all") {
 
       observer.observe(document.documentElement, {
         childList: true,
-        subtree: true,
+        subtree: true
       });
     });
   }
 
   // Collect console messages
   const consoleMessages = [];
-  page.on("console", (msg) => {
+  page.on('console', msg => {
     consoleMessages.push({
       type: msg.type(),
-      text: msg.text(),
+      text: msg.text()
     });
   });
 
   // Navigate to test page
-  console.log("📄 Loading test page...");
-  await page.goto("http://localhost:5173/tests/tests.html", {
-    waitUntil: "networkidle",
-    timeout: 60000,
+  console.log('📄 Loading test page...');
+  await page.goto('http://localhost:5173/tests/tests.html', {
+    waitUntil: 'networkidle',
+    timeout: 60000
   });
 
   // Wait for test infrastructure to be ready
-  console.log("⏳ Waiting for test page to load...");
+  console.log('⏳ Waiting for test page to load...');
   try {
     // First wait for mocha to be available
-    await page.waitForFunction(
-      () => {
-        return (
-          typeof window.mocha !== "undefined" &&
-          document.getElementById("testSelect") !== null
-        );
-      },
-      { timeout: 30000 },
-    );
+    await page.waitForFunction(() => {
+      return typeof window.mocha !== 'undefined' &&
+        document.getElementById('testSelect') !== null;
+    }, { timeout: 30000 });
 
-    console.log("✅ Test page loaded");
+    console.log('✅ Test page loaded');
 
     // Then wait for flock to initialize
-    console.log("⏳ Waiting for Flock to initialize...");
+    console.log('⏳ Waiting for Flock to initialize...');
 
     // First wait for flock object to exist
-    await page.waitForFunction(
-      () => {
-        return typeof window.flock !== "undefined";
-      },
-      { timeout: 30000 },
-    );
+    await page.waitForFunction(() => {
+      return typeof window.flock !== 'undefined';
+    }, { timeout: 30000 });
 
-    console.log("   ✓ Flock object available");
+    console.log('   ✓ Flock object available');
 
     // Wait for flock initialization to complete
     // The test page puts flock in an iframe, so we need to check if initialization finished
     // by waiting for test definitions to be loaded (which happens after flock init)
-    console.log("   ✓ Waiting for test suite definitions...");
+    console.log('   ✓ Waiting for test suite definitions...');
 
-    await page.waitForFunction(
-      () => {
-        // Check if test suites have been loaded (they load after flock initializes)
-        const testSelect = document.getElementById("testSelect");
-        if (!testSelect) return false;
+    await page.waitForFunction(() => {
+      // Check if test suites have been loaded (they load after flock initializes)
+      const testSelect = document.getElementById('testSelect');
+      if (!testSelect) return false;
 
-        // Test suite options are added after initialization
-        const options = testSelect.querySelectorAll("option");
-        return options.length > 2; // More than just the default placeholder options
-      },
-      { timeout: 90000 },
-    );
+      // Test suite options are added after initialization
+      const options = testSelect.querySelectorAll('option');
+      return options.length > 2; // More than just the default placeholder options
+    }, { timeout: 90000 });
 
-    console.log("✅ Flock initialized and tests loaded\n");
+    console.log('✅ Flock initialized and tests loaded\n');
+
   } catch (error) {
-    console.error("❌ Failed to load test page");
-    console.error("\nRecent console messages:");
-    consoleMessages.slice(-15).forEach((msg) => {
-      const prefix =
-        msg.type === "error" ? "❌" : msg.type === "warning" ? "⚠️ " : "  ";
+    console.error('❌ Failed to load test page');
+    console.error('\nRecent console messages:');
+    consoleMessages.slice(-15).forEach(msg => {
+      const prefix = msg.type === 'error' ? '❌' :
+        msg.type === 'warning' ? '⚠️ ' : '  ';
       console.log(`  ${prefix} [${msg.type}] ${msg.text}`);
     });
     throw error;
   }
 
   // Find suite info for diagnostics
-  const suiteInfo = AVAILABLE_SUITES.find((s) => s.id === suiteId);
-  const patternInfo = suiteInfo ? suiteInfo.pattern : "unknown";
+  const suiteInfo = AVAILABLE_SUITES.find(s => s.id === suiteId);
+  const patternInfo = suiteInfo ? suiteInfo.pattern : 'unknown';
 
   // Select test suite
   console.log(`🧪 Running test suite: ${suiteId}`);
   if (verbose) {
-    console.log(`   Suite: ${suiteInfo?.name || "Unknown"}`);
-    console.log(`   Pattern: ${patternInfo || "none (all tests)"}`);
+    console.log(`   Suite: ${suiteInfo?.name || 'Unknown'}`);
+    console.log(`   Pattern: ${patternInfo || 'none (all tests)'}`);
   }
   console.log();
 
-  await page.selectOption("#testSelect", suiteId);
+  await page.selectOption('#testSelect', suiteId);
 
   // Wait for the selection to register and grep filter to be applied
   await page.waitForTimeout(1000);
@@ -562,13 +437,13 @@ async function runTests(suiteId = "all") {
         let count = 0;
 
         function countMatchingTests(suite) {
-          suite.tests.forEach((test) => {
+          suite.tests.forEach(test => {
             const title = test.fullTitle();
             if (grep.test(title)) {
               count++;
             }
           });
-          suite.suites.forEach((s) => countMatchingTests(s));
+          suite.suites.forEach(s => countMatchingTests(s));
         }
 
         if (window.mocha.suite) {
@@ -591,21 +466,16 @@ async function runTests(suiteId = "all") {
   if (verbose || matchedTests === 0) {
     const preRunState = await page.evaluate(() => {
       return {
-        mochaExists: typeof window.mocha !== "undefined",
+        mochaExists: typeof window.mocha !== 'undefined',
         grepValue: window.mocha?.options?.grep?.toString(),
         totalRegistered: window.mocha?.suite?.total(),
       };
     });
-    console.log(
-      "   Pre-run mocha state:",
-      JSON.stringify(preRunState, null, 2),
-    );
+    console.log('   Pre-run mocha state:', JSON.stringify(preRunState, null, 2));
     console.log(`   Matching tests found: ${matchedTests}`);
 
     if (matchedTests === 0) {
-      console.warn(
-        "   ⚠️  Warning: No tests match the pattern. They may not be registered yet.",
-      );
+      console.warn('   ⚠️  Warning: No tests match the pattern. They may not be registered yet.');
     }
   }
 
@@ -613,12 +483,10 @@ async function runTests(suiteId = "all") {
   if (logTests || logAll) {
     await page.evaluate(() => {
       window.testExecutionLog = [];
-      window.testExecutionLog.push("=== Test Execution Log ===");
-      window.testExecutionLog.push(
-        `Suite: ${document.getElementById("testSelect").value}`,
-      );
+      window.testExecutionLog.push('=== Test Execution Log ===');
+      window.testExecutionLog.push(`Suite: ${document.getElementById('testSelect').value}`);
       window.testExecutionLog.push(`Started: ${new Date().toISOString()}`);
-      window.testExecutionLog.push("");
+      window.testExecutionLog.push('');
     });
   }
 
@@ -626,20 +494,18 @@ async function runTests(suiteId = "all") {
     const diagnostics = await page.evaluate(() => {
       window.apiCallLog = [];
       window.apiCallCounts = {};
-      window.apiCallLog.push("=== API Call Log ===");
-      window.apiCallLog.push(
-        `Suite: ${document.getElementById("testSelect").value}`,
-      );
+      window.apiCallLog.push('=== API Call Log ===');
+      window.apiCallLog.push(`Suite: ${document.getElementById('testSelect').value}`);
       window.apiCallLog.push(`Started: ${new Date().toISOString()}`);
-      window.apiCallLog.push("");
+      window.apiCallLog.push('');
 
       // Access flock from the window (exposed by tests.html)
       const flock = window.__flockForLogging;
 
       if (!flock) {
         return {
-          error: "Flock not found - window.__flockForLogging is not set",
-          flockExists: false,
+          error: 'Flock not found - window.__flockForLogging is not set',
+          flockExists: false
         };
       }
 
@@ -647,7 +513,7 @@ async function runTests(suiteId = "all") {
       const diag = {
         flockExists: true,
         methodCount: 0,
-        wrappedMethods: [],
+        wrappedMethods: []
       };
 
       // Store original methods in the main window (so they survive test runs)
@@ -657,13 +523,13 @@ async function runTests(suiteId = "all") {
 
       // Iterate over all own properties and prototype methods
       const allProps = [
-        ...Object.keys(flock), // Own properties
-        ...Object.getOwnPropertyNames(Object.getPrototypeOf(flock) || {}), // Prototype
+        ...Object.keys(flock),  // Own properties
+        ...Object.getOwnPropertyNames(Object.getPrototypeOf(flock) || {})  // Prototype
       ];
 
       for (const prop of allProps) {
         try {
-          if (typeof flock[prop] === "function" && prop !== "constructor") {
+          if (typeof flock[prop] === 'function' && prop !== 'constructor') {
             diag.methodCount++;
             if (diag.wrappedMethods.length < 10) {
               diag.wrappedMethods.push(prop);
@@ -675,8 +541,8 @@ async function runTests(suiteId = "all") {
             }
 
             // Wrap the method in place
-            flock[prop] = (function (methodName, originalMethod) {
-              return function (...args) {
+            flock[prop] = (function(methodName, originalMethod) {
+              return function(...args) {
                 // Increment counter
                 if (!window.apiCallCounts[methodName]) {
                   window.apiCallCounts[methodName] = 0;
@@ -685,20 +551,12 @@ async function runTests(suiteId = "all") {
 
                 // Log the call
                 const count = window.apiCallCounts[methodName];
-                const timestamp = new Date()
-                  .toISOString()
-                  .split("T")[1]
-                  .slice(0, -1);
+                const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
                 try {
-                  const argsStr =
-                    args.length > 0 ? JSON.stringify(args).slice(0, 100) : "()";
-                  window.apiCallLog.push(
-                    `[${timestamp}] ${methodName} (#${count}) ${argsStr}`,
-                  );
+                  const argsStr = args.length > 0 ? JSON.stringify(args).slice(0, 100) : '()';
+                  window.apiCallLog.push(`[${timestamp}] ${methodName} (#${count}) ${argsStr}`);
                 } catch (e) {
-                  window.apiCallLog.push(
-                    `[${timestamp}] ${methodName} (#${count})`,
-                  );
+                  window.apiCallLog.push(`[${timestamp}] ${methodName} (#${count})`);
                 }
 
                 // Call the original function
@@ -715,10 +573,7 @@ async function runTests(suiteId = "all") {
     });
 
     if (verbose) {
-      console.log(
-        "   API Logging diagnostics:",
-        JSON.stringify(diagnostics, null, 2),
-      );
+      console.log('   API Logging diagnostics:', JSON.stringify(diagnostics, null, 2));
     }
   }
 
@@ -729,31 +584,27 @@ async function runTests(suiteId = "all") {
       if (window.mocha) {
         // Wrap mocha.run() to intercept the runner
         const originalRun = window.mocha.run.bind(window.mocha);
-        window.mocha.run = function (...args) {
+        window.mocha.run = function(...args) {
           const runner = originalRun(...args);
 
           // Attach our logging hooks to the runner
-          runner.on("test", function (test) {
+          runner.on('test', function(test) {
             window.testExecutionLog.push(`▶ START: ${test.fullTitle()}`);
           });
 
-          runner.on("pass", function (test) {
-            window.testExecutionLog.push(
-              `  ✅ PASS: ${test.fullTitle()} (${test.duration}ms)`,
-            );
+          runner.on('pass', function(test) {
+            window.testExecutionLog.push(`  ✅ PASS: ${test.fullTitle()} (${test.duration}ms)`);
           });
 
-          runner.on("fail", function (test, err) {
+          runner.on('fail', function(test, err) {
             window.testExecutionLog.push(`  ❌ FAIL: ${test.fullTitle()}`);
             window.testExecutionLog.push(`     Error: ${err.message}`);
           });
 
-          runner.on("end", function () {
-            window.testExecutionLog.push("");
-            window.testExecutionLog.push("=== Test Execution Complete ===");
-            window.testExecutionLog.push(
-              `Completed: ${new Date().toISOString()}`,
-            );
+          runner.on('end', function() {
+            window.testExecutionLog.push('');
+            window.testExecutionLog.push('=== Test Execution Complete ===');
+            window.testExecutionLog.push(`Completed: ${new Date().toISOString()}`);
           });
 
           return runner;
@@ -763,66 +614,58 @@ async function runTests(suiteId = "all") {
   }
 
   // Click run button
-  await page.click("#runTestBtn");
+  await page.click('#runTestBtn');
 
   // Wait for tests to start running
   await page.waitForTimeout(1500);
 
   // Wait for tests to complete
-  console.log("⏳ Running tests...\n");
+  console.log('⏳ Running tests...\n');
 
-  const results = await page.waitForFunction(
-    (expectedCount) => {
-      const stats = document.querySelector("#mocha-stats");
-      if (!stats) return null;
+  const results = await page.waitForFunction((expectedCount) => {
+    const stats = document.querySelector('#mocha-stats');
+    if (!stats) return null;
 
-      const duration = stats.querySelector(".duration em");
-      if (!duration || duration.textContent === "") return null;
+    const duration = stats.querySelector('.duration em');
+    if (!duration || duration.textContent === '') return null;
 
-      // Tests are complete
-      const passes =
-        parseInt(stats.querySelector(".passes em").textContent) || 0;
-      const failures =
-        parseInt(stats.querySelector(".failures em").textContent) || 0;
-      const total = passes + failures;
+    // Tests are complete
+    const passes = parseInt(stats.querySelector('.passes em').textContent) || 0;
+    const failures = parseInt(stats.querySelector('.failures em').textContent) || 0;
+    const total = passes + failures;
 
-      // Only return results if all expected tests have completed
-      if (total < expectedCount) {
-        return null; // Keep waiting
-      }
+    // Only return results if all expected tests have completed
+    if (total < expectedCount) {
+      return null; // Keep waiting
+    }
 
-      // Get failure details
-      const failureElements = Array.from(
-        document.querySelectorAll(".test.fail"),
-      );
-      const failureDetails = failureElements.map((el) => {
-        const titleEl = el.querySelector("h2");
-        const errorEl = el.querySelector(".error");
-
-        return {
-          title: titleEl ? titleEl.textContent : "Unknown test",
-          error: errorEl ? errorEl.textContent : "No error message",
-        };
-      });
+    // Get failure details
+    const failureElements = Array.from(document.querySelectorAll('.test.fail'));
+    const failureDetails = failureElements.map(el => {
+      const titleEl = el.querySelector('h2');
+      const errorEl = el.querySelector('.error');
 
       return {
-        passes,
-        failures,
-        total,
-        duration: duration.textContent,
-        failureDetails,
+        title: titleEl ? titleEl.textContent : 'Unknown test',
+        error: errorEl ? errorEl.textContent : 'No error message'
       };
-    },
-    matchedTests,
-    { timeout: 120000 },
-  ); // Pass expected test count as arg, 2 minute timeout
+    });
+
+    return {
+      passes,
+      failures,
+      total,
+      duration: duration.textContent,
+      failureDetails
+    };
+  }, matchedTests, { timeout: 120000 }); // Pass expected test count as arg, 2 minute timeout
 
   const testResults = await results.jsonValue();
 
   // Print results
-  console.log("┌─────────────────────────────────────────┐");
-  console.log("│              Test Results               │");
-  console.log("└─────────────────────────────────────────┘\n");
+  console.log('┌─────────────────────────────────────────┐');
+  console.log('│              Test Results               │');
+  console.log('└─────────────────────────────────────────┘\n');
 
   console.log(`  Total Tests:     ${testResults.total}`);
   console.log(`  ✅ Passing:      ${testResults.passes}`);
@@ -830,9 +673,9 @@ async function runTests(suiteId = "all") {
   console.log(`  ⏱️  Duration:     ${testResults.duration}\n`);
 
   if (testResults.failures > 0) {
-    console.log("┌─────────────────────────────────────────┐");
-    console.log("│              Failed Tests               │");
-    console.log("└─────────────────────────────────────────┘\n");
+    console.log('┌─────────────────────────────────────────┐');
+    console.log('│              Failed Tests               │');
+    console.log('└─────────────────────────────────────────┘\n');
 
     testResults.failureDetails.forEach((failure, index) => {
       console.log(`  ${index + 1}. ${failure.title}`);
@@ -843,16 +686,16 @@ async function runTests(suiteId = "all") {
   // Retrieve and save logs if logging was enabled
   if (logTests || logAll) {
     const testLog = await page.evaluate(() => {
-      return window.testExecutionLog ? window.testExecutionLog.join("\n") : "";
+      return window.testExecutionLog ? window.testExecutionLog.join('\n') : '';
     });
 
     if (testLog) {
-      const logsDir = path.resolve(process.cwd(), "logs");
+      const logsDir = path.resolve(process.cwd(), 'logs');
       if (!fs.existsSync(logsDir)) {
         fs.mkdirSync(logsDir, { recursive: true });
       }
 
-      const testLogPath = path.join(logsDir, "test-execution.log");
+      const testLogPath = path.join(logsDir, 'test-execution.log');
       fs.writeFileSync(testLogPath, testLog);
       console.log(`📝 Test execution log saved to: ${testLogPath}\n`);
     }
@@ -860,7 +703,7 @@ async function runTests(suiteId = "all") {
 
   if (logApi || logAll) {
     const apiLog = await page.evaluate(() => {
-      return window.apiCallLog ? window.apiCallLog.join("\n") : "";
+      return window.apiCallLog ? window.apiCallLog.join('\n') : '';
     });
 
     const apiCounts = await page.evaluate(() => {
@@ -868,20 +711,18 @@ async function runTests(suiteId = "all") {
     });
 
     if (apiLog) {
-      const logsDir = path.resolve(process.cwd(), "logs");
+      const logsDir = path.resolve(process.cwd(), 'logs');
       if (!fs.existsSync(logsDir)) {
         fs.mkdirSync(logsDir, { recursive: true });
       }
 
       // Save detailed API call log
-      const apiLogPath = path.join(logsDir, "api-calls.log");
-      let fullLog = apiLog + "\n\n";
-      fullLog += "=== API Call Summary ===\n";
-      fullLog += "Method Call Counts:\n";
+      const apiLogPath = path.join(logsDir, 'api-calls.log');
+      let fullLog = apiLog + '\n\n';
+      fullLog += '=== API Call Summary ===\n';
+      fullLog += 'Method Call Counts:\n';
 
-      const sortedCounts = Object.entries(apiCounts).sort(
-        (a, b) => b[1] - a[1],
-      );
+      const sortedCounts = Object.entries(apiCounts).sort((a, b) => b[1] - a[1]);
       sortedCounts.forEach(([method, count]) => {
         fullLog += `  ${method}: ${count}\n`;
       });
@@ -891,9 +732,9 @@ async function runTests(suiteId = "all") {
 
       // Print summary
       if (sortedCounts.length > 0) {
-        console.log("\n📊 API Call Summary:");
+        console.log('\n📊 API Call Summary:');
         sortedCounts.slice(0, 10).forEach(([method, count]) => {
-          console.log(`   ${method}: ${count} call${count > 1 ? "s" : ""}`);
+          console.log(`   ${method}: ${count} call${count > 1 ? 's' : ''}`);
         });
         if (sortedCounts.length > 10) {
           console.log(`   ... and ${sortedCounts.length - 10} more methods`);
@@ -907,7 +748,7 @@ async function runTests(suiteId = "all") {
 
   return {
     success: testResults.failures === 0,
-    stats: testResults,
+    stats: testResults
   };
 }
 
@@ -916,11 +757,11 @@ async function runTests(suiteId = "all") {
  */
 function cleanup() {
   if (server) {
-    console.log("\n🛑 Stopping development server...");
+    console.log('\n🛑 Stopping development server...');
     server.kill();
   }
   if (browser) {
-    browser.close().catch(() => {});
+    browser.close().catch(() => { });
   }
 }
 
@@ -933,7 +774,7 @@ async function main() {
     await startServer();
 
     // Give server a moment to fully start
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Run tests
     const { success, stats } = await runTests(suite);
@@ -943,7 +784,7 @@ async function main() {
 
     // Exit with appropriate code
     if (success) {
-      console.log("✅ All tests passed!\n");
+      console.log('✅ All tests passed!\n');
       process.exit(0);
     } else {
       console.log(`❌ ${stats.failures} test(s) failed\n`);
@@ -958,19 +799,19 @@ async function main() {
 }
 
 // Handle interrupts
-process.on("SIGINT", () => {
-  console.log("\n\n⚠️  Test run interrupted by user");
+process.on('SIGINT', () => {
+  console.log('\n\n⚠️  Test run interrupted by user');
   cleanup();
   process.exit(1);
 });
 
-process.on("SIGTERM", () => {
+process.on('SIGTERM', () => {
   cleanup();
   process.exit(1);
 });
 
 // Run
-main().catch((error) => {
+main().catch(error => {
   console.error(`Fatal error: ${error.message}`);
   cleanup();
   process.exit(1);

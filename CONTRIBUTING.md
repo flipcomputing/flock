@@ -52,19 +52,16 @@ Before starting, we suggest you [get in touch](https://flipcomputing.com/contact
    ```
 2. **Make your changes** (see project structure below).
 3. **Test your changes** including running the automated tests, details of how to do so follow below.
-4. **Format your code**
-   Run `npm run format:check` to check your code meets the formatting requirements, or use `npm run format` to automatically format it using Prettier.
-
-5. **Commit your changes**:
+4. **Commit your changes**:
    ```bash
    git add .
    git commit -m "Add your descriptive commit message"
    ```
-6. **Push to your fork**:
+5. **Push to your fork**:
    ```bash
    git push origin your-feature-name
    ```
-7. **Create a Pull Request** on GitHub
+6. **Create a Pull Request** on GitHub
 
 For more specific developer-facing documentation, please see [dev-docs.md](dev-docs/dev-docs.md).
 

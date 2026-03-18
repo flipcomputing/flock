@@ -55,10 +55,7 @@ function ensureMeshIndex() {
       const key = mesh.metadata?.blockKey;
       if (!key) continue;
       let s = blockKeyToMeshes.get(key);
-      if (!s) {
-        s = new Set();
-        blockKeyToMeshes.set(key, s);
-      }
+      if (!s) { s = new Set(); blockKeyToMeshes.set(key, s); }
       s.add(mesh);
     }
     _meshIndexDirty = false;
@@ -80,54 +77,47 @@ function isMainWorkspaceEvent(changeEvent, block) {
   const ws = block?.workspace;
 
   if (!ws) {
-    if (flock.meshDebug)
-      console.log("[isMainWorkspaceEvent] false: block has no workspace", {
-        blockId: block?.id,
-        eventType: changeEvent?.type,
-        eventWorkspaceId: changeEvent?.workspaceId,
-      });
+    if (flock.meshDebug) console.log("[isMainWorkspaceEvent] false: block has no workspace", {
+      blockId: block?.id,
+      eventType: changeEvent?.type,
+      eventWorkspaceId: changeEvent?.workspaceId,
+    });
     return false;
   }
 
   if (ws.isFlyout) {
-    if (flock.meshDebug)
-      console.log(
-        "[isMainWorkspaceEvent] false: block is in flyout workspace",
-        {
-          blockId: block?.id,
-          eventType: changeEvent?.type,
-          eventWorkspaceId: changeEvent?.workspaceId,
-          blockWorkspaceId: ws.id,
-          mainWorkspaceId: mainWs?.id,
-        },
-      );
+    if (flock.meshDebug) console.log("[isMainWorkspaceEvent] false: block is in flyout workspace", {
+      blockId: block?.id,
+      eventType: changeEvent?.type,
+      eventWorkspaceId: changeEvent?.workspaceId,
+      blockWorkspaceId: ws.id,
+      mainWorkspaceId: mainWs?.id,
+    });
     return false;
   }
 
   if (ws !== mainWs) {
-    if (flock.meshDebug)
-      console.log(
-        "[isMainWorkspaceEvent] false: block is in a non-main, non-flyout workspace",
-        {
-          blockId: block?.id,
-          eventType: changeEvent?.type,
-          eventWorkspaceId: changeEvent?.workspaceId,
-          blockWorkspaceId: ws.id,
-          mainWorkspaceId: mainWs?.id,
-        },
-      );
+    if (flock.meshDebug) console.log(
+      "[isMainWorkspaceEvent] false: block is in a non-main, non-flyout workspace",
+      {
+        blockId: block?.id,
+        eventType: changeEvent?.type,
+        eventWorkspaceId: changeEvent?.workspaceId,
+        blockWorkspaceId: ws.id,
+        mainWorkspaceId: mainWs?.id,
+      },
+    );
     return false;
   }
 
   if (changeEvent?.workspaceId && changeEvent.workspaceId !== ws.id) {
-    if (flock.meshDebug)
-      console.log("[isMainWorkspaceEvent] false: event workspaceId mismatch", {
-        blockId: block?.id,
-        eventType: changeEvent?.type,
-        eventWorkspaceId: changeEvent.workspaceId,
-        blockWorkspaceId: ws.id,
-        mainWorkspaceId: mainWs?.id,
-      });
+    if (flock.meshDebug) console.log("[isMainWorkspaceEvent] false: event workspaceId mismatch", {
+      blockId: block?.id,
+      eventType: changeEvent?.type,
+      eventWorkspaceId: changeEvent.workspaceId,
+      blockWorkspaceId: ws.id,
+      mainWorkspaceId: mainWs?.id,
+    });
     return false;
   }
 
@@ -2198,9 +2188,8 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     const ws = Blockly.getMainWorkspace();
     const wsBlocks = ws?.getAllBlocks(false) ?? [];
     const backgroundBlock =
-      wsBlocks.find(
-        (b) => b.type === "set_background_color" && b.isEnabled(),
-      ) ?? wsBlocks.find((b) => b.type === "set_background_color");
+      wsBlocks.find((b) => b.type === "set_background_color" && b.isEnabled()) ??
+      wsBlocks.find((b) => b.type === "set_background_color");
     const skyBlock =
       wsBlocks.find((b) => b.type === "set_sky_color" && b.isEnabled()) ??
       wsBlocks.find((b) => b.type === "set_sky_color");

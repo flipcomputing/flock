@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from 'fs';
+import path from 'path';
 
 /**
  * Parses JSDoc comments from a JavaScript file
@@ -7,7 +7,7 @@ import path from "path";
  * @returns {Map<string, Object>} Map of method name to JSDoc data
  */
 export function parseJSDoc(filePath) {
-  const content = fs.readFileSync(filePath, "utf-8");
+  const content = fs.readFileSync(filePath, 'utf-8');
   const jsdocMap = new Map();
 
   // Match JSDoc blocks followed by method definitions
@@ -26,11 +26,11 @@ export function parseJSDoc(filePath) {
       params: extractParams(jsdocContent),
       returns: extractReturns(jsdocContent),
       examples: extractExamples(jsdocContent),
-      category: extractTag(jsdocContent, "category"),
-      tested: extractTag(jsdocContent, "tested"),
-      deprecated: hasTag(jsdocContent, "deprecated"),
-      since: extractTag(jsdocContent, "since"),
-      tags: extractAllTags(jsdocContent),
+      category: extractTag(jsdocContent, 'category'),
+      tested: extractTag(jsdocContent, 'tested'),
+      deprecated: hasTag(jsdocContent, 'deprecated'),
+      since: extractTag(jsdocContent, 'since'),
+      tags: extractAllTags(jsdocContent)
     };
 
     jsdocMap.set(methodName, docData);
@@ -43,17 +43,15 @@ export function parseJSDoc(filePath) {
  * Extract description from JSDoc content
  */
 function extractDescription(jsdocContent) {
-  const lines = jsdocContent
-    .split("\n")
-    .map((l) => l.trim().replace(/^\*\s?/, ""));
+  const lines = jsdocContent.split('\n').map(l => l.trim().replace(/^\*\s?/, ''));
   const description = [];
 
   for (const line of lines) {
-    if (line.startsWith("@")) break;
+    if (line.startsWith('@')) break;
     if (line) description.push(line);
   }
 
-  return description.join(" ").trim();
+  return description.join(' ').trim();
 }
 
 /**
@@ -65,12 +63,12 @@ function extractParams(jsdocContent) {
 
   let match;
   while ((match = paramPattern.exec(jsdocContent)) !== null) {
-    const paramName = match[2].replace(/[\[\]]/g, "");
+    const paramName = match[2].replace(/[\[\]]/g, '');
     params.push({
       type: match[1],
       name: paramName,
-      optional: match[2].startsWith("["),
-      description: match[3],
+      optional: match[2].startsWith('['),
+      description: match[3]
     });
   }
 
@@ -87,7 +85,7 @@ function extractReturns(jsdocContent) {
   if (match) {
     return {
       type: match[1],
-      description: match[2],
+      description: match[2]
     };
   }
 
@@ -104,9 +102,9 @@ function extractExamples(jsdocContent) {
   let match;
   while ((match = examplePattern.exec(jsdocContent)) !== null) {
     const example = match[1]
-      .split("\n")
-      .map((l) => l.trim().replace(/^\*\s?/, ""))
-      .join("\n")
+      .split('\n')
+      .map(l => l.trim().replace(/^\*\s?/, ''))
+      .join('\n')
       .trim();
 
     if (example) examples.push(example);
@@ -164,8 +162,8 @@ export function isJSDocComplete(docData) {
  * Parse all API files and return JSDoc map
  */
 export function parseAllApiFiles() {
-  const apiDir = path.resolve(process.cwd(), "api");
-  const apiFiles = fs.readdirSync(apiDir).filter((f) => f.endsWith(".js"));
+  const apiDir = path.resolve(process.cwd(), 'api');
+  const apiFiles = fs.readdirSync(apiDir).filter(f => f.endsWith('.js'));
 
   const allDocs = new Map();
 
@@ -188,19 +186,17 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const allDocs = parseAllApiFiles();
   console.log(`Parsed JSDoc from ${allDocs.size} methods`);
 
-  const complete = Array.from(allDocs.entries()).filter(([_, doc]) =>
-    isJSDocComplete(doc),
-  );
+  const complete = Array.from(allDocs.entries()).filter(([_, doc]) => isJSDocComplete(doc));
   console.log(`\nComplete documentation: ${complete.length}/${allDocs.size}`);
 
-  console.log("\nSample documentation:");
+  console.log('\nSample documentation:');
   const sample = Array.from(allDocs.entries())[0];
   if (sample) {
     const [name, doc] = sample;
     console.log(`\n${name}:`);
     console.log(`  Description: ${doc.description}`);
     console.log(`  Params: ${doc.params.length}`);
-    console.log(`  Returns: ${doc.returns ? "Yes" : "No"}`);
+    console.log(`  Returns: ${doc.returns ? 'Yes' : 'No'}`);
     console.log(`  Examples: ${doc.examples.length}`);
   }
 }
