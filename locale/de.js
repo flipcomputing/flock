@@ -156,8 +156,7 @@ export default {
     "rotiere %1 zu x %2 y %3 z %4 in %5 ms\n%6 rückwärts? %7 Schleife? %8 %9",
   rotate_anim_seconds:
     "rotiere %1 zu x %2 y %3 z %4 in %5 Sekunden\n%6 rückwärts? %7 Schleife? %8 %9",
-  rotate_to_object:
-    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
+  rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property:
     "animieren %1 %2 zu %3 in %4 ms rückwärts? %5 Schleife? %6 %7",
   colour_keyframe: "bei %1 Farbe: %2",
@@ -478,7 +477,8 @@ export default {
   set_xr_mode: "XR‑Modus auf %1 setzen",
   play_rumble_pattern: "Vibrationsmuster abspielen %1",
   controller_rumble: "Controller %1 Motor mit Stärke %2 für %3 ms vibrieren",
-  controller_rumble_pattern: "Controller %1 Motor Stärke %2 an %3 ms aus %4 ms %5 mal",
+  controller_rumble_pattern:
+    "Controller %1 Motor Stärke %2 an %3 ms aus %4 ms %5 mal",
 
   // Blockly overrides
   LISTS_CREATE_WITH_INPUT_WITH: "Liste",

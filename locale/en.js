@@ -334,7 +334,8 @@ export default {
   set_xr_mode: "set XR mode to %1",
   play_rumble_pattern: "play rumble pattern %1",
   controller_rumble: "rumble %1 motor at strength %2 for %3 ms",
-  controller_rumble_pattern: "rumble %1 motor strength %2 on %3 ms off %4 ms %5 times",
+  controller_rumble_pattern:
+    "rumble %1 motor strength %2 on %3 ms off %4 ms %5 times",
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "list",

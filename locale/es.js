@@ -332,7 +332,8 @@ export default {
   set_xr_mode: "establecer modo XR a %1", // human
   play_rumble_pattern: "reproducir patrón de vibración %1", // ai
   controller_rumble: "vibrar motor %1 con fuerza %2 durante %3 ms", // ai
-  controller_rumble_pattern: "vibrar motor %1 fuerza %2 encendido %3 ms apagado %4 ms %5 veces", // ai
+  controller_rumble_pattern:
+    "vibrar motor %1 fuerza %2 encendido %3 ms apagado %4 ms %5 veces", // ai
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "lista", // human

@@ -13,7 +13,9 @@
     "docs:coverage": "node scripts/api-coverage-report.mjs",
     "docs:matrix": "node scripts/test-coverage-matrix.mjs",
     "validate:api-docs": "node scripts/validate-api-docs.mjs",
-    "test:csp-smoke": "node scripts/csp-smoke.mjs"
+    "test:csp-smoke": "node scripts/csp-smoke.mjs",
+    "format:check": "prettier --check .",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@babylonjs/addons": "^8.52.0",
@@ -64,6 +66,7 @@
     "meta-png": "^1.0.6",
     "mocha": "^11.7.5",
     "playwright": "^1.58.2",
+    "prettier": "^3.8.1",
     "vite": "^7.3.1",
     "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-static-copy": "^3.2.0"

@@ -1,6 +1,6 @@
 # Getting started resources
 
-Two club session packs are available for download. 
+Two club session packs are available for download.
 
 Grab a Pack. Run a Club. Be the Fun One.
 

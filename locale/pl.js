@@ -151,8 +151,7 @@ export default {
     "obróć %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 odwróć? %7 pętla? %8 %9",
   rotate_anim_seconds:
     "obróć %1 do x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 odwróć? %7 pętla? %8 %9",
-  rotate_to_object:
-    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
+  rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property:
     "animuj %1: %2 do %3 w czasie %4 ms, odwróć? %5, pętla? %6 %7",
   colour_keyframe: "w %1 kolor: %2",
@@ -336,7 +335,8 @@ export default {
   set_xr_mode: "ustaw tryb XR na %1",
   play_rumble_pattern: "odtwórz wzór wibracji %1",
   controller_rumble: "wibruj silnik %1 z siłą %2 przez %3 ms",
-  controller_rumble_pattern: "wibruj silnik %1 siła %2 włączony %3 ms wyłączony %4 ms %5 razy",
+  controller_rumble_pattern:
+    "wibruj silnik %1 siła %2 włączony %3 ms wyłączony %4 ms %5 razy",
 
   // Blockly message overrides
   LISTS_CREATE_WITH_INPUT_WITH: "lista",
@@ -539,8 +539,7 @@ export default {
   meshes_touching_tooltip:
     "Zwraca true, jeśli dwie wybrane siatki się stykają.\nSłowo kluczowe: istouching",
   time_tooltip: "Zwraca bieżący czas w sekundach.",
-  ground_level_tooltip:
-    "Zwraca wysokość gruntu w bieżącej pozycji x/z.",
+  ground_level_tooltip: "Zwraca wysokość gruntu w bieżącej pozycji x/z.",
   distance_to_tooltip: "Oblicz odległość między siatkami %1 i %2.",
   touching_surface_tooltip:
     "Sprawdź, czy siatka %1 dotyka powierzchni.\nSłowo kluczowe: surface",
