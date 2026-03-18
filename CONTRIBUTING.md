@@ -117,11 +117,11 @@ We use Mocha and Chai for testing, plus Playwright for end-to-end testing. Alway
 #### Filtering tests and test results
 
 - **Get fast feedback** by using the _Run all except @slow_ option
-- **Run only your newest tests** by tagging those tets with @new and picking _Run tests tagged @new_
+- **Run only your newest tests** by tagging those tests with @new and picking _Run tests tagged @new_
 - **Focus on results** with the _failures_ / _passes_ links in report
 - **Show the test code** by clicking on test name in the report
 - **Tag slow tests with @slow** so that they can be run separately if needed.
-- **Tag new tests with @new** so that you can fiter on those new tests. Remove tag when they're no longer new.
+- **Tag new tests with @new** so that you can filter on those new tests. Remove tag when they're no longer new.
 
 #### Tagging tests
 
@@ -129,7 +129,7 @@ To add a tag, change the `describe` or `it` text in unit tests to add a tag.
 
 #### Adding new unit test files / adding new tags to test runner
 
-- Array `testSuiteDefinitions` corresponds to the test selection dropdown. Eaxh test file, and each selectable tag, need a definition.
+- Array `testSuiteDefinitions` corresponds to the test selection dropdown. Each test file, and each selectable tag, need a definition.
 - Modify `testSuiteDefinitions` in `tests/tests.html` to pick up the test file. Each test file needs an entry.
 - Modify `testSuiteDefinitions` in `tests/tests.html` to add tags or names to focus. Each tag needs an entry.
 - Note that some test suites are selected/filtered on a name (the name from the top `describe` if there's only one) and others on tag (added to all top-level describes if several).
