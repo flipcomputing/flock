@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,9 +10,9 @@ const __dirname = path.dirname(__filename);
  * @returns {Array<{name: string, line: number}>} Array of method names and line numbers
  */
 export function extractApiMethods() {
-  const flockJsPath = path.resolve(__dirname, '../../flock.js');
-  const content = fs.readFileSync(flockJsPath, 'utf-8');
-  const lines = content.split('\n');
+  const flockJsPath = path.resolve(__dirname, "../../flock.js");
+  const content = fs.readFileSync(flockJsPath, "utf-8");
+  const lines = content.split("\n");
 
   const methods = [];
   let inApiSection = false;
@@ -22,13 +22,16 @@ export function extractApiMethods() {
     const lineNum = i + 1;
 
     // Start of API binding section (around line 865)
-    if (line.includes('// Flock API methods') || line.includes('Flock API methods —')) {
+    if (
+      line.includes("// Flock API methods") ||
+      line.includes("Flock API methods —")
+    ) {
       inApiSection = true;
       continue;
     }
 
     // End of API binding section (closing brace and semicolon around line 987-988)
-    if (inApiSection && line.trim() === '};') {
+    if (inApiSection && line.trim() === "};") {
       break;
     }
 
@@ -51,16 +54,18 @@ export function extractApiMethods() {
  * @returns {string|null} File path relative to project root, or null if not found
  */
 export function findMethodImplementation(methodName) {
-  const apiDir = path.resolve(__dirname, '../../api');
-  const apiFiles = fs.readdirSync(apiDir).filter(f => f.endsWith('.js'));
+  const apiDir = path.resolve(__dirname, "../../api");
+  const apiFiles = fs.readdirSync(apiDir).filter((f) => f.endsWith(".js"));
 
   for (const file of apiFiles) {
     const filePath = path.join(apiDir, file);
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, "utf-8");
 
     // Look for method definition in exported object
     // Pattern: methodName(...) { or async methodName(...) {
-    const pattern = new RegExp(`(?:async\\s+)?${methodName}\\s*\\([^)]*\\)\\s*\\{`);
+    const pattern = new RegExp(
+      `(?:async\\s+)?${methodName}\\s*\\([^)]*\\)\\s*\\{`,
+    );
     if (pattern.test(content)) {
       return `api/${file}`;
     }
@@ -75,36 +80,36 @@ export function findMethodImplementation(methodName) {
  * @returns {string} Category name
  */
 export function categorizeMethod(filePath) {
-  if (!filePath) return 'Unknown';
+  if (!filePath) return "Unknown";
 
   const categoryMap = {
-    'animate.js': 'Animation',
-    'camera.js': 'Camera',
-    'csg.js': 'CSG/Mesh Operations',
-    'effects.js': 'Effects',
-    'material.js': 'Materials',
-    'mesh.js': 'Mesh',
-    'models.js': 'Models',
-    'movement.js': 'Movement',
-    'physics.js': 'Physics',
-    'scene.js': 'Scene',
-    'shapes.js': 'Shapes',
-    'sound.js': 'Sound',
-    'transform.js': 'Transform',
-    'ui.js': 'UI'
+    "animate.js": "Animation",
+    "camera.js": "Camera",
+    "csg.js": "CSG/Mesh Operations",
+    "effects.js": "Effects",
+    "material.js": "Materials",
+    "mesh.js": "Mesh",
+    "models.js": "Models",
+    "movement.js": "Movement",
+    "physics.js": "Physics",
+    "scene.js": "Scene",
+    "shapes.js": "Shapes",
+    "sound.js": "Sound",
+    "transform.js": "Transform",
+    "ui.js": "UI",
   };
 
   const fileName = path.basename(filePath);
-  return categoryMap[fileName] || 'Other';
+  return categoryMap[fileName] || "Other";
 }
 
 // If run directly, output the methods
 if (import.meta.url === `file://${process.argv[1]}`) {
   const methods = extractApiMethods();
   console.log(`Found ${methods.length} API methods in flock.js`);
-  console.log('\nMethods:');
-  methods.forEach(m => {
+  console.log("\nMethods:");
+  methods.forEach((m) => {
     const impl = findMethodImplementation(m.name);
-    console.log(`  ${m.name} (line ${m.line}) -> ${impl || 'NOT FOUND'}`);
+    console.log(`  ${m.name} (line ${m.line}) -> ${impl || "NOT FOUND"}`);
   });
 }

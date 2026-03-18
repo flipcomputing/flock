@@ -21,16 +21,18 @@ function applyPositionWithCurrentBaseRule(
   mesh,
   { x = 0, y = 0, z = 0, useY = true, meshName = "" } = {},
 ) {
-  const { x: nextX, y: nextY, z: nextZ, isCamera } = resolvePositionInputs(
-    mesh,
-    {
-      x,
-      y,
-      z,
-      useY,
-      meshName,
-    },
-  );
+  const {
+    x: nextX,
+    y: nextY,
+    z: nextZ,
+    isCamera,
+  } = resolvePositionInputs(mesh, {
+    x,
+    y,
+    z,
+    useY,
+    meshName,
+  });
 
   mesh.position.set(nextX, useY ? nextY : mesh.position.y, nextZ);
 

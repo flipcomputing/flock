@@ -151,8 +151,7 @@ export default {
     "tourner %1 vers x %2 y %3 z %4 en %5 ms\n%6 inverse? %7 boucle? %8 %9",
   rotate_anim_seconds:
     "tourner %1 vers x %2 y %3 z %4 en %5 secondes\n%6 inverse? %7 boucle? %8 %9",
-  rotate_to_object:
-    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
+  rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property: "animer %1 %2 vers %3 en %4 ms inverse? %5 boucle? %6 %7",
   colour_keyframe: "à %1 couleur: %2",
   number_keyframe: "à: %1 valeur: %2",
@@ -335,7 +334,8 @@ export default {
   set_xr_mode: "définir le mode XR sur %1",
   play_rumble_pattern: "jouer le motif de vibration %1",
   controller_rumble: "faire vibrer le moteur %1 à force %2 pendant %3 ms",
-  controller_rumble_pattern: "faire vibrer le moteur %1 force %2 allumé %3 ms éteint %4 ms %5 fois",
+  controller_rumble_pattern:
+    "faire vibrer le moteur %1 force %2 allumé %3 ms éteint %4 ms %5 fois",
 
   // Blockly message overrides for French
   LISTS_CREATE_WITH_INPUT_WITH: "liste",
@@ -545,8 +545,7 @@ export default {
   meshes_touching_tooltip:
     "Renvoie vrai si les deux maillages sélectionnés se touchent.\nMot-clé: istouching",
   time_tooltip: "Renvoie le temps actuel en secondes.",
-  ground_level_tooltip:
-    "Renvoie la hauteur du sol à la position x/z actuelle.",
+  ground_level_tooltip: "Renvoie la hauteur du sol à la position x/z actuelle.",
   distance_to_tooltip: "Calcule la distance entre deux maillages.",
   touching_surface_tooltip:
     "Vérifie si le maillage touche une surface.\nMot-clé: surface",
@@ -615,8 +614,7 @@ export default {
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip:
     "Génère un entier aléatoire avec une graine.\nMot-clé: seed",
-  to_number_tooltip:
-    "Convertit une chaîne en entier ou en nombre flottant.",
+  to_number_tooltip: "Convertit une chaîne en entier ou en nombre flottant.",
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
