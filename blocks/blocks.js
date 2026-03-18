@@ -253,7 +253,10 @@ export function handleMeshLifecycleChange(block, changeEvent) {
       : [changeEvent.blockId];
 
     if (!createdBlockIds.includes(block.id)) return false;
-    if (window.loadingCode) return true;
+    // Skip mesh creation when loading saved code (recordUndo=false).
+    // But allow it when the user drops a block/snippet (recordUndo=true),
+    // even if loadingCode is true (e.g. while the Snippets flyout is open).
+    if (window.loadingCode && !changeEvent.recordUndo) return true;
     updateOrCreateMeshFromBlock(block, changeEvent);
     return true;
   }
