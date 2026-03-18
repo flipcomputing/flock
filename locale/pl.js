@@ -291,7 +291,7 @@ export default {
   set_scene_bpm: "ustaw tempo sceny BPM na %1",
   set_mesh_bpm: "ustaw BPM %1 na %2",
   create_instrument:
-    "instrument %1 fala: %2 częstotliwość: %3 atak: %4 zanikanie: %5 podtrzymanie: %6 uwolnienie: %7",
+    "instrument %1 fala: %2 częstotliwość: %3\natak: %4 zanikanie: %5 podtrzymanie: %6 uwolnienie: %7",
   instrument: "instrument %1",
   speak:
     "powiedz %1 %2 głos: %3 język: %4\ntempo: %5 wysokość: %6 głośność: %7 tryb: %8",
