@@ -63,7 +63,8 @@ class AccessibleFlyoutMenu {
                         this.handleSubmenuKeydown(e, subItem, submenuItems, subIndex, item);
                     });
 
-                    subItem.addEventListener('click', (e) => {                        
+                    subItem.addEventListener('click', (e) => {  
+                        e.stopPropagation();                      
                         this.closeAllMenus();
                     });
                 });
@@ -233,21 +234,21 @@ class AccessibleFlyoutMenu {
 
     handleSubmenuKeydown(e, subItem, submenuItems, subIndex, parentItem) {
         switch (e.key) {
-            case 'ArrowDown':
+            case 'ArrowDown': {
                 e.preventDefault();
                 e.stopPropagation();
                 const nextIndex = (subIndex + 1) % submenuItems.length;
                 submenuItems[nextIndex].focus();
                 break;
-
-            case 'ArrowUp':
+            }
+            case 'ArrowUp': {
                 e.preventDefault();
                 e.stopPropagation();
                 const prevIndex = subIndex === 0 ? submenuItems.length - 1 : subIndex - 1;
                 submenuItems[prevIndex].focus();
                 break;
-
-            case 'ArrowLeft':
+            }
+            case 'ArrowLeft': {
                 e.preventDefault();
                 e.stopPropagation();
                 parentItem.focus();
@@ -257,7 +258,7 @@ class AccessibleFlyoutMenu {
                     parentItem.setAttribute('aria-expanded', 'false');
                 }
                 break;
-
+            }
             case 'Enter':
             case ' ':
                 e.preventDefault();
