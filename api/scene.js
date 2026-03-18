@@ -168,7 +168,8 @@ export const flockScene = {
     const grad = horizontal
       ? ctx.createLinearGradient(0, 0, w, 0)
       : ctx.createLinearGradient(0, 0, 0, h);
-    const normalizedColors = colors.length === 1 ? [colors[0], colors[0]] : colors;
+    const normalizedColors =
+      colors.length === 1 ? [colors[0], colors[0]] : colors;
     const n = normalizedColors.length;
     for (let i = 0; i < n; i++) {
       const stop = i / (n - 1);
