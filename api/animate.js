@@ -465,7 +465,10 @@ export const flockAnimate = {
             }
 
             dir.normalize();
-            const q = BABYLON.Quaternion.FromLookDirectionLH(dir, BABYLON.Axis.Y);
+            const q = BABYLON.Quaternion.FromLookDirectionLH(
+              dir,
+              BABYLON.Axis.Y,
+            );
             const euler = q.toEulerAngles();
 
             targetRotation = {
@@ -802,7 +805,6 @@ export const flockAnimate = {
             keyframeAnimation,
             targetMesh,
           );
-
         }
 
         if (animationGroup.targetedAnimations.length === 0) {

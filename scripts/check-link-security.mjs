@@ -16,13 +16,17 @@ function checkBlankLinks(filePath) {
     const relMatch = tag.match(/\brel\s*=\s*"([^"]*)"/i);
 
     if (!relMatch) {
-      violations.push(`${filePath}:${line} <a target="_blank"> missing rel=\"noopener noreferrer\"`);
+      violations.push(
+        `${filePath}:${line} <a target="_blank"> missing rel=\"noopener noreferrer\"`,
+      );
       continue;
     }
 
     const relValue = relMatch[1].toLowerCase();
     if (!relValue.includes("noopener") || !relValue.includes("noreferrer")) {
-      violations.push(`${filePath}:${line} <a target="_blank"> rel must include both noopener and noreferrer`);
+      violations.push(
+        `${filePath}:${line} <a target="_blank"> rel must include both noopener and noreferrer`,
+      );
     }
   }
 }
@@ -88,13 +92,17 @@ function checkWindowOpen(filePath) {
     const args = splitTopLevelArgs(match[1]);
 
     if (args.length < 3) {
-      violations.push(`${filePath}:${line} window.open must include third argument with noopener,noreferrer`);
+      violations.push(
+        `${filePath}:${line} window.open must include third argument with noopener,noreferrer`,
+      );
       continue;
     }
 
     const thirdArg = args[2].toLowerCase();
     if (!thirdArg.includes("noopener") || !thirdArg.includes("noreferrer")) {
-      violations.push(`${filePath}:${line} window.open third argument must include both noopener and noreferrer`);
+      violations.push(
+        `${filePath}:${line} window.open third argument must include both noopener and noreferrer`,
+      );
     }
   }
 }
