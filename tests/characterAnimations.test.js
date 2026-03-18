@@ -25,7 +25,7 @@ function configureDraco(BABYLON) {
 
 /**
  * Pimps the engine and waits for a condition or promise.
- * If a string 'match' is provided, it waits until an AnimationGroup 
+ * If a string 'match' is provided, it waits until an AnimationGroup
  * containing that name exists in the scene.
  */
 async function pumpAnimation(flock, promise, match = null) {
@@ -43,10 +43,10 @@ async function pumpAnimation(flock, promise, match = null) {
 
       while (!found && Date.now() < timeout) {
         flock.scene.render();
-        found = flock.scene.animationGroups.some(ag => 
-          ag.name.toLowerCase().includes(match.toLowerCase())
+        found = flock.scene.animationGroups.some((ag) =>
+          ag.name.toLowerCase().includes(match.toLowerCase()),
         );
-        if (!found) await new Promise(r => setTimeout(r, 10));
+        if (!found) await new Promise((r) => setTimeout(r, 10));
       }
     }
 
@@ -72,7 +72,11 @@ export function runCharacterAnimationTests(flock) {
       flock.scene = new flock.BABYLON.Scene(flock.engine);
       flock.BABYLON.SceneLoader.ShowLoadingScreen = false;
 
-      new flock.BABYLON.FreeCamera("testCamera", flock.BABYLON.Vector3.Zero(), flock.scene);
+      new flock.BABYLON.FreeCamera(
+        "testCamera",
+        flock.BABYLON.Vector3.Zero(),
+        flock.scene,
+      );
 
       const baseMock = {
         name: "MockPhysics",
@@ -88,10 +92,13 @@ export function runCharacterAnimationTests(flock) {
       };
 
       const physicsMock = new Proxy(baseMock, {
-        get: (target, prop) => (prop in target ? target[prop] : () => {})
+        get: (target, prop) => (prop in target ? target[prop] : () => {}),
       });
 
-      flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), physicsMock);
+      flock.scene.enablePhysics(
+        new flock.BABYLON.Vector3(0, -9.81, 0),
+        physicsMock,
+      );
       configureDraco(flock.BABYLON);
 
       const meshId = flock.createCharacter({
@@ -111,11 +118,15 @@ export function runCharacterAnimationTests(flock) {
 
     beforeEach(async function () {
       const currentMeshId = animationMeshIds[0];
-      await pumpAnimation(flock, flock.switchAnimation(currentMeshId, {
-        animationName: "Idle",
-        loop: true,
-        restart: true,
-      }), "Idle");
+      await pumpAnimation(
+        flock,
+        flock.switchAnimation(currentMeshId, {
+          animationName: "Idle",
+          loop: true,
+          restart: true,
+        }),
+        "Idle",
+      );
     });
 
     it("uses the Liz3 model from the main app for animation tests", async function () {
@@ -137,11 +148,14 @@ export function runCharacterAnimationTests(flock) {
       // Pass "Walk" to pump to ensure we wait for the group to exist
       await pumpAnimation(flock, walkPromise, "Walk");
 
-      const walkGroup = flock.scene.animationGroups.find(ag => ag.name.toLowerCase().includes("walk"));
+      const walkGroup = flock.scene.animationGroups.find((ag) =>
+        ag.name.toLowerCase().includes("walk"),
+      );
       expect(walkGroup, "Walk animation group should be in the scene").to.exist;
 
       const info = flock._getCurrentAnimationInfo(mesh);
-      expect(info, "Animation info should be active on the mesh").to.not.be.null;
+      expect(info, "Animation info should be active on the mesh").to.not.be
+        .null;
       expect(info.name).to.equal("Walk");
     });
 
@@ -150,13 +164,19 @@ export function runCharacterAnimationTests(flock) {
       const root = flock.scene.getMeshByName(meshId);
 
       const start = Date.now();
-      await pumpAnimation(flock, flock.playAnimation(meshId, { 
-        animationName: "Jump", 
-        loop: false, 
-        restart: true 
-      }), "Jump");
+      await pumpAnimation(
+        flock,
+        flock.playAnimation(meshId, {
+          animationName: "Jump",
+          loop: false,
+          restart: true,
+        }),
+        "Jump",
+      );
 
-      const jumpGroup = flock.scene.animationGroups.find(ag => ag.name.toLowerCase().includes("jump"));
+      const jumpGroup = flock.scene.animationGroups.find((ag) =>
+        ag.name.toLowerCase().includes("jump"),
+      );
       expect(jumpGroup, "Jump group should be present").to.exist;
 
       const expectedDuration = getAnimationDurationInSeconds(jumpGroup);
@@ -171,10 +191,28 @@ export function runCharacterAnimationTests(flock) {
       const meshId = animationMeshIds[0];
       const root = flock.scene.getMeshByName(meshId);
 
-      await pumpAnimation(flock, flock.switchAnimation(meshId, { animationName: "Walk", loop: true, restart: true }), "Walk");
-      await pumpAnimation(flock, flock.playAnimation(meshId, { animationName: "Jump", loop: false, restart: true }), "Jump");
+      await pumpAnimation(
+        flock,
+        flock.switchAnimation(meshId, {
+          animationName: "Walk",
+          loop: true,
+          restart: true,
+        }),
+        "Walk",
+      );
+      await pumpAnimation(
+        flock,
+        flock.playAnimation(meshId, {
+          animationName: "Jump",
+          loop: false,
+          restart: true,
+        }),
+        "Jump",
+      );
 
-      const jumpGroup = flock.scene.animationGroups.find(ag => ag.name.toLowerCase().includes("jump"));
+      const jumpGroup = flock.scene.animationGroups.find((ag) =>
+        ag.name.toLowerCase().includes("jump"),
+      );
       const info = flock._getCurrentAnimationInfo(root);
 
       expect(info?.name).to.equal("Jump");

@@ -19,7 +19,7 @@ concurrency:
 
 env:
   VITE_BASE_URL: "/${{ github.event.repository.name }}/"
-  
+
 jobs:
   # Build job
   build:

@@ -151,8 +151,7 @@ export default {
     "girar %1 para x %2 y %3 z %4 em %5 ms\n%6 inverter? %7 repetir? %8 %9",
   rotate_anim_seconds:
     "girar %1 para x %2 y %3 z %4 em %5 segundos\n%6 inverter? %7 repetir? %8 %9",
-  rotate_to_object:
-    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
+  rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property: "animar %1 %2 até %3 em %4 ms inverter? %5 repetir? %6 %7",
   colour_keyframe: "em %1 cor: %2",
   number_keyframe: "em: %1 valor: %2",
@@ -333,7 +332,8 @@ export default {
   set_xr_mode: "definir modo XR para %1",
   play_rumble_pattern: "reproduzir padrão de vibração %1",
   controller_rumble: "vibrar motor %1 com intensidade %2 por %3 ms",
-  controller_rumble_pattern: "vibrar motor %1 intensidade %2 ligado %3 ms desligado %4 ms %5 vezes",
+  controller_rumble_pattern:
+    "vibrar motor %1 intensidade %2 ligado %3 ms desligado %4 ms %5 vezes",
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "lista",
@@ -535,8 +535,7 @@ export default {
   meshes_touching_tooltip:
     "Retorna verdadeiro se os dois meshes selecionados estiverem tocando.\nPalavra-chave: estátocando",
   time_tooltip: "Retorna o tempo atual em segundos.",
-  ground_level_tooltip:
-    "Retorna a altura do solo na posição x/z atual.",
+  ground_level_tooltip: "Retorna a altura do solo na posição x/z atual.",
   distance_to_tooltip: "Calcula a distância entre dois meshes.",
   touching_surface_tooltip:
     "Verifica se o mesh está tocando uma superfície.\nPalavra-chave: superfície",
@@ -608,8 +607,7 @@ export default {
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip:
     "Gera um inteiro aleatório com uma semente.\nPalavra-chave: seed",
-  to_number_tooltip:
-    "Converte uma string em número inteiro ou decimal.",
+  to_number_tooltip: "Converte uma string em número inteiro ou decimal.",
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
