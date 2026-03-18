@@ -516,7 +516,6 @@ button {
   border-radius: 5px;
   border: none;
   background-color: var(--color-button-primary);
- 
 }
 
 .gizmo-button svg {
@@ -525,16 +524,8 @@ button {
   height: 20px;
 }
 
-[data-theme="dark"] .gizmo-button path {
-  fill: black !important;
-}
-
-[data-theme="contrast"] .gizmo-button path {
-  fill: black !important;
-}
-
-[data-theme="dark-contrast"] .gizmo-button path {
-  fill: black !important;
+.gizmo-button path {
+  fill: var(--color-bg);
 }
 
 #colorPickerButton svg {
