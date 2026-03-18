@@ -121,8 +121,13 @@ export function defineModelBlocks() {
                                         nextVariableIndexes,
                                 );
 
-                                // Mesh lifecycle events on this block directly (e.g. enable/disable, move)
-                                if (changeEvent.blockId === this.id) {
+                                // Mesh lifecycle events on this block directly (e.g. enable/disable, move),
+                                // or when this block is part of a snippet creation (its id is in changeEvent.ids).
+                                const isThisBlockCreated =
+                                        changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+                                        Array.isArray(changeEvent.ids) &&
+                                        changeEvent.ids.includes(this.id);
+                                if (changeEvent.blockId === this.id || isThisBlockCreated) {
                                         if (handleMeshLifecycleChange(this, changeEvent)) return;
                                 }
 
@@ -485,8 +490,13 @@ export function defineModelBlocks() {
                                         nextVariableIndexes,
                                 );
 
-                                // Always handle mesh lifecycle if the event targets this block
-                                if (changeEvent.blockId === this.id) {
+                                // Always handle mesh lifecycle if the event targets this block,
+                                // or when this block is part of a snippet creation (its id is in changeEvent.ids).
+                                const isThisBlockCreated =
+                                        changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+                                        Array.isArray(changeEvent.ids) &&
+                                        changeEvent.ids.includes(this.id);
+                                if (changeEvent.blockId === this.id || isThisBlockCreated) {
                                         if (handleMeshLifecycleChange(this, changeEvent)) return;
                                 }
 
@@ -573,9 +583,14 @@ export function defineModelBlocks() {
                                         nextVariableIndexes,
                                 );
 
+                                const isThisBlockCreated =
+                                        changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+                                        Array.isArray(changeEvent.ids) &&
+                                        changeEvent.ids.includes(this.id);
                                 if (
                                         this.id !== changeEvent.blockId &&
-                                        changeEvent.type !== Blockly.Events.BLOCK_CHANGE
+                                        changeEvent.type !== Blockly.Events.BLOCK_CHANGE &&
+                                        !isThisBlockCreated
                                 )
                                         return;
 
