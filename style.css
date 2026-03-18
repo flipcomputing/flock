@@ -521,7 +521,6 @@ button {
   border-radius: 5px;
   border: none;
   background-color: var(--color-button-primary);
- 
 }
 
 .gizmo-button svg {
@@ -530,16 +529,8 @@ button {
   height: 20px;
 }
 
-[data-theme="dark"] .gizmo-button path {
-  fill: black !important;
-}
-
-[data-theme="contrast"] .gizmo-button path {
-  fill: black !important;
-}
-
-[data-theme="dark-contrast"] .gizmo-button path {
-  fill: black !important;
+.gizmo-button path {
+  fill: var(--color-bg);
 }
 
 #colorPickerButton svg {
@@ -551,24 +542,19 @@ button {
   filter: none; /* light mode: normal */
 }
 
-[data-theme="dark"] .icon path {
-  fill: #bababa !important;
-}
-
-[data-theme="dark-contrast"] .icon path {
-  fill: #cdcdcd !important;
-}
-
-[data-theme="contrast"] .icon path {
-  fill: #ffffff !important;
-}
-
 [data-theme="contrast"] .gizmo-button img {
   color: #ffffff !important;
 }
 
 [data-theme="contrast"] .bigbutton svg {
   color: #ffffff !important;
+}
+
+/* Make links in 'About' modal visible in dark and contrast themes */
+[data-theme="dark"] .modal-content a,
+[data-theme="dark-contrast"] .modal-content a,
+[data-theme="contrast"] .modal-content a {
+  color: var(--color-primary-light);
 }
 
 /* Shape Menu */
@@ -1127,6 +1113,11 @@ body.color-picker-open #renderCanvas {
   margin-bottom: 10px;
 }
 
+/* Add an icon colour, so that svgs don't have a hardcoded fill colour */
+.icon {
+  color: var(--color-text-brand);
+}
+
 .bigbutton .icon {
   display: flex;
   align-items: center;
@@ -1189,6 +1180,13 @@ body.color-picker-open #renderCanvas {
   min-width: 100px;
   flex-grow: 1;
   margin-right: 10px;
+}
+
+#projectName {
+  flex-shrink: 1;
+  width: 100%;
+  min-width: 10px;
+  max-width: 80px;
 }
 
 .menu-item, #menuDropdown [role="menuitem"] {
