@@ -3299,7 +3299,21 @@ const toolboxSound = {
                                 },
                         },
                 },
-                /*{
+                {
+                        kind: "block",
+                        type: "set_scene_bpm",
+                        inputs: {
+                                BPM: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 60,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
                         kind: "block",
                         type: "set_mesh_bpm",
                         inputs: {
@@ -3312,7 +3326,7 @@ const toolboxSound = {
                                         },
                                 },
                         },
-                },*/
+                },
                 {
                         kind: "block",
                         type: "instrument",
