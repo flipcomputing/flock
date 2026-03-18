@@ -2152,12 +2152,7 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["midi_note"] = function (block) {
-                const note =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "NOTE",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "60";
+                const note = block.getFieldValue("NOTE");
                 return [note, javascriptGenerator.ORDER_ATOMIC];
         };
 
@@ -2204,36 +2199,11 @@ export function defineGenerators() {
                         Blockly.Names.NameType.VARIABLE,
                 );
                 const type = block.getFieldValue("TYPE");
-                const frequency =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "FREQUENCY",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "440";
-                const attack =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "ATTACK",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "0.1";
-                const decay =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "DECAY",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "0.5";
-                const sustain =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "SUSTAIN",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "0.7";
-                const release =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "RELEASE",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "1";
+                const frequency = block.getFieldValue("FREQUENCY");
+                const attack = block.getFieldValue("ATTACK");
+                const decay = block.getFieldValue("DECAY");
+                const sustain = block.getFieldValue("SUSTAIN");
+                const release = block.getFieldValue("RELEASE");
 
                 // Assign the instrument to a variable
                 return `${instrumentVar} = createInstrument('${type}', { frequency: ${frequency}, attack: ${attack}, decay: ${decay}, sustain: ${sustain}, release: ${release} });\n`;
