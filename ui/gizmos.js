@@ -752,12 +752,7 @@ export function toggleGizmo(gizmoType) {
 
         if (block) {
           const blockPosition = flock.getBlockPositionFromMesh(mesh);
-          setBlockXYZ(
-            block,
-            blockPosition.x,
-            blockPosition.y,
-            blockPosition.z,
-          );
+          setBlockXYZ(block, blockPosition.x, blockPosition.y, blockPosition.z);
         }
       });
 
@@ -804,12 +799,7 @@ export function toggleGizmo(gizmoType) {
 
         if (block) {
           const blockPosition = flock.getBlockPositionFromMesh(mesh);
-          setBlockXYZ(
-            block,
-            blockPosition.x,
-            blockPosition.y,
-            blockPosition.z,
-          );
+          setBlockXYZ(block, blockPosition.x, blockPosition.y, blockPosition.z);
         }
       });
 

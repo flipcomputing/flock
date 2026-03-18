@@ -197,28 +197,39 @@ export const flockEvents = {
               ? { "b-button": "f", "a-button": " " }
               : {};
 
-        controller.onMotionControllerInitObservable.addOnce((motionController) => {
-          Object.entries(buttonMap).forEach(([buttonId, mappedKey]) => {
-            if (mappedKey !== key) return;
-            const component = motionController.getComponent(buttonId);
-            if (!component) return;
+        controller.onMotionControllerInitObservable.addOnce(
+          (motionController) => {
+            Object.entries(buttonMap).forEach(([buttonId, mappedKey]) => {
+              if (mappedKey !== key) return;
+              const component = motionController.getComponent(buttonId);
+              if (!component) return;
 
-            let lastPressedState = false;
-            const btnObserver = component.onButtonStateChangedObservable.add(() => {
-              const isPressed = component.pressed;
-              if (motionController.getComponent(buttonId) !== component) return;
-              if (isPressed === lastPressedState) return;
-              const shouldFire = isReleased ? (!isPressed && lastPressedState) : (isPressed && !lastPressedState);
-              if (shouldFire) {
-                callback(mappedKey, isReleased ? "released" : "pressed");
-              }
-              lastPressedState = isPressed;
+              let lastPressedState = false;
+              const btnObserver = component.onButtonStateChangedObservable.add(
+                () => {
+                  const isPressed = component.pressed;
+                  if (motionController.getComponent(buttonId) !== component)
+                    return;
+                  if (isPressed === lastPressedState) return;
+                  const shouldFire = isReleased
+                    ? !isPressed && lastPressedState
+                    : isPressed && !lastPressedState;
+                  if (shouldFire) {
+                    callback(mappedKey, isReleased ? "released" : "pressed");
+                  }
+                  lastPressedState = isPressed;
+                },
+              );
+              buttonStateObservers.push({
+                observable: component.onButtonStateChangedObservable,
+                observer: btnObserver,
+              });
             });
-            buttonStateObservers.push({ observable: component.onButtonStateChangedObservable, observer: btnObserver });
-          });
-        });
+          },
+        );
       };
-      xrObserver = flock.xrHelper.input.onControllerAddedObservable.add(xrHandler);
+      xrObserver =
+        flock.xrHelper.input.onControllerAddedObservable.add(xrHandler);
     }
 
     // Clean up all observers when this run is aborted
@@ -228,7 +239,9 @@ export const flockEvents = {
         flock.scene?.onKeyboardObservable?.remove(kbObserver);
         gridObservable?.remove(gridObserver);
         if (xrObserver) {
-          flock.xrHelper?.input?.onControllerAddedObservable?.remove(xrObserver);
+          flock.xrHelper?.input?.onControllerAddedObservable?.remove(
+            xrObserver,
+          );
         }
         for (const { observable, observer } of buttonStateObservers) {
           observable?.remove(observer);

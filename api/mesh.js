@@ -266,7 +266,12 @@ export const flockMesh = {
       ? flock.getGroundLevelAt(px, pz)
       : py;
 
-    flock.setBlockPositionOnMesh(mesh, { x: px, y: resolvedY, z: pz, useY: true });
+    flock.setBlockPositionOnMesh(mesh, {
+      x: px,
+      y: resolvedY,
+      z: pz,
+      useY: true,
+    });
 
     mesh.metadata = { ...(mesh.metadata || {}), shapeType };
     mesh.metadata.blockKey = mesh.name;
@@ -293,7 +298,12 @@ export const flockMesh = {
     if (shouldResolveGroundLevel && !flock.ground) {
       flock.waitForGroundReady().then(() => {
         const groundY = flock.getGroundLevelAt(px, pz);
-        flock.setBlockPositionOnMesh(mesh, { x: px, y: groundY, z: pz, useY: true });
+        flock.setBlockPositionOnMesh(mesh, {
+          x: px,
+          y: groundY,
+          z: pz,
+          useY: true,
+        });
         if (mesh.physics) {
           mesh.physics.setTargetTransform(
             mesh.position,
@@ -834,7 +844,9 @@ export const flockMesh = {
       flock.whenModelReady(targetMesh, (targetMeshInstance) => {
         flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
           {
-            const worldMatrix = meshToAttachInstance.getWorldMatrix(true).clone();
+            const worldMatrix = meshToAttachInstance
+              .getWorldMatrix(true)
+              .clone();
             const scale = new flock.BABYLON.Vector3();
             const rotation = new flock.BABYLON.Quaternion();
             const position = new flock.BABYLON.Vector3();
@@ -906,12 +918,17 @@ export const flockMesh = {
                     modelHeight = allMaxY - allMinY;
                   }
                   const defaultHeadOffset = 1.3;
-                  estimatedLength = defaultHeadOffset * Math.max(modelHeight, 1);
+                  estimatedLength =
+                    defaultHeadOffset * Math.max(modelHeight, 1);
                 }
                 y += estimatedLength;
               }
 
-              meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
+              meshToAttachInstance.position = new flock.BABYLON.Vector3(
+                x,
+                y,
+                z,
+              );
             }
           }
           resolve();
@@ -1065,15 +1082,14 @@ export const flockMesh = {
             }
           };
 
-          followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(
-            () => {
+          followerMesh._followObserver =
+            flock.scene.onBeforeRenderObservable.add(() => {
               followerMesh.position.x =
                 targetMesh.position.x + parseFloat(offsetX);
               followerMesh.position.y = getYPosition() + parseFloat(offsetY);
               followerMesh.position.z =
                 targetMesh.position.z + parseFloat(offsetZ);
-            },
-          );
+            });
           resolve();
         });
       });

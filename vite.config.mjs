@@ -1,16 +1,17 @@
-import { VitePWA } from 'vite-plugin-pwa'
-import { viteStaticCopy } from 'vite-plugin-static-copy';
-import { copyFileSync } from 'fs';
-import { resolve } from 'path';
-import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
-import { writeFileSync } from 'fs';
+import { VitePWA } from "vite-plugin-pwa";
+import { viteStaticCopy } from "vite-plugin-static-copy";
+import { copyFileSync } from "fs";
+import { resolve } from "path";
+import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
+import { writeFileSync } from "fs";
 
 // Determine if we are in production mode
-const isProduction = process.env.NODE_ENV === 'production';
-const BASE_URL = process.env.VITE_BASE_URL || '/';
+const isProduction = process.env.NODE_ENV === "production";
+const BASE_URL = process.env.VITE_BASE_URL || "/";
 
 // `frame-ancestors` is only enforced from HTTP headers (ignored in CSP meta tags).
-const CSP_META_POLICY = "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://unpkg.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
+const CSP_META_POLICY =
+  "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://unpkg.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
 const CSP_HEADER_POLICY = `${CSP_META_POLICY}; frame-ancestors 'self'`;
 
 export default {
@@ -21,103 +22,140 @@ export default {
     cssInjectedByJsPlugin(),
     viteStaticCopy({
       targets: [
-        { src: 'models/*.{glb,gltf}', dest: 'models' },
-        { src: 'animations/*.{glb,gltf}', dest: 'animations' },
-        { src: 'sounds/*.{ogg,mp3,aac,wav}', dest: 'sounds' },
-        { src: 'images/*.*', dest: 'images' },
-        { src: 'examples/*.json', dest: 'examples' },
-        { src: 'examples/*.flock', dest: 'examples' },
-        { src: 'textures/*.png', dest: 'textures' },
-        { src: 'fonts/*.{json,woff2,ttf}', dest: 'fonts' },
-        { src: 'node_modules/manifold-3d/manifold.wasm', dest: 'wasm' },
-        { src: 'node_modules/blockly/media/*', dest: 'blockly/media' },
-        { src: 'images/dropdown-arrow.svg', dest: 'blockly/media' },
+        { src: "models/*.{glb,gltf}", dest: "models" },
+        { src: "animations/*.{glb,gltf}", dest: "animations" },
+        { src: "sounds/*.{ogg,mp3,aac,wav}", dest: "sounds" },
+        { src: "images/*.*", dest: "images" },
+        { src: "examples/*.json", dest: "examples" },
+        { src: "examples/*.flock", dest: "examples" },
+        { src: "textures/*.png", dest: "textures" },
+        { src: "fonts/*.{json,woff2,ttf}", dest: "fonts" },
+        { src: "node_modules/manifold-3d/manifold.wasm", dest: "wasm" },
+        { src: "node_modules/blockly/media/*", dest: "blockly/media" },
+        { src: "images/dropdown-arrow.svg", dest: "blockly/media" },
         {
-          src: 'node_modules/ses/dist/lockdown.umd.min.js',
-          dest: 'vendor/ses', // => served at /vendor/ses/lockdown.umd.min.js
+          src: "node_modules/ses/dist/lockdown.umd.min.js",
+          dest: "vendor/ses", // => served at /vendor/ses/lockdown.umd.min.js
         },
         // Copy the Draco decoder files from Babylon's package
         {
-          src: 'node_modules/@babylonjs/core/assets/Draco/*',
-          dest: 'draco', // will be served from /draco/
+          src: "node_modules/@babylonjs/core/assets/Draco/*",
+          dest: "draco", // will be served from /draco/
         },
-      ]
+      ],
     }),
     VitePWA({
       base: BASE_URL,
-      registerType: 'autoUpdate',
+      registerType: "autoUpdate",
       devOptions: { enabled: false },
 
       assetsInclude: [
-        '**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3',
-        '**/*.json', '**/*.flock', '**/*.png', '**/*.woff', '**/*.woff2',
-        '**/*.css', '**/*.svg', '**/*.wasm'
+        "**/*.glb",
+        "**/*.gltf",
+        "**/*.ogg",
+        "**/*.aac",
+        "**/*.mp3",
+        "**/*.json",
+        "**/*.flock",
+        "**/*.png",
+        "**/*.woff",
+        "**/*.woff2",
+        "**/*.css",
+        "**/*.svg",
+        "**/*.wasm",
       ],
       includeAssets: [
-        '**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3',
-        '**/*.json', '**/*.flock', '**/*.png', '**/*.woff', '**/*.woff2',
-        '**/*.css', '**/*.svg', '**/*.wasm'
+        "**/*.glb",
+        "**/*.gltf",
+        "**/*.ogg",
+        "**/*.aac",
+        "**/*.mp3",
+        "**/*.json",
+        "**/*.flock",
+        "**/*.png",
+        "**/*.woff",
+        "**/*.woff2",
+        "**/*.css",
+        "**/*.svg",
+        "**/*.wasm",
       ],
 
       manifest: {
-        name: 'Flock XR - Creative coding in 3D',
-        short_name: 'Flock XR',
-        description: 'Create 3D apps with code blocks',
-        theme_color: '#511d91',
-        background_color: '#ffffff',
-        display: 'fullscreen',
+        name: "Flock XR - Creative coding in 3D",
+        short_name: "Flock XR",
+        description: "Create 3D apps with code blocks",
+        theme_color: "#511d91",
+        background_color: "#ffffff",
+        display: "fullscreen",
 
         // Keep start route simple and within scope
         start_url: BASE_URL,
         id: BASE_URL,
         scope: BASE_URL,
 
-        orientation: 'any',
-        categories: ['education', 'games'],
+        orientation: "any",
+        categories: ["education", "games"],
         icons: [
-          { src: 'images/icon_192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-          { src: 'images/icon_512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
-        ]
+          {
+            src: "images/icon_192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+          {
+            src: "images/icon_512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+        ],
       },
 
       workbox: {
         maximumFileSizeToCacheInBytes: 25_000_000,
         navigateFallback: `${BASE_URL}index.html`,
         navigateFallbackAllowlist: [
-          new RegExp(`^${BASE_URL.replace(/\/$/, '')}/(?!api|assets/)`)
+          new RegExp(`^${BASE_URL.replace(/\/$/, "")}/(?!api|assets/)`),
         ],
         globPatterns: [
-          '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,mp3,aac,wasm,json,woff,woff2}',
-          'models/**/*',
-          'sounds/**/*',
-          'images/**/*',
-          'examples/**/*',
-          'textures/**/*',
-          'fonts/**/*',
-          'blockly/media/**/*',
-          'wasm/**/*'
+          "**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,mp3,aac,wasm,json,woff,woff2}",
+          "models/**/*",
+          "sounds/**/*",
+          "images/**/*",
+          "examples/**/*",
+          "textures/**/*",
+          "fonts/**/*",
+          "blockly/media/**/*",
+          "wasm/**/*",
         ],
-        modifyURLPrefix: isProduction ? { '': BASE_URL } : {},
+        modifyURLPrefix: isProduction ? { "": BASE_URL } : {},
 
         // Safe runtime caching: NetworkFirst for navigations; CacheFirst for real static assets
         runtimeCaching: [
           {
             // HTML shell (navigations)
-            urlPattern: ({ request }) => request.mode === 'navigate',
-            handler: 'NetworkFirst',
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
             options: {
-              cacheName: 'pages',
-              networkTimeoutSeconds: 5
+              cacheName: "pages",
+              networkTimeoutSeconds: 5,
             },
           },
           {
             // Static assets by destination
             urlPattern: ({ request }) =>
-              ['script', 'style', 'image', 'font', 'audio', 'video', 'worker']
-                .includes(request.destination),
-            handler: 'CacheFirst',
+              [
+                "script",
+                "style",
+                "image",
+                "font",
+                "audio",
+                "video",
+                "worker",
+              ].includes(request.destination),
+            handler: "CacheFirst",
             options: {
-              cacheName: 'static-assets',
+              cacheName: "static-assets",
               expiration: {
                 maxEntries: 1000,
                 maxAgeSeconds: 365 * 24 * 60 * 60,
@@ -127,42 +165,51 @@ export default {
           // Optional: keep your fine-grained caches
           {
             urlPattern: /\/models\/.*/,
-            handler: 'CacheFirst',
+            handler: "CacheFirst",
             options: {
-              cacheName: 'models-cache',
-              expiration: { maxEntries: 100, maxAgeSeconds: 365 * 24 * 60 * 60 },
+              cacheName: "models-cache",
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
             },
           },
           {
             urlPattern: /\/sounds\/.*/,
-            handler: 'CacheFirst',
+            handler: "CacheFirst",
             options: {
-              cacheName: 'sounds-cache',
+              cacheName: "sounds-cache",
               rangeRequests: true,
-              expiration: { maxEntries: 100, maxAgeSeconds: 365 * 24 * 60 * 60 },
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
             },
           },
           {
             urlPattern: /\/textures\/.*/,
-            handler: 'CacheFirst',
+            handler: "CacheFirst",
             options: {
-              cacheName: 'textures-cache',
-              expiration: { maxEntries: 100, maxAgeSeconds: 365 * 24 * 60 * 60 },
+              cacheName: "textures-cache",
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
             },
           },
           {
             urlPattern: /\/examples\/.*/,
-            handler: 'CacheFirst',
+            handler: "CacheFirst",
             options: {
-              cacheName: 'examples-cache',
+              cacheName: "examples-cache",
               expiration: { maxEntries: 50, maxAgeSeconds: 365 * 24 * 60 * 60 },
             },
           },
           {
             urlPattern: /\/blockly\/media\/.*/,
-            handler: 'CacheFirst',
+            handler: "CacheFirst",
             options: {
-              cacheName: 'blockly-media',
+              cacheName: "blockly-media",
               expiration: { maxEntries: 50, maxAgeSeconds: 365 * 24 * 60 * 60 },
             },
           },
@@ -174,18 +221,21 @@ export default {
 
     // Build-time proxy that generates a stable 'flock.js' re-export
     {
-      name: 'create-flock-proxy',
+      name: "create-flock-proxy",
       writeBundle(options, bundle) {
         let hashedFileName;
         for (const fileName in bundle) {
-          if (fileName.startsWith('assets/index-') && fileName.endsWith('.js')) {
+          if (
+            fileName.startsWith("assets/index-") &&
+            fileName.endsWith(".js")
+          ) {
             hashedFileName = fileName;
             break;
           }
         }
         if (hashedFileName) {
           const proxyContent = `export * from './${hashedFileName}';\n`;
-          const proxyPath = resolve(options.dir, 'flock.js');
+          const proxyPath = resolve(options.dir, "flock.js");
           try {
             writeFileSync(proxyPath, proxyContent);
             console.log(`Generated proxy file: flock.js -> ${hashedFileName}`);
@@ -193,53 +243,55 @@ export default {
             console.error(`Failed to create proxy file: ${error.message}`);
           }
         } else {
-          console.error('No hashed flock file found in the bundle.');
+          console.error("No hashed flock file found in the bundle.");
         }
       },
     },
 
     // Copy demo files
     {
-      name: 'copy-library-files',
+      name: "copy-library-files",
       writeBundle() {
-        copyFileSync('cubeart.html', 'dist/cubeart.html');
+        copyFileSync("cubeart.html", "dist/cubeart.html");
       },
     },
   ],
 
   server: {
-    host: '0.0.0.0',
+    host: "0.0.0.0",
     headers: {
-      'Content-Security-Policy': CSP_HEADER_POLICY,
-      'X-Content-Type-Options': 'nosniff',
-      'X-Frame-Options': 'SAMEORIGIN',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      "Content-Security-Policy": CSP_HEADER_POLICY,
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "SAMEORIGIN",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
       // usb=() blocks WebUSB API only — gamepad=(self) explicitly permits the Gamepad API for controllers
-      'Permissions-Policy': 'geolocation=(), payment=(), usb=(), gamepad=(self)',
+      "Permissions-Policy":
+        "geolocation=(), payment=(), usb=(), gamepad=(self)",
     },
-    fs: { allow: ['../..'] },
+    fs: { allow: ["../.."] },
     allowedHosts: [
-      '27c4c3b0-9860-47aa-a95d-03ca8acd6af0-00-2qj22wjmgrujn.picard.replit.dev',
-      '1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev'
-    ]
+      "27c4c3b0-9860-47aa-a95d-03ca8acd6af0-00-2qj22wjmgrujn.picard.replit.dev",
+      "1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev",
+    ],
   },
 
   preview: {
     headers: {
-      'Content-Security-Policy': CSP_HEADER_POLICY,
-      'X-Content-Type-Options': 'nosniff',
-      'X-Frame-Options': 'SAMEORIGIN',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      "Content-Security-Policy": CSP_HEADER_POLICY,
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "SAMEORIGIN",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
       // usb=() blocks WebUSB API only — gamepad=(self) explicitly permits the Gamepad API for controllers
-      'Permissions-Policy': 'geolocation=(), payment=(), usb=(), gamepad=(self)',
+      "Permissions-Policy":
+        "geolocation=(), payment=(), usb=(), gamepad=(self)",
     },
   },
 
-  optimizeDeps: { exclude: ['@babylonjs/havok', 'manifold-3d'] },
+  optimizeDeps: { exclude: ["@babylonjs/havok", "manifold-3d"] },
 
   build: {
-    assetsInlineLimit: 100000,   // include font files inline if needed
-    cssCodeSplit: false,         // inline CSS into JS
-    rollupOptions: { input: 'index.html' },
-  }
-}
+    assetsInlineLimit: 100000, // include font files inline if needed
+    cssCodeSplit: false, // inline CSS into JS
+    rollupOptions: { input: "index.html" },
+  },
+};

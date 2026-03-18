@@ -57,13 +57,16 @@ When you introduce new UI text in the codebase, wire it to the translation syste
      ```
      Add `start_button_ui: "Start",` to `locale/en.js` and translate the same key in other locale files.
    - **JavaScript** (manual assignment):
+
      ```javascript
      import { translate } from "../main/translation.js";
 
      const snackbar = document.querySelector("#snackbar");
      snackbar.textContent = translate("snackbar_saved_ui");
      ```
+
      Add `snackbar_saved_ui: "Saved",` to `locale/en.js` and provide translations for the same key.
+
 3. If the text belongs to Blockly context menus or block tooltips, also ensure the corresponding key exists in the locale files (for example `my_block_tooltip`) and that your block code calls the matching helper (`getTooltip`, `getOption`, or `translate`).
 4. After wiring the strings, follow the steps above to generate AI drafts for other locales and run the translation check script.
 

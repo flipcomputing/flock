@@ -166,17 +166,21 @@ export const flockUI = {
     const sanitize = (val, { maxLen = 500 } = {}) => {
       if (val == null) return "";
       let s = String(val);
-      s = s.normalize('NFKC');
+      s = s.normalize("NFKC");
       const doc = new DOMParser().parseFromString(s, "text/html");
       s = doc.body.textContent || "";
-      s = s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");
+      s = s.replace(
+        /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g,
+        "",
+      );
       s = s.replace(/\s+/g, " ").trim();
       if (s.length > maxLen) s = s.slice(0, maxLen);
       return s;
     };
 
-    const inputId = id ? sanitize(id, { maxLen: 100 }) : 
-      `input_${Date.now()}_${crypto.randomUUID()}`;
+    const inputId = id
+      ? sanitize(id, { maxLen: 100 })
+      : `input_${Date.now()}_${crypto.randomUUID()}`;
     const submitId = `submit_${inputId}`;
 
     const existingInput = flock.scene.UITexture.getControlByName(inputId);
@@ -189,7 +193,8 @@ export const flockUI = {
       MEDIUM: { width: "300px", height: "50px" },
       LARGE: { width: "400px", height: "60px" },
     };
-    const resolvedSize = sizeMap[(size || "").toUpperCase()] || sizeMap["MEDIUM"];
+    const resolvedSize =
+      sizeMap[(size || "").toUpperCase()] || sizeMap["MEDIUM"];
     const inputWidth = resolvedSize.width;
     const inputHeight = resolvedSize.height;
     const buttonWidth = "50px";
@@ -207,12 +212,14 @@ export const flockUI = {
 
     input.left = `${x}px`;
     input.top = `${y}px`;
-    input.horizontalAlignment = x < 0
-      ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
-      : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    input.verticalAlignment = y < 0
-      ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
-      : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    input.horizontalAlignment =
+      x < 0
+        ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+        : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    input.verticalAlignment =
+      y < 0
+        ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
+        : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
     const button = flock.GUI.Button.CreateSimpleButton(submitId, "✓");
     button.width = buttonWidth;
