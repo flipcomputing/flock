@@ -2619,198 +2619,906 @@ export function defineGenerators() {
     return `${variableName} = getCamera();\n`;
   };
 
-  javascriptGenerator.forBlock["rotate_camera"] = function (block) {
-    const degrees =
-      javascriptGenerator.valueToCode(
-        block,
-        "DEGREES",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+        javascriptGenerator.forBlock["distance_to"] = function (block) {
+                const meshName1 = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL1"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
 
-    return `rotateCamera(${degrees});\n`;
-  };
+                const meshName2 = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL2"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
 
-  javascriptGenerator.forBlock["export_mesh"] = function (block) {
-    const meshVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const format = block.getFieldValue("FORMAT");
+                const code = `distanceTo(${meshName1}, ${meshName2})`;
+                return [code, javascriptGenerator.ORDER_NONE];
+        };
 
-    // Generate the code that calls the helper function
-    return `exportMesh(${meshVar}, "${format}");\n`;
-  };
+        javascriptGenerator.forBlock["time"] = function (block) {
+                const unit = block.getFieldValue("UNIT") || "seconds";
+                const code = `getTime("${unit}")`;
+                return [code, javascriptGenerator.ORDER_NONE];
+        };
 
-  javascriptGenerator.forBlock["merge_meshes"] = function (block) {
-    const resultVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("RESULT_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
+        javascriptGenerator.forBlock["ground_level"] = function () {
+                const code = "-999999";
+                return [code, javascriptGenerator.ORDER_NONE];
+        };
 
-    const meshList =
-      javascriptGenerator.valueToCode(
-        block,
-        "MESH_LIST",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "[]";
+        javascriptGenerator.forBlock["get_property"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MESH"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const propertyName = block.getFieldValue("PROPERTY");
 
-    const meshId = "merged" + "_" + generateUniqueId();
-    meshMap[meshId] = block;
-    meshBlockIdMap[meshId] = block.id;
+                const code = `getProperty(${modelName}, '${propertyName}')`;
+                return [code, javascriptGenerator.ORDER_NONE];
+        };
 
-    // Use helper function to merge the meshes
-    return `${resultVar} = await mergeMeshes("${meshId}", ${meshList});\n`;
-  };
+        javascriptGenerator.forBlock["play_sound"] = function (block) {
+                const idVar = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("ID_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
 
-  javascriptGenerator.forBlock["subtract_meshes"] = function (block) {
-    const resultVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("RESULT_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const baseMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("BASE_MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
+                const meshNameField = block.getFieldValue("MESH_NAME");
+                const meshName = `"${meshNameField}"`; // Always quoted
 
-    const meshList =
-      javascriptGenerator.valueToCode(
-        block,
-        "MESH_LIST",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "[]";
+                const soundName = block.getFieldValue("SOUND_NAME");
 
-    const meshId = "subtracted" + "_" + generateUniqueId();
-    meshMap[meshId] = block;
-    meshBlockIdMap[meshId] = block.id;
+                const speedCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "SPEED",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "1";
 
-    // Use helper function to subtract meshes from the base mesh
-    return `${resultVar} = await subtractMeshes("${meshId}", ${baseMesh}, ${meshList});\n`;
-  };
+                const volumeCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "VOLUME",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "1";
 
-  javascriptGenerator.forBlock["intersection_meshes"] = function (block) {
-    const resultVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("RESULT_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
+                const loop = block.getFieldValue("MODE") === "LOOP";
+                const asyncMode = block.getFieldValue("ASYNC");
 
-    const meshList =
-      javascriptGenerator.valueToCode(
-        block,
-        "MESH_LIST",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "[]";
+                // Build the final code line
+                const code = `${idVar} = ${asyncMode === "AWAIT" ? "await " : ""}playSound(${meshName}, { soundName: "${soundName}", loop: ${loop}, volume: ${volumeCode}, playbackRate: ${speedCode} });\n`;
 
-    const meshId = "intersected" + "_" + generateUniqueId();
-    meshMap[meshId] = block;
-    meshBlockIdMap[meshId] = block.id;
+                return code;
+        };
 
-    // Use helper function to intersect the meshes
-    return `${resultVar} = await intersectMeshes("${meshId}", ${meshList});\n`;
-  };
-  javascriptGenerator.forBlock["hull_meshes"] = function (block) {
-    const resultVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("RESULT_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
+        javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
+                const meshName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
 
-    const meshList =
-      javascriptGenerator.valueToCode(
-        block,
-        "MESH_LIST",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "[]";
+                const x = getFieldValue(block, "X", "0");
+                const y = getFieldValue(block, "Y", "0");
+                const z = getFieldValue(block, "Z", "0");
 
-    const meshId = "hull" + "_" + generateUniqueId();
-    meshMap[meshId] = block;
-    meshBlockIdMap[meshId] = block.id;
+                return `await rotate(${meshName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
+        };
 
-    // Use helper function to create the hull
-    return `${resultVar} = await createHull("${meshId}", ${meshList});\n`;
-  };
+        javascriptGenerator.forBlock["forever"] = function (block) {
+                const branch = javascriptGenerator.statementToCode(block, "DO");
 
-  javascriptGenerator.forBlock["parent"] = function (block) {
-    const parentMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("PARENT_MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const childMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("CHILD_MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
+                const code = `forever(async function(){\n${branch}});\n`;
+                return code;
+        };
 
-    // Establish the parent-child relationship with offset
-    return `setParent(${parentMesh}, ${childMesh});\n`;
-  };
+        javascriptGenerator.forBlock["animation_name"] = function (block) {
+                const animationName = block.getFieldValue("ANIMATION_NAME");
+                return [`"${animationName}"`, javascriptGenerator.ORDER_ATOMIC];
+        };
 
-  javascriptGenerator.forBlock["parent_child"] = function (block) {
-    const parentMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("PARENT_MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const childMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("CHILD_MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
+        javascriptGenerator.forBlock["play_animation"] = function (block) {
+                const model = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const animationName =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "ANIMATION_NAME",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || '"Idle"';
+                const code = `await playAnimation(${model}, { animationName: ${animationName} });\n`;
+                return code;
+        };
 
-    const xOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "X_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const yOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "Y_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const zOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "Z_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+        javascriptGenerator.forBlock["stop_all_sounds"] = function (block) {
+                // JavaScript code to stop all sounds in a Babylon.js scene
+                return "stopAllSounds();\n";
+        };
 
-    // Establish the parent-child relationship with offset
-    return `parentChild(${parentMesh}, ${childMesh}, ${xOffset}, ${yOffset}, ${zOffset});\n`;
-  };
+        javascriptGenerator.forBlock["midi_note"] = function (block) {
+                const note =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "NOTE",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "60";
+                return [note, javascriptGenerator.ORDER_ATOMIC];
+        };
 
-  javascriptGenerator.forBlock["remove_parent"] = function (block) {
-    const childMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("CHILD_MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
+        javascriptGenerator.forBlock["rest"] = function () {
+                // Rest is represented as null in sequences
+                return ["null", javascriptGenerator.ORDER_ATOMIC];
+        };
 
-    return `removeParent(${childMesh});\n`;
-  };
+        javascriptGenerator.forBlock["play_notes"] = function (block) {
+                const meshVar = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MESH"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const notes =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "NOTES",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "[]";
+                const durations =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "DURATIONS",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "[]";
+                const instrument = javascriptGenerator.valueToCode(
+                        block,
+                        "INSTRUMENT",
+                        javascriptGenerator.ORDER_ATOMIC,
+                );
+                const asyncMode = block.getFieldValue("ASYNC");
 
-  javascriptGenerator.forBlock["hold"] = function (block) {
-    const meshToAttach = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_TO_ATTACH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const targetMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("TARGET_MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const xOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "X_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const yOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "Y_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const zOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "Z_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+                // Use the appropriate function based on the async mode
+                if (asyncMode === "AWAIT") {
+                        return `await playNotes(${meshVar}, { notes: ${notes}, durations: ${durations}, instrument: ${instrument} });\n`;
+                } else {
+                        return `playNotes(${meshVar}, { notes: ${notes}, durations: ${durations}, instrument: ${instrument} });\n`;
+                }
+        };
+
+        javascriptGenerator.forBlock["create_instrument"] = function (block) {
+                const instrumentVar = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("INSTRUMENT"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const type = block.getFieldValue("TYPE");
+                const frequency =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "FREQUENCY",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "440";
+                const attack =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "ATTACK",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0.1";
+                const decay =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "DECAY",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0.5";
+                const sustain =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "SUSTAIN",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0.7";
+                const release =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "RELEASE",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "1";
+
+                // Assign the instrument to a variable
+                return `${instrumentVar} = createInstrument('${type}', { frequency: ${frequency}, attack: ${attack}, decay: ${decay}, sustain: ${sustain}, release: ${release} });\n`;
+        };
+
+        javascriptGenerator.forBlock["instrument"] = function (block) {
+                const instrumentType = block.getFieldValue("INSTRUMENT_TYPE");
+
+                let instrumentCode;
+                switch (instrumentType) {
+                        case "piano":
+                                instrumentCode = `createInstrument("square", { frequency: 440, attack: 0.1, decay: 0.3, sustain: 0.7, release: 1.0 })`; // Example settings for piano
+                                break;
+                        case "guitar":
+                                instrumentCode = `createInstrument("sawtooth", { frequency: 440, attack: 0.1, decay: 0.2, sustain: 0.6, release: 0.9 })`; // Example settings for guitar
+                                break;
+                        case "violin":
+                                instrumentCode = `createInstrument("triangle", { frequency: 440, attack: 0.15, decay: 0.5, sustain: 0.8, release: 1.2 })`; // Example settings for violin
+                                break;
+                        default:
+                                instrumentCode = `null`; // Default instrument (or could throw an error)
+                }
+
+                return [instrumentCode, javascriptGenerator.ORDER_ATOMIC];
+        };
+
+        javascriptGenerator.forBlock["set_scene_bpm"] = function (block) {
+                const bpm = javascriptGenerator.valueToCode(
+                        block,
+                        "BPM",
+                        javascriptGenerator.ORDER_ATOMIC,
+                );
+                return `setBPM("__everywhere__", ${bpm});\n`;
+        };
+
+        javascriptGenerator.forBlock["set_mesh_bpm"] = function (block) {
+                const meshNameField =
+                        block.getFieldValue("MESH") || "__everywhere__";
+                const meshName = `"${meshNameField}"`; // Always quoted
+
+                const bpm =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "BPM",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "120"; // Default BPM if not connected
+
+                return `await setBPM(${meshName}, ${bpm});\n`;
+        };
+
+        javascriptGenerator.forBlock["speak"] = function (block) {
+                const text =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "TEXT",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '""';
+
+                const voice = block.getFieldValue("VOICE") || "default";
+
+                const rate =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "RATE",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "1";
+
+                const pitch =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "PITCH",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "1";
+
+                const volume =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "VOLUME",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "1";
+
+                const language = block.getFieldValue("LANGUAGE") || "en-US";
+                const asyncMode = block.getFieldValue("ASYNC") || "START";
+
+                // Get the mesh variable name from the dynamic dropdown - same approach as play_sound block
+                const meshInput = block.getInput("MESH_INPUT");
+
+                const meshDropdownField = meshInput
+                        ? meshInput.fieldRow.find(
+                                  (field) => field.name === "MESH_NAME",
+                          )
+                        : null;
+
+                const meshValue = meshDropdownField
+                        ? meshDropdownField.getValue()
+                        : "__everywhere__";
+
+                const meshVariable = `"${meshValue}"`;
+
+                // Safely handle asyncMode - ensure it's not null
+                const safeAsyncMode = asyncMode || "START";
+                const asyncWrapper = safeAsyncMode === "AWAIT" ? "await " : "";
+
+                return `${asyncWrapper}speak(${meshVariable}, ${text}, { voice: "${voice}", rate: ${rate}, pitch: ${pitch}, volume: ${volume}, language: "${language}", mode: "${safeAsyncMode.toLowerCase()}" });\n`;
+        };
+
+        javascriptGenerator.forBlock["when_touches"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                        true,
+                );
+
+                const otherModelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("OTHER_MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                        true,
+                );
+
+                const trigger = block.getFieldValue("TRIGGER");
+                const doCode = javascriptGenerator.statementToCode(block, "DO");
+
+                if (
+                        trigger === "OnIntersectionEnterTrigger" ||
+                        trigger === "OnIntersectionExitTrigger"
+                ) {
+                        return `onIntersect(${modelName}, ${otherModelName}, {
+          trigger: "${trigger}",
+          callback: async function(${modelName}, ${otherModelName}) {
+        ${doCode}
+          }
+        });\n`;
+                } else {
+                        console.error(
+                                "Invalid trigger type for 'when_touches' block:",
+                                trigger,
+                        );
+                        return "";
+                }
+        };
+
+        javascriptGenerator.forBlock["on_collision"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                        true,
+                );
+
+                const otherModelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("OTHER_MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                        true,
+                );
+
+                const trigger = block.getFieldValue("TRIGGER");
+                const doCode = javascriptGenerator.statementToCode(block, "DO");
+
+                if (
+                        trigger === "OnIntersectionEnterTrigger" ||
+                        trigger === "OnIntersectionExitTrigger"
+                ) {
+                        return `onIntersect(${modelName}, ${otherModelName}, {
+          trigger: "${trigger}",
+          callback: async function(${modelName}, ${otherModelName}) {
+        ${doCode}
+          }
+        });\n`;
+                } else {
+                        console.error(
+                                "Invalid trigger type for 'on_collision' block:",
+                                trigger,
+                        );
+                        return "";
+                }
+        };
+
+        javascriptGenerator.forBlock["when_clicked"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const trigger = block.getFieldValue("TRIGGER");
+                const mode = block.getFieldValue("MODE") || "wait";
+
+                const doCode = javascriptGenerator
+                        .statementToCode(block, "DO")
+                        .trim();
+                const thenCodes = [];
+
+                for (let i = 0; i < block.thenCount_; i++) {
+                        const thenCode = javascriptGenerator
+                                .statementToCode(block, "THEN" + i)
+                                .trim();
+                        if (thenCode) {
+                                thenCodes.push(thenCode);
+                        }
+                }
+
+                const allActions = [doCode, ...thenCodes].filter(
+                        (code) => code,
+                );
+                const actionFunctions = allActions.map(
+                        (code) => `async function(${modelName}) {\n${code}\n}`,
+                );
+
+                // Determine if this is a top-level block (not nested)
+                const isTopLevel = !block.getSurroundParent();
+
+                const code =
+                        `onTrigger(${modelName}, {\n` +
+                        `  trigger: "${trigger}",\n` +
+                        `  callback: [\n${actionFunctions.join(",\n")}\n],\n` +
+                        `  mode: "${mode}"` +
+                        (isTopLevel ? `,\n  applyToGroup: true` : "") +
+                        `\n});\n`;
+
+                return code;
+        };
+
+        javascriptGenerator.forBlock["local_variable"] = function (
+                block,
+                generator,
+        ) {
+                // Retrieve the variable selected by the user
+                const variable = generator.nameDB_.getName(
+                        block.getFieldValue("VAR"),
+                        Blockly.VARIABLE_CATEGORY_NAME,
+                );
+
+                // Generate a local 'let' declaration for the selected variable
+                const code = `let ${variable};\n`;
+                return code;
+        };
+
+        javascriptGenerator.forBlock["when_key_event"] = function (block) {
+                const key = block.getFieldValue("KEY");
+                const event = block.getFieldValue("EVENT"); // "starts" or "ends"
+                const statements_do = javascriptGenerator.statementToCode(
+                        block,
+                        "DO",
+                );
+
+                // Pass "true" if event is "ends" for the whenKeyPressed helper function
+                return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "ends"});\n`;
+        };
+
+        javascriptGenerator.forBlock["when_action_event"] = function (block) {
+                const action = block.getFieldValue("ACTION");
+                const event = block.getFieldValue("EVENT");
+                const statements_do = javascriptGenerator.statementToCode(
+                        block,
+                        "DO",
+                );
+
+                return `whenActionEvent("${action}", async () => {${statements_do}}, ${event === "ends"});\n`;
+        };
+
+        // JavaScript generator for broadcast_event
+        javascriptGenerator.forBlock["broadcast_event"] = function (block) {
+                const raw =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "EVENT_NAME",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "undefined";
+
+                const safe = emitSafeIdentifierLiteral(raw, undefined);
+                return `broadcastEvent(${safe});\n`;
+        };
+
+        // JavaScript generator for on_event
+        javascriptGenerator.forBlock["on_event"] = function (block) {
+                // Don't force a default; let invalid/empty resolve to undefined
+                const raw =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "EVENT_NAME",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "";
+
+                const safe = emitSafeIdentifierLiteral(raw);
+
+                const statements_do = javascriptGenerator.statementToCode(
+                        block,
+                        "DO",
+                );
+                return `onEvent(${safe}, async function() {\n${statements_do}});\n`;
+        };
+
+        javascriptGenerator.forBlock["highlight"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const color = getFieldValue(block, "COLOR", "#FFD700");
+                return `await highlight(${modelName}, { color: ${color} });\n`;
+        };
+
+        javascriptGenerator.forBlock["glow"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                return `await glow(${modelName});\n`;
+        };
+
+        javascriptGenerator.forBlock["tint"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const color = getFieldValue(block, "COLOR", "#AA336A");
+
+                return `await tint(${modelName}, { color: ${color} });\n`;
+        };
+
+        javascriptGenerator.forBlock["change_color"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const color = getFieldValue(block, "COLOR", "#ffffff");
+
+                return `await changeColor(${modelName}, { color: ${color} });\n`;
+        };
+
+        javascriptGenerator.forBlock["change_material"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("ID_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const material = block.getFieldValue("MATERIALS");
+                const color = getFieldValue(block, "COLOR", "#ffffff");
+
+                return `await changeMaterial(${modelName}, "${material}", ${color});\n`;
+        };
+
+        javascriptGenerator.forBlock["set_alpha"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MESH"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const alphaValue = javascriptGenerator.valueToCode(
+                        block,
+                        "ALPHA",
+                        javascriptGenerator.ORDER_ATOMIC,
+                );
+
+                return `await setAlpha(${modelName}, { value: ${alphaValue} });\n`;
+        };
+
+        javascriptGenerator.forBlock["clear_effects"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                return `await clearEffects(${modelName});\n`;
+        };
+
+        javascriptGenerator.forBlock["switch_animation"] = function (block) {
+                const model = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const animationName =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "ANIMATION_NAME",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || '"Idle"';
+                const code = `switchAnimation(${model}, { animationName: ${animationName} });\n`;
+                return code;
+        };
+
+        javascriptGenerator.forBlock["create_map"] = function (block) {
+                const mapName = block.getFieldValue("MAP_NAME");
+                const material =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "MATERIAL",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || "null";
+                const meshId = "ground";
+                meshMap[meshId] = block;
+                meshBlockIdMap[meshId] = block.id;
+                return `createMap("${mapName}", ${material});\n`;
+        };
+
+        javascriptGenerator.forBlock["move_forward"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const speed =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "SPEED",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const direction = block.getFieldValue("DIRECTION");
+
+                // Choose the appropriate helper function based on the direction
+                let helperFunction;
+                switch (direction) {
+                        case "sideways":
+                                helperFunction = "moveSideways";
+                                break;
+                        case "strafe":
+                                helperFunction = "strafe";
+                                break;
+                        default:
+                                helperFunction = "moveForward";
+                }
+
+                return `${helperFunction}(${modelName}, ${speed});\n`;
+        };
+
+        javascriptGenerator.forBlock["control_animation_group"] = function (
+                block,
+        ) {
+                const animationGroupName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("GROUP_NAME"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const action = block.getFieldValue("ACTION");
+
+                return `${action}AnimationGroup(${animationGroupName});\n`;
+        };
+
+        javascriptGenerator.forBlock["animate_from"] = function (block) {
+                const groupVariable = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("GROUP_NAME"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const timeInSeconds = javascriptGenerator.valueToCode(
+                        block,
+                        "TIME",
+                        javascriptGenerator.ORDER_ATOMIC,
+                );
+
+                return `animateFrom(${groupVariable}, ${timeInSeconds});\n`;
+        };
+
+        javascriptGenerator.forBlock["up"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const upForce = getFieldValue(block, "UP_FORCE", "1"); // Default up force
+
+                return `up(${modelName}, ${upForce});\n`;
+        };
+
+        javascriptGenerator.forBlock["apply_force"] = function (block) {
+                // Get the name of the mesh variable
+                const mesh = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MESH_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                // Get the force values
+                const forceX =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "X",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const forceY =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "Y",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const forceZ =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "Z",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+
+                // Generate the code
+                return `applyForce(${mesh}, { forceX: ${forceX}, forceY: ${forceY}, forceZ: ${forceZ} });\n`;
+        };
+
+        javascriptGenerator.forBlock["touching_surface"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                return [
+                        `isTouchingSurface(${modelName})`,
+                        javascriptGenerator.ORDER_NONE,
+                ];
+        };
+
+        javascriptGenerator.forBlock["mesh_exists"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                return [
+                        `meshExists(${modelName})`,
+                        javascriptGenerator.ORDER_NONE,
+                ];
+        };
+
+        javascriptGenerator.forBlock["camera_follow"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MESH_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const radius =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "RADIUS",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || 7;
+
+                const front = block.getFieldValue("FRONT") === "TRUE";
+
+                return `await attachCamera(${modelName}, { radius: ${radius}, front: ${front} });\n`;
+        };
+
+        javascriptGenerator.forBlock["get_camera"] = function (block) {
+                const variableName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                return `${variableName} = getCamera();\n`;
+        };
+
+        javascriptGenerator.forBlock["rotate_camera"] = function (block) {
+                const degrees =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "DEGREES",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+
+                return `rotateCamera(${degrees});\n`;
+        };
+
+        javascriptGenerator.forBlock["export_mesh"] = function (block) {
+                const meshVar = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MESH_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const format = block.getFieldValue("FORMAT");
+
+                // Generate the code that calls the helper function
+                return `exportMesh(${meshVar}, "${format}");\n`;
+        };
+
+        javascriptGenerator.forBlock["merge_meshes"] = function (block) {
+                const resultVar = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("RESULT_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const meshList =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "MESH_LIST",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "[]";
+
+                const meshId = "merged" + "_" + generateUniqueId();
+                meshMap[meshId] = block;
+                meshBlockIdMap[meshId] = block.id;
+
+                // Use helper function to merge the meshes
+                return `${resultVar} = await mergeMeshes("${meshId}", ${meshList});\n`;
+        };
+
+        javascriptGenerator.forBlock["subtract_meshes"] = function (block) {
+                const resultVar = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("RESULT_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const baseMesh = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("BASE_MESH"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const meshList =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "MESH_LIST",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "[]";
+
+                const meshId = "subtracted" + "_" + generateUniqueId();
+                meshMap[meshId] = block;
+                meshBlockIdMap[meshId] = block.id;
+
+                // Use helper function to subtract meshes from the base mesh
+                return `${resultVar} = await subtractMeshes("${meshId}", ${baseMesh}, ${meshList});\n`;
+        };
+
+        javascriptGenerator.forBlock["intersection_meshes"] = function (block) {
+                const resultVar = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("RESULT_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const meshList =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "MESH_LIST",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "[]";
+
+                const meshId = "intersected" + "_" + generateUniqueId();
+                meshMap[meshId] = block;
+                meshBlockIdMap[meshId] = block.id;
+
+                // Use helper function to intersect the meshes
+                return `${resultVar} = await intersectMeshes("${meshId}", ${meshList});\n`;
+        };
+        javascriptGenerator.forBlock["hull_meshes"] = function (block) {
+                const resultVar = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("RESULT_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const meshList =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "MESH_LIST",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "[]";
+
+                const meshId = "hull" + "_" + generateUniqueId();
+                meshMap[meshId] = block;
+                meshBlockIdMap[meshId] = block.id;
+
+                // Use helper function to create the hull
+                return `${resultVar} = await createHull("${meshId}", ${meshList});\n`;
+        };
+
+        javascriptGenerator.forBlock["parent"] = function (block) {
+                const parentMesh = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("PARENT_MESH"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const childMesh = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("CHILD_MESH"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                // Establish the parent-child relationship with offset
+                return `setParent(${parentMesh}, ${childMesh});\n`;
+        };
+
+        javascriptGenerator.forBlock["parent_child"] = function (block) {
+                const parentMesh = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("PARENT_MESH"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+                const childMesh = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("CHILD_MESH"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const xOffset =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "X_OFFSET",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const yOffset =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "Y_OFFSET",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const zOffset =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "Z_OFFSET",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+
+                // Establish the parent-child relationship with offset
+                return `parentChild(${parentMesh}, ${childMesh}, ${xOffset}, ${yOffset}, ${zOffset});\n`;
+        };
+
+        javascriptGenerator.forBlock["remove_parent"] = function (block) {
+                const childMesh = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("CHILD_MESH"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                return `removeParent(${childMesh});\n`;
+        };
 
     // Establish the hold action with offset
     return `await hold(${meshToAttach}, ${targetMesh}, ${xOffset}, ${yOffset}, ${zOffset});

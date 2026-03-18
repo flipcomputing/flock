@@ -290,7 +290,7 @@ export default {
   set_scene_bpm: "set scene BPM to %1",
   set_mesh_bpm: "set BPM of %1 to %2",
   create_instrument:
-    "instrument %1 wave: %2 frequency: %3 attack: %4 decay: %5 sustain: %6 release: %7",
+    "instrument %1 wave: %2 frequency: %3\nattack: %4 decay: %5 sustain: %6 release: %7",
   instrument: "instrument %1",
   speak:
     "speak %1 %2 voice: %3 language: %4\nrate: %5 pitch: %6 volume: %7 mode: %8",

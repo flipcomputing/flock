@@ -253,7 +253,10 @@ export function handleMeshLifecycleChange(block, changeEvent) {
       : [changeEvent.blockId];
 
     if (!createdBlockIds.includes(block.id)) return false;
-    if (window.loadingCode) return true;
+    // Skip mesh creation when loading saved code (recordUndo=false).
+    // But allow it when the user drops a block/snippet (recordUndo=true),
+    // even if loadingCode is true (e.g. while the Snippets flyout is open).
+    if (window.loadingCode && !changeEvent.recordUndo) return true;
     updateOrCreateMeshFromBlock(block, changeEvent);
     return true;
   }
@@ -379,8 +382,14 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
     nextVariableIndexes,
   );
 
-  // Handle lifecycle events like enable/disable/move on the block directly
-  if (changeEvent.blockId === block.id) {
+  // Handle lifecycle events like enable/disable/move on the block directly.
+  // Also handle BLOCK_CREATE events where this block is in the created ids
+  // (e.g. when the block is nested inside a snippet's root block).
+  const isThisBlockCreated =
+    changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+    Array.isArray(changeEvent.ids) &&
+    changeEvent.ids.includes(block.id);
+  if (changeEvent.blockId === block.id || isThisBlockCreated) {
     if (handleMeshLifecycleChange(block, changeEvent)) return;
   }
 

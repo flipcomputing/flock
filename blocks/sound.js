@@ -101,29 +101,26 @@ export function defineSoundBlocks() {
     },
   };
 
-  Blockly.Blocks["midi_note"] = {
-    init: function () {
-      this.jsonInit({
-        type: "midi_note",
-        message0: translate("midi_note"),
-        args0: [
-          {
-            type: "field_number",
-            name: "NOTE",
-            value: 60, // Default is Middle C
-            min: 0,
-            max: 127,
-            precision: 1,
-          },
-        ],
-        output: "Number",
-        colour: categoryColours["Sound"],
-        tooltip: getTooltip("midi_note"),
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("sound_blocks");
-    },
-  };
+        Blockly.Blocks["midi_note"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "midi_note",
+                                message0: translate("midi_note"),
+                                args0: [
+                                        {
+                                                type: "input_value",
+                                                name: "NOTE",
+                                                check: "Number",
+                                        },
+                                ],
+                                output: "Number",
+                                colour: categoryColours["Sound"],
+                                tooltip: getTooltip("midi_note"),
+                        });
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("sound_blocks");
+                },
+        };
 
   Blockly.Blocks["rest"] = {
     init: function () {
@@ -233,78 +230,72 @@ export function defineSoundBlocks() {
     },
   };
 
-  Blockly.Blocks["create_instrument"] = {
-    init: function () {
-      const variableNamePrefix = "instrument";
-      let nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-      this.jsonInit({
-        type: "create_instrument",
-        message0: translate("create_instrument"),
-        args0: [
-          {
-            type: "field_variable",
-            name: "INSTRUMENT",
-            variable: nextVariableName,
-          },
-          {
-            type: "field_dropdown",
-            name: "TYPE",
-            options: [
-              getDropdownOption("sine"),
-              getDropdownOption("square"),
-              getDropdownOption("sawtooth"),
-              getDropdownOption("triangle"),
-            ],
-          },
-          {
-            type: "field_number",
-            name: "FREQUENCY",
-            value: 440,
-            min: 20,
-            max: 20000,
-            precision: 1,
-          },
-          {
-            type: "field_number",
-            name: "ATTACK",
-            value: 0.1,
-            min: 0,
-            max: 5,
-            precision: 0.01,
-          },
-          {
-            type: "field_number",
-            name: "DECAY",
-            value: 0.5,
-            min: 0,
-            max: 5,
-            precision: 0.01,
-          },
-          {
-            type: "field_number",
-            name: "SUSTAIN",
-            value: 0.7,
-            min: 0,
-            max: 1,
-            precision: 0.01,
-          },
-          {
-            type: "field_number",
-            name: "RELEASE",
-            value: 1.0,
-            min: 0,
-            max: 5,
-            precision: 0.01,
-          },
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: categoryColours["Sound"],
-        tooltip: getTooltip("create_instrument"),
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("sound_blocks");
+        Blockly.Blocks["create_instrument"] = {
+                init: function () {
+                        const variableNamePrefix = "instrument";
+                        let nextVariableName =
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
+                        this.jsonInit({
+                                type: "create_instrument",
+                                message0: translate("create_instrument"),
+                                args0: [
+                                        {
+                                                type: "field_variable",
+                                                name: "INSTRUMENT",
+                                                variable: nextVariableName,
+                                        },
+                                        {
+                                                type: "field_dropdown",
+                                                name: "TYPE",
+                                                options: [
+                                                        getDropdownOption(
+                                                                "sine",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "square",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "sawtooth",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "triangle",
+                                                        ),
+                                                ],
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "FREQUENCY",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "ATTACK",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "DECAY",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "SUSTAIN",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "RELEASE",
+                                                check: "Number",
+                                        },
+                                ],
+                                previousStatement: null,
+                                nextStatement: null,
+                                colour: categoryColours["Sound"],
+                                tooltip: getTooltip("create_instrument"),
+                        });
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("sound_blocks");
 
       registerBlockHandler(this, (changeEvent) => {
         handleBlockCreateEvent(

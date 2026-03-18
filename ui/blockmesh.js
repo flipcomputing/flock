@@ -510,7 +510,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     changeEvent?.type === Blockly.Events.BLOCK_CREATE &&
     block.isEnabled() &&
     meshes.length === 0;
-  if (window.loadingCode || block.disposed) return;
+  if ((window.loadingCode && !changeEvent?.recordUndo) || block.disposed) return;
   const alreadyCreatingMesh = meshMap[block.id] !== undefined;
   if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate)) {
     createMeshOnCanvas(block);

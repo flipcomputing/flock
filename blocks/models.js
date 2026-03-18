@@ -22,31 +22,128 @@ import { flock } from "../flock.js";
 import { translate, getTooltip } from "../main/translation.js";
 
 export function defineModelBlocks() {
-  Blockly.Blocks["load_character"] = {
-    init: function () {
-      const variableNamePrefix = "character";
-      let nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-      this.jsonInit({
-        message0: translate("load_character"),
-        args0: [
-          {
-            type: "field_variable",
-            name: "ID_VAR",
-            variable: nextVariableName,
-          },
-          {
-            type: "field_grid_dropdown",
-            name: "MODELS",
-            columns: 6,
-            options: characterNames.map((name) => {
-              const baseName = name.replace(/\.[^/.]+$/, "");
-              return [
-                {
-                  src: `${flock.imagePath}${baseName}.png`,
-                  width: 50,
-                  height: 50,
-                  alt: baseName,
+        Blockly.Blocks["load_character"] = {
+                init: function () {
+                        const variableNamePrefix = "character";
+                        let nextVariableName =
+                                variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+                        this.jsonInit({
+                                message0: translate("load_character"),
+                                args0: [
+                                        {
+                                                type: "field_variable",
+                                                name: "ID_VAR",
+                                                variable: nextVariableName,
+                                        },
+                                        {
+                                                type: "field_grid_dropdown",
+                                                name: "MODELS",
+                                                columns: 6,
+                                                options: characterNames.map((name) => {
+                                                        const baseName = name.replace(/\.[^/.]+$/, "");
+                                                        return [
+                                                                {
+                                                                        src: `${flock.imagePath}${baseName}.png`,
+                                                                        width: 50,
+                                                                        height: 50,
+                                                                        alt: baseName,
+                                                                },
+                                                                name,
+                                                        ];
+                                                }),
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "SCALE",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "X",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Y",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Z",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "HAIR_COLOR",
+                                                check: "Colour",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "SKIN_COLOR",
+                                                check: "Colour",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "EYES_COLOR",
+                                                check: "Colour",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "TSHIRT_COLOR",
+                                                check: "Colour",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "SHORTS_COLOR",
+                                                check: "Colour",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "SLEEVES_COLOR",
+                                                check: "Colour",
+                                        },
+                                ],
+                                inputsInline: true,
+                                colour: categoryColours["Scene"],
+                                tooltip: getTooltip("load_character"),
+                                previousStatement: null,
+                                nextStatement: null,
+                        });
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("scene_blocks");
+
+                        registerBlockHandler(this, (changeEvent) => {
+                                // Always handle variable naming first (even if mesh is skipped)
+                                handleBlockCreateEvent(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                        nextVariableIndexes,
+                                );
+
+                                // Mesh lifecycle events on this block directly (e.g. enable/disable, move),
+                                // or when this block is part of a snippet creation (its id is in changeEvent.ids).
+                                const isThisBlockCreated =
+                                        changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+                                        Array.isArray(changeEvent.ids) &&
+                                        changeEvent.ids.includes(this.id);
+                                if (changeEvent.blockId === this.id || isThisBlockCreated) {
+                                        if (handleMeshLifecycleChange(this, changeEvent)) return;
+                                }
+
+                                // Linked children like MODELS or color inputs
+                                if (handleParentLinkedUpdate(this, changeEvent)) {
+                                        // 🔹 Additional side-effect unique to this block type
+                                        window.updateCurrentMeshName(this, "ID_VAR");
+                                        return;
+                                }
+
+                                if (handleFieldOrChildChange(this, changeEvent)) {
+                                        return;
+                                }
+                        });
+
+                        addDoMutatorWithToggleBehavior(this);
                 },
                 name,
               ];
@@ -175,334 +272,346 @@ export function defineModelBlocks() {
                   height: 50,
                   alt: baseName,
                 },
-                name,
-              ];
-            }),
-          },
-          {
-            type: "input_value",
-            name: "COLOR",
-            check: ["Colour", "Array", "Material"],
-          },
-          {
-            type: "input_value",
-            name: "SCALE",
-            check: "Number",
-          },
-          {
-            type: "input_value",
-            name: "X",
-            check: "Number",
-          },
-          {
-            type: "input_value",
-            name: "Y",
-            check: "Number",
-          },
-          {
-            type: "input_value",
-            name: "Z",
-            check: "Number",
-          },
-        ],
-        inputsInline: true,
-        colour: categoryColours["Scene"],
-        tooltip: getTooltip("load_object"),
-        previousStatement: null,
-        nextStatement: null,
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("scene_blocks");
+        };
 
-      // Function to update the COLOR field based on the selected model
-      const updateColorField = () => {
-        const selectedObject = this.getFieldValue("MODELS");
-        const configColors = objectColours[selectedObject];
-        const colour = Array.isArray(configColors)
-          ? configColors[0]
-          : configColors || defaultColour;
-        const colorInput = this.getInput("COLOR");
-        const colorField = colorInput.connection.targetBlock();
-        if (colorField) {
-          colorField.setFieldValue(colour, "COLOR"); // Update COLOR field
-        }
-      };
+        Blockly.Blocks["load_multi_object"] = {
+                init: function () {
+                        const variableNamePrefix = "object";
+                        let nextVariableName =
+                                variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
-      updateColorField();
+                        this.jsonInit({
+                                message0: translate("load_multi_object"),
+                                args0: [
+                                        {
+                                                type: "field_variable",
+                                                name: "ID_VAR",
+                                                variable: nextVariableName,
+                                        },
+                                        {
+                                                type: "field_grid_dropdown",
+                                                name: "MODELS",
+                                                columns: 6,
+                                                options: multiObjectNames.map((name) => {
+                                                        const baseName = name.replace(/\.[^/.]+$/, "");
+                                                        return [
+                                                                {
+                                                                        src: `${flock.imagePath}/${baseName}.png`,
+                                                                        width: 50,
+                                                                        height: 50,
+                                                                        alt: baseName,
+                                                                },
+                                                                name,
+                                                        ];
+                                                }),
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "SCALE",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "X",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Y",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Z",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "COLORS",
+                                                check: "Array",
+                                        },
+                                ],
+                                inputsInline: true,
+                                colour: categoryColours["Scene"],
+                                tooltip: getTooltip("load_multi_object"),
+                                previousStatement: null,
+                                nextStatement: null,
+                        });
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("scene_blocks");
 
-      registerBlockHandler(this, (changeEvent) => {
-        if (
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
-          changeEvent.element === "field" &&
-          changeEvent.name === "MODELS" &&
-          changeEvent.blockId === this.id
-        ) {
-          updateColorField();
-        }
+                        // Change from a local constant to a method on the block prototype
+                        Blockly.Blocks["load_multi_object"].updateColorsField =
+                                function () {
+                                        const selectedObject = this.getFieldValue("MODELS");
+                                        const colours = objectColours[selectedObject] || [
+                                                "#000000",
+                                                "#FFFFFF",
+                                                "#CCCCCC",
+                                        ];
+                                        const requiredItemCount = colours.length;
+                                        const colorsInput = this.getInput("COLORS");
+                                        let listBlock = colorsInput.connection?.targetBlock();
 
-        handleBlockChange(this, changeEvent, variableNamePrefix);
+                                        // Create a mutation element with the correct number of items.
+                                        const mutation = document.createElement("mutation");
+                                        mutation.setAttribute("items", requiredItemCount);
 
-        if (
-          this.id !== changeEvent.blockId &&
-          changeEvent.type !== Blockly.Events.BLOCK_CHANGE
-        )
-          return;
-        if (handleMeshLifecycleChange(this, changeEvent)) return;
-        // if (handleFieldOrChildChange(this, changeEvent)) return;
-      });
+                                        if (listBlock && listBlock.type === "lists_create_with") {
+                                                // Apply the mutation to update the block's inputs.
+                                                listBlock.domToMutation(mutation);
 
-      addDoMutatorWithToggleBehavior(this);
-    },
-  };
+                                                // Remove any extra inputs beyond the required count.
+                                                listBlock.inputList
+                                                        .filter(
+                                                                (input) =>
+                                                                        input.name && input.name.startsWith("ADD"),
+                                                        )
+                                                        .forEach((input) => {
+                                                                const index = parseInt(input.name.substring(3));
+                                                                if (index >= requiredItemCount) {
+                                                                        listBlock.removeInput(input.name);
+                                                                }
+                                                        });
 
-  Blockly.Blocks["load_multi_object"] = {
-    init: function () {
-      const variableNamePrefix = "object";
-      let nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+                                                // For each required input, update or create its shadow colour block.
+                                                for (let i = 0; i < requiredItemCount; i++) {
+                                                        let input = listBlock.getInput("ADD" + i);
+                                                        if (!input) {
+                                                                input = listBlock
+                                                                        .appendValueInput("ADD" + i)
+                                                                        .setCheck("Colour");
+                                                        }
+                                                        let shadowBlock = input.connection?.targetBlock();
+                                                        if (!shadowBlock || !shadowBlock.isShadow()) {
+                                                                shadowBlock =
+                                                                        listBlock.workspace.newBlock("colour");
+                                                                shadowBlock.setFieldValue(
+                                                                        colours[i] || "#000000",
+                                                                        "COLOR",
+                                                                );
+                                                                shadowBlock.setShadow(true);
+                                                                shadowBlock.initSvg();
+                                                                input.connection.connect(
+                                                                        shadowBlock.outputConnection,
+                                                                );
+                                                        } else {
+                                                                shadowBlock.setFieldValue(
+                                                                        colours[i] || "#000000",
+                                                                        "COLOR",
+                                                                );
+                                                        }
+                                                }
+                                                listBlock.initSvg();
+                                                listBlock.render();
+                                        } else if (!listBlock) {
+                                                // Create a new list block.
+                                                listBlock =
+                                                        this.workspace.newBlock("lists_create_with");
+                                                listBlock.setShadow(true);
+                                                listBlock.domToMutation(mutation);
+                                                for (let i = 0; i < requiredItemCount; i++) {
+                                                        let input = listBlock.getInput("ADD" + i);
+                                                        if (!input) {
+                                                                input = listBlock
+                                                                        .appendValueInput("ADD" + i)
+                                                                        .setCheck("Colour");
+                                                        }
+                                                        const shadowBlock =
+                                                                listBlock.workspace.newBlock("colour");
+                                                        shadowBlock.setFieldValue(
+                                                                colours[i] || "#000000",
+                                                                "COLOR",
+                                                        );
+                                                        shadowBlock.setShadow(true);
+                                                        shadowBlock.initSvg();
+                                                        input.connection.connect(
+                                                                shadowBlock.outputConnection,
+                                                        );
+                                                }
+                                                listBlock.setInputsInline(true);
+                                                listBlock.setTooltip(
+                                                        Blockly.Msg["LISTS_CREATE_WITH_TOOLTIP"] ||
+                                                                "Create a list of colours.",
+                                                );
+                                                listBlock.setHelpUrl(
+                                                        "https://developers.google.com/blockly/guides/create-custom-blocks/define-blocks",
+                                                );
 
-      this.jsonInit({
-        message0: translate("load_multi_object"),
-        args0: [
-          {
-            type: "field_variable",
-            name: "ID_VAR",
-            variable: nextVariableName,
-          },
-          {
-            type: "field_grid_dropdown",
-            name: "MODELS",
-            columns: 6,
-            options: multiObjectNames.map((name) => {
-              const baseName = name.replace(/\.[^/.]+$/, "");
-              return [
-                {
-                  src: `${flock.imagePath}/${baseName}.png`,
-                  width: 50,
-                  height: 50,
-                  alt: baseName,
+                                                listBlock.initSvg();
+                                                listBlock.render();
+                                                colorsInput.connection.connect(
+                                                        listBlock.outputConnection,
+                                                );
+                                        }
+                                };
+
+                        Blockly.Blocks["load_multi_object"].updateColorAtIndex = function (
+                                colour,
+                                colourIndex,
+                        ) {
+                                const colorsInput = this.getInput("COLORS");
+                                if (!colorsInput || !colorsInput.connection) {
+                                        return;
+                                }
+                                const listBlock = colorsInput.connection.targetBlock();
+                                if (!listBlock || listBlock.type !== "lists_create_with") {
+                                        console.log("List block not found or of incorrect type.");
+                                        return;
+                                }
+
+                                const inputName = "ADD" + colourIndex;
+                                let input = listBlock.getInput(inputName);
+                                if (!input) {
+                                        //input = listBlock.appendValueInput(inputName).setCheck("Colour");
+                                        return;
+                                }
+
+                                let shadowBlock = input.connection?.targetBlock();
+                                if (!shadowBlock || !shadowBlock.isShadow()) {
+                                        shadowBlock = listBlock.workspace.newBlock("colour");
+                                        shadowBlock.setShadow(true);
+                                        shadowBlock.initSvg();
+                                        input.connection.connect(shadowBlock.outputConnection);
+                                }
+
+                                shadowBlock.setFieldValue(colour, "COLOR");
+                                shadowBlock.render();
+                                listBlock.render();
+                        };
+
+                        registerBlockHandler(this, (changeEvent) => {
+                                // PRIORITY: Handle MODELS field change first (before other handlers can return early)
+                                if (
+                                        changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+                                        changeEvent.element === "field" &&
+                                        changeEvent.name === "MODELS" &&
+                                        changeEvent.blockId === this.id
+                                ) {
+                                        const blockInWorkspace =
+                                                Blockly.getMainWorkspace().getBlockById(this.id);
+                                        if (blockInWorkspace) {
+                                                this.updateColorsField();
+                                        }
+                                        // Don't return here - let other handlers process this event too
+                                }
+
+                                handleBlockCreateEvent(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                        nextVariableIndexes,
+                                );
+
+                                // Always handle mesh lifecycle if the event targets this block,
+                                // or when this block is part of a snippet creation (its id is in changeEvent.ids).
+                                const isThisBlockCreated =
+                                        changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+                                        Array.isArray(changeEvent.ids) &&
+                                        changeEvent.ids.includes(this.id);
+                                if (changeEvent.blockId === this.id || isThisBlockCreated) {
+                                        if (handleMeshLifecycleChange(this, changeEvent)) return;
+                                }
+
+                                // For attached children or value inputs
+                                if (
+                                        handleParentLinkedUpdate(this, changeEvent) ||
+                                        handleFieldOrChildChange(this, changeEvent)
+                                ) {
+                                        return;
+                                }
+                        });
+
+                        addDoMutatorWithToggleBehavior(this);
                 },
-                name,
-              ];
-            }),
-          },
-          {
-            type: "input_value",
-            name: "SCALE",
-            check: "Number",
-          },
-          {
-            type: "input_value",
-            name: "X",
-            check: "Number",
-          },
-          {
-            type: "input_value",
-            name: "Y",
-            check: "Number",
-          },
-          {
-            type: "input_value",
-            name: "Z",
-            check: "Number",
-          },
-          {
-            type: "input_value",
-            name: "COLORS",
-            check: "Array",
-          },
-        ],
-        inputsInline: true,
-        colour: categoryColours["Scene"],
-        tooltip: getTooltip("load_multi_object"),
-        previousStatement: null,
-        nextStatement: null,
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("scene_blocks");
+        };
 
-      // Change from a local constant to a method on the block prototype
-      Blockly.Blocks["load_multi_object"].updateColorsField = function () {
-        const selectedObject = this.getFieldValue("MODELS");
-        const colours = objectColours[selectedObject] || [
-          "#000000",
-          "#FFFFFF",
-          "#CCCCCC",
-        ];
-        const requiredItemCount = colours.length;
-        const colorsInput = this.getInput("COLORS");
-        let listBlock = colorsInput.connection?.targetBlock();
+        Blockly.Blocks["load_model"] = {
+                init: function () {
+                        const variableNamePrefix = "model";
+                        let nextVariableName =
+                                variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "model1"
 
-        // Create a mutation element with the correct number of items.
-        const mutation = document.createElement("mutation");
-        mutation.setAttribute("items", requiredItemCount);
+                        this.jsonInit({
+                                message0: translate("load_model"),
+                                args0: [
+                                        {
+                                                type: "field_variable",
+                                                name: "ID_VAR",
+                                                variable: nextVariableName,
+                                        },
+                                        {
+                                                type: "field_grid_dropdown",
+                                                name: "MODELS",
+                                                columns: 6,
+                                                options: modelNames.map((name) => {
+                                                        const baseName = name.replace(/\.[^/.]+$/, "");
+                                                        return [
+                                                                {
+                                                                        src: `${flock.imagePath}${baseName}.png`,
+                                                                        width: 50,
+                                                                        height: 50,
+                                                                        alt: baseName,
+                                                                },
+                                                                name,
+                                                        ];
+                                                }),
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "SCALE",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "X",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Y",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Z",
+                                                check: "Number",
+                                        },
+                                ],
+                                inputsInline: true,
+                                colour: categoryColours["Scene"],
+                                tooltip: getTooltip("load_model"),
+                                previousStatement: null,
+                                nextStatement: null,
+                        });
 
-        if (listBlock && listBlock.type === "lists_create_with") {
-          // Apply the mutation to update the block's inputs.
-          listBlock.domToMutation(mutation);
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("scene_blocks");
 
-          // Remove any extra inputs beyond the required count.
-          listBlock.inputList
-            .filter((input) => input.name && input.name.startsWith("ADD"))
-            .forEach((input) => {
-              const index = parseInt(input.name.substring(3));
-              if (index >= requiredItemCount) {
-                listBlock.removeInput(input.name);
-              }
-            });
+                        registerBlockHandler(this, (changeEvent) => {
+                                handleBlockCreateEvent(
+                                        this,
+                                        changeEvent,
+                                        variableNamePrefix,
+                                        nextVariableIndexes,
+                                );
 
-          // For each required input, update or create its shadow colour block.
-          for (let i = 0; i < requiredItemCount; i++) {
-            let input = listBlock.getInput("ADD" + i);
-            if (!input) {
-              input = listBlock.appendValueInput("ADD" + i).setCheck("Colour");
-            }
-            let shadowBlock = input.connection?.targetBlock();
-            if (!shadowBlock || !shadowBlock.isShadow()) {
-              shadowBlock = listBlock.workspace.newBlock("colour");
-              shadowBlock.setFieldValue(colours[i] || "#000000", "COLOR");
-              shadowBlock.setShadow(true);
-              shadowBlock.initSvg();
-              input.connection.connect(shadowBlock.outputConnection);
-            } else {
-              shadowBlock.setFieldValue(colours[i] || "#000000", "COLOR");
-            }
-          }
-          listBlock.initSvg();
-          listBlock.render();
-        } else if (!listBlock) {
-          // Create a new list block.
-          listBlock = this.workspace.newBlock("lists_create_with");
-          listBlock.setShadow(true);
-          listBlock.domToMutation(mutation);
-          for (let i = 0; i < requiredItemCount; i++) {
-            let input = listBlock.getInput("ADD" + i);
-            if (!input) {
-              input = listBlock.appendValueInput("ADD" + i).setCheck("Colour");
-            }
-            const shadowBlock = listBlock.workspace.newBlock("colour");
-            shadowBlock.setFieldValue(colours[i] || "#000000", "COLOR");
-            shadowBlock.setShadow(true);
-            shadowBlock.initSvg();
-            input.connection.connect(shadowBlock.outputConnection);
-          }
-          listBlock.setInputsInline(true);
-          listBlock.setTooltip(
-            Blockly.Msg["LISTS_CREATE_WITH_TOOLTIP"] ||
-              "Create a list of colours.",
-          );
-          listBlock.setHelpUrl(
-            "https://developers.google.com/blockly/guides/create-custom-blocks/define-blocks",
-          );
+                                const isThisBlockCreated =
+                                        changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+                                        Array.isArray(changeEvent.ids) &&
+                                        changeEvent.ids.includes(this.id);
+                                if (
+                                        this.id !== changeEvent.blockId &&
+                                        changeEvent.type !== Blockly.Events.BLOCK_CHANGE &&
+                                        !isThisBlockCreated
+                                )
+                                        return;
 
-          listBlock.initSvg();
-          listBlock.render();
-          colorsInput.connection.connect(listBlock.outputConnection);
-        }
-      };
+                                if (handleMeshLifecycleChange(this, changeEvent)) return;
+                                if (handleFieldOrChildChange(this, changeEvent)) return;
+                        });
 
-      Blockly.Blocks["load_multi_object"].updateColorAtIndex = function (
-        colour,
-        colourIndex,
-      ) {
-        const colorsInput = this.getInput("COLORS");
-        if (!colorsInput || !colorsInput.connection) {
-          return;
-        }
-        const listBlock = colorsInput.connection.targetBlock();
-        if (!listBlock || listBlock.type !== "lists_create_with") {
-          console.log("List block not found or of incorrect type.");
-          return;
-        }
-
-        const inputName = "ADD" + colourIndex;
-        let input = listBlock.getInput(inputName);
-        if (!input) {
-          //input = listBlock.appendValueInput(inputName).setCheck("Colour");
-          return;
-        }
-
-        let shadowBlock = input.connection?.targetBlock();
-        if (!shadowBlock || !shadowBlock.isShadow()) {
-          shadowBlock = listBlock.workspace.newBlock("colour");
-          shadowBlock.setShadow(true);
-          shadowBlock.initSvg();
-          input.connection.connect(shadowBlock.outputConnection);
-        }
-
-        shadowBlock.setFieldValue(colour, "COLOR");
-        shadowBlock.render();
-        listBlock.render();
-      };
-
-      registerBlockHandler(this, (changeEvent) => {
-        // PRIORITY: Handle MODELS field change first (before other handlers can return early)
-        if (
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
-          changeEvent.element === "field" &&
-          changeEvent.name === "MODELS" &&
-          changeEvent.blockId === this.id
-        ) {
-          const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id,
-          );
-          if (blockInWorkspace) {
-            this.updateColorsField();
-          }
-          // Don't return here - let other handlers process this event too
-        }
-
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-        );
-
-        // Always handle mesh lifecycle if the event targets this block
-        if (changeEvent.blockId === this.id) {
-          if (handleMeshLifecycleChange(this, changeEvent)) return;
-        }
-
-        // For attached children or value inputs
-        if (
-          handleParentLinkedUpdate(this, changeEvent) ||
-          handleFieldOrChildChange(this, changeEvent)
-        ) {
-          return;
-        }
-      });
-
-      addDoMutatorWithToggleBehavior(this);
-    },
-  };
-
-  Blockly.Blocks["load_model"] = {
-    init: function () {
-      const variableNamePrefix = "model";
-      let nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "model1"
-
-      this.jsonInit({
-        message0: translate("load_model"),
-        args0: [
-          {
-            type: "field_variable",
-            name: "ID_VAR",
-            variable: nextVariableName,
-          },
-          {
-            type: "field_grid_dropdown",
-            name: "MODELS",
-            columns: 6,
-            options: modelNames.map((name) => {
-              const baseName = name.replace(/\.[^/.]+$/, "");
-              return [
-                {
-                  src: `${flock.imagePath}${baseName}.png`,
-                  width: 50,
-                  height: 50,
-                  alt: baseName,
+                        addDoMutatorWithToggleBehavior(this);
                 },
                 name,
               ];
