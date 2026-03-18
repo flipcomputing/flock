@@ -10,38 +10,38 @@ let manifoldInitPromise = null;
 async function getManifold() {
   if (manifoldModule) return manifoldModule;
   if (manifoldInitPromise) return manifoldInitPromise;
-
+  
   manifoldInitPromise = (async () => {
     try {
       // Load with explicit WASM location using the correct base path
       // Ensure base URL ends with a slash
-      let baseUrl = import.meta.env.BASE_URL || "/";
-      if (!baseUrl.endsWith("/")) baseUrl += "/";
-
+      let baseUrl = import.meta.env.BASE_URL || '/';
+      if (!baseUrl.endsWith('/')) baseUrl += '/';
+      
       const wasm = await Module({
         locateFile: (file) => {
-          if (file.endsWith(".wasm")) {
+          if (file.endsWith('.wasm')) {
             // Use base URL for both dev and production (GitHub Pages)
             return `${baseUrl}wasm/manifold.wasm`;
           }
           return file;
-        },
+        }
       });
-
+      
       // Setup is required for manifold-3d
       if (wasm.setup) {
         wasm.setup();
       }
-
+      
       manifoldModule = wasm;
       return wasm;
     } catch (e) {
-      console.error("[Manifold] Failed to initialize WASM:", e);
+      console.error('[Manifold] Failed to initialize WASM:', e);
       manifoldInitPromise = null; // Reset so it can be retried
       throw e;
     }
   })();
-
+  
   return manifoldInitPromise;
 }
 
@@ -56,18 +56,16 @@ export function setFlockReference(ref) {
 function convertPathToPolygons(path, curveSegments = 12) {
   const polygons = [];
   let currentContour = [];
-  let lastX = 0,
-    lastY = 0;
-  let startX = 0,
-    startY = 0;
-
+  let lastX = 0, lastY = 0;
+  let startX = 0, startY = 0;
+  
   const commands = path.commands;
-
+  
   for (let i = 0; i < commands.length; i++) {
     const cmd = commands[i];
-
+    
     switch (cmd.type) {
-      case "M": // Move to
+      case 'M': // Move to
         if (currentContour.length >= 3) {
           polygons.push(currentContour);
         }
@@ -77,54 +75,46 @@ function convertPathToPolygons(path, curveSegments = 12) {
         startX = cmd.x;
         startY = cmd.y;
         break;
-
-      case "L": // Line to
+        
+      case 'L': // Line to
         currentContour.push([cmd.x, -cmd.y]);
         lastX = cmd.x;
         lastY = cmd.y;
         break;
-
-      case "Q": // Quadratic bezier curve
+        
+      case 'Q': // Quadratic bezier curve
         for (let t = 1; t <= curveSegments; t++) {
           const tNorm = t / curveSegments;
           const tInv = 1 - tNorm;
           // Quadratic bezier: P = (1-t)²P0 + 2(1-t)tP1 + t²P2
-          const x =
-            tInv * tInv * lastX +
-            2 * tInv * tNorm * cmd.x1 +
-            tNorm * tNorm * cmd.x;
-          const y =
-            tInv * tInv * lastY +
-            2 * tInv * tNorm * cmd.y1 +
-            tNorm * tNorm * cmd.y;
+          const x = tInv * tInv * lastX + 2 * tInv * tNorm * cmd.x1 + tNorm * tNorm * cmd.x;
+          const y = tInv * tInv * lastY + 2 * tInv * tNorm * cmd.y1 + tNorm * tNorm * cmd.y;
           currentContour.push([x, -y]);
         }
         lastX = cmd.x;
         lastY = cmd.y;
         break;
-
-      case "C": // Cubic bezier curve
+        
+      case 'C': // Cubic bezier curve
         for (let t = 1; t <= curveSegments; t++) {
           const tNorm = t / curveSegments;
           const tInv = 1 - tNorm;
           // Cubic bezier: P = (1-t)³P0 + 3(1-t)²tP1 + 3(1-t)t²P2 + t³P3
-          const x =
-            tInv * tInv * tInv * lastX +
-            3 * tInv * tInv * tNorm * cmd.x1 +
-            3 * tInv * tNorm * tNorm * cmd.x2 +
-            tNorm * tNorm * tNorm * cmd.x;
-          const y =
-            tInv * tInv * tInv * lastY +
-            3 * tInv * tInv * tNorm * cmd.y1 +
-            3 * tInv * tNorm * tNorm * cmd.y2 +
-            tNorm * tNorm * tNorm * cmd.y;
+          const x = tInv * tInv * tInv * lastX + 
+                    3 * tInv * tInv * tNorm * cmd.x1 + 
+                    3 * tInv * tNorm * tNorm * cmd.x2 + 
+                    tNorm * tNorm * tNorm * cmd.x;
+          const y = tInv * tInv * tInv * lastY + 
+                    3 * tInv * tInv * tNorm * cmd.y1 + 
+                    3 * tInv * tNorm * tNorm * cmd.y2 + 
+                    tNorm * tNorm * tNorm * cmd.y;
           currentContour.push([x, -y]);
         }
         lastX = cmd.x;
         lastY = cmd.y;
         break;
-
-      case "Z": // Close path
+        
+      case 'Z': // Close path
         if (currentContour.length >= 3) {
           polygons.push(currentContour);
         }
@@ -134,12 +124,12 @@ function convertPathToPolygons(path, curveSegments = 12) {
         break;
     }
   }
-
+  
   // Don't forget any remaining contour
   if (currentContour.length >= 3) {
     polygons.push(currentContour);
   }
-
+  
   return polygons;
 }
 
@@ -162,69 +152,73 @@ function polygonArea(polygon) {
  * This produces guaranteed watertight geometry suitable for CSG operations.
  */
 async function createManifoldTextMesh(text, fontUrl, options = {}) {
-  const { size = 50, depth = 1, curveSegments = 12 } = options;
-
+  const {
+    size = 50,
+    depth = 1,
+    curveSegments = 12
+  } = options;
+  
   const wasm = await getManifold();
   const { CrossSection } = wasm;
-
+  
   // Load font - handle both URL and already-loaded font
   let font;
-  if (typeof fontUrl === "string") {
+  if (typeof fontUrl === 'string') {
     font = await opentype.load(fontUrl);
   } else {
     font = fontUrl;
   }
-
+  
   // Get the path from the font
   // Scale factor: opentype uses 72 units per em by default
   const fontPath = font.getPath(text, 0, 0, size);
-
+  
   // Convert to polygons
   const polygons = convertPathToPolygons(fontPath, curveSegments);
-
+  
   if (polygons.length === 0) {
-    throw new Error("No valid polygons generated from text");
+    throw new Error('No valid polygons generated from text');
   }
-
+  
   // Manifold CrossSection requires positive area (counter-clockwise winding) for outer contours
   // and negative area (clockwise) for holes. Reverse our polygons to fix winding.
-  const correctedPolygons = polygons.map((poly) => [...poly].reverse());
-
+  const correctedPolygons = polygons.map(poly => [...poly].reverse());
+  
   let manifoldMesh = null;
-
+  
   try {
     // Create CrossSection - it handles polygons with holes automatically
     const crossSection = new CrossSection(correctedPolygons);
-
+    
     // Extrude to create 3D manifold mesh
     manifoldMesh = crossSection.extrude(depth);
-
+    
     // Get mesh data
     const meshData = manifoldMesh.getMesh();
-
+    
     // Extract vertex positions and triangle indices
     const vertPos = meshData.vertProperties;
     const triVerts = meshData.triVerts;
     const numProp = meshData.numProp;
-
+    
     // Convert to flat arrays for Babylon.js
     const positions = [];
     const indices = [];
-
+    
     // vertProperties is a flat array with numProp values per vertex
     for (let i = 0; i < vertPos.length; i += numProp) {
       positions.push(vertPos[i], vertPos[i + 1], vertPos[i + 2]);
     }
-
+    
     // triVerts is already a flat array of indices
     for (let i = 0; i < triVerts.length; i++) {
       indices.push(triVerts[i]);
     }
-
+    
     // Clean up Manifold objects
     manifoldMesh.delete();
     crossSection.delete();
-
+    
     return { positions, indices };
   } catch (e) {
     if (manifoldMesh) manifoldMesh.delete();
@@ -629,7 +623,7 @@ export const flockShapes = {
 
     flock.setMaterialWithCleanup(newPlane, {
       color: color,
-      materialName: "none.png",
+      materialName: "none.png"
     });
 
     newPlane.metadata.blockKey = blockKey;
@@ -665,60 +659,59 @@ export const flockShapes = {
     const loadPromise = new Promise(async (resolve, reject) => {
       try {
         let mesh;
-
+        
         if (useManifold) {
           // Use Manifold-based text generation for guaranteed watertight geometry
           try {
+            
             // Get TTF/OTF font URL - convert JSON font path to TTF if needed
             let fontUrl = font;
-            if (font.endsWith(".json")) {
+            if (font.endsWith('.json')) {
               // Use FreeSans Bold as default TTF font for manifold text (matches original)
-              fontUrl = "fonts/FreeSansBold.ttf";
+              fontUrl = 'fonts/FreeSansBold.ttf';
             }
-
+            
             // Use size directly - manifold will work with scene units
             const scaledSize = size;
-
+            
             const meshData = await createManifoldTextMesh(text, fontUrl, {
               size: scaledSize,
               depth: depth,
-              curveSegments: 12,
+              curveSegments: 12
             });
-
+            
             // Create Babylon.js mesh from manifold data
             mesh = new flock.BABYLON.Mesh(modelId, flock.scene);
             const vertexData = new flock.BABYLON.VertexData();
-
+            
             vertexData.positions = meshData.positions;
             vertexData.indices = meshData.indices;
-
+            
             // Compute normals
             const normals = [];
             flock.BABYLON.VertexData.ComputeNormals(
               meshData.positions,
               meshData.indices,
-              normals,
+              normals
             );
             vertexData.normals = normals;
-
+            
             // Center the positions on X and Z before applying to mesh
             // Y stays at base (already correct from manifold creation)
             const positions = meshData.positions;
-            let minX = Infinity,
-              maxX = -Infinity;
-            let minZ = Infinity,
-              maxZ = -Infinity;
-
+            let minX = Infinity, maxX = -Infinity;
+            let minZ = Infinity, maxZ = -Infinity;
+            
             for (let i = 0; i < positions.length; i += 3) {
               minX = Math.min(minX, positions[i]);
               maxX = Math.max(maxX, positions[i]);
               minZ = Math.min(minZ, positions[i + 2]);
               maxZ = Math.max(maxZ, positions[i + 2]);
             }
-
+            
             const centerX = (minX + maxX) / 2;
             const centerZ = (minZ + maxZ) / 2;
-
+            
             // Offset positions to center on X and Z
             const centeredPositions = new Float32Array(positions.length);
             for (let i = 0; i < positions.length; i += 3) {
@@ -726,21 +719,19 @@ export const flockShapes = {
               centeredPositions[i + 1] = positions[i + 1]; // Y unchanged
               centeredPositions[i + 2] = positions[i + 2] - centerZ;
             }
-
+            
             vertexData.positions = centeredPositions;
             vertexData.applyToMesh(mesh);
-
+            
             // Flip faces to ensure correct orientation for CSG operations
             mesh.flipFaces();
+            
           } catch (manifoldError) {
-            console.warn(
-              "[create3DText] Manifold approach failed, falling back to standard:",
-              manifoldError.message,
-            );
+            console.warn('[create3DText] Manifold approach failed, falling back to standard:', manifoldError.message);
             useManifold = false;
           }
         }
-
+        
         if (!useManifold) {
           // Fall back to standard Babylon.js CreateText
           const fontData = await (await fetch(font)).json();
@@ -756,10 +747,11 @@ export const flockShapes = {
             flock.scene,
             earcut,
           );
+
         }
 
         if (!mesh) {
-          reject(new Error("CreateText returned null"));
+          reject(new Error('CreateText returned null'));
           return;
         }
 

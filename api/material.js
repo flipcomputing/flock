@@ -293,16 +293,15 @@ export const flockMaterial = {
         const currentMat = m.material;
         const color = glowColor
           ? flock.getColorFromString(glowColor)
-          : currentMat.diffuseColor
-            ? "#" + currentMat.diffuseColor.toHexString().slice(1)
-            : currentMat.albedoColor
-              ? "#" + currentMat.albedoColor.toHexString().slice(1)
-              : "#ffffff";
+          : (currentMat.diffuseColor
+              ? "#" + currentMat.diffuseColor.toHexString().slice(1)
+              : (currentMat.albedoColor
+                  ? "#" + currentMat.albedoColor.toHexString().slice(1)
+                  : "#ffffff"));
 
         const materialParams = {
           color: color,
-          materialName:
-            currentMat.metadata?.cacheKey?.split("_")[3] || "none.png",
+          materialName: currentMat.metadata?.cacheKey?.split("_")[3] || "none.png",
           alpha: currentMat.alpha ?? 1,
           glow: true,
         };
@@ -357,7 +356,9 @@ export const flockMaterial = {
 
           if (nextMesh.material) {
             nextMesh.material.transparencyMode =
-              value < 1 ? flock.BABYLON.Material.MATERIAL_ALPHABLEND : null;
+              value < 1
+                ? flock.BABYLON.Material.MATERIAL_ALPHABLEND
+                : null;
             nextMesh.material.needDepthPrePass = value > 0 && value < 1;
           }
         });
@@ -375,14 +376,13 @@ export const flockMaterial = {
             const currentMat = targetMesh.material;
             const color = currentMat.diffuseColor
               ? "#" + currentMat.diffuseColor.toHexString().slice(1)
-              : currentMat.albedoColor
-                ? "#" + currentMat.albedoColor.toHexString().slice(1)
-                : "#ffffff";
+              : (currentMat.albedoColor
+                  ? "#" + currentMat.albedoColor.toHexString().slice(1)
+                  : "#ffffff");
 
             const materialParams = {
               color: color,
-              materialName:
-                currentMat.metadata?.cacheKey?.split("_")[3] || "none.png",
+              materialName: currentMat.metadata?.cacheKey?.split("_")[3] || "none.png",
               alpha: 1,
               glow: false,
             };
@@ -670,7 +670,7 @@ export const flockMaterial = {
         const trimmed = input.trim();
         if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
           try {
-            return JSON.parse(trimmed.replace(/'/g, '"'));
+            return JSON.parse(trimmed.replace(/'/g, "\""));
           } catch {
             return input;
           }
@@ -1076,9 +1076,7 @@ export const flockMaterial = {
     // Apply glow properties if enabled
     if (glow && material.emissiveColor !== undefined) {
       const emissiveColor = color
-        ? flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(Array.isArray(color) ? color[0] : color),
-          )
+        ? flock.BABYLON.Color3.FromHexString(flock.getColorFromString(Array.isArray(color) ? color[0] : color))
         : flock.BABYLON.Color3.White();
       material.emissiveColor = emissiveColor;
       material.emissiveIntensity = 1.0;
@@ -1488,8 +1486,7 @@ export const flockMaterial = {
             : colorInput.alpha !== undefined
               ? colorInput.alpha
               : alpha;
-        finalGlow =
-          inner.glow !== undefined ? inner.glow : (colorInput.glow ?? false);
+        finalGlow = inner.glow !== undefined ? inner.glow : (colorInput.glow ?? false);
       } else {
         rawColor = inner || "#ffffff";
         texName =
@@ -1504,8 +1501,7 @@ export const flockMaterial = {
     const colorKey = Array.isArray(rawColor) ? rawColor.join("-") : rawColor;
     const alphaKey = parseFloat(finalAlpha).toFixed(2);
     const glowKey = finalGlow ? "glow" : "noglow";
-    const cacheKey =
-      `mat_${colorKey}_${alphaKey}_${texName}_${glowKey}`.toLowerCase();
+    const cacheKey = `mat_${colorKey}_${alphaKey}_${texName}_${glowKey}`.toLowerCase();
 
     if (!flock.materialCache) flock.materialCache = {};
     if (flock.materialCache[cacheKey]) return flock.materialCache[cacheKey];

@@ -13,12 +13,7 @@
  * @param {number} sampleRate - Sample rate (default: 44100)
  * @returns {AudioBuffer} - Generated audio buffer
  */
-export function generateTestTone(
-  audioContext,
-  frequency,
-  duration,
-  sampleRate = 44100,
-) {
+export function generateTestTone(audioContext, frequency, duration, sampleRate = 44100) {
   const numSamples = duration * sampleRate;
   const audioBuffer = audioContext.createBuffer(1, numSamples, sampleRate);
   const channelData = audioBuffer.getChannelData(0);
@@ -67,29 +62,21 @@ export async function audioBufferToBlob(audioBuffer) {
       }
     };
 
-    writeString("RIFF");
-    view.setUint32(pos, 36, true);
-    pos += 4; // File size - 8
-    writeString("WAVE");
-    writeString("fmt ");
-    view.setUint32(pos, 16, true);
-    pos += 4;
-    view.setUint16(pos, 1, true);
-    pos += 2; // PCM
-    view.setUint16(pos, numOfChannels, true);
-    pos += 2;
-    view.setUint32(pos, audioBuffer.sampleRate, true);
-    pos += 4;
-    view.setUint32(pos, audioBuffer.sampleRate * 2 * numOfChannels, true);
-    pos += 4;
-    view.setUint16(pos, numOfChannels * 2, true);
-    pos += 2;
-    view.setUint16(pos, 16, true);
-    pos += 2;
-    writeString("data");
+    writeString('RIFF');
+    view.setUint32(pos, 36, true); pos += 4; // File size - 8
+    writeString('WAVE');
+    writeString('fmt ');
+    view.setUint32(pos, 16, true); pos += 4;
+    view.setUint16(pos, 1, true); pos += 2; // PCM
+    view.setUint16(pos, numOfChannels, true); pos += 2;
+    view.setUint32(pos, audioBuffer.sampleRate, true); pos += 4;
+    view.setUint32(pos, audioBuffer.sampleRate * 2 * numOfChannels, true); pos += 4;
+    view.setUint16(pos, numOfChannels * 2, true); pos += 2;
+    view.setUint16(pos, 16, true); pos += 2;
+    writeString('data');
     view.setUint32(pos, 0, true); // Zero data length
 
-    return new Blob([buffer], { type: "audio/wav" });
+    return new Blob([buffer], { type: 'audio/wav' });
   }
 
   const buffer = new ArrayBuffer(44 + length);
@@ -105,28 +92,19 @@ export async function audioBufferToBlob(audioBuffer) {
     }
   };
 
-  writeString("RIFF");
-  view.setUint32(pos, 36 + length, true);
-  pos += 4;
-  writeString("WAVE");
-  writeString("fmt ");
-  view.setUint32(pos, 16, true);
-  pos += 4; // fmt chunk size
-  view.setUint16(pos, 1, true);
-  pos += 2; // audio format (1 = PCM)
-  view.setUint16(pos, numOfChannels, true);
-  pos += 2;
-  view.setUint32(pos, audioBuffer.sampleRate, true);
-  pos += 4;
-  view.setUint32(pos, audioBuffer.sampleRate * 2 * numOfChannels, true);
-  pos += 4;
-  view.setUint16(pos, numOfChannels * 2, true);
-  pos += 2;
-  view.setUint16(pos, 16, true);
-  pos += 2;
-  writeString("data");
-  view.setUint32(pos, length, true);
-  pos += 4;
+  writeString('RIFF');
+  view.setUint32(pos, 36 + length, true); pos += 4;
+  writeString('WAVE');
+  writeString('fmt ');
+  view.setUint32(pos, 16, true); pos += 4; // fmt chunk size
+  view.setUint16(pos, 1, true); pos += 2; // audio format (1 = PCM)
+  view.setUint16(pos, numOfChannels, true); pos += 2;
+  view.setUint32(pos, audioBuffer.sampleRate, true); pos += 4;
+  view.setUint32(pos, audioBuffer.sampleRate * 2 * numOfChannels, true); pos += 4;
+  view.setUint16(pos, numOfChannels * 2, true); pos += 2;
+  view.setUint16(pos, 16, true); pos += 2;
+  writeString('data');
+  view.setUint32(pos, length, true); pos += 4;
 
   // Write audio data
   for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
@@ -136,13 +114,13 @@ export async function audioBufferToBlob(audioBuffer) {
   while (pos < buffer.byteLength) {
     for (let i = 0; i < numOfChannels; i++) {
       const sample = Math.max(-1, Math.min(1, channels[i][offset]));
-      view.setInt16(pos, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+      view.setInt16(pos, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
       pos += 2;
     }
     offset++;
   }
 
-  return new Blob([buffer], { type: "audio/wav" });
+  return new Blob([buffer], { type: 'audio/wav' });
 }
 
 /**
@@ -223,22 +201,14 @@ export function calculateRMS(frequencyData) {
  * @param {number} threshold - Minimum magnitude threshold (default: -50)
  * @returns {boolean} - True if frequency is present
  */
-export function hasFrequency(
-  frequencyData,
-  targetFrequency,
-  sampleRate,
-  tolerance = 50,
-  threshold = -50,
-) {
+export function hasFrequency(frequencyData, targetFrequency, sampleRate, tolerance = 50, threshold = -50) {
   const binWidth = sampleRate / (2 * frequencyData.length);
   const targetBin = Math.floor(targetFrequency / binWidth);
   const toleranceBins = Math.ceil(tolerance / binWidth);
 
-  for (
-    let i = Math.max(0, targetBin - toleranceBins);
-    i <= Math.min(frequencyData.length - 1, targetBin + toleranceBins);
-    i++
-  ) {
+  for (let i = Math.max(0, targetBin - toleranceBins);
+       i <= Math.min(frequencyData.length - 1, targetBin + toleranceBins);
+       i++) {
     if (frequencyData[i] > threshold) {
       return true;
     }
@@ -272,8 +242,7 @@ export function detectClipping(audioBuffer, threshold = 0.99) {
     hasClipping: clippedCount > 0,
     clippedCount: clippedCount,
     totalSamples: totalSamples,
-    clippingPercentage:
-      totalSamples > 0 ? (clippedCount / totalSamples) * 100 : 0,
+    clippingPercentage: totalSamples > 0 ? (clippedCount / totalSamples) * 100 : 0
   };
 }
 

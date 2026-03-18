@@ -9,12 +9,10 @@ The platform combines Blockly visual programming with Babylon.js 3D rendering an
 ## Recent Changes
 
 ### March 2026
-
 - **Set Action Key Block**: Added new "set action key" block to the Sensing category (`blocks/sensing.js`) that allows users to rebind the key for any action (forward, backward, left, right, buttons 1-4). Works like the camera key setting block in Scene > Camera, with an ACTION dropdown and a KEY grid dropdown. API function `setActionKey` in `api/sensing.js` overrides the default action-to-key mapping. Registered in sandbox and SIDE_EFFECT_APIS in `flock.js`.
 - **Describe Block**: Added new "describe" block to the Text category (`blocks/text.js`) that sets a mesh's `metadata.displayName`. Takes a mesh variable and a text string. Security: text is sanitized at code-generation time via `emitSafeTextArg`/`sanitizeForCode`, and at runtime via `sanitizeInlineText` with a 256-character length limit. The `describeMesh` API function is whitelisted and guarded in the SES sandbox. Fully internationalized across all 8 supported languages.
 
 ### October 2025
-
 - **Colour Picker Internationalization**: Fully internationalized the compact colour picker component (`ui/colourpicker-compact.js`) with translations for all user-facing text including palette names, color names, UI labels, ARIA labels, and tooltips across all 7 supported languages (English, French, Spanish, Swedish, Portuguese, Polish, and German). Added approximately 80 translation keys to each locale file.
   - Fixed dynamic translation update: Added `refreshTranslations()` method to colour picker that updates all text when language changes. Integrated with `setLanguage()` function to ensure colour picker updates in real-time when users switch languages.
 - **Physics Debug Block**: Added new "show physics" block to the Physics category (`blocks/physics.js`) that allows users to toggle physics collider visualization for debugging. The block uses a checkbox to show/hide physics colliders using Babylon.js PhysicsViewer, enabling users to see the actual collision shapes used by the physics engine. Fully internationalized across all 7 supported languages.
@@ -26,7 +24,6 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### Frontend Architecture
-
 - **Visual Programming Interface**: Built on Google Blockly for drag-and-drop block programming
 - **3D Rendering**: Babylon.js engine with WebGL for real-time 3D graphics
 - **Physics Simulation**: Havok physics engine integration for realistic object interactions
@@ -34,14 +31,12 @@ Preferred communication style: Simple, everyday language.
 - **Responsive Design**: CSS-based responsive layout supporting various screen sizes
 
 ### Block System Design
-
 - **Modular Block Categories**: Organized into logical groups (Events, Scene, Animation, Materials, Physics, etc.)
 - **Custom Block Definitions**: JavaScript-based block definitions with input validation
 - **Code Generation**: Real-time JavaScript code generation from visual blocks
 - **Dynamic Block Behavior**: Blocks with toggleable inline/stacked modes and mutation capabilities
 
 ### 3D Engine Integration
-
 - **Scene Management**: Centralized scene creation and management through Babylon.js
 - **Asset Pipeline**: Support for GLB/GLTF 3D models with automatic loading and caching
 - **Material System**: PBR materials with color, texture, and property controls
@@ -49,21 +44,18 @@ Preferred communication style: Simple, everyday language.
 - **Camera System**: Multiple camera modes including free, attached, and first-person views
 
 ### Code Execution Architecture
-
 - **Runtime Environment**: Standalone JavaScript execution environment for generated code
 - **API Layer**: Comprehensive JavaScript API wrapping Babylon.js functionality
 - **Error Handling**: Graceful error handling and user-friendly error messages
 - **Performance Optimization**: Geometry caching, texture reuse, and memory management
 
 ### Asset Management
-
 - **3D Model Library**: Curated collection of CC0 3D assets from Quaternius and Kenney.nl
 - **Texture System**: Automatic UV mapping and texture application
 - **Sound Library**: Built-in audio assets with spatial audio support
 - **Resource Loading**: Asynchronous asset loading with progress indication
 
 ### Translation System
-
 - **Internationalization**: Multi-language support with translation keys
 - **Dynamic Language Switching**: Runtime language changes without page reload
 - **Extensible Translation**: Easy addition of new languages through JSON files
@@ -71,36 +63,30 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 ### Core 3D and Physics
-
 - **Babylon.js**: Primary 3D rendering engine and scene management
 - **Havok Physics**: Advanced physics simulation engine
 - **earcut**: Polygon triangulation for complex shapes
 
 ### Visual Programming
-
 - **Blockly**: Google's visual programming framework
 - **Blockly Extensions**: Additional field types and plugins for enhanced functionality
 
 ### Development and Build
-
 - **Vite**: Modern build tool and development server
 - **Node.js**: Development environment and package management
 - **ESLint**: Code quality and consistency enforcement
 
 ### Testing Framework
-
 - **Playwright**: End-to-end testing with browser automation
 - **Mocha**: Unit testing framework
 - **Chai**: Assertion library for testing
 
 ### UI and Styling
-
 - **CSS Custom Properties**: Theme system and responsive design
 - **Asap Font**: Custom web font for consistent typography
 - **Font Awesome**: Icon library for UI elements
 
 ### Asset Sources
-
 - **Quaternius**: CC0 3D model assets
 - **Kenney.nl**: Additional CC0 game assets and textures
 - **Custom Assets**: Proprietary character models and textures

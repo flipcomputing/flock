@@ -13,19 +13,19 @@ export function runSoundAPIInvestigation(flock) {
     });
 
     it("should inspect Sound object methods and properties", async function () {
-      flock.createBox("investigateBox", { x: 0, y: 0, z: 0 });
+      flock.createBox('investigateBox', { x: 0, y: 0, z: 0 });
 
-      await flock.playSound("investigateBox", {
-        soundName: "test.mp3",
+      await flock.playSound('investigateBox', {
+        soundName: 'test.mp3',
         loop: true,
-        volume: 0.5,
+        volume: 0.5
       });
 
       // Wait for sound to attach
-      const mesh = flock.scene.getMeshByName("investigateBox");
+      const mesh = flock.scene.getMeshByName('investigateBox');
       let attempts = 0;
       while (!mesh.metadata?.currentSound && attempts < 10) {
-        await new Promise((r) => setTimeout(r, 50));
+        await new Promise(r => setTimeout(r, 50));
         attempts++;
       }
 
@@ -54,7 +54,7 @@ export function runSoundAPIInvestigation(flock) {
       console.log("_attachedMesh:", sound._attachedMesh?.name);
 
       console.log("\n=== Attempting Method Calls ===");
-      if (typeof sound.getVolume === "function") {
+      if (typeof sound.getVolume === 'function') {
         try {
           const vol = sound.getVolume();
           console.log("getVolume() returned:", vol);
@@ -63,11 +63,11 @@ export function runSoundAPIInvestigation(flock) {
         }
       }
 
-      if (typeof sound.setVolume === "function") {
+      if (typeof sound.setVolume === 'function') {
         try {
           sound.setVolume(0.7);
           console.log("setVolume(0.7) succeeded");
-          if (typeof sound.getVolume === "function") {
+          if (typeof sound.getVolume === 'function') {
             console.log("New volume:", sound.getVolume());
           }
         } catch (e) {
@@ -79,13 +79,13 @@ export function runSoundAPIInvestigation(flock) {
     });
 
     it("should inspect global sound properties", async function () {
-      await flock.playSound("__everywhere__", {
-        soundName: "test.mp3",
+      await flock.playSound('__everywhere__', {
+        soundName: 'test.mp3',
         loop: true,
-        volume: 0.5,
+        volume: 0.5
       });
 
-      await new Promise((r) => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, 200));
 
       const sound = flock.globalSounds[flock.globalSounds.length - 1];
 

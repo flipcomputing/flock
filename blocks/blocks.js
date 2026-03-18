@@ -795,8 +795,7 @@ export function ensureFreshVarOnDuplicate(
 
   // Duplicate/copy/duplicate-parent case?
   const allBlocks = ws.getAllBlocks(false);
-  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS, allBlocks))
-    return false;
+  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS, allBlocks)) return false;
 
   const varType = getFieldVariableType(block, fieldName, BlocklyNS);
   const group = changeEvent.group || `auto-split-${block.id}-${Date.now()}`;
