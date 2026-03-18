@@ -11,8 +11,8 @@ import {
   findDominantFrequency,
   hasFrequency,
   isSilent,
-  calculateRMS,
-} from "./utils/audioTestUtils.js";
+  calculateRMS
+} from './utils/audioTestUtils.js';
 
 export function runSoundVerificationTests(flock) {
   describe("Sound Verification Tests @sound @slow @sound-verification", function () {
@@ -22,7 +22,7 @@ export function runSoundVerificationTests(flock) {
       const mesh = flock.scene.getMeshByName(meshName);
       let attempts = 0;
       while (!mesh.metadata?.currentSound && attempts < maxAttempts) {
-        await new Promise((r) => setTimeout(r, 50));
+        await new Promise(r => setTimeout(r, 50));
         attempts++;
       }
       return mesh;
@@ -31,8 +31,8 @@ export function runSoundVerificationTests(flock) {
     beforeEach(async function () {
       flock.stopAllSounds();
 
-      const testMeshes = ["audioTestBox", "toneTestBox", "volumeTestBox"];
-      testMeshes.forEach((meshName) => {
+      const testMeshes = ['audioTestBox', 'toneTestBox', 'volumeTestBox'];
+      testMeshes.forEach(meshName => {
         const mesh = flock.scene.getMeshByName(meshName);
         if (mesh) {
           flock.dispose(meshName);
@@ -46,11 +46,11 @@ export function runSoundVerificationTests(flock) {
 
     describe("Audio Test Utilities Verification", function () {
       it("should have audioTestUtils available", function () {
-        chai.expect(generateTestTone).to.be.a("function");
-        chai.expect(findDominantFrequency).to.be.a("function");
-        chai.expect(hasFrequency).to.be.a("function");
-        chai.expect(isSilent).to.be.a("function");
-        chai.expect(calculateRMS).to.be.a("function");
+        chai.expect(generateTestTone).to.be.a('function');
+        chai.expect(findDominantFrequency).to.be.a('function');
+        chai.expect(hasFrequency).to.be.a('function');
+        chai.expect(isSilent).to.be.a('function');
+        chai.expect(calculateRMS).to.be.a('function');
       });
 
       it("should generate test tone with known frequency", async function () {
@@ -58,11 +58,7 @@ export function runSoundVerificationTests(flock) {
         const testFrequency = 440; // A4 note
         const duration = 0.5;
 
-        const audioBuffer = generateTestTone(
-          audioContext,
-          testFrequency,
-          duration,
-        );
+        const audioBuffer = generateTestTone(audioContext, testFrequency, duration);
 
         chai.expect(audioBuffer.duration).to.be.closeTo(0.5, 0.1);
         chai.expect(audioBuffer.sampleRate).to.be.greaterThan(0);
@@ -75,11 +71,7 @@ export function runSoundVerificationTests(flock) {
         const testFrequency = 440;
         const duration = 0.2;
 
-        const audioBuffer = generateTestTone(
-          audioContext,
-          testFrequency,
-          duration,
-        );
+        const audioBuffer = generateTestTone(audioContext, testFrequency, duration);
 
         const source = audioContext.createBufferSource();
         source.buffer = audioBuffer;
@@ -91,15 +83,12 @@ export function runSoundVerificationTests(flock) {
         analyser.connect(audioContext.destination);
 
         source.start(0);
-        await new Promise((resolve) => setTimeout(resolve, 150));
+        await new Promise(resolve => setTimeout(resolve, 150));
 
         const frequencyData = new Float32Array(analyser.frequencyBinCount);
         analyser.getFloatFrequencyData(frequencyData);
 
-        const dominantFreq = findDominantFrequency(
-          frequencyData,
-          audioContext.sampleRate,
-        );
+        const dominantFreq = findDominantFrequency(frequencyData, audioContext.sampleRate);
 
         source.stop();
         await audioContext.close();
@@ -113,17 +102,17 @@ export function runSoundVerificationTests(flock) {
 
     describe("PlayNotes Audio Output Verification", function () {
       it("should generate audio when playing MIDI notes", async function () {
-        flock.createBox("toneTestBox", { x: 0, y: 0, z: 0 });
+        flock.createBox('toneTestBox', { x: 0, y: 0, z: 0 });
 
         // Play a simple note using playNotes
-        const notesPromise = flock.playNotes("toneTestBox", {
+        const notesPromise = flock.playNotes('toneTestBox', {
           notes: [60], // Middle C
           durations: [0.5],
-          instrument: flock.createInstrument("sine"),
+          instrument: flock.createInstrument('sine')
         });
 
         // Don't await yet, let it start playing
-        await new Promise((r) => setTimeout(r, 100));
+        await new Promise(r => setTimeout(r, 100));
 
         const audioContext = flock.getAudioContext();
         const analyser = audioContext.createAnalyser();
@@ -133,33 +122,33 @@ export function runSoundVerificationTests(flock) {
         const destination = audioContext.destination;
 
         // Wait a bit for audio to stabilize
-        await new Promise((r) => setTimeout(r, 100));
+        await new Promise(r => setTimeout(r, 100));
 
         // For now, just verify the promise completes
         // (actual audio capture from playNotes would require more complex routing)
-        chai.expect(notesPromise).to.be.a("promise");
+        chai.expect(notesPromise).to.be.a('promise');
       });
 
       it("should accept different MIDI note numbers", async function () {
-        flock.createBox("toneTestBox", { x: 0, y: 0, z: 0 });
+        flock.createBox('toneTestBox', { x: 0, y: 0, z: 0 });
 
         // Ensure audio context is ready
         flock.getAudioContext();
 
         // Test low note - let it complete
-        await flock.playNotes("toneTestBox", {
+        await flock.playNotes('toneTestBox', {
           notes: [36], // Low C
-          durations: [0.1],
+          durations: [0.1]
           // instrument will use default
         });
 
         // Small pause before next note
-        await new Promise((r) => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 200));
 
         // Test high note
-        await flock.playNotes("toneTestBox", {
+        await flock.playNotes('toneTestBox', {
           notes: [84], // High C
-          durations: [0.1],
+          durations: [0.1]
         });
 
         // Should complete without errors
@@ -167,12 +156,12 @@ export function runSoundVerificationTests(flock) {
       });
 
       it("should handle multiple notes in sequence", async function () {
-        flock.createBox("toneTestBox", { x: 0, y: 0, z: 0 });
+        flock.createBox('toneTestBox', { x: 0, y: 0, z: 0 });
 
-        await flock.playNotes("toneTestBox", {
+        await flock.playNotes('toneTestBox', {
           notes: [60, 64, 67], // C major chord notes in sequence
           durations: [0.1, 0.1, 0.1],
-          instrument: flock.createInstrument("sine"),
+          instrument: flock.createInstrument('sine')
         });
 
         chai.expect(true).to.be.true;
@@ -181,19 +170,19 @@ export function runSoundVerificationTests(flock) {
 
     describe("Volume Control Verification", function () {
       it("should apply volume using setVolume method", async function () {
-        flock.createBox("volumeTestBox", { x: 0, y: 0, z: 0 });
+        flock.createBox('volumeTestBox', { x: 0, y: 0, z: 0 });
 
-        await flock.playSound("volumeTestBox", {
-          soundName: "test.mp3",
+        await flock.playSound('volumeTestBox', {
+          soundName: 'test.mp3',
           volume: 1.0,
-          loop: true,
+          loop: true
         });
 
-        const mesh = await waitForSoundOnMesh("volumeTestBox");
+        const mesh = await waitForSoundOnMesh('volumeTestBox');
         const sound = mesh.metadata.currentSound;
 
         // Test setVolume method exists and works
-        chai.expect(sound.setVolume).to.be.a("function");
+        chai.expect(sound.setVolume).to.be.a('function');
 
         sound.setVolume(0.5);
         // setVolume should not throw
@@ -208,25 +197,25 @@ export function runSoundVerificationTests(flock) {
       });
 
       it("should accept volume parameter during playSound", async function () {
-        flock.createBox("volumeTestBox", { x: 0, y: 0, z: 0 });
+        flock.createBox('volumeTestBox', { x: 0, y: 0, z: 0 });
 
         // Test various volume levels
-        await flock.playSound("volumeTestBox", {
-          soundName: "test.mp3",
+        await flock.playSound('volumeTestBox', {
+          soundName: 'test.mp3',
           volume: 0.3,
-          loop: true,
+          loop: true
         });
 
-        const mesh = await waitForSoundOnMesh("volumeTestBox");
+        const mesh = await waitForSoundOnMesh('volumeTestBox');
         chai.expect(mesh.metadata.currentSound).to.not.be.undefined;
 
         flock.stopAllSounds();
-        await new Promise((r) => setTimeout(r, 100));
+        await new Promise(r => setTimeout(r, 100));
 
-        await flock.playSound("volumeTestBox", {
-          soundName: "test.mp3",
+        await flock.playSound('volumeTestBox', {
+          soundName: 'test.mp3',
           volume: 0.8,
-          loop: true,
+          loop: true
         });
 
         chai.expect(mesh.metadata.currentSound).to.not.be.undefined;
@@ -235,15 +224,15 @@ export function runSoundVerificationTests(flock) {
 
     describe("Playback Rate Verification", function () {
       it("should modify playbackRate property", async function () {
-        flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
+        flock.createBox('audioTestBox', { x: 0, y: 0, z: 0 });
 
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
+        await flock.playSound('audioTestBox', {
+          soundName: 'test.mp3',
           playbackRate: 1.0,
-          loop: true,
+          loop: true
         });
 
-        const mesh = await waitForSoundOnMesh("audioTestBox");
+        const mesh = await waitForSoundOnMesh('audioTestBox');
         const sound = mesh.metadata.currentSound;
 
         // Verify initial playback rate
@@ -258,15 +247,15 @@ export function runSoundVerificationTests(flock) {
       });
 
       it("should accept playbackRate during creation", async function () {
-        flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
+        flock.createBox('audioTestBox', { x: 0, y: 0, z: 0 });
 
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
+        await flock.playSound('audioTestBox', {
+          soundName: 'test.mp3',
           playbackRate: 2.0,
-          loop: true,
+          loop: true
         });
 
-        const mesh = await waitForSoundOnMesh("audioTestBox");
+        const mesh = await waitForSoundOnMesh('audioTestBox');
         const sound = mesh.metadata.currentSound;
 
         chai.expect(sound.playbackRate).to.equal(2.0);
@@ -275,29 +264,29 @@ export function runSoundVerificationTests(flock) {
 
     describe("Spatial vs Non-Spatial Audio", function () {
       it("should create spatial sound for mesh (has _spatial object)", async function () {
-        flock.createBox("audioTestBox", { x: 5, y: 0, z: 0 });
+        flock.createBox('audioTestBox', { x: 5, y: 0, z: 0 });
 
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
-          loop: true,
+        await flock.playSound('audioTestBox', {
+          soundName: 'test.mp3',
+          loop: true
         });
 
-        const mesh = await waitForSoundOnMesh("audioTestBox");
+        const mesh = await waitForSoundOnMesh('audioTestBox');
         const sound = mesh.metadata.currentSound;
 
         // Spatial sounds have _spatial as an object
         chai.expect(sound._spatial).to.not.be.null;
-        chai.expect(typeof sound._spatial).to.equal("object");
+        chai.expect(typeof sound._spatial).to.equal('object');
         chai.expect(sound._attachedMesh).to.equal(mesh);
       });
 
       it("should create non-spatial sound for __everywhere__ (_spatial is null)", async function () {
-        flock.playSound("__everywhere__", {
-          soundName: "test.mp3",
-          loop: true,
+        flock.playSound('__everywhere__', {
+          soundName: 'test.mp3',
+          loop: true
         });
 
-        await new Promise((r) => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 200));
 
         chai.expect(flock.globalSounds.length).to.be.greaterThan(0);
         const sound = flock.globalSounds[flock.globalSounds.length - 1];
@@ -307,72 +296,72 @@ export function runSoundVerificationTests(flock) {
       });
 
       it("should maintain _attachedMesh reference for spatial sounds", async function () {
-        flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
+        flock.createBox('audioTestBox', { x: 0, y: 0, z: 0 });
 
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
-          loop: true,
+        await flock.playSound('audioTestBox', {
+          soundName: 'test.mp3',
+          loop: true
         });
 
-        const mesh = await waitForSoundOnMesh("audioTestBox");
+        const mesh = await waitForSoundOnMesh('audioTestBox');
         const sound = mesh.metadata.currentSound;
 
         chai.expect(sound._attachedMesh).to.equal(mesh);
-        chai.expect(sound._attachedMesh.name).to.equal("audioTestBox");
+        chai.expect(sound._attachedMesh.name).to.equal('audioTestBox');
       });
     });
 
     describe("Audio Context and Buffer Access", function () {
       it("should have accessible AudioContext", async function () {
-        flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
+        flock.createBox('audioTestBox', { x: 0, y: 0, z: 0 });
 
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
-          loop: true,
+        await flock.playSound('audioTestBox', {
+          soundName: 'test.mp3',
+          loop: true
         });
 
-        const mesh = await waitForSoundOnMesh("audioTestBox");
+        const mesh = await waitForSoundOnMesh('audioTestBox');
         const sound = mesh.metadata.currentSound;
 
         chai.expect(sound._audioContext).to.not.be.undefined;
-        chai.expect(typeof sound._audioContext).to.equal("object");
+        chai.expect(typeof sound._audioContext).to.equal('object');
         chai.expect(sound._audioContext.sampleRate).to.be.greaterThan(0);
       });
 
       it("should have accessible AudioBuffer", async function () {
-        flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
+        flock.createBox('audioTestBox', { x: 0, y: 0, z: 0 });
 
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
-          loop: true,
+        await flock.playSound('audioTestBox', {
+          soundName: 'test.mp3',
+          loop: true
         });
 
-        const mesh = await waitForSoundOnMesh("audioTestBox");
+        const mesh = await waitForSoundOnMesh('audioTestBox');
         const sound = mesh.metadata.currentSound;
 
         // Wait a bit for buffer to load
         let attempts = 0;
         while (!sound._buffer && attempts < 20) {
-          await new Promise((r) => setTimeout(r, 50));
+          await new Promise(r => setTimeout(r, 50));
           attempts++;
         }
 
         chai.expect(sound._buffer).to.not.be.undefined;
         if (sound._buffer) {
-          chai.expect(typeof sound._buffer).to.equal("object");
+          chai.expect(typeof sound._buffer).to.equal('object');
           chai.expect(sound._buffer.duration).to.be.greaterThan(0);
         }
       });
 
       it("should use flock audio context", async function () {
-        flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
+        flock.createBox('audioTestBox', { x: 0, y: 0, z: 0 });
 
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
-          loop: true,
+        await flock.playSound('audioTestBox', {
+          soundName: 'test.mp3',
+          loop: true
         });
 
-        const mesh = await waitForSoundOnMesh("audioTestBox");
+        const mesh = await waitForSoundOnMesh('audioTestBox');
         const sound = mesh.metadata.currentSound;
 
         const flockContext = flock.getAudioContext();
@@ -380,9 +369,7 @@ export function runSoundVerificationTests(flock) {
         // Both should be AudioContext objects with same sample rate
         chai.expect(sound._audioContext).to.not.be.undefined;
         chai.expect(flockContext).to.not.be.undefined;
-        chai
-          .expect(sound._audioContext.sampleRate)
-          .to.equal(flockContext.sampleRate);
+        chai.expect(sound._audioContext.sampleRate).to.equal(flockContext.sampleRate);
       });
     });
 
@@ -420,26 +407,26 @@ export function runSoundVerificationTests(flock) {
     describe("Instrument Creation", function () {
       it("should create sine wave instrument", function () {
         // Create a fresh audio context if current one is closed
-        if (!flock.audioContext || flock.audioContext.state === "closed") {
+        if (!flock.audioContext || flock.audioContext.state === 'closed') {
           flock.audioContext = new AudioContext();
         }
 
-        const instrument = flock.createInstrument("sine");
+        const instrument = flock.createInstrument('sine');
         chai.expect(instrument).to.not.be.undefined;
         chai.expect(instrument.oscillator).to.not.be.undefined;
         chai.expect(instrument.gainNode).to.not.be.undefined;
-        chai.expect(instrument.oscillator.type).to.equal("sine");
+        chai.expect(instrument.oscillator.type).to.equal('sine');
       });
 
       it("should create different waveform types", function () {
         // Create a fresh audio context if current one is closed
-        if (!flock.audioContext || flock.audioContext.state === "closed") {
+        if (!flock.audioContext || flock.audioContext.state === 'closed') {
           flock.audioContext = new AudioContext();
         }
 
-        const types = ["sine", "square", "sawtooth", "triangle"];
+        const types = ['sine', 'square', 'sawtooth', 'triangle'];
 
-        types.forEach((type) => {
+        types.forEach(type => {
           const instrument = flock.createInstrument(type);
           chai.expect(instrument).to.not.be.undefined;
           chai.expect(instrument.oscillator).to.not.be.undefined;
@@ -449,15 +436,15 @@ export function runSoundVerificationTests(flock) {
 
       it("should create instrument with ADSR envelope parameters", function () {
         // Create a fresh audio context if current one is closed
-        if (!flock.audioContext || flock.audioContext.state === "closed") {
+        if (!flock.audioContext || flock.audioContext.state === 'closed') {
           flock.audioContext = new AudioContext();
         }
 
-        const instrument = flock.createInstrument("sine", {
+        const instrument = flock.createInstrument('sine', {
           attack: 0.1,
           decay: 0.2,
           sustain: 0.7,
-          release: 0.3,
+          release: 0.3
         });
 
         chai.expect(instrument).to.not.be.undefined;

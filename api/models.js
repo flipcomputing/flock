@@ -240,7 +240,7 @@ export const flockModels = {
 
       flock.applyMaterialToHierarchy(mesh, colorInput);
     };
-
+    
     const setTemplateFlags = (node, tag) => {
       const list = [
         node,

@@ -1,8 +1,0 @@
-node_modules/
-dist/
-dev-dist/
-examples/
-
-# Ignore files with shebang - are these run directly ever?
-test-playwright.js
-test-visual.js

@@ -4,249 +4,258 @@ import { translate } from "./translation.js";
 import { blockHandlerRegistry } from "../blocks/blocks.js";
 
 export function initializeBlockHandling() {
-  observeBlocklyInputs();
+	observeBlocklyInputs();
 
-  workspace.addChangeListener(function (event) {
-    if (
-      event.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
-      event.type === Blockly.Events.FLYOUT_SHOW
-    ) {
-      const toolbox = workspace.getToolbox();
-      const selectedItem = toolbox.getSelectedItem();
+	workspace.addChangeListener(function (event) {
+		if (
+			event.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
+			event.type === Blockly.Events.FLYOUT_SHOW
+		) {
+			const toolbox = workspace.getToolbox();
+			const selectedItem = toolbox.getSelectedItem();
 
-      if (selectedItem && selectedItem.getName() === "Snippets") {
-        window.loadingCode = true;
-      } else {
-        window.loadingCode = false;
-      }
-    }
-  });
+			if (selectedItem && selectedItem.getName() === "Snippets") {
+				window.loadingCode = true;
+			} else {
+				window.loadingCode = false;
+			}
+		}
+	});
 
-  const blockTypesToCleanUp = [
-    "start",
-    "forever",
-    "when_clicked",
-    "when_touches",
-    "on_collision",
-    "when_key_event",
-    "when_action_event",
-    "on_event",
-    "procedures_defnoreturn",
-    "procedures_defreturn",
-    "microbit_input",
-  ];
+	const blockTypesToCleanUp = [
+		"start",
+		"forever",
+		"when_clicked",
+		"when_touches",
+		"on_collision",
+		"when_key_event",
+		"when_action_event",
+		"on_event",
+		"procedures_defnoreturn",
+		"procedures_defreturn",
+		"microbit_input",
+	];
 
-  // Preserve selection/cursor focus while tidying.
-  workspace.cleanUp = function () {
-    const spacing = 40;
-    const cursorX = 10;
-    let cursorY = 10;
+	// Preserve selection/cursor focus while tidying.
+	workspace.cleanUp = function () {
+		const spacing = 40;
+		const cursorX = 10;
+		let cursorY = 10;
 
-    // --- Preserve current focus/selection/cursor ---
-    const prevSelected =
-      (Blockly.common && Blockly.common.getSelected?.()) || null;
+		// --- Preserve current focus/selection/cursor ---
+		const prevSelected =
+			(Blockly.common && Blockly.common.getSelected?.()) || null;
 
-    // Keyboard Navigation (if installed)
-    const navCursor = workspace.getCursor?.() || null;
-    const prevCurNode = navCursor?.getCurNode ? navCursor.getCurNode() : null;
+		// Keyboard Navigation (if installed)
+		const navCursor = workspace.getCursor?.() || null;
+		const prevCurNode = navCursor?.getCurNode
+			? navCursor.getCurNode()
+			: null;
 
-    // Keep track of the exact focused element (for keyboard users)
-    const prevActiveEl = document.activeElement;
+		// Keep track of the exact focused element (for keyboard users)
+		const prevActiveEl = document.activeElement;
 
-    // Group events to reduce churn / side-effects
-    Blockly.Events.setGroup(true);
-    try {
-      // Get top-level roots (Blockly already filters by parent=null)
-      const topBlocks = (workspace.getTopBlocks(false) || [])
-        .filter((b) => !!b && !b.isInFlyout && !b.isShadow?.())
-        .sort(
-          (a, b) => a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
-        );
+		// Group events to reduce churn / side-effects
+		Blockly.Events.setGroup(true);
+		try {
+			// Get top-level roots (Blockly already filters by parent=null)
+			const topBlocks = (workspace.getTopBlocks(false) || [])
+				.filter((b) => !!b && !b.isInFlyout && !b.isShadow?.())
+				.sort(
+					(a, b) =>
+						a.getRelativeToSurfaceXY().y -
+						b.getRelativeToSurfaceXY().y,
+				);
 
-      for (const block of topBlocks) {
-        if (!blockTypesToCleanUp.includes(block.type)) continue;
-        try {
-          const xy = block.getRelativeToSurfaceXY();
-          const dx = cursorX - xy.x;
-          const dy = cursorY - xy.y;
-          if (dx || dy) block.moveBy(dx, dy);
+			for (const block of topBlocks) {
+				if (!blockTypesToCleanUp.includes(block.type)) continue;
+				try {
+					const xy = block.getRelativeToSurfaceXY();
+					const dx = cursorX - xy.x;
+					const dy = cursorY - xy.y;
+					if (dx || dy) block.moveBy(dx, dy);
 
-          const h = block.getHeightWidth?.().height || 40;
-          cursorY += h + spacing;
-        } catch {}
-      }
+					const h = block.getHeightWidth?.().height || 40;
+					cursorY += h + spacing;
+				} catch {}
+			}
 
-      // Original z-order behaviour: top-level blocks (any type) to the front.
-      // Reuse topBlocks (already computed above) instead of getAllBlocks() to
-      // avoid iterating every block in the workspace and triggering unnecessary
-      // DOM reflows.
-      try {
-        const canvas = workspace.getBlockCanvas?.();
-        if (canvas) {
-          for (const b of topBlocks) {
-            const svg = b.getSvgRoot?.();
-            if (svg && svg.parentNode === canvas) {
-              const isSelected = prevSelected && b.id === prevSelected.id;
-              canvas.appendChild(svg);
-              if (isSelected) {
-                prevSelected.select();
-              }
-            }
-          }
-        }
-      } catch {}
-    } finally {
-      Blockly.Events.setGroup(false);
+			// Original z-order behaviour: top-level blocks (any type) to the front.
+			// Reuse topBlocks (already computed above) instead of getAllBlocks() to
+			// avoid iterating every block in the workspace and triggering unnecessary
+			// DOM reflows.
+			try {
+				const canvas = workspace.getBlockCanvas?.();
+				if (canvas) {
+					for (const b of topBlocks) {
+						const svg = b.getSvgRoot?.();
+						if (svg && svg.parentNode === canvas) {
+							const isSelected =
+								prevSelected && b.id === prevSelected.id;
+							canvas.appendChild(svg);
+							if (isSelected) {
+								prevSelected.select();
+							}
+						}
+					}
+				}
+			} catch {}
+		} finally {
+			Blockly.Events.setGroup(false);
 
-      // --- Restore selection and focus deterministically ---
-      // Re-select the previously selected block (if it still exists in this workspace)
-      if (prevSelected && !prevSelected.isDeadOrDying?.()) {
-        prevSelected.select?.();
+			// --- Restore selection and focus deterministically ---
+			// Re-select the previously selected block (if it still exists in this workspace)
+			if (prevSelected && !prevSelected.isDeadOrDying?.()) {
+				prevSelected.select?.();
 
-        // Restore keyboard nav cursor position (if available)
-        if (navCursor && prevCurNode) {
-          try {
-            navCursor.setCurNode(prevCurNode);
-          } catch {}
-        }
+				// Restore keyboard nav cursor position (if available)
+				if (navCursor && prevCurNode) {
+					try {
+						navCursor.setCurNode(prevCurNode);
+					} catch {}
+				}
 
-        // Put DOM focus back on the block's SVG root for keyboard users
-        const svgRoot = prevSelected.getSvgRoot?.();
-        if (svgRoot && svgRoot.focus) {
-          try {
-            svgRoot.focus({ preventScroll: true });
-          } catch {}
-        } else if (prevActiveEl && document.contains(prevActiveEl)) {
-          // Fallback: restore whatever had focus before
-          try {
-            prevActiveEl.focus?.({ preventScroll: true });
-          } catch {}
-        }
-      }
-    }
-  };
+				// Put DOM focus back on the block's SVG root for keyboard users
+				const svgRoot = prevSelected.getSvgRoot?.();
+				if (svgRoot && svgRoot.focus) {
+					try {
+						svgRoot.focus({ preventScroll: true });
+					} catch {}
+				} else if (prevActiveEl && document.contains(prevActiveEl)) {
+					// Fallback: restore whatever had focus before
+					try {
+						prevActiveEl.focus?.({ preventScroll: true });
+					} catch {}
+				}
+			}
+		}
+	};
 
-  workspace.addChangeListener(Blockly.Events.disableOrphans);
+	workspace.addChangeListener(Blockly.Events.disableOrphans);
 
-  let cleanupTimeout = null;
+	let cleanupTimeout = null;
 
-  // Global keyboard shortcuts
-  document.addEventListener("keydown", function (event) {
-    // Skip to main content (Alt+M)
-    if (event.altKey && event.key.toLowerCase() === "m") {
-      event.preventDefault();
-      const mainContent = document.getElementById("maincontent");
-      if (mainContent) {
-        mainContent.focus();
-        announceToScreenReader(translate("focused_main_content"));
-      }
-      return;
-    }
+	// Global keyboard shortcuts
+	document.addEventListener("keydown", function (event) {
+		// Skip to main content (Alt+M)
+		if (event.altKey && event.key.toLowerCase() === "m") {
+			event.preventDefault();
+			const mainContent = document.getElementById("maincontent");
+			if (mainContent) {
+				mainContent.focus();
+				announceToScreenReader(translate("focused_main_content"));
+			}
+			return;
+		}
 
-    // Close modal with Escape
-    if (event.key === "Escape") {
-      const openModals = document.querySelectorAll(".modal:not(.hidden)");
-      openModals.forEach((modal) => {
-        modal.classList.add("hidden");
-        modal.setAttribute("aria-hidden", "true");
-        modal.removeAttribute("aria-modal");
-      });
-      return;
-    }
+		// Close modal with Escape
+		if (event.key === "Escape") {
+			const openModals = document.querySelectorAll(".modal:not(.hidden)");
+			openModals.forEach((modal) => {
+				modal.classList.add("hidden");
+				modal.setAttribute("aria-hidden", "true");
+				modal.removeAttribute("aria-modal");
+			});
+			return;
+		}
 
-    if (event.ctrlKey && event.key === ".") {
-      event.preventDefault();
+		if (event.ctrlKey && event.key === ".") {
+			event.preventDefault();
 
-      const workspace = Blockly.getMainWorkspace();
+			const workspace = Blockly.getMainWorkspace();
 
-      // Create the placeholder block at the computed position
-      const placeholderBlock = workspace.newBlock("keyword_block");
+			// Create the placeholder block at the computed position
+			const placeholderBlock = workspace.newBlock("keyword_block");
 
-      let workspaceCoordinates = workspace
-        .getMetricsManager()
-        .getViewMetrics(true);
-      let posx = workspaceCoordinates.left + workspaceCoordinates.width / 2;
-      let posy = workspaceCoordinates.top + workspaceCoordinates.height / 2;
-      let blockCoordinates = new Blockly.utils.Coordinate(posx, posy);
+			let workspaceCoordinates = workspace
+				.getMetricsManager()
+				.getViewMetrics(true);
+			let posx =
+				workspaceCoordinates.left + workspaceCoordinates.width / 2;
+			let posy =
+				workspaceCoordinates.top + workspaceCoordinates.height / 2;
+			let blockCoordinates = new Blockly.utils.Coordinate(posx, posy);
 
-      placeholderBlock.initSvg();
-      placeholderBlock.render();
-      placeholderBlock.moveTo(blockCoordinates);
+			placeholderBlock.initSvg();
+			placeholderBlock.render();
+			placeholderBlock.moveTo(blockCoordinates);
 
-      // Select the block for immediate editing
-      placeholderBlock.select();
+			// Select the block for immediate editing
+			placeholderBlock.select();
 
-      // Automatically focus on the text input field
-      const textInputField = placeholderBlock.getField("KEYWORD");
-      if (textInputField) {
-        textInputField.showEditor_();
-      }
-    }
-  });
+			// Automatically focus on the text input field
+			const textInputField = placeholderBlock.getField("KEYWORD");
+			if (textInputField) {
+				textInputField.showEditor_();
+			}
+		}
+	});
 
-  // Handle Enter key for adding new blocks
-  document.addEventListener("keydown", function (event) {
-    if (event.ctrlKey && event.key === "]") {
-      let selectedBlock = null;
+	// Handle Enter key for adding new blocks
+	document.addEventListener("keydown", function (event) {
+		if (event.ctrlKey && event.key === "]") {
+			let selectedBlock = null;
 
-      const cursor = workspace.getCursor();
+			const cursor = workspace.getCursor();
 
-      if (cursor?.getCurNode()) {
-        const currentNode = cursor.getCurNode();
-        if (currentNode) {
-          const block = currentNode.getSourceBlock();
-          if (block) {
-            selectedBlock = block;
-          }
-        }
-      } else {
-        selectedBlock = window.currentBlock;
-      }
+			if (cursor?.getCurNode()) {
+				const currentNode = cursor.getCurNode();
+				if (currentNode) {
+					const block = currentNode.getSourceBlock();
+					if (block) {
+						selectedBlock = block;
+					}
+				}
+			} else {
+				selectedBlock = window.currentBlock;
+			}
 
-      if (!selectedBlock) {
-        return;
-      }
+			if (!selectedBlock) {
+				return;
+			}
 
-      selectedBlock.unselect();
+			selectedBlock.unselect();
 
-      if (!selectedBlock.nextConnection) {
-        return;
-      }
+			if (!selectedBlock.nextConnection) {
+				return;
+			}
 
-      // Create a new keyword block
-      const keywordBlock = workspace.newBlock("keyword");
-      window.currentBlock = keywordBlock;
-      keywordBlock.initSvg();
-      keywordBlock.render();
+			// Create a new keyword block
+			const keywordBlock = workspace.newBlock("keyword");
+			window.currentBlock = keywordBlock;
+			keywordBlock.initSvg();
+			keywordBlock.render();
 
-      // Connect blocks (same as before)
-      const currentNextBlock = selectedBlock.getNextBlock();
-      if (currentNextBlock) {
-        selectedBlock.nextConnection.disconnect();
-      }
-      selectedBlock.nextConnection.connect(keywordBlock.previousConnection);
-      if (currentNextBlock && keywordBlock.nextConnection) {
-        keywordBlock.nextConnection.connect(
-          currentNextBlock.previousConnection,
-        );
-      }
+			// Connect blocks (same as before)
+			const currentNextBlock = selectedBlock.getNextBlock();
+			if (currentNextBlock) {
+				selectedBlock.nextConnection.disconnect();
+			}
+			selectedBlock.nextConnection.connect(
+				keywordBlock.previousConnection,
+			);
+			if (currentNextBlock && keywordBlock.nextConnection) {
+				keywordBlock.nextConnection.connect(
+					currentNextBlock.previousConnection,
+				);
+			}
 
-      // Update our tracking variable to the new block
-      window.currentBlock = keywordBlock;
+			// Update our tracking variable to the new block
+			window.currentBlock = keywordBlock;
 
-      // Try to select it in Blockly too
-      keywordBlock.select();
+			// Try to select it in Blockly too
+			keywordBlock.select();
 
-      // Open the editor with a delay
-      setTimeout(() => {
-        const textInputField = keywordBlock.getField("KEYWORD");
-        if (textInputField) {
-          textInputField.showEditor_();
-        }
-      }, 100);
-    }
+			// Open the editor with a delay
+			setTimeout(() => {
+				const textInputField = keywordBlock.getField("KEYWORD");
+				if (textInputField) {
+					textInputField.showEditor_();
+				}
+			}, 100);
+		}
 
-    /*else if (event.ctrlKey && event.key === "[") {
+		/*else if (event.ctrlKey && event.key === "[") {
 		event.preventDefault();
 
 		let selectedBlock = null;
@@ -311,9 +320,9 @@ export function initializeBlockHandling() {
 			}
 		}, 100);
 	}*/
-  });
+	});
 
-  /*document.addEventListener("keydown", (e) => {
+	/*document.addEventListener("keydown", (e) => {
 	if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "k") {
 		e.preventDefault(); // stop the default T key behavior
 		const workspace = Blockly.getMainWorkspace(); 
@@ -375,247 +384,245 @@ export function initializeBlockHandling() {
 	}
 });*/
 
-  // -------------------------------------------------------------------------
-  // Single consolidated workspace listener.
-  //
-  // Combines four previously separate addChangeListener calls:
-  //   1. Track window.currentBlock on SELECTED events.
-  //   2. Debounced workspace.cleanUp() on structural changes
-  //      (BLOCK_MOVE / BLOCK_CREATE / BLOCK_DELETE).
-  //   3. Immediate workspace.cleanUp() when a top-level block
-  //      collapses or expands (BLOCK_CHANGE + element === "collapsed").
-  //   4. Registry dispatcher — purge deleted block IDs then fan out to
-  //      all registered block handlers (O(1) listeners vs O(N blocks)).
-  // -------------------------------------------------------------------------
-  workspace.addChangeListener((event) => {
-    // 1. Track the currently selected block.
-    if (event.type === Blockly.Events.SELECTED) {
-      window.currentBlock = event.newElementId
-        ? workspace.getBlockById(event.newElementId)
-        : null;
-    }
+	// -------------------------------------------------------------------------
+	// Single consolidated workspace listener.
+	//
+	// Combines four previously separate addChangeListener calls:
+	//   1. Track window.currentBlock on SELECTED events.
+	//   2. Debounced workspace.cleanUp() on structural changes
+	//      (BLOCK_MOVE / BLOCK_CREATE / BLOCK_DELETE).
+	//   3. Immediate workspace.cleanUp() when a top-level block
+	//      collapses or expands (BLOCK_CHANGE + element === "collapsed").
+	//   4. Registry dispatcher — purge deleted block IDs then fan out to
+	//      all registered block handlers (O(1) listeners vs O(N blocks)).
+	// -------------------------------------------------------------------------
+	workspace.addChangeListener((event) => {
+		// 1. Track the currently selected block.
+		if (event.type === Blockly.Events.SELECTED) {
+			window.currentBlock = event.newElementId
+				? workspace.getBlockById(event.newElementId)
+				: null;
+		}
 
-    // 2. Debounced cleanup on structural changes.
-    if (
-      !event.isUiEvent &&
-      (event.type === Blockly.Events.BLOCK_MOVE ||
-        event.type === Blockly.Events.BLOCK_CREATE ||
-        event.type === Blockly.Events.BLOCK_DELETE)
-    ) {
-      clearTimeout(cleanupTimeout);
-      cleanupTimeout = setTimeout(() => {
-        const wasEnabled = Blockly.Events.isEnabled();
-        try {
-          if (wasEnabled) Blockly.Events.disable(); // don't create undo entries
-          workspace.cleanUp();
-        } finally {
-          if (wasEnabled) Blockly.Events.enable();
-        }
-        Blockly.Events.disableOrphans(workspace);
-      }, 300); // adjust if you want snappier/slower cleanup
-    }
+		// 2. Debounced cleanup on structural changes.
+		if (
+			!event.isUiEvent &&
+			(event.type === Blockly.Events.BLOCK_MOVE ||
+				event.type === Blockly.Events.BLOCK_CREATE ||
+				event.type === Blockly.Events.BLOCK_DELETE)
+		) {
+			clearTimeout(cleanupTimeout);
+			cleanupTimeout = setTimeout(() => {
+				const wasEnabled = Blockly.Events.isEnabled();
+				try {
+					if (wasEnabled) Blockly.Events.disable(); // don't create undo entries
+					workspace.cleanUp();
+				} finally {
+					if (wasEnabled) Blockly.Events.enable();
+				}
+				Blockly.Events.disableOrphans(workspace);
+			}, 300); // adjust if you want snappier/slower cleanup
+		}
 
-    // 3. Immediate cleanup when a top-level block is collapsed/expanded.
-    if (
-      event.type === Blockly.Events.BLOCK_CHANGE &&
-      event.element === "collapsed"
-    ) {
-      const block = workspace.getBlockById(event.blockId);
-      if (block && !block.getParent()) {
-        workspace.cleanUp();
-      }
-    }
+		// 3. Immediate cleanup when a top-level block is collapsed/expanded.
+		if (
+			event.type === Blockly.Events.BLOCK_CHANGE &&
+			event.element === "collapsed"
+		) {
+			const block = workspace.getBlockById(event.blockId);
+			if (block && !block.getParent()) {
+				workspace.cleanUp();
+			}
+		}
 
-    // 4. Purge deleted blocks from the registry, then dispatch to handlers.
-    if (
-      event.type === Blockly.Events.BLOCK_DELETE &&
-      Array.isArray(event.ids)
-    ) {
-      for (const id of event.ids) {
-        blockHandlerRegistry.delete(id);
-      }
-    }
+		// 4. Purge deleted blocks from the registry, then dispatch to handlers.
+		if (
+			event.type === Blockly.Events.BLOCK_DELETE &&
+			Array.isArray(event.ids)
+		) {
+			for (const id of event.ids) {
+				blockHandlerRegistry.delete(id);
+			}
+		}
 
-    // cachedValues() returns a stable snapshot that guards against
-    // mid-iteration mutations (e.g. a handler that creates or deletes blocks)
-    // without allocating a new array on every event.
-    const handlers = blockHandlerRegistry.cachedValues();
-    for (const handler of handlers) {
-      handler(event);
-    }
-  });
+		// cachedValues() returns a stable snapshot that guards against
+		// mid-iteration mutations (e.g. a handler that creates or deletes blocks)
+		// without allocating a new array on every event.
+		const handlers = blockHandlerRegistry.cachedValues();
+		for (const handler of handlers) {
+			handler(event);
+		}
+	});
+
 }
 
 // Function to enforce minimum font size and delay the focus to prevent zoom
 function enforceMinimumFontSize(input) {
-  const currentFontSize = parseFloat(input.style.fontSize);
+	const currentFontSize = parseFloat(input.style.fontSize);
 
-  // Set font size immediately if it's less than 16px
-  if (currentFontSize < 16) {
-    input.style.fontSize = "16px";
-    input.offsetHeight; // Force reflow to apply the font size change
-  }
+	// Set font size immediately if it's less than 16px
+	if (currentFontSize < 16) {
+		input.style.fontSize = "16px";
+		input.offsetHeight; // Force reflow to apply the font size change
+	}
 
-  // Delay focus to prevent zoom
-  input.addEventListener(
-    "focus",
-    (event) => {
-      event.preventDefault(); // Prevent the default focus action
-      setTimeout(() => {
-        input.focus(); // Focus the input after a short delay
-      }, 50); // Adjust the delay as needed (50ms is usually enough)
-    },
-    { once: true },
-  ); // Add the event listener once for each input
+	// Delay focus to prevent zoom
+	input.addEventListener(
+		"focus",
+		(event) => {
+			event.preventDefault(); // Prevent the default focus action
+			setTimeout(() => {
+				input.focus(); // Focus the input after a short delay
+			}, 50); // Adjust the delay as needed (50ms is usually enough)
+		},
+		{ once: true },
+	); // Add the event listener once for each input
 }
 
 // Function to observe changes in the DOM for dynamically added blocklyHtmlInput elements
 function observeBlocklyInputs() {
-  const observer = new MutationObserver((mutationsList) => {
-    mutationsList.forEach((mutation) => {
-      if (mutation.type === "childList") {
-        mutation.addedNodes.forEach((node) => {
-          // Check if the added node is an INPUT element with the blocklyHtmlInput class
-          if (
-            node.nodeType === Node.ELEMENT_NODE &&
-            node.classList.contains("blocklyHtmlInput")
-          ) {
-            enforceMinimumFontSize(node); // Set font size and delay focus
-          }
-        });
-      }
-    });
-  });
+	const observer = new MutationObserver((mutationsList) => {
+		mutationsList.forEach((mutation) => {
+			if (mutation.type === "childList") {
+				mutation.addedNodes.forEach((node) => {
+					// Check if the added node is an INPUT element with the blocklyHtmlInput class
+					if (
+						node.nodeType === Node.ELEMENT_NODE &&
+						node.classList.contains("blocklyHtmlInput")
+					) {
+						enforceMinimumFontSize(node); // Set font size and delay focus
+					}
+				});
+			}
+		});
+	});
 
-  // Observe only the Blockly container to avoid scanning the entire document
-  const blocklyContainer =
-    workspace.getParentSvg()?.closest("#blocklyDiv") ??
-    document.getElementById("blocklyDiv") ??
-    document.body;
-  observer.observe(blocklyContainer, { childList: true, subtree: true });
+	// Observe only the Blockly container to avoid scanning the entire document
+	const blocklyContainer = workspace.getParentSvg()?.closest("#blocklyDiv") ?? document.getElementById("blocklyDiv") ?? document.body;
+	observer.observe(blocklyContainer, { childList: true, subtree: true });
 }
 
 // Fast hover highlight (no full scans)
 export function installHoverHighlight(workspace) {
-  const svg = workspace.getParentSvg();
-  if (!svg) return () => {};
+	const svg = workspace.getParentSvg();
+	if (!svg) return () => {};
 
-  // State
-  let lastHighlighted = null;
-  let rafScheduled = false;
-  let pendingXY = null;
-  let panning = false;
-  let dragging = false;
-  let panTimer = null;
+	// State
+	let lastHighlighted = null;
+	let rafScheduled = false;
+	let pendingXY = null;
+	let panning = false;
+	let dragging = false;
+	let panTimer = null;
 
-  // Prefer your own isBlockDraggable if present
-  const isDraggable = (block) => {
-    if (typeof window.isBlockDraggable === "function")
-      return window.isBlockDraggable(block);
-    if (!block) return false;
-    if (block.isShadow && block.isShadow()) return false;
-    if (!block.isMovable || !block.isMovable()) return false;
-    if (!block.isDeletable || !block.isDeletable()) return false;
-    // Match your old rules:
-    if (block.previousConnection || block.nextConnection) return false;
-    return true; // allow output blocks or standalones
-  };
+	// Prefer your own isBlockDraggable if present
+	const isDraggable = (block) => {
+		if (typeof window.isBlockDraggable === "function")
+			return window.isBlockDraggable(block);
+		if (!block) return false;
+		if (block.isShadow && block.isShadow()) return false;
+		if (!block.isMovable || !block.isMovable()) return false;
+		if (!block.isDeletable || !block.isDeletable()) return false;
+		// Match your old rules:
+		if (block.previousConnection || block.nextConnection) return false;
+		return true; // allow output blocks or standalones
+	};
 
-  function clearHighlight() {
-    if (lastHighlighted) lastHighlighted.removeSelect();
-    lastHighlighted = null;
-  }
-  function applyHighlight(block) {
-    if (lastHighlighted === block) return;
-    clearHighlight();
-    block.select();
-    lastHighlighted = block;
-  }
+	function clearHighlight() {
+		if (lastHighlighted) lastHighlighted.removeSelect();
+		lastHighlighted = null;
+	}
+	function applyHighlight(block) {
+		if (lastHighlighted === block) return;
+		clearHighlight();
+		block.select();
+		lastHighlighted = block;
+	}
 
-  // Track viewport pan/zoom and drag state via UI events
-  const uiListener = (e) => {
-    if (e.type !== Blockly.Events.UI) return;
-    if (e.element === "viewport" || e.element === "zoom") {
-      panning = true;
-      clearTimeout(panTimer);
-      panTimer = setTimeout(() => (panning = false), 120);
-    } else if (e.element === "drag") {
-      dragging = !!e.newValue; // true while dragging, false on release
-      if (!dragging) {
-        // drag ended; make sure highlight is sane
-        pendingXY = null;
-        rafScheduled = false;
-      }
-    }
-  };
-  workspace.addChangeListener(uiListener);
+	// Track viewport pan/zoom and drag state via UI events
+	const uiListener = (e) => {
+		if (e.type !== Blockly.Events.UI) return;
+		if (e.element === "viewport" || e.element === "zoom") {
+			panning = true;
+			clearTimeout(panTimer);
+			panTimer = setTimeout(() => (panning = false), 120);
+		} else if (e.element === "drag") {
+			dragging = !!e.newValue; // true while dragging, false on release
+			if (!dragging) {
+				// drag ended; make sure highlight is sane
+				pendingXY = null;
+				rafScheduled = false;
+			}
+		}
+	};
+	workspace.addChangeListener(uiListener);
 
-  // Mousemove on the workspace SVG (throttled to 1 per frame)
-  const moveBinding = Blockly.browserEvents.bind(
-    svg,
-    "mousemove",
-    null,
-    (ev) => {
-      if (panning || dragging) return;
-      pendingXY = { x: ev.clientX, y: ev.clientY };
-      if (rafScheduled) return;
-      rafScheduled = true;
-      requestAnimationFrame(() => {
-        rafScheduled = false;
-        if (!pendingXY) return;
-        const { x, y } = pendingXY;
-        pendingXY = null;
+	// Mousemove on the workspace SVG (throttled to 1 per frame)
+	const moveBinding = Blockly.browserEvents.bind(
+		svg,
+		"mousemove",
+		null,
+		(ev) => {
+			if (panning || dragging) return;
+			pendingXY = { x: ev.clientX, y: ev.clientY };
+			if (rafScheduled) return;
+			rafScheduled = true;
+			requestAnimationFrame(() => {
+				rafScheduled = false;
+				if (!pendingXY) return;
+				const { x, y } = pendingXY;
+				pendingXY = null;
 
-        const el = document.elementFromPoint(x, y);
-        if (!el || !el.closest) {
-          clearHighlight();
-          return;
-        }
+				const el = document.elementFromPoint(x, y);
+				if (!el || !el.closest) {
+					clearHighlight();
+					return;
+				}
 
-        // Find the block <g> that carries data-id (covers normal & drag surface)
-        const g = el.closest("g.blocklyDraggable[data-id], g[data-id]");
-        if (!g) {
-          clearHighlight();
-          return;
-        }
+				// Find the block <g> that carries data-id (covers normal & drag surface)
+				const g = el.closest("g.blocklyDraggable[data-id], g[data-id]");
+				if (!g) {
+					clearHighlight();
+					return;
+				}
 
-        const id = g.getAttribute("data-id");
-        if (!id) {
-          clearHighlight();
-          return;
-        }
+				const id = g.getAttribute("data-id");
+				if (!id) {
+					clearHighlight();
+					return;
+				}
 
-        const block = workspace.getBlockById(id);
-        if (
-          !block ||
-          !block.rendered ||
-          block.isInFlyout ||
-          !isDraggable(block)
-        ) {
-          clearHighlight();
-          return;
-        }
-        applyHighlight(block);
-      });
-    },
-  );
+				const block = workspace.getBlockById(id);
+				if (
+					!block ||
+					!block.rendered ||
+					block.isInFlyout ||
+					!isDraggable(block)
+				) {
+					clearHighlight();
+					return;
+				}
+				applyHighlight(block);
+			});
+		},
+	);
 
-  // Clear highlight when leaving the workspace SVG
-  const leaveBinding = Blockly.browserEvents.bind(
-    svg,
-    "mouseleave",
-    null,
-    () => {
-      clearHighlight();
-    },
-  );
+	// Clear highlight when leaving the workspace SVG
+	const leaveBinding = Blockly.browserEvents.bind(
+		svg,
+		"mouseleave",
+		null,
+		() => {
+			clearHighlight();
+		},
+	);
 
-  // Cleanup
-  return function destroyHoverHighlight() {
-    clearTimeout(panTimer);
-    clearHighlight();
-    workspace.removeChangeListener(uiListener);
-    Blockly.browserEvents.unbind(moveBinding);
-    Blockly.browserEvents.unbind(leaveBinding);
-  };
+	// Cleanup
+	return function destroyHoverHighlight() {
+		clearTimeout(panTimer);
+		clearHighlight();
+		workspace.removeChangeListener(uiListener);
+		Blockly.browserEvents.unbind(moveBinding);
+		Blockly.browserEvents.unbind(leaveBinding);
+	};
 }

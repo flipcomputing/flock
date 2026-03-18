@@ -5,7 +5,6 @@
 ## What's Been Set Up
 
 We've created a comprehensive tooling system to help you:
-
 1. **Track API documentation coverage** - Know which methods lack documentation
 2. **Track test coverage** - Know which methods lack tests
 3. **Identify gaps** - Easily see what needs work
@@ -20,7 +19,6 @@ npm run docs:coverage
 ```
 
 You'll see a comprehensive report showing:
-
 - Total API methods: **108**
 - Currently tested: **49%** (53/108 methods)
 - Currently documented: **48%** (52/108 methods in API.md)
@@ -56,7 +54,6 @@ npm run test:api glide -- --log-all --verbose
 ```
 
 **Or use the web UI:**
-
 ```bash
 # Terminal: Start dev server
 npm run dev
@@ -100,21 +97,18 @@ Coverage by Category:
 The coverage tool tracks **two types of documentation**:
 
 ### 1. API.md Documentation (User-Facing)
-
 - Located in `API.md`
 - High-level descriptions and examples
 - For end users and developers learning the API
 - Currently: **52 methods documented** (48%)
 
 ### 2. JSDoc Documentation (Developer-Facing)
-
 - Inline comments in source code (`api/*.js`)
 - Technical parameter types, return values
 - For IDE autocomplete and API reference
 - Currently: **0 methods documented** (0%)
 
 **Ideal State:** Methods documented in **BOTH** places
-
 - API.md for usage examples and concepts
 - JSDoc for technical details and types
 
@@ -125,7 +119,6 @@ The coverage tool tracks **two types of documentation**:
 Add JSDoc to API implementation files to improve developer experience.
 
 **Example JSDoc Template:**
-
 ```javascript
 /**
  * Creates a 3D box in the scene
@@ -154,7 +147,6 @@ createBox(boxId, options = {}) {
 ```
 
 **Where to add JSDoc:**
-
 - `api/animate.js` - Animation methods (6/11 need JSDoc)
 - `api/shapes.js` - Shape creation methods
 - `api/mesh.js` - Mesh operations (0/8 have JSDoc)
@@ -162,7 +154,6 @@ createBox(boxId, options = {}) {
 - etc.
 
 **After adding JSDoc:**
-
 ```bash
 npm run docs:coverage  # See your progress!
 ```
@@ -172,13 +163,11 @@ npm run docs:coverage  # See your progress!
 Add more methods to `API.md` for user-facing documentation.
 
 **Currently undocumented methods that need API.md entries:**
-
 - Mesh operations (8 methods): `parentChild`, `hold`, `attach`, `drop`, etc.
 - CSG operations (4 methods): `mergeMeshes`, `subtractMeshes`, etc.
 - Advanced animation (5 methods): `createAnimation`, `animateFrom`, etc.
 
 **After updating API.md:**
-
 ```bash
 npm run docs:coverage  # See improvement!
 ```
@@ -188,14 +177,12 @@ npm run docs:coverage  # See improvement!
 Write tests for untested methods to improve test coverage.
 
 **Priority Areas (0% tested):**
-
 1. **Mesh operations** (8 methods) - parentChild, hold, attach, drop, etc.
 2. **Camera** (3 methods) - getCamera, cameraControl, attachCamera
 3. **Movement** (3 methods) - moveForward, moveSideways, strafe
 4. **Shapes** (4 methods) - createCylinder, createCapsule, createPlane, create3DText
 
 **After adding tests:**
-
 ```bash
 npm run test:api <suite-name>  # Run your new tests
 npm run docs:coverage           # See coverage improvement
@@ -225,14 +212,12 @@ npm run docs:coverage           # See coverage improvement
 ### Top Priority Methods to Document/Test
 
 **Most Used (Heavily Tested):**
-
 - `createBox` - 11 test files use it (✅ documented in API.md)
 - `dispose` - 11 test files use it (❌ not documented)
 - `glideTo` - 4 test files use it (✅ documented in API.md)
 - `show` / `hide` - 4 test files each (❌ not documented)
 
 **Never Tested (Need Tests):**
-
 - All Mesh operations (parentChild, hold, attach, etc.)
 - All Camera operations (documented but untested!)
 - All Movement operations
@@ -254,7 +239,6 @@ npm run docs:coverage           # See coverage improvement
 ## Workflow Recommendations
 
 ### Daily Workflow
-
 ```bash
 # Morning: Check current state
 npm run docs:coverage
@@ -278,26 +262,22 @@ npm run test:api <suite-name>
 ### Weekly Goals
 
 **Week 1:**
-
 - Add JSDoc to 20 most-used methods (aim for 20% JSDoc coverage)
 - Update API.md for `dispose`, `show`, `hide` (aim for 55% API.md coverage)
 - Write tests for Mesh operations (8 methods)
 - Target: 60% test coverage
 
 **Week 2:**
-
 - Complete JSDoc for all Animation methods (aim for 30% JSDoc coverage)
 - Write tests for Camera and Movement
 - Target: 75% test coverage
 
 **Week 3:**
-
 - Complete JSDoc for all Transform methods (aim for 40% JSDoc coverage)
 - Write tests for Shapes
 - Target: 85% test coverage
 
 **Week 4:**
-
 - Complete remaining JSDoc (aim for 80%+ JSDoc coverage)
 - Fill in missing API.md documentation (aim for 80%+ API.md coverage)
 - Target: 95% test coverage, 80%+ documented in both places
@@ -321,7 +301,6 @@ npm run dev                    # Start dev server for manual testing
 ## Files to Know
 
 **Created for You:**
-
 - `scripts/api-coverage-report.mjs` - Main coverage tool (✅ working)
 - `scripts/run-api-tests.mjs` - CLI test runner (✅ working)
 - `scripts/utils/*.mjs` - Helper utilities (✅ all working)
@@ -333,7 +312,6 @@ npm run dev                    # Start dev server for manual testing
 - `docs/*.md` - Strategy and status docs
 
 **Your Existing Files:**
-
 - `API.md` - User-facing documentation (52 methods documented)
 - `flock.js` (lines 865-987) - API bindings
 - `api/*.js` - API implementations (where JSDoc should be added)
@@ -346,7 +324,6 @@ A: The tool now tracks documentation in **both** API.md and JSDoc comments. Curr
 
 **Q: What's the difference between API.md and JSDoc?**
 A:
-
 - **API.md**: User-facing, conceptual, with examples (for learning)
 - **JSDoc**: Technical, type information, parameters (for IDE autocomplete)
 
@@ -364,16 +341,14 @@ A: Add test code to the appropriate `tests/*.test.js` file, following the existi
 
 **Q: What if I add a new API method?**
 A:
-
 1. Add implementation to appropriate `api/*.js` file with JSDoc
-2. Add binding to `flock.js` in the `api` below `Flock API methods` (currently lines 865-987)
+2. Add binding to `flock.js`  in the `api` below `Flock API methods` (currently lines 865-987)
 3. Add documentation to `API.md`
 4. Write tests in appropriate `tests/*.test.js` file
 5. Run `npm run docs:coverage` to verify it's tracked
 
 **Q: Where can I see detailed test results?**
 A: Run tests with `--log-all` flag. Logs are saved to:
-
 - `logs/test-execution.log` - Test lifecycle events
 - `logs/api-calls.log` - API method call tracking
 
@@ -389,7 +364,6 @@ A: Run tests with `--log-all` flag. Logs are saved to:
 ## Recent Updates
 
 **2025-11-05:**
-
 - ✅ CLI test runner fully operational (94 @slow tests running)
 - ✅ Documentation tracking now includes API.md (shows 48% documented)
 - ✅ Coverage report shows breakdown: API.md vs JSDoc vs both
@@ -402,7 +376,6 @@ A: Run tests with `--log-all` flag. Logs are saved to:
 Start with: `npm run docs:coverage`
 
 Then pick your path:
-
 1. **Add JSDoc** to source files for technical documentation
 2. **Expand API.md** for user-facing documentation
 3. **Write tests** for untested methods
