@@ -546,18 +546,6 @@ button {
   filter: none; /* light mode: normal */
 }
 
-[data-theme="dark"] .icon path {
-  fill: #bababa !important;
-}
-
-[data-theme="dark-contrast"] .icon path {
-  fill: #cdcdcd !important;
-}
-
-[data-theme="contrast"] .icon path {
-  fill: #ffffff !important;
-}
-
 [data-theme="contrast"] .gizmo-button img {
   color: #ffffff !important;
 }
