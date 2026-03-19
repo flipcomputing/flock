@@ -292,6 +292,7 @@ export const flockSound = {
     // Create fresh audio nodes per note so ADSR envelopes don't interfere
     const osc = context.createOscillator();
     const gainNode = context.createGain();
+    gainNode.gain.setValueAtTime(0, context.currentTime); // Start silent to prevent click on first note
     const panner = mesh.metadata.panner;
 
     osc.type = instrument?.type ?? "sine";
