@@ -1,533 +1,530 @@
 export default {
-      // Blockly category message keys for custom categories
-      CATEGORY_SCENE: "Scen",
-      CATEGORY_MESHES: "Nätverk",
-      CATEGORY_XR: "XR",
-      CATEGORY_EFFECTS: "Effekter",
-      CATEGORY_CAMERA: "Kamera",
-      CATEGORY_EVENTS: "Händelser",
-      CATEGORY_TRANSFORM: "Transformera",
-      CATEGORY_PHYSICS: "Fysik",
-      CATEGORY_CONNECT: "Anslut",
-      CATEGORY_COMBINE: "Kombinera",
-      CATEGORY_ANIMATE: "Animera",
-      CATEGORY_KEYFRAME: "Nyckelram",
-      CATEGORY_CONTROL: "Kontroll",
-      CATEGORY_CONDITION: "Villkor",
-      CATEGORY_SENSING: "Sensorer",
-      CATEGORY_TEXT: "Text",
-      CATEGORY_STRINGS: "Strängar",
-      CATEGORY_MATERIALS: "Material",
-      CATEGORY_SOUND: "Ljud",
-      CATEGORY_VARIABLES: "Data",
-      CATEGORY_VARIABLES_SUBCATEGORY: "Variabler",
-      CATEGORY_LISTS: "Listor",
-      CATEGORY_MATH: "Matematik",
-      CATEGORY_FUNCTIONS: "Funktioner",
-      CATEGORY_SNIPPETS: "Snippets",
-      CATEGORY_MOVEMENT: "Rörelse",
+  // Blockly category message keys for custom categories
+  CATEGORY_SCENE: "Scen",
+  CATEGORY_MESHES: "Nätverk",
+  CATEGORY_XR: "XR",
+  CATEGORY_EFFECTS: "Effekter",
+  CATEGORY_CAMERA: "Kamera",
+  CATEGORY_EVENTS: "Händelser",
+  CATEGORY_TRANSFORM: "Transformera",
+  CATEGORY_PHYSICS: "Fysik",
+  CATEGORY_CONNECT: "Anslut",
+  CATEGORY_COMBINE: "Kombinera",
+  CATEGORY_ANIMATE: "Animera",
+  CATEGORY_KEYFRAME: "Nyckelram",
+  CATEGORY_CONTROL: "Kontroll",
+  CATEGORY_CONDITION: "Villkor",
+  CATEGORY_SENSING: "Sensorer",
+  CATEGORY_TEXT: "Text",
+  CATEGORY_STRINGS: "Strängar",
+  CATEGORY_MATERIALS: "Material",
+  CATEGORY_SOUND: "Ljud",
+  CATEGORY_VARIABLES: "Data",
+  CATEGORY_VARIABLES_SUBCATEGORY: "Variabler",
+  CATEGORY_LISTS: "Listor",
+  CATEGORY_MATH: "Matematik",
+  CATEGORY_FUNCTIONS: "Funktioner",
+  CATEGORY_SNIPPETS: "Snippets",
+  CATEGORY_MOVEMENT: "Rörelse",
 
-      // Color picker translations
-      choose_a_color: "Välj en färg",
-      close_color_picker: "Stäng färgväljare",
-      quick_colors: "Snabba färger",
-      skin_tones: "Hudtoner",
-      custom_color: "Anpassad färg",
-      pick_from_screen: "Välj från skärm",
-      more_colors: "Fler färger",
-      rgb_values: "RGB-värden",
-      css_color: "CSS-färg",
-      cancel: "Avbryt",
-      use_this_color: "Använd denna färg",
+  // Color picker translations
+  choose_a_color: "Välj en färg",
+  close_color_picker: "Stäng färgväljare",
+  quick_colors: "Snabba färger",
+  skin_tones: "Hudtoner",
+  custom_color: "Anpassad färg",
+  pick_from_screen: "Välj från skärm",
+  more_colors: "Fler färger",
+  rgb_values: "RGB-värden",
+  css_color: "CSS-färg",
+  cancel: "Avbryt",
+  use_this_color: "Använd denna färg",
 
-      // Color picker compact translations
-      lightness: "Ljushet",
-      palette: "Palett",
-      color_palette: "Färgpalett",
-      hue_slider: "Nyansreglage",
-      surprise_color: "Överraskningsfärg",
-      pick_color_from_screen: "Välj färg från skärmen",
-      more_options: "Fler alternativ",
-      hex_placeholder: "ff0000 eller red",
-      skin_tone: "Hudton",
-      color_wheel_aria:
-            "Färghjul: använd piltangenterna för att välja nyans och mättnad",
+  // Color picker compact translations
+  lightness: "Ljushet",
+  palette: "Palett",
+  color_palette: "Färgpalett",
+  hue_slider: "Nyansreglage",
+  surprise_color: "Överraskningsfärg",
+  pick_color_from_screen: "Välj färg från skärmen",
+  more_options: "Fler alternativ",
+  hex_placeholder: "ff0000 eller red",
+  skin_tone: "Hudton",
+  color_wheel_aria:
+    "Färghjul: använd piltangenterna för att välja nyans och mättnad",
 
-      // Palette names
-      palette_bright: "Ljus",
-      palette_earthy: "Jordig",
-      palette_pastel: "Pastell",
-      palette_neon: "Neon",
-      palette_sunset: "Solnedgång",
+  // Palette names
+  palette_bright: "Ljus",
+  palette_earthy: "Jordig",
+  palette_pastel: "Pastell",
+  palette_neon: "Neon",
+  palette_sunset: "Solnedgång",
 
-      // Color names
-      color_red: "Röd",
-      color_orange: "Orange",
-      color_yellow: "Gul",
-      color_green: "Grön",
-      color_dark_green: "Mörkgrön",
-      color_cyan: "Cyan",
-      color_blue: "Blå",
-      color_purple: "Lila",
-      color_pink: "Rosa",
-      color_brown: "Brun",
-      color_black: "Svart",
-      color_white: "Vit",
-      color_forest_green: "Skogsgrön",
-      color_clay: "Lera",
-      color_walnut: "Valnöt",
-      color_olive: "Oliv",
-      color_lime: "Lime",
-      color_sky_blue: "Himmelsblå",
-      color_water: "Vatten",
-      color_sunflower: "Solros",
-      color_sand: "Sand",
-      color_terracotta: "Terrakotta",
-      color_cream: "Grädde",
-      color_peach: "Persika",
-      color_rose: "Ros",
-      color_lilac: "Syren",
-      color_lavender: "Lavendel",
-      color_sky: "Himmel",
-      color_aqua: "Aqua",
-      color_turquoise: "Turkos",
-      color_mint: "Mint",
-      color_pale_green: "Ljusgrön",
-      color_magenta: "Magenta",
-      color_violet: "Violett",
-      color_electric_blue: "Elektrisk blå",
-      color_cyan_glow: "Cyan glöd",
-      color_neon_green: "Neongrön",
-      color_lime_glow: "Lime glöd",
-      color_lemon: "Citron",
-      color_amber: "Bärnsten",
-      color_neon_orange: "Neonorange",
-      color_hot_pink: "Het rosa",
-      color_midnight: "Midnatt",
-      color_indigo: "Indigo",
-      color_plum: "Plommon",
-      color_amethyst: "Ametist",
-      color_orchid: "Orkidé",
-      color_fuchsia: "Fuchsia",
-      color_rose_red: "Rosröd",
-      color_coral: "Korall",
-      color_apricot: "Aprikos",
-      color_golden: "Gyllene",
-      color_dark_orange: "Mörkorange",
-      color_teal: "Kricka",
-      color_dodger_blue: "Dodger blå",
-      color_blue_violet: "Blåviolett",
-      color_deep_pink: "Djup rosa",
-      color_light_gray: "Ljusgrå",
-      color_dim_gray: "Mörk grå",
-      color_saddle_brown: "Sadelbrun",
-      color_light_coral: "Ljus korall",
+  // Color names
+  color_red: "Röd",
+  color_orange: "Orange",
+  color_yellow: "Gul",
+  color_green: "Grön",
+  color_dark_green: "Mörkgrön",
+  color_cyan: "Cyan",
+  color_blue: "Blå",
+  color_purple: "Lila",
+  color_pink: "Rosa",
+  color_brown: "Brun",
+  color_black: "Svart",
+  color_white: "Vit",
+  color_forest_green: "Skogsgrön",
+  color_clay: "Lera",
+  color_walnut: "Valnöt",
+  color_olive: "Oliv",
+  color_lime: "Lime",
+  color_sky_blue: "Himmelsblå",
+  color_water: "Vatten",
+  color_sunflower: "Solros",
+  color_sand: "Sand",
+  color_terracotta: "Terrakotta",
+  color_cream: "Grädde",
+  color_peach: "Persika",
+  color_rose: "Ros",
+  color_lilac: "Syren",
+  color_lavender: "Lavendel",
+  color_sky: "Himmel",
+  color_aqua: "Aqua",
+  color_turquoise: "Turkos",
+  color_mint: "Mint",
+  color_pale_green: "Ljusgrön",
+  color_magenta: "Magenta",
+  color_violet: "Violett",
+  color_electric_blue: "Elektrisk blå",
+  color_cyan_glow: "Cyan glöd",
+  color_neon_green: "Neongrön",
+  color_lime_glow: "Lime glöd",
+  color_lemon: "Citron",
+  color_amber: "Bärnsten",
+  color_neon_orange: "Neonorange",
+  color_hot_pink: "Het rosa",
+  color_midnight: "Midnatt",
+  color_indigo: "Indigo",
+  color_plum: "Plommon",
+  color_amethyst: "Ametist",
+  color_orchid: "Orkidé",
+  color_fuchsia: "Fuchsia",
+  color_rose_red: "Rosröd",
+  color_coral: "Korall",
+  color_apricot: "Aprikos",
+  color_golden: "Gyllene",
+  color_dark_orange: "Mörkorange",
+  color_teal: "Kricka",
+  color_dodger_blue: "Dodger blå",
+  color_blue_violet: "Blåviolett",
+  color_deep_pink: "Djup rosa",
+  color_light_gray: "Ljusgrå",
+  color_dim_gray: "Mörk grå",
+  color_saddle_brown: "Sadelbrun",
+  color_light_coral: "Ljus korall",
 
-      // Custom block translations - Scene blocks
-      set_sky_color: "himmel %1",
-      create_ground: "mark %1",
-      set_background_color: "bakgrund %1",
-      create_map: "karta %1 med material %2",
-      show: "visa %1",
-      hide: "dölj %1",
-      dispose: "borttag %1",
-      clone_mesh: "lägg till %1 klon av %2",
+  // Custom block translations - Scene blocks
+  set_sky_color: "himmel %1",
+  create_ground: "mark %1",
+  set_background_color: "bakgrund %1",
+  create_map: "karta %1 med material %2",
+  show: "visa %1",
+  hide: "dölj %1",
+  dispose: "borttag %1",
+  clone_mesh: "lägg till %1 klon av %2",
 
-      // Custom block translations - Models blocks
-      load_character:
-            "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nhår: %7 | hud: %8 | ögon: %9 | t-shirt: %10 | shorts: %11 | detalj: %12",
-      load_object: "lägg till %1 %2 %3 skala: %4 x: %5 y: %6 z: %7",
-      load_multi_object:
-            "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nfärger: %7",
-      load_model: "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6",
+  // Custom block translations - Models blocks
+  load_character:
+    "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nhår: %7 | hud: %8 | ögon: %9 | t-shirt: %10 | shorts: %11 | detalj: %12",
+  load_object: "lägg till %1 %2 %3 skala: %4 x: %5 y: %6 z: %7",
+  load_multi_object: "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nfärger: %7",
+  load_model: "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6",
 
-      // Custom block translations - Animate blocks
-      glide_to: "glid %1 till x %2 y %3 z %4 på %5 ms\n%6 återvända? %7 loop? %8 %9",
-      glide_to_seconds:
-            "glid %1 till x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9",
-      glide_to_object:
-            "glid %1 till %2 på %6 sekunder\nförskjutning x: %3 y: %4 z: %5\n%7 återvända? %8 loop? %9 %10",
-      rotate_anim:
-            "rotera %1 till x %2 y %3 z %4 på %5 ms\n%6 omvänd? %7 loop? %8  %9",
-      rotate_anim_seconds:
-            "rotera %1 till x %2 y %3 z %4 på %5 sekunder\n%6 omvänd? %7 loop? %8  %9",
-      rotate_to_object:
-        "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
-      animate_property:
-            "animerar %1 %2 till %3 på %4 ms omvänd? %5 loop? %6 %7",
-      colour_keyframe: "vid %1 färg: %2",
-      number_keyframe: "vid: %1 värde: %2",
-      xyz_keyframe: "vid: %1 x: %2 y: %3 z: %4",
-      animate_keyframes:
-            "animera nyckelramar på %1 egenskap %2\nnyckelramar %3\neasing %4 loop %5 omvänd %6 %7",
-      animation:
-            "animera nyckelramar på %1 egenskap %2 grupp %3\nnyckelramar %4\neasing %5 loop %6 omvänd %7 läge %8",
-      control_animation_group: "animationsgrupp %1 %2",
-      animate_from: "animera grupp %1 från %2 sekunder",
-      stop_animations: "stoppa animationer %1",
-      switch_animation: "byt animation av %1 till %2",
-      play_animation: "spela animation %1 på %2",
+  // Custom block translations - Animate blocks
+  glide_to:
+    "glid %1 till x %2 y %3 z %4 på %5 ms\n%6 återvända? %7 loop? %8 %9",
+  glide_to_seconds:
+    "glid %1 till x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9",
+  glide_to_object:
+    "glid %1 till %2 på %6 sekunder\nförskjutning x: %3 y: %4 z: %5\n%7 återvända? %8 loop? %9 %10",
+  rotate_anim:
+    "rotera %1 till x %2 y %3 z %4 på %5 ms\n%6 omvänd? %7 loop? %8  %9",
+  rotate_anim_seconds:
+    "rotera %1 till x %2 y %3 z %4 på %5 sekunder\n%6 omvänd? %7 loop? %8  %9",
+  rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
+  animate_property: "animerar %1 %2 till %3 på %4 ms omvänd? %5 loop? %6 %7",
+  colour_keyframe: "vid %1 färg: %2",
+  number_keyframe: "vid: %1 värde: %2",
+  xyz_keyframe: "vid: %1 x: %2 y: %3 z: %4",
+  animate_keyframes:
+    "animera nyckelramar på %1 egenskap %2\nnyckelramar %3\neasing %4 loop %5 omvänd %6 %7",
+  animation:
+    "animera nyckelramar på %1 egenskap %2 grupp %3\nnyckelramar %4\neasing %5 loop %6 omvänd %7 läge %8",
+  control_animation_group: "animationsgrupp %1 %2",
+  animate_from: "animera grupp %1 från %2 sekunder",
+  stop_animations: "stoppa animationer %1",
+  switch_animation: "byt animation av %1 till %2",
+  play_animation: "spela animation %1 på %2",
 
-      // Custom block translations - Base blocks
-      xyz: "x: %1 y: %2 z: %3",
+  // Custom block translations - Base blocks
+  xyz: "x: %1 y: %2 z: %3",
 
-      // Custom block translations - Camera blocks
-      camera_control: "kamera %1 %2",
-      camera_follow: "kamera följ %1 med radie %2 fram %3",
-      get_camera: "hämta kamera som %1",
+  // Custom block translations - Camera blocks
+  camera_control: "kamera %1 %2",
+  camera_follow: "kamera följ %1 med radie %2 fram %3",
+  get_camera: "hämta kamera som %1",
 
-      // Custom block translations - Combine blocks
-      merge_meshes: "lägg till %1 som sammanfoga %2",
-      subtract_meshes: "lägg till %1 som %2 subtrahera %3",
-      intersection_meshes: "lägg till %1 som snitta %2",
-      hull_meshes: "lägg till %1 som hölje av %2",
+  // Custom block translations - Combine blocks
+  merge_meshes: "lägg till %1 som sammanfoga %2",
+  subtract_meshes: "lägg till %1 som %2 subtrahera %3",
+  intersection_meshes: "lägg till %1 som snitta %2",
+  hull_meshes: "lägg till %1 som hölje av %2",
 
-      // Custom block translations - Connect blocks
-      parent: "förälder %1 barn %2",
-      parent_child: "förälder %1 barn %2\nförskjutning x: %3 y: %4 z: %5",
-      remove_parent: "ta bort förälder från %1",
-      stop_follow: "sluta följa %1",
-      hold: "gör att %1 håller %2\nförskjutning x: %3 y: %4 z: %5",
-      drop: "släpp %1",
-      follow: "gör att %1 följer %2 på %3\nförskjutning x: %4 y: %5 z: %6",
-      export_mesh: "exportera %1 som %2",
-      attach: "fäst %1 på %2 vid %3\nförskjutning x: %4 y: %5 z: %6",
+  // Custom block translations - Connect blocks
+  parent: "förälder %1 barn %2",
+  parent_child: "förälder %1 barn %2\nförskjutning x: %3 y: %4 z: %5",
+  remove_parent: "ta bort förälder från %1",
+  stop_follow: "sluta följa %1",
+  hold: "gör att %1 håller %2\nförskjutning x: %3 y: %4 z: %5",
+  drop: "släpp %1",
+  follow: "gör att %1 följer %2 på %3\nförskjutning x: %4 y: %5 z: %6",
+  export_mesh: "exportera %1 som %2",
+  attach: "fäst %1 på %2 vid %3\nförskjutning x: %4 y: %5 z: %6",
 
-      // Custom block translations - Control blocks
-      wait: "vänta %1 ms",
-      wait_seconds: "vänta %1 sekunder",
-      wait_until: "vänta tills %1",
-      local_variable: "lokal %1",
-      for_loop2: "för varje %1 från %2 till %3 med steg %4 gör %5",
-      for_loop: "för varje %1 från %2 till %3 med steg %4 gör %5",
-      get_lexical_variable: "%1",
+  // Custom block translations - Control blocks
+  wait: "vänta %1 ms",
+  wait_seconds: "vänta %1 sekunder",
+  wait_until: "vänta tills %1",
+  local_variable: "lokal %1",
+  for_loop2: "för varje %1 från %2 till %3 med steg %4 gör %5",
+  for_loop: "för varje %1 från %2 till %3 med steg %4 gör %5",
+  get_lexical_variable: "%1",
 
-      // Custom block translations - Effects blocks
-      main_light: "ljusintensitet: %1 färg: %2 mark: %3",
-      set_fog: "ställ in dimma färg %1 läge %2 densitet %3\nstart %4 slut %5",
-      get_light: "hämta ljus som %1",
+  // Custom block translations - Effects blocks
+  main_light: "ljusintensitet: %1 färg: %2 mark: %3",
+  set_fog: "ställ in dimma färg %1 läge %2 densitet %3\nstart %4 slut %5",
+  get_light: "hämta ljus som %1",
 
-      // Custom block translation - Events blocks
-      start: "starta",
-      forever: "för alltid\n%1",
-      when_clicked: "när %1 %2",
-      on_collision: "vid %1 kollision %2 %3",
-      when_key_event: "när tangent %1 %2",
-      when_action_event: "när %1 %2",
-      broadcast_event: "sänd händelse %1",
-      on_event: "vid händelse %1",
+  // Custom block translation - Events blocks
+  start: "starta",
+  forever: "för alltid\n%1",
+  when_clicked: "när %1 %2",
+  on_collision: "vid %1 kollision %2 %3",
+  when_key_event: "när tangent %1 %2",
+  when_action_event: "när %1 %2",
+  broadcast_event: "sänd händelse %1",
+  on_event: "vid händelse %1",
 
-      // Custom block translations - Materials blocks
-      change_color: "färga %1 till %2",
-      change_material: "tillämpa material %1 på %2 med färg %3",
-      text_material:
-            "material %1 text %2 färg %3 bakgrund %4\nbredd: %5 höjd: %6 storlek: %7",
-      place_decal: "dekal %1 vinkel %2",
-      decal: "dekal på %1 från x: %2 y: %3 z: %4\nvinkel x: %5 y: %6 z: %7\nstorlek x: %8 y: %9 z: %10 material: %11",
-      highlight: "markera %1 %2",
-      glow: "glöd %1",
-      tint: "toning %1 %2",
-      set_alpha: "ställ in alfa för %1 till %2",
-      clear_effects: "rensa effekter %1",
-      colour: "%1",
-      skin_colour: "%1",
-      greyscale_colour: "%1",
-      colour_from_string: "- %1 -",
-      random_colour: "slumpmässig färg",
-      material: "material %1 %2 alfa %3",
-      gradient_material: "material %1 alfa %2",
-      set_material: "ställ in material för %1 till %2",
+  // Custom block translations - Materials blocks
+  change_color: "färga %1 till %2",
+  change_material: "tillämpa material %1 på %2 med färg %3",
+  text_material:
+    "material %1 text %2 färg %3 bakgrund %4\nbredd: %5 höjd: %6 storlek: %7",
+  place_decal: "dekal %1 vinkel %2",
+  decal:
+    "dekal på %1 från x: %2 y: %3 z: %4\nvinkel x: %5 y: %6 z: %7\nstorlek x: %8 y: %9 z: %10 material: %11",
+  highlight: "markera %1 %2",
+  glow: "glöd %1",
+  tint: "toning %1 %2",
+  set_alpha: "ställ in alfa för %1 till %2",
+  clear_effects: "rensa effekter %1",
+  colour: "%1",
+  skin_colour: "%1",
+  greyscale_colour: "%1",
+  colour_from_string: "- %1 -",
+  random_colour: "slumpmässig färg",
+  material: "material %1 %2 alfa %3",
+  gradient_material: "material %1 alfa %2",
+  set_material: "ställ in material för %1 till %2",
 
-      // Custom block translations - Physics blocks
-      add_physics: "lägg till fysik %1 typ %2",
-      add_physics_shape: "lägg till fysikform %1 typ %2",
-      apply_force: "tillämpa kraft på %1 x: %2 y: %3 z: %4",
-      show_physics: "visa fysikformer %1",
+  // Custom block translations - Physics blocks
+  add_physics: "lägg till fysik %1 typ %2",
+  add_physics_shape: "lägg till fysikform %1 typ %2",
+  apply_force: "tillämpa kraft på %1 x: %2 y: %3 z: %4",
+  show_physics: "visa fysikformer %1",
 
-      // Custom block translations - Sensing blocks
-      key_pressed: "tangent nedtryckt är %1",
-      action_pressed: "%1",
-      meshes_touching: "%1 vidrör %2",
-      time: "tid i %1",
-      seconds: "sekunder",
-      milliseconds: "millisekunder",
-      minutes: "minuter",
-      ground_level: "marknivå",
-      distance_to: "avstånd från %1 till %2",
-      touching_surface: "är %1 i kontakt med yta",
-      mesh_exists: "finns %1?",
-      get_property: "hämta %1 från %2",
-      canvas_controls: "canvas kontroller %1",
-      button_controls: "knappkontroller %1 aktiverad %2 färg %3",
-      microbit_input: "när micro:bit händelse %1",
-      ui_slider:
-            "ui reglage %1 från %2 till %3 standard %4 vid x: %5 y: %6\nfärg: %7 bakgrund: %8 %9",
+  // Custom block translations - Sensing blocks
+  key_pressed: "tangent nedtryckt är %1",
+  action_pressed: "%1",
+  meshes_touching: "%1 vidrör %2",
+  time: "tid i %1",
+  seconds: "sekunder",
+  milliseconds: "millisekunder",
+  minutes: "minuter",
+  ground_level: "marknivå",
+  distance_to: "avstånd från %1 till %2",
+  touching_surface: "är %1 i kontakt med yta",
+  mesh_exists: "finns %1?",
+  get_property: "hämta %1 från %2",
+  canvas_controls: "canvas kontroller %1",
+  button_controls: "knappkontroller %1 aktiverad %2 färg %3",
+  microbit_input: "när micro:bit händelse %1",
+  ui_slider:
+    "ui reglage %1 från %2 till %3 standard %4 vid x: %5 y: %6\nfärg: %7 bakgrund: %8 %9",
 
-      // Custom block translations - Shapes blocks
-      create_particle_effect:
-            "lägg till %1 partikeleffekt på: %2\nform: %3 start %4 slut %5 alfa: %6 till %7\nfrekvens: %8 storlek: %9 till %10 livslängd: %11 till %12\ngrundkrafter: %13 kraft x: %14 y: %15 z: %16\nvinkelhastighet: %17 till %18 initial vinkel: %19 till %20",
-      control_particle_system: "partikelsystem %1 %2",
-      create_box:
-            "lägg till box %1 %2 bredd: %3 höjd: %4 djup: %5 \nvid x: %6 y: %7 z: %8",
-      create_sphere:
-            "lägg till sfär %1 %2 diameter x: %3 diameter y: %4 diameter z: %5\nvid x: %6 y: %7 z: %8",
-      create_cylinder:
-            "lägg till cylinder %1 %2 höjd: %3 topp: %4 botten: %5 sidor: %6\nvid x: %7 y: %8 z: %9",
-      create_capsule:
-            "lägg till kapsel %1 %2 diameter: %3 höjd: %4 \nvid x: %5 y: %6 z: %7",
-      create_plane:
-            "lägg till plan %1 %2 bredd: %3 höjd: %4 \nvid x: %5 y: %6 z: %7",
+  // Custom block translations - Shapes blocks
+  create_particle_effect:
+    "lägg till %1 partikeleffekt på: %2\nform: %3 start %4 slut %5 alfa: %6 till %7\nfrekvens: %8 storlek: %9 till %10 livslängd: %11 till %12\ngrundkrafter: %13 kraft x: %14 y: %15 z: %16\nvinkelhastighet: %17 till %18 initial vinkel: %19 till %20",
+  control_particle_system: "partikelsystem %1 %2",
+  create_box:
+    "lägg till box %1 %2 bredd: %3 höjd: %4 djup: %5 \nvid x: %6 y: %7 z: %8",
+  create_sphere:
+    "lägg till sfär %1 %2 diameter x: %3 diameter y: %4 diameter z: %5\nvid x: %6 y: %7 z: %8",
+  create_cylinder:
+    "lägg till cylinder %1 %2 höjd: %3 topp: %4 botten: %5 sidor: %6\nvid x: %7 y: %8 z: %9",
+  create_capsule:
+    "lägg till kapsel %1 %2 diameter: %3 höjd: %4 \nvid x: %5 y: %6 z: %7",
+  create_plane:
+    "lägg till plan %1 %2 bredd: %3 höjd: %4 \nvid x: %5 y: %6 z: %7",
 
-      // Custom block translations - Sound blocks
-      play_sound:
-            "spela ljud %1 %2 från %3 \nrotation: %4 volym: %5 läge: %6 asynkront: %7",
-      stop_all_sounds: "stoppa alla ljud",
-      midi_note: "MIDI not %1",
-      rest: "paus",
-      play_notes:
-            "spela noter på %1\nnoter: %2 varaktigheter: %3\ninstrument: %4 läge: %5",
-      set_scene_bpm: "ställ in scenens BPM till %1",
-      set_mesh_bpm: "ställ in BPM för %1 till %2",
-      create_instrument:
-            "instrument %1 våg: %2\nfrekvens: %3 attack: %4 förfall: %5 sustain: %6 release: %7",
-      instrument: "instrument %1",
-      speak: "tala %1 %2 röst: %3 språk: %4\nhastighet: %5 tonhöjd: %6 volym: %7 läge: %8",
+  // Custom block translations - Sound blocks
+  play_sound:
+    "spela ljud %1 %2 från %3 \nrotation: %4 volym: %5 läge: %6 asynkront: %7",
+  stop_all_sounds: "stoppa alla ljud",
+  midi_note: "MIDI not %1",
+  rest: "paus",
+  play_notes:
+    "spela noter på %1\nnoter: %2 varaktigheter: %3\ninstrument: %4 läge: %5",
+  set_scene_bpm: "ställ in scenens BPM till %1",
+  set_mesh_bpm: "ställ in BPM för %1 till %2",
+  create_instrument:
+    "instrument %1 våg: %2\nfrekvens: %3 attack: %4 förfall: %5 sustain: %6 release: %7",
+  instrument: "instrument %1",
+  speak:
+    "tala %1 %2 röst: %3 språk: %4\nhastighet: %5 tonhöjd: %6 volym: %7 läge: %8",
 
-      // Custom block translations - Text blocks
-      comment: "// %1",
-      print_text: "skriv ut %1 för %2 sekunder %3",
-      say: "säg %1 för %2 s %3 \ntext %4 på %5 alfa %6 storlek %7 %8 %9",
-      ui_text: "ui text %1 %2 vid x: %3 y: %4\nstorlek: %5 för %6 sekunder färg: %7",
-      ui_button:
-            "ui knapp %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 background: %8",
-      ui_input: "ui inmatning %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 bakgrund: %8",
-      describe: "beskriv %1 som %2",
-      create_3d_text:
-            "lägg till %1 3D text: %2 font: %3 storlek: %4 färg: %5\ndjup: %6 x: %7 y: %8 z: %9 ",
+  // Custom block translations - Text blocks
+  comment: "// %1",
+  print_text: "skriv ut %1 för %2 sekunder %3",
+  say: "säg %1 för %2 s %3 \ntext %4 på %5 alfa %6 storlek %7 %8 %9",
+  ui_text:
+    "ui text %1 %2 vid x: %3 y: %4\nstorlek: %5 för %6 sekunder färg: %7",
+  ui_button:
+    "ui knapp %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 background: %8",
+  ui_input:
+    "ui inmatning %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 bakgrund: %8",
+  describe: "beskriv %1 som %2",
+  create_3d_text:
+    "lägg till %1 3D text: %2 font: %3 storlek: %4 färg: %5\ndjup: %6 x: %7 y: %8 z: %9 ",
 
-      // Custom block translations - Math blocks
-      random_seeded_int: "slumpmässigt heltal från %1 till %2 frö: %3",
-      to_number: "konvertera %1 till %2",
+  // Custom block translations - Math blocks
+  random_seeded_int: "slumpmässigt heltal från %1 till %2 frö: %3",
+  to_number: "konvertera %1 till %2",
 
-      // Custom block translations - Transform blocks
-      move_by_xyz: "ändra positionen för %1 med x: %2 y: %3 z: %4",
-      move_by_xyz_single: "ändra positionen för %1 med %2 %3",
-      move_to_xyz: "ställ in positionen för %1 till x: %2 y: %3 z: %4 y? %5",
-      move_to_xyz_single: "ställ in positionen för %1 till %2 %3",
-      move_to: "ställ in positionen för %1 till %2 y? %3",
-      scale: "skala %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7",
-      resize: "ändra storlek på %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7",
-      rotate_model_xyz: "rotera %1 med x: %2 y: %3 z: %4",
-      rotate_to: "rotera %1 till x: %2 y: %3 z: %4",
-      look_at: "titta %1 på %2 y? %3",
-      move_forward: "flytta %1 %2 hastighet %3",
-      rotate_camera: "rotera kamera med %1 grader",
-      up: "upp %1 kraft %2",
-      set_pivot: "ställ in ankare för %1\nx: %2 y: %3 z: %4",
-      min_centre_max: "%1",
+  // Custom block translations - Transform blocks
+  move_by_xyz: "ändra positionen för %1 med x: %2 y: %3 z: %4",
+  move_by_xyz_single: "ändra positionen för %1 med %2 %3",
+  move_to_xyz: "ställ in positionen för %1 till x: %2 y: %3 z: %4 y? %5",
+  move_to_xyz_single: "ställ in positionen för %1 till %2 %3",
+  move_to: "ställ in positionen för %1 till %2 y? %3",
+  scale: "skala %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7",
+  resize: "ändra storlek på %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7",
+  rotate_model_xyz: "rotera %1 med x: %2 y: %3 z: %4",
+  rotate_to: "rotera %1 till x: %2 y: %3 z: %4",
+  look_at: "titta %1 på %2 y? %3",
+  move_forward: "flytta %1 %2 hastighet %3",
+  rotate_camera: "rotera kamera med %1 grader",
+  up: "upp %1 kraft %2",
+  set_pivot: "ställ in ankare för %1\nx: %2 y: %3 z: %4",
+  min_centre_max: "%1",
 
-      // Custom block translations - XR blocks
-      device_camera_background: "använd %1 kamera som bakgrund",
-      set_xr_mode: "ställ in XR-läge till %1",
-      play_rumble_pattern: "spela vibrationsmönster %1",
-      controller_rumble: "vibrera %1 motor med styrka %2 i %3 ms",
-      controller_rumble_pattern: "vibrera %1 motor styrka %2 på %3 ms av %4 ms %5 gånger",
+  // Custom block translations - XR blocks
+  device_camera_background: "använd %1 kamera som bakgrund",
+  set_xr_mode: "ställ in XR-läge till %1",
+  play_rumble_pattern: "spela vibrationsmönster %1",
+  controller_rumble: "vibrera %1 motor med styrka %2 i %3 ms",
+  controller_rumble_pattern:
+    "vibrera %1 motor styrka %2 på %3 ms av %4 ms %5 gånger",
 
-      // Blockly message overrides for English
-      LISTS_CREATE_WITH_INPUT_WITH: "lista",
-      TEXT_JOIN_TITLE_CREATEWITH: "text",
-      CONTROLS_REPEAT_INPUT_DO: "",
-      CONTROLS_WHILEUNTIL_INPUT_DO: "",
-      CONTROLS_FOR_INPUT_DO: "",
-      CONTROLS_FOREACH_INPUT_DO: "",
-      CONTROLS_IF_MSG_THEN: "",
-      CONTROLS_IF_MSG_ELSE: "annars\n",
-      CONTROLS_FOR_TITLE: "för varje %1 från %2 till %3 med steg %4",
+  // Blockly message overrides for English
+  LISTS_CREATE_WITH_INPUT_WITH: "lista",
+  TEXT_JOIN_TITLE_CREATEWITH: "text",
+  CONTROLS_REPEAT_INPUT_DO: "",
+  CONTROLS_WHILEUNTIL_INPUT_DO: "",
+  CONTROLS_FOR_INPUT_DO: "",
+  CONTROLS_FOREACH_INPUT_DO: "",
+  CONTROLS_IF_MSG_THEN: "",
+  CONTROLS_IF_MSG_ELSE: "annars\n",
+  CONTROLS_FOR_TITLE: "för varje %1 från %2 till %3 med steg %4",
 
-      // Block message translations
-      BLOCK_PRINT_TEXT_MESSAGE: "skriv ut %1 i %2 sekunder %3",
-      BLOCK_WAIT_SECONDS_MESSAGE: "vänta %1 sekunder",
-      BLOCK_KEY_PRESSED_MESSAGE: "tangent %1 nedtryckt?",
-      BLOCK_MOVE_FORWARD_MESSAGE: "flytta %1 framåt med %2",
-      BLOCK_CREATE_BOX_MESSAGE:
-            "skapa låda %1 färg %2 storlek %3 × %4 × %5 vid %6, %7, %8",
+  // Block message translations
+  BLOCK_PRINT_TEXT_MESSAGE: "skriv ut %1 i %2 sekunder %3",
+  BLOCK_WAIT_SECONDS_MESSAGE: "vänta %1 sekunder",
+  BLOCK_KEY_PRESSED_MESSAGE: "tangent %1 nedtryckt?",
+  BLOCK_MOVE_FORWARD_MESSAGE: "flytta %1 framåt med %2",
+  BLOCK_CREATE_BOX_MESSAGE:
+    "skapa låda %1 färg %2 storlek %3 × %4 × %5 vid %6, %7, %8",
 
-      // Tooltip translations - Scene Blocks
-      set_sky_color_tooltip: "Ställ in scenens himmelfärg.\nNyckelord: himmel",
-      create_ground_tooltip:
-            "Lägg till ett markplan med kollisioner aktiverade i scenen.\nNyckelord: mark",
-      set_background_color_tooltip:
-            "Ställ in bakgrundsfärgen i scenen.\nNyckelord: bakgrund",
-      create_map_tooltip:
-            "Skapa en karta med valt namn och material.\nNyckelord: karta",
-      show_tooltip: "Visa det valda objektet.\nNyckelord: visa",
-      hide_tooltip: "Dölj det valda objektet.\nNyckelord: dölj",
-      dispose_tooltip:
-            "Ta bort det angivna objektet från scenen.\nNyckelord: ta bort",
-      clone_mesh_tooltip:
-            "Kopiera ett objekt och tilldela det till en variabel.\nNyckelord: kopiera",
+  // Tooltip translations - Scene Blocks
+  set_sky_color_tooltip: "Ställ in scenens himmelfärg.\nNyckelord: himmel",
+  create_ground_tooltip:
+    "Lägg till ett markplan med kollisioner aktiverade i scenen.\nNyckelord: mark",
+  set_background_color_tooltip:
+    "Ställ in bakgrundsfärgen i scenen.\nNyckelord: bakgrund",
+  create_map_tooltip:
+    "Skapa en karta med valt namn och material.\nNyckelord: karta",
+  show_tooltip: "Visa det valda objektet.\nNyckelord: visa",
+  hide_tooltip: "Dölj det valda objektet.\nNyckelord: dölj",
+  dispose_tooltip:
+    "Ta bort det angivna objektet från scenen.\nNyckelord: ta bort",
+  clone_mesh_tooltip:
+    "Kopiera ett objekt och tilldela det till en variabel.\nNyckelord: kopiera",
 
-      // Tooltip translations - Models blocks
-      load_character_tooltip:
-            "Skapa en konfigurerbar karaktär.\nNyckelord: karaktär",
-      load_object_tooltip: "Skapa ett objekt.\nNyckelord: objekt",
-      load_multi_object_tooltip:
-            "Skapa ett objekt med färger.\nNyckelord: objekt",
-      load_model_tooltip: "Ladda en modell.\nNyckelord: modell",
+  // Tooltip translations - Models blocks
+  load_character_tooltip:
+    "Skapa en konfigurerbar karaktär.\nNyckelord: karaktär",
+  load_object_tooltip: "Skapa ett objekt.\nNyckelord: objekt",
+  load_multi_object_tooltip: "Skapa ett objekt med färger.\nNyckelord: objekt",
+  load_model_tooltip: "Ladda en modell.\nNyckelord: modell",
 
-      // Tooltip translations - Animate blocks
-      glide_to_tooltip:
-            "Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).",
-      glide_to_seconds_tooltip:
-            "Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).",
-      glide_to_object_tooltip:
-            "Glid till positionen för ett annat objekt med valfria x/y/z‑förskjutningar (standard 0) och alternativ för att reversera, loopa och easing.",
-      rotate_anim_tooltip:
-            "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
-      rotate_anim_seconds_tooltip:
-            "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
-      rotate_to_object_tooltip:
-        "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
-      animate_property_tooltip:
-            "Animera ett materialegenskap på objektet och dess barn.",
-      colour_keyframe_tooltip:
-            "Ange en färg och varaktighet för en nyckelruta.",
-      number_keyframe_tooltip:
-            "Ange ett tal och varaktighet för en nyckelruta.",
-      xyz_keyframe_tooltip: "Ange en XYZ-nyckelruta med varaktighet.",
-      animate_keyframes_tooltip:
-            "Animera en array av nyckelrutor på det valda objektet, med easing, valfri looping och reversering.",
-      animation_tooltip:
-            "Skapa en animationsgrupp för det valda objektet och egenskapen, med nyckelrutor, easing, valfri looping och reversering. Välj skapa, starta eller vänta för att styra beteendet.",
-      control_animation_group_tooltip:
-            "Styr animationsgruppen genom att spela, pausa eller stoppa den.",
-      animate_from_tooltip:
-            "Börja animera gruppen från angiven tid (i sekunder).",
-      stop_animations_tooltip:
-            "Stoppa alla nyckelruteanimationer på det valda objektet.\nNyckelord: stoppa",
-      switch_animation_tooltip:
-            "Byt animation på det angivna objektet till vald animation.\nNyckelord: byt",
-      play_animation_tooltip:
-            "Spela vald animation en gång på det angivna objektet.\nNyckelord: spela",
+  // Tooltip translations - Animate blocks
+  glide_to_tooltip:
+    "Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).",
+  glide_to_seconds_tooltip:
+    "Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).",
+  glide_to_object_tooltip:
+    "Glid till positionen för ett annat objekt med valfria x/y/z‑förskjutningar (standard 0) och alternativ för att reversera, loopa och easing.",
+  rotate_anim_tooltip:
+    "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
+  rotate_anim_seconds_tooltip:
+    "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
+  rotate_to_object_tooltip:
+    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
+  animate_property_tooltip:
+    "Animera ett materialegenskap på objektet och dess barn.",
+  colour_keyframe_tooltip: "Ange en färg och varaktighet för en nyckelruta.",
+  number_keyframe_tooltip: "Ange ett tal och varaktighet för en nyckelruta.",
+  xyz_keyframe_tooltip: "Ange en XYZ-nyckelruta med varaktighet.",
+  animate_keyframes_tooltip:
+    "Animera en array av nyckelrutor på det valda objektet, med easing, valfri looping och reversering.",
+  animation_tooltip:
+    "Skapa en animationsgrupp för det valda objektet och egenskapen, med nyckelrutor, easing, valfri looping och reversering. Välj skapa, starta eller vänta för att styra beteendet.",
+  control_animation_group_tooltip:
+    "Styr animationsgruppen genom att spela, pausa eller stoppa den.",
+  animate_from_tooltip: "Börja animera gruppen från angiven tid (i sekunder).",
+  stop_animations_tooltip:
+    "Stoppa alla nyckelruteanimationer på det valda objektet.\nNyckelord: stoppa",
+  switch_animation_tooltip:
+    "Byt animation på det angivna objektet till vald animation.\nNyckelord: byt",
+  play_animation_tooltip:
+    "Spela vald animation en gång på det angivna objektet.\nNyckelord: spela",
 
-      // Tooltip translations - Base blocks
-      xyz_tooltip: "Skapar en vektor med X-, Y- och Z-koordinater",
+  // Tooltip translations - Base blocks
+  xyz_tooltip: "Skapar en vektor med X-, Y- och Z-koordinater",
 
-      // Tooltip translations - Camera blocks
-      camera_control_tooltip:
-            "Koppla en specifik tangent till en kamerakontrollfunktion.",
-      camera_follow_tooltip:
-            "Få kameran att följa ett objekt med ett justerbart avstånd (radie) från målet.\nKeyword: follow",
-      get_camera_tooltip: "Hämta den aktuella scenkameran",
+  // Tooltip translations - Camera blocks
+  camera_control_tooltip:
+    "Koppla en specifik tangent till en kamerakontrollfunktion.",
+  camera_follow_tooltip:
+    "Få kameran att följa ett objekt med ett justerbart avstånd (radie) från målet.\nKeyword: follow",
+  get_camera_tooltip: "Hämta den aktuella scenkameran",
 
-      // Tooltip translations - Combine blocks
-      merge_meshes_tooltip:
-            "Slå samman en lista med mesh-objekt till ett och spara resultatet.\nKeyword: merge",
-      subtract_meshes_tooltip:
-            "Subtrahera en lista med mesh-objekt från ett basobjekt och spara resultatet.\nKeyword: subtract",
-      intersection_meshes_tooltip:
-            "Skapa en geometri genom att skära en lista med mesh-objekt och spara resultatet.\nKeyword: intersect",
-      hull_meshes_tooltip:
-            "Skapa ett konvext hölje från en lista med mesh-objekt och spara resultatet.\nKeyword: hull",
+  // Tooltip translations - Combine blocks
+  merge_meshes_tooltip:
+    "Slå samman en lista med mesh-objekt till ett och spara resultatet.\nKeyword: merge",
+  subtract_meshes_tooltip:
+    "Subtrahera en lista med mesh-objekt från ett basobjekt och spara resultatet.\nKeyword: subtract",
+  intersection_meshes_tooltip:
+    "Skapa en geometri genom att skära en lista med mesh-objekt och spara resultatet.\nKeyword: intersect",
+  hull_meshes_tooltip:
+    "Skapa ett konvext hölje från en lista med mesh-objekt och spara resultatet.\nKeyword: hull",
 
-      // Tooltip translations - Connect blocks
-      parent_tooltip:
-            "Skapa en förälder-barn-relation mellan två mesh-objekt och behåll barnets världsposition\nKeyword:parent",
-      parent_child_tooltip:
-            "Skapa en förälder-barn-relation mellan två mesh-objekt med ett angivet avstånd i x-, y- och z-riktning.\nKeyword: child",
-      remove_parent_tooltip:
-            "Ta bort föräldrarelationen från det angivna mesh-objektet.\nKeyword: unparent",
-      stop_follow_tooltip:
-            "Stoppa det angivna mesh-objektet från att följa ett annat.\nKeyword: stopfollow",
-      hold_tooltip:
-            "Fäst ett mesh-objekt till ett angivet ben på ett annat objekt med ett offset i x-, y- och z-led.\nKeyword: hold",
-      drop_tooltip:
-            "Koppla loss ett mesh-objekt från det ben det är fäst vid.\nKeyword: drop",
-      follow_tooltip:
-            "Få ett mesh-objekt att följa ett annat vid en angiven position (topp, mitt eller botten) med offset i x-, y- och z-led.\nKeyword: follow",
-      export_mesh_tooltip:
-            "Exportera ett mesh som STL, OBJ eller GLB.\nKeyword: export",
+  // Tooltip translations - Connect blocks
+  parent_tooltip:
+    "Skapa en förälder-barn-relation mellan två mesh-objekt och behåll barnets världsposition\nKeyword:parent",
+  parent_child_tooltip:
+    "Skapa en förälder-barn-relation mellan två mesh-objekt med ett angivet avstånd i x-, y- och z-riktning.\nKeyword: child",
+  remove_parent_tooltip:
+    "Ta bort föräldrarelationen från det angivna mesh-objektet.\nKeyword: unparent",
+  stop_follow_tooltip:
+    "Stoppa det angivna mesh-objektet från att följa ett annat.\nKeyword: stopfollow",
+  hold_tooltip:
+    "Fäst ett mesh-objekt till ett angivet ben på ett annat objekt med ett offset i x-, y- och z-led.\nKeyword: hold",
+  drop_tooltip:
+    "Koppla loss ett mesh-objekt från det ben det är fäst vid.\nKeyword: drop",
+  follow_tooltip:
+    "Få ett mesh-objekt att följa ett annat vid en angiven position (topp, mitt eller botten) med offset i x-, y- och z-led.\nKeyword: follow",
+  export_mesh_tooltip:
+    "Exportera ett mesh som STL, OBJ eller GLB.\nKeyword: export",
 
-      // Tooltip translations - Control blocks
-      wait_tooltip: "Vänta en angiven tid i millisekunder.\nKeyword: milli",
-      wait_seconds_tooltip: "Vänta en angiven tid i sekunder.\nKeyword: wait",
-      wait_until_tooltip: "Vänta tills villkoret är uppfyllt.\nKeyword:until",
-      local_variable_tooltip:
-            "Skapa en lokal version av en vald variabel. Den döljer den globala variabeln och kan ha ett annat värde.\nKeyword: local",
-      for_loop2_tooltip:
-            "Loop från ett starttal till ett slutvärde med ett givet steg.",
-      for_loop_tooltip:
-            "Loop från ett starttal till ett slutvärde med ett givet steg. Klicka på rullgardinsmenyn för att använda loopvariabeln i koden.\nKeyword: for",
-      get_lexical_variable_tooltip: "Hämta värdet av en lexikal variabel",
+  // Tooltip translations - Control blocks
+  wait_tooltip: "Vänta en angiven tid i millisekunder.\nKeyword: milli",
+  wait_seconds_tooltip: "Vänta en angiven tid i sekunder.\nKeyword: wait",
+  wait_until_tooltip: "Vänta tills villkoret är uppfyllt.\nKeyword:until",
+  local_variable_tooltip:
+    "Skapa en lokal version av en vald variabel. Den döljer den globala variabeln och kan ha ett annat värde.\nKeyword: local",
+  for_loop2_tooltip:
+    "Loop från ett starttal till ett slutvärde med ett givet steg.",
+  for_loop_tooltip:
+    "Loop från ett starttal till ett slutvärde med ett givet steg. Klicka på rullgardinsmenyn för att använda loopvariabeln i koden.\nKeyword: for",
+  get_lexical_variable_tooltip: "Hämta värdet av en lexikal variabel",
 
-      // Tooltip translations - Effects blocks
-      main_light_tooltip:
-            "Ställ in intensiteten på huvudljuset.\nKeyword: light intensity",
-      set_fog_tooltip:
-            "Konfigurera scenens dimma. Använd start och slut för att ställa in nära och långt avstånd.\nKeyword: fog",
-      get_light_tooltip: "Hämta huvudljuset på aktuella scen.\nKeyword: light",
+  // Tooltip translations - Effects blocks
+  main_light_tooltip:
+    "Ställ in intensiteten på huvudljuset.\nKeyword: light intensity",
+  set_fog_tooltip:
+    "Konfigurera scenens dimma. Använd start och slut för att ställa in nära och långt avstånd.\nKeyword: fog",
+  get_light_tooltip: "Hämta huvudljuset på aktuella scen.\nKeyword: light",
 
-      // Tooltip translations - Events blocks
-      start_tooltip:
-            "Kör blocken när projektet startar. Du kan ha flera startblock.\nKeyword: start",
-      forever_tooltip:
-            "Kör blocken varje bildruta eller när föregående iteration är klar.\nKeyword: forever",
-      when_clicked_tooltip:
-            "Kör blocken när mesh-triggern aktiveras.\nKeyword: click",
-      on_collision_tooltip:
-            "Kör blocken när ett mesh-objekt kolliderar med eller slutar kollidera med ett annat.\nKeyword: collide",
-      when_key_event_tooltip:
-            "Kör blocken när den angivna tangenten trycks ned eller släpps.",
-      when_action_event_tooltip:
-            "Kör blocken när den valda handlingen trycks ned eller släpps via tangentbord, touch eller XR.",
-      broadcast_event_tooltip:
-            "Sänd ett event som tas emot av on event.\nKeyword: broadcast",
-      on_event_tooltip:
-            "Kör kod när ett broadcast-event tas emot.\nKeyword: on",
+  // Tooltip translations - Events blocks
+  start_tooltip:
+    "Kör blocken när projektet startar. Du kan ha flera startblock.\nKeyword: start",
+  forever_tooltip:
+    "Kör blocken varje bildruta eller när föregående iteration är klar.\nKeyword: forever",
+  when_clicked_tooltip:
+    "Kör blocken när mesh-triggern aktiveras.\nKeyword: click",
+  on_collision_tooltip:
+    "Kör blocken när ett mesh-objekt kolliderar med eller slutar kollidera med ett annat.\nKeyword: collide",
+  when_key_event_tooltip:
+    "Kör blocken när den angivna tangenten trycks ned eller släpps.",
+  when_action_event_tooltip:
+    "Kör blocken när den valda handlingen trycks ned eller släpps via tangentbord, touch eller XR.",
+  broadcast_event_tooltip:
+    "Sänd ett event som tas emot av on event.\nKeyword: broadcast",
+  on_event_tooltip: "Kör kod när ett broadcast-event tas emot.\nKeyword: on",
 
-      // Tooltip translations - Materials blocks
-      change_color_tooltip:
-            "Ändra färgen på det valda mesh-objektet.\nKeyword: color",
-      change_material_tooltip:
-            "Applicera ett valt material med färgton på det angivna mesh-objektet.\nKeyword: material",
-      text_material_tooltip:
-            "Skapa ett material med text eller emoji, där bredd, höjd, bakgrundsfärg och textstorlek anges.",
-      place_decal_tooltip: "Placera en dekal på ett mesh med valt material.",
-      decal_tooltip:
-            "Skapa en dekal på ett mesh med position, normal, storlek och material.",
-      highlight_tooltip: "Markera det valda mesh-objektet.\nKeyword: highlight",
-      glow_tooltip:
-            "Lägg till ett glödeffekt på det valda mesh-objektet.\nKeyword: glow",
-      tint_tooltip: "Lägg till en färgtonseffekt.\nKeyword: tint",
-      set_alpha_tooltip:
-            "Ställ in alfavärdet (transparens) för materialet/materialen på det angivna mesh-objektet. Värden ska vara mellan 0 och 1.\nKeyword:alpha",
-      clear_effects_tooltip:
-            "Ta bort visuella effekter från valt mesh-objekt.\nKeyword: clear",
-      colour_tooltip: "Välj en färg.\nKeyword: color",
-      skin_colour_tooltip: "Välj en hudfärg.\nKeyword: skin",
-      greyscale_colour_tooltip:
-            "Välj en gråskala-färg för höjd.\nKeyword: grey",
-      random_colour_tooltip: "Generera en slumpmässig färg.\nKeyword: randcol",
-      material_tooltip: "Definiera materialegenskaper",
-      gradient_material_tooltip: "Definiera materialegenskaper",
-      set_material_tooltip:
-            "Ange det angivna materialet på det valda mesh-objektet.",
+  // Tooltip translations - Materials blocks
+  change_color_tooltip:
+    "Ändra färgen på det valda mesh-objektet.\nKeyword: color",
+  change_material_tooltip:
+    "Applicera ett valt material med färgton på det angivna mesh-objektet.\nKeyword: material",
+  text_material_tooltip:
+    "Skapa ett material med text eller emoji, där bredd, höjd, bakgrundsfärg och textstorlek anges.",
+  place_decal_tooltip: "Placera en dekal på ett mesh med valt material.",
+  decal_tooltip:
+    "Skapa en dekal på ett mesh med position, normal, storlek och material.",
+  highlight_tooltip: "Markera det valda mesh-objektet.\nKeyword: highlight",
+  glow_tooltip:
+    "Lägg till ett glödeffekt på det valda mesh-objektet.\nKeyword: glow",
+  tint_tooltip: "Lägg till en färgtonseffekt.\nKeyword: tint",
+  set_alpha_tooltip:
+    "Ställ in alfavärdet (transparens) för materialet/materialen på det angivna mesh-objektet. Värden ska vara mellan 0 och 1.\nKeyword:alpha",
+  clear_effects_tooltip:
+    "Ta bort visuella effekter från valt mesh-objekt.\nKeyword: clear",
+  colour_tooltip: "Välj en färg.\nKeyword: color",
+  skin_colour_tooltip: "Välj en hudfärg.\nKeyword: skin",
+  greyscale_colour_tooltip: "Välj en gråskala-färg för höjd.\nKeyword: grey",
+  random_colour_tooltip: "Generera en slumpmässig färg.\nKeyword: randcol",
+  material_tooltip: "Definiera materialegenskaper",
+  gradient_material_tooltip: "Definiera materialegenskaper",
+  set_material_tooltip:
+    "Ange det angivna materialet på det valda mesh-objektet.",
 
-      // Tooltip translations - Physics blocks
-      add_physics_tooltip:
-            "Lägg till fysik på mesh-objektet. Alternativen är dynamisk, statisk, animerad och ingen.\nKeyword:physics",
-      add_physics_shape_tooltip:
-            "Lägg till en fysikform på mesh-objektet. Alternativen är mesh eller kapsel.\nKeyword:physics",
-      apply_force_tooltip:
-            "Applicera en kraft på ett mesh i XYZ-riktningar.\nKeyword: force",
-      show_physics_tooltip:
-            "Visa eller dölj fysik-kollisionsobjekt för felsökning. Markera för att visa, avmarkera för att dölja.\nKeyword: debug physics collider",
+  // Tooltip translations - Physics blocks
+  add_physics_tooltip:
+    "Lägg till fysik på mesh-objektet. Alternativen är dynamisk, statisk, animerad och ingen.\nKeyword:physics",
+  add_physics_shape_tooltip:
+    "Lägg till en fysikform på mesh-objektet. Alternativen är mesh eller kapsel.\nKeyword:physics",
+  apply_force_tooltip:
+    "Applicera en kraft på ett mesh i XYZ-riktningar.\nKeyword: force",
+  show_physics_tooltip:
+    "Visa eller dölj fysik-kollisionsobjekt för felsökning. Markera för att visa, avmarkera för att dölja.\nKeyword: debug physics collider",
 
-      // Tooltip translations - Sensing blocks
-      key_pressed_tooltip:
-            "Returnerar sant om den angivna tangenten är nedtryckt.\nKeyword:ispressed",
-      action_pressed_tooltip:
-            "Returnerar sant om den valda rörelse- eller åtgärdskontrollen är aktiv via tangentbord, pekskärm eller XR.",
+  // Tooltip translations - Sensing blocks
+  key_pressed_tooltip:
+    "Returnerar sant om den angivna tangenten är nedtryckt.\nKeyword:ispressed",
+  action_pressed_tooltip:
+    "Returnerar sant om den valda rörelse- eller åtgärdskontrollen är aktiv via tangentbord, pekskärm eller XR.",
   set_action_key: "ställ in %1 tangent till %2",
   set_action_key_tooltip:
     "Ställer in tangenten som utlöser en specifik åtgärd (framåt, bakåt, vänster, höger eller knappar).",
