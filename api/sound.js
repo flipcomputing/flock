@@ -162,13 +162,7 @@ export const flockSound = {
     {
       notes = [],
       durations = [],
-      instrument = flock.createInstrument("square", {
-        frequency: 440,
-        attack: 0.1,
-        decay: 0.3,
-        sustain: 0.7,
-        release: 1.0,
-      }),
+      instrument = flock.createInstrument("square"),
     } = {},
   ) {
     return new Promise((resolve) => {
@@ -295,15 +289,37 @@ export const flockSound = {
       return;
     }
 
-    // Create a new oscillator for each note
+    // Create fresh audio nodes per note so ADSR envelopes don't interfere
     const osc = context.createOscillator();
+    const gainNode = context.createGain();
+    gainNode.gain.setValueAtTime(0, context.currentTime); // Start silent to prevent click on first note
     const panner = mesh.metadata.panner;
-    // If an instrument is provided, reuse its gainNode but create a new oscillator each time
-    const gainNode = instrument ? instrument.gainNode : context.createGain();
 
-    // Set oscillator type based on the instrument or default to 'sine'
-    osc.type = instrument ? instrument.oscillator.type : "sine";
+    osc.type = instrument?.type ?? "sine";
     osc.frequency.value = flock.midiToFrequency(note); // Convert MIDI note to frequency
+
+    // Set up LFO effect if specified
+    const effect = instrument?.effect ?? "none";
+    const effectRate = instrument?.effectRate ?? 5;
+    const effectDepth = instrument?.effectDepth ?? 0.5;
+    let lfo = null;
+    let lfoGain = null;
+    if (effect !== "none") {
+      lfo = context.createOscillator();
+      lfoGain = context.createGain();
+      lfo.type = effect === "warble" ? "square" : "sine";
+      lfo.frequency.value = effect === "robot" ? effectRate * 100 : effectRate;
+      lfoGain.gain.value =
+        effect === "tremolo"
+          ? effectDepth
+          : osc.frequency.value * effectDepth * 0.5;
+      lfo.connect(lfoGain);
+      if (effect === "tremolo") {
+        lfoGain.connect(gainNode.gain);
+      } else {
+        lfoGain.connect(osc.frequency);
+      }
+    }
 
     // Connect the oscillator to the gain node and panner
     osc.connect(gainNode);
@@ -312,49 +328,65 @@ export const flockSound = {
 
     const gap = Math.min(0.05, (60 / bpm) * 0.05); // Slightly larger gap
 
-    gainNode.gain.setValueAtTime(
-      1,
-      Math.max(playTime, context.currentTime + 0.01),
+    // Use ADSR from the instrument if available, otherwise use simple defaults
+    const volume = instrument?.volume ?? 1.0;
+    const attack = instrument?.attack ?? 0.01;
+    const decay = instrument?.decay ?? 0.1;
+    const sustain = instrument?.sustain ?? 0.7;
+    const release = instrument?.release ?? 0.2;
+    const noteDuration = flock.durationInSeconds(duration, bpm);
+
+    const startTime = Math.max(playTime, context.currentTime + 0.01);
+    const attackEnd = startTime + attack;
+    const decayEnd = attackEnd + decay;
+    const releaseStart = Math.max(
+      decayEnd,
+      startTime + noteDuration - gap - release,
     );
+    const stopTime = releaseStart + release;
 
-    const fadeOutDuration = Math.min(0.2, duration * 0.2); // Longer fade-out for clarity
-
-    // Compute ramp and stop times and guard against non-finite or nonsensical values
-    const rampTime = playTime + duration - gap - fadeOutDuration;
-    if (!isFinite(rampTime) || rampTime <= playTime) {
-      // Fallback: set gain to 0 shortly after playTime
-      gainNode.gain.setValueAtTime(
-        0,
-        Math.max(playTime + 0.001, context.currentTime + 0.01),
-      );
-    } else {
-      gainNode.gain.linearRampToValueAtTime(0, rampTime);
-    }
+    gainNode.gain.cancelScheduledValues(startTime);
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(volume, attackEnd);
+    gainNode.gain.linearRampToValueAtTime(sustain * volume, decayEnd);
+    gainNode.gain.setValueAtTime(sustain * volume, releaseStart);
+    gainNode.gain.linearRampToValueAtTime(0, stopTime);
 
     osc.start(playTime); // Start the note at playTime
+    if (lfo) lfo.start(playTime);
 
-    let stopTime = playTime + duration - gap;
-    if (!isFinite(stopTime) || stopTime <= playTime) {
-      stopTime = Math.max(playTime + 0.001, context.currentTime + 0.02);
-    }
-    osc.stop(stopTime); // Stop slightly earlier to add a gap
+    const oscStopTime =
+      isFinite(stopTime) && stopTime > playTime
+        ? stopTime
+        : Math.max(playTime + 0.001, context.currentTime + 0.02);
+    osc.stop(oscStopTime);
+    if (lfo) lfo.stop(oscStopTime);
 
-    // Clean up: disconnect the oscillator after it's done
+    // Clean up: disconnect nodes after the note ends
     osc.onended = () => {
       osc.disconnect();
+      gainNode.disconnect();
+      if (lfo) lfo.disconnect();
+      if (lfoGain) lfoGain.disconnect();
     };
 
     // Fallback clean-up in case osc.onended is not triggered
     setTimeout(
       () => {
-        if (osc) {
-          osc.disconnect();
-        }
+        osc.disconnect();
+        gainNode.disconnect();
+        if (lfo) lfo.disconnect();
+        if (lfoGain) lfoGain.disconnect();
       },
       (playTime + duration) * 1000,
     );
   },
   midiToFrequency(note) {
+    const parsed = Number(note);
+    note = Math.min(
+      127,
+      Math.max(0, Math.round(Number.isNaN(parsed) ? 60 : parsed)),
+    ); // Clamp to valid MIDI range 0-127
     return 440 * Math.pow(2, (note - 69) / 12); // Convert MIDI note to frequency
   },
   durationInSeconds(duration, bpm) {
@@ -363,37 +395,43 @@ export const flockSound = {
   createInstrument(
     type,
     {
-      frequency = 440,
+      volume = 1.0,
       attack = 0.1,
       decay = 0.3,
       sustain = 0.7,
       release = 1.0,
+      effect = "none",
+      effectRate = 5,
+      effectDepth = 0.5,
     } = {},
   ) {
-    const audioCtx = flock.audioContext;
+    // Clamp parameters to valid ranges
+    const toNum = (v, def) => {
+      const n = Number(v);
+      return Number.isNaN(n) ? def : n;
+    };
+    const validEffects = ["none", "tremolo", "vibrato", "warble", "robot"];
+    effect = validEffects.includes(effect) ? effect : "none";
+    volume = Math.min(1, Math.max(0, toNum(volume, 1.0)));
+    attack = Math.min(5, Math.max(0, toNum(attack, 0.1)));
+    decay = Math.min(5, Math.max(0, toNum(decay, 0.3)));
+    sustain = Math.min(1, Math.max(0, toNum(sustain, 0.7)));
+    release = Math.min(10, Math.max(0, toNum(release, 1.0)));
+    effectRate = Math.min(20, Math.max(0.1, toNum(effectRate, 5)));
+    effectDepth = Math.min(1, Math.max(0, toNum(effectDepth, 0.5)));
 
-    if (!audioCtx || audioCtx.state === "closed") return;
-
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-
-    // Create ADSR envelope
-    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + attack);
-    gainNode.gain.linearRampToValueAtTime(
+    // Return configuration only — audio nodes are created fresh per note in playMidiNote
+    return {
+      type,
+      volume,
+      attack,
+      decay,
       sustain,
-      audioCtx.currentTime + attack + decay,
-    );
-    gainNode.gain.linearRampToValueAtTime(
-      0,
-      audioCtx.currentTime + attack + decay + release,
-    );
-    oscillator.connect(gainNode).connect(audioCtx.destination);
-
-    return { oscillator, gainNode, audioCtx };
+      release,
+      effect,
+      effectRate,
+      effectDepth,
+    };
   },
   setBPM(meshName, bpm) {
     if (meshName === "__everywhere__") {

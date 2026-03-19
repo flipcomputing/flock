@@ -2063,7 +2063,12 @@ export function defineGenerators() {
   };
 
   javascriptGenerator.forBlock["midi_note"] = function (block) {
-    const note = block.getFieldValue("NOTE");
+    const note =
+      javascriptGenerator.valueToCode(
+        block,
+        "NOTE",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "60";
     return [note, javascriptGenerator.ORDER_ATOMIC];
   };
 
@@ -2110,14 +2115,52 @@ export function defineGenerators() {
       Blockly.Names.NameType.VARIABLE,
     );
     const type = block.getFieldValue("TYPE");
-    const frequency = block.getFieldValue("FREQUENCY");
-    const attack = block.getFieldValue("ATTACK");
-    const decay = block.getFieldValue("DECAY");
-    const sustain = block.getFieldValue("SUSTAIN");
-    const release = block.getFieldValue("RELEASE");
+    const effect = block.getFieldValue("EFFECT");
+    const volume =
+      javascriptGenerator.valueToCode(
+        block,
+        "VOLUME",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "1";
+    const effectRate =
+      javascriptGenerator.valueToCode(
+        block,
+        "EFFECT_RATE",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "5";
+    const effectDepth =
+      javascriptGenerator.valueToCode(
+        block,
+        "EFFECT_DEPTH",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "0.5";
+    const attack =
+      javascriptGenerator.valueToCode(
+        block,
+        "ATTACK",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "0.1";
+    const decay =
+      javascriptGenerator.valueToCode(
+        block,
+        "DECAY",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "0.5";
+    const sustain =
+      javascriptGenerator.valueToCode(
+        block,
+        "SUSTAIN",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "0.7";
+    const release =
+      javascriptGenerator.valueToCode(
+        block,
+        "RELEASE",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "1";
 
     // Assign the instrument to a variable
-    return `${instrumentVar} = createInstrument('${type}', { frequency: ${frequency}, attack: ${attack}, decay: ${decay}, sustain: ${sustain}, release: ${release} });\n`;
+    return `${instrumentVar} = createInstrument('${type}', { volume: ${volume}, effect: '${effect}', effectRate: ${effectRate}, effectDepth: ${effectDepth}, attack: ${attack}, decay: ${decay}, sustain: ${sustain}, release: ${release} });\n`;
   };
 
   javascriptGenerator.forBlock["instrument"] = function (block) {
@@ -2126,16 +2169,16 @@ export function defineGenerators() {
     let instrumentCode;
     switch (instrumentType) {
       case "piano":
-        instrumentCode = `createInstrument("square", { frequency: 440, attack: 0.1, decay: 0.3, sustain: 0.7, release: 1.0 })`; // Example settings for piano
+        instrumentCode = `createInstrument("square", { attack: 0.1, decay: 0.3, sustain: 0.7, release: 1.0 })`;
         break;
       case "guitar":
-        instrumentCode = `createInstrument("sawtooth", { frequency: 440, attack: 0.1, decay: 0.2, sustain: 0.6, release: 0.9 })`; // Example settings for guitar
+        instrumentCode = `createInstrument("sawtooth", { attack: 0.1, decay: 0.2, sustain: 0.6, release: 0.9 })`;
         break;
       case "violin":
-        instrumentCode = `createInstrument("triangle", { frequency: 440, attack: 0.15, decay: 0.5, sustain: 0.8, release: 1.2 })`; // Example settings for violin
+        instrumentCode = `createInstrument("triangle", { attack: 0.15, decay: 0.5, sustain: 0.8, release: 1.2 })`;
         break;
       default:
-        instrumentCode = `null`; // Default instrument (or could throw an error)
+        instrumentCode = `createInstrument("sine")`;
     }
 
     return [instrumentCode, javascriptGenerator.ORDER_ATOMIC];

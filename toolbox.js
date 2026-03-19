@@ -3248,8 +3248,15 @@ const toolboxSound = {
     {
       kind: "block",
       type: "midi_note",
-      fields: {
-        NOTE: 60,
+      inputs: {
+        NOTE: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 60,
+            },
+          },
+        },
       },
     },
     {
@@ -3269,8 +3276,15 @@ const toolboxSound = {
               ADD0: {
                 shadow: {
                   type: "midi_note",
-                  fields: {
-                    NOTE: 60,
+                  inputs: {
+                    NOTE: {
+                      shadow: {
+                        type: "math_number",
+                        fields: {
+                          NUM: 60,
+                        },
+                      },
+                    },
                   },
                 },
               },
@@ -3325,6 +3339,64 @@ const toolboxSound = {
     {
       kind: "block",
       type: "create_instrument",
+      inputs: {
+        VOLUME: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 1,
+            },
+          },
+        },
+        EFFECT_RATE: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 5,
+            },
+          },
+        },
+        EFFECT_DEPTH: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 0.5,
+            },
+          },
+        },
+        ATTACK: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 0.1,
+            },
+          },
+        },
+        DECAY: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 0.5,
+            },
+          },
+        },
+        SUSTAIN: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 0.7,
+            },
+          },
+        },
+        RELEASE: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 1,
+            },
+          },
+        },
+      },
     },
     {
       kind: "block",
