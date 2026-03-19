@@ -312,32 +312,36 @@ export const flockSound = {
 
     const gap = Math.min(0.05, (60 / bpm) * 0.05); // Slightly larger gap
 
-    gainNode.gain.setValueAtTime(
-      1,
-      Math.max(playTime, context.currentTime + 0.01),
+    // Use ADSR from the instrument if available, otherwise use simple defaults
+    const attack = instrument?.attack ?? 0.01;
+    const decay = instrument?.decay ?? 0.1;
+    const sustain = instrument?.sustain ?? 0.7;
+    const release = instrument?.release ?? 0.2;
+    const noteDuration = flock.durationInSeconds(duration, bpm);
+
+    const startTime = Math.max(playTime, context.currentTime + 0.01);
+    const attackEnd = startTime + attack;
+    const decayEnd = attackEnd + decay;
+    const releaseStart = Math.max(
+      decayEnd,
+      startTime + noteDuration - gap - release,
     );
+    const stopTime = releaseStart + release;
 
-    const fadeOutDuration = Math.min(0.2, duration * 0.2); // Longer fade-out for clarity
-
-    // Compute ramp and stop times and guard against non-finite or nonsensical values
-    const rampTime = playTime + duration - gap - fadeOutDuration;
-    if (!isFinite(rampTime) || rampTime <= playTime) {
-      // Fallback: set gain to 0 shortly after playTime
-      gainNode.gain.setValueAtTime(
-        0,
-        Math.max(playTime + 0.001, context.currentTime + 0.01),
-      );
-    } else {
-      gainNode.gain.linearRampToValueAtTime(0, rampTime);
-    }
+    gainNode.gain.cancelScheduledValues(startTime);
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(1, attackEnd);
+    gainNode.gain.linearRampToValueAtTime(sustain, decayEnd);
+    gainNode.gain.setValueAtTime(sustain, releaseStart);
+    gainNode.gain.linearRampToValueAtTime(0, stopTime);
 
     osc.start(playTime); // Start the note at playTime
 
-    let stopTime = playTime + duration - gap;
-    if (!isFinite(stopTime) || stopTime <= playTime) {
-      stopTime = Math.max(playTime + 0.001, context.currentTime + 0.02);
-    }
-    osc.stop(stopTime); // Stop slightly earlier to add a gap
+    const oscStopTime =
+      isFinite(stopTime) && stopTime > playTime
+        ? stopTime
+        : Math.max(playTime + 0.001, context.currentTime + 0.02);
+    osc.stop(oscStopTime);
 
     // Clean up: disconnect the oscillator after it's done
     osc.onended = () => {
@@ -409,7 +413,7 @@ export const flockSound = {
     );
     oscillator.connect(gainNode).connect(audioCtx.destination);
 
-    return { oscillator, gainNode, audioCtx };
+    return { oscillator, gainNode, audioCtx, attack, decay, sustain, release };
   },
   setBPM(meshName, bpm) {
     if (meshName === "__everywhere__") {
