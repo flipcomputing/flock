@@ -297,6 +297,29 @@ export const flockSound = {
     osc.type = instrument?.type ?? "sine";
     osc.frequency.value = flock.midiToFrequency(note); // Convert MIDI note to frequency
 
+    // Set up LFO effect if specified
+    const effect = instrument?.effect ?? "none";
+    const effectRate = instrument?.effectRate ?? 5;
+    const effectDepth = instrument?.effectDepth ?? 0.5;
+    let lfo = null;
+    let lfoGain = null;
+    if (effect !== "none") {
+      lfo = context.createOscillator();
+      lfoGain = context.createGain();
+      lfo.type = effect === "warble" ? "square" : "sine";
+      lfo.frequency.value = effect === "robot" ? effectRate * 100 : effectRate;
+      lfoGain.gain.value =
+        effect === "tremolo"
+          ? effectDepth
+          : osc.frequency.value * effectDepth * 0.5;
+      lfo.connect(lfoGain);
+      if (effect === "tremolo") {
+        lfoGain.connect(gainNode.gain);
+      } else {
+        lfoGain.connect(osc.frequency);
+      }
+    }
+
     // Connect the oscillator to the gain node and panner
     osc.connect(gainNode);
     gainNode.connect(panner);
@@ -329,17 +352,21 @@ export const flockSound = {
     gainNode.gain.linearRampToValueAtTime(0, stopTime);
 
     osc.start(playTime); // Start the note at playTime
+    if (lfo) lfo.start(playTime);
 
     const oscStopTime =
       isFinite(stopTime) && stopTime > playTime
         ? stopTime
         : Math.max(playTime + 0.001, context.currentTime + 0.02);
     osc.stop(oscStopTime);
+    if (lfo) lfo.stop(oscStopTime);
 
     // Clean up: disconnect nodes after the note ends
     osc.onended = () => {
       osc.disconnect();
       gainNode.disconnect();
+      if (lfo) lfo.disconnect();
+      if (lfoGain) lfoGain.disconnect();
     };
 
     // Fallback clean-up in case osc.onended is not triggered
@@ -347,6 +374,8 @@ export const flockSound = {
       () => {
         osc.disconnect();
         gainNode.disconnect();
+        if (lfo) lfo.disconnect();
+        if (lfoGain) lfoGain.disconnect();
       },
       (playTime + duration) * 1000,
     );
@@ -370,6 +399,9 @@ export const flockSound = {
       decay = 0.3,
       sustain = 0.7,
       release = 1.0,
+      effect = "none",
+      effectRate = 5,
+      effectDepth = 0.5,
     } = {},
   ) {
     // Clamp parameters to valid ranges
@@ -377,14 +409,28 @@ export const flockSound = {
       const n = Number(v);
       return Number.isNaN(n) ? def : n;
     };
+    const validEffects = ["none", "tremolo", "vibrato", "warble", "robot"];
+    effect = validEffects.includes(effect) ? effect : "none";
     volume = Math.min(1, Math.max(0, toNum(volume, 1.0)));
     attack = Math.min(5, Math.max(0, toNum(attack, 0.1)));
     decay = Math.min(5, Math.max(0, toNum(decay, 0.3)));
     sustain = Math.min(1, Math.max(0, toNum(sustain, 0.7)));
     release = Math.min(10, Math.max(0, toNum(release, 1.0)));
+    effectRate = Math.min(20, Math.max(0.1, toNum(effectRate, 5)));
+    effectDepth = Math.min(1, Math.max(0, toNum(effectDepth, 0.5)));
 
     // Return configuration only — audio nodes are created fresh per note in playMidiNote
-    return { type, volume, attack, decay, sustain, release };
+    return {
+      type,
+      volume,
+      attack,
+      decay,
+      sustain,
+      release,
+      effect,
+      effectRate,
+      effectDepth,
+    };
   },
   setBPM(meshName, bpm) {
     if (meshName === "__everywhere__") {

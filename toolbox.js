@@ -3348,6 +3348,22 @@ const toolboxSound = {
             },
           },
         },
+        EFFECT_RATE: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 5,
+            },
+          },
+        },
+        EFFECT_DEPTH: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 0.5,
+            },
+          },
+        },
         ATTACK: {
           shadow: {
             type: "math_number",

@@ -261,6 +261,27 @@ export function defineSoundBlocks() {
             check: "Number",
           },
           {
+            type: "field_dropdown",
+            name: "EFFECT",
+            options: [
+              getDropdownOption("none"),
+              getDropdownOption("tremolo"),
+              getDropdownOption("vibrato"),
+              getDropdownOption("warble"),
+              getDropdownOption("robot"),
+            ],
+          },
+          {
+            type: "input_value",
+            name: "EFFECT_RATE",
+            check: "Number",
+          },
+          {
+            type: "input_value",
+            name: "EFFECT_DEPTH",
+            check: "Number",
+          },
+          {
             type: "input_value",
             name: "ATTACK",
             check: "Number",

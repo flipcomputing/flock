@@ -288,7 +288,7 @@ export default {
   set_scene_bpm: "ställ in scenens BPM till %1",
   set_mesh_bpm: "ställ in BPM för %1 till %2",
   create_instrument:
-    "instrument %1 våg: %2\nvolym: %3 attack: %4 förfall: %5 sustain: %6 release: %7",
+    "instrument %1 våg: %2\nvolym: %3 effekt: %4 hastighet: %5 djup: %6\nattack: %7 förfall: %8 sustain: %9 release: %10",
   instrument: "instrument %1",
   speak:
     "tala %1 %2 röst: %3 språk: %4\nhastighet: %5 tonhöjd: %6 volym: %7 läge: %8",
@@ -892,6 +892,12 @@ export default {
   square_option: "fyrkant",
   sawtooth_option: "sågtand",
   triangle_option: "triangel",
+
+  none_option: "ingen",
+  tremolo_option: "tremolo",
+  vibrato_option: "vibrato",
+  warble_option: "drillar",
+  robot_option: "robot",
 
   default_option: "Standardinstrument (Sinus)",
   piano_option: "Piano (Fyrkant)",

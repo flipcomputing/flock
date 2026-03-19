@@ -294,7 +294,7 @@ export default {
   set_scene_bpm: "Szenen-BPM auf %1 setzen",
   set_mesh_bpm: "BPM von %1 auf %2 setzen",
   create_instrument:
-    "Instrument %1 Welle: %2\nLautstärke: %3 Attacke: %4 Decay: %5 Sustain: %6 Release: %7",
+    "Instrument %1 Welle: %2\nLautstärke: %3 Effekt: %4 Rate: %5 Tiefe: %6\nAttacke: %7 Decay: %8 Sustain: %9 Release: %10",
   instrument: "Instrument %1",
   speak:
     "Sprechen %1 %2 Stimme: %3 Sprache: %4\nTempo: %5 Tonhöhe: %6 Lautstärke: %7 Modus: %8",
@@ -916,6 +916,12 @@ export default {
   square_option: "Rechteck",
   sawtooth_option: "Sägezahn",
   triangle_option: "Dreieck",
+
+  none_option: "kein",
+  tremolo_option: "Tremolo",
+  vibrato_option: "Vibrato",
+  warble_option: "Trillern",
+  robot_option: "Roboter",
 
   default_option: "Standardinstrument (Sinus)",
   piano_option: "Klavier (Rechteck)",
