@@ -822,7 +822,7 @@ export function defineGenerators() {
   };
 
   javascriptGenerator.forBlock["button_controls"] = function (block) {
-    const color = getFieldValue(block, "COLOR", "#ffffff");
+    const color = getFieldValue(block, "COLOR", '"#ffffff"');
     const control = block.getFieldValue("CONTROL");
     const mode = block.getFieldValue("ENABLED");
     return `buttonControls("${control}", "${mode}", ${color});\n`;
@@ -881,7 +881,7 @@ export function defineGenerators() {
         javascriptGenerator.ORDER_NONE,
       ) || "0";
 
-    const color = getFieldValue(block, "COLOR", "#9932CC");
+    const color = getFieldValue(block, "COLOR", '"#9932CC"');
 
     const safeTextArg = emitSafeTextArg(textCode);
 
@@ -1423,7 +1423,7 @@ export function defineGenerators() {
     const x = getFieldValue(block, "X", "0");
     const y = getFieldValue(block, "Y", "0");
     const z = getFieldValue(block, "Z", "0");
-    const color = getFieldValue(block, "COLOR", "#FFFFFF");
+    const color = getFieldValue(block, "COLOR", '"#FFFFFF"');
 
     let font = "./fonts/FreeSans_Bold.json";
     if (fontKey === "__fonts_FreeSans_Bold_json")
@@ -1641,7 +1641,7 @@ export function defineGenerators() {
   }
 
   javascriptGenerator.forBlock["create_box"] = function (block) {
-    const color = getFieldValue(block, "COLOR", "#9932CC");
+    const color = getFieldValue(block, "COLOR", '"#9932CC"');
     const width = getFieldValue(block, "WIDTH", "1");
     const height = getFieldValue(block, "HEIGHT", "1");
     const depth = getFieldValue(block, "DEPTH", "1");
@@ -1660,7 +1660,7 @@ export function defineGenerators() {
   };
 
   javascriptGenerator.forBlock["create_sphere"] = function (block) {
-    const color = getFieldValue(block, "COLOR", "#9932CC");
+    const color = getFieldValue(block, "COLOR", '"#9932CC"');
     const diameterX = getFieldValue(block, "DIAMETER_X", "1");
     const diameterY = getFieldValue(block, "DIAMETER_Y", "1");
     const diameterZ = getFieldValue(block, "DIAMETER_Z", "1");
@@ -1679,7 +1679,7 @@ export function defineGenerators() {
   };
 
   javascriptGenerator.forBlock["create_cylinder"] = function (block) {
-    const color = getFieldValue(block, "COLOR", "#9932CC");
+    const color = getFieldValue(block, "COLOR", '"#9932CC"');
     const height = getFieldValue(block, "HEIGHT", "2");
     const diameterTop = getFieldValue(block, "DIAMETER_TOP", "1");
     const diameterBottom = getFieldValue(block, "DIAMETER_BOTTOM", "1");
@@ -1700,7 +1700,7 @@ export function defineGenerators() {
   };
 
   javascriptGenerator.forBlock["create_capsule"] = function (block) {
-    const color = getFieldValue(block, "COLOR", "#9932CC");
+    const color = getFieldValue(block, "COLOR", '"#9932CC"');
     const diameter = getFieldValue(block, "DIAMETER", "1");
     const height = getFieldValue(block, "HEIGHT", "2");
 
@@ -1717,7 +1717,7 @@ export function defineGenerators() {
   };
 
   javascriptGenerator.forBlock["create_plane"] = function (block) {
-    const color = getFieldValue(block, "COLOR", "#9932CC");
+    const color = getFieldValue(block, "COLOR", '"#9932CC"');
     const width = getFieldValue(block, "WIDTH", "1");
     const height = getFieldValue(block, "HEIGHT", "1");
 
@@ -1756,7 +1756,7 @@ export function defineGenerators() {
   };
 
   javascriptGenerator.forBlock["create_wall"] = function (block) {
-    const color = getFieldValue(block, "COLOR", "#9932CC");
+    const color = getFieldValue(block, "COLOR", '"#9932CC"');
     const startX = getFieldValue(block, "START_X", "0");
     const startZ = getFieldValue(block, "START_Z", "0");
     const endX = getFieldValue(block, "END_X", "1");
@@ -2384,7 +2384,7 @@ export function defineGenerators() {
       block.getFieldValue("MODEL_VAR"),
       Blockly.Names.NameType.VARIABLE,
     );
-    const color = getFieldValue(block, "COLOR", "#FFD700");
+    const color = getFieldValue(block, "COLOR", '"#FFD700"');
     return `await highlight(${modelName}, { color: ${color} });\n`;
   };
 
@@ -2401,7 +2401,7 @@ export function defineGenerators() {
       block.getFieldValue("MODEL_VAR"),
       Blockly.Names.NameType.VARIABLE,
     );
-    const color = getFieldValue(block, "COLOR", "#AA336A");
+    const color = getFieldValue(block, "COLOR", '"#AA336A"');
 
     return `await tint(${modelName}, { color: ${color} });\n`;
   };
@@ -2411,7 +2411,7 @@ export function defineGenerators() {
       block.getFieldValue("MODEL_VAR"),
       Blockly.Names.NameType.VARIABLE,
     );
-    const color = getFieldValue(block, "COLOR", "#ffffff");
+    const color = getFieldValue(block, "COLOR", '"#ffffff"');
 
     return `await changeColor(${modelName}, { color: ${color} });\n`;
   };
@@ -2422,7 +2422,7 @@ export function defineGenerators() {
       Blockly.Names.NameType.VARIABLE,
     );
     const material = block.getFieldValue("MATERIALS");
-    const color = getFieldValue(block, "COLOR", "#ffffff");
+    const color = getFieldValue(block, "COLOR", '"#ffffff"');
 
     return `await changeMaterial(${modelName}, "${material}", ${color});\n`;
   };
