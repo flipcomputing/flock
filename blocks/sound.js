@@ -257,6 +257,11 @@ export function defineSoundBlocks() {
           },
           {
             type: "input_value",
+            name: "VOLUME",
+            check: "Number",
+          },
+          {
+            type: "input_value",
             name: "ATTACK",
             check: "Number",
           },

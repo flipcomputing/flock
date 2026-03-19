@@ -288,7 +288,7 @@ export default {
   set_scene_bpm: "definir BPM da cena para %1",
   set_mesh_bpm: "definir BPM de %1 para %2",
   create_instrument:
-    "instrumento %1 onda: %2\nataque: %3 decaimento: %4 sustentação: %5 liberação: %6",
+    "instrumento %1 onda: %2\nvolume: %3 ataque: %4 decaimento: %5 sustentação: %6 liberação: %7",
   instrument: "instrumento %1",
   speak:
     "falar %1 %2 voz: %3 idioma: %4\nvelocidade: %5 tom: %6 volume: %7 modo: %8",

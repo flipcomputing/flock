@@ -305,6 +305,7 @@ export const flockSound = {
     const gap = Math.min(0.05, (60 / bpm) * 0.05); // Slightly larger gap
 
     // Use ADSR from the instrument if available, otherwise use simple defaults
+    const volume = instrument?.volume ?? 1.0;
     const attack = instrument?.attack ?? 0.01;
     const decay = instrument?.decay ?? 0.1;
     const sustain = instrument?.sustain ?? 0.7;
@@ -322,9 +323,9 @@ export const flockSound = {
 
     gainNode.gain.cancelScheduledValues(startTime);
     gainNode.gain.setValueAtTime(0, startTime);
-    gainNode.gain.linearRampToValueAtTime(1, attackEnd);
-    gainNode.gain.linearRampToValueAtTime(sustain, decayEnd);
-    gainNode.gain.setValueAtTime(sustain, releaseStart);
+    gainNode.gain.linearRampToValueAtTime(volume, attackEnd);
+    gainNode.gain.linearRampToValueAtTime(sustain * volume, decayEnd);
+    gainNode.gain.setValueAtTime(sustain * volume, releaseStart);
     gainNode.gain.linearRampToValueAtTime(0, stopTime);
 
     osc.start(playTime); // Start the note at playTime
@@ -335,17 +336,17 @@ export const flockSound = {
         : Math.max(playTime + 0.001, context.currentTime + 0.02);
     osc.stop(oscStopTime);
 
-    // Clean up: disconnect the oscillator after it's done
+    // Clean up: disconnect nodes after the note ends
     osc.onended = () => {
       osc.disconnect();
+      gainNode.disconnect();
     };
 
     // Fallback clean-up in case osc.onended is not triggered
     setTimeout(
       () => {
-        if (osc) {
-          osc.disconnect();
-        }
+        osc.disconnect();
+        gainNode.disconnect();
       },
       (playTime + duration) * 1000,
     );
@@ -363,20 +364,27 @@ export const flockSound = {
   },
   createInstrument(
     type,
-    { attack = 0.1, decay = 0.3, sustain = 0.7, release = 1.0 } = {},
+    {
+      volume = 1.0,
+      attack = 0.1,
+      decay = 0.3,
+      sustain = 0.7,
+      release = 1.0,
+    } = {},
   ) {
     // Clamp parameters to valid ranges
     const toNum = (v, def) => {
       const n = Number(v);
       return Number.isNaN(n) ? def : n;
     };
+    volume = Math.min(1, Math.max(0, toNum(volume, 1.0)));
     attack = Math.min(5, Math.max(0, toNum(attack, 0.1)));
     decay = Math.min(5, Math.max(0, toNum(decay, 0.3)));
     sustain = Math.min(1, Math.max(0, toNum(sustain, 0.7)));
     release = Math.min(10, Math.max(0, toNum(release, 1.0)));
 
     // Return configuration only — audio nodes are created fresh per note in playMidiNote
-    return { type, attack, decay, sustain, release };
+    return { type, volume, attack, decay, sustain, release };
   },
   setBPM(meshName, bpm) {
     if (meshName === "__everywhere__") {

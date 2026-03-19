@@ -2115,6 +2115,12 @@ export function defineGenerators() {
       Blockly.Names.NameType.VARIABLE,
     );
     const type = block.getFieldValue("TYPE");
+    const volume =
+      javascriptGenerator.valueToCode(
+        block,
+        "VOLUME",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "1";
     const attack =
       javascriptGenerator.valueToCode(
         block,
@@ -2141,7 +2147,7 @@ export function defineGenerators() {
       ) || "1";
 
     // Assign the instrument to a variable
-    return `${instrumentVar} = createInstrument('${type}', { attack: ${attack}, decay: ${decay}, sustain: ${sustain}, release: ${release} });\n`;
+    return `${instrumentVar} = createInstrument('${type}', { volume: ${volume}, attack: ${attack}, decay: ${decay}, sustain: ${sustain}, release: ${release} });\n`;
   };
 
   javascriptGenerator.forBlock["instrument"] = function (block) {
