@@ -293,7 +293,7 @@ export default {
   set_scene_bpm: "imposta BPM scena a %1",
   set_mesh_bpm: "imposta BPM di %1 a %2",
   create_instrument:
-    "strumento %1 onda: %2\nfrequenza: %3 attacco: %4 decadimento: %5 sustain: %6 rilascio: %7",
+    "strumento %1 onda: %2\nattacco: %3 decadimento: %4 sustain: %5 rilascio: %6",
   instrument: "strumento %1",
   speak:
     "parla %1 %2 voce: %3 lingua: %4\nvelocità: %5 intonazione: %6 volume: %7 modalità: %8",

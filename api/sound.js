@@ -162,13 +162,7 @@ export const flockSound = {
     {
       notes = [],
       durations = [],
-      instrument = flock.createInstrument("square", {
-        frequency: 440,
-        attack: 0.1,
-        decay: 0.3,
-        sustain: 0.7,
-        release: 1.0,
-      }),
+      instrument = flock.createInstrument("square"),
     } = {},
   ) {
     return new Promise((resolve) => {
@@ -295,14 +289,12 @@ export const flockSound = {
       return;
     }
 
-    // Create a new oscillator for each note
+    // Create fresh audio nodes per note so ADSR envelopes don't interfere
     const osc = context.createOscillator();
+    const gainNode = context.createGain();
     const panner = mesh.metadata.panner;
-    // If an instrument is provided, reuse its gainNode but create a new oscillator each time
-    const gainNode = instrument ? instrument.gainNode : context.createGain();
 
-    // Set oscillator type based on the instrument or default to 'sine'
-    osc.type = instrument ? instrument.oscillator.type : "sine";
+    osc.type = instrument?.type ?? "sine";
     osc.frequency.value = flock.midiToFrequency(note); // Convert MIDI note to frequency
 
     // Connect the oscillator to the gain node and panner
@@ -371,49 +363,20 @@ export const flockSound = {
   },
   createInstrument(
     type,
-    {
-      frequency = 440,
-      attack = 0.1,
-      decay = 0.3,
-      sustain = 0.7,
-      release = 1.0,
-    } = {},
+    { attack = 0.1, decay = 0.3, sustain = 0.7, release = 1.0 } = {},
   ) {
-    const audioCtx = flock.audioContext;
-
-    if (!audioCtx || audioCtx.state === "closed") return;
-
-    // Clamp parameters to valid ranges (previously enforced by field_number constraints)
+    // Clamp parameters to valid ranges
     const toNum = (v, def) => {
       const n = Number(v);
       return Number.isNaN(n) ? def : n;
     };
-    frequency = Math.min(20000, Math.max(20, toNum(frequency, 440)));
     attack = Math.min(5, Math.max(0, toNum(attack, 0.1)));
     decay = Math.min(5, Math.max(0, toNum(decay, 0.3)));
     sustain = Math.min(1, Math.max(0, toNum(sustain, 0.7)));
     release = Math.min(10, Math.max(0, toNum(release, 1.0)));
 
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-
-    // Create ADSR envelope
-    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + attack);
-    gainNode.gain.linearRampToValueAtTime(
-      sustain,
-      audioCtx.currentTime + attack + decay,
-    );
-    gainNode.gain.linearRampToValueAtTime(
-      0,
-      audioCtx.currentTime + attack + decay + release,
-    );
-    oscillator.connect(gainNode).connect(audioCtx.destination);
-
-    return { oscillator, gainNode, audioCtx, attack, decay, sustain, release };
+    // Return configuration only — audio nodes are created fresh per note in playMidiNote
+    return { type, attack, decay, sustain, release };
   },
   setBPM(meshName, bpm) {
     if (meshName === "__everywhere__") {

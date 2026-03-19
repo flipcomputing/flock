@@ -257,11 +257,6 @@ export function defineSoundBlocks() {
           },
           {
             type: "input_value",
-            name: "FREQUENCY",
-            check: "Number",
-          },
-          {
-            type: "input_value",
             name: "ATTACK",
             check: "Number",
           },

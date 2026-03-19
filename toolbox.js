@@ -3340,14 +3340,6 @@ const toolboxSound = {
       kind: "block",
       type: "create_instrument",
       inputs: {
-        FREQUENCY: {
-          shadow: {
-            type: "math_number",
-            fields: {
-              NUM: 440,
-            },
-          },
-        },
         ATTACK: {
           shadow: {
             type: "math_number",
