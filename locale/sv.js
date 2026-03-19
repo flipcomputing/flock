@@ -289,7 +289,7 @@ export default {
       set_scene_bpm: "ställ in scenens BPM till %1",
       set_mesh_bpm: "ställ in BPM för %1 till %2",
       create_instrument:
-            "instrument %1 våg: %2 frekvens: %3 attack: %4 förfall: %5 sustain: %6 release: %7",
+            "instrument %1 våg: %2\nfrekvens: %3 attack: %4 förfall: %5 sustain: %6 release: %7",
       instrument: "instrument %1",
       speak: "tala %1 %2 röst: %3 språk: %4\nhastighet: %5 tonhöjd: %6 volym: %7 läge: %8",
 
