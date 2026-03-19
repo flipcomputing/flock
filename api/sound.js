@@ -355,7 +355,11 @@ export const flockSound = {
     );
   },
   midiToFrequency(note) {
-    note = Math.min(127, Math.max(0, Math.round(Number(note) || 60))); // Clamp to valid MIDI range 0-127
+    const parsed = Number(note);
+    note = Math.min(
+      127,
+      Math.max(0, Math.round(Number.isNaN(parsed) ? 60 : parsed)),
+    ); // Clamp to valid MIDI range 0-127
     return 440 * Math.pow(2, (note - 69) / 12); // Convert MIDI note to frequency
   },
   durationInSeconds(duration, bpm) {
@@ -376,11 +380,15 @@ export const flockSound = {
     if (!audioCtx || audioCtx.state === "closed") return;
 
     // Clamp parameters to valid ranges (previously enforced by field_number constraints)
-    frequency = Math.min(20000, Math.max(20, Number(frequency) || 440));
-    attack = Math.min(5, Math.max(0, Number(attack) || 0));
-    decay = Math.min(5, Math.max(0, Number(decay) || 0));
-    sustain = Math.min(1, Math.max(0, Number(sustain) || 0));
-    release = Math.min(10, Math.max(0, Number(release) || 0));
+    const toNum = (v, def) => {
+      const n = Number(v);
+      return Number.isNaN(n) ? def : n;
+    };
+    frequency = Math.min(20000, Math.max(20, toNum(frequency, 440)));
+    attack = Math.min(5, Math.max(0, toNum(attack, 0.1)));
+    decay = Math.min(5, Math.max(0, toNum(decay, 0.3)));
+    sustain = Math.min(1, Math.max(0, toNum(sustain, 0.7)));
+    release = Math.min(10, Math.max(0, toNum(release, 1.0)));
 
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
