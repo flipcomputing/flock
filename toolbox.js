@@ -3041,6 +3041,21 @@ const toolboxMaterials = {
               COLOR: "#008080",
             },
           },
+          block: {
+            type: "lists_create_with",
+            extraState: { itemCount: 1 },
+            inline: true,
+            inputs: {
+              ADD0: {
+                shadow: {
+                  type: "colour",
+                  fields: {
+                    COLOR: "#008080",
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
