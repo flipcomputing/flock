@@ -16,13 +16,18 @@ Core flows tested (app load, Blockly interaction, run code in sandbox, project e
 ## Why each non-self origin is required
 
 - `https://www.googletagmanager.com`
-  - Loads `gtag.js` analytics bootstrap script.
+  - `script-src`: loads `gtag.js` analytics bootstrap script.
+  - `connect-src` / `img-src`: analytics ping traffic originating from GTM tags.
 - `https://www.google-analytics.com`
-  - Receives analytics `g/collect` requests.
+  - `img-src` / `connect-src`: receives analytics `g/collect` requests (beacon/pixel and fetch transport).
+  - Not required in `script-src`; GA scripts are served via GTM, not directly from this origin.
 - `https://stats.g.doubleclick.net`
-  - Optional Google Analytics transport endpoint used by some environments.
+  - `connect-src`: optional Google Analytics transport endpoint used by some environments.
 - `https://region1.google-analytics.com`
-  - Regional Google Analytics endpoint used by some environments.
+  - `connect-src`: regional Google Analytics endpoint used by some environments.
+- `https:` (wildcard HTTPS) in `connect-src`
+  - User programs running in the sandboxed iframe share the host page's origin, so their `fetch()` calls and asset loads are governed by this CSP. `https:` allows user programs to connect to arbitrary HTTPS endpoints without triggering CSP violations.
+
 ## Current CSP
 
 Header policy (authoritative):
@@ -36,7 +41,7 @@ script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.g
 style-src 'self' 'unsafe-inline';
 img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com;
 font-src 'self' data:;
-connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net;
+connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net;
 media-src 'self' data: blob:;
 worker-src 'self' blob:;
 frame-src 'self';
@@ -50,10 +55,11 @@ Meta fallback policy (for static hosting without headers): same as above but wit
 
 The policy uses strict defaults (`default-src 'self'`, `object-src 'none'`, explicit `connect-src`/`script-src`/`worker-src`) while preserving required runtime behavior.
 
-Two allowances remain intentionally broad enough for current implementation:
+Three allowances remain intentionally broad:
 
 - `'unsafe-inline'` in `script-src` / `style-src` due to inline scripts/styles in `index.html` and iframe sandbox bootstrap.
 - `'unsafe-eval'` + `'wasm-unsafe-eval'` in `script-src` to support current sandbox/runtime execution stack.
+- `https:` in `connect-src` to allow user programs to make outbound HTTPS fetch requests (see above).
 
 ## CSP regression checks before merge
 
