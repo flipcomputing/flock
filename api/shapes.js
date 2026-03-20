@@ -61,7 +61,7 @@ function validateShapeId(id, fnName) {
 // Coerce a dimension value to a positive finite number, falling back to `fallback`.
 function toDim(v, fallback) {
   const n = Number(v);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
 
 /**
