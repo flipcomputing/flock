@@ -838,6 +838,26 @@ export function createBlocklyWorkspace() {
     if (deleteItem) deleteItem.weight = 20;
   })();
 
+  // Override the keyboard-navigation plugin's paste context menu item so it
+  // uses the same smart pasteAsChildOrHere() logic as Ctrl+V.
+  // The item is registered by @blockly/keyboard-navigation as 'blockPasteFromContextMenu'.
+  // We replace its callback after the plugin has had a chance to register it.
+  setTimeout(() => {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const pasteItem = registry.getItem?.("blockPasteFromContextMenu");
+    if (pasteItem) {
+      pasteItem.callback = (scope) => {
+        const data = Blockly.clipboard?.getLastCopiedData?.();
+        if (!data) return;
+        const ws = scope?.workspace ?? mainWs;
+        if (!ws) return;
+        const selected = Blockly.common?.getSelected?.() || null;
+        if (selected && selected.isInFlyout) return;
+        pasteAsChildOrHere(selected || null, ws, data);
+      };
+    }
+  }, 0);
+
   // ===== OVERRIDE CLIPBOARD METHODS =====
   // Save original methods
   const origCopy = Blockly.clipboard.copy;
