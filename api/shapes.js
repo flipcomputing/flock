@@ -1,10 +1,27 @@
 import earcut from "earcut";
-import Module from "manifold-3d";
 import opentype from "opentype.js";
 
 let flock;
 let manifoldModule = null;
 let manifoldInitPromise = null;
+let manifoldFactoryPromise = null;
+
+async function getBaseUrl() {
+  let baseUrl = import.meta.env.BASE_URL || "/";
+  if (!baseUrl.endsWith("/")) baseUrl += "/";
+  return baseUrl;
+}
+
+async function getManifoldFactory() {
+  if (manifoldFactoryPromise) return manifoldFactoryPromise;
+
+  const baseUrl = await getBaseUrl();
+  manifoldFactoryPromise = import(
+    /* @vite-ignore */ `${baseUrl}vendor/manifold/manifold.js`
+  ).then((module) => module.default);
+
+  return manifoldFactoryPromise;
+}
 
 // Initialize the Manifold WASM module once
 async function getManifold() {
@@ -13,10 +30,10 @@ async function getManifold() {
 
   manifoldInitPromise = (async () => {
     try {
-      // Load with explicit WASM location using the correct base path
-      // Ensure base URL ends with a slash
-      let baseUrl = import.meta.env.BASE_URL || "/";
-      if (!baseUrl.endsWith("/")) baseUrl += "/";
+      // Load the Manifold bootstrap and WASM from same-origin paths so the
+      // PWA works without depending on a third-party script host.
+      const baseUrl = await getBaseUrl();
+      const Module = await getManifoldFactory();
 
       const wasm = await Module({
         locateFile: (file) => {
