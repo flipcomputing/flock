@@ -63,6 +63,12 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+// Coerce a value to a finite number, or return the fallback.
+function toFinite(v, fallback = 0) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 export const flockTransform = {
   async setBlockPositionOnMesh(
     mesh,
@@ -94,9 +100,11 @@ export const flockTransform = {
           return;
         }
 
-        x ??= mesh.position.x;
-        y ??= mesh.position.y;
-        z ??= mesh.position.z;
+        x = toFinite(x ?? mesh.position.x, mesh.position.x);
+        z = toFinite(z ?? mesh.position.z, mesh.position.z);
+        if (y !== "__ground__level__") {
+          y = toFinite(y ?? mesh.position.y, mesh.position.y);
+        }
 
         if (mesh.physics) {
           if (
@@ -265,6 +273,9 @@ export const flockTransform = {
     });
   },
   moveByVector(meshName, { x = 0, y = 0, z = 0 } = {}) {
+    x = toFinite(x);
+    y = toFinite(y);
+    z = toFinite(z);
     return new Promise((resolve, reject) => {
       flock.whenModelReady(meshName, (mesh) => {
         if (!mesh) {
@@ -370,6 +381,9 @@ export const flockTransform = {
     }
   },
   rotate(meshName, { x = 0, y = 0, z = 0 } = {}) {
+    x = toFinite(x);
+    y = toFinite(y);
+    z = toFinite(z);
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         if (meshName === "__active_camera__") {
@@ -445,6 +459,9 @@ export const flockTransform = {
     });
   },
   rotateTo(meshName, { x = 0, y = 0, z = 0 } = {}) {
+    x = toFinite(x);
+    y = toFinite(y);
+    z = toFinite(z);
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         if (meshName === "__active_camera__") {
@@ -601,6 +618,9 @@ export const flockTransform = {
       zOrigin = "CENTRE",
     } = {},
   ) {
+    x = Number.isFinite(Number(x)) && Number(x) >= 0 ? Number(x) : 1;
+    y = Number.isFinite(Number(y)) && Number(y) >= 0 ? Number(y) : 1;
+    z = Number.isFinite(Number(z)) && Number(z) >= 0 ? Number(z) : 1;
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         mesh.metadata = mesh.metadata || {};

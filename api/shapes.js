@@ -49,6 +49,26 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+// Validate a shape/mesh ID: must be a non-empty string, max 100 chars.
+function validateShapeId(id, fnName) {
+  if (!id || typeof id !== "string" || id.length > 100) {
+    console.warn(`${fnName}: invalid id`);
+    return false;
+  }
+  return true;
+}
+
+// Coerce a dimension value to a positive finite number, falling back to `fallback`.
+function toDim(v, fallback) {
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
+function toAlpha(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1;
+}
+
 /**
  * Convert font path commands to polygons suitable for Manifold CrossSection.
  * Handles curves by subdividing them into line segments.
@@ -242,8 +262,14 @@ export const flockShapes = {
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
       callback = null,
-    },
+    } = {},
   ) {
+    if (!validateShapeId(boxId, "createBox")) return null;
+    width = toDim(width, 1);
+    height = toDim(height, 1);
+    depth = toDim(depth, 1);
+    alpha = toAlpha(alpha);
+
     let blockKey = boxId;
 
     if (boxId.includes("__")) {
@@ -320,8 +346,14 @@ export const flockShapes = {
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
       callback = null,
-    },
+    } = {},
   ) {
+    if (!validateShapeId(sphereId, "createSphere")) return null;
+    diameterX = toDim(diameterX, 1);
+    diameterY = toDim(diameterY, 1);
+    diameterZ = toDim(diameterZ, 1);
+    alpha = toAlpha(alpha);
+
     let blockKey = sphereId;
 
     if (sphereId.includes("__")) {
@@ -397,8 +429,15 @@ export const flockShapes = {
       position,
       alpha = 1,
       callback = null,
-    },
+    } = {},
   ) {
+    if (!validateShapeId(cylinderId, "createCylinder")) return null;
+    height = toDim(height, 1);
+    diameterTop = toDim(diameterTop, 1);
+    diameterBottom = toDim(diameterBottom, 1);
+    tessellation = Math.max(3, Math.round(toDim(tessellation, 24)));
+    alpha = toAlpha(alpha);
+
     const dimensions = {
       height,
       diameterTop,
@@ -479,8 +518,13 @@ export const flockShapes = {
   },
   createCapsule(
     capsuleId,
-    { color, diameter, height, position, alpha = 1, callback = null },
+    { color, diameter, height, position, alpha = 1, callback = null } = {},
   ) {
+    if (!validateShapeId(capsuleId, "createCapsule")) return null;
+    diameter = toDim(diameter, 1);
+    height = toDim(height, 2);
+    alpha = toAlpha(alpha);
+
     let radius = diameter / 2;
     let blockKey = capsuleId;
 
@@ -568,7 +612,13 @@ export const flockShapes = {
 
     return newCapsule.name;
   },
-  createPlane(planeId, { color, width, height, position, callback = null }) {
+  createPlane(
+    planeId,
+    { color, width, height, position = [0, 0, 0], callback = null } = {},
+  ) {
+    if (!validateShapeId(planeId, "createPlane")) return null;
+    width = toDim(width, 1);
+    height = toDim(height, 1);
     let blockKey = planeId;
     if (planeId.includes("__")) {
       [planeId, blockKey] = planeId.split("__");
@@ -657,7 +707,18 @@ export const flockShapes = {
     modelId,
     callback = null,
     useManifold = true, // Use manifold by default for CSG compatibility
-  }) {
+  } = {}) {
+    if (!validateShapeId(modelId, "create3DText")) return null;
+    if (!text || typeof text !== "string") {
+      console.warn("create3DText: invalid text");
+      return null;
+    }
+    if (!font || typeof font !== "string") {
+      console.warn("create3DText: invalid font");
+      return null;
+    }
+    size = toDim(size, 50);
+    depth = toDim(depth, 1);
     const { x, y, z } = position;
 
     // Create the loading promise
