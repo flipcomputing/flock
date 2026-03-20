@@ -10,9 +10,10 @@ export const flockControl = {
   */
 
   wait(duration) {
-    const ms = Number.isFinite(Number(duration)) && Number(duration) >= 0
-      ? Number(duration) * 1000
-      : 0;
+    const ms =
+      Number.isFinite(Number(duration)) && Number(duration) >= 0
+        ? Math.min(Number(duration) * 1000, 2147483647)
+        : 0;
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         if (flock.abortController?.signal) {

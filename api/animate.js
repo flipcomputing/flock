@@ -136,7 +136,10 @@ export const flockAnimate = {
       easing = "Linear",
     } = {},
   ) {
-    duration = Number.isFinite(Number(duration)) && Number(duration) > 0 ? Number(duration) : 1;
+    duration =
+      Number.isFinite(Number(duration)) && Number(duration) > 0
+        ? Number(duration)
+        : 1;
     x = Number.isFinite(Number(x)) ? Number(x) : 0;
     y = Number.isFinite(Number(y)) ? Number(y) : 0;
     z = Number.isFinite(Number(z)) ? Number(z) : 0;
@@ -184,7 +187,12 @@ export const flockAnimate = {
         ];
         rotateAnimation.setKeys(rotateKeys);
 
-        if (easing !== "Linear" && typeof flock.BABYLON[easing] === "function") {
+        if (
+          easing !== "Linear" &&
+          typeof flock.BABYLON[easing] === "function" &&
+          flock.BABYLON[easing].prototype instanceof
+            flock.BABYLON.EasingFunction
+        ) {
           const ease = new flock.BABYLON[easing]();
           ease.setEasingMode(flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
           rotateAnimation.setEasingFunction(ease);
@@ -235,10 +243,15 @@ export const flockAnimate = {
       easing = "Linear",
     } = {},
   ) {
-    duration = Number.isFinite(Number(duration)) && Number(duration) > 0 ? Number(duration) : 1;
+    duration =
+      Number.isFinite(Number(duration)) && Number(duration) > 0
+        ? Number(duration)
+        : 1;
     x = Number.isFinite(Number(x)) ? Number(x) : 0;
-    y = Number.isFinite(Number(y)) ? Number(y) : 0;
     z = Number.isFinite(Number(z)) ? Number(z) : 0;
+    if (y !== "__ground__level__") {
+      y = Number.isFinite(Number(y)) ? Number(y) : 0;
+    }
 
     return new Promise(async (resolve) => {
       await flock.whenModelReady(meshName, async function (mesh) {
@@ -300,7 +313,12 @@ export const flockAnimate = {
             glideKeys.push({ frame: frames * 2, value: startPosition });
           glideAnimation.setKeys(glideKeys);
 
-          if (easing !== "Linear" && typeof flock.BABYLON[easing] === "function") {
+          if (
+            easing !== "Linear" &&
+            typeof flock.BABYLON[easing] === "function" &&
+            flock.BABYLON[easing].prototype instanceof
+              flock.BABYLON.EasingFunction
+          ) {
             let ease = new flock.BABYLON[easing]();
             ease.setEasingMode(
               flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,

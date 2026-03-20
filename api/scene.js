@@ -537,13 +537,21 @@ export const flockScene = {
     });
   },
   cloneMesh({ sourceMeshName, cloneId, callback = null } = {}) {
-    if (!sourceMeshName || typeof sourceMeshName !== "string" || sourceMeshName.length > 100) {
+    if (
+      !sourceMeshName ||
+      typeof sourceMeshName !== "string" ||
+      sourceMeshName.length > 100
+    ) {
       console.warn("cloneMesh: invalid sourceMeshName");
       return null;
     }
     if (!cloneId || typeof cloneId !== "string" || cloneId.length > 100) {
       console.warn("cloneMesh: invalid cloneId");
       return null;
+    }
+    if (callback != null && typeof callback !== "function") {
+      console.warn("cloneMesh: callback must be a function");
+      callback = null;
     }
     if (flock.maxMeshesReached()) return "error_" + cloneId;
 

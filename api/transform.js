@@ -100,14 +100,10 @@ export const flockTransform = {
           return;
         }
 
-        x = x ?? mesh.position.x;
-        y = y ?? mesh.position.y;
-        z = z ?? mesh.position.z;
-        // Allow the ground-level sentinel string through; coerce everything else.
+        x = toFinite(x ?? mesh.position.x, mesh.position.x);
+        z = toFinite(z ?? mesh.position.z, mesh.position.z);
         if (y !== "__ground__level__") {
-          x = toFinite(x, mesh.position.x);
-          z = toFinite(z, mesh.position.z);
-          if (Number.isFinite(Number(y))) y = Number(y);
+          y = toFinite(y ?? mesh.position.y, mesh.position.y);
         }
 
         if (mesh.physics) {

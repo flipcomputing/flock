@@ -64,6 +64,11 @@ function toDim(v, fallback) {
   return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
 
+function toAlpha(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1;
+}
+
 /**
  * Convert font path commands to polygons suitable for Manifold CrossSection.
  * Handles curves by subdividing them into line segments.
@@ -264,7 +269,7 @@ export const flockShapes = {
     width = toDim(width, 1);
     height = toDim(height, 1);
     depth = toDim(depth, 1);
-    alpha = Number.isFinite(Number(alpha)) ? Math.max(0, Math.min(1, Number(alpha))) : 1;
+    alpha = toAlpha(alpha);
 
     let blockKey = boxId;
 
@@ -348,7 +353,7 @@ export const flockShapes = {
     diameterX = toDim(diameterX, 1);
     diameterY = toDim(diameterY, 1);
     diameterZ = toDim(diameterZ, 1);
-    alpha = Number.isFinite(Number(alpha)) ? Math.max(0, Math.min(1, Number(alpha))) : 1;
+    alpha = toAlpha(alpha);
 
     let blockKey = sphereId;
 
@@ -432,7 +437,7 @@ export const flockShapes = {
     diameterTop = toDim(diameterTop, 1);
     diameterBottom = toDim(diameterBottom, 1);
     tessellation = Math.max(3, Math.round(toDim(tessellation, 24)));
-    alpha = Number.isFinite(Number(alpha)) ? Math.max(0, Math.min(1, Number(alpha))) : 1;
+    alpha = toAlpha(alpha);
 
     const dimensions = {
       height,
@@ -519,7 +524,7 @@ export const flockShapes = {
     if (!validateShapeId(capsuleId, "createCapsule")) return null;
     diameter = toDim(diameter, 1);
     height = toDim(height, 2);
-    alpha = Number.isFinite(Number(alpha)) ? Math.max(0, Math.min(1, Number(alpha))) : 1;
+    alpha = toAlpha(alpha);
 
     let radius = diameter / 2;
     let blockKey = capsuleId;
@@ -608,7 +613,10 @@ export const flockShapes = {
 
     return newCapsule.name;
   },
-  createPlane(planeId, { color, width, height, position, callback = null } = {}) {
+  createPlane(
+    planeId,
+    { color, width, height, position = [0, 0, 0], callback = null } = {},
+  ) {
     if (!validateShapeId(planeId, "createPlane")) return null;
     width = toDim(width, 1);
     height = toDim(height, 1);
@@ -704,6 +712,10 @@ export const flockShapes = {
     if (!validateShapeId(modelId, "create3DText")) return null;
     if (!text || typeof text !== "string") {
       console.warn("create3DText: invalid text");
+      return null;
+    }
+    if (!font || typeof font !== "string") {
+      console.warn("create3DText: invalid font");
       return null;
     }
     size = toDim(size, 50);
