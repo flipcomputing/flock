@@ -30,7 +30,6 @@ export default {
         { src: "textures/*.png", dest: "textures" },
         { src: "fonts/*.{json,woff2,ttf}", dest: "fonts" },
         { src: "node_modules/manifold-3d/manifold.wasm", dest: "wasm" },
-        { src: "node_modules/manifold-3d/manifold.js", dest: "vendor/manifold" },
         { src: "node_modules/blockly/media/*", dest: "blockly/media" },
         { src: "images/dropdown-arrow.svg", dest: "blockly/media" },
         {
@@ -291,8 +290,7 @@ export default {
     exclude: ["@babylonjs/havok", "@babylonjs/core",
       "@babylonjs/materials",
       "@babylonjs/loaders",
-      "@babylonjs/gui",
-      "manifold-3d"]
+      "@babylonjs/gui"]
   },
 
   build: {

@@ -49,7 +49,7 @@ Meta fallback policy (for static hosting without headers): same as above but wit
 
 ## Notes on tightening
 
-The policy uses strict defaults (`default-src 'self'`, `object-src 'none'`, explicit `connect-src`/`script-src`/`worker-src`) while preserving required runtime behavior. The app now self-hosts the Manifold bootstrap (`/vendor/manifold/manifold.js`) and WASM (`/wasm/manifold.wasm`) so the PWA no longer needs `unpkg.com` for this flow.
+The policy uses strict defaults (`default-src 'self'`, `object-src 'none'`, explicit `connect-src`/`script-src`/`worker-src`) while preserving required runtime behavior. The Manifold bootstrap is bundled into the app code, and the WASM asset is fetched from the same-origin `/wasm/manifold.wasm` path, so the PWA no longer needs `unpkg.com` for this flow.
 
 Two allowances remain intentionally broad enough for current implementation:
 
