@@ -294,7 +294,6 @@ export default {
       "@babylonjs/loaders",
       "@babylonjs/gui",
       "@babylonjs/gui-editor",
-      "@babylonjs/inspector",
       "manifold-3d",
     ],
   },
