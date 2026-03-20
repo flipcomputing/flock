@@ -51,6 +51,7 @@
     "vite-plugin-css-injected-by-js": "^3.5.2"
   },
   "devDependencies": {
+    "@babylonjs/gui-editor": "^8.56.0",
     "@babylonjs/inspector": "8.42.0",
     "@eslint/js": "^9.39.2",
     "@isaacs/brace-expansion": "^5.0.1",
