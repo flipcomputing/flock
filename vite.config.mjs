@@ -26,7 +26,6 @@ export default {
         { src: "animations/*.{glb,gltf}", dest: "animations" },
         { src: "sounds/*.{ogg,mp3,aac,wav}", dest: "sounds" },
         { src: "images/*.*", dest: "images" },
-        { src: "examples/*.json", dest: "examples" },
         { src: "examples/*.flock", dest: "examples" },
         { src: "textures/*.png", dest: "textures" },
         { src: "fonts/*.{json,woff2,ttf}", dest: "fonts" },
