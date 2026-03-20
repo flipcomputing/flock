@@ -1,7 +1,7 @@
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import "@blockly/block-plus-minus";
-import { FlowGraphLog10Block } from "babylonjs";
+
 // Reverse-lookup Maps for O(1) access: block → blockKey and blockId → blockKey.
 // Maintained automatically via Proxy traps on meshMap / meshBlockIdMap.
 export const blockKeyByBlock = new Map();
@@ -3023,7 +3023,7 @@ export function defineGenerators() {
 
   javascriptGenerator.forBlock["random_seeded_int"] = function (block) {
     const value_from = getFieldValue(block, "FROM", 0);
-    const value_to = getFieldValue(block, "TO", FlowGraphLog10Block);
+    const value_to = getFieldValue(block, "TO", 10);
     const value_seed = getFieldValue(block, "SEED", 123456);
 
     const code = `seededRandom(${value_from}, ${value_to}, ${value_seed})`;
