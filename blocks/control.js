@@ -461,6 +461,10 @@ export function defineControlBlocks() {
       // True while Blockly is constructing/rehydrating the block graph.
       this._isRestoring = true;
 
+      // Tracks a group we opened in the MODE validator so we can close it
+      // once Blockly fires the corresponding BLOCK_CHANGE event.
+      this._modeChangeGroupId = null;
+
       this.appendDummyInput("HEAD").appendField(
         new Blockly.FieldDropdown(
           [
@@ -469,6 +473,14 @@ export function defineControlBlocks() {
             ["%{BKY_CONTROLS_IF_MSG_ELSE}", MODE.ELSE],
           ],
           (newValue) => {
+            // If there's no active event group, open one so that any
+            // BLOCK_MOVE events fired by validateAndDisconnectInvalidChain_
+            // land in the same undo entry as the BLOCK_CHANGE that Blockly
+            // fires for this field after the validator returns.
+            if (!Blockly.Events.getGroup() && !this._modeChangeGroupId) {
+              Blockly.Events.setGroup(true);
+              this._modeChangeGroupId = Blockly.Events.getGroup();
+            }
             this.updateShape_(newValue);
             return newValue;
           },
@@ -583,6 +595,22 @@ export function defineControlBlocks() {
     onchange: function (event) {
       if (!this.workspace || this._isRestoring || this.isDisposed()) {
         return;
+      }
+
+      // Close the event group we opened in the MODE validator once Blockly
+      // has fired the corresponding BLOCK_CHANGE, so that the field change
+      // and any prior disconnect events are a single undo entry.
+      if (
+        this._modeChangeGroupId &&
+        event.type === Blockly.Events.BLOCK_CHANGE &&
+        event.element === "field" &&
+        event.name === "MODE" &&
+        event.blockId === this.id
+      ) {
+        if (Blockly.Events.getGroup() === this._modeChangeGroupId) {
+          Blockly.Events.setGroup(false);
+        }
+        this._modeChangeGroupId = null;
       }
 
       const isRelevantEvent =
