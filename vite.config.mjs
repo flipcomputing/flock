@@ -11,7 +11,7 @@ const BASE_URL = process.env.VITE_BASE_URL || "/";
 
 // `frame-ancestors` is only enforced from HTTP headers (ignored in CSP meta tags).
 const CSP_META_POLICY =
-  "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://unpkg.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
+  "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
 const CSP_HEADER_POLICY = `${CSP_META_POLICY}; frame-ancestors 'self'`;
 
 export default {
