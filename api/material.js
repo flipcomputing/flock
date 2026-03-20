@@ -7,61 +7,6 @@ export function setFlockReference(ref) {
 export const flockMaterial = {
   adjustMaterialTilingToMesh(mesh, material, unitsPerTile = null) {
     return; // Don't scale textures - need to change the mesh UVs instead
-    if (!mesh || !material) return;
-
-    if (mesh.metadata?.skipAutoTiling) return;
-
-    const shapeType = mesh?.metadata?.shapeType;
-    const bakedShapes = new Set([
-      "Box",
-      "Sphere",
-      "Cylinder",
-      "Capsule",
-      "Plane",
-    ]);
-    if (shapeType && bakedShapes.has(shapeType)) return;
-
-    const tex =
-      material.diffuseTexture ||
-      material.albedoTexture ||
-      material.baseTexture ||
-      null;
-
-    if (
-      !tex ||
-      typeof tex.uScale !== "number" ||
-      typeof tex.vScale !== "number"
-    ) {
-      return;
-    }
-
-    const wrap = flock?.BABYLON?.Texture?.WRAP_ADDRESSMODE ?? 1;
-    tex.wrapU = wrap;
-    tex.wrapV = wrap;
-
-    mesh.computeWorldMatrix?.(true);
-    mesh.refreshBoundingInfo?.();
-    const extend = mesh.getBoundingInfo?.()?.boundingBox?.extendSizeWorld;
-    if (!extend) return;
-
-    const existingTile = mesh.metadata?.textureTileSize;
-    const tile =
-      Number.isFinite(unitsPerTile) && unitsPerTile > 0
-        ? unitsPerTile
-        : Number.isFinite(existingTile) && existingTile > 0
-          ? existingTile
-          : 2;
-    mesh.metadata = mesh.metadata || {};
-    mesh.metadata.textureTileSize = tile;
-    const worldWidth = extend.x * 2;
-    const worldHeight = extend.y * 2;
-    const worldDepth = extend.z * 2;
-
-    const newUScale = worldWidth / tile;
-    const newVScale = Math.max(worldHeight, worldDepth) / tile;
-
-    if (Number.isFinite(newUScale) && newUScale > 0) tex.uScale = newUScale;
-    if (Number.isFinite(newVScale) && newVScale > 0) tex.vScale = newVScale;
   },
   adjustMaterialTilingForHierarchy(mesh, unitsPerTile) {
     if (!mesh) return;
@@ -75,70 +20,6 @@ export const flockMaterial = {
       flock.adjustMaterialTilingToMesh(m, mat, unitsPerTile);
     });
   },
-  /* randomColour() {
-          const colors = [
-                  "#FF6B6B",
-                  "#4ECDC4",
-                  "#45B7D1",
-                  "#96CEB4",
-                  "#FFEAA7",
-                  "#DDA0DD",
-                  "#98D8C8",
-                  "#F7DC6F",
-                  "#BB8FCE",
-                  "#85C1E9",
-                  "#F8C471",
-                  "#82E0AA",
-                  "#F1948A",
-                  "#85C1E9",
-                  "#D7BDE2",
-          ];
-          return colors[Math.floor(Math.random() * colors.length)];
-  },
-  hexToRgba(hex, alpha = 1) {
-          // Remove the hash if present
-          hex = hex.replace(/^#/, "");
-
-          // Parse the hex values
-          const bigint = parseInt(hex, 16);
-          const r = (bigint >> 16) & 255;
-          const g = (bigint >> 8) & 255;
-          const b = bigint & 255;
-
-          return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  },
-  hexToRgb(hex) {
-          // Remove the hash if present
-          hex = hex.replace(/^#/, "");
-
-          // Parse the hex values
-          const bigint = parseInt(hex, 16);
-          const r = (bigint >> 16) & 255;
-          const g = (bigint >> 8) & 255;
-          const b = bigint & 255;
-
-          return { r, g, b };
-  },
-  rgbToHex(r, g, b) {
-          // Ensure values are within valid range
-          r = Math.max(0, Math.min(255, Math.round(r)));
-          g = Math.max(0, Math.min(255, Math.round(g)));
-          b = Math.max(0, Math.min(255, Math.round(b)));
-
-          // Convert to hex and pad with zeros if needed
-          const hex =
-                  "#" +
-                  [r, g, b]
-                          .map((x) => {
-                                  const hex = x.toString(16);
-                                  return hex.length === 1
-                                          ? "0" + hex
-                                          : hex;
-                          })
-                          .join("");
-
-          return hex;
-  },*/
   randomColour() {
     const letters = "0123456789ABCDEF";
     let colour = "#";
@@ -996,7 +877,7 @@ export const flockMaterial = {
     });
   },
   setMaterialInternal(meshName, materials) {
-    console.log("Applying material to", meshName, "with", materials);
+   
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         flock.applyMaterialToHierarchy(mesh, materials, {
