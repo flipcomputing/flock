@@ -10,7 +10,7 @@ import * as BABYLON_GUI from "@babylonjs/gui";
 import * as BABYLON_LOADER from "@babylonjs/loaders";
 import { GradientMaterial } from "@babylonjs/materials";
 import * as BABYLON_EXPORT from "@babylonjs/serializers";
-import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
+
 // Point Babylon’s Draco loader at local folder for offline use
 BABYLON.DracoCompression.Configuration = {
   decoder: {
@@ -29,7 +29,8 @@ import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
 import { characterNames, getModelDisplayName } from "./config";
 
-const optionalBabylonDeps = { earcut, FlowGraphLog10Block, SetMaterialIDBlock };
+import { FlowGraphLog10Block } from "@babylonjs/core";
+const optionalBabylonDeps = { earcut, FlowGraphLog10Block};
 const globalEarcutTarget =
   typeof globalThis !== "undefined" ? globalThis : undefined;
 if (globalEarcutTarget) {
