@@ -186,6 +186,7 @@ export const flockEvents = {
     // XR controller support
     let xrObserver = null;
     const buttonStateObservers = [];
+    const motionControllerObservers = [];
     if (flock.xrHelper?.input) {
       const xrHandler = (controller) => {
         const handedness = controller.inputSource.handedness;
@@ -197,7 +198,7 @@ export const flockEvents = {
               ? { "b-button": "f", "a-button": " " }
               : {};
 
-        controller.onMotionControllerInitObservable.addOnce(
+        const mcObserver = controller.onMotionControllerInitObservable.addOnce(
           (motionController) => {
             Object.entries(buttonMap).forEach(([buttonId, mappedKey]) => {
               if (mappedKey !== key) return;
@@ -227,6 +228,10 @@ export const flockEvents = {
             });
           },
         );
+        motionControllerObservers.push({
+          observable: controller.onMotionControllerInitObservable,
+          observer: mcObserver,
+        });
       };
       xrObserver =
         flock.xrHelper.input.onControllerAddedObservable.add(xrHandler);
@@ -242,6 +247,9 @@ export const flockEvents = {
           flock.xrHelper?.input?.onControllerAddedObservable?.remove(
             xrObserver,
           );
+        }
+        for (const { observable, observer } of motionControllerObservers) {
+          observable?.remove(observer);
         }
         for (const { observable, observer } of buttonStateObservers) {
           observable?.remove(observer);
