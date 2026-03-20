@@ -254,6 +254,23 @@ export default {
         copyFileSync("cubeart.html", "dist/cubeart.html");
       },
     },
+    {
+      name: "patch-manifold-browser-runtime",
+      enforce: "pre",
+      transform(code, id) {
+        if (!id.includes("/node_modules/manifold-3d/manifold.js")) {
+          return null;
+        }
+
+        return {
+          code: code.replace(
+            /if \(ENVIRONMENT_IS_NODE\) \{\s+const \{createRequire\} = await import\('module'\);\s+var require = createRequire\(import\.meta\.url\)\s+\}/,
+            "if (ENVIRONMENT_IS_NODE) { throw new Error('manifold-3d Node runtime is not supported in the browser build.'); }",
+          ),
+          map: null,
+        };
+      },
+    },
   ],
 
   server: {

@@ -75,6 +75,7 @@ import { flockMesh, setFlockReference as setFlockMesh } from "./api/mesh";
 import { flockCamera, setFlockReference as setFlockCamera } from "./api/camera";
 import { flockEvents, setFlockReference as setFlockEvents } from "./api/events";
 import { flockMath, setFlockReference as setFlockMath } from "./api/math";
+import { getBabylonCSG2Options } from "./api/manifold";
 import {
   flockSensing,
   setFlockReference as setFlockSensing,
@@ -1206,7 +1207,7 @@ export const flock = {
     flock.abortController = new AbortController();
 
     try {
-      await flock.BABYLON.InitializeCSG2Async();
+      await flock.BABYLON.InitializeCSG2Async(await getBabylonCSG2Options());
     } catch (error) {
       console.error("Error initializing CSG2:", error);
     }

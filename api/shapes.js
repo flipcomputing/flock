@@ -1,53 +1,17 @@
 import earcut from "earcut";
-import Module from "manifold-3d";
 import opentype from "opentype.js";
+import { getManifoldModule } from "./manifold";
 
 let flock;
-let manifoldModule = null;
-let manifoldInitPromise = null;
-
-async function getBaseUrl() {
-  let baseUrl = import.meta.env.BASE_URL || "/";
-  if (!baseUrl.endsWith("/")) baseUrl += "/";
-  return baseUrl;
-}
 
 // Initialize the Manifold WASM module once
 async function getManifold() {
-  if (manifoldModule) return manifoldModule;
-  if (manifoldInitPromise) return manifoldInitPromise;
-
-  manifoldInitPromise = (async () => {
-    try {
-      // The Manifold bootstrap is bundled with the app; only the WASM asset
-      // is fetched at runtime from a same-origin path.
-      const baseUrl = await getBaseUrl();
-
-      const wasm = await Module({
-        locateFile: (file) => {
-          if (file.endsWith(".wasm")) {
-            // Use base URL for both dev and production (GitHub Pages)
-            return `${baseUrl}wasm/manifold.wasm`;
-          }
-          return file;
-        },
-      });
-
-      // Setup is required for manifold-3d
-      if (wasm.setup) {
-        wasm.setup();
-      }
-
-      manifoldModule = wasm;
-      return wasm;
-    } catch (e) {
-      console.error("[Manifold] Failed to initialize WASM:", e);
-      manifoldInitPromise = null; // Reset so it can be retried
-      throw e;
-    }
-  })();
-
-  return manifoldInitPromise;
+  try {
+    return await getManifoldModule();
+  } catch (e) {
+    console.error("[Manifold] Failed to initialize WASM:", e);
+    throw e;
+  }
 }
 
 export function setFlockReference(ref) {
