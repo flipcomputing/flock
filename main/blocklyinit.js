@@ -577,7 +577,6 @@ export function createBlocklyWorkspace() {
 
   // Initialize keyboard navigation
   const keyboardNav = new KeyboardNavigation(workspace);
-  console.log("[init] KeyboardNav created:", keyboardNav);
 
   // Monkey-patch
   const toolbox = workspace.getToolbox();
@@ -744,16 +743,6 @@ export function createBlocklyWorkspace() {
 
       // Never allow the origin to go left of the toolbox edge.
       if (x < tbW) x = tbW;
-
-      // Debug
-      /*console.log('[translate simple-no-bump]', {
-              requestedX,
-              appliedX: x,
-              scrollX: this.scrollX,
-              toolboxWidth: tbW,
-              flyoutVisible: !!(fo && fo.isVisible?.()),
-              flyoutWidth: fo?.getWidth?.() || 0
-            });*/
 
       return original(x, newY);
     };
