@@ -3234,8 +3234,7 @@ export function defineGenerators() {
 
   javascriptGenerator.init = function (workspace) {
     clearMeshMaps();
-    console.log("Initializing JavaScript generator...");
-    if (!javascriptGenerator.nameDB_) {
+   if (!javascriptGenerator.nameDB_) {
       javascriptGenerator.nameDB_ = new Blockly.Names(reservedWordsWithoutName);
     } else {
       javascriptGenerator.nameDB_.reset();
@@ -3284,102 +3283,6 @@ export function defineGenerators() {
     javascriptGenerator.isInitialized = true;
   };
 
-  javascriptGenerator.init2 = function (workspace) {
-    clearMeshMaps();
-    console.log("Initializing JavaScript generator...");
-
-    if (!javascriptGenerator.nameDB_) {
-      javascriptGenerator.nameDB_ = new Blockly.Names(reservedWordsWithoutName);
-    } else {
-      javascriptGenerator.nameDB_.reset();
-    }
-    javascriptGenerator.nameDB_.setVariableMap(workspace.getVariableMap());
-    javascriptGenerator.nameDB_.populateVariables(workspace);
-    javascriptGenerator.nameDB_.populateProcedures(workspace);
-
-    const defvars = [];
-    const userVariableDefaults = new Map();
-
-    // Add developer variables
-    const devVarList = Blockly.Variables.allDeveloperVariables(workspace);
-    for (let i = 0; i < devVarList.length; i++) {
-      defvars.push(
-        javascriptGenerator.nameDB_.getName(
-          devVarList[i],
-          Blockly.Names.NameType.DEVELOPER_VARIABLE,
-        ),
-      );
-    }
-
-    // Add user variables (used only)
-    const variables = Blockly.Variables.allUsedVarModels(workspace);
-    for (let i = 0; i < variables.length; i++) {
-      const variableModel = variables[i];
-      const generatedName = javascriptGenerator.nameDB_.getName(
-        variableModel.getId(),
-        Blockly.Names.NameType.VARIABLE,
-      );
-      defvars.push(generatedName);
-      userVariableDefaults.set(generatedName, variableModel.name);
-    }
-
-    // Declare all of the variables.
-    if (defvars.length) {
-      let defvarsmesh = defvars.map(function (name) {
-        const initialValue = userVariableDefaults.has(name)
-          ? userVariableDefaults.get(name)
-          : name;
-        return `let ${name} = ${JSON.stringify(initialValue)};`;
-      });
-      javascriptGenerator.definitions_["variables"] =
-        `// Made with Flock XR\n` + defvarsmesh.join(" ") + "\n";
-    }
-
-    // Order blocks: triggers first
-    const topBlocks = workspace.getTopBlocks(true);
-    const triggerBlockTypes = new Set([
-      "on_event",
-      "on_collision",
-      "when_touching",
-      "when_clicked",
-      "when_key_pressed",
-    ]);
-
-    const triggerBlocks = [];
-    const nonTriggerBlocks = [];
-
-    for (const block of topBlocks) {
-      if (triggerBlockTypes.has(block.type)) {
-        triggerBlocks.push(block);
-      } else {
-        nonTriggerBlocks.push(block);
-      }
-    }
-
-    javascriptGenerator._orderedBlocks = [
-      ...triggerBlocks,
-      ...nonTriggerBlocks,
-    ];
-    javascriptGenerator.isInitialized = true;
-  };
-
-  javascriptGenerator.workspaceToCode2 = function (workspace) {
-    javascriptGenerator.init(workspace);
-
-    let code = javascriptGenerator.definitions_["variables"] || "";
-
-    const blocks =
-      javascriptGenerator._orderedBlocks || workspace.getTopBlocks(true);
-    for (const block of blocks) {
-      const blockCode = javascriptGenerator.blockToCode(block);
-      if (typeof blockCode === "string") {
-        code += blockCode;
-      } else if (Array.isArray(blockCode)) {
-        code += blockCode.join("\n");
-      }
-    }
-    return code;
-  };
   javascriptGenerator.forBlock["device_camera_background"] = function (block) {
     const cameraType = block.getFieldValue("CAMERA");
 
