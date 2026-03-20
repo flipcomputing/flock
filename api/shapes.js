@@ -190,11 +190,12 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
   // and negative area (clockwise) for holes. Reverse our polygons to fix winding.
   const correctedPolygons = polygons.map((poly) => [...poly].reverse());
 
+  let crossSection = null;
   let manifoldMesh = null;
 
   try {
     // Create CrossSection - it handles polygons with holes automatically
-    const crossSection = new CrossSection(correctedPolygons);
+    crossSection = new CrossSection(correctedPolygons);
 
     // Extrude to create 3D manifold mesh
     manifoldMesh = crossSection.extrude(depth);
@@ -221,14 +222,12 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
       indices.push(triVerts[i]);
     }
 
-    // Clean up Manifold objects
-    manifoldMesh.delete();
-    crossSection.delete();
-
     return { positions, indices };
   } catch (e) {
-    if (manifoldMesh) manifoldMesh.delete();
     throw e;
+  } finally {
+    if (manifoldMesh) manifoldMesh.delete();
+    if (crossSection) crossSection.delete();
   }
 }
 
