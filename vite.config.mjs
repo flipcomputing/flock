@@ -9,20 +9,6 @@ import { writeFileSync } from "fs";
 const isProduction = process.env.NODE_ENV === "production";
 const BASE_URL = process.env.VITE_BASE_URL || "/";
 
-// Babylon.js 8.x speculatively imports WGSL (WebGPU) shader files even when
-// the app only uses the standard WebGL engine. These files don't exist in the
-// installed package, so Vite returns ERR_FAILED errors in the console.
-// This plugin intercepts those requests and returns empty stubs so the dynamic
-// imports resolve cleanly and the WebGL fallback is used as normal.
-const stubMissingBabylonWgslPlugin = {
-  name: "stub-missing-babylon-wgsl",
-  load(id) {
-    if (id.includes("ShadersWGSL") || id.includes("shadersWGSL")) {
-      return "export default '';";
-    }
-  },
-};
-
 // `frame-ancestors` is only enforced from HTTP headers (ignored in CSP meta tags).
 const CSP_META_POLICY =
   "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://unpkg.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
@@ -33,7 +19,6 @@ export default {
   base: BASE_URL,
 
   plugins: [
-    stubMissingBabylonWgslPlugin,
     cssInjectedByJsPlugin(),
     viteStaticCopy({
       targets: [
