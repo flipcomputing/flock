@@ -1684,74 +1684,6 @@ function replaceMeshModel(currentMesh, block) {
         : null;
   }
 
-  function printMaterialTree(root, label = "MATERIAL_TREE") {
-    function printNode(node, depth) {
-      const indent = "  ".repeat(depth);
-      const cls = node?.getClassName?.();
-      const nm = node?.name;
-      const metaIdx = node?.metadata?.materialIndex;
-      console.log(
-        `${label} - ${indent}${nm} [${cls}] meta.materialIndex=${metaIdx}`,
-      );
-
-      let mat = node?.material;
-      let matOwner = "self";
-      if (!mat && cls === "InstancedMesh") {
-        mat = node?.sourceMesh?.material || null;
-        matOwner = mat ? "sourceMesh" : "self";
-      }
-
-      if (!mat) {
-        console.log(`${label}   ${indent}material: none`);
-      } else {
-        const mCls = mat.getClassName?.();
-        console.log(
-          `${label}   ${indent}material(${matOwner}): ${mat.name || "(unnamed)"} [${mCls}]`,
-        );
-        if (mCls === "MultiMaterial") {
-          const subs = mat.subMaterials || [];
-          const subMeshes = node.subMeshes || [];
-          console.log(
-            `${label}   ${indent}subMaterials: ${subs.length} | subMeshes: ${subMeshes.length}`,
-          );
-          for (let i = 0; i < subs.length; i++) {
-            const sm = subs[i];
-            const c = _matPrimaryColor(sm);
-            console.log(
-              `${label}   ${indent}[${i}] ${sm?.name || "(unnamed)"} color=${_colToHex(c)}`,
-            );
-          }
-          for (let i = 0; i < subMeshes.length; i++) {
-            const s = subMeshes[i];
-            const idx = s.materialIndex;
-            const sm = (mat.subMaterials || [])[idx] || null;
-            const c = _matPrimaryColor(sm);
-            console.log(
-              `${label}   ${indent}subMesh#${i} -> subMat#${idx} (${sm?.name || "?"}) color=${_colToHex(c)}`,
-            );
-          }
-        } else {
-          const c = _matPrimaryColor(mat);
-          const hasDiff = mat.diffuseColor !== undefined;
-          const hasAlb = mat.albedoColor !== undefined;
-          console.log(
-            `${label}   ${indent}color=${_colToHex(c)} diffuse?=${hasDiff} albedo?=${hasAlb}`,
-          );
-        }
-      }
-
-      const kids =
-        node.getChildMeshes?.().sort((a, b) => a.name.localeCompare(b.name)) ||
-        [];
-      for (const k of kids) printNode(k, depth + 1);
-    }
-    try {
-      printNode(root, 0);
-    } catch (e) {
-      console.warn(label, "print error", e);
-    }
-  }
-
   function extractColorsForChangeOrder(root) {
     const colors = [];
     const materialToIndex = new Map();
@@ -1864,10 +1796,6 @@ function replaceMeshModel(currentMesh, block) {
     return found;
   }
 
-  function logCharacterPalette(palette, label = "CHAR_COLORS") {
-    console.log(`[${label}]`, JSON.stringify(palette, null, 2));
-  }
-
   // ---------- capture original children and debug ----------
   const originalDirectChildren = (
     currentMesh.getChildren ? currentMesh.getChildren() : []
@@ -1876,12 +1804,6 @@ function replaceMeshModel(currentMesh, block) {
     ? originalDirectChildren[0]
     : null;
   const oldChildScale = oldFirstChild?.scaling?.clone?.() || null;
-  // Debug old tree before removal
-  /*for (const oc of originalDirectChildren) {
-    if (oc && !oc.isDisposed?.()) {
-      printMaterialTree(oc, "OLD");
-    }
-  }*/
 
   // ---------- create temp new mesh ----------
   const tempId = `${modelName}__temp__${Date.now()}`;
@@ -1892,7 +1814,7 @@ function replaceMeshModel(currentMesh, block) {
     const prev = (currentMesh.metadata && currentMesh.metadata.colors) || {};
     const extracted = extractCharacterColorsFromHierarchy(currentMesh);
     const characterPalette = { ...prev, ...extracted };
-    //logCharacterPalette(characterPalette, "CHAR_FINAL");
+   
     createArgs = Object.keys(characterPalette).length
       ? { modelName, modelId: tempId, colors: characterPalette }
       : { modelName, modelId: tempId };
@@ -1913,10 +1835,7 @@ function replaceMeshModel(currentMesh, block) {
     try {
       const newChild = firstRenderable(loadedMesh) || loadedMesh;
 
-      // Debug new incoming temp tree
-      //printMaterialTree(loadedMesh, "NEW");
-
-      // Colors to reapply for non-characters
+     // Colors to reapply for non-characters
       let nonCharacterColors = null;
       if (!isCharacter) {
         const cols = [];
