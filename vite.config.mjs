@@ -297,6 +297,9 @@ export default {
   build: {
     assetsInlineLimit: 100000, // include font files inline if needed
     cssCodeSplit: false, // inline CSS into JS
-    rollupOptions: { input: "index.html" },
+    rollupOptions: {
+      input: "index.html",
+      external: ["@babylonjs/gui-editor"],
+    },
   },
 };
