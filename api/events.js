@@ -10,6 +10,10 @@ export const flockEvents = {
   */
 
   onEvent(eventName, handler, once = false) {
+    if (typeof handler !== "function") {
+      console.warn("onEvent: handler must be a function");
+      return;
+    }
     eventName = flock.sanitizeEventName(eventName);
     if (!flock.isAllowedEventName(eventName)) {
       console.warn(
@@ -55,6 +59,10 @@ export const flockEvents = {
     }
   },
   whenActionEvent(action, callback, isReleased = false) {
+    if (typeof callback !== "function") {
+      console.warn("whenActionEvent: callback must be a function");
+      return;
+    }
     const actionMap = {
       FORWARD: ["w", "z"],
       BACKWARD: ["s"],
@@ -156,6 +164,10 @@ export const flockEvents = {
     );
   },
   whenKeyEvent(key, callback, isReleased = false) {
+    if (typeof callback !== "function") {
+      console.warn("whenKeyEvent: callback must be a function");
+      return;
+    }
     const signal = flock.abortController?.signal;
     if (signal?.aborted) return;
 

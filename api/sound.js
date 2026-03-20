@@ -9,6 +9,12 @@ export const flockSound = {
     meshName,
     { soundName, loop = false, volume = 1, playbackRate = 1 } = {},
   ) {
+    volume = Number.isFinite(Number(volume)) ? Math.max(0, Math.min(1, Number(volume))) : 1;
+    playbackRate = Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0 ? Number(playbackRate) : 1;
+    if (!soundName || typeof soundName !== "string") {
+      console.warn("playSound: invalid soundName");
+      return;
+    }
     const soundUrl = flock.soundPath + soundName;
 
     // Global (non-spatial) sound
@@ -430,6 +436,9 @@ export const flockSound = {
     };
   },
   setBPM(meshName, bpm) {
+    const safeBpm = Number.isFinite(Number(bpm)) && Number(bpm) > 0 ? Number(bpm) : 60;
+    bpm = safeBpm;
+
     if (meshName === "__everywhere__") {
       if (!flock.scene.metadata || typeof flock.scene.metadata !== "object") {
         flock.scene.metadata = {};
@@ -441,7 +450,9 @@ export const flockSound = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
         if (!mesh) {
-          throw new Error(`Mesh '${meshName}' not found`);
+          console.warn(`setBPM: mesh '${meshName}' not found`);
+          resolve();
+          return;
         }
 
         if (!mesh.metadata || typeof mesh.metadata !== "object") {

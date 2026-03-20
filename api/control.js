@@ -10,13 +10,16 @@ export const flockControl = {
   */
 
   wait(duration) {
+    const ms = Number.isFinite(Number(duration)) && Number(duration) >= 0
+      ? Number(duration) * 1000
+      : 0;
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         if (flock.abortController?.signal) {
           flock.abortController.signal.removeEventListener("abort", onAbort);
         }
         resolve();
-      }, duration * 1000);
+      }, ms);
 
       const onAbort = () => {
         clearTimeout(timeoutId); // Clear the timeout if aborted
@@ -63,6 +66,10 @@ export const flockControl = {
     }
   },
   waitUntil(conditionFunc) {
+    if (typeof conditionFunc !== "function") {
+      console.warn("waitUntil: conditionFunc must be a function");
+      return Promise.resolve();
+    }
     const signal = flock.abortController?.signal;
     return new Promise((resolve, reject) => {
       if (signal?.aborted) {
