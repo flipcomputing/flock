@@ -287,11 +287,16 @@ export default {
   },
 
   optimizeDeps: {
-    exclude: ["@babylonjs/havok", "@babylonjs/core",
+    exclude: [
+      "@babylonjs/havok",
+      "@babylonjs/core",
       "@babylonjs/materials",
       "@babylonjs/loaders",
       "@babylonjs/gui",
-      "manifold-3d"]
+      "@babylonjs/gui-editor",
+      "@babylonjs/inspector",
+      "manifold-3d",
+    ],
   },
 
   build: {
