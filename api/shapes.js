@@ -7,7 +7,7 @@ let manifoldModule = null;
 let manifoldInitPromise = null;
 
 // Initialize the Manifold WASM module once
-async function getManifold() {
+export async function getManifold() {
   if (manifoldModule) return manifoldModule;
   if (manifoldInitPromise) return manifoldInitPromise;
 

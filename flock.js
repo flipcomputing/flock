@@ -48,7 +48,7 @@ import {
   setFlockReference as setFlockMovement,
 } from "./api/movement";
 import { flockModels, setFlockReference as setFlockModels } from "./api/models";
-import { flockShapes, setFlockReference as setFlockShapes } from "./api/shapes";
+import { flockShapes, getManifold, setFlockReference as setFlockShapes } from "./api/shapes";
 import {
   flockTransform,
   setFlockReference as setFlockTransform,
@@ -1206,7 +1206,11 @@ export const flock = {
     flock.abortController = new AbortController();
 
     try {
-      await flock.BABYLON.InitializeCSG2Async();
+      const manifoldWasm = await getManifold();
+      await flock.BABYLON.InitializeCSG2Async({
+        manifoldInstance: manifoldWasm.Manifold,
+        manifoldMeshInstance: manifoldWasm.Mesh,
+      });
     } catch (error) {
       console.error("Error initializing CSG2:", error);
     }
