@@ -134,8 +134,8 @@ function initializeIfClauseConnectionChecker(workspace) {
     for (let i = 0; i < block.inputList.length; i++) {
       const input = block.inputList[i];
       if (
-        input.type === Blockly.INPUT_VALUE ||
-        input.type === Blockly.DUMMY_INPUT
+        input.type === Blockly.inputs.inputTypes.VALUE ||
+        input.type === Blockly.inputs.inputTypes.DUMMY
       ) {
         continue;
       }
