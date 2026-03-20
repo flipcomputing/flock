@@ -1004,8 +1004,6 @@ export const flockMesh = {
             return;
           }
 
-          const BABYLON = flock.BABYLON;
-
           function getLocalPivotOffset(mesh) {
             const pivotSettings = (mesh.metadata &&
               mesh.metadata.pivotSettings) || {
@@ -1024,14 +1022,14 @@ export const flockMesh = {
               return 0;
             }
 
-            return new BABYLON.Vector3(
+            return new flock.BABYLON.Vector3(
               axisOffset("x"),
               axisOffset("y"),
               axisOffset("z"),
             );
           }
 
-          const offsetLocal = new BABYLON.Vector3(offsetX, offsetY, offsetZ);
+          const offsetLocal = new flock.BABYLON.Vector3(offsetX, offsetY, offsetZ);
           const parentPivotLocal = getLocalPivotOffset(parentMesh);
           const childPivotLocal = getLocalPivotOffset(childMesh);
 

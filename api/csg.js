@@ -256,7 +256,7 @@ export const flockCSG = {
     if (!meshes || meshes.length === 0) return null;
 
     // Merge all parts into one single mesh
-    const merged = BABYLON.Mesh.MergeMeshes(
+    const merged = flock.BABYLON.Mesh.MergeMeshes(
       meshes,
       true, // disposeSource
       true, // allow32BitsIndices
@@ -955,7 +955,7 @@ export const flockCSG = {
             .getBoundingInfo()
             .boundingBox.center.clone();
           resultMesh.setPivotMatrix(
-            BABYLON.Matrix.Translation(
+            flock.BABYLON.Matrix.Translation(
               localCenter.x,
               localCenter.y,
               localCenter.z,

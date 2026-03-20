@@ -828,12 +828,12 @@ export const flockUI = {
       flock.stackPanel.addControl(bg);
 
       const fadeOut = () => {
-        const anim = new BABYLON.Animation(
+        const anim = new flock.BABYLON.Animation(
           "fadeOut",
           "alpha",
           30,
-          BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-          BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+          flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+          flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
         );
 
         anim.setKeys([

@@ -174,7 +174,8 @@ export const flockXR = {
 
       // Treat ALL mesh subclasses as geometry; we'll still skip LinesMesh explicitly
       const isAbstractMesh = (n) =>
-        typeof BABYLON !== "undefined" && n instanceof BABYLON.AbstractMesh;
+        typeof flock.BABYLON !== "undefined" &&
+        n instanceof flock.BABYLON.AbstractMesh;
       const isLines = (n) => cls(n) === "LinesMesh";
 
       // --- Ghost: top-level + enabled + AbstractMesh + no material (not lines)
@@ -188,14 +189,15 @@ export const flockXR = {
       );
 
       // Shared transparent PBR material (GLTF-friendly)
-      const ghostMat = new BABYLON.PBRMaterial("_tmpExportGhost", scene);
+      const ghostMat = new flock.BABYLON.PBRMaterial("_tmpExportGhost", scene);
       ghostMat.alpha = 0;
-      ghostMat.alphaMode = BABYLON.Engine.ALPHA_BLEND;
-      ghostMat.transparencyMode = BABYLON.PBRMaterial.PBRMATERIAL_ALPHABLEND;
+      ghostMat.alphaMode = flock.BABYLON.Engine.ALPHA_BLEND;
+      ghostMat.transparencyMode =
+        flock.BABYLON.PBRMaterial.PBRMATERIAL_ALPHABLEND;
       ghostMat.disableLighting = true;
       ghostMat.metallic = 0;
       ghostMat.roughness = 1;
-      ghostMat.albedoColor = new BABYLON.Color4(1, 1, 1, 0);
+      ghostMat.albedoColor = new flock.BABYLON.Color4(1, 1, 1, 0);
 
       const patches = targets.map((mesh) => ({
         mesh,

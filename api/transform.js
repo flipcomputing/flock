@@ -803,8 +803,6 @@ export const flockTransform = {
           return;
         }
 
-        const BABYLON = flock.BABYLON;
-
         const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
         function resolvePivotValue(value, axis) {
           if (typeof value === "string") {
@@ -827,14 +825,14 @@ export const flockTransform = {
           y: "MIN",
           z: "CENTER",
         };
-        const oldPivotLocal = new BABYLON.Vector3(
+        const oldPivotLocal = new flock.BABYLON.Vector3(
           resolvePivotValue(prev.x, "x"),
           resolvePivotValue(prev.y, "y"),
           resolvePivotValue(prev.z, "z"),
         );
 
         // NEW pivot from args (Y defaults to MIN above)
-        const newPivotLocal = new BABYLON.Vector3(
+        const newPivotLocal = new flock.BABYLON.Vector3(
           resolvePivotValue(xPivot, "x"),
           resolvePivotValue(yPivot, "y"),
           resolvePivotValue(zPivot, "z"),
@@ -843,7 +841,7 @@ export const flockTransform = {
         // World position of OLD pivot (before change)
         mesh.computeWorldMatrix(true);
         const wmBefore = mesh.getWorldMatrix().clone();
-        const oldPivotWorld = BABYLON.Vector3.TransformCoordinates(
+        const oldPivotWorld = flock.BABYLON.Vector3.TransformCoordinates(
           oldPivotLocal,
           wmBefore,
         );
@@ -857,7 +855,7 @@ export const flockTransform = {
         // World position of NEW pivot (after change)
         mesh.computeWorldMatrix(true);
         const wmAfter = mesh.getWorldMatrix().clone();
-        const newPivotWorld = BABYLON.Vector3.TransformCoordinates(
+        const newPivotWorld = flock.BABYLON.Vector3.TransformCoordinates(
           newPivotLocal,
           wmAfter,
         );
@@ -869,13 +867,16 @@ export const flockTransform = {
         // Physics sync
         if (mesh.physics) {
           if (
-            mesh.physics.getMotionType() !== BABYLON.PhysicsMotionType.DYNAMIC
+            mesh.physics.getMotionType() !==
+            flock.BABYLON.PhysicsMotionType.DYNAMIC
           ) {
-            mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+            mesh.physics.setMotionType(
+              flock.BABYLON.PhysicsMotionType.ANIMATED,
+            );
           }
           const rq =
             mesh.rotationQuaternion ||
-            BABYLON.Quaternion.FromEulerAngles(
+            flock.BABYLON.Quaternion.FromEulerAngles(
               mesh.rotation.x,
               mesh.rotation.y,
               mesh.rotation.z,
