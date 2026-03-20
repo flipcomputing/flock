@@ -390,15 +390,8 @@ window.onload = async function () {
   initializeWorkspace();
   overrideSearchPlugin(workspace);
   initializeBlockHandling();
-  //Blockly.ContextMenuItems.registerCommentOptions();
-
-  /*const navigationController = new NavigationController();
-        navigationController.init();
-        navigationController.addWorkspace(workspace);*/
-  // Turns on keyboard navigation.
-  //keyboardNav = new KeyboardNavigation(workspace);
-
-  console.log("Welcome to Flock 🐑🐑🐑");
+ 
+  console.log("Welcome to Flock 🐦🐦🐦");
 
   // Autosave every 30 seconds: to localStorage and (if a file was saved) to that file
   setInterval(() => {
