@@ -80,8 +80,6 @@ import {
   setFlockReference as setFlockSensing,
 } from "./api/sensing";
 import { translate } from "./main/translation.js";
-// Helper functions to make flock.BABYLON js easier to use in Flock
-console.log("Flock helpers loading");
 
 import {
   enableSceneDescription,
@@ -1468,7 +1466,7 @@ export const flock = {
     flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
   },
   async disposeOldScene() {
-    console.log("Disposing old scene");
+    
     flock.flockNotReady = true;
 
     if (flock.scene) {
@@ -1784,7 +1782,6 @@ export const flock = {
           }, 100);
         }
 
-        console.log("Scene disposal completed successfully");
       } catch (error) {
         console.error("Error during scene disposal:", error);
         // Even if disposal fails, clear critical references

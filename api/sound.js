@@ -141,9 +141,7 @@ export const flockSound = {
     if (flock.audioContext) {
       flock.audioContext
         .close()
-        .then(() => {
-          console.log("Audio context closed.");
-        })
+        .then(() => {})
         .catch((error) => {
           console.error("Error closing audio context:", error);
         });
@@ -151,9 +149,8 @@ export const flockSound = {
   },
   getAudioContext() {
     if (!flock.audioContext) {
-      flock.audioContext = new (
-        window.AudioContext || window.webkitAudioContext
-      )();
+      flock.audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
     }
     return flock.audioContext;
   },
@@ -180,11 +177,10 @@ export const flockSound = {
         let context = flock.audioContext; // Ensure a global audio context
         if (!context || context.state === "closed") {
           try {
-            flock.audioContext = new (
-              window.AudioContext || window.webkitAudioContext
-            )();
+            flock.audioContext = new (window.AudioContext ||
+              window.webkitAudioContext)();
             context = flock.audioContext;
-            console.log("Created new audio context (previous was closed)");
+            
           } catch (error) {
             console.error("Could not create audio context:", error);
             resolve();
