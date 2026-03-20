@@ -900,8 +900,8 @@ export const flockMaterial = {
     // Normalize single-element array to plain value
     if (Array.isArray(color) && color.length === 1) color = color[0];
 
-    // Handle two-color case
-    if (Array.isArray(color) && color.length === 2) {
+    // Handle two-color case (extra colors beyond 2 are ignored)
+    if (Array.isArray(color) && color.length >= 2) {
       // Use gradient for Flat material
       if (materialName === "none.png") {
         material = new flock.GradientMaterial(materialName, flock.scene);
@@ -989,8 +989,9 @@ export const flockMaterial = {
       },
     );
 
-    // Convert colors to Color3 array
+    // Convert colors to Color3 array (max 16, matching shader array size)
     const color3Array = colors
+      .slice(0, 16)
       .map((c) => {
         const hex = flock.getColorFromString(c);
         const color3 = flock.BABYLON.Color3.FromHexString(hex);
@@ -1003,7 +1004,7 @@ export const flockMaterial = {
       console.log("Color array:", color3Array);
     }
 
-    shaderMaterial.setInt("colorCount", colors.length);
+    shaderMaterial.setInt("colorCount", Math.min(colors.length, 16));
     shaderMaterial.setArray3("colors", color3Array);
     shaderMaterial.setFloat("alpha", 1.0);
     shaderMaterial.setVector2("minMax", new flock.BABYLON.Vector2(-1, 1)); // Will be updated when applied to mesh
