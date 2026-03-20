@@ -622,9 +622,9 @@ export const flockTransform = {
       zOrigin = "CENTRE",
     } = {},
   ) {
-    x = Number.isFinite(Number(x)) && Number(x) > 0 ? Number(x) : 1;
-    y = Number.isFinite(Number(y)) && Number(y) > 0 ? Number(y) : 1;
-    z = Number.isFinite(Number(z)) && Number(z) > 0 ? Number(z) : 1;
+    x = Number.isFinite(Number(x)) && Number(x) >= 0 ? Number(x) : 1;
+    y = Number.isFinite(Number(y)) && Number(y) >= 0 ? Number(y) : 1;
+    z = Number.isFinite(Number(z)) && Number(z) >= 0 ? Number(z) : 1;
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         mesh.metadata = mesh.metadata || {};
