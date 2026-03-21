@@ -1072,6 +1072,36 @@ export function createBlocklyWorkspace() {
         return;
       }
     }
+    // 2b) top-level block: insert pb as first child in statement input,
+    //     pushing existing children after pb
+    const isTopLevel = !targetBlock.previousConnection && !targetBlock.nextConnection;
+    if (isTopLevel && pb.previousConnection) {
+      for (const input of targetBlock.inputList) {
+        if (
+          input.type === Blockly.NEXT_STATEMENT &&
+          input.connection &&
+          input.connection.targetBlock() &&
+          can(input.connection, pb.previousConnection)
+        ) {
+          const firstChild = input.connection.targetBlock();
+          input.connection.disconnect();
+          input.connection.connect(pb.previousConnection);
+          // Append previous first child after pb chain
+          let lastPb = pb;
+          while (lastPb.nextConnection && lastPb.nextConnection.targetBlock()) {
+            lastPb = lastPb.nextConnection.targetBlock();
+          }
+          if (
+            lastPb.nextConnection &&
+            firstChild.previousConnection &&
+            can(lastPb.nextConnection, firstChild.previousConnection)
+          ) {
+            lastPb.nextConnection.connect(firstChild.previousConnection);
+          }
+          return;
+        }
+      }
+    }
     // 3) empty value input ⟷ pb.output
     for (const input of targetBlock.inputList) {
       if (
