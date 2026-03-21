@@ -188,10 +188,6 @@ export const flockScene = {
     }
     dt.update(false);
 
-    const tex = new flock.BABYLON.Texture(null, flock.scene);
-    tex._texture = dt.getInternalTexture();
-    tex.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-    tex.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
     return dt;
   },
   createMap(image, material) {
@@ -202,6 +198,7 @@ export const flockScene = {
     const applyMaterialToGround = (mesh, mat) => {
       if (Array.isArray(mat) && mat.length === 1) mat = mat[0];
       if (Array.isArray(mat) && mat.length >= 2) {
+        const oldMat = mesh.material;
         const standardMat = new flock.BABYLON.StandardMaterial(
           "mapGradientMat",
           flock.scene,
@@ -217,6 +214,9 @@ export const flockScene = {
         standardMat.diffuseTexture.wrapV =
           flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         mesh.material = standardMat;
+        if (oldMat && oldMat.name === "mapGradientMat") {
+          oldMat.dispose(true, true);
+        }
       } else {
         flock.setMaterialWithCleanup(mesh, material);
       }
