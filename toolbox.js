@@ -209,7 +209,7 @@ const toolboxSceneMeshes = {
     {
       kind: "block",
       type: "load_multi_object",
-      keyword: "object",
+      keyword: "multi",
       inputs: {
         SCALE: {
           shadow: {
@@ -1095,7 +1095,7 @@ const toolboxEvents = {
     {
       kind: "block",
       type: "when_action_event",
-      keyword: "action",
+      keyword: "whenpressed",
     },
     {
       kind: "block",
@@ -2337,7 +2337,7 @@ const toolboxSensing = {
     {
       kind: "block",
       type: "action_pressed",
-      keyword: "action",
+      keyword: "pressed",
     },
     {
       kind: "block",
