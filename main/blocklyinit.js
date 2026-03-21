@@ -225,9 +225,12 @@ function initializeIfClauseConnectionChecker(workspace) {
         if (targetIsIfClause) {
           const targetMode = targetBlock.getFieldValue("MODE");
 
-          // Rule 1: Nothing can connect after ELSE
+          // Rule 1: Nothing can connect after ELSE.
+          // During drag-and-drop reject to give visual feedback.
+          // During healing / field-changes (not dragging) allow the connection;
+          // validateIfClausePositions will disable the block in-place.
           if (targetMode === MODE.ELSE) {
-            return false;
+            if (workspace.isDragging()) return false;
           }
 
           // Rule 2: ELSE cannot connect if it has if_clause blocks after it
@@ -235,14 +238,16 @@ function initializeIfClauseConnectionChecker(workspace) {
             return false;
           }
 
-          // Rule 3: ELSE cannot be inserted in middle of chain
+          // Rule 3: ELSE cannot be inserted in middle of chain (drag only).
+          // When not dragging (e.g. a MODE field change), keep the connection
+          // and let validateIfClausePositions disable the block in-place.
           const targetHasNext = realNext(targetBlock);
           if (
             targetHasNext &&
             targetHasNext.type === "if_clause" &&
             movingMode === MODE.ELSE
           ) {
-            return false;
+            if (workspace.isDragging()) return false;
           }
         } else {
           // Target is NOT if_clause.
@@ -363,7 +368,10 @@ function initializeIfClauseConnectionChecker(workspace) {
       !event.isUiEvent &&
       (event.type === Blockly.Events.BLOCK_MOVE ||
         event.type === Blockly.Events.BLOCK_CREATE ||
-        event.type === Blockly.Events.BLOCK_DELETE)
+        event.type === Blockly.Events.BLOCK_DELETE ||
+        (event.type === Blockly.Events.BLOCK_CHANGE &&
+          event.element === "field" &&
+          event.name === "MODE"))
     ) {
       validateIfClausePositions();
     }
@@ -598,7 +606,8 @@ export function initializeWorkspace() {
   // deleted block orphaned when the BLOCK_MOVE heal event is later replayed
   // through canConnect and our custom checker rejects the reconnection.
   const BlockDeleteClass = Blockly.Events.BlockDelete;
-  if (BlockDeleteClass) {
+  if (BlockDeleteClass && !BlockDeleteClass._healRedoPatched) {
+    BlockDeleteClass._healRedoPatched = true;
     const originalBlockDeleteRun = BlockDeleteClass.prototype.run;
     BlockDeleteClass.prototype.run = function (forward) {
       if (forward) {
