@@ -1573,23 +1573,18 @@ export function defineBlocks() {
         }
         // Get the entered keyword.
         const keyword = this.getFieldValue("KEYWORD").trim();
-        // Lookup the new block type based on the keyword.
-        const blockType = findBlockTypeByKeyword(keyword);
-        if (blockType) {
+        // Lookup the exact toolbox definition based on the keyword.
+        const blockDefinition = findBlockDefinitionByKeyword(keyword);
+        if (blockDefinition?.type) {
           // Mark the block as replaced.
           this.isReplaced = true;
           const workspace = this.workspace;
           // Create the new block.
-          const newBlock = workspace.newBlock(blockType);
+          const newBlock = workspace.newBlock(blockDefinition.type);
 
           newBlock.initSvg();
           newBlock.render();
-
-          // Apply toolbox settings if defined.
-          const blockDefinition = findBlockDefinitionInToolbox(blockType);
-          if (blockDefinition && blockDefinition.inputs) {
-            applyToolboxSettings(newBlock, blockDefinition.inputs);
-          }
+          applyBlockDefinition(newBlock, blockDefinition);
 
           // Position the new block where the old keyword block is.
           const pos = this.getRelativeToSurfaceXY();
@@ -1635,40 +1630,15 @@ export function defineBlocks() {
     },
   };
 
-  function findBlockTypeByKeyword(keyword) {
+  function findBlockDefinitionByKeyword(keyword) {
     // Recursive helper to search through a contents array.
     function searchContents(contents) {
       if (!Array.isArray(contents)) {
         return null;
       }
       for (const item of contents) {
-        // If this item is a block with the matching keyword, return its type.
+        // If this item is a block with the matching keyword, return its definition.
         if (item.kind === "block" && item.keyword === keyword) {
-          return item.type;
-        }
-        // If the item is a category with its own contents, search recursively.
-        if (item.kind === "category" && Array.isArray(item.contents)) {
-          const result = searchContents(item.contents);
-          if (result !== null) {
-            return result;
-          }
-        }
-      }
-      return null;
-    }
-    return searchContents(toolbox.contents);
-  }
-
-  // Function to find block definition in the toolbox by block type
-  function findBlockDefinitionInToolbox(blockType) {
-    // Recursive helper to search through a contents array.
-    function searchContents(contents) {
-      if (!Array.isArray(contents)) {
-        return null;
-      }
-      for (const item of contents) {
-        // If this item is a block with the matching type, return its definition.
-        if (item.kind === "block" && item.type === blockType) {
           return item;
         }
         // If the item is a category with its own contents, search recursively.
