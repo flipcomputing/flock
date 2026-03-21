@@ -218,7 +218,36 @@ export const flockScene = {
           oldMat.dispose(false, true);
         }
       } else {
-        flock.setMaterialWithCleanup(mesh, material);
+        // For descriptors with multiple colors + flat texture, update an existing
+        // GradientMaterial in-place to avoid shader recompilation ("black and red" flash).
+        const colors =
+          mat && typeof mat === "object" && Array.isArray(mat.color)
+            ? mat.color
+            : null;
+        if (
+          colors?.length >= 2 &&
+          (mat.materialName === "none.png" || !mat.materialName) &&
+          mesh.material instanceof flock.GradientMaterial
+        ) {
+          const existingMat = mesh.material;
+          existingMat.bottomColor = flock.BABYLON.Color3.FromHexString(
+            flock.getColorFromString(colors[0]),
+          );
+          existingMat.topColor = flock.BABYLON.Color3.FromHexString(
+            flock.getColorFromString(colors[1]),
+          );
+          // Re-key the material cache to reflect the new colors.
+          const oldKey = existingMat.metadata?.cacheKey;
+          if (oldKey) delete flock.materialCache[oldKey];
+          const alphaKey = parseFloat(mat.alpha ?? 1).toFixed(2);
+          const newKey =
+            `mat_${colors.join("-")}_${alphaKey}_${mat.materialName ?? "none.png"}_noglow`.toLowerCase();
+          existingMat.name = newKey;
+          if (existingMat.metadata) existingMat.metadata.cacheKey = newKey;
+          flock.materialCache[newKey] = existingMat;
+        } else {
+          flock.setMaterialWithCleanup(mesh, material);
+        }
       }
     };
 
