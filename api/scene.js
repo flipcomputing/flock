@@ -216,7 +216,7 @@ export const flockScene = {
           flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         standardMat.diffuseTexture.wrapV =
           flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-        flock.setMaterialWithCleanup(mesh, standardMat);
+        mesh.material = standardMat;
       } else {
         flock.setMaterialWithCleanup(mesh, material);
       }
