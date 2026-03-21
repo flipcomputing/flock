@@ -1,11 +1,6 @@
 import { flock } from "../flock.js";
-import {
-  currentView,
-  switchView,
-  codeMode,
-  isNarrowScreen,
-  showCanvasView,
-} from "./view.js";
+import { currentView, isNarrowScreen, showCanvasView } from "./view.js";
+import { loadWorkspaceAndExecute } from "./files.js";
 import { setGizmoManager, disposeGizmoManager } from "../ui/gizmos.js";
 import { javascriptGenerator } from "blockly/javascript";
 import { workspace } from "./blocklyinit.js";
@@ -32,8 +27,6 @@ export async function executeCode() {
   console.log("Engine ready");
 
   // Cache DOM elements
-  const container = document.getElementById("maincontent");
-  const switchViewsBtn = document.getElementById("switchViews");
   const renderCanvas = document.getElementById("renderCanvas");
 
   // If on a narrow screen and currently showing code, switch to canvas
@@ -62,9 +55,20 @@ export async function executeCode() {
     isExecuting = false; // Reset the flag if there's an error
 
     // Load the starter project if execution fails
-    const starter = "examples/starter.json";
+    const starter = new URL(
+      "examples/starter.flock",
+      window.location.origin + import.meta.env.BASE_URL,
+    ).href;
     fetch(starter)
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(
+            `Failed to load starter project (${response.status} ${response.statusText})`,
+          );
+        }
+
+        return response.json();
+      })
       .then((json) => {
         loadWorkspaceAndExecute(json, workspace, executeCode);
       })
