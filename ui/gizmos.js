@@ -572,8 +572,8 @@ export function toggleGizmo(gizmoType) {
         });
         return;
       }
-      blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata
-        .blockKey;
+      blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
+        ?.blockKey;
       blockId = meshBlockIdMap[blockKey];
       deleteBlockWithUndo(blockId);
       break;
@@ -587,8 +587,8 @@ export function toggleGizmo(gizmoType) {
         });
         return;
       }
-      blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata
-        .blockKey;
+      blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
+        ?.blockKey;
       blockId = meshBlockIdMap[blockKey];
 
       document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
@@ -648,8 +648,8 @@ export function toggleGizmo(gizmoType) {
         if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
           if (gizmoManager.attachedMesh) {
             resetAttachedMesh();
-            blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata
-              .blockKey;
+            blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
+              ?.blockKey;
           }
           let pickedMesh = event.pickInfo.pickedMesh;
 
@@ -734,7 +734,7 @@ export function toggleGizmo(gizmoType) {
             mesh.physics.disablePreStep = false;
           }
 
-          const block = meshMap[mesh.metadata.blockKey];
+          const block = meshMap[mesh?.metadata?.blockKey];
           highlightBlockById(Blockly.getMainWorkspace(), block);
         },
       );
@@ -748,7 +748,7 @@ export function toggleGizmo(gizmoType) {
 
         mesh.computeWorldMatrix(true);
 
-        const block = meshMap[mesh.metadata.blockKey];
+        const block = meshMap[mesh?.metadata?.blockKey];
 
         if (block) {
           const blockPosition = flock.getBlockPositionFromMesh(mesh);
@@ -795,7 +795,7 @@ export function toggleGizmo(gizmoType) {
         }
         mesh.computeWorldMatrix(true);
 
-        const block = meshMap[mesh.metadata.blockKey];
+        const block = meshMap[mesh?.metadata?.blockKey];
 
         if (block) {
           const blockPosition = flock.getBlockPositionFromMesh(mesh);
@@ -850,7 +850,7 @@ export function toggleGizmo(gizmoType) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
 
-        const block = meshMap[mesh.metadata.blockKey];
+        const block = meshMap[mesh?.metadata?.blockKey];
 
         if (!block) return;
 
@@ -957,7 +957,7 @@ export function toggleGizmo(gizmoType) {
         mesh.position.y += deltaY;
 
         const block = Blockly.getMainWorkspace().getBlockById(
-          mesh.metadata.blockKey,
+          mesh?.metadata?.blockKey,
         );
         if (gizmoManager.scaleGizmoEnabled) {
           switch (block?.type) {
@@ -988,13 +988,13 @@ export function toggleGizmo(gizmoType) {
           mesh.physics.disablePreStep = false;
         }
 
-        const block = meshMap[mesh.metadata.blockKey];
+        const block = meshMap[mesh?.metadata?.blockKey];
         highlightBlockById(Blockly.getMainWorkspace(), block);
       });
 
       gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
         const mesh = gizmoManager.attachedMesh;
-        const block = meshMap[mesh.metadata.blockKey];
+        const block = meshMap[mesh?.metadata?.blockKey];
 
         if (mesh.savedMotionType) {
           mesh.physics.setMotionType(mesh.savedMotionType);
@@ -1361,7 +1361,7 @@ export function setGizmoManager(value) {
         }
 
         const block = Blockly.getMainWorkspace().getBlockById(
-          mesh.metadata.blockKey,
+          mesh?.metadata?.blockKey,
         );
 
         if (block && gizmoManager.scaleGizmoEnabled) {
@@ -1385,7 +1385,7 @@ export function setGizmoManager(value) {
     }
 
     if (mesh) {
-      const block = meshMap[mesh.metadata.blockKey];
+      const block = meshMap[mesh?.metadata?.blockKey];
       //highlightBlockById(Blockly.getMainWorkspace(), block);
     }
     originalAttach(mesh);
@@ -1407,8 +1407,8 @@ export function setGizmoManager(value) {
       // KeyCode for 'Delete' key is 46
       // Handle delete action
 
-      const blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata
-        .blockKey;
+      const blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
+        ?.blockKey;
       const blockId = meshBlockIdMap[blockKey];
 
       deleteBlockWithUndo(blockId);
