@@ -841,22 +841,30 @@ export function createBlocklyWorkspace() {
   // Override the keyboard-navigation plugin's paste context menu item so it
   // uses the same smart pasteAsChildOrHere() logic as Ctrl+V.
   // The item is registered by @blockly/keyboard-navigation as 'blockPasteFromContextMenu'.
-  // We replace its callback after the plugin has had a chance to register it.
-  setTimeout(() => {
-    const registry = Blockly.ContextMenuRegistry.registry;
-    const pasteItem = registry.getItem?.("blockPasteFromContextMenu");
-    if (pasteItem) {
-      pasteItem.callback = (scope) => {
-        const data = Blockly.clipboard?.getLastCopiedData?.();
-        if (!data) return;
-        const ws = scope?.workspace ?? mainWs;
-        if (!ws) return;
-        const selected = Blockly.common?.getSelected?.() || null;
-        if (selected && selected.isInFlyout) return;
-        pasteAsChildOrHere(selected || null, ws, data);
-      };
-    }
-  }, 0);
+  // We replace its callback after the plugin has had a chance to register it,
+  // using a bounded retry in case the plugin registers asynchronously.
+  (function overridePasteContextMenuItem() {
+    const MAX_ATTEMPTS = 8;
+    let attempts = 0;
+    const tryOverride = () => {
+      const registry = Blockly.ContextMenuRegistry.registry;
+      const pasteItem = registry.getItem?.("blockPasteFromContextMenu");
+      if (pasteItem) {
+        pasteItem.callback = (scope) => {
+          const data = Blockly.clipboard?.getLastCopiedData?.();
+          if (!data) return;
+          const ws = scope?.block?.workspace ?? scope?.workspace ?? mainWs;
+          if (!ws) return;
+          const selected = Blockly.common?.getSelected?.() || null;
+          if (selected && selected.isInFlyout) return;
+          pasteAsChildOrHere(selected || null, ws, data);
+        };
+        return;
+      }
+      if (++attempts < MAX_ATTEMPTS) setTimeout(tryOverride, 50);
+    };
+    setTimeout(tryOverride, 0);
+  })();
 
   // ===== OVERRIDE CLIPBOARD METHODS =====
   // Save original methods
