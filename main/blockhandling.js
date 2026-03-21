@@ -3,13 +3,21 @@ import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
 import { blockHandlerRegistry } from "../blocks/blocks.js";
 
+function asBlocklyBlock(candidate) {
+  if (!candidate || typeof candidate !== "object") {
+    return null;
+  }
+
+  return typeof candidate.getNextBlock === "function" ? candidate : null;
+}
+
 function getSelectedBlockFromCursor(cursor) {
   if (!cursor) {
     return null;
   }
 
   if (typeof cursor.getSourceBlock === "function") {
-    const sourceBlock = cursor.getSourceBlock();
+    const sourceBlock = asBlocklyBlock(cursor.getSourceBlock());
     if (sourceBlock) {
       return sourceBlock;
     }
@@ -25,10 +33,22 @@ function getSelectedBlockFromCursor(cursor) {
   }
 
   if (typeof currentNode.getSourceBlock === "function") {
-    return currentNode.getSourceBlock();
+    return asBlocklyBlock(currentNode.getSourceBlock());
   }
 
-  return currentNode.sourceBlock_ ?? null;
+  return asBlocklyBlock(currentNode.sourceBlock_);
+}
+
+function getSelectedBlockForKeywordShortcut() {
+  const selected = asBlocklyBlock(Blockly.common?.getSelected?.());
+  if (selected) {
+    return selected;
+  }
+
+  return (
+    getSelectedBlockFromCursor(workspace.getCursor()) ||
+    asBlocklyBlock(window.currentBlock)
+  );
 }
 
 export function initializeBlockHandling() {
@@ -215,10 +235,8 @@ export function initializeBlockHandling() {
   // Handle Enter key for adding new blocks
   document.addEventListener("keydown", function (event) {
     if (event.ctrlKey && event.key === "]") {
-      let selectedBlock = null;
-
-      const cursor = workspace.getCursor();
-      selectedBlock = getSelectedBlockFromCursor(cursor) || window.currentBlock;
+      const selectedBlock = getSelectedBlockForKeywordShortcut();
+      event.preventDefault();
 
       if (!selectedBlock) {
         return;
