@@ -1603,8 +1603,15 @@ export function defineBlocks() {
 
           // Reattach any block that was connected to the keyword block's next connection.
           const nextBlock = this.getNextBlock();
-          if (nextBlock && newBlock.nextConnection) {
-            newBlock.nextConnection.connect(nextBlock.previousConnection);
+          if (nextBlock) {
+            let tailBlock = newBlock;
+            while (tailBlock.getNextBlock?.()) {
+              tailBlock = tailBlock.getNextBlock();
+            }
+
+            if (tailBlock.nextConnection) {
+              tailBlock.nextConnection.connect(nextBlock.previousConnection);
+            }
           }
 
           window.currentBlock = newBlock;
@@ -1673,14 +1680,61 @@ export function defineBlocks() {
     if (definition.fields) {
       for (const fieldName in definition.fields) {
         const fieldValue = definition.fields[fieldName];
-        if (typeof fieldValue === "string" || typeof fieldValue === "number") {
+        const field = block.getField?.(fieldName);
+
+        if (
+          typeof fieldValue === "string" ||
+          typeof fieldValue === "number" ||
+          typeof fieldValue === "boolean"
+        ) {
           block.setFieldValue(fieldValue, fieldName);
+          continue;
+        }
+
+        if (!fieldValue || typeof fieldValue !== "object") {
+          continue;
+        }
+
+        if (
+          typeof block.setVariableFieldValue === "function" &&
+          typeof fieldValue.name === "string"
+        ) {
+          block.setVariableFieldValue(fieldValue.name, fieldName);
+          continue;
+        }
+
+        if (typeof field?.loadState === "function") {
+          field.loadState(fieldValue);
+          continue;
+        }
+
+        if (fieldValue.id && typeof block.setFieldValue === "function") {
+          block.setFieldValue(fieldValue.id, fieldName);
+          continue;
+        }
+
+        if (fieldValue.name && typeof block.setFieldValue === "function") {
+          block.setFieldValue(fieldValue.name, fieldName);
         }
       }
     }
 
     if (definition.inputs) {
       applyToolboxSettings(block, definition.inputs);
+    }
+
+    if (definition.next?.block && block.nextConnection) {
+      const nextDefinition = definition.next.block;
+      const nextBlock = block.workspace.newBlock(nextDefinition.type);
+      nextBlock.initSvg();
+      nextBlock.render();
+      applyBlockDefinition(nextBlock, nextDefinition);
+
+      if (nextBlock.previousConnection) {
+        block.nextConnection.connect(nextBlock.previousConnection);
+      } else {
+        nextBlock.dispose();
+      }
     }
 
     block.render?.();
@@ -1720,10 +1774,10 @@ export function defineBlocks() {
   function applyToolboxSettings(newBlock, inputs) {
     for (const inputName in inputs) {
       const input = inputs[inputName];
-      if (input.shadow) {
-        connectToolboxBlock(newBlock, inputName, input.shadow, true);
-      } else if (input.block) {
+      if (input.block) {
         connectToolboxBlock(newBlock, inputName, input.block, false);
+      } else if (input.shadow) {
+        connectToolboxBlock(newBlock, inputName, input.shadow, true);
       }
     }
   }
