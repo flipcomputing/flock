@@ -374,8 +374,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 hubMenuItem.addEventListener("click", (e) => {
   e.preventDefault();
+  menuFlyout?.closeAllMenus();
+  menuBtn.focus();
   window.open("https://hub.flockxr.com/", "_blank", "noopener,noreferrer");
-  menuFlyout.closeAllMenus();
 });
 
 // Language menu interactions are now handled in main/translation.js
