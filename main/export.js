@@ -326,7 +326,12 @@ async function generateSVG(block) {
 	  font-weight: 500;
 	}
 	.blocklyEditableText rect.blocklyFieldRect:not(.blocklyDropdownRect) {
-	  fill: #ffffff !important; 
+	  fill: #ffffff !important;
+	}
+	.blocklyCommentIconPath {
+	  fill: #fffcc7;
+	  stroke: #555;
+	  stroke-width: 30;
 	}
   `;
   svgBlock.insertBefore(style, svgBlock.firstChild);
