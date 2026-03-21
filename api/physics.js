@@ -136,17 +136,32 @@ export const flockPhysics = {
 
     const { motionType, disablePreStep } = capturePhysicsState(parent);
     const physicsShape = parent.physics.shape;
+    if (!physicsShape) return;
+
+    const boundingBox = mesh.getBoundingInfo().boundingBox;
+    const width = boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
+    const height = boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
+    const depth = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
 
     let newShape;
     if (physicsShape instanceof flock.BABYLON.PhysicsShapeBox) {
-      const boundingBox = mesh.getBoundingInfo().boundingBox;
-      const width = boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
-      const height = boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
-      const depth = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
       newShape = new flock.BABYLON.PhysicsShapeBox(
         flock.BABYLON.Vector3.Zero(),
         new flock.BABYLON.Quaternion(0, 0, 0, 1),
         new flock.BABYLON.Vector3(width, height, depth),
+        flock.scene,
+      );
+    } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeSphere) {
+      newShape = new flock.BABYLON.PhysicsShapeSphere(
+        flock.BABYLON.Vector3.Zero(),
+        Math.max(width, height, depth) / 2,
+        flock.scene,
+      );
+    } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeCylinder) {
+      newShape = new flock.BABYLON.PhysicsShapeCylinder(
+        new flock.BABYLON.Vector3(0, -height / 2, 0),
+        new flock.BABYLON.Vector3(0, height / 2, 0),
+        Math.max(width, depth) / 2,
         flock.scene,
       );
     } else {

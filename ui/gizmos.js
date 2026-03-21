@@ -742,7 +742,7 @@ export function toggleGizmo(gizmoType) {
       gizmoManager.boundingBoxDragBehavior.onDragEndObservable.add(function () {
         const mesh = gizmoManager.attachedMesh;
 
-        if (mesh.savedMotionType && mesh.physics) {
+        if (mesh.savedMotionType != null && mesh.physics) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
 
@@ -790,7 +790,7 @@ export function toggleGizmo(gizmoType) {
       gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
         const mesh = gizmoManager.attachedMesh;
 
-        if (mesh.savedMotionType && mesh.physics) {
+        if (mesh.savedMotionType != null && mesh.physics) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
         mesh.computeWorldMatrix(true);
@@ -846,7 +846,7 @@ export function toggleGizmo(gizmoType) {
 
         if (!mesh?.physics) return;
 
-        if (mesh.savedMotionType) {
+        if (mesh.savedMotionType != null) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
 
@@ -996,7 +996,7 @@ export function toggleGizmo(gizmoType) {
         const mesh = gizmoManager.attachedMesh;
         const block = meshMap[mesh?.metadata?.blockKey];
 
-        if (mesh.savedMotionType) {
+        if (mesh.savedMotionType != null) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
 
