@@ -307,7 +307,7 @@ class CustomColorPicker {
             </div>
 
             <!-- Vertical Lightness slider -->
-           <div class="lightness-slider" aria-label="${translate("lightness")}" role="slider"
+           <div class="lightness-slider" role="slider"
             aria-valuemin="1" aria-valuemax="99" aria-valuenow="60" tabindex="0">
               <canvas class="lightness-canvas" width="20" height="100"></canvas>
               <div class="lightness-handle" aria-hidden="true"></div>
@@ -318,29 +318,29 @@ class CustomColorPicker {
           <div class="color-picker-right">
            <div class="color-picker-section">
              <div class="palette-row">
-               <label for="palette-select" class="sr-only">${translate("palette")}</label>
-               <select id="palette-select" class="palette-dropdown" aria-label="${translate("palette")}"></select>
+               <label for="palette-select" class="sr-only"></label>
+               <select id="palette-select" class="palette-dropdown"></select>
              </div>
-             <div class="color-palette" aria-label="${translate("color_palette")}"></div>
+             <div class="color-palette"></div>
            </div>
           </div>
         </div>
 
         <div class="color-picker-tools-row">
-          <div class="hue-slider-container" tabindex="0" role="slider" aria-label="${translate("hue_slider")}" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0">
+          <div class="hue-slider-container" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0">
             <canvas class="hue-slider-canvas" height="20"></canvas>
             <div class="hue-slider-handle"></div>
           </div>
           <div class="color-picker-buttons">
-            <button class="color-picker-random" aria-label="${translate("surprise_color")}" title="${translate("surprise_color")}">
+            <button class="color-picker-random">
              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path fill="#FFFFFF" d="M467.8 98.4C479.8 93.4 493.5 96.2 502.7 105.3L566.7 169.3C572.7 175.3 576.1 183.4 576.1 191.9C576.1 200.4 572.7 208.5 566.7 214.5L502.7 278.5C493.5 287.7 479.8 290.4 467.8 285.4C455.8 280.4 448 268.9 448 256L448 224L416 224C405.9 224 396.4 228.7 390.4 236.8L358 280L318 226.7L339.2 198.4C357.3 174.2 385.8 160 416 160L448 160L448 128C448 115.1 455.8 103.4 467.8 98.4zM218 360L258 413.3L236.8 441.6C218.7 465.8 190.2 480 160 480L96 480C78.3 480 64 465.7 64 448C64 430.3 78.3 416 96 416L160 416C170.1 416 179.6 411.3 185.6 403.2L218 360zM502.6 534.6C493.4 543.8 479.7 546.5 467.7 541.5C455.7 536.5 448 524.9 448 512L448 480L416 480C385.8 480 357.3 465.8 339.2 441.6L185.6 236.8C179.6 228.7 170.1 224 160 224L96 224C78.3 224 64 209.7 64 192C64 174.3 78.3 160 96 160L160 160C190.2 160 218.7 174.2 236.8 198.4L390.4 403.2C396.4 411.3 405.9 416 416 416L448 416L448 384C448 371.1 455.8 359.4 467.8 354.4C479.8 349.4 493.5 352.2 502.7 361.3L566.7 425.3C572.7 431.3 576.1 439.4 576.1 447.9C576.1 456.4 572.7 464.5 566.7 470.5L502.7 534.5z"/></svg>
             </button>
-            <button class="color-picker-eyedropper" aria-label="${translate("pick_color_from_screen")}" title="${translate("pick_color_from_screen")}">
+            <button class="color-picker-eyedropper">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
                 <path d="M405.6 93.2L304 194.8L294.6 185.4C282.1 172.9 261.8 172.9 249.3 185.4C236.8 197.9 236.8 218.2 249.3 230.7L409.3 390.7C421.8 403.2 442.1 403.2 454.6 390.7C467.1 378.2 467.1 357.9 454.6 345.4L445.2 336L546.8 234.4C585.8 195.4 585.8 132.2 546.8 93.3C507.8 54.4 444.6 54.3 405.7 93.3zM119.4 387.3C104.4 402.3 96 422.7 96 443.9L96 486.3L69.4 526.2C60.9 538.9 62.6 555.8 73.4 566.6C84.2 577.4 101.1 579.1 113.8 570.6L153.7 544L196.1 544C217.3 544 237.7 535.6 252.7 520.6L362.1 411.2L316.8 365.9L207.4 475.3C204.4 478.3 200.3 480 196.1 480L160 480L160 443.9C160 439.7 161.7 435.6 164.7 432.6L274.1 323.2L228.8 277.9L119.4 387.3z"/>
               </svg>
             </button>
-            <button class="color-picker-more-options" aria-label="${translate("more_options")}" title="${translate("more_options")}">
+            <button class="color-picker-more-options">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
                 <path d="M535.1 342.6C547.6 330.1 547.6 309.8 535.1 297.3L375.1 137.3C362.6 124.8 342.3 124.8 329.8 137.3C317.3 149.8 317.3 170.1 329.8 182.6L467.2 320L329.9 457.4C317.4 469.9 317.4 490.2 329.9 502.7C342.4 515.2 362.7 515.2 375.2 502.7L535.2 342.7zM183.1 502.6L343.1 342.6C355.6 330.1 355.6 309.8 343.1 297.3L183.1 137.3C170.6 124.8 150.3 124.8 137.8 137.3C125.3 149.8 125.3 170.1 137.8 182.6L275.2 320L137.9 457.4C125.4 469.9 125.4 490.2 137.9 502.7C150.4 515.2 170.7 515.2 183.2 502.7z"/>
               </svg>
@@ -352,7 +352,7 @@ class CustomColorPicker {
           <div class="advanced-options-row">
             <div class="css-input-container">
               <span class="css-prefix">#</span>
-              <input type="text" id="css-color-input" class="css-color-input" placeholder="${translate("hex_placeholder")}" />
+              <input type="text" id="css-color-input" class="css-color-input" />
             </div>
 
             <div class="rgb-inputs">
@@ -373,14 +373,57 @@ class CustomColorPicker {
         </div>
 
         <div class="color-picker-footer">
-          <div class="current-color-display" style="background-color: ${this.currentColor}"></div>
-          <button class="color-picker-use" type="button" aria-label="${translate("use_this_color")}" title="${translate("use_this_color")}">
+          <div class="current-color-display"></div>
+          <button class="color-picker-use" type="button">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free v6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="white" d="M41.4 9.4C53.9-3.1 74.1-3.1 86.6 9.4L168 90.7l53.1-53.1c28.1-28.1 73.7-28.1 101.8 0L474.3 189.1c28.1 28.1 28.1 73.7 0 101.8L283.9 481.4c-37.5 37.5-98.3 37.5-135.8 0L30.6 363.9c-37.5-37.5-37.5-98.3 0-135.8L122.7 136 41.4 54.6c-12.5-12.5-12.5-32.8 0-45.3zm176 221.3L168 181.3 75.9 273.4c-4.2 4.2-7 9.3-8.4 14.6l319.2 0 42.3-42.3c3.1-3.1 3.1-8.2 0-11.3L277.7 82.9c-3.1-3.1-8.2-3.1-11.3 0L213.3 136l49.4 49.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0zM512 512c-35.3 0-64-28.7-64-64c0-25.2 32.6-79.6 51.2-108.7c6-9.4 19.5-9.4 25.5 0C543.4 368.4 576 422.8 576 448c0 35.3-28.7 64-64 64z"/></svg>
           </button>
         </div>
         </div>
       </div>
     `;
+
+    // Set translated text and dynamic values via DOM APIs (avoids innerHTML injection risk)
+    const lightnessSlider = this.container.querySelector(".lightness-slider");
+    lightnessSlider.setAttribute("aria-label", translate("lightness"));
+    lightnessSlider.setAttribute("aria-valuemin", String(L_MIN));
+    lightnessSlider.setAttribute("aria-valuemax", String(L_MAX));
+    const paletteLabel = this.container.querySelector(
+      'label[for="palette-select"]',
+    );
+    paletteLabel.textContent = translate("palette");
+    this.container
+      .querySelector("#palette-select")
+      .setAttribute("aria-label", translate("palette"));
+    this.container
+      .querySelector(".color-palette")
+      .setAttribute("aria-label", translate("color_palette"));
+    this.container
+      .querySelector(".hue-slider-container")
+      .setAttribute("aria-label", translate("hue_slider"));
+    const randomBtn = this.container.querySelector(".color-picker-random");
+    randomBtn.setAttribute("aria-label", translate("surprise_color"));
+    randomBtn.title = translate("surprise_color");
+    const eyedropperBtn = this.container.querySelector(
+      ".color-picker-eyedropper",
+    );
+    eyedropperBtn.setAttribute(
+      "aria-label",
+      translate("pick_color_from_screen"),
+    );
+    eyedropperBtn.title = translate("pick_color_from_screen");
+    const moreOptionsBtn = this.container.querySelector(
+      ".color-picker-more-options",
+    );
+    moreOptionsBtn.setAttribute("aria-label", translate("more_options"));
+    moreOptionsBtn.title = translate("more_options");
+    this.container.querySelector("#css-color-input").placeholder =
+      translate("hex_placeholder");
+    this.container.querySelector(
+      ".current-color-display",
+    ).style.backgroundColor = this.currentColor;
+    const useBtn = this.container.querySelector(".color-picker-use");
+    useBtn.setAttribute("aria-label", translate("use_this_color"));
+    useBtn.title = translate("use_this_color");
 
     // Append to canvas area for proper positioning
     const canvasArea = document.getElementById("canvasArea");
@@ -454,22 +497,21 @@ class CustomColorPicker {
     const list = COLOR_PALETTES[paletteName] || [];
     const twelve = list.slice(0, 12);
 
-    this.paletteGrid.innerHTML = twelve
-      .map((c, i) => {
+    this.paletteGrid.replaceChildren(
+      ...twelve.map((c, i) => {
         const label = translate(c.name) || c.hex;
-        const hex = c.hex;
-        return `
-        <button 
-          class="color-swatch" 
-          style="background-color: ${hex}"
-          data-color="${hex}"
-          title="${label}"
-          aria-label="${label}"
-          role="gridcell"
-          tabindex="${i === 0 ? "0" : "-1"}"
-        ></button>`;
-      })
-      .join("");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "color-swatch";
+        btn.style.backgroundColor = c.hex;
+        btn.dataset.color = c.hex;
+        btn.title = label;
+        btn.setAttribute("aria-label", label);
+        btn.setAttribute("role", "gridcell");
+        btn.setAttribute("tabindex", i === 0 ? "0" : "-1");
+        return btn;
+      }),
+    );
 
     this.paletteGrid.setAttribute("role", "grid");
     this.paletteGrid.setAttribute("aria-rowcount", "2");
@@ -1432,10 +1474,7 @@ class CustomColorPicker {
 
     // ARIA
     palette.setAttribute("role", "grid");
-    palette.setAttribute(
-      "aria-label",
-      "Color palette: use arrow keys to navigate",
-    );
+    palette.setAttribute("aria-label", translate("color_palette"));
 
     // Only first is tabbable initially
     swatches.forEach((swatch, i) => {
