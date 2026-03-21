@@ -88,6 +88,17 @@ class CustomColorPicker {
     this.excludeFromClose = options.excludeFromClose || null;
 
     this.isOpen = false;
+    this.globalEscapeHandler = (event) => {
+      if (!this.isOpen || this._eyedropperActive || event.key !== "Escape") {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      this.close();
+      const colorPickerButton = document.getElementById("colorPickerButton");
+      colorPickerButton?.focus();
+    };
 
     // Eyedropper state
     this._eyedropperActive = false;
@@ -1986,6 +1997,7 @@ class CustomColorPicker {
     setTimeout(() => {
       document.addEventListener("click", this.outsideClickHandler, true);
     }, 100);
+    window.addEventListener("keydown", this.globalEscapeHandler, true);
 
     // Focus for keyboard nav
     setTimeout(() => {
@@ -2086,6 +2098,7 @@ class CustomColorPicker {
     this.isOpen = false;
     document.body.classList.remove("color-picker-open");
     document.removeEventListener("click", this.outsideClickHandler, true);
+    window.removeEventListener("keydown", this.globalEscapeHandler, true);
   }
 
   confirmColor() {
