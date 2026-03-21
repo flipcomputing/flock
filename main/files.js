@@ -24,7 +24,7 @@ function validateBlocklyJson(json) {
   let data;
   try {
     data = typeof json === "string" ? JSON.parse(json) : json;
-  } catch (e) {
+  } catch {
     throw new Error("Invalid JSON format");
   }
 
@@ -357,17 +357,44 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
   }
 }
 
+function getExampleUrl(examplePath) {
+  return new URL(examplePath, window.location.origin + import.meta.env.BASE_URL)
+    .href;
+}
+
+function fetchProjectJson(projectPath) {
+  return fetch(getExampleUrl(projectPath)).then((response) => {
+    if (!response.ok) {
+      throw new Error(
+        `Failed to load project (${response.status} ${response.statusText})`,
+      );
+    }
+
+    const contentType = response.headers.get("content-type") || "";
+    if (
+      contentType &&
+      !contentType.includes("application/json") &&
+      !contentType.includes("text/plain")
+    ) {
+      throw new Error(
+        `Expected JSON project data but received ${contentType || "unknown content type"}`,
+      );
+    }
+
+    return response.json();
+  });
+}
+
 // Function to load workspace from various sources
 export function loadWorkspace(workspace, executeCallback) {
   const urlParams = new URLSearchParams(window.location.search);
   const projectUrl = urlParams.get("project");
   const reset = urlParams.get("reset");
   const savedState = localStorage.getItem("flock_autosave.json");
-  const starter = "examples/starter.json";
+  const starter = "examples/starter.flock";
 
   function loadStarter() {
-    fetch(starter)
-      .then((response) => response.json())
+    fetchProjectJson(starter)
       .then((json) => {
         loadWorkspaceAndExecute(json, workspace, executeCallback);
       })
@@ -881,8 +908,7 @@ export function loadExample(workspace, executeCallback) {
       exampleSelect.options[exampleSelect.selectedIndex].text;
     projectNameElement.value = selectedOption;
 
-    fetch(exampleFile)
-      .then((response) => response.json())
+    fetchProjectJson(exampleFile)
       .then((json) => {
         console.log("Loading:", selectedOption);
         clearFileHandle();
@@ -897,7 +923,7 @@ export function loadExample(workspace, executeCallback) {
 }
 
 export function loadExampleWrapper() {
-  loadExample(workspace, executeCode);
+  loadExample(workspace, window.executeCode);
 }
 window.loadExample = loadExampleWrapper;
 
@@ -909,11 +935,10 @@ export function newProject() {
   }
 
   // Load the empty project template
-  fetch("examples/new.flock")
-    .then((response) => response.json())
+  fetchProjectJson("examples/new.flock")
     .then((json) => {
       clearFileHandle();
-      loadWorkspaceAndExecute(json, workspace, executeCode);
+      loadWorkspaceAndExecute(json, workspace, window.executeCode);
     })
     .catch((error) => {
       console.error("Error loading new project:", error);
