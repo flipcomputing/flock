@@ -245,10 +245,12 @@ function initializeIfClauseConnectionChecker(workspace) {
             return false;
           }
         } else {
-          // Target is NOT if_clause
-          // ELSEIF and ELSE cannot connect after non-if_clause blocks
+          // Target is NOT if_clause.
+          // During drag-and-drop reject to give visual feedback.
+          // During healing / undo-redo (not dragging) allow the connection;
+          // validateIfClausePositions will disable the block in-place.
           if (movingMode === MODE.ELSEIF || movingMode === MODE.ELSE) {
-            return false;
+            if (workspace.isDragging()) return false;
           }
         }
       } else {
@@ -310,6 +312,65 @@ function initializeIfClauseConnectionChecker(workspace) {
 
     return true;
   };
+
+  // Disable reason used to mark if_clause blocks that are structurally
+  // connected but in an invalid position (e.g. ELSEIF after a regular block).
+  const INVALID_IF_CLAUSE_REASON = "INVALID_IF_CLAUSE_POSITION";
+
+  // Scan all if_clause blocks and disable/enable them based on whether their
+  // predecessor is a valid if_clause.  Runs with events disabled so the
+  // enable/disable state is derived (not recorded in the undo stack).
+  function validateIfClausePositions() {
+    Blockly.Events.disable();
+    try {
+      for (const block of workspace.getAllBlocks(false)) {
+        if (block.type !== "if_clause") continue;
+
+        const mode = block.getFieldValue("MODE");
+
+        // IF blocks can start a chain anywhere — always positionally valid.
+        if (mode === MODE.IF) {
+          block.setDisabledReason(false, INVALID_IF_CLAUSE_REASON);
+          continue;
+        }
+
+        // ELSEIF / ELSE: valid only when the immediately preceding connected
+        // block is an if_clause whose mode is IF or ELSEIF (not ELSE).
+        const prevBlock = realPrev(block);
+
+        if (!prevBlock) {
+          // Orphaned — disableOrphans handles the disabled state; clear ours.
+          block.setDisabledReason(false, INVALID_IF_CLAUSE_REASON);
+          continue;
+        }
+
+        const validPrev =
+          prevBlock.type === "if_clause" &&
+          prevBlock.getFieldValue("MODE") !== MODE.ELSE;
+
+        block.setDisabledReason(!validPrev, INVALID_IF_CLAUSE_REASON);
+      }
+    } finally {
+      Blockly.Events.enable();
+    }
+  }
+
+  // Re-validate after any structural change so that if_clause blocks that
+  // land in an invalid position are disabled immediately, and those that
+  // become valid again are re-enabled.
+  workspace.addChangeListener(function (event) {
+    if (
+      !event.isUiEvent &&
+      (event.type === Blockly.Events.BLOCK_MOVE ||
+        event.type === Blockly.Events.BLOCK_CREATE ||
+        event.type === Blockly.Events.BLOCK_DELETE)
+    ) {
+      validateIfClausePositions();
+    }
+  });
+
+  // Run once on initialisation to catch any blocks already in invalid positions.
+  validateIfClausePositions();
 }
 
 export function initializeWorkspace() {
