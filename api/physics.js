@@ -134,15 +134,16 @@ export const flockPhysics = {
     mesh.refreshBoundingInfo(true);
     if (!parent.physics) return;
 
-    const disablePreStep = parent.physics.disablePreStep || false;
+    const { motionType, disablePreStep } = capturePhysicsState(parent);
     const physicsShape = parent.physics.shape;
 
+    let newShape;
     if (physicsShape instanceof flock.BABYLON.PhysicsShapeBox) {
       const boundingBox = mesh.getBoundingInfo().boundingBox;
       const width = boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
       const height = boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
       const depth = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
-      parent.physics.shape = new flock.BABYLON.PhysicsShapeBox(
+      newShape = new flock.BABYLON.PhysicsShapeBox(
         flock.BABYLON.Vector3.Zero(),
         new flock.BABYLON.Quaternion(0, 0, 0, 1),
         new flock.BABYLON.Vector3(width, height, depth),
@@ -150,13 +151,23 @@ export const flockPhysics = {
       );
     } else {
       const shapeType = getShapeTypeFromPhysics(parent.physics);
-      if (shapeType) {
-        parent.physics.shape = createPhysicsShape(mesh, shapeType);
-      }
+      if (!shapeType) return;
+      newShape = createPhysicsShape(mesh, shapeType);
+      if (!newShape) return;
     }
 
-    parent.physics.disablePreStep = disablePreStep;
-    parent.physics.setMassProperties({ mass: 1, restitution: 0.5 });
+    disposePhysics(parent);
+
+    const physicsBody = new flock.BABYLON.PhysicsBody(
+      parent,
+      motionType ?? flock.BABYLON.PhysicsMotionType.STATIC,
+      false,
+      flock.scene,
+    );
+    physicsBody.shape = newShape;
+    physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
+    physicsBody.disablePreStep = disablePreStep ?? false;
+    parent.physics = physicsBody;
   },
   addBeforePhysicsObservable(scene, ...meshes) {
     const beforePhysicsObserver = scene.onBeforePhysicsObservable.add(() => {
