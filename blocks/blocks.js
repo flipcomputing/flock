@@ -1582,14 +1582,14 @@ export function defineBlocks() {
           // Create the new block.
           const newBlock = workspace.newBlock(blockType);
 
+          newBlock.initSvg();
+          newBlock.render();
+
           // Apply toolbox settings if defined.
           const blockDefinition = findBlockDefinitionInToolbox(blockType);
           if (blockDefinition && blockDefinition.inputs) {
             applyToolboxSettings(newBlock, blockDefinition.inputs);
           }
-
-          newBlock.initSvg();
-          newBlock.render();
 
           // Position the new block where the old keyword block is.
           const pos = this.getRelativeToSurfaceXY();
@@ -1684,24 +1684,63 @@ export function defineBlocks() {
     return searchContents(toolbox.contents);
   }
 
+  function applyBlockDefinition(block, definition) {
+    if (!block || !definition) {
+      return;
+    }
+
+    if (definition.fields) {
+      for (const fieldName in definition.fields) {
+        const fieldValue = definition.fields[fieldName];
+        if (typeof fieldValue === "string" || typeof fieldValue === "number") {
+          block.setFieldValue(fieldValue, fieldName);
+        }
+      }
+    }
+
+    if (definition.inputs) {
+      applyToolboxSettings(block, definition.inputs);
+    }
+  }
+
+  function connectToolboxBlock(targetBlock, inputName, definition, asShadow) {
+    if (!definition?.type) {
+      return;
+    }
+
+    const input = targetBlock.getInput(inputName);
+    const connection = input?.connection;
+    if (!connection) {
+      return;
+    }
+
+    const childBlock = targetBlock.workspace.newBlock(definition.type);
+    if (asShadow) {
+      childBlock.setShadow(true);
+    }
+
+    childBlock.initSvg();
+    childBlock.render();
+    applyBlockDefinition(childBlock, definition);
+
+    const childConnection =
+      childBlock.outputConnection || childBlock.previousConnection;
+    if (!childConnection) {
+      childBlock.dispose();
+      return;
+    }
+
+    connection.connect(childConnection);
+  }
+
   // Function to apply settings from the toolbox definition to the new block
   function applyToolboxSettings(newBlock, inputs) {
     for (const inputName in inputs) {
       const input = inputs[inputName];
       if (input.shadow) {
-        const shadowBlock = newBlock.workspace.newBlock(input.shadow.type);
-        shadowBlock.setShadow(true);
-        // Apply fields (default values) to the shadow block
-        for (const fieldName in input.shadow.fields) {
-          shadowBlock.setFieldValue(input.shadow.fields[fieldName], fieldName);
-        }
-        shadowBlock.initSvg();
-        shadowBlock.render();
-        newBlock
-          .getInput(inputName)
-          .connection.connect(shadowBlock.outputConnection);
-
-        newBlock.workspace.cleanUp();
+        connectToolboxBlock(newBlock, inputName, input.shadow, true);
+      } else if (input.block) {
+        connectToolboxBlock(newBlock, inputName, input.block, false);
       }
     }
   }
