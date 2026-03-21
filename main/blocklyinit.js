@@ -531,8 +531,6 @@ export function initializeWorkspace() {
     originalScrollBoundsIntoView.call(this, bounds);
   };
 
-  console.log("Workspace initialized", workspace);
-
   // Initialize workspace search
   const workspaceSearch = new WorkspaceSearch(workspace);
   workspaceSearch.init();

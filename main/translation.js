@@ -142,7 +142,6 @@ function cacheOriginalMessages() {
       originalEnglishMessages[key] = Blockly.Msg[key];
     });
     isOriginalMessagesCached = true;
-    console.log("Original English messages cached");
   }
 }
 
@@ -485,8 +484,6 @@ export function initializeLanguageMenu() {
       if (menuBtn) menuBtn.focus();
     }
   });
-
-  console.log("Language menu initialized");
 }
 
 // Initialize saved language on startup
