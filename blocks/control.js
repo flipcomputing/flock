@@ -573,8 +573,7 @@ export function defineControlBlocks() {
         }
       }
 
-      // Validate and disconnect invalid subsequent blocks
-      this.validateAndDisconnectInvalidChain_(mode);
+      // Recompute validity (disables invalid blocks in-place; does not disconnect).
       this.recomputeIfClauseValidity_();
 
       if (this.rendered) this.render();
@@ -677,69 +676,6 @@ export function defineControlBlocks() {
           Blockly.Events.enable();
         }
       }
-    },
-
-    validateAndDisconnectInvalidChain_: function (currentMode) {
-      // Skip validation if we're not in a workspace or during restore
-      if (!this.workspace || this._isRestoring) {
-        return;
-      }
-
-      // Walk through the chain and find the first invalid block
-      let current = this;
-      let chainModes = [currentMode];
-
-      while (current) {
-        const nextConn = current.nextConnection;
-        if (!nextConn) break;
-
-        const nextBlock = nextConn.targetBlock();
-
-        if (!nextBlock || nextBlock.type !== "if_clause") {
-          // End of if_clause chain, all valid
-          break;
-        }
-
-        const nextMode = nextBlock.getFieldValue?.("MODE");
-        if (!nextMode) break;
-
-        const lastMode = chainModes[chainModes.length - 1];
-
-        // Check if this next block is valid given what came before
-        const isInvalid = this.isInvalidInChain_(lastMode, nextMode);
-
-        if (isInvalid) {
-          // The nextBlock is invalid after lastMode
-          // Disconnect from the current block synchronously
-          if (nextBlock && !nextBlock.isDisposed() && nextConn.isConnected()) {
-            // Disconnect from the parent side
-            nextConn.disconnect();
-
-            // Bump the disconnected chain to a new location
-            if (nextBlock.rendered) {
-              nextBlock.bumpNeighbours();
-            }
-          }
-          break; // Stop checking since we're disconnecting from here
-        }
-
-        chainModes.push(nextMode);
-        current = nextBlock;
-      }
-    },
-
-    isInvalidInChain_: function (previousMode, nextMode) {
-      // ELSE cannot have anything after it
-      if (previousMode === MODE.ELSE) {
-        return true;
-      }
-
-      // IF and ELSEIF can be followed by:
-      // - ELSEIF (valid)
-      // - ELSE (valid)
-      // - IF (valid - starts a new chain)
-      // So nothing is invalid after IF or ELSEIF
-      return false;
     },
   };
 }
