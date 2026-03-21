@@ -65,11 +65,13 @@ function focusBlocklyBlock(block) {
     previouslySelected.unselect?.();
   }
 
-  block.select();
+  Blockly.common?.setSelected?.(block);
+  block.select?.();
   workspace.getCursor?.()?.setCurNode?.(block);
 
-  const svgRoot = block.getSvgRoot?.();
-  svgRoot?.focus?.({ preventScroll: true });
+  const focusableElement =
+    block.getFocusableElement?.() || block.getSvgRoot?.();
+  focusableElement?.focus?.({ preventScroll: true });
 }
 
 function focusKeywordField(block) {
