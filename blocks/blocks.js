@@ -150,6 +150,17 @@ export function handleBlockDelete(event) {
   if (event.type === Blockly.Events.BLOCK_DELETE) {
     const activeControllerBlockId = getActiveSceneControllerBlockId();
 
+    const makeRestoreEvent = (b) => ({
+      type: Blockly.Events.BLOCK_CHANGE,
+      blockId: b.id,
+      workspaceId: b.workspace?.id,
+      element: "field",
+      name: "__restore__",
+      oldValue: null,
+      newValue: null,
+      recordUndo: false,
+    });
+
     // Recursively delete meshes for qualifying blocks
     function deleteMeshesRecursively(blockJson) {
       // Check if block type matches the prefixes
@@ -166,9 +177,11 @@ export function handleBlockDelete(event) {
               (b) =>
                 b.type === "create_map" &&
                 b.id !== blockJson.id &&
+                b.isEnabled() &&
                 b.getParent(),
             );
-          if (nextMapBlock) updateOrCreateMeshFromBlock(nextMapBlock, null);
+          if (nextMapBlock)
+            updateOrCreateMeshFromBlock(nextMapBlock, makeRestoreEvent(nextMapBlock));
         }
       } else if (blockJson.type === "set_background_color") {
         deleteMeshFromBlock(blockJson.id);
@@ -183,7 +196,8 @@ export function handleBlockDelete(event) {
               b.isEnabled() &&
               b.getParent(),
           );
-          if (nextSkyBlock) updateOrCreateMeshFromBlock(nextSkyBlock, null);
+          if (nextSkyBlock)
+            updateOrCreateMeshFromBlock(nextSkyBlock, makeRestoreEvent(nextSkyBlock));
           else setClearSkyToBlack();
         }
       } else if (blockJson.type === "set_sky_color") {
@@ -198,7 +212,8 @@ export function handleBlockDelete(event) {
               b.isEnabled() &&
               b.getParent(),
           );
-          if (nextSkyBlock) updateOrCreateMeshFromBlock(nextSkyBlock, null);
+          if (nextSkyBlock)
+            updateOrCreateMeshFromBlock(nextSkyBlock, makeRestoreEvent(nextSkyBlock));
           else setClearSkyToBlack();
         }
       }
