@@ -357,27 +357,41 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
   }
 }
 
-function fetchProjectJson(projectPath) {
-  return fetch(projectPath).then((response) => {
-    if (!response.ok) {
-      throw new Error(
-        `Failed to load project (${response.status} ${response.statusText})`,
-      );
-    }
+function parseProjectJsonResponse(response) {
+  if (!response.ok) {
+    throw new Error(
+      `Failed to load project (${response.status} ${response.statusText})`,
+    );
+  }
 
-    const contentType = response.headers.get("content-type") || "";
+  const contentType = (response.headers.get("content-type") || "").toLowerCase();
+
+  return response.text().then((projectText) => {
+    const trimmedProjectText = projectText.trim();
+
     if (
-      contentType &&
-      !contentType.includes("application/json") &&
-      !contentType.includes("text/plain")
+      contentType.includes("text/html") ||
+      trimmedProjectText.startsWith("<!doctype html") ||
+      trimmedProjectText.startsWith("<html")
     ) {
       throw new Error(
-        `Expected JSON project data but received ${contentType || "unknown content type"}`,
+        `Expected JSON project data but received ${contentType || "text/html"}`,
       );
     }
 
-    return response.json();
+    try {
+      return JSON.parse(projectText);
+    } catch (error) {
+      throw new Error(
+        `Failed to parse project JSON from ${contentType || "unknown content type"}`,
+        { cause: error },
+      );
+    }
   });
+}
+
+export function fetchProjectJson(projectPath) {
+  return fetch(projectPath).then(parseProjectJsonResponse);
 }
 
 // Function to load workspace from various sources
@@ -426,10 +440,7 @@ export function loadWorkspace(workspace, executeCallback) {
         return;
       }
       fetch(validatedUrl.href)
-        .then((response) => {
-          if (!response.ok) throw new Error("Invalid response");
-          return response.json();
-        })
+        .then(parseProjectJsonResponse)
         .then((json) => {
           loadWorkspaceAndExecute(json, workspace, executeCallback);
         })
