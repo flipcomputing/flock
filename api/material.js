@@ -1443,8 +1443,12 @@ export const flockMaterial = {
     const isMaterialDescriptor = (v) =>
       typeof v === "object" && v !== null && !Array.isArray(v);
 
-    const getRawColor = (v) =>
-      isMaterialDescriptor(v) ? v.color || v.baseColor : v;
+    const getRawColor = (v) => {
+      const raw = isMaterialDescriptor(v) ? v.color || v.baseColor : v;
+      // A single-element colour list produces ["#rrggbb"]; normalise to a string
+      // so that downstream callers like getColorFromString receive a plain string.
+      return Array.isArray(raw) && raw.length === 1 ? raw[0] : raw;
+    };
 
     const getTexName = (v) =>
       isMaterialDescriptor(v)
