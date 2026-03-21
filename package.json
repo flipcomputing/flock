@@ -43,7 +43,7 @@
     "babylonjs": "^8.56.0",
     "babylonjs-gui": "^8.56.0",
     "babylonjs-serializers": "^8.56.0",
-    "blockly": "12.4.1",
+    "blockly": "^12.3.1",
     "earcut": "^3.0.2",
     "Flock": "file:",
     "manifold-3d": "^3.4.0",
