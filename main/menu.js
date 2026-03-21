@@ -6,6 +6,24 @@ const infoModal = document.getElementById("infoModal");
 const closeInfoModal = document.getElementById("closeInfoModal");
 let previouslyFocused = null;
 
+function canRestoreFocus(element) {
+  if (!element || !element.isConnected) {
+    return false;
+  }
+
+  let currentElement = element;
+  while (currentElement) {
+    const style = window.getComputedStyle(currentElement);
+    if (style.display === "none" || style.visibility === "hidden") {
+      return false;
+    }
+    currentElement = currentElement.parentElement;
+  }
+
+  const rect = element.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
+}
+
 function openInfoModal() {
   previouslyFocused = document.activeElement;
   infoModal.classList.remove("hidden");
@@ -22,10 +40,13 @@ function hideInfoModal() {
   infoModal.setAttribute("aria-hidden", "true");
   infoModal.removeAttribute("aria-modal");
 
-  if (previouslyFocused) {
+  if (canRestoreFocus(previouslyFocused)) {
     previouslyFocused.focus();
-    previouslyFocused = null;
+  } else {
+    menuBtn.focus();
   }
+
+  previouslyFocused = null;
 }
 
 class AccessibleFlyoutMenu {
