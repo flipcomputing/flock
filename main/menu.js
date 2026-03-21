@@ -246,6 +246,7 @@ class AccessibleFlyoutMenu {
           cancelable: true,
         });
         item.dispatchEvent(clickEvent);
+        return;
       }
       this.closeAllMenus();
     }
