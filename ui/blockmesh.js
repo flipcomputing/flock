@@ -777,25 +777,39 @@ function updateMapFromBlock(mesh, block, changeEvent) {
 
   if (!materialBlock) return;
 
-  const { textureSet, alpha } = extractMaterialInfo(materialBlock);
-  let read = readColourFromInputOrShadow(materialBlock, "BASE_COLOR");
-
-  if (read.value == null && !block.__mapRetry) {
-    block.__mapRetry = true;
-    requestAnimationFrame(() => {
-      block.__mapRetry = false;
-      updateMapFromBlock(mesh, block, changeEvent);
-    });
-    return;
+  // A raw colour/list block may be connected directly to MATERIAL (not via a
+  // material block), so dispatch on block type and pass the raw value straight
+  // to createMap to match the generated-JS code path.
+  const isMaterialBlock = materialBlock.type === "material";
+  let read, mapArg;
+  if (isMaterialBlock) {
+    const { textureSet, alpha } = extractMaterialInfo(materialBlock);
+    read = readColourFromInputOrShadow(materialBlock, "BASE_COLOR");
+    const materialName =
+      !textureSet || textureSet === "NONE" ? "none.png" : textureSet;
+    mapArg = { color: read.value, materialName, alpha };
+  } else {
+    read = readColourValue(materialBlock);
+    mapArg = read.value;
   }
 
-  const materialOptions = {
-    color: read.value,
-    materialName: textureSet,
-    alpha,
-  };
+  const colorIsEmpty =
+    read.value == null ||
+    (Array.isArray(read.value) && read.value.length === 0);
+  if (colorIsEmpty) {
+    // Retry once — mutator operations briefly leave the colour list empty.
+    // If still empty after the retry, bail silently to avoid an infinite loop.
+    const wasRetrying = block.__mapRetry;
+    block.__mapRetry = false;
+    if (!wasRetrying) {
+      block.__mapRetry = true;
+      requestAnimationFrame(() => updateMapFromBlock(mesh, block, changeEvent));
+    }
+    return;
+  }
+  block.__mapRetry = false;
 
-  flock.createMap(mapName, materialOptions);
+  flock.createMap(mapName, mapArg);
 }
 
 function resolveColorAndMaterialForBlock(block) {

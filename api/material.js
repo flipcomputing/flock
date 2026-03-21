@@ -900,8 +900,8 @@ export const flockMaterial = {
     // Normalize single-element array to plain value
     if (Array.isArray(color) && color.length === 1) color = color[0];
 
-    // Handle two-color case
-    if (Array.isArray(color) && color.length === 2) {
+    // Handle two-color case (extra colors beyond 2 are ignored)
+    if (Array.isArray(color) && color.length >= 2) {
       // Use gradient for Flat material
       if (materialName === "none.png") {
         material = new flock.GradientMaterial(materialName, flock.scene);
@@ -989,8 +989,9 @@ export const flockMaterial = {
       },
     );
 
-    // Convert colors to Color3 array
+    // Convert colors to Color3 array (max 16, matching shader array size)
     const color3Array = colors
+      .slice(0, 16)
       .map((c) => {
         const hex = flock.getColorFromString(c);
         const color3 = flock.BABYLON.Color3.FromHexString(hex);
@@ -1003,7 +1004,7 @@ export const flockMaterial = {
       console.log("Color array:", color3Array);
     }
 
-    shaderMaterial.setInt("colorCount", colors.length);
+    shaderMaterial.setInt("colorCount", Math.min(colors.length, 16));
     shaderMaterial.setArray3("colors", color3Array);
     shaderMaterial.setFloat("alpha", 1.0);
     shaderMaterial.setVector2("minMax", new flock.BABYLON.Vector2(-1, 1)); // Will be updated when applied to mesh
@@ -1088,6 +1089,8 @@ export const flockMaterial = {
       uniform sampler2D textureSampler;
       uniform vec3 lightColor;      // Replaces white
       uniform vec3 greyTintColor;   // Tints greys in proportion
+      uniform vec3 darkColor;       // Replaces black (when colorCount >= 3)
+      uniform int colorCount;
       uniform float alpha;
       uniform float uScale;         // Horizontal tiling
       uniform float vScale;         // Vertical tiling
@@ -1110,6 +1113,9 @@ export const flockMaterial = {
         if (brightness > 0.95 && colorDiff < 0.05) {
           // Replace near-white
           finalColor = lightColor;
+        } else if (colorCount >= 3 && brightness < 0.05 && colorDiff < 0.05) {
+          // Replace near-black (third color)
+          finalColor = darkColor;
         } else if (colorDiff < 0.05) {
           // Tint greys
           finalColor = brightness * greyTintColor;
@@ -1137,6 +1143,8 @@ export const flockMaterial = {
           "textureSampler",
           "lightColor",
           "greyTintColor",
+          "darkColor",
+          "colorCount",
           "alpha",
           "uScale",
           "vScale",
@@ -1184,6 +1192,19 @@ export const flockMaterial = {
         colorGrey.b / 255.0,
       ),
     );
+
+    const colorDark = colors.length >= 3
+      ? flock.hexToRgb(flock.getColorFromString(colors[2]))
+      : { r: 0, g: 0, b: 0 };
+    shaderMaterial.setVector3(
+      "darkColor",
+      new flock.BABYLON.Vector3(
+        colorDark.r / 255.0,
+        colorDark.g / 255.0,
+        colorDark.b / 255.0,
+      ),
+    );
+    shaderMaterial.setInt("colorCount", colors.length);
 
     shaderMaterial.setFloat("alpha", 1.0);
 
@@ -1335,7 +1356,7 @@ export const flockMaterial = {
         if (cacheKey && flock.materialCache[cacheKey]) {
           delete flock.materialCache[cacheKey];
         }
-        oldMat.dispose(true, true);
+        oldMat.dispose(false, true);
       }
     }
   },
@@ -1442,8 +1463,12 @@ export const flockMaterial = {
     const isMaterialDescriptor = (v) =>
       typeof v === "object" && v !== null && !Array.isArray(v);
 
-    const getRawColor = (v) =>
-      isMaterialDescriptor(v) ? v.color || v.baseColor : v;
+    const getRawColor = (v) => {
+      const raw = isMaterialDescriptor(v) ? v.color || v.baseColor : v;
+      // A single-element colour list produces ["#rrggbb"]; normalise to a string
+      // so that downstream callers like getColorFromString receive a plain string.
+      return Array.isArray(raw) && raw.length === 1 ? raw[0] : raw;
+    };
 
     const getTexName = (v) =>
       isMaterialDescriptor(v)

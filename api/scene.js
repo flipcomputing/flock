@@ -188,10 +188,6 @@ export const flockScene = {
     }
     dt.update(false);
 
-    const tex = new flock.BABYLON.Texture(null, flock.scene);
-    tex._texture = dt.getInternalTexture();
-    tex.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-    tex.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
     return dt;
   },
   createMap(image, material) {
@@ -202,6 +198,7 @@ export const flockScene = {
     const applyMaterialToGround = (mesh, mat) => {
       if (Array.isArray(mat) && mat.length === 1) mat = mat[0];
       if (Array.isArray(mat) && mat.length >= 2) {
+        const oldMat = mesh.material;
         const standardMat = new flock.BABYLON.StandardMaterial(
           "mapGradientMat",
           flock.scene,
@@ -216,9 +213,40 @@ export const flockScene = {
           flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         standardMat.diffuseTexture.wrapV =
           flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-        flock.setMaterialWithCleanup(mesh, standardMat);
+        mesh.material = standardMat;
+        if (oldMat && oldMat.name === "mapGradientMat") {
+          oldMat.dispose(false, true);
+        }
       } else {
-        flock.setMaterialWithCleanup(mesh, material);
+        // Update an existing GradientMaterial in-place to avoid shader recompilation.
+        const colors =
+          mat && typeof mat === "object" && Array.isArray(mat.color)
+            ? mat.color
+            : null;
+        if (
+          colors?.length >= 2 &&
+          (mat.materialName === "none.png" || !mat.materialName) &&
+          mesh.material instanceof flock.GradientMaterial
+        ) {
+          const existingMat = mesh.material;
+          existingMat.bottomColor = flock.BABYLON.Color3.FromHexString(
+            flock.getColorFromString(colors[0]),
+          );
+          existingMat.topColor = flock.BABYLON.Color3.FromHexString(
+            flock.getColorFromString(colors[1]),
+          );
+          existingMat.alpha = parseFloat(mat.alpha ?? 1);
+          const oldKey = existingMat.metadata?.cacheKey;
+          if (oldKey) delete flock.materialCache[oldKey];
+          const alphaKey = parseFloat(mat.alpha ?? 1).toFixed(2);
+          const newKey =
+            `mat_${colors.join("-")}_${alphaKey}_${mat.materialName ?? "none.png"}_noglow`.toLowerCase();
+          existingMat.name = newKey;
+          if (existingMat.metadata) existingMat.metadata.cacheKey = newKey;
+          flock.materialCache[newKey] = existingMat;
+        } else {
+          flock.setMaterialWithCleanup(mesh, material);
+        }
       }
     };
 
