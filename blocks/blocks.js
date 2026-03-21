@@ -158,16 +158,48 @@ export function handleBlockDelete(event) {
         blockJson.type.startsWith("create_")
       ) {
         deleteMeshFromBlock(blockJson.id);
+        if (blockJson.type === "create_map") {
+          const ws = Blockly.getMainWorkspace();
+          const nextMapBlock = ws
+            ?.getAllBlocks(false)
+            .find(
+              (b) =>
+                b.type === "create_map" &&
+                b.id !== blockJson.id &&
+                b.getParent(),
+            );
+          if (nextMapBlock) updateOrCreateMeshFromBlock(nextMapBlock, null);
+        }
       } else if (blockJson.type === "set_background_color") {
         deleteMeshFromBlock(blockJson.id);
         if (activeControllerBlockId === blockJson.id) {
           clearSkyMesh();
-          setClearSkyToBlack();
+          const ws = Blockly.getMainWorkspace();
+          const nextSkyBlock = ws?.getAllBlocks(false).find(
+            (b) =>
+              (b.type === "set_sky_color" ||
+                b.type === "set_background_color") &&
+              b.id !== blockJson.id &&
+              b.isEnabled() &&
+              b.getParent(),
+          );
+          if (nextSkyBlock) updateOrCreateMeshFromBlock(nextSkyBlock, null);
+          else setClearSkyToBlack();
         }
       } else if (blockJson.type === "set_sky_color") {
         if (activeControllerBlockId === blockJson.id) {
           clearSkyMesh();
-          setClearSkyToBlack();
+          const ws = Blockly.getMainWorkspace();
+          const nextSkyBlock = ws?.getAllBlocks(false).find(
+            (b) =>
+              (b.type === "set_sky_color" ||
+                b.type === "set_background_color") &&
+              b.id !== blockJson.id &&
+              b.isEnabled() &&
+              b.getParent(),
+          );
+          if (nextSkyBlock) updateOrCreateMeshFromBlock(nextSkyBlock, null);
+          else setClearSkyToBlack();
         }
       }
 

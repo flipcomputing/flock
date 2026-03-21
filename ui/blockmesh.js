@@ -762,11 +762,14 @@ function updateGroundFromBlock(mesh, block, changeEvent) {
 }
 
 function updateMapFromBlock(mesh, block, changeEvent) {
-  // Don't steal ground ownership from another block while this block is floating/unconnected.
-  // This prevents a duplicated map block from interfering with the original's ground.
+  // Don't steal ground ownership from another block while the current owner still exists.
+  // This prevents a second map block from taking over and causing its deletion to remove the ground.
   const currentOwnerId = meshBlockIdMap["ground"];
-  if (currentOwnerId && currentOwnerId !== block.id && !block.getParent()) {
-    return;
+  if (currentOwnerId && currentOwnerId !== block.id) {
+    const ownerBlock = Blockly.getMainWorkspace()?.getBlockById(currentOwnerId);
+    if (ownerBlock && !ownerBlock.disposed) {
+      return;
+    }
   }
 
   meshMap["ground"] = block;
