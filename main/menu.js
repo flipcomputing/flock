@@ -1,5 +1,4 @@
 const menuBtn = document.getElementById("menuBtn");
-const menuDropdown = document.getElementById("menuDropdown");
 const openAbout = document.getElementById("about-menu-item");
 const hubMenuItem = document.getElementById("hub-menu-item");
 const infoModal = document.getElementById("infoModal");
@@ -417,12 +416,7 @@ infoModal.addEventListener("keydown", (e) => {
   }
 });
 
-// Close menu when clicking outside
 window.addEventListener("click", (e) => {
-  if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
-    menuFlyout.closeAllMenus();
-  }
-
   if (e.target === infoModal) {
     hideInfoModal();
   }
