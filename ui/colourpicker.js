@@ -383,23 +383,44 @@ class CustomColorPicker {
     `;
 
     // Set translated text and dynamic values via DOM APIs (avoids innerHTML injection risk)
-    this.container.querySelector(".lightness-slider").setAttribute("aria-label", translate("lightness"));
-    const paletteLabel = this.container.querySelector('label[for="palette-select"]');
+    const lightnessSlider = this.container.querySelector(".lightness-slider");
+    lightnessSlider.setAttribute("aria-label", translate("lightness"));
+    lightnessSlider.setAttribute("aria-valuemin", String(L_MIN));
+    lightnessSlider.setAttribute("aria-valuemax", String(L_MAX));
+    const paletteLabel = this.container.querySelector(
+      'label[for="palette-select"]',
+    );
     paletteLabel.textContent = translate("palette");
-    this.container.querySelector("#palette-select").setAttribute("aria-label", translate("palette"));
-    this.container.querySelector(".color-palette").setAttribute("aria-label", translate("color_palette"));
-    this.container.querySelector(".hue-slider-container").setAttribute("aria-label", translate("hue_slider"));
+    this.container
+      .querySelector("#palette-select")
+      .setAttribute("aria-label", translate("palette"));
+    this.container
+      .querySelector(".color-palette")
+      .setAttribute("aria-label", translate("color_palette"));
+    this.container
+      .querySelector(".hue-slider-container")
+      .setAttribute("aria-label", translate("hue_slider"));
     const randomBtn = this.container.querySelector(".color-picker-random");
     randomBtn.setAttribute("aria-label", translate("surprise_color"));
     randomBtn.title = translate("surprise_color");
-    const eyedropperBtn = this.container.querySelector(".color-picker-eyedropper");
-    eyedropperBtn.setAttribute("aria-label", translate("pick_color_from_screen"));
+    const eyedropperBtn = this.container.querySelector(
+      ".color-picker-eyedropper",
+    );
+    eyedropperBtn.setAttribute(
+      "aria-label",
+      translate("pick_color_from_screen"),
+    );
     eyedropperBtn.title = translate("pick_color_from_screen");
-    const moreOptionsBtn = this.container.querySelector(".color-picker-more-options");
+    const moreOptionsBtn = this.container.querySelector(
+      ".color-picker-more-options",
+    );
     moreOptionsBtn.setAttribute("aria-label", translate("more_options"));
     moreOptionsBtn.title = translate("more_options");
-    this.container.querySelector("#css-color-input").placeholder = translate("hex_placeholder");
-    this.container.querySelector(".current-color-display").style.backgroundColor = this.currentColor;
+    this.container.querySelector("#css-color-input").placeholder =
+      translate("hex_placeholder");
+    this.container.querySelector(
+      ".current-color-display",
+    ).style.backgroundColor = this.currentColor;
     const useBtn = this.container.querySelector(".color-picker-use");
     useBtn.setAttribute("aria-label", translate("use_this_color"));
     useBtn.title = translate("use_this_color");
@@ -480,6 +501,7 @@ class CustomColorPicker {
       ...twelve.map((c, i) => {
         const label = translate(c.name) || c.hex;
         const btn = document.createElement("button");
+        btn.type = "button";
         btn.className = "color-swatch";
         btn.style.backgroundColor = c.hex;
         btn.dataset.color = c.hex;
@@ -1452,10 +1474,7 @@ class CustomColorPicker {
 
     // ARIA
     palette.setAttribute("role", "grid");
-    palette.setAttribute(
-      "aria-label",
-      "Color palette: use arrow keys to navigate",
-    );
+    palette.setAttribute("aria-label", translate("color_palette"));
 
     // Only first is tabbable initially
     swatches.forEach((swatch, i) => {
