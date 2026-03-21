@@ -85,7 +85,12 @@ function focusKeywordField(block) {
   const textInputField = block.getField("KEYWORD");
   if (textInputField) {
     textInputField.showEditor_();
-    getBlocklyFocusManager()?.focusNode?.(textInputField);
+
+    requestAnimationFrame(() => {
+      const htmlInput = document.querySelector(".blocklyHtmlInput");
+      htmlInput?.focus?.({ preventScroll: true });
+      htmlInput?.select?.();
+    });
   }
 }
 
