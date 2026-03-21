@@ -357,13 +357,8 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
   }
 }
 
-function getExampleUrl(examplePath) {
-  return new URL(examplePath, window.location.origin + import.meta.env.BASE_URL)
-    .href;
-}
-
 function fetchProjectJson(projectPath) {
-  return fetch(getExampleUrl(projectPath)).then((response) => {
+  return fetch(projectPath).then((response) => {
     if (!response.ok) {
       throw new Error(
         `Failed to load project (${response.status} ${response.statusText})`,

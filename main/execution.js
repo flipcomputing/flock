@@ -55,10 +55,7 @@ export async function executeCode() {
     isExecuting = false; // Reset the flag if there's an error
 
     // Load the starter project if execution fails
-    const starter = new URL(
-      "examples/starter.flock",
-      window.location.origin + import.meta.env.BASE_URL,
-    ).href;
+    const starter = "examples/starter.flock";
     fetch(starter)
       .then((response) => {
         if (!response.ok) {
