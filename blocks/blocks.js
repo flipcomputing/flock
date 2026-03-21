@@ -150,6 +150,17 @@ export function handleBlockDelete(event) {
   if (event.type === Blockly.Events.BLOCK_DELETE) {
     const activeControllerBlockId = getActiveSceneControllerBlockId();
 
+    const makeRestoreEvent = (b) => ({
+      type: Blockly.Events.BLOCK_CHANGE,
+      blockId: b.id,
+      workspaceId: b.workspace?.id,
+      element: "field",
+      name: "__restore__",
+      oldValue: null,
+      newValue: null,
+      recordUndo: false,
+    });
+
     // Recursively delete meshes for qualifying blocks
     function deleteMeshesRecursively(blockJson) {
       // Check if block type matches the prefixes
@@ -158,16 +169,52 @@ export function handleBlockDelete(event) {
         blockJson.type.startsWith("create_")
       ) {
         deleteMeshFromBlock(blockJson.id);
+        if (blockJson.type === "create_map") {
+          const ws = Blockly.getMainWorkspace();
+          const nextMapBlock = ws
+            ?.getAllBlocks(false)
+            .find(
+              (b) =>
+                b.type === "create_map" &&
+                b.id !== blockJson.id &&
+                b.isEnabled() &&
+                b.getParent(),
+            );
+          if (nextMapBlock)
+            updateOrCreateMeshFromBlock(nextMapBlock, makeRestoreEvent(nextMapBlock));
+        }
       } else if (blockJson.type === "set_background_color") {
         deleteMeshFromBlock(blockJson.id);
         if (activeControllerBlockId === blockJson.id) {
           clearSkyMesh();
-          setClearSkyToBlack();
+          const ws = Blockly.getMainWorkspace();
+          const nextSkyBlock = ws?.getAllBlocks(false).find(
+            (b) =>
+              (b.type === "set_sky_color" ||
+                b.type === "set_background_color") &&
+              b.id !== blockJson.id &&
+              b.isEnabled() &&
+              b.getParent(),
+          );
+          if (nextSkyBlock)
+            updateOrCreateMeshFromBlock(nextSkyBlock, makeRestoreEvent(nextSkyBlock));
+          else setClearSkyToBlack();
         }
       } else if (blockJson.type === "set_sky_color") {
         if (activeControllerBlockId === blockJson.id) {
           clearSkyMesh();
-          setClearSkyToBlack();
+          const ws = Blockly.getMainWorkspace();
+          const nextSkyBlock = ws?.getAllBlocks(false).find(
+            (b) =>
+              (b.type === "set_sky_color" ||
+                b.type === "set_background_color") &&
+              b.id !== blockJson.id &&
+              b.isEnabled() &&
+              b.getParent(),
+          );
+          if (nextSkyBlock)
+            updateOrCreateMeshFromBlock(nextSkyBlock, makeRestoreEvent(nextSkyBlock));
+          else setClearSkyToBlack();
         }
       }
 
