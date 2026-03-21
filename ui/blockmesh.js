@@ -435,6 +435,15 @@ function applyBackgroundColorFromBlock(block) {
     return;
   }
 
+  // Don't steal sky controller ownership from another block that still exists.
+  const currentOwnerId = getActiveSceneControllerBlockId();
+  if (currentOwnerId && currentOwnerId !== block.id) {
+    const ownerBlock = Blockly.getMainWorkspace()?.getBlockById(currentOwnerId);
+    if (ownerBlock && !ownerBlock.disposed) {
+      return;
+    }
+  }
+
   setActiveSceneControllerBlockId(block);
   const read = readColourFromInputOrShadow(block, "COLOR");
   flock.setSky(read.value, { clear: true });
@@ -560,6 +569,15 @@ function updateSkyFromBlock(mesh, block, changeEvent) {
       setClearSkyToBlack();
     }
     return;
+  }
+
+  // Don't steal sky controller ownership from another block that still exists.
+  const currentOwnerId = getActiveSceneControllerBlockId();
+  if (currentOwnerId && currentOwnerId !== block.id) {
+    const ownerBlock = Blockly.getMainWorkspace()?.getBlockById(currentOwnerId);
+    if (ownerBlock && !ownerBlock.disposed) {
+      return;
+    }
   }
 
   setActiveSceneControllerBlockId(block);
