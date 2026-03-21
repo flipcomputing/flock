@@ -47,74 +47,52 @@ const disposePhysics = (targetMesh) => {
   targetMesh.physics = null;
 };
 
+const createPhysicsShape = (mesh, shapeType) => {
+  if (shapeType === "CAPSULE") {
+    mesh.computeWorldMatrix(true);
+    return flock.createCapsuleFromBoundingBox(mesh, flock.scene);
+  }
+  return new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
+};
+
 const applyPhysicsShape = (
   targetMesh,
   shapeType,
   motionType = flock.BABYLON.PhysicsMotionType.STATIC,
   disablePreStep = false,
 ) => {
-  switch (shapeType) {
-    case "CAPSULE": {
-      targetMesh.computeWorldMatrix(true);
-      const physicsShape = flock.createCapsuleFromBoundingBox(
-        targetMesh,
-        flock.scene,
-      );
-      if (!physicsShape) {
-        console.error(
-          "[physics] Failed to create capsule for",
-          targetMesh.name,
-        );
-        return;
-      }
-
-      const physicsBody = new flock.BABYLON.PhysicsBody(
-        targetMesh,
-        flock.BABYLON.PhysicsMotionType.DYNAMIC,
-        false,
-        flock.scene,
-      );
-      physicsBody.shape = physicsShape;
-      physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
-      physicsBody.disablePreStep = disablePreStep;
-      targetMesh.physics = physicsBody;
-      physicsBody.setMotionType(motionType);
-      targetMesh.metadata = targetMesh.metadata || {};
-      targetMesh.metadata.physicsShapeType = "CAPSULE";
-      targetMesh.metadata.physicsCache = {
-        motionType: physicsBody.getMotionType?.(),
-        disablePreStep: physicsBody.disablePreStep,
-        shapeType: "CAPSULE",
-      };
-      break;
-    }
-
-    case "MESH":
-    default: {
-      const physicsShape = new flock.BABYLON.PhysicsShapeMesh(
-        targetMesh,
-        flock.scene,
-      );
-      const physicsBody = new flock.BABYLON.PhysicsBody(
-        targetMesh,
-        motionType,
-        false,
-        flock.scene,
-      );
-      physicsBody.shape = physicsShape;
-      physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
-      physicsBody.disablePreStep = disablePreStep;
-      targetMesh.physics = physicsBody;
-      targetMesh.metadata = targetMesh.metadata || {};
-      targetMesh.metadata.physicsShapeType = "MESH";
-      targetMesh.metadata.physicsCache = {
-        motionType: physicsBody.getMotionType?.(),
-        disablePreStep: physicsBody.disablePreStep,
-        shapeType: "MESH",
-      };
-      break;
-    }
+  const normalizedShapeType = shapeType === "CAPSULE" ? "CAPSULE" : "MESH";
+  const physicsShape = createPhysicsShape(targetMesh, normalizedShapeType);
+  if (!physicsShape) {
+    console.error(
+      "[physics] Failed to create",
+      normalizedShapeType,
+      "shape for",
+      targetMesh.name,
+    );
+    return;
   }
+
+  const physicsBody = new flock.BABYLON.PhysicsBody(
+    targetMesh,
+    normalizedShapeType === "CAPSULE"
+      ? flock.BABYLON.PhysicsMotionType.DYNAMIC
+      : motionType,
+    false,
+    flock.scene,
+  );
+  physicsBody.shape = physicsShape;
+  physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
+  physicsBody.disablePreStep = disablePreStep;
+  targetMesh.physics = physicsBody;
+  if (normalizedShapeType === "CAPSULE") physicsBody.setMotionType(motionType);
+  targetMesh.metadata = targetMesh.metadata || {};
+  targetMesh.metadata.physicsShapeType = normalizedShapeType;
+  targetMesh.metadata.physicsCache = {
+    motionType: physicsBody.getMotionType?.(),
+    disablePreStep: physicsBody.disablePreStep,
+    shapeType: normalizedShapeType,
+  };
 };
 
 export function setFlockReference(ref) {
@@ -154,56 +132,75 @@ export const flockPhysics = {
     if (!parent) parent = mesh;
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo(true);
-    // If the mesh has a physics body, update its shape
-    if (parent.physics) {
-      // Preserve the disablePreStep setting if it exists
-      const disablePreStep = parent.physics.disablePreStep || false;
+    if (!parent.physics) return;
 
-      // Recreate the physics shape based on the new scale
-      const physicsShape = parent.physics.shape;
+    const { motionType, disablePreStep } = capturePhysicsState(parent);
+    const physicsShape = parent.physics.shape;
+    if (!physicsShape) return;
 
-      // Handling Capsule shape
-      if (physicsShape instanceof flock.BABYLON.PhysicsShapeCapsule) {
-        const newShape = flock.createCapsuleFromBoundingBox(mesh, flock.scene);
-        parent.physics.shape = newShape;
-        parent.physics.setMassProperties({ mass: 1, restitution: 0.5 }); // Adjust properties as needed
-      }
+    const boundingBox = mesh.getBoundingInfo().boundingBox;
+    const width = boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
+    const height = boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
+    const depth = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
 
-      // Handling Box shape
-      else if (physicsShape instanceof flock.BABYLON.PhysicsShapeBox) {
-        // Extract bounding box dimensions in world space (after scaling)
-        const boundingBox = mesh.getBoundingInfo().boundingBox;
-        const width = boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
-        const height = boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
-        const depth = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
-
-        const boxShape = new flock.BABYLON.PhysicsShapeBox(
-          flock.BABYLON.Vector3.Zero(),
-          new flock.BABYLON.Quaternion(0, 0, 0, 1), // No rotation
-          new flock.BABYLON.Vector3(width, height, depth), // Updated dimensions
-          flock.scene,
-        );
-
-        // Update the physics body with the new shape
-        parent.physics.shape = boxShape;
-      }
-
-      // Handling Mesh shape
-      else if (physicsShape instanceof flock.BABYLON.PhysicsShapeMesh) {
-        // Create a new mesh shape based on the updated geometry of the mesh
-        const newMeshShape = new flock.BABYLON.PhysicsShapeMesh(
-          mesh,
-          flock.scene,
-        );
-
-        // Update the physics body with the new mesh shape
-        parent.physics.shape = newMeshShape;
-      }
-
-      // Preserve the disablePreStep setting from the previous physics object
-      parent.physics.disablePreStep = disablePreStep;
-      parent.physics.setMassProperties({ mass: 1, restitution: 0.5 });
+    let newShape;
+    let detectedShapeType;
+    if (physicsShape instanceof flock.BABYLON.PhysicsShapeBox) {
+      detectedShapeType = "BOX";
+      newShape = new flock.BABYLON.PhysicsShapeBox(
+        flock.BABYLON.Vector3.Zero(),
+        new flock.BABYLON.Quaternion(0, 0, 0, 1),
+        new flock.BABYLON.Vector3(width, height, depth),
+        flock.scene,
+      );
+    } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeSphere) {
+      detectedShapeType = "SPHERE";
+      newShape = new flock.BABYLON.PhysicsShapeSphere(
+        flock.BABYLON.Vector3.Zero(),
+        Math.max(width, height, depth) / 2,
+        flock.scene,
+      );
+    } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeCylinder) {
+      detectedShapeType = "CYLINDER";
+      newShape = new flock.BABYLON.PhysicsShapeCylinder(
+        new flock.BABYLON.Vector3(0, -height / 2, 0),
+        new flock.BABYLON.Vector3(0, height / 2, 0),
+        Math.max(width, depth) / 2,
+        flock.scene,
+      );
+    } else {
+      detectedShapeType = getShapeTypeFromPhysics(parent.physics);
+      if (!detectedShapeType) return;
+      newShape = createPhysicsShape(mesh, detectedShapeType);
+      if (!newShape) return;
     }
+
+    disposePhysics(parent);
+
+    const isCapsule = detectedShapeType === "CAPSULE";
+    const physicsBody = new flock.BABYLON.PhysicsBody(
+      parent,
+      isCapsule
+        ? flock.BABYLON.PhysicsMotionType.DYNAMIC
+        : motionType ?? flock.BABYLON.PhysicsMotionType.STATIC,
+      false,
+      flock.scene,
+    );
+    physicsBody.shape = newShape;
+    physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
+    physicsBody.disablePreStep = disablePreStep ?? false;
+    parent.physics = physicsBody;
+    if (isCapsule)
+      physicsBody.setMotionType(
+        motionType ?? flock.BABYLON.PhysicsMotionType.STATIC,
+      );
+    parent.metadata = parent.metadata || {};
+    parent.metadata.physicsShapeType = detectedShapeType;
+    parent.metadata.physicsCache = {
+      motionType: physicsBody.getMotionType?.(),
+      disablePreStep: physicsBody.disablePreStep,
+      shapeType: detectedShapeType,
+    };
   },
   addBeforePhysicsObservable(scene, ...meshes) {
     const beforePhysicsObserver = scene.onBeforePhysicsObservable.add(() => {
