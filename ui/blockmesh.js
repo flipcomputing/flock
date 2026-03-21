@@ -777,8 +777,19 @@ function updateMapFromBlock(mesh, block, changeEvent) {
 
   if (!materialBlock) return;
 
-  const { textureSet, alpha } = extractMaterialInfo(materialBlock);
-  let read = readColourFromInputOrShadow(materialBlock, "BASE_COLOR");
+  // A raw colour or list block may be connected directly to MATERIAL (not via a
+  // material block).  In that case there is no BASE_COLOR sub-input to read, so
+  // call readColourValue on the block itself and use "none.png" as the texture.
+  const isMaterialBlock = materialBlock.type === "material";
+  let textureSet, alpha, read;
+  if (isMaterialBlock) {
+    ({ textureSet, alpha } = extractMaterialInfo(materialBlock));
+    read = readColourFromInputOrShadow(materialBlock, "BASE_COLOR");
+  } else {
+    textureSet = "none.png";
+    alpha = 1;
+    read = readColourValue(materialBlock);
+  }
 
   const colorIsEmpty =
     read.value == null ||
