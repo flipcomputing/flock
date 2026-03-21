@@ -1,22 +1,28 @@
 // Translation module for Flock XR
-// Currently supports English and French
+// Currently supports English and Spanish
 import * as Blockly from "blockly";
-import * as fr from "blockly/msg/fr";
+
 import * as en from "blockly/msg/en";
+import enLocale from "../locale/en.js";
 import * as es from "blockly/msg/es";
+import esLocale from "../locale/es.js";
+
+/*
+// Add when human translations are available
+import * as fr from "blockly/msg/fr";
 import * as it from "blockly/msg/it";
 import * as sv from "blockly/msg/sv";
 import * as pt from "blockly/msg/pt";
 import * as pl from "blockly/msg/pl";
 import * as de from "blockly/msg/de";
-import enLocale from "../locale/en.js";
+
 import frLocale from "../locale/fr.js";
-import esLocale from "../locale/es.js";
 import itLocale from "../locale/it.js";
 import svLocale from "../locale/sv.js";
 import ptLocale from "../locale/pt.js";
 import plLocale from "../locale/pl.js";
 import deLocale from "../locale/de.js";
+*/
 
 // Store original English messages when first loaded
 let originalEnglishMessages = {};
@@ -24,13 +30,13 @@ let isOriginalMessagesCached = false;
 // Load locale files
 const translations = {
   en: enLocale,
-  it: itLocale,
-  fr: frLocale,
   es: esLocale,
+  /* it: itLocale,
+  fr: frLocale,
   sv: svLocale,
   pt: ptLocale,
   pl: plLocale,
-  de: deLocale,
+  de: deLocale,*/
 };
 
 export function getDropdownOption(key) {
