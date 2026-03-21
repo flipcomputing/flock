@@ -181,39 +181,52 @@ export function handleBlockDelete(event) {
                 b.getParent(),
             );
           if (nextMapBlock)
-            updateOrCreateMeshFromBlock(nextMapBlock, makeRestoreEvent(nextMapBlock));
+            updateOrCreateMeshFromBlock(
+              nextMapBlock,
+              makeRestoreEvent(nextMapBlock),
+            );
         }
       } else if (blockJson.type === "set_background_color") {
         deleteMeshFromBlock(blockJson.id);
         if (activeControllerBlockId === blockJson.id) {
           clearSkyMesh();
           const ws = Blockly.getMainWorkspace();
-          const nextSkyBlock = ws?.getAllBlocks(false).find(
-            (b) =>
-              (b.type === "set_sky_color" ||
-                b.type === "set_background_color") &&
-              b.id !== blockJson.id &&
-              b.isEnabled() &&
-              b.getParent(),
-          );
+          const nextSkyBlock = ws
+            ?.getAllBlocks(false)
+            .find(
+              (b) =>
+                (b.type === "set_sky_color" ||
+                  b.type === "set_background_color") &&
+                b.id !== blockJson.id &&
+                b.isEnabled() &&
+                b.getParent(),
+            );
           if (nextSkyBlock)
-            updateOrCreateMeshFromBlock(nextSkyBlock, makeRestoreEvent(nextSkyBlock));
+            updateOrCreateMeshFromBlock(
+              nextSkyBlock,
+              makeRestoreEvent(nextSkyBlock),
+            );
           else setClearSkyToBlack();
         }
       } else if (blockJson.type === "set_sky_color") {
         if (activeControllerBlockId === blockJson.id) {
           clearSkyMesh();
           const ws = Blockly.getMainWorkspace();
-          const nextSkyBlock = ws?.getAllBlocks(false).find(
-            (b) =>
-              (b.type === "set_sky_color" ||
-                b.type === "set_background_color") &&
-              b.id !== blockJson.id &&
-              b.isEnabled() &&
-              b.getParent(),
-          );
+          const nextSkyBlock = ws
+            ?.getAllBlocks(false)
+            .find(
+              (b) =>
+                (b.type === "set_sky_color" ||
+                  b.type === "set_background_color") &&
+                b.id !== blockJson.id &&
+                b.isEnabled() &&
+                b.getParent(),
+            );
           if (nextSkyBlock)
-            updateOrCreateMeshFromBlock(nextSkyBlock, makeRestoreEvent(nextSkyBlock));
+            updateOrCreateMeshFromBlock(
+              nextSkyBlock,
+              makeRestoreEvent(nextSkyBlock),
+            );
           else setClearSkyToBlack();
         }
       }
@@ -1528,6 +1541,22 @@ export function defineBlocks() {
     },
   };
 
+  function focusResolvedKeywordBlock(block) {
+    const previouslySelected = Blockly.common?.getSelected?.();
+    if (previouslySelected && previouslySelected !== block) {
+      previouslySelected.unselect?.();
+    }
+
+    Blockly.common?.setSelected?.(block);
+    Blockly.getFocusManager?.()?.focusNode?.(block);
+    block.select?.();
+    block.workspace?.getCursor?.()?.setCurNode?.(block);
+
+    const focusableElement =
+      block.getFocusableElement?.() || block.getSvgRoot?.();
+    focusableElement?.focus?.({ preventScroll: true });
+  }
+
   Blockly.Blocks["keyword_block"] = {
     init: function () {
       this.appendDummyInput().appendField(
@@ -1544,23 +1573,18 @@ export function defineBlocks() {
         }
         // Get the entered keyword.
         const keyword = this.getFieldValue("KEYWORD").trim();
-        // Lookup the new block type based on the keyword.
-        const blockType = findBlockTypeByKeyword(keyword);
-        if (blockType) {
+        // Lookup the exact toolbox definition based on the keyword.
+        const blockDefinition = findBlockDefinitionByKeyword(keyword);
+        if (blockDefinition?.type) {
           // Mark the block as replaced.
           this.isReplaced = true;
           const workspace = this.workspace;
           // Create the new block.
-          const newBlock = workspace.newBlock(blockType);
-
-          // Apply toolbox settings if defined.
-          const blockDefinition = findBlockDefinitionInToolbox(blockType);
-          if (blockDefinition && blockDefinition.inputs) {
-            applyToolboxSettings(newBlock, blockDefinition.inputs);
-          }
+          const newBlock = workspace.newBlock(blockDefinition.type);
 
           newBlock.initSvg();
           newBlock.render();
+          applyBlockDefinition(newBlock, blockDefinition);
 
           // Position the new block where the old keyword block is.
           const pos = this.getRelativeToSurfaceXY();
@@ -1579,20 +1603,25 @@ export function defineBlocks() {
 
           // Reattach any block that was connected to the keyword block's next connection.
           const nextBlock = this.getNextBlock();
-          if (nextBlock && newBlock.nextConnection) {
-            newBlock.nextConnection.connect(nextBlock.previousConnection);
+          if (nextBlock) {
+            let tailBlock = newBlock;
+            while (tailBlock.getNextBlock?.()) {
+              tailBlock = tailBlock.getNextBlock();
+            }
+
+            if (tailBlock.nextConnection) {
+              tailBlock.nextConnection.connect(nextBlock.previousConnection);
+            }
           }
 
-          // Select the new block for immediate editing.
-          const selectedBlock = Blockly.getSelected();
-          if (selectedBlock) {
-            selectedBlock.unselect();
-          }
-          newBlock.select();
           window.currentBlock = newBlock;
 
           // Dispose of the old keyword block.
           this.dispose();
+
+          requestAnimationFrame(() => {
+            focusResolvedKeywordBlock(newBlock);
+          });
         }
       });
     },
@@ -1608,40 +1637,15 @@ export function defineBlocks() {
     },
   };
 
-  function findBlockTypeByKeyword(keyword) {
+  function findBlockDefinitionByKeyword(keyword) {
     // Recursive helper to search through a contents array.
     function searchContents(contents) {
       if (!Array.isArray(contents)) {
         return null;
       }
       for (const item of contents) {
-        // If this item is a block with the matching keyword, return its type.
+        // If this item is a block with the matching keyword, return its definition.
         if (item.kind === "block" && item.keyword === keyword) {
-          return item.type;
-        }
-        // If the item is a category with its own contents, search recursively.
-        if (item.kind === "category" && Array.isArray(item.contents)) {
-          const result = searchContents(item.contents);
-          if (result !== null) {
-            return result;
-          }
-        }
-      }
-      return null;
-    }
-    return searchContents(toolbox.contents);
-  }
-
-  // Function to find block definition in the toolbox by block type
-  function findBlockDefinitionInToolbox(blockType) {
-    // Recursive helper to search through a contents array.
-    function searchContents(contents) {
-      if (!Array.isArray(contents)) {
-        return null;
-      }
-      for (const item of contents) {
-        // If this item is a block with the matching type, return its definition.
-        if (item.kind === "block" && item.type === blockType) {
           return item;
         }
         // If the item is a category with its own contents, search recursively.
@@ -1657,24 +1661,123 @@ export function defineBlocks() {
     return searchContents(toolbox.contents);
   }
 
+  function applyBlockDefinition(block, definition) {
+    if (!block || !definition) {
+      return;
+    }
+
+    if (definition.extraState && block.loadExtraState) {
+      block.loadExtraState(definition.extraState);
+    }
+
+    if (
+      typeof definition.inline === "boolean" &&
+      typeof block.setInputsInline === "function"
+    ) {
+      block.setInputsInline(definition.inline);
+    }
+
+    if (definition.fields) {
+      for (const fieldName in definition.fields) {
+        const fieldValue = definition.fields[fieldName];
+        const field = block.getField?.(fieldName);
+
+        if (
+          typeof fieldValue === "string" ||
+          typeof fieldValue === "number" ||
+          typeof fieldValue === "boolean"
+        ) {
+          block.setFieldValue(fieldValue, fieldName);
+          continue;
+        }
+
+        if (!fieldValue || typeof fieldValue !== "object") {
+          continue;
+        }
+
+        if (
+          typeof block.setVariableFieldValue === "function" &&
+          typeof fieldValue.name === "string"
+        ) {
+          block.setVariableFieldValue(fieldValue.name, fieldName);
+          continue;
+        }
+
+        if (typeof field?.loadState === "function") {
+          field.loadState(fieldValue);
+          continue;
+        }
+
+        if (fieldValue.id && typeof block.setFieldValue === "function") {
+          block.setFieldValue(fieldValue.id, fieldName);
+          continue;
+        }
+
+        if (fieldValue.name && typeof block.setFieldValue === "function") {
+          block.setFieldValue(fieldValue.name, fieldName);
+        }
+      }
+    }
+
+    if (definition.inputs) {
+      applyToolboxSettings(block, definition.inputs);
+    }
+
+    if (definition.next?.block && block.nextConnection) {
+      const nextDefinition = definition.next.block;
+      const nextBlock = block.workspace.newBlock(nextDefinition.type);
+      nextBlock.initSvg();
+      nextBlock.render();
+      applyBlockDefinition(nextBlock, nextDefinition);
+
+      if (nextBlock.previousConnection) {
+        block.nextConnection.connect(nextBlock.previousConnection);
+      } else {
+        nextBlock.dispose();
+      }
+    }
+
+    block.render?.();
+  }
+
+  function connectToolboxBlock(targetBlock, inputName, definition, asShadow) {
+    if (!definition?.type) {
+      return;
+    }
+
+    const input = targetBlock.getInput(inputName);
+    const connection = input?.connection;
+    if (!connection) {
+      return;
+    }
+
+    const childBlock = targetBlock.workspace.newBlock(definition.type);
+    if (asShadow) {
+      childBlock.setShadow(true);
+    }
+
+    childBlock.initSvg();
+    childBlock.render();
+    applyBlockDefinition(childBlock, definition);
+
+    const childConnection =
+      childBlock.outputConnection || childBlock.previousConnection;
+    if (!childConnection) {
+      childBlock.dispose();
+      return;
+    }
+
+    connection.connect(childConnection);
+  }
+
   // Function to apply settings from the toolbox definition to the new block
   function applyToolboxSettings(newBlock, inputs) {
     for (const inputName in inputs) {
       const input = inputs[inputName];
-      if (input.shadow) {
-        const shadowBlock = newBlock.workspace.newBlock(input.shadow.type);
-        shadowBlock.setShadow(true);
-        // Apply fields (default values) to the shadow block
-        for (const fieldName in input.shadow.fields) {
-          shadowBlock.setFieldValue(input.shadow.fields[fieldName], fieldName);
-        }
-        shadowBlock.initSvg();
-        shadowBlock.render();
-        newBlock
-          .getInput(inputName)
-          .connection.connect(shadowBlock.outputConnection);
-
-        newBlock.workspace.cleanUp();
+      if (input.block) {
+        connectToolboxBlock(newBlock, inputName, input.block, false);
+      } else if (input.shadow) {
+        connectToolboxBlock(newBlock, inputName, input.shadow, true);
       }
     }
   }

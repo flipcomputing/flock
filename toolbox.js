@@ -209,7 +209,7 @@ const toolboxSceneMeshes = {
     {
       kind: "block",
       type: "load_multi_object",
-      keyword: "object",
+      keyword: "multi",
       inputs: {
         SCALE: {
           shadow: {
@@ -920,7 +920,7 @@ const toolboxSceneCamera = {
     {
       kind: "block",
       type: "camera_follow",
-      keyword: "follow",
+      keyword: "camfollow",
       inputs: {
         RADIUS: {
           shadow: {
@@ -1095,7 +1095,7 @@ const toolboxEvents = {
     {
       kind: "block",
       type: "when_action_event",
-      keyword: "action",
+      keyword: "whenpressed",
     },
     {
       kind: "block",
@@ -1365,6 +1365,7 @@ const toolboxTransformCombine = {
     {
       kind: "block",
       type: "merge_meshes",
+      keyword: "merge",
       inputsInline: true,
       inputs: {
         MESH_LIST: {
@@ -1391,6 +1392,7 @@ const toolboxTransformCombine = {
     {
       kind: "block",
       type: "subtract_meshes",
+      keyword: "subtract",
       inputsInline: true,
       inputs: {
         MESH_LIST: {
@@ -1417,6 +1419,7 @@ const toolboxTransformCombine = {
     {
       kind: "block",
       type: "intersection_meshes",
+      keyword: "intersect",
       inputsInline: true,
       inputs: {
         MESH_LIST: {
@@ -1443,6 +1446,7 @@ const toolboxTransformCombine = {
     {
       kind: "block",
       type: "hull_meshes",
+      keyword: "hull",
       inputsInline: true,
       inputs: {
         MESH_LIST: {
@@ -1479,7 +1483,7 @@ const toolboxTransform = {
     {
       kind: "block",
       type: "move_by_xyz",
-      keyword: "move",
+      keyword: "movexyz",
       inputs: {
         X: {
           shadow: {
@@ -1525,7 +1529,7 @@ const toolboxTransform = {
     {
       kind: "block",
       type: "move_to_xyz",
-      keyword: "pos",
+      keyword: "posxyz",
       inputs: {
         X: {
           shadow: {
@@ -1576,7 +1580,7 @@ const toolboxTransform = {
     {
       kind: "block",
       type: "rotate_model_xyz",
-      keyword: "rotate",
+      keyword: "rotatexyz",
       inputs: {
         X: {
           shadow: {
@@ -1735,6 +1739,7 @@ const toolboxTransform = {
     {
       kind: "block",
       type: "set_pivot",
+      keyword: "pivot",
       inputs: {
         X_PIVOT: {
           shadow: {
@@ -1866,6 +1871,7 @@ const toolboxAnimateKeyframe = {
     {
       kind: "block",
       type: "animate_from",
+      keyword: "animfrom",
       inputs: {
         TIME: {
           shadow: {
@@ -1880,6 +1886,7 @@ const toolboxAnimateKeyframe = {
     {
       kind: "block",
       type: "colour_keyframe",
+      keyword: "colkey",
       inputs: {
         VALUE: {
           shadow: {
@@ -1902,6 +1909,7 @@ const toolboxAnimateKeyframe = {
     {
       kind: "block",
       type: "number_keyframe",
+      keyword: "numkey",
       inputs: {
         VALUE: {
           shadow: {
@@ -1924,6 +1932,7 @@ const toolboxAnimateKeyframe = {
     {
       kind: "block",
       type: "xyz_keyframe",
+      keyword: "xyzkey",
       inputs: {
         X: {
           shadow: {
@@ -2001,6 +2010,7 @@ const toolboxAnimate = {
     {
       kind: "block",
       type: "animation_name",
+      keyword: "clip",
     },
     {
       kind: "block",
@@ -2044,7 +2054,7 @@ const toolboxAnimate = {
     {
       kind: "block",
       type: "glide_to_object",
-      keyword: "glide",
+      keyword: "glideto",
       inputs: {
         DURATION: {
           shadow: {
@@ -2059,7 +2069,7 @@ const toolboxAnimate = {
     {
       kind: "block",
       type: "rotate_anim_seconds",
-      keyword: "rotate",
+      keyword: "spin",
       inputs: {
         ROT_X: {
           shadow: {
@@ -2098,7 +2108,7 @@ const toolboxAnimate = {
     {
       kind: "block",
       type: "rotate_to_object",
-      keyword: "rotate",
+      keyword: "rotateto",
       inputs: {
         DURATION: {
           shadow: {
@@ -2337,7 +2347,7 @@ const toolboxSensing = {
     {
       kind: "block",
       type: "action_pressed",
-      keyword: "action",
+      keyword: "pressed",
     },
     {
       kind: "block",
@@ -2506,7 +2516,7 @@ const toolboxText = {
     {
       kind: "block",
       type: "ui_text",
-      keyword: "ui",
+      keyword: "uitext",
       inputs: {
         TEXT: {
           shadow: {
@@ -2561,7 +2571,7 @@ const toolboxText = {
     {
       kind: "block",
       type: "ui_button",
-      keyword: "ui",
+      keyword: "uibutton",
       inputs: {
         TEXT: {
           shadow: {
@@ -2608,7 +2618,7 @@ const toolboxText = {
     {
       kind: "block",
       type: "ui_input",
-      keyword: "ui",
+      keyword: "uiinput",
       inputs: {
         TEXT: {
           shadow: {
@@ -2666,7 +2676,7 @@ const toolboxText = {
     {
       kind: "block",
       type: "ui_slider",
-      keyword: "ui",
+      keyword: "uislider",
       inputs: {
         MIN: {
           shadow: {
@@ -2764,7 +2774,7 @@ const toolboxText = {
     {
       kind: "block",
       type: "create_3d_text",
-      keyword: "text",
+      keyword: "text3d",
       inputs: {
         TEXT: {
           shadow: {
@@ -2834,7 +2844,7 @@ const toolboxText = {
         {
           kind: "block",
           type: "text_join",
-          keyword: "text",
+          keyword: "jointext",
         },
         {
           kind: "block",
@@ -3122,6 +3132,7 @@ const toolboxMaterials = {
     {
       kind: "block",
       type: "lists_create_with",
+      keyword: "colourlist",
       extraState: { itemCount: 2 },
       inline: true,
       inputs: {
@@ -3156,6 +3167,7 @@ const toolboxMaterials = {
     {
       kind: "block",
       type: "set_material",
+      keyword: "setmat",
       inputs: {
         MATERIAL: {
           shadow: {
@@ -3186,6 +3198,7 @@ const toolboxMaterials = {
     {
       kind: "block",
       type: "material",
+      keyword: "material",
       fields: {
         TEXTURE_SET: "grass.png", // Use the named material
       },
@@ -3244,10 +3257,12 @@ const toolboxSound = {
     {
       kind: "block",
       type: "stop_all_sounds",
+      keyword: "stopsound",
     },
     {
       kind: "block",
       type: "midi_note",
+      keyword: "midinote",
       inputs: {
         NOTE: {
           shadow: {
@@ -3262,10 +3277,12 @@ const toolboxSound = {
     {
       kind: "block",
       type: "rest",
+      keyword: "rest",
     },
     {
       kind: "block",
       type: "play_notes",
+      keyword: "playnotes",
       inputsInline: true,
       inputs: {
         NOTES: {
@@ -3335,10 +3352,12 @@ const toolboxSound = {
     {
       kind: "block",
       type: "instrument",
+      keyword: "instrument",
     },
     {
       kind: "block",
       type: "create_instrument",
+      keyword: "makeinstr",
       inputs: {
         VOLUME: {
           shadow: {
@@ -3594,6 +3613,7 @@ const toolboxMath = {
     {
       kind: "block",
       type: "random_seeded_int",
+      keyword: "seedrand",
       inputs: {
         FROM: {
           shadow: {
@@ -3713,6 +3733,7 @@ const toolboxSnippetsPhysics = {
     {
       kind: "block",
       type: "start",
+      keyword: "playerstart",
       inputs: {
         DO: {
           block: {
@@ -3800,6 +3821,7 @@ const toolboxSnippetsPhysics = {
     {
       kind: "block",
       type: "when_clicked",
+      keyword: "clickbox",
       extraState:
         '<mutation xmlns="http://www.w3.org/1999/xhtml" inline="false"></mutation>',
       fields: {
@@ -4163,6 +4185,7 @@ const toolboxSnippetsMovement = {
     {
       kind: "block",
       type: "forever",
+      keyword: "move8",
       inputs: {
         DO: {
           block: {
@@ -4631,6 +4654,7 @@ const toolboxSnippets = {
     {
       type: "start",
       kind: "block",
+      keyword: "skyworld",
       inputs: {
         DO: {
           block: {

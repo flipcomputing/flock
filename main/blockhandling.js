@@ -3,6 +3,107 @@ import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
 import { blockHandlerRegistry } from "../blocks/blocks.js";
 
+function asBlocklyBlock(candidate) {
+  if (!candidate || typeof candidate !== "object") {
+    return null;
+  }
+
+  return typeof candidate.getNextBlock === "function" ? candidate : null;
+}
+
+function getSelectedBlockFromCursor(cursor) {
+  if (!cursor) {
+    return null;
+  }
+
+  if (typeof cursor.getSourceBlock === "function") {
+    const sourceBlock = asBlocklyBlock(cursor.getSourceBlock());
+    if (sourceBlock) {
+      return sourceBlock;
+    }
+  }
+
+  if (typeof cursor.getCurNode !== "function") {
+    return null;
+  }
+
+  const currentNode = cursor.getCurNode();
+  if (!currentNode) {
+    return null;
+  }
+
+  if (typeof currentNode.getSourceBlock === "function") {
+    return asBlocklyBlock(currentNode.getSourceBlock());
+  }
+
+  return asBlocklyBlock(currentNode.sourceBlock_);
+}
+
+function getSelectedBlockForKeywordShortcut() {
+  const selected = asBlocklyBlock(Blockly.common?.getSelected?.());
+  if (selected) {
+    return selected;
+  }
+
+  return (
+    getSelectedBlockFromCursor(workspace.getCursor()) ||
+    asBlocklyBlock(window.currentBlock)
+  );
+}
+
+function getViewportCenterCoordinates(activeWorkspace) {
+  const { left, top, width, height } = activeWorkspace
+    .getMetricsManager()
+    .getViewMetrics(true);
+
+  return new Blockly.utils.Coordinate(left + width / 2, top + height / 2);
+}
+
+function getBlocklyFocusManager() {
+  return Blockly.getFocusManager?.() || Blockly.common?.getFocusManager?.();
+}
+
+function focusBlocklyBlock(block) {
+  const previouslySelected = Blockly.common?.getSelected?.();
+  if (previouslySelected && previouslySelected !== block) {
+    previouslySelected.unselect?.();
+  }
+
+  Blockly.common?.setSelected?.(block);
+  getBlocklyFocusManager()?.focusNode?.(block);
+  block.select?.();
+  workspace.getCursor?.()?.setCurNode?.(block);
+
+  const focusableElement =
+    block.getFocusableElement?.() || block.getSvgRoot?.();
+  focusableElement?.focus?.({ preventScroll: true });
+}
+
+function focusKeywordField(block) {
+  focusBlocklyBlock(block);
+
+  const textInputField = block.getField("KEYWORD");
+  if (textInputField) {
+    textInputField.showEditor_();
+
+    requestAnimationFrame(() => {
+      const htmlInput = document.querySelector(".blocklyHtmlInput");
+      htmlInput?.focus?.({ preventScroll: true });
+      htmlInput?.select?.();
+    });
+  }
+}
+
+function createKeywordBlockAtViewportCenter(blockType) {
+  const block = workspace.newBlock(blockType);
+  block.initSvg();
+  block.render();
+  block.moveTo(getViewportCenterCoordinates(workspace));
+  window.currentBlock = block;
+  focusKeywordField(block);
+  return block;
+}
+
 export function initializeBlockHandling() {
   observeBlocklyInputs();
 
@@ -157,53 +258,18 @@ export function initializeBlockHandling() {
     if (event.ctrlKey && event.key === ".") {
       event.preventDefault();
 
-      const workspace = Blockly.getMainWorkspace();
-
-      // Create the placeholder block at the computed position
-      const placeholderBlock = workspace.newBlock("keyword_block");
-
-      let workspaceCoordinates = workspace
-        .getMetricsManager()
-        .getViewMetrics(true);
-      let posx = workspaceCoordinates.left + workspaceCoordinates.width / 2;
-      let posy = workspaceCoordinates.top + workspaceCoordinates.height / 2;
-      let blockCoordinates = new Blockly.utils.Coordinate(posx, posy);
-
-      placeholderBlock.initSvg();
-      placeholderBlock.render();
-      placeholderBlock.moveTo(blockCoordinates);
-
-      // Select the block for immediate editing
-      placeholderBlock.select();
-
-      // Automatically focus on the text input field
-      const textInputField = placeholderBlock.getField("KEYWORD");
-      if (textInputField) {
-        textInputField.showEditor_();
-      }
+      createKeywordBlockAtViewportCenter("keyword_block");
     }
   });
 
   // Handle Enter key for adding new blocks
   document.addEventListener("keydown", function (event) {
     if (event.ctrlKey && event.key === "]") {
-      let selectedBlock = null;
-
-      const cursor = workspace.getCursor();
-
-      if (cursor?.getCurNode()) {
-        const currentNode = cursor.getCurNode();
-        if (currentNode) {
-          const block = currentNode.getSourceBlock();
-          if (block) {
-            selectedBlock = block;
-          }
-        }
-      } else {
-        selectedBlock = window.currentBlock;
-      }
+      const selectedBlock = getSelectedBlockForKeywordShortcut();
+      event.preventDefault();
 
       if (!selectedBlock) {
+        createKeywordBlockAtViewportCenter("keyword");
         return;
       }
 
@@ -234,15 +300,9 @@ export function initializeBlockHandling() {
       // Update our tracking variable to the new block
       window.currentBlock = keywordBlock;
 
-      // Try to select it in Blockly too
-      keywordBlock.select();
-
       // Open the editor with a delay
       setTimeout(() => {
-        const textInputField = keywordBlock.getField("KEYWORD");
-        if (textInputField) {
-          textInputField.showEditor_();
-        }
+        focusKeywordField(keywordBlock);
       }, 100);
     }
 
