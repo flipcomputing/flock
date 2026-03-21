@@ -160,7 +160,7 @@ class AccessibleFlyoutMenu {
 
         if (handled) {
           e.preventDefault();
-          e.stopPropagation();
+          e.stopImmediatePropagation();
         }
       },
       true,
