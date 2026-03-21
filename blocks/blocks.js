@@ -1689,6 +1689,17 @@ export function defineBlocks() {
       return;
     }
 
+    if (definition.extraState && block.loadExtraState) {
+      block.loadExtraState(definition.extraState);
+    }
+
+    if (
+      typeof definition.inline === "boolean" &&
+      typeof block.setInputsInline === "function"
+    ) {
+      block.setInputsInline(definition.inline);
+    }
+
     if (definition.fields) {
       for (const fieldName in definition.fields) {
         const fieldValue = definition.fields[fieldName];
@@ -1701,6 +1712,8 @@ export function defineBlocks() {
     if (definition.inputs) {
       applyToolboxSettings(block, definition.inputs);
     }
+
+    block.render?.();
   }
 
   function connectToolboxBlock(targetBlock, inputName, definition, asShadow) {
