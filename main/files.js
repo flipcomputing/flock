@@ -358,8 +358,9 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 }
 
 function getExampleUrl(examplePath) {
-  return new URL(examplePath, window.location.origin + import.meta.env.BASE_URL)
-    .href;
+  let baseUrl = import.meta.env.BASE_URL || "/";
+  if (!baseUrl.endsWith("/")) baseUrl += "/";
+  return new URL(examplePath, window.location.origin + baseUrl).href;
 }
 
 function fetchProjectJson(projectPath) {
@@ -367,17 +368,6 @@ function fetchProjectJson(projectPath) {
     if (!response.ok) {
       throw new Error(
         `Failed to load project (${response.status} ${response.statusText})`,
-      );
-    }
-
-    const contentType = response.headers.get("content-type") || "";
-    if (
-      contentType &&
-      !contentType.includes("application/json") &&
-      !contentType.includes("text/plain")
-    ) {
-      throw new Error(
-        `Expected JSON project data but received ${contentType || "unknown content type"}`,
       );
     }
 
