@@ -225,9 +225,12 @@ function initializeIfClauseConnectionChecker(workspace) {
         if (targetIsIfClause) {
           const targetMode = targetBlock.getFieldValue("MODE");
 
-          // Rule 1: Nothing can connect after ELSE
+          // Rule 1: Nothing can connect after ELSE.
+          // During drag-and-drop reject to give visual feedback.
+          // During healing / field-changes (not dragging) allow the connection;
+          // validateIfClausePositions will disable the block in-place.
           if (targetMode === MODE.ELSE) {
-            return false;
+            if (workspace.isDragging()) return false;
           }
 
           // Rule 2: ELSE cannot connect if it has if_clause blocks after it
@@ -235,20 +238,24 @@ function initializeIfClauseConnectionChecker(workspace) {
             return false;
           }
 
-          // Rule 3: ELSE cannot be inserted in middle of chain
+          // Rule 3: ELSE cannot be inserted in middle of chain (drag only).
+          // When not dragging (e.g. a MODE field change), keep the connection
+          // and let validateIfClausePositions disable the block in-place.
           const targetHasNext = realNext(targetBlock);
           if (
             targetHasNext &&
             targetHasNext.type === "if_clause" &&
             movingMode === MODE.ELSE
           ) {
-            return false;
+            if (workspace.isDragging()) return false;
           }
         } else {
-          // Target is NOT if_clause
-          // ELSEIF and ELSE cannot connect after non-if_clause blocks
+          // Target is NOT if_clause.
+          // During drag-and-drop reject to give visual feedback.
+          // During healing / undo-redo (not dragging) allow the connection;
+          // validateIfClausePositions will disable the block in-place.
           if (movingMode === MODE.ELSEIF || movingMode === MODE.ELSE) {
-            return false;
+            if (workspace.isDragging()) return false;
           }
         }
       } else {
@@ -310,6 +317,68 @@ function initializeIfClauseConnectionChecker(workspace) {
 
     return true;
   };
+
+  // Disable reason used to mark if_clause blocks that are structurally
+  // connected but in an invalid position (e.g. ELSEIF after a regular block).
+  const INVALID_IF_CLAUSE_REASON = "INVALID_IF_CLAUSE_POSITION";
+
+  // Scan all if_clause blocks and disable/enable them based on whether their
+  // predecessor is a valid if_clause.  Runs with events disabled so the
+  // enable/disable state is derived (not recorded in the undo stack).
+  function validateIfClausePositions() {
+    Blockly.Events.disable();
+    try {
+      for (const block of workspace.getAllBlocks(false)) {
+        if (block.type !== "if_clause") continue;
+
+        const mode = block.getFieldValue("MODE");
+
+        // IF blocks can start a chain anywhere — always positionally valid.
+        if (mode === MODE.IF) {
+          block.setDisabledReason(false, INVALID_IF_CLAUSE_REASON);
+          continue;
+        }
+
+        // ELSEIF / ELSE: valid only when the immediately preceding connected
+        // block is an if_clause whose mode is IF or ELSEIF (not ELSE).
+        const prevBlock = realPrev(block);
+
+        if (!prevBlock) {
+          // Orphaned — disableOrphans handles the disabled state; clear ours.
+          block.setDisabledReason(false, INVALID_IF_CLAUSE_REASON);
+          continue;
+        }
+
+        const validPrev =
+          prevBlock.type === "if_clause" &&
+          prevBlock.getFieldValue("MODE") !== MODE.ELSE;
+
+        block.setDisabledReason(!validPrev, INVALID_IF_CLAUSE_REASON);
+      }
+    } finally {
+      Blockly.Events.enable();
+    }
+  }
+
+  // Re-validate after any structural change so that if_clause blocks that
+  // land in an invalid position are disabled immediately, and those that
+  // become valid again are re-enabled.
+  workspace.addChangeListener(function (event) {
+    if (
+      !event.isUiEvent &&
+      (event.type === Blockly.Events.BLOCK_MOVE ||
+        event.type === Blockly.Events.BLOCK_CREATE ||
+        event.type === Blockly.Events.BLOCK_DELETE ||
+        (event.type === Blockly.Events.BLOCK_CHANGE &&
+          event.element === "field" &&
+          event.name === "MODE"))
+    ) {
+      validateIfClausePositions();
+    }
+  });
+
+  // Run once on initialisation to catch any blocks already in invalid positions.
+  validateIfClausePositions();
 }
 
 export function initializeWorkspace() {
@@ -530,6 +599,37 @@ export function initializeWorkspace() {
     // Otherwise, do normal scrolling
     originalScrollBoundsIntoView.call(this, bounds);
   };
+
+  // Patch BlockDelete.run so that redo (forward=true) heals the stack just
+  // like the original dispose call did.  Without this, BlockDelete.run(true)
+  // calls dispose(false) which skips healing and can leave the block below the
+  // deleted block orphaned when the BLOCK_MOVE heal event is later replayed
+  // through canConnect and our custom checker rejects the reconnection.
+  const BlockDeleteClass = Blockly.Events.BlockDelete;
+  if (BlockDeleteClass && !BlockDeleteClass._healRedoPatched) {
+    BlockDeleteClass._healRedoPatched = true;
+    const originalBlockDeleteRun = BlockDeleteClass.prototype.run;
+    BlockDeleteClass.prototype.run = function (forward) {
+      if (forward) {
+        // Redo: delete the block(s) WITH stack healing so that the block
+        // below the deleted block is reconnected rather than orphaned.
+        const workspace = this.getEventWorkspace_();
+        if (this.ids) {
+          for (let i = 0; i < this.ids.length; i++) {
+            const block = workspace.getBlockById(this.ids[i]);
+            if (block) {
+              block.dispose(true); // heal=true: reconnect next block to parent
+            } else if (this.ids[i] === this.blockId) {
+              console.warn("Can't delete non-existent block: " + this.ids[i]);
+            }
+          }
+        }
+      } else {
+        // Undo: restore block from saved JSON (standard Blockly behaviour).
+        originalBlockDeleteRun.call(this, forward);
+      }
+    };
+  }
 
   // Initialize workspace search
   const workspaceSearch = new WorkspaceSearch(workspace);
