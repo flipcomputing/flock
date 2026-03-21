@@ -1336,7 +1336,7 @@ export const flockMaterial = {
         if (cacheKey && flock.materialCache[cacheKey]) {
           delete flock.materialCache[cacheKey];
         }
-        oldMat.dispose(true, true);
+        oldMat.dispose(false, true);
       }
     }
   },

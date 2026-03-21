@@ -215,7 +215,7 @@ export const flockScene = {
           flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         mesh.material = standardMat;
         if (oldMat && oldMat.name === "mapGradientMat") {
-          oldMat.dispose(true, true);
+          oldMat.dispose(false, true);
         }
       } else {
         flock.setMaterialWithCleanup(mesh, material);
