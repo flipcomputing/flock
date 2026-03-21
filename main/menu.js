@@ -52,7 +52,22 @@ class AccessibleFlyoutMenu {
         e.preventDefault();
         this.openMainMenu();
         this.focusFirstMenuItem();
+      } else if (e.key === "Tab" && this.isMenuOpen) {
+        this.closeAllMenus();
       }
+    });
+
+    this.menuDropdown.addEventListener("focusout", () => {
+      window.requestAnimationFrame(() => {
+        const activeElement = document.activeElement;
+        if (
+          this.isMenuOpen &&
+          activeElement !== this.menuButton &&
+          !this.menuDropdown.contains(activeElement)
+        ) {
+          this.closeAllMenus();
+        }
+      });
     });
 
     // Menu item events
@@ -260,6 +275,10 @@ class AccessibleFlyoutMenu {
         this.handleMenuItemClick(e, item);
         break;
 
+      case "Tab":
+        this.closeAllMenus();
+        break;
+
       case "Escape":
         this.closeAllMenus();
         this.menuButton.focus();
@@ -310,6 +329,10 @@ class AccessibleFlyoutMenu {
         e.preventDefault();
         e.stopPropagation();
         subItem.click();
+        break;
+
+      case "Tab":
+        this.closeAllMenus();
         break;
 
       case "Escape":
