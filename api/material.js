@@ -1089,6 +1089,8 @@ export const flockMaterial = {
       uniform sampler2D textureSampler;
       uniform vec3 lightColor;      // Replaces white
       uniform vec3 greyTintColor;   // Tints greys in proportion
+      uniform vec3 darkColor;       // Replaces black (when colorCount >= 3)
+      uniform int colorCount;
       uniform float alpha;
       uniform float uScale;         // Horizontal tiling
       uniform float vScale;         // Vertical tiling
@@ -1111,6 +1113,9 @@ export const flockMaterial = {
         if (brightness > 0.95 && colorDiff < 0.05) {
           // Replace near-white
           finalColor = lightColor;
+        } else if (colorCount >= 3 && brightness < 0.05 && colorDiff < 0.05) {
+          // Replace near-black (third color)
+          finalColor = darkColor;
         } else if (colorDiff < 0.05) {
           // Tint greys
           finalColor = brightness * greyTintColor;
@@ -1138,6 +1143,8 @@ export const flockMaterial = {
           "textureSampler",
           "lightColor",
           "greyTintColor",
+          "darkColor",
+          "colorCount",
           "alpha",
           "uScale",
           "vScale",
@@ -1185,6 +1192,19 @@ export const flockMaterial = {
         colorGrey.b / 255.0,
       ),
     );
+
+    const colorDark = colors.length >= 3
+      ? flock.hexToRgb(flock.getColorFromString(colors[2]))
+      : { r: 0, g: 0, b: 0 };
+    shaderMaterial.setVector3(
+      "darkColor",
+      new flock.BABYLON.Vector3(
+        colorDark.r / 255.0,
+        colorDark.g / 255.0,
+        colorDark.b / 255.0,
+      ),
+    );
+    shaderMaterial.setInt("colorCount", colors.length);
 
     shaderMaterial.setFloat("alpha", 1.0);
 
