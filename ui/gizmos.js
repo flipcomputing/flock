@@ -1000,6 +1000,8 @@ export function toggleGizmo(gizmoType) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
 
+        flock.updatePhysics(mesh);
+
         try {
           const ensureFreshBounds = (m) => {
             m.computeWorldMatrix(true);
