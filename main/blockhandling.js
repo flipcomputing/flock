@@ -3,6 +3,34 @@ import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
 import { blockHandlerRegistry } from "../blocks/blocks.js";
 
+function getSelectedBlockFromCursor(cursor) {
+  if (!cursor) {
+    return null;
+  }
+
+  if (typeof cursor.getSourceBlock === "function") {
+    const sourceBlock = cursor.getSourceBlock();
+    if (sourceBlock) {
+      return sourceBlock;
+    }
+  }
+
+  if (typeof cursor.getCurNode !== "function") {
+    return null;
+  }
+
+  const currentNode = cursor.getCurNode();
+  if (!currentNode) {
+    return null;
+  }
+
+  if (typeof currentNode.getSourceBlock === "function") {
+    return currentNode.getSourceBlock();
+  }
+
+  return currentNode.sourceBlock_ ?? null;
+}
+
 export function initializeBlockHandling() {
   observeBlocklyInputs();
 
@@ -190,18 +218,7 @@ export function initializeBlockHandling() {
       let selectedBlock = null;
 
       const cursor = workspace.getCursor();
-
-      if (cursor?.getCurNode()) {
-        const currentNode = cursor.getCurNode();
-        if (currentNode) {
-          const block = currentNode.getSourceBlock();
-          if (block) {
-            selectedBlock = block;
-          }
-        }
-      } else {
-        selectedBlock = window.currentBlock;
-      }
+      selectedBlock = getSelectedBlockFromCursor(cursor) || window.currentBlock;
 
       if (!selectedBlock) {
         return;
