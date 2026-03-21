@@ -418,16 +418,47 @@ export function updateToolboxTranslations() {
   }
 }
 
+function getSubmenuInitializationElements({
+  itemId,
+  submenuId,
+  optionSelector,
+  warningMessage,
+}) {
+  const menuItem = document.getElementById(itemId);
+  const submenu = document.getElementById(submenuId);
+
+  if (!menuItem || !submenu) {
+    console.warn(warningMessage);
+    return null;
+  }
+
+  const options = submenu.querySelectorAll(optionSelector);
+  if (!options.length) {
+    console.warn(warningMessage);
+    return null;
+  }
+
+  return { menuItem, submenu, options };
+}
+
 // Initialize language menu functionality
 export function initializeLanguageMenu() {
-  const languageMenuItem = document.getElementById("language-menu-item");
-  const languageSubmenu = document.getElementById("language-submenu");
-  const languageOptions = languageSubmenu.querySelectorAll("a[data-lang]");
+  const languageMenu = getSubmenuInitializationElements({
+    itemId: "language-menu-item",
+    submenuId: "language-submenu",
+    optionSelector: "a[data-lang]",
+    warningMessage: "Language menu elements not found",
+  });
 
-  if (!languageMenuItem || !languageSubmenu || !languageOptions.length) {
-    console.warn("Language menu elements not found");
+  if (!languageMenu) {
     return;
   }
+
+  const {
+    menuItem: languageMenuItem,
+    submenu: languageSubmenu,
+    options: languageOptions,
+  } = languageMenu;
 
   // Show/hide language submenu
   languageMenuItem.addEventListener("mouseenter", () => {
