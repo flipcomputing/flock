@@ -78,33 +78,6 @@ function initializeIfClauseConnectionChecker(workspace) {
   const originalDoTypeChecks =
     connectionChecker.doTypeChecks.bind(connectionChecker);
 
-  // Patch Block.prototype.unplugFromStack_ to set a workspace flag while the
-  // heal canConnect check runs.  Our doTypeChecks override reads this flag to
-  // bypass strict if_clause ordering rules for heal connections — the heal
-  // just reconnects whatever was below the deleted block; we shouldn't further
-  // restrict that reconnection beyond what normal type-checking allows.
-  if (
-    Blockly.Block?.prototype?.unplugFromStack_ &&
-    !Blockly.Block.prototype.unplugFromStack_._healFlagPatched
-  ) {
-    const originalUnplugFromStack =
-      Blockly.Block.prototype.unplugFromStack_;
-    const patched = function (healStack) {
-      if (healStack && this.workspace) {
-        this.workspace._isHealingStack = true;
-      }
-      try {
-        originalUnplugFromStack.call(this, healStack);
-      } finally {
-        if (this.workspace) {
-          this.workspace._isHealingStack = false;
-        }
-      }
-    };
-    patched._healFlagPatched = true;
-    Blockly.Block.prototype.unplugFromStack_ = patched;
-  }
-
   function isRealBlock(block) {
     return (
       !!block &&
@@ -178,15 +151,6 @@ function initializeIfClauseConnectionChecker(workspace) {
     // First do the standard type checking
     if (!originalDoTypeChecks(a, b)) {
       return false;
-    }
-
-    // During a heal (unplugFromStack_ reconnecting the block below the deleted
-    // block to the deleted block's parent) allow the connection regardless of
-    // if_clause ordering rules.  The heal just preserves whatever was already
-    // connected; the ordering rules should not veto that.
-    const ws = a.getSourceBlock()?.workspace;
-    if (ws?._isHealingStack) {
-      return true;
     }
 
     // Get the blocks involved
