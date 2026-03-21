@@ -51,6 +51,33 @@ function getSelectedBlockForKeywordShortcut() {
   );
 }
 
+function getViewportCenterCoordinates(activeWorkspace) {
+  const { left, top, width, height } = activeWorkspace
+    .getMetricsManager()
+    .getViewMetrics(true);
+
+  return new Blockly.utils.Coordinate(left + width / 2, top + height / 2);
+}
+
+function focusKeywordField(block) {
+  block.select();
+
+  const textInputField = block.getField("KEYWORD");
+  if (textInputField) {
+    textInputField.showEditor_();
+  }
+}
+
+function createKeywordBlockAtViewportCenter(blockType) {
+  const block = workspace.newBlock(blockType);
+  block.initSvg();
+  block.render();
+  block.moveTo(getViewportCenterCoordinates(workspace));
+  window.currentBlock = block;
+  focusKeywordField(block);
+  return block;
+}
+
 export function initializeBlockHandling() {
   observeBlocklyInputs();
 
@@ -205,30 +232,7 @@ export function initializeBlockHandling() {
     if (event.ctrlKey && event.key === ".") {
       event.preventDefault();
 
-      const workspace = Blockly.getMainWorkspace();
-
-      // Create the placeholder block at the computed position
-      const placeholderBlock = workspace.newBlock("keyword_block");
-
-      let workspaceCoordinates = workspace
-        .getMetricsManager()
-        .getViewMetrics(true);
-      let posx = workspaceCoordinates.left + workspaceCoordinates.width / 2;
-      let posy = workspaceCoordinates.top + workspaceCoordinates.height / 2;
-      let blockCoordinates = new Blockly.utils.Coordinate(posx, posy);
-
-      placeholderBlock.initSvg();
-      placeholderBlock.render();
-      placeholderBlock.moveTo(blockCoordinates);
-
-      // Select the block for immediate editing
-      placeholderBlock.select();
-
-      // Automatically focus on the text input field
-      const textInputField = placeholderBlock.getField("KEYWORD");
-      if (textInputField) {
-        textInputField.showEditor_();
-      }
+      createKeywordBlockAtViewportCenter("keyword_block");
     }
   });
 
@@ -239,6 +243,7 @@ export function initializeBlockHandling() {
       event.preventDefault();
 
       if (!selectedBlock) {
+        createKeywordBlockAtViewportCenter("keyword");
         return;
       }
 
@@ -269,15 +274,9 @@ export function initializeBlockHandling() {
       // Update our tracking variable to the new block
       window.currentBlock = keywordBlock;
 
-      // Try to select it in Blockly too
-      keywordBlock.select();
-
       // Open the editor with a delay
       setTimeout(() => {
-        const textInputField = keywordBlock.getField("KEYWORD");
-        if (textInputField) {
-          textInputField.showEditor_();
-        }
+        focusKeywordField(keywordBlock);
       }, 100);
     }
 
