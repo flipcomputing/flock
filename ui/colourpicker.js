@@ -94,9 +94,10 @@ class CustomColorPicker {
       }
 
       event.preventDefault();
-      event.stopPropagation();
+      event.stopImmediatePropagation();
       this.close();
-      document.getElementById("colorPickerButton")?.focus();
+      const colorPickerButton = document.getElementById("colorPickerButton");
+      colorPickerButton?.focus();
     };
 
     // Eyedropper state
