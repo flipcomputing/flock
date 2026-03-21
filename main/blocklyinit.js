@@ -78,6 +78,33 @@ function initializeIfClauseConnectionChecker(workspace) {
   const originalDoTypeChecks =
     connectionChecker.doTypeChecks.bind(connectionChecker);
 
+  // Patch Block.prototype.unplugFromStack_ to set a workspace flag while the
+  // heal canConnect check runs.  Our doTypeChecks override reads this flag to
+  // bypass strict if_clause ordering rules for heal connections — the heal
+  // just reconnects whatever was below the deleted block; we shouldn't further
+  // restrict that reconnection beyond what normal type-checking allows.
+  if (
+    Blockly.Block?.prototype?.unplugFromStack_ &&
+    !Blockly.Block.prototype.unplugFromStack_._healFlagPatched
+  ) {
+    const originalUnplugFromStack =
+      Blockly.Block.prototype.unplugFromStack_;
+    const patched = function (healStack) {
+      if (healStack && this.workspace) {
+        this.workspace._isHealingStack = true;
+      }
+      try {
+        originalUnplugFromStack.call(this, healStack);
+      } finally {
+        if (this.workspace) {
+          this.workspace._isHealingStack = false;
+        }
+      }
+    };
+    patched._healFlagPatched = true;
+    Blockly.Block.prototype.unplugFromStack_ = patched;
+  }
+
   function isRealBlock(block) {
     return (
       !!block &&
@@ -151,6 +178,15 @@ function initializeIfClauseConnectionChecker(workspace) {
     // First do the standard type checking
     if (!originalDoTypeChecks(a, b)) {
       return false;
+    }
+
+    // During a heal (unplugFromStack_ reconnecting the block below the deleted
+    // block to the deleted block's parent) allow the connection regardless of
+    // if_clause ordering rules.  The heal just preserves whatever was already
+    // connected; the ordering rules should not veto that.
+    const ws = a.getSourceBlock()?.workspace;
+    if (ws?._isHealingStack) {
+      return true;
     }
 
     // Get the blocks involved
@@ -530,6 +566,36 @@ export function initializeWorkspace() {
     // Otherwise, do normal scrolling
     originalScrollBoundsIntoView.call(this, bounds);
   };
+
+  // Patch BlockDelete.run so that redo (forward=true) heals the stack just
+  // like the original dispose call did.  Without this, BlockDelete.run(true)
+  // calls dispose(false) which skips healing and can leave the block below the
+  // deleted block orphaned when the BLOCK_MOVE heal event is later replayed
+  // through canConnect and our custom checker rejects the reconnection.
+  const BlockDeleteClass = Blockly.Events.BlockDelete;
+  if (BlockDeleteClass) {
+    const originalBlockDeleteRun = BlockDeleteClass.prototype.run;
+    BlockDeleteClass.prototype.run = function (forward) {
+      if (forward) {
+        // Redo: delete the block(s) WITH stack healing so that the block
+        // below the deleted block is reconnected rather than orphaned.
+        const workspace = this.getEventWorkspace_();
+        if (this.ids) {
+          for (let i = 0; i < this.ids.length; i++) {
+            const block = workspace.getBlockById(this.ids[i]);
+            if (block) {
+              block.dispose(true); // heal=true: reconnect next block to parent
+            } else if (this.ids[i] === this.blockId) {
+              console.warn("Can't delete non-existent block: " + this.ids[i]);
+            }
+          }
+        }
+      } else {
+        // Undo: restore block from saved JSON (standard Blockly behaviour).
+        originalBlockDeleteRun.call(this, forward);
+      }
+    };
+  }
 
   // Initialize workspace search
   const workspaceSearch = new WorkspaceSearch(workspace);
