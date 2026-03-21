@@ -59,8 +59,21 @@ function getViewportCenterCoordinates(activeWorkspace) {
   return new Blockly.utils.Coordinate(left + width / 2, top + height / 2);
 }
 
-function focusKeywordField(block) {
+function focusBlocklyBlock(block) {
+  const previouslySelected = Blockly.common?.getSelected?.();
+  if (previouslySelected && previouslySelected !== block) {
+    previouslySelected.unselect?.();
+  }
+
   block.select();
+  workspace.getCursor?.()?.setCurNode?.(block);
+
+  const svgRoot = block.getSvgRoot?.();
+  svgRoot?.focus?.({ preventScroll: true });
+}
+
+function focusKeywordField(block) {
+  focusBlocklyBlock(block);
 
   const textInputField = block.getField("KEYWORD");
   if (textInputField) {
