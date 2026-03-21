@@ -780,7 +780,10 @@ function updateMapFromBlock(mesh, block, changeEvent) {
   const { textureSet, alpha } = extractMaterialInfo(materialBlock);
   let read = readColourFromInputOrShadow(materialBlock, "BASE_COLOR");
 
-  if (read.value == null && !block.__mapRetry) {
+  const colorIsEmpty =
+    read.value == null ||
+    (Array.isArray(read.value) && read.value.length === 0);
+  if (colorIsEmpty && !block.__mapRetry) {
     block.__mapRetry = true;
     requestAnimationFrame(() => {
       block.__mapRetry = false;
