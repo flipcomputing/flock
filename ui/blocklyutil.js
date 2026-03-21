@@ -405,7 +405,7 @@ export function duplicateBlockAndInsert(
 export function findParentWithBlockId(mesh) {
   let currentNode = mesh;
   while (currentNode) {
-    if (currentNode.metadata.blockKey !== undefined) {
+    if (currentNode.metadata?.blockKey !== undefined) {
       return currentNode;
     }
     currentNode = currentNode.parent;

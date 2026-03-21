@@ -1287,11 +1287,11 @@ export const flockAnimate = {
     requestCounter,
   ) {
     // Verify this is still the current request
-    if (mesh.metadata.requestCounter !== requestCounter) {
+    if (mesh.metadata?.requestCounter !== requestCounter) {
       return; // Newer request superseded this one
     }
 
-    if (mesh.metadata.requestedAnimationName !== animationName) {
+    if (mesh.metadata?.requestedAnimationName !== animationName) {
       return; // Different animation now requested
     }
 
@@ -1571,7 +1571,7 @@ export const flockAnimate = {
     restart = false,
     play = true,
   ) {
-    const modelName = meshOrGroup.metadata.modelName;
+    const modelName = meshOrGroup.metadata?.modelName;
 
     if (modelAnimationNames.includes(modelName)) {
       return flock._switchToAnimationModel(
