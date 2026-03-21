@@ -785,7 +785,9 @@ function updateMapFromBlock(mesh, block, changeEvent) {
   if (isMaterialBlock) {
     const { textureSet, alpha } = extractMaterialInfo(materialBlock);
     read = readColourFromInputOrShadow(materialBlock, "BASE_COLOR");
-    mapArg = { color: read.value, materialName: textureSet, alpha };
+    const materialName =
+      !textureSet || textureSet === "NONE" ? "none.png" : textureSet;
+    mapArg = { color: read.value, materialName, alpha };
   } else {
     read = readColourValue(materialBlock);
     mapArg = read.value;
@@ -794,14 +796,18 @@ function updateMapFromBlock(mesh, block, changeEvent) {
   const colorIsEmpty =
     read.value == null ||
     (Array.isArray(read.value) && read.value.length === 0);
-  if (colorIsEmpty && !block.__mapRetry) {
-    block.__mapRetry = true;
-    requestAnimationFrame(() => {
-      block.__mapRetry = false;
-      updateMapFromBlock(mesh, block, changeEvent);
-    });
+  if (colorIsEmpty) {
+    // Retry once — mutator operations briefly leave the colour list empty.
+    // If still empty after the retry, bail silently to avoid an infinite loop.
+    const wasRetrying = block.__mapRetry;
+    block.__mapRetry = false;
+    if (!wasRetrying) {
+      block.__mapRetry = true;
+      requestAnimationFrame(() => updateMapFromBlock(mesh, block, changeEvent));
+    }
     return;
   }
+  block.__mapRetry = false;
 
   flock.createMap(mapName, mapArg);
 }

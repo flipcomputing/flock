@@ -235,6 +235,7 @@ export const flockScene = {
           existingMat.topColor = flock.BABYLON.Color3.FromHexString(
             flock.getColorFromString(colors[1]),
           );
+          existingMat.alpha = parseFloat(mat.alpha ?? 1);
           const oldKey = existingMat.metadata?.cacheKey;
           if (oldKey) delete flock.materialCache[oldKey];
           const alphaKey = parseFloat(mat.alpha ?? 1).toFixed(2);
