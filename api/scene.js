@@ -218,8 +218,7 @@ export const flockScene = {
           oldMat.dispose(false, true);
         }
       } else {
-        // For descriptors with multiple colors + flat texture, update an existing
-        // GradientMaterial in-place to avoid shader recompilation ("black and red" flash).
+        // Update an existing GradientMaterial in-place to avoid shader recompilation.
         const colors =
           mat && typeof mat === "object" && Array.isArray(mat.color)
             ? mat.color
@@ -236,7 +235,6 @@ export const flockScene = {
           existingMat.topColor = flock.BABYLON.Color3.FromHexString(
             flock.getColorFromString(colors[1]),
           );
-          // Re-key the material cache to reflect the new colors.
           const oldKey = existingMat.metadata?.cacheKey;
           if (oldKey) delete flock.materialCache[oldKey];
           const alphaKey = parseFloat(mat.alpha ?? 1).toFixed(2);

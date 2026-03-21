@@ -777,49 +777,33 @@ function updateMapFromBlock(mesh, block, changeEvent) {
 
   if (!materialBlock) return;
 
-  // A raw colour or list block may be connected directly to MATERIAL (not via a
-  // material block).  In that case there is no BASE_COLOR sub-input to read, so
-  // call readColourValue on the block itself.  Pass the raw value straight to
-  // createMap so it follows the same code path as the generated JS (which also
-  // passes the raw array / colour string).
+  // A raw colour/list block may be connected directly to MATERIAL (not via a
+  // material block), so dispatch on block type and pass the raw value straight
+  // to createMap to match the generated-JS code path.
   const isMaterialBlock = materialBlock.type === "material";
-  let read;
+  let read, mapArg;
   if (isMaterialBlock) {
     const { textureSet, alpha } = extractMaterialInfo(materialBlock);
     read = readColourFromInputOrShadow(materialBlock, "BASE_COLOR");
-
-    const colorIsEmpty =
-      read.value == null ||
-      (Array.isArray(read.value) && read.value.length === 0);
-    if (colorIsEmpty && !block.__mapRetry) {
-      block.__mapRetry = true;
-      requestAnimationFrame(() => {
-        block.__mapRetry = false;
-        updateMapFromBlock(mesh, block, changeEvent);
-      });
-      return;
-    }
-
-    flock.createMap(mapName, { color: read.value, materialName: textureSet, alpha });
+    mapArg = { color: read.value, materialName: textureSet, alpha };
   } else {
     read = readColourValue(materialBlock);
-
-    const colorIsEmpty =
-      read.value == null ||
-      (Array.isArray(read.value) && read.value.length === 0);
-    if (colorIsEmpty && !block.__mapRetry) {
-      block.__mapRetry = true;
-      requestAnimationFrame(() => {
-        block.__mapRetry = false;
-        updateMapFromBlock(mesh, block, changeEvent);
-      });
-      return;
-    }
-
-    // Pass the raw value (array or string) directly, matching what the code
-    // generator outputs for a colour/list block wired to MATERIAL.
-    flock.createMap(mapName, read.value);
+    mapArg = read.value;
   }
+
+  const colorIsEmpty =
+    read.value == null ||
+    (Array.isArray(read.value) && read.value.length === 0);
+  if (colorIsEmpty && !block.__mapRetry) {
+    block.__mapRetry = true;
+    requestAnimationFrame(() => {
+      block.__mapRetry = false;
+      updateMapFromBlock(mesh, block, changeEvent);
+    });
+    return;
+  }
+
+  flock.createMap(mapName, mapArg);
 }
 
 function resolveColorAndMaterialForBlock(block) {
