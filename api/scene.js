@@ -243,7 +243,8 @@ export const flockScene = {
         });
         standardMat.diffuseTexture = dt;
         if (mat && typeof mat === "object" && mat.alpha !== undefined) {
-          standardMat.alpha = parseFloat(mat.alpha);
+          const parsedAlpha = parseFloat(mat.alpha);
+          if (Number.isFinite(parsedAlpha)) standardMat.alpha = parsedAlpha;
         }
         standardMat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
         standardMat.diffuseTexture.wrapU =
@@ -502,7 +503,7 @@ export const flockScene = {
 
     if (mesh.name === "ground") {
       if (mesh.material && !mesh.material.metadata?.isManaged) {
-        mesh.material.dispose();
+        mesh.material.dispose(true, true);
       }
       mesh.dispose();
       flock.ground = null;
