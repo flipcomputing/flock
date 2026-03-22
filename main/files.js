@@ -775,10 +775,20 @@ export function setupDragAndDrop(workspace, executeCallback) {
   document.body.appendChild(overlay);
 
   let dragCounter = 0;
+  let isDraggingFromPage = false;
+
+  document.addEventListener("dragstart", () => {
+    isDraggingFromPage = true;
+  });
+  document.addEventListener("dragend", () => {
+    isDraggingFromPage = false;
+  });
 
   function isFileDrag(e) {
-    return Array.from(e.dataTransfer?.items || []).some(
-      (item) => item.kind === "file"
+    if (isDraggingFromPage) return false;
+    return (
+      e.dataTransfer?.types &&
+      Array.from(e.dataTransfer.types).includes("Files")
     );
   }
 
