@@ -272,11 +272,7 @@ export const flockScene = {
       } else {
         // Re-scale UVs for tiled textures in case they were previously
         // normalised for a gradient (switching back from gradient to texture).
-        const needsTiling =
-          mat &&
-          typeof mat === "object" &&
-          mat.materialName &&
-          mat.materialName !== "none.png";
+        const needsTiling = !(mat instanceof flock.GradientMaterial);
         if (needsTiling) {
           const positions = mesh.getVerticesData(
             flock.BABYLON.VertexBuffer.PositionKind,
@@ -505,6 +501,9 @@ export const flockScene = {
     if (!mesh) return;
 
     if (mesh.name === "ground") {
+      if (mesh.material && !mesh.material.metadata?.isManaged) {
+        mesh.material.dispose();
+      }
       mesh.dispose();
       flock.ground = null;
       return;
