@@ -282,7 +282,7 @@ export function defineModelBlocks() {
               const baseName = name.replace(/\.[^/.]+$/, "");
               return [
                 {
-                  src: `${flock.imagePath}/${baseName}.png`,
+                  src: `${flock.imagePath}${baseName}.png`,
                   width: 50,
                   height: 50,
                   alt: baseName,
