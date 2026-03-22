@@ -250,8 +250,9 @@ export default {
     // Copy demo files and generate Cloudflare Pages _headers
     {
       name: "copy-library-files",
-      writeBundle() {
-        copyFileSync("cubeart.html", "dist/cubeart.html");
+      writeBundle(options) {
+        const outDir = options.dir ?? "dist";
+        copyFileSync("cubeart.html", resolve(outDir, "cubeart.html"));
 
         // Generate _headers for Cloudflare Pages (and any static host that supports it).
         // The Vite dev/preview server sets these headers directly; the _headers file
@@ -264,7 +265,7 @@ export default {
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), payment=(), usb=(), gamepad=(self)
 `;
-        writeFileSync("dist/_headers", headersContent);
+        writeFileSync(resolve(outDir, "_headers"), headersContent);
       },
     },
   ],
