@@ -215,6 +215,23 @@ export const flockScene = {
             : null;
 
       if (colorList) {
+        // Normalise UVs to 0–1 so the gradient texture fills the mesh
+        // regardless of whether UVs were previously scaled for tiling.
+        const positions = mesh.getVerticesData(
+          flock.BABYLON.VertexBuffer.PositionKind,
+        );
+        if (positions) {
+          const { minimum, maximum } = mesh.getBoundingInfo();
+          const rangeX = maximum.x - minimum.x || 1;
+          const rangeZ = maximum.z - minimum.z || 1;
+          const uvs = new Float32Array((positions.length / 3) * 2);
+          for (let i = 0, ui = 0; i < positions.length; i += 3, ui += 2) {
+            uvs[ui] = (positions[i] - minimum.x) / rangeX;
+            uvs[ui + 1] = (positions[i + 2] - minimum.z) / rangeZ;
+          }
+          mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
+        }
+
         const oldMat = mesh.material;
         const standardMat = new flock.BABYLON.StandardMaterial(
           "mapGradientMat",
@@ -238,6 +255,28 @@ export const flockScene = {
           oldMat.dispose(false, true);
         }
       } else {
+        // Re-scale UVs for tiled textures in case they were previously
+        // normalised for a gradient (switching back from gradient to texture).
+        const needsTiling =
+          material &&
+          typeof material === "object" &&
+          material.materialName &&
+          material.materialName !== "none.png";
+        if (needsTiling) {
+          const positions = mesh.getVerticesData(
+            flock.BABYLON.VertexBuffer.PositionKind,
+          );
+          if (positions) {
+            const { minimum } = mesh.getBoundingInfo();
+            const uvs = new Float32Array((positions.length / 3) * 2);
+            for (let i = 0, ui = 0; i < positions.length; i += 3, ui += 2) {
+              uvs[ui] = (positions[i] - minimum.x) / mapTexturePhysicalSize;
+              uvs[ui + 1] =
+                (positions[i + 2] - minimum.z) / mapTexturePhysicalSize;
+            }
+            mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
+          }
+        }
         flock.setMaterialWithCleanup(mesh, material);
       }
     };
