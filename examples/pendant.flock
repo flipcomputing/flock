@@ -116,7 +116,7 @@
                                   "id": "!7Ut_G~(,`(?/K?+Eo0k",
                                   "fields": {
                                     "CONTROL": "BOTH",
-                                    "ENABLED": false
+                                    "ENABLED": "DISABLED"
                                   },
                                   "inputs": {
                                     "COLOR": {
