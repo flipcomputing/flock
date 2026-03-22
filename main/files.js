@@ -777,9 +777,8 @@ export function setupDragAndDrop(workspace, executeCallback) {
   let dragCounter = 0;
 
   function isFileDrag(e) {
-    return (
-      e.dataTransfer?.types &&
-      Array.from(e.dataTransfer.types).includes("Files")
+    return Array.from(e.dataTransfer?.items || []).some(
+      (item) => item.kind === "file"
     );
   }
 
