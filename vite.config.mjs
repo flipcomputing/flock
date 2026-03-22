@@ -247,11 +247,25 @@ export default {
       },
     },
 
-    // Copy demo files
+    // Copy demo files and generate Cloudflare Pages _headers
     {
       name: "copy-library-files",
-      writeBundle() {
-        copyFileSync("cubeart.html", "dist/cubeart.html");
+      writeBundle(options) {
+        const outDir = options.dir ?? "dist";
+        copyFileSync("cubeart.html", resolve(outDir, "cubeart.html"));
+
+        // Generate _headers for Cloudflare Pages (and any static host that supports it).
+        // The Vite dev/preview server sets these headers directly; the _headers file
+        // ensures the same headers are served in production.
+        // Note: frame-ancestors is only enforced via HTTP headers, not CSP meta tags.
+        const headersContent = `/*
+  Content-Security-Policy: ${CSP_HEADER_POLICY}
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), payment=(), usb=(), gamepad=(self)
+`;
+        writeFileSync(resolve(outDir, "_headers"), headersContent);
       },
     },
   ],
