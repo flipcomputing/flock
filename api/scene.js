@@ -251,17 +251,32 @@ export const flockScene = {
         standardMat.diffuseTexture.wrapV =
           flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         mesh.material = standardMat;
-        if (oldMat && oldMat.name === "mapGradientMat") {
-          oldMat.dispose(false, true);
+        // Clean up the displaced material, respecting the managed-material
+        // lifecycle used by setMaterialWithCleanup for non-gradient materials.
+        if (oldMat && oldMat !== standardMat) {
+          if (oldMat.metadata?.isManaged) {
+            const isStillInUse = flock.scene.meshes.some(
+              (m) => m !== mesh && !m.isDisposed() && m.material === oldMat,
+            );
+            if (!isStillInUse) {
+              const cacheKey = oldMat.metadata.cacheKey;
+              if (cacheKey && flock.materialCache[cacheKey]) {
+                delete flock.materialCache[cacheKey];
+              }
+              oldMat.dispose(false, true);
+            }
+          } else if (oldMat.name === "mapGradientMat") {
+            oldMat.dispose(false, true);
+          }
         }
       } else {
         // Re-scale UVs for tiled textures in case they were previously
         // normalised for a gradient (switching back from gradient to texture).
         const needsTiling =
-          material &&
-          typeof material === "object" &&
-          material.materialName &&
-          material.materialName !== "none.png";
+          mat &&
+          typeof mat === "object" &&
+          mat.materialName &&
+          mat.materialName !== "none.png";
         if (needsTiling) {
           const positions = mesh.getVerticesData(
             flock.BABYLON.VertexBuffer.PositionKind,
@@ -277,7 +292,7 @@ export const flockScene = {
             mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
           }
         }
-        flock.setMaterialWithCleanup(mesh, material);
+        flock.setMaterialWithCleanup(mesh, mat);
       }
     };
 
