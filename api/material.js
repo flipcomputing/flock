@@ -142,11 +142,12 @@ export const flockMaterial = {
   },
   glow(meshName, { color } = {}) {
     if (flock.materialsDebug) console.log(`Making ${meshName} glow`);
-    // Ensure the glow layer is initialised and only affects explicitly
-    // included meshes.
     if (!flock.glowLayer) {
       flock.glowLayer = new flock.BABYLON.GlowLayer("glowLayer", flock.scene);
       flock.glowLayer.intensity = 0.5;
+      if (flock.sky) {
+        flock.glowLayer.addExcludedMesh(flock.sky);
+      }
     }
 
     return new Promise((resolve) => {
@@ -165,10 +166,6 @@ export const flockMaterial = {
     const applyGlow = (m) => {
       m.metadata = m.metadata || {};
       m.metadata.glow = true;
-
-      if (flock.glowLayer) {
-        flock.glowLayer.addIncludedOnlyMesh(m);
-      }
 
       if (m.material) {
         const currentMat = m.material;
@@ -280,13 +277,10 @@ export const flockMaterial = {
           targetMesh.metadata.glow = false;
 
           if (flock.glowLayer) {
-            flock.glowLayer.removeIncludedOnlyMesh(targetMesh);
-
-            const hasIncludedMeshes =
-              flock.glowLayer.includedOnlyMeshes &&
-              flock.glowLayer.includedOnlyMeshes.length > 0;
-
-            if (!hasIncludedMeshes) {
+            const anyGlowing = flock.scene.meshes.some(
+              (m) => m !== targetMesh && m.metadata?.glow,
+            );
+            if (!anyGlowing) {
               flock.glowLayer.dispose();
               flock.glowLayer = null;
             }

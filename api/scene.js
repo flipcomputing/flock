@@ -60,6 +60,7 @@ export const flockScene = {
     if (color && color instanceof flock.BABYLON.Material) {
       const skySphere = createSkySphere();
       flock.sky = skySphere;
+      if (flock.glowLayer) flock.glowLayer.addExcludedMesh(flock.sky);
 
       const isShader = typeof color.setFloat === "function";
       const tex =
@@ -90,6 +91,7 @@ export const flockScene = {
     if (Array.isArray(color) && color.length >= 2) {
       const skySphere = createSkySphere();
       flock.sky = skySphere;
+      if (flock.glowLayer) flock.glowLayer.addExcludedMesh(flock.sky);
 
       if (color.length === 2) {
         const mat = new flock.GradientMaterial("skyGradient", flock.scene);
@@ -128,6 +130,7 @@ export const flockScene = {
       );
       const skySphere = createSkySphere();
       flock.sky = skySphere;
+      if (flock.glowLayer) flock.glowLayer.addExcludedMesh(flock.sky);
 
       const skyMat = new flock.BABYLON.StandardMaterial(
         "skyMaterial",
