@@ -200,17 +200,34 @@ export const flockScene = {
 
     const applyMaterialToGround = (mesh, mat) => {
       if (Array.isArray(mat) && mat.length === 1) mat = mat[0];
-      if (Array.isArray(mat) && mat.length >= 2) {
+
+      // Resolve a color list from either a plain array or a material object with
+      // none.png texture and an array of colors.
+      const colorList =
+        Array.isArray(mat) && mat.length >= 2
+          ? mat
+          : mat &&
+              typeof mat === "object" &&
+              Array.isArray(mat.color) &&
+              mat.color.length >= 2 &&
+              (mat.materialName === "none.png" || !mat.materialName)
+            ? mat.color
+            : null;
+
+      if (colorList) {
         const oldMat = mesh.material;
         const standardMat = new flock.BABYLON.StandardMaterial(
           "mapGradientMat",
           flock.scene,
         );
-        const dt = flock.createLinearGradientTexture(mat, {
+        const dt = flock.createLinearGradientTexture(colorList, {
           size: 1024,
           horizontal: false,
         });
         standardMat.diffuseTexture = dt;
+        if (mat && typeof mat === "object" && mat.alpha !== undefined) {
+          standardMat.alpha = parseFloat(mat.alpha);
+        }
         standardMat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
         standardMat.diffuseTexture.wrapU =
           flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
@@ -221,35 +238,7 @@ export const flockScene = {
           oldMat.dispose(false, true);
         }
       } else {
-        // Update an existing GradientMaterial in-place to avoid shader recompilation.
-        const colors =
-          mat && typeof mat === "object" && Array.isArray(mat.color)
-            ? mat.color
-            : null;
-        if (
-          colors?.length >= 2 &&
-          (mat.materialName === "none.png" || !mat.materialName) &&
-          mesh.material instanceof flock.GradientMaterial
-        ) {
-          const existingMat = mesh.material;
-          existingMat.bottomColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(colors[0]),
-          );
-          existingMat.topColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(colors[1]),
-          );
-          existingMat.alpha = parseFloat(mat.alpha ?? 1);
-          const oldKey = existingMat.metadata?.cacheKey;
-          if (oldKey) delete flock.materialCache[oldKey];
-          const alphaKey = parseFloat(mat.alpha ?? 1).toFixed(2);
-          const newKey =
-            `mat_${colors.join("-")}_${alphaKey}_${mat.materialName ?? "none.png"}_noglow`.toLowerCase();
-          existingMat.name = newKey;
-          if (existingMat.metadata) existingMat.metadata.cacheKey = newKey;
-          flock.materialCache[newKey] = existingMat;
-        } else {
-          flock.setMaterialWithCleanup(mesh, material);
-        }
+        flock.setMaterialWithCleanup(mesh, material);
       }
     };
 
@@ -276,8 +265,16 @@ export const flockScene = {
       mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
     };
 
+    const isMaterialColorList =
+      material &&
+      typeof material === "object" &&
+      !Array.isArray(material) &&
+      Array.isArray(material.color) &&
+      material.color.length >= 2 &&
+      (material.materialName === "none.png" || !material.materialName);
     const shouldScaleUVs =
       !(Array.isArray(material) && material.length >= 2) &&
+      !isMaterialColorList &&
       !(material instanceof flock.GradientMaterial);
 
     let ground;
