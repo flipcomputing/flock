@@ -6,7 +6,7 @@
         "type": "procedures_defnoreturn",
         "id": "%6CG-tkp5Z0nX(~e6^Z5",
         "x": 10,
-        "y": 1570,
+        "y": 1752,
         "extraState": {
           "params": [
             {
@@ -1440,7 +1440,7 @@
             "block": {
               "type": "load_character",
               "id": "?QNwo%JfFH4ReJd^g9j5",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"true\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": "{?OSO?CbNQqn6M#)_-vP"
@@ -1537,6 +1537,72 @@
                       "COLOR": "#ff6600"
                     }
                   }
+                },
+                "DO": {
+                  "block": {
+                    "type": "switch_animation",
+                    "id": "E%-)(.Gf5Lfy9:ZvdaX[",
+                    "fields": {
+                      "MODEL": {
+                        "id": "{?OSO?CbNQqn6M#)_-vP"
+                      }
+                    },
+                    "inputs": {
+                      "ANIMATION_NAME": {
+                        "shadow": {
+                          "type": "animation_name",
+                          "id": "J5?C9/8b/ERhIhl{|HZD",
+                          "fields": {
+                            "ANIMATION_NAME": "Fall"
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "switch_animation",
+                        "id": "q?{iom1/vDBXN~Zy(:!l",
+                        "fields": {
+                          "MODEL": {
+                            "id": "{?OSO?CbNQqn6M#)_-vP"
+                          }
+                        },
+                        "inputs": {
+                          "ANIMATION_NAME": {
+                            "shadow": {
+                              "type": "animation_name",
+                              "id": "vbt~ReGGtADC$qq_6#Mi",
+                              "fields": {
+                                "ANIMATION_NAME": "Run"
+                              }
+                            }
+                          }
+                        },
+                        "next": {
+                          "block": {
+                            "type": "switch_animation",
+                            "id": "$dQ7pubmOPvps5k~f140",
+                            "fields": {
+                              "MODEL": {
+                                "id": "{?OSO?CbNQqn6M#)_-vP"
+                              }
+                            },
+                            "inputs": {
+                              "ANIMATION_NAME": {
+                                "shadow": {
+                                  "type": "animation_name",
+                                  "id": "xbaMp6**gGq5wAd=BOoa",
+                                  "fields": {
+                                    "ANIMATION_NAME": "Idle"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               },
               "next": {
@@ -1604,7 +1670,7 @@
         "type": "start",
         "id": "/#J`?-.g=CCgmamcBCrk",
         "x": 10,
-        "y": 1234,
+        "y": 1416,
         "inputs": {
           "DO": {
             "block": {
@@ -1636,7 +1702,7 @@
         "type": "procedures_defnoreturn",
         "id": "[X?U)b{G)yd?8z-p(,tE",
         "x": 10,
-        "y": 3100,
+        "y": 3282,
         "fields": {
           "NAME": "candy"
         },
@@ -2952,7 +3018,7 @@
         "type": "start",
         "id": "}8B%x5IAHe;v9S:*]B!B",
         "x": 10,
-        "y": 1402,
+        "y": 1584,
         "inputs": {
           "DO": {
             "block": {
@@ -2969,7 +3035,7 @@
         "type": "start",
         "id": "I{qTHiAq|G(by?rggdUq",
         "x": 10,
-        "y": 5360,
+        "y": 5542,
         "inputs": {
           "DO": {
             "block": {
@@ -3569,7 +3635,7 @@
         "type": "forever",
         "id": "$$i@z!T[?b%=ld;r4{i_",
         "x": 10,
-        "y": 6372,
+        "y": 6554,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
