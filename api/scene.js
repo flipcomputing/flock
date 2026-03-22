@@ -200,56 +200,96 @@ export const flockScene = {
 
     const applyMaterialToGround = (mesh, mat) => {
       if (Array.isArray(mat) && mat.length === 1) mat = mat[0];
-      if (Array.isArray(mat) && mat.length >= 2) {
+
+      // Resolve a color list from either a plain array or a material object with
+      // none.png texture and an array of colors.
+      const colorList =
+        Array.isArray(mat) && mat.length >= 2
+          ? mat
+          : mat &&
+              typeof mat === "object" &&
+              Array.isArray(mat.color) &&
+              mat.color.length >= 2 &&
+              (mat.materialName === "none.png" || !mat.materialName)
+            ? mat.color
+            : null;
+
+      if (colorList) {
+        // Normalise UVs to 0–1 so the gradient texture fills the mesh
+        // regardless of whether UVs were previously scaled for tiling.
+        const positions = mesh.getVerticesData(
+          flock.BABYLON.VertexBuffer.PositionKind,
+        );
+        if (positions) {
+          const { minimum, maximum } = mesh.getBoundingInfo();
+          const rangeX = maximum.x - minimum.x || 1;
+          const rangeZ = maximum.z - minimum.z || 1;
+          const uvs = new Float32Array((positions.length / 3) * 2);
+          for (let i = 0, ui = 0; i < positions.length; i += 3, ui += 2) {
+            uvs[ui] = (positions[i] - minimum.x) / rangeX;
+            uvs[ui + 1] = (positions[i + 2] - minimum.z) / rangeZ;
+          }
+          mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
+        }
+
         const oldMat = mesh.material;
         const standardMat = new flock.BABYLON.StandardMaterial(
           "mapGradientMat",
           flock.scene,
         );
-        const dt = flock.createLinearGradientTexture(mat, {
+        const dt = flock.createLinearGradientTexture(colorList, {
           size: 1024,
           horizontal: false,
         });
         standardMat.diffuseTexture = dt;
+        if (mat && typeof mat === "object" && mat.alpha !== undefined) {
+          const parsedAlpha = parseFloat(mat.alpha);
+          if (Number.isFinite(parsedAlpha)) standardMat.alpha = parsedAlpha;
+        }
         standardMat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
         standardMat.diffuseTexture.wrapU =
           flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         standardMat.diffuseTexture.wrapV =
           flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         mesh.material = standardMat;
-        if (oldMat && oldMat.name === "mapGradientMat") {
-          oldMat.dispose(false, true);
+        // Clean up the displaced material, respecting the managed-material
+        // lifecycle used by setMaterialWithCleanup for non-gradient materials.
+        if (oldMat && oldMat !== standardMat) {
+          if (oldMat.metadata?.isManaged) {
+            const isStillInUse = flock.scene.meshes.some(
+              (m) => m !== mesh && !m.isDisposed() && m.material === oldMat,
+            );
+            if (!isStillInUse) {
+              const cacheKey = oldMat.metadata.cacheKey;
+              if (cacheKey && flock.materialCache[cacheKey]) {
+                delete flock.materialCache[cacheKey];
+              }
+              oldMat.dispose(false, true);
+            }
+          } else if (oldMat.name === "mapGradientMat") {
+            oldMat.dispose(false, true);
+          }
         }
       } else {
-        // Update an existing GradientMaterial in-place to avoid shader recompilation.
-        const colors =
-          mat && typeof mat === "object" && Array.isArray(mat.color)
-            ? mat.color
-            : null;
-        if (
-          colors?.length >= 2 &&
-          (mat.materialName === "none.png" || !mat.materialName) &&
-          mesh.material instanceof flock.GradientMaterial
-        ) {
-          const existingMat = mesh.material;
-          existingMat.bottomColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(colors[0]),
+        // Re-scale UVs for tiled textures in case they were previously
+        // normalised for a gradient (switching back from gradient to texture).
+        const needsTiling = !(mat instanceof flock.GradientMaterial);
+        if (needsTiling) {
+          const positions = mesh.getVerticesData(
+            flock.BABYLON.VertexBuffer.PositionKind,
           );
-          existingMat.topColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(colors[1]),
-          );
-          existingMat.alpha = parseFloat(mat.alpha ?? 1);
-          const oldKey = existingMat.metadata?.cacheKey;
-          if (oldKey) delete flock.materialCache[oldKey];
-          const alphaKey = parseFloat(mat.alpha ?? 1).toFixed(2);
-          const newKey =
-            `mat_${colors.join("-")}_${alphaKey}_${mat.materialName ?? "none.png"}_noglow`.toLowerCase();
-          existingMat.name = newKey;
-          if (existingMat.metadata) existingMat.metadata.cacheKey = newKey;
-          flock.materialCache[newKey] = existingMat;
-        } else {
-          flock.setMaterialWithCleanup(mesh, material);
+          if (positions) {
+            const { minimum } = mesh.getBoundingInfo();
+            const uvs = new Float32Array((positions.length / 3) * 2);
+            for (let i = 0, ui = 0; i < positions.length; i += 3, ui += 2) {
+              uvs[ui] = (positions[i] - minimum.x) / mapTexturePhysicalSize;
+              uvs[ui + 1] =
+                (positions[i + 2] - minimum.z) / mapTexturePhysicalSize;
+            }
+            mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
+          }
         }
+        flock.setMaterialWithCleanup(mesh, mat);
       }
     };
 
@@ -276,8 +316,16 @@ export const flockScene = {
       mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
     };
 
+    const isMaterialColorList =
+      material &&
+      typeof material === "object" &&
+      !Array.isArray(material) &&
+      Array.isArray(material.color) &&
+      material.color.length >= 2 &&
+      (material.materialName === "none.png" || !material.materialName);
     const shouldScaleUVs =
       !(Array.isArray(material) && material.length >= 2) &&
+      !isMaterialColorList &&
       !(material instanceof flock.GradientMaterial);
 
     let ground;
@@ -454,6 +502,9 @@ export const flockScene = {
     if (!mesh) return;
 
     if (mesh.name === "ground") {
+      if (mesh.material && !mesh.material.metadata?.isManaged) {
+        mesh.material.dispose(true, true);
+      }
       mesh.dispose();
       flock.ground = null;
       return;
