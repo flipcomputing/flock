@@ -1,0 +1,1399 @@
+{
+  "workspaceComments": [
+    {
+      "height": 180,
+      "width": 380,
+      "id": "tp_comment_instructions",
+      "x": 430,
+      "y": 10,
+      "text": "🔭 Talking Planets\n\nExplore our Solar System!\nClick on any planet to hear\nfacts about it in its own voice.\n\nTry changing the voice, speed\nand pitch in the speak block!"
+    }
+  ],
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "start",
+        "id": "tp_start_scene",
+        "x": 10,
+        "y": 10,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_sky_color",
+              "id": "tp_sky_color",
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "tp_shd_sky",
+                    "fields": {
+                      "COLOR": "#040415"
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "create_map",
+                  "id": "tp_create_map",
+                  "fields": {
+                    "MAP_NAME": "NONE"
+                  },
+                  "inputs": {
+                    "MATERIAL": {
+                      "shadow": {
+                        "type": "material",
+                        "id": "tp_shd_mat",
+                        "fields": {
+                          "TEXTURE_SET": "none.png"
+                        },
+                        "inputs": {
+                          "BASE_COLOR": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "tp_shd_mat_color",
+                              "fields": {
+                                "COLOR": "#71bc78"
+                              }
+                            }
+                          },
+                          "ALPHA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "tp_shd_mat_alpha",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "block": {
+                        "type": "material",
+                        "id": "tp_map_mat",
+                        "fields": {
+                          "TEXTURE_SET": "none.png"
+                        },
+                        "inputs": {
+                          "BASE_COLOR": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "tp_shd_map_color",
+                              "fields": {
+                                "COLOR": "#0a0a1e"
+                              }
+                            }
+                          },
+                          "ALPHA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "tp_shd_map_alpha",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "tp_start_text",
+        "x": 10,
+        "y": 260,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "print_text",
+              "id": "tp_print1",
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "id": "tp_shd_txt1",
+                    "fields": {
+                      "TEXT": "🔭 Talking Planets"
+                    }
+                  }
+                },
+                "DURATION": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_dur1",
+                    "fields": {
+                      "NUM": 4
+                    }
+                  }
+                },
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "tp_shd_col1",
+                    "fields": {
+                      "COLOR": "#ffffff"
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "print_text",
+                  "id": "tp_print2",
+                  "inputs": {
+                    "TEXT": {
+                      "shadow": {
+                        "type": "text",
+                        "id": "tp_shd_txt2",
+                        "fields": {
+                          "TEXT": "Click a planet to hear it speak! 🪐"
+                        }
+                      }
+                    },
+                    "DURATION": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "tp_shd_dur2",
+                        "fields": {
+                          "NUM": 25
+                        }
+                      }
+                    },
+                    "COLOR": {
+                      "shadow": {
+                        "type": "colour",
+                        "id": "tp_shd_col2",
+                        "fields": {
+                          "COLOR": "#aaccff"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "tp_start_spheres",
+        "x": 10,
+        "y": 510,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "create_sphere",
+              "id": "tp_blk_sun",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "tp_v_sun"
+                }
+              },
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "tp_shd_sun_col",
+                    "fields": {
+                      "COLOR": "#ffcc44"
+                    }
+                  }
+                },
+                "DIAMETER_X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_dx",
+                    "fields": {
+                      "NUM": 4
+                    }
+                  }
+                },
+                "DIAMETER_Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_dy",
+                    "fields": {
+                      "NUM": 4
+                    }
+                  }
+                },
+                "DIAMETER_Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_dz",
+                    "fields": {
+                      "NUM": 4
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_x",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_y",
+                    "fields": {
+                      "NUM": 5
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_z",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "create_sphere",
+                  "id": "tp_blk_mercury",
+                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                  "fields": {
+                    "ID_VAR": {
+                      "id": "tp_v_mercury"
+                    }
+                  },
+                  "inputs": {
+                    "COLOR": {
+                      "shadow": {
+                        "type": "colour",
+                        "id": "tp_shd_mercury_col",
+                        "fields": {
+                          "COLOR": "#9c9c9c"
+                        }
+                      }
+                    },
+                    "DIAMETER_X": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "tp_shd_mercury_dx",
+                        "fields": {
+                          "NUM": 0.5
+                        }
+                      }
+                    },
+                    "DIAMETER_Y": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "tp_shd_mercury_dy",
+                        "fields": {
+                          "NUM": 0.5
+                        }
+                      }
+                    },
+                    "DIAMETER_Z": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "tp_shd_mercury_dz",
+                        "fields": {
+                          "NUM": 0.5
+                        }
+                      }
+                    },
+                    "X": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "tp_shd_mercury_x",
+                        "fields": {
+                          "NUM": 8
+                        }
+                      }
+                    },
+                    "Y": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "tp_shd_mercury_y",
+                        "fields": {
+                          "NUM": 5
+                        }
+                      }
+                    },
+                    "Z": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "tp_shd_mercury_z",
+                        "fields": {
+                          "NUM": 2
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "create_sphere",
+                      "id": "tp_blk_venus",
+                      "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                      "fields": {
+                        "ID_VAR": {
+                          "id": "tp_v_venus"
+                        }
+                      },
+                      "inputs": {
+                        "COLOR": {
+                          "shadow": {
+                            "type": "colour",
+                            "id": "tp_shd_venus_col",
+                            "fields": {
+                              "COLOR": "#e8a22e"
+                            }
+                          }
+                        },
+                        "DIAMETER_X": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "tp_shd_venus_dx",
+                            "fields": {
+                              "NUM": 0.9
+                            }
+                          }
+                        },
+                        "DIAMETER_Y": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "tp_shd_venus_dy",
+                            "fields": {
+                              "NUM": 0.9
+                            }
+                          }
+                        },
+                        "DIAMETER_Z": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "tp_shd_venus_dz",
+                            "fields": {
+                              "NUM": 0.9
+                            }
+                          }
+                        },
+                        "X": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "tp_shd_venus_x",
+                            "fields": {
+                              "NUM": 13
+                            }
+                          }
+                        },
+                        "Y": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "tp_shd_venus_y",
+                            "fields": {
+                              "NUM": 5
+                            }
+                          }
+                        },
+                        "Z": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "tp_shd_venus_z",
+                            "fields": {
+                              "NUM": -2
+                            }
+                          }
+                        }
+                      },
+                      "next": {
+                        "block": {
+                          "type": "create_sphere",
+                          "id": "tp_blk_earth",
+                          "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                          "fields": {
+                            "ID_VAR": {
+                              "id": "tp_v_earth"
+                            }
+                          },
+                          "inputs": {
+                            "COLOR": {
+                              "shadow": {
+                                "type": "colour",
+                                "id": "tp_shd_earth_col",
+                                "fields": {
+                                  "COLOR": "#2277dd"
+                                }
+                              }
+                            },
+                            "DIAMETER_X": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "tp_shd_earth_dx",
+                                "fields": {
+                                  "NUM": 1
+                                }
+                              }
+                            },
+                            "DIAMETER_Y": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "tp_shd_earth_dy",
+                                "fields": {
+                                  "NUM": 1
+                                }
+                              }
+                            },
+                            "DIAMETER_Z": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "tp_shd_earth_dz",
+                                "fields": {
+                                  "NUM": 1
+                                }
+                              }
+                            },
+                            "X": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "tp_shd_earth_x",
+                                "fields": {
+                                  "NUM": 19
+                                }
+                              }
+                            },
+                            "Y": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "tp_shd_earth_y",
+                                "fields": {
+                                  "NUM": 5
+                                }
+                              }
+                            },
+                            "Z": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "tp_shd_earth_z",
+                                "fields": {
+                                  "NUM": 1
+                                }
+                              }
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "create_sphere",
+                              "id": "tp_blk_mars",
+                              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                              "fields": {
+                                "ID_VAR": {
+                                  "id": "tp_v_mars"
+                                }
+                              },
+                              "inputs": {
+                                "COLOR": {
+                                  "shadow": {
+                                    "type": "colour",
+                                    "id": "tp_shd_mars_col",
+                                    "fields": {
+                                      "COLOR": "#cc4422"
+                                    }
+                                  }
+                                },
+                                "DIAMETER_X": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "tp_shd_mars_dx",
+                                    "fields": {
+                                      "NUM": 0.7
+                                    }
+                                  }
+                                },
+                                "DIAMETER_Y": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "tp_shd_mars_dy",
+                                    "fields": {
+                                      "NUM": 0.7
+                                    }
+                                  }
+                                },
+                                "DIAMETER_Z": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "tp_shd_mars_dz",
+                                    "fields": {
+                                      "NUM": 0.7
+                                    }
+                                  }
+                                },
+                                "X": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "tp_shd_mars_x",
+                                    "fields": {
+                                      "NUM": 25
+                                    }
+                                  }
+                                },
+                                "Y": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "tp_shd_mars_y",
+                                    "fields": {
+                                      "NUM": 5
+                                    }
+                                  }
+                                },
+                                "Z": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "tp_shd_mars_z",
+                                    "fields": {
+                                      "NUM": -1
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "create_sphere",
+                                  "id": "tp_blk_jupiter",
+                                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                  "fields": {
+                                    "ID_VAR": {
+                                      "id": "tp_v_jupiter"
+                                    }
+                                  },
+                                  "inputs": {
+                                    "COLOR": {
+                                      "shadow": {
+                                        "type": "colour",
+                                        "id": "tp_shd_jupiter_col",
+                                        "fields": {
+                                          "COLOR": "#c8a464"
+                                        }
+                                      }
+                                    },
+                                    "DIAMETER_X": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "tp_shd_jupiter_dx",
+                                        "fields": {
+                                          "NUM": 2.2
+                                        }
+                                      }
+                                    },
+                                    "DIAMETER_Y": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "tp_shd_jupiter_dy",
+                                        "fields": {
+                                          "NUM": 2.2
+                                        }
+                                      }
+                                    },
+                                    "DIAMETER_Z": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "tp_shd_jupiter_dz",
+                                        "fields": {
+                                          "NUM": 2.2
+                                        }
+                                      }
+                                    },
+                                    "X": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "tp_shd_jupiter_x",
+                                        "fields": {
+                                          "NUM": 32
+                                        }
+                                      }
+                                    },
+                                    "Y": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "tp_shd_jupiter_y",
+                                        "fields": {
+                                          "NUM": 5
+                                        }
+                                      }
+                                    },
+                                    "Z": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "tp_shd_jupiter_z",
+                                        "fields": {
+                                          "NUM": 2
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "tp_start_rotations",
+        "x": 10,
+        "y": 1700,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "rotate_anim_seconds",
+              "id": "tp_rot_sun",
+              "fields": {
+                "MESH_VAR": {
+                  "id": "tp_v_sun"
+                },
+                "MODE": "START",
+                "REVERSE": false,
+                "LOOP": true,
+                "EASING": "Linear"
+              },
+              "inputs": {
+                "ROT_X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_rx",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "ROT_Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_ry",
+                    "fields": {
+                      "NUM": 360
+                    }
+                  }
+                },
+                "ROT_Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_rz",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "DURATION": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_rdur",
+                    "fields": {
+                      "NUM": 10
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "rotate_anim_seconds",
+                  "id": "tp_rot_mercury",
+                  "fields": {
+                    "MESH_VAR": {
+                      "id": "tp_v_mercury"
+                    },
+                    "MODE": "START",
+                    "REVERSE": false,
+                    "LOOP": true,
+                    "EASING": "Linear"
+                  },
+                  "inputs": {
+                    "ROT_X": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "tp_shd_mercury_rx",
+                        "fields": {
+                          "NUM": 0
+                        }
+                      }
+                    },
+                    "ROT_Y": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "tp_shd_mercury_ry",
+                        "fields": {
+                          "NUM": 360
+                        }
+                      }
+                    },
+                    "ROT_Z": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "tp_shd_mercury_rz",
+                        "fields": {
+                          "NUM": 0
+                        }
+                      }
+                    },
+                    "DURATION": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "tp_shd_mercury_rdur",
+                        "fields": {
+                          "NUM": 3
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "rotate_anim_seconds",
+                      "id": "tp_rot_venus",
+                      "fields": {
+                        "MESH_VAR": {
+                          "id": "tp_v_venus"
+                        },
+                        "MODE": "START",
+                        "REVERSE": false,
+                        "LOOP": true,
+                        "EASING": "Linear"
+                      },
+                      "inputs": {
+                        "ROT_X": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "tp_shd_venus_rx",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        },
+                        "ROT_Y": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "tp_shd_venus_ry",
+                            "fields": {
+                              "NUM": 360
+                            }
+                          }
+                        },
+                        "ROT_Z": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "tp_shd_venus_rz",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        },
+                        "DURATION": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "tp_shd_venus_rdur",
+                            "fields": {
+                              "NUM": 8
+                            }
+                          }
+                        }
+                      },
+                      "next": {
+                        "block": {
+                          "type": "rotate_anim_seconds",
+                          "id": "tp_rot_earth",
+                          "fields": {
+                            "MESH_VAR": {
+                              "id": "tp_v_earth"
+                            },
+                            "MODE": "START",
+                            "REVERSE": false,
+                            "LOOP": true,
+                            "EASING": "Linear"
+                          },
+                          "inputs": {
+                            "ROT_X": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "tp_shd_earth_rx",
+                                "fields": {
+                                  "NUM": 0
+                                }
+                              }
+                            },
+                            "ROT_Y": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "tp_shd_earth_ry",
+                                "fields": {
+                                  "NUM": 360
+                                }
+                              }
+                            },
+                            "ROT_Z": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "tp_shd_earth_rz",
+                                "fields": {
+                                  "NUM": 0
+                                }
+                              }
+                            },
+                            "DURATION": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "tp_shd_earth_rdur",
+                                "fields": {
+                                  "NUM": 4
+                                }
+                              }
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "rotate_anim_seconds",
+                              "id": "tp_rot_mars",
+                              "fields": {
+                                "MESH_VAR": {
+                                  "id": "tp_v_mars"
+                                },
+                                "MODE": "START",
+                                "REVERSE": false,
+                                "LOOP": true,
+                                "EASING": "Linear"
+                              },
+                              "inputs": {
+                                "ROT_X": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "tp_shd_mars_rx",
+                                    "fields": {
+                                      "NUM": 0
+                                    }
+                                  }
+                                },
+                                "ROT_Y": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "tp_shd_mars_ry",
+                                    "fields": {
+                                      "NUM": 360
+                                    }
+                                  }
+                                },
+                                "ROT_Z": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "tp_shd_mars_rz",
+                                    "fields": {
+                                      "NUM": 0
+                                    }
+                                  }
+                                },
+                                "DURATION": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "tp_shd_mars_rdur",
+                                    "fields": {
+                                      "NUM": 5
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "rotate_anim_seconds",
+                                  "id": "tp_rot_jupiter",
+                                  "fields": {
+                                    "MESH_VAR": {
+                                      "id": "tp_v_jupiter"
+                                    },
+                                    "MODE": "START",
+                                    "REVERSE": false,
+                                    "LOOP": true,
+                                    "EASING": "Linear"
+                                  },
+                                  "inputs": {
+                                    "ROT_X": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "tp_shd_jupiter_rx",
+                                        "fields": {
+                                          "NUM": 0
+                                        }
+                                      }
+                                    },
+                                    "ROT_Y": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "tp_shd_jupiter_ry",
+                                        "fields": {
+                                          "NUM": 360
+                                        }
+                                      }
+                                    },
+                                    "ROT_Z": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "tp_shd_jupiter_rz",
+                                        "fields": {
+                                          "NUM": 0
+                                        }
+                                      }
+                                    },
+                                    "DURATION": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "tp_shd_jupiter_rdur",
+                                        "fields": {
+                                          "NUM": 2
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "when_clicked",
+        "id": "tp_click_sun",
+        "x": 10,
+        "y": 2450,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+        "fields": {
+          "MODEL_VAR": {
+            "id": "tp_v_sun"
+          },
+          "TRIGGER": "OnPickTrigger"
+        },
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "speak",
+              "id": "tp_speak_sun",
+              "fields": {
+                "MESH_NAME": "__everywhere__",
+                "VOICE": "female",
+                "LANGUAGE": "en-GB",
+                "ASYNC": "START"
+              },
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "id": "tp_shd_sun_speech",
+                    "fields": {
+                      "TEXT": "I am the Sun! I am a giant star at the centre of our Solar System. Everything orbits around me!"
+                    }
+                  }
+                },
+                "RATE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_rate",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                },
+                "PITCH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_pitch",
+                    "fields": {
+                      "NUM": 0.8
+                    }
+                  }
+                },
+                "VOLUME": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_sun_vol",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "when_clicked",
+        "id": "tp_click_mercury",
+        "x": 10,
+        "y": 2740,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+        "fields": {
+          "MODEL_VAR": {
+            "id": "tp_v_mercury"
+          },
+          "TRIGGER": "OnPickTrigger"
+        },
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "speak",
+              "id": "tp_speak_mercury",
+              "fields": {
+                "MESH_NAME": "__everywhere__",
+                "VOICE": "female",
+                "LANGUAGE": "en-GB",
+                "ASYNC": "START"
+              },
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "id": "tp_shd_mercury_speech",
+                    "fields": {
+                      "TEXT": "I am Mercury! I am the smallest planet and the closest to the Sun. I zoom around the Sun in just 88 days!"
+                    }
+                  }
+                },
+                "RATE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_mercury_rate",
+                    "fields": {
+                      "NUM": 1.2
+                    }
+                  }
+                },
+                "PITCH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_mercury_pitch",
+                    "fields": {
+                      "NUM": 1.3
+                    }
+                  }
+                },
+                "VOLUME": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_mercury_vol",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "when_clicked",
+        "id": "tp_click_venus",
+        "x": 10,
+        "y": 3030,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+        "fields": {
+          "MODEL_VAR": {
+            "id": "tp_v_venus"
+          },
+          "TRIGGER": "OnPickTrigger"
+        },
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "speak",
+              "id": "tp_speak_venus",
+              "fields": {
+                "MESH_NAME": "__everywhere__",
+                "VOICE": "female",
+                "LANGUAGE": "en-GB",
+                "ASYNC": "START"
+              },
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "id": "tp_shd_venus_speech",
+                    "fields": {
+                      "TEXT": "I am Venus! I am the hottest planet in the Solar System. My thick clouds trap heat, making me even hotter than Mercury!"
+                    }
+                  }
+                },
+                "RATE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_venus_rate",
+                    "fields": {
+                      "NUM": 0.9
+                    }
+                  }
+                },
+                "PITCH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_venus_pitch",
+                    "fields": {
+                      "NUM": 1.1
+                    }
+                  }
+                },
+                "VOLUME": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_venus_vol",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "when_clicked",
+        "id": "tp_click_earth",
+        "x": 10,
+        "y": 3320,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+        "fields": {
+          "MODEL_VAR": {
+            "id": "tp_v_earth"
+          },
+          "TRIGGER": "OnPickTrigger"
+        },
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "speak",
+              "id": "tp_speak_earth",
+              "fields": {
+                "MESH_NAME": "__everywhere__",
+                "VOICE": "female",
+                "LANGUAGE": "en-GB",
+                "ASYNC": "START"
+              },
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "id": "tp_shd_earth_speech",
+                    "fields": {
+                      "TEXT": "I am Earth! I am the only planet known to have life. I have oceans, forests, and billions of creatures. Hello!"
+                    }
+                  }
+                },
+                "RATE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_earth_rate",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                },
+                "PITCH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_earth_pitch",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                },
+                "VOLUME": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_earth_vol",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "when_clicked",
+        "id": "tp_click_mars",
+        "x": 10,
+        "y": 3610,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+        "fields": {
+          "MODEL_VAR": {
+            "id": "tp_v_mars"
+          },
+          "TRIGGER": "OnPickTrigger"
+        },
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "speak",
+              "id": "tp_speak_mars",
+              "fields": {
+                "MESH_NAME": "__everywhere__",
+                "VOICE": "male",
+                "LANGUAGE": "en-GB",
+                "ASYNC": "START"
+              },
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "id": "tp_shd_mars_speech",
+                    "fields": {
+                      "TEXT": "I am Mars! I am called the Red Planet because of the rusty dust on my surface. NASA has sent rovers to explore me!"
+                    }
+                  }
+                },
+                "RATE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_mars_rate",
+                    "fields": {
+                      "NUM": 0.9
+                    }
+                  }
+                },
+                "PITCH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_mars_pitch",
+                    "fields": {
+                      "NUM": 0.9
+                    }
+                  }
+                },
+                "VOLUME": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_mars_vol",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "when_clicked",
+        "id": "tp_click_jupiter",
+        "x": 10,
+        "y": 3900,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+        "fields": {
+          "MODEL_VAR": {
+            "id": "tp_v_jupiter"
+          },
+          "TRIGGER": "OnPickTrigger"
+        },
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "speak",
+              "id": "tp_speak_jupiter",
+              "fields": {
+                "MESH_NAME": "__everywhere__",
+                "VOICE": "male",
+                "LANGUAGE": "en-GB",
+                "ASYNC": "START"
+              },
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "id": "tp_shd_jupiter_speech",
+                    "fields": {
+                      "TEXT": "I am Jupiter! I am the biggest planet in the Solar System. Over 1300 Earths could fit inside me! I also have a giant storm that has lasted for centuries!"
+                    }
+                  }
+                },
+                "RATE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_jupiter_rate",
+                    "fields": {
+                      "NUM": 0.8
+                    }
+                  }
+                },
+                "PITCH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_jupiter_pitch",
+                    "fields": {
+                      "NUM": 0.6
+                    }
+                  }
+                },
+                "VOLUME": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "tp_shd_jupiter_vol",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "variables": [
+    {
+      "name": "sun",
+      "id": "tp_v_sun"
+    },
+    {
+      "name": "mercury",
+      "id": "tp_v_mercury"
+    },
+    {
+      "name": "venus",
+      "id": "tp_v_venus"
+    },
+    {
+      "name": "earth",
+      "id": "tp_v_earth"
+    },
+    {
+      "name": "mars",
+      "id": "tp_v_mars"
+    },
+    {
+      "name": "jupiter",
+      "id": "tp_v_jupiter"
+    }
+  ]
+}

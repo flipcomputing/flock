@@ -1012,6 +1012,7 @@ export default {
   tree_jump_ui: "🌳 Saut d’arbre",
   shape_push_ui: "🔶 Pousser la forme",
   alien_planet_ui: "👽 Planète alien",
+  talking_planets_ui: "🔭 Talking Planets",
   character_designer_ui: "👚 Créateur de personnages",
 
   sit_down_ui: "🪑 Assieds-toi",

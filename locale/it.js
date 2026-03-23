@@ -1012,6 +1012,7 @@ export default {
   tree_jump_ui: "🌳 Salto dall'albero",
   shape_push_ui: "🔶 Spinta forma",
   alien_planet_ui: "👽 Pianeta alieno",
+  talking_planets_ui: "🔭 Talking Planets",
 
   main_menu_ui: "Menu principale",
   menu_button_sr_label_ui: "Menu",

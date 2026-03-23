@@ -999,6 +999,7 @@ export default {
   tree_jump_ui: "🌳 Tree jump",
   shape_push_ui: "🔶 Shape push",
   alien_planet_ui: "👽 Alien planet",
+  talking_planets_ui: "🔭 Talking Planets",
   main_menu_ui: "Main menu",
   menu_button_sr_label_ui: "Menu",
   project_submenu_ui: "Project",
