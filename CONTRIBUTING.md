@@ -18,7 +18,7 @@ Flock XR is a creative coding platform for 3D development using Blockly and Baby
 - 🌍 **Translations** - Help us reach more users worldwide
 - 🎨 **UI/UX improvements** - Make the interface better
 
-Before starting, we suggest you [get in touch](https://flipcomputing.com/contact/).
+Before starting, we suggest you [get in touch](https://flipcomputing.com/contact/) and ask that you read our [AI contributions policy](AI_POLICY.md).
 
 ## 🛠️ Development Setup
 
