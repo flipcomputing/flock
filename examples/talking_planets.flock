@@ -493,7 +493,7 @@
                                                 "DIAMETER_BOTTOM": { "shadow": { "type": "math_number", "id": "tp_shd_srings_db", "fields": { "NUM": 4.5 } } },
                                                 "TESSELLATIONS": { "shadow": { "type": "math_number", "id": "tp_shd_srings_tess", "fields": { "NUM": 32 } } },
                                                 "X": { "shadow": { "type": "math_number", "id": "tp_shd_srings_x", "fields": { "NUM": 40 } } },
-                                                "Y": { "shadow": { "type": "math_number", "id": "tp_shd_srings_y", "fields": { "NUM": 5 } } },
+                                                "Y": { "shadow": { "type": "math_number", "id": "tp_shd_srings_y", "fields": { "NUM": 5.74 } } },
                                                 "Z": { "shadow": { "type": "math_number", "id": "tp_shd_srings_z", "fields": { "NUM": -1 } } }
                                               },
                                               "next": {
