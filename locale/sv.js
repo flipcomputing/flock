@@ -278,6 +278,8 @@ export default {
     "lägg till plan %1 %2 bredd: %3 höjd: %4 \nvid x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
+  play_theme:
+    "spela tema %1 %2 från %3 \nhastighet: %4 volym: %5 läge: %6 asynkront: %7",
   play_sound:
     "spela ljud %1 %2 från %3 \nrotation: %4 volym: %5 läge: %6 asynkront: %7",
   stop_all_sounds: "stoppa alla ljud",
@@ -564,6 +566,8 @@ export default {
     "Skapa ett färgat 2D-plan med angiven bredd, höjd och position.\nKeyword: plane",
 
   // Tooltip translations - Sound blocks
+  play_theme_tooltip:
+    "Spela upp ett musiktema på ett mesh med justerbar hastighet, volym och läge.\nKeyword: theme",
   play_sound_tooltip:
     "Spela upp det valda ljudet på ett mesh med justerbar hastighet, volym och läge.\nKeyword: sound",
   stop_all_sounds_tooltip:

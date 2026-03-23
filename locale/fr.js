@@ -279,6 +279,8 @@ export default {
     "ajouter plan %1 %2 largeur: %3 hauteur: %4\nà x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
+  play_theme:
+    "jouer le thème %1 %2 depuis %3\nvitesse: %4 volume: %5 mode: %6 asynchrone: %7",
   play_sound:
     "jouer le son %1 %2 depuis %3\nvitesse: %4 volume: %5 mode: %6 asynchrone: %7",
   stop_all_sounds: "arrêter tous les sons",
@@ -579,6 +581,8 @@ export default {
     "Crée un plan 2D coloré avec largeur, hauteur et position spécifiées.\nMot-clé: plane",
 
   // Tooltip translations - Sound blocks
+  play_theme_tooltip:
+    "Joue un thème musical sur un maillage avec vitesse, volume et mode réglables.\nMot-clé: theme",
   play_sound_tooltip:
     "Joue le son sélectionné sur un maillage avec vitesse, volume et mode réglables.\nMot-clé: sound",
   stop_all_sounds_tooltip:

@@ -280,6 +280,8 @@ export default {
     "dodaj płaszczyznę %1 %2 szerokość: %3 wysokość: %4\nw x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
+  play_theme:
+    "odtwórz motyw %1 %2 od %3\nprędkość: %4 głośność: %5 tryb: %6 async: %7",
   play_sound:
     "odtwórz dźwięk %1 %2 od %3\nprędkość: %4 głośność: %5 tryb: %6 async: %7",
   stop_all_sounds: "zatrzymaj wszystkie dźwięki",
@@ -573,6 +575,8 @@ export default {
     "Stwórz kolorową płaszczyznę 2D %1 %2 szer. %3 wys. %4\npołożenie x: %5 y: %6 z: %7\nSłowo kluczowe: plane",
 
   // Tooltip translations - Sound blocks
+  play_theme_tooltip:
+    "Odtwórz motyw muzyczny na siatce z regulowaną prędkością, głośnością i trybem.\nSłowo kluczowe: theme",
   play_sound_tooltip:
     "Odtwórz dźwięk %1 %2 na siatce od %3\nprędkość: %4, głośność: %5, tryb: %6, async: %7\nSłowo kluczowe: sound",
   stop_all_sounds_tooltip:

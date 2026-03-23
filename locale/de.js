@@ -284,6 +284,8 @@ export default {
     "Ebene hinzufügen %1 %2 Breite: %3 Höhe: %4\nbei x: %5 y: %6 z: %7",
 
   // Sound blocks
+  play_theme:
+    "Thema abspielen %1 %2 von %3\nGeschwindigkeit: %4 Lautstärke: %5 Modus: %6 Async: %7",
   play_sound:
     "Ton abspielen %1 %2 von %3\nGeschwindigkeit: %4 Lautstärke: %5 Modus: %6 Async: %7",
   stop_all_sounds: "Alle Töne stoppen",
@@ -716,6 +718,8 @@ export default {
     "Erstelle eine farbige 2D-Fläche mit Breite, Höhe und Position.\nSchlüsselwort: plane",
 
   // Tooltip translations - Sound blocks
+  play_theme_tooltip:
+    "Spiele ein Musikthema auf einem Objekt mit anpassbarer Geschwindigkeit, Lautstärke und Modus.\nSchlüsselwort: theme",
   play_sound_tooltip:
     "Spiele den ausgewählten Sound auf einem Objekt mit anpassbarer Geschwindigkeit, Lautstärke und Modus.\nSchlüsselwort: sound",
   stop_all_sounds_tooltip:

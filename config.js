@@ -1,12 +1,15 @@
 import { getDropdownOption, translate } from "./main/translation.js";
 
-export const audioNames = [
+export const themeNames = [
   "theme-bright.mp3",
   "theme-calm.mp3",
   "theme-electronic.mp3",
   "theme-game.mp3",
   "theme-medieval.mp3",
   "theme-metal.mp3",
+];
+
+export const audioNames = [
   "highDown.mp3",
   "highUp.mp3",
   "laser1.mp3",

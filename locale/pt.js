@@ -278,6 +278,8 @@ export default {
     "adicionar plano %1 %2 largura: %3 altura: %4 \nem x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
+  play_theme:
+    "tocar tema %1 %2 de %3 \nvelocidade: %4 volume: %5 modo: %6 assíncrono: %7",
   play_sound:
     "tocar som %1 %2 de %3 \nvelocidade: %4 volume: %5 modo: %6 assíncrono: %7",
   stop_all_sounds: "parar todos os sons",
@@ -569,6 +571,8 @@ export default {
     "Cria um plano 2D colorido com largura, altura e posição especificadas.\nPalavra-chave: plano",
 
   // Tooltip translations - Sound blocks
+  play_theme_tooltip:
+    "Reproduz um tema musical em um mesh com velocidade, volume e modo ajustáveis.\nPalavra-chave: tema",
   play_sound_tooltip:
     "Reproduz o som selecionado em um mesh com velocidade, volume e modo ajustáveis.\nPalavra-chave: som",
   stop_all_sounds_tooltip:
