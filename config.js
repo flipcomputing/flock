@@ -1,6 +1,7 @@
 import { getDropdownOption, translate } from "./main/translation.js";
 
-export const audioNames = [
+export const audi;
+oNames = [
   "theme-bright.mp3",
   "theme-calm.mp3",
   "theme-electronic.mp3",
@@ -373,7 +374,6 @@ export function animationNames() {
 
 export const materialNames = [
   "none.png",
-  "gridxy.png",
   "arrows.png",
   "bricks.png",
   "carbonfibre.png",
@@ -403,6 +403,7 @@ export const materialNames = [
   "wiggles.png",
   "windmill.png",
   "wood.png",
+  "gridxy.png",
 ];
 
 export const attachNames = ["Hold", "Head"];
