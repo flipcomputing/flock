@@ -1,7 +1,6 @@
 import { getDropdownOption, translate } from "./main/translation.js";
 
-export const audi;
-oNames = [
+export const audioNames = [
   "theme-bright.mp3",
   "theme-calm.mp3",
   "theme-electronic.mp3",
