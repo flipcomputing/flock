@@ -1,12 +1,15 @@
 import { getDropdownOption, translate } from "./main/translation.js";
 
-export const audioNames = [
+export const themeNames = [
   "theme-bright.mp3",
   "theme-calm.mp3",
   "theme-electronic.mp3",
   "theme-game.mp3",
   "theme-medieval.mp3",
   "theme-metal.mp3",
+];
+
+export const audioNames = [
   "highDown.mp3",
   "highUp.mp3",
   "laser1.mp3",
@@ -70,6 +73,25 @@ export const audioNames = [
   "zapTwoTone2.mp3",
   "zapTwoTone.mp3",
 ];
+
+export function audioFileToLabel(filename) {
+  return filename
+    .replace(".mp3", "")
+    .replace(/([A-Z])/g, " $1")
+    .replace(/(\d+)/g, " $1")
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export function getThemeDisplayName(filename) {
+  const baseName = filename.replace("theme-", "").replace(".mp3", "");
+  const key = "theme_" + baseName + "_option";
+  const translated = translate(key);
+  return translated && translated !== key
+    ? translated
+    : baseName.charAt(0).toUpperCase() + baseName.slice(1);
+}
 
 export const characterNames = [
   "Liz1.glb",

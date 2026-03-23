@@ -6,7 +6,12 @@ import {
   getHelpUrlFor,
   registerBlockHandler,
 } from "./blocks.js";
-import { audioNames } from "../config.js";
+import {
+  audioNames,
+  themeNames,
+  audioFileToLabel,
+  getThemeDisplayName,
+} from "../config.js";
 import {
   translate,
   getTooltip,
@@ -14,6 +19,79 @@ import {
 } from "../main/translation.js";
 
 export function defineSoundBlocks() {
+  Blockly.Blocks["play_theme"] = {
+    init: function () {
+      const variableNamePrefix = "sound";
+      let nextVariableName =
+        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      this.jsonInit({
+        type: "play_theme",
+        message0: translate("play_theme"),
+        args0: [
+          {
+            type: "field_variable",
+            name: "ID_VAR",
+            variable: nextVariableName,
+          },
+          {
+            type: "field_dropdown",
+            name: "THEME_NAME",
+            options: function () {
+              return themeNames.map((name) => [getThemeDisplayName(name), name]);
+            },
+          },
+          {
+            type: "input_dummy",
+            name: "MESH_INPUT",
+          },
+          {
+            type: "input_value",
+            name: "SPEED",
+            value: 1,
+            min: 0.1,
+            max: 3,
+            precision: 0.1,
+          },
+          {
+            type: "input_value",
+            name: "VOLUME",
+            value: 1,
+            min: 0,
+            max: 1,
+            precision: 0.1,
+          },
+          {
+            type: "field_dropdown",
+            name: "MODE",
+            options: [getDropdownOption("ONCE"), getDropdownOption("LOOP")],
+          },
+          {
+            type: "field_dropdown",
+            name: "ASYNC",
+            options: [getDropdownOption("START"), getDropdownOption("AWAIT")],
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Sound"],
+        tooltip: getTooltip("play_theme"),
+        extensions: ["dynamic_mesh_dropdown"],
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("sound_blocks");
+
+      registerBlockHandler(this, (changeEvent) => {
+        handleBlockCreateEvent(
+          this,
+          changeEvent,
+          variableNamePrefix,
+          nextVariableIndexes,
+        );
+      });
+    },
+  };
+
   Blockly.Blocks["play_sound"] = {
     init: function () {
       const variableNamePrefix = "sound";
@@ -32,7 +110,7 @@ export function defineSoundBlocks() {
             type: "field_dropdown",
             name: "SOUND_NAME",
             options: function () {
-              return audioNames.map((name) => [name, name]);
+              return audioNames.map((name) => [audioFileToLabel(name), name]);
             },
           },
           {

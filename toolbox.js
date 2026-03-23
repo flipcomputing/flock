@@ -3233,6 +3233,29 @@ const toolboxSound = {
   contents: [
     {
       kind: "block",
+      type: "play_theme",
+      keyword: "theme",
+      inputs: {
+        SPEED: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 1,
+            },
+          },
+        },
+        VOLUME: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 1,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: "block",
       type: "play_sound",
       keyword: "sound",
       inputs: {

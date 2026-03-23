@@ -1983,6 +1983,39 @@ export function defineGenerators() {
     return [code, javascriptGenerator.ORDER_NONE];
   };
 
+  javascriptGenerator.forBlock["play_theme"] = function (block) {
+    const idVar = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue("ID_VAR"),
+      Blockly.Names.NameType.VARIABLE,
+    );
+
+    const meshNameField = block.getFieldValue("MESH_NAME");
+    const meshName = `"${meshNameField}"`;
+
+    const themeName = block.getFieldValue("THEME_NAME");
+
+    const speedCode =
+      javascriptGenerator.valueToCode(
+        block,
+        "SPEED",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "1";
+
+    const volumeCode =
+      javascriptGenerator.valueToCode(
+        block,
+        "VOLUME",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "1";
+
+    const loop = block.getFieldValue("MODE") === "LOOP";
+    const asyncMode = block.getFieldValue("ASYNC");
+
+    const code = `${idVar} = ${asyncMode === "AWAIT" ? "await " : ""}playSound(${meshName}, { soundName: "${themeName}", loop: ${loop}, volume: ${volumeCode}, playbackRate: ${speedCode} });\n`;
+
+    return code;
+  };
+
   javascriptGenerator.forBlock["play_sound"] = function (block) {
     const idVar = javascriptGenerator.nameDB_.getName(
       block.getFieldValue("ID_VAR"),

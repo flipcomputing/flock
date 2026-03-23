@@ -277,6 +277,8 @@ export default {
   create_plane: "añadir plano %1 %2 ancho: %3 alto: %4 \nen x: %5 y: %6 z: %7", // human
 
   // Custom block translations - Sound blocks
+  play_theme:
+    "reproducir tema %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7", // ai
   play_sound:
     "reproducir sonido %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7", // human
   stop_all_sounds: "parar todos los sonidos", // human
@@ -579,6 +581,8 @@ export default {
     "Crea un plano 2D de color con ancho, alto y posición especificadas.\nPalabra clave: plano", // human
 
   // Tooltip translations - Sound blocks
+  play_theme_tooltip:
+    "Reproduce un tema musical en una malla con velocidad, volumen y modo ajustables.\nPalabra clave: tema", // ai
   play_sound_tooltip:
     "Reproduce el sonido seleccionado en una malla con velocidad, volumen y modo ajustables.\nPalabra clave: sonido", // human
   stop_all_sounds_tooltip:
@@ -902,6 +906,13 @@ export default {
 
   ONCE_option: "una vez", // human
   LOOP_option: "bucle", // human
+
+  theme_bright_option: "Brillante", // ai
+  theme_calm_option: "Tranquilo", // ai
+  theme_electronic_option: "Electrónico", // ai
+  theme_game_option: "Videojuego", // ai
+  theme_medieval_option: "Medieval", // ai
+  theme_metal_option: "Metal", // ai
 
   sine_option: "seno", // human
   square_option: "cuadrada", // human

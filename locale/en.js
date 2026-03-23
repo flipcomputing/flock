@@ -280,6 +280,8 @@ export default {
   create_plane: "add plane %1 %2 width: %3 height: %4 \nat x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
+  play_theme:
+    "play theme %1 %2 from %3 \nspeed: %4 volume: %5 mode: %6 async: %7",
   play_sound:
     "play sound %1 %2 from %3 \nspeed: %4 volume: %5 mode: %6 async: %7",
   stop_all_sounds: "stop all sounds",
@@ -565,6 +567,8 @@ export default {
     "Create a colored 2D plane with specified width, height, and position.\nKeyword: plane",
 
   // Tooltip translations - Sound blocks
+  play_theme_tooltip:
+    "Play a theme tune on a mesh with adjustable speed, volume, and mode.\nKeyword: theme",
   play_sound_tooltip:
     "Play the selected sound on a mesh with adjustable speed, volume, and mode.\nKeyword: sound",
   stop_all_sounds_tooltip:
@@ -887,6 +891,13 @@ export default {
 
   ONCE_option: "once",
   LOOP_option: "loop",
+
+  theme_bright_option: "Bright",
+  theme_calm_option: "Calm",
+  theme_electronic_option: "Electronic",
+  theme_game_option: "Game",
+  theme_medieval_option: "Medieval",
+  theme_metal_option: "Metal",
 
   sine_option: "sine",
   square_option: "square",
