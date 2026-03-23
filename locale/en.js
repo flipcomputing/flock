@@ -892,6 +892,13 @@ export default {
   ONCE_option: "once",
   LOOP_option: "loop",
 
+  theme_bright_option: "Bright",
+  theme_calm_option: "Calm",
+  theme_electronic_option: "Electronic",
+  theme_game_option: "Game",
+  theme_medieval_option: "Medieval",
+  theme_metal_option: "Metal",
+
   sine_option: "sine",
   square_option: "square",
   sawtooth_option: "sawtooth",

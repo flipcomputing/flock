@@ -907,6 +907,13 @@ export default {
   ONCE_option: "una vez", // human
   LOOP_option: "bucle", // human
 
+  theme_bright_option: "Brillante", // ai
+  theme_calm_option: "Tranquilo", // ai
+  theme_electronic_option: "Electrónico", // ai
+  theme_game_option: "Videojuego", // ai
+  theme_medieval_option: "Medieval", // ai
+  theme_metal_option: "Metal", // ai
+
   sine_option: "seno", // human
   square_option: "cuadrada", // human
   sawtooth_option: "diente de sierra", // human

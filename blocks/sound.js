@@ -6,7 +6,12 @@ import {
   getHelpUrlFor,
   registerBlockHandler,
 } from "./blocks.js";
-import { audioNames, themeNames } from "../config.js";
+import {
+  audioNames,
+  themeNames,
+  audioFileToLabel,
+  getThemeDisplayName,
+} from "../config.js";
 import {
   translate,
   getTooltip,
@@ -32,7 +37,7 @@ export function defineSoundBlocks() {
             type: "field_dropdown",
             name: "THEME_NAME",
             options: function () {
-              return themeNames.map((name) => [name, name]);
+              return themeNames.map((name) => [getThemeDisplayName(name), name]);
             },
           },
           {
@@ -105,7 +110,7 @@ export function defineSoundBlocks() {
             type: "field_dropdown",
             name: "SOUND_NAME",
             options: function () {
-              return audioNames.map((name) => [name, name]);
+              return audioNames.map((name) => [audioFileToLabel(name), name]);
             },
           },
           {
