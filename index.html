@@ -50,18 +50,6 @@
     <!-- Duplicate CSS to prevent flash of unstyled content on load, rest of styles in style.css -->
     <link rel="stylesheet" href="style.css" />
     <style>
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-      }
-
       /* Critical loading styles - inline to prevent flash */
       #flockeditor {
         opacity: 0 !important;
@@ -335,6 +323,7 @@
                 <span class="sr-only" data-i18n="menu_button_sr_label"
                   >Menu</span
                 >
+                <!-- Inline CSS for 1.25em otherwise this could be .bigbutton .icon -->
                 <div
                   class="icon"
                   style="width: 1.25em; height: 1.25em"

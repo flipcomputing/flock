@@ -848,10 +848,6 @@ button {
     outline: 3px solid var(--color-focus);
   }
 
-  .resizer:hover {
-    /*width: 20px; Hover expansion */
-  }
-
   .resizer::before {
     height: 60px; /* Taller grip indicator */
     width: 6px; /* Thicker grip */
