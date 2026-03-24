@@ -12,3 +12,4 @@ playwright-report/
 logs/
 *.log
 reports/
+.claude/settings.local.json
