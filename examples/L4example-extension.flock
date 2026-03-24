@@ -733,7 +733,7 @@
                                               "type": "math_number",
                                               "id": "[J_7_$Za%^`09@X!{J)@",
                                               "fields": {
-                                                "NUM": 0.5
+                                                "NUM": 0.2
                                               }
                                             }
                                           }
@@ -851,6 +851,10 @@
                                               "fields": {
                                                 "COLOR": "#ffff00"
                                               }
+                                            },
+                                            "block": {
+                                              "type": "random_colour",
+                                              "id": "YdJ%ssT2aC`$0V-.tKgH"
                                             }
                                           },
                                           "DIAMETER_X": {
