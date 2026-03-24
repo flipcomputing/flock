@@ -561,15 +561,16 @@ export function defineModelBlocks() {
           changeEvent.type === Blockly.Events.BLOCK_CREATE &&
           Array.isArray(changeEvent.ids) &&
           changeEvent.ids.includes(this.id);
-        if (
-          this.id !== changeEvent.blockId &&
-          changeEvent.type !== Blockly.Events.BLOCK_CHANGE &&
-          !isThisBlockCreated
-        )
-          return;
+        if (changeEvent.blockId === this.id || isThisBlockCreated) {
+          if (handleMeshLifecycleChange(this, changeEvent)) return;
+        }
 
-        if (handleMeshLifecycleChange(this, changeEvent)) return;
-        if (handleFieldOrChildChange(this, changeEvent)) return;
+        if (
+          handleParentLinkedUpdate(this, changeEvent) ||
+          handleFieldOrChildChange(this, changeEvent)
+        ) {
+          return;
+        }
       });
 
       addDoMutatorWithToggleBehavior(this);
