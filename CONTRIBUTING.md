@@ -71,6 +71,34 @@ Before starting, we suggest you [get in touch](https://flipcomputing.com/contact
    ```
 7. **Create a Pull Request** on GitHub
 
+### Deploying your fork to GitHub Pages
+1. **Push your fork to GitHub**:
+   ```bash
+   git push origin main
+   ```
+
+2. **Set up GitHub Actions**
+   - Go to your fork on GitHub at https://github.com/YOUR_USERNAME/flock/
+   - Click Settings > Pages
+   - In the 'Source' dropdown, select 'GitHub Actions'
+
+3. **Create the Flock environment**:
+   - Still in settings, click 'Environments'
+   - Click 'New Environment'
+   - Name it `flock` (all lowercase, do not change this)
+   - Click 'Configure environment' but do not make any changes
+
+4. **Trigger the deployment**
+   - Go back to your fork at https://github.com/YOUR_USERNAME/flock/
+   - Click the 'Actions' tab
+   - Click 'I understand my workflows, go ahead and enable them'
+   - Click on the new option 'Vite GitHub Pages Deploy'
+   - Click 'Run workflow' dropdown, then select 'Run workflow' to deploy manually
+
+5. **Visit your deployment**
+   - Once the site has deployed you will see it at https://YOUR_USERNAME.github.io/flock/
+   - GitHub pages should redeploy automatically when you push to main
+
 For more specific developer-facing documentation, please see [dev-docs.md](dev-docs/dev-docs.md).
 
 ## 📁 Project Structure
