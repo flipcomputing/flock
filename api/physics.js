@@ -1,15 +1,13 @@
 let flock;
 
 const getShapeTypeFromPhysics = (physics) => {
-  const shapeName = physics?.shape?.constructor?.name;
-  switch (shapeName) {
-    case "_PhysicsShapeCapsule":
-      return "CAPSULE";
-    case "_PhysicsShapeMesh":
-      return "MESH";
-    default:
-      return null;
-  }
+  if (!physics?.shape) return null;
+  const shape = physics.shape;
+  if (flock?.BABYLON?.PhysicsShapeCapsule && shape instanceof flock.BABYLON.PhysicsShapeCapsule)
+    return "CAPSULE";
+  if (flock?.BABYLON?.PhysicsShapeMesh && shape instanceof flock.BABYLON.PhysicsShapeMesh)
+    return "MESH";
+  return null;
 };
 
 const capturePhysicsState = (targetMesh) => ({
@@ -168,8 +166,18 @@ export const flockPhysics = {
         Math.max(width, depth) / 2,
         flock.scene,
       );
+    } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeCapsule) {
+      detectedShapeType = "CAPSULE";
+      newShape = createPhysicsShape(mesh, "CAPSULE");
+      if (!newShape) return;
+    } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeMesh) {
+      detectedShapeType = "MESH";
+      newShape = createPhysicsShape(mesh, "MESH");
+      if (!newShape) return;
     } else {
-      detectedShapeType = getShapeTypeFromPhysics(parent.physics);
+      detectedShapeType =
+        getShapeTypeFromPhysics(parent.physics) ||
+        parent.metadata?.physicsShapeType;
       if (!detectedShapeType) return;
       newShape = createPhysicsShape(mesh, detectedShapeType);
       if (!newShape) return;
