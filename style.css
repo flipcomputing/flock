@@ -556,6 +556,18 @@ button {
 .bigbutton svg {
   filter: none; /* light mode: normal */
 }
+/* Only apply to flock icons, not Babylon.js icons */
+[data-theme="dark"] #flockeditor .icon path {
+  fill: #bababa !important;
+}
+
+[data-theme="dark-contrast"] #flockeditor .icon path {
+  fill: #cdcdcd !important;
+}
+
+[data-theme="contrast"] #flockeditor .icon path {
+  fill: #ffffff !important;
+}
 
 [data-theme="contrast"] .gizmo-button img {
   color: #ffffff !important;
@@ -1140,7 +1152,8 @@ body.color-picker-open #renderCanvas {
   height: 1.5em;
 }
 
-.bigbutton .icon svg {
+/* Make this specific to flock editor buttons, not Babylon.js */
+#flockeditor .bigbutton .icon svg {
   width: 100%;
   height: 100%;
   display: block;
@@ -1193,13 +1206,6 @@ body.color-picker-open #renderCanvas {
   min-width: 100px;
   flex-grow: 1;
   margin-right: 10px;
-}
-
-#projectName {
-  flex-shrink: 1;
-  width: 100%;
-  min-width: 10px;
-  max-width: 80px;
 }
 
 .menu-item,
