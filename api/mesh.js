@@ -72,7 +72,7 @@ export const flockMesh = {
         : null;
 
     if (
-      physicsMesh?.physics?.shape?.constructor.name === "_PhysicsShapeCapsule"
+      physicsMesh?.physics?.shape instanceof flock.BABYLON.PhysicsShapeCapsule
     ) {
       const currentShape = physicsMesh.physics.shape;
       if (

@@ -24,7 +24,7 @@ const updateCapsuleShapeForAnimation = (
     !physicsMesh ||
     !physicsMesh.physics ||
     !physicsMesh.physics.shape ||
-    physicsMesh.physics.shape.constructor.name !== "_PhysicsShapeCapsule"
+    !(flock?.BABYLON?.PhysicsShapeCapsule && physicsMesh.physics.shape instanceof flock.BABYLON.PhysicsShapeCapsule)
   ) {
     return;
   }
