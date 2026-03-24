@@ -166,11 +166,11 @@ export const flockPhysics = {
         Math.max(width, depth) / 2,
         flock.scene,
       );
-    } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeCapsule) {
+    } else if (flock?.BABYLON?.PhysicsShapeCapsule && physicsShape instanceof flock.BABYLON.PhysicsShapeCapsule) {
       detectedShapeType = "CAPSULE";
       newShape = createPhysicsShape(mesh, "CAPSULE");
       if (!newShape) return;
-    } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeMesh) {
+    } else if (flock?.BABYLON?.PhysicsShapeMesh && physicsShape instanceof flock.BABYLON.PhysicsShapeMesh) {
       detectedShapeType = "MESH";
       newShape = createPhysicsShape(mesh, "MESH");
       if (!newShape) return;
