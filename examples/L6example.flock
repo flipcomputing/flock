@@ -342,6 +342,17 @@
                                               "id": "L*5=Uh.bj*7-DI~Ox`#)"
                                             },
                                             "PHYSICS_TYPE": "DYNAMIC"
+                                          },
+                                          "next": {
+                                            "block": {
+                                              "type": "hide",
+                                              "id": "cXQ5lwO0w@PuA)8+P6W)",
+                                              "fields": {
+                                                "MODEL_VAR": {
+                                                  "id": "L*5=Uh.bj*7-DI~Ox`#)"
+                                                }
+                                              }
+                                            }
                                           }
                                         }
                                       }
@@ -365,7 +376,7 @@
         "type": "forever",
         "id": "}[Y4[j#et:EqX**[r_u`",
         "x": 10,
-        "y": 674,
+        "y": 724,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -536,7 +547,7 @@
         "type": "forever",
         "id": "8~23EO}FCUVb9l9lz4Hg",
         "x": 10,
-        "y": 1350,
+        "y": 1400,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -730,7 +741,7 @@
         "type": "on_collision",
         "id": "!6~}RN-y8$b@`^RVMzl0",
         "x": 10,
-        "y": 1178,
+        "y": 1228,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
