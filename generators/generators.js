@@ -104,15 +104,7 @@ export function defineGenerators() {
     return [`"${pivotOption}"`, javascriptGenerator.ORDER_ATOMIC];
   };
 
-  javascriptGenerator.forBlock["button_controls"] = function (block) {
-    const color = getFieldValue(block, "COLOR", '"#ffffff"');
-    const control = block.getFieldValue("CONTROL");
-    const mode = block.getFieldValue("ENABLED");
-    return `buttonControls("${control}", "${mode}", ${color});\n`;
-  };
-
   // Assumes sanitizeForCode(text) is defined and in scope.
-
   /**
    * comment block -> single-line JS comment.
    * Sanitizes the displayed text so it cannot break out of comment context.
@@ -496,43 +488,6 @@ export function defineGenerators() {
         });\n`;
   };
 
-  javascriptGenerator.forBlock["distance_to"] = function (block) {
-    const meshName1 = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL1"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-
-    const meshName2 = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL2"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-
-    const code = `distanceTo(${meshName1}, ${meshName2})`;
-    return [code, javascriptGenerator.ORDER_NONE];
-  };
-
-  javascriptGenerator.forBlock["time"] = function (block) {
-    const unit = block.getFieldValue("UNIT") || "seconds";
-    const code = `getTime("${unit}")`;
-    return [code, javascriptGenerator.ORDER_NONE];
-  };
-
-  javascriptGenerator.forBlock["ground_level"] = function () {
-    const code = "-999999";
-    return [code, javascriptGenerator.ORDER_NONE];
-  };
-
-  javascriptGenerator.forBlock["get_property"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const propertyName = block.getFieldValue("PROPERTY");
-
-    const code = `getProperty(${modelName}, '${propertyName}')`;
-    return [code, javascriptGenerator.ORDER_NONE];
-  };
-
   javascriptGenerator.forBlock["play_theme"] = function (block) {
     const idVar = javascriptGenerator.nameDB_.getName(
       block.getFieldValue("ID_VAR"),
@@ -908,24 +863,6 @@ export function defineGenerators() {
     return `up(${modelName}, ${upForce});\n`;
   };
 
-  javascriptGenerator.forBlock["touching_surface"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-
-    return [`isTouchingSurface(${modelName})`, javascriptGenerator.ORDER_NONE];
-  };
-
-  javascriptGenerator.forBlock["mesh_exists"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-
-    return [`meshExists(${modelName})`, javascriptGenerator.ORDER_NONE];
-  };
-
   javascriptGenerator.forBlock["hold"] = function (block) {
     const meshToAttach = javascriptGenerator.nameDB_.getName(
       block.getFieldValue("MESH_TO_ATTACH"),
@@ -959,40 +896,9 @@ export function defineGenerators() {
         `;
   };
 
-  javascriptGenerator.forBlock["canvas_controls"] = function (block) {
-    const controls = block.getFieldValue("CONTROLS") == "TRUE";
-    return `canvasControls(${controls});\n`;
-  };
-
-  javascriptGenerator.forBlock["action_pressed"] = function (block) {
-    const action = block.getFieldValue("ACTION");
-    return [`actionPressed("${action}")`, javascriptGenerator.ORDER_NONE];
-  };
-
-  javascriptGenerator.forBlock["set_action_key"] = function (block) {
-    const action = block.getFieldValue("ACTION");
-    const key = block.getFieldValue("KEY");
-    return `setActionKey("${action}", ${JSON.stringify(key)});\n`;
-  };
-
   javascriptGenerator.forBlock["key_pressed"] = function (block) {
     const key = block.getFieldValue("KEY");
     return [`keyPressed("${key}")`, javascriptGenerator.ORDER_NONE];
-  };
-
-  // Blockly code generator for checking if two meshes are touching
-  javascriptGenerator.forBlock["meshes_touching"] = function (block) {
-    const mesh1VarName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH1"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const mesh2VarName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH2"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-
-    const code = `checkMeshesTouching(${mesh1VarName}, ${mesh2VarName})`;
-    return [code, javascriptGenerator.ORDER_ATOMIC];
   };
 
   javascriptGenerator.forBlock["random_colour"] = function (block) {
@@ -1567,6 +1473,15 @@ export function defineGenerators() {
                   }
           `;
   };
+
+  javascriptGenerator.forBlock["when_key_event"] = function (block) {
+    const key = block.getFieldValue("KEY");
+    const event = block.getFieldValue("EVENT"); // "starts" or "ends"
+    const statements_do = javascriptGenerator.statementToCode(block, "DO");
+
+    // Pass "true" if event is "ends" for the whenKeyPressed helper function
+    return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "ends"});\n`;
+  };
   */
 }
 
@@ -1599,13 +1514,6 @@ javascriptGenerator.forBlock["xyz"] = function (block) {
   // Generate a tuple representing the vector
   const code = `[${x}, ${y}, ${z}]`;
   return [code, javascriptGenerator.ORDER_ATOMIC];
-};
-
-javascriptGenerator.forBlock["microbit_input"] = function (block) {
-  const event = block.getFieldValue("EVENT");
-  const statements_do = javascriptGenerator.statementToCode(block, "DO");
-
-  return `whenKeyEvent("${event}", async () => {${statements_do}});\n`;
 };
 
 javascriptGenerator.forBlock["math_random_int"] = function (block) {

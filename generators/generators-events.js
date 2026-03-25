@@ -91,14 +91,13 @@ export function registerEventsGenerators(javascriptGenerator) {
       return "";
     }
   };
-  // When % key pressed ----------------------------------------
-  javascriptGenerator.forBlock["when_key_event"] = function (block) {
-    const key = block.getFieldValue("KEY");
-    const event = block.getFieldValue("EVENT"); // "starts" or "ends"
+  // When % action event ----------------------------------------
+  javascriptGenerator.forBlock["when_action_event"] = function (block) {
+    const action = block.getFieldValue("ACTION");
+    const event = block.getFieldValue("EVENT");
     const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
-    // Pass "true" if event is "ends" for the whenKeyPressed helper function
-    return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "ends"});\n`;
+    return `whenActionEvent("${action}", async () => {${statements_do}}, ${event === "ends"});\n`;
   };
 
   // Broadcast event -------------------------------------------
