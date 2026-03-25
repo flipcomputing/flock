@@ -142,3 +142,45 @@ export function emitSafeIdentifierLiteral(code) {
 
   return JSON.stringify(normalized);
 }
+
+export function sanitizeForCode(input) {
+  let s = String(input);
+
+  // Cut from the first *real* newline (\r, \n, or Unicode line separator)
+  s = s.replace(/[\r\n\u2028\u2029].*$/s, "");
+  // Cut from the first *escaped* newline sequence (\n, \r, \u2028, \u2029, \x0A, \x0D)
+  s = s.replace(/\\(?:n|r|u(?:2028|2029|000a|000d)|x0(?:a|d)).*$/i, "");
+
+  // Remove any trailing backslashes that could remain (edge cases)
+  s = s.replace(/\\+$/, "");
+
+  // Neutralize comment and template literal markers
+  s = s.replace(/\*\//g, "*∕").replace(/\/\//g, "∕∕").replace(/`/g, "ˋ");
+
+  // Strip control characters (optional, keeps tabs/spaces)
+  s = s.replace(/[\u0000-\u001F\u007F]/g, "");
+
+  return s;
+}
+
+export function emitSafeTextArg(code) {
+  if (!code) return '""';
+  const m = code.match(/^(['"`])(.*)\1$/s);
+  if (!m) return code;
+
+  const q = m[1];
+  const body = m[2];
+
+  // Decode literal safely (handles \', \\ , \n, \uXXXX, etc.)
+  let decoded;
+  try {
+    decoded = JSON.parse(q + body + q);
+  } catch {
+    decoded = body
+      .replace(/\\"/g, '"')
+      .replace(/\\'/g, "'")
+      .replace(/\\\\/g, "\\");
+  }
+
+  return JSON.stringify(sanitizeForCode(decoded));
+}
