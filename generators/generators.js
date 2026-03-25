@@ -333,78 +333,6 @@ export function defineGenerators() {
     return `${asyncWrapper}speak(${meshVariable}, ${text}, { voice: "${voice}", rate: ${rate}, pitch: ${pitch}, volume: ${volume}, language: "${language}", mode: "${safeAsyncMode.toLowerCase()}" });\n`;
   };
 
-  javascriptGenerator.forBlock["highlight"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const color = getFieldValue(block, "COLOR", '"#FFD700"');
-    return `await highlight(${modelName}, { color: ${color} });\n`;
-  };
-
-  javascriptGenerator.forBlock["glow"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    return `await glow(${modelName});\n`;
-  };
-
-  javascriptGenerator.forBlock["tint"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const color = getFieldValue(block, "COLOR", '"#AA336A"');
-
-    return `await tint(${modelName}, { color: ${color} });\n`;
-  };
-
-  javascriptGenerator.forBlock["change_color"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const color = getFieldValue(block, "COLOR", '"#ffffff"');
-
-    return `await changeColor(${modelName}, { color: ${color} });\n`;
-  };
-
-  javascriptGenerator.forBlock["change_material"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("ID_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const material = block.getFieldValue("MATERIALS");
-    const color = getFieldValue(block, "COLOR", '"#ffffff"');
-
-    return `await changeMaterial(${modelName}, "${material}", ${color});\n`;
-  };
-
-  javascriptGenerator.forBlock["set_alpha"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-
-    const alphaValue = javascriptGenerator.valueToCode(
-      block,
-      "ALPHA",
-      javascriptGenerator.ORDER_ATOMIC,
-    );
-
-    return `await setAlpha(${modelName}, { value: ${alphaValue} });\n`;
-  };
-
-  javascriptGenerator.forBlock["clear_effects"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-
-    return `await clearEffects(${modelName});\n`;
-  };
-
   javascriptGenerator.forBlock["create_map"] = function (block) {
     const mapName = block.getFieldValue("MAP_NAME");
     const material =
@@ -467,11 +395,6 @@ export function defineGenerators() {
     return [`keyPressed("${key}")`, javascriptGenerator.ORDER_NONE];
   };
 
-  javascriptGenerator.forBlock["random_colour"] = function (block) {
-    const code = `randomColour()`;
-    return [code, javascriptGenerator.ORDER_ATOMIC];
-  };
-
   javascriptGenerator.forBlock["random_seeded_int"] = function (block) {
     const value_from = getFieldValue(block, "FROM", 0);
     const value_to = getFieldValue(block, "TO", 10);
@@ -498,85 +421,6 @@ export function defineGenerators() {
     }
 
     return [code, javascriptGenerator.ORDER_NONE];
-  };
-
-  javascriptGenerator.forBlock["colour"] = function (block) {
-    const colour = block.getFieldValue("COLOR");
-    const code = `"${colour}"`;
-    return [code, javascriptGenerator.ORDER_ATOMIC];
-  };
-
-  javascriptGenerator.forBlock["material"] = function (block) {
-    const baseColor =
-      javascriptGenerator.valueToCode(
-        block,
-        "BASE_COLOR",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || '"#ffffff"';
-
-    const textureSet = block.getFieldValue("TEXTURE_SET");
-    const alpha =
-      javascriptGenerator.valueToCode(
-        block,
-        "ALPHA",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "1";
-
-    // Always return a standard data object.
-    // Logic that uses this block (like set_material) will handle the application.
-    const code = `{ 
-                color: ${baseColor}, 
-                materialName: "${textureSet}", 
-                alpha: ${alpha} 
-            }`;
-
-    return [code, javascriptGenerator.ORDER_ATOMIC];
-  };
-
-  javascriptGenerator.forBlock["set_material"] = function (block) {
-    const meshVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-
-    const material =
-      javascriptGenerator.valueToCode(
-        block,
-        "MATERIAL",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "{}";
-
-    const code = `setMaterial(${meshVar}, ${material});\n`;
-    return code;
-  };
-
-  javascriptGenerator.forBlock["skin_colour"] = function (block) {
-    const colour = block.getFieldValue("COLOR");
-    const code = `"${colour}"`;
-    return [code, javascriptGenerator.ORDER_ATOMIC];
-  };
-
-  javascriptGenerator.forBlock["greyscale_colour"] = function (block) {
-    const colour = block.getFieldValue("COLOR");
-    const code = `"${colour}"`;
-    return [code, javascriptGenerator.ORDER_ATOMIC];
-  };
-
-  javascriptGenerator.forBlock["colour_from_string2"] = function (block) {
-    const color =
-      javascriptGenerator.valueToCode(
-        block,
-        "COLOR",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "''";
-
-    const code = `${color}`;
-    return [code, javascriptGenerator.ORDER_ATOMIC];
-  };
-
-  javascriptGenerator.forBlock["colour_from_string"] = function (block) {
-    const colourValue = block.getFieldValue("COLOR") || "#000000";
-    return [`"${colourValue}"`, javascriptGenerator.ORDER_ATOMIC];
   };
 
   javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {
@@ -1048,6 +892,36 @@ export function defineGenerators() {
     // Pass "true" if event is "ends" for the whenKeyPressed helper function
     return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "ends"});\n`;
   };
+
+  javascriptGenerator.forBlock["change_material"] = function (block) {
+    const modelName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue("ID_VAR"),
+      Blockly.Names.NameType.VARIABLE,
+    );
+    const material = block.getFieldValue("MATERIALS");
+    const color = getFieldValue(block, "COLOR", '"#ffffff"');
+
+    return `await changeMaterial(${modelName}, "${material}", ${color});\n`;
+  };
+
+  javascriptGenerator.forBlock["greyscale_colour"] = function (block) {
+    const colour = block.getFieldValue("COLOR");
+    const code = `"${colour}"`;
+    return [code, javascriptGenerator.ORDER_ATOMIC];
+  };
+
+  javascriptGenerator.forBlock["colour_from_string2"] = function (block) {
+    const color =
+      javascriptGenerator.valueToCode(
+        block,
+        "COLOR",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "''";
+
+    const code = `${color}`;
+    return [code, javascriptGenerator.ORDER_ATOMIC];
+  };
+
   */
 }
 
