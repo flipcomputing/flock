@@ -961,6 +961,7 @@ export default {
   diagonal_ridge_png_option: "Diagonal Ridge",
   mixed_heights_png_option: "Mixed Heights",
   uneven_terrain_png_option: "Uneven Terrain",
+  mountains_png_option: "Mountains",
 
   Idle_option: "Idle",
   Walk_option: "Walk",
