@@ -1,6 +1,5 @@
 import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap, generateUniqueId } from "./mesh-state.js";
-import { getFieldValue, getVariableInfo } from "./generators-utilities.js";
+import { getFieldValue } from "./generators-utilities.js";
 
 export function registerDeprecatedGenerators(javascriptGenerator) {
   javascriptGenerator.forBlock["keyword_block"] = function (block) {
@@ -72,89 +71,6 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
     return `controllerRumblePattern("${motor}", ${strength}, ${onDuration}, ${offDuration}, ${repeats});\n`;
   };
 
-  javascriptGenerator.forBlock["load_object2"] = function (block) {
-    const modelName = block.getFieldValue("MODELS");
-    const scale = getFieldValue(block, "SCALE", "1");
-    const x = getFieldValue(block, "X", "0");
-    const y = getFieldValue(block, "Y", "0");
-    const z = getFieldValue(block, "Z", "0");
-    const color = getFieldValue(block, "COLOR", '"#000000"');
-
-    const { generatedName: variableName, userVariableName } = getVariableInfo(
-      block,
-      "ID_VAR",
-    );
-
-    //const meshId = modelName + "_" + generateUniqueId();
-    const meshId = `${userVariableName}__${block.id}`;
-    meshMap[block.id] = block;
-    meshBlockIdMap[block.id] = block.id;
-    // Generate the code for the "do" part (if present)
-    let doCode = "";
-
-    if (block.getInput("DO")) {
-      doCode = javascriptGenerator.statementToCode(block, "DO") || "";
-    }
-
-    doCode = doCode ? `async function() {\n${doCode}\n}` : "";
-
-    return `${variableName} = createObject({
-                        modelName: '${modelName}',
-                        modelId: '${meshId}',
-                        color: ${color},
-                        scale: ${scale},
-                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ""}
-                });\n`;
-  };
-
-  javascriptGenerator.forBlock["create_ground"] = function (block) {
-    const meshId = "ground";
-    meshMap[meshId] = block;
-    meshBlockIdMap[meshId] = block.id;
-    let color =
-      javascriptGenerator.valueToCode(
-        block,
-        "COLOR",
-        javascriptGenerator.ORDER_NONE,
-      ) || '"#71BC78"';
-
-    const colorBlock = block.getInputTargetBlock("COLOR");
-
-    if (colorBlock && colorBlock.type === "material") {
-      // Material blocks already generate a material object; pass it directly to
-      // createGround so the material can be applied instead of trying to access
-      // a colour property.
-      color = javascriptGenerator.valueToCode(
-        block,
-        "COLOR",
-        javascriptGenerator.ORDER_FUNCTION_CALL,
-      );
-    }
-
-    return `createGround(${color}, "${meshId}");\n`;
-  };
-
-  javascriptGenerator.forBlock["create_wall"] = function (block) {
-    const color = getFieldValue(block, "COLOR", '"#9932CC"');
-    const startX = getFieldValue(block, "START_X", "0");
-    const startZ = getFieldValue(block, "START_Z", "0");
-    const endX = getFieldValue(block, "END_X", "1");
-    const endZ = getFieldValue(block, "END_Z", "0");
-    const yPosition = getFieldValue(block, "Y_POSITION", "0");
-    const wallType = block.getFieldValue("WALL_TYPE");
-
-    let variableName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("ID_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-
-    const wallId = `wall_${generateUniqueId()}`;
-    meshMap[wallId] = block;
-    meshBlockIdMap[wallId] = block.id;
-    // Directly passing all parameters to the helper function
-    return `${variableName} = newWall(${color}, ${startX}, ${startZ}, ${endX}, ${endZ}, ${yPosition}, "${wallType}", "${wallId}");\n`;
-  };
-
   javascriptGenerator.forBlock["create_custom_map"] = function (block) {
     const colors = [];
     for (let i = 1; i <= 25; i++) {
@@ -169,14 +85,6 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
     return `await createCustomMap([${colors.join(", ")}]);\n`;
   };
 
-  javascriptGenerator.forBlock["start2"] = function (block) {
-    const branch = javascriptGenerator.statementToCode(block, "DO");
-    return `start(async function() {\n${branch}});\n`;
-  };
-
-  javascriptGenerator.forBlock["logic_placeholder"] = function (block) {
-    return "";
-  };
 
   javascriptGenerator.forBlock["when_touches"] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
@@ -348,18 +256,6 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
     return [code, javascriptGenerator.ORDER_ATOMIC];
   };
 
-  javascriptGenerator.forBlock["colour_from_string2"] = function (block) {
-    const color =
-      javascriptGenerator.valueToCode(
-        block,
-        "COLOR",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "''";
-
-    const code = `${color}`;
-    return [code, javascriptGenerator.ORDER_ATOMIC];
-  };
-
   javascriptGenerator.forBlock["set_scene_bpm"] = function (block) {
     const bpm = javascriptGenerator.valueToCode(
       block,
@@ -454,16 +350,6 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
     // Generate a tuple representing the vector
     const code = `[${x}, ${y}, ${z}]`;
     return [code, javascriptGenerator.ORDER_ATOMIC];
-  };
-
-  javascriptGenerator.forBlock["get_lexical_variable"] = function (block) {
-    const variableName = block.getFieldValue("VAR");
-    const code = variableName;
-    return [code, javascriptGenerator.ORDER_ATOMIC];
-  };
-
-  javascriptGenerator.forBlock["keyword"] = function (block) {
-    return "";
   };
 
   javascriptGenerator.forBlock["animate_property"] = function (block) {
