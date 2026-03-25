@@ -1138,10 +1138,10 @@ export default {
   // Model display names
   model_display_liz1: "Cat",
   model_display_liz2: "Monkey",
-  model_display_liz3: "Girl with long ponytail",
-  model_display_liz4: "Boy with spiky hair",
+  model_display_liz3: "Character with long ponytail",
+  model_display_liz4: "Character with spiky hair",
   model_display_liz5: "Alien",
-  model_display_liz6: "Elf princess",
+  model_display_liz6: "Elf",
   model_display_block1: "Block character with high hair bunches",
   model_display_block2: "Block character with long hair bunches",
   model_display_block3: "Block character with ponytail",
