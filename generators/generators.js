@@ -97,309 +97,6 @@ export function defineGenerators() {
   registerMathGenerators(javascriptGenerator);
   registerFunctionsGenerators(javascriptGenerator);
 
-  javascriptGenerator.forBlock["wait"] = function (block) {
-    const duration =
-      javascriptGenerator.valueToCode(
-        block,
-        "DURATION",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "1";
-
-    return `await wait(${duration} / 1000);\n`;
-  };
-
-  javascriptGenerator.forBlock["wait_seconds"] = function (block) {
-    const duration =
-      javascriptGenerator.valueToCode(
-        block,
-        "DURATION",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "1";
-
-    return `await wait(${duration});\n`;
-  };
-
-  javascriptGenerator.forBlock["wait_until"] = function (block) {
-    const condition =
-      javascriptGenerator.valueToCode(
-        block,
-        "CONDITION",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "false"; // Default to false if no condition is connected
-
-    return `await waitUntil(() => ${condition});\n`;
-  };
-
-  javascriptGenerator.forBlock["animation"] = function (block) {
-    const meshVariable = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const property = block.getFieldValue("PROPERTY");
-    const animationGroupVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("ANIMATION_GROUP"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const keyframesBlock = block.getInputTargetBlock("KEYFRAMES");
-    const keyframesArray = [];
-
-    if (keyframesBlock) {
-      // Loop through keyframe blocks to gather data
-      for (let i = 0; i < keyframesBlock.inputList.length; i++) {
-        const keyframeInput = keyframesBlock.inputList[i];
-        const valueBlock = keyframeInput.connection
-          ? keyframeInput.connection.targetBlock()
-          : null;
-        let value;
-
-        if (valueBlock) {
-          // If the keyframe block is of type "colour_keyframe", treat it as a color keyframe.
-          if (valueBlock.type === "colour_keyframe") {
-            value = javascriptGenerator.valueToCode(
-              valueBlock,
-              "VALUE",
-              javascriptGenerator.ORDER_NONE,
-            );
-          } else if (property === "color") {
-            // Otherwise, if property equals "color", extract as a color.
-            value = javascriptGenerator.valueToCode(
-              valueBlock,
-              "VALUE",
-              javascriptGenerator.ORDER_NONE,
-            );
-          } else if (["position", "rotation", "scaling"].includes(property)) {
-            // For vector keyframes, extract X, Y, and Z.
-            const x =
-              javascriptGenerator.valueToCode(
-                valueBlock,
-                "X",
-                javascriptGenerator.ORDER_ATOMIC,
-              ) || 0;
-            const y =
-              javascriptGenerator.valueToCode(
-                valueBlock,
-                "Y",
-                javascriptGenerator.ORDER_ATOMIC,
-              ) || 0;
-            const z =
-              javascriptGenerator.valueToCode(
-                valueBlock,
-                "Z",
-                javascriptGenerator.ORDER_ATOMIC,
-              ) || 0;
-            value = `createVector3(${x}, ${y}, ${z})`;
-          } else {
-            // Handle alpha or other scalar properties.
-            value = javascriptGenerator.valueToCode(
-              valueBlock,
-              "VALUE",
-              javascriptGenerator.ORDER_ATOMIC,
-            );
-          }
-        } else {
-          // Default value for missing blocks.
-          value =
-            property === "color" || property === "colour_keyframe"
-              ? '"#ffffff"'
-              : `createVector3(0, 0, 0)`;
-        }
-
-        // Retrieve the duration (using the same connection as value).
-        const durationBlock = keyframeInput.connection
-          ? keyframeInput.connection.targetBlock()
-          : null;
-        const duration = durationBlock
-          ? javascriptGenerator.valueToCode(
-              durationBlock,
-              "DURATION",
-              javascriptGenerator.ORDER_ATOMIC,
-            )
-          : "1"; // Default duration of 1 second if not specified
-
-        keyframesArray.push({ value, duration });
-      }
-    }
-
-    const easing = block.getFieldValue("EASING") || "Linear";
-    const loop = block.getFieldValue("LOOP") === "TRUE";
-    const reverse = block.getFieldValue("REVERSE") === "TRUE";
-    const mode = block.getFieldValue("MODE");
-
-    const keyframesCode = keyframesArray
-      .map(
-        (kf) => `{
-                        value: ${kf.value}, 
-                        duration: ${kf.duration}
-                  }`,
-      )
-      .join(", ");
-
-    return `
-                ${animationGroupVar} = await createAnimation(
-                  ${animationGroupVar},
-                  ${meshVariable},
-                  {
-                        property: "${property}",
-                        keyframes: [${keyframesCode}],
-                        easing: "${easing}",
-                        loop: ${loop},
-                        reverse: ${reverse},
-                        mode: "${mode}"
-                  }
-                );
-          `;
-  };
-
-  javascriptGenerator.forBlock["animate_keyframes"] = function (block) {
-    const meshVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const keyframesBlock = block.getInputTargetBlock("KEYFRAMES");
-    const keyframesArray = [];
-
-    if (keyframesBlock) {
-      // Loop through keyframe blocks to gather data
-      for (let i = 0; i < keyframesBlock.inputList.length; i++) {
-        const keyframeInput = keyframesBlock.inputList[i];
-
-        const valueBlock = keyframeInput.connection
-          ? keyframeInput.connection.targetBlock()
-          : null;
-        const durationBlock = keyframeInput.connection
-          ? keyframeInput.connection.targetBlock()
-          : null;
-
-        let value;
-        const property = block.getFieldValue("PROPERTY");
-
-        if (valueBlock) {
-          if (property === "color") {
-            // Handle color keyframe (as a string)
-            value = javascriptGenerator.valueToCode(
-              valueBlock,
-              "VALUE",
-              javascriptGenerator.ORDER_NONE,
-            );
-          } else if (["position", "rotation", "scaling"].includes(property)) {
-            // Handle XYZ (Vector3) keyframe for position, rotation, or scaling
-            const x =
-              javascriptGenerator.valueToCode(
-                valueBlock,
-                "X",
-                javascriptGenerator.ORDER_ATOMIC,
-              ) || 0;
-            const y =
-              javascriptGenerator.valueToCode(
-                valueBlock,
-                "Y",
-                javascriptGenerator.ORDER_ATOMIC,
-              ) || 0;
-            const z =
-              javascriptGenerator.valueToCode(
-                valueBlock,
-                "Z",
-                javascriptGenerator.ORDER_ATOMIC,
-              ) || 0;
-            value = `createVector3(${x}, ${y}, ${z})`; // Generate the text for Vector3, not the object itself
-          } else {
-            // Handle alpha or other properties
-            value = javascriptGenerator.valueToCode(
-              valueBlock,
-              "VALUE",
-              javascriptGenerator.ORDER_ATOMIC,
-            );
-          }
-        } else {
-          // Default values for missing blocks
-          value = property === "color" ? '"#ffffff"' : `createVector3(0, 0, 0)`; // Correct color string for colours
-        }
-
-        const duration = durationBlock
-          ? javascriptGenerator.valueToCode(
-              durationBlock,
-              "DURATION",
-              javascriptGenerator.ORDER_ATOMIC,
-            )
-          : "1"; // Default duration of 1 second if not specified
-
-        keyframesArray.push({ value, duration });
-      }
-    }
-
-    const easing = block.getFieldValue("EASING") || "Linear";
-    const property = block.getFieldValue("PROPERTY") || "color"; // Default to "color" if no property is set
-
-    const loop = block.getFieldValue("LOOP") === "TRUE";
-    const reverse = block.getFieldValue("REVERSE") === "TRUE";
-    const mode = block.getFieldValue("MODE");
-
-    const asyncWrapper = mode === "AWAIT" ? "await " : "";
-
-    // Generate the keyframes text for both colors and Vector3
-    const keyframesCode = keyframesArray
-      .map(
-        (kf) => `{
-                value: ${kf.value}, 
-                duration: ${kf.duration}
-          }`,
-      )
-      .join(", ");
-
-    // Return the final code, passing keyframes with durations and properties
-    return `${asyncWrapper}animateKeyFrames(${meshVar}, { keyframes: [${keyframesCode}], property: "${property}", easing: "${easing}", loop: ${loop}, reverse: ${reverse} });\n`;
-  };
-
-  javascriptGenerator.forBlock["stop_animations"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-
-    return `await stopAnimations(${modelName});\n`;
-  };
-
-  javascriptGenerator.forBlock["colour_keyframe"] = function (block) {
-    const color = javascriptGenerator.valueToCode(
-      block,
-      "COLOR",
-      javascriptGenerator.ORDER_ATOMIC,
-    );
-    const duration = javascriptGenerator.valueToCode(
-      block,
-      "DURATION",
-      javascriptGenerator.ORDER_ATOMIC,
-    );
-
-    const code = `{ value: ${color}, duration: ${duration} }`;
-    return [code, javascriptGenerator.ORDER_ATOMIC];
-  };
-
-  javascriptGenerator.forBlock["xyz_keyframe"] = function (block) {
-    const x = javascriptGenerator.valueToCode(
-      block,
-      "X",
-      javascriptGenerator.ORDER_ATOMIC,
-    );
-    const y = javascriptGenerator.valueToCode(
-      block,
-      "Y",
-      javascriptGenerator.ORDER_ATOMIC,
-    );
-    const z = javascriptGenerator.valueToCode(
-      block,
-      "Z",
-      javascriptGenerator.ORDER_ATOMIC,
-    );
-    const duration = javascriptGenerator.valueToCode(
-      block,
-      "DURATION",
-      javascriptGenerator.ORDER_ATOMIC,
-    );
-    const code = `{ value: createVector3(${x}, ${y}, ${z}), duration: ${duration} }`;
-    return [code, javascriptGenerator.ORDER_ATOMIC];
-  };
-
   javascriptGenerator.forBlock["min_centre_max"] = function (block) {
     const pivotOption = block.getFieldValue("PIVOT_OPTION");
 
@@ -799,163 +496,6 @@ export function defineGenerators() {
         });\n`;
   };
 
-  javascriptGenerator.forBlock["glide_to"] = function (block) {
-    const meshVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const x =
-      javascriptGenerator.valueToCode(
-        block,
-        "X",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const y =
-      javascriptGenerator.valueToCode(
-        block,
-        "Y",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const z =
-      javascriptGenerator.valueToCode(
-        block,
-        "Z",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const duration =
-      javascriptGenerator.valueToCode(
-        block,
-        "DURATION",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "1000";
-    const mode = block.getFieldValue("MODE");
-    const reverse = block.getFieldValue("REVERSE") === "TRUE";
-    const loop = block.getFieldValue("LOOP") === "TRUE";
-    const easing = block.getFieldValue("EASING");
-
-    const code = `${mode === "AWAIT" ? "await " : ""}glideTo(${meshVar}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration} / 1000, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
-
-    return code;
-  };
-
-  javascriptGenerator.forBlock["glide_to_seconds"] = function (block) {
-    const meshName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const x = getFieldValue(block, "X", "0");
-    const y = getFieldValue(block, "Y", "0");
-    const z = getFieldValue(block, "Z", "0");
-    const duration = getFieldValue(block, "DURATION", "0");
-    const mode = block.getFieldValue("MODE");
-    const reverse = block.getFieldValue("REVERSE") === "TRUE";
-    const loop = block.getFieldValue("LOOP") === "TRUE";
-    const easing = block.getFieldValue("EASING");
-
-    const asyncWrapper = mode === "AWAIT" ? "await " : "";
-
-    return `${asyncWrapper}glideTo(${meshName}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
-  };
-
-  javascriptGenerator.forBlock["glide_to_object"] = function (block) {
-    const meshName1 = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL1"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-
-    const meshName2 = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL2"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const xOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "X_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const yOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "Y_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const zOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "Z_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const duration = getFieldValue(block, "DURATION", "0");
-    const mode = block.getFieldValue("MODE");
-    const reverse = block.getFieldValue("REVERSE") === "TRUE";
-    const loop = block.getFieldValue("LOOP") === "TRUE";
-    const easing = block.getFieldValue("EASING");
-    const asyncWrapper = mode === "AWAIT" ? "await " : "";
-
-    return `${asyncWrapper}glideToObject(${meshName1}, ${meshName2}, { offsetX: ${xOffset}, offsetY: ${yOffset}, offsetZ: ${zOffset}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
-  };
-
-  javascriptGenerator.forBlock["rotate_anim"] = function (block) {
-    const meshName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const rotX = getFieldValue(block, "ROT_X", "0");
-    const rotY = getFieldValue(block, "ROT_Y", "0");
-    const rotZ = getFieldValue(block, "ROT_Z", "0");
-    const duration = getFieldValue(block, "DURATION", "0");
-    const mode = block.getFieldValue("MODE");
-    const reverse = block.getFieldValue("REVERSE") === "TRUE";
-    const loop = block.getFieldValue("LOOP") === "TRUE";
-    const easing = block.getFieldValue("EASING");
-
-    const asyncWrapper = mode === "AWAIT" ? "await " : "";
-
-    return `${asyncWrapper}rotateAnim(${meshName}, { x: ${rotX}, y: ${rotY}, z: ${rotZ}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
-  };
-
-  javascriptGenerator.forBlock["rotate_anim_seconds"] = function (block) {
-    const meshName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const rotX = getFieldValue(block, "ROT_X", "0");
-    const rotY = getFieldValue(block, "ROT_Y", "0");
-    const rotZ = getFieldValue(block, "ROT_Z", "0");
-    const duration = getFieldValue(block, "DURATION", "0");
-    const mode = block.getFieldValue("MODE");
-    const reverse = block.getFieldValue("REVERSE") === "TRUE";
-    const loop = block.getFieldValue("LOOP") === "TRUE";
-    const easing = block.getFieldValue("EASING");
-
-    const asyncWrapper = mode === "AWAIT" ? "await " : "";
-
-    return `${asyncWrapper}rotateAnim(${meshName}, { x: ${rotX}, y: ${rotY}, z: ${rotZ}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
-  };
-
-  javascriptGenerator.forBlock["rotate_to_object"] = function (block) {
-    const meshName1 = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL1"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const meshName2 = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL2"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const rotateMode = block.getFieldValue("ROTATE_MODE");
-    const apiRotateMode =
-      rotateMode === "SAME_ROTATION" ? "same_rotation" : "towards";
-    const duration = getFieldValue(block, "DURATION", "0");
-    const mode = block.getFieldValue("MODE");
-    const reverse = block.getFieldValue("REVERSE") === "TRUE";
-    const loop = block.getFieldValue("LOOP") === "TRUE";
-    const easing = block.getFieldValue("EASING");
-
-    const asyncWrapper = mode === "AWAIT" ? "await " : "";
-
-    return `${asyncWrapper}rotateToObject(${meshName1}, ${meshName2}, { mode: "${apiRotateMode}", duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
-  };
-
   javascriptGenerator.forBlock["distance_to"] = function (block) {
     const meshName1 = javascriptGenerator.nameDB_.getName(
       block.getFieldValue("MODEL1"),
@@ -1057,26 +597,6 @@ export function defineGenerators() {
     // Build the final code line
     const code = `${idVar} = ${asyncMode === "AWAIT" ? "await " : ""}playSound(${meshName}, { soundName: "${soundName}", loop: ${loop}, volume: ${volumeCode}, playbackRate: ${speedCode} });\n`;
 
-    return code;
-  };
-
-  javascriptGenerator.forBlock["animation_name"] = function (block) {
-    const animationName = block.getFieldValue("ANIMATION_NAME");
-    return [`"${animationName}"`, javascriptGenerator.ORDER_ATOMIC];
-  };
-
-  javascriptGenerator.forBlock["play_animation"] = function (block) {
-    const model = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const animationName =
-      javascriptGenerator.valueToCode(
-        block,
-        "ANIMATION_NAME",
-        javascriptGenerator.ORDER_NONE,
-      ) || '"Idle"';
-    const code = `await playAnimation(${model}, { animationName: ${animationName} });\n`;
     return code;
   };
 
@@ -1284,18 +804,6 @@ export function defineGenerators() {
     return `${asyncWrapper}speak(${meshVariable}, ${text}, { voice: "${voice}", rate: ${rate}, pitch: ${pitch}, volume: ${volume}, language: "${language}", mode: "${safeAsyncMode.toLowerCase()}" });\n`;
   };
 
-  javascriptGenerator.forBlock["local_variable"] = function (block, generator) {
-    // Retrieve the variable selected by the user
-    const variable = generator.nameDB_.getName(
-      block.getFieldValue("VAR"),
-      Blockly.VARIABLE_CATEGORY_NAME,
-    );
-
-    // Generate a local 'let' declaration for the selected variable
-    const code = `let ${variable};\n`;
-    return code;
-  };
-
   javascriptGenerator.forBlock["when_action_event"] = function (block) {
     const action = block.getFieldValue("ACTION");
     const event = block.getFieldValue("EVENT");
@@ -1376,21 +884,6 @@ export function defineGenerators() {
     return `await clearEffects(${modelName});\n`;
   };
 
-  javascriptGenerator.forBlock["switch_animation"] = function (block) {
-    const model = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const animationName =
-      javascriptGenerator.valueToCode(
-        block,
-        "ANIMATION_NAME",
-        javascriptGenerator.ORDER_NONE,
-      ) || '"Idle"';
-    const code = `switchAnimation(${model}, { animationName: ${animationName} });\n`;
-    return code;
-  };
-
   javascriptGenerator.forBlock["create_map"] = function (block) {
     const mapName = block.getFieldValue("MAP_NAME");
     const material =
@@ -1403,30 +896,6 @@ export function defineGenerators() {
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
     return `createMap("${mapName}", ${material});\n`;
-  };
-
-  javascriptGenerator.forBlock["control_animation_group"] = function (block) {
-    const animationGroupName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("GROUP_NAME"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const action = block.getFieldValue("ACTION");
-
-    return `${action}AnimationGroup(${animationGroupName});\n`;
-  };
-
-  javascriptGenerator.forBlock["animate_from"] = function (block) {
-    const groupVariable = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("GROUP_NAME"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const timeInSeconds = javascriptGenerator.valueToCode(
-      block,
-      "TIME",
-      javascriptGenerator.ORDER_ATOMIC,
-    );
-
-    return `animateFrom(${groupVariable}, ${timeInSeconds});\n`;
   };
 
   javascriptGenerator.forBlock["up"] = function (block) {
@@ -1986,218 +1455,125 @@ export function defineGenerators() {
       return "";
     }
   };
+  
+  javascriptGenerator.forBlock["glide_to"] = function (block) {
+    const meshVar = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue("MESH_VAR"),
+      Blockly.Names.NameType.VARIABLE,
+    );
+    const x =
+      javascriptGenerator.valueToCode(
+        block,
+        "X",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "0";
+    const y =
+      javascriptGenerator.valueToCode(
+        block,
+        "Y",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "0";
+    const z =
+      javascriptGenerator.valueToCode(
+        block,
+        "Z",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "0";
+    const duration =
+      javascriptGenerator.valueToCode(
+        block,
+        "DURATION",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "1000";
+    const mode = block.getFieldValue("MODE");
+    const reverse = block.getFieldValue("REVERSE") === "TRUE";
+    const loop = block.getFieldValue("LOOP") === "TRUE";
+    const easing = block.getFieldValue("EASING");
 
+    const code = `${mode === "AWAIT" ? "await " : ""}glideTo(${meshVar}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration} / 1000, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+
+    return code;
+  };
+
+    javascriptGenerator.forBlock["rotate_anim"] = function (block) {
+      const meshName = javascriptGenerator.nameDB_.getName(
+        block.getFieldValue("MESH_VAR"),
+        Blockly.Names.NameType.VARIABLE,
+      );
+      const rotX = getFieldValue(block, "ROT_X", "0");
+      const rotY = getFieldValue(block, "ROT_Y", "0");
+      const rotZ = getFieldValue(block, "ROT_Z", "0");
+      const duration = getFieldValue(block, "DURATION", "0");
+      const mode = block.getFieldValue("MODE");
+      const reverse = block.getFieldValue("REVERSE") === "TRUE";
+      const loop = block.getFieldValue("LOOP") === "TRUE";
+      const easing = block.getFieldValue("EASING");
+  
+      const asyncWrapper = mode === "AWAIT" ? "await " : "";
+  
+      return `${asyncWrapper}rotateAnim(${meshName}, { x: ${rotX}, y: ${rotY}, z: ${rotZ}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+    };
+
+  javascriptGenerator.forBlock["controls_doWhile"] = function (block) {
+    const condition =
+      javascriptGenerator.valueToCode(
+        block,
+        "BOOL",
+        javascriptGenerator.ORDER_NONE,
+      ) || "false";
+    const branch = javascriptGenerator.statementToCode(block, "DO");
+
+    return `
+          do {
+                  ${branch}
+
+                  await wait(0);
+          } while (${condition});\n`;
+  };
+
+  javascriptGenerator.forBlock["for_loop"] = function (block, generator) {
+    const variable0 = generator.getVariableName(block.getFieldValue("VAR"));
+
+    const argument0 =
+      generator.valueToCode(block, "FROM", generator.ORDER_ASSIGNMENT) || "0";
+    const argument1 =
+      generator.valueToCode(block, "TO", generator.ORDER_ASSIGNMENT) || "0";
+    const increment =
+      generator.valueToCode(block, "BY", generator.ORDER_ASSIGNMENT) || "1";
+
+    const branch = generator.statementToCode(block, "DO");
+
+    // Timing and iteration counter variables
+    const timingVar = generator.nameDB_.getDistinctName(
+      `${variable0}_timing`,
+      Blockly.Names.DEVELOPER_VARIABLE_TYPE,
+    );
+
+    const counterVar = generator.nameDB_.getDistinctName(
+      `${variable0}_counter`,
+      Blockly.Names.DEVELOPER_VARIABLE_TYPE,
+    );
+
+    return `
+                  let ${timingVar} = performance.now();
+                  let ${counterVar} = 0;
+                  for (let ${variable0} = ${argument0}; (${increment} > 0 ? ${variable0} <= ${argument1} : ${variable0} >= ${argument1}); ${variable0} += ${increment}) {
+                          ${branch}
+                          ${counterVar}++;
+                          if (${counterVar} % 10 === 0 && performance.now() - ${timingVar} > 16) {
+                                  await new Promise(resolve => requestAnimationFrame(resolve));
+                                  ${timingVar} = performance.now();
+                          }
+                  }
+          `;
+  };
   */
 }
 
-javascriptGenerator.forBlock["controls_whileUntil"] = function (block) {
-  const until = block.getFieldValue("MODE") === "UNTIL";
-  let argument0 =
-    javascriptGenerator.valueToCode(
-      block,
-      "BOOL",
-      until
-        ? javascriptGenerator.ORDER_LOGICAL_NOT
-        : javascriptGenerator.ORDER_NONE,
-    ) || "false";
-  let branch = javascriptGenerator.statementToCode(block, "DO");
-  if (until) {
-    argument0 = "!" + argument0;
-  }
-  return (
-    "while (" + argument0 + ") {\n" + branch + `\nawait wait(0);\n` + "}\n"
-  );
-};
-
-javascriptGenerator.forBlock["controls_doWhile"] = function (block) {
-  const condition =
-    javascriptGenerator.valueToCode(
-      block,
-      "BOOL",
-      javascriptGenerator.ORDER_NONE,
-    ) || "false";
-  const branch = javascriptGenerator.statementToCode(block, "DO");
-
-  return `
-        do {
-                ${branch}
-
-                await wait(0);
-        } while (${condition});\n`;
-};
-
-javascriptGenerator.forBlock["controls_repeat_ext"] = function (
-  block,
-  generator,
-) {
-  let repeats;
-  if (block.getField("TIMES")) {
-    repeats = String(Number(block.getFieldValue("TIMES")));
-  } else {
-    repeats =
-      generator.valueToCode(block, "TIMES", generator.ORDER_ASSIGNMENT) || "0";
-  }
-
-  let branch = generator.statementToCode(block, "DO");
-
-  let code = "";
-  const loopVar = generator.nameDB_.getDistinctName(
-    "count",
-    Blockly.Names.NameType.VARIABLE,
-  );
-  let endVar = repeats;
-
-  if (!/^\w+$/.test(repeats) && isNaN(repeats)) {
-    endVar = generator.nameDB_.getDistinctName(
-      "repeat_end",
-      Blockly.Names.NameType.VARIABLE,
-    );
-    code += "let " + endVar + " = " + repeats + ";\n";
-  }
-
-  code +=
-    "for (let " +
-    loopVar +
-    " = 0; " +
-    loopVar +
-    " < " +
-    endVar +
-    "; " +
-    loopVar +
-    "++) {\n" +
-    branch +
-    "await wait(0);\n" +
-    "}\n";
-
-  return code;
-};
-
-javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
-  const variable0 = generator.getVariableName(block.getFieldValue("VAR"));
-
-  const argument0 =
-    generator.valueToCode(block, "FROM", generator.ORDER_ASSIGNMENT) || "0";
-  const argument1 =
-    generator.valueToCode(block, "TO", generator.ORDER_ASSIGNMENT) || "0";
-  const increment =
-    generator.valueToCode(block, "BY", generator.ORDER_ASSIGNMENT) || "1";
-
-  const branch = generator.statementToCode(block, "DO");
-
-  // Timing and iteration counter variables
-  const timingVar = generator.nameDB_.getDistinctName(
-    `${variable0}_timing`,
-    Blockly.Names.DEVELOPER_VARIABLE_TYPE,
-  );
-
-  const counterVar = generator.nameDB_.getDistinctName(
-    `${variable0}_counter`,
-    Blockly.Names.DEVELOPER_VARIABLE_TYPE,
-  );
-
-  return `
-                let ${timingVar} = performance.now();
-                let ${counterVar} = 0;
-                for (let ${variable0} = ${argument0}; (${increment} > 0 ? ${variable0} <= ${argument1} : ${variable0} >= ${argument1}); ${variable0} += ${increment}) {
-                        ${branch}
-                        ${counterVar}++;
-                        if (${counterVar} % 10 === 0 && performance.now() - ${timingVar} > 16) {
-                                await new Promise(resolve => requestAnimationFrame(resolve));
-                                ${timingVar} = performance.now();
-                        }
-                }
-        `;
-};
-
-javascriptGenerator.forBlock["for_loop"] = function (block, generator) {
-  const variable0 = generator.getVariableName(block.getFieldValue("VAR"));
-
-  const argument0 =
-    generator.valueToCode(block, "FROM", generator.ORDER_ASSIGNMENT) || "0";
-  const argument1 =
-    generator.valueToCode(block, "TO", generator.ORDER_ASSIGNMENT) || "0";
-  const increment =
-    generator.valueToCode(block, "BY", generator.ORDER_ASSIGNMENT) || "1";
-
-  const branch = generator.statementToCode(block, "DO");
-
-  // Timing and iteration counter variables
-  const timingVar = generator.nameDB_.getDistinctName(
-    `${variable0}_timing`,
-    Blockly.Names.DEVELOPER_VARIABLE_TYPE,
-  );
-
-  const counterVar = generator.nameDB_.getDistinctName(
-    `${variable0}_counter`,
-    Blockly.Names.DEVELOPER_VARIABLE_TYPE,
-  );
-
-  return `
-                let ${timingVar} = performance.now();
-                let ${counterVar} = 0;
-                for (let ${variable0} = ${argument0}; (${increment} > 0 ? ${variable0} <= ${argument1} : ${variable0} >= ${argument1}); ${variable0} += ${increment}) {
-                        ${branch}
-                        ${counterVar}++;
-                        if (${counterVar} % 10 === 0 && performance.now() - ${timingVar} > 16) {
-                                await new Promise(resolve => requestAnimationFrame(resolve));
-                                ${timingVar} = performance.now();
-                        }
-                }
-        `;
-};
 javascriptGenerator.forBlock["get_lexical_variable"] = function (block) {
   const variableName = block.getFieldValue("VAR");
   const code = variableName;
   return [code, javascriptGenerator.ORDER_ATOMIC];
-};
-
-javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
-  // For each loop.
-  const variable0 = generator.getVariableName(block.getFieldValue("VAR"));
-
-  // Use correct ORDER constant from the generator
-  const argument0 =
-    generator.valueToCode(block, "LIST", generator.ORDER_ASSIGNMENT) || "[]";
-
-  let branch = generator.statementToCode(block, "DO");
-  let code = "";
-  let listVar = argument0;
-
-  if (!/^\w+$/.test(argument0)) {
-    listVar = generator.nameDB_.getDistinctName(
-      variable0 + "_list",
-      Blockly.Names.NameType.VARIABLE,
-    );
-    code += "var " + listVar + " = " + argument0 + ";\n";
-  }
-
-  const indexVar = generator.nameDB_.getDistinctName(
-    variable0 + "_index",
-    Blockly.Names.NameType.VARIABLE,
-  );
-
-  // Construct the loop body
-  branch =
-    generator.INDENT +
-    variable0 +
-    " = " +
-    listVar +
-    "[" +
-    indexVar +
-    "];\n" +
-    branch;
-
-  code +=
-    "for (var " +
-    indexVar +
-    " in " +
-    listVar +
-    ") {\n" +
-    branch +
-    "\n  await wait(0);\n" +
-    "}\n";
-
-  return code;
 };
 
 const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
