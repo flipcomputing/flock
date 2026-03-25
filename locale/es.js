@@ -906,6 +906,7 @@ export default {
 
   ONCE_option: "una vez", // human
   LOOP_option: "bucle", // human
+  everywhere_option: "en todas partes", // ai
 
   theme_bright_option: "Brillante", // ai
   theme_calm_option: "Tranquilo", // ai
@@ -913,6 +914,24 @@ export default {
   theme_game_option: "Videojuego", // ai
   theme_medieval_option: "Medieval", // ai
   theme_metal_option: "Metal", // ai
+
+  sound_highDown_option: "Tono Alto Descendente", // ai
+  sound_highUp_option: "Tono Alto Ascendente", // ai
+  sound_laser1_option: "Láser 1", // ai
+  sound_laser2_option: "Láser 2", // ai
+  sound_laser3_option: "Láser 3", // ai
+  sound_lowDown_option: "Tono Bajo Descendente", // ai
+  sound_lowRandom_option: "Tono Bajo Aleatorio", // ai
+  sound_lowThreeTone_option: "Tono Bajo Triple", // ai
+  sound_phaseJump1_option: "Salto de Fase 1", // ai
+  sound_powerUp1_option: "Potenciador 1", // ai
+  sound_powerUp2_option: "Potenciador 2", // ai
+  sound_powerUp3_option: "Potenciador 3", // ai
+  sound_powerUp4_option: "Potenciador 4", // ai
+  sound_powerUp5_option: "Potenciador 5", // ai
+  sound_spaceTrash_option: "Basura Espacial", // ai
+  sound_threeTone1_option: "Triple Tono 1", // ai
+  sound_threeTone2_option: "Triple Tono 2", // ai
 
   sine_option: "seno", // human
   square_option: "cuadrada", // human

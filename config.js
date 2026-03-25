@@ -13,18 +13,18 @@ export const audioNames = [
   "highDown.mp3",
   "highUp.mp3",
   "laser1.mp3",
-  "laser6.mp3",
-  "laser8.mp3",
+  "laser2.mp3",
+  "laser3.mp3",
   "lowDown.mp3",
   "lowRandom.mp3",
   "lowThreeTone.mp3",
   "phaseJump1.mp3",
-  "powerUp11.mp3",
-  "powerUp12.mp3",
   "powerUp1.mp3",
   "powerUp2.mp3",
   "powerUp3.mp3",
-  "spaceTrash1.mp3",
+  "powerUp4.mp3",
+  "powerUp5.mp3",
+  "spaceTrash.mp3",
   "threeTone1.mp3",
   "threeTone2.mp3",
 ];
@@ -46,6 +46,15 @@ export function getThemeDisplayName(filename) {
   return translated && translated !== key
     ? translated
     : baseName.charAt(0).toUpperCase() + baseName.slice(1);
+}
+
+export function getSoundDisplayName(filename) {
+  const baseName = filename.replace(".mp3", "");
+  const key = "sound_" + baseName + "_option";
+  const translated = translate(key);
+  return translated && translated !== key
+    ? translated
+    : audioFileToLabel(filename);
 }
 
 export const characterNames = [

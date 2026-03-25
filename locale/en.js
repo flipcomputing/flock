@@ -891,6 +891,7 @@ export default {
 
   ONCE_option: "once",
   LOOP_option: "loop",
+  everywhere_option: "everywhere",
 
   theme_bright_option: "Bright",
   theme_calm_option: "Calm",
@@ -898,6 +899,24 @@ export default {
   theme_game_option: "Game",
   theme_medieval_option: "Medieval",
   theme_metal_option: "Metal",
+
+  sound_highDown_option: "High Down",
+  sound_highUp_option: "High Up",
+  sound_laser1_option: "Laser 1",
+  sound_laser2_option: "Laser 2",
+  sound_laser3_option: "Laser 3",
+  sound_lowDown_option: "Low Down",
+  sound_lowRandom_option: "Low Random",
+  sound_lowThreeTone_option: "Low Three Tone",
+  sound_phaseJump1_option: "Phase Jump 1",
+  sound_powerUp1_option: "Power Up 1",
+  sound_powerUp2_option: "Power Up 2",
+  sound_powerUp3_option: "Power Up 3",
+  sound_powerUp4_option: "Power Up 4",
+  sound_powerUp5_option: "Power Up 5",
+  sound_spaceTrash_option: "Space Trash",
+  sound_threeTone1_option: "Three Tone 1",
+  sound_threeTone2_option: "Three Tone 2",
 
   sine_option: "sine",
   square_option: "square",
