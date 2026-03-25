@@ -195,7 +195,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     const meshId = `${userVariableName}__${block.id}`;
     meshMap[block.id] = block;
     meshBlockIdMap[block.id] = block.id;
-    //```text
+
     // Generate the code for the "do" part (if present)
     let doCode = "";
 

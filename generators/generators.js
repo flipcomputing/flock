@@ -1,13 +1,7 @@
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import "@blockly/block-plus-minus";
-import {
-  clearMeshMaps,
-  meshMap,
-  meshBlockIdMap,
-  generateUniqueId, // Remove if you agree that create_wall is deprecated
-} from "./mesh-state.js";
-import { getFieldValue } from "./generators-utilities.js";
+import { clearMeshMaps } from "./mesh-state.js";
 
 // Import the generator registration functions for different categories of blocks
 import { registerSceneGenerators } from "./generators-scene.js";
@@ -23,6 +17,7 @@ import { registerSoundGenerators } from "./generators-sound.js";
 import { registerDataGenerators } from "./generators-data.js";
 import { registerMathGenerators } from "./generators-math.js";
 import { registerFunctionsGenerators } from "./generators-functions.js";
+// import { registerDeprecatedGenerators } from "./generators-deprecated.js";
 
 // Used outside of this file
 export * from "./mesh-state.js";
@@ -55,6 +50,9 @@ export function defineGenerators() {
   registerDataGenerators(javascriptGenerator);
   registerMathGenerators(javascriptGenerator);
   registerFunctionsGenerators(javascriptGenerator);
+
+  // Also uncomment import if you want this
+  //registerDeprecatedGenerators(javascriptGenerator);
 
   // Initialise
   javascriptGenerator.init = function (workspace) {
