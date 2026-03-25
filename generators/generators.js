@@ -7,9 +7,24 @@ import {
   meshBlockIdMap,
   generateUniqueId,
 } from "./mesh-state.js";
-import { registerTransformGenerators } from "./generators-transform.js";
 import { getFieldValue } from "./generators-utilities.js";
 
+// Import the generator registration functions for different categories of blocks
+import { registerSceneGenerators } from "./generators-scene.js";
+import { registerEventsGenerators } from "./generators-events.js";
+import { registerTransformGenerators } from "./generators-transform.js";
+import { registerAnimateGenerators } from "./generators-animate.js";
+import { registerControlGenerators } from "./generators-control.js";
+import { registerConditionGenerators } from "./generators-condition.js";
+import { registerSensingGenerators } from "./generators-sensing.js";
+import { registerTextGenerators } from "./generators-text.js";
+import { registerMaterialGenerators } from "./generators-material.js";
+import { registerSoundGenerators } from "./generators-sound.js";
+import { registerDataGenerators } from "./generators-data.js";
+import { registerMathGenerators } from "./generators-math.js";
+import { registerFunctionsGenerators } from "./generators-functions.js";
+
+// Used outside of this file
 export * from "./mesh-state.js";
 
 function sanitizeForCode(input) {
@@ -140,7 +155,20 @@ function emitSafeIdentifierLiteral(code) {
 }
 
 export function defineGenerators() {
+  // Register generators for each category of blocks
+  registerSceneGenerators(javascriptGenerator);
+  registerEventsGenerators(javascriptGenerator);
   registerTransformGenerators(javascriptGenerator);
+  registerAnimateGenerators(javascriptGenerator);
+  registerControlGenerators(javascriptGenerator);
+  registerConditionGenerators(javascriptGenerator);
+  registerSensingGenerators(javascriptGenerator);
+  registerTextGenerators(javascriptGenerator);
+  registerMaterialGenerators(javascriptGenerator);
+  registerSoundGenerators(javascriptGenerator);
+  registerDataGenerators(javascriptGenerator);
+  registerMathGenerators(javascriptGenerator);
+  registerFunctionsGenerators(javascriptGenerator);
 
   const reservedWordsWithoutName = javascriptGenerator.RESERVED_WORDS_.split(
     ",",
