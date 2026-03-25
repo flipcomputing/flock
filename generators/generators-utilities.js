@@ -57,3 +57,88 @@ export function createMesh(block, meshType, params) {
 
   return `${variableName} = create${meshType}("${meshId}", { ${options.join(", ")} });\n${doCode}`;
 }
+
+export function emitSafeIdentifierLiteral(code) {
+  const RESERVED_IDENTIFIERS = new Set([
+    "await",
+    "break",
+    "case",
+    "catch",
+    "class",
+    "const",
+    "continue",
+    "debugger",
+    "default",
+    "delete",
+    "do",
+    "else",
+    "enum",
+    "export",
+    "extends",
+    "false",
+    "finally",
+    "for",
+    "function",
+    "if",
+    "implements",
+    "import",
+    "in",
+    "instanceof",
+    "interface",
+    "let",
+    "new",
+    "null",
+    "package",
+    "private",
+    "protected",
+    "public",
+    "return",
+    "static",
+    "super",
+    "switch",
+    "this",
+    "throw",
+    "true",
+    "try",
+    "typeof",
+    "var",
+    "void",
+    "while",
+    "with",
+    "yield",
+    "arguments",
+    "eval",
+  ]);
+
+  if (!code) {
+    return "undefined";
+  }
+
+  // Match single, double, or template quoted literals
+  const m = code.match(/^(['"`])(.*)\1$/s);
+  if (!m) {
+    return "undefined";
+  }
+
+  const rawBody = m[2];
+
+  // Reject escapes entirely
+  if (rawBody.includes("\\")) {
+    return "undefined";
+  }
+
+  // Replace spaces and other whitespace with underscores
+  const normalized = rawBody.replace(/\s+/g, "_");
+
+  // Validate identifier
+  if (!/^[A-Za-z$_][A-Za-z0-9$_]*$/.test(normalized)) {
+    return "undefined";
+  }
+
+  // Check reserved keywords
+  if (RESERVED_IDENTIFIERS.has(normalized)) {
+    return "undefined";
+  }
+
+  return JSON.stringify(normalized);
+}

@@ -69,92 +69,19 @@ function emitSafeTextArg(code) {
   return JSON.stringify(sanitizeForCode(decoded));
 }
 
-const RESERVED_IDENTIFIERS = new Set([
-  "await",
-  "break",
-  "case",
-  "catch",
-  "class",
-  "const",
-  "continue",
-  "debugger",
-  "default",
-  "delete",
-  "do",
-  "else",
-  "enum",
-  "export",
-  "extends",
-  "false",
-  "finally",
-  "for",
-  "function",
-  "if",
-  "implements",
-  "import",
-  "in",
-  "instanceof",
-  "interface",
-  "let",
-  "new",
-  "null",
-  "package",
-  "private",
-  "protected",
-  "public",
-  "return",
-  "static",
-  "super",
-  "switch",
-  "this",
-  "throw",
-  "true",
-  "try",
-  "typeof",
-  "var",
-  "void",
-  "while",
-  "with",
-  "yield",
-  "arguments",
-  "eval",
-]);
-
-function emitSafeIdentifierLiteral(code) {
-  if (!code) {
-    return "undefined";
-  }
-
-  // Match single, double, or template quoted literals
-  const m = code.match(/^(['"`])(.*)\1$/s);
-  if (!m) {
-    return "undefined";
-  }
-
-  const rawBody = m[2];
-
-  // Reject escapes entirely
-  if (rawBody.includes("\\")) {
-    return "undefined";
-  }
-
-  // Replace spaces and other whitespace with underscores
-  const normalized = rawBody.replace(/\s+/g, "_");
-
-  // Validate identifier
-  if (!/^[A-Za-z$_][A-Za-z0-9$_]*$/.test(normalized)) {
-    return "undefined";
-  }
-
-  // Check reserved keywords
-  if (RESERVED_IDENTIFIERS.has(normalized)) {
-    return "undefined";
-  }
-
-  return JSON.stringify(normalized);
-}
-
 export function defineGenerators() {
+  // Allow Flock users to use "name" as a variable name
+  const reservedWordsWithoutName = javascriptGenerator.RESERVED_WORDS_.split(
+    ",",
+  )
+    .map((word) => word.trim())
+    .filter((word) => word && word !== "name")
+    .join(",");
+
+  // Force re-initialization of animation generators
+  delete javascriptGenerator.forBlock["play_animation"];
+  delete javascriptGenerator.forBlock["switch_animation"];
+
   // Register generators for each category of blocks
   registerSceneGenerators(javascriptGenerator);
   registerEventsGenerators(javascriptGenerator);
@@ -169,17 +96,6 @@ export function defineGenerators() {
   registerDataGenerators(javascriptGenerator);
   registerMathGenerators(javascriptGenerator);
   registerFunctionsGenerators(javascriptGenerator);
-
-  const reservedWordsWithoutName = javascriptGenerator.RESERVED_WORDS_.split(
-    ",",
-  )
-    .map((word) => word.trim())
-    .filter((word) => word && word !== "name")
-    .join(",");
-
-  // Force re-initialization of animation generators
-  delete javascriptGenerator.forBlock["play_animation"];
-  delete javascriptGenerator.forBlock["switch_animation"];
 
   javascriptGenerator.forBlock["wait"] = function (block) {
     const duration =
@@ -489,20 +405,6 @@ export function defineGenerators() {
 
     // Return the string value as a quoted literal
     return [`"${pivotOption}"`, javascriptGenerator.ORDER_ATOMIC];
-  };
-
-  javascriptGenerator.forBlock["start"] = function (block) {
-    const branch = javascriptGenerator.statementToCode(block, "DO");
-    return `(async () => {\n${branch}})();\n`;
-  };
-
-  javascriptGenerator.forBlock["start2"] = function (block) {
-    const branch = javascriptGenerator.statementToCode(block, "DO");
-    return `start(async function() {\n${branch}});\n`;
-  };
-
-  javascriptGenerator.forBlock["logic_placeholder"] = function (block) {
-    return "";
   };
 
   javascriptGenerator.forBlock["button_controls"] = function (block) {
@@ -1158,13 +1060,6 @@ export function defineGenerators() {
     return code;
   };
 
-  javascriptGenerator.forBlock["forever"] = function (block) {
-    const branch = javascriptGenerator.statementToCode(block, "DO");
-
-    const code = `forever(async function(){\n${branch}});\n`;
-    return code;
-  };
-
   javascriptGenerator.forBlock["animation_name"] = function (block) {
     const animationName = block.getFieldValue("ANIMATION_NAME");
     return [`"${animationName}"`, javascriptGenerator.ORDER_ATOMIC];
@@ -1389,109 +1284,6 @@ export function defineGenerators() {
     return `${asyncWrapper}speak(${meshVariable}, ${text}, { voice: "${voice}", rate: ${rate}, pitch: ${pitch}, volume: ${volume}, language: "${language}", mode: "${safeAsyncMode.toLowerCase()}" });\n`;
   };
 
-  javascriptGenerator.forBlock["when_touches"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-      true,
-    );
-
-    const otherModelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("OTHER_MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-      true,
-    );
-
-    const trigger = block.getFieldValue("TRIGGER");
-    const doCode = javascriptGenerator.statementToCode(block, "DO");
-
-    if (
-      trigger === "OnIntersectionEnterTrigger" ||
-      trigger === "OnIntersectionExitTrigger"
-    ) {
-      return `onIntersect(${modelName}, ${otherModelName}, {
-          trigger: "${trigger}",
-          callback: async function(${modelName}, ${otherModelName}) {
-        ${doCode}
-          }
-        });\n`;
-    } else {
-      console.error("Invalid trigger type for 'when_touches' block:", trigger);
-      return "";
-    }
-  };
-
-  javascriptGenerator.forBlock["on_collision"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-      true,
-    );
-
-    const otherModelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("OTHER_MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-      true,
-    );
-
-    const trigger = block.getFieldValue("TRIGGER");
-    const doCode = javascriptGenerator.statementToCode(block, "DO");
-
-    if (
-      trigger === "OnIntersectionEnterTrigger" ||
-      trigger === "OnIntersectionExitTrigger"
-    ) {
-      return `onIntersect(${modelName}, ${otherModelName}, {
-          trigger: "${trigger}",
-          callback: async function(${modelName}, ${otherModelName}) {
-        ${doCode}
-          }
-        });\n`;
-    } else {
-      console.error("Invalid trigger type for 'on_collision' block:", trigger);
-      return "";
-    }
-  };
-
-  javascriptGenerator.forBlock["when_clicked"] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
-    );
-    const trigger = block.getFieldValue("TRIGGER");
-    const mode = block.getFieldValue("MODE") || "wait";
-
-    const doCode = javascriptGenerator.statementToCode(block, "DO").trim();
-    const thenCodes = [];
-
-    for (let i = 0; i < block.thenCount_; i++) {
-      const thenCode = javascriptGenerator
-        .statementToCode(block, "THEN" + i)
-        .trim();
-      if (thenCode) {
-        thenCodes.push(thenCode);
-      }
-    }
-
-    const allActions = [doCode, ...thenCodes].filter((code) => code);
-    const actionFunctions = allActions.map(
-      (code) => `async function(${modelName}) {\n${code}\n}`,
-    );
-
-    // Determine if this is a top-level block (not nested)
-    const isTopLevel = !block.getSurroundParent();
-
-    const code =
-      `onTrigger(${modelName}, {\n` +
-      `  trigger: "${trigger}",\n` +
-      `  callback: [\n${actionFunctions.join(",\n")}\n],\n` +
-      `  mode: "${mode}"` +
-      (isTopLevel ? `,\n  applyToGroup: true` : "") +
-      `\n});\n`;
-
-    return code;
-  };
-
   javascriptGenerator.forBlock["local_variable"] = function (block, generator) {
     // Retrieve the variable selected by the user
     const variable = generator.nameDB_.getName(
@@ -1504,50 +1296,12 @@ export function defineGenerators() {
     return code;
   };
 
-  javascriptGenerator.forBlock["when_key_event"] = function (block) {
-    const key = block.getFieldValue("KEY");
-    const event = block.getFieldValue("EVENT"); // "starts" or "ends"
-    const statements_do = javascriptGenerator.statementToCode(block, "DO");
-
-    // Pass "true" if event is "ends" for the whenKeyPressed helper function
-    return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "ends"});\n`;
-  };
-
   javascriptGenerator.forBlock["when_action_event"] = function (block) {
     const action = block.getFieldValue("ACTION");
     const event = block.getFieldValue("EVENT");
     const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
     return `whenActionEvent("${action}", async () => {${statements_do}}, ${event === "ends"});\n`;
-  };
-
-  // JavaScript generator for broadcast_event
-  javascriptGenerator.forBlock["broadcast_event"] = function (block) {
-    const raw =
-      javascriptGenerator.valueToCode(
-        block,
-        "EVENT_NAME",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "undefined";
-
-    const safe = emitSafeIdentifierLiteral(raw, undefined);
-    return `broadcastEvent(${safe});\n`;
-  };
-
-  // JavaScript generator for on_event
-  javascriptGenerator.forBlock["on_event"] = function (block) {
-    // Don't force a default; let invalid/empty resolve to undefined
-    const raw =
-      javascriptGenerator.valueToCode(
-        block,
-        "EVENT_NAME",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "";
-
-    const safe = emitSafeIdentifierLiteral(raw);
-
-    const statements_do = javascriptGenerator.statementToCode(block, "DO");
-    return `onEvent(${safe}, async function() {\n${statements_do}});\n`;
   };
 
   javascriptGenerator.forBlock["highlight"] = function (block) {
@@ -2191,6 +1945,48 @@ export function defineGenerators() {
     }
     return `await createCustomMap([${colors.join(", ")}]);\n`;
   };
+
+  javascriptGenerator.forBlock["start2"] = function (block) {
+    const branch = javascriptGenerator.statementToCode(block, "DO");
+    return `start(async function() {\n${branch}});\n`;
+  };
+
+  javascriptGenerator.forBlock["logic_placeholder"] = function (block) {
+    return "";
+  };
+
+  javascriptGenerator.forBlock["when_touches"] = function (block) {
+    const modelName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue("MODEL_VAR"),
+      Blockly.Names.NameType.VARIABLE,
+      true,
+    );
+
+    const otherModelName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue("OTHER_MODEL_VAR"),
+      Blockly.Names.NameType.VARIABLE,
+      true,
+    );
+
+    const trigger = block.getFieldValue("TRIGGER");
+    const doCode = javascriptGenerator.statementToCode(block, "DO");
+
+    if (
+      trigger === "OnIntersectionEnterTrigger" ||
+      trigger === "OnIntersectionExitTrigger"
+    ) {
+      return `onIntersect(${modelName}, ${otherModelName}, {
+          trigger: "${trigger}",
+          callback: async function(${modelName}, ${otherModelName}) {
+        ${doCode}
+          }
+        });\n`;
+    } else {
+      console.error("Invalid trigger type for 'when_touches' block:", trigger);
+      return "";
+    }
+  };
+
   */
 }
 
