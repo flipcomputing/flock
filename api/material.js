@@ -1107,10 +1107,10 @@ export const flockMaterial = {
         if (brightness > 0.95 && colorDiff < 0.05) {
           // Replace near-white
           finalColor = lightColor;
-        } else if (colorCount >= 3 && brightness < 0.05 && colorDiff < 0.05) {
+        } else if (colorCount >= 3 && brightness < 0.2 && colorDiff < 0.2) {
           // Replace near-black (third color)
           finalColor = darkColor;
-        } else if (colorDiff < 0.05) {
+        } else if (colorDiff < 0.2) {
           // Tint greys
           finalColor = brightness * greyTintColor;
         } else {
