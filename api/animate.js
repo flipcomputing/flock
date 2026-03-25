@@ -309,7 +309,7 @@ export const flockAnimate = {
             { frame: 0, value: startPosition },
             { frame: frames, value: endPosition },
           ];
-          if (reverse || loop)
+          if (reverse)
             glideKeys.push({ frame: frames * 2, value: startPosition });
           glideAnimation.setKeys(glideKeys);
 
@@ -346,7 +346,7 @@ export const flockAnimate = {
             mesh,
             [glideAnimation],
             0,
-            reverse || loop ? frames * 2 : frames,
+            reverse ? frames * 2 : frames,
             loop,
           );
 
