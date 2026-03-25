@@ -320,7 +320,7 @@ export function mapNames() {
     getDropdownOption("diagonal_ridge.png"),
     getDropdownOption("mixed_heights.png"),
     getDropdownOption("uneven_terrain.png"),
-    getDropdownOption("volcano.png"),
+    getDropdownOption("mountains.png"),
   ];
 }
 
