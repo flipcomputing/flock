@@ -913,7 +913,7 @@ export default {
   theme_electronic_option: "Électronique",
   theme_game_option: "Jeu",
   theme_medieval_option: "Médiéval",
-  theme_metal_option: "Metal",
+  theme_metal_option: "Métal",
 
   sound_highDown_option: "Haut Descendant",
   sound_highUp_option: "Haut Montant",

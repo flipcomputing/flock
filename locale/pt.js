@@ -898,7 +898,7 @@ export default {
 
   ONCE_option: "uma vez",
   LOOP_option: "em ciclo",
-  everywhere_option: "em todo lugar",
+  everywhere_option: "em todo o lado",
 
   theme_bright_option: "Animado",
   theme_calm_option: "Calmo",
