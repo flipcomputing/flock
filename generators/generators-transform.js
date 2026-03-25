@@ -579,4 +579,13 @@ export function registerTransformGenerators(javascriptGenerator) {
     // Use helper function to create the hull
     return `${resultVar} = await createHull("${meshId}", ${meshList});\n`;
   };
+
+  // Used as an input inside set_pivot
+  // (not a block in its own right)
+  javascriptGenerator.forBlock["min_centre_max"] = function (block) {
+    const pivotOption = block.getFieldValue("PIVOT_OPTION");
+
+    // Return the string value as a quoted literal
+    return [`"${pivotOption}"`, javascriptGenerator.ORDER_ATOMIC];
+  };
 }

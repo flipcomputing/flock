@@ -27,6 +27,19 @@ export function registerSceneGenerators(javascriptGenerator) {
     return `setSky(${color});\n`;
   };
   // Map with material ------------------------------------------------
+  javascriptGenerator.forBlock["create_map"] = function (block) {
+    const mapName = block.getFieldValue("MAP_NAME");
+    const material =
+      javascriptGenerator.valueToCode(
+        block,
+        "MATERIAL",
+        javascriptGenerator.ORDER_NONE,
+      ) || "null";
+    const meshId = "ground";
+    meshMap[meshId] = block;
+    meshBlockIdMap[meshId] = block.id;
+    return `createMap("${mapName}", ${material});\n`;
+  };
 
   // Background -------------------------------------------------------
   javascriptGenerator.forBlock["set_background_color"] = function (block) {
@@ -627,15 +640,11 @@ export function registerSceneGenerators(javascriptGenerator) {
   };
 
   // Camera rotate --------------------------------------------------
-  javascriptGenerator.forBlock["rotate_camera"] = function (block) {
-    const degrees =
-      javascriptGenerator.valueToCode(
-        block,
-        "DEGREES",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+  javascriptGenerator.forBlock["camera_control"] = function (block) {
+    const key = block.getFieldValue("KEY");
+    const action = block.getFieldValue("ACTION");
 
-    return `rotateCamera(${degrees});\n`;
+    return `cameraControl(${JSON.stringify(key)}, "${action}");\n`;
   };
 
   // -------------------------------
