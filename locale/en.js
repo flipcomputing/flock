@@ -891,6 +891,7 @@ export default {
 
   ONCE_option: "once",
   LOOP_option: "loop",
+  everywhere_option: "everywhere",
 
   theme_bright_option: "Bright",
   theme_calm_option: "Calm",

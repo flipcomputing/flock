@@ -899,6 +899,14 @@ export default {
 
   ONCE_option: "raz",
   LOOP_option: "pętla",
+  everywhere_option: "wszędzie",
+
+  theme_bright_option: "Energiczny",
+  theme_calm_option: "Spokojny",
+  theme_electronic_option: "Elektroniczny",
+  theme_game_option: "Gra",
+  theme_medieval_option: "Średniowieczny",
+  theme_metal_option: "Metal",
 
   sine_option: "sinus",
   square_option: "square",

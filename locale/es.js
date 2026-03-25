@@ -906,6 +906,7 @@ export default {
 
   ONCE_option: "una vez", // human
   LOOP_option: "bucle", // human
+  everywhere_option: "en todas partes", // ai
 
   theme_bright_option: "Brillante", // ai
   theme_calm_option: "Tranquilo", // ai

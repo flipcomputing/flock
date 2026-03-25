@@ -904,6 +904,14 @@ export default {
 
   ONCE_option: "una volta",
   LOOP_option: "loop",
+  everywhere_option: "ovunque",
+
+  theme_bright_option: "Vivace",
+  theme_calm_option: "Calmo",
+  theme_electronic_option: "Elettronico",
+  theme_game_option: "Gioco",
+  theme_medieval_option: "Medievale",
+  theme_metal_option: "Metal",
 
   sine_option: "seno",
   square_option: "quadra",

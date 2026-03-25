@@ -906,6 +906,14 @@ export default {
 
   ONCE_option: "une fois",
   LOOP_option: "boucle",
+  everywhere_option: "partout",
+
+  theme_bright_option: "Vif",
+  theme_calm_option: "Calme",
+  theme_electronic_option: "Électronique",
+  theme_game_option: "Jeu",
+  theme_medieval_option: "Médiéval",
+  theme_metal_option: "Metal",
 
   sine_option: "sinusoïdal",
   square_option: "carré",

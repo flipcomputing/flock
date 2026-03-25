@@ -1362,7 +1362,7 @@ export function defineBlocks() {
 
   Blockly.Extensions.register("dynamic_mesh_dropdown", function () {
     const dropdown = new Blockly.FieldDropdown(function () {
-      const options = [["everywhere", "__everywhere__"]];
+      const options = [[translate("everywhere_option"), "__everywhere__"]];
       const workspace = this.sourceBlock_ && this.sourceBlock_.workspace;
       if (workspace) {
         const variables = workspace.getVariableMap().getAllVariables();

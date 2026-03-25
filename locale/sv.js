@@ -891,6 +891,14 @@ export default {
 
   ONCE_option: "en gång",
   LOOP_option: "loopa",
+  everywhere_option: "överallt",
+
+  theme_bright_option: "Livlig",
+  theme_calm_option: "Lugn",
+  theme_electronic_option: "Elektronisk",
+  theme_game_option: "Spel",
+  theme_medieval_option: "Medeltida",
+  theme_metal_option: "Metal",
 
   sine_option: "sinus",
   square_option: "fyrkant",
