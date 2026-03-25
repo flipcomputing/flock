@@ -48,6 +48,15 @@ export function getThemeDisplayName(filename) {
     : baseName.charAt(0).toUpperCase() + baseName.slice(1);
 }
 
+export function getSoundDisplayName(filename) {
+  const baseName = filename.replace(".mp3", "");
+  const key = "sound_" + baseName + "_option";
+  const translated = translate(key);
+  return translated && translated !== key
+    ? translated
+    : audioFileToLabel(filename);
+}
+
 export const characterNames = [
   "Liz1.glb",
   "Liz2.glb",

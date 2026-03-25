@@ -9,7 +9,7 @@ import {
 import {
   audioNames,
   themeNames,
-  audioFileToLabel,
+  getSoundDisplayName,
   getThemeDisplayName,
 } from "../config.js";
 import {
@@ -110,7 +110,7 @@ export function defineSoundBlocks() {
             type: "field_dropdown",
             name: "SOUND_NAME",
             options: function () {
-              return audioNames.map((name) => [audioFileToLabel(name), name]);
+              return audioNames.map((name) => [getSoundDisplayName(name), name]);
             },
           },
           {
