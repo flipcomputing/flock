@@ -854,6 +854,29 @@ export const flockShapes = {
 
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
+
+        // Normalize mesh so bounding box height equals the size parameter.
+        // Font cap-height is typically ~70% of em-height, causing a mismatch
+        // between SIZE in the block and the visual height. Baking a uniform XY
+        // scale here ensures SIZE always equals the rendered height, which
+        // prevents a visual jump when the scale gizmo is released.
+        {
+          const bbExt = mesh.getBoundingInfo().boundingBox.extendSize;
+          const bbHeight = bbExt.y * 2;
+          if (bbHeight > 0 && Math.abs(bbHeight - size) > 0.001) {
+            const normScale = size / bbHeight;
+            const savedPos = mesh.position.clone();
+            mesh.position = flock.BABYLON.Vector3.Zero();
+            mesh.scaling.x = normScale;
+            mesh.scaling.y = normScale;
+            mesh.bakeCurrentTransformIntoVertices();
+            mesh.scaling = flock.BABYLON.Vector3.One();
+            mesh.position = savedPos;
+            mesh.computeWorldMatrix(true);
+            mesh.refreshBoundingInfo();
+          }
+        }
+
         mesh.setEnabled(true);
         mesh.visibility = 1;
 
