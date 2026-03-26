@@ -31,6 +31,10 @@ const orangeColor = flock.BABYLON.Color3.FromHexString("#D55E00"); // Colour for
 window.selectedColor = "#ffffff"; // Default color
 let colorPicker = null;
 
+// 3D text scale gizmo axis tracking
+let textScaleAxis = null;
+let textOrigScaleZ = 1;
+
 // Color picking keyboard mode variables
 let colorPickingKeyboardMode = false;
 let colorPickingCallback = null;
@@ -933,6 +937,13 @@ export function toggleGizmo(gizmoType) {
 
     case "scale":
       configureScaleGizmo(gizmoManager);
+      {
+        const sg = gizmoManager.gizmos.scaleGizmo;
+        sg.xGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "x"; });
+        sg.yGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "y"; });
+        sg.zGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "z"; });
+        sg.uniformScaleGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "uniform"; });
+      }
       gizmoManager.onAttachedToMeshObservable.add((mesh) => {
         if (!mesh) return;
 
@@ -965,6 +976,21 @@ export function toggleGizmo(gizmoType) {
             case "create_cylinder":
               mesh.scaling.z = mesh.scaling.x;
               break;
+            case "create_3d_text":
+              if (textScaleAxis === "z") {
+                // Z handle: depth only — lock X and Y
+                mesh.scaling.x = 1;
+                mesh.scaling.y = 1;
+              } else if (textScaleAxis === "x" || textScaleAxis === "uniform") {
+                // X or uniform: size only — keep Y = X, lock Z
+                mesh.scaling.y = mesh.scaling.x;
+                mesh.scaling.z = textOrigScaleZ;
+              } else if (textScaleAxis === "y") {
+                // Y handle: size only — keep X = Y, lock Z
+                mesh.scaling.x = mesh.scaling.y;
+                mesh.scaling.z = textOrigScaleZ;
+              }
+              break;
           }
         }
       });
@@ -975,6 +1001,8 @@ export function toggleGizmo(gizmoType) {
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
         originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+        textOrigScaleZ = mesh.scaling.z;
+        textScaleAxis = null;
 
         const motionType = mesh.physics?.getMotionType();
         mesh.savedMotionType = motionType;
@@ -995,6 +1023,7 @@ export function toggleGizmo(gizmoType) {
       gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
         const mesh = gizmoManager.attachedMesh;
         const block = meshMap[mesh?.metadata?.blockKey];
+        textScaleAxis = null;
 
         if (mesh.savedMotionType != null) {
           mesh.physics.setMotionType(mesh.savedMotionType);
