@@ -207,6 +207,13 @@ export const flockCamera = {
       if (!p) return;
       constraintBox.position.copyFrom(p);
       constraintBox.position.y += -4; // keep your original -4 offset
+      if (constraintBox.physics && constraintBox.physics.setTargetTransform) {
+        constraintBox.physics.setTargetTransform(
+          constraintBox.position,
+          constraintBox.rotationQuaternion ||
+            flock.BABYLON.Quaternion.Identity(),
+        );
+      }
     };
     syncConstraintAnchor();
     if (constraintBox.position.lengthSquared() === 0) {
