@@ -1113,14 +1113,14 @@ export const flockMaterial = {
       uniform mat4 view;
 
       varying vec2 vUV;
-      varying float vFogDistance;
+      varying vec3 vFogPosition;
 
       void main(void) {
         vec4 worldPosition = world * vec4(position, 1.0);
         vec4 viewPosition = view * worldPosition;
         gl_Position = worldViewProjection * vec4(position, 1.0);
         vUV = uv;
-        vFogDistance = length(viewPosition.xyz);
+        vFogPosition = viewPosition.xyz;
       }
     `;
 
@@ -1144,7 +1144,7 @@ export const flockMaterial = {
       uniform float fogEnd;
       uniform int fogMode;
 
-      varying float vFogDistance;
+      varying vec3 vFogPosition;
 
       void main(void) {
         vec2 scaledUV = vec2(vUV.x * uScale, vUV.y * vScale);
@@ -1175,13 +1175,14 @@ export const flockMaterial = {
           finalColor = texColor.rgb;
         }
 
+        float fogDistance = length(vFogPosition);
         float fogFactor = 1.0;
         if (fogMode == 1) {
-          fogFactor = exp(-fogDensity * vFogDistance);
+          fogFactor = exp(-fogDensity * fogDistance);
         } else if (fogMode == 2) {
-          fogFactor = exp(-pow(fogDensity * vFogDistance, 2.0));
+          fogFactor = exp(-pow(fogDensity * fogDistance, 2.0));
         } else if (fogMode == 3) {
-          fogFactor = (fogEnd - vFogDistance) / max(0.0001, fogEnd - fogStart);
+          fogFactor = (fogEnd - fogDistance) / max(0.0001, fogEnd - fogStart);
         }
         fogFactor = clamp(fogFactor, 0.0, 1.0);
 
