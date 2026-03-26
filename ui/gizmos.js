@@ -1075,9 +1075,15 @@ export function toggleGizmo(gizmoType) {
               });
               break;
 
-            case "create_3d_text":
-              setNumberInputs(block, { SIZE: h, DEPTH: d });
+            case "create_3d_text": {
+              const currentSize = getNumberInput(block, "SIZE");
+              const currentDepth = getNumberInput(block, "DEPTH");
+              setNumberInputs(block, {
+                SIZE: currentSize * mesh.scaling.y,
+                DEPTH: currentDepth * mesh.scaling.z,
+              });
               break;
+            }
 
             case "load_model":
             case "load_multi_object":

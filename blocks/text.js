@@ -4,6 +4,7 @@ import {
   getHelpUrlFor,
   nextVariableIndexes,
   handleBlockCreateEvent,
+  handleBlockChange,
   registerBlockHandler,
 } from "./blocks.js";
 import {
@@ -456,12 +457,7 @@ export function defineTextBlocks() {
       this.setStyle("text_blocks");
 
       registerBlockHandler(this, (changeEvent) =>
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-        ),
+        handleBlockChange(this, changeEvent, variableNamePrefix),
       );
     },
   };
