@@ -962,6 +962,9 @@ export default {
   mixed_heights_png_option: "Mixed Heights",
   uneven_terrain_png_option: "Uneven Terrain",
   mountains_png_option: "Mountains",
+  Islands_png_option: "Islands",
+  Lookout_png_option: "Lookout",
+  Valley_png_option: "Valley",
 
   Idle_option: "Idle",
   Walk_option: "Walk",
