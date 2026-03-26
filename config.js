@@ -321,6 +321,9 @@ export function mapNames() {
     getDropdownOption("mixed_heights.png"),
     getDropdownOption("uneven_terrain.png"),
     getDropdownOption("mountains.png"),
+    getDropdownOption("Islands.png"),
+    getDropdownOption("Lookout.png"),
+    getDropdownOption("Valley.png"),
   ];
 }
 
