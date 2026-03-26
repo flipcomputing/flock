@@ -217,7 +217,11 @@ export const flockCamera = {
       ? mesh.getAbsolutePosition()
       : mesh.position.clone();
     constraintBox.position.copyFrom(meshWorldPos);
-    constraintBox.position.y += -4; // keep your original -4 offset
+    // Keep the anchor well below the actor so it cannot overlap terrain/actors
+    // even if collision filters are unavailable in a runtime.
+    const minWorldY =
+      mesh.getBoundingInfo?.()?.boundingBox?.minimumWorld?.y ?? meshWorldPos.y;
+    constraintBox.position.y = minWorldY - 50;
 
     // --- add the vertical constraint (lock roll & pitch; allow yaw) ---
     const constraint = new flock.BABYLON.Physics6DoFConstraint(
