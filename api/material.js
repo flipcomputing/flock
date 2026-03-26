@@ -893,6 +893,17 @@ export const flockMaterial = {
 
     // Normalize single-element array to plain value
     if (Array.isArray(color) && color.length === 1) color = color[0];
+    if (Array.isArray(color) && color.length >= 2) {
+      const normalizedColors = color.map((c) =>
+        flock.getColorFromString(c).toLowerCase(),
+      );
+      const allColorsIdentical = normalizedColors.every(
+        (c) => c === normalizedColors[0],
+      );
+      if (allColorsIdentical) {
+        color = normalizedColors[0];
+      }
+    }
 
     // Handle two-color case (extra colors beyond 2 are ignored)
     if (Array.isArray(color) && color.length >= 2) {
@@ -1057,6 +1068,39 @@ export const flockMaterial = {
     return shaderMaterial;
   },
   // Create shader material for color replacement
+  registerFogAwareShaderMaterial(material) {
+    if (!material) return;
+    flock._fogAwareShaderMaterials ??= new Set();
+    flock._fogAwareShaderMaterials.add(material);
+    material.onDisposeObservable?.add(() => {
+      flock._fogAwareShaderMaterials?.delete(material);
+    });
+  },
+  updateFogUniformsForShaderMaterial(material) {
+    if (!material?.setVector3 || !material?.setFloat || !material?.setInt)
+      return;
+
+    const scene = flock.scene;
+    const fogColor = scene?.fogColor || flock.BABYLON.Color3.Black();
+
+    material.setVector3(
+      "fogColor",
+      new flock.BABYLON.Vector3(fogColor.r, fogColor.g, fogColor.b),
+    );
+    material.setFloat("fogDensity", scene?.fogDensity ?? 0);
+    material.setFloat("fogStart", scene?.fogStart ?? 0);
+    material.setFloat("fogEnd", scene?.fogEnd ?? 0);
+    material.setInt(
+      "fogMode",
+      scene?.fogMode ?? flock.BABYLON.Scene.FOGMODE_NONE,
+    );
+  },
+  updateFogAwareShaderMaterials() {
+    if (!flock._fogAwareShaderMaterials) return;
+    flock._fogAwareShaderMaterials.forEach((material) => {
+      flock.updateFogUniformsForShaderMaterial(material);
+    });
+  },
   createColorReplaceShaderMaterial(materialName, texturePath, colors) {
     // Define vertex shader
     const vertexShader = `
@@ -1065,12 +1109,18 @@ export const flockMaterial = {
       attribute vec2 uv;
 
       uniform mat4 worldViewProjection;
+      uniform mat4 world;
+      uniform mat4 view;
 
       varying vec2 vUV;
+      varying float vFogDistance;
 
       void main(void) {
+        vec4 worldPosition = world * vec4(position, 1.0);
+        vec4 viewPosition = view * worldPosition;
         gl_Position = worldViewProjection * vec4(position, 1.0);
         vUV = uv;
+        vFogDistance = length(viewPosition.xyz);
       }
     `;
 
@@ -1088,6 +1138,13 @@ export const flockMaterial = {
       uniform float alpha;
       uniform float uScale;         // Horizontal tiling
       uniform float vScale;         // Vertical tiling
+      uniform vec3 fogColor;
+      uniform float fogDensity;
+      uniform float fogStart;
+      uniform float fogEnd;
+      uniform int fogMode;
+
+      varying float vFogDistance;
 
       void main(void) {
         vec2 scaledUV = vec2(vUV.x * uScale, vUV.y * vScale);
@@ -1118,7 +1175,18 @@ export const flockMaterial = {
           finalColor = texColor.rgb;
         }
 
-        gl_FragColor = vec4(finalColor, texColor.a * alpha);
+        float fogFactor = 1.0;
+        if (fogMode == 1) {
+          fogFactor = exp(-fogDensity * vFogDistance);
+        } else if (fogMode == 2) {
+          fogFactor = exp(-pow(fogDensity * vFogDistance, 2.0));
+        } else if (fogMode == 3) {
+          fogFactor = (fogEnd - vFogDistance) / max(0.0001, fogEnd - fogStart);
+        }
+        fogFactor = clamp(fogFactor, 0.0, 1.0);
+
+        vec3 foggedColor = mix(fogColor, finalColor, fogFactor);
+        gl_FragColor = vec4(foggedColor, texColor.a * alpha);
       }
     `;
 
@@ -1134,6 +1202,8 @@ export const flockMaterial = {
         attributes: ["position", "uv"],
         uniforms: [
           "worldViewProjection",
+          "world",
+          "view",
           "textureSampler",
           "lightColor",
           "greyTintColor",
@@ -1142,6 +1212,11 @@ export const flockMaterial = {
           "alpha",
           "uScale",
           "vScale",
+          "fogColor",
+          "fogDensity",
+          "fogStart",
+          "fogEnd",
+          "fogMode",
         ],
         needAlphaBlending: false,
       },
@@ -1201,6 +1276,11 @@ export const flockMaterial = {
     shaderMaterial.setInt("colorCount", colors.length);
 
     shaderMaterial.setFloat("alpha", 1.0);
+    flock.registerFogAwareShaderMaterial(shaderMaterial);
+    flock.updateFogUniformsForShaderMaterial(shaderMaterial);
+    shaderMaterial.onBindObservable?.add(() => {
+      flock.updateFogUniformsForShaderMaterial(shaderMaterial);
+    });
 
     return shaderMaterial;
   },

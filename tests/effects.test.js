@@ -29,6 +29,9 @@ export function runEffectsTests(flock) {
       flock.scene.fogDensity = 0;
       flock.scene.fogStart = 0;
       flock.scene.fogEnd = 1000;
+      if (flock._fogAwareShaderMaterials) {
+        flock._fogAwareShaderMaterials.clear();
+      }
 
       // Reset light intensity
       if (flock.mainLight) {
@@ -105,6 +108,85 @@ export function runEffectsTests(flock) {
 
       expect(flock.scene.fogStart).to.equal(25);
       expect(flock.scene.fogEnd).to.equal(75);
+    });
+
+    it("single-color material path should still support scene fog", function () {
+      const material = flock.createMaterial({
+        color: "#00ff00",
+        materialName: "test.png",
+        alpha: 0.8,
+      });
+
+      flock.setFog({
+        fogColorHex: "#778899",
+        fogMode: "LINEAR",
+        fogStart: 10,
+        fogEnd: 100,
+      });
+
+      expect(material.getClassName()).to.equal("StandardMaterial");
+      expect(material.fogEnabled).to.not.equal(false);
+      expect(material.alpha).to.equal(0.8);
+      expect(material.diffuseTexture.uScale).to.equal(1);
+      expect(material.diffuseTexture.vScale).to.equal(1);
+      material.dispose();
+    });
+
+    it("two-color shader path should receive fog uniforms", function () {
+      const material = flock.createMaterial({
+        color: ["#00ff00", "#0000ff"],
+        materialName: "test.png",
+        alpha: 0.4,
+      });
+
+      flock.setFog({
+        fogColorHex: "#123456",
+        fogMode: "EXP2",
+        fogDensity: 0.33,
+        fogStart: 12,
+        fogEnd: 88,
+      });
+
+      expect(material.getClassName()).to.equal("ShaderMaterial");
+      expect(flock._fogAwareShaderMaterials?.has(material)).to.be.true;
+      expect(material._floats.fogDensity).to.equal(0.33);
+      expect(material._floats.fogStart).to.equal(12);
+      expect(material._floats.fogEnd).to.equal(88);
+      expect(material._ints.fogMode).to.equal(flock.BABYLON.Scene.FOGMODE_EXP2);
+      expect(material._floats.uScale).to.equal(1);
+      expect(material._floats.vScale).to.equal(1);
+      expect(material._floats.alpha).to.equal(0.4);
+      material.dispose();
+    });
+
+    it("identical two-color input should match single-color fog behavior", function () {
+      const singleColorMaterial = flock.createMaterial({
+        color: "#00ff00",
+        materialName: "test.png",
+        alpha: 0.7,
+      });
+      const identicalPairMaterial = flock.createMaterial({
+        color: ["#00ff00", "#00ff00"],
+        materialName: "test.png",
+        alpha: 0.7,
+      });
+
+      flock.setFog({
+        fogColorHex: "#abcdef",
+        fogMode: "EXP",
+        fogDensity: 0.15,
+      });
+
+      expect(singleColorMaterial.getClassName()).to.equal("StandardMaterial");
+      expect(identicalPairMaterial.getClassName()).to.equal("StandardMaterial");
+      expect(flock._fogAwareShaderMaterials?.has(identicalPairMaterial)).to.not.be
+        .true;
+      expect(identicalPairMaterial.fogEnabled).to.equal(
+        singleColorMaterial.fogEnabled,
+      );
+      expect(identicalPairMaterial.alpha).to.equal(singleColorMaterial.alpha);
+      identicalPairMaterial.dispose();
+      singleColorMaterial.dispose();
     });
   });
 }
