@@ -629,7 +629,7 @@ function createShapeInternal(block) {
       break;
 
     case "create_3d_text": {
-      ({ colorOrMaterial: color } = resolveColorOrMaterial("#FFFFFF"));
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#FFFFFF"));
 
       const textInput = block.getInput("TEXT");
       const textTarget = textInput?.connection?.targetBlock?.();
@@ -647,6 +647,7 @@ function createShapeInternal(block) {
         text: String(textValue),
         font: "fonts/FreeSansBold.ttf",
         color,
+        alpha,
         size: fontSize,
         depth: textDepth,
         position: { x: position.x, y: position.y, z: position.z },

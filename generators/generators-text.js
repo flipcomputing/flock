@@ -1,5 +1,5 @@
 import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap } from "./mesh-state.js";
+import { meshMap, meshBlockIdMap, generateUniqueId } from "./mesh-state.js";
 import {
   getFieldValue,
   sanitizeForCode,

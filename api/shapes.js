@@ -701,6 +701,7 @@ export const flockShapes = {
     text,
     font,
     color = "#FFFFFF",
+    alpha = 1,
     size = 50,
     depth = 1.0,
     position = { x: 0, y: 0, z: 0 },
@@ -849,6 +850,7 @@ export const flockShapes = {
         );
         material.backFaceCulling = false;
         material.emissiveColor = material.diffuseColor.scale(0.2);
+        material.alpha = toAlpha(alpha);
 
         mesh.material = material;
 

@@ -939,10 +939,13 @@ export function toggleGizmo(gizmoType) {
       configureScaleGizmo(gizmoManager);
       {
         const sg = gizmoManager.gizmos.scaleGizmo;
-        sg.xGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "x"; });
-        sg.yGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "y"; });
-        sg.zGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "z"; });
-        sg.uniformScaleGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "uniform"; });
+        if (!sg._textAxisObserversRegistered) {
+          sg.xGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "x"; });
+          sg.yGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "y"; });
+          sg.zGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "z"; });
+          sg.uniformScaleGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "uniform"; });
+          sg._textAxisObserversRegistered = true;
+        }
       }
       gizmoManager.onAttachedToMeshObservable.add((mesh) => {
         if (!mesh) return;
