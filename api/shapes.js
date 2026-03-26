@@ -734,6 +734,12 @@ export const flockShapes = {
 
     flock._recycleOldestByKey(blockKey);
 
+    // Guard against overlapping builds for the same blockKey: stamp this build
+    // with a unique token and drop the result if a newer build supersedes it.
+    if (!flock._pendingTextBuilds) flock._pendingTextBuilds = new Map();
+    const buildToken = Symbol();
+    flock._pendingTextBuilds.set(blockKey, buildToken);
+
     // Create the loading promise
     const loadPromise = new Promise(async (resolve, reject) => {
       try {
@@ -884,6 +890,14 @@ export const flockShapes = {
 
         const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
         flock.applyPhysics(mesh, textShape);
+
+        // Drop stale result if a newer build for this blockKey was started
+        if (flock._pendingTextBuilds.get(blockKey) !== buildToken) {
+          mesh.dispose();
+          resolve();
+          return;
+        }
+        flock._pendingTextBuilds.delete(blockKey);
 
         flock._registerInstance(blockKey, mesh.name);
 

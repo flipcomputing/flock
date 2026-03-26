@@ -652,8 +652,8 @@ export function toggleGizmo(gizmoType) {
         if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
           if (gizmoManager.attachedMesh) {
             resetAttachedMesh();
-            blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
-              ?.blockKey;
+            blockKey = findParentWithBlockId(gizmoManager.attachedMesh)
+              ?.metadata?.blockKey;
           }
           let pickedMesh = event.pickInfo.pickedMesh;
 
@@ -940,10 +940,18 @@ export function toggleGizmo(gizmoType) {
       {
         const sg = gizmoManager.gizmos.scaleGizmo;
         if (!sg._textAxisObserversRegistered) {
-          sg.xGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "x"; });
-          sg.yGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "y"; });
-          sg.zGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "z"; });
-          sg.uniformScaleGizmo.dragBehavior.onDragStartObservable.add(() => { textScaleAxis = "uniform"; });
+          sg.xGizmo.dragBehavior.onDragStartObservable.add(
+            () => (textScaleAxis = "x"),
+          );
+          sg.yGizmo.dragBehavior.onDragStartObservable.add(
+            () => (textScaleAxis = "y"),
+          );
+          sg.zGizmo.dragBehavior.onDragStartObservable.add(
+            () => (textScaleAxis = "z"),
+          );
+          sg.uniformScaleGizmo.dragBehavior.onDragStartObservable.add(
+            () => (textScaleAxis = "uniform"),
+          );
           sg._textAxisObserversRegistered = true;
         }
       }
@@ -1452,8 +1460,8 @@ export function setGizmoManager(value) {
       // KeyCode for 'Delete' key is 46
       // Handle delete action
 
-      const blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
-        ?.blockKey;
+      const blockKey = findParentWithBlockId(gizmoManager.attachedMesh)
+        ?.metadata?.blockKey;
       const blockId = meshBlockIdMap[blockKey];
 
       deleteBlockWithUndo(blockId);
