@@ -396,6 +396,9 @@ export const flockScene = {
               flock.scene,
             );
             body.shape = new flock.BABYLON.PhysicsShapeMesh(gm, flock.scene);
+            // Keep a reference consistent with other meshes so disposal paths can
+            // always clean up the physics body when the map is regenerated.
+            gm.physics = body;
             if (shouldScaleUVs) scaleGroundUVs(gm);
             applyMaterialToGround(gm, material);
           },
@@ -502,6 +505,9 @@ export const flockScene = {
     if (!mesh) return;
 
     if (mesh.name === "ground") {
+      try {
+        mesh.physics?.dispose?.();
+      } catch {}
       if (mesh.material && !mesh.material.metadata?.isManaged) {
         mesh.material.dispose(true, true);
       }
