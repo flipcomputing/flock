@@ -338,7 +338,10 @@ export const flockScene = {
       ground.isPickable = true;
       ground.physics = new flock.BABYLON.PhysicsAggregate(
         ground,
-        flock.BABYLON.PhysicsShapeType.BOX,
+        // A BOX shape on a zero-thickness ground plane can collapse to a
+        // unit cube collider at the origin. Use a mesh shape so the physics
+        // body matches the visible flat ground surface.
+        flock.BABYLON.PhysicsShapeType.MESH,
         { mass: 0, friction: 0.5 },
         flock.scene,
       );
@@ -507,7 +510,9 @@ export const flockScene = {
     if (mesh.name === "ground") {
       try {
         mesh.physics?.dispose?.();
-      } catch {}
+      } catch {
+        // Ignore disposal cleanup failures to avoid blocking scene teardown.
+      }
       if (mesh.material && !mesh.material.metadata?.isManaged) {
         mesh.material.dispose(true, true);
       }
