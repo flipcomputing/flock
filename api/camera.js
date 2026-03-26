@@ -222,6 +222,13 @@ export const flockCamera = {
     const minWorldY =
       mesh.getBoundingInfo?.()?.boundingBox?.minimumWorld?.y ?? meshWorldPos.y;
     constraintBox.position.y = minWorldY - 50;
+    // Static PhysicsBody transforms are not always pulled from the mesh every
+    // frame, so push the new anchor transform into the physics body explicitly.
+    constraintBox.physics?.setTargetTransform?.(
+      constraintBox.position,
+      constraintBox.rotationQuaternion ||
+        new flock.BABYLON.Quaternion(0, 0, 0, 1),
+    );
 
     // --- add the vertical constraint (lock roll & pitch; allow yaw) ---
     const constraint = new flock.BABYLON.Physics6DoFConstraint(
