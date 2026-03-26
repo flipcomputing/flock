@@ -124,25 +124,6 @@ export const flockCamera = {
     if (mesh.metadata.constraint) return; // unset this before calling when swapping meshes
 
     const scene = flock.scene;
-    const makeConstraintShape = () =>
-      new flock.BABYLON.PhysicsShapeBox(
-        flock.BABYLON.Vector3.Zero(),
-        new flock.BABYLON.Quaternion(0, 0, 0, 1),
-        // Keep the anchor body effectively point-like so it cannot behave like
-        // a visible/physical obstacle when debug rendering is enabled.
-        new flock.BABYLON.Vector3(0.01, 0.01, 0.01),
-        scene,
-      );
-    const disableConstraintCollisions = (body, shape) => {
-      // Best-effort collision filtering across Babylon/Havok versions.
-      if (shape && "filterMembershipMask" in shape) {
-        shape.filterMembershipMask = 0;
-      }
-      if (shape && "filterCollideMask" in shape) {
-        shape.filterCollideMask = 0;
-      }
-      body?.setCollisionCallbackEnabled?.(false);
-    };
 
     // --- find or create a reusable constraint box (anchor) ---
     let constraintBox =
@@ -178,10 +159,14 @@ export const flockCamera = {
         false,
         scene,
       );
-      const shape = makeConstraintShape();
+      const shape = new flock.BABYLON.PhysicsShapeBox(
+        flock.BABYLON.Vector3.Zero(),
+        new flock.BABYLON.Quaternion(0, 0, 0, 1),
+        flock.BABYLON.Vector3.One(),
+        scene,
+      );
       body.shape = shape;
       body.setMassProperties({ mass: 1, restitution: 0.5 });
-      disableConstraintCollisions(body, shape);
       constraintBox.physics = body;
 
       // cache it for reuse
@@ -195,19 +180,21 @@ export const flockCamera = {
           false,
           scene,
         );
-        const shape = makeConstraintShape();
+        const shape = new flock.BABYLON.PhysicsShapeBox(
+          flock.BABYLON.Vector3.Zero(),
+          new flock.BABYLON.Quaternion(0, 0, 0, 1),
+          flock.BABYLON.Vector3.One(),
+          scene,
+        );
         body.shape = shape;
         body.setMassProperties({ mass: 1, restitution: 0.5 });
-        disableConstraintCollisions(body, shape);
         constraintBox.physics = body;
       } else if (!constraintBox.physics.shape) {
-        const shape = makeConstraintShape();
-        constraintBox.physics.shape = shape;
-        disableConstraintCollisions(constraintBox.physics, shape);
-      } else {
-        disableConstraintCollisions(
-          constraintBox.physics,
-          constraintBox.physics.shape,
+        constraintBox.physics.shape = new flock.BABYLON.PhysicsShapeBox(
+          flock.BABYLON.Vector3.Zero(),
+          new flock.BABYLON.Quaternion(0, 0, 0, 1),
+          flock.BABYLON.Vector3.One(),
+          scene,
         );
       }
     }
@@ -217,13 +204,8 @@ export const flockCamera = {
       ? mesh.getAbsolutePosition()
       : mesh.position.clone();
     constraintBox.position.copyFrom(meshWorldPos);
-    // Keep the anchor well below the actor so it cannot overlap terrain/actors
-    // even if collision filters are unavailable in a runtime.
-    const minWorldY =
-      mesh.getBoundingInfo?.()?.boundingBox?.minimumWorld?.y ?? meshWorldPos.y;
-    constraintBox.position.y = minWorldY - 50;
-    // Static PhysicsBody transforms are not always pulled from the mesh every
-    // frame, so push the new anchor transform into the physics body explicitly.
+    constraintBox.position.y += -4; // keep your original -4 offset
+    // Keep physics anchor aligned with the visual anchor mesh.
     constraintBox.physics?.setTargetTransform?.(
       constraintBox.position,
       constraintBox.rotationQuaternion ||
