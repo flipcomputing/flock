@@ -152,9 +152,9 @@ export function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      meshId = modelName + "_" + generateUniqueId();
-      meshMap[meshId] = block;
-      meshBlockIdMap[meshId] = block.id;
+      meshId = `${modelName}__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
       // Use flock API for loading models
 
       newMesh = flock.createModel({
