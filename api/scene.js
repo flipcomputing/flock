@@ -392,16 +392,14 @@ export const flockScene = {
               }
             }
             gm.position.y -= closestY;
-            const body = new flock.BABYLON.PhysicsBody(
+            // Build the ground collider directly as a mesh aggregate so we don't
+            // briefly create a default unit-box body at the origin.
+            gm.physics = new flock.BABYLON.PhysicsAggregate(
               gm,
-              flock.BABYLON.PhysicsMotionType.STATIC,
-              false,
+              flock.BABYLON.PhysicsShapeType.MESH,
+              { mass: 0, friction: 0.5 },
               flock.scene,
             );
-            body.shape = new flock.BABYLON.PhysicsShapeMesh(gm, flock.scene);
-            // Keep a reference consistent with other meshes so disposal paths can
-            // always clean up the physics body when the map is regenerated.
-            gm.physics = body;
             if (shouldScaleUVs) scaleGroundUVs(gm);
             applyMaterialToGround(gm, material);
           },
