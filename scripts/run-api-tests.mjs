@@ -423,8 +423,12 @@ async function runTests(suiteId = "all") {
   console.log("🌐 Launching headless browser...");
 
   browser = await chromium.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    headless: false, // must be false to use --headless=old
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--headless=old", // old headless mode retains WebGL support (new headless shell drops it)
+    ],
   });
 
   const context = await browser.newContext({

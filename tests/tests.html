@@ -75,11 +75,12 @@
       tabindex="0"
     ></canvas>
 
-    <script
-      type="module"
-      src="https://unpkg.com/mocha@10.2.0/mocha.js"
-    ></script>
-    <script type="module" src="https://unpkg.com/chai@4.3.7/chai.js"></script>
+    <link rel="stylesheet" href="/node_modules/mocha/mocha.css" />
+    <script src="/node_modules/mocha/mocha.js"></script>
+    <script type="module">
+      import * as chai from "/node_modules/chai/index.js";
+      window.chai = chai;
+    </script>
 
     <!-- Test selection interface -->
     <div style="margin: 20px 0">
