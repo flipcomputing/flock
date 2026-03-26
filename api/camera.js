@@ -124,6 +124,25 @@ export const flockCamera = {
     if (mesh.metadata.constraint) return; // unset this before calling when swapping meshes
 
     const scene = flock.scene;
+    const makeConstraintShape = () =>
+      new flock.BABYLON.PhysicsShapeBox(
+        flock.BABYLON.Vector3.Zero(),
+        new flock.BABYLON.Quaternion(0, 0, 0, 1),
+        // Keep the anchor body effectively point-like so it cannot behave like
+        // a visible/physical obstacle when debug rendering is enabled.
+        new flock.BABYLON.Vector3(0.01, 0.01, 0.01),
+        scene,
+      );
+    const disableConstraintCollisions = (body, shape) => {
+      // Best-effort collision filtering across Babylon/Havok versions.
+      if (shape && "filterMembershipMask" in shape) {
+        shape.filterMembershipMask = 0;
+      }
+      if (shape && "filterCollideMask" in shape) {
+        shape.filterCollideMask = 0;
+      }
+      body?.setCollisionCallbackEnabled?.(false);
+    };
 
     // --- find or create a reusable constraint box (anchor) ---
     let constraintBox =
@@ -159,14 +178,10 @@ export const flockCamera = {
         false,
         scene,
       );
-      const shape = new flock.BABYLON.PhysicsShapeBox(
-        flock.BABYLON.Vector3.Zero(),
-        new flock.BABYLON.Quaternion(0, 0, 0, 1),
-        flock.BABYLON.Vector3.One(),
-        scene,
-      );
+      const shape = makeConstraintShape();
       body.shape = shape;
       body.setMassProperties({ mass: 1, restitution: 0.5 });
+      disableConstraintCollisions(body, shape);
       constraintBox.physics = body;
 
       // cache it for reuse
@@ -180,21 +195,19 @@ export const flockCamera = {
           false,
           scene,
         );
-        const shape = new flock.BABYLON.PhysicsShapeBox(
-          flock.BABYLON.Vector3.Zero(),
-          new flock.BABYLON.Quaternion(0, 0, 0, 1),
-          flock.BABYLON.Vector3.One(),
-          scene,
-        );
+        const shape = makeConstraintShape();
         body.shape = shape;
         body.setMassProperties({ mass: 1, restitution: 0.5 });
+        disableConstraintCollisions(body, shape);
         constraintBox.physics = body;
       } else if (!constraintBox.physics.shape) {
-        constraintBox.physics.shape = new flock.BABYLON.PhysicsShapeBox(
-          flock.BABYLON.Vector3.Zero(),
-          new flock.BABYLON.Quaternion(0, 0, 0, 1),
-          flock.BABYLON.Vector3.One(),
-          scene,
+        const shape = makeConstraintShape();
+        constraintBox.physics.shape = shape;
+        disableConstraintCollisions(constraintBox.physics, shape);
+      } else {
+        disableConstraintCollisions(
+          constraintBox.physics,
+          constraintBox.physics.shape,
         );
       }
     }
