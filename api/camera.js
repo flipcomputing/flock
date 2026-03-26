@@ -206,7 +206,7 @@ export const flockCamera = {
         : mesh.position;
       if (!p) return;
       constraintBox.position.copyFrom(p);
-      constraintBox.position.y += -4; // keep original -4 offset
+      constraintBox.position.y += -4; // keep anchor below mesh
       if (constraintBox.physics && constraintBox.physics.setTargetTransform) {
         constraintBox.physics.setTargetTransform(
           constraintBox.position,
