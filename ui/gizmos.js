@@ -1075,6 +1075,10 @@ export function toggleGizmo(gizmoType) {
               });
               break;
 
+            case "create_3d_text":
+              setNumberInputs(block, { SIZE: h, DEPTH: d });
+              break;
+
             case "load_model":
             case "load_multi_object":
             case "load_object":

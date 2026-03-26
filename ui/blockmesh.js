@@ -1074,6 +1074,28 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
       }
       break;
     }
+
+    case "create_3d_text": {
+      if (["SIZE", "DEPTH"].includes(changed)) {
+        const newSize = parseFloat(
+          block.getInput("SIZE").connection.targetBlock().getFieldValue("NUM"),
+        );
+        const newDepth = parseFloat(
+          block.getInput("DEPTH").connection.targetBlock().getFieldValue("NUM"),
+        );
+
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        const ext = mesh.getBoundingInfo().boundingBox.extendSize;
+        const currentW = ext.x * 2 * mesh.scaling.x;
+        const currentH = ext.y * 2 * mesh.scaling.y;
+        const newW = currentH > 0 ? currentW * (newSize / currentH) : currentW;
+
+        setAbsoluteSize(mesh, newW, newSize, newDepth);
+        repositionPrimitiveFromBlock();
+      }
+      break;
+    }
   }
 }
 

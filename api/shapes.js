@@ -721,6 +721,18 @@ export const flockShapes = {
     depth = toDim(depth, 1);
     const { x, y, z } = position;
 
+    let blockKey = modelId;
+    let meshId = modelId;
+    if (modelId.includes("__")) {
+      [meshId, blockKey] = modelId.split("__");
+    }
+
+    if (flock.scene.getMeshByName(meshId)) {
+      meshId = meshId + "_" + flock.scene.getUniqueId();
+    }
+
+    flock._recycleOldestByKey(blockKey);
+
     // Create the loading promise
     const loadPromise = new Promise(async (resolve, reject) => {
       try {
@@ -746,7 +758,7 @@ export const flockShapes = {
             });
 
             // Create Babylon.js mesh from manifold data
-            mesh = new flock.BABYLON.Mesh(modelId, flock.scene);
+            mesh = new flock.BABYLON.Mesh(meshId, flock.scene);
             const vertexData = new flock.BABYLON.VertexData();
 
             vertexData.positions = meshData.positions;
@@ -806,7 +818,7 @@ export const flockShapes = {
           const fontData = await (await fetch(font)).json();
 
           mesh = flock.BABYLON.MeshBuilder.CreateText(
-            modelId,
+            meshId,
             text,
             fontData,
             {
@@ -823,9 +835,12 @@ export const flockShapes = {
           return;
         }
 
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.blockKey = blockKey;
+
         mesh.position.set(x, y, z);
         const material = new flock.BABYLON.StandardMaterial(
-          "textMaterial_" + modelId,
+          "textMaterial_" + meshId,
           flock.scene,
         );
 
@@ -845,20 +860,22 @@ export const flockShapes = {
         const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
         flock.applyPhysics(mesh, textShape);
 
+        flock._registerInstance(blockKey, mesh.name);
+
         if (callback) {
           requestAnimationFrame(callback);
         }
 
         resolve();
       } catch (error) {
-        console.error(`Error creating 3D text '${modelId}':`, error);
+        console.error(`Error creating 3D text '${meshId}':`, error);
         reject(error);
       }
     });
 
     // Store promise for whenModelReady coordination
-    flock.modelReadyPromises.set(modelId, loadPromise);
+    flock.modelReadyPromises.set(meshId, loadPromise);
 
-    return modelId;
+    return meshId;
   },
 };
