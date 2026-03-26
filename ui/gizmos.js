@@ -1075,6 +1075,7 @@ export function toggleGizmo(gizmoType) {
               });
               break;
 
+            case "load_model":
             case "load_multi_object":
             case "load_object":
             case "load_character": {
