@@ -206,11 +206,15 @@ export const flockCamera = {
     constraintBox.position.copyFrom(meshWorldPos);
     constraintBox.position.y += -4; // keep your original -4 offset
     // Keep physics anchor aligned with the visual anchor mesh.
-    constraintBox.physics?.setTargetTransform?.(
-      constraintBox.position,
-      constraintBox.rotationQuaternion ||
-        new flock.BABYLON.Quaternion(0, 0, 0, 1),
-    );
+    try {
+      constraintBox.physics?.setTargetTransform?.(
+        constraintBox.position,
+        constraintBox.rotationQuaternion ||
+          new flock.BABYLON.Quaternion(0, 0, 0, 1),
+      );
+    } catch (e) {
+      console.warn("[ensureVerticalConstraint] setTargetTransform failed:", e);
+    }
 
     // --- add the vertical constraint (lock roll & pitch; allow yaw) ---
     const constraint = new flock.BABYLON.Physics6DoFConstraint(
