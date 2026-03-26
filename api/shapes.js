@@ -701,6 +701,7 @@ export const flockShapes = {
     text,
     font,
     color = "#FFFFFF",
+    alpha = 1,
     size = 50,
     depth = 1.0,
     position = { x: 0, y: 0, z: 0 },
@@ -720,6 +721,24 @@ export const flockShapes = {
     size = toDim(size, 50);
     depth = toDim(depth, 1);
     const { x, y, z } = position;
+
+    let blockKey = modelId;
+    let meshId = modelId;
+    if (modelId.includes("__")) {
+      [meshId, blockKey] = modelId.split("__");
+    }
+
+    if (flock.scene.getMeshByName(meshId)) {
+      meshId = meshId + "_" + flock.scene.getUniqueId();
+    }
+
+    flock._recycleOldestByKey(blockKey);
+
+    // Guard against overlapping builds for the same blockKey: stamp this build
+    // with a unique token and drop the result if a newer build supersedes it.
+    if (!flock._pendingTextBuilds) flock._pendingTextBuilds = new Map();
+    const buildToken = Symbol();
+    flock._pendingTextBuilds.set(blockKey, buildToken);
 
     // Create the loading promise
     const loadPromise = new Promise(async (resolve, reject) => {
@@ -746,7 +765,7 @@ export const flockShapes = {
             });
 
             // Create Babylon.js mesh from manifold data
-            mesh = new flock.BABYLON.Mesh(modelId, flock.scene);
+            mesh = new flock.BABYLON.Mesh(meshId, flock.scene);
             const vertexData = new flock.BABYLON.VertexData();
 
             vertexData.positions = meshData.positions;
@@ -806,7 +825,7 @@ export const flockShapes = {
           const fontData = await (await fetch(font)).json();
 
           mesh = flock.BABYLON.MeshBuilder.CreateText(
-            modelId,
+            meshId,
             text,
             fontData,
             {
@@ -823,9 +842,12 @@ export const flockShapes = {
           return;
         }
 
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.blockKey = blockKey;
+
         mesh.position.set(x, y, z);
         const material = new flock.BABYLON.StandardMaterial(
-          "textMaterial_" + modelId,
+          "textMaterial_" + meshId,
           flock.scene,
         );
 
@@ -834,16 +856,50 @@ export const flockShapes = {
         );
         material.backFaceCulling = false;
         material.emissiveColor = material.diffuseColor.scale(0.2);
+        material.alpha = toAlpha(alpha);
 
         mesh.material = material;
 
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
+
+        // Normalize mesh so bounding box height equals the size parameter.
+        // Font cap-height is typically ~70% of em-height, causing a mismatch
+        // between SIZE in the block and the visual height. Baking a uniform XY
+        // scale here ensures SIZE always equals the rendered height, which
+        // prevents a visual jump when the scale gizmo is released.
+        {
+          const bbExt = mesh.getBoundingInfo().boundingBox.extendSize;
+          const bbHeight = bbExt.y * 2;
+          if (bbHeight > 0 && Math.abs(bbHeight - size) > 0.001) {
+            const normScale = size / bbHeight;
+            const savedPos = mesh.position.clone();
+            mesh.position = flock.BABYLON.Vector3.Zero();
+            mesh.scaling.x = normScale;
+            mesh.scaling.y = normScale;
+            mesh.bakeCurrentTransformIntoVertices();
+            mesh.scaling = flock.BABYLON.Vector3.One();
+            mesh.position = savedPos;
+            mesh.computeWorldMatrix(true);
+            mesh.refreshBoundingInfo();
+          }
+        }
+
         mesh.setEnabled(true);
         mesh.visibility = 1;
 
         const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
         flock.applyPhysics(mesh, textShape);
+
+        // Drop stale result if a newer build for this blockKey was started
+        if (flock._pendingTextBuilds.get(blockKey) !== buildToken) {
+          mesh.dispose();
+          resolve();
+          return;
+        }
+        flock._pendingTextBuilds.delete(blockKey);
+
+        flock._registerInstance(blockKey, mesh.name);
 
         if (callback) {
           requestAnimationFrame(callback);
@@ -851,14 +907,14 @@ export const flockShapes = {
 
         resolve();
       } catch (error) {
-        console.error(`Error creating 3D text '${modelId}':`, error);
+        console.error(`Error creating 3D text '${meshId}':`, error);
         reject(error);
       }
     });
 
     // Store promise for whenModelReady coordination
-    flock.modelReadyPromises.set(modelId, loadPromise);
+    flock.modelReadyPromises.set(meshId, loadPromise);
 
-    return modelId;
+    return meshId;
   },
 };

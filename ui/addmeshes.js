@@ -2,7 +2,6 @@ import * as Blockly from "blockly";
 import {
   meshMap,
   meshBlockIdMap,
-  generateUniqueId,
 } from "../generators/generators.js";
 import { flock } from "../flock.js";
 import {
@@ -25,6 +24,7 @@ export function createMeshOnCanvas(block) {
     "create_cylinder",
     "create_capsule",
     "create_plane",
+    "create_3d_text",
   ].includes(block.type);
 
   if (isShape) {
@@ -627,6 +627,34 @@ function createShapeInternal(block) {
         alpha,
       });
       break;
+
+    case "create_3d_text": {
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#FFFFFF"));
+
+      const textInput = block.getInput("TEXT");
+      const textTarget = textInput?.connection?.targetBlock?.();
+      const textValue = textTarget
+        ? textTarget.getFieldValue("TEXT") ?? textTarget.getFieldValue("NUM") ?? "Hello World"
+        : "Hello World";
+
+      const fontSize = parseFloat(getConnectedFieldValue("SIZE", "NUM", "50"));
+      const textDepth = parseFloat(getConnectedFieldValue("DEPTH", "NUM", "1"));
+
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.create3DText({
+        text: String(textValue),
+        font: "fonts/FreeSansBold.ttf",
+        color,
+        alpha,
+        size: fontSize,
+        depth: textDepth,
+        position: { x: position.x, y: position.y, z: position.z },
+        modelId: `3dtext__${block.id}`,
+      });
+      break;
+    }
 
     default:
       return;

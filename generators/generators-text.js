@@ -4,6 +4,7 @@ import {
   getFieldValue,
   sanitizeForCode,
   emitSafeTextArg,
+  getVariableInfo,
 } from "./generators-utilities.js";
 
 export function registerTextGenerators(javascriptGenerator) {
@@ -361,9 +362,9 @@ export function registerTextGenerators(javascriptGenerator) {
 
   // Add 3D text --------------------------------------------
   javascriptGenerator.forBlock["create_3d_text"] = function (block) {
-    const variableName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("ID_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+    const { generatedName: variableName, userVariableName } = getVariableInfo(
+      block,
+      "ID_VAR",
     );
 
     let rawText = getFieldValue(block, "TEXT", "Hello World");
@@ -383,9 +384,9 @@ export function registerTextGenerators(javascriptGenerator) {
     if (fontKey === "__fonts_FreeSans_Bold_json")
       font = "./fonts/FreeSans_Bold.json";
 
-    const meshId = "text_" + generateUniqueId();
-    meshMap[meshId] = block;
-    meshBlockIdMap[meshId] = block.id;
+    const meshId = `${userVariableName}__${block.id}`;
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
 
     let doCode = "";
     if (block.getInput("DO")) {
