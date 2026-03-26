@@ -125,18 +125,11 @@ export const flockCamera = {
 
     const scene = flock.scene;
 
-    // --- find or create a reusable constraint box (anchor) ---
+    // --- find or create a per-mesh constraint box (anchor) ---
     let constraintBox =
-      (flock._constraintBox &&
-        !flock._constraintBox.isDisposed() &&
-        flock._constraintBox) ||
-      (scene.meshes || []).find(
-        (m) =>
-          m &&
-          typeof m.name === "string" &&
-          m.name.startsWith("Constraint_") &&
-          !m.isDisposed(),
-      );
+      (mesh.metadata.constraintAnchor &&
+        !mesh.metadata.constraintAnchor.isDisposed() &&
+        mesh.metadata.constraintAnchor);
 
     if (!constraintBox) {
       // create a new hidden static box
@@ -169,8 +162,6 @@ export const flockCamera = {
       body.setMassProperties({ mass: 1, restitution: 0.5 });
       constraintBox.physics = body;
 
-      // cache it for reuse
-      flock._constraintBox = constraintBox;
     } else {
       // ensure reused box still has a valid static body + shape
       if (!constraintBox.physics) {
@@ -199,12 +190,29 @@ export const flockCamera = {
       }
     }
 
+    mesh.metadata.constraintAnchor = constraintBox;
+
     // position the anchor under the mesh so it doesn’t introduce sideways torque
-    const meshWorldPos = mesh.getAbsolutePosition
-      ? mesh.getAbsolutePosition()
-      : mesh.position.clone();
-    constraintBox.position.copyFrom(meshWorldPos);
-    constraintBox.position.y += -4; // keep your original -4 offset
+    const syncConstraintAnchor = () => {
+      if (
+        !constraintBox ||
+        constraintBox.isDisposed() ||
+        !mesh ||
+        mesh.isDisposed()
+      )
+        return;
+      const p = mesh.getAbsolutePosition
+        ? mesh.getAbsolutePosition()
+        : mesh.position;
+      if (!p) return;
+      constraintBox.position.copyFrom(p);
+      constraintBox.position.y += -4; // keep your original -4 offset
+    };
+    syncConstraintAnchor();
+    if (constraintBox.position.lengthSquared() === 0) {
+      // avoid a persistent origin anchor if transform refresh lags during mesh swaps
+      constraintBox.position.y = -4;
+    }
 
     // --- add the vertical constraint (lock roll & pitch; allow yaw) ---
     const constraint = new flock.BABYLON.Physics6DoFConstraint(
@@ -262,6 +270,12 @@ export const flockCamera = {
             console.warn("Physics body became invalid:", err);
           }
         },
+      );
+    }
+
+    if (!mesh.metadata._constraintAnchorSync) {
+      mesh.metadata._constraintAnchorSync = scene.onBeforePhysicsObservable.add(
+        syncConstraintAnchor,
       );
     }
   },
