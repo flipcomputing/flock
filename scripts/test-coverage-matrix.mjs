@@ -197,8 +197,8 @@ function generateTestCoverageMatrix() {
   console.log('└─────────────────────────────────────────┘\n');
 
   console.log(`  Total API Files:         ${apiFiles.length}`);
-  console.log(`  Files with Tests:        ${filesWithTests} (${Math.round(filesWithTests / apiFiles.length * 100)}%)`);
-  console.log(`  Files without Tests:     ${filesWithNoTests} (${Math.round(filesWithNoTests / apiFiles.length * 100)}%)`);
+  console.log(`  Files with Tests:        ${filesWithTests} (${apiFiles.length ? Math.round(filesWithTests / apiFiles.length * 100) : 0}%)`);
+  console.log(`  Files without Tests:     ${filesWithNoTests} (${apiFiles.length ? Math.round(filesWithNoTests / apiFiles.length * 100) : 0}%)`);
   console.log(`  Files with Stale Tests:  ${filesWithStaleTests}`);
   console.log(`  Total Test Cases:        ${totalTests}`);
   console.log('');
@@ -328,7 +328,7 @@ function generateMarkdownReport(matrixData, stats) {
 
   md += '## Summary\n\n';
   md += `- **Total API Files:** ${stats.totalApiFiles}\n`;
-  md += `- **Files with Tests:** ${stats.filesWithTests} (${Math.round(stats.filesWithTests / stats.totalApiFiles * 100)}%)\n`;
+  md += `- **Files with Tests:** ${stats.filesWithTests} (${stats.totalApiFiles ? Math.round(stats.filesWithTests / stats.totalApiFiles * 100) : 0}%)\n`;
   md += `- **Files without Tests:** ${stats.filesWithNoTests}\n`;
   md += `- **Files with Stale Tests:** ${stats.filesWithStaleTests}\n`;
   md += `- **Total Test Cases:** ${stats.totalTests}\n\n`;
