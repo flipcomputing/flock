@@ -28,7 +28,10 @@ export function runXRExportTests(flock) {
       ]);
       await flock.setParent(hutId, treeId);
 
-      const rootChild = hutMesh
+      const hutRootChild = hutMesh
+        .getChildMeshes()
+        .find((child) => child.name === "__root__");
+      const treeRootChild = treeMesh
         .getChildMeshes()
         .find((child) => child.name === "__root__");
 
@@ -50,10 +53,17 @@ export function runXRExportTests(flock) {
       }
 
       expect(shouldExportNode).to.be.a("function");
-      expect(shouldExportNode(hutMesh)).to.equal(true);
-      expect(shouldExportNode(treeMesh)).to.equal(true);
-      if (rootChild) {
-        expect(shouldExportNode(rootChild)).to.equal(true);
+      if (hutRootChild) {
+        expect(shouldExportNode(hutMesh)).to.equal(false);
+        expect(shouldExportNode(hutRootChild)).to.equal(true);
+      } else {
+        expect(shouldExportNode(hutMesh)).to.equal(true);
+      }
+      if (treeRootChild) {
+        expect(shouldExportNode(treeMesh)).to.equal(false);
+        expect(shouldExportNode(treeRootChild)).to.equal(true);
+      } else {
+        expect(shouldExportNode(treeMesh)).to.equal(true);
       }
     });
 
@@ -83,7 +93,15 @@ export function runXRExportTests(flock) {
       }
 
       expect(shouldExportNode).to.be.a("function");
-      expect(shouldExportNode(treeMesh)).to.equal(true);
+      const treeRootChild = treeMesh
+        .getChildMeshes()
+        .find((child) => child.name === "__root__");
+      if (treeRootChild) {
+        expect(shouldExportNode(treeMesh)).to.equal(false);
+        expect(shouldExportNode(treeRootChild)).to.equal(true);
+      } else {
+        expect(shouldExportNode(treeMesh)).to.equal(true);
+      }
 
       const exportedDescendants = treeMesh
         .getChildMeshes(false)

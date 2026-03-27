@@ -268,6 +268,10 @@ export const flockXR = {
             .forEach((childMesh) => allowedNodes.add(childMesh));
         }
 
+        const hasRootDescendant = (node) =>
+          typeof node?.getChildMeshes === "function" &&
+          node.getChildMeshes(false).some((child) => child.name === "__root__");
+
         const childMeshes = mesh.getChildMeshes(false);
         const meshList = [mesh, ...childMeshes];
         if (format === "STL") {
@@ -286,7 +290,9 @@ export const flockXR = {
             flock.scene,
             mesh.name + ".glb",
             {
-              shouldExportNode: (node) => allowedNodes.has(node),
+              shouldExportNode: (node) =>
+                allowedNodes.has(node) &&
+                !(node.name !== "__root__" && hasRootDescendant(node)),
             },
           ).then((glb) => {
             mesh.flipFaces();
