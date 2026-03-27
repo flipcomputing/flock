@@ -205,6 +205,18 @@ export const flockCamera = {
       : mesh.position.clone();
     constraintBox.position.copyFrom(meshWorldPos);
     constraintBox.position.y += -4; // keep your original -4 offset
+    constraintBox.computeWorldMatrix(true);
+
+    if (constraintBox.physics) {
+      if (!constraintBox.rotationQuaternion) {
+        constraintBox.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
+      }
+      constraintBox.physics.disablePreStep = false;
+      constraintBox.physics.setTargetTransform(
+        constraintBox.position,
+        constraintBox.rotationQuaternion,
+      );
+    }
 
     // --- add the vertical constraint (lock roll & pitch; allow yaw) ---
     const constraint = new flock.BABYLON.Physics6DoFConstraint(

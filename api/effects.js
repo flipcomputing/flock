@@ -221,5 +221,6 @@ export const flockEffects = {
     flock.scene.fogDensity = fogDensity;
     flock.scene.fogStart = fogStart;
     flock.scene.fogEnd = fogEnd;
+    flock.updateFogAwareShaderMaterials?.();
   },
 };

@@ -1090,11 +1090,11 @@ export default {
 
   about_heading_ui: "Sobre Flock XR", // human
   about_description_intro_ui: "Flock XR es un ", // human
-  about_description_prototype_ui: "prototipo", // human
+  about_description_prototype_ui: "prototipo", // human - outdated
   about_description_made_by_ui: " hecho por ", // human
   about_description_company_ui: "Flip Computing", // human
   about_description_disclaimer_ui:
-    " Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas. Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.", // human
+    " Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas. Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.", // human - outdated
   about_run_intro_ui:
     "Mira las demos para ver lo que puedes hacer. Realiza algunos cambios y haz clic", // human
   about_run_action_ui: "ejecutar.", // human
