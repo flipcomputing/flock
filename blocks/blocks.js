@@ -18,7 +18,7 @@ import { createThemeConfig } from "../main/themes.js";
 
 registerFieldColour();
 
-export let nextVariableIndexes = {};
+export let nextVariableIndexes = Object.create(null);
 
 // ---------------------------------------------------------------------------
 // Workspace-level block-change dispatcher
@@ -567,6 +567,22 @@ function parseNumericSuffix(name, prefix) {
   return parseInt(rest, 10);
 }
 
+function deriveVariableNameParts(name, fallbackPrefix) {
+  if (typeof name !== "string" || !name.length) {
+    return { prefix: fallbackPrefix, suffix: null };
+  }
+  const numberMatch = name.match(/^(.*?)(\d+)$/);
+  if (numberMatch) {
+    const base = numberMatch[1];
+    const suffix = parseInt(numberMatch[2], 10);
+    return {
+      prefix: base || fallbackPrefix,
+      suffix: Number.isFinite(suffix) ? suffix : null,
+    };
+  }
+  return { prefix: name, suffix: null };
+}
+
 function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   // Pick the smallest available suffix, starting from the tracked counter.
   let n = nextVariableIndexes[prefix] || 1;
@@ -852,6 +868,20 @@ export function ensureFreshVarOnDuplicate(
 
   const oldVarId = idField.getValue && idField.getValue();
   if (!oldVarId) return false;
+  const oldVarModel = ws.getVariableById(oldVarId);
+  const { prefix: duplicatePrefix, suffix: duplicateSuffix } =
+    deriveVariableNameParts(
+      oldVarModel?.name,
+      variableNamePrefix,
+    );
+
+  if (Number.isInteger(duplicateSuffix)) {
+    const nextFromSource = duplicateSuffix + 1;
+    nextVariableIndexes[duplicatePrefix] = Math.max(
+      nextVariableIndexes[duplicatePrefix] || 1,
+      nextFromSource,
+    );
+  }
 
   // Duplicate/copy/duplicate-parent case?
   const allBlocks = ws.getAllBlocks(false);
@@ -871,7 +901,7 @@ export function ensureFreshVarOnDuplicate(
     // Mint a new var with the *lowest* available suffix now.
     const newVarModel = createFreshVariable(
       ws,
-      variableNamePrefix,
+      duplicatePrefix,
       varType,
       nextVariableIndexes,
     );
@@ -897,7 +927,7 @@ export function ensureFreshVarOnDuplicate(
       block,
       newVarId,
       varType,
-      variableNamePrefix,
+      duplicatePrefix,
       ws,
       BlocklyNS,
       createdIds,
@@ -909,7 +939,7 @@ export function ensureFreshVarOnDuplicate(
       from: oldVarId,
       to: newVarId,
       type: varType,
-      prefix: variableNamePrefix,
+      prefix: duplicatePrefix,
       createdIds: createdIds,
     });
     return true;
@@ -1214,7 +1244,7 @@ export const options = {
 };
 
 export function initializeVariableIndexes() {
-  nextVariableIndexes = {
+  nextVariableIndexes = Object.assign(Object.create(null), {
     model: 1,
     box: 1,
     sphere: 1,
@@ -1241,7 +1271,7 @@ export function initializeVariableIndexes() {
     subtracted: 1,
     intersection: 1,
     hull: 1,
-  };
+  });
 
   const workspace = Blockly.getMainWorkspace();
 
