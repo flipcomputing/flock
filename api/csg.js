@@ -640,7 +640,7 @@ export const flockCSG = {
             return resolve(null);
           }
 
-          // Align pivot and position (Maintain your original behavior)
+          // Align pivot and position 
           const localCenter = resultMesh
             .getBoundingInfo()
             .boundingBox.center.clone();

@@ -199,12 +199,12 @@ export const flockCamera = {
       }
     }
 
-    // position the anchor under the mesh so it doesn’t introduce sideways torque
+    // position the anchor under the mesh out of the way
     const meshWorldPos = mesh.getAbsolutePosition
       ? mesh.getAbsolutePosition()
       : mesh.position.clone();
     constraintBox.position.copyFrom(meshWorldPos);
-    constraintBox.position.y += -4; // keep your original -4 offset
+    constraintBox.position.y += -4; // keep original -4 offset
     constraintBox.computeWorldMatrix(true);
 
     if (constraintBox.physics) {
@@ -261,14 +261,12 @@ export const flockCamera = {
           )
             return;
           try {
-            // preserve Y motion; zero X/Z linear velocity *only if you really want to block sliding*.
-            // If sideways walking causes spin, comment the next two lines so movement isn't fighting physics.
+            // preserve Y motion; zero X/Z linear velocity
             const v = mesh.physics.getLinearVelocity();
             mesh.physics.setLinearVelocity(
               new flock.BABYLON.Vector3(0, v.y, 0),
             );
 
-            // keep yaw free; kill roll/pitch
             mesh.physics.setAngularVelocity(new flock.BABYLON.Vector3(0, 0, 0));
           } catch (err) {
             console.warn("Physics body became invalid:", err);

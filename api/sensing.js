@@ -169,7 +169,6 @@ export const flockSensing = {
         propertyValue = mesh.isEnabled() && mesh.isVisible;
         break;
 
-      // Leaving colour-related logic as-is for now, per your request.
       case "ALPHA":
         allMeshes = [mesh].concat(mesh.getDescendants?.() ?? []);
         materialNode = allMeshes.find((node) => node.material);

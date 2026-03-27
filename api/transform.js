@@ -866,7 +866,6 @@ export const flockTransform = {
           wmBefore,
         );
 
-        // Apply new pivot to mesh (and children, per your existing behavior)
         mesh.setPivotPoint(newPivotLocal);
         mesh
           .getChildMeshes()
