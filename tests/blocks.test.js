@@ -1,9 +1,20 @@
 import { expect } from "chai";
-import { handleBlockCreateEvent } from "../blocks/blocks.js";
+import {
+  handleBlockCreateEvent,
+  initializeVariableIndexes,
+  nextVariableIndexes as globalNextVariableIndexes,
+} from "../blocks/blocks.js";
 
 export function runBlocksTests() {
   describe("blocks.js tests", function () {
     this.timeout(5000);
+
+    describe("nextVariableIndexes safety", function () {
+      it("should use a null-prototype object after initialization", function () {
+        initializeVariableIndexes();
+        expect(Object.getPrototypeOf(globalNextVariableIndexes)).to.equal(null);
+      });
+    });
 
     describe("handleBlockCreateEvent variable naming", function () {
       let mockWorkspace;

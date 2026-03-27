@@ -18,7 +18,7 @@ import { createThemeConfig } from "../main/themes.js";
 
 registerFieldColour();
 
-export let nextVariableIndexes = {};
+export let nextVariableIndexes = Object.create(null);
 
 // ---------------------------------------------------------------------------
 // Workspace-level block-change dispatcher
@@ -1244,7 +1244,7 @@ export const options = {
 };
 
 export function initializeVariableIndexes() {
-  nextVariableIndexes = {
+  nextVariableIndexes = Object.assign(Object.create(null), {
     model: 1,
     box: 1,
     sphere: 1,
@@ -1271,7 +1271,7 @@ export function initializeVariableIndexes() {
     subtracted: 1,
     intersection: 1,
     hull: 1,
-  };
+  });
 
   const workspace = Blockly.getMainWorkspace();
 
