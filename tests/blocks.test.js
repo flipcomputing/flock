@@ -232,6 +232,50 @@ export function runBlocksTests() {
         expect(newVariable.name).to.equal("star2");
       });
 
+      it("should continue from existing numeric suffix for duplicate path", function () {
+        const asVariableField = (field) => {
+          if (Blockly?.FieldVariable?.prototype) {
+            Object.setPrototypeOf(field, Blockly.FieldVariable.prototype);
+          }
+          return field;
+        };
+
+        const myStar3Variable = mockWorkspace.createVariable("myStar3", null);
+        mockVariableField.setValue(myStar3Variable.getId());
+
+        const externalReferenceField = asVariableField({
+          getValue: () => myStar3Variable.getId(),
+          setValue: () => {},
+        });
+        workspaceBlocks = [
+          mockBlock,
+          {
+            id: "other_block",
+            inputList: [{ fieldRow: [externalReferenceField] }],
+          },
+        ];
+
+        const changeEvent = {
+          type: "create",
+          blockId: "block123",
+          ids: ["block123"],
+          recordUndo: true,
+        };
+
+        handleBlockCreateEvent(
+          mockBlock,
+          changeEvent,
+          "item",
+          nextVariableIndexes,
+          "ID_VAR",
+        );
+
+        const newVariable = mockWorkspace.getVariableById(
+          mockVariableField.getValue(),
+        );
+        expect(newVariable.name).to.equal("myStar4");
+      });
+
       it("should not rename variables during code loading", function () {
         window.loadingCode = true;
 

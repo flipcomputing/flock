@@ -567,14 +567,20 @@ function parseNumericSuffix(name, prefix) {
   return parseInt(rest, 10);
 }
 
-function deriveVariableNamePrefix(name, fallbackPrefix) {
-  if (typeof name !== "string" || !name.length) return fallbackPrefix;
+function deriveVariableNameParts(name, fallbackPrefix) {
+  if (typeof name !== "string" || !name.length) {
+    return { prefix: fallbackPrefix, suffix: null };
+  }
   const numberMatch = name.match(/^(.*?)(\d+)$/);
   if (numberMatch) {
     const base = numberMatch[1];
-    return base || fallbackPrefix;
+    const suffix = parseInt(numberMatch[2], 10);
+    return {
+      prefix: base || fallbackPrefix,
+      suffix: Number.isFinite(suffix) ? suffix : null,
+    };
   }
-  return name;
+  return { prefix: name, suffix: null };
 }
 
 function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
@@ -863,10 +869,19 @@ export function ensureFreshVarOnDuplicate(
   const oldVarId = idField.getValue && idField.getValue();
   if (!oldVarId) return false;
   const oldVarModel = ws.getVariableById(oldVarId);
-  const duplicatePrefix = deriveVariableNamePrefix(
-    oldVarModel?.name,
-    variableNamePrefix,
-  );
+  const { prefix: duplicatePrefix, suffix: duplicateSuffix } =
+    deriveVariableNameParts(
+      oldVarModel?.name,
+      variableNamePrefix,
+    );
+
+  if (Number.isInteger(duplicateSuffix)) {
+    const nextFromSource = duplicateSuffix + 1;
+    nextVariableIndexes[duplicatePrefix] = Math.max(
+      nextVariableIndexes[duplicatePrefix] || 1,
+      nextFromSource,
+    );
+  }
 
   // Duplicate/copy/duplicate-parent case?
   const allBlocks = ws.getAllBlocks(false);
