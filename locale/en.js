@@ -1076,11 +1076,11 @@ export default {
 
   about_heading_ui: "About Flock XR",
   about_description_intro_ui: "Flock XR is a",
-  about_description_prototype_ui: "prototype",
+  about_description_prototype_ui: "web app",
   about_description_made_by_ui: " made by ",
   about_description_company_ui: "Flip Computing",
   about_description_disclaimer_ui:
-    " Please try it out but be aware that things may change and some features aren't finished yet. We're currently looking for support to develop Flock XR so that you can rely on it.",
+    " We're working on improvements to Flock XR all the time. Please let us know if you have suggestions or you are able to support the development of Flock XR.",
   about_run_intro_ui:
     "Take a look at the demos to see what you can do. Make some changes and click",
   about_run_action_ui: "run.",
