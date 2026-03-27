@@ -271,6 +271,9 @@ export const flockXR = {
         const hasDirectRootChild = (node) =>
           typeof node?.getChildMeshes === "function" &&
           node.getChildMeshes(true).some((child) => child.name === "__root__");
+        const wrapperNodes = [...allowedNodes].filter(
+          (node) => node.name !== "__root__" && hasDirectRootChild(node),
+        );
 
         const childMeshes = mesh.getChildMeshes(false);
         const meshList = [mesh, ...childMeshes];
@@ -285,19 +288,45 @@ export const flockXR = {
         } else if (format === "OBJ") {
           flock.EXPORT.OBJExport.OBJ(mesh);
         } else if (format === "GLB") {
-          mesh.flipFaces();
-          await flock.EXPORT.GLTF2Export.GLBAsync(
+          const ghostMat = new flock.BABYLON.PBRMaterial(
+            "_tmpExportWrapperGhost",
             flock.scene,
-            mesh.name + ".glb",
-            {
-              shouldExportNode: (node) =>
-                allowedNodes.has(node) &&
-                !(node.name !== "__root__" && hasDirectRootChild(node)),
-            },
-          ).then((glb) => {
+          );
+          ghostMat.alpha = 0;
+          ghostMat.alphaMode = flock.BABYLON.Engine.ALPHA_BLEND;
+          ghostMat.transparencyMode =
+            flock.BABYLON.PBRMaterial.PBRMATERIAL_ALPHABLEND;
+          ghostMat.disableLighting = true;
+          ghostMat.metallic = 0;
+          ghostMat.roughness = 1;
+          ghostMat.albedoColor = new flock.BABYLON.Color4(1, 1, 1, 0);
+
+          const wrapperPatches = wrapperNodes.map((wrapperMesh) => ({
+            wrapperMesh,
+            prevMaterial: wrapperMesh.material ?? null,
+          }));
+          for (const { wrapperMesh } of wrapperPatches) {
+            wrapperMesh.material = ghostMat;
+          }
+
+          mesh.flipFaces();
+          try {
+            await flock.EXPORT.GLTF2Export.GLBAsync(
+              flock.scene,
+              mesh.name + ".glb",
+              {
+                shouldExportNode: (node) => allowedNodes.has(node),
+              },
+            ).then((glb) => {
+              glb.downloadFiles();
+            });
+          } finally {
             mesh.flipFaces();
-            glb.downloadFiles();
-          });
+            for (const { wrapperMesh, prevMaterial } of wrapperPatches) {
+              wrapperMesh.material = prevMaterial;
+            }
+            ghostMat.dispose();
+          }
         }
         resolve();
       });

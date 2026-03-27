@@ -54,13 +54,13 @@ export function runXRExportTests(flock) {
 
       expect(shouldExportNode).to.be.a("function");
       if (hutRootChild) {
-        expect(shouldExportNode(hutMesh)).to.equal(false);
+        expect(shouldExportNode(hutMesh)).to.equal(true);
         expect(shouldExportNode(hutRootChild)).to.equal(true);
       } else {
         expect(shouldExportNode(hutMesh)).to.equal(true);
       }
       if (treeRootChild) {
-        expect(shouldExportNode(treeMesh)).to.equal(false);
+        expect(shouldExportNode(treeMesh)).to.equal(true);
         expect(shouldExportNode(treeRootChild)).to.equal(true);
       } else {
         expect(shouldExportNode(treeMesh)).to.equal(true);
@@ -97,7 +97,7 @@ export function runXRExportTests(flock) {
         .getChildMeshes()
         .find((child) => child.name === "__root__");
       if (treeRootChild) {
-        expect(shouldExportNode(treeMesh)).to.equal(false);
+        expect(shouldExportNode(treeMesh)).to.equal(true);
         expect(shouldExportNode(treeRootChild)).to.equal(true);
       } else {
         expect(shouldExportNode(treeMesh)).to.equal(true);
