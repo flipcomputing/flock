@@ -11,7 +11,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { countTestsInFile } from './utils/test-analyzer.mjs';
 
@@ -26,11 +26,12 @@ const projectRoot = path.resolve(__dirname, '..');
  */
 function getGitLastModified(filePath) {
   try {
-    const result = execSync(
-      `git log -1 --format="%ai" -- "${filePath}"`,
+    const result = execFileSync(
+      'git',
+      ['log', '-1', '--format=%cI', '--', filePath],
       { cwd: projectRoot, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
     ).trim();
-    return result ? result.split(' ')[0] : null;
+    return result || null;
   } catch {
     return null;
   }
@@ -45,8 +46,9 @@ function getGitLastModified(filePath) {
 function getCommitsSince(filePath, sinceDate) {
   if (!sinceDate) return 0;
   try {
-    const result = execSync(
-      `git log --oneline --after="${sinceDate}" -- "${filePath}"`,
+    const result = execFileSync(
+      'git',
+      ['log', '--oneline', `--after=${sinceDate}`, '--', filePath],
       { cwd: projectRoot, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
     ).trim();
     return result ? result.split('\n').length : 0;
@@ -405,7 +407,7 @@ function generateMarkdownReport(matrixData, stats) {
 }
 
 // Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && __filename === path.resolve(process.argv[1])) {
   generateTestCoverageMatrix();
 }
 
