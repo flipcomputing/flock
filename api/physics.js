@@ -216,6 +216,7 @@ export const flockPhysics = {
         mesh.computeWorldMatrix(true);
       });
     });
+     return beforePhysicsObserver;
   },
   up(meshName, upForce = 10) {
     const mesh = flock.scene.getMeshByName(meshName);

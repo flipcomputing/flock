@@ -267,7 +267,6 @@ export const flockCamera = {
               new flock.BABYLON.Vector3(0, v.y, 0),
             );
 
-            // keep yaw free; stop roll/pitch
             mesh.physics.setAngularVelocity(new flock.BABYLON.Vector3(0, 0, 0));
           } catch (err) {
             console.warn("Physics body became invalid:", err);
