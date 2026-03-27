@@ -279,6 +279,39 @@ export const flock = {
       camera.cameraRotation.y = 0;
     }
   },
+  _hardResetCameraControls(
+    camera = flock.scene?.activeCamera,
+    { reattachDelayMs = 0, noPreventDefault = true } = {},
+  ) {
+    if (!camera || !flock.canvas) return;
+    if (typeof camera.detachControl !== "function") return;
+    if (typeof camera.attachControl !== "function") return;
+
+    camera.detachControl(flock.canvas);
+    flock._resetCameraInputState(camera);
+
+    if (flock._cameraControlReattachTimer) {
+      clearTimeout(flock._cameraControlReattachTimer);
+      flock._cameraControlReattachTimer = null;
+    }
+
+    const reattach = () => {
+      if (!flock.scene || flock.scene.activeCamera !== camera) return;
+      flock._resetCameraInputState(camera);
+      camera.attachControl(flock.canvas, noPreventDefault);
+      flock._cameraControlReattachTimer = null;
+    };
+
+    if (reattachDelayMs > 0) {
+      flock._cameraControlReattachTimer = setTimeout(
+        reattach,
+        reattachDelayMs,
+      );
+      return;
+    }
+
+    reattach();
+  },
   getTotalSceneVertices() {
     return flock.scene.meshes.reduce((total, mesh) => {
       return total + mesh.getTotalVertices();
@@ -1248,12 +1281,10 @@ export const flock = {
               input._pointB !== null ||
               input._isMultiTouch === true)
           ) {
-            flock.scene.activeCamera.detachControl(flock.canvas);
-            flock._resetCameraInputState(flock.scene.activeCamera);
-            setTimeout(() => {
-              flock._resetCameraInputState(flock.scene.activeCamera);
-              flock.scene.activeCamera.attachControl(flock.canvas, true);
-            }, 100); // Small delay
+            flock._hardResetCameraControls(flock.scene.activeCamera, {
+              reattachDelayMs: 100,
+              noPreventDefault: true,
+            });
           }
         }
       },
@@ -1273,7 +1304,7 @@ export const flock = {
       // Clear all pressed keys when window loses focus
       flock.canvas.pressedKeys.clear();
       flock.canvas.pressedButtons.clear();
-      flock._resetCameraInputState(flock.scene?.activeCamera);
+      flock._hardResetCameraControls(flock.scene?.activeCamera);
     });
 
     // Hardening for rare pointer/input desync where camera keeps moving
@@ -1281,11 +1312,11 @@ export const flock = {
     window.addEventListener("blur", () => {
       flock.canvas.pressedKeys.clear();
       flock.canvas.pressedButtons.clear();
-      flock._resetCameraInputState(flock.scene?.activeCamera);
+      flock._hardResetCameraControls(flock.scene?.activeCamera);
     });
 
     window.addEventListener("pointerup", () => {
-      flock._resetCameraInputState(flock.scene?.activeCamera);
+      flock._hardResetCameraControls(flock.scene?.activeCamera);
     });
 
     flock.engineReady = true;
