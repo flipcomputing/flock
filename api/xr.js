@@ -250,12 +250,24 @@ export const flockXR = {
 
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
-        const rootChild = mesh
+        const anchorMesh = mesh;
+        const rootChild = anchorMesh
           .getChildMeshes()
           .find((child) => child.name === "__root__");
+
+        const exportAnchors = [anchorMesh];
         if (rootChild) {
-          mesh = rootChild;
+          exportAnchors.push(rootChild);
         }
+
+        const allowedNodes = new Set();
+        for (const anchor of exportAnchors) {
+          allowedNodes.add(anchor);
+          anchor
+            .getChildMeshes(false)
+            .forEach((childMesh) => allowedNodes.add(childMesh));
+        }
+
         const childMeshes = mesh.getChildMeshes(false);
         const meshList = [mesh, ...childMeshes];
         if (format === "STL") {
@@ -274,8 +286,7 @@ export const flockXR = {
             flock.scene,
             mesh.name + ".glb",
             {
-              shouldExportNode: (node) =>
-                node === mesh || mesh.getChildMeshes().includes(node),
+              shouldExportNode: (node) => allowedNodes.has(node),
             },
           ).then((glb) => {
             mesh.flipFaces();

@@ -106,6 +106,11 @@ const AVAILABLE_SUITES = [
   },
   { id: "blocks", name: "Block Tests", pattern: "blocks.js tests" },
   {
+    id: "xr-export",
+    name: "XR Export Tests",
+    pattern: "XR exportMesh GLB tests",
+  },
+  {
     id: "characterAnimations",
     name: "Character Animation API",
     pattern: "Character Animation API",
