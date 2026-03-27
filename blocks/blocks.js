@@ -567,6 +567,16 @@ function parseNumericSuffix(name, prefix) {
   return parseInt(rest, 10);
 }
 
+function deriveVariableNamePrefix(name, fallbackPrefix) {
+  if (typeof name !== "string" || !name.length) return fallbackPrefix;
+  const numberMatch = name.match(/^(.*?)(\d+)$/);
+  if (numberMatch) {
+    const base = numberMatch[1];
+    return base || fallbackPrefix;
+  }
+  return name;
+}
+
 function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   // Pick the smallest available suffix, starting from the tracked counter.
   let n = nextVariableIndexes[prefix] || 1;
@@ -852,6 +862,11 @@ export function ensureFreshVarOnDuplicate(
 
   const oldVarId = idField.getValue && idField.getValue();
   if (!oldVarId) return false;
+  const oldVarModel = ws.getVariableById(oldVarId);
+  const duplicatePrefix = deriveVariableNamePrefix(
+    oldVarModel?.name,
+    variableNamePrefix,
+  );
 
   // Duplicate/copy/duplicate-parent case?
   const allBlocks = ws.getAllBlocks(false);
@@ -871,7 +886,7 @@ export function ensureFreshVarOnDuplicate(
     // Mint a new var with the *lowest* available suffix now.
     const newVarModel = createFreshVariable(
       ws,
-      variableNamePrefix,
+      duplicatePrefix,
       varType,
       nextVariableIndexes,
     );
@@ -897,7 +912,7 @@ export function ensureFreshVarOnDuplicate(
       block,
       newVarId,
       varType,
-      variableNamePrefix,
+      duplicatePrefix,
       ws,
       BlocklyNS,
       createdIds,
@@ -909,7 +924,7 @@ export function ensureFreshVarOnDuplicate(
       from: oldVarId,
       to: newVarId,
       type: varType,
-      prefix: variableNamePrefix,
+      prefix: duplicatePrefix,
       createdIds: createdIds,
     });
     return true;

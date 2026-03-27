@@ -11,6 +11,7 @@ export function runBlocksTests() {
       let mockVariableField;
       let nextVariableIndexes;
       let createdVariables;
+      let workspaceBlocks;
 
       beforeEach(function () {
         nextVariableIndexes = { star: 1 };
@@ -55,7 +56,7 @@ export function runBlocksTests() {
             return mockVariableMap.createVariable(name, type);
           },
           getAllBlocks: function () {
-            return [mockBlock];
+            return workspaceBlocks;
           },
         };
 
@@ -73,11 +74,13 @@ export function runBlocksTests() {
           id: "block123",
           isInFlyout: false,
           workspace: mockWorkspace,
+          inputList: [],
           getField: function (fieldName) {
             return fieldName === "ID_VAR" ? mockVariableField : null;
           },
         };
 
+        workspaceBlocks = [mockBlock];
         mockVariableField.currentValue = null;
         window.loadingCode = false;
       });
@@ -131,6 +134,94 @@ export function runBlocksTests() {
           mockBlock,
           changeEvent,
           "star",
+          nextVariableIndexes,
+          "ID_VAR",
+        );
+
+        const newVariable = mockWorkspace.getVariableById(
+          mockVariableField.getValue(),
+        );
+        expect(newVariable.name).to.equal("star2");
+      });
+
+      it("should preserve renamed base names on duplicate when source has no suffix", function () {
+        const asVariableField = (field) => {
+          if (Blockly?.FieldVariable?.prototype) {
+            Object.setPrototypeOf(field, Blockly.FieldVariable.prototype);
+          }
+          return field;
+        };
+
+        const starVariable = mockWorkspace.createVariable("star", null);
+        mockVariableField.setValue(starVariable.getId());
+
+        const externalReferenceField = asVariableField({
+          getValue: () => starVariable.getId(),
+          setValue: () => {},
+        });
+        workspaceBlocks = [
+          mockBlock,
+          {
+            id: "other_block",
+            inputList: [{ fieldRow: [externalReferenceField] }],
+          },
+        ];
+
+        const changeEvent = {
+          type: "create",
+          blockId: "block123",
+          ids: ["block123"],
+          recordUndo: true,
+        };
+
+        handleBlockCreateEvent(
+          mockBlock,
+          changeEvent,
+          "item",
+          nextVariableIndexes,
+          "ID_VAR",
+        );
+
+        const newVariable = mockWorkspace.getVariableById(
+          mockVariableField.getValue(),
+        );
+        expect(newVariable.name).to.equal("star1");
+      });
+
+      it("should preserve renamed base names on duplicate when source has a suffix", function () {
+        const asVariableField = (field) => {
+          if (Blockly?.FieldVariable?.prototype) {
+            Object.setPrototypeOf(field, Blockly.FieldVariable.prototype);
+          }
+          return field;
+        };
+
+        const star1Variable = mockWorkspace.createVariable("star1", null);
+        mockVariableField.setValue(star1Variable.getId());
+
+        const externalReferenceField = asVariableField({
+          getValue: () => star1Variable.getId(),
+          setValue: () => {},
+        });
+        workspaceBlocks = [
+          mockBlock,
+          {
+            id: "other_block",
+            inputList: [{ fieldRow: [externalReferenceField] }],
+          },
+        ];
+
+        const changeEvent = {
+          type: "create",
+          blockId: "block123",
+          ids: ["block123"],
+          recordUndo: true,
+        };
+
+        handleBlockCreateEvent(
+          mockBlock,
+          changeEvent,
+          "item",
           nextVariableIndexes,
           "ID_VAR",
         );
