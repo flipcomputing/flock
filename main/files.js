@@ -471,6 +471,21 @@ export function stripFilename(inputString) {
   return removeEnd.substring(lastIndex + 1).trim();
 }
 
+
+// Preserve user-facing imported filename characters (including spaces and
+// punctuation) while still stripping potentially unsafe invisible chars.
+function getSafeImportedFileBaseName(fileName) {
+  const rawName = String(fileName || "untitled");
+  const cleanedName = rawName
+    .replace(/\p{Cc}/gu, "")
+    .replace(/[\u202A-\u202E\u2066-\u2069]/g, "");
+
+  const withoutExtension = cleanedName.replace(/\.(json|flock)$/i, "");
+  const baseName = stripFilename(withoutExtension).trim();
+
+  return baseName.substring(0, 50) || "untitled";
+}
+
 // Holds the FileSystemFileHandle from the last explicit save (File System Access API)
 let currentFileHandle = null;
 
@@ -727,11 +742,8 @@ function processProjectFileDrop(file, workspace, executeCallback) {
         throw new Error("Invalid Blockly project file structure");
       }
 
-      const rawName = file.name || "untitled";
-      const sanitizedName =
-        rawName.replace(/[^a-zA-Z0-9_.-]/g, "").substring(0, 50) || "untitled";
-      const baseName = sanitizedName.replace(/\.(json|flock)$/i, "");
-      document.getElementById("projectName").value = stripFilename(baseName);
+      document.getElementById("projectName").value =
+        getSafeImportedFileBaseName(file.name);
       clearFileHandle();
       loadWorkspaceAndExecute(json, workspace, executeCallback);
     } catch (e) {
@@ -880,15 +892,8 @@ export function setupFileInput(workspace, executeCallback) {
           throw new Error("Invalid Blockly project file structure");
         }
 
-        const rawName = file.name || "untitled";
-        const sanitizedName =
-          rawName.replace(/[^a-zA-Z0-9_.-]/g, "").substring(0, 50) ||
-          "untitled";
-
-        // Remove .json or .flock extension (case-insensitive) before using as project name
-        const baseName = sanitizedName.replace(/\.(json|flock)$/i, "");
-
-        document.getElementById("projectName").value = stripFilename(baseName);
+        document.getElementById("projectName").value =
+          getSafeImportedFileBaseName(file.name);
 
         clearFileHandle();
         loadWorkspaceAndExecute(json, workspace, executeCallback);
