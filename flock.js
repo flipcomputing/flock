@@ -258,6 +258,27 @@ export const flock = {
 
     return false;
   },
+  _resetCameraInputState(camera = flock.scene?.activeCamera) {
+    if (!camera) return;
+
+    // ArcRotateCamera inertial offsets can keep rotating after input ends.
+    if ("inertialAlphaOffset" in camera) camera.inertialAlphaOffset = 0;
+    if ("inertialBetaOffset" in camera) camera.inertialBetaOffset = 0;
+    if ("inertialRadiusOffset" in camera) camera.inertialRadiusOffset = 0;
+    if ("inertialPanningX" in camera) camera.inertialPanningX = 0;
+    if ("inertialPanningY" in camera) camera.inertialPanningY = 0;
+
+    // Free/Universal camera deltas can persist when pointer state desyncs.
+    if (camera.cameraDirection?.set) {
+      camera.cameraDirection.set(0, 0, 0);
+    }
+    if (camera.cameraRotation?.set) {
+      camera.cameraRotation.set(0, 0);
+    } else if (camera.cameraRotation) {
+      camera.cameraRotation.x = 0;
+      camera.cameraRotation.y = 0;
+    }
+  },
   getTotalSceneVertices() {
     return flock.scene.meshes.reduce((total, mesh) => {
       return total + mesh.getTotalVertices();
@@ -1228,7 +1249,9 @@ export const flock = {
               input._isMultiTouch === true)
           ) {
             flock.scene.activeCamera.detachControl(flock.canvas);
+            flock._resetCameraInputState(flock.scene.activeCamera);
             setTimeout(() => {
+              flock._resetCameraInputState(flock.scene.activeCamera);
               flock.scene.activeCamera.attachControl(flock.canvas, true);
             }, 100); // Small delay
           }
@@ -1250,6 +1273,19 @@ export const flock = {
       // Clear all pressed keys when window loses focus
       flock.canvas.pressedKeys.clear();
       flock.canvas.pressedButtons.clear();
+      flock._resetCameraInputState(flock.scene?.activeCamera);
+    });
+
+    // Hardening for rare pointer/input desync where camera keeps moving
+    // after input ends or browser focus changes.
+    window.addEventListener("blur", () => {
+      flock.canvas.pressedKeys.clear();
+      flock.canvas.pressedButtons.clear();
+      flock._resetCameraInputState(flock.scene?.activeCamera);
+    });
+
+    window.addEventListener("pointerup", () => {
+      flock._resetCameraInputState(flock.scene?.activeCamera);
     });
 
     flock.engineReady = true;
