@@ -354,7 +354,7 @@ export const flockMaterial = {
 
     // Helper function to copy color properties from PBR to Standard material
     const copyColorProperties = (pbrMaterial, standardMaterial) => {
-      // Check for albedoColor first (as seen in your debug output)
+      // Check for albedoColor first
       if (pbrMaterial.albedoColor) {
         standardMaterial.diffuseColor = pbrMaterial.albedoColor.clone();
       }
@@ -1561,8 +1561,6 @@ export const flockMaterial = {
       const texName = String(getTexName(v));
       const alpha = getAlpha(v);
 
-      // This matches your existing cache key convention closely while also
-      // respecting alpha when it’s provided via descriptor or opts.
       return `mat_${resolvedHex.toLowerCase()}_${alpha}_${texName}`.toLowerCase();
     };
 

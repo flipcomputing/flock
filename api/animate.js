@@ -1340,7 +1340,7 @@ export const flockAnimate = {
     if (!animName || !scene)
       return { name: null, isLooping: false, isPlaying: false };
 
-    // Your groups are named like `${mesh.name}.${animName}`
+    // groups are named like `${mesh.name}.${animName}`
     const expectedGroupName = `${mesh.name}.${animName}`;
 
     const group =

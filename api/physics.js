@@ -346,7 +346,7 @@ export const flockPhysics = {
         const applyMeshPhysicsShape = (targetMesh) => {
           const { motionType, disablePreStep } =
             capturePhysicsState(targetMesh);
-          // Keep your original material gate
+        
           if (!targetMesh.material) {
             disposePhysics(targetMesh);
             return;
@@ -549,7 +549,7 @@ export const flockPhysics = {
             await executeAction(meshId);
           });
 
-          // 👓 Re-integrating your XR Logic
+          // XR case
           if (flock.xrHelper && flock.xrHelper.baseExperience) {
             flock.xrHelper.baseExperience.onStateChangedObservable.add(
               (state) => {
@@ -805,9 +805,8 @@ export const flockPhysics = {
               } catch (_) {}
             });
 
-            // If the caller asked for a specific trigger callback semantics (e.g. Exit),
+            // If the caller asks for a specific trigger callback semantics (e.g. Exit),
             // also register their requested trigger to invoke the callback directly.
-            // This preserves your original API behavior.
             if (
               trigger &&
               B.ActionManager[trigger] &&

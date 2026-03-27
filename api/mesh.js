@@ -164,7 +164,7 @@ export const flockMesh = {
     return shape;
   },
   // backRatio: signed fraction of mesh size along the chosen axis (e.g., 0.25 = 25% back; -0.25 = 25% forward)
-  // axis: "z" (default) if your rig faces ±Z; use "x" if it faces ±X
+  // axis: "z" (default) if rig faces ±Z; use "x" if it faces ±X
   createSittingCapsuleFromBoundingBox(
     mesh,
     scene,
