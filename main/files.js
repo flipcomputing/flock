@@ -478,6 +478,7 @@ function getSafeImportedFileBaseName(fileName) {
   const rawName = String(fileName || "untitled");
   const cleanedName = rawName
     .replace(/\p{Cc}/gu, "")
+    .replace(/[\u200B-\u200F\u2060-\u206F\uFEFF]/g, "")
     .replace(/[\u202A-\u202E\u2066-\u2069]/g, "");
 
   const withoutExtension = cleanedName.replace(/\.(json|flock)$/i, "");
