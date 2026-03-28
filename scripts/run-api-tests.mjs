@@ -54,6 +54,7 @@ const AVAILABLE_SUITES = [
   { id: "sound2", name: "Sound2 Tests (BPM and speech)", pattern: "@sound2" },
   { id: "camera", name: "Camera API Tests", pattern: "@camera" },
   { id: "control", name: "Control API Tests", pattern: "@control" },
+  { id: "xr", name: "XR API Tests", pattern: "@xr" },
   {
     id: "materials",
     name: "Materials Tests (22 tests)",
