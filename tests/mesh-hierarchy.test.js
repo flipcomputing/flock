@@ -36,7 +36,13 @@ export function runMeshHierarchyTests(flock) {
     const meshIds = [];
 
     afterEach(function () {
-      meshIds.forEach((id) => flock.dispose(id));
+      meshIds.forEach((id) => {
+        try {
+          flock.dispose(id);
+        } catch (e) {
+          console.warn(`Failed to dispose ${id}:`, e);
+        }
+      });
       meshIds.length = 0;
     });
 
@@ -88,6 +94,10 @@ export function runMeshHierarchyTests(flock) {
 
         const childMesh = flock.scene.getMeshByName(childId);
         expect(childMesh.parent).to.exist;
+        // The x offset of 1 is applied directly in local space.
+        // y/z are also adjusted by parent and child pivot alignments.
+        expect(childMesh.position.x).to.be.closeTo(1, 0.01);
+        expect(childMesh.position.z).to.be.closeTo(0, 0.01);
       });
     });
 

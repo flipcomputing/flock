@@ -125,6 +125,11 @@ const AVAILABLE_SUITES = [
     name: "Math API Tests",
     pattern: "@math",
   },
+  {
+    id: "shapes",
+    name: "Shapes API Tests",
+    pattern: "@shapes",
+  },
 ];
 
 const args = process.argv.slice(2);

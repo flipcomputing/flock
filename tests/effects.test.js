@@ -194,6 +194,7 @@ export function runEffectsTests(flock) {
     });
 
     it("lightColor should set diffuse and ground color on the main light", function () {
+      const originalMainLight = flock.mainLight;
       const light = { intensity: 1, diffuse: null, groundColor: null };
       flock.mainLight = light;
       flock.lightColor("#ff0000", "#0000ff");
@@ -203,6 +204,7 @@ export function runEffectsTests(flock) {
       expect(light.groundColor.r).to.be.closeTo(0, 0.01);
       expect(light.groundColor.g).to.be.closeTo(0, 0.01);
       expect(light.groundColor.b).to.be.closeTo(1, 0.01);
+      flock.mainLight = originalMainLight;
     });
 
     it("startParticleSystem should start a stopped particle system", function () {
