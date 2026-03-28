@@ -9,7 +9,9 @@ export default [
     files: ["tests/**/*.test.js"],
     languageOptions: {
       globals: {
+        ...globals.chai,
         ...globals.mocha,
+        chai: "readonly",
       },
     },
   },
