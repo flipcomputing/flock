@@ -426,9 +426,7 @@ export function runSoundVerificationTests(flock) {
 
         const instrument = flock.createInstrument("sine");
         chai.expect(instrument).to.not.be.undefined;
-        chai.expect(instrument.oscillator).to.not.be.undefined;
-        chai.expect(instrument.gainNode).to.not.be.undefined;
-        chai.expect(instrument.oscillator.type).to.equal("sine");
+        chai.expect(instrument.type).to.equal("sine");
       });
 
       it("should create different waveform types", function () {
@@ -442,8 +440,7 @@ export function runSoundVerificationTests(flock) {
         types.forEach((type) => {
           const instrument = flock.createInstrument(type);
           chai.expect(instrument).to.not.be.undefined;
-          chai.expect(instrument.oscillator).to.not.be.undefined;
-          chai.expect(instrument.oscillator.type).to.equal(type);
+          chai.expect(instrument.type).to.equal(type);
         });
       });
 
@@ -461,9 +458,11 @@ export function runSoundVerificationTests(flock) {
         });
 
         chai.expect(instrument).to.not.be.undefined;
-        chai.expect(instrument.oscillator).to.not.be.undefined;
-        chai.expect(instrument.gainNode).to.not.be.undefined;
-        // ADSR is applied to gainNode envelope, not stored as properties
+        chai.expect(instrument.type).to.equal("sine");
+        chai.expect(instrument.attack).to.equal(0.1);
+        chai.expect(instrument.decay).to.equal(0.2);
+        chai.expect(instrument.sustain).to.equal(0.7);
+        chai.expect(instrument.release).to.equal(0.3);
       });
     });
   });
