@@ -673,7 +673,11 @@ export function createBlocklyWorkspace() {
 
   workspace = Blockly.inject("blocklyDiv", options);
 
-  // Initialize keyboard navigation
+  // Initialize keyboard navigation.
+
+  const shortcutRegistry = Blockly.ShortcutRegistry.registry;
+  shortcutRegistry.removeAllKeyMappings?.("menu");
+  shortcutRegistry.unregister?.("menu");
   const keyboardNav = new KeyboardNavigation(workspace);
 
   // Monkey-patch
@@ -1074,7 +1078,8 @@ export function createBlocklyWorkspace() {
     }
     // 2b) top-level block: insert pb as first child in statement input,
     //     pushing existing children after pb
-    const isTopLevel = !targetBlock.previousConnection && !targetBlock.nextConnection;
+    const isTopLevel =
+      !targetBlock.previousConnection && !targetBlock.nextConnection;
     if (isTopLevel && pb.previousConnection) {
       for (const input of targetBlock.inputList) {
         if (
