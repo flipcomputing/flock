@@ -1938,6 +1938,24 @@ function replaceMeshModel(currentMesh, block) {
         newChild.setParent?.(null, true);
       } catch {}
 
+      // Collect and detach any objects bone-attached to the old skeleton so
+      // they survive disposal and can be re-attached to the new skeleton.
+      const boneAttached = [];
+      function collectBoneAttached(node) {
+        if (!node || node.isDisposed?.()) return;
+        const kids = node.getChildren ? node.getChildren() : [];
+        for (const k of kids) {
+          if (k.metadata?._attachedBoneName) {
+            boneAttached.push(k);
+            k.detachFromBone?.();
+            k.parent = null;
+          } else {
+            collectBoneAttached(k);
+          }
+        }
+      }
+      for (const child of originalDirectChildren) collectBoneAttached(child);
+
       // Remove ONLY the original direct children
       const removed = [];
       const skipped = [];
@@ -1960,6 +1978,19 @@ function replaceMeshModel(currentMesh, block) {
       }
       // Parent the replacement under the existing parent
       newChild.parent = currentMesh;
+
+      // Re-attach any objects that were bone-attached to the old skeleton
+      for (const attached of boneAttached) {
+        const { _attachedBoneName, _attachedOffset } = attached.metadata || {};
+        if (_attachedBoneName) {
+          flock.attach(attached.name, currentMesh.name, {
+            boneName: _attachedBoneName,
+            x: _attachedOffset?.x ?? 0,
+            y: _attachedOffset?.y ?? 0,
+            z: _attachedOffset?.z ?? 0,
+          });
+        }
+      }
 
       // Apply old first child's local scale (if any) to the new child
       if (oldChildScale && newChild.scaling) {

@@ -430,6 +430,9 @@ export const attachBlockMapping = {
   Head: "Head",
 };
 
+// Mixamo bone names are from the character's own perspective, but GLTF
+// import mirrors the model, so left/right are swapped from the viewer's
+// perspective. LeftHand (viewer's left) maps to mixamorig:RightHand, etc.
 export const attachMixamoMapping = {
   LeftHand: "mixamorig:RightHand",
   Hold: "mixamorig:RightHand",

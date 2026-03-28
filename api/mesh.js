@@ -882,6 +882,11 @@ export const flockMesh = {
             if (bone) {
               meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
 
+              (meshToAttachInstance.metadata ||= {})._attachedBoneName =
+                logicalBoneName;
+              meshToAttachInstance.metadata._attachedTargetName = targetMesh;
+              meshToAttachInstance.metadata._attachedOffset = { x, y, z };
+
               if (logicalBoneName === "Head") {
                 let estimatedLength = 0.1;
                 if (bone.children.length > 0) {
