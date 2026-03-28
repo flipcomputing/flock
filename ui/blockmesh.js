@@ -1938,23 +1938,27 @@ function replaceMeshModel(currentMesh, block) {
         newChild.setParent?.(null, true);
       } catch {}
 
-      // Collect and detach any objects bone-attached to the old skeleton so
-      // they survive disposal and can be re-attached to the new skeleton.
-      const boneAttached = [];
-      function collectBoneAttached(node) {
-        if (!node || node.isDisposed?.()) return;
-        const kids = node.getChildren ? node.getChildren() : [];
-        for (const k of kids) {
-          if (k.metadata?._attachedBoneName) {
-            boneAttached.push(k);
-            k.detachFromBone?.();
-            k.parent = null;
-          } else {
-            collectBoneAttached(k);
-          }
+      // Collect bone-attached objects from the target's metadata list.
+      // This is more reliable than traversing the BabylonJS hierarchy because
+      // it doesn't depend on getChildren() returning bone-attached meshes.
+      const boneAttachments = (currentMesh.metadata?._boneAttachments || [])
+        .filter((item) => {
+          const m = flock.scene?.getMeshByName?.(item.meshName);
+          return m && !m.isDisposed?.();
+        })
+        .slice();
+      // Clear the list before disposal (will be repopulated by flock.attach)
+      if (currentMesh.metadata) {
+        currentMesh.metadata._boneAttachments = [];
+      }
+      // Detach each tracked object so it survives the old skeleton disposal
+      for (const item of boneAttachments) {
+        const m = flock.scene?.getMeshByName?.(item.meshName);
+        if (m) {
+          m.detachFromBone?.();
+          m.parent = null;
         }
       }
-      for (const child of originalDirectChildren) collectBoneAttached(child);
 
       // Remove ONLY the original direct children
       const removed = [];
@@ -1980,16 +1984,13 @@ function replaceMeshModel(currentMesh, block) {
       newChild.parent = currentMesh;
 
       // Re-attach any objects that were bone-attached to the old skeleton
-      for (const attached of boneAttached) {
-        const { _attachedBoneName, _attachedOffset } = attached.metadata || {};
-        if (_attachedBoneName) {
-          flock.attach(attached.name, currentMesh.name, {
-            boneName: _attachedBoneName,
-            x: _attachedOffset?.x ?? 0,
-            y: _attachedOffset?.y ?? 0,
-            z: _attachedOffset?.z ?? 0,
-          });
-        }
+      for (const item of boneAttachments) {
+        flock.attach(item.meshName, currentMesh.name, {
+          boneName: item.boneName,
+          x: item.offset?.x ?? 0,
+          y: item.offset?.y ?? 0,
+          z: item.offset?.z ?? 0,
+        });
       }
 
       // Apply old first child's local scale (if any) to the new child
