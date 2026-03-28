@@ -136,10 +136,10 @@ export const flockAnimate = {
       easing = "Linear",
     } = {},
   ) {
+    const rawDuration = Number(duration);
     duration =
-      Number.isFinite(Number(duration)) && Number(duration) > 0
-        ? Number(duration)
-        : 1;
+      Number.isFinite(rawDuration) && rawDuration > 0 ? rawDuration : 1;
+    const instant = Number.isFinite(rawDuration) && rawDuration === 0;
     x = Number.isFinite(Number(x)) ? Number(x) : 0;
     y = Number.isFinite(Number(y)) ? Number(y) : 0;
     z = Number.isFinite(Number(z)) ? Number(z) : 0;
@@ -147,6 +147,16 @@ export const flockAnimate = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async (mesh) => {
         if (!mesh) {
+          resolve();
+          return;
+        }
+
+        if (instant) {
+          mesh.rotation = new flock.BABYLON.Vector3(
+            x * (Math.PI / 180),
+            y * (Math.PI / 180),
+            z * (Math.PI / 180),
+          );
           resolve();
           return;
         }
