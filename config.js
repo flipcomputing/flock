@@ -423,28 +423,6 @@ export const attachNames = [
   "RightFoot",
 ];
 
-const attachDisplayNames = {
-  LeftHand: "Left Hand",
-  RightHand: "Right Hand",
-  Head: "Head",
-  Hips: "Hips",
-  Spine: "Spine",
-  Spine1: "Spine 1",
-  Spine2: "Spine 2",
-  Neck: "Neck",
-  LeftShoulder: "Left Shoulder",
-  LeftArm: "Left Upper Arm",
-  LeftForeArm: "Left Forearm",
-  RightShoulder: "Right Shoulder",
-  RightArm: "Right Upper Arm",
-  RightForeArm: "Right Forearm",
-  LeftUpLeg: "Left Thigh",
-  LeftLeg: "Left Shin",
-  LeftFoot: "Left Foot",
-  RightUpLeg: "Right Thigh",
-  RightLeg: "Right Shin",
-  RightFoot: "Right Foot",
-};
 
 export const attachBlockMapping = {
   LeftHand: "Hold",
@@ -475,5 +453,5 @@ export const attachMixamoMapping = {
 };
 
 export function getAttachNames() {
-  return attachNames.map((name) => [attachDisplayNames[name] ?? name, name]);
+  return attachNames.map((name) => getDropdownOption(name));
 }

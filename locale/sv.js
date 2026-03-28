@@ -1174,4 +1174,26 @@ export default {
   colour_blend: "blanda %1 och %2 med %3",
 
   dark_contrast_theme_ui: "Mörk",
+
+  // Attachment point options
+  LeftHand_option: "Vänster hand",
+  RightHand_option: "Höger hand",
+  Head_option: "Huvud",
+  Hips_option: "Höfter",
+  Spine_option: "Ryggrad",
+  Spine1_option: "Ryggrad 1",
+  Spine2_option: "Ryggrad 2",
+  Neck_option: "Hals",
+  LeftShoulder_option: "Vänster axel",
+  LeftArm_option: "Vänster överarm",
+  LeftForeArm_option: "Vänster underarm",
+  RightShoulder_option: "Höger axel",
+  RightArm_option: "Höger överarm",
+  RightForeArm_option: "Höger underarm",
+  LeftUpLeg_option: "Vänster lår",
+  LeftLeg_option: "Vänster smalben",
+  LeftFoot_option: "Vänster fot",
+  RightUpLeg_option: "Höger lår",
+  RightLeg_option: "Höger smalben",
+  RightFoot_option: "Höger fot",
 };

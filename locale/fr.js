@@ -1197,4 +1197,26 @@ export default {
 
   dark_contrast_theme_ui: "Sombre",
   loading_success_ui: "Flock XR a été chargé avec succès",
+
+  // Attachment point options
+  LeftHand_option: "Main gauche",
+  RightHand_option: "Main droite",
+  Head_option: "Tête",
+  Hips_option: "Hanches",
+  Spine_option: "Colonne vertébrale",
+  Spine1_option: "Colonne 1",
+  Spine2_option: "Colonne 2",
+  Neck_option: "Cou",
+  LeftShoulder_option: "Épaule gauche",
+  LeftArm_option: "Bras supérieur gauche",
+  LeftForeArm_option: "Avant-bras gauche",
+  RightShoulder_option: "Épaule droite",
+  RightArm_option: "Bras supérieur droit",
+  RightForeArm_option: "Avant-bras droit",
+  LeftUpLeg_option: "Cuisse gauche",
+  LeftLeg_option: "Tibia gauche",
+  LeftFoot_option: "Pied gauche",
+  RightUpLeg_option: "Cuisse droite",
+  RightLeg_option: "Tibia droit",
+  RightFoot_option: "Pied droit",
 };

@@ -1180,4 +1180,26 @@ export default {
   colour_blend: "misturar %1 e %2 em %3",
 
   dark_contrast_theme_ui: "Escuro",
+
+  // Attachment point options
+  LeftHand_option: "Mão esquerda",
+  RightHand_option: "Mão direita",
+  Head_option: "Cabeça",
+  Hips_option: "Quadris",
+  Spine_option: "Coluna",
+  Spine1_option: "Coluna 1",
+  Spine2_option: "Coluna 2",
+  Neck_option: "Pescoço",
+  LeftShoulder_option: "Ombro esquerdo",
+  LeftArm_option: "Braço superior esquerdo",
+  LeftForeArm_option: "Antebraço esquerdo",
+  RightShoulder_option: "Ombro direito",
+  RightArm_option: "Braço superior direito",
+  RightForeArm_option: "Antebraço direito",
+  LeftUpLeg_option: "Coxa esquerda",
+  LeftLeg_option: "Canela esquerda",
+  LeftFoot_option: "Pé esquerdo",
+  RightUpLeg_option: "Coxa direita",
+  RightLeg_option: "Canela direita",
+  RightFoot_option: "Pé direito",
 };

@@ -1187,4 +1187,26 @@ export default {
   colour_blend: "zmieszaj %1 i %2 o %3",
 
   dark_contrast_theme_ui: "Ciemny",
+
+  // Attachment point options
+  LeftHand_option: "Lewa ręka",
+  RightHand_option: "Prawa ręka",
+  Head_option: "Głowa",
+  Hips_option: "Biodra",
+  Spine_option: "Kręgosłup",
+  Spine1_option: "Kręgosłup 1",
+  Spine2_option: "Kręgosłup 2",
+  Neck_option: "Szyja",
+  LeftShoulder_option: "Lewy bark",
+  LeftArm_option: "Lewe ramię",
+  LeftForeArm_option: "Lewe przedramię",
+  RightShoulder_option: "Prawy bark",
+  RightArm_option: "Prawe ramię",
+  RightForeArm_option: "Prawe przedramię",
+  LeftUpLeg_option: "Lewe udo",
+  LeftLeg_option: "Lewe podudzie",
+  LeftFoot_option: "Lewa stopa",
+  RightUpLeg_option: "Prawe udo",
+  RightLeg_option: "Prawe podudzie",
+  RightFoot_option: "Prawa stopa",
 };
