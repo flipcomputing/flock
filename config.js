@@ -426,11 +426,13 @@ export const attachNames = [
 
 export const attachBlockMapping = {
   LeftHand: "Hold",
+  Hold: "Hold",
   Head: "Head",
 };
 
 export const attachMixamoMapping = {
   LeftHand: "mixamorig:RightHand",
+  Hold: "mixamorig:RightHand",
   RightHand: "mixamorig:LeftHand",
   Head: "mixamorig:Head",
   Hips: "mixamorig:Hips",
