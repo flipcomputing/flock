@@ -312,7 +312,7 @@ export const flockCSG = {
             mergedMesh.metadata.blockKey = blockId;
             mergedMesh.metadata.sharedMaterial = false;
 
-            return mergedMesh;
+            return modelId;
           }
 
           const originalMaterial = referenceMesh.material;
