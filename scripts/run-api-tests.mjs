@@ -130,6 +130,11 @@ const AVAILABLE_SUITES = [
     name: "Shapes API Tests",
     pattern: "@shapes",
   },
+  {
+    id: "sensing",
+    name: "Sensing API Tests",
+    pattern: "@sensing",
+  },
 ];
 
 const args = process.argv.slice(2);
