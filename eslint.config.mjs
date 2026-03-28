@@ -5,5 +5,13 @@ import pluginJs from "@eslint/js";
 export default [
   { ignores: ["node_modules/", "dev-dist/", "dist/", "examples/"] },
   { languageOptions: { globals: globals.browser } },
+  {
+    files: ["tests/**/*.test.js"],
+    languageOptions: {
+      globals: {
+        ...globals.mocha,
+      },
+    },
+  },
   pluginJs.configs.recommended,
 ];
