@@ -837,7 +837,7 @@ export const flockMesh = {
   attach(
     meshToAttach,
     targetMesh,
-    { boneName = "Hold", x = 0, y = 0, z = 0 } = {},
+    { boneName = "LeftHand", x = 0, y = 0, z = 0 } = {},
   ) {
     return new Promise((resolve) => {
       flock.whenModelReady(targetMesh, (targetMeshInstance) => {

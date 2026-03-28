@@ -400,15 +400,15 @@ export const materialNames = [
   "gridxy.png",
 ];
 
-export const attachNames = ["Hold", "Head"];
+export const attachNames = ["LeftHand", "Head"];
 
 export const attachBlockMapping = {
-  Hold: "Hold",
+  LeftHand: "Hold",
   Head: "Head",
 };
 
 export const attachMixamoMapping = {
-  Hold: "mixamorig:LeftHand",
+  LeftHand: "mixamorig:LeftHand",
   Head: "mixamorig:Head",
 };
 
