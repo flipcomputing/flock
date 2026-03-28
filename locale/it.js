@@ -1181,4 +1181,26 @@ export default {
   // Service worker update notification
   update_available_ui: "È disponibile una nuova versione di Flock.",
   reload_button_ui: "Ricarica",
+
+  // Attachment point options
+  LeftHand_option: "Mano sinistra",
+  RightHand_option: "Mano destra",
+  Head_option: "Testa",
+  Hips_option: "Fianchi",
+  Spine_option: "Colonna vertebrale",
+  Spine1_option: "Colonna 1",
+  Spine2_option: "Colonna 2",
+  Neck_option: "Collo",
+  LeftShoulder_option: "Spalla sinistra",
+  LeftArm_option: "Braccio superiore sinistro",
+  LeftForeArm_option: "Avambraccio sinistro",
+  RightShoulder_option: "Spalla destra",
+  RightArm_option: "Braccio superiore destro",
+  RightForeArm_option: "Avambraccio destro",
+  LeftUpLeg_option: "Coscia sinistra",
+  LeftLeg_option: "Stinco sinistro",
+  LeftFoot_option: "Piede sinistro",
+  RightUpLeg_option: "Coscia destra",
+  RightLeg_option: "Stinco destro",
+  RightFoot_option: "Piede destro",
 };

@@ -400,16 +400,61 @@ export const materialNames = [
   "gridxy.png",
 ];
 
-export const attachNames = ["Hold", "Head"];
+export const attachNames = [
+  "LeftHand",
+  "RightHand",
+  "Head",
+  "Hips",
+  "Spine",
+  "Spine1",
+  "Spine2",
+  "Neck",
+  "LeftShoulder",
+  "LeftArm",
+  "LeftForeArm",
+  "RightShoulder",
+  "RightArm",
+  "RightForeArm",
+  "LeftUpLeg",
+  "LeftLeg",
+  "LeftFoot",
+  "RightUpLeg",
+  "RightLeg",
+  "RightFoot",
+];
+
 
 export const attachBlockMapping = {
+  LeftHand: "Hold",
   Hold: "Hold",
   Head: "Head",
 };
 
+// Mixamo bone names are from the character's own perspective, but GLTF
+// import mirrors the model, so left/right are swapped from the viewer's
+// perspective. LeftHand (viewer's left) maps to mixamorig:RightHand, etc.
 export const attachMixamoMapping = {
-  Hold: "mixamorig:LeftHand",
+  LeftHand: "mixamorig:RightHand",
+  Hold: "mixamorig:RightHand",
+  RightHand: "mixamorig:LeftHand",
   Head: "mixamorig:Head",
+  Hips: "mixamorig:Hips",
+  Spine: "mixamorig:Spine",
+  Spine1: "mixamorig:Spine1",
+  Spine2: "mixamorig:Spine2",
+  Neck: "mixamorig:Neck",
+  LeftShoulder: "mixamorig:RightShoulder",
+  LeftArm: "mixamorig:RightArm",
+  LeftForeArm: "mixamorig:RightForeArm",
+  RightShoulder: "mixamorig:LeftShoulder",
+  RightArm: "mixamorig:LeftArm",
+  RightForeArm: "mixamorig:LeftForeArm",
+  LeftUpLeg: "mixamorig:RightUpLeg",
+  LeftLeg: "mixamorig:RightLeg",
+  LeftFoot: "mixamorig:RightFoot",
+  RightUpLeg: "mixamorig:LeftUpLeg",
+  RightLeg: "mixamorig:LeftLeg",
+  RightFoot: "mixamorig:LeftFoot",
 };
 
 export function getAttachNames() {

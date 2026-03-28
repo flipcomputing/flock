@@ -1938,6 +1938,28 @@ function replaceMeshModel(currentMesh, block) {
         newChild.setParent?.(null, true);
       } catch {}
 
+      // Collect bone-attached objects from the target's metadata list.
+      // This is more reliable than traversing the BabylonJS hierarchy because
+      // it doesn't depend on getChildren() returning bone-attached meshes.
+      const boneAttachments = (currentMesh.metadata?._boneAttachments || [])
+        .filter((item) => {
+          const m = flock.scene?.getMeshByName?.(item.meshName);
+          return m && !m.isDisposed?.();
+        })
+        .slice();
+      // Clear the list before disposal (will be repopulated by flock.attach)
+      if (currentMesh.metadata) {
+        currentMesh.metadata._boneAttachments = [];
+      }
+      // Detach each tracked object so it survives the old skeleton disposal
+      for (const item of boneAttachments) {
+        const m = flock.scene?.getMeshByName?.(item.meshName);
+        if (m) {
+          m.detachFromBone?.();
+          m.parent = null;
+        }
+      }
+
       // Remove ONLY the original direct children
       const removed = [];
       const skipped = [];
@@ -1960,6 +1982,16 @@ function replaceMeshModel(currentMesh, block) {
       }
       // Parent the replacement under the existing parent
       newChild.parent = currentMesh;
+
+      // Re-attach any objects that were bone-attached to the old skeleton
+      for (const item of boneAttachments) {
+        flock.attach(item.meshName, currentMesh.name, {
+          boneName: item.boneName,
+          x: item.offset?.x ?? 0,
+          y: item.offset?.y ?? 0,
+          z: item.offset?.z ?? 0,
+        });
+      }
 
       // Apply old first child's local scale (if any) to the new child
       if (oldChildScale && newChild.scaling) {

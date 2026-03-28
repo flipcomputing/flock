@@ -827,6 +827,27 @@ export const flockMesh = {
                 yOffset,
                 zOffset,
               );
+
+              // Store metadata for re-attachment on live model switch
+              (meshToAttachInstance.metadata ||= {})._attachedBoneName =
+                "LeftHand";
+              meshToAttachInstance.metadata._attachedTargetName = targetMesh;
+              meshToAttachInstance.metadata._attachedOffset = {
+                x: xOffset,
+                y: yOffset,
+                z: zOffset,
+              };
+              // Track on target for model-switch re-attachment
+              (targetMeshInstance.metadata ||= {})._boneAttachments ??= [];
+              targetMeshInstance.metadata._boneAttachments =
+                targetMeshInstance.metadata._boneAttachments.filter(
+                  (e) => e.meshName !== meshToAttach,
+                );
+              targetMeshInstance.metadata._boneAttachments.push({
+                meshName: meshToAttach,
+                boneName: "LeftHand",
+                offset: { x: xOffset, y: yOffset, z: zOffset },
+              });
             }
           }
           resolve();
@@ -837,7 +858,7 @@ export const flockMesh = {
   attach(
     meshToAttach,
     targetMesh,
-    { boneName = "Hold", x = 0, y = 0, z = 0 } = {},
+    { boneName = "LeftHand", x = 0, y = 0, z = 0 } = {},
   ) {
     return new Promise((resolve) => {
       flock.whenModelReady(targetMesh, (targetMeshInstance) => {
@@ -881,6 +902,23 @@ export const flockMesh = {
             );
             if (bone) {
               meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
+
+              (meshToAttachInstance.metadata ||= {})._attachedBoneName =
+                logicalBoneName;
+              meshToAttachInstance.metadata._attachedTargetName = targetMesh;
+              meshToAttachInstance.metadata._attachedOffset = { x, y, z };
+
+              // Track on target for model-switch re-attachment
+              (targetMeshInstance.metadata ||= {})._boneAttachments ??= [];
+              targetMeshInstance.metadata._boneAttachments =
+                (targetMeshInstance.metadata._boneAttachments || []).filter(
+                  (e) => e.meshName !== meshToAttach,
+                );
+              targetMeshInstance.metadata._boneAttachments.push({
+                meshName: meshToAttach,
+                boneName: logicalBoneName,
+                offset: { x, y, z },
+              });
 
               if (logicalBoneName === "Head") {
                 let estimatedLength = 0.1;
@@ -946,6 +984,18 @@ export const flockMesh = {
 
         const md = mesh.metadata || {};
         const restoreRotation = md._preAttachWorldRotation || rotationNow;
+
+        // Remove from target's attachment tracking list
+        const targetName = md._attachedTargetName;
+        if (targetName) {
+          const targetM = flock.scene?.getMeshByName?.(targetName);
+          if (targetM?.metadata?._boneAttachments) {
+            targetM.metadata._boneAttachments =
+              targetM.metadata._boneAttachments.filter(
+                (e) => e.meshName !== meshToDetach,
+              );
+          }
+        }
 
         mesh.detachFromBone?.();
         mesh.parent = null;

@@ -1221,6 +1221,28 @@ export default {
   // New variable option
   new_variable_decision: "New variable...",
 
+  // Attachment point options
+  LeftHand_option: "Left Hand",
+  RightHand_option: "Right Hand",
+  Head_option: "Head",
+  Hips_option: "Hips",
+  Spine_option: "Spine",
+  Spine1_option: "Spine 1",
+  Spine2_option: "Spine 2",
+  Neck_option: "Neck",
+  LeftShoulder_option: "Left Shoulder",
+  LeftArm_option: "Left Upper Arm",
+  LeftForeArm_option: "Left Forearm",
+  RightShoulder_option: "Right Shoulder",
+  RightArm_option: "Right Upper Arm",
+  RightForeArm_option: "Right Forearm",
+  LeftUpLeg_option: "Left Thigh",
+  LeftLeg_option: "Left Shin",
+  LeftFoot_option: "Left Foot",
+  RightUpLeg_option: "Right Thigh",
+  RightLeg_option: "Right Shin",
+  RightFoot_option: "Right Foot",
+
   // Service worker update notification
   update_available_ui: "A new version of Flock is available.",
   reload_button_ui: "Reload",

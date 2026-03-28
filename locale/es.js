@@ -1193,4 +1193,26 @@ export default {
   colour_blend: "mezclar %1 y %2 en %3", // human
 
   dark_contrast_theme_ui: "Oscuro", // human
+
+  // Attachment point options
+  LeftHand_option: "Mano izquierda", // ai
+  RightHand_option: "Mano derecha", // ai
+  Head_option: "Cabeza", // ai
+  Hips_option: "Caderas", // ai
+  Spine_option: "Columna", // ai
+  Spine1_option: "Columna 1", // ai
+  Spine2_option: "Columna 2", // ai
+  Neck_option: "Cuello", // ai
+  LeftShoulder_option: "Hombro izquierdo", // ai
+  LeftArm_option: "Brazo superior izquierdo", // ai
+  LeftForeArm_option: "Antebrazo izquierdo", // ai
+  RightShoulder_option: "Hombro derecho", // ai
+  RightArm_option: "Brazo superior derecho", // ai
+  RightForeArm_option: "Antebrazo derecho", // ai
+  LeftUpLeg_option: "Muslo izquierdo", // ai
+  LeftLeg_option: "Espinilla izquierda", // ai
+  LeftFoot_option: "Pie izquierdo", // ai
+  RightUpLeg_option: "Muslo derecho", // ai
+  RightLeg_option: "Espinilla derecha", // ai
+  RightFoot_option: "Pie derecho", // ai
 };
