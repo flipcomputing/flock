@@ -977,7 +977,6 @@ export const flock = {
       makeFollow: this.makeFollow?.bind(this),
       stopFollow: this.stopFollow?.bind(this),
       removeParent: this.removeParent?.bind(this),
-      createGround: this.createGround?.bind(this),
       createMap: this.createMap?.bind(this),
       setSky: this.setSky?.bind(this),
       lightIntensity: this.lightIntensity?.bind(this),
