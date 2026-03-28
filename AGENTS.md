@@ -28,7 +28,3 @@
 - Don't introduce security issues
 - Don't introduce changes that would break offline PWA behaviour
 
-
-
-
-
