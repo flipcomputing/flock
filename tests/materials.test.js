@@ -878,5 +878,59 @@ export function runMaterialsTests(flock) {
         expect(mergedMesh.getTotalVertices()).to.be.greaterThan(0);
       });
     });
+    describe("randomColour", function () {
+      it("should return a lowercase hex colour string", function () {
+        const colour = flock.randomColour();
+        expect(colour).to.match(/^#[0-9a-f]{6}$/);
+      });
+
+      it("should return different values on successive calls", function () {
+        const results = new Set(
+          Array.from({ length: 20 }, () => flock.randomColour()),
+        );
+        expect(results.size).to.be.greaterThan(1);
+      });
+    });
+
+    describe("changeColorMesh", function () {
+      it("should update the mesh material diffuse color", async function () {
+        const id = "changeColorMeshBox";
+        flock.createBox(id, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          color: "#0000ff",
+          position: [0, 0, 0],
+        });
+        boxIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        flock.changeColorMesh(mesh, "#ff0000");
+
+        expect(mesh.material.diffuseColor.r).to.be.closeTo(1, 0.01);
+        expect(mesh.material.diffuseColor.g).to.be.closeTo(0, 0.01);
+        expect(mesh.material.diffuseColor.b).to.be.closeTo(0, 0.01);
+      });
+    });
+
+    describe("changeMaterial", function () {
+      it("should resolve and update the mesh material", async function () {
+        const id = "changeMaterialBox";
+        flock.createBox(id, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          color: "#ffffff",
+          position: [0, 0, 0],
+        });
+        boxIds.push(id);
+
+        await flock.changeMaterial(id, "brick.png", "#ffffff");
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.material).to.exist;
+        expect(mesh.material.getClassName()).to.equal("StandardMaterial");
+      });
+    });
   });
 }
