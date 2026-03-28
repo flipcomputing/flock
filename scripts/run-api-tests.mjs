@@ -111,6 +111,11 @@ const AVAILABLE_SUITES = [
     pattern: "XR exportMesh GLB tests",
   },
   {
+    id: "meshhierarchy",
+    name: "Mesh Hierarchy Tests",
+    pattern: "@meshhierarchy",
+  },
+  {
     id: "characterAnimations",
     name: "Character Animation API",
     pattern: "Character Animation API",
