@@ -460,4 +460,61 @@ export function runPhysicsTests(flock) {
       expect(logged).to.be.true;
     });
   });
+
+  describe("setPhysicsShape @physics", function () {
+    const boxIds = [];
+
+    afterEach(function () {
+      boxIds.forEach((id) => {
+        try {
+          flock.dispose(id);
+        } catch (e) {
+          console.warn(`Failed to dispose ${id}:`, e);
+        }
+      });
+      boxIds.length = 0;
+    });
+
+    it("should set physicsShapeType to CAPSULE on the mesh metadata", async function () {
+      const id = "physicsShapeBox1";
+      flock.createBox(id, {
+        width: 1,
+        height: 2,
+        depth: 1,
+        position: [0, 1, 0],
+      });
+      boxIds.push(id);
+
+      await flock.setPhysicsShape(id, "CAPSULE");
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(mesh.metadata.physicsShapeType).to.equal("CAPSULE");
+    });
+
+    it("should set physicsShapeType to MESH on the mesh metadata", async function () {
+      const id = "physicsShapeBox2";
+      flock.createBox(id, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [3, 0, 0],
+      });
+      boxIds.push(id);
+
+      await flock.setPhysicsShape(id, "MESH");
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(mesh.metadata.physicsShapeType).to.equal("MESH");
+    });
+  });
+
+  describe("showPhysics @physics", function () {
+    it("should not throw when called", function () {
+      expect(() => flock.showPhysics()).to.not.throw();
+    });
+
+    it("should not throw when called with false", function () {
+      expect(() => flock.showPhysics(false)).to.not.throw();
+    });
+  });
 }
