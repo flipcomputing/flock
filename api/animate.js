@@ -152,11 +152,22 @@ export const flockAnimate = {
         }
 
         if (instant) {
-          mesh.rotation = new flock.BABYLON.Vector3(
+          const targetRotation = new flock.BABYLON.Vector3(
             x * (Math.PI / 180),
             y * (Math.PI / 180),
             z * (Math.PI / 180),
           );
+          mesh.rotation = targetRotation;
+          mesh.computeWorldMatrix(true);
+
+          if (mesh.physics && mesh.physics._pluginData?.hpBodyId) {
+            mesh.physics.setTargetTransform(
+              mesh.absolutePosition,
+              mesh.absoluteRotationQuaternion ||
+                flock.BABYLON.Quaternion.FromEulerVector(mesh.rotation),
+            );
+          }
+
           resolve();
           return;
         }
