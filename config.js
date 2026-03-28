@@ -408,7 +408,7 @@ export const attachBlockMapping = {
 };
 
 export const attachMixamoMapping = {
-  LeftHand: "mixamorig:LeftHand",
+  LeftHand: "mixamorig:RightHand",
   Head: "mixamorig:Head",
 };
 
