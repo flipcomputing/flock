@@ -120,6 +120,11 @@ const AVAILABLE_SUITES = [
     name: "Character Animation API",
     pattern: "Character Animation API",
   },
+  {
+    id: "math",
+    name: "Math API Tests",
+    pattern: "@math",
+  },
 ];
 
 const args = process.argv.slice(2);
