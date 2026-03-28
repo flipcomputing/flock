@@ -52,6 +52,7 @@ const AVAILABLE_SUITES = [
   },
   { id: "physics", name: "Physics Tests (6 tests)", pattern: "@physics" },
   { id: "sound2", name: "Sound2 Tests (BPM and speech)", pattern: "@sound2" },
+  { id: "camera", name: "Camera API Tests", pattern: "@camera" },
   {
     id: "materials",
     name: "Materials Tests (22 tests)",
