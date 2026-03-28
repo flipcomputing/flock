@@ -51,6 +51,7 @@ const AVAILABLE_SUITES = [
     pattern: "@diagnostic",
   },
   { id: "physics", name: "Physics Tests (6 tests)", pattern: "@physics" },
+  { id: "sound2", name: "Sound2 Tests (BPM and speech)", pattern: "@sound2" },
   {
     id: "materials",
     name: "Materials Tests (22 tests)",
