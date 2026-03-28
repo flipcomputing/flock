@@ -146,6 +146,17 @@ function initSceneColourLikeBlock(block, cfg) {
     subtreeInputName: inputName,
     includeSelfDelete: false,
   });
+
+  if (cfg.inputColor) {
+    const input = block.getInput(inputName);
+    if (input?.connection) {
+      const shadowDom = Blockly.utils.xml.textToDom(
+        `<shadow type="colour"><field name="COLOR">${cfg.inputColor}</field></shadow>`,
+      );
+      input.connection.setShadowDom(shadowDom);
+      input.connection.respawnShadow_();
+    }
+  }
 }
 
 export function cacheMaterialState(mapBlock) {
