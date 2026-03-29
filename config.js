@@ -27,6 +27,12 @@ export const audioNames = [
   "spaceTrash.mp3",
   "threeTone1.mp3",
   "threeTone2.mp3",
+  "chop.mp3",
+  "creak.mp3",
+  "door_close.mp3",
+  "door_open.mp3",
+  "footstep.mp3",
+  "metal_latch.mp3",
 ];
 
 export function audioFileToLabel(filename) {
