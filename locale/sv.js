@@ -157,9 +157,9 @@ export default {
   number_keyframe: "vid: %1 värde: %2",
   xyz_keyframe: "vid: %1 x: %2 y: %3 z: %4",
   animate_keyframes:
-    "animera nyckelramar på %1 egenskap %2\nnyckelramar %3\neasing %4 loop %5 omvänd %6 %7",
+    "animera nyckelramar på %1 egenskap %2\nnyckelramar %3\neasing %4 omvänd %5 loop %6 %7",
   animation:
-    "animera nyckelramar på %1 egenskap %2 grupp %3\nnyckelramar %4\neasing %5 loop %6 omvänd %7 läge %8",
+    "animera nyckelramar på %1 egenskap %2 grupp %3\nnyckelramar %4\neasing %5 omvänd %6 loop %7 läge %8",
   control_animation_group: "animationsgrupp %1 %2",
   animate_from: "animera grupp %1 från %2 sekunder",
   stop_animations: "stoppa animationer %1",

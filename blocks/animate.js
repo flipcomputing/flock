@@ -659,13 +659,13 @@ export function defineAnimateBlocks() {
           },
           {
             type: "field_checkbox",
-            name: "LOOP",
-            checked: false, // Checkbox for looping
+            name: "REVERSE",
+            checked: false, // Checkbox for reversing the animation
           },
           {
             type: "field_checkbox",
-            name: "REVERSE",
-            checked: false, // Checkbox for reversing the animation
+            name: "LOOP",
+            checked: false, // Checkbox for looping
           },
           {
             type: "field_dropdown",
@@ -741,12 +741,12 @@ export function defineAnimateBlocks() {
           },
           {
             type: "field_checkbox",
-            name: "LOOP",
+            name: "REVERSE",
             checked: false,
           },
           {
             type: "field_checkbox",
-            name: "REVERSE",
+            name: "LOOP",
             checked: false,
           },
           {

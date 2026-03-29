@@ -163,9 +163,9 @@ export default {
   number_keyframe: "bei %1 Wert: %2",
   xyz_keyframe: "bei %1 x: %2 y: %3 z: %4",
   animate_keyframes:
-    "animieren Schlüsselbilder von %1 Eigenschaft %2\nKeyframes %3\nEasing %4 Schleife %5 Rückwärts %6 %7",
+    "animieren Schlüsselbilder von %1 Eigenschaft %2\nKeyframes %3\nEasing %4 Rückwärts %5 Schleife %6 %7",
   animation:
-    "animieren Schlüsselbilder von %1 Eigenschaft %2 Gruppe %3\nKeyframes %4\nEasing %5 Schleife %6 Rückwärts %7 Modus %8",
+    "animieren Schlüsselbilder von %1 Eigenschaft %2 Gruppe %3\nKeyframes %4\nEasing %5 Rückwärts %6 Schleife %7 Modus %8",
   control_animation_group: "Animationsgruppe %1 %2",
   animate_from: "animieren Gruppe %1 ab %2 Sekunden",
   stop_animations: "Animationen stoppen %1",

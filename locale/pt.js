@@ -157,9 +157,9 @@ export default {
   number_keyframe: "em: %1 valor: %2",
   xyz_keyframe: "em: %1 x: %2 y: %3 z: %4",
   animate_keyframes:
-    "animar quadros-chave em %1 propriedade %2\nquadros-chave %3\neasing %4 repetir %5 inverter %6 %7",
+    "animar quadros-chave em %1 propriedade %2\nquadros-chave %3\neasing %4 inverter %5 repetir %6 %7",
   animation:
-    "animar quadros-chave em %1 propriedade %2 grupo %3\nquadros-chave %4\neasing %5 repetir %6 inverter %7 modo %8",
+    "animar quadros-chave em %1 propriedade %2 grupo %3\nquadros-chave %4\neasing %5 inverter %6 repetir %7 modo %8",
   control_animation_group: "grupo de animação %1 %2",
   animate_from: "animar grupo %1 a partir de %2 segundos",
   stop_animations: "parar animações %1",

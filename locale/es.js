@@ -157,9 +157,9 @@ export default {
   number_keyframe: "en: %1 valor: %2", // human
   xyz_keyframe: "en: %1 x: %2 y: %3 z: %4", // human
   animate_keyframes:
-    "animar fotogramas clave en %1 propiedad %2\nfotogramas clave %3\nsuavizado %4 repetir %5 invertir %6 %7", // human
+    "animar fotogramas clave en %1 propiedad %2\nfotogramas clave %3\nsuavizado %4 invertir %5 repetir %6 %7", // human
   animation:
-    "animar fotogramas clave en %1 propiedad %2 grupo %3\nfotogramas clave %4\nsuavizado %5 repetir %6 invertir %7 modo %8", // human
+    "animar fotogramas clave en %1 propiedad %2 grupo %3\nfotogramas clave %4\nsuavizado %5 invertir %6 repetir %7 modo %8", // human
   control_animation_group: "grupo de animación %1 %2", // human
   animate_from: "animar grupo %1 desde %2 segundos", // human
   stop_animations: "parar animaciones %1", // human

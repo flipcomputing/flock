@@ -158,9 +158,9 @@ export default {
   number_keyframe: "w %1 wartość: %2",
   xyz_keyframe: "w %1 x: %2, y: %3, z: %4",
   animate_keyframes:
-    "animuj klatki kluczowe %1, właściwość: %2\nklatki: %3\nWygładzanie: %4, pętla: %5, odwróć: %6 %7",
+    "animuj klatki kluczowe %1, właściwość: %2\nklatki: %3\nWygładzanie: %4, odwróć: %5, pętla: %6 %7",
   animation:
-    "animuj klatki kluczowe %1, właściwość: %2, grupa: %3\nklatki: %4\nWygładzanie: %5, pętla: %6, odwróć: %7, tryb: %8",
+    "animuj klatki kluczowe %1, właściwość: %2, grupa: %3\nklatki: %4\nWygładzanie: %5, odwróć: %6, pętla: %7, tryb: %8",
   control_animation_group: "grupa animacji %1 %2",
   animate_from: "animuj grupę %1 od %2 sekund",
   stop_animations: "zatrzymaj animacje %1",

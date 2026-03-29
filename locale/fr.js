@@ -157,9 +157,9 @@ export default {
   number_keyframe: "à: %1 valeur: %2",
   xyz_keyframe: "à: %1 x: %2 y: %3 z: %4",
   animate_keyframes:
-    "animer les images clés sur %1 propriété %2\nimages clés %3\naccélération %4 boucle %5 inverse %6 %7",
+    "animer les images clés sur %1 propriété %2\nimages clés %3\naccélération %4 inverse %5 boucle %6 %7",
   animation:
-    "animer les images clés sur %1 propriété %2 groupe %3\nimages clés %4\naccélération %5 boucle %6 inverse %7 mode %8",
+    "animer les images clés sur %1 propriété %2 groupe %3\nimages clés %4\naccélération %5 inverse %6 boucle %7 mode %8",
   control_animation_group: "groupe d'animation %1 %2",
   animate_from: "animer le groupe %1 depuis %2 secondes",
   stop_animations: "arrêter les animations %1",
