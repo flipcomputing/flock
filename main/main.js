@@ -237,7 +237,8 @@ function initializeApp() {
           }
           break;
 
-        case "/": // Ctrl+/ - Toggle info details
+        case "/": {
+          // Ctrl+/ - Toggle info details
           e.preventDefault();
           const infoSummary = document.querySelector("#info-details summary");
           if (infoSummary) {
@@ -245,8 +246,10 @@ function initializeApp() {
             infoSummary.focus(); // Move focus to the summary
           }
           break;
+        }
 
-        case "m": // Ctrl+M - Open menu
+        case "m": {
+          // Ctrl+M - Open menu
           e.preventDefault();
           menuButton.click();
           const menuDropdown = document.getElementById("menuDropdown");
@@ -257,14 +260,17 @@ function initializeApp() {
             firstMenuItem.focus();
           }
           break;
+        }
 
-        case "g": // Ctrl+G - Focus shapes button
+        case "g": {
+          // Ctrl+G - Focus shapes button
           e.preventDefault();
           const btn = document.getElementById("showShapesButton");
           if (btn && !btn.disabled && btn.offsetParent !== null) {
             btn.focus();
           }
           break;
+        }
 
         case "e": // Ctrl+E - Focus Blockly workspace/editor
           e.preventDefault();
@@ -390,7 +396,7 @@ window.onload = async function () {
   initializeWorkspace();
   overrideSearchPlugin(workspace);
   initializeBlockHandling();
- 
+
   console.log("Welcome to Flock 🐦🐦🐦");
 
   // Autosave every 30 seconds: to localStorage and (if a file was saved) to that file
