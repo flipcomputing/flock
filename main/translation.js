@@ -45,90 +45,6 @@ export function getDropdownOption(key) {
 
 let currentLanguage = "en";
 
-// Load saved language preference from localStorage
-async function loadSavedLanguage() {
-  const savedLanguage = localStorage.getItem("flock-language");
-  if (savedLanguage && translations[savedLanguage]) {
-    currentLanguage = savedLanguage;
-    console.log(`Loaded saved language: ${savedLanguage}`);
-    // Apply the saved language translations immediately
-    await applySavedLanguageTranslations();
-  }
-}
-
-// Apply saved language translations (used during initialization)
-async function applySavedLanguageTranslations() {
-  if (currentLanguage === "fr") {
-    // Apply Blockly's French translations
-    const frMessages = fr;
-    Object.keys(frMessages).forEach((key) => {
-      if (typeof frMessages[key] === "string") {
-        Blockly.Msg[key] = frMessages[key];
-      }
-    });
-  } else if (currentLanguage === "es") {
-    // Apply Blockly's Spanish translations
-    const esMessages = es;
-    Object.keys(esMessages).forEach((key) => {
-      if (typeof esMessages[key] === "string") {
-        Blockly.Msg[key] = esMessages[key];
-      }
-    });
-  } else if (currentLanguage === "it") {
-    // Apply Blockly's Italian translations
-    const itMessages = it;
-    Object.keys(itMessages).forEach((key) => {
-      if (typeof itMessages[key] === "string") {
-        Blockly.Msg[key] = itMessages[key];
-      }
-    });
-  } else if (currentLanguage === "sv") {
-    // Apply Blockly's Swedish translations
-    const svMessages = sv;
-    Object.keys(svMessages).forEach((key) => {
-      if (typeof svMessages[key] === "string") {
-        Blockly.Msg[key] = svMessages[key];
-      }
-    });
-  } else if (currentLanguage === "pt") {
-    // Apply Blockly's Portuguese translations
-    const ptMessages = pt;
-    Object.keys(ptMessages).forEach((key) => {
-      if (typeof ptMessages[key] === "string") {
-        Blockly.Msg[key] = ptMessages[key];
-      }
-    });
-  } else if (currentLanguage === "pl") {
-    // Apply Blockly's Polish translations
-    const plMessages = pl;
-    Object.keys(plMessages).forEach((key) => {
-      if (typeof plMessages[key] === "string") {
-        Blockly.Msg[key] = plMessages[key];
-      }
-    });
-  } else if (currentLanguage === "de") {
-    // Apply Blockly's German translations
-    const deMessages = de;
-    Object.keys(deMessages).forEach((key) => {
-      if (typeof deMessages[key] === "string") {
-        Blockly.Msg[key] = deMessages[key];
-      }
-    });
-  }
-
-  // Apply custom translations for all languages
-  Object.keys(translations[currentLanguage]).forEach((key) => {
-    Blockly.Msg[key] = translations[currentLanguage][key];
-  });
-
-  applyContextMenuShortcutTranslations();
-
-  // Update colour picker translations if it exists (for initial load)
-  if (window.flockColorPicker?.refreshTranslations) {
-    window.flockColorPicker.refreshTranslations();
-  }
-}
-
 // Save language preference to localStorage
 function saveLanguagePreference(language) {
   localStorage.setItem("flock-language", language);
@@ -167,15 +83,7 @@ export async function setLanguage(language) {
   saveLanguagePreference(language);
   console.log(`Language changed to: ${language}`);
 
-  if (language === "fr") {
-    // Apply Blockly's French translations
-    Object.keys(fr).forEach((key) => {
-      if (typeof fr[key] === "string") {
-        Blockly.Msg[key] = fr[key];
-      }
-    });
-    console.log("Français sélectionné - Blockly French translations applied!");
-  } else if (language === "es") {
+  if (language === "es") {
     // Apply Blockly's Spanish translations
     Object.keys(es).forEach((key) => {
       if (typeof es[key] === "string") {
@@ -183,50 +91,6 @@ export async function setLanguage(language) {
       }
     });
     console.log("Español seleccionado - Blockly Spanish translations applied!");
-  } else if (language === "it") {
-    // Applica le traduzioni italiane di Blockly
-    Object.keys(it).forEach((key) => {
-      if (typeof it[key] === "string") {
-        Blockly.Msg[key] = it[key];
-      }
-    });
-    console.log(
-      "Italiano selezionato - Traduzioni italiane di Blockly applicate!",
-    );
-  } else if (language === "sv") {
-    // Apply Blockly's Swedish translations
-    Object.keys(sv).forEach((key) => {
-      if (typeof sv[key] === "string") {
-        Blockly.Msg[key] = sv[key];
-      }
-    });
-    console.log("Svenskt utvalda - Blockly Swedish translations applied!");
-  } else if (language === "pt") {
-    // Apply Blockly's Portuguese translations
-    Object.keys(pt).forEach((key) => {
-      if (typeof pt[key] === "string") {
-        Blockly.Msg[key] = pt[key];
-      }
-    });
-    console.log(
-      "Português selecionado - Blockly Portuguese translations applied!",
-    );
-  } else if (language === "pl") {
-    // Apply Blockly's Polish translations
-    Object.keys(pl).forEach((key) => {
-      if (typeof pl[key] === "string") {
-        Blockly.Msg[key] = pl[key];
-      }
-    });
-    console.log("Polski wybrany - Blockly Polish translations applied!");
-  } else if (language === "de") {
-    // Apply Blockly's German translations
-    Object.keys(de).forEach((key) => {
-      if (typeof de[key] === "string") {
-        Blockly.Msg[key] = de[key];
-      }
-    });
-    console.log("Deutsch ausgewählt - Blockly German translations applied!");
   } else {
     // Official Blockly English first
     Object.keys(en).forEach((key) => {
