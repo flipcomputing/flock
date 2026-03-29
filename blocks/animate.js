@@ -10,7 +10,6 @@ import { animationNames } from "../config.js";
 import {
   translate,
   getTooltip,
-  getOption,
   getDropdownOption,
 } from "../main/translation.js";
 

@@ -1823,47 +1823,6 @@ const toolboxAnimateKeyframe = {
     },
     {
       kind: "block",
-      type: "animate_keyframes",
-      keyword: "animate_keyframes",
-      inputsInline: true, // Set lists to be inline
-      inputs: {
-        KEYFRAMES: {
-          block: {
-            type: "lists_create_with",
-            extraState: {
-              itemCount: 1,
-            },
-            inputs: {
-              ADD0: {
-                block: {
-                  type: "colour_keyframe",
-                  inputs: {
-                    VALUE: {
-                      shadow: {
-                        type: "colour",
-                        fields: {
-                          COLOR: "#ff0000", // Default colour: Red
-                        },
-                      },
-                    },
-                    DURATION: {
-                      shadow: {
-                        type: "math_number",
-                        fields: {
-                          NUM: 1, // Default duration: 1 second
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    {
-      kind: "block",
       type: "control_animation_group",
       keyword: "group",
       inputsInline: true,
