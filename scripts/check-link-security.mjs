@@ -17,7 +17,7 @@ function checkBlankLinks(filePath) {
 
     if (!relMatch) {
       violations.push(
-        `${filePath}:${line} <a target="_blank"> missing rel=\"noopener noreferrer\"`,
+        `${filePath}:${line} <a target="_blank"> missing rel="noopener noreferrer"`,
       );
       continue;
     }
