@@ -272,6 +272,62 @@ export function runSceneTests(flock) {
 
     });
 
+    // ─── initialize ───────────────────────────────────────────────────────────
+
+    describe("initialize", function () {
+      this.timeout(10000);
+
+      let savedScene;
+
+      before(function () {
+        savedScene = flock.scene;
+        flock.engine?.stopRenderLoop();
+      });
+
+      after(function () {
+        flock.scene = savedScene;
+        flock.engine?.runRenderLoop(flock._renderLoop);
+      });
+
+      it("sets up BABYLON, canvas, observables, and abortController", async function () {
+        await flock.initialize();
+        expect(flock.BABYLON).to.exist;
+        expect(flock.canvas.id).to.equal("renderCanvas");
+        expect(flock.abortController).to.be.instanceOf(AbortController);
+        expect(flock.gridKeyPressObservable).to.exist;
+        expect(flock.gridKeyReleaseObservable).to.exist;
+      });
+    });
+
+    // ─── createEngine ─────────────────────────────────────────────────────────
+
+    describe("createEngine", function () {
+      let savedEngine;
+      let savedScene;
+
+      before(function () {
+        savedEngine = flock.engine;
+        savedScene = flock.scene;
+        flock.engine = new flock.BABYLON.NullEngine();
+        flock.createEngine();
+      });
+
+      after(function () {
+        flock.engine?.dispose();
+        flock.engine = savedEngine;
+        flock.scene = savedScene;
+      });
+
+      it("creates a Babylon Engine (not NullEngine)", function () {
+        expect(flock.engine).to.be.instanceOf(flock.BABYLON.Engine);
+        expect(flock.engine).to.not.be.instanceOf(flock.BABYLON.NullEngine);
+      });
+
+      it("sets enableOfflineSupport to false", function () {
+        expect(flock.engine.enableOfflineSupport).to.be.false;
+      });
+    });
+
     // ─── cloneMesh ─────────────────────────────────────────────────────────────
 
     describe("cloneMesh", function () {
