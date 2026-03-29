@@ -691,7 +691,6 @@ export const flockPhysics = {
           }
 
           // ---- shared state (per pair) ----
-          const key = `${mesh.uniqueId}_${otherMesh.uniqueId}`;
           const state = {
             inContact: false, // are we "inside" a contact session?
             lastFireMs: 0, // for debounce

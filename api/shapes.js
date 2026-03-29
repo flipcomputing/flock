@@ -164,20 +164,6 @@ function convertPathToPolygons(path, curveSegments = 12) {
 }
 
 /**
- * Calculate the signed area of a polygon to determine winding direction.
- */
-function polygonArea(polygon) {
-  let area = 0;
-  const n = polygon.length;
-  for (let i = 0; i < n; i++) {
-    const j = (i + 1) % n;
-    area += polygon[i][0] * polygon[j][1];
-    area -= polygon[j][0] * polygon[i][1];
-  }
-  return area / 2;
-}
-
-/**
  * Create manifold 3D text mesh using Manifold library.
  * This produces guaranteed watertight geometry suitable for CSG operations.
  */
@@ -707,7 +693,7 @@ export const flockShapes = {
     position = { x: 0, y: 0, z: 0 },
     modelId,
     callback = null,
-    useManifold = true, // Use manifold by default for CSG compatibility
+    useManifold = true,
   } = {}) {
     if (!validateShapeId(modelId, "create3DText")) return null;
     if (!text || typeof text !== "string") {
@@ -734,44 +720,34 @@ export const flockShapes = {
 
     flock._recycleOldestByKey(blockKey);
 
-    // Guard against overlapping builds for the same blockKey: stamp this build
-    // with a unique token and drop the result if a newer build supersedes it.
     if (!flock._pendingTextBuilds) flock._pendingTextBuilds = new Map();
     const buildToken = Symbol();
     flock._pendingTextBuilds.set(blockKey, buildToken);
 
-    // Create the loading promise
-    const loadPromise = new Promise(async (resolve, reject) => {
+    const loadPromise = (async () => {
       try {
         let mesh;
 
         if (useManifold) {
-          // Use Manifold-based text generation for guaranteed watertight geometry
           try {
-            // Get TTF/OTF font URL - convert JSON font path to TTF if needed
             let fontUrl = font;
             if (font.endsWith(".json")) {
-              // Use FreeSans Bold as default TTF font for manifold text (matches original)
               fontUrl = "fonts/FreeSansBold.ttf";
             }
 
-            // Use size directly - manifold will work with scene units
             const scaledSize = size;
-
             const meshData = await createManifoldTextMesh(text, fontUrl, {
               size: scaledSize,
               depth: depth,
               curveSegments: 12,
             });
 
-            // Create Babylon.js mesh from manifold data
             mesh = new flock.BABYLON.Mesh(meshId, flock.scene);
             const vertexData = new flock.BABYLON.VertexData();
 
             vertexData.positions = meshData.positions;
             vertexData.indices = meshData.indices;
 
-            // Compute normals
             const normals = [];
             flock.BABYLON.VertexData.ComputeNormals(
               meshData.positions,
@@ -780,8 +756,6 @@ export const flockShapes = {
             );
             vertexData.normals = normals;
 
-            // Center the positions on X and Z before applying to mesh
-            // Y stays at base (already correct from manifold creation)
             const positions = meshData.positions;
             let minX = Infinity,
               maxX = -Infinity;
@@ -798,18 +772,15 @@ export const flockShapes = {
             const centerX = (minX + maxX) / 2;
             const centerZ = (minZ + maxZ) / 2;
 
-            // Offset positions to center on X and Z
             const centeredPositions = new Float32Array(positions.length);
             for (let i = 0; i < positions.length; i += 3) {
               centeredPositions[i] = positions[i] - centerX;
-              centeredPositions[i + 1] = positions[i + 1]; // Y unchanged
+              centeredPositions[i + 1] = positions[i + 1];
               centeredPositions[i + 2] = positions[i + 2] - centerZ;
             }
 
             vertexData.positions = centeredPositions;
             vertexData.applyToMesh(mesh);
-
-            // Flip faces to ensure correct orientation for CSG operations
             mesh.flipFaces();
           } catch (manifoldError) {
             console.warn(
@@ -821,31 +792,23 @@ export const flockShapes = {
         }
 
         if (!useManifold) {
-          // Fall back to standard Babylon.js CreateText
           const fontData = await (await fetch(font)).json();
-
           mesh = flock.BABYLON.MeshBuilder.CreateText(
             meshId,
             text,
             fontData,
-            {
-              size: size,
-              depth: depth,
-            },
+            { size, depth },
             flock.scene,
             earcut,
           );
         }
 
-        if (!mesh) {
-          reject(new Error("CreateText returned null"));
-          return;
-        }
+        if (!mesh) throw new Error("CreateText returned null");
 
         mesh.metadata = mesh.metadata || {};
         mesh.metadata.blockKey = blockKey;
-
         mesh.position.set(x, y, z);
+
         const material = new flock.BABYLON.StandardMaterial(
           "textMaterial_" + meshId,
           flock.scene,
@@ -857,32 +820,24 @@ export const flockShapes = {
         material.backFaceCulling = false;
         material.emissiveColor = material.diffuseColor.scale(0.2);
         material.alpha = toAlpha(alpha);
-
         mesh.material = material;
 
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
 
-        // Normalize mesh so bounding box height equals the size parameter.
-        // Font cap-height is typically ~70% of em-height, causing a mismatch
-        // between SIZE in the block and the visual height. Baking a uniform XY
-        // scale here ensures SIZE always equals the rendered height, which
-        // prevents a visual jump when the scale gizmo is released.
-        {
-          const bbExt = mesh.getBoundingInfo().boundingBox.extendSize;
-          const bbHeight = bbExt.y * 2;
-          if (bbHeight > 0 && Math.abs(bbHeight - size) > 0.001) {
-            const normScale = size / bbHeight;
-            const savedPos = mesh.position.clone();
-            mesh.position = flock.BABYLON.Vector3.Zero();
-            mesh.scaling.x = normScale;
-            mesh.scaling.y = normScale;
-            mesh.bakeCurrentTransformIntoVertices();
-            mesh.scaling = flock.BABYLON.Vector3.One();
-            mesh.position = savedPos;
-            mesh.computeWorldMatrix(true);
-            mesh.refreshBoundingInfo();
-          }
+        const bbExt = mesh.getBoundingInfo().boundingBox.extendSize;
+        const bbHeight = bbExt.y * 2;
+        if (bbHeight > 0 && Math.abs(bbHeight - size) > 0.001) {
+          const normScale = size / bbHeight;
+          const savedPos = mesh.position.clone();
+          mesh.position = flock.BABYLON.Vector3.Zero();
+          mesh.scaling.x = normScale;
+          mesh.scaling.y = normScale;
+          mesh.bakeCurrentTransformIntoVertices();
+          mesh.scaling = flock.BABYLON.Vector3.One();
+          mesh.position = savedPos;
+          mesh.computeWorldMatrix(true);
+          mesh.refreshBoundingInfo();
         }
 
         mesh.setEnabled(true);
@@ -891,10 +846,8 @@ export const flockShapes = {
         const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
         flock.applyPhysics(mesh, textShape);
 
-        // Drop stale result if a newer build for this blockKey was started
         if (flock._pendingTextBuilds.get(blockKey) !== buildToken) {
           mesh.dispose();
-          resolve();
           return;
         }
         flock._pendingTextBuilds.delete(blockKey);
@@ -904,15 +857,12 @@ export const flockShapes = {
         if (callback) {
           requestAnimationFrame(callback);
         }
-
-        resolve();
       } catch (error) {
         console.error(`Error creating 3D text '${meshId}':`, error);
-        reject(error);
+        throw error;
       }
-    });
+    })();
 
-    // Store promise for whenModelReady coordination
     flock.modelReadyPromises.set(meshId, loadPromise);
 
     return meshId;

@@ -314,17 +314,7 @@ export const flockMovement = {
     );
   },
   updateDynamicMeshPositions(scene, dynamicMeshes) {
-    const capsuleHalfHeight = 1;
-    // When the capsule’s bottom is within this distance of the ground, we treat it as contact.
-    const groundContactThreshold = 0.05;
-    // If the gap is larger than this, assume the capsule is airborne and skip correction.
-    const maxGroundContactGap = 0.1;
-    // Maximum lerp factor per frame for ground correction.
-    const lerpFactor = 0.1;
-    // Only apply correction on nearly flat surfaces.
-    const flatThreshold = 0.98; // dot product of surface normal with up
-
-    dynamicMeshes.forEach((mesh) => {
+     dynamicMeshes.forEach((mesh) => {
       mesh.physics.setCollisionCallbackEnabled(true);
       const observable = mesh.physics.getCollisionObservable();
       const observer = observable.add((collisionEvent) => {

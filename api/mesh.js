@@ -349,8 +349,6 @@ export const flockMesh = {
     // Fallback to provided sizes if the geometry AABB is degenerate
     const spanX =
       Number.isFinite(minX) && Number.isFinite(maxX) ? maxX - minX : width;
-    const spanY =
-      Number.isFinite(minY) && Number.isFinite(maxY) ? maxY - minY : height;
     const spanZ =
       Number.isFinite(minZ) && Number.isFinite(maxZ) ? maxZ - minZ : depth;
 
@@ -691,7 +689,7 @@ export const flockMesh = {
 
     return true; // Already has unique geometry
   },
-  setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color = null) {
+  setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z) {
     mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
 
     const bb =
@@ -910,10 +908,9 @@ export const flockMesh = {
 
               // Track on target for model-switch re-attachment
               (targetMeshInstance.metadata ||= {})._boneAttachments ??= [];
-              targetMeshInstance.metadata._boneAttachments =
-                (targetMeshInstance.metadata._boneAttachments || []).filter(
-                  (e) => e.meshName !== meshToAttach,
-                );
+              targetMeshInstance.metadata._boneAttachments = (
+                targetMeshInstance.metadata._boneAttachments || []
+              ).filter((e) => e.meshName !== meshToAttach);
               targetMeshInstance.metadata._boneAttachments.push({
                 meshName: meshToAttach,
                 boneName: logicalBoneName,
@@ -1078,7 +1075,11 @@ export const flockMesh = {
             );
           }
 
-          const offsetLocal = new flock.BABYLON.Vector3(offsetX, offsetY, offsetZ);
+          const offsetLocal = new flock.BABYLON.Vector3(
+            offsetX,
+            offsetY,
+            offsetZ,
+          );
           const parentPivotLocal = getLocalPivotOffset(parentMesh);
           const childPivotLocal = getLocalPivotOffset(childMesh);
 

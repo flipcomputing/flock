@@ -1,6 +1,5 @@
 import * as Blockly from "blockly";
 import "@blockly/toolbox-search";
-import { translate } from "./main/translation.js";
 
 export const categoryColours = {
   Events: 5,

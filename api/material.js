@@ -50,17 +50,6 @@ export const flockMaterial = {
     let b = parseInt(hex.substring(4, 6), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   },
-  // Helper function to convert hex to RGB
-  hexToRgb(hex) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? {
-          r: parseInt(result[1], 16),
-          g: parseInt(result[2], 16),
-          b: parseInt(result[3], 16),
-        }
-      : null;
-  },
   getColorFromString(colourString) {
     if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
       return colourString.toLowerCase();
@@ -1436,7 +1425,7 @@ export const flockMaterial = {
       }
     }
   },
-  getOrCreateMaterial(colorInput, alpha = 1, scene) {
+  getOrCreateMaterial(colorInput, alpha = 1) {
     const isObject =
       typeof colorInput === "object" &&
       colorInput !== null &&

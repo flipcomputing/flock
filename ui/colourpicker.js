@@ -222,9 +222,7 @@ class CustomColorPicker {
     if (!(cssW > 0 && cssH > 0)) return;
 
     const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 100, l: 60 };
-    const H = hsl.h,
-      S = hsl.s;
-
+    
     const g = this.lightCtx.createLinearGradient(0, 0, 0, cssH);
     g.addColorStop(0, `hsl(${hsl.h}, ${hsl.s}%, ${L_MAX}%)`);
     g.addColorStop(
@@ -238,18 +236,6 @@ class CustomColorPicker {
     this.lightCtx.fillRect(0, 0, cssW, cssH);
 
     this.updateLightnessHandle();
-  }
-
-  _lightnessFromClientY(clientY) {
-    const { rect, handleHalf, trackH } = this._getLightTrackMetrics();
-
-    // Convert pointer Y to a 0..1 along the usable track (for the handle center)
-    let t = (clientY - (rect.top + handleHalf)) / trackH;
-    t = Math.max(0, Math.min(1, t)); // clamp to [0,1]
-
-    // Top = L_MAX, Bottom = L_MIN
-    const L = L_MIN + (1 - t) * (L_MAX - L_MIN);
-    return Math.round(L);
   }
 
   updateLightnessHandle() {
@@ -972,33 +958,6 @@ class CustomColorPicker {
 
     handle.addEventListener("pointerup", endDrag);
     handle.addEventListener("pointercancel", endDrag);
-  }
-
-  _setWheelNormalized(nx, ny) {
-    // normalize to 0–100
-    nx = Math.max(0, Math.min(100, nx));
-    ny = Math.max(0, Math.min(100, ny));
-
-    const cx = 50,
-      cy = 50,
-      R = 48;
-    const pad =
-      typeof this._indicatorPad === "function" ? this._indicatorPad() : 6; // ~dot radius
-    const Rclamp = Math.max(0, R - pad); // keep the whole dot inside
-
-    let dx = nx - cx,
-      dy = ny - cy;
-    const dist = Math.hypot(dx, dy);
-
-    if (dist > Rclamp) {
-      const k = Rclamp / dist;
-      nx = cx + dx * k;
-      ny = cy + dy * k;
-    }
-
-    this.colorWheelPosition = { x: nx, y: ny };
-    this.updateColorWheelIndicator?.();
-    this.handleCanvasPickAt(nx, ny); // uses R (=48) for H/S calc
   }
 
   handleCanvasPickAt(x, y) {

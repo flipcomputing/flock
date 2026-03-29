@@ -216,14 +216,8 @@ export { currentView, switchView, codeMode, showCodeView };
 const container = document.getElementById("maincontent");
 const bottomBar = document.getElementById("bottomBar");
 const switchViewsBtn = document.getElementById("switchViews");
-let startX = 0;
-let currentTranslate = 0;
-let previousTranslate = 0;
-let isDragging = false;
-const swipeThreshold = 50; // Minimum swipe distance
 
 let savedView = "canvas";
-let savedViewMode = "both"; // Track the actual view mode for wide screens
 
 // Function to add the button event listener (narrow screens only)
 function addButtonListener() {
@@ -671,7 +665,6 @@ class PanelResizer {
     const mainRect = this.mainContent.getBoundingClientRect();
     const resizerWidth = 0;
     const minPanelWidth = 300;
-    const totalAvailableWidth = mainRect.width - resizerWidth;
 
     // Calculate new widths
     const newCanvasWidth = currentCanvasWidth + deltaX;

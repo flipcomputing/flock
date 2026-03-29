@@ -2,7 +2,7 @@ import * as Blockly from "blockly";
 //import "@blockly/block-plus-minus";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { toolbox, categoryColours } from "../toolbox.js";
-import { getOption, translate, getTooltip } from "../main/translation.js";
+import { translate, getTooltip } from "../main/translation.js";
 import { flock } from "../flock.js";
 
 import {
@@ -81,11 +81,11 @@ export function registerBlockHandler(block, handler) {
 export const inlineIcon =
   "data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22utf-8%22%3F%3E%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20x%3D%220px%22%20y%3D%220px%22%20width%3D%22122.88px%22%20height%3D%2280.593px%22%20viewBox%3D%220%200%20122.88%2080.593%22%20enable-background%3D%22new%200%200%20122.88%2080.593%22%20xml%3Aspace%3D%22preserve%22%3E%3Cg%3E%3Cpolygon%20fill%3D%22white%22%20points%3D%22122.88%2C80.593%20122.88%2C49.772%2061.44%2C0%200%2C49.772%200%2C80.593%2061.44%2C30.82%20122.88%2C80.593%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
 
-const baseHelpUrl = "https://docs.flockxr.com/blocks/";
+const baseHelpUrl = "https://hub.flockxr.com/blocks/";
 
 export function getHelpUrlFor(blockType) {
   //return baseHelpUrl + blockType;
-  return "https://flockxr.com";
+  return "https://hub.flockxr.com";
 }
 
 // Shared utility to add the toggle button to a block
@@ -549,7 +549,7 @@ function isVariableUsedElsewhere(
   return false;
 }
 
-function getFieldVariableType(block, fieldName, BlocklyNS) {
+function getFieldVariableType(block, fieldName) {
   const field = block.getField(fieldName);
   if (!field) return "";
   const model =
@@ -666,18 +666,6 @@ function buildDescendantIdSet(rootBlock) {
   return set;
 }
 
-function countVarUses(workspace, varId, BlocklyNS) {
-  let count = 0;
-  const blocks = workspace.getAllBlocks(false);
-  for (const b of blocks) {
-    const fields = getVariableFieldsOnBlock(b, BlocklyNS);
-    for (const f of fields) {
-      if (f.getValue && f.getValue() === varId) count++;
-    }
-  }
-  return count;
-}
-
 function adoptIsolatedDefaultVarsTo(
   rootBlock,
   toVarId,
@@ -760,57 +748,6 @@ function lowestAvailableSuffix(workspace, prefix, type) {
   let n = 1;
   while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
   return n;
-}
-
-/** Compute the max numeric suffix currently present for prefix (type-scoped). */
-function maxExistingSuffix(workspace, prefix, type) {
-  let max = 0;
-  const vars = type
-    ? workspace.getVariablesOfType(type)
-    : workspace.getAllVariables();
-  for (const v of vars) {
-    const n = parseNumericSuffix(v.name, prefix);
-    if (n && n > max) max = n;
-  }
-  return max;
-}
-
-/**
- * After adoption, normalize the creator variable's NAME to the LOWEST free suffix.
- * Then recompute nextVariableIndexes[prefix] = maxSuffix + 1.
- */
-function normalizeVarNameAndIndex(
-  workspace,
-  varId,
-  prefix,
-  type,
-  nextVariableIndexes,
-  opts = {},
-) {
-  const model = workspace.getVariableById(varId);
-  if (!model) return;
-
-  const currentSuffix = parseNumericSuffix(model.name, prefix);
-  const targetSuffix = lowestAvailableSuffix(workspace, prefix, type);
-
-  // If our current name isn't the lowest available, and the lowest is different, rename.
-  if (targetSuffix && targetSuffix !== currentSuffix) {
-    try {
-      workspace
-        .getVariableMap()
-        .renameVariable(model, `${prefix}${targetSuffix}`);
-    } catch (error) {
-      console.warn(
-        "Failed to rename variable to lowest available suffix:",
-        error,
-      );
-    }
-  }
-
-  if (opts.updateIndex !== false) {
-    const maxSuffix = maxExistingSuffix(workspace, prefix, type);
-    nextVariableIndexes[prefix] = maxSuffix + 1;
-  }
 }
 
 export function ensureFreshVarOnDuplicate(
@@ -947,7 +884,6 @@ export function ensureFreshVarOnDuplicate(
     BlocklyNS.Events.enable();
     BlocklyNS.Events.setGroup(false);
   }
-  return false;
 }
 
 /*
@@ -1596,7 +1532,7 @@ export function defineBlocks() {
       this.setTooltip("Type a keyword to change this block.");
       this.setHelpUrl(getHelpUrlFor(this.type));
 
-      this.setOnChange(function (changeEvent) {
+      this.setOnChange(function () {
         // Prevent infinite loops or multiple replacements.
         if (this.isDisposed() || this.isReplaced) {
           return;

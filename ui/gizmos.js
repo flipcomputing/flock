@@ -323,51 +323,6 @@ function endColorPickingMode() {
   }
 }
 
-function scrollToBlockTopParentLeft(workspace, blockId) {
-  if (!workspace.isMovable()) {
-    console.warn(
-      "Tried to move a non-movable workspace. This could result" +
-        " in blocks becoming inaccessible.",
-    );
-    return;
-  }
-
-  const block = blockId ? workspace.getBlockById(blockId) : null;
-  if (!block) {
-    return;
-  }
-
-  // Find the ultimate parent block
-  let ultimateParent = block;
-  while (ultimateParent.getParent()) {
-    ultimateParent = ultimateParent.getParent();
-  }
-
-  // Get the position of the target block (for top positioning)
-  const blockXY = block.getRelativeToSurfaceXY();
-
-  // Get the position of the ultimate parent (for left positioning)
-  const parentXY = ultimateParent.getRelativeToSurfaceXY();
-
-  // Workspace scale, used to convert from workspace coordinates to pixels
-  const scale = workspace.scale;
-
-  // Convert block positions to pixels
-  const pixelBlockY = blockXY.y * scale;
-  const pixelParentX = parentXY.x * scale;
-
-  const padding = 20;
-  const scrollToY = pixelBlockY - padding;
-  const scrollToX = pixelParentX - padding;
-
-  // Convert to canvas directions (negative values)
-  const x = -scrollToX;
-  const y = -scrollToY;
-
-  // Scroll the workspace
-  workspace.scroll(x, y);
-}
-
 // For composite meshes where visibility needs setting to
 // 0.001 in order to show parent mesh's bounding box
 function resetBoundingBoxVisibilityIfManuallyChanged(mesh) {
@@ -1435,10 +1390,6 @@ export function setGizmoManager(value) {
       mesh.physics.disablePreStep = false;
     }
 
-    if (mesh) {
-      const block = meshMap[mesh?.metadata?.blockKey];
-      //highlightBlockById(Blockly.getMainWorkspace(), block);
-    }
     originalAttach(mesh);
 
     if (mesh) {

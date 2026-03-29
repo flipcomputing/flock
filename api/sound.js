@@ -904,7 +904,6 @@ export const flockSound = {
 
     // Try to use the more advanced approach with MediaStream
     let spatialAudioSource = null;
-    let isPlayingThroughSpatialAudio = false;
 
     // Fallback: Use the original utterance but with enhanced volume calculation
     const originalVolume = utterance.volume;

@@ -1541,11 +1541,6 @@ export function overrideSearchPlugin(workspace) {
   }
 
   function buildSearchIndex() {
-    const startTime =
-      typeof performance !== "undefined" &&
-      typeof performance.now === "function"
-        ? performance.now()
-        : Date.now();
     if (!Object.keys(nextVariableIndexes).length) {
       initializeVariableIndexes();
     }
@@ -1683,11 +1678,6 @@ export function overrideSearchPlugin(workspace) {
       blockCreationWorkspace.dispose();
     }
 
-    const endTime =
-      typeof performance !== "undefined" &&
-      typeof performance.now === "function"
-        ? performance.now()
-        : Date.now();
     return indexedBlocks;
   }
 
