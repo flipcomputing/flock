@@ -157,8 +157,11 @@ export function runBlocksTests() {
 
       it("should preserve renamed base names on duplicate when source has no suffix", function () {
         const asVariableField = (field) => {
-          if (Blockly?.FieldVariable?.prototype) {
-            Object.setPrototypeOf(field, Blockly.FieldVariable.prototype);
+          if (globalThis.Blockly?.FieldVariable?.prototype) {
+            Object.setPrototypeOf(
+              field,
+              globalThis.Blockly.FieldVariable.prototype,
+            );
           }
           return field;
         };
@@ -201,8 +204,11 @@ export function runBlocksTests() {
 
       it("should preserve renamed base names on duplicate when source has a suffix", function () {
         const asVariableField = (field) => {
-          if (Blockly?.FieldVariable?.prototype) {
-            Object.setPrototypeOf(field, Blockly.FieldVariable.prototype);
+          if (globalThis.Blockly?.FieldVariable?.prototype) {
+            Object.setPrototypeOf(
+              field,
+              globalThis.Blockly.FieldVariable.prototype,
+            );
           }
           return field;
         };
@@ -245,8 +251,11 @@ export function runBlocksTests() {
 
       it("should continue from existing numeric suffix for duplicate path", function () {
         const asVariableField = (field) => {
-          if (Blockly?.FieldVariable?.prototype) {
-            Object.setPrototypeOf(field, Blockly.FieldVariable.prototype);
+          if (globalThis.Blockly?.FieldVariable?.prototype) {
+            Object.setPrototypeOf(
+              field,
+              globalThis.Blockly.FieldVariable.prototype,
+            );
           }
           return field;
         };

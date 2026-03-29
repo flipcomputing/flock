@@ -181,6 +181,10 @@ export function runCharacterAnimationTests(flock) {
 
       const expectedDuration = getAnimationDurationInSeconds(jumpGroup);
       const realTimeElapsed = (Date.now() - start) / 1000;
+      expect(expectedDuration).to.not.be.null;
+      expect(expectedDuration).to.be.a("number");
+      expect(expectedDuration).to.be.greaterThan(0);
+      expect(realTimeElapsed).to.be.greaterThan(0);
 
       const info = flock._getCurrentAnimationInfo(root);
       expect(info?.name).to.equal("Jump");

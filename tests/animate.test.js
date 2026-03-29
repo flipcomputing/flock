@@ -784,7 +784,7 @@ export function runAnimateTests(flock) {
           const mesh = flock.scene.getMeshByName(boxId);
           expect(mesh).to.exist;
         } catch (error) {
-          // Handle potential timing issues in tests
+          console.warn("playAnimation timing issue:", error);
           const mesh = flock.scene.getMeshByName(boxId);
           expect(mesh).to.exist;
         }
@@ -825,7 +825,7 @@ export function runAnimateTests(flock) {
           const mesh = flock.scene.getMeshByName(boxId);
           expect(mesh).to.exist;
         } catch (error) {
-          // Handle potential timing issues in tests
+          console.warn("playAnimation options timing issue:", error);
           const mesh = flock.scene.getMeshByName(boxId);
           expect(mesh).to.exist;
         }
@@ -847,6 +847,7 @@ export function runAnimateTests(flock) {
             animationName: "NonExistentAnimation",
           });
         } catch (error) {
+          console.warn("Missing animation handled with error:", error);
           // Expected behavior for missing animation - could be timeout or other error
           expect(error.message).to.exist;
         }
@@ -904,7 +905,7 @@ export function runAnimateTests(flock) {
           const mesh = flock.scene.getMeshByName(boxId);
           expect(mesh).to.exist;
         } catch (error) {
-          // Handle potential timing issues in tests
+          console.warn("Default playAnimation timing issue:", error);
           const mesh = flock.scene.getMeshByName(boxId);
           expect(mesh).to.exist;
         }

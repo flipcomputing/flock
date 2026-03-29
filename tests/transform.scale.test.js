@@ -4,16 +4,6 @@ export function runScaleTests(flock) {
   describe("Scale function tests @scale", function () {
     const testBoxIds = [];
     const testColors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"];
-    const scaleFactors = [0.5, 1.0, 1.5, 2.0, 3.0];
-    const origins = [
-      "CENTRE",
-      "LEFT",
-      "RIGHT",
-      "TOP",
-      "BOTTOM",
-      "FRONT",
-      "BACK",
-    ];
 
     // Set up the scene before each test
     beforeEach(async function () {
@@ -129,8 +119,6 @@ export function runScaleTests(flock) {
   describe("Resize function tests @scale", function () {
     const testBoxIds = [];
     const testColors = ["#FF6600", "#66FF00", "#0066FF", "#FF0066"];
-    const targetSizes = [1, 2, 5, 10, 0.5];
-    const origins = ["CENTRE", "LEFT", "RIGHT", "TOP", "BASE", "FRONT", "BACK"];
 
     // Set up the scene before each test
     beforeEach(async function () {
