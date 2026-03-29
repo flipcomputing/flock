@@ -96,10 +96,10 @@ function addImportContextMenuOption() {
     displayText: function () {
       return getSnippetOption("import");
     },
-    preconditionFn: function (scope) {
+    preconditionFn: function (_scope) {
       return "enabled";
     },
-    callback: function (scope) {
+    callback: function (_scope) {
       importSnippet();
     },
     scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
@@ -114,7 +114,7 @@ function addExportPNGContextMenuOption() {
     displayText: function () {
       return getSnippetOption("export_PNG");
     },
-    preconditionFn: function (scope) {
+    preconditionFn: function (_scope) {
       return "enabled";
     },
     callback: function (scope) {
@@ -129,7 +129,7 @@ function addExportPNGContextMenuOption() {
   });
 }
 
-// Extend Blockly with custom context menu for exporting SVG of the workspace
+// eslint-disable-next-line no-unused-vars
 function addExportSVGContextMenuOption() {
   Blockly.ContextMenuRegistry.registry.register({
     id: "exportSVG",
@@ -137,7 +137,7 @@ function addExportSVGContextMenuOption() {
     displayText: function () {
       return getSnippetOption("export_SVG");
     },
-    preconditionFn: function (scope) {
+    preconditionFn: function (_scope) {
       return "enabled";
     },
     callback: function (scope) {

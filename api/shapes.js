@@ -229,8 +229,6 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
     }
 
     return { positions, indices };
-  } catch (e) {
-    throw e;
   } finally {
     if (manifoldMesh) manifoldMesh.delete();
     if (crossSection) crossSection.delete();

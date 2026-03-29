@@ -1,5 +1,4 @@
 import * as Blockly from "blockly";
-import { CrossTabCopyPaste } from "@blockly/plugin-cross-tab-copy-paste";
 import { initializeBlocks } from "./main/blocklyinit.js";
 import { options, CustomZelosRenderer } from "./blocks/blocks";
 

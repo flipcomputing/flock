@@ -703,7 +703,7 @@ export const flockPhysics = {
 
           const timeNow = () =>
             typeof performance !== "undefined" ? performance.now() : Date.now();
-          const tryFireEnter = (sourceTag) => {
+          const tryFireEnter = (_sourceTag) => {
             // If both systems shout on the same frame, only fire once
             if (scene.getFrameId() === state.lastFrameFired) return;
 

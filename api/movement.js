@@ -317,7 +317,7 @@ export const flockMovement = {
      dynamicMeshes.forEach((mesh) => {
       mesh.physics.setCollisionCallbackEnabled(true);
       const observable = mesh.physics.getCollisionObservable();
-      const observer = observable.add((collisionEvent) => {
+      observable.add((collisionEvent) => {
         const penetration = Math.abs(collisionEvent.distance);
         // If the penetration is extremely small (indicating minor clipping)
         if (penetration < 0.001) {

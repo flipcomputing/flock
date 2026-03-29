@@ -479,8 +479,6 @@ async function runTests(suiteId = "all") {
   if (logApi || logAll) {
     await page.addInitScript(() => {
       // Override the module import to expose flock globally
-      const originalImport = window.__import;
-
       // Hook into module loading to capture flock when it's imported
       const observer = new MutationObserver(() => {
         const iframe = document.getElementById("flock-iframe");

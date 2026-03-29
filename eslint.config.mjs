@@ -11,6 +11,8 @@ export default [
       "examples/",
       ".local/",
       "**/.local/",
+      "test-playwright.js",
+      "test-visual.js",
     ],
   },
   { languageOptions: { globals: globals.browser } },
@@ -57,4 +59,9 @@ export default [
     },
   },
   pluginJs.configs.recommended,
+  {
+    rules: {
+      "no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+    },
+  },
 ];

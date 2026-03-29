@@ -5,7 +5,7 @@ export function setFlockReference(ref) {
 }
 
 export const flockMaterial = {
-  adjustMaterialTilingToMesh(mesh, material, unitsPerTile = null) {
+  adjustMaterialTilingToMesh(mesh, material, _unitsPerTile = null) {
     return; // Don't scale textures - need to change the mesh UVs instead
   },
   adjustMaterialTilingForHierarchy(mesh, unitsPerTile) {
@@ -143,7 +143,7 @@ export const flockMaterial = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         flock.glowMesh(mesh, color);
-        mesh.metadata?.clones?.forEach((cloneName) =>
+        mesh.metadata?.clones?.forEach((_cloneName) =>
           flock.whenModelReady((cloneMesh) =>
             flock.glowMesh(cloneMesh, { color: color }),
           ),

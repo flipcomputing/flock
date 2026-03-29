@@ -157,6 +157,7 @@ export function sanitizeForCode(input) {
   s = s.replace(/\*\//g, "*∕").replace(/\/\//g, "∕∕").replace(/`/g, "ˋ");
 
   // Strip control characters (optional, keeps tabs/spaces)
+  // eslint-disable-next-line no-control-regex
   s = s.replace(/[\u0000-\u001F\u007F]/g, "");
 
   return s;

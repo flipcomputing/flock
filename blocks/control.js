@@ -3,11 +3,6 @@ import { categoryColours } from "../toolbox.js";
 import { getHelpUrlFor } from "./blocks.js";
 import { translate, getTooltip } from "../main/translation.js";
 
-const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
-
-const TRANSPARENT_PNG_1PX =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQImWNgYGBgAAAABQABJACfMwAAAABJRU5ErkJggg==";
-
 export function defineControlBlocks() {
   Blockly.Blocks["wait"] = {
     init: function () {
@@ -310,7 +305,6 @@ export function defineControlBlocks() {
             if (this.sourceBlock_) {
               this.sourceBlock_.render();
             }
-          } else {
           }
         }, 0);
         return null;

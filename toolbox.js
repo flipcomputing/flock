@@ -4940,8 +4940,7 @@ class IconCategory extends Blockly.ToolboxCategory {
     const categoryColour = this.colour_;
 
     // Change background color when selected/deselected
-    if (isSelected) {
-    } else {
+    if (!isSelected) {
       this.rowDiv_.style.setProperty(
         "background-color",
         categoryColour,
@@ -5043,8 +5042,7 @@ class CustomCollapsibleToolboxCategory
     const categoryColour = this.colour_;
 
     // Change background color when selected/deselected
-    if (isSelected) {
-    } else {
+    if (!isSelected) {
       this.rowDiv_.style.setProperty(
         "background-color",
         categoryColour,

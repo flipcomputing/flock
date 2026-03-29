@@ -2,7 +2,7 @@ import * as Blockly from "blockly";
 import { getFieldValue } from "./generators-utilities.js";
 
 export function registerDeprecatedGenerators(javascriptGenerator) {
-  javascriptGenerator.forBlock["keyword_block"] = function (block) {
+  javascriptGenerator.forBlock["keyword_block"] = function (_block) {
     // Since this block is replaced with another block, we return an empty string.
     return "";
   };
