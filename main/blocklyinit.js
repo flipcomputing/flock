@@ -1238,8 +1238,8 @@ export function createBlocklyWorkspace() {
           "color:#0072B2",
         );
       } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+        console.warn("Suppressed non-critical error:", error);
+      }
     }
 
     // Attach once per workspace you care about:
