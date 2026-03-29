@@ -64,14 +64,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // If gizmos are on, disable them
       try {
-        if (
-          typeof areGizmosEnabled === "function" ? areGizmosEnabled() : true
-        ) {
-          disableGizmos();
-          e.stopPropagation(); // avoid duplicate handlers upstream
-          // don't e.preventDefault() globally unless you *need* to stop other Esc behavior
-        }
-      } catch (err) {
+        disableGizmos();
+        e.stopPropagation(); // avoid duplicate handlers upstream
+        // don't e.preventDefault() globally unless you *need* to stop other Esc behavior
+      } catch {
         // fail-safe: still attempt to disable
         disableGizmos?.();
       }
@@ -186,10 +182,10 @@ function applyColorAtPosition(canvasX, canvasY) {
   const pickedMesh = pickLeafFromRay(pickRay, scene);
 
   if (pickedMesh) {
-    updateBlockColorAndHighlight(pickedMesh, selectedColor);
+    updateBlockColorAndHighlight(pickedMesh, window.selectedColor);
   } else {
-    flock.setSky(selectedColor);
-    updateBlockColorAndHighlight(meshMap?.["sky"], selectedColor);
+    flock.setSky(window.selectedColor);
+    updateBlockColorAndHighlight(meshMap?.["sky"], window.selectedColor);
   }
 }
 
