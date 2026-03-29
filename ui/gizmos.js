@@ -546,7 +546,7 @@ export function toggleGizmo(gizmoType) {
 
   // Enable the selected gizmo
   switch (gizmoType) {
-    case "camera":
+    case "camera": {
       if (cameraMode === "play") {
         cameraMode = "fly";
         flock.printText({
@@ -558,11 +558,12 @@ export function toggleGizmo(gizmoType) {
         cameraMode = "play";
       }
 
-      let currentCamera = flock.scene.activeCamera;
+      const currentCamera = flock.scene.activeCamera;
       console.log("Camera", flock.savedCamera);
       flock.scene.activeCamera = flock.savedCamera;
       flock.savedCamera = currentCamera;
       break;
+    }
     case "delete":
       if (!gizmoManager.attachedMesh) {
         flock.printText({
@@ -931,7 +932,7 @@ export function toggleGizmo(gizmoType) {
 
       break;
 
-    case "scale":
+    case "scale": {
       configureScaleGizmo(gizmoManager);
       {
         const sg = gizmoManager.gizmos.scaleGizmo;
@@ -1215,6 +1216,7 @@ export function toggleGizmo(gizmoType) {
       });
 
       break;
+    }
     case "boundingBox":
       gizmoManager.boundingBoxGizmoEnabled = true;
 
