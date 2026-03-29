@@ -882,7 +882,7 @@ export default {
   pin_a_option: "Gest: Lutning vänster",
   pin_d_option: "Gest: Lutning höger",
   pin_y_option: "Gest: Skärm upp",
-  pin_h_option: "Gest: Skärm ned",
+  pin_g_option: "Gest: Skärm ned",
   pin_i_option: "Gest: Skaka",
 
   SMALL_option: "liten",
@@ -946,8 +946,6 @@ export default {
   _14px_option: "liten",
   _18px_option: "medel",
   _24px_option: "stor",
-
-  __fonts_FreeSans_Bold_json_option: "Free Sans",
 
   VR_option: "VR (Oculus Quest eller mobilvisare)",
   AR_option: "AR (Förstärkt verklighet)",

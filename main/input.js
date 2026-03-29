@@ -1,3 +1,4 @@
+import * as Blockly from "blockly";
 import { translate } from "./translation.js";
 
 export function setupInput() {
@@ -340,16 +341,15 @@ export function setupInput() {
     // No need to prevent default here - let the main handler manage it
   }
 
-  function announceToScreenReader(message) {
-    const announcer = document.getElementById("announcements");
-    if (announcer) {
-      announcer.textContent = message;
-      // Clear after announcement
-      setTimeout(() => {
-        announcer.textContent = "";
-      }, 1000);
-    }
-  }
-
   initializeFocusManagement();
+}
+
+export function announceToScreenReader(message) {
+  const announcer = document.getElementById("announcements");
+  if (announcer) {
+    announcer.textContent = message;
+    setTimeout(() => {
+      announcer.textContent = "";
+    }, 1000);
+  }
 }

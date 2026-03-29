@@ -503,7 +503,7 @@ export function defineEventsBlocks() {
       return "Event name must not start with reserved words like 'on', 'system', or 'flock'.";
     }
 
-    const disallowedChars = /[!@#\$%\^&\*\(\)\+=\[\]\{\};:'"\\|,<>\?\/\n\r\t]/;
+    const disallowedChars = /[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/;
     if (disallowedChars.test(name)) {
       return "Event name must not include punctuation or special characters.";
     }

@@ -60,10 +60,10 @@ export function defineConditionBlocks() {
       return new Blockly.FieldImage(
         "data:image/svg+xml;utf8," +
           encodeURIComponent(`
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\">
-                                  <circle cx=\"10\" cy=\"10\" r=\"9\" fill=\"transparent\" stroke=\"white\" stroke-width=\"2\"/>
-                                  <line x1=\"5\" y1=\"10\" x2=\"15\" y2=\"10\" stroke=\"white\" stroke-width=\"2.5\"/>
-                                  <line x1=\"10\" y1=\"5\" x2=\"10\" y2=\"15\" stroke=\"white\" stroke-width=\"2.5\"/>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+                                  <circle cx="10" cy="10" r="9" fill="transparent" stroke="white" stroke-width="2"/>
+                                  <line x1="5" y1="10" x2="15" y2="10" stroke="white" stroke-width="2.5"/>
+                                  <line x1="10" y1="5" x2="10" y2="15" stroke="white" stroke-width="2.5"/>
                                 </svg>`),
         20,
         20,
@@ -76,9 +76,9 @@ export function defineConditionBlocks() {
       return new Blockly.FieldImage(
         "data:image/svg+xml;utf8," +
           encodeURIComponent(`
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\">
-                                  <circle cx=\"10\" cy=\"10\" r=\"9\" fill=\"transparent\" stroke=\"white\" stroke-width=\"2\"/>
-                                  <line x1=\"5\" y1=\"10\" x2=\"15\" y2=\"10\" stroke=\"white\" stroke-width=\"2.5\"/>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+                                  <circle cx="10" cy="10" r="9" fill="transparent" stroke="white" stroke-width="2"/>
+                                  <line x1="5" y1="10" x2="15" y2="10" stroke="white" stroke-width="2.5"/>
                                 </svg>`),
         20,
         20,

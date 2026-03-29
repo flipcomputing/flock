@@ -1,3 +1,5 @@
+import { translate } from "../main/translation.js";
+
 let flock;
 
 export function setFlockReference(ref) {

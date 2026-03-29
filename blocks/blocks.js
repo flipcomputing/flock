@@ -1,7 +1,7 @@
 import * as Blockly from "blockly";
 //import "@blockly/block-plus-minus";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
-import { toolbox } from "../toolbox.js";
+import { toolbox, categoryColours } from "../toolbox.js";
 import { getOption, translate, getTooltip } from "../main/translation.js";
 import { flock } from "../flock.js";
 

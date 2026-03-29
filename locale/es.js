@@ -897,7 +897,7 @@ export default {
   pin_a_option: "Gesto: InclinarIzquierda", // human
   pin_d_option: "Gesto: InclinarDerecha", // human
   pin_y_option: "Gesto: PantallaArriba", // human
-  pin_h_option: "Gesto: PantallaAbajo", // human
+  pin_g_option: "Gesto: PantallaAbajo", // human
   pin_i_option: "Gesto: Sacudir", // human
 
   SMALL_option: "pequeño", // human

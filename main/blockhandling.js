@@ -2,6 +2,7 @@ import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
 import { blockHandlerRegistry } from "../blocks/blocks.js";
+import { announceToScreenReader } from "./input.js";
 
 function asBlocklyBlock(candidate) {
   if (!candidate || typeof candidate !== "object") {

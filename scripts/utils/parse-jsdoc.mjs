@@ -65,7 +65,7 @@ function extractParams(jsdocContent) {
 
   let match;
   while ((match = paramPattern.exec(jsdocContent)) !== null) {
-    const paramName = match[2].replace(/[\[\]]/g, "");
+    const paramName = match[2].replace(/[[\]]/g, "");
     params.push({
       type: match[1],
       name: paramName,
