@@ -917,6 +917,12 @@ export default {
   sound_spaceTrash_option: "Space Trash",
   sound_threeTone1_option: "Three Tone 1",
   sound_threeTone2_option: "Three Tone 2",
+  sound_chop_option: "Chop",
+  sound_creak_option: "Creak",
+  sound_footstep_option: "Footstep",
+  sound_door_open_option: "Door Open",
+  sound_door_close_option: "Door Close",
+  sound_metal_latch_option: "Metal Latch",
 
   sine_option: "sine",
   square_option: "square",
