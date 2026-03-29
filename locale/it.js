@@ -162,9 +162,9 @@ export default {
   number_keyframe: "a: %1 valore: %2",
   xyz_keyframe: "a: %1 x: %2 y: %3 z: %4",
   animate_keyframes:
-    "anima keyframe su %1 proprietà %2\nkeyframe %3\neasing %4 loop %5 inverso %6 %7",
+    "anima keyframe su %1 proprietà %2\nkeyframe %3\neasing %4 inverso %5 loop %6 %7",
   animation:
-    "anima keyframe su %1 proprietà %2 gruppo %3\nkeyframe %4\neasing %5 loop %6 inverso %7 modalità %8",
+    "anima keyframe su %1 proprietà %2 gruppo %3\nkeyframe %4\neasing %5 inverso %6 loop %7 modalità %8",
   control_animation_group: "gruppo animazione %1 %2",
   animate_from: "anima gruppo %1 da %2 secondi",
   stop_animations: "ferma animazioni %1",

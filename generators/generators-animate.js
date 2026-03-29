@@ -250,8 +250,8 @@ export function registerAnimateGenerators(javascriptGenerator) {
     }
 
     const easing = block.getFieldValue("EASING") || "Linear";
-    const loop = block.getFieldValue("LOOP") === "TRUE";
     const reverse = block.getFieldValue("REVERSE") === "TRUE";
+    const loop = block.getFieldValue("LOOP") === "TRUE";
     const mode = block.getFieldValue("MODE");
 
     const keyframesCode = keyframesArray
@@ -271,8 +271,8 @@ export function registerAnimateGenerators(javascriptGenerator) {
                           property: "${property}",
                           keyframes: [${keyframesCode}],
                           easing: "${easing}",
-                          loop: ${loop},
                           reverse: ${reverse},
+                          loop: ${loop},
                           mode: "${mode}"
                     }
                   );
@@ -360,8 +360,8 @@ export function registerAnimateGenerators(javascriptGenerator) {
     const easing = block.getFieldValue("EASING") || "Linear";
     const property = block.getFieldValue("PROPERTY") || "color"; // Default to "color" if no property is set
 
-    const loop = block.getFieldValue("LOOP") === "TRUE";
     const reverse = block.getFieldValue("REVERSE") === "TRUE";
+    const loop = block.getFieldValue("LOOP") === "TRUE";
     const mode = block.getFieldValue("MODE");
 
     const asyncWrapper = mode === "AWAIT" ? "await " : "";
@@ -377,7 +377,7 @@ export function registerAnimateGenerators(javascriptGenerator) {
       .join(", ");
 
     // Return the final code, passing keyframes with durations and properties
-    return `${asyncWrapper}animateKeyFrames(${meshVar}, { keyframes: [${keyframesCode}], property: "${property}", easing: "${easing}", loop: ${loop}, reverse: ${reverse} });\n`;
+    return `${asyncWrapper}animateKeyFrames(${meshVar}, { keyframes: [${keyframesCode}], property: "${property}", easing: "${easing}", reverse: ${reverse}, loop: ${loop} });\n`;
   };
 
   // Animation group

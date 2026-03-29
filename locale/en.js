@@ -160,9 +160,9 @@ export default {
   number_keyframe: "at: %1 value: %2",
   xyz_keyframe: "at: %1 x: %2 y: %3 z: %4",
   animate_keyframes:
-    "animate keyframes on %1 property %2\nkeyframes %3\neasing %4 loop %5 reverse %6 %7",
+    "animate keyframes on %1 property %2\nkeyframes %3\neasing %4 reverse %5 loop %6 %7",
   animation:
-    "animate keyframes on %1 property %2 group %3\nkeyframes %4\neasing %5 loop %6 reverse %7 mode %8",
+    "animate keyframes on %1 property %2 group %3\nkeyframes %4\neasing %5 reverse %6 loop %7 mode %8",
   control_animation_group: "animation group %1 %2",
   animate_from: "animate group %1 from %2 seconds",
   stop_animations: "stop animations %1",
