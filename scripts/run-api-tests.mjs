@@ -735,7 +735,11 @@ async function runTests(suiteId = "all") {
                   window.apiCallLog.push(
                     `[${timestamp}] ${methodName} (#${count}) ${argsStr}`,
                   );
-                } catch (e) {
+                } catch (error) {
+                  console.warn(
+                    "Failed to serialize API call arguments for logging:",
+                    error,
+                  );
                   window.apiCallLog.push(
                     `[${timestamp}] ${methodName} (#${count})`,
                   );
@@ -746,8 +750,11 @@ async function runTests(suiteId = "all") {
               };
             })(prop, window._originalFlockMethods[prop]);
           }
-        } catch (e) {
-          // Skip properties that can't be accessed
+        } catch (error) {
+          console.warn(
+            "Skipping inaccessible flock property during instrumentation:",
+            error,
+          );
         }
       }
 

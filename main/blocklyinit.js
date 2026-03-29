@@ -655,7 +655,7 @@ export function createBlocklyWorkspace() {
 
   // Manually create a navigation-deferring toolbox
   class NavigationDeferringToolbox extends Blockly.Toolbox {
-    onKeyDown_(e) {
+    onKeyDown_() {
       return false; // Defer to keyboard navigation plugin
     }
   }
@@ -682,7 +682,7 @@ export function createBlocklyWorkspace() {
 
   // Monkey-patch
   const toolbox = workspace.getToolbox();
-  toolbox.onKeyDown_ = function (e) {
+  toolbox.onKeyDown_ = function () {
     return false;
   };
 

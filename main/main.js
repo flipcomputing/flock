@@ -423,7 +423,7 @@ window.onload = async function () {
 
   document
     .getElementById("info-details")
-    .addEventListener("toggle", function (e) {
+    .addEventListener("toggle", function () {
       if (this.open) {
         setTimeout(() => {
           const content = this.querySelector(".content");

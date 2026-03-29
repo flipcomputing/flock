@@ -1224,8 +1224,10 @@ class CustomColorPicker {
       const eyeDropper = new EyeDropper();
       const result = await eyeDropper.open(); // resolves or throws on cancel
       this.setColor(result.sRGBHex);
-    } catch (e) {
-      // Cancel or error — just restore UI
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        console.warn("Eyedropper failed:", error);
+      }
     } finally {
       this.restoreUIAfterEyedropper();
     }
