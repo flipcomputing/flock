@@ -169,10 +169,7 @@ export const flockUI = {
       s = s.normalize("NFKC");
       const doc = new DOMParser().parseFromString(s, "text/html");
       s = doc.body.textContent || "";
-      s = s.replace(
-        /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g,
-        "",
-      );
+      s = s.replace(/\p{Cc}/gu, "");
       s = s.replace(/\s+/g, " ").trim();
       if (s.length > maxLen) s = s.slice(0, maxLen);
       return s;

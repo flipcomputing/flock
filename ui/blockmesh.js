@@ -300,35 +300,6 @@ export function getMeshesFromBlock(block) {
 
   return getMeshesFromBlockKey(blockKey);
 }
-function getMeshFromBlockId(blockId) {
-  const blockKey = getBlockKeyFromBlockID(blockId);
-
-  return getMeshFromBlockKey(blockKey);
-}
-
-function rescaleBoundingBox(bb, newScale) {
-  // Get the current world matrix before any transformation
-  const originalWorldMatrix = bb.getWorldMatrix().clone();
-
-  // Extract the original world position
-  const originalPosition = originalWorldMatrix.getTranslation();
-
-  // Bake current transform into vertices
-  bb.bakeCurrentTransformIntoVertices();
-
-  // Reset scaling to 1,1,1 first
-  bb.scaling.set(1, 1, 1);
-
-  // Set the new scale and bake it
-  bb.scaling.set(newScale, newScale, newScale);
-  bb.bakeCurrentTransformIntoVertices();
-
-  // Reset scaling to 1,1,1 again
-  bb.scaling.set(1, 1, 1);
-
-  // Restore the original world position
-  bb.position.copyFrom(originalPosition);
-}
 
 // Safe field getter. Returns null when field is missing or name is invalid.
 function getBlockValue(block, fieldName) {
@@ -519,7 +490,8 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     changeEvent?.type === Blockly.Events.BLOCK_CREATE &&
     block.isEnabled() &&
     meshes.length === 0;
-  if ((window.loadingCode && !changeEvent?.recordUndo) || block.disposed) return;
+  if ((window.loadingCode && !changeEvent?.recordUndo) || block.disposed)
+    return;
   const alreadyCreatingMesh = meshMap[block.id] !== undefined;
   if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate)) {
     createMeshOnCanvas(block);
@@ -563,7 +535,7 @@ function safeGetFieldValue(block, fieldName) {
   return fld ? fld.getValue() : null;
 }
 
-function updateSkyFromBlock(mesh, block, changeEvent) {
+function updateSkyFromBlock(block) {
   if (!block.isEnabled()) {
     if (getActiveSceneControllerBlockId() === block.id) {
       setClearSkyToBlack();
@@ -1505,7 +1477,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
   if (mesh.metadata) shapeType = mesh.metadata.shapeType;
   if (mesh.physics && shapeType) {
     const shape = mesh.physics.shape;
-    let newShape, diameterBottom, startPoint, endPoint, diameter;
+    let newShape, diameterBottom, startPoint, endPoint;
 
     // Create the new physics shape based on the type
     switch (shapeType) {
@@ -1536,8 +1508,6 @@ function setAbsoluteSize(mesh, width, height, depth) {
         );
         break;
       case "Capsule":
-        diameter = Math.min(width, depth);
-
         newShape = flock.createCapsuleFromBoundingBox(mesh, mesh.getScene());
         break;
       default:
@@ -1871,7 +1841,7 @@ function replaceMeshModel(currentMesh, block) {
     const prev = (currentMesh.metadata && currentMesh.metadata.colors) || {};
     const extracted = extractCharacterColorsFromHierarchy(currentMesh);
     const characterPalette = { ...prev, ...extracted };
-   
+
     createArgs = Object.keys(characterPalette).length
       ? { modelName, modelId: tempId, colors: characterPalette }
       : { modelName, modelId: tempId };
@@ -1892,7 +1862,7 @@ function replaceMeshModel(currentMesh, block) {
     try {
       const newChild = firstRenderable(loadedMesh) || loadedMesh;
 
-     // Colors to reapply for non-characters
+      // Colors to reapply for non-characters
       let nonCharacterColors = null;
       if (!isCharacter) {
         const cols = [];
