@@ -745,8 +745,8 @@ function adoptIsolatedDefaultVarsTo(
       if (remaining === 0) {
         try {
           workspace.deleteVariableById(vid);
-        } catch (_) {
-          /* ignore */
+        } catch (error) {
+          console.warn("Failed to delete unreferenced variable by id:", error);
         }
       }
     }
@@ -799,8 +799,11 @@ function normalizeVarNameAndIndex(
       workspace
         .getVariableMap()
         .renameVariable(model, `${prefix}${targetSuffix}`);
-    } catch (_) {
-      /* ignore rename failures */
+    } catch (error) {
+      console.warn(
+        "Failed to rename variable to lowest available suffix:",
+        error,
+      );
     }
   }
 
@@ -870,10 +873,7 @@ export function ensureFreshVarOnDuplicate(
   if (!oldVarId) return false;
   const oldVarModel = ws.getVariableById(oldVarId);
   const { prefix: duplicatePrefix, suffix: duplicateSuffix } =
-    deriveVariableNameParts(
-      oldVarModel?.name,
-      variableNamePrefix,
-    );
+    deriveVariableNameParts(oldVarModel?.name, variableNamePrefix);
 
   if (Number.isInteger(duplicateSuffix)) {
     const nextFromSource = duplicateSuffix + 1;

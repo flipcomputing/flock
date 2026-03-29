@@ -562,7 +562,8 @@ export function defineMaterialsBlocks() {
           const validatedVal = flock.getColorFromString(newVal) || "#000000";
           this.sourceBlock_.setColour(validatedVal);
           return newVal;
-        } catch (e) {
+        } catch (error) {
+          console.warn("Failed to validate colour field value:", error);
           this.sourceBlock_.setColour("#000000");
           return newVal;
         }
@@ -573,7 +574,8 @@ export function defineMaterialsBlocks() {
         const initialVal = colorField.getValue();
         const validatedVal = flock.getColorFromString(initialVal) || "#000000";
         this.setColour(validatedVal);
-      } catch (e) {
+      } catch (error) {
+        console.warn("Failed to initialize colour block value:", error);
         this.setColour("#000000");
       }
     },

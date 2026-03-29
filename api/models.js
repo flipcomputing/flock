@@ -394,7 +394,8 @@ export const flockModels = {
       });
 
       return meshName;
-    } catch (e) {
+    } catch (error) {
+      console.warn("createObject failed; returning error id:", error);
       return "error_" + flock.scene.getUniqueId();
     }
   },
@@ -425,8 +426,8 @@ export const flockModels = {
       container.textures = [];
       container.skeletons = [];
       container.animationGroups = [];
-    } catch (_) {
-      /* ignore */
+    } catch (error) {
+      console.warn("releaseContainer cleanup failed:", error);
     }
   },
 };

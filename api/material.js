@@ -83,7 +83,8 @@ export const flockMaterial = {
       const b = parseInt(matches[2]);
       const result = flock.rgbToHex(r, g, b);
       return result.toLowerCase();
-    } catch (e) {
+    } catch (error) {
+      console.warn("Failed to parse color to hex; using default black:", error);
       return "#000000";
     }
   },
@@ -871,7 +872,6 @@ export const flockMaterial = {
     });
   },
   setMaterialInternal(meshName, materials) {
-   
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         flock.applyMaterialToHierarchy(mesh, materials, {
@@ -1263,9 +1263,10 @@ export const flockMaterial = {
       ),
     );
 
-    const colorDark = colors.length >= 3
-      ? flock.hexToRgb(flock.getColorFromString(colors[2]))
-      : { r: 0, g: 0, b: 0 };
+    const colorDark =
+      colors.length >= 3
+        ? flock.hexToRgb(flock.getColorFromString(colors[2]))
+        : { r: 0, g: 0, b: 0 };
     shaderMaterial.setVector3(
       "darkColor",
       new flock.BABYLON.Vector3(

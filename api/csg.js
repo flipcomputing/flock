@@ -27,8 +27,11 @@ function prepareMeshForCSG(mesh) {
     try {
       mesh.convertToUnIndexedMesh();
       mesh.forceSharedVertices();
-    } catch (e) {
-      // Ignore errors, continue with other approaches
+    } catch (error) {
+      console.warn(
+        "[prepareMeshForCSG] Failed to convert mesh geometry:",
+        error,
+      );
     }
   }
 
@@ -77,8 +80,11 @@ function prepareMeshForCSG(mesh) {
           ) {
             meshesWithGeometry.push(child);
           }
-        } catch (e) {
-          // Ignore
+        } catch (error) {
+          console.warn(
+            "[prepareMeshForCSG] Failed to process child mesh geometry:",
+            error,
+          );
         }
       });
     }
@@ -341,11 +347,12 @@ export const flockCSG = {
               if (mergedMesh) mergedMesh.dispose();
               mergedMesh = null;
             }
-          } catch (e) {
+          } catch (error) {
             const emptyMeshes = flock.scene.meshes.filter(
               (m) => m.name === modelId && m.getTotalVertices() === 0,
             );
             emptyMeshes.forEach((m) => m.dispose());
+            console.warn("[mergeMeshes] CSG merge attempt failed:", error);
             csgSucceeded = false;
           }
 
@@ -361,6 +368,10 @@ export const flockCSG = {
                 true,
               );
             } catch (mergeError) {
+              console.warn(
+                "[mergeMeshes] Mesh.MergeMeshes fallback failed:",
+                mergeError,
+              );
               return null;
             }
           }
@@ -504,7 +515,8 @@ export const flockCSG = {
     const tryCSG = (label, fn) => {
       try {
         return fn();
-      } catch (e) {
+      } catch (error) {
+        console.warn(`[${label}] CSG operation failed:`, error);
         return null;
       }
     };
