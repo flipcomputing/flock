@@ -1644,6 +1644,13 @@ function replaceMeshModel(currentMesh, block) {
     return null;
   }
 
+  const warnSuppressed = (operation, error) => {
+    console.warn(
+      `[replaceMeshModel] Suppressed non-critical error in ${operation}:`,
+      error,
+    );
+  };
+
   function disposeTree(node) {
     if (!node || node.isDisposed?.()) return;
     const kids = node.getChildren ? node.getChildren() : [];
@@ -1651,21 +1658,21 @@ function replaceMeshModel(currentMesh, block) {
     try {
       node.setParent?.(null);
     } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+      warnSuppressed("disposeTree:setParent", error);
+    }
     try {
       node.dispose?.();
     } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+      warnSuppressed("disposeTree:dispose", error);
+    }
   }
 
   function disposePhysics(node) {
     try {
       node.physics?.dispose?.();
     } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+      warnSuppressed("disposePhysics:physics.dispose", error);
+    }
   }
 
   function stripPhysicsTree(root) {
@@ -1767,8 +1774,8 @@ function replaceMeshModel(currentMesh, block) {
           const y = n.getBoundingInfo().boundingBox.minimumWorld.y;
           if (y < minY) minY = y;
         } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+          warnSuppressed("worldBaseYOfRenderables:boundingInfo", error);
+        }
       }
     }
     return isFinite(minY) ? minY : null;
@@ -1915,8 +1922,8 @@ function replaceMeshModel(currentMesh, block) {
       try {
         newChild.setParent?.(null, true);
       } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+        warnSuppressed("detachNewChild:setParent", error);
+      }
 
       // Collect bone-attached objects from the target's metadata list.
       // This is more reliable than traversing the BabylonJS hierarchy because
@@ -1978,14 +1985,14 @@ function replaceMeshModel(currentMesh, block) {
         try {
           newChild.scaling.copyFrom(oldChildScale);
         } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+          warnSuppressed("applyOldScale:copyFrom", error);
+        }
         try {
           newChild.computeWorldMatrix(true);
           newChild.refreshBoundingInfo?.();
         } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+          warnSuppressed("applyOldScale:refreshBounds", error);
+        }
       }
 
       // Base alignment (world) uses updated bounds
@@ -2003,8 +2010,8 @@ function replaceMeshModel(currentMesh, block) {
             );
           }
         } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+          warnSuppressed("baseAlignmentPrimary:setAbsolutePosition", error);
+        }
       }
 
       // Base alignment (world)
@@ -2022,8 +2029,8 @@ function replaceMeshModel(currentMesh, block) {
             );
           }
         } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+          warnSuppressed("baseAlignmentSecondary:setAbsolutePosition", error);
+        }
       }
 
       // Apply material/colour from the block, then fall back to saved colours
@@ -2051,8 +2058,8 @@ function replaceMeshModel(currentMesh, block) {
           try {
             flock.applyColorsToCharacter(currentMesh, palette);
           } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+            warnSuppressed("applyCharacterColors", error);
+          }
         }
       } else if (nonCharacterColors && nonCharacterColors.length) {
         try {
@@ -2067,13 +2074,13 @@ function replaceMeshModel(currentMesh, block) {
         try {
           loadedMesh.setParent?.(null);
         } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+          warnSuppressed("disposeLoadedMesh:setParent", error);
+        }
         try {
           loadedMesh.dispose?.();
         } catch (error) {
-   console.warn("Suppressed non-critical error:", error);
- }
+          warnSuppressed("disposeLoadedMesh:dispose", error);
+        }
       }
 
       if (animationInfo?.name) {
