@@ -15,7 +15,7 @@ export function runConcurrencyTests(flock) {
         try {
           flock.dispose(objId);
         } catch (e) {
-          // Ignore disposal errors during cleanup
+          console.warn(`Cleanup dispose failed for ${objId}:`, e);
         }
       });
       createdObjects.length = 0;
@@ -179,7 +179,7 @@ export function runConcurrencyTests(flock) {
         await flock.wait(3); // Increased wait time
 
         // Concurrent position updates
-        const movePromises = objectIds.map((objectId, index) => {
+        const movePromises = objectIds.map((objectId) => {
           const newX = Math.random() * 10 - 5; // Reduced range
           const newZ = Math.random() * 10 - 5;
 
@@ -337,7 +337,7 @@ export function runConcurrencyTests(flock) {
         await flock.wait(1);
 
         // Concurrent glide operations
-        const glidePromises = objectIds.map((objectId, index) => {
+        const glidePromises = objectIds.map((objectId) => {
           return flock.glideTo(objectId, {
             x: Math.random() * 20 - 10,
             y: 0,
@@ -461,12 +461,14 @@ export function runConcurrencyTests(flock) {
 
             case 5:
               // Hide then show - ensure all operations return promises
-              const hidePromise = flock.hide(objectId) || Promise.resolve();
-              const waitPromise = (result) => flock.wait(0.5);
-              const showPromise = () =>
-                flock.show(objectId) || Promise.resolve();
+              {
+                const hidePromise = flock.hide(objectId) || Promise.resolve();
+                const waitPromise = () => flock.wait(0.5);
+                const showPromise = () =>
+                  flock.show(objectId) || Promise.resolve();
 
-              return hidePromise.then(waitPromise).then(showPromise);
+                return hidePromise.then(waitPromise).then(showPromise);
+              }
 
             default:
               return Promise.resolve();

@@ -14,7 +14,7 @@ export function runEventsTests(flock) {
         try {
           flock.dispose(id);
         } catch (e) {
-          // ignore
+          console.warn(`Dispose failed for ${id}:`, e);
         }
       });
       meshIds.length = 0;

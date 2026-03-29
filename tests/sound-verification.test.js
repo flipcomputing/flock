@@ -131,6 +131,7 @@ export function runSoundVerificationTests(flock) {
 
         // Connect to audio context destination to capture audio
         const destination = audioContext.destination;
+        analyser.connect(destination);
 
         // Wait a bit for audio to stabilize
         await new Promise((r) => setTimeout(r, 100));

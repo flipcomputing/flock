@@ -103,7 +103,7 @@ export function runSoundReplacementDiagnostic(flock) {
       flock.createBox("diagnosticBox", { x: 0, y: 0, z: 0 });
 
       console.log("\n=== Test 3: Both sounds with loop=true ===");
-      const sound1 = await flock.playSound("diagnosticBox", {
+      await flock.playSound("diagnosticBox", {
         soundName: "test.mp3",
         loop: true,
       });

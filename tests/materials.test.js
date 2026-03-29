@@ -563,12 +563,12 @@ export function runMaterialsTests(flock) {
       boxIds.push("box1");
       boxIds.push("box2");
 
-      flock.whenModelReady("box1", (box1) => {
-        flock.whenModelReady("box2", (box2) => {
+      flock.whenModelReady("box1", () => {
+        flock.whenModelReady("box2", () => {
           const materialsBefore = flock.scene.materials.length;
           flock.subtractMeshes("subtracted", "box1", ["box2"]);
           boxIds.push("subtracted");
-          flock.whenModelReady("subtracted", (mesh) => {
+          flock.whenModelReady("subtracted", () => {
             expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
           });
         });
@@ -592,12 +592,12 @@ export function runMaterialsTests(flock) {
       boxIds.push("box1");
       boxIds.push("box2");
 
-      flock.whenModelReady("box1", (box1) => {
-        flock.whenModelReady("box2", (box2) => {
+      flock.whenModelReady("box1", () => {
+        flock.whenModelReady("box2", () => {
           const materialsBefore = flock.scene.materials.length;
           flock.intersectMeshes("intersected", ["box1", "box2"]);
           boxIds.push("intersected");
-          flock.whenModelReady("intersected", (mesh) => {
+          flock.whenModelReady("intersected", () => {
             expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
           });
         });
@@ -621,12 +621,12 @@ export function runMaterialsTests(flock) {
       boxIds.push("box1");
       boxIds.push("box2");
 
-      flock.whenModelReady("box1", (box1) => {
-        flock.whenModelReady("box2", (box2) => {
+      flock.whenModelReady("box1", () => {
+        flock.whenModelReady("box2", () => {
           const materialsBefore = flock.scene.materials.length;
           flock.createHull("hull", ["box1", "box2"]);
           boxIds.push("hull");
-          flock.whenModelReady("hull", (mesh) => {
+          flock.whenModelReady("hull", () => {
             expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
           });
         });
@@ -650,8 +650,8 @@ export function runMaterialsTests(flock) {
       boxIds.push("box1");
       boxIds.push("box2");
 
-      flock.whenModelReady("box1", (box1) => {
-        flock.whenModelReady("box2", (box2) => {
+      flock.whenModelReady("box1", () => {
+        flock.whenModelReady("box2", () => {
           flock.mergeMeshes("merged", ["box1", "box2"]);
           boxIds.push("merged");
           flock.whenModelReady("merged", (mesh) => {
@@ -678,8 +678,8 @@ export function runMaterialsTests(flock) {
       boxIds.push("box1");
       boxIds.push("box2");
 
-      flock.whenModelReady("box1", (box1) => {
-        flock.whenModelReady("box2", (box2) => {
+      flock.whenModelReady("box1", () => {
+        flock.whenModelReady("box2", () => {
           flock.subtractMeshes("subtracted", "box1", ["box2"]);
           boxIds.push("subtracted");
           flock.whenModelReady("subtracted", (mesh) => {
@@ -706,8 +706,8 @@ export function runMaterialsTests(flock) {
       boxIds.push("box1");
       boxIds.push("box2");
 
-      flock.whenModelReady("box1", (box1) => {
-        flock.whenModelReady("box2", (box2) => {
+      flock.whenModelReady("box1", () => {
+        flock.whenModelReady("box2", () => {
           flock.intersectMeshes("intersected", ["box1", "box2"]);
           boxIds.push("intersected");
           flock.whenModelReady("intersected", (mesh) => {
@@ -734,8 +734,8 @@ export function runMaterialsTests(flock) {
       boxIds.push("box1");
       boxIds.push("box2");
 
-      flock.whenModelReady("box1", (box1) => {
-        flock.whenModelReady("box2", (box2) => {
+      flock.whenModelReady("box1", () => {
+        flock.whenModelReady("box2", () => {
           flock.createHull("hull", ["box1", "box2"]);
           boxIds.push("hull");
           flock.whenModelReady("hull", (mesh) => {
