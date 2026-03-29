@@ -10,7 +10,6 @@ import {
   getTooltip,
   getDropdownOption,
 } from "../main/translation.js";
-import { updateOrCreateMeshFromBlock } from "../ui/blockmesh.js";
 import { flock } from "../flock.js";
 
 export function defineTransformBlocks() {

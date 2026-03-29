@@ -188,7 +188,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const allDocs = parseAllApiFiles();
   console.log(`Parsed JSDoc from ${allDocs.size} methods`);
 
-  const complete = Array.from(allDocs.entries()).filter(([_, doc]) =>
+  const complete = Array.from(allDocs.entries()).filter(([, doc]) =>
     isJSDocComplete(doc),
   );
   console.log(`\nComplete documentation: ${complete.length}/${allDocs.size}`);

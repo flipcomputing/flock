@@ -747,7 +747,7 @@ function handleMaterialOrColorChange(
   return root;
 }
 
-function updateGroundFromBlock(mesh, block, changeEvent) {
+function updateGroundFromBlock(_mesh, _block, _changeEvent) {
   if (flock.meshDebug) console.log("Use map block instead of ground");
 }
 

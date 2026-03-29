@@ -84,7 +84,7 @@ export function registerMaterialGenerators(javascriptGenerator) {
   // Uses Blockly built in
 
   // Random colour ----------------------------------------------
-  javascriptGenerator.forBlock["random_colour"] = function (block) {
+  javascriptGenerator.forBlock["random_colour"] = function (_block) {
     const code = `randomColour()`;
     return [code, javascriptGenerator.ORDER_ATOMIC];
   };

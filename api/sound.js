@@ -745,7 +745,7 @@ export const flockSound = {
     }
 
     if (mode === "await") {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         utterance.onend = () => {
           if (spatialAudioSetup) {
             spatialAudioSetup.cleanup();

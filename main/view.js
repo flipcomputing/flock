@@ -662,8 +662,6 @@ class PanelResizer {
     // Get current widths
     const currentCanvasWidth = this.canvasArea.offsetWidth;
     const currentCodeWidth = this.codePanel.offsetWidth;
-    const mainRect = this.mainContent.getBoundingClientRect();
-    const resizerWidth = 0;
     const minPanelWidth = 300;
 
     // Calculate new widths

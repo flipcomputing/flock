@@ -241,7 +241,7 @@ class CustomColorPicker {
   updateLightnessHandle() {
     if (!this.lightHandle || !this.lightSlider) return;
 
-    const { rect, handleHalf, trackH } = this._getLightTrackMetrics();
+    const { handleHalf, trackH } = this._getLightTrackMetrics();
     const L = clampL(this.currentLightness ?? 60);
 
     // Map L within [L_MIN..L_MAX] to t in [0..1]

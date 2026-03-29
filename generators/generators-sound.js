@@ -74,7 +74,7 @@ export function registerSoundGenerators(javascriptGenerator) {
   };
 
   // Stop all sounds ---------------------------------------------
-  javascriptGenerator.forBlock["stop_all_sounds"] = function (block) {
+  javascriptGenerator.forBlock["stop_all_sounds"] = function (_block) {
     // JavaScript code to stop all sounds in a Babylon.js scene
     return "stopAllSounds();\n";
   };

@@ -2,7 +2,6 @@
 
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import {
   extractApiMethods,
   findMethodImplementation,
@@ -15,8 +14,6 @@ import {
 } from "./utils/test-analyzer.mjs";
 import { parseApiMd, getDocumentationStatus } from "./utils/parse-api-md.mjs";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 /**
  * Generate comprehensive API coverage report

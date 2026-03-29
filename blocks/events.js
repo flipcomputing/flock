@@ -150,7 +150,7 @@ export function defineEventsBlocks() {
       );
 
       // Add toggle button to a separate input
-      const input = this.appendDummyInput()
+      this.appendDummyInput()
         .setAlign(Blockly.inputs.Align.RIGHT) // Align toggle button to the right
         .appendField(toggleButton, "TOGGLE_BUTTON");
     },

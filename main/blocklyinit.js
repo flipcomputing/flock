@@ -166,7 +166,7 @@ function initializeIfClauseConnectionChecker(workspace) {
     }
 
     // Determine the type of connection
-    let movingBlock, targetBlock, movingConnection, targetConnection;
+    let movingBlock, targetBlock, targetConnection;
 
     if (
       a.type === Blockly.PREVIOUS_STATEMENT &&
@@ -174,7 +174,6 @@ function initializeIfClauseConnectionChecker(workspace) {
     ) {
       movingBlock = blockA;
       targetBlock = blockB;
-      movingConnection = a;
       targetConnection = b;
     } else if (
       a.type === Blockly.NEXT_STATEMENT &&
@@ -182,7 +181,6 @@ function initializeIfClauseConnectionChecker(workspace) {
     ) {
       movingBlock = blockB;
       targetBlock = blockA;
-      movingConnection = b;
       targetConnection = a;
     } else {
       return true; // Not a statement connection
@@ -678,7 +676,7 @@ export function createBlocklyWorkspace() {
   const shortcutRegistry = Blockly.ShortcutRegistry.registry;
   shortcutRegistry.removeAllKeyMappings?.("menu");
   shortcutRegistry.unregister?.("menu");
-  const keyboardNav = new KeyboardNavigation(workspace);
+  new KeyboardNavigation(workspace);
 
   // Monkey-patch
   const toolbox = workspace.getToolbox();

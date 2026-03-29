@@ -91,7 +91,7 @@ export function defineConditionBlocks() {
       while (this.inputList.length) this.removeInput(this.inputList[0].name);
 
       // IF0 row
-      const if0Input = this.appendValueInput("IF0")
+      this.appendValueInput("IF0")
         .setCheck("Boolean")
         .appendField("if");
       this.appendDummyInput("ICONS_IF0")
@@ -101,7 +101,7 @@ export function defineConditionBlocks() {
 
       // ELSE IFs
       for (let i = 1; i <= this.elseifCount_; i++) {
-        const input = this.appendValueInput("IF" + i)
+        this.appendValueInput("IF" + i)
           .setCheck("Boolean")
           .appendField("else if");
         this.appendDummyInput("ICONS_" + i)

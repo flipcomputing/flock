@@ -157,7 +157,7 @@ function initializeApp() {
     window.addEventListener("click", onOutside, { capture: true });
   })();
 
-  const observer = new MutationObserver((mutations) => {
+  const observer = new MutationObserver(() => {
     const unmuteButton = document.getElementById("babylonUnmuteButton");
     if (unmuteButton && !unmuteButton.getAttribute("aria-label")) {
       unmuteButton.setAttribute("aria-label", translate("unmute_audio_aria"));
