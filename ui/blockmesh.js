@@ -1296,7 +1296,7 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   //if (meshes.length && mesh.physics) mesh.physics.disablePreStep = true;
 
   if (block.type === "set_sky_color") {
-    updateSkyFromBlock(null, block, changeEvent);
+    updateSkyFromBlock(block);
     return;
   }
 
