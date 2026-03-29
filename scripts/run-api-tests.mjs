@@ -51,6 +51,10 @@ const AVAILABLE_SUITES = [
     pattern: "@diagnostic",
   },
   { id: "physics", name: "Physics Tests (6 tests)", pattern: "@physics" },
+  { id: "sound2", name: "Sound2 Tests (BPM and speech)", pattern: "@sound2" },
+  { id: "camera", name: "Camera API Tests", pattern: "@camera" },
+  { id: "control", name: "Control API Tests", pattern: "@control" },
+  { id: "xr", name: "XR API Tests", pattern: "@xr" },
   {
     id: "materials",
     name: "Materials Tests (22 tests)",
@@ -111,9 +115,29 @@ const AVAILABLE_SUITES = [
     pattern: "XR exportMesh GLB tests",
   },
   {
+    id: "meshhierarchy",
+    name: "Mesh Hierarchy Tests",
+    pattern: "@meshhierarchy",
+  },
+  {
     id: "characterAnimations",
     name: "Character Animation API",
     pattern: "Character Animation API",
+  },
+  {
+    id: "math",
+    name: "Math API Tests",
+    pattern: "@math",
+  },
+  {
+    id: "shapes",
+    name: "Shapes API Tests",
+    pattern: "@shapes",
+  },
+  {
+    id: "sensing",
+    name: "Sensing API Tests",
+    pattern: "@sensing",
   },
 ];
 
@@ -250,7 +274,14 @@ async function checkServerHealth(url, maxAttempts = 30) {
 /**
  * Start the Vite development server
  */
-function startServer() {
+async function startServer() {
+  const alreadyRunning = await checkServerHealth("http://127.0.0.1:5173", 3);
+  if (alreadyRunning) {
+    console.log("✅ Reusing existing development server\n");
+    serverReady = true;
+    return;
+  }
+
   return new Promise((resolve, reject) => {
     console.log("🚀 Starting development server...");
 
@@ -327,7 +358,7 @@ function startServer() {
     async function verifyServerWithHealthCheck() {
       console.log("   🔍 Verifying server is responsive...");
 
-      const isHealthy = await checkServerHealth("http://localhost:5173", 10);
+      const isHealthy = await checkServerHealth("http://127.0.0.1:5173", 10);
 
       if (isHealthy) {
         console.log("✅ Development server started and responding\n");
@@ -367,7 +398,7 @@ function startServer() {
           );
         }
 
-        const isHealthy = await checkServerHealth("http://localhost:5173", 20);
+        const isHealthy = await checkServerHealth("http://127.0.0.1:5173", 20);
 
         if (isHealthy) {
           serverReady = true;
@@ -477,7 +508,7 @@ async function runTests(suiteId = "all") {
 
   // Navigate to test page
   console.log("📄 Loading test page...");
-  await page.goto("http://localhost:5173/tests/tests.html", {
+  await page.goto("http://127.0.0.1:5173/tests/tests.html", {
     waitUntil: "networkidle",
     timeout: 60000,
   });

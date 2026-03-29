@@ -1,5 +1,31 @@
 import { expect } from "chai";
 
+function configureDraco(BABYLON) {
+  const base = import.meta?.env?.BASE_URL ?? "/";
+  const root = base.endsWith("/") ? base : `${base}/`;
+  BABYLON.DracoCompression.DefaultNumWorkers = 0;
+  BABYLON.DracoCompression.Configuration = {
+    decoder: {
+      wasmUrl: `${root}draco/draco_wasm_wrapper_gltf.js`,
+      wasmBinaryUrl: `${root}draco/draco_decoder_gltf.wasm`,
+      fallbackUrl: `${root}draco/draco_decoder_gltf.js`,
+    },
+  };
+}
+
+async function pumpAnimation(flock, promise) {
+  const interval = setInterval(() => {
+    flock.scene.render();
+  }, 0);
+  try {
+    await promise;
+    flock.scene.render();
+    flock.scene.render();
+  } finally {
+    clearInterval(interval);
+  }
+}
+
 export function runCreateObjectTests(flock) {
   describe("createObject tests @slow", function () {
     this.timeout(5000);
@@ -256,6 +282,98 @@ export function runCreateObjectTests(flock) {
         await flock.wait(0.5);
         await flock.setColor(tree, ["#ffffff", "#000000"]);
       }
+    });
+  });
+}
+
+export function runCreateModelTests(flock) {
+  describe("createModel tests @slow", function () {
+    this.timeout(10000);
+
+    const modelName = "Flock.glb";
+    const modelId = "flock-model-test";
+    let meshId;
+
+    before(async function () {
+      if (flock.engine) flock.engine.dispose();
+
+      flock.modelCache = {};
+      flock.modelsBeingLoaded = {};
+
+      flock.engine = new flock.BABYLON.NullEngine();
+      flock.scene = new flock.BABYLON.Scene(flock.engine);
+      flock.BABYLON.SceneLoader.ShowLoadingScreen = false;
+
+      new flock.BABYLON.FreeCamera(
+        "testCamera",
+        flock.BABYLON.Vector3.Zero(),
+        flock.scene,
+      );
+
+      const baseMock = {
+        name: "MockPhysics",
+        getPluginVersion: () => 2,
+        isInitialized: () => true,
+        _checkIsReady: () => true,
+        onMeshRemovedObservable: new flock.BABYLON.Observable(),
+        onBeforePhysicsObservable: new flock.BABYLON.Observable(),
+        onAfterPhysicsObservable: new flock.BABYLON.Observable(),
+        getTimeStep: () => 1 / 60,
+        getMotionType: () => 1,
+        dispose: () => {},
+      };
+
+      const physicsMock = new Proxy(baseMock, {
+        get: (target, prop) => (prop in target ? target[prop] : () => {}),
+      });
+
+      flock.scene.enablePhysics(
+        new flock.BABYLON.Vector3(0, -9.81, 0),
+        physicsMock,
+      );
+
+      configureDraco(flock.BABYLON);
+
+      meshId = flock.createModel({
+        modelName,
+        modelId,
+        position: { x: 1, y: 0, z: 2 },
+      });
+
+      await pumpAnimation(flock, flock.show(meshId));
+    });
+
+    after(function () {
+      flock.dispose(meshId);
+    });
+
+    it("createModel returns a string ID", function () {
+      expect(meshId).to.be.a("string");
+    });
+
+    it("mesh exists in the scene after loading", function () {
+      const mesh = flock.scene.getMeshByName(meshId);
+      expect(mesh).to.exist;
+    });
+
+    it("mesh metadata has the correct modelName", function () {
+      const mesh = flock.scene.getMeshByName(meshId);
+      expect(mesh.metadata?.modelName).to.equal(modelName);
+    });
+
+    it("mesh is placed at the given position", function () {
+      const mesh = flock.scene.getMeshByName(meshId);
+      expect(mesh.position.x).to.be.closeTo(1, 0.01);
+      expect(mesh.position.z).to.be.closeTo(2, 0.01);
+    });
+
+    it("show and hide work on the loaded model", async function () {
+      await pumpAnimation(flock, flock.hide(meshId));
+      const mesh = flock.scene.getMeshByName(meshId);
+      expect(mesh.isEnabled()).to.be.false;
+
+      await pumpAnimation(flock, flock.show(meshId));
+      expect(mesh.isEnabled()).to.be.true;
     });
   });
 }

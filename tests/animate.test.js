@@ -959,5 +959,32 @@ export function runAnimateTests(flock) {
         expect(endTime - startTime).to.be.lessThan(100);
       });
     });
+
+    describe("rotateToObject", function () {
+      it("should rotate mesh1 to face mesh2", async function () {
+        const id1 = "rotateToObjA";
+        const id2 = "rotateToObjB";
+        await flock.createBox(id1, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        await flock.createBox(id2, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [5, 0, 0],
+        });
+        boxIds.push(id1, id2);
+
+        const mesh1 = flock.scene.getMeshByName(id1);
+        const initialRotationY = mesh1.rotation.y;
+
+        await flock.rotateToObject(id1, id2, { duration: 0 });
+
+        expect(mesh1.rotation.y).to.not.be.closeTo(initialRotationY, 0.001);
+      });
+    });
   });
 }

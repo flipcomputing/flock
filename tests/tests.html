@@ -26,9 +26,6 @@
         display: block !important;
       }
 
-      #mocha-report {
-      }
-
       #mocha-report h1 {
         font-size: 1.1em;
       }
@@ -141,6 +138,13 @@
           pattern: "Flock API Tests",
         },
         {
+          id: "scene",
+          name: "Scene API Tests",
+          importPath: "./scene.test.js",
+          importFn: "runSceneTests",
+          pattern: "Scene API Tests",
+        },
+        {
           id: "glide",
           name: "Glide Animation Tests",
           importPath: "./glide.test.js",
@@ -162,6 +166,20 @@
           pattern: "UIText, UIButton, UIInput, and UISlider function tests",
         },
         {
+          id: "printtext",
+          name: "printText Tests",
+          importPath: "./printtext.test.js",
+          importFn: "runPrintTextTests",
+          pattern: "printText function tests",
+        },
+        {
+          id: "buttoncontrols",
+          name: "Button Controls Tests",
+          importPath: "./buttoncontrols.test.js",
+          importFn: "runButtonControlsTests",
+          pattern: "buttonControls function tests",
+        },
+        {
           id: "stress",
           name: "Stress Tests (Boxes)",
           importPath: "./boxes.test.js",
@@ -174,6 +192,13 @@
           importPath: "./objects.test.js",
           importFn: "runCreateObjectTests",
           pattern: "createObject tests",
+        },
+        {
+          id: "models",
+          name: "Model Creation Tests",
+          importPath: "./objects.test.js",
+          importFn: "runCreateModelTests",
+          pattern: "createModel tests",
         },
         {
           id: "sound",
@@ -246,6 +271,48 @@
           pattern: "@physics",
         },
         {
+          id: "sound2",
+          name: "Sound2 Tests",
+          importPath: "./sound2.test.js",
+          importFn: "runSound2Tests",
+          pattern: "@sound2",
+        },
+        {
+          id: "camera",
+          name: "Camera API Tests",
+          importPath: "./camera.test.js",
+          importFn: "runCameraTests",
+          pattern: "@camera",
+        },
+        {
+          id: "control",
+          name: "Control API Tests",
+          importPath: "./control.test.js",
+          importFn: "runControlTests",
+          pattern: "@control",
+        },
+        {
+          id: "xr",
+          name: "XR API Tests",
+          importPath: "./xr.test.js",
+          importFn: "runXRTests",
+          pattern: "@xr",
+        },
+        {
+          id: "movement",
+          name: "Movement API Tests",
+          importPath: "./movement.test.js",
+          importFn: "runMovementTests",
+          pattern: "@movement",
+        },
+        {
+          id: "events",
+          name: "Events API Tests",
+          importPath: "./events.test.js",
+          importFn: "runEventsTests",
+          pattern: "Events API",
+        },
+        {
           id: "effects",
           name: "Effects Tests",
           importPath: "./effects.test.js",
@@ -294,6 +361,34 @@
           importPath: "./xr-export.test.js",
           importFn: "runXRExportTests",
           pattern: "XR exportMesh GLB tests",
+        },
+        {
+          id: "meshhierarchy",
+          name: "Mesh Hierarchy Tests",
+          importPath: "./mesh-hierarchy.test.js",
+          importFn: "runMeshHierarchyTests",
+          pattern: "@meshhierarchy",
+        },
+        {
+          id: "math",
+          name: "Math API Tests",
+          importPath: "./math.test.js",
+          importFn: "runMathTests",
+          pattern: "@math",
+        },
+        {
+          id: "shapes",
+          name: "Shapes API Tests",
+          importPath: "./shapes.test.js",
+          importFn: "runShapesTests",
+          pattern: "@shapes",
+        },
+        {
+          id: "sensing",
+          name: "Sensing API Tests",
+          importPath: "./sensing.test.js",
+          importFn: "runSensingTests",
+          pattern: "@sensing",
         },
       ];
 

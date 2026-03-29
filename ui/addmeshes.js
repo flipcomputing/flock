@@ -106,16 +106,6 @@ export function createMeshOnCanvas(block) {
         .getFieldValue("COLOR");
       flock.setSky(color, { clear: true });
       break;
-    case "create_ground":
-      meshId = "ground";
-      meshMap[meshId] = block;
-      meshBlockIdMap[meshId] = block.id;
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
-      flock.createGround(color, "ground");
-      break;
     case "create_map":
       meshId = "ground";
       meshMap[meshId] = block;

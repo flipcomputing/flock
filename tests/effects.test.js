@@ -188,5 +188,69 @@ export function runEffectsTests(flock) {
       identicalPairMaterial.dispose();
       singleColorMaterial.dispose();
     });
+
+    it("getMainLight should return '__main_light__'", function () {
+      expect(flock.getMainLight()).to.equal("__main_light__");
+    });
+
+    it("lightColor should set diffuse and ground color on the main light", function () {
+      const originalMainLight = flock.mainLight;
+      const light = { intensity: 1, diffuse: null, groundColor: null };
+      flock.mainLight = light;
+      flock.lightColor("#ff0000", "#0000ff");
+      expect(light.diffuse.r).to.be.closeTo(1, 0.01);
+      expect(light.diffuse.g).to.be.closeTo(0, 0.01);
+      expect(light.diffuse.b).to.be.closeTo(0, 0.01);
+      expect(light.groundColor.r).to.be.closeTo(0, 0.01);
+      expect(light.groundColor.g).to.be.closeTo(0, 0.01);
+      expect(light.groundColor.b).to.be.closeTo(1, 0.01);
+      flock.mainLight = originalMainLight;
+    });
+
+    it("startParticleSystem should start a stopped particle system", function () {
+      const ps = new flock.BABYLON.ParticleSystem(
+        "startTestPS",
+        100,
+        flock.scene,
+      );
+      ps.emitter = flock.BABYLON.Vector3.Zero();
+      createdEffects.push("startTestPS");
+
+      ps.stop();
+      expect(ps.isStarted()).to.be.false;
+
+      flock.startParticleSystem("startTestPS");
+      expect(ps.isStarted()).to.be.true;
+    });
+
+    it("stopParticleSystem should mark the particle system as stopped", function () {
+      const ps = new flock.BABYLON.ParticleSystem(
+        "stopTestPS",
+        100,
+        flock.scene,
+      );
+      ps.emitter = flock.BABYLON.Vector3.Zero();
+      createdEffects.push("stopTestPS");
+
+      ps.start();
+      expect(ps._stopped).to.be.false;
+
+      flock.stopParticleSystem("stopTestPS");
+      expect(ps._stopped).to.be.true;
+    });
+
+    it("resetParticleSystem should clear all particles", function () {
+      const ps = new flock.BABYLON.ParticleSystem(
+        "resetTestPS",
+        100,
+        flock.scene,
+      );
+      ps.emitter = flock.BABYLON.Vector3.Zero();
+      createdEffects.push("resetTestPS");
+
+      flock.resetParticleSystem("resetTestPS");
+      expect(ps._particles).to.have.lengthOf(0);
+      expect(ps._stockParticles).to.have.lengthOf(0);
+    });
   });
 }

@@ -415,4 +415,46 @@ export function runTranslationTests(flock) {
       expect(distance).to.be.closeTo(0.00141, 0.0001); // sqrt(0.001² + 0.001²)
     });
   });
+
+  describe("positionAtSingleCoordinate @translation", function () {
+    let boxId;
+
+    beforeEach(async function () {
+      boxId = `singleCoordBox_${Date.now()}`;
+      await flock.createBox(boxId, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+    });
+
+    afterEach(function () {
+      try {
+        flock.dispose(boxId);
+      } catch (e) {
+        console.warn(`Failed to dispose ${boxId}:`, e);
+      }
+    });
+
+    it("should set only the x coordinate", async function () {
+      await flock.positionAtSingleCoordinate(boxId, "x_coordinate", 7);
+      const mesh = flock.scene.getMeshByName(boxId);
+      expect(mesh.position.x).to.be.closeTo(7, 0.01);
+    });
+
+    it("should set only the y coordinate", async function () {
+      await flock.positionAtSingleCoordinate(boxId, "y_coordinate", 4);
+      const mesh = flock.scene.getMeshByName(boxId);
+      mesh.computeWorldMatrix(true);
+      const minWorldY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+      expect(minWorldY).to.be.closeTo(4, 0.01);
+    });
+
+    it("should set only the z coordinate", async function () {
+      await flock.positionAtSingleCoordinate(boxId, "z_coordinate", -3);
+      const mesh = flock.scene.getMeshByName(boxId);
+      expect(mesh.position.z).to.be.closeTo(-3, 0.01);
+    });
+  });
 }
