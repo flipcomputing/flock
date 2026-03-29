@@ -882,7 +882,7 @@ export default {
   pin_a_option: "Gesture: TiltLeft",
   pin_d_option: "Gesture: TiltRight",
   pin_y_option: "Gesture: ScreenUp",
-  pin_h_option: "Gesture: ScreenDown",
+  pin_g_option: "Gesture: ScreenDown",
   pin_i_option: "Gesture: Shake",
 
   SMALL_option: "small",

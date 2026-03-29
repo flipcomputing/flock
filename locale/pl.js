@@ -890,7 +890,7 @@ export default {
   pin_a_option: "Gest: przechylenie w lewo",
   pin_d_option: "Gest: przechylenie w prawo",
   pin_y_option: "Gest: ekran do góry",
-  pin_h_option: "Gest: ekran w dół",
+  pin_g_option: "Gest: ekran w dół",
   pin_i_option: "Gest: potrząsanie",
 
   SMALL_option: "mały",
@@ -954,8 +954,6 @@ export default {
   _14px_option: "mały",
   _18px_option: "średni",
   _24px_option: "duży",
-
-  __fonts_FreeSans_Bold_json_option: "Free Sans",
 
   VR_option: "VR (Oculus Quest lub viewer mobilny)",
   AR_option: "AR (Rzeczywistość rozszerzona)",

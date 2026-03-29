@@ -434,7 +434,7 @@ export function defineSensingBlocks() {
               [getOption("pin_a"), "a"],
               [getOption("pin_d"), "d"],
               [getOption("pin_y"), "y"],
-              [getOption("pin_h"), "h"],
+              [getOption("pin_g"), "g"],
               [getOption("pin_i"), "i"],
             ],
           },

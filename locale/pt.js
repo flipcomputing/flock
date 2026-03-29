@@ -889,7 +889,7 @@ export default {
   pin_a_option: "Gesto: Inclinar à Esquerda",
   pin_d_option: "Gesto: Inclinar à Direita",
   pin_y_option: "Gesto: Ecrã Para Cima",
-  pin_h_option: "Gesto: Ecrã Para Baixo",
+  pin_g_option: "Gesto: Ecrã Para Baixo",
   pin_i_option: "Gesto: Abanar",
 
   SMALL_option: "pequeno",
@@ -953,8 +953,6 @@ export default {
   _14px_option: "pequeno",
   _18px_option: "médio",
   _24px_option: "grande",
-
-  __fonts_FreeSans_Bold_json_option: "Free Sans",
 
   VR_option: "VR (Oculus Quest ou visor de telemóvel)",
   AR_option: "AR (Realidade Aumentada)",

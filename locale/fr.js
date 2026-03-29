@@ -897,7 +897,7 @@ export default {
   pin_a_option: "Geste: Inclinaison gauche",
   pin_d_option: "Geste: Inclinaison droite",
   pin_y_option: "Geste: Écran vers le haut",
-  pin_h_option: "Geste: Écran vers le bas",
+  pin_g_option: "Geste: Écran vers le bas",
   pin_i_option: "Geste: Secouer",
 
   SMALL_option: "petit",
@@ -1012,7 +1012,6 @@ export default {
 
   // HTML translations
   loading_ui: "Chargement de Flock XR...",
-  loading_success_ui: "Flock XR chargé avec succès",
   loading_title_ui: "Chargement de Flock XR",
   import_project_file_ui: "Importer un fichier de projet",
 
@@ -1188,8 +1187,6 @@ export default {
   // Service worker update notification
   update_available_ui: "Une nouvelle version de Flock est disponible.",
   reload_button_ui: "Recharger",
-
-  about_heading_ui: "À propos de Flock XR",
 
   colour_rgb: "rouge %1 vert %2 bleu %3",
   colour_random: "couleur aléatoire",

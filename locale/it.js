@@ -895,7 +895,7 @@ export default {
   pin_a_option: "Gesto: Inclina sinistra",
   pin_d_option: "Gesto: Inclina destra",
   pin_y_option: "Gesto: Schermo su",
-  pin_h_option: "Gesto: Schermo giù",
+  pin_g_option: "Gesto: Schermo giù",
   pin_i_option: "Gesto: Scuoti",
 
   SMALL_option: "piccolo",
