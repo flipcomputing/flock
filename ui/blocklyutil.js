@@ -218,7 +218,9 @@ export function createBlockForObject(
 
     try {
       setPositionValues?.(block, pickedPosition, command);
-    } catch {}
+    } catch (error) {
+      console.warn("setPositionValues failed for object block:", error);
+    }
 
     const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
     const conn = startBlock?.getInput("DO")?.connection;
@@ -232,7 +234,9 @@ export function createBlockForObject(
 
     try {
       highlightBlockById?.(workspace, block);
-    } catch {}
+    } catch (error) {
+      console.warn("highlightBlockById failed for object block:", error);
+    }
   } finally {
     if (startTempGroup) Blockly.Events.setGroup(false);
     else Blockly.Events.setGroup(prevGroup);
@@ -284,7 +288,9 @@ export function createBlockForCharacter(
 
     try {
       setPositionValues?.(charBlock, pickedPosition, "load_character");
-    } catch {}
+    } catch (error) {
+      console.warn("setPositionValues failed for character block:", error);
+    }
 
     const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
     const conn = startBlock?.getInput("DO")?.connection;
@@ -298,7 +304,9 @@ export function createBlockForCharacter(
 
     try {
       highlightBlockById?.(workspace, charBlock);
-    } catch {}
+    } catch (error) {
+      console.warn("highlightBlockById failed for character block:", error);
+    }
   } finally {
     if (startTempGroup) Blockly.Events.setGroup(false);
     else Blockly.Events.setGroup(prevGroup);

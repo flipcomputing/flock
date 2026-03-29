@@ -175,7 +175,9 @@ export function initializeBlockHandling() {
 
           const h = block.getHeightWidth?.().height || 40;
           cursorY += h + spacing;
-        } catch {}
+        } catch (error) {
+          console.warn("Suppressed non-critical error:", error);
+        }
       }
 
       // Original z-order behaviour: top-level blocks (any type) to the front.
@@ -196,7 +198,9 @@ export function initializeBlockHandling() {
             }
           }
         }
-      } catch {}
+      } catch (error) {
+        console.warn("Suppressed non-critical error:", error);
+      }
     } finally {
       Blockly.Events.setGroup(false);
 
@@ -209,7 +213,9 @@ export function initializeBlockHandling() {
         if (navCursor && prevCurNode) {
           try {
             navCursor.setCurNode(prevCurNode);
-          } catch {}
+          } catch (error) {
+            console.warn("Suppressed non-critical error:", error);
+          }
         }
 
         // Put DOM focus back on the block's SVG root for keyboard users
@@ -217,12 +223,16 @@ export function initializeBlockHandling() {
         if (svgRoot && svgRoot.focus) {
           try {
             svgRoot.focus({ preventScroll: true });
-          } catch {}
+          } catch (error) {
+            console.warn("Suppressed non-critical error:", error);
+          }
         } else if (prevActiveEl && document.contains(prevActiveEl)) {
           // Fallback: restore whatever had focus before
           try {
             prevActiveEl.focus?.({ preventScroll: true });
-          } catch {}
+          } catch (error) {
+            console.warn("Suppressed non-critical error:", error);
+          }
         }
       }
     }

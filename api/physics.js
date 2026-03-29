@@ -3,9 +3,15 @@ let flock;
 const getShapeTypeFromPhysics = (physics) => {
   if (!physics?.shape) return null;
   const shape = physics.shape;
-  if (flock?.BABYLON?.PhysicsShapeCapsule && shape instanceof flock.BABYLON.PhysicsShapeCapsule)
+  if (
+    flock?.BABYLON?.PhysicsShapeCapsule &&
+    shape instanceof flock.BABYLON.PhysicsShapeCapsule
+  )
     return "CAPSULE";
-  if (flock?.BABYLON?.PhysicsShapeMesh && shape instanceof flock.BABYLON.PhysicsShapeMesh)
+  if (
+    flock?.BABYLON?.PhysicsShapeMesh &&
+    shape instanceof flock.BABYLON.PhysicsShapeMesh
+  )
     return "MESH";
   return null;
 };
@@ -38,10 +44,14 @@ const disposePhysics = (targetMesh) => {
   // Dispose of the shape explicitly
   try {
     body.shape?.dispose?.();
-  } catch {}
+  } catch (error) {
+    console.warn("Suppressed non-critical error:", error);
+  }
   try {
     body.dispose?.();
-  } catch {}
+  } catch (error) {
+    console.warn("Suppressed non-critical error:", error);
+  }
   targetMesh.physics = null;
 };
 
@@ -166,11 +176,17 @@ export const flockPhysics = {
         Math.max(width, depth) / 2,
         flock.scene,
       );
-    } else if (flock?.BABYLON?.PhysicsShapeCapsule && physicsShape instanceof flock.BABYLON.PhysicsShapeCapsule) {
+    } else if (
+      flock?.BABYLON?.PhysicsShapeCapsule &&
+      physicsShape instanceof flock.BABYLON.PhysicsShapeCapsule
+    ) {
       detectedShapeType = "CAPSULE";
       newShape = createPhysicsShape(mesh, "CAPSULE");
       if (!newShape) return;
-    } else if (flock?.BABYLON?.PhysicsShapeMesh && physicsShape instanceof flock.BABYLON.PhysicsShapeMesh) {
+    } else if (
+      flock?.BABYLON?.PhysicsShapeMesh &&
+      physicsShape instanceof flock.BABYLON.PhysicsShapeMesh
+    ) {
       detectedShapeType = "MESH";
       newShape = createPhysicsShape(mesh, "MESH");
       if (!newShape) return;
@@ -190,7 +206,7 @@ export const flockPhysics = {
       parent,
       isCapsule
         ? flock.BABYLON.PhysicsMotionType.DYNAMIC
-        : motionType ?? flock.BABYLON.PhysicsMotionType.STATIC,
+        : (motionType ?? flock.BABYLON.PhysicsMotionType.STATIC),
       false,
       flock.scene,
     );
@@ -216,7 +232,7 @@ export const flockPhysics = {
         mesh.computeWorldMatrix(true);
       });
     });
-     return beforePhysicsObserver;
+    return beforePhysicsObserver;
   },
   up(meshName, upForce = 10) {
     const mesh = flock.scene.getMeshByName(meshName);
@@ -347,7 +363,7 @@ export const flockPhysics = {
         const applyMeshPhysicsShape = (targetMesh) => {
           const { motionType, disablePreStep } =
             capturePhysicsState(targetMesh);
-        
+
           if (!targetMesh.material) {
             disposePhysics(targetMesh);
             return;
@@ -800,10 +816,14 @@ export const flockPhysics = {
             cleanups.push(() => {
               try {
                 enterReg?.dispose();
-              } catch (_) {}
+              } catch (_) {
+                console.warn("Suppressed non-critical error:", _);
+              }
               try {
                 exitReg?.dispose();
-              } catch (_) {}
+              } catch (_) {
+                console.warn("Suppressed non-critical error:", _);
+              }
             });
 
             // If the caller asks for a specific trigger callback semantics (e.g. Exit),
@@ -829,7 +849,9 @@ export const flockPhysics = {
               cleanups.push(() => {
                 try {
                   reg?.dispose();
-                } catch (_) {}
+                } catch (_) {
+                  console.warn("Suppressed non-critical error:", _);
+                }
               });
             }
           }
@@ -924,7 +946,9 @@ export const flockPhysics = {
     if (sceneChanged || engineChanged) {
       try {
         flock.physicsViewer?.dispose?.();
-      } catch (_) {}
+      } catch (_) {
+        console.warn("Suppressed non-critical error:", _);
+      }
       flock.physicsViewer = null;
       flock._physicsViewerScene = null;
       flock._physicsViewerEngine = null;
@@ -943,7 +967,9 @@ export const flockPhysics = {
       scene.onDisposeObservable.add(() => {
         try {
           flock.physicsViewer?.dispose?.();
-        } catch (_) {}
+        } catch (_) {
+          console.warn("Suppressed non-critical error:", _);
+        }
         flock.physicsViewer = null;
         flock._physicsViewerScene = null;
         flock._physicsViewerEngine = null;
@@ -985,7 +1011,9 @@ export const flockPhysics = {
           try {
             flock.physicsViewer.showBody(body);
             flock._physicsBodiesShown.add(body);
-          } catch (_) {}
+          } catch (_) {
+            console.warn("Suppressed non-critical error:", _);
+          }
         }
       }
       flock.physicsViewerActive = true;
@@ -994,7 +1022,9 @@ export const flockPhysics = {
         if (flock._physicsBodiesShown.has(body)) {
           try {
             flock.physicsViewer.hideBody(body);
-          } catch (_) {}
+          } catch (_) {
+            console.warn("Suppressed non-critical error:", _);
+          }
           flock._physicsBodiesShown.delete(body);
         }
       }
@@ -1004,7 +1034,9 @@ export const flockPhysics = {
       // Comment these out if you prefer to keep the instance around.
       try {
         flock.physicsViewer?.dispose?.();
-      } catch (_) {}
+      } catch (_) {
+        console.warn("Suppressed non-critical error:", _);
+      }
       flock.physicsViewer = null;
       flock._physicsViewerScene = null;
       flock._physicsViewerEngine = null;

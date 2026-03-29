@@ -28,7 +28,9 @@ export const flockModels = {
         container.textures = [];
         container.skeletons = [];
         container.animationGroups = [];
-      } catch (_) {}
+      } catch (_) {
+        console.warn("Suppressed non-critical error:", _);
+      }
     };
 
     // --- validate ---
@@ -104,7 +106,9 @@ export const flockModels = {
     const onAbort = () => {
       try {
         rejectReady(new Error("aborted"));
-      } catch {}
+      } catch (error) {
+        console.warn("Suppressed non-critical error:", error);
+      }
       flock.modelReadyPromises.delete(meshName);
       if (
         originalBase !== meshName &&
@@ -232,7 +236,9 @@ export const flockModels = {
         container.textures = [];
         container.skeletons = [];
         container.animationGroups = [];
-      } catch (_) {}
+      } catch (_) {
+        console.warn("Suppressed non-critical error:", _);
+      }
     };
 
     const applyMaterialToHierarchy = (mesh, colorInput) => {

@@ -1644,22 +1644,35 @@ function replaceMeshModel(currentMesh, block) {
     return null;
   }
 
+  const warnSuppressed = (operation, error) => {
+    console.warn(
+      `[replaceMeshModel] Suppressed non-critical error in ${operation}:`,
+      error,
+    );
+  };
+
   function disposeTree(node) {
     if (!node || node.isDisposed?.()) return;
     const kids = node.getChildren ? node.getChildren() : [];
     for (const k of kids) disposeTree(k);
     try {
       node.setParent?.(null);
-    } catch {}
+    } catch (error) {
+      warnSuppressed("disposeTree:setParent", error);
+    }
     try {
       node.dispose?.();
-    } catch {}
+    } catch (error) {
+      warnSuppressed("disposeTree:dispose", error);
+    }
   }
 
   function disposePhysics(node) {
     try {
       node.physics?.dispose?.();
-    } catch {}
+    } catch (error) {
+      warnSuppressed("disposePhysics:physics.dispose", error);
+    }
   }
 
   function stripPhysicsTree(root) {
@@ -1760,7 +1773,9 @@ function replaceMeshModel(currentMesh, block) {
           n.refreshBoundingInfo?.();
           const y = n.getBoundingInfo().boundingBox.minimumWorld.y;
           if (y < minY) minY = y;
-        } catch {}
+        } catch (error) {
+          warnSuppressed("worldBaseYOfRenderables:boundingInfo", error);
+        }
       }
     }
     return isFinite(minY) ? minY : null;
@@ -1906,7 +1921,9 @@ function replaceMeshModel(currentMesh, block) {
       // Detach new child from its loader wrapper
       try {
         newChild.setParent?.(null, true);
-      } catch {}
+      } catch (error) {
+        warnSuppressed("detachNewChild:setParent", error);
+      }
 
       // Collect bone-attached objects from the target's metadata list.
       // This is more reliable than traversing the BabylonJS hierarchy because
@@ -1967,11 +1984,15 @@ function replaceMeshModel(currentMesh, block) {
       if (oldChildScale && newChild.scaling) {
         try {
           newChild.scaling.copyFrom(oldChildScale);
-        } catch {}
+        } catch (error) {
+          warnSuppressed("applyOldScale:copyFrom", error);
+        }
         try {
           newChild.computeWorldMatrix(true);
           newChild.refreshBoundingInfo?.();
-        } catch {}
+        } catch (error) {
+          warnSuppressed("applyOldScale:refreshBounds", error);
+        }
       }
 
       // Base alignment (world) uses updated bounds
@@ -1988,7 +2009,9 @@ function replaceMeshModel(currentMesh, block) {
               new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
             );
           }
-        } catch {}
+        } catch (error) {
+          warnSuppressed("baseAlignmentPrimary:setAbsolutePosition", error);
+        }
       }
 
       // Base alignment (world)
@@ -2005,7 +2028,9 @@ function replaceMeshModel(currentMesh, block) {
               new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
             );
           }
-        } catch {}
+        } catch (error) {
+          warnSuppressed("baseAlignmentSecondary:setAbsolutePosition", error);
+        }
       }
 
       // Apply material/colour from the block, then fall back to saved colours
@@ -2032,7 +2057,9 @@ function replaceMeshModel(currentMesh, block) {
         if (palette && Object.keys(palette).length) {
           try {
             flock.applyColorsToCharacter(currentMesh, palette);
-          } catch {}
+          } catch (error) {
+            warnSuppressed("applyCharacterColors", error);
+          }
         }
       } else if (nonCharacterColors && nonCharacterColors.length) {
         try {
@@ -2046,10 +2073,14 @@ function replaceMeshModel(currentMesh, block) {
       if (loadedMesh !== newChild && !loadedMesh.isDisposed?.()) {
         try {
           loadedMesh.setParent?.(null);
-        } catch {}
+        } catch (error) {
+          warnSuppressed("disposeLoadedMesh:setParent", error);
+        }
         try {
           loadedMesh.dispose?.();
-        } catch {}
+        } catch (error) {
+          warnSuppressed("disposeLoadedMesh:dispose", error);
+        }
       }
 
       if (animationInfo?.name) {

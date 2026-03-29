@@ -420,7 +420,9 @@ export const flockCSG = {
               flock.scene,
             );
             flock.applyPhysics(mergedMesh, physicsShape);
-          } catch (e) {}
+          } catch (e) {
+            console.warn("Suppressed non-critical error:", e);
+          }
 
           validMeshes.forEach((mesh) => mesh.dispose());
 
@@ -640,7 +642,7 @@ export const flockCSG = {
             return resolve(null);
           }
 
-          // Align pivot and position 
+          // Align pivot and position
           const localCenter = resultMesh
             .getBoundingInfo()
             .boundingBox.center.clone();
