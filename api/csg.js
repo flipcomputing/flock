@@ -420,7 +420,9 @@ export const flockCSG = {
               flock.scene,
             );
             flock.applyPhysics(mergedMesh, physicsShape);
-          } catch (e) {}
+          } catch (e) {
+   console.warn("Suppressed non-critical error:", e);
+ }
 
           validMeshes.forEach((mesh) => mesh.dispose());
 

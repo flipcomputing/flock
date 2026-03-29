@@ -38,10 +38,14 @@ const disposePhysics = (targetMesh) => {
   // Dispose of the shape explicitly
   try {
     body.shape?.dispose?.();
-  } catch {}
+  } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
   try {
     body.dispose?.();
-  } catch {}
+  } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
   targetMesh.physics = null;
 };
 
@@ -800,10 +804,14 @@ export const flockPhysics = {
             cleanups.push(() => {
               try {
                 enterReg?.dispose();
-              } catch (_) {}
+              } catch (_) {
+   console.warn("Suppressed non-critical error:", _);
+ }
               try {
                 exitReg?.dispose();
-              } catch (_) {}
+              } catch (_) {
+   console.warn("Suppressed non-critical error:", _);
+ }
             });
 
             // If the caller asks for a specific trigger callback semantics (e.g. Exit),
@@ -829,7 +837,9 @@ export const flockPhysics = {
               cleanups.push(() => {
                 try {
                   reg?.dispose();
-                } catch (_) {}
+                } catch (_) {
+   console.warn("Suppressed non-critical error:", _);
+ }
               });
             }
           }
@@ -924,7 +934,9 @@ export const flockPhysics = {
     if (sceneChanged || engineChanged) {
       try {
         flock.physicsViewer?.dispose?.();
-      } catch (_) {}
+      } catch (_) {
+   console.warn("Suppressed non-critical error:", _);
+ }
       flock.physicsViewer = null;
       flock._physicsViewerScene = null;
       flock._physicsViewerEngine = null;
@@ -943,7 +955,9 @@ export const flockPhysics = {
       scene.onDisposeObservable.add(() => {
         try {
           flock.physicsViewer?.dispose?.();
-        } catch (_) {}
+        } catch (_) {
+   console.warn("Suppressed non-critical error:", _);
+ }
         flock.physicsViewer = null;
         flock._physicsViewerScene = null;
         flock._physicsViewerEngine = null;
@@ -985,7 +999,9 @@ export const flockPhysics = {
           try {
             flock.physicsViewer.showBody(body);
             flock._physicsBodiesShown.add(body);
-          } catch (_) {}
+          } catch (_) {
+   console.warn("Suppressed non-critical error:", _);
+ }
         }
       }
       flock.physicsViewerActive = true;
@@ -994,7 +1010,9 @@ export const flockPhysics = {
         if (flock._physicsBodiesShown.has(body)) {
           try {
             flock.physicsViewer.hideBody(body);
-          } catch (_) {}
+          } catch (_) {
+   console.warn("Suppressed non-critical error:", _);
+ }
           flock._physicsBodiesShown.delete(body);
         }
       }
@@ -1004,7 +1022,9 @@ export const flockPhysics = {
       // Comment these out if you prefer to keep the instance around.
       try {
         flock.physicsViewer?.dispose?.();
-      } catch (_) {}
+      } catch (_) {
+   console.warn("Suppressed non-critical error:", _);
+ }
       flock.physicsViewer = null;
       flock._physicsViewerScene = null;
       flock._physicsViewerEngine = null;

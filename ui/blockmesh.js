@@ -1650,16 +1650,22 @@ function replaceMeshModel(currentMesh, block) {
     for (const k of kids) disposeTree(k);
     try {
       node.setParent?.(null);
-    } catch {}
+    } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
     try {
       node.dispose?.();
-    } catch {}
+    } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
   }
 
   function disposePhysics(node) {
     try {
       node.physics?.dispose?.();
-    } catch {}
+    } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
   }
 
   function stripPhysicsTree(root) {
@@ -1760,7 +1766,9 @@ function replaceMeshModel(currentMesh, block) {
           n.refreshBoundingInfo?.();
           const y = n.getBoundingInfo().boundingBox.minimumWorld.y;
           if (y < minY) minY = y;
-        } catch {}
+        } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
       }
     }
     return isFinite(minY) ? minY : null;
@@ -1906,7 +1914,9 @@ function replaceMeshModel(currentMesh, block) {
       // Detach new child from its loader wrapper
       try {
         newChild.setParent?.(null, true);
-      } catch {}
+      } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
 
       // Collect bone-attached objects from the target's metadata list.
       // This is more reliable than traversing the BabylonJS hierarchy because
@@ -1967,11 +1977,15 @@ function replaceMeshModel(currentMesh, block) {
       if (oldChildScale && newChild.scaling) {
         try {
           newChild.scaling.copyFrom(oldChildScale);
-        } catch {}
+        } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
         try {
           newChild.computeWorldMatrix(true);
           newChild.refreshBoundingInfo?.();
-        } catch {}
+        } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
       }
 
       // Base alignment (world) uses updated bounds
@@ -1988,7 +2002,9 @@ function replaceMeshModel(currentMesh, block) {
               new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
             );
           }
-        } catch {}
+        } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
       }
 
       // Base alignment (world)
@@ -2005,7 +2021,9 @@ function replaceMeshModel(currentMesh, block) {
               new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
             );
           }
-        } catch {}
+        } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
       }
 
       // Apply material/colour from the block, then fall back to saved colours
@@ -2032,7 +2050,9 @@ function replaceMeshModel(currentMesh, block) {
         if (palette && Object.keys(palette).length) {
           try {
             flock.applyColorsToCharacter(currentMesh, palette);
-          } catch {}
+          } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
         }
       } else if (nonCharacterColors && nonCharacterColors.length) {
         try {
@@ -2046,10 +2066,14 @@ function replaceMeshModel(currentMesh, block) {
       if (loadedMesh !== newChild && !loadedMesh.isDisposed?.()) {
         try {
           loadedMesh.setParent?.(null);
-        } catch {}
+        } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
         try {
           loadedMesh.dispose?.();
-        } catch {}
+        } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
       }
 
       if (animationInfo?.name) {

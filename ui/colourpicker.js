@@ -744,7 +744,9 @@ class CustomColorPicker {
       wheelDragging = false;
       try {
         this.canvas.releasePointerCapture?.(e.pointerId);
-      } catch {}
+      } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
     };
 
     this.canvas.addEventListener("pointerup", endWheelDrag);
@@ -852,7 +854,9 @@ class CustomColorPicker {
         dragging = false;
         try {
           this.lightSlider.releasePointerCapture?.(e.pointerId);
-        } catch {}
+        } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
       };
       this.lightSlider.addEventListener("pointerup", endDrag);
       this.lightSlider.addEventListener("pointercancel", endDrag);

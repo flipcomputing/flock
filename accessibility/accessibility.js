@@ -232,7 +232,9 @@ function getCameraForward(scene) {
       const len = Math.sqrt(dir.x * dir.x + dir.z * dir.z) || 1;
       return { x: dir.x / len, z: dir.z / len };
     }
-  } catch {}
+  } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
 
   try {
     const pos = camera.globalPosition || camera.position;
@@ -243,7 +245,9 @@ function getCameraForward(scene) {
       const len = Math.sqrt(x * x + z * z) || 1;
       return { x: x / len, z: z / len };
     }
-  } catch {}
+  } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
 
   return { x: 0, z: 1 };
 }
@@ -317,7 +321,9 @@ function getRepresentativePosition(root, fallbackMesh) {
 
     try {
       node.computeWorldMatrix?.(true);
-    } catch {}
+    } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
 
     try {
       const center = node.getBoundingInfo?.()?.boundingBox?.centerWorld;
@@ -329,7 +335,9 @@ function getRepresentativePosition(root, fallbackMesh) {
       ) {
         return center;
       }
-    } catch {}
+    } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
 
     try {
       const p = node.getAbsolutePosition?.() ?? node.position;
@@ -341,7 +349,9 @@ function getRepresentativePosition(root, fallbackMesh) {
       ) {
         return p;
       }
-    } catch {}
+    } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
   }
 
   return null;
@@ -706,7 +716,9 @@ function attachPointerAnnouncements(scene) {
   if (pointerObserverScene && pointerObserverRef) {
     try {
       pointerObserverScene.onPointerObservable.remove(pointerObserverRef);
-    } catch {}
+    } catch (error) {
+   console.warn("Suppressed non-critical error:", error);
+ }
     pointerObserverRef = null;
     pointerObserverScene = null;
   }
