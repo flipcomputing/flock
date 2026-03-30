@@ -1753,10 +1753,12 @@ export function overrideSearchPlugin(workspace) {
   }
 
   function debounce(fn, delayMs) {
-    let timer = null;
     return function (...args) {
-      clearTimeout(timer);
-      timer = setTimeout(() => fn.apply(this, args), delayMs);
+      clearTimeout(this.flockSearchMatchTimer);
+      this.flockSearchMatchTimer = setTimeout(
+        () => fn.apply(this, args),
+        delayMs,
+      );
     };
   }
 
