@@ -2,6 +2,7 @@ import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
 import { getMetadata } from "meta-png";
+import { AUTOSAVE_KEY } from "../config.js";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
@@ -15,7 +16,7 @@ export function saveWorkspace(workspace) {
     }
   }
   const state = Blockly.serialization.workspaces.save(workspace);
-  const key = "flock_autosave.json";
+  const key = AUTOSAVE_KEY;
   localStorage.setItem(key, JSON.stringify(state));
 }
 
@@ -351,7 +352,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
       workspace.clear();
       // Note: localStorage usage - be aware this won't work in Claude artifacts
       if (typeof localStorage !== "undefined") {
-        localStorage.removeItem("flock_autosave.json");
+        localStorage.removeItem(AUTOSAVE_KEY);
       }
     }
   }
@@ -399,7 +400,7 @@ export function loadWorkspace(workspace, executeCallback) {
   const urlParams = new URLSearchParams(window.location.search);
   const projectUrl = urlParams.get("project");
   const reset = urlParams.get("reset");
-  const savedState = localStorage.getItem("flock_autosave.json");
+  const savedState = localStorage.getItem(AUTOSAVE_KEY);
   const starter = "examples/starter.flock";
 
   function loadStarter() {
@@ -415,7 +416,7 @@ export function loadWorkspace(workspace, executeCallback) {
   if (reset) {
     console.warn("Resetting workspace and clearing local storage.");
     workspace.clear();
-    localStorage.removeItem("flock_autosave.json");
+    localStorage.removeItem(AUTOSAVE_KEY);
     loadStarter();
     return;
   }
