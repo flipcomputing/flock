@@ -396,24 +396,25 @@ export default {
     "Obróć obiekt do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
   rotate_to_object_tooltip:
     "Obróć obiekt w kierunku innego obiektu lub dopasuj jego obrót w czasie, z opcjami odwrócenia, pętli i easing.",
-  animate_property_tooltip: "Animuj właściwość materiału obiekty i jej dzieci.",
+  animate_property_tooltip:
+    "Animuj właściwość materiału obiektu i jego dzieci.",
   colour_keyframe_tooltip: "Ustaw kolor i czas trwania klatki kluczowej.",
   number_keyframe_tooltip: "Ustaw wartość i czas dla klatki kluczowej.",
   xyz_keyframe_tooltip: "Ustaw klatkę kluczową XYZ z określoną długością.",
   animate_keyframes_tooltip:
-    "Animuj tablicę klatek kluczowych na wybranej siatce z easingiem, opcjonalną pętlą i odwróceniem.",
+    "Animuj tablicę klatek kluczowych na wybranym obiekcie z easingiem, opcjonalną pętlą i odwróceniem.",
   animation_tooltip:
-    "Stwórz grupę animacji dla wybranej obiekty i właściwości, z klatkami, easingiem, opcjonalną pętlą i odwróceniem. Wybierz opcję create, start lub await, by kontrolować działanie.",
+    "Stwórz grupę animacji dla wybranego obiektu i właściwości, z klatkami, easingiem, opcjonalną pętlą i odwróceniem. Wybierz opcję create, start lub await, by kontrolować działanie.",
   control_animation_group_tooltip:
     "Steruj grupą animacji — odtwarzaj, wstrzymuj lub zatrzymuj.",
   animate_from_tooltip:
     "Rozpocznij animowanie grupy od określonego czasu (w sekundach).",
   stop_animations_tooltip:
-    "Zatrzymaj wszystkie animacje klatek kluczowych na wybranej siatce.\nSłowo kluczowe: stop",
+    "Zatrzymaj wszystkie animacje klatek kluczowych na wybranym obiekcie.\nSłowo kluczowe: stop",
   switch_animation_tooltip:
-    "Zmień animację wybranej obiekty na podaną.\nSłowo kluczowe: switch",
+    "Zmień animację wybranego obiektu na podaną.\nSłowo kluczowe: switch",
   play_animation_tooltip:
-    "Odtwórz wybraną animację raz na wskazanej siatce.\nSłowo kluczowe: play",
+    "Odtwórz wybraną animację raz na wskazanym obiekcie.\nSłowo kluczowe: play",
 
   // Tooltip translations - Base blocks
   xyz_tooltip: "Tworzy wektor z wartości X, Y, Z",

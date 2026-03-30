@@ -391,7 +391,7 @@ export default {
   glide_to_seconds_tooltip:
     "Scivola a una posizione in un tempo dato con opzioni di inversione, loop ed easing.",
   glide_to_object_tooltip:
-    "Scivola verso la posizione di un'altra oggetto con offset x/y/z opzionali (0 predefinito) e opzioni di inversione, loop ed easing.",
+    "Scivola verso la posizione di un altro oggetto con offset x/y/z opzionali (0 predefinito) e opzioni di inversione, loop ed easing.",
   rotate_anim_tooltip:
     "Ruota un oggetto ad angoli specificati in un intervallo, con opzioni di inversione, loop ed easing.",
   rotate_anim_seconds_tooltip:

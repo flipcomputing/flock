@@ -531,13 +531,13 @@ export default {
   glide_to_seconds_tooltip:
     "Gleite zu einer Position über Sekunden mit Optionen zum Rückwärtslaufen, Schleifen und Easing.",
   glide_to_object_tooltip:
-    "Gleite zur Position einer angegebenen Objekt mit optionalen x/y/z-Versätzen (Standard 0) sowie Rückwärts-, Schleifen- und Easing-Optionen.",
+    "Gleite zur Position eines angegebenen Objekts mit optionalen x/y/z-Versätzen (Standard 0) sowie Optionen für Rückwärtslauf, Schleife und Easing.",
   rotate_anim_tooltip:
-    "Rotiert ein Objekt zu angegebenen Winkeln über eine Dauer mit Optionen für Rückwärts, Schleife und Easing.",
+    "Rotiert ein Objekt zu angegebenen Winkeln über eine Dauer mit Optionen für Rückwärtslauf, Schleife und Easing.",
   rotate_anim_seconds_tooltip:
-    "Rotiert ein Objekt über Sekunden mit Unterstützung für Rückläufe, Schleifen und Easing.",
+    "Rotiert ein Objekt über eine angegebene Anzahl Sekunden mit Unterstützung für Rückwärtslauf, Schleife und Easing.",
   rotate_to_object_tooltip:
-    "Drehe ein Objekt in Richtung eines anderen Objekts oder gleiche die Rotation dieses Objekts über eine Dauer an, mit Optionen für Umkehrung, Schleife und Easing.",
+    "Rotiert ein Objekt in Richtung eines anderen Objekts oder passt seine Rotation an die des Zielobjekts über eine Dauer an; unterstützt Rückwärtslauf, Schleife und Easing.",
   animate_property_tooltip:
     "Animiert eine Materialeigenschaft des Objekts und seiner Kinder.",
   colour_keyframe_tooltip: "Setze Farbe und Dauer für ein Schlüsselbild.",

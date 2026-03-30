@@ -391,7 +391,7 @@ export default {
   rotate_anim_seconds_tooltip:
     "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
   rotate_to_object_tooltip:
-    "Rotera ett objekt mot ett annat objekt eller matcha objektets rotation under en tidsperiod med alternativ för omvändning, looping och easing.",
+    "Rotera ett objekt mot ett annat objekt eller matcha det objektets rotation över en angiven tidsperiod, med alternativ för omvänd riktning, loopning och easing.",
   animate_property_tooltip:
     "Animera ett materialegenskap på objektet och dess barn.",
   colour_keyframe_tooltip: "Ange en färg och varaktighet för en nyckelruta.",
@@ -1060,7 +1060,7 @@ export default {
   scale_button_ui: "Skala objekt-storlek",
   hide_button_ui: "Välj objekt",
   duplicate_button_ui: "Duplicera valt objekt",
-  delete_button_ui: "Radera vald objekt",
+  delete_button_ui: "Radera valt objekt",
   camera_button_ui: "Kamerakontroller",
 
   info_panel_link_ui: "Besök Flock XR:s webbplats (öppnas i ny flik)",
