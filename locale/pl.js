@@ -395,7 +395,7 @@ export default {
   rotate_anim_seconds_tooltip:
     "Obróć obiekt do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
   rotate_to_object_tooltip:
-    "Rotate a obiekt toward another obiekt or match that obiekt's rotation over a duration with options for reverse, looping, and easing.",
+    "Obróć obiekt w kierunku innego obiektu lub dopasuj jego obrót w czasie, z opcjami odwrócenia, pętli i easing.",
   animate_property_tooltip: "Animuj właściwość materiału obiekty i jej dzieci.",
   colour_keyframe_tooltip: "Ustaw kolor i czas trwania klatki kluczowej.",
   number_keyframe_tooltip: "Ustaw wartość i czas dla klatki kluczowej.",

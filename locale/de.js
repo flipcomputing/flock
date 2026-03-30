@@ -537,7 +537,7 @@ export default {
   rotate_anim_seconds_tooltip:
     "Rotiert ein Objekt über Sekunden mit Unterstützung für Rückläufe, Schleifen und Easing.",
   rotate_to_object_tooltip:
-    "Rotate a objekt toward another objekt or match that objekt's rotation over a duration with options for reverse, looping, and easing.",
+    "Drehe ein Objekt in Richtung eines anderen Objekts oder gleiche die Rotation dieses Objekts über eine Dauer an, mit Optionen für Umkehrung, Schleife und Easing.",
   animate_property_tooltip:
     "Animiert eine Materialeigenschaft des Objekts und seiner Kinder.",
   colour_keyframe_tooltip: "Setze Farbe und Dauer für ein Schlüsselbild.",
