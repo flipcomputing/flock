@@ -318,7 +318,7 @@ function validateBlocklyJson(json) {
   return data;
 }
 
-export function loadWorkspaceAndExecute(json, workspace, executeCallback, uiCallback = () => {}) {
+export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
   try {
     if (!workspace || !json) {
       throw new Error("Invalid workspace or json data.");
@@ -331,7 +331,6 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback, uiCall
     Blockly.serialization.workspaces.load(validatedJson, workspace);
     workspace.scroll(0, 0);
     executeCallback();
-    uiCallback();
   } catch (error) {
     console.error("Failed to load workspace:", error);
 
@@ -366,7 +365,9 @@ function parseProjectJsonResponse(response) {
     );
   }
 
-  const contentType = (response.headers.get("content-type") || "").toLowerCase();
+  const contentType = (
+    response.headers.get("content-type") || ""
+  ).toLowerCase();
 
   return response.text().then((projectText) => {
     const trimmedProjectText = projectText.trim();
@@ -397,7 +398,7 @@ export function fetchProjectJson(projectPath) {
 }
 
 // Function to load workspace from various sources
-export function loadWorkspace(workspace, executeCallback, uiCallback = () => {}) {
+export function loadWorkspace(workspace, executeCallback) {
   const urlParams = new URLSearchParams(window.location.search);
   const projectUrl = urlParams.get("project");
   const reset = urlParams.get("reset");
@@ -409,7 +410,7 @@ export function loadWorkspace(workspace, executeCallback, uiCallback = () => {})
   function loadStarter() {
     fetchProjectJson(starter)
       .then((json) => {
-        loadWorkspaceAndExecute(json, workspace, effectiveCallback, uiCallback);
+        loadWorkspaceAndExecute(json, workspace, effectiveCallback);
       })
       .catch((error) => {
         console.error("Error loading starter example:", error);
@@ -430,7 +431,7 @@ export function loadWorkspace(workspace, executeCallback, uiCallback = () => {})
     } else if (projectUrl === "new") {
       fetchProjectJson("examples/new.flock")
         .then((json) => {
-          loadWorkspaceAndExecute(json, workspace, effectiveCallback, uiCallback);
+          loadWorkspaceAndExecute(json, workspace, effectiveCallback);
         })
         .catch((error) => {
           console.error("Error loading new project:", error);
@@ -455,7 +456,7 @@ export function loadWorkspace(workspace, executeCallback, uiCallback = () => {})
       fetch(validatedUrl.href)
         .then(parseProjectJsonResponse)
         .then((json) => {
-          loadWorkspaceAndExecute(json, workspace, effectiveCallback, uiCallback);
+          loadWorkspaceAndExecute(json, workspace, effectiveCallback);
         })
         .catch((error) => {
           console.error("Error loading project from URL:", error);
@@ -463,7 +464,11 @@ export function loadWorkspace(workspace, executeCallback, uiCallback = () => {})
         });
     }
   } else if (savedState) {
-    loadWorkspaceAndExecute(JSON.parse(savedState), workspace, effectiveCallback);
+    loadWorkspaceAndExecute(
+      JSON.parse(savedState),
+      workspace,
+      effectiveCallback,
+    );
   } else {
     loadStarter();
   }
@@ -483,7 +488,6 @@ export function stripFilename(inputString) {
 
   return removeEnd.substring(lastIndex + 1).trim();
 }
-
 
 // Preserve user-facing imported filename characters (including spaces and
 // punctuation) while still stripping potentially unsafe invisible chars.

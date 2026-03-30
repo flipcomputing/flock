@@ -32,13 +32,10 @@ import {
   onResize,
   toggleDesignMode,
   togglePlayMode,
-  enterPlayMode,
   initializeUI,
   switchView,
-  isNarrowScreen,
-  showCodeView,
 } from "./view.js";
-import { hideLoadingScreen, afterLoad } from "./loading.js";
+import { hideLoadingScreen } from "./loading.js";
 import "./debug.js";
 import { initializeBlockHandling } from "./blockhandling.js";
 import { setupInput } from "./input.js";
@@ -464,29 +461,5 @@ window.onload = async function () {
 
   setupInput();
 
-  const runWhenSceneReady = (fn, timeoutMs = 5000) => {
-    const started = performance.now();
-    const tick = () => {
-      if (flock.scene) return fn();
-      if (performance.now() - started < timeoutMs) requestAnimationFrame(tick);
-    };
-    tick();
-  };
-
-  const ui = new URLSearchParams(window.location.search).get("ui");
-  let uiCallback = () => {};
-  if (ui === "play") {
-    uiCallback = enterPlayMode;
-  }
-  if (ui === "design") {
-    uiCallback = () => afterLoad(() => runWhenSceneReady(toggleDesignMode));
-  }
-  if (ui === "code") {
-    uiCallback = () => {
-      afterLoad(() => {
-        if (isNarrowScreen()) showCodeView();
-      });
-    };
-  }
-  loadWorkspace(workspace, executeCode, uiCallback);
+  loadWorkspace(workspace, executeCode);
 };
