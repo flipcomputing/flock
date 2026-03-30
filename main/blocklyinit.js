@@ -779,6 +779,7 @@ export function createBlocklyWorkspace() {
     );
   })();
 
+  // Prevent the toolbox shortcut from opening the toolbox search if there's no current selection, go to the first actual category instead (default behaviour after that to return to previous selection)
   (function preventToolboxShortcutTextEntry() {
     const shortcutRegistry = Blockly.ShortcutRegistry.registry;
     const registry = shortcutRegistry.getRegistry?.();
@@ -792,10 +793,62 @@ export function createBlocklyWorkspace() {
       ...toolboxShortcut,
       callback: (ws, event, shortcut, scope) => {
         const keyboardEvent = event instanceof KeyboardEvent ? event : null;
-        if (keyboardEvent && (keyboardEvent.key || "").toLowerCase() === "t") {
-          keyboardEvent.preventDefault();
+        keyboardEvent?.preventDefault();
+
+        const toolbox = ws?.getToolbox?.();
+        if (!toolbox) {
+          return toolboxShortcut.callback
+            ? toolboxShortcut.callback(ws, event, shortcut, scope)
+            : false;
         }
 
+        const SearchCategory = Blockly.registry.getClass(
+          Blockly.registry.Type.TOOLBOX_ITEM,
+          "search",
+        );
+
+        const isSearchItem = (item) => {
+          if (!item) return false;
+          const def = item.getToolboxItemDef?.() || item.toolboxItemDef;
+          const kind = (def?.kind || "").toLowerCase();
+          return (
+            (SearchCategory && item instanceof SearchCategory) ||
+            kind === "search"
+          );
+        };
+
+        const selected = toolbox.getSelectedItem?.();
+        const previous = toolbox.getPreviouslySelectedItem?.();
+
+        // First use: go to first category (not search)
+        const isFirstUse =
+          previous == null && (!selected || isSearchItem(selected));
+
+        if (isFirstUse) {
+          const firstCategory = (toolbox.getToolboxItems?.() || []).find(
+            (item) => {
+              const def = item.getToolboxItemDef?.() || item.toolboxItemDef;
+              const kind = (def?.kind || "").toLowerCase();
+
+              if (isSearchItem(item) || kind === "sep" || kind === "label") {
+                return false;
+              }
+
+              return typeof item.isSelectable === "function"
+                ? item.isSelectable()
+                : true;
+            },
+          );
+
+          if (firstCategory) {
+            Blockly.getFocusManager()?.focusTree?.(toolbox);
+            toolbox.setSelectedItem(firstCategory);
+            Blockly.getFocusManager()?.focusNode?.(firstCategory);
+            return true;
+          }
+        }
+
+        // After first use, keep default plugin behavior unchanged.
         return toolboxShortcut.callback
           ? toolboxShortcut.callback(ws, event, shortcut, scope)
           : false;
