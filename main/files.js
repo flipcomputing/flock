@@ -424,6 +424,15 @@ export function loadWorkspace(workspace, executeCallback) {
   if (projectUrl) {
     if (projectUrl === "starter") {
       loadStarter();
+    } else if (projectUrl === "new") {
+      fetchProjectJson("examples/new.flock")
+        .then((json) => {
+          loadWorkspaceAndExecute(json, workspace, executeCallback);
+        })
+        .catch((error) => {
+          console.error("Error loading new project:", error);
+          loadStarter();
+        });
     } else {
       let validatedUrl;
       try {
