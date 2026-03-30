@@ -37,7 +37,7 @@ import {
   isNarrowScreen,
   showCodeView,
 } from "./view.js";
-import { hideLoadingScreen } from "./loading.js";
+import { hideLoadingScreen, afterLoad } from "./loading.js";
 import "./debug.js";
 import { initializeBlockHandling } from "./blockhandling.js";
 import { setupInput } from "./input.js";
@@ -475,14 +475,16 @@ window.onload = async function () {
   const ui = new URLSearchParams(window.location.search).get("ui");
   let uiCallback = () => {};
   if (ui === "play") {
-    uiCallback = togglePlayMode;
+    uiCallback = () => afterLoad(togglePlayMode);
   }
   if (ui === "design") {
-    uiCallback = () => runWhenSceneReady(toggleDesignMode);
+    uiCallback = () => afterLoad(() => runWhenSceneReady(toggleDesignMode));
   }
   if (ui === "code") {
     uiCallback = () => {
-      if (isNarrowScreen()) showCodeView();
+      afterLoad(() => {
+        if (isNarrowScreen()) showCodeView();
+      });
     };
   }
   loadWorkspace(workspace, executeCode, uiCallback);
