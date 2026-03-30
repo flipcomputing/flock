@@ -1025,6 +1025,7 @@ export default {
   tree_jump_ui: "🌳 Träd-hopp",
   shape_push_ui: "🔶 Skjuta form",
   alien_planet_ui: "👽 Alienplanet",
+  boat_trip_ui: "⛵ Boat trip",
   character_designer_ui: "👚 Karaktärsdesign",
   sit_down_ui: "🪑 Sätt dig",
 
