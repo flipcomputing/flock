@@ -318,7 +318,7 @@ function validateBlocklyJson(json) {
   return data;
 }
 
-export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
+export function loadWorkspaceAndExecute(json, workspace, executeCallback, uiCallback = () => {}) {
   try {
     if (!workspace || !json) {
       throw new Error("Invalid workspace or json data.");
@@ -331,6 +331,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     Blockly.serialization.workspaces.load(validatedJson, workspace);
     workspace.scroll(0, 0);
     executeCallback();
+    uiCallback();
   } catch (error) {
     console.error("Failed to load workspace:", error);
 
@@ -396,7 +397,7 @@ export function fetchProjectJson(projectPath) {
 }
 
 // Function to load workspace from various sources
-export function loadWorkspace(workspace, executeCallback) {
+export function loadWorkspace(workspace, executeCallback, uiCallback = () => {}) {
   const urlParams = new URLSearchParams(window.location.search);
   const projectUrl = urlParams.get("project");
   const reset = urlParams.get("reset");
@@ -408,7 +409,7 @@ export function loadWorkspace(workspace, executeCallback) {
   function loadStarter() {
     fetchProjectJson(starter)
       .then((json) => {
-        loadWorkspaceAndExecute(json, workspace, effectiveCallback);
+        loadWorkspaceAndExecute(json, workspace, effectiveCallback, uiCallback);
       })
       .catch((error) => {
         console.error("Error loading starter example:", error);
@@ -429,7 +430,7 @@ export function loadWorkspace(workspace, executeCallback) {
     } else if (projectUrl === "new") {
       fetchProjectJson("examples/new.flock")
         .then((json) => {
-          loadWorkspaceAndExecute(json, workspace, effectiveCallback);
+          loadWorkspaceAndExecute(json, workspace, effectiveCallback, uiCallback);
         })
         .catch((error) => {
           console.error("Error loading new project:", error);
@@ -454,7 +455,7 @@ export function loadWorkspace(workspace, executeCallback) {
       fetch(validatedUrl.href)
         .then(parseProjectJsonResponse)
         .then((json) => {
-          loadWorkspaceAndExecute(json, workspace, effectiveCallback);
+          loadWorkspaceAndExecute(json, workspace, effectiveCallback, uiCallback);
         })
         .catch((error) => {
           console.error("Error loading project from URL:", error);

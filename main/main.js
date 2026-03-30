@@ -34,6 +34,8 @@ import {
   togglePlayMode,
   initializeUI,
   switchView,
+  isNarrowScreen,
+  showCodeView,
 } from "./view.js";
 import { hideLoadingScreen } from "./loading.js";
 import "./debug.js";
@@ -461,5 +463,10 @@ window.onload = async function () {
 
   setupInput();
 
-  loadWorkspace(workspace, executeCode);
+  const ui = new URLSearchParams(window.location.search).get("ui");
+  let uiCallback = () => {};
+  if (ui === "play")   uiCallback = togglePlayMode;
+  if (ui === "design") uiCallback = toggleDesignMode;
+  if (ui === "code")   uiCallback = () => { if (isNarrowScreen()) showCodeView(); };
+  loadWorkspace(workspace, executeCode, uiCallback);
 };
