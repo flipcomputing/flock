@@ -968,12 +968,62 @@ export const flockMaterial = {
     return material;
   },
   createMultiColorGradientMaterial(name, colors) {
+    // Register shaders once under dedicated keys to avoid collision with createMultiGradientShaderMaterial
+    if (!flock.BABYLON.Effect.ShadersStore["multiColorGradientVertexShader"]) {
+      flock.BABYLON.Effect.ShadersStore["multiColorGradientVertexShader"] = `
+        precision highp float;
+        attribute vec3 position;
+        uniform mat4 worldViewProjection;
+        uniform vec2 minMax;
+        varying float vGradient;
+
+        void main(void) {
+          gl_Position = worldViewProjection * vec4(position, 1.0);
+          vGradient = (position.y - minMax.x) / (minMax.y - minMax.x);
+        }
+      `;
+    }
+    if (
+      !flock.BABYLON.Effect.ShadersStore["multiColorGradientFragmentShader"]
+    ) {
+      flock.BABYLON.Effect.ShadersStore["multiColorGradientFragmentShader"] = `
+        precision highp float;
+        varying float vGradient;
+        uniform int colorCount;
+        uniform vec3 colors[16];
+        uniform float alpha;
+
+        void main(void) {
+          float t = clamp(vGradient, 0.0, 1.0);
+          int count = colorCount;
+
+          if (count > 16) count = 16;
+          if (count < 2) count = 2;
+
+          float position = t * float(count - 1);
+          int segment = int(floor(position));
+          float localT = position - float(segment);
+
+          if (segment >= count - 1) {
+            segment = count - 2;
+            localT = 1.0;
+          }
+
+          vec3 color1 = colors[segment];
+          vec3 color2 = colors[segment + 1];
+          vec3 finalColor = mix(color1, color2, localT);
+
+          gl_FragColor = vec4(finalColor, alpha);
+        }
+      `;
+    }
+
     const shaderMaterial = new flock.BABYLON.ShaderMaterial(
       name,
       flock.scene,
       {
-        vertex: "multiGradient",
-        fragment: "multiGradient",
+        vertex: "multiColorGradient",
+        fragment: "multiColorGradient",
       },
       {
         attributes: ["position"],
@@ -1005,58 +1055,7 @@ export const flockMaterial = {
     shaderMaterial.setInt("colorCount", Math.min(colors.length, 16));
     shaderMaterial.setArray3("colors", color3Array);
     shaderMaterial.setFloat("alpha", 1.0);
-    shaderMaterial.setVector2("minMax", new flock.BABYLON.Vector2(-1, 1)); // Will be updated when applied to mesh
-
-    // Define shaders
-    flock.BABYLON.Effect.ShadersStore["multiGradientVertexShader"] = `
-      precision highp float;
-      attribute vec3 position;
-      uniform mat4 worldViewProjection;
-      uniform vec2 minMax;
-      varying float vGradient;
-
-      void main(void) {
-        gl_Position = worldViewProjection * vec4(position, 1.0);
-        // Normalize Y position to 0-1 range using minMax
-        vGradient = (position.y - minMax.x) / (minMax.y - minMax.x);
-      }
-    `;
-
-    flock.BABYLON.Effect.ShadersStore["multiGradientFragmentShader"] = `
-      precision highp float;
-      varying float vGradient;
-      uniform int colorCount;
-      uniform vec3 colors[16];
-      uniform float alpha;
-
-      void main(void) {
-        float t = clamp(vGradient, 0.0, 1.0);
-        int count = colorCount;
-
-        if (count > 16) count = 16;
-        if (count < 2) count = 2;
-
-        // Calculate position in the gradient (0 to count-1)
-        float position = t * float(count - 1);
-        int segment = int(floor(position));
-        float localT = position - float(segment);
-
-        // Ensure we don't go out of bounds
-        if (segment >= count - 1) {
-          segment = count - 2;
-          localT = 1.0;
-        }
-
-        // Get the two colors to interpolate between
-        vec3 color1 = colors[segment];
-        vec3 color2 = colors[segment + 1];
-
-        // Smooth interpolation
-        vec3 finalColor = mix(color1, color2, localT);
-
-        gl_FragColor = vec4(finalColor, alpha);
-      }
-    `;
+    shaderMaterial.setVector2("minMax", new flock.BABYLON.Vector2(-1, 1));
 
     return shaderMaterial;
   },
@@ -1578,11 +1577,19 @@ export const flockMaterial = {
         flock.adjustMaterialTilingToMesh(m, m.material);
         m.material.needDepthPrePass = getAlpha(v) > 0;
 
-        if (m.material instanceof flock.BABYLON.ShaderMaterial) {
-          const bb = m.getBoundingInfo().boundingBox;
-          m.material.setVector2(
-            "minMax",
-            new flock.BABYLON.Vector2(bb.minimum.y, bb.maximum.y),
+        if (
+          m.material instanceof flock.BABYLON.ShaderMaterial &&
+          !m.material.metadata._minMaxObserver
+        ) {
+          const mat = m.material;
+          mat.metadata._minMaxObserver = mat.onBindObservable.add(
+            (boundMesh) => {
+              const bb = boundMesh.getBoundingInfo().boundingBox;
+              mat.setVector2(
+                "minMax",
+                new flock.BABYLON.Vector2(bb.minimum.y, bb.maximum.y),
+              );
+            },
           );
         }
       }
