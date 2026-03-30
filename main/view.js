@@ -399,6 +399,28 @@ function togglePanels() {
 }
 
 // Updated play mode to work with new approach
+export function enterPlayMode() {
+  const blocklyArea = document.getElementById("codePanel");
+  const gizmoButtons = document.getElementById("gizmoButtons");
+  const bottomBar = document.getElementById("bottomBar");
+  const flockLink = document.getElementById("flocklink");
+  const resizer = document.getElementById("resizer");
+
+  savedView = currentView;
+  if (isNarrowScreen()) {
+    container.style.transform = "translateX(0px)";
+  }
+  showCanvasView();
+  if (flock.scene) flock.scene.debugLayer.hide();
+  blocklyArea.style.display = "none";
+  gizmoButtons.style.display = "none";
+  bottomBar.style.display = "none";
+  flockLink.style.display = "none";
+  if (resizer) resizer.style.display = "none";
+  document.documentElement.style.setProperty("--dynamic-offset", "40px");
+  onResize("reset");
+}
+
 export function togglePlayMode() {
   const blocklyArea = document.getElementById("codePanel");
   const canvasArea = document.getElementById("canvasArea");
@@ -413,21 +435,7 @@ export function togglePlayMode() {
     getComputedStyle(gizmoButtons).visibility !== "hidden";
 
   if (gizmosVisible) {
-    savedView = currentView;
-
-    // Clear any transforms that might be applied
-    if (isNarrowScreen()) {
-      container.style.transform = "translateX(0px)";
-    }
-
-    showCanvasView();
-    if (flock.scene) flock.scene.debugLayer.hide();
-    blocklyArea.style.display = "none";
-    gizmoButtons.style.display = "none";
-    bottomBar.style.display = "none";
-    flockLink.style.display = "none";
-    if (resizer) resizer.style.display = "none";
-    document.documentElement.style.setProperty("--dynamic-offset", "40px");
+    enterPlayMode();
   } else {
     if (flock.scene) flock.scene.debugLayer.hide();
     blocklyArea.style.display = "block";

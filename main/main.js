@@ -32,6 +32,7 @@ import {
   onResize,
   toggleDesignMode,
   togglePlayMode,
+  enterPlayMode,
   initializeUI,
   switchView,
   isNarrowScreen,
@@ -475,7 +476,7 @@ window.onload = async function () {
   const ui = new URLSearchParams(window.location.search).get("ui");
   let uiCallback = () => {};
   if (ui === "play") {
-    uiCallback = () => afterLoad(togglePlayMode);
+    uiCallback = enterPlayMode;
   }
   if (ui === "design") {
     uiCallback = () => afterLoad(() => runWhenSceneReady(toggleDesignMode));
