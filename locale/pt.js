@@ -1,7 +1,7 @@
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Cena",
-  CATEGORY_MESHES: "Malhas",
+  CATEGORY_MESHES: "Objetos",
   CATEGORY_XR: "XR",
   CATEGORY_EFFECTS: "Efeitos",
   CATEGORY_CAMERA: "Câmera",
@@ -364,12 +364,12 @@ export default {
     "Define a cor de fundo da cena.\nPalavra-chave: fundo",
   create_map_tooltip:
     "Cria um mapa com o nome e material selecionados.\nPalavra-chave: mapa",
-  show_tooltip: "Mostra o mesh selecionado.\nPalavra-chave: mostrar",
-  hide_tooltip: "Oculta o mesh selecionado.\nPalavra-chave: ocultar",
+  show_tooltip: "Mostra o objeto selecionado.\nPalavra-chave: mostrar",
+  hide_tooltip: "Oculta o objeto selecionado.\nPalavra-chave: ocultar",
   dispose_tooltip:
-    "Remove o mesh especificado da cena.\nPalavra-chave: remover",
+    "Remove o objeto especificado da cena.\nPalavra-chave: remover",
   clone_mesh_tooltip:
-    "Clona um mesh e o atribui a uma variável.\nPalavra-chave: clonar",
+    "Clona um objeto e o atribui a uma variável.\nPalavra-chave: clonar",
 
   // Tooltip translations - Models blocks
   load_character_tooltip:
@@ -384,32 +384,32 @@ export default {
   glide_to_seconds_tooltip:
     "Desliza para uma posição específica durante um período com opções de reverso, repetição e easing.",
   glide_to_object_tooltip:
-    "Desliza até a posição de outra malha com deslocamentos x/y/z opcionais (padrão 0) e opções de reverso, repetição e easing.",
+    "Desliza até a posição de outro objeto com deslocamentos x/y/z opcionais (padrão 0) e opções de reverso, repetição e easing.",
   rotate_anim_tooltip:
-    "Gira um mesh para ângulos específicos durante um tempo com opções de reverso, repetição e easing.",
+    "Gira um objeto para ângulos específicos durante um tempo com opções de reverso, repetição e easing.",
   rotate_anim_seconds_tooltip:
-    "Gira um mesh para ângulos específicos durante um tempo com opções de reverso, repetição e easing.",
+    "Gira um objeto para ângulos específicos durante um tempo com opções de reverso, repetição e easing.",
   rotate_to_object_tooltip:
-    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
+    "Roda um objeto em direção a outro objeto ou iguala a rotação desse objeto durante uma duração, com opções de inversão, repetição e easing.",
   animate_property_tooltip:
-    "Anima uma propriedade de material do mesh e seus filhos.",
+    "Anima uma propriedade de material do objeto e seus filhos.",
   colour_keyframe_tooltip: "Define uma cor e duração para um quadro-chave.",
   number_keyframe_tooltip: "Define um número e duração para um quadro-chave.",
   xyz_keyframe_tooltip: "Define um quadro-chave XYZ com duração.",
   animate_keyframes_tooltip:
-    "Anima um array de quadros-chave no mesh selecionado com easing, repetição opcional e reverso.",
+    "Anima um array de quadros-chave no objeto selecionado com easing, repetição opcional e reverso.",
   animation_tooltip:
-    "Cria um grupo de animação para o mesh selecionado e propriedade, com quadros-chave, easing, repetição e reverso opcionais. Escolha criar, iniciar ou aguardar para controlar o comportamento.",
+    "Cria um grupo de animação para o objeto selecionado e propriedade, com quadros-chave, easing, repetição e reverso opcionais. Escolha criar, iniciar ou aguardar para controlar o comportamento.",
   control_animation_group_tooltip:
     "Controla o grupo de animação reproduzindo, pausando ou parando.",
   animate_from_tooltip:
     "Inicia a animação do grupo a partir de um tempo específico (em segundos).",
   stop_animations_tooltip:
-    "Para todas as animações de quadros-chave no mesh selecionado.\nPalavra-chave: parar",
+    "Para todas as animações de quadros-chave no objeto selecionado.\nPalavra-chave: parar",
   switch_animation_tooltip:
-    "Altera a animação do mesh especificado para a animação fornecida.\nPalavra-chave: trocar",
+    "Altera a animação do objeto especificado para a animação fornecida.\nPalavra-chave: trocar",
   play_animation_tooltip:
-    "Reproduz a animação selecionada uma vez no mesh especificado.\nPalavra-chave: reproduzir",
+    "Reproduz a animação selecionada uma vez no objeto especificado.\nPalavra-chave: reproduzir",
 
   // Tooltip translations - Base blocks
   xyz_tooltip: "Cria um vetor com coordenadas X, Y, Z",
@@ -418,36 +418,36 @@ export default {
   camera_control_tooltip:
     "Associa uma tecla específica a uma ação de controle da câmera.",
   camera_follow_tooltip:
-    "Faz a câmera seguir um mesh com uma distância (raio) personalizável do alvo.\nPalavra-chave: seguir",
+    "Faz a câmera seguir um objeto com uma distância (raio) personalizável do alvo.\nPalavra-chave: seguir",
   get_camera_tooltip: "Obtém a câmera atual da cena",
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip:
-    "Une uma lista de meshes em um só e armazena o resultado.\nPalavra-chave: mesclar",
+    "Une uma lista de objetos em um só e armazena o resultado.\nPalavra-chave: mesclar",
   subtract_meshes_tooltip:
-    "Subtrai uma lista de meshes de um mesh base e armazena o resultado.\nPalavra-chave: subtrair",
+    "Subtrai uma lista de objetos de um objeto base e armazena o resultado.\nPalavra-chave: subtrair",
   intersection_meshes_tooltip:
-    "Intersecciona uma lista de meshes e armazena a geometria resultante.\nPalavra-chave: interseção",
+    "Intersecciona uma lista de objetos e armazena a geometria resultante.\nPalavra-chave: interseção",
   hull_meshes_tooltip:
-    "Cria um envoltório convexo a partir de uma lista de meshes e armazena o resultado.\nPalavra-chave: casca",
+    "Cria um envoltório convexo a partir de uma lista de objetos e armazena o resultado.\nPalavra-chave: casca",
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    "Define uma relação pai-filho entre dois meshes e mantém o filho em sua posição global.\nPalavra-chave: pai",
+    "Define uma relação pai-filho entre dois objetos e mantém o filho em sua posição global.\nPalavra-chave: pai",
   parent_child_tooltip:
-    "Define uma relação pai-filho entre dois meshes com deslocamento especificado em x, y e z.\nPalavra-chave: filho",
+    "Define uma relação pai-filho entre dois objetos com deslocamento especificado em x, y e z.\nPalavra-chave: filho",
   remove_parent_tooltip:
-    "Remove a relação de parentesco do mesh especificado.\nPalavra-chave: desvincular",
+    "Remove a relação de parentesco do objeto especificado.\nPalavra-chave: desvincular",
   stop_follow_tooltip:
-    "Faz com que o mesh especificado pare de seguir outro.\nPalavra-chave: pararseguir",
+    "Faz com que o objeto especificado pare de seguir outro.\nPalavra-chave: pararseguir",
   hold_tooltip:
-    "Anexa um mesh a um osso específico de outro mesh com deslocamento em x, y e z.\nPalavra-chave: segurar",
+    "Anexa um objeto a um osso específico de outro objeto com deslocamento em x, y e z.\nPalavra-chave: segurar",
   drop_tooltip:
-    "Desanexa um mesh do osso ao qual está conectado.\nPalavra-chave: soltar",
+    "Desanexa um objeto do osso ao qual está conectado.\nPalavra-chave: soltar",
   follow_tooltip:
-    "Faz um mesh seguir outro em uma posição específica (topo, centro ou base) com deslocamento em x, y e z.\nPalavra-chave: seguir",
+    "Faz um objeto seguir outro em uma posição específica (topo, centro ou base) com deslocamento em x, y e z.\nPalavra-chave: seguir",
   export_mesh_tooltip:
-    "Exporta um mesh como STL, OBJ ou GLB.\nPalavra-chave: exportar",
+    "Exporta um objeto como STL, OBJ ou GLB.\nPalavra-chave: exportar",
 
   // Tooltip translations - Control blocks
   wait_tooltip:
@@ -477,9 +477,9 @@ export default {
   forever_tooltip:
     "Executa os blocos continuamente a cada quadro ou após a execução anterior.\nPalavra-chave: para sempre",
   when_clicked_tooltip:
-    "Executa os blocos quando ocorre o clique no mesh.\nPalavra-chave: clique",
+    "Executa os blocos quando ocorre o clique no objeto.\nPalavra-chave: clique",
   on_collision_tooltip:
-    "Executa os blocos quando o mesh colide ou deixa de colidir com outro.\nPalavra-chave: colisão",
+    "Executa os blocos quando o objeto colide ou deixa de colidir com outro.\nPalavra-chave: colisão",
   when_key_event_tooltip:
     "Executa os blocos quando a tecla especificada é pressionada ou liberada.",
   when_action_event_tooltip:
@@ -490,23 +490,24 @@ export default {
     "Executa o código ao receber um evento transmitido.\nPalavra-chave: ao",
 
   // Tooltip translations - Materials blocks
-  change_color_tooltip: "Altera a cor do mesh selecionado.\nPalavra-chave: cor",
+  change_color_tooltip:
+    "Altera a cor do objeto selecionado.\nPalavra-chave: cor",
   change_material_tooltip:
-    "Aplica um material selecionado com cor ao mesh especificado.\nPalavra-chave: material",
+    "Aplica um material selecionado com cor ao objeto especificado.\nPalavra-chave: material",
   text_material_tooltip:
     "Cria um material com texto ou emoji, especificando largura, altura, cor de fundo e tamanho da fonte.",
   place_decal_tooltip:
-    "Coloca um decalque em um mesh usando o material selecionado.",
+    "Coloca um decalque em um objeto usando o material selecionado.",
   decal_tooltip:
-    "Cria um decalque em um mesh com posição, normal, tamanho e material.",
-  highlight_tooltip: "Destaca o mesh selecionado.\nPalavra-chave: destaque",
+    "Cria um decalque em um objeto com posição, normal, tamanho e material.",
+  highlight_tooltip: "Destaca o objeto selecionado.\nPalavra-chave: destaque",
   glow_tooltip:
-    "Adiciona um efeito de brilho ao mesh selecionado.\nPalavra-chave: brilho",
+    "Adiciona um efeito de brilho ao objeto selecionado.\nPalavra-chave: brilho",
   tint_tooltip: "Adiciona um efeito de matiz de cor.\nPalavra-chave: matiz",
   set_alpha_tooltip:
-    "Define a opacidade (alpha) dos materiais no mesh especificado. Valores devem estar entre 0 e 1.\nPalavra-chave: alpha",
+    "Define a opacidade (alpha) dos materiais no objeto especificado. Valores devem estar entre 0 e 1.\nPalavra-chave: alpha",
   clear_effects_tooltip:
-    "Remove os efeitos visuais do mesh selecionado.\nPalavra-chave: limpar",
+    "Remove os efeitos visuais do objeto selecionado.\nPalavra-chave: limpar",
   colour_tooltip: "Escolhe uma cor.\nPalavra-chave: cor",
   skin_colour_tooltip: "Escolhe uma cor de pele.\nPalavra-chave: pele",
   greyscale_colour_tooltip:
@@ -514,15 +515,15 @@ export default {
   random_colour_tooltip: "Gera uma cor aleatória.\nPalavra-chave: coraleat",
   material_tooltip: "Define propriedades de material",
   gradient_material_tooltip: "Define propriedades de material com gradiente",
-  set_material_tooltip: "Define o material especificado no mesh indicado.",
+  set_material_tooltip: "Define o material especificado no objeto indicado.",
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
-    "Adiciona física ao mesh. As opções são dinâmico, estático, animado e nenhum.\nPalavra-chave: física",
+    "Adiciona física ao objeto. As opções são dinâmico, estático, animado e nenhum.\nPalavra-chave: física",
   add_physics_shape_tooltip:
-    "Adiciona uma forma de física ao mesh. As opções são mesh ou cápsula.\nPalavra-chave: física",
+    "Adiciona uma forma de física ao objeto. As opções são objeto ou cápsula.\nPalavra-chave: física",
   apply_force_tooltip:
-    "Aplica uma força a um mesh nas direções X, Y e Z.\nPalavra-chave: força",
+    "Aplica uma força a um objeto nas direções X, Y e Z.\nPalavra-chave: força",
   show_physics_tooltip:
     "Mostrar ou ocultar colisores de física para depuração. Marque para mostrar, desmarque para ocultar.\nPalavra-chave: debug physics collider",
 
@@ -535,16 +536,16 @@ export default {
   set_action_key_tooltip:
     "Define a tecla que aciona uma ação específica (frente, trás, esquerda, direita ou botões).",
   meshes_touching_tooltip:
-    "Retorna verdadeiro se os dois meshes selecionados estiverem tocando.\nPalavra-chave: estátocando",
+    "Retorna verdadeiro se os dois objetos selecionados estiverem tocando.\nPalavra-chave: estátocando",
   time_tooltip: "Retorna o tempo atual em segundos.",
   ground_level_tooltip: "Retorna a altura do solo na posição x/z atual.",
-  distance_to_tooltip: "Calcula a distância entre dois meshes.",
+  distance_to_tooltip: "Calcula a distância entre dois objetos.",
   touching_surface_tooltip:
-    "Verifica se o mesh está tocando uma superfície.\nPalavra-chave: superfície",
+    "Verifica se o objeto está tocando uma superfície.\nPalavra-chave: superfície",
   mesh_exists_tooltip:
-    "Retorna verdadeiro se a malha com esse nome estiver presente na cena.",
+    "Retorna verdadeiro se o objeto com esse nome estiver presente na cena.",
   get_property_tooltip:
-    "Obtém o valor da propriedade selecionada de um mesh.\nPalavra-chave: obter",
+    "Obtém o valor da propriedade selecionada de um objeto.\nPalavra-chave: obter",
   canvas_controls_tooltip:
     "Adiciona ou remove controles de movimento por tela.\nPalavra-chave: canvas",
   button_controls_tooltip:
@@ -556,7 +557,7 @@ export default {
 
   // Tooltip translations - Shapes blocks
   create_particle_effect_tooltip:
-    "Cria um efeito de partículas conectado a um mesh com forma, gravidade, tamanho, cor, transparência, duração, força e rotação configuráveis.",
+    "Cria um efeito de partículas conectado a um objeto com forma, gravidade, tamanho, cor, transparência, duração, força e rotação configuráveis.",
   control_particle_system_tooltip:
     "Controla o sistema de partículas iniciando, parando ou reiniciando.",
   create_box_tooltip:
@@ -572,17 +573,17 @@ export default {
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
-    "Reproduz um tema musical em um mesh com velocidade, volume e modo ajustáveis.\nPalavra-chave: tema",
+    "Reproduz um tema musical em um objeto com velocidade, volume e modo ajustáveis.\nPalavra-chave: tema",
   play_sound_tooltip:
-    "Reproduz o som selecionado em um mesh com velocidade, volume e modo ajustáveis.\nPalavra-chave: som",
+    "Reproduz o som selecionado em um objeto com velocidade, volume e modo ajustáveis.\nPalavra-chave: som",
   stop_all_sounds_tooltip:
     "Interrompe todos os sons atualmente em reprodução na cena.\nPalavra-chave: semsom",
   midi_note_tooltip: "Um valor de nota MIDI entre 0 e 127.",
   rest_tooltip: "Uma pausa (silêncio) em uma sequência musical.",
   play_notes_tooltip:
-    "Reproduz uma sequência de notas MIDI e pausas com durações correspondentes, usando mesh para o panorama. Pode retornar imediatamente ou após a reprodução.",
+    "Reproduz uma sequência de notas MIDI e pausas com durações correspondentes, usando objeto para o panorama. Pode retornar imediatamente ou após a reprodução.",
   set_scene_bpm_tooltip: "Define o BPM para toda a cena.",
-  set_mesh_bpm_tooltip: "Define o BPM para um mesh específico.",
+  set_mesh_bpm_tooltip: "Define o BPM para um objeto específico.",
   create_instrument_tooltip:
     "Cria um instrumento e o atribui à variável selecionada.",
   instrument_tooltip: "Seleciona um instrumento para tocar notas.",
@@ -594,9 +595,9 @@ export default {
   print_text_tooltip:
     "Mostra um texto no painel de saída.\nPalavra-chave: imprimir",
   say_tooltip:
-    "Exibe um texto como balão de fala em um mesh.\nPalavra-chave: dizer",
+    "Exibe um texto como balão de fala em um objeto.\nPalavra-chave: dizer",
   describe_tooltip:
-    "Define o nome de exibição de um mesh. Atualiza os metadados para acessibilidade.\nPalavra-chave: describe",
+    "Define o nome de exibição de um objeto. Atualiza os metadados para acessibilidade.\nPalavra-chave: describe",
   ui_text_tooltip:
     "Adiciona um texto à interface e armazena o controle em uma variável para uso posterior.",
 
@@ -615,32 +616,32 @@ export default {
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
-    "Move um mesh uma certa distância nas direções x, y e z.\nPalavra-chave: mover",
+    "Move um objeto uma certa distância nas direções x, y e z.\nPalavra-chave: mover",
   move_by_xyz_single_tooltip:
-    "Mover uma malha uma determinada quantidade na direção x, y ou z.\nPalavra-chave: mover",
+    "Mover um objeto uma determinada quantidade na direção x, y ou z.\nPalavra-chave: mover",
   move_to_xyz_tooltip:
-    "Teleporta o mesh para as coordenadas. Opcionalmente, use o eixo Y.\nPalavra-chave: moverpor",
+    "Teleporta o objeto para as coordenadas. Opcionalmente, use o eixo Y.\nPalavra-chave: moverpor",
   move_to_xyz_single_tooltip:
-    "Teletransportar a malha para a coordenada única especificada.\nPalavra-chave: moverpor",
+    "Teletransportar o objeto para a coordenada única especificada.\nPalavra-chave: moverpor",
   move_to_tooltip:
-    "Teleporta o primeiro mesh para a localização do segundo mesh.\nPalavra-chave: moverte",
+    "Teleporta o primeiro objeto para a localização do segundo objeto.\nPalavra-chave: moverte",
   scale_tooltip:
-    "Redimensiona um mesh para os valores de x, y e z, controlando a origem da escala.\nPalavra-chave: escalar",
+    "Redimensiona um objeto para os valores de x, y e z, controlando a origem da escala.\nPalavra-chave: escalar",
   resize_tooltip:
-    "Redimensiona um mesh para os valores de x, y e z, controlando a origem da escala.\nPalavra-chave: redimensionar",
+    "Redimensiona um objeto para os valores de x, y e z, controlando a origem da escala.\nPalavra-chave: redimensionar",
   rotate_model_xyz_tooltip:
-    "Gira o mesh pelos valores dados de x, y, z.\nPalavra-chave: girar\nPalavra-chave: girarpor",
+    "Gira o objeto pelos valores dados de x, y, z.\nPalavra-chave: girar\nPalavra-chave: girarpor",
   rotate_to_tooltip:
-    "Gira o mesh para apontar para as coordenadas.\nPalavra-chave: girarte",
+    "Gira o objeto para apontar para as coordenadas.\nPalavra-chave: girarte",
   look_at_tooltip:
-    "Gira o primeiro mesh para olhar para a posição do segundo mesh.\nPalavra-chave: olhar",
+    "Gira o primeiro objeto para olhar para a posição do segundo objeto.\nPalavra-chave: olhar",
   move_forward_tooltip:
-    "Move o mesh na direção especificada. 'Frente' o move na direção que está apontando, 'lateral' move em relação à câmera e 'deslocamento' move lateralmente em relação à câmera.\nPalavra-chave: empurrar",
+    "Move o objeto na direção especificada. 'Frente' o move na direção que está apontando, 'lateral' move em relação à câmera e 'deslocamento' move lateralmente em relação à câmera.\nPalavra-chave: empurrar",
   rotate_camera_tooltip:
     "Gira a câmera para a esquerda ou direita pelos graus indicados.\nPalavra-chave: rotate",
   up_tooltip: "Aplica a força para cima especificada.\nPalavra-chave: up",
   set_pivot_tooltip:
-    "Define o ponto de âncora de um mesh nos eixos X, Y e Z.\nPalavra-chave: âncora",
+    "Define o ponto de âncora de um objeto nos eixos X, Y e Z.\nPalavra-chave: âncora",
   min_centre_max_tooltip:
     "Escolhe mínimo, centro ou máximo como ponto de pivô.\nPalavra-chave: minmax",
 
@@ -808,7 +809,7 @@ export default {
   ANIMATED_option: "animado",
   STATIC_option: "estático",
 
-  MESH_option: "malha",
+  MESH_option: "objeto",
   CAPSULE_option: "cápsula",
 
   FLAT_option: "Plano",
@@ -1064,12 +1065,12 @@ export default {
 
   show_shapes_button_ui: "Adicionar formas e modelos",
   color_picker_button_ui: "Alterar cor do objeto",
-  position_button_ui: "Posicionar a malha",
-  rotation_button_ui: "Rodar a malha",
-  scale_button_ui: "Escalar o tamanho da malha",
+  position_button_ui: "Posicionar o objeto",
+  rotation_button_ui: "Rodar o objeto",
+  scale_button_ui: "Escalar o tamanho do objeto",
   hide_button_ui: "Selecionar objeto",
-  duplicate_button_ui: "Duplicar a malha selecionada",
-  delete_button_ui: "Eliminar a malha selecionada",
+  duplicate_button_ui: "Duplicar o objeto selecionado",
+  delete_button_ui: "Eliminar o objeto selecionado",
   camera_button_ui: "Controlos da câmara",
 
   info_panel_link_ui: "Visitar o site do Flock XR (abre num novo separador)",
@@ -1142,7 +1143,7 @@ export default {
 
   // UI status messages
   max_mesh_limit_reached:
-    "⚠️ Limite alcançado: você só pode ter {max} malhas no seu mundo.",
+    "⚠️ Limite alcançado: você só pode ter {max} objetos no seu mundo.",
   high_memory_usage_warning: "Aviso: uso de memória alto ({percent}%)",
   physics_out_of_memory_log:
     "A física Havok foi abortada, provavelmente por falta de memória.", // AI-generated; needs validation
@@ -1151,9 +1152,9 @@ export default {
   runtime_error_message: "Erro: {message}",
   xr_mode_message: "Modo XR!",
   fly_camera_instructions: "ℹ️ Câmera de voo, use as setas e Page Up/Down",
-  select_mesh_delete_prompt: "⚠️ Selecione uma malha e clique em apagar.",
+  select_mesh_delete_prompt: "⚠️ Selecione um objeto e clique em apagar.",
   select_mesh_duplicate_prompt:
-    "⚠️ Selecione uma malha, clique em duplicar e depois clique para posicionar as cópias.",
+    "⚠️ Selecione um objeto, clique em duplicar e depois clique para posicionar as cópias.",
   position_readout: "Posição: {position}",
   eyedropper_not_supported_alert:
     "A ferramenta conta-gotas não é suportada neste navegador. Tente usar o Chrome ou Edge.",

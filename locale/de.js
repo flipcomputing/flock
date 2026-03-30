@@ -1,7 +1,7 @@
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Szene",
-  CATEGORY_MESHES: "Meshes",
+  CATEGORY_MESHES: "Objekte",
   CATEGORY_XR: "XR",
   CATEGORY_EFFECTS: "Effekte",
   CATEGORY_CAMERA: "Kamera",
@@ -531,13 +531,13 @@ export default {
   glide_to_seconds_tooltip:
     "Gleite zu einer Position über Sekunden mit Optionen zum Rückwärtslaufen, Schleifen und Easing.",
   glide_to_object_tooltip:
-    "Gleite zur Position einer angegebenen Mesh mit optionalen x/y/z-Versätzen (Standard 0) sowie Rückwärts-, Schleifen- und Easing-Optionen.",
+    "Gleite zur Position eines angegebenen Objekts mit optionalen x/y/z-Versätzen (Standard 0) sowie Optionen für Rückwärtslauf, Schleife und Easing.",
   rotate_anim_tooltip:
-    "Rotiert ein Objekt zu angegebenen Winkeln über eine Dauer mit Optionen für Rückwärts, Schleife und Easing.",
+    "Rotiert ein Objekt zu angegebenen Winkeln über eine Dauer mit Optionen für Rückwärtslauf, Schleife und Easing.",
   rotate_anim_seconds_tooltip:
-    "Rotiert ein Objekt über Sekunden mit Unterstützung für Rückläufe, Schleifen und Easing.",
+    "Rotiert ein Objekt über eine angegebene Anzahl Sekunden mit Unterstützung für Rückwärtslauf, Schleife und Easing.",
   rotate_to_object_tooltip:
-    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
+    "Rotiert ein Objekt in Richtung eines anderen Objekts oder passt seine Rotation an die des Zielobjekts über eine Dauer an; unterstützt Rückwärtslauf, Schleife und Easing.",
   animate_property_tooltip:
     "Animiert eine Materialeigenschaft des Objekts und seiner Kinder.",
   colour_keyframe_tooltip: "Setze Farbe und Dauer für ein Schlüsselbild.",
@@ -666,7 +666,7 @@ export default {
   add_physics_tooltip:
     "Füge Physik zum Objekt hinzu: dynamisch, statisch, animiert oder keine.\nSchlüsselwort: physics",
   add_physics_shape_tooltip:
-    "Füge Physik‑Form hinzu: Mesh oder Kapsel.\nSchlüsselwort: physics",
+    "Füge Physik‑Form hinzu: Objekt oder Kapsel.\nSchlüsselwort: physics",
   apply_force_tooltip:
     "Wende Kraft auf Objekt in XYZ‑Richtung an.\nSchlüsselwort: force",
   show_physics_tooltip:
@@ -689,7 +689,7 @@ export default {
   touching_surface_tooltip:
     "Prüft, ob das Objekt eine Oberfläche berührt.\nSchlüsselwort: surface",
   mesh_exists_tooltip:
-    "Gibt true zurück, wenn das Mesh mit diesem Namen in der Szene vorhanden ist.",
+    "Gibt true zurück, wenn das Objekt mit diesem Namen in der Szene vorhanden ist.",
   get_property_tooltip:
     "Gibt den Wert der gewählten Eigenschaft eines Objekts zurück.\nSchlüsselwort: get",
   canvas_controls_tooltip:
@@ -894,7 +894,7 @@ export default {
   ANIMATED_option: "animiert",
   STATIC_option: "statisch",
 
-  MESH_option: "Mesh",
+  MESH_option: "Objekt",
   CAPSULE_option: "Kapsel",
 
   BOTH_option: "beides",
@@ -1137,7 +1137,7 @@ export default {
 
   // UI status messages
   max_mesh_limit_reached:
-    "⚠️ Limit erreicht: Du kannst nur {max} Meshes in deiner Welt haben.",
+    "⚠️ Limit erreicht: Du kannst nur {max} Objekte in deiner Welt haben.",
   high_memory_usage_warning: "Warnung: Hoher Speicherverbrauch ({percent}%)",
   physics_out_of_memory_log:
     "Havok-Physik wurde abgebrochen, wahrscheinlich wegen zu wenig Speicher.", // AI-generated; needs validation
@@ -1147,9 +1147,9 @@ export default {
   xr_mode_message: "XR-Modus!",
   fly_camera_instructions: "ℹ️ Flugkamera, nutze Pfeiltasten und Bild auf/ab",
   select_mesh_delete_prompt:
-    "⚠️ Wähle ein Mesh aus und klicke dann auf Löschen.",
+    "⚠️ Wähle ein Objekt aus und klicke dann auf Löschen.",
   select_mesh_duplicate_prompt:
-    "⚠️ Wähle ein Mesh aus, klicke auf Duplizieren und klicke dann, um Kopien zu platzieren.",
+    "⚠️ Wähle ein Objekt aus, klicke auf Duplizieren und klicke dann, um Kopien zu platzieren.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "Das Pipettenwerkzeug wird in diesem Browser nicht unterstützt. Versuche es mit Chrome oder Edge.",

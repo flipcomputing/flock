@@ -1,7 +1,7 @@
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Scène",
-  CATEGORY_MESHES: "Maillages",
+  CATEGORY_MESHES: "Objets",
   CATEGORY_XR: "RX",
   CATEGORY_EFFECTS: "Effets",
   CATEGORY_CAMERA: "Caméra",
@@ -369,12 +369,11 @@ export default {
     "Définir la couleur d'arrière-plan de la scène.\nMot-clé: background",
   create_map_tooltip:
     "Créer une carte avec le nom et le matériau sélectionnés.\nMot-clé: map",
-  show_tooltip: "Afficher le maillage sélectionné.\nMot-clé: show",
-  hide_tooltip: "Cacher le maillage sélectionné.\nMot-clé: hide",
-  dispose_tooltip:
-    "Supprimer le maillage spécifié de la scène.\nMot-clé: dispose",
+  show_tooltip: "Afficher l'objet sélectionné.\nMot-clé: show",
+  hide_tooltip: "Cacher l'objet sélectionné.\nMot-clé: hide",
+  dispose_tooltip: "Supprimer l'objet spécifié de la scène.\nMot-clé: dispose",
   clone_mesh_tooltip:
-    "Cloner un maillage et l'assigner à une variable.\nMot-clé: clone",
+    "Cloner un objet et l'assigner à une variable.\nMot-clé: clone",
 
   // Tooltip translations - Models blocks
   load_character_tooltip:
@@ -396,7 +395,7 @@ export default {
   rotate_anim_seconds_tooltip:
     "Faire pivoter une forme vers des angles spécifiés sur une durée avec des options pour inverser, boucler et appliquer une accélération.",
   rotate_to_object_tooltip:
-    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
+    "Faire pivoter un objet vers un autre objet ou aligner la rotation de cet objet sur une durée, avec des options d'inversion, de boucle et d'easing.",
   animate_property_tooltip:
     "Animer une propriété de matériau de la forme et de ses enfants.",
   colour_keyframe_tooltip:
@@ -425,36 +424,36 @@ export default {
   camera_control_tooltip:
     "Associer une touche spécifique à une action de contrôle de la caméra.",
   camera_follow_tooltip:
-    "Faire suivre un maillage par la caméra avec une distance (rayon) personnalisable par rapport à la cible.\nMot-clé: follow",
+    "Faire suivre un objet par la caméra avec une distance (rayon) personnalisable par rapport à la cible.\nMot-clé: follow",
   get_camera_tooltip: "Obtenir la caméra actuelle de la scène",
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip:
-    "Fusionner une liste de maillages en un seul et stocker le résultat.\nMot-clé: merge",
+    "Fusionner une liste d'objets en un seul et stocker le résultat.\nMot-clé: merge",
   subtract_meshes_tooltip:
-    "Soustraire une liste de maillages d’un maillage de base et stocker le résultat.\nMot-clé: subtract",
+    "Soustraire une liste d'objets d’un objet de base et stocker le résultat.\nMot-clé: subtract",
   intersection_meshes_tooltip:
-    "Intersecter une liste de maillages et stocker la géométrie résultante.\nMot-clé: intersect",
+    "Intersecter une liste d'objets et stocker la géométrie résultante.\nMot-clé: intersect",
   hull_meshes_tooltip:
-    "Créer une enveloppe convexe à partir d’une liste de maillages et stocker le résultat.\nMot-clé: hull",
+    "Créer une enveloppe convexe à partir d’une liste d'objets et stocker le résultat.\nMot-clé: hull",
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    "Définit une relation parent-enfant entre deux maillages et maintient l'enfant dans sa position dans le monde\nMot-clé: parent",
+    "Définit une relation parent-enfant entre deux objets et maintient l'enfant dans sa position dans le monde\nMot-clé: parent",
   parent_child_tooltip:
-    "Définit une relation parent-enfant entre deux maillages avec un décalage spécifié dans les directions x, y et z.\nMot-clé: child",
+    "Définit une relation parent-enfant entre deux objets avec un décalage spécifié dans les directions x, y et z.\nMot-clé: child",
   remove_parent_tooltip:
-    "Supprime la relation de parenté du maillage spécifié.\nMot-clé: unparent",
+    "Supprime la relation de parenté de l'objet spécifié.\nMot-clé: unparent",
   stop_follow_tooltip:
-    "Arrête le maillage spécifié de suivre un autre.\nMot-clé: stopfollow",
+    "Arrête l'objet spécifié de suivre un autre.\nMot-clé: stopfollow",
   hold_tooltip:
-    "Attache un maillage à l’os spécifié d’un autre maillage avec un décalage défini en x, y et z.\nMot-clé: hold",
+    "Attache un objet à l’os spécifié d’un autre objet avec un décalage défini en x, y et z.\nMot-clé: hold",
   drop_tooltip:
-    "Détache un maillage de l’os auquel il est actuellement attaché.\nMot-clé: drop",
+    "Détache un objet de l’os auquel il est actuellement attaché.\nMot-clé: drop",
   follow_tooltip:
-    "Fait en sorte qu’un maillage suive un autre à une position spécifiée (haut, centre ou bas) avec un décalage en x, y et z.\nMot-clé: follow",
+    "Fait en sorte qu’un objet suive un autre à une position spécifiée (haut, centre ou bas) avec un décalage en x, y et z.\nMot-clé: follow",
   export_mesh_tooltip:
-    "Exporte un maillage au format STL, OBJ ou GLB.\nMot-clé: export",
+    "Exporte un objet au format STL, OBJ ou GLB.\nMot-clé: export",
 
   // Tooltip translations - Control blocks
   wait_tooltip:
@@ -485,9 +484,9 @@ export default {
   forever_tooltip:
     "Exécute les blocs à chaque image ou lorsque l’itération précédente se termine.\nMot-clé: forever",
   when_clicked_tooltip:
-    "Exécute les blocs à l’intérieur lorsque le déclencheur du maillage se produit.\nMot-clé: click",
+    "Exécute les blocs à l’intérieur lorsque le déclencheur de l'objet se produit.\nMot-clé: click",
   on_collision_tooltip:
-    "Exécute les blocs à l’intérieur lorsque le maillage entre ou sort en collision avec un autre maillage.\nMot-clé: collide",
+    "Exécute les blocs à l’intérieur lorsque l'objet entre ou sort en collision avec un autre objet.\nMot-clé: collide",
   when_key_event_tooltip:
     "Exécute les blocs à l’intérieur lorsque la touche spécifiée est appuyée ou relâchée.",
   when_action_event_tooltip:
@@ -499,24 +498,24 @@ export default {
 
   // Tooltip translations - Materials blocks
   change_color_tooltip:
-    "Change la couleur du maillage sélectionné.\nMot-clé: color",
+    "Change la couleur de l'objet sélectionné.\nMot-clé: color",
   change_material_tooltip:
-    "Applique un matériau sélectionné avec une teinte de couleur au maillage spécifié.\nMot-clé: material",
+    "Applique un matériau sélectionné avec une teinte de couleur à l'objet spécifié.\nMot-clé: material",
   text_material_tooltip:
     "Crée un matériau avec du texte ou un emoji, en spécifiant la largeur, la hauteur, la couleur de fond et la taille du texte.",
   place_decal_tooltip:
-    "Place une décalcomanie sur un maillage à l’aide du matériau sélectionné.",
+    "Place une décalcomanie sur un objet à l’aide du matériau sélectionné.",
   decal_tooltip:
-    "Crée une décalcomanie sur un maillage avec position, normale, taille et matériau.",
+    "Crée une décalcomanie sur un objet avec position, normale, taille et matériau.",
   highlight_tooltip:
-    "Met en surbrillance le maillage sélectionné.\nMot-clé: highlight",
+    "Met en surbrillance l'objet sélectionné.\nMot-clé: highlight",
   glow_tooltip:
-    "Ajoute un effet de lueur au maillage sélectionné.\nMot-clé: glow",
+    "Ajoute un effet de lueur à l'objet sélectionné.\nMot-clé: glow",
   tint_tooltip: "Ajoute un effet de teinte colorée.\nMot-clé: tint",
   set_alpha_tooltip:
-    "Définit l'opacité (alpha) du ou des matériaux sur un maillage spécifié. Les valeurs doivent être entre 0 et 1.\nMot-clé: alpha",
+    "Définit l'opacité (alpha) du ou des matériaux sur un objet spécifié. Les valeurs doivent être entre 0 et 1.\nMot-clé: alpha",
   clear_effects_tooltip:
-    "Efface les effets visuels du maillage sélectionné.\nMot-clé: clear",
+    "Efface les effets visuels de l'objet sélectionné.\nMot-clé: clear",
   colour_tooltip: "Choisir une couleur.\nMot-clé: color",
   skin_colour_tooltip: "Choisir une couleur de peau.\nMot-clé: skin",
   greyscale_colour_tooltip:
@@ -524,15 +523,15 @@ export default {
   random_colour_tooltip: "Génère une couleur aléatoire.\nMot-clé: randcol",
   material_tooltip: "Définit les propriétés du matériau",
   gradient_material_tooltip: "Définit les propriétés du matériau",
-  set_material_tooltip: "Définit le matériau spécifié sur le maillage donné.",
+  set_material_tooltip: "Définit le matériau spécifié sur l'objet donné.",
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
-    "Ajoute la physique au maillage. Les options sont dynamique, statique, animée et aucune.\nMot-clé: physics",
+    "Ajoute la physique à l'objet. Les options sont dynamique, statique, animée et aucune.\nMot-clé: physics",
   add_physics_shape_tooltip:
-    "Ajoute une forme physique au maillage. Les options sont maillage ou capsule.\nMot-clé: physics",
+    "Ajoute une forme physique à l'objet. Les options sont objet ou capsule.\nMot-clé: physics",
   apply_force_tooltip:
-    "Applique une force à un maillage selon les directions X, Y et Z.\nMot-clé: force",
+    "Applique une force à un objet selon les directions X, Y et Z.\nMot-clé: force",
   show_physics_tooltip:
     "Afficher ou masquer les colliders physiques pour le débogage. Cochez pour afficher, décochez pour masquer.\nMot-clé: debug physics collider",
 
@@ -545,16 +544,16 @@ export default {
   set_action_key_tooltip:
     "Définit la touche qui déclenche une action spécifique (avant, arrière, gauche, droite ou boutons).",
   meshes_touching_tooltip:
-    "Renvoie vrai si les deux maillages sélectionnés se touchent.\nMot-clé: istouching",
+    "Renvoie vrai si les deux objets sélectionnés se touchent.\nMot-clé: istouching",
   time_tooltip: "Renvoie le temps actuel en secondes.",
   ground_level_tooltip: "Renvoie la hauteur du sol à la position x/z actuelle.",
-  distance_to_tooltip: "Calcule la distance entre deux maillages.",
+  distance_to_tooltip: "Calcule la distance entre deux objets.",
   touching_surface_tooltip:
-    "Vérifie si le maillage touche une surface.\nMot-clé: surface",
+    "Vérifie si l'objet touche une surface.\nMot-clé: surface",
   mesh_exists_tooltip:
-    "Renvoie vrai si le maillage portant ce nom est présent dans la scène.",
+    "Renvoie vrai si l'objet portant ce nom est présent dans la scène.",
   get_property_tooltip:
-    "Obtient la valeur de la propriété sélectionnée d’un maillage.\nMot-clé: get",
+    "Obtient la valeur de la propriété sélectionnée d’un objet.\nMot-clé: get",
   canvas_controls_tooltip:
     "Ajoute ou supprime les contrôles de mouvement de la toile.\nMot-clé: canvas",
   button_controls_tooltip:
@@ -566,7 +565,7 @@ export default {
 
   // Tooltip translations - Shapes blocks
   create_particle_effect_tooltip:
-    "Crée un effet de particules attaché à un maillage avec forme, gravité, taille, couleur, transparence, durée de vie, force et rotation configurables.",
+    "Crée un effet de particules attaché à un objet avec forme, gravité, taille, couleur, transparence, durée de vie, force et rotation configurables.",
   control_particle_system_tooltip:
     "Contrôle le système de particules en le démarrant, l’arrêtant ou le réinitialisant.",
   create_box_tooltip:
@@ -582,17 +581,17 @@ export default {
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
-    "Joue un thème musical sur un maillage avec vitesse, volume et mode réglables.\nMot-clé: theme",
+    "Joue un thème musical sur un objet avec vitesse, volume et mode réglables.\nMot-clé: theme",
   play_sound_tooltip:
-    "Joue le son sélectionné sur un maillage avec vitesse, volume et mode réglables.\nMot-clé: sound",
+    "Joue le son sélectionné sur un objet avec vitesse, volume et mode réglables.\nMot-clé: sound",
   stop_all_sounds_tooltip:
     "Arrête tous les sons en cours de lecture dans la scène.\nMot-clé: nosound",
   midi_note_tooltip: "Une valeur de note MIDI comprise entre 0 et 127.",
   rest_tooltip: "Un silence (pause) dans une séquence musicale.",
   play_notes_tooltip:
-    "Joue une séquence de notes MIDI et de silences avec des durées correspondantes, en utilisant un maillage pour le panoramique. Peut retourner immédiatement ou après la fin des notes.",
+    "Joue une séquence de notes MIDI et de silences avec des durées correspondantes, en utilisant un objet pour le panoramique. Peut retourner immédiatement ou après la fin des notes.",
   set_scene_bpm_tooltip: "Définit le BPM pour toute la scène",
-  set_mesh_bpm_tooltip: "Définit le BPM pour un maillage sélectionné",
+  set_mesh_bpm_tooltip: "Définit le BPM pour un objet sélectionné",
   create_instrument_tooltip:
     "Crée un instrument et l’assigne à la variable sélectionnée.",
   instrument_tooltip: "Sélectionner un instrument pour jouer des notes.",
@@ -604,9 +603,9 @@ export default {
   print_text_tooltip:
     "Affiche un texte dans le panneau de sortie.\nMot-clé: print",
   say_tooltip:
-    "Affiche un texte comme bulle de dialogue sur un maillage.\nMot-clé: say",
+    "Affiche un texte comme bulle de dialogue sur un objet.\nMot-clé: say",
   describe_tooltip:
-    "Définir le nom d'affichage d'un maillage. Met à jour les métadonnées pour l'accessibilité.\nMot-clé: describe",
+    "Définir le nom d'affichage d'un objet. Met à jour les métadonnées pour l'accessibilité.\nMot-clé: describe",
   ui_text_tooltip:
     "Ajoute un texte à l’interface utilisateur et stocke le contrôle dans une variable pour une utilisation ultérieure.",
   ui_button_tooltip:
@@ -622,32 +621,32 @@ export default {
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
-    "Déplace un maillage d'une certaine valeur selon X, Y et Z.\nMot-clé: move",
+    "Déplace un objet d'une certaine valeur selon X, Y et Z.\nMot-clé: move",
   move_by_xyz_single_tooltip:
-    "Déplacer un maillage d’un montant donné sur l’axe x, y ou z.\nMot-clé: move",
+    "Déplacer un objet d’un montant donné sur l’axe x, y ou z.\nMot-clé: move",
   move_to_xyz_tooltip:
-    "Téléporte le maillage aux coordonnées données. Utilise l’axe Y en option.\nMot-clé: moveby",
+    "Téléporte l'objet aux coordonnées données. Utilise l’axe Y en option.\nMot-clé: moveby",
   move_to_xyz_single_tooltip:
-    "Téléporter le maillage vers la coordonnée unique indiquée.\nMot-clé: moveby",
+    "Téléporter l'objet vers la coordonnée unique indiquée.\nMot-clé: moveby",
   move_to_tooltip:
-    "Téléporte le premier maillage à l’emplacement du second.\nMot-clé: moveto",
+    "Téléporte le premier objet à l’emplacement du second.\nMot-clé: moveto",
   scale_tooltip:
-    "Redimensionne un maillage aux valeurs x, y, z données, et contrôle l’origine de l’échelle.\nMot-clé: scale",
+    "Redimensionne un objet aux valeurs x, y, z données, et contrôle l’origine de l’échelle.\nMot-clé: scale",
   resize_tooltip:
-    "Redimensionne un maillage aux valeurs x, y, z données, et contrôle l’origine de l’échelle.\nMot-clé: resize",
+    "Redimensionne un objet aux valeurs x, y, z données, et contrôle l’origine de l’échelle.\nMot-clé: resize",
   rotate_model_xyz_tooltip:
-    "Fait tourner le maillage selon les valeurs x, y, z.\nMot-clé: rotate\nMot-clé: rotateby",
+    "Fait tourner l'objet selon les valeurs x, y, z.\nMot-clé: rotate\nMot-clé: rotateby",
   rotate_to_tooltip:
-    "Fait tourner le maillage pour pointer vers les coordonnées.\nMot-clé: rotateto",
+    "Fait tourner l'objet pour pointer vers les coordonnées.\nMot-clé: rotateto",
   look_at_tooltip:
-    "Fait pivoter le premier maillage pour regarder vers la position du second.\nMot-clé: look",
+    "Fait pivoter le premier objet pour regarder vers la position du second.\nMot-clé: look",
   move_forward_tooltip:
-    "Déplace le maillage dans la direction spécifiée. 'Forward' le fait avancer, 'sideways' le fait se déplacer par rapport à la caméra, 'strafe' le fait se déplacer latéralement.\nMot-clé: push",
+    "Déplace l'objet dans la direction spécifiée. 'Forward' le fait avancer, 'sideways' le fait se déplacer par rapport à la caméra, 'strafe' le fait se déplacer latéralement.\nMot-clé: push",
   rotate_camera_tooltip:
     "Fait pivoter la caméra vers la gauche ou la droite du nombre de degrés indiqué.\nMot-clé: rotate",
   up_tooltip: "Applique la force vers le haut spécifiée.\nMot-clé: up",
   set_pivot_tooltip:
-    "Définit le point d’ancrage d’un maillage selon les axes X, Y et Z\nMot-clé: ancre",
+    "Définit le point d’ancrage d’un objet selon les axes X, Y et Z\nMot-clé: ancre",
   min_centre_max_tooltip:
     "Choisit min, centre ou max comme point de pivot\nMot-clé: minmax",
 
@@ -815,7 +814,7 @@ export default {
   ANIMATED_option: "animé",
   STATIC_option: "statique",
 
-  MESH_option: "maillage",
+  MESH_option: "objet",
   CAPSULE_option: "capsule",
 
   FLAT_option: "Plat",
@@ -1075,12 +1074,12 @@ export default {
 
   show_shapes_button_ui: "Ajouter des formes et des modèles",
   color_picker_button_ui: "Changer la couleur de l'objet",
-  position_button_ui: "Positionner le maillage",
-  rotation_button_ui: "Faire pivoter le maillage",
-  scale_button_ui: "Redimensionner le maillage",
+  position_button_ui: "Positionner l'objet",
+  rotation_button_ui: "Faire pivoter l'objet",
+  scale_button_ui: "Redimensionner l'objet",
   hide_button_ui: "Sélectionner l'objet",
-  duplicate_button_ui: "Dupliquer le maillage sélectionné",
-  delete_button_ui: "Supprimer le maillage sélectionné",
+  duplicate_button_ui: "Dupliquer l'objet sélectionné",
+  delete_button_ui: "Supprimer l'objet sélectionné",
   camera_button_ui: "Contrôles de la caméra",
 
   info_panel_link_ui:
@@ -1154,7 +1153,7 @@ export default {
 
   // UI status messages
   max_mesh_limit_reached:
-    "⚠️ Limite atteinte: vous pouvez avoir seulement {max} maillages dans votre monde.",
+    "⚠️ Limite atteinte: vous pouvez avoir seulement {max} objets dans votre monde.",
   high_memory_usage_warning:
     "Avertissement: utilisation mémoire élevée ({percent}%)",
   physics_out_of_memory_log:
@@ -1166,9 +1165,9 @@ export default {
   fly_camera_instructions:
     "ℹ️ Caméra en vol, utilisez les flèches et Page haut/bas",
   select_mesh_delete_prompt:
-    "⚠️ Sélectionnez un maillage puis cliquez sur supprimer.",
+    "⚠️ Sélectionnez un objet puis cliquez sur supprimer.",
   select_mesh_duplicate_prompt:
-    "⚠️ Sélectionnez un maillage puis cliquez sur dupliquer, puis cliquez pour placer les copies.",
+    "⚠️ Sélectionnez un objet puis cliquez sur dupliquer, puis cliquez pour placer les copies.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "L'outil pipette n'est pas pris en charge dans ce navigateur. Essayez d'utiliser Chrome ou Edge.",
