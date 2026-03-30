@@ -1076,12 +1076,12 @@ export default {
 
   show_shapes_button_ui: "añadir formas y modelos", // human
   color_picker_button_ui: "Escoge color del objeto", // human
-  position_button_ui: "Posicionar objeto", // human
-  rotation_button_ui: "Rotar objeto", // human
-  scale_button_ui: "Escalar tamaño de objeto", // human
-  hide_button_ui: "Seleccionar objeto", // human
-  duplicate_button_ui: "Duplicar objeto seleccionado", // human
-  delete_button_ui: "Eliminar objeto seleccionado", // human
+  position_button_ui: "Posicionar objeto",
+  rotation_button_ui: "Rotar objeto",
+  scale_button_ui: "Escalar tamaño de objeto",
+  hide_button_ui: "Seleccionar objeto",
+  duplicate_button_ui: "Duplicar objeto seleccionado",
+  delete_button_ui: "Eliminar objeto seleccionado",
   camera_button_ui: "Controles de cámara", // human
 
   info_panel_link_ui:
@@ -1156,19 +1156,19 @@ export default {
 
   // UI status messages
   max_mesh_limit_reached:
-    "⚠️ Límite alcanzado: solo puedes tener {max} objetos en tu mundo.", // human
+    "⚠️ Límite alcanzado: solo puedes tener {max} objetos en tu mundo.",
   high_memory_usage_warning: "Advertencia: uso de memoria alto ({porciento}%)", // human
   physics_out_of_memory_log:
     "La física de Havok se abortó, probablemente por falta de memoria.", // human, AI-generated; needs validation
   physics_out_of_memory_banner_ui:
-    "El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.", // human, AI-generated; needs validation
+    "El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.",
   runtime_error_message: "Error: {mensaje}", // human
   xr_mode_message: "¡Modo XR!", // human
   fly_camera_instructions: "ℹ️ Cámara en vuelo, usa las flechas y Page Up/Down", // human
   select_mesh_delete_prompt:
-    "⚠️ Selecciona un objeto y luego haz clic en eliminar.", // human
+    "⚠️ Selecciona un objeto y luego haz clic en eliminar.",
   select_mesh_duplicate_prompt:
-    "⚠️ Selecciona un objeto y haz clic en duplicar, luego haz clic para colocar las copias.", // human
+    "⚠️ Selecciona un objeto y haz clic en duplicar, luego haz clic para colocar las copias.",
   position_readout: "Posición: {Posición}", // human
   eyedropper_not_supported_alert:
     "El selector de colores no es compatible con este navegador. Prueba con Chrome o Edge.", // human

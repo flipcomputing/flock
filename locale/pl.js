@@ -598,7 +598,8 @@ export default {
   comment_tooltip: "Linia komentarza, by pomóc zrozumieć kod.",
   print_text_tooltip:
     "Wyświetl tekst na panelu wyjścia.\nSłowo kluczowe: print",
-  say_tooltip: "Pokaż tekst w dymku mówionym nad obiektem.\nSłowo kluczowe: say",
+  say_tooltip:
+    "Pokaż tekst w dymku mówionym nad obiektem.\nSłowo kluczowe: say",
   describe_tooltip:
     "Ustaw nazwę wyświetlaną obiekty. Aktualizuje metadane dla dostępności.\nSłowo kluczowe: describe",
   ui_text_tooltip:

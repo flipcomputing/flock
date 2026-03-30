@@ -397,7 +397,7 @@ export default {
   rotate_anim_seconds_tooltip:
     "Ruota un oggetto ad angoli specificati in un intervallo, con opzioni di inversione, loop ed easing.",
   rotate_to_object_tooltip:
-    "Rotate a oggetto toward another oggetto or match that oggetto's rotation over a duration with options for reverse, looping, and easing.",
+    "Ruota un oggetto verso un altro oggetto o allinea la rotazione di quell'oggetto in una durata, con opzioni di inversione, loop ed easing.",
   animate_property_tooltip:
     "Anima una proprietà del materiale dell'oggetto e dei suoi figli.",
   colour_keyframe_tooltip: "Imposta un colore e una durata per un keyframe.",
@@ -507,7 +507,8 @@ export default {
     "Posiziona una decalcomania su un oggetto usando il materiale selezionato.",
   decal_tooltip:
     "Crea una decal su un oggetto con posizione, normale, dimensione e materiale.",
-  highlight_tooltip: "Evidenzia l'oggetto selezionato.\nParola chiave: highlight",
+  highlight_tooltip:
+    "Evidenzia l'oggetto selezionato.\nParola chiave: highlight",
   glow_tooltip:
     "Aggiunge un effetto alone all'oggetto selezionato.\nParola chiave: glow",
   tint_tooltip: "Aggiunge una tinta di colore.\nParola chiave: tint",
@@ -522,7 +523,8 @@ export default {
   random_colour_tooltip: "Genera un colore casuale.\nParola chiave: randcol",
   material_tooltip: "Definisci le proprietà del materiale",
   gradient_material_tooltip: "Definisci le proprietà del materiale",
-  set_material_tooltip: "Imposta il materiale specificato sull'oggetto indicato.",
+  set_material_tooltip:
+    "Imposta il materiale specificato sull'oggetto indicato.",
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
@@ -1160,7 +1162,8 @@ export default {
   runtime_error_message: "Errore: {message}",
   xr_mode_message: "Modalità XR!",
   fly_camera_instructions: "ℹ️ Telecamera volante, usa le frecce e Pag su/giù",
-  select_mesh_delete_prompt: "⚠️ Seleziona un oggetto e poi fai clic su elimina.",
+  select_mesh_delete_prompt:
+    "⚠️ Seleziona un oggetto e poi fai clic su elimina.",
   select_mesh_duplicate_prompt:
     "⚠️ Seleziona un oggetto, fai clic su duplica e poi fai clic per posizionare le copie.",
   position_readout: "Posizione: {position}",

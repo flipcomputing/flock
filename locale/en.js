@@ -494,7 +494,8 @@ export default {
     "Apply a selected material with a color tint to the specified object.\nKeyword: material",
   text_material_tooltip:
     "Create a material with text or emoji, specifying width, height, background color, and text size.",
-  place_decal_tooltip: "Place a decal on an object using the selected material.",
+  place_decal_tooltip:
+    "Place a decal on an object using the selected material.",
   decal_tooltip:
     "Create a decal on an object with position, normal, size, and material.",
   highlight_tooltip: "Highlight the selected object.\nKeyword: highlight",

@@ -391,7 +391,7 @@ export default {
   rotate_anim_seconds_tooltip:
     "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
   rotate_to_object_tooltip:
-    "Rotate a objekt toward another objekt or match that objekt's rotation over a duration with options for reverse, looping, and easing.",
+    "Rotera ett objekt mot ett annat objekt eller matcha objektets rotation under en tidsperiod med alternativ för omvändning, looping och easing.",
   animate_property_tooltip:
     "Animera ett materialegenskap på objektet och dess barn.",
   colour_keyframe_tooltip: "Ange en färg och varaktighet för en nyckelruta.",
@@ -486,8 +486,7 @@ export default {
   on_event_tooltip: "Kör kod när ett broadcast-event tas emot.\nKeyword: on",
 
   // Tooltip translations - Materials blocks
-  change_color_tooltip:
-    "Ändra färgen på det valda objektet.\nKeyword: color",
+  change_color_tooltip: "Ändra färgen på det valda objektet.\nKeyword: color",
   change_material_tooltip:
     "Applicera ett valt material med färgton på det angivna objektet.\nKeyword: material",
   text_material_tooltip:
@@ -509,8 +508,7 @@ export default {
   random_colour_tooltip: "Generera en slumpmässig färg.\nKeyword: randcol",
   material_tooltip: "Definiera materialegenskaper",
   gradient_material_tooltip: "Definiera materialegenskaper",
-  set_material_tooltip:
-    "Ange det angivna materialet på det valda objektet.",
+  set_material_tooltip: "Ange det angivna materialet på det valda objektet.",
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
@@ -1061,7 +1059,7 @@ export default {
   rotation_button_ui: "Rotera objekt",
   scale_button_ui: "Skala objekt-storlek",
   hide_button_ui: "Välj objekt",
-  duplicate_button_ui: "Duplicera vald objekt",
+  duplicate_button_ui: "Duplicera valt objekt",
   delete_button_ui: "Radera vald objekt",
   camera_button_ui: "Kamerakontroller",
 

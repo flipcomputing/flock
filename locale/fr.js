@@ -371,8 +371,7 @@ export default {
     "Créer une carte avec le nom et le matériau sélectionnés.\nMot-clé: map",
   show_tooltip: "Afficher l'objet sélectionné.\nMot-clé: show",
   hide_tooltip: "Cacher l'objet sélectionné.\nMot-clé: hide",
-  dispose_tooltip:
-    "Supprimer l'objet spécifié de la scène.\nMot-clé: dispose",
+  dispose_tooltip: "Supprimer l'objet spécifié de la scène.\nMot-clé: dispose",
   clone_mesh_tooltip:
     "Cloner un objet et l'assigner à une variable.\nMot-clé: clone",
 
@@ -396,7 +395,7 @@ export default {
   rotate_anim_seconds_tooltip:
     "Faire pivoter une forme vers des angles spécifiés sur une durée avec des options pour inverser, boucler et appliquer une accélération.",
   rotate_to_object_tooltip:
-    "Rotate a objet toward another objet or match that objet's rotation over a duration with options for reverse, looping, and easing.",
+    "Faire pivoter un objet vers un autre objet ou aligner la rotation de cet objet sur une durée, avec des options d'inversion, de boucle et d'easing.",
   animate_property_tooltip:
     "Animer une propriété de matériau de la forme et de ses enfants.",
   colour_keyframe_tooltip:

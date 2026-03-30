@@ -390,7 +390,7 @@ export default {
   rotate_anim_seconds_tooltip:
     "Gira um objeto para ângulos específicos durante um tempo com opções de reverso, repetição e easing.",
   rotate_to_object_tooltip:
-    "Rotate o objeto toward another objeto or match that objeto's rotation over a duration with options for reverse, looping, and easing.",
+    "Roda um objeto em direção a outro objeto ou iguala a rotação desse objeto durante uma duração, com opções de inversão, repetição e easing.",
   animate_property_tooltip:
     "Anima uma propriedade de material do objeto e seus filhos.",
   colour_keyframe_tooltip: "Define uma cor e duração para um quadro-chave.",
@@ -490,7 +490,8 @@ export default {
     "Executa o código ao receber um evento transmitido.\nPalavra-chave: ao",
 
   // Tooltip translations - Materials blocks
-  change_color_tooltip: "Altera a cor do objeto selecionado.\nPalavra-chave: cor",
+  change_color_tooltip:
+    "Altera a cor do objeto selecionado.\nPalavra-chave: cor",
   change_material_tooltip:
     "Aplica um material selecionado com cor ao objeto especificado.\nPalavra-chave: material",
   text_material_tooltip:
