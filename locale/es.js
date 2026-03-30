@@ -394,7 +394,7 @@ export default {
   rotate_anim_seconds_tooltip:
     "Rota un objeto a ángulos determinados durante una duración, con opciones de inversión, bucle y facilidando.", // human
   rotate_to_object_tooltip:
-    "Rotate an object toward another object or match that object's rotation over a duration with options for reverse, looping, and easing.",
+    "Rota un objeto hacia otro objeto o iguala la rotación de ese objeto durante un intervalo, con opciones de invertir, bucle y easing.",
   animate_property_tooltip:
     "Anima una propiedad de material del objeto y sus hijos.", // human
   colour_keyframe_tooltip: "Establece un fotograma clave de color y duración.", // human
