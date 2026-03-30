@@ -400,8 +400,6 @@ function togglePanels() {
 
 // Updated play mode to work with new approach
 export function togglePlayMode() {
-  if (!flock.scene) return;
-
   const blocklyArea = document.getElementById("codePanel");
   const canvasArea = document.getElementById("canvasArea");
   const gizmoButtons = document.getElementById("gizmoButtons");
@@ -423,7 +421,7 @@ export function togglePlayMode() {
     }
 
     showCanvasView();
-    flock.scene.debugLayer.hide();
+    if (flock.scene) flock.scene.debugLayer.hide();
     blocklyArea.style.display = "none";
     gizmoButtons.style.display = "none";
     bottomBar.style.display = "none";
@@ -431,7 +429,7 @@ export function togglePlayMode() {
     if (resizer) resizer.style.display = "none";
     document.documentElement.style.setProperty("--dynamic-offset", "40px");
   } else {
-    flock.scene.debugLayer.hide();
+    if (flock.scene) flock.scene.debugLayer.hide();
     blocklyArea.style.display = "block";
     canvasArea.style.display = "block";
     gizmoButtons.style.display = "block";
