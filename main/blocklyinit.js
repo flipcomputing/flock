@@ -1513,6 +1513,7 @@ export function overrideSearchPlugin(workspace) {
       }
 
       const newIndex = buildSearchIndex();
+      xmlCache.clear();
       workspace.flockSearchIndexedBlocks = newIndex;
       blockSearcher.indexedBlocks_ = newIndex;
 
@@ -1722,7 +1723,7 @@ export function overrideSearchPlugin(workspace) {
 
         indexedBlocks.push({
           ...blockInfo,
-          text: Array.from(searchTerms).join(" "),
+          text: Array.from(searchTerms).join(" ").toLowerCase(),
         });
       });
     } finally {
@@ -1744,6 +1745,14 @@ export function overrideSearchPlugin(workspace) {
 
   if (searchToolboxItem?.initBlockSearcher) {
     searchToolboxItem.initBlockSearcher();
+  }
+
+  function debounce(fn, delayMs) {
+    let timer = null;
+    return function (...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), delayMs);
+    };
   }
 
   SearchCategory.prototype.matchBlocks = function () {
@@ -1840,13 +1849,28 @@ export function overrideSearchPlugin(workspace) {
 
     const matches = indexedBlocks.filter((block) => {
       if (block.text) {
-        return block.text.toLowerCase().includes(query);
+        return block.text.includes(query);
       }
       return false;
     });
 
     this.showMatchingBlocks(matches);
   };
+
+  SearchCategory.prototype.matchBlocks = debounce(
+    SearchCategory.prototype.matchBlocks,
+    120,
+  );
+
+  const xmlCache = new Map();
+
+  function getCachedXml(blockFull) {
+    const key = blockFull.type;
+    if (!xmlCache.has(key)) {
+      xmlCache.set(key, createXmlFromJson(blockFull));
+    }
+    return xmlCache.get(key).cloneNode(true);
+  }
 
   function createXmlFromJson(blockJson, isShadow = false, isTopLevel = true) {
     const blockXml = Blockly.utils.xml.createElement(
@@ -1905,10 +1929,7 @@ export function overrideSearchPlugin(workspace) {
       return;
     }
 
-    flyout.hide();
-    flyout.show([]);
-
-    const xmlList = matches.map((match) => createXmlFromJson(match.full));
+    const xmlList = matches.map((match) => getCachedXml(match.full));
     flyout.show(xmlList);
   };
 
