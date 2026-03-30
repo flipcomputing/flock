@@ -346,6 +346,72 @@ export function runMaterialsTests(flock) {
       expect(material.topColor).to.exist;
       material.dispose();
     });
+
+    it("should create a multi-color gradient shader material for 3+ colors", async function () {
+      const id = "boxCreateMaterialMultiGradient";
+      await createTestBox(id);
+      boxIds.push(id);
+
+      const gradientColors = ["#ff5733", "#fdfd96", "#9932cc", "#339999"];
+      const material = flock.createMaterial({
+        color: gradientColors,
+        materialName: "none.png",
+        alpha: 1,
+      });
+
+      expect(material).to.exist;
+      expect(material.getClassName()).to.equal("ShaderMaterial");
+      material.dispose();
+    });
+
+    it("should apply multi-color gradient to a box without error", async function () {
+      const palette = {
+        color: ["#ff5733", "#fdfd96", "#9932cc", "#339999"],
+        materialName: "none.png",
+        alpha: 1,
+      };
+
+      const id1 = "boxMultiGradient1";
+      await flock.createBox(id1, {
+        color: palette,
+        width: 2,
+        height: 4,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(id1);
+
+      const id2 = "boxMultiGradient2";
+      await flock.createBox(id2, {
+        color: palette,
+        width: 2,
+        height: 8,
+        depth: 1,
+        position: [5, 0, 0],
+      });
+      boxIds.push(id2);
+
+      const getTarget = (id) => {
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh).to.exist;
+        const children = mesh
+          .getDescendants(false)
+          .filter((n) => n.getTotalVertices && n.getTotalVertices() > 0);
+        return children.length ? children[0] : mesh;
+      };
+
+      const target1 = getTarget(id1);
+      const target2 = getTarget(id2);
+
+      expect(target1.material).to.exist;
+      expect(target1.material.getClassName()).to.equal("ShaderMaterial");
+      expect(target2.material).to.exist;
+      expect(target2.material.getClassName()).to.equal("ShaderMaterial");
+
+      // Shared cached material uses onBindObservable to supply per-mesh minMax at
+      // render time, so both meshes correctly reference the same material instance.
+      expect(target1.material.metadata._minMaxObserver).to.exist;
+    });
   });
 
   describe("setting a material scenarios @materials", function () {
