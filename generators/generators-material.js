@@ -147,4 +147,24 @@ export function registerMaterialGenerators(javascriptGenerator) {
     const code = `"${colour}"`;
     return [code, javascriptGenerator.ORDER_ATOMIC];
   };
+
+  // Gradient material --------------------------------------------
+  javascriptGenerator.forBlock["gradient_material"] = function (block) {
+    const color =
+      javascriptGenerator.valueToCode(
+        block,
+        "COLOR",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || '"#ffffff"';
+
+    const alpha =
+      javascriptGenerator.valueToCode(
+        block,
+        "ALPHA",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "1";
+
+    const code = `{ color: ${color}, materialName: "none.png", alpha: ${alpha} }`;
+    return [code, javascriptGenerator.ORDER_ATOMIC];
+  };
 }

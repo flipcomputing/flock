@@ -999,4 +999,115 @@ export function runMaterialsTests(flock) {
       });
     });
   });
+
+  describe("gradient material preservation @materials", function () {
+    const boxIds = [];
+
+    beforeEach(async function () {
+      flock.scene ??= {};
+    });
+
+    afterEach(function () {
+      boxIds.forEach((id) => flock.dispose(id));
+      boxIds.length = 0;
+    });
+
+    async function createGradientBox(id, colors) {
+      await flock.createBox(id, {
+        width: 1,
+        height: 2,
+        depth: 1,
+        color: { color: colors, materialName: "none.png", alpha: 1 },
+        position: [0, 0, 0],
+      });
+    }
+
+    function getTarget(id) {
+      const mesh = flock.scene.getMeshByName(id);
+      const children = mesh
+        .getDescendants(false)
+        .filter((n) => n.getTotalVertices && n.getTotalVertices() > 0);
+      return children.length ? children[0] : mesh;
+    }
+
+    it("should preserve 2-colour gradient after glow", async function () {
+      const id = "gradGlow2";
+      await createGradientBox(id, ["#ff0000", "#0000ff"]);
+      boxIds.push(id);
+
+      await flock.glow(id);
+
+      const target = getTarget(id);
+      expect(target.material.getClassName()).to.equal("GradientMaterial");
+    });
+
+    it("should preserve 3+ colour gradient after glow", async function () {
+      const id = "gradGlow3";
+      await createGradientBox(id, ["#ff0000", "#00ff00", "#0000ff"]);
+      boxIds.push(id);
+
+      await flock.glow(id);
+
+      const target = getTarget(id);
+      expect(target.material.getClassName()).to.equal("ShaderMaterial");
+    });
+
+    it("should preserve 2-colour gradient after clearEffects", async function () {
+      const id = "gradClear2";
+      await createGradientBox(id, ["#ff0000", "#0000ff"]);
+      boxIds.push(id);
+
+      await flock.glow(id);
+      await flock.clearEffects(id);
+
+      const target = getTarget(id);
+      expect(target.material.getClassName()).to.equal("GradientMaterial");
+    });
+
+    it("should preserve 3+ colour gradient after clearEffects", async function () {
+      const id = "gradClear3";
+      await createGradientBox(id, ["#ff0000", "#00ff00", "#0000ff"]);
+      boxIds.push(id);
+
+      await flock.glow(id);
+      await flock.clearEffects(id);
+
+      const target = getTarget(id);
+      expect(target.material.getClassName()).to.equal("ShaderMaterial");
+    });
+
+    it("should preserve 3+ colour gradient after setAlpha", async function () {
+      const id = "gradAlpha3";
+      await createGradientBox(id, ["#ff0000", "#00ff00", "#0000ff"]);
+      boxIds.push(id);
+
+      await flock.setAlpha(id, { value: 0.5 });
+
+      const target = getTarget(id);
+      expect(target.material.getClassName()).to.equal("ShaderMaterial");
+      expect(target.material.alpha).to.be.closeTo(0.5, 0.01);
+    });
+
+    it("should hit cache when applying the same material twice via applyMaterialToHierarchy", async function () {
+      const id = "gradCacheHit";
+      await flock.createBox(id, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      const descriptor = { color: "#aa00ff", materialName: "none.png", alpha: 1 };
+
+      flock.applyMaterialToHierarchy(mesh, descriptor);
+      const matAfterFirst = mesh.material;
+
+      flock.applyMaterialToHierarchy(mesh, descriptor);
+      const matAfterSecond = mesh.material;
+
+      expect(matAfterFirst).to.equal(matAfterSecond);
+    });
+  });
 }
