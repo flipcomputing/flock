@@ -391,7 +391,7 @@ export default {
   rotate_anim_seconds_tooltip:
     "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
   rotate_to_object_tooltip:
-    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
+    "Rotate a objekt toward another objekt or match that objekt's rotation over a duration with options for reverse, looping, and easing.",
   animate_property_tooltip:
     "Animera ett materialegenskap på objektet och dess barn.",
   colour_keyframe_tooltip: "Ange en färg och varaktighet för en nyckelruta.",
@@ -423,31 +423,31 @@ export default {
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip:
-    "Slå samman en lista med mesh-objekt till ett och spara resultatet.\nKeyword: merge",
+    "Slå samman en lista med objekt till ett och spara resultatet.\nKeyword: merge",
   subtract_meshes_tooltip:
-    "Subtrahera en lista med mesh-objekt från ett basobjekt och spara resultatet.\nKeyword: subtract",
+    "Subtrahera en lista med objekt från ett basobjekt och spara resultatet.\nKeyword: subtract",
   intersection_meshes_tooltip:
-    "Skapa en geometri genom att skära en lista med mesh-objekt och spara resultatet.\nKeyword: intersect",
+    "Skapa en geometri genom att skära en lista med objekt och spara resultatet.\nKeyword: intersect",
   hull_meshes_tooltip:
-    "Skapa ett konvext hölje från en lista med mesh-objekt och spara resultatet.\nKeyword: hull",
+    "Skapa ett konvext hölje från en lista med objekt och spara resultatet.\nKeyword: hull",
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    "Skapa en förälder-barn-relation mellan två mesh-objekt och behåll barnets världsposition\nKeyword:parent",
+    "Skapa en förälder-barn-relation mellan två objekt och behåll barnets världsposition\nKeyword:parent",
   parent_child_tooltip:
-    "Skapa en förälder-barn-relation mellan två mesh-objekt med ett angivet avstånd i x-, y- och z-riktning.\nKeyword: child",
+    "Skapa en förälder-barn-relation mellan två objekt med ett angivet avstånd i x-, y- och z-riktning.\nKeyword: child",
   remove_parent_tooltip:
-    "Ta bort föräldrarelationen från det angivna mesh-objektet.\nKeyword: unparent",
+    "Ta bort föräldrarelationen från det angivna objektet.\nKeyword: unparent",
   stop_follow_tooltip:
-    "Stoppa det angivna mesh-objektet från att följa ett annat.\nKeyword: stopfollow",
+    "Stoppa det angivna objektet från att följa ett annat.\nKeyword: stopfollow",
   hold_tooltip:
-    "Fäst ett mesh-objekt till ett angivet ben på ett annat objekt med ett offset i x-, y- och z-led.\nKeyword: hold",
+    "Fäst ett objekt till ett angivet ben på ett annat objekt med ett offset i x-, y- och z-led.\nKeyword: hold",
   drop_tooltip:
-    "Koppla loss ett mesh-objekt från det ben det är fäst vid.\nKeyword: drop",
+    "Koppla loss ett objekt från det ben det är fäst vid.\nKeyword: drop",
   follow_tooltip:
-    "Få ett mesh-objekt att följa ett annat vid en angiven position (topp, mitt eller botten) med offset i x-, y- och z-led.\nKeyword: follow",
+    "Få ett objekt att följa ett annat vid en angiven position (topp, mitt eller botten) med offset i x-, y- och z-led.\nKeyword: follow",
   export_mesh_tooltip:
-    "Exportera ett mesh som STL, OBJ eller GLB.\nKeyword: export",
+    "Exportera ett objekt som STL, OBJ eller GLB.\nKeyword: export",
 
   // Tooltip translations - Control blocks
   wait_tooltip: "Vänta en angiven tid i millisekunder.\nKeyword: milli",
@@ -474,9 +474,9 @@ export default {
   forever_tooltip:
     "Kör blocken varje bildruta eller när föregående iteration är klar.\nKeyword: forever",
   when_clicked_tooltip:
-    "Kör blocken när mesh-triggern aktiveras.\nKeyword: click",
+    "Kör blocken när objekt-triggern aktiveras.\nKeyword: click",
   on_collision_tooltip:
-    "Kör blocken när ett mesh-objekt kolliderar med eller slutar kollidera med ett annat.\nKeyword: collide",
+    "Kör blocken när ett objekt kolliderar med eller slutar kollidera med ett annat.\nKeyword: collide",
   when_key_event_tooltip:
     "Kör blocken när den angivna tangenten trycks ned eller släpps.",
   when_action_event_tooltip:
@@ -487,22 +487,22 @@ export default {
 
   // Tooltip translations - Materials blocks
   change_color_tooltip:
-    "Ändra färgen på det valda mesh-objektet.\nKeyword: color",
+    "Ändra färgen på det valda objektet.\nKeyword: color",
   change_material_tooltip:
-    "Applicera ett valt material med färgton på det angivna mesh-objektet.\nKeyword: material",
+    "Applicera ett valt material med färgton på det angivna objektet.\nKeyword: material",
   text_material_tooltip:
     "Skapa ett material med text eller emoji, där bredd, höjd, bakgrundsfärg och textstorlek anges.",
-  place_decal_tooltip: "Placera en dekal på ett mesh med valt material.",
+  place_decal_tooltip: "Placera en dekal på ett objekt med valt material.",
   decal_tooltip:
-    "Skapa en dekal på ett mesh med position, normal, storlek och material.",
-  highlight_tooltip: "Markera det valda mesh-objektet.\nKeyword: highlight",
+    "Skapa en dekal på ett objekt med position, normal, storlek och material.",
+  highlight_tooltip: "Markera det valda objektet.\nKeyword: highlight",
   glow_tooltip:
-    "Lägg till ett glödeffekt på det valda mesh-objektet.\nKeyword: glow",
+    "Lägg till ett glödeffekt på det valda objektet.\nKeyword: glow",
   tint_tooltip: "Lägg till en färgtonseffekt.\nKeyword: tint",
   set_alpha_tooltip:
-    "Ställ in alfavärdet (transparens) för materialet/materialen på det angivna mesh-objektet. Värden ska vara mellan 0 och 1.\nKeyword:alpha",
+    "Ställ in alfavärdet (transparens) för materialet/materialen på det angivna objektet. Värden ska vara mellan 0 och 1.\nKeyword:alpha",
   clear_effects_tooltip:
-    "Ta bort visuella effekter från valt mesh-objekt.\nKeyword: clear",
+    "Ta bort visuella effekter från valt objekt.\nKeyword: clear",
   colour_tooltip: "Välj en färg.\nKeyword: color",
   skin_colour_tooltip: "Välj en hudfärg.\nKeyword: skin",
   greyscale_colour_tooltip: "Välj en gråskala-färg för höjd.\nKeyword: grey",
@@ -510,15 +510,15 @@ export default {
   material_tooltip: "Definiera materialegenskaper",
   gradient_material_tooltip: "Definiera materialegenskaper",
   set_material_tooltip:
-    "Ange det angivna materialet på det valda mesh-objektet.",
+    "Ange det angivna materialet på det valda objektet.",
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
-    "Lägg till fysik på mesh-objektet. Alternativen är dynamisk, statisk, animerad och ingen.\nKeyword:physics",
+    "Lägg till fysik på objektet. Alternativen är dynamisk, statisk, animerad och ingen.\nKeyword:physics",
   add_physics_shape_tooltip:
-    "Lägg till en fysikform på mesh-objektet. Alternativen är mesh eller kapsel.\nKeyword:physics",
+    "Lägg till en fysikform på objektet. Alternativen är objekt eller kapsel.\nKeyword:physics",
   apply_force_tooltip:
-    "Applicera en kraft på ett mesh i XYZ-riktningar.\nKeyword: force",
+    "Applicera en kraft på ett objekt i XYZ-riktningar.\nKeyword: force",
   show_physics_tooltip:
     "Visa eller dölj fysik-kollisionsobjekt för felsökning. Markera för att visa, avmarkera för att dölja.\nKeyword: debug physics collider",
 
@@ -531,16 +531,16 @@ export default {
   set_action_key_tooltip:
     "Ställer in tangenten som utlöser en specifik åtgärd (framåt, bakåt, vänster, höger eller knappar).",
   meshes_touching_tooltip:
-    "Returnerar sant om de två valda mesh-objekten rör vid varandra.\nKeyword: istouching",
+    "Returnerar sant om de två valda objekten rör vid varandra.\nKeyword: istouching",
   time_tooltip: "Returnerar aktuell tid i sekunder.",
   ground_level_tooltip: "Returnerar markhöjden vid aktuell x/z-position.",
-  distance_to_tooltip: "Beräkna avståndet mellan två mesh-objekt.",
+  distance_to_tooltip: "Beräkna avståndet mellan två objekt.",
   touching_surface_tooltip:
-    "Kontrollera om mesh-objektet rör vid en yta.\nKeyword: surface",
+    "Kontrollera om objektet rör vid en yta.\nKeyword: surface",
   mesh_exists_tooltip:
     "Returnerar sant om meshen med det här namnet finns i scenen.",
   get_property_tooltip:
-    "Hämta värdet på den valda egenskapen för ett mesh.\nKeyword: get",
+    "Hämta värdet på den valda egenskapen för ett objekt.\nKeyword: get",
   canvas_controls_tooltip:
     "Lägg till eller ta bort rörelsekontroller på canvas.\nKeyword: canvas",
   button_controls_tooltip: "Konfigurera knappkontroller.\nKeyword: button",
@@ -551,7 +551,7 @@ export default {
 
   // Tooltip translations - Shapes blocks
   create_particle_effect_tooltip:
-    "Skapa en partikeleffekt kopplad till ett mesh med konfigurerbar form, gravitation, storlek, färg, transparens, livstid, kraft och rotation.",
+    "Skapa en partikeleffekt kopplad till ett objekt med konfigurerbar form, gravitation, storlek, färg, transparens, livstid, kraft och rotation.",
   control_particle_system_tooltip:
     "Styr partikeleffekten genom att starta, stoppa eller återställa den.",
   create_box_tooltip:
@@ -567,17 +567,17 @@ export default {
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
-    "Spela upp ett musiktema på ett mesh med justerbar hastighet, volym och läge.\nKeyword: theme",
+    "Spela upp ett musiktema på ett objekt med justerbar hastighet, volym och läge.\nKeyword: theme",
   play_sound_tooltip:
-    "Spela upp det valda ljudet på ett mesh med justerbar hastighet, volym och läge.\nKeyword: sound",
+    "Spela upp det valda ljudet på ett objekt med justerbar hastighet, volym och läge.\nKeyword: sound",
   stop_all_sounds_tooltip:
     "Stoppa alla ljud som spelas i scenen.\nKeyword:nosound",
   midi_note_tooltip: "Ett MIDI-notvärde mellan 0 och 127.",
   rest_tooltip: "En paus (tystnad) i en musiksekvens.",
   play_notes_tooltip:
-    "Spela en sekvens av MIDI-noter och pauser med motsvarande längder, där mesh används för panorering. Kan returnera omedelbart eller efter uppspelning.",
+    "Spela en sekvens av MIDI-noter och pauser med motsvarande längder, där objekt används för panorering. Kan returnera omedelbart eller efter uppspelning.",
   set_scene_bpm_tooltip: "Ställ in BPM för hela scenen",
-  set_mesh_bpm_tooltip: "Ställ in BPM för ett valt mesh",
+  set_mesh_bpm_tooltip: "Ställ in BPM för ett valt objekt",
   create_instrument_tooltip:
     "Skapa ett instrument och tilldela det till den valda variabeln.",
   instrument_tooltip: "Välj ett instrument att använda för att spela noter.",
@@ -587,9 +587,9 @@ export default {
   // Tooltip translations - Text blocks
   comment_tooltip: "En kommentarsrad för att hjälpa andra att förstå din kod.",
   print_text_tooltip: "Skriv ut text till utmatningspanelen.\nKeyword: print",
-  say_tooltip: "Visa en textruta som ett pratmoln på ett mesh.\nKeyword: say",
+  say_tooltip: "Visa en textruta som ett pratmoln på ett objekt.\nKeyword: say",
   describe_tooltip:
-    "Ange visningsnamnet för ett mesh. Uppdaterar metadata för tillgänglighet.\nNyckelord: describe",
+    "Ange visningsnamnet för ett objekt. Uppdaterar metadata för tillgänglighet.\nNyckelord: describe",
   ui_text_tooltip:
     "Lägg till text på UI-skärmen och spara kontrollen i en variabel för senare användning.",
 
@@ -608,32 +608,32 @@ export default {
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
-    "Flytta ett mesh ett angivet värde i x-, y- och z-led.\nKeyword: move",
+    "Flytta ett objekt ett angivet värde i x-, y- och z-led.\nKeyword: move",
   move_by_xyz_single_tooltip:
-    "Flytta ett mesh en viss mängd i x-, y- eller z-led.\nKeyword: move",
+    "Flytta ett objekt en viss mängd i x-, y- eller z-led.\nKeyword: move",
   move_to_xyz_tooltip:
-    "Teleportera mesh-objektet till angivna koordinater. Du kan välja att använda Y-axeln.\nKeyword: moveby",
+    "Teleportera objektet till angivna koordinater. Du kan välja att använda Y-axeln.\nKeyword: moveby",
   move_to_xyz_single_tooltip:
-    "Teleportera mesh:en till den angivna enskilda koordinaten.\nKeyword: moveby",
+    "Teleportera objekt:en till den angivna enskilda koordinaten.\nKeyword: moveby",
   move_to_tooltip:
-    "Teleportera det första mesh-objektet till det andra mesh-objektets position.\nKeyword: moveto",
+    "Teleportera det första objektet till det andra objektets position.\nKeyword: moveto",
   scale_tooltip:
-    "Ändra storleken på ett mesh till angivna x-, y- och z-värden och styr ursprunget för skalning.\nKeyword: scale",
+    "Ändra storleken på ett objekt till angivna x-, y- och z-värden och styr ursprunget för skalning.\nKeyword: scale",
   resize_tooltip:
-    "Ändra storleken på ett mesh till angivna x-, y- och z-värden och styr ursprunget för skalning.\nKeyword: resize",
+    "Ändra storleken på ett objekt till angivna x-, y- och z-värden och styr ursprunget för skalning.\nKeyword: resize",
   rotate_model_xyz_tooltip:
-    "Rotera ett mesh med angivna x-, y- och z-värden.\nKeyword: rotate\nKeyword: rotateby",
+    "Rotera ett objekt med angivna x-, y- och z-värden.\nKeyword: rotate\nKeyword: rotateby",
   rotate_to_tooltip:
-    "Rotera ett mesh så att det pekar mot angivna koordinater.\nKeyword: rotateto",
+    "Rotera ett objekt så att det pekar mot angivna koordinater.\nKeyword: rotateto",
   look_at_tooltip:
-    "Rotera det första mesh-objektet mot det andra objektets position.\nKeyword: look",
+    "Rotera det första objektet mot det andra objektets position.\nKeyword: look",
   move_forward_tooltip:
-    "Flytta mesh-objektet i angiven riktning. 'Framåt' flyttar det i riktningen det pekar, 'sida' i kamerans riktning och 'strafe' i sidled relativt kameran.\nKeyword: push",
+    "Flytta objektet i angiven riktning. 'Framåt' flyttar det i riktningen det pekar, 'sida' i kamerans riktning och 'strafe' i sidled relativt kameran.\nKeyword: push",
   rotate_camera_tooltip:
     "Roterar kameran åt vänster eller höger med angivet antal grader.\nKeyword: rotate",
   up_tooltip: "Applicerar den angivna uppåtriktade kraften.\nKeyword: up",
   set_pivot_tooltip:
-    "Ställ in ankarpunkten för ett mesh längs X-, Y- och Z-axeln\nKeyword: ankare",
+    "Ställ in ankarpunkten för ett objekt längs X-, Y- och Z-axeln\nKeyword: ankare",
   min_centre_max_tooltip:
     "Välj min, center eller max som pivotpunkt\nKeyword: minmax",
 
@@ -801,7 +801,7 @@ export default {
   ANIMATED_option: "animerad",
   STATIC_option: "statisk",
 
-  MESH_option: "mesh",
+  MESH_option: "objekt",
   CAPSULE_option: "kapsel",
 
   FLAT_option: "Platt", // Duplicate key NONE
@@ -1057,12 +1057,12 @@ export default {
 
   show_shapes_button_ui: "Lägg till former och modeller",
   color_picker_button_ui: "Ändra objektfärg",
-  position_button_ui: "Positionera mesh",
-  rotation_button_ui: "Rotera mesh",
-  scale_button_ui: "Skala mesh-storlek",
+  position_button_ui: "Positionera objekt",
+  rotation_button_ui: "Rotera objekt",
+  scale_button_ui: "Skala objekt-storlek",
   hide_button_ui: "Välj objekt",
-  duplicate_button_ui: "Duplicera vald mesh",
-  delete_button_ui: "Radera vald mesh",
+  duplicate_button_ui: "Duplicera vald objekt",
+  delete_button_ui: "Radera vald objekt",
   camera_button_ui: "Kamerakontroller",
 
   info_panel_link_ui: "Besök Flock XR:s webbplats (öppnas i ny flik)",
@@ -1135,7 +1135,7 @@ export default {
 
   // UI status messages
   max_mesh_limit_reached:
-    "⚠️ Gräns nådd: du kan bara ha {max} mesh i din värld.",
+    "⚠️ Gräns nådd: du kan bara ha {max} objekt i din värld.",
   high_memory_usage_warning: "Varning: hög minnesanvändning ({percent}%)",
   physics_out_of_memory_log:
     "Havok-fysiken avbröts, troligen på grund av minnesbrist.", // AI-generated; needs validation
@@ -1145,9 +1145,9 @@ export default {
   xr_mode_message: "XR-läge!",
   fly_camera_instructions:
     "ℹ️ Flygkamera, använd piltangenterna och Page Up/Down",
-  select_mesh_delete_prompt: "⚠️ Välj ett mesh och klicka sedan på ta bort.",
+  select_mesh_delete_prompt: "⚠️ Välj ett objekt och klicka sedan på ta bort.",
   select_mesh_duplicate_prompt:
-    "⚠️ Välj ett mesh och klicka på duplicera, klicka sedan för att placera kopior.",
+    "⚠️ Välj ett objekt och klicka på duplicera, klicka sedan för att placera kopior.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "Färgväljaren stöds inte i den här webbläsaren. Prova Chrome eller Edge.",

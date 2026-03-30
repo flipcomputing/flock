@@ -1,7 +1,7 @@
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Scena",
-  CATEGORY_MESHES: "Siatki",
+  CATEGORY_MESHES: "Obiekty",
   CATEGORY_XR: "XR",
   CATEGORY_EFFECTS: "Efekty",
   CATEGORY_CAMERA: "Kamera",
@@ -369,11 +369,11 @@ export default {
     "Ustaw kolor tła sceny.\nSłowo kluczowe: background",
   create_map_tooltip:
     "Stwórz mapę o nazwie %1 z materiałem %2.\nSłowo kluczowe: map",
-  show_tooltip: "Pokaż wybraną siatkę.\nSłowo kluczowe: show",
-  hide_tooltip: "Ukryj wybraną siatkę.\nSłowo kluczowe: hide",
-  dispose_tooltip: "Usuń wskazaną siatkę ze sceny.\nSłowo kluczowe: dispose",
+  show_tooltip: "Pokaż wybrany obiekt.\nSłowo kluczowe: show",
+  hide_tooltip: "Ukryj wybrany obiekt.\nSłowo kluczowe: hide",
+  dispose_tooltip: "Usuń wskazany obiekt ze sceny.\nSłowo kluczowe: dispose",
   clone_mesh_tooltip:
-    "Sklonuj siatkę i przypisz ją do zmiennej.\nSłowo kluczowe: clone",
+    "Sklonuj obiekt i przypisz go do zmiennej.\nSłowo kluczowe: clone",
 
   // Tooltip translations - Models blocks
   load_character_tooltip:
@@ -389,21 +389,21 @@ export default {
   glide_to_seconds_tooltip:
     "Przesuń się do zadanej pozycji w określonym czasie z opcjami odwrócenia, pętli i easing.",
   glide_to_object_tooltip:
-    "Przesuń się do pozycji innej siatki z opcjonalnymi przesunięciami x/y/z (domyślnie 0) oraz opcjami odwrócenia, pętli i easing.",
+    "Przesuń się do pozycji innego obiektu z opcjonalnymi przesunięciami x/y/z (domyślnie 0) oraz opcjami odwrócenia, pętli i easing.",
   rotate_anim_tooltip:
-    "Obróć siatkę do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
+    "Obróć obiekt do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
   rotate_anim_seconds_tooltip:
-    "Obróć siatkę do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
+    "Obróć obiekt do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
   rotate_to_object_tooltip:
-    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
-  animate_property_tooltip: "Animuj właściwość materiału siatki i jej dzieci.",
+    "Rotate a obiekt toward another obiekt or match that obiekt's rotation over a duration with options for reverse, looping, and easing.",
+  animate_property_tooltip: "Animuj właściwość materiału obiekty i jej dzieci.",
   colour_keyframe_tooltip: "Ustaw kolor i czas trwania klatki kluczowej.",
   number_keyframe_tooltip: "Ustaw wartość i czas dla klatki kluczowej.",
   xyz_keyframe_tooltip: "Ustaw klatkę kluczową XYZ z określoną długością.",
   animate_keyframes_tooltip:
     "Animuj tablicę klatek kluczowych na wybranej siatce z easingiem, opcjonalną pętlą i odwróceniem.",
   animation_tooltip:
-    "Stwórz grupę animacji dla wybranej siatki i właściwości, z klatkami, easingiem, opcjonalną pętlą i odwróceniem. Wybierz opcję create, start lub await, by kontrolować działanie.",
+    "Stwórz grupę animacji dla wybranej obiekty i właściwości, z klatkami, easingiem, opcjonalną pętlą i odwróceniem. Wybierz opcję create, start lub await, by kontrolować działanie.",
   control_animation_group_tooltip:
     "Steruj grupą animacji — odtwarzaj, wstrzymuj lub zatrzymuj.",
   animate_from_tooltip:
@@ -411,7 +411,7 @@ export default {
   stop_animations_tooltip:
     "Zatrzymaj wszystkie animacje klatek kluczowych na wybranej siatce.\nSłowo kluczowe: stop",
   switch_animation_tooltip:
-    "Zmień animację wybranej siatki na podaną.\nSłowo kluczowe: switch",
+    "Zmień animację wybranej obiekty na podaną.\nSłowo kluczowe: switch",
   play_animation_tooltip:
     "Odtwórz wybraną animację raz na wskazanej siatce.\nSłowo kluczowe: play",
 
@@ -421,36 +421,36 @@ export default {
   // Tooltip translations - Camera blocks
   camera_control_tooltip: "Powiąż określony klawisz z akcją sterowania kamerą.",
   camera_follow_tooltip:
-    "Spraw, by kamera śledziła siatkę z ustawioną odległością (promieniem).\nSłowo kluczowe: follow",
+    "Spraw, by kamera śledziła obiekt z ustawioną odległością (promieniem).\nSłowo kluczowe: follow",
   get_camera_tooltip: "Pobierz bieżącą kamerę sceny",
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip:
-    "Scal listę siatek w jedną i zapisz wynik.\nSłowo kluczowe: merge",
+    "Scal listę obiektów w jedną i zapisz wynik.\nSłowo kluczowe: merge",
   subtract_meshes_tooltip:
-    "Odejmij listę siatek od siatki bazowej i zapisz wynik.\nSłowo kluczowe: subtract",
+    "Odejmij listę obiektów od obiektu bazowego i zapisz wynik.\nSłowo kluczowe: subtract",
   intersection_meshes_tooltip:
-    "Obetnij listę siatek, zachowując wspólną geometrię.\nSłowo kluczowe: intersect",
+    "Obetnij listę obiektów, zachowując wspólną geometrię.\nSłowo kluczowe: intersect",
   hull_meshes_tooltip:
-    "Stwórz wypukłą otoczkę z listy siatek i zapisz wynik.\nSłowo kluczowe: hull",
+    "Stwórz wypukłą otoczkę z listy obiektów i zapisz wynik.\nSłowo kluczowe: hull",
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    "Ustaw relację rodzic‑dziecko między dwiema siatkami, pozostawiając dziecko w miejscu.\nSłowo kluczowe: parent",
+    "Ustaw relację rodzic‑dziecko między dwiema obiektami, pozostawiając dziecko w miejscu.\nSłowo kluczowe: parent",
   parent_child_tooltip:
-    "Ustaw relację rodzic‑dziecko między siatkami z przesunięciem w osiach x, y, z.\nSłowo kluczowe: child",
+    "Ustaw relację rodzic‑dziecko między obiektami z przesunięciem w osiach x, y, z.\nSłowo kluczowe: child",
   remove_parent_tooltip:
-    "Usuń relację rodzica z podanej siatki.\nSłowo kluczowe: unparent",
+    "Usuń relację rodzica z podanej obiekty.\nSłowo kluczowe: unparent",
   stop_follow_tooltip:
-    "Zatrzymaj śledzenie jednej siatki przez drugą.\nSłowo kluczowe: stopfollow",
+    "Zatrzymaj śledzenie jednej obiekty przez drugą.\nSłowo kluczowe: stopfollow",
   hold_tooltip:
-    "Przymocuj siatkę do kości innej siatki z przesunięciem w osiach x, y, z.\nSłowo kluczowe: hold",
+    "Przymocuj obiekt do kości innego obiektu z przesunięciem w osiach x, y, z.\nSłowo kluczowe: hold",
   drop_tooltip:
-    "Odłącz siatkę od kości, do której była przyczepiona.\nSłowo kluczowe: drop",
+    "Odłącz obiekt od kości, do której była przyczepiona.\nSłowo kluczowe: drop",
   follow_tooltip:
-    "Spraw, by jedna siatka śledziła drugą z wybranej pozycji (top, center, bottom) i przesunięciem w osiach x, y, z.\nSłowo kluczowe: follow",
+    "Spraw, by jedna obiekt śledziła drugą z wybranej pozycji (top, center, bottom) i przesunięciem w osiach x, y, z.\nSłowo kluczowe: follow",
   export_mesh_tooltip:
-    "Eksportuj siatkę jako STL, OBJ lub GLB.\nSłowo kluczowe: export",
+    "Eksportuj obiekt jako STL, OBJ lub GLB.\nSłowo kluczowe: export",
 
   // Tooltip translations - Control blocks
   wait_tooltip:
@@ -480,9 +480,9 @@ export default {
   forever_tooltip:
     "Wykonuj bloki w każdej klatce lub po zakończeniu poprzedniej iteracji.\nSłowo kluczowe: forever",
   when_clicked_tooltip:
-    "Wykonaj bloki, gdy nastąpi kliknięcie na siatkę.\nSłowo kluczowe: click",
+    "Wykonaj bloki, gdy nastąpi kliknięcie na obiekt.\nSłowo kluczowe: click",
   on_collision_tooltip:
-    "Wykonaj bloki, gdy siatka wejdzie lub wyjdzie z kolizji.\nSłowo kluczowe: collide",
+    "Wykonaj bloki, gdy obiekt wejdzie lub wyjdzie z kolizji.\nSłowo kluczowe: collide",
   when_key_event_tooltip:
     "Wykonaj bloki, gdy wskazany klawisz zostanie naciśnięty lub puszczony.",
   when_action_event_tooltip:
@@ -524,7 +524,7 @@ export default {
   add_physics_tooltip:
     "Dodaj fizykę do obiektu. Opcje: dynamiczny, statyczny, animowany lub brak.\nSłowo kluczowe: fizyka",
   add_physics_shape_tooltip:
-    "Dodaj kształt fizyczny do obiektu. Opcje: siatka lub kapsuła.\nSłowo kluczowe: fizyka",
+    "Dodaj kształt fizyczny do obiektu. Opcje: obiekt lub kapsuła.\nSłowo kluczowe: fizyka",
   apply_force_tooltip:
     "Zastosuj siłę na obiekt w kierunkach XYZ.\nSłowo kluczowe: siła",
   show_physics_tooltip:
@@ -539,16 +539,16 @@ export default {
   set_action_key_tooltip:
     "Ustawia klawisz, który wyzwala określoną akcję (do przodu, do tyłu, w lewo, w prawo lub przyciski).",
   meshes_touching_tooltip:
-    "Zwraca true, jeśli dwie wybrane siatki się stykają.\nSłowo kluczowe: istouching",
+    "Zwraca true, jeśli dwie wybrane obiekty się stykają.\nSłowo kluczowe: istouching",
   time_tooltip: "Zwraca bieżący czas w sekundach.",
   ground_level_tooltip: "Zwraca wysokość gruntu w bieżącej pozycji x/z.",
-  distance_to_tooltip: "Oblicz odległość między siatkami %1 i %2.",
+  distance_to_tooltip: "Oblicz odległość między obiektami %1 i %2.",
   touching_surface_tooltip:
-    "Sprawdź, czy siatka %1 dotyka powierzchni.\nSłowo kluczowe: surface",
+    "Sprawdź, czy obiekt %1 dotyka powierzchni.\nSłowo kluczowe: surface",
   mesh_exists_tooltip:
-    "Zwraca true, jeśli siatka o tej nazwie znajduje się na scenie.",
+    "Zwraca true, jeśli obiekt o tej nazwie znajduje się na scenie.",
   get_property_tooltip:
-    "Pobierz wartość właściwości %1 z siatki %2.\nSłowo kluczowe: get",
+    "Pobierz wartość właściwości %1 z obiekty %2.\nSłowo kluczowe: get",
   canvas_controls_tooltip:
     "Dodaj lub usuń kontrolki ruchu na płótnie.\nSłowo kluczowe: canvas",
   button_controls_tooltip:
@@ -584,9 +584,9 @@ export default {
   midi_note_tooltip: "Wartość nuty MIDI (0–127).",
   rest_tooltip: "Przerwa (cisza) w sekwencji muzycznej.",
   play_notes_tooltip:
-    "Odtwórz sekwencję nut MIDI i pauz z czasami trwania, używając siatki do panoramowania. Zwraca natychmiast lub po zakończeniu.",
+    "Odtwórz sekwencję nut MIDI i pauz z czasami trwania, używając obiekty do panoramowania. Zwraca natychmiast lub po zakończeniu.",
   set_scene_bpm_tooltip: "Ustaw BPM (tempo) całej sceny.",
-  set_mesh_bpm_tooltip: "Ustaw BPM (tempo) dla siatki %1.",
+  set_mesh_bpm_tooltip: "Ustaw BPM (tempo) dla obiektu %1.",
   create_instrument_tooltip: "Stwórz instrument i przypisz do zmiennej.",
   instrument_tooltip: "Wybierz instrument do grania nut.",
   speak_tooltip:
@@ -598,9 +598,9 @@ export default {
   comment_tooltip: "Linia komentarza, by pomóc zrozumieć kod.",
   print_text_tooltip:
     "Wyświetl tekst na panelu wyjścia.\nSłowo kluczowe: print",
-  say_tooltip: "Pokaż tekst w dymku mówionym nad siatką.\nSłowo kluczowe: say",
+  say_tooltip: "Pokaż tekst w dymku mówionym nad obiektem.\nSłowo kluczowe: say",
   describe_tooltip:
-    "Ustaw nazwę wyświetlaną siatki. Aktualizuje metadane dla dostępności.\nSłowo kluczowe: describe",
+    "Ustaw nazwę wyświetlaną obiekty. Aktualizuje metadane dla dostępności.\nSłowo kluczowe: describe",
   ui_text_tooltip:
     "Dodaj tekst do interfejsu UI i zapisz referencję w zmiennej do późniejszego użycia lub usunięcia.",
   ui_button_tooltip:
@@ -617,32 +617,32 @@ export default {
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
-    "Przesuń siatkę o określoną wartość w osiach x, y i z.\nSłowo kluczowe: move",
+    "Przesuń obiekt o określoną wartość w osiach x, y i z.\nSłowo kluczowe: move",
   move_by_xyz_single_tooltip:
-    "Przesuń siatkę o podaną wartość w osi x, y lub z.\nSłowo kluczowe: move",
+    "Przesuń obiekt o podaną wartość w osi x, y lub z.\nSłowo kluczowe: move",
   move_to_xyz_tooltip:
-    "Teleportuj siatkę do koordynatów. Opcjonalnie: użyj osi Y.\nSłowo kluczowe: moveby",
+    "Teleportuj obiekt do koordynatów. Opcjonalnie: użyj osi Y.\nSłowo kluczowe: moveby",
   move_to_xyz_single_tooltip:
-    "Teleportuj siatkę do podanej pojedynczej współrzędnej.\nSłowo kluczowe: moveby",
+    "Teleportuj obiekt do podanej pojedynczej współrzędnej.\nSłowo kluczowe: moveby",
   move_to_tooltip:
-    "Teleportuj pierwszą siatkę do pozycji drugiej.\nSłowo kluczowe: moveto",
+    "Teleportuj pierwszą obiekt do pozycji drugiej.\nSłowo kluczowe: moveto",
   scale_tooltip:
-    "Zmień rozmiar siatki (x, y, z) i kontroluj punkt odniesienia.\nSłowo kluczowe: scale",
+    "Zmień rozmiar obiekty (x, y, z) i kontroluj punkt odniesienia.\nSłowo kluczowe: scale",
   resize_tooltip:
-    "Zmień rozmiar siatki (x, y, z) i kontroluj punkt odniesienia.\nSłowo kluczowe: resize",
+    "Zmień rozmiar obiekty (x, y, z) i kontroluj punkt odniesienia.\nSłowo kluczowe: resize",
   rotate_model_xyz_tooltip:
-    "Obróć siatkę o wartości x, y, z.\nSłowo kluczowe: rotate / rotateby",
+    "Obróć obiekt o wartości x, y, z.\nSłowo kluczowe: rotate / rotateby",
   rotate_to_tooltip:
-    "Obróć siatkę, by wskazywała na dane współrzędne.\nSłowo kluczowe: rotateto",
+    "Obróć obiekt, by wskazywała na dane współrzędne.\nSłowo kluczowe: rotateto",
   look_at_tooltip:
-    "Obróć pierwszą siatkę w stronę pozycji drugiej.\nSłowo kluczowe: look",
+    "Obróć pierwszą obiekt w stronę pozycji drugiej.\nSłowo kluczowe: look",
   move_forward_tooltip:
-    "Przesuń siatkę: 'forward' = w kierunku, 'sideways' = względem kamery, 'strafe' = bocznie.\nSłowo kluczowe: push",
+    "Przesuń obiekt: 'forward' = w kierunku, 'sideways' = względem kamery, 'strafe' = bocznie.\nSłowo kluczowe: push",
   rotate_camera_tooltip:
     "Obraca kamerę w lewo lub w prawo o podaną liczbę stopni.\nSłowo kluczowe: rotate",
   up_tooltip: "Zastosuj określoną siłę w górę.\nSłowo kluczowe: up",
   set_pivot_tooltip:
-    "Ustaw punkt kotwiczenia siatki na osiach X, Y i Z.\nSłowo kluczowe: kotwica",
+    "Ustaw punkt kotwiczenia obiekty na osiach X, Y i Z.\nSłowo kluczowe: kotwica",
   min_centre_max_tooltip:
     "Wybierz min, centre lub max jako punkt obrotu.\nSłowo kluczowe: minmax",
 
@@ -809,7 +809,7 @@ export default {
   ANIMATED_option: "animowany",
   STATIC_option: "statyczny",
 
-  MESH_option: "siatka",
+  MESH_option: "obiekt",
   CAPSULE_option: "kapsuła",
 
   FLAT_option: "Płaski",
@@ -1071,12 +1071,12 @@ export default {
 
   show_shapes_button_ui: "Dodaj kształty i modele",
   color_picker_button_ui: "Zmień kolor obiektu",
-  position_button_ui: "Ustaw pozycję siatki",
-  rotation_button_ui: "Obróć siatkę",
-  scale_button_ui: "Zmień skalę siatki",
+  position_button_ui: "Ustaw pozycję obiektu",
+  rotation_button_ui: "Obróć obiekt",
+  scale_button_ui: "Zmień skalę obiektu",
   hide_button_ui: "Wybierz obiekt",
-  duplicate_button_ui: "Duplikuj wybraną siatkę",
-  delete_button_ui: "Usuń wybraną siatkę",
+  duplicate_button_ui: "Duplikuj wybrany obiekt",
+  delete_button_ui: "Usuń wybrany obiekt",
   camera_button_ui: "Kontrola kamery",
 
   info_panel_link_ui: "Odwiedź stronę Flock XR (otwiera się w nowej karcie)",
@@ -1148,7 +1148,7 @@ export default {
 
   // UI status messages
   max_mesh_limit_reached:
-    "⚠️ Osiągnięto limit: możesz mieć tylko {max} siatek w swoim świecie.",
+    "⚠️ Osiągnięto limit: możesz mieć tylko {max} obiektów w swoim świecie.",
   high_memory_usage_warning: "Ostrzeżenie: wysokie użycie pamięci ({percent}%)",
   physics_out_of_memory_log:
     "Silnik fizyki Havok został przerwany, prawdopodobnie z powodu braku pamięci.", // AI-generated; needs validation
@@ -1158,9 +1158,9 @@ export default {
   xr_mode_message: "Tryb XR!",
   fly_camera_instructions:
     "ℹ️ Kamera lotu, użyj klawiszy strzałek i Page Up/Down",
-  select_mesh_delete_prompt: "⚠️ Wybierz siatkę, a następnie kliknij usuń.",
+  select_mesh_delete_prompt: "⚠️ Wybierz obiekt, a następnie kliknij usuń.",
   select_mesh_duplicate_prompt:
-    "⚠️ Wybierz siatkę, kliknij duplikuj, a potem kliknij, aby umieścić kopie.",
+    "⚠️ Wybierz obiekt, kliknij duplikuj, a potem kliknij, aby umieścić kopie.",
   position_readout: "Pozycja: {position}",
   eyedropper_not_supported_alert:
     "Narzędzie próbnika kolorów nie jest obsługiwane w tej przeglądarce. Spróbuj użyć Chrome lub Edge.",
