@@ -400,13 +400,15 @@ export function loadWorkspace(workspace, executeCallback) {
   const urlParams = new URLSearchParams(window.location.search);
   const projectUrl = urlParams.get("project");
   const reset = urlParams.get("reset");
+  const autoplay = urlParams.get("autoplay") !== "false";
+  const effectiveCallback = autoplay ? executeCallback : () => {};
   const savedState = localStorage.getItem(AUTOSAVE_KEY);
   const starter = "examples/starter.flock";
 
   function loadStarter() {
     fetchProjectJson(starter)
       .then((json) => {
-        loadWorkspaceAndExecute(json, workspace, executeCallback);
+        loadWorkspaceAndExecute(json, workspace, effectiveCallback);
       })
       .catch((error) => {
         console.error("Error loading starter example:", error);
@@ -427,7 +429,7 @@ export function loadWorkspace(workspace, executeCallback) {
     } else if (projectUrl === "new") {
       fetchProjectJson("examples/new.flock")
         .then((json) => {
-          loadWorkspaceAndExecute(json, workspace, executeCallback);
+          loadWorkspaceAndExecute(json, workspace, effectiveCallback);
         })
         .catch((error) => {
           console.error("Error loading new project:", error);
@@ -452,7 +454,7 @@ export function loadWorkspace(workspace, executeCallback) {
       fetch(validatedUrl.href)
         .then(parseProjectJsonResponse)
         .then((json) => {
-          loadWorkspaceAndExecute(json, workspace, executeCallback);
+          loadWorkspaceAndExecute(json, workspace, effectiveCallback);
         })
         .catch((error) => {
           console.error("Error loading project from URL:", error);
@@ -460,7 +462,7 @@ export function loadWorkspace(workspace, executeCallback) {
         });
     }
   } else if (savedState) {
-    loadWorkspaceAndExecute(JSON.parse(savedState), workspace, executeCallback);
+    loadWorkspaceAndExecute(JSON.parse(savedState), workspace, effectiveCallback);
   } else {
     loadStarter();
   }
