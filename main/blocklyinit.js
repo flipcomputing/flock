@@ -1517,21 +1517,20 @@ export function overrideSearchPlugin(workspace) {
       workspace.flockSearchIndexedBlocks = newIndex;
       blockSearcher.indexedBlocks_ = newIndex;
 
-      const searchCategory = workspace.flockSearchCategory;
-      if (searchCategory) {
-        const showAllBlocksAsync = () => {
-          if (!isSearchCategorySelected(searchCategory)) return;
-          if (searchCategory.searchField?.value.toLowerCase().trim()) {
-            return;
-          }
-          searchCategory.showMatchingBlocks(newIndex);
-        };
-
-        if (typeof requestIdleCallback === "function") {
-          requestIdleCallback(showAllBlocksAsync);
-        } else {
-          setTimeout(showAllBlocksAsync, 0);
+      const showAllBlocksAsync = () => {
+        const searchCategory = workspace.flockSearchCategory;
+        if (!searchCategory) return;
+        if (!isSearchCategorySelected(searchCategory)) return;
+        if (searchCategory.searchField?.value.toLowerCase().trim()) {
+          return;
         }
+        searchCategory.showMatchingBlocks(newIndex);
+      };
+
+      if (typeof requestIdleCallback === "function") {
+        requestIdleCallback(showAllBlocksAsync);
+      } else {
+        setTimeout(showAllBlocksAsync, 0);
       }
     };
 
@@ -1690,6 +1689,9 @@ export function overrideSearchPlugin(workspace) {
         }
 
         const block = blockCreationWorkspace.newBlock(type);
+        if (!block) {
+          return;
+        }
         applyFieldValues(block, blockInfo.full?.fields);
 
         const labelText =
@@ -1715,6 +1717,9 @@ export function overrideSearchPlugin(workspace) {
             }
 
             const shadowBlock = blockCreationWorkspace.newBlock(shadowType);
+            if (!shadowBlock) {
+              return;
+            }
             applyFieldValues(shadowBlock, definition?.shadow?.fields);
             addBlockFieldTerms(shadowBlock, searchTerms, runDebugFields);
             shadowBlock.dispose(true);
