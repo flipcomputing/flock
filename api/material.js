@@ -894,21 +894,25 @@ export const flockMaterial = {
       }
     }
 
-    // Handle two-color case (extra colors beyond 2 are ignored)
     if (Array.isArray(color) && color.length >= 2) {
       // Use gradient for Flat material
       if (materialName === "none.png") {
-        material = new flock.GradientMaterial(materialName, flock.scene);
-        material.bottomColor = flock.BABYLON.Color3.FromHexString(
-          flock.getColorFromString(color[0]),
-        );
-        material.topColor = flock.BABYLON.Color3.FromHexString(
-          flock.getColorFromString(color[1]),
-        );
-        material.offset = 0.5;
-        material.smoothness = 0.5;
-        material.scale = 1.0;
-        material.backFaceCulling = false;
+        if (color.length === 2) {
+          material = new flock.GradientMaterial(materialName, flock.scene);
+          material.bottomColor = flock.BABYLON.Color3.FromHexString(
+            flock.getColorFromString(color[0]),
+          );
+          material.topColor = flock.BABYLON.Color3.FromHexString(
+            flock.getColorFromString(color[1]),
+          );
+          material.offset = 0.5;
+          material.smoothness = 0.5;
+          material.scale = 1.0;
+          material.backFaceCulling = false;
+        } else {
+          material = flock.createMultiColorGradientMaterial(materialName, color);
+          material.backFaceCulling = false;
+        }
       } else {
         // Use shader-based color replacement for patterned materials
         material = flock.createColorReplaceShaderMaterial(
@@ -1547,11 +1551,13 @@ export const flockMaterial = {
 
     const makeTargetCacheKey = (v) => {
       const rawColor = getRawColor(v);
-      const resolvedHex = flock.getColorFromString(rawColor) || "#ffffff";
+      const colorKey = Array.isArray(rawColor)
+        ? rawColor.join("-")
+        : flock.getColorFromString(rawColor) || "#ffffff";
       const texName = String(getTexName(v));
       const alpha = getAlpha(v);
 
-      return `mat_${resolvedHex.toLowerCase()}_${alpha}_${texName}`.toLowerCase();
+      return `mat_${colorKey.toLowerCase()}_${alpha}_${texName}`.toLowerCase();
     };
 
     const applyOne = (m, v, index) => {
@@ -1571,6 +1577,14 @@ export const flockMaterial = {
       if (m.material) {
         flock.adjustMaterialTilingToMesh(m, m.material);
         m.material.needDepthPrePass = getAlpha(v) > 0;
+
+        if (m.material instanceof flock.BABYLON.ShaderMaterial) {
+          const bb = m.getBoundingInfo().boundingBox;
+          m.material.setVector2(
+            "minMax",
+            new flock.BABYLON.Vector2(bb.minimum.y, bb.maximum.y),
+          );
+        }
       }
     };
 

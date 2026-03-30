@@ -346,6 +346,49 @@ export function runMaterialsTests(flock) {
       expect(material.topColor).to.exist;
       material.dispose();
     });
+
+    it("should create a multi-color gradient shader material for 3+ colors", async function () {
+      const id = "boxCreateMaterialMultiGradient";
+      await createTestBox(id);
+      boxIds.push(id);
+
+      const gradientColors = ["#ff5733", "#fdfd96", "#9932cc", "#339999"];
+      const material = flock.createMaterial({
+        color: gradientColors,
+        materialName: "none.png",
+        alpha: 1,
+      });
+
+      expect(material).to.exist;
+      expect(material.getClassName()).to.equal("ShaderMaterial");
+      material.dispose();
+    });
+
+    it("should apply multi-color gradient to a box without error", async function () {
+      const id = "boxMultiGradient";
+      await flock.createBox(id, {
+        color: {
+          color: ["#ff5733", "#fdfd96", "#9932cc", "#339999"],
+          materialName: "none.png",
+          alpha: 1,
+        },
+        width: 2,
+        height: 4,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(mesh).to.exist;
+
+      const childMeshes = mesh
+        .getDescendants(false)
+        .filter((n) => n.getTotalVertices && n.getTotalVertices() > 0);
+      const target = childMeshes.length ? childMeshes[0] : mesh;
+      expect(target.material).to.exist;
+      expect(target.material.getClassName()).to.equal("ShaderMaterial");
+    });
   });
 
   describe("setting a material scenarios @materials", function () {
