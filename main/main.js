@@ -5,7 +5,7 @@
 import * as Blockly from "blockly";
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
-import { flock} from "../flock.js";
+import { flock } from "../flock.js";
 import { initializeVariableIndexes } from "../blocks/blocks";
 import { enableGizmos } from "../ui/gizmos.js";
 import { executeCode, stopCode } from "./execution.js";
@@ -463,10 +463,27 @@ window.onload = async function () {
 
   setupInput();
 
+  const runWhenSceneReady = (fn, timeoutMs = 5000) => {
+    const started = performance.now();
+    const tick = () => {
+      if (flock.scene) return fn();
+      if (performance.now() - started < timeoutMs) requestAnimationFrame(tick);
+    };
+    tick();
+  };
+
   const ui = new URLSearchParams(window.location.search).get("ui");
   let uiCallback = () => {};
-  if (ui === "play")   uiCallback = togglePlayMode;
-  if (ui === "design") uiCallback = toggleDesignMode;
-  if (ui === "code")   uiCallback = () => { if (isNarrowScreen()) showCodeView(); };
+  if (ui === "play") {
+    uiCallback = togglePlayMode;
+  }
+  if (ui === "design") {
+    uiCallback = () => runWhenSceneReady(toggleDesignMode);
+  }
+  if (ui === "code") {
+    uiCallback = () => {
+      if (isNarrowScreen()) showCodeView();
+    };
+  }
   loadWorkspace(workspace, executeCode, uiCallback);
 };
