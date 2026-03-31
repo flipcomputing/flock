@@ -1039,6 +1039,7 @@ export function runMaterialsTests(flock) {
 
       const target = getTarget(id);
       expect(target.material.getClassName()).to.equal("GradientMaterial");
+      expect(target.metadata.glowColor).to.equal("#ff0000");
     });
 
     it("should preserve 3+ colour gradient after glow", async function () {
@@ -1050,6 +1051,7 @@ export function runMaterialsTests(flock) {
 
       const target = getTarget(id);
       expect(target.material.getClassName()).to.equal("ShaderMaterial");
+      expect(target.metadata.glowColor).to.equal("#ff0000");
     });
 
     it("should preserve 2-colour gradient after clearEffects", async function () {
@@ -1062,6 +1064,7 @@ export function runMaterialsTests(flock) {
 
       const target = getTarget(id);
       expect(target.material.getClassName()).to.equal("GradientMaterial");
+      expect(target.metadata.glowColor).to.be.undefined;
     });
 
     it("should preserve 3+ colour gradient after clearEffects", async function () {

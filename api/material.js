@@ -138,6 +138,20 @@ export const flockMaterial = {
       if (flock.sky) {
         flock.glowLayer.addExcludedMesh(flock.sky);
       }
+      flock.glowLayer.customEmissiveColorSelector = (
+        mesh,
+        _subMesh,
+        _material,
+        result,
+      ) => {
+        const glowColor = mesh.metadata?.glowColor;
+        if (glowColor) {
+          const c = flock.BABYLON.Color3.FromHexString(glowColor);
+          result.set(c.r, c.g, c.b, 1);
+        } else {
+          result.set(0, 0, 0, 0);
+        }
+      };
     }
 
     return new Promise((resolve) => {
@@ -192,14 +206,23 @@ export const flockMaterial = {
       m.metadata = m.metadata || {};
       m.metadata.glow = true;
 
-      if (m.material) {
-        const params = flock.getMaterialParamsFromMesh(m);
+      const params = m.material ? flock.getMaterialParamsFromMesh(m) : null;
+      const baseColor = params?.color;
+      m.metadata.glowColor = glowColor
+        ? flock.getColorFromString(glowColor)
+        : Array.isArray(baseColor)
+          ? flock.getColorFromString(baseColor[0])
+          : baseColor
+            ? flock.getColorFromString(baseColor)
+            : "#ffffff";
+
+      if (params) {
         const materialParams = {
           ...params,
           color:
-            glowColor && !Array.isArray(params.color)
+            glowColor && !Array.isArray(baseColor)
               ? flock.getColorFromString(glowColor)
-              : params.color,
+              : baseColor,
           glow: true,
         };
         flock.setMaterialWithCleanup(m, materialParams);
@@ -256,6 +279,7 @@ export const flockMaterial = {
 
           targetMesh.metadata = targetMesh.metadata || {};
           targetMesh.metadata.glow = false;
+          delete targetMesh.metadata.glowColor;
 
           if (flock.glowLayer) {
             const anyGlowing = flock.scene.meshes.some(
