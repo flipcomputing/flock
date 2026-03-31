@@ -182,6 +182,7 @@ export const flockMaterial = {
       return {
         color,
         materialName:
+          mat.metadata.texName ||
           parts.slice(3, hasGlowPart ? -1 : parts.length).join("_") ||
           "none.png",
         alpha: Number.isFinite(parsedAlpha) ? parsedAlpha : (mat.alpha ?? 1),
@@ -1547,6 +1548,7 @@ export const flockMaterial = {
     if (!newMat.metadata) newMat.metadata = {};
     newMat.metadata.cacheKey = cacheKey;
     newMat.metadata.isManaged = true;
+    newMat.metadata.texName = texName;
 
     if (finalAlpha < 1) {
       newMat.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
