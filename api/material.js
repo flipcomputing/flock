@@ -158,22 +158,31 @@ export const flockMaterial = {
 
     if (mat.metadata?.cacheKey) {
       const parts = mat.metadata.cacheKey.split("_");
+      const lastPart = parts[parts.length - 1];
+      const hasGlowPart = lastPart === "glow" || lastPart === "noglow";
       const colorPart = parts[1];
       const color = colorPart.includes("-")
         ? colorPart.split("-")
         : colorPart;
+      const parsedAlpha = parseFloat(parts[2]);
       return {
         color,
-        materialName: parts[3] || "none.png",
-        alpha: parseFloat(parts[2]) || 1,
-        glow: parts[4] === "glow",
+        materialName:
+          parts.slice(3, hasGlowPart ? -1 : parts.length).join("_") ||
+          "none.png",
+        alpha: Number.isFinite(parsedAlpha) ? parsedAlpha : (mat.alpha ?? 1),
+        glow: hasGlowPart ? lastPart === "glow" : (mesh.metadata?.glow ?? false),
       };
     }
 
     const matColor = mat.diffuseColor || mat.albedoColor;
+    const textureName =
+      mat.diffuseTexture?.name?.split("/").pop() ||
+      mat.albedoTexture?.name?.split("/").pop() ||
+      "none.png";
     return {
       color: matColor ? "#" + matColor.toHexString().slice(1) : "#ffffff",
-      materialName: "none.png",
+      materialName: textureName,
       alpha: mat.alpha ?? 1,
       glow: mesh.metadata?.glow ?? false,
     };
@@ -187,7 +196,10 @@ export const flockMaterial = {
         const params = flock.getMaterialParamsFromMesh(m);
         const materialParams = {
           ...params,
-          color: glowColor ? flock.getColorFromString(glowColor) : params.color,
+          color:
+            glowColor && !Array.isArray(params.color)
+              ? flock.getColorFromString(glowColor)
+              : params.color,
           glow: true,
         };
         flock.setMaterialWithCleanup(m, materialParams);
