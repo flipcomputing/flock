@@ -1010,6 +1010,15 @@ export const flockCSG = {
     const validNames = meshNames.filter((name) => name != null);
     return Promise.all(
       validNames.map((meshName) => {
+        // Skip names that aren't known to the scene or pending — they're
+        // placeholder values (e.g. let ladder = "ladder") and whenModelReady
+        // would wait indefinitely for them to appear.
+        if (
+          !flock.modelReadyPromises?.has(meshName) &&
+          !flock.scene?.getMeshByName(meshName)
+        ) {
+          return Promise.resolve(null);
+        }
         return new Promise((resolve) => {
           flock.whenModelReady(meshName, (mesh) => {
             if (mesh) {
