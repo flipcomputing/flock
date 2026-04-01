@@ -724,15 +724,13 @@ export const flockShapes = {
       [meshId, blockKey] = modelId.split("__");
     }
 
-    if (flock.scene.getMeshByName(meshId)) {
+    if (!flock._pendingMeshIds) flock._pendingMeshIds = new Set();
+    if (flock.scene.getMeshByName(meshId) || flock._pendingMeshIds.has(meshId)) {
       meshId = meshId + "_" + flock.scene.getUniqueId();
     }
+    flock._pendingMeshIds.add(meshId);
 
     flock._recycleOldestByKey(blockKey);
-
-    if (!flock._pendingTextBuilds) flock._pendingTextBuilds = new Map();
-    const buildToken = Symbol();
-    flock._pendingTextBuilds.set(blockKey, buildToken);
 
     const loadPromise = (async () => {
       try {
@@ -861,11 +859,7 @@ export const flockShapes = {
         const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
         flock.applyPhysics(mesh, textShape);
 
-        if (flock._pendingTextBuilds.get(blockKey) !== buildToken) {
-          mesh.dispose();
-          return;
-        }
-        flock._pendingTextBuilds.delete(blockKey);
+        flock._pendingMeshIds.delete(meshId);
 
         flock._registerInstance(blockKey, mesh.name);
 
@@ -873,6 +867,7 @@ export const flockShapes = {
           requestAnimationFrame(callback);
         }
       } catch (error) {
+        flock._pendingMeshIds?.delete(meshId);
         console.error(`Error creating 3D text '${meshId}':`, error);
         throw error;
       }
