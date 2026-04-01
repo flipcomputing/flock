@@ -234,7 +234,11 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
     const os2 = font.tables && font.tables.os2;
     const capHeightFontUnits =
       os2 && os2.sCapHeight > 0 ? os2.sCapHeight : font.ascender;
-    const referenceHeight = (capHeightFontUnits / font.unitsPerEm) * size;
+    const rawReferenceHeight = (capHeightFontUnits / font.unitsPerEm) * size;
+    const referenceHeight =
+      Number.isFinite(rawReferenceHeight) && rawReferenceHeight > 0
+        ? rawReferenceHeight
+        : null;
 
     return { positions, indices, referenceHeight };
   } finally {
