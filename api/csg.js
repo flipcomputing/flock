@@ -310,7 +310,12 @@ export const flockCSG = {
           if (meshesToMerge.length === 1) {
             const singleMesh = meshesToMerge[0];
             let mergedMesh = singleMesh.clone(modelId);
-            if (!mergedMesh) mergedMesh = singleMesh;
+            if (!mergedMesh) {
+              mergedMesh = singleMesh;
+            } else {
+              validMeshes.forEach((m) => m.dispose());
+              if (!singleMesh.isDisposed) singleMesh.dispose();
+            }
 
             mergedMesh.name = modelId;
             mergedMesh.metadata = mergedMesh.metadata || {};
@@ -1010,15 +1015,6 @@ export const flockCSG = {
     const validNames = meshNames.filter((name) => name != null);
     return Promise.all(
       validNames.map((meshName) => {
-        // Skip names that aren't known to the scene or pending — they're
-        // placeholder values (e.g. let ladder = "ladder") and whenModelReady
-        // would wait indefinitely for them to appear.
-        if (
-          !flock.modelReadyPromises?.has(meshName) &&
-          !flock.scene?.getMeshByName(meshName)
-        ) {
-          return Promise.resolve(null);
-        }
         return new Promise((resolve) => {
           flock.whenModelReady(meshName, (mesh) => {
             if (mesh) {
