@@ -228,7 +228,15 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
       indices.push(triVerts[i]);
     }
 
-    return { positions, indices };
+    // Use font cap height (or ascender) as a consistent reference height so that
+    // normalization later is not affected by which glyphs happen to be in the string.
+    // e.g. a lone "*" has a small bounding box but should be scaled the same as "H".
+    const os2 = font.tables && font.tables.os2;
+    const capHeightFontUnits =
+      os2 && os2.sCapHeight > 0 ? os2.sCapHeight : font.ascender;
+    const referenceHeight = (capHeightFontUnits / font.unitsPerEm) * size;
+
+    return { positions, indices, referenceHeight };
   } finally {
     if (manifoldMesh) manifoldMesh.delete();
     if (crossSection) crossSection.delete();
@@ -725,6 +733,7 @@ export const flockShapes = {
     const loadPromise = (async () => {
       try {
         let mesh;
+        let fontReferenceHeight = null;
 
         if (useManifold) {
           try {
@@ -739,6 +748,7 @@ export const flockShapes = {
               depth: depth,
               curveSegments: 12,
             });
+            fontReferenceHeight = meshData.referenceHeight;
 
             mesh = new flock.BABYLON.Mesh(meshId, flock.scene);
             const vertexData = new flock.BABYLON.VertexData();
@@ -825,8 +835,11 @@ export const flockShapes = {
 
         const bbExt = mesh.getBoundingInfo().boundingBox.extendSize;
         const bbHeight = bbExt.y * 2;
-        if (bbHeight > 0 && Math.abs(bbHeight - size) > 0.001) {
-          const normScale = size / bbHeight;
+        // Use the font's cap height as the normalization reference so that glyphs
+        // with a small bounding box (e.g. "*") are not scaled up disproportionately.
+        const normReference = fontReferenceHeight ?? bbHeight;
+        if (bbHeight > 0 && Math.abs(normReference - size) > 0.001) {
+          const normScale = size / normReference;
           const savedPos = mesh.position.clone();
           mesh.position = flock.BABYLON.Vector3.Zero();
           mesh.scaling.x = normScale;
