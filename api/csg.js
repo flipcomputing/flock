@@ -1012,7 +1012,7 @@ export const flockCSG = {
     return hullMesh;
   },
   prepareMeshes(modelId, meshNames, blockId) {
-    const validNames = meshNames.filter((name) => name != null);
+    const validNames = meshNames.filter((name) => !!name);
     return Promise.all(
       validNames.map((meshName) => {
         return new Promise((resolve) => {
