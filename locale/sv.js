@@ -422,6 +422,7 @@ export default {
   get_camera_tooltip: "Hämta den aktuella scenkameran",
 
   // Tooltip translations - Combine blocks
+  create_empty_mesh_tooltip: "Create an empty mesh to use as a starting value for a loop accumulator.\nKeyword: empty",
   merge_meshes_tooltip:
     "Slå samman en lista med objekt till ett och spara resultatet.\nKeyword: merge",
   subtract_meshes_tooltip:

@@ -9,6 +9,43 @@ import {
 import { translate, getTooltip } from "../main/translation.js";
 
 export function defineCombineBlocks() {
+  Blockly.Blocks["create_empty_mesh"] = {
+    init: function () {
+      const variableNamePrefix = "mesh";
+      const nextVariableName =
+        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+
+      this.jsonInit({
+        type: "create_empty_mesh",
+        message0: translate("create_empty_mesh"),
+        args0: [
+          {
+            type: "field_variable",
+            name: "RESULT_VAR",
+            variable: nextVariableName,
+          },
+        ],
+        colour: categoryColours["Transform"],
+        tooltip: getTooltip("create_empty_mesh"),
+        previousStatement: null,
+        nextStatement: null,
+      });
+
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("transform_blocks");
+
+      registerBlockHandler(this, (changeEvent) =>
+        handleBlockCreateEvent(
+          this,
+          changeEvent,
+          variableNamePrefix,
+          nextVariableIndexes,
+          "RESULT_VAR",
+        ),
+      );
+    },
+  };
+
   Blockly.Blocks["merge_meshes"] = {
     init: function () {
       const variableNamePrefix = "merged";

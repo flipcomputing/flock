@@ -178,6 +178,7 @@ export default {
   get_camera: "get camera as %1",
 
   // Custom block translations - Combine blocks
+  create_empty_mesh: "set %1 to empty mesh",
   merge_meshes: "add %1 as merge %2",
   subtract_meshes: "add %1 as %2 subtract %3",
   intersection_meshes: "add %1 as intersect %2",
@@ -425,6 +426,7 @@ export default {
   get_camera_tooltip: "Get the current scene camera",
 
   // Tooltip translations - Combine blocks
+  create_empty_mesh_tooltip: "Create an empty mesh to use as a starting value for a loop accumulator.\nKeyword: empty",
   merge_meshes_tooltip:
     "Merge a list of objects into one and store the result.\nKeyword: merge",
   subtract_meshes_tooltip:

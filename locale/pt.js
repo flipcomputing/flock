@@ -422,6 +422,7 @@ export default {
   get_camera_tooltip: "Obtém a câmera atual da cena",
 
   // Tooltip translations - Combine blocks
+  create_empty_mesh_tooltip: "Create an empty mesh to use as a starting value for a loop accumulator.\nKeyword: empty",
   merge_meshes_tooltip:
     "Une uma lista de objetos em um só e armazena o resultado.\nPalavra-chave: mesclar",
   subtract_meshes_tooltip:

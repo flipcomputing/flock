@@ -90,9 +90,11 @@ function prepareMeshForCSG(mesh) {
   }
 
   if (meshesWithGeometry.length === 0) {
-    console.warn(
-      `[prepareMeshForCSG] No valid geometry found for mesh: ${mesh.name}`,
-    );
+    if (!mesh.metadata?.isEmpty) {
+      console.warn(
+        `[prepareMeshForCSG] No valid geometry found for mesh: ${mesh.name}`,
+      );
+    }
     return null;
   }
 
@@ -1012,7 +1014,7 @@ export const flockCSG = {
     return hullMesh;
   },
   prepareMeshes(modelId, meshNames, blockId) {
-    const validNames = meshNames.filter((name) => !!name);
+    const validNames = meshNames.filter((name) => name != null);
     return Promise.all(
       validNames.map((meshName) => {
         return new Promise((resolve) => {

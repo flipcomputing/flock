@@ -1363,6 +1363,11 @@ const toolboxTransformCombine = {
   contents: [
     {
       kind: "block",
+      type: "create_empty_mesh",
+      keyword: "empty mesh",
+    },
+    {
+      kind: "block",
       type: "merge_meshes",
       keyword: "merge",
       inputsInline: true,

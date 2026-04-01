@@ -877,4 +877,32 @@ export const flockShapes = {
 
     return meshId;
   },
+  createEmptyMesh(meshId) {
+    if (!validateShapeId(meshId, "createEmptyMesh")) return null;
+
+    let blockKey = meshId;
+    if (meshId.includes("__")) {
+      [meshId, blockKey] = meshId.split("__");
+    }
+    const groupName = meshId;
+
+    if (flock.scene.getMeshByName(meshId)) {
+      meshId = meshId + "_" + flock.scene.getUniqueId();
+    }
+
+    flock._recycleOldestByKey(blockKey);
+
+    const emptyMesh = new flock.BABYLON.Mesh(meshId, flock.scene);
+    emptyMesh.isVisible = false;
+    emptyMesh.metadata = { blockKey, isEmpty: true };
+
+    flock.announceMeshReady(emptyMesh.name, groupName);
+    flock._registerInstance(blockKey, emptyMesh.name);
+
+    if (!flock.callbackMode) {
+      flock.modelReadyPromises.set(meshId, Promise.resolve());
+    }
+
+    return emptyMesh.name;
+  },
 };

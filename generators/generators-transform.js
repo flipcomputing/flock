@@ -488,6 +488,20 @@ export function registerTransformGenerators(javascriptGenerator) {
   // COMBINE
   // -------------------------------
 
+  // Create empty mesh (for use as an accumulator initialiser before a loop)
+  javascriptGenerator.forBlock["create_empty_mesh"] = function (block) {
+    const resultVar = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue("RESULT_VAR"),
+      Blockly.Names.NameType.VARIABLE,
+    );
+
+    const meshId = resultVar + "__" + generateUniqueId();
+    meshMap[meshId] = block;
+    meshBlockIdMap[meshId] = block.id;
+
+    return `${resultVar} = createEmptyMesh("${meshId}");\n`;
+  };
+
   // Add merged as merge list
   javascriptGenerator.forBlock["merge_meshes"] = function (block) {
     const resultVar = javascriptGenerator.nameDB_.getName(
@@ -502,11 +516,10 @@ export function registerTransformGenerators(javascriptGenerator) {
         javascriptGenerator.ORDER_ATOMIC,
       ) || "[]";
 
-    const meshId = "merged" + "_" + generateUniqueId();
+    const meshId = resultVar + "__" + generateUniqueId();
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 
-    // Use helper function to merge the meshes
     return `${resultVar} = await mergeMeshes("${meshId}", ${meshList});\n`;
   };
 
@@ -528,11 +541,10 @@ export function registerTransformGenerators(javascriptGenerator) {
         javascriptGenerator.ORDER_ATOMIC,
       ) || "[]";
 
-    const meshId = "subtracted" + "_" + generateUniqueId();
+    const meshId = resultVar + "__" + generateUniqueId();
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 
-    // Use helper function to subtract meshes from the base mesh
     return `${resultVar} = await subtractMeshes("${meshId}", ${baseMesh}, ${meshList});\n`;
   };
 
@@ -550,11 +562,10 @@ export function registerTransformGenerators(javascriptGenerator) {
         javascriptGenerator.ORDER_ATOMIC,
       ) || "[]";
 
-    const meshId = "intersected" + "_" + generateUniqueId();
+    const meshId = resultVar + "__" + generateUniqueId();
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 
-    // Use helper function to intersect the meshes
     return `${resultVar} = await intersectMeshes("${meshId}", ${meshList});\n`;
   };
 
@@ -572,7 +583,7 @@ export function registerTransformGenerators(javascriptGenerator) {
         javascriptGenerator.ORDER_ATOMIC,
       ) || "[]";
 
-    const meshId = "hull" + "_" + generateUniqueId();
+    const meshId = resultVar + "__" + generateUniqueId();
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 

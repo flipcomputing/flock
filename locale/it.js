@@ -428,6 +428,7 @@ export default {
   get_camera_tooltip: "Ottieni la camera corrente della scena",
 
   // Tooltip translations - Combine blocks
+  create_empty_mesh_tooltip: "Create an empty mesh to use as a starting value for a loop accumulator.\nKeyword: empty",
   merge_meshes_tooltip:
     "Unisci un elenco di oggetti in una sola e salva il risultato.\nParola chiave: merge",
   subtract_meshes_tooltip:
