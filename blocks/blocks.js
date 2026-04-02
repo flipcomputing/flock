@@ -1157,22 +1157,6 @@ export const options = {
   // Auto focus the workspace when the mouse enters.
   workspaceAutoFocus: true,
 
-  // Use custom icon for the multi select controls.
-  multiselectIcon: {
-    hideIcon: true,
-    weight: 3,
-    enabledIcon:
-      "https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/select.svg",
-    disabledIcon:
-      "https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/unselect.svg",
-  },
-
-  multiSelectKeys: ["Shift"],
-
-  multiselectCopyPaste: {
-    crossTab: true,
-    menu: true,
-  },
   comments: true,
 };
 
