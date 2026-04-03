@@ -30,7 +30,7 @@ import "@fontsource/asap/600.css";
 import { characterNames, getModelDisplayName } from "./config";
 
 import { FlowGraphLog10Block } from "@babylonjs/core";
-const optionalBabylonDeps = { earcut, FlowGraphLog10Block};
+const optionalBabylonDeps = { earcut, FlowGraphLog10Block };
 const globalEarcutTarget =
   typeof globalThis !== "undefined" ? globalThis : undefined;
 if (globalEarcutTarget) {
@@ -48,7 +48,11 @@ import {
   setFlockReference as setFlockMovement,
 } from "./api/movement";
 import { flockModels, setFlockReference as setFlockModels } from "./api/models";
-import { flockShapes, getManifold, setFlockReference as setFlockShapes } from "./api/shapes";
+import {
+  flockShapes,
+  getManifold,
+  setFlockReference as setFlockShapes,
+} from "./api/shapes";
 import {
   flockTransform,
   setFlockReference as setFlockTransform,
@@ -303,10 +307,7 @@ export const flock = {
     };
 
     if (reattachDelayMs > 0) {
-      flock._cameraControlReattachTimer = setTimeout(
-        reattach,
-        reattachDelayMs,
-      );
+      flock._cameraControlReattachTimer = setTimeout(reattach, reattachDelayMs);
       return;
     }
 
@@ -686,7 +687,9 @@ export const flock = {
       },
     });
   },
-  async runCode(code) {
+  async runCode(code, options = {}) {
+    const { focusCanvas = true } = options;
+
     try {
       flock.validateUserCodeAST(code);
       await flock.disposeOldScene();
@@ -878,11 +881,13 @@ export const flock = {
         ),
       ]);
 
-      // focus canvas if present
-      (
-        document.getElementById("renderCanvas") ||
-        doc.getElementById("renderCanvas")
-      )?.focus();
+      if (focusCanvas === true) {
+        // focus canvas if present
+        (
+          document.getElementById("renderCanvas") ||
+          doc.getElementById("renderCanvas")
+        )?.focus();
+      }
     } catch (error) {
       const enhancedError = this.createEnhancedError?.(error, code) ?? error;
       console.error("Enhanced error details:", enhancedError);
@@ -1533,7 +1538,6 @@ export const flock = {
     flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
   },
   async disposeOldScene() {
-    
     flock.flockNotReady = true;
 
     if (flock.scene) {
@@ -1848,7 +1852,6 @@ export const flock = {
             }
           }, 100);
         }
-
       } catch (error) {
         console.error("Error during scene disposal:", error);
         // Even if disposal fails, clear critical references
