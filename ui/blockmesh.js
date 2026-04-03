@@ -712,7 +712,20 @@ function handleMaterialOrColorChange(
   }
 
   const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
-  const root = ultimateParent(mesh);
+
+  const findAttachedRoot = (m) => {
+    let current = m;
+    while (current) {
+      if (current.metadata?._attachedTargetName) {
+        flock.setPhysics(current.name, "NONE");
+        return current;
+      }
+      current = current.parent;
+    }
+    return null;
+  };
+
+  const root = findAttachedRoot(mesh) || ultimateParent(mesh);
 
   const alpha = materialInfo?.alpha ?? 1;
 
@@ -2110,6 +2123,18 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   const getUltimateParent = (m) =>
     m?.parent ? getUltimateParent(m.parent) : m;
 
+  const getAttachedAwareRoot = (m) => {
+    let current = m;
+    while (current) {
+      if (current.metadata?._attachedTargetName) {
+        flock.setPhysics(current.name, "NONE");
+        return current;
+      }
+      current = current.parent;
+    }
+    return getUltimateParent(m);
+  };
+
   const setColorOnTargetOrField = (targetBlock, parentBlock, colorHex) => {
     if (targetBlock) {
       if (targetBlock.getField?.("COLOR")) {
@@ -2248,7 +2273,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   }
 
   // Mesh → block
-  const root = getUltimateParent(mesh);
+  const root = getAttachedAwareRoot(mesh);
   const blockKey = root?.metadata?.blockKey;
 
   if (!blockKey || !meshMap?.[blockKey]) {
