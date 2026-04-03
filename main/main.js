@@ -203,11 +203,6 @@ function initializeApp() {
   document.addEventListener(
     "keydown",
     function (e) {
-      // Avoid in inputs
-      const tag = (e.target.tagName || "").toLowerCase();
-      if (tag === "input" || tag === "textarea" || e.target.isContentEditable)
-        return;
-
       // Check for modifier key (Ctrl on Windows/Linux, Cmd on Mac)
       if (!(e.ctrlKey || e.metaKey)) return;
 
