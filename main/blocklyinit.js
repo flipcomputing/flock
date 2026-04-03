@@ -581,54 +581,6 @@ export function initializeWorkspace() {
   workspace.addChangeListener(handleBlockSelect);
   workspace.addChangeListener(handleBlockDelete);
 
-  // Disable scrollBoundsIntoView temporarily during focus changes after deletion
-  const originalScrollBoundsIntoView =
-    Blockly.WorkspaceSvg.prototype.scrollBoundsIntoView;
-
-  Blockly.WorkspaceSvg.prototype.scrollBoundsIntoView = function (bounds) {
-    // Check if we're in the middle of a block deletion by looking at the call stack
-    const stack = new Error().stack;
-
-    // If this is being called from the dispose->focus chain, skip scrolling
-    if (stack.includes("dispose") || stack.includes("onNodeFocus")) {
-      return; // Don't scroll at all
-    }
-
-    // Otherwise, do normal scrolling
-    originalScrollBoundsIntoView.call(this, bounds);
-  };
-
-  // Patch BlockDelete.run so that redo (forward=true) heals the stack just
-  // like the original dispose call did.  Without this, BlockDelete.run(true)
-  // calls dispose(false) which skips healing and can leave the block below the
-  // deleted block orphaned when the BLOCK_MOVE heal event is later replayed
-  // through canConnect and our custom checker rejects the reconnection.
-  const BlockDeleteClass = Blockly.Events.BlockDelete;
-  if (BlockDeleteClass && !BlockDeleteClass._healRedoPatched) {
-    BlockDeleteClass._healRedoPatched = true;
-    const originalBlockDeleteRun = BlockDeleteClass.prototype.run;
-    BlockDeleteClass.prototype.run = function (forward) {
-      if (forward) {
-        // Redo: delete the block(s) WITH stack healing so that the block
-        // below the deleted block is reconnected rather than orphaned.
-        const workspace = this.getEventWorkspace_();
-        if (this.ids) {
-          for (let i = 0; i < this.ids.length; i++) {
-            const block = workspace.getBlockById(this.ids[i]);
-            if (block) {
-              block.dispose(true); // heal=true: reconnect next block to parent
-            } else if (this.ids[i] === this.blockId) {
-              console.warn("Can't delete non-existent block: " + this.ids[i]);
-            }
-          }
-        }
-      } else {
-        // Undo: restore block from saved JSON (standard Blockly behaviour).
-        originalBlockDeleteRun.call(this, forward);
-      }
-    };
-  }
-
   // Initialize workspace search
   const workspaceSearch = new WorkspaceSearch(workspace);
   workspaceSearch.init();
