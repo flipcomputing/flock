@@ -446,27 +446,30 @@ export function initializeBlockHandling() {
 	}
 });*/
 
-  // -------------------------------------------------------------------------
-  // Single consolidated workspace listener.
-  //
-  // Combines four previously separate addChangeListener calls:
-  //   1. Track window.currentBlock on SELECTED events.
-  //   2. Debounced workspace.cleanUp() on structural changes
-  //      (BLOCK_MOVE / BLOCK_CREATE / BLOCK_DELETE).
-  //   3. Immediate workspace.cleanUp() when a top-level block
-  //      collapses or expands (BLOCK_CHANGE + element === "collapsed").
-  //   4. Registry dispatcher — purge deleted block IDs then fan out to
-  //      all registered block handlers (O(1) listeners vs O(N blocks)).
-  // -------------------------------------------------------------------------
   workspace.addChangeListener((event) => {
-    // 1. Track the currently selected block.
+    // Track the currently selected block.
     if (event.type === Blockly.Events.SELECTED) {
       window.currentBlock = event.newElementId
         ? workspace.getBlockById(event.newElementId)
         : null;
     }
 
-    // 2. Debounced cleanup on structural changes.
+    // Workaround for Blockly not checking for orphans on key
+    if (event.type === Blockly.Events.BLOCK_DRAG && event.isStart === false) {
+      // Wait until Blockly has fully settled
+      queueMicrotask(() => {
+        Blockly.Events.disableOrphans({
+          type: Blockly.Events.BLOCK_MOVE,
+          workspaceId: workspace.id,
+          blockId: event.blockId,
+          oldParentId: undefined,
+          newParentId: undefined,
+          recordUndo: false,
+          isUiEvent: false,
+        });
+      });
+    }
+    // Debounced cleanup on structural changes.
     if (
       !event.isUiEvent &&
       (event.type === Blockly.Events.BLOCK_MOVE ||
@@ -486,7 +489,7 @@ export function initializeBlockHandling() {
       }, 300); // adjust if you want snappier/slower cleanup
     }
 
-    // 3. Immediate cleanup when a top-level block is collapsed/expanded.
+    // Immediate cleanup when a top-level block is collapsed/expanded.
     if (
       event.type === Blockly.Events.BLOCK_CHANGE &&
       event.element === "collapsed"
@@ -497,7 +500,7 @@ export function initializeBlockHandling() {
       }
     }
 
-    // 4. Purge deleted blocks from the registry, then dispatch to handlers.
+    // Purge deleted blocks from the registry, then dispatch to handlers.
     if (
       event.type === Blockly.Events.BLOCK_DELETE &&
       Array.isArray(event.ids)
