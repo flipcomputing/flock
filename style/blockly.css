@@ -8,6 +8,7 @@
   --color-search-highlight: #ed808b;
   --color-shadow: grey;
   --color-outline-focus: #fc3;
+  --block-outline-focus: #fff200;
 
   /* Dropdown & menu semantics */
   --color-dropdown-text: var(--color-text);
@@ -506,6 +507,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
   border-radius: 4px;
 }
 
+
 /* Add custom selection outline for both level 1 and 2 categories */
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
   > .blocklyToolboxCategory,
@@ -677,7 +679,33 @@ body[data-theme="dark"] .blocklyTreeLabel {
   outline-offset: -2px;
   border-radius: 4px;
 }
-/* Your injection container */
+
+/* Keyboard focus for image BUTTON fields only (e.g. plus/minus/toggle icons) */
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyImageField {
+  outline: 5px solid var(--block-outline-focus);
+  outline-offset: 2px;
+}
+
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyImageField image[style*="cursor: pointer"] {
+  stroke: var(--block-outline-focus);
+  stroke-width: 5px;
+}
+
+/* Passive focus: lower emphasis */
+.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyImageField {
+  outline: 5px dashed var(--block-outline-focus);
+  outline-offset: 2px;
+}
+
+.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyImageField image[style*="cursor: pointer"] {
+  stroke: var(--color-outline-focus);
+  stroke-width: 5px;
+  stroke-dasharray: 4 2;      /* Blockly-style short dash */
+  stroke-linecap: butt;       /* square dash ends */
+  vector-effect: non-scaling-stroke;
+}
+
+/* Blockly injection container */
 #blocklyDiv {
   position: relative;
   overflow: hidden; /* clip overlay so it can't grow layout */
