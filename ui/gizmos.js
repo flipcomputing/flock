@@ -66,8 +66,6 @@ document.addEventListener("DOMContentLoaded", function () {
       // If gizmos are on, disable them
       try {
         disableGizmos();
-        e.stopPropagation(); // avoid duplicate handlers upstream
-        // don't e.preventDefault() globally unless you *need* to stop other Esc behavior
       } catch {
         // fail-safe: still attempt to disable
         disableGizmos?.();
