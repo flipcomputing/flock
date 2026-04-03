@@ -7,7 +7,8 @@ import { workspace } from "./blocklyinit.js";
 
 let isExecuting = false;
 
-export async function executeCode() {
+export async function executeCode(options = {}) {
+  const { focusCanvas = true } = options;
   // Check if the function is already running
   if (isExecuting) {
     return; // Exit if already running
@@ -48,8 +49,10 @@ export async function executeCode() {
   try {
     console.log(code);
     await flock.runCode(code);
-    // Focus canvas so user can immediately interact with 3D scene
-    renderCanvas?.focus();
+    if (focusCanvas) {
+      // Focus canvas so user can immediately interact with 3D scene
+      renderCanvas?.focus();
+    }
   } catch (error) {
     console.error("Error executing Blockly code:", error);
     isExecuting = false; // Reset the flag if there's an error

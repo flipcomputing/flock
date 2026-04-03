@@ -126,6 +126,27 @@ async function showUpdateNotification() {
 
 console.log("Blockly version:", Blockly.VERSION);
 
+function registerBlocklyPlayShortcut() {
+  const shortcutRegistry = Blockly.ShortcutRegistry.registry;
+  const shortcutName = "flock_play_scene";
+  const keyCode = shortcutRegistry.createSerializedKey(
+    Blockly.utils.KeyCodes.P,
+    null,
+  );
+
+  shortcutRegistry.unregister(shortcutName);
+  shortcutRegistry.register({
+    name: shortcutName,
+    keyCodes: [keyCode],
+    preconditionFn: (ws) => !ws.isDragging(),
+    callback: (_ws, event) => {
+      event.preventDefault();
+      void executeCode({ focusCanvas: false });
+      return true;
+    },
+  });
+}
+
 function initializeApp() {
   console.log("Initializing Flock XR ...");
 
@@ -386,6 +407,7 @@ window.onload = async function () {
   addExportContextMenuOptions();
 
   createBlocklyWorkspace();
+  registerBlocklyPlayShortcut();
   initializeWorkspace();
   overrideSearchPlugin(workspace);
   initializeBlockHandling();
