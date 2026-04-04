@@ -700,6 +700,23 @@ export function createBlocklyWorkspace() {
         const t = e.target;
         if (!t || t.tagName !== "INPUT") return;
         if (t.type !== "search") return;
+
+        if (e.key === "Enter") {
+          const flyout = toolbox.getFlyout?.();
+          const flyoutVisible = !!flyout && !!flyout.isVisible?.();
+          const flyoutWorkspace = flyout?.getWorkspace?.();
+          const firstResult = flyoutWorkspace?.getTopBlocks?.(false)?.[0];
+
+          if (flyoutVisible && firstResult) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            Blockly.getFocusManager().focusTree(flyoutWorkspace);
+            flyoutWorkspace.getCursor?.()?.setCurNode?.(firstResult);
+          }
+          return;
+        }
+        
         if (e.key !== "ArrowDown") return;
 
         e.preventDefault();
