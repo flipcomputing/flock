@@ -607,6 +607,44 @@ export function initializeWorkspace() {
 
 export function createBlocklyWorkspace() {
   class OverlayMetricsManager extends Blockly.MetricsManager {
+    constructor(workspaceRef) {
+      super(workspaceRef);
+      this.stableToolboxWidth_ = 0;
+      this.stableToolboxHeight_ = 0;
+    }
+
+    getToolboxMetrics() {
+      const toolboxMetrics = super.getToolboxMetrics();
+      const Position = Blockly.utils.toolbox.Position;
+      const isVertical =
+        toolboxMetrics.position === Position.LEFT ||
+        toolboxMetrics.position === Position.RIGHT;
+      const isHorizontal =
+        toolboxMetrics.position === Position.TOP ||
+        toolboxMetrics.position === Position.BOTTOM;
+
+      if (isVertical && toolboxMetrics.width > 0) {
+        this.stableToolboxWidth_ = Math.max(
+          this.stableToolboxWidth_,
+          toolboxMetrics.width,
+        );
+      }
+      if (isHorizontal && toolboxMetrics.height > 0) {
+        this.stableToolboxHeight_ = Math.max(
+          this.stableToolboxHeight_,
+          toolboxMetrics.height,
+        );
+      }
+
+      return {
+        ...toolboxMetrics,
+        width: isVertical ? this.stableToolboxWidth_ || toolboxMetrics.width : toolboxMetrics.width,
+        height: isHorizontal
+          ? this.stableToolboxHeight_ || toolboxMetrics.height
+          : toolboxMetrics.height,
+      };
+    }
+
     getAbsoluteMetrics() {
       const absolute = super.getAbsoluteMetrics();
       const flyout = this.workspace_.getFlyout?.();
