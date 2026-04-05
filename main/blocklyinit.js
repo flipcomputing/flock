@@ -583,6 +583,20 @@ export function initializeWorkspace() {
 
   // Initialize workspace search
   const workspaceSearch = new WorkspaceSearch(workspace);
+  const originalWorkspaceSearchKeydown =
+    workspaceSearch.onWorkspaceKeyDown?.bind(workspaceSearch);
+  if (originalWorkspaceSearchKeydown) {
+    workspaceSearch.onWorkspaceKeyDown = (e) => {
+      const activeElement = document.activeElement;
+      const inToolboxContext = !!activeElement?.closest?.(
+        ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
+      );
+      if ((e.ctrlKey || e.metaKey) && e.key === "f" && inToolboxContext) {
+        return;
+      }
+      originalWorkspaceSearchKeydown(e);
+    };
+  }
   workspaceSearch.init();
 
   // Set up auto value behavior
@@ -630,7 +644,6 @@ export function createBlocklyWorkspace() {
   shortcutRegistry.unregister?.("menu");
   new KeyboardNavigation(workspace);
 
-  // Monkey-patch
   const toolbox = workspace.getToolbox();
   toolbox.onKeyDown_ = function () {
     return false;
@@ -638,14 +651,121 @@ export function createBlocklyWorkspace() {
 
   (function wireToolboxKeyboardOverrides() {
     if (!toolbox) return;
+    const host = workspace.getInjectionDiv?.() || document;
     const toolboxDiv =
       toolbox.HtmlDiv || document.querySelector(".blocklyToolboxDiv");
     if (!toolboxDiv) return;
+
+    // Ctrl+F should focus the toolbox search when focus is in the toolbox
+    const getSearchToolboxItem = () =>
+      (toolbox.getToolboxItems?.() || []).find((item) => {
+        const def =
+          item.getToolboxItemDef?.() ||
+          item.toolboxItemDef ||
+          item.toolboxItemDef_;
+        const kind = (def?.kind || "").toLowerCase();
+        return (
+          kind === "search" ||
+          item.SEARCH_INPUT_ID === "toolbox-search-input" ||
+          item.searchField?.id === "toolbox-search-input"
+        );
+      });
+
+    const focusToolboxSearch = () => {
+      const focusExistingInput = (searchItem) => {
+        const searchInput =
+          searchItem?.searchField instanceof HTMLInputElement
+            ? searchItem.searchField
+            : toolbox.HtmlDiv?.querySelector?.(
+                "input#toolbox-search-input, input[type='search']",
+              );
+
+        if (!(searchInput instanceof HTMLInputElement)) return null;
+
+        searchInput.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+        searchInput.focus();
+        searchInput.select?.();
+        return searchInput;
+      };
+
+      const searchItem = getSearchToolboxItem();
+      if (!searchItem) return false;
+
+      toolbox.setSelectedItem?.(searchItem);
+      const triggerMatchBlocks = (searchInput) => {
+        if (!searchInput) return;
+        searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+        searchItem.matchBlocks?.();
+      };
+
+      const focusedInput = focusExistingInput(searchItem);
+      if (focusedInput) {
+        triggerMatchBlocks(focusedInput);
+        setTimeout(() => {
+          triggerMatchBlocks(focusExistingInput(searchItem));
+        }, 0);
+        return true;
+      }
+
+      setTimeout(() => {
+        triggerMatchBlocks(focusExistingInput(searchItem));
+      }, 0);
+      return true;
+    };
+
+    host.addEventListener(
+      "keydown",
+      (e) => {
+        const isFindShortcut =
+          (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f";
+        if (!isFindShortcut) return;
+
+        const activeElement = document.activeElement;
+        const targetElement = e.target instanceof Element ? e.target : null;
+        const inToolboxContext =
+          !!targetElement?.closest?.(
+            ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
+          ) ||
+          !!activeElement?.closest?.(
+            ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
+          );
+        if (!inToolboxContext) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        focusToolboxSearch();
+      },
+      true,
+    );
 
     toolboxDiv.addEventListener(
       "keydown",
       (e) => {
         const target = e.target;
+
+        const isFindShortcut =
+          (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f";
+        if (isFindShortcut) {
+          const targetElement = target instanceof Element ? target : null;
+          const activeElement = document.activeElement;
+          const inToolboxContext =
+            !!targetElement?.closest?.(
+              ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
+            ) ||
+            !!activeElement?.closest?.(
+              ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
+            );
+
+          if (inToolboxContext) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            focusToolboxSearch();
+            return;
+          }
+        }
+
         if (
           target &&
           (target.tagName === "INPUT" ||
@@ -716,7 +836,7 @@ export function createBlocklyWorkspace() {
           }
           return;
         }
-        
+
         if (e.key !== "ArrowDown") return;
 
         e.preventDefault();
@@ -1533,9 +1653,13 @@ export function overrideSearchPlugin(workspace) {
     const toolbox = workspace.getToolbox?.();
     const selectedItem = toolbox?.getSelectedItem?.();
     const selectedDef =
-      selectedItem?.getToolboxItemDef?.() || selectedItem?.toolboxItemDef;
+      selectedItem?.getToolboxItemDef?.() ||
+      selectedItem?.toolboxItemDef ||
+      selectedItem?.toolboxItemDef_;
     const isSelectedSearch =
       selectedDef?.kind === "search" || (category && selectedItem === category);
+    selectedDef?.kind?.toLowerCase?.() === "search" ||
+      (category && selectedItem === category);
 
     return isSelectedSearch;
   };
