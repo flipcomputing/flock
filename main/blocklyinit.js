@@ -606,6 +606,55 @@ export function initializeWorkspace() {
 }
 
 export function createBlocklyWorkspace() {
+  class OverlayMetricsManager extends Blockly.MetricsManager {
+    getAbsoluteMetrics() {
+      const absolute = super.getAbsoluteMetrics();
+      const flyout = this.workspace_.getFlyout?.();
+      if (!flyout || flyout.autoClose) return absolute;
+
+      const flyoutMetrics = this.getFlyoutMetrics();
+      const toolboxPosition = this.getToolboxMetrics().position;
+      const Position = Blockly.utils.toolbox.Position;
+
+      const adjusted = { ...absolute };
+      if (toolboxPosition === Position.LEFT) {
+        adjusted.left = Math.max(0, adjusted.left - flyoutMetrics.width);
+      } else if (toolboxPosition === Position.TOP) {
+        adjusted.top = Math.max(0, adjusted.top - flyoutMetrics.height);
+      }
+
+      return adjusted;
+    }
+
+    getViewMetrics(opt_getWorkspaceCoordinates) {
+      const view = super.getViewMetrics(opt_getWorkspaceCoordinates);
+      const flyout = this.workspace_.getFlyout?.();
+      if (!flyout || flyout.autoClose) return view;
+
+      const flyoutMetrics = this.getFlyoutMetrics();
+      const toolboxPosition = this.getToolboxMetrics().position;
+      const Position = Blockly.utils.toolbox.Position;
+      const scale = opt_getWorkspaceCoordinates ? this.workspace_.scale : 1;
+      const flyoutWidth = flyoutMetrics.width / scale;
+      const flyoutHeight = flyoutMetrics.height / scale;
+      const adjusted = { ...view };
+
+      if (toolboxPosition === Position.LEFT) {
+        adjusted.left -= flyoutWidth;
+        adjusted.width += flyoutWidth;
+      } else if (toolboxPosition === Position.RIGHT) {
+        adjusted.width += flyoutWidth;
+      } else if (toolboxPosition === Position.TOP) {
+        adjusted.top -= flyoutHeight;
+        adjusted.height += flyoutHeight;
+      } else if (toolboxPosition === Position.BOTTOM) {
+        adjusted.height += flyoutHeight;
+      }
+
+      return adjusted;
+    }
+  }
+
   // Register the custom renderer
   Blockly.registry.register(
     Blockly.registry.Type.RENDERER,
@@ -636,6 +685,7 @@ export function createBlocklyWorkspace() {
   );
 
   workspace = Blockly.inject("blocklyDiv", options);
+  workspace.setMetricsManager(new OverlayMetricsManager(workspace));
 
   // Initialize keyboard navigation.
 
@@ -949,48 +999,6 @@ export function createBlocklyWorkspace() {
 
     shortcutRegistry.removeAllKeyMappings?.("toolbox");
     shortcutRegistry.register(wrappedShortcut, true);
-  })();
-
-  // Keep scrolling; remove only the obvious flyout-width bump.
-  (function simpleNoBumpTranslate() {
-    const ws = Blockly.getMainWorkspace();
-    const original = ws.translate.bind(ws);
-
-    ws.translate = function (requestedX, newY) {
-      const tb = this.getToolbox?.();
-      const fo = this.getFlyout?.();
-      const mm = this.getMetricsManager?.();
-
-      // Toolbox edge on the left. Prefer toolbox.getWidth(); fallback to absolute metrics.
-      const tbW =
-        (tb && tb.getWidth?.()) ??
-        (mm && mm.getAbsoluteMetrics ? mm.getAbsoluteMetrics().left : 0) ??
-        0;
-
-      let x = requestedX;
-
-      // Only adjust when the flyout is actually visible.
-      if (fo && fo.isVisible?.()) {
-        const foW = fo.getWidth?.() || 0;
-        const EPS = 1; // small float tolerance
-
-        if (foW > 0) {
-          // Case 1: absolute shove to ≈ toolbox + flyout
-          if (x >= tbW + foW - EPS) {
-            x -= foW;
-          }
-          // Case 2: relative shove by ≈ flyout from current position
-          else if (x - this.scrollX >= foW - EPS) {
-            x -= foW;
-          }
-        }
-      }
-
-      // Never allow the origin to go left of the toolbox edge.
-      if (x < tbW) x = tbW;
-
-      return original(x, newY);
-    };
   })();
 
   // ------- Pointer tracking for "paste at pointer" -------
