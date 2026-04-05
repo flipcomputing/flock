@@ -36,7 +36,7 @@ import {
   switchView,
 } from "./view.js";
 import { hideLoadingScreen } from "./loading.js";
-import "./debug.js";
+//import "./debug.js";
 import { initializeBlockHandling } from "./blockhandling.js";
 import { setupInput } from "./input.js";
 import { addExportContextMenuOptions } from "./export.js";

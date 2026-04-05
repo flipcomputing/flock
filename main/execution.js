@@ -8,8 +8,6 @@ import { workspace } from "./blocklyinit.js";
 let isExecuting = false;
 
 export async function executeCode(options = {}) {
-  const { focusCanvas = true } = options;
-  console.log("Executing code...", options);
   // Check if the function is already running
   if (isExecuting) {
     return; // Exit if already running
@@ -27,9 +25,6 @@ export async function executeCode(options = {}) {
   }
 
   console.log("Engine ready");
-
-  // Cache DOM elements
-  const renderCanvas = document.getElementById("renderCanvas");
 
   // If on a narrow screen and currently showing code, switch to canvas
   if (isNarrowScreen() && currentView === "code") {

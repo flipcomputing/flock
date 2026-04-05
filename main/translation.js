@@ -48,7 +48,6 @@ let currentLanguage = "en";
 // Save language preference to localStorage
 function saveLanguagePreference(language) {
   localStorage.setItem("flock-language", language);
-  console.log(`Saved language preference: ${language}`);
 }
 
 function cacheOriginalMessages() {
@@ -81,7 +80,6 @@ export async function setLanguage(language) {
 
   currentLanguage = language;
   saveLanguagePreference(language);
-  console.log(`Language changed to: ${language}`);
 
   if (language === "es") {
     // Apply Blockly's Spanish translations
@@ -90,7 +88,6 @@ export async function setLanguage(language) {
         Blockly.Msg[key] = es[key];
       }
     });
-    console.log("Español seleccionado - Blockly Spanish translations applied!");
   } else {
     // Official Blockly English first
     Object.keys(en).forEach((key) => {
@@ -100,9 +97,6 @@ export async function setLanguage(language) {
     Object.keys(enLocale).forEach((key) => {
       Blockly.Msg[key] = enLocale[key];
     });
-    console.log(
-      "English selected - Blockly English and custom translations applied!",
-    );
   }
 
   applyTranslations();
