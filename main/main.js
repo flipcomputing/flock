@@ -51,7 +51,7 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker
     .register("./sw.js")
     .then((registration) => {
-      console.log("Service Worker registered:", registration);
+      //console.log("Service Worker registered:", registration);
 
       // Check for updates to the Service Worker
       registration.onupdatefound = () => {
@@ -151,7 +151,7 @@ function registerBlocklyPlayShortcut() {
 }
 
 function initializeApp() {
-  console.log("Initializing Flock XR ...");
+  //console.log("Initializing Flock XR ...");
 
   (() => {
     const ws = () => Blockly.getMainWorkspace?.();
@@ -403,7 +403,7 @@ window.onload = async function () {
   overrideSearchPlugin(workspace);
   initializeBlockHandling();
 
-  console.log("Welcome to Flock 🐦🐦🐦");
+  console.log("Welcome to Flock XR 🐦🐦🐦");
 
   // Autosave every 30 seconds: to localStorage and (if a file was saved) to that file
   setInterval(() => {

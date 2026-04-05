@@ -676,12 +676,10 @@ export const flockTransform = {
 
         mesh.refreshBoundingInfo(true);
         mesh.computeWorldMatrix(true);
-        let physicsTarget = mesh;
+        let physicsTarget = mesgh;
         while (physicsTarget.parent && !physicsTarget.physics) {
           physicsTarget = physicsTarget.parent;
         }
-
-        console.log("Updating physics", mesh.name);
 
         if (physicsTarget.physics && physicsTarget !== mesh) {
           flock.updatePhysics(mesh, physicsTarget);

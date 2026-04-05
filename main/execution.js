@@ -24,7 +24,7 @@ export async function executeCode(options = {}) {
     await delay(100);
   }
 
-  console.log("Engine ready");
+  //console.log("Engine ready");
 
   // If on a narrow screen and currently showing code, switch to canvas
   if (isNarrowScreen() && currentView === "code") {
@@ -89,7 +89,7 @@ export function stopCode() {
 
   // Stop rendering
   flock.engine.stopRenderLoop();
-  console.log("Render loop stopped.");
+  //console.log("Render loop stopped.");
 
   // Remove event listeners
   flock.removeEventListeners();
@@ -99,7 +99,7 @@ export function stopCode() {
     showCanvasView();
   }
 
-  console.log("Switched view.");
+  //console.log("Switched view.");
 }
 
 window.stopCode = stopCode;
