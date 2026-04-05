@@ -256,6 +256,23 @@ function normalizeMeshAttributesForMerge(meshes) {
   });
 }
 
+function resolveCsgModelIdentity(requestedModelId) {
+  let resolvedModelId = requestedModelId;
+  let blockKey = requestedModelId;
+
+  if (typeof requestedModelId === "string" && requestedModelId.includes("__")) {
+    const separatorIndex = requestedModelId.indexOf("__");
+    resolvedModelId = requestedModelId.slice(0, separatorIndex);
+    blockKey = requestedModelId.slice(separatorIndex + 2);
+  }
+
+  if (flock.scene.getMeshByName(resolvedModelId)) {
+    resolvedModelId = resolvedModelId + "_" + flock.scene.getUniqueId();
+  }
+
+  return { modelId: resolvedModelId, blockKey };
+}
+
 export const flockCSG = {
   mergeCompositeMesh(meshes) {
     if (!meshes || meshes.length === 0) return null;
@@ -273,11 +290,12 @@ export const flockCSG = {
     return merged;
   },
   mergeMeshes(modelId, meshList) {
-    const blockId = modelId;
-    modelId += "_" + flock.scene.getUniqueId();
+    const { modelId: resolvedModelId, blockKey } =
+      resolveCsgModelIdentity(modelId);
+    modelId = resolvedModelId;
 
     return flock
-      .prepareMeshes(modelId, meshList, blockId)
+      .prepareMeshes(modelId, meshList, blockKey)
       .then((validMeshes) => {
         if (validMeshes.length) {
           const meshesToMerge = [];
@@ -314,7 +332,7 @@ export const flockCSG = {
 
             mergedMesh.name = modelId;
             mergedMesh.metadata = mergedMesh.metadata || {};
-            mergedMesh.metadata.blockKey = blockId;
+            mergedMesh.metadata.blockKey = blockKey;
             mergedMesh.metadata.sharedMaterial = false;
 
             return modelId;
@@ -381,7 +399,7 @@ export const flockCSG = {
 
           mergedMesh.name = modelId;
           mergedMesh.metadata = mergedMesh.metadata || {};
-          mergedMesh.metadata.blockKey = blockId;
+          mergedMesh.metadata.blockKey = blockKey;
           mergedMesh.metadata.sharedMaterial = false;
 
           const isDefaultMaterial = (material) => {
@@ -444,8 +462,9 @@ export const flockCSG = {
   },
 
   subtractMeshesMerge(modelId, baseMeshName, meshNames) {
-    const blockId = modelId;
-    modelId += "_" + flock.scene.getUniqueId();
+    const { modelId: resolvedModelId, blockKey } =
+      resolveCsgModelIdentity(modelId);
+    modelId = resolvedModelId;
 
     const collectMaterialMeshesDeep = (root) => {
       const out = [];
@@ -504,7 +523,7 @@ export const flockCSG = {
           return resolve(null);
         }
 
-        flock.prepareMeshes(modelId, meshNames, blockId).then((validMeshes) => {
+        flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
           const scene = baseMesh.getScene();
           const baseDuplicate = cloneForCSG(actualBase, "baseDuplicate");
           let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
@@ -606,7 +625,7 @@ export const flockCSG = {
             resultMesh,
             actualBase,
             modelId,
-            blockId,
+            blockKey,
           );
 
           baseDuplicate.dispose();
@@ -619,8 +638,9 @@ export const flockCSG = {
     });
   },
   subtractMeshesIndividual(modelId, baseMeshName, meshNames) {
-    const blockId = modelId;
-    modelId += "_" + flock.scene.getUniqueId();
+    const { modelId: resolvedModelId, blockKey } =
+      resolveCsgModelIdentity(modelId);
+    modelId = resolvedModelId;
 
     const collectMaterialMeshesDeep = (root) => {
       const out = [];
@@ -659,7 +679,7 @@ export const flockCSG = {
           return resolve(null);
         }
 
-        flock.prepareMeshes(modelId, meshNames, blockId).then((validMeshes) => {
+        flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
           const scene = baseMesh.getScene();
           const baseDuplicate = actualBase.clone("baseDuplicate");
           baseDuplicate.setParent(null);
@@ -738,7 +758,7 @@ export const flockCSG = {
             resultMesh,
             actualBase,
             modelId,
-            blockId,
+            blockKey,
           );
 
           baseDuplicate.dispose();
@@ -758,11 +778,12 @@ export const flockCSG = {
     }
   },
   intersectMeshes(modelId, meshList) {
-    const blockId = modelId;
-    modelId += "_" + flock.scene.getUniqueId();
+    const { modelId: resolvedModelId, blockKey } =
+      resolveCsgModelIdentity(modelId);
+    modelId = resolvedModelId;
 
     return flock
-      .prepareMeshes(modelId, meshList, blockId)
+      .prepareMeshes(modelId, meshList, blockKey)
       .then((validMeshes) => {
         if (validMeshes.length) {
           let firstMesh = validMeshes[0];
@@ -882,7 +903,7 @@ export const flockCSG = {
             intersectedMesh,
             firstMesh,
             modelId,
-            blockId,
+            blockKey,
           );
 
           validMeshes.forEach((mesh) => mesh.dispose());
@@ -895,11 +916,12 @@ export const flockCSG = {
       });
   },
   createHull(modelId, meshList) {
-    const blockId = modelId;
-    modelId += "_" + flock.scene.getUniqueId();
+    const { modelId: resolvedModelId, blockKey } =
+      resolveCsgModelIdentity(modelId);
+    modelId = resolvedModelId;
 
     return flock
-      .prepareMeshes(modelId, meshList, blockId)
+      .prepareMeshes(modelId, meshList, blockKey)
       .then((validMeshes) => {
         if (validMeshes.length) {
           // Calculate the combined bounding box centre
@@ -978,7 +1000,7 @@ export const flockCSG = {
             hullMesh,
             updatedValidMeshes[0],
             modelId,
-            blockId,
+            blockKey,
           );
           // Dispose of original meshes after creating the hull
           validMeshes.forEach((mesh) => mesh.dispose());

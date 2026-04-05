@@ -502,7 +502,7 @@ export function registerTransformGenerators(javascriptGenerator) {
         javascriptGenerator.ORDER_ATOMIC,
       ) || "[]";
 
-    const meshId = "merged" + "_" + generateUniqueId();
+    const meshId = `${resultVar}__${block.id}`;
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 
@@ -528,7 +528,7 @@ export function registerTransformGenerators(javascriptGenerator) {
         javascriptGenerator.ORDER_ATOMIC,
       ) || "[]";
 
-    const meshId = "subtracted" + "_" + generateUniqueId();
+    const meshId = `${resultVar}__${block.id}`;
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 
@@ -550,7 +550,7 @@ export function registerTransformGenerators(javascriptGenerator) {
         javascriptGenerator.ORDER_ATOMIC,
       ) || "[]";
 
-    const meshId = "intersected" + "_" + generateUniqueId();
+    const meshId = `${resultVar}__${block.id}`;
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 
