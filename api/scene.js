@@ -637,7 +637,7 @@ export const flockScene = {
     }
     if (flock.maxMeshesReached()) return "error_" + cloneId;
 
-    const uniqueCloneId = cloneId + "_" + flock.scene.getUniqueId();
+    const uniqueCloneId = flock._reserveName(cloneId);
 
     flock.whenModelReady(sourceMeshName, (sourceMesh) => {
       if (!sourceMesh || sourceMesh.isDisposed?.()) return;

@@ -266,9 +266,7 @@ function resolveCsgModelIdentity(requestedModelId) {
     blockKey = requestedModelId.slice(separatorIndex + 2);
   }
 
-  if (flock.scene.getMeshByName(resolvedModelId)) {
-    resolvedModelId = resolvedModelId + "_" + flock.scene.getUniqueId();
-  }
+  resolvedModelId = flock._reserveName(resolvedModelId);
 
   return { modelId: resolvedModelId, blockKey };
 }

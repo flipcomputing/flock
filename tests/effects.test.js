@@ -79,6 +79,58 @@ export function runEffectsTests(flock) {
       }, 50);
     });
 
+    it("should route particle effect name allocation through _reserveName", function (done) {
+      this.timeout(5000);
+      const originalReserveName = flock._reserveName;
+      const reserveCalls = [];
+
+      flock._reserveName = (name) => {
+        reserveCalls.push(name);
+        return originalReserveName.call(flock, name);
+      };
+
+      const emitterId = flock.createBox("effectReserveEmitter", {
+        color: "#FF0000",
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      createdMeshes.push(emitterId);
+
+      const firstEffectName = flock.createParticleEffect("reserveEffect", {
+        emitterMesh: emitterId,
+        emitRate: 10,
+        colors: { start: "#ffffff", end: "#ffffff" },
+        alphas: { start: 1, end: 0 },
+        sizes: { start: 1, end: 1 },
+        lifetime: { min: 0.1, max: 0.2 },
+        shape: "flare.png",
+      });
+      const secondEffectName = flock.createParticleEffect("reserveEffect", {
+        emitterMesh: emitterId,
+        emitRate: 10,
+        colors: { start: "#ffffff", end: "#ffffff" },
+        alphas: { start: 1, end: 0 },
+        sizes: { start: 1, end: 1 },
+        lifetime: { min: 0.1, max: 0.2 },
+        shape: "flare.png",
+      });
+      createdEffects.push(firstEffectName, secondEffectName);
+
+      setTimeout(() => {
+        try {
+          expect(reserveCalls).to.deep.equal(["reserveEffect", "reserveEffect"]);
+          expect(firstEffectName).to.not.equal(secondEffectName);
+          done();
+        } catch (error) {
+          done(error);
+        } finally {
+          flock._reserveName = originalReserveName;
+        }
+      }, 100);
+    });
+
     it("should set fog parameters", function () {
       flock.scene.fogMode = null;
       flock.scene.fogColor = null;

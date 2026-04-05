@@ -43,6 +43,37 @@ export function runShapesTests(flock) {
         expect(mesh.metadata).to.exist;
         expect(mesh.metadata.blockKey).to.be.a("string");
       });
+
+      it("should route capsule name allocation through _reserveName", function () {
+        const originalReserveName = flock._reserveName;
+        const reserveCalls = [];
+
+        flock._reserveName = (name) => {
+          reserveCalls.push(name);
+          return originalReserveName.call(flock, name);
+        };
+
+        try {
+          const firstId = flock.createCapsule("reserveCapsule", {
+            color: "#0066ff",
+            diameter: 0.5,
+            height: 1.5,
+            position: [2, 1, 0],
+          });
+          const secondId = flock.createCapsule("reserveCapsule", {
+            color: "#0066ff",
+            diameter: 0.5,
+            height: 1.5,
+            position: [3, 1, 0],
+          });
+          createdIds.push(firstId, secondId);
+
+          expect(reserveCalls).to.deep.equal(["reserveCapsule", "reserveCapsule"]);
+          expect(firstId).to.not.equal(secondId);
+        } finally {
+          flock._reserveName = originalReserveName;
+        }
+      });
     });
 
     describe("createPlane", function () {
@@ -75,6 +106,74 @@ export function runShapesTests(flock) {
       });
     });
 
+    describe("shared name reservation", function () {
+      it("should route shape creators through _reserveName", function () {
+        const originalReserveName = flock._reserveName;
+        const reserveCalls = [];
+
+        flock._reserveName = (name) => {
+          reserveCalls.push(name);
+          return originalReserveName.call(flock, name);
+        };
+
+        try {
+          const boxA = flock.createBox("reserveBox", { position: [0, 0, 0] });
+          const boxB = flock.createBox("reserveBox", { position: [1, 0, 0] });
+          const sphereA = flock.createSphere("reserveSphere", {
+            position: [0, 0, 0],
+          });
+          const sphereB = flock.createSphere("reserveSphere", {
+            position: [1, 0, 0],
+          });
+          const cylinderA = flock.createCylinder("reserveCylinder", {
+            height: 1,
+            diameterTop: 1,
+            diameterBottom: 1,
+            position: [0, 0, 0],
+          });
+          const cylinderB = flock.createCylinder("reserveCylinder", {
+            height: 1,
+            diameterTop: 1,
+            diameterBottom: 1,
+            position: [1, 0, 0],
+          });
+          const planeA = flock.createPlane("reservePlane", {
+            width: 1,
+            height: 1,
+            position: [0, 0, 0],
+          });
+          const planeB = flock.createPlane("reservePlane", {
+            width: 1,
+            height: 1,
+            position: [1, 0, 0],
+          });
+          createdIds.push(
+            boxA,
+            boxB,
+            sphereA,
+            sphereB,
+            cylinderA,
+            cylinderB,
+            planeA,
+            planeB,
+          );
+
+          expect(reserveCalls).to.include.members([
+            "reserveBox",
+            "reserveSphere",
+            "reserveCylinder",
+            "reservePlane",
+          ]);
+          expect(boxA).to.not.equal(boxB);
+          expect(sphereA).to.not.equal(sphereB);
+          expect(cylinderA).to.not.equal(cylinderB);
+          expect(planeA).to.not.equal(planeB);
+        } finally {
+          flock._reserveName = originalReserveName;
+        }
+      });
+    });
+
     describe("create3DText @slow", function () {
       this.timeout(30000);
 
@@ -102,6 +201,43 @@ export function runShapesTests(flock) {
 
         const mesh = flock.scene.getMeshByName(id);
         expect(mesh).to.exist;
+      });
+
+      it("should route text mesh allocation through _reserveName", async function () {
+        const originalReserveName = flock._reserveName;
+        const reserveCalls = [];
+
+        flock._reserveName = (name) => {
+          reserveCalls.push(name);
+          return originalReserveName.call(flock, name);
+        };
+
+        try {
+          const firstId = flock.create3DText({
+            text: "Name",
+            font: "/fonts/FreeSansBold.ttf",
+            color: "#ffffff",
+            size: 1,
+            depth: 0.2,
+            position: { x: 0, y: 0, z: 0 },
+            modelId: "reserveText",
+          });
+          const secondId = flock.create3DText({
+            text: "Name2",
+            font: "/fonts/FreeSansBold.ttf",
+            color: "#ffffff",
+            size: 1,
+            depth: 0.2,
+            position: { x: 1, y: 0, z: 0 },
+            modelId: "reserveText",
+          });
+          createdIds.push(firstId, secondId);
+
+          expect(reserveCalls).to.deep.equal(["reserveText", "reserveText"]);
+          expect(firstId).to.not.equal(secondId);
+        } finally {
+          flock._reserveName = originalReserveName;
+        }
       });
     });
   });

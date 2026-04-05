@@ -391,6 +391,42 @@ export function runSceneTests(flock) {
         expect(cloneId).to.match(/^myClone_/);
       });
 
+      it("should route clone name allocation through _reserveName", function () {
+        const originalReserveName = flock._reserveName;
+        const reserveCalls = [];
+
+        flock._reserveName = (name) => {
+          reserveCalls.push(name);
+          return originalReserveName.call(flock, name);
+        };
+
+        try {
+          const boxId = flock.createBox("cloneReserveSrc", {
+            color: "#996633",
+            width: 1,
+            height: 1,
+            depth: 1,
+            position: [0, 0, 0],
+          });
+          createdIds.push(boxId);
+
+          const firstCloneId = flock.cloneMesh({
+            sourceMeshName: boxId,
+            cloneId: "reserveClone",
+          });
+          const secondCloneId = flock.cloneMesh({
+            sourceMeshName: boxId,
+            cloneId: "reserveClone",
+          });
+          createdIds.push(firstCloneId, secondCloneId);
+
+          expect(reserveCalls).to.deep.equal(["reserveClone", "reserveClone"]);
+          expect(firstCloneId).to.not.equal(secondCloneId);
+        } finally {
+          flock._reserveName = originalReserveName;
+        }
+      });
+
       it("should invoke the callback after cloning", async function () {
         this.timeout(3000);
         const boxId = flock.createBox("cloneSrc__4", {

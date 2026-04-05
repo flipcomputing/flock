@@ -943,6 +943,48 @@ export function runMaterialsTests(flock) {
         const mergedMesh = flock.scene.getMeshByName(id);
         expect(mergedMesh.getTotalVertices()).to.be.greaterThan(0);
       });
+
+      it("routes merge result name allocation through _reserveName", async function () {
+        await flock.createBox("reserveMergeA", {
+          color: "#ff0000",
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        await flock.createBox("reserveMergeB", {
+          color: "#00ff00",
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [1, 0, 0],
+        });
+        meshIds.push("reserveMergeA", "reserveMergeB");
+
+        const originalReserveName = flock._reserveName;
+        const reserveCalls = [];
+        flock._reserveName = (name) => {
+          reserveCalls.push(name);
+          return originalReserveName.call(flock, name);
+        };
+
+        try {
+          const firstId = await flock.mergeMeshes("reserveMerge", [
+            "reserveMergeA",
+            "reserveMergeB",
+          ]);
+          const secondId = await flock.mergeMeshes("reserveMerge", [
+            "reserveMergeA",
+            "reserveMergeB",
+          ]);
+
+          meshIds.push(firstId, secondId);
+          expect(reserveCalls).to.deep.equal(["reserveMerge", "reserveMerge"]);
+          expect(firstId).to.not.equal(secondId);
+        } finally {
+          flock._reserveName = originalReserveName;
+        }
+      });
     });
     describe("randomColour", function () {
       it("should return a lowercase hex colour string", function () {

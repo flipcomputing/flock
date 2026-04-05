@@ -64,6 +64,7 @@ export function runCharacterAnimationTests(flock) {
 
     const characterModel = "Liz3.glb";
     const animationMeshIds = [];
+    const characterReserveCalls = [];
 
     before(async function () {
       if (flock.engine) flock.engine.dispose();
@@ -101,11 +102,17 @@ export function runCharacterAnimationTests(flock) {
       );
       configureDraco(flock.BABYLON);
 
+      const originalReserveName = flock._reserveName;
+      flock._reserveName = (name) => {
+        characterReserveCalls.push(name);
+        return originalReserveName.call(flock, name);
+      };
       const meshId = flock.createCharacter({
         modelName: characterModel,
         modelId: "liz3-test-character",
         position: { x: 0, y: 0, z: 0 },
       });
+      flock._reserveName = originalReserveName;
       animationMeshIds.push(meshId);
 
       await pumpAnimation(flock, flock.show(meshId));
@@ -133,6 +140,10 @@ export function runCharacterAnimationTests(flock) {
       const mesh = flock.scene.getMeshByName(animationMeshIds[0]);
       expect(mesh).to.exist;
       expect(mesh.metadata?.modelName).to.equal(characterModel);
+    });
+
+    it("routes character name allocation through _reserveName", function () {
+      expect(characterReserveCalls).to.include("liz3-test-character");
     });
 
     it("switchAnimation sets the current animation and starts playing it", async function () {
