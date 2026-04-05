@@ -273,10 +273,7 @@ export const flockShapes = {
     }
 
     let groupName = boxId;
-
-    if (flock.scene.getMeshByName(boxId)) {
-      boxId = boxId + "_" + flock.scene.getUniqueId();
-    }
+    boxId = flock._reserveName(boxId);
 
     if (flock.maxMeshesReached()) return null;
     flock._recycleOldestByKey(blockKey);
@@ -357,10 +354,7 @@ export const flockShapes = {
     }
 
     let groupName = sphereId;
-
-    if (flock.scene.getMeshByName(sphereId)) {
-      sphereId = sphereId + "_" + flock.scene.getUniqueId();
-    }
+    sphereId = flock._reserveName(sphereId);
 
     if (flock.maxMeshesReached()) return null;
     flock._recycleOldestByKey(blockKey);
@@ -449,10 +443,7 @@ export const flockShapes = {
     }
 
     let groupName = cylinderId;
-
-    if (flock.scene.getMeshByName(cylinderId)) {
-      cylinderId = cylinderId + "_" + flock.scene.getUniqueId();
-    }
+    cylinderId = flock._reserveName(cylinderId);
 
     if (flock.maxMeshesReached()) return null;
     flock._recycleOldestByKey(blockKey);
@@ -537,9 +528,7 @@ export const flockShapes = {
       updatable: false,
     };
 
-    if (flock.scene.getMeshByName(capsuleId)) {
-      capsuleId = capsuleId + "_" + flock.scene.getUniqueId();
-    }
+    capsuleId = flock._reserveName(capsuleId);
 
     if (flock.maxMeshesReached()) return null;
     flock._recycleOldestByKey(blockKey);
@@ -621,9 +610,7 @@ export const flockShapes = {
     }
 
     let groupName = planeId;
-    if (flock.scene.getMeshByName(planeId)) {
-      planeId = planeId + "_" + flock.scene.getUniqueId();
-    }
+    planeId = flock._reserveName(planeId);
 
     if (flock.maxMeshesReached()) return null;
     flock._recycleOldestByKey(blockKey);
@@ -725,9 +712,7 @@ export const flockShapes = {
     }
 
     if (!flock._pendingMeshIds) flock._pendingMeshIds = new Set();
-    if (flock.scene.getMeshByName(meshId) || flock._pendingMeshIds.has(meshId)) {
-      meshId = meshId + "_" + flock.scene.getUniqueId();
-    }
+    meshId = flock._reserveName(meshId);
     flock._pendingMeshIds.add(meshId);
 
     flock._recycleOldestByKey(blockKey);

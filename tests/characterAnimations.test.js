@@ -135,6 +135,16 @@ export function runCharacterAnimationTests(flock) {
       expect(mesh.metadata?.modelName).to.equal(characterModel);
     });
 
+    it("should avoid collisions for repeated character ids", function () {
+      const secondId = flock.createCharacter({
+        modelName: characterModel,
+        modelId: "liz3-test-character",
+        position: { x: 2, y: 0, z: 0 },
+      });
+      animationMeshIds.push(secondId);
+      expect(secondId).to.not.equal(animationMeshIds[0]);
+    });
+
     it("switchAnimation sets the current animation and starts playing it", async function () {
       const meshId = animationMeshIds[0];
       const mesh = flock.scene.getMeshByName(meshId);

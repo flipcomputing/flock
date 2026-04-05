@@ -44,7 +44,7 @@ export const flockEffects = {
       rotation,
     } = {},
   ) {
-    let resultName = name + "_" + flock.scene.getUniqueId();
+    const resultName = flock._reserveName(name);
 
     const particlePromise = new Promise((resolve, reject) => {
       flock.whenModelReady(emitterMesh, (meshInstance) => {

@@ -283,6 +283,23 @@ export function runCreateObjectTests(flock) {
         await flock.setColor(tree, ["#ffffff", "#000000"]);
       }
     });
+
+    it("should avoid collisions for repeated object ids", function () {
+      const firstId = flock.createObject({
+        modelName: "tree.glb",
+        modelId: "reserve-tree",
+        color: ["#66cdaa", "#cd853f"],
+        position: { x: 0, y: 0, z: 0 },
+      });
+      const secondId = flock.createObject({
+        modelName: "tree.glb",
+        modelId: "reserve-tree",
+        color: ["#66cdaa", "#cd853f"],
+        position: { x: 2, y: 0, z: 0 },
+      });
+
+      expect(firstId).to.not.equal(secondId);
+    });
   });
 }
 
