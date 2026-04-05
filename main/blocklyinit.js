@@ -979,23 +979,6 @@ export function createBlocklyWorkspace() {
     };
   })();
 
-  (function debugTranslate() {
-    const ws = Blockly.getMainWorkspace();
-    const original = ws.translate.bind(ws);
-    ws.translate = function(requestedX, newY) {
-      const fo = this.getFlyout?.();
-      const tb = this.getToolbox?.();
-      const foW = fo?.getWidth?.() || 0;
-      const tbW = tb?.getWidth?.() || 0;
-
-      if (fo && fo.isVisible?.()) {
-        console.log(`translate x=${requestedX} tbW=${tbW} foW=${foW} diff=${Math.abs(requestedX - (tbW + foW)).toFixed(3)}`);
-      }
-
-      return original(requestedX, newY);
-    };
-  })();
-
   // ------- Pointer tracking for "paste at pointer" -------
   const mainWs = Blockly.getMainWorkspace();
   let lastCM = { x: 0, y: 0 };
