@@ -1,5 +1,5 @@
 import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap, generateUniqueId } from "./mesh-state.js";
+import { meshMap, meshBlockIdMap } from "./mesh-state.js";
 import { getFieldValue } from "./generators-utilities.js";
 
 export function registerTransformGenerators(javascriptGenerator) {
@@ -572,7 +572,7 @@ export function registerTransformGenerators(javascriptGenerator) {
         javascriptGenerator.ORDER_ATOMIC,
       ) || "[]";
 
-    const meshId = "hull" + "_" + generateUniqueId();
+    const meshId = `${resultVar}__${block.id}`;
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 
