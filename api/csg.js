@@ -261,7 +261,7 @@ function resolveCsgModelIdentity(requestedModelId) {
   let blockKey = requestedModelId;
 
   if (typeof requestedModelId === "string" && requestedModelId.includes("__")) {
-    const separatorIndex = requestedModelId.indexOf("__");
+    const separatorIndex = requestedModelId.lastIndexOf("__");
     resolvedModelId = requestedModelId.slice(0, separatorIndex);
     blockKey = requestedModelId.slice(separatorIndex + 2);
   }
