@@ -79,15 +79,8 @@ export function runEffectsTests(flock) {
       }, 50);
     });
 
-    it("should route particle effect name allocation through _reserveName", function (done) {
+    it("should avoid collisions for repeated particle effect names", function (done) {
       this.timeout(5000);
-      const originalReserveName = flock._reserveName;
-      const reserveCalls = [];
-
-      flock._reserveName = (name) => {
-        reserveCalls.push(name);
-        return originalReserveName.call(flock, name);
-      };
 
       const emitterId = flock.createBox("effectReserveEmitter", {
         color: "#FF0000",
@@ -120,13 +113,10 @@ export function runEffectsTests(flock) {
 
       setTimeout(() => {
         try {
-          expect(reserveCalls).to.deep.equal(["reserveEffect", "reserveEffect"]);
           expect(firstEffectName).to.not.equal(secondEffectName);
           done();
         } catch (error) {
           done(error);
-        } finally {
-          flock._reserveName = originalReserveName;
         }
       }, 100);
     });

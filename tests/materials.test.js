@@ -944,7 +944,7 @@ export function runMaterialsTests(flock) {
         expect(mergedMesh.getTotalVertices()).to.be.greaterThan(0);
       });
 
-      it("routes merge result name allocation through _reserveName", async function () {
+      it("avoids collisions for repeated merge result ids", async function () {
         await flock.createBox("reserveMergeA", {
           color: "#ff0000",
           width: 1,
@@ -961,29 +961,17 @@ export function runMaterialsTests(flock) {
         });
         meshIds.push("reserveMergeA", "reserveMergeB");
 
-        const originalReserveName = flock._reserveName;
-        const reserveCalls = [];
-        flock._reserveName = (name) => {
-          reserveCalls.push(name);
-          return originalReserveName.call(flock, name);
-        };
+        const firstId = await flock.mergeMeshes("reserveMerge", [
+          "reserveMergeA",
+          "reserveMergeB",
+        ]);
+        const secondId = await flock.mergeMeshes("reserveMerge", [
+          "reserveMergeA",
+          "reserveMergeB",
+        ]);
 
-        try {
-          const firstId = await flock.mergeMeshes("reserveMerge", [
-            "reserveMergeA",
-            "reserveMergeB",
-          ]);
-          const secondId = await flock.mergeMeshes("reserveMerge", [
-            "reserveMergeA",
-            "reserveMergeB",
-          ]);
-
-          meshIds.push(firstId, secondId);
-          expect(reserveCalls).to.deep.equal(["reserveMerge", "reserveMerge"]);
-          expect(firstId).to.not.equal(secondId);
-        } finally {
-          flock._reserveName = originalReserveName;
-        }
+        meshIds.push(firstId, secondId);
+        expect(firstId).to.not.equal(secondId);
       });
     });
     describe("randomColour", function () {

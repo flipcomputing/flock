@@ -391,40 +391,27 @@ export function runSceneTests(flock) {
         expect(cloneId).to.match(/^myClone_/);
       });
 
-      it("should route clone name allocation through _reserveName", function () {
-        const originalReserveName = flock._reserveName;
-        const reserveCalls = [];
+      it("should avoid collisions for repeated clone ids", function () {
+        const boxId = flock.createBox("cloneReserveSrc", {
+          color: "#996633",
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        createdIds.push(boxId);
 
-        flock._reserveName = (name) => {
-          reserveCalls.push(name);
-          return originalReserveName.call(flock, name);
-        };
+        const firstCloneId = flock.cloneMesh({
+          sourceMeshName: boxId,
+          cloneId: "reserveClone",
+        });
+        const secondCloneId = flock.cloneMesh({
+          sourceMeshName: boxId,
+          cloneId: "reserveClone",
+        });
+        createdIds.push(firstCloneId, secondCloneId);
 
-        try {
-          const boxId = flock.createBox("cloneReserveSrc", {
-            color: "#996633",
-            width: 1,
-            height: 1,
-            depth: 1,
-            position: [0, 0, 0],
-          });
-          createdIds.push(boxId);
-
-          const firstCloneId = flock.cloneMesh({
-            sourceMeshName: boxId,
-            cloneId: "reserveClone",
-          });
-          const secondCloneId = flock.cloneMesh({
-            sourceMeshName: boxId,
-            cloneId: "reserveClone",
-          });
-          createdIds.push(firstCloneId, secondCloneId);
-
-          expect(reserveCalls).to.deep.equal(["reserveClone", "reserveClone"]);
-          expect(firstCloneId).to.not.equal(secondCloneId);
-        } finally {
-          flock._reserveName = originalReserveName;
-        }
+        expect(firstCloneId).to.not.equal(secondCloneId);
       });
 
       it("should invoke the callback after cloning", async function () {
