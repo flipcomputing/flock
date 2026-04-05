@@ -134,7 +134,10 @@ function registerBlocklyPlayShortcut() {
     null,
   );
 
-  shortcutRegistry.unregister(shortcutName);
+  const keyboardShortcuts = shortcutRegistry.getRegistry?.();
+  if (keyboardShortcuts?.[shortcutName]) {
+    shortcutRegistry.unregister(shortcutName);
+  }
   shortcutRegistry.register({
     name: shortcutName,
     keyCodes: [keyCode],
