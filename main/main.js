@@ -286,24 +286,12 @@ function initializeApp() {
           break;
         }
 
-        case "e": // Ctrl+E - Focus Blockly workspace/editor
+        case "e": // Ctrl+E - Focus Blockly workspace/editor and move cursor
           e.preventDefault();
+          Blockly.keyboardNavigationController?.setIsActive?.(true);
           Blockly.getFocusManager()?.focusTree?.(workspace);
+          workspace.getCursor?.()?.setCurNode?.(workspace);
           break;
-
-        /* Uncomment if needed:
-                        case "k": // Ctrl+K - Stop code
-                                e.preventDefault();
-                                // Force any focused element to blur, so pending changes are committed
-                                if (document.activeElement && typeof document.activeElement.blur === "function") {
-                                        document.activeElement.blur();
-                                }
-                                // Give the browser a tick to finish handling blur before continuing
-                                setTimeout(() => {
-                                        document.getElementById("stopCodeButton").click();
-                                }, 0);
-                                break;
-                        */
       }
     },
     true,
