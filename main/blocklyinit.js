@@ -951,29 +951,21 @@ export function createBlocklyWorkspace() {
     shortcutRegistry.register(wrappedShortcut, true);
   })();
 
-  // Keep scrolling; remove only the obvious flyout-width bump.
   (function simpleNoBumpTranslate() {
     const ws = Blockly.getMainWorkspace();
     const original = ws.translate.bind(ws);
-
     ws.translate = function (requestedX, newY) {
       const tb = this.getToolbox?.();
       const fo = this.getFlyout?.();
       const mm = this.getMetricsManager?.();
-
-      // Toolbox edge on the left. Prefer toolbox.getWidth(); fallback to absolute metrics.
       const tbW =
         (tb && tb.getWidth?.()) ??
         (mm && mm.getAbsoluteMetrics ? mm.getAbsoluteMetrics().left : 0) ??
         0;
-
       let x = requestedX;
-
-      // Only adjust when the flyout is actually visible.
       if (fo && fo.isVisible?.()) {
         const foW = fo.getWidth?.() || 0;
-        const EPS = 1; // small float tolerance
-
+        const EPS = 1;
         if (foW > 0) {
           // Case 1: absolute shove to ≈ toolbox + flyout
           if (x >= tbW + foW - EPS) {
@@ -985,10 +977,6 @@ export function createBlocklyWorkspace() {
           }
         }
       }
-
-      // Never allow the origin to go left of the toolbox edge.
-      if (x < tbW) x = tbW;
-
       return original(x, newY);
     };
   })();
