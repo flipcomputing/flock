@@ -676,7 +676,7 @@ export const flockTransform = {
 
         mesh.refreshBoundingInfo(true);
         mesh.computeWorldMatrix(true);
-        let physicsTarget = mesgh;
+        let physicsTarget = mesh;
         while (physicsTarget.parent && !physicsTarget.physics) {
           physicsTarget = physicsTarget.parent;
         }
