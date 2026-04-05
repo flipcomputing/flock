@@ -607,44 +607,6 @@ export function initializeWorkspace() {
 
 export function createBlocklyWorkspace() {
   class OverlayMetricsManager extends Blockly.MetricsManager {
-    constructor(workspaceRef) {
-      super(workspaceRef);
-      this.stableToolboxWidth_ = 0;
-      this.stableToolboxHeight_ = 0;
-    }
-
-    getToolboxMetrics() {
-      const toolboxMetrics = super.getToolboxMetrics();
-      const Position = Blockly.utils.toolbox.Position;
-      const isVertical =
-        toolboxMetrics.position === Position.LEFT ||
-        toolboxMetrics.position === Position.RIGHT;
-      const isHorizontal =
-        toolboxMetrics.position === Position.TOP ||
-        toolboxMetrics.position === Position.BOTTOM;
-
-      if (isVertical && toolboxMetrics.width > 0) {
-        this.stableToolboxWidth_ = Math.max(
-          this.stableToolboxWidth_,
-          toolboxMetrics.width,
-        );
-      }
-      if (isHorizontal && toolboxMetrics.height > 0) {
-        this.stableToolboxHeight_ = Math.max(
-          this.stableToolboxHeight_,
-          toolboxMetrics.height,
-        );
-      }
-
-      return {
-        ...toolboxMetrics,
-        width: isVertical ? this.stableToolboxWidth_ || toolboxMetrics.width : toolboxMetrics.width,
-        height: isHorizontal
-          ? this.stableToolboxHeight_ || toolboxMetrics.height
-          : toolboxMetrics.height,
-      };
-    }
-
     getAbsoluteMetrics() {
       const absolute = super.getAbsoluteMetrics();
       const flyout = this.workspace_.getFlyout?.();
@@ -659,34 +621,6 @@ export function createBlocklyWorkspace() {
         adjusted.left = Math.max(0, adjusted.left - flyoutMetrics.width);
       } else if (toolboxPosition === Position.TOP) {
         adjusted.top = Math.max(0, adjusted.top - flyoutMetrics.height);
-      }
-
-      return adjusted;
-    }
-
-    getViewMetrics(opt_getWorkspaceCoordinates) {
-      const view = super.getViewMetrics(opt_getWorkspaceCoordinates);
-      const flyout = this.workspace_.getFlyout?.();
-      if (!flyout || flyout.autoClose) return view;
-
-      const flyoutMetrics = this.getFlyoutMetrics();
-      const toolboxPosition = this.getToolboxMetrics().position;
-      const Position = Blockly.utils.toolbox.Position;
-      const scale = opt_getWorkspaceCoordinates ? this.workspace_.scale : 1;
-      const flyoutWidth = flyoutMetrics.width / scale;
-      const flyoutHeight = flyoutMetrics.height / scale;
-      const adjusted = { ...view };
-
-      if (toolboxPosition === Position.LEFT) {
-        adjusted.left -= flyoutWidth;
-        adjusted.width += flyoutWidth;
-      } else if (toolboxPosition === Position.RIGHT) {
-        adjusted.width += flyoutWidth;
-      } else if (toolboxPosition === Position.TOP) {
-        adjusted.top -= flyoutHeight;
-        adjusted.height += flyoutHeight;
-      } else if (toolboxPosition === Position.BOTTOM) {
-        adjusted.height += flyoutHeight;
       }
 
       return adjusted;
