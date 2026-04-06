@@ -267,7 +267,7 @@ function shouldApplyBoxProjection(resultMesh, options = {}) {
   return !hasUsableUVs(resultMesh);
 }
 
-function normalizeMeshAttributesForMerge(meshes) {
+function normalizeMeshAttributesForMerge(meshes, { logWarning = true } = {}) {
   if (!meshes || meshes.length < 2) return;
 
   const kindUnion = new Set();
@@ -288,13 +288,15 @@ function normalizeMeshAttributesForMerge(meshes) {
 
   if (!normalizationRequired) return;
 
-  console.warn(
-    "[mergeMeshes] Normalizing vertex attributes before fallback merge",
-    {
-      meshes: getMeshKindsSummary(meshes),
-      requiredKinds: Array.from(kindUnion),
-    },
-  );
+  if (logWarning) {
+    console.warn(
+      "[mergeMeshes] Normalizing vertex attributes before fallback merge",
+      {
+        meshes: getMeshKindsSummary(meshes),
+        requiredKinds: Array.from(kindUnion),
+      },
+    );
+  }
 
   const vertexBuffer = flock.BABYLON.VertexBuffer;
 
@@ -348,6 +350,16 @@ function normalizeMeshAttributesForMerge(meshes) {
     mesh.refreshBoundingInfo?.();
     mesh.computeWorldMatrix?.(true);
   });
+}
+
+function meshesHaveMatchingAttributeKinds(meshes) {
+  if (!meshes || meshes.length < 2) return true;
+  const baseline = getMeshAttributeKinds(meshes[0]).slice().sort().join("|");
+  for (let i = 1; i < meshes.length; i++) {
+    const current = getMeshAttributeKinds(meshes[i]).slice().sort().join("|");
+    if (current !== baseline) return false;
+  }
+  return true;
 }
 
 function hasNonFinitePositions(mesh) {
@@ -484,13 +496,17 @@ export const flockCSG = {
           const originalMaterial = referenceMesh.material;
           let mergedMesh = null;
           let csgSucceeded = false;
+          normalizeMeshAttributesForMerge(meshesToMerge, { logWarning: false });
           const csgUnsafe = meshesToMerge.some((mesh) => {
             const positionsFinite = !hasNonFinitePositions(mesh);
             if (!positionsFinite) return true;
             return !sanitizeMeshVertexDataForCSG(mesh);
           });
+          const csgIncompatibleKinds = !meshesHaveMatchingAttributeKinds(
+            meshesToMerge,
+          );
 
-          if (!csgUnsafe) {
+          if (!csgUnsafe && !csgIncompatibleKinds) {
             try {
               let baseCSG = flock.BABYLON.CSG2.FromMesh(meshesToMerge[0], false);
 
@@ -521,9 +537,13 @@ export const flockCSG = {
               console.warn("[mergeMeshes] CSG merge attempt failed:", error);
               csgSucceeded = false;
             }
-          } else {
+          } else if (csgUnsafe) {
             console.warn(
               "[mergeMeshes] Skipping CSG merge due non-finite positions; using Mesh.MergeMeshes fallback.",
+            );
+          } else {
+            console.warn(
+              "[mergeMeshes] Skipping CSG merge due incompatible vertex attribute kinds; using Mesh.MergeMeshes fallback.",
             );
           }
 
