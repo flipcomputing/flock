@@ -5025,16 +5025,14 @@ class CustomCollapsibleToolboxCategory
       this.setExpanded(true);
     }
 
-    if (window.__TOOLBOX_JUMP_DEBUG) {
-      console.debug("[toolbox-jump]", {
-        categoryName: this.toolboxItemDef_?.name || "unknown",
-        isSelected,
-        scrollX: workspace?.scrollX ?? null,
-        scrollY: workspace?.scrollY ?? null,
-        flyoutVisible: this.parentToolbox_?.getFlyout?.()?.isVisible?.() || false,
-        flyoutWidth: this.parentToolbox_?.getFlyout?.()?.getWidth?.() || 0,
-      });
-    }
+    console.debug("[toolbox-jump]", {
+      categoryName: this.toolboxItemDef_?.name || "unknown",
+      isSelected,
+      scrollX: workspace?.scrollX ?? null,
+      scrollY: workspace?.scrollY ?? null,
+      flyoutVisible: this.parentToolbox_?.getFlyout?.()?.isVisible?.() || false,
+      flyoutWidth: this.parentToolbox_?.getFlyout?.()?.getWidth?.() || 0,
+    });
 
     // Get the category color
     const categoryColour = this.colour_;

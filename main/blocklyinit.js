@@ -47,7 +47,6 @@ function installWorkspaceJumpDebug(workspace) {
 
   let lastFieldEdit = null;
   workspace.addChangeListener((event) => {
-    if (!window.__BLOCKLY_EDIT_JUMP_DEBUG) return;
     if (
       event?.type === Blockly.Events.BLOCK_CHANGE &&
       event?.element === "field"
@@ -77,31 +76,29 @@ function installWorkspaceJumpDebug(workspace) {
 
     const result = originalTranslate(x, y);
 
-    if (window.__BLOCKLY_EDIT_JUMP_DEBUG) {
-      const deltaX = this.scrollX - beforeX;
-      const deltaY = this.scrollY - beforeY;
-      const msSinceFieldEdit = lastFieldEdit
-        ? Math.round(performance.now() - lastFieldEdit.timestamp)
-        : null;
-      const shouldLog =
-        Math.abs(deltaX) > 50 ||
-        Math.abs(deltaY) > 50 ||
-        (typeof msSinceFieldEdit === "number" && msSinceFieldEdit < 1200);
+    const deltaX = this.scrollX - beforeX;
+    const deltaY = this.scrollY - beforeY;
+    const msSinceFieldEdit = lastFieldEdit
+      ? Math.round(performance.now() - lastFieldEdit.timestamp)
+      : null;
+    const shouldLog =
+      Math.abs(deltaX) > 50 ||
+      Math.abs(deltaY) > 50 ||
+      (typeof msSinceFieldEdit === "number" && msSinceFieldEdit < 1200);
 
-      if (shouldLog) {
-        console.debug("[blockly-jump-debug] translate", {
-          requestedX: x,
-          requestedY: y,
-          beforeX,
-          beforeY,
-          afterX: this.scrollX,
-          afterY: this.scrollY,
-          deltaX,
-          deltaY,
-          msSinceFieldEdit,
-          lastFieldEdit,
-        });
-      }
+    if (shouldLog) {
+      console.debug("[blockly-jump-debug] translate", {
+        requestedX: x,
+        requestedY: y,
+        beforeX,
+        beforeY,
+        afterX: this.scrollX,
+        afterY: this.scrollY,
+        deltaX,
+        deltaY,
+        msSinceFieldEdit,
+        lastFieldEdit,
+      });
     }
 
     return result;
