@@ -619,11 +619,21 @@ export const flockCSG = {
           resultMesh.rotation.set(0, 0, 0);
           resultMesh.scaling.set(1, 1, 1);
           resultMesh.computeWorldMatrix(true);
+
+          const subtractMaterials = validMeshes.map((m) => {
+            if (m.metadata?.modelName) {
+              const mwm = flock._findFirstDescendantWithMaterial(m);
+              if (mwm) return mwm.material;
+            }
+            return m.material;
+          }).filter(Boolean);
+
           flock.applyResultMeshProperties(
             resultMesh,
             actualBase,
             modelId,
             blockKey,
+            subtractMaterials,
           );
 
           baseDuplicate.dispose();
@@ -752,11 +762,21 @@ export const flockCSG = {
           );
           resultMesh.position.subtractInPlace(localCenter);
           resultMesh.computeWorldMatrix(true);
+
+          const subtractMaterials = validMeshes.map((m) => {
+            if (m.metadata?.modelName) {
+              const mwm = flock._findFirstDescendantWithMaterial(m);
+              if (mwm) return mwm.material;
+            }
+            return m.material;
+          }).filter(Boolean);
+
           flock.applyResultMeshProperties(
             resultMesh,
             actualBase,
             modelId,
             blockKey,
+            subtractMaterials,
           );
 
           baseDuplicate.dispose();
@@ -1045,7 +1065,7 @@ export const flockCSG = {
       }),
     ).then((meshes) => meshes.filter((mesh) => mesh !== null));
   },
-  applyResultMeshProperties(resultMesh, referenceMesh, modelId, blockId) {
+  applyResultMeshProperties(resultMesh, referenceMesh, modelId, blockId, subtractMaterials = []) {
     // Copy transformation properties
     referenceMesh.material.backFaceCulling = false;
 
@@ -1069,8 +1089,18 @@ export const flockCSG = {
       );
     };
 
+    // Track which subtract material to use next when replacing default slots
+    let subtractMaterialIdx = 0;
     const replaceMaterial = () => {
-      return referenceMesh.material.clone("clonedMaterial");
+      // Use a subtract mesh material for interior faces if available
+      if (subtractMaterials.length > 0 && subtractMaterialIdx < subtractMaterials.length) {
+        const mat = subtractMaterials[subtractMaterialIdx++].clone("csgSubtractMaterial");
+        mat.backFaceCulling = false;
+        return mat;
+      }
+      const mat = referenceMesh.material.clone("clonedMaterial");
+      mat.backFaceCulling = false;
+      return mat;
     };
 
     if (resultMesh.material) {
@@ -1080,12 +1110,15 @@ export const flockCSG = {
             if (subMaterial && isDefaultMaterial(subMaterial)) {
               return replaceMaterial();
             }
+            // Ensure all preserved submaterials also render from both sides
+            if (subMaterial) {
+              subMaterial.backFaceCulling = false;
+            }
             return subMaterial;
           },
         );
       } else if (isDefaultMaterial(resultMesh.material)) {
         resultMesh.material = replaceMaterial();
-        resultMesh.material.backFaceCulling = false;
       }
     } else {
       // No material assigned by CSG - copy from reference mesh
