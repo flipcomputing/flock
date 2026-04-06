@@ -41,6 +41,57 @@ let workspace = null;
 export { workspace };
 import { flock } from "../flock.js";
 
+function installWorkspaceJumpDebug(workspace) {
+  if (!workspace || workspace.__jumpDebugInstalled) return;
+  workspace.__jumpDebugInstalled = true;
+
+  let lastFieldEdit = null;
+  workspace.addChangeListener((event) => {
+    if (
+      event?.type === Blockly.Events.BLOCK_CHANGE &&
+      event?.element === "field"
+    ) {
+      lastFieldEdit = {
+        timestamp: performance.now(),
+      };
+    }
+  });
+
+  const workspaceScroll = workspace.scroll?.bind(workspace);
+  if (workspaceScroll) {
+    workspace.scroll = function (...args) {
+      const beforeX = this.scrollX;
+      const requestedX = args[0];
+      const stack =
+        new Error()
+          .stack?.split("\n")
+          .slice(1, 7)
+          .map((line) => line.trim()) || [];
+      const msSinceFieldEdit = lastFieldEdit
+        ? Math.round(performance.now() - lastFieldEdit.timestamp)
+        : null;
+      const fromFocusScroll = stack.some(
+        (line) =>
+          line.includes("scrollBoundsIntoView") || line.includes("onNodeFocus"),
+      );
+      const largeHorizontalJump =
+        typeof requestedX === "number" && Math.abs(requestedX - beforeX) > 100;
+
+      if (
+        fromFocusScroll &&
+        typeof msSinceFieldEdit === "number" &&
+        msSinceFieldEdit < 1500 &&
+        largeHorizontalJump
+      ) {
+        return;
+      }
+
+      return workspaceScroll(...args);
+    };
+  }
+
+}
+
 export function initializeBlocks() {
   defineBaseBlocks();
   defineBlocks();
@@ -636,6 +687,7 @@ export function createBlocklyWorkspace() {
   );
 
   workspace = Blockly.inject("blocklyDiv", options);
+  installWorkspaceJumpDebug(workspace);
 
   // Initialize keyboard navigation.
 
@@ -966,7 +1018,7 @@ export function createBlocklyWorkspace() {
       if (fo && fo.isVisible?.()) {
         const foW = fo.getWidth?.() || 0;
         // Ignore stale flyout widths - a real flyout will be wider than a collapsed/empty one
-        if (foW > 50) {  
+        if (foW > 50) {
           const EPS = 1;
           if (x >= tbW + foW - EPS) {
             x -= foW;

@@ -4995,31 +4995,6 @@ class CustomCollapsibleToolboxCategory
     return this.toolboxHasFocus_() && selectedItem === this;
   }
 
-  ensurePointerFocusedSelection_() {
-    this.parentToolbox_?.setSelectedItem?.(this);
-    this.setSelected(true);
-    this.setExpanded(true);
-
-    const flyout = this.parentToolbox_?.getFlyout?.();
-    if (flyout && !flyout.isVisible?.()) {
-      const contents = this.getContents?.();
-      if (contents) flyout.show?.(contents);
-    }
-
-    this.parentToolbox_?.getHtmlDiv?.()?.focus?.();
-    this.htmlDiv_?.focus?.();
-  }
-
-  ensureKeyboardFocusedSelection_() {
-    this.setExpanded(true);
-
-    const flyout = this.parentToolbox_?.getFlyout?.();
-    if (flyout && !flyout.isVisible?.()) {
-      const contents = this.getContents?.();
-      if (contents) flyout.show?.(contents);
-    }
-  }
-
   // Preserve the original icon
   createIconDom_() {
     const img = document.createElement("img");
@@ -5031,11 +5006,21 @@ class CustomCollapsibleToolboxCategory
     return img;
   }
 
+  ensurePointerFocusedSelection_() {
+    this.parentToolbox_?.setSelectedItem?.(this);
+    this.setSelected(true);
+    this.setExpanded(true);
+  }
+
+  ensureKeyboardFocusedSelection_() {
+    this.setExpanded(true);
+  }
+
   setSelected(isSelected) {
     super.setSelected(isSelected);
 
     if (isSelected) {
-      this.ensureKeyboardFocusedSelection_();
+      this.setExpanded(true);
     }
 
     // Get the category color
