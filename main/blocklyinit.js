@@ -41,6 +41,73 @@ let workspace = null;
 export { workspace };
 import { flock } from "../flock.js";
 
+function installWorkspaceJumpDebug(workspace) {
+  if (!workspace || workspace.__jumpDebugInstalled) return;
+  workspace.__jumpDebugInstalled = true;
+
+  let lastFieldEdit = null;
+  workspace.addChangeListener((event) => {
+    if (!window.__BLOCKLY_EDIT_JUMP_DEBUG) return;
+    if (
+      event?.type === Blockly.Events.BLOCK_CHANGE &&
+      event?.element === "field"
+    ) {
+      lastFieldEdit = {
+        blockId: event.blockId,
+        name: event.name,
+        oldValue: event.oldValue,
+        newValue: event.newValue,
+        timestamp: performance.now(),
+      };
+      console.debug("[blockly-jump-debug] field-change", {
+        blockId: event.blockId,
+        name: event.name,
+        oldValue: event.oldValue,
+        newValue: event.newValue,
+        scrollX: workspace.scrollX,
+        scrollY: workspace.scrollY,
+      });
+    }
+  });
+
+  const originalTranslate = workspace.translate.bind(workspace);
+  workspace.translate = function (x, y) {
+    const beforeX = this.scrollX;
+    const beforeY = this.scrollY;
+
+    const result = originalTranslate(x, y);
+
+    if (window.__BLOCKLY_EDIT_JUMP_DEBUG) {
+      const deltaX = this.scrollX - beforeX;
+      const deltaY = this.scrollY - beforeY;
+      const msSinceFieldEdit = lastFieldEdit
+        ? Math.round(performance.now() - lastFieldEdit.timestamp)
+        : null;
+      const shouldLog =
+        Math.abs(deltaX) > 50 ||
+        Math.abs(deltaY) > 50 ||
+        (typeof msSinceFieldEdit === "number" && msSinceFieldEdit < 1200);
+
+      if (shouldLog) {
+        console.debug("[blockly-jump-debug] translate", {
+          requestedX: x,
+          requestedY: y,
+          beforeX,
+          beforeY,
+          afterX: this.scrollX,
+          afterY: this.scrollY,
+          deltaX,
+          deltaY,
+          msSinceFieldEdit,
+          lastFieldEdit,
+        });
+      }
+    }
+
+    return result;
+  };
+}
+
 export function initializeBlocks() {
   defineBaseBlocks();
   defineBlocks();
@@ -636,6 +703,7 @@ export function createBlocklyWorkspace() {
   );
 
   workspace = Blockly.inject("blocklyDiv", options);
+  installWorkspaceJumpDebug(workspace);
 
   // Initialize keyboard navigation.
 
