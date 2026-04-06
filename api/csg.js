@@ -184,32 +184,19 @@ function applyBoxProjectionUV(mesh, uvScale = 1) {
   const normals = [];
   flock.BABYLON.VertexData.ComputeNormals(positions, indices, normals);
 
-  let minX = Infinity;
-  let minY = Infinity;
-  let minZ = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-  let maxZ = -Infinity;
-  for (let i = 0; i < positions.length; i += 3) {
-    const x = positions[i];
-    const y = positions[i + 1];
-    const z = positions[i + 2];
-    if (x < minX) minX = x;
-    if (x > maxX) maxX = x;
-    if (y < minY) minY = y;
-    if (y > maxY) maxY = y;
-    if (z < minZ) minZ = z;
-    if (z > maxZ) maxZ = z;
-  }
-
-  const sizeX = Math.max(maxX - minX, 1e-6);
-  const sizeY = Math.max(maxY - minY, 1e-6);
-  const sizeZ = Math.max(maxZ - minZ, 1e-6);
-
   const scale = Number.isFinite(uvScale) && uvScale !== 0 ? uvScale : 1;
+  const vertexCount = positions.length / 3;
   const uvs = new Float32Array((positions.length / 3) * 2);
+  const groups = new Uint8Array(vertexCount);
+  const coordU = new Float32Array(vertexCount);
+  const coordV = new Float32Array(vertexCount);
 
-  for (let i = 0, uvIndex = 0; i < positions.length; i += 3, uvIndex += 2) {
+  const groupMinU = new Float32Array(6).fill(Infinity);
+  const groupMaxU = new Float32Array(6).fill(-Infinity);
+  const groupMinV = new Float32Array(6).fill(Infinity);
+  const groupMaxV = new Float32Array(6).fill(-Infinity);
+
+  for (let i = 0, vertexIndex = 0; i < positions.length; i += 3, vertexIndex++) {
     const px = positions[i];
     const py = positions[i + 1];
     const pz = positions[i + 2];
@@ -221,25 +208,48 @@ function applyBoxProjectionUV(mesh, uvScale = 1) {
     const ay = Math.abs(ny);
     const az = Math.abs(nz);
 
-    let u;
-    let v;
+    let group;
+    let rawU;
+    let rawV;
 
     if (ax >= ay && ax >= az) {
-      const uz = (pz - minZ) / sizeZ;
-      const vy = (py - minY) / sizeY;
-      u = nx >= 0 ? 1 - uz : uz;
-      v = vy;
+      group = nx >= 0 ? 0 : 1;
+      rawU = pz;
+      rawV = py;
     } else if (ay >= ax && ay >= az) {
-      const ux = (px - minX) / sizeX;
-      const vz = (pz - minZ) / sizeZ;
-      u = ux;
-      v = ny >= 0 ? 1 - vz : vz;
+      group = ny >= 0 ? 2 : 3;
+      rawU = px;
+      rawV = pz;
     } else {
-      const ux = (px - minX) / sizeX;
-      const vy = (py - minY) / sizeY;
-      u = nz >= 0 ? ux : 1 - ux;
-      v = vy;
+      group = nz >= 0 ? 4 : 5;
+      rawU = px;
+      rawV = py;
     }
+
+    groups[vertexIndex] = group;
+    coordU[vertexIndex] = rawU;
+    coordV[vertexIndex] = rawV;
+
+    if (rawU < groupMinU[group]) groupMinU[group] = rawU;
+    if (rawU > groupMaxU[group]) groupMaxU[group] = rawU;
+    if (rawV < groupMinV[group]) groupMinV[group] = rawV;
+    if (rawV > groupMaxV[group]) groupMaxV[group] = rawV;
+  }
+
+  for (
+    let vertexIndex = 0, uvIndex = 0;
+    vertexIndex < vertexCount;
+    vertexIndex++, uvIndex += 2
+  ) {
+    const group = groups[vertexIndex];
+    const spanU = Math.max(groupMaxU[group] - groupMinU[group], 1e-6);
+    const spanV = Math.max(groupMaxV[group] - groupMinV[group], 1e-6);
+
+    let u = (coordU[vertexIndex] - groupMinU[group]) / spanU;
+    let v = (coordV[vertexIndex] - groupMinV[group]) / spanV;
+
+    if (group === 0 || group === 3 || group === 5) u = 1 - u;
+    if (group === 2) v = 1 - v;
 
     uvs[uvIndex] = u * scale;
     uvs[uvIndex + 1] = v * scale;
