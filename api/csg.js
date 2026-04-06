@@ -1420,9 +1420,12 @@ export const flockCSG = {
           }
 
           if (subMaterial.diffuseColor) {
-            subMaterial.emissiveColor = subMaterial.diffuseColor.clone();
+            subMaterial.emissiveColor = subMaterial.diffuseColor.scale(0.2);
           }
-          subMaterial.disableLighting = true;
+          subMaterial.disableLighting = false;
+          if (subMaterial.specularColor) {
+            subMaterial.specularColor = flock.BABYLON.Color3.Black();
+          }
           subMaterial.backFaceCulling = false;
           return subMaterial;
         },
