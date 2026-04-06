@@ -862,7 +862,12 @@ export const flockCSG = {
               flattenNonReferenceSubMaterials: preserveToolMaterial,
             },
           );
-          if (shouldApplyBoxProjection(resultMesh, options)) {
+          const forceUvProjectionForTexturedTools =
+            preserveTextureMaterial && !options.uvProjection;
+          if (
+            forceUvProjectionForTexturedTools ||
+            shouldApplyBoxProjection(resultMesh, options)
+          ) {
             applyBoxProjectionUV(resultMesh, options.uvScale);
           }
 
@@ -1006,7 +1011,12 @@ export const flockCSG = {
               flattenNonReferenceSubMaterials: preserveToolMaterial,
             },
           );
-          if (shouldApplyBoxProjection(resultMesh, options)) {
+          const forceUvProjectionForTexturedTools =
+            preserveTextureMaterial && !options.uvProjection;
+          if (
+            forceUvProjectionForTexturedTools ||
+            shouldApplyBoxProjection(resultMesh, options)
+          ) {
             applyBoxProjectionUV(resultMesh, options.uvScale);
           }
 
