@@ -1,0 +1,1 @@
+Flock XR® and the Flock XR purple bird are trademarks registered to Flip Computing Ltd. The marks may not be used to endorse or promote products derived from this software without specific prior written permission.
