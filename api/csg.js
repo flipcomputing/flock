@@ -179,13 +179,10 @@ function applyBoxProjectionUV(mesh, uvScale = 1) {
   const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
   if (!positions || positions.length === 0) return;
 
-  let normals = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
-  if (!normals || normals.length !== positions.length) {
-    const indices = mesh.getIndices ? mesh.getIndices() : null;
-    if (!indices || indices.length === 0) return;
-    normals = [];
-    flock.BABYLON.VertexData.ComputeNormals(positions, indices, normals);
-  }
+  const indices = mesh.getIndices ? mesh.getIndices() : null;
+  if (!indices || indices.length === 0) return;
+  const normals = [];
+  flock.BABYLON.VertexData.ComputeNormals(positions, indices, normals);
 
   const scale = Number.isFinite(uvScale) && uvScale !== 0 ? uvScale : 1;
   const uvs = new Float32Array((positions.length / 3) * 2);
@@ -221,6 +218,36 @@ function applyBoxProjectionUV(mesh, uvScale = 1) {
   }
 
   mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
+}
+
+function hasUsableUVs(mesh) {
+  if (!mesh?.getVerticesData) return false;
+
+  const uvs = mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind);
+  if (!uvs || uvs.length < 4) return false;
+
+  let minU = Infinity;
+  let maxU = -Infinity;
+  let minV = Infinity;
+  let maxV = -Infinity;
+
+  for (let i = 0; i < uvs.length; i += 2) {
+    const u = uvs[i];
+    const v = uvs[i + 1];
+    if (!Number.isFinite(u) || !Number.isFinite(v)) return false;
+    if (u < minU) minU = u;
+    if (u > maxU) maxU = u;
+    if (v < minV) minV = v;
+    if (v > maxV) maxV = v;
+  }
+
+  return maxU - minU > 1e-5 || maxV - minV > 1e-5;
+}
+
+function shouldApplyBoxProjection(resultMesh, options = {}) {
+  if (options.uvProjection === "box") return true;
+  if (options.uvProjection && options.uvProjection !== "auto") return false;
+  return !hasUsableUVs(resultMesh);
 }
 
 function normalizeMeshAttributesForMerge(meshes) {
@@ -669,7 +696,7 @@ export const flockCSG = {
           resultMesh.rotation.set(0, 0, 0);
           resultMesh.scaling.set(1, 1, 1);
           resultMesh.computeWorldMatrix(true);
-          if (options.uvProjection === "box") {
+          if (shouldApplyBoxProjection(resultMesh, options)) {
             applyBoxProjectionUV(resultMesh, options.uvScale);
           }
           flock.applyResultMeshProperties(
@@ -805,7 +832,7 @@ export const flockCSG = {
           );
           resultMesh.position.subtractInPlace(localCenter);
           resultMesh.computeWorldMatrix(true);
-          if (options.uvProjection === "box") {
+          if (shouldApplyBoxProjection(resultMesh, options)) {
             applyBoxProjectionUV(resultMesh, options.uvScale);
           }
           flock.applyResultMeshProperties(
