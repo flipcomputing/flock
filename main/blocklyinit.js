@@ -131,6 +131,23 @@ function installWorkspaceJumpDebug(workspace) {
     };
   }
 
+  const workspaceScroll = workspace.scroll?.bind(workspace);
+  if (workspaceScroll) {
+    workspace.scroll = function (...args) {
+      const beforeX = this.scrollX;
+      const beforeY = this.scrollY;
+      const out = workspaceScroll(...args);
+      console.log("[blockly-jump-debug] workspace.scroll", {
+        args,
+        beforeX,
+        beforeY,
+        afterX: this.scrollX,
+        afterY: this.scrollY,
+      });
+      return out;
+    };
+  }
+
 }
 
 export function initializeBlocks() {
