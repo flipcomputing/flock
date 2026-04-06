@@ -1038,16 +1038,30 @@ export function createBlocklyWorkspace() {
         (mm && mm.getAbsoluteMetrics ? mm.getAbsoluteMetrics().left : 0) ??
         0;
       let x = requestedX;
+      let adjustReason = null;
       if (fo && fo.isVisible?.()) {
         const foW = fo.getWidth?.() || 0;
         // Ignore stale flyout widths - a real flyout will be wider than a collapsed/empty one
-        if (foW > 50) {  
+        if (foW > 50) {
           const EPS = 1;
           if (x >= tbW + foW - EPS) {
             x -= foW;
+            adjustReason = "requested_gte_toolbox_plus_flyout";
           } else if (x - this.scrollX >= foW - EPS) {
             x -= foW;
+            adjustReason = "requested_minus_scroll_gte_flyout";
           }
+        }
+        if (adjustReason) {
+          console.log("[no-bump-adjust] translate adjusted", {
+            requestedX,
+            adjustedX: x,
+            scrollX: this.scrollX,
+            newY,
+            tbW,
+            foW,
+            adjustReason,
+          });
         }
       }
       return original(x, newY);
