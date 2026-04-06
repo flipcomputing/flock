@@ -350,6 +350,16 @@ function normalizeMeshAttributesForMerge(meshes) {
   });
 }
 
+function hasNonFinitePositions(mesh) {
+  if (!mesh?.getVerticesData) return true;
+  const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+  if (!positions || positions.length === 0) return true;
+  for (let i = 0; i < positions.length; i++) {
+    if (!Number.isFinite(positions[i])) return true;
+  }
+  return false;
+}
+
 function resolveCsgModelIdentity(requestedModelId) {
   let resolvedModelId = requestedModelId;
   let blockKey = requestedModelId;
@@ -433,36 +443,45 @@ export const flockCSG = {
           const originalMaterial = referenceMesh.material;
           let mergedMesh = null;
           let csgSucceeded = false;
+          const csgUnsafe = meshesToMerge.some((mesh) =>
+            hasNonFinitePositions(mesh),
+          );
 
-          try {
-            let baseCSG = flock.BABYLON.CSG2.FromMesh(meshesToMerge[0], false);
+          if (!csgUnsafe) {
+            try {
+              let baseCSG = flock.BABYLON.CSG2.FromMesh(meshesToMerge[0], false);
 
-            for (let i = 1; i < meshesToMerge.length; i++) {
-              let meshCSG = flock.BABYLON.CSG2.FromMesh(
-                meshesToMerge[i],
-                false,
+              for (let i = 1; i < meshesToMerge.length; i++) {
+                let meshCSG = flock.BABYLON.CSG2.FromMesh(
+                  meshesToMerge[i],
+                  false,
+                );
+                baseCSG = baseCSG.add(meshCSG);
+              }
+
+              mergedMesh = baseCSG.toMesh(modelId, meshesToMerge[0].getScene(), {
+                centerMesh: false,
+                rebuildNormals: true,
+              });
+
+              if (mergedMesh && mergedMesh.getTotalVertices() > 0) {
+                csgSucceeded = true;
+              } else {
+                if (mergedMesh) mergedMesh.dispose();
+                mergedMesh = null;
+              }
+            } catch (error) {
+              const emptyMeshes = flock.scene.meshes.filter(
+                (m) => m.name === modelId && m.getTotalVertices() === 0,
               );
-              baseCSG = baseCSG.add(meshCSG);
+              emptyMeshes.forEach((m) => m.dispose());
+              console.warn("[mergeMeshes] CSG merge attempt failed:", error);
+              csgSucceeded = false;
             }
-
-            mergedMesh = baseCSG.toMesh(modelId, meshesToMerge[0].getScene(), {
-              centerMesh: false,
-              rebuildNormals: true,
-            });
-
-            if (mergedMesh && mergedMesh.getTotalVertices() > 0) {
-              csgSucceeded = true;
-            } else {
-              if (mergedMesh) mergedMesh.dispose();
-              mergedMesh = null;
-            }
-          } catch (error) {
-            const emptyMeshes = flock.scene.meshes.filter(
-              (m) => m.name === modelId && m.getTotalVertices() === 0,
+          } else {
+            console.warn(
+              "[mergeMeshes] Skipping CSG merge due non-finite positions; using Mesh.MergeMeshes fallback.",
             );
-            emptyMeshes.forEach((m) => m.dispose());
-            console.warn("[mergeMeshes] CSG merge attempt failed:", error);
-            csgSucceeded = false;
           }
 
           if (!csgSucceeded) {
