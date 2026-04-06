@@ -264,7 +264,17 @@ function hasUsableUVs(mesh) {
 function shouldApplyBoxProjection(resultMesh, options = {}) {
   if (options.uvProjection === "box") return true;
   if (options.uvProjection && options.uvProjection !== "auto") return false;
-  return !hasUsableUVs(resultMesh);
+
+  const materialHasTexture = (material) => {
+    if (!material) return false;
+    if (material.diffuseTexture || material.albedoTexture) return true;
+    if (material.subMaterials && Array.isArray(material.subMaterials)) {
+      return material.subMaterials.some((sub) => materialHasTexture(sub));
+    }
+    return false;
+  };
+
+  return materialHasTexture(resultMesh.material) && !hasUsableUVs(resultMesh);
 }
 
 function normalizeMeshAttributesForMerge(meshes, { logWarning = true } = {}) {
@@ -796,15 +806,15 @@ export const flockCSG = {
           resultMesh.rotation.set(0, 0, 0);
           resultMesh.scaling.set(1, 1, 1);
           resultMesh.computeWorldMatrix(true);
-          if (shouldApplyBoxProjection(resultMesh, options)) {
-            applyBoxProjectionUV(resultMesh, options.uvScale);
-          }
           flock.applyResultMeshProperties(
             resultMesh,
             actualBase,
             modelId,
             blockKey,
           );
+          if (shouldApplyBoxProjection(resultMesh, options)) {
+            applyBoxProjectionUV(resultMesh, options.uvScale);
+          }
 
           baseDuplicate.dispose();
           subtractDuplicates.forEach((m) => m.dispose());
@@ -932,15 +942,15 @@ export const flockCSG = {
           );
           resultMesh.position.subtractInPlace(localCenter);
           resultMesh.computeWorldMatrix(true);
-          if (shouldApplyBoxProjection(resultMesh, options)) {
-            applyBoxProjectionUV(resultMesh, options.uvScale);
-          }
           flock.applyResultMeshProperties(
             resultMesh,
             actualBase,
             modelId,
             blockKey,
           );
+          if (shouldApplyBoxProjection(resultMesh, options)) {
+            applyBoxProjectionUV(resultMesh, options.uvScale);
+          }
 
           baseDuplicate.dispose();
           allToolParts.forEach((t) => t.dispose());
