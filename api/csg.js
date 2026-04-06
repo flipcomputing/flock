@@ -463,6 +463,24 @@ export const flockCSG = {
       );
     });
   },
+  toolMeshesUseTextures(meshes) {
+    if (!Array.isArray(meshes) || meshes.length === 0) return false;
+    const materialHasTexture = (material) => {
+      if (!material) return false;
+      if (material.diffuseTexture || material.albedoTexture) return true;
+      if (material.subMaterials && Array.isArray(material.subMaterials)) {
+        return material.subMaterials.some((sub) => materialHasTexture(sub));
+      }
+      return false;
+    };
+    return meshes.some((mesh) => {
+      if (materialHasTexture(mesh?.material)) return true;
+      if (!mesh?.getChildMeshes) return false;
+      return mesh.getChildMeshes().some((child) =>
+        materialHasTexture(child?.material),
+      );
+    });
+  },
   mergeCompositeMesh(meshes) {
     if (!meshes || meshes.length === 0) return null;
 
@@ -735,6 +753,7 @@ export const flockCSG = {
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
           const preserveToolMaterial =
             flock.shouldPreserveToolMaterialForSubtract(meshNames);
+          const preserveTextureMaterial = flock.toolMeshesUseTextures(validMeshes);
           const scene = baseMesh.getScene();
           const baseDuplicate = cloneForCSG(actualBase, "baseDuplicate");
           let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
@@ -838,7 +857,8 @@ export const flockCSG = {
             modelId,
             blockKey,
             {
-              forceReferenceMaterial: !preserveToolMaterial,
+              forceReferenceMaterial:
+                !(preserveToolMaterial || preserveTextureMaterial),
               flattenNonReferenceSubMaterials: preserveToolMaterial,
             },
           );
@@ -900,6 +920,7 @@ export const flockCSG = {
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
           const preserveToolMaterial =
             flock.shouldPreserveToolMaterialForSubtract(meshNames);
+          const preserveTextureMaterial = flock.toolMeshesUseTextures(validMeshes);
           const scene = baseMesh.getScene();
           const baseDuplicate = actualBase.clone("baseDuplicate");
           baseDuplicate.setParent(null);
@@ -980,7 +1001,8 @@ export const flockCSG = {
             modelId,
             blockKey,
             {
-              forceReferenceMaterial: !preserveToolMaterial,
+              forceReferenceMaterial:
+                !(preserveToolMaterial || preserveTextureMaterial),
               flattenNonReferenceSubMaterials: preserveToolMaterial,
             },
           );
