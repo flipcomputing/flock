@@ -4995,31 +4995,6 @@ class CustomCollapsibleToolboxCategory
     return this.toolboxHasFocus_() && selectedItem === this;
   }
 
-  ensurePointerFocusedSelection_() {
-    this.parentToolbox_?.setSelectedItem?.(this);
-    this.setSelected(true);
-    this.setExpanded(true);
-
-    const flyout = this.parentToolbox_?.getFlyout?.();
-    if (flyout && !flyout.isVisible?.()) {
-      const contents = this.getContents?.();
-      if (contents) flyout.show?.(contents);
-    }
-
-    this.parentToolbox_?.getHtmlDiv?.()?.focus?.();
-    this.htmlDiv_?.focus?.();
-  }
-
-  ensureKeyboardFocusedSelection_() {
-    this.setExpanded(true);
-
-    const flyout = this.parentToolbox_?.getFlyout?.();
-    if (flyout && !flyout.isVisible?.()) {
-      const contents = this.getContents?.();
-      if (contents) flyout.show?.(contents);
-    }
-  }
-
   // Preserve the original icon
   createIconDom_() {
     const img = document.createElement("img");
@@ -5031,12 +5006,104 @@ class CustomCollapsibleToolboxCategory
     return img;
   }
 
+  isWorkspaceJumpDebugEnabled_() {
+    return !!window.__TOOLBOX_JUMP_DEBUG;
+  }
+
+  logWorkspaceJumpDebug_(phase, details = {}) {
+    if (!this.isWorkspaceJumpDebugEnabled_()) return;
+
+    const categoryName =
+      this.toolboxItemDef_?.name || this.toolboxItemDef_?.id || "unknown";
+    console.debug("[toolbox-jump]", {
+      phase,
+      categoryName,
+      categoryId: this.toolboxItemDef_?.id || null,
+      ...details,
+    });
+  }
+
+  preserveWorkspaceScrollOnSelection_(previousScrollX, previousScrollY) {
+    const workspace = this.workspace_ || Blockly.getMainWorkspace?.();
+    if (!workspace) return;
+
+    requestAnimationFrame(() => {
+      const flyout = this.parentToolbox_?.getFlyout?.();
+      if (!flyout?.isVisible?.()) return;
+
+      const flyoutWidth = flyout.getWidth?.() || 0;
+      if (flyoutWidth <= 50) return;
+
+      const shiftedBy = workspace.scrollX - previousScrollX;
+      this.logWorkspaceJumpDebug_("preserve-check", {
+        previousScrollX,
+        currentScrollX: workspace.scrollX,
+        shiftedBy,
+        previousScrollY,
+        currentScrollY: workspace.scrollY,
+        flyoutWidth,
+      });
+
+      const EPSILON = 2;
+      if (Math.abs(shiftedBy - flyoutWidth) > EPSILON) return;
+
+      if (typeof workspace.scroll === "function") {
+        workspace.scroll(previousScrollX, previousScrollY);
+        this.logWorkspaceJumpDebug_("preserve-applied", {
+          restoredScrollX: previousScrollX,
+          restoredScrollY: previousScrollY,
+        });
+      }
+    });
+  }
+
   setSelected(isSelected) {
+    const workspace = this.workspace_ || Blockly.getMainWorkspace?.();
+    const previousScrollX = workspace?.scrollX;
+    const previousScrollY = workspace?.scrollY;
+    this.logWorkspaceJumpDebug_("setSelected-before", {
+      isSelected,
+      previousScrollX,
+      previousScrollY,
+      flyoutVisible: this.parentToolbox_?.getFlyout?.()?.isVisible?.() || false,
+      flyoutWidth: this.parentToolbox_?.getFlyout?.()?.getWidth?.() || 0,
+    });
+
     super.setSelected(isSelected);
 
     if (isSelected) {
-      this.ensureKeyboardFocusedSelection_();
+      this.setExpanded(true);
+      if (
+        typeof previousScrollX === "number" &&
+        typeof previousScrollY === "number"
+      ) {
+        this.preserveWorkspaceScrollOnSelection_(
+          previousScrollX,
+          previousScrollY,
+        );
+      }
     }
+
+    requestAnimationFrame(() => {
+      const currentWorkspace = this.workspace_ || Blockly.getMainWorkspace?.();
+      if (!currentWorkspace) return;
+
+      this.logWorkspaceJumpDebug_("setSelected-after", {
+        isSelected,
+        currentScrollX: currentWorkspace.scrollX,
+        currentScrollY: currentWorkspace.scrollY,
+        deltaX:
+          typeof previousScrollX === "number"
+            ? currentWorkspace.scrollX - previousScrollX
+            : null,
+        deltaY:
+          typeof previousScrollY === "number"
+            ? currentWorkspace.scrollY - previousScrollY
+            : null,
+        flyoutVisible: this.parentToolbox_?.getFlyout?.()?.isVisible?.() || false,
+        flyoutWidth: this.parentToolbox_?.getFlyout?.()?.getWidth?.() || 0,
+      });
+    });
 
     // Get the category color
     const categoryColour = this.colour_;
