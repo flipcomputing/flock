@@ -136,11 +136,41 @@ function installWorkspaceJumpDebug(workspace) {
     workspace.scroll = function (...args) {
       const beforeX = this.scrollX;
       const beforeY = this.scrollY;
+      const requestedX = args[0];
+      const requestedY = args[1];
       const stack =
         new Error()
           .stack?.split("\n")
           .slice(1, 7)
           .map((line) => line.trim()) || [];
+      const msSinceFieldEdit = lastFieldEdit
+        ? Math.round(performance.now() - lastFieldEdit.timestamp)
+        : null;
+      const fromFocusScroll = stack.some(
+        (line) =>
+          line.includes("scrollBoundsIntoView") || line.includes("onNodeFocus"),
+      );
+      const largeHorizontalJump =
+        typeof requestedX === "number" && Math.abs(requestedX - beforeX) > 100;
+
+      if (
+        fromFocusScroll &&
+        typeof msSinceFieldEdit === "number" &&
+        msSinceFieldEdit < 1500 &&
+        largeHorizontalJump
+      ) {
+        console.log("[blockly-jump-fix] suppressed focus scroll", {
+          requestedX,
+          requestedY,
+          beforeX,
+          beforeY,
+          msSinceFieldEdit,
+          stack,
+          lastFieldEdit,
+        });
+        return;
+      }
+
       const out = workspaceScroll(...args);
       console.log("[blockly-jump-debug] workspace.scroll", {
         args,
@@ -148,6 +178,9 @@ function installWorkspaceJumpDebug(workspace) {
         beforeY,
         afterX: this.scrollX,
         afterY: this.scrollY,
+        requestedX,
+        requestedY,
+        msSinceFieldEdit,
         stack,
       });
       return out;
