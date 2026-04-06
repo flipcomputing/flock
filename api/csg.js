@@ -184,6 +184,28 @@ function applyBoxProjectionUV(mesh, uvScale = 1) {
   const normals = [];
   flock.BABYLON.VertexData.ComputeNormals(positions, indices, normals);
 
+  let minX = Infinity;
+  let minY = Infinity;
+  let minZ = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  let maxZ = -Infinity;
+  for (let i = 0; i < positions.length; i += 3) {
+    const x = positions[i];
+    const y = positions[i + 1];
+    const z = positions[i + 2];
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z;
+    if (z > maxZ) maxZ = z;
+  }
+
+  const sizeX = Math.max(maxX - minX, 1e-6);
+  const sizeY = Math.max(maxY - minY, 1e-6);
+  const sizeZ = Math.max(maxZ - minZ, 1e-6);
+
   const scale = Number.isFinite(uvScale) && uvScale !== 0 ? uvScale : 1;
   const uvs = new Float32Array((positions.length / 3) * 2);
 
@@ -203,14 +225,20 @@ function applyBoxProjectionUV(mesh, uvScale = 1) {
     let v;
 
     if (ax >= ay && ax >= az) {
-      u = nx >= 0 ? -pz : pz;
-      v = py;
+      const uz = (pz - minZ) / sizeZ;
+      const vy = (py - minY) / sizeY;
+      u = nx >= 0 ? 1 - uz : uz;
+      v = vy;
     } else if (ay >= ax && ay >= az) {
-      u = px;
-      v = ny >= 0 ? -pz : pz;
+      const ux = (px - minX) / sizeX;
+      const vz = (pz - minZ) / sizeZ;
+      u = ux;
+      v = ny >= 0 ? 1 - vz : vz;
     } else {
-      u = nz >= 0 ? px : -px;
-      v = py;
+      const ux = (px - minX) / sizeX;
+      const vy = (py - minY) / sizeY;
+      u = nz >= 0 ? ux : 1 - ux;
+      v = vy;
     }
 
     uvs[uvIndex] = u * scale;
