@@ -446,9 +446,16 @@ function resolveCsgModelIdentity(requestedModelId) {
 export const flockCSG = {
   shouldPreserveToolMaterialForSubtract(meshes) {
     if (!Array.isArray(meshes) || meshes.length === 0) return false;
-    return meshes.some((mesh) => {
-      const name = mesh?.name?.toLowerCase?.() || "";
-      const modelName = mesh?.metadata?.modelName?.toLowerCase?.() || "";
+    return meshes.some((meshOrName) => {
+      const raw =
+        typeof meshOrName === "string"
+          ? meshOrName
+          : meshOrName?.name || meshOrName?.metadata?.modelName || "";
+      const name = raw.toLowerCase();
+      const modelName =
+        typeof meshOrName === "string"
+          ? ""
+          : meshOrName?.metadata?.modelName?.toLowerCase?.() || "";
       return (
         name.includes("3dtext") ||
         modelName.includes("3dtext") ||
@@ -727,7 +734,7 @@ export const flockCSG = {
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
           const preserveToolMaterial =
-            flock.shouldPreserveToolMaterialForSubtract(validMeshes);
+            flock.shouldPreserveToolMaterialForSubtract(meshNames);
           const scene = baseMesh.getScene();
           const baseDuplicate = cloneForCSG(actualBase, "baseDuplicate");
           let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
@@ -891,7 +898,7 @@ export const flockCSG = {
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
           const preserveToolMaterial =
-            flock.shouldPreserveToolMaterialForSubtract(validMeshes);
+            flock.shouldPreserveToolMaterialForSubtract(meshNames);
           const scene = baseMesh.getScene();
           const baseDuplicate = actualBase.clone("baseDuplicate");
           baseDuplicate.setParent(null);
