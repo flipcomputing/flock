@@ -1103,6 +1103,12 @@ export const flockCSG = {
       return mat;
     };
 
+    console.log("[CSG] result material type:", resultMesh.material?.constructor?.name, resultMesh.material?.name);
+    if (resultMesh.material instanceof flock.BABYLON.MultiMaterial) {
+      console.log("[CSG] subMaterials:", resultMesh.material.subMaterials.map(m => m?.name));
+      console.log("[CSG] subMeshes:", resultMesh.subMeshes?.map(sm => sm.materialIndex));
+    }
+
     if (resultMesh.material) {
       if (resultMesh.material instanceof flock.BABYLON.MultiMaterial) {
         resultMesh.material.subMaterials = resultMesh.material.subMaterials.map(
