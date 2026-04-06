@@ -401,7 +401,12 @@ function sanitizeMeshVertexDataForCSG(mesh) {
   }
 
   const kinds = mesh.getVerticesDataKinds() || [];
-  const indices = mesh.getIndices ? mesh.getIndices() : null;
+  let indices = mesh.getIndices ? mesh.getIndices() : null;
+  if ((!indices || indices.length === 0) && typeof mesh.setIndices === "function") {
+    indices = Array.from({ length: positions.length / 3 }, (_, i) => i);
+    mesh.setIndices(indices);
+  }
+  if (!indices || indices.length === 0) return false;
 
   kinds.forEach((kind) => {
     if (kind === positionKind) return;
