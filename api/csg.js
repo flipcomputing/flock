@@ -177,19 +177,35 @@ function applyBoxProjectionUV(mesh, uvScale = 1) {
   if (!mesh?.getVerticesData || typeof flock.setSizeBasedBoxUVs !== "function")
     return;
 
+  // Ensure per-face UV projection behaves predictably:
+  // indexed meshes share vertices across hard edges, which can blend normals
+  // and cause face-axis switching/stretching on interior CSG surfaces.
+  // Unindex first so each triangle has unique vertices for stable face mapping.
+  const currentIndices = mesh.getIndices ? mesh.getIndices() : null;
+  if (
+    currentIndices &&
+    currentIndices.length > 0 &&
+    currentIndices.length !==
+      (mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind)?.length || 0) /
+        3 &&
+    typeof mesh.convertToUnIndexedMesh === "function"
+  ) {
+    mesh.convertToUnIndexedMesh();
+  }
+
   const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
   if (!positions || positions.length === 0) return;
 
   const indices = mesh.getIndices ? mesh.getIndices() : null;
-  if (!indices || indices.length === 0) return;
+  const localIndices =
+    indices && indices.length > 0
+      ? indices
+      : Array.from({ length: positions.length / 3 }, (_, i) => i);
 
   const normalKind = flock.BABYLON.VertexBuffer.NormalKind;
-  let normals = mesh.getVerticesData(normalKind);
-  if (!normals || normals.length !== positions.length) {
-    normals = [];
-    flock.BABYLON.VertexData.ComputeNormals(positions, indices, normals);
-    mesh.setVerticesData(normalKind, normals, true);
-  }
+  const normals = [];
+  flock.BABYLON.VertexData.ComputeNormals(positions, localIndices, normals);
+  mesh.setVerticesData(normalKind, normals, true);
 
   // Keep UV behavior aligned with regular box/material workflows:
   // createBox uses setSizeBasedBoxUVs(..., texturePhysicalSize=4) by default.
