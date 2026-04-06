@@ -5025,7 +5025,7 @@ class CustomCollapsibleToolboxCategory
       this.setExpanded(true);
     }
 
-    console.debug("[toolbox-jump]", {
+    console.log("[toolbox-jump]", {
       categoryName: this.toolboxItemDef_?.name || "unknown",
       isSelected,
       scrollX: workspace?.scrollX ?? null,

@@ -58,7 +58,7 @@ function installWorkspaceJumpDebug(workspace) {
         newValue: event.newValue,
         timestamp: performance.now(),
       };
-      console.debug("[blockly-jump-debug] field-change", {
+      console.log("[blockly-jump-debug] field-change", {
         blockId: event.blockId,
         name: event.name,
         oldValue: event.oldValue,
@@ -81,28 +81,38 @@ function installWorkspaceJumpDebug(workspace) {
     const msSinceFieldEdit = lastFieldEdit
       ? Math.round(performance.now() - lastFieldEdit.timestamp)
       : null;
-    const shouldLog =
-      Math.abs(deltaX) > 50 ||
-      Math.abs(deltaY) > 50 ||
-      (typeof msSinceFieldEdit === "number" && msSinceFieldEdit < 1200);
-
-    if (shouldLog) {
-      console.debug("[blockly-jump-debug] translate", {
-        requestedX: x,
-        requestedY: y,
-        beforeX,
-        beforeY,
-        afterX: this.scrollX,
-        afterY: this.scrollY,
-        deltaX,
-        deltaY,
-        msSinceFieldEdit,
-        lastFieldEdit,
-      });
-    }
+    console.log("[blockly-jump-debug] translate", {
+      requestedX: x,
+      requestedY: y,
+      beforeX,
+      beforeY,
+      afterX: this.scrollX,
+      afterY: this.scrollY,
+      deltaX,
+      deltaY,
+      msSinceFieldEdit,
+      lastFieldEdit,
+    });
 
     return result;
   };
+
+  const scrollbarSet = workspace.scrollbar?.set?.bind(workspace.scrollbar);
+  if (scrollbarSet) {
+    workspace.scrollbar.set = function (...args) {
+      const beforeX = workspace.scrollX;
+      const beforeY = workspace.scrollY;
+      const out = scrollbarSet(...args);
+      console.log("[blockly-jump-debug] scrollbar.set", {
+        args,
+        beforeX,
+        beforeY,
+        afterX: workspace.scrollX,
+        afterY: workspace.scrollY,
+      });
+      return out;
+    };
+  }
 }
 
 export function initializeBlocks() {
