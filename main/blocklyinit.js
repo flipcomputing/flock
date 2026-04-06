@@ -136,6 +136,11 @@ function installWorkspaceJumpDebug(workspace) {
     workspace.scroll = function (...args) {
       const beforeX = this.scrollX;
       const beforeY = this.scrollY;
+      const stack =
+        new Error()
+          .stack?.split("\n")
+          .slice(1, 7)
+          .map((line) => line.trim()) || [];
       const out = workspaceScroll(...args);
       console.log("[blockly-jump-debug] workspace.scroll", {
         args,
@@ -143,6 +148,7 @@ function installWorkspaceJumpDebug(workspace) {
         beforeY,
         afterX: this.scrollX,
         afterY: this.scrollY,
+        stack,
       });
       return out;
     };
