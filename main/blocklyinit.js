@@ -52,92 +52,16 @@ function installWorkspaceJumpDebug(workspace) {
       event?.element === "field"
     ) {
       lastFieldEdit = {
-        blockId: event.blockId,
-        name: event.name,
-        oldValue: event.oldValue,
-        newValue: event.newValue,
         timestamp: performance.now(),
       };
-      console.log("[blockly-jump-debug] field-change", {
-        blockId: event.blockId,
-        name: event.name,
-        oldValue: event.oldValue,
-        newValue: event.newValue,
-        scrollX: workspace.scrollX,
-        scrollY: workspace.scrollY,
-      });
     }
   });
-
-  const originalTranslate = workspace.translate.bind(workspace);
-  workspace.translate = function (x, y) {
-    const beforeX = this.scrollX;
-    const beforeY = this.scrollY;
-
-    const result = originalTranslate(x, y);
-
-    const deltaX = this.scrollX - beforeX;
-    const deltaY = this.scrollY - beforeY;
-    const msSinceFieldEdit = lastFieldEdit
-      ? Math.round(performance.now() - lastFieldEdit.timestamp)
-      : null;
-    console.log("[blockly-jump-debug] translate", {
-      requestedX: x,
-      requestedY: y,
-      beforeX,
-      beforeY,
-      afterX: this.scrollX,
-      afterY: this.scrollY,
-      deltaX,
-      deltaY,
-      msSinceFieldEdit,
-      lastFieldEdit,
-    });
-
-    return result;
-  };
-
-  const scrollbarSet = workspace.scrollbar?.set?.bind(workspace.scrollbar);
-  if (scrollbarSet) {
-    workspace.scrollbar.set = function (...args) {
-      const beforeX = workspace.scrollX;
-      const beforeY = workspace.scrollY;
-      const out = scrollbarSet(...args);
-      console.log("[blockly-jump-debug] scrollbar.set", {
-        args,
-        beforeX,
-        beforeY,
-        afterX: workspace.scrollX,
-        afterY: workspace.scrollY,
-      });
-      return out;
-    };
-  }
-
-  const setMetrics = workspace.setMetrics?.bind(workspace);
-  if (setMetrics) {
-    workspace.setMetrics = function (metrics) {
-      const beforeX = this.scrollX;
-      const beforeY = this.scrollY;
-      const out = setMetrics(metrics);
-      console.log("[blockly-jump-debug] setMetrics", {
-        metrics,
-        beforeX,
-        beforeY,
-        afterX: this.scrollX,
-        afterY: this.scrollY,
-      });
-      return out;
-    };
-  }
 
   const workspaceScroll = workspace.scroll?.bind(workspace);
   if (workspaceScroll) {
     workspace.scroll = function (...args) {
       const beforeX = this.scrollX;
-      const beforeY = this.scrollY;
       const requestedX = args[0];
-      const requestedY = args[1];
       const stack =
         new Error()
           .stack?.split("\n")
@@ -159,31 +83,10 @@ function installWorkspaceJumpDebug(workspace) {
         msSinceFieldEdit < 1500 &&
         largeHorizontalJump
       ) {
-        console.log("[blockly-jump-fix] suppressed focus scroll", {
-          requestedX,
-          requestedY,
-          beforeX,
-          beforeY,
-          msSinceFieldEdit,
-          stack,
-          lastFieldEdit,
-        });
         return;
       }
 
-      const out = workspaceScroll(...args);
-      console.log("[blockly-jump-debug] workspace.scroll", {
-        args,
-        beforeX,
-        beforeY,
-        afterX: this.scrollX,
-        afterY: this.scrollY,
-        requestedX,
-        requestedY,
-        msSinceFieldEdit,
-        stack,
-      });
-      return out;
+      return workspaceScroll(...args);
     };
   }
 
@@ -1112,7 +1015,6 @@ export function createBlocklyWorkspace() {
         (mm && mm.getAbsoluteMetrics ? mm.getAbsoluteMetrics().left : 0) ??
         0;
       let x = requestedX;
-      let adjustReason = null;
       if (fo && fo.isVisible?.()) {
         const foW = fo.getWidth?.() || 0;
         // Ignore stale flyout widths - a real flyout will be wider than a collapsed/empty one
@@ -1120,22 +1022,9 @@ export function createBlocklyWorkspace() {
           const EPS = 1;
           if (x >= tbW + foW - EPS) {
             x -= foW;
-            adjustReason = "requested_gte_toolbox_plus_flyout";
           } else if (x - this.scrollX >= foW - EPS) {
             x -= foW;
-            adjustReason = "requested_minus_scroll_gte_flyout";
           }
-        }
-        if (adjustReason) {
-          console.log("[no-bump-adjust] translate adjusted", {
-            requestedX,
-            adjustedX: x,
-            scrollX: this.scrollX,
-            newY,
-            tbW,
-            foW,
-            adjustReason,
-          });
         }
       }
       return original(x, newY);

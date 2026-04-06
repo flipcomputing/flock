@@ -5017,22 +5017,11 @@ class CustomCollapsibleToolboxCategory
   }
 
   setSelected(isSelected) {
-    const workspace = this.workspace_ || Blockly.getMainWorkspace?.();
-
     super.setSelected(isSelected);
 
     if (isSelected) {
       this.setExpanded(true);
     }
-
-    console.log("[toolbox-jump]", {
-      categoryName: this.toolboxItemDef_?.name || "unknown",
-      isSelected,
-      scrollX: workspace?.scrollX ?? null,
-      scrollY: workspace?.scrollY ?? null,
-      flyoutVisible: this.parentToolbox_?.getFlyout?.()?.isVisible?.() || false,
-      flyoutWidth: this.parentToolbox_?.getFlyout?.()?.getWidth?.() || 0,
-    });
 
     // Get the category color
     const categoryColour = this.colour_;
