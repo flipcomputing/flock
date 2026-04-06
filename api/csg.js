@@ -776,6 +776,11 @@ export const flockCSG = {
         }
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
+          const inferredUvProjection =
+            options.uvProjection === undefined &&
+            flock.toolMeshesUseTextures(validMeshes)
+              ? "auto"
+              : options.uvProjection;
           const scene = baseMesh.getScene();
           const baseDuplicate = cloneForCSG(actualBase, "baseDuplicate");
           let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
@@ -884,7 +889,12 @@ export const flockCSG = {
                 options.flattenNonReferenceSubMaterials === true,
             },
           );
-          if (shouldApplyBoxProjection(resultMesh, options)) {
+          if (
+            shouldApplyBoxProjection(resultMesh, {
+              ...options,
+              uvProjection: inferredUvProjection,
+            })
+          ) {
             applyBoxProjectionUV(resultMesh, options.uvScale);
           }
 
@@ -940,6 +950,11 @@ export const flockCSG = {
         }
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
+          const inferredUvProjection =
+            options.uvProjection === undefined &&
+            flock.toolMeshesUseTextures(validMeshes)
+              ? "auto"
+              : options.uvProjection;
           const scene = baseMesh.getScene();
           const baseDuplicate = actualBase.clone("baseDuplicate");
           baseDuplicate.setParent(null);
@@ -1025,7 +1040,12 @@ export const flockCSG = {
                 options.flattenNonReferenceSubMaterials === true,
             },
           );
-          if (shouldApplyBoxProjection(resultMesh, options)) {
+          if (
+            shouldApplyBoxProjection(resultMesh, {
+              ...options,
+              uvProjection: inferredUvProjection,
+            })
+          ) {
             applyBoxProjectionUV(resultMesh, options.uvScale);
           }
 
