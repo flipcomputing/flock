@@ -884,7 +884,7 @@ export const flockCSG = {
             {
               forceReferenceMaterial:
                 !(preserveToolMaterial || preserveTextureMaterial),
-              flattenNonReferenceSubMaterials: preserveToolMaterial,
+              flattenNonReferenceSubMaterials: false,
             },
           );
           const forceUvProjectionForTexturedTools =
@@ -1033,7 +1033,7 @@ export const flockCSG = {
             {
               forceReferenceMaterial:
                 !(preserveToolMaterial || preserveTextureMaterial),
-              flattenNonReferenceSubMaterials: preserveToolMaterial,
+              flattenNonReferenceSubMaterials: false,
             },
           );
           const forceUvProjectionForTexturedTools =
