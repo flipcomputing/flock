@@ -839,6 +839,7 @@ export const flockCSG = {
             blockKey,
             {
               forceReferenceMaterial: !preserveToolMaterial,
+              flattenNonReferenceSubMaterials: preserveToolMaterial,
             },
           );
           if (shouldApplyBoxProjection(resultMesh, options)) {
@@ -980,6 +981,7 @@ export const flockCSG = {
             blockKey,
             {
               forceReferenceMaterial: !preserveToolMaterial,
+              flattenNonReferenceSubMaterials: preserveToolMaterial,
             },
           );
           if (shouldApplyBoxProjection(resultMesh, options)) {
@@ -1291,7 +1293,7 @@ export const flockCSG = {
     referenceMesh,
     modelId,
     blockId,
-    { forceReferenceMaterial = false } = {},
+    { forceReferenceMaterial = false, flattenNonReferenceSubMaterials = false } = {},
   ) {
     // Copy transformation properties
     referenceMesh.material.backFaceCulling = false;
@@ -1344,6 +1346,30 @@ export const flockCSG = {
       // No material assigned by CSG - copy from reference mesh
       resultMesh.material = referenceMesh.material.clone("csgResultMaterial");
       resultMesh.material.backFaceCulling = false;
+    }
+
+    if (
+      flattenNonReferenceSubMaterials &&
+      resultMesh.material instanceof flock.BABYLON.MultiMaterial
+    ) {
+      const baseName = referenceMesh.material?.name;
+      resultMesh.material.subMaterials = resultMesh.material.subMaterials.map(
+        (subMaterial) => {
+          if (!subMaterial) return subMaterial;
+          if (baseName && subMaterial.name === baseName) return subMaterial;
+
+          if (typeof subMaterial.clone === "function") {
+            subMaterial = subMaterial.clone(`${subMaterial.name}_csg`);
+          }
+
+          if (subMaterial.diffuseColor) {
+            subMaterial.emissiveColor = subMaterial.diffuseColor.clone();
+          }
+          subMaterial.disableLighting = true;
+          subMaterial.backFaceCulling = false;
+          return subMaterial;
+        },
+      );
     }
   },
 };
