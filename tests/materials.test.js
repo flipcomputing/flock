@@ -754,6 +754,73 @@ export function runMaterialsTests(flock) {
         });
       });
     });
+    it("should support box-projected UVs for subtractMeshes", async function () {
+      await flock.createBox("uvBaseA", {
+        color: "#ffffff",
+        materialName: "test.png",
+        width: 2,
+        height: 2,
+        depth: 2,
+        position: [0, 0, 0],
+      });
+      await flock.createBox("uvCutA", {
+        color: "#ffffff",
+        materialName: "test.png",
+        width: 1.2,
+        height: 1.2,
+        depth: 1.2,
+        position: [0, 0, 0],
+      });
+      await flock.createBox("uvBaseB", {
+        color: "#ffffff",
+        materialName: "test.png",
+        width: 2,
+        height: 2,
+        depth: 2,
+        position: [4, 0, 0],
+      });
+      await flock.createBox("uvCutB", {
+        color: "#ffffff",
+        materialName: "test.png",
+        width: 1.2,
+        height: 1.2,
+        depth: 1.2,
+        position: [4, 0, 0],
+      });
+      boxIds.push(
+        "uvBaseA",
+        "uvCutA",
+        "uvBaseB",
+        "uvCutB",
+        "uvSubtractA",
+        "uvSubtractB",
+      );
+
+      await flock.subtractMeshes("uvSubtractA", "uvBaseA", ["uvCutA"], {
+        uvProjection: "box",
+        uvScale: 1,
+      });
+      await flock.subtractMeshes("uvSubtractB", "uvBaseB", ["uvCutB"], {
+        uvProjection: "box",
+        uvScale: 3,
+      });
+
+      const meshA = flock.scene.getMeshByName("uvSubtractA");
+      const meshB = flock.scene.getMeshByName("uvSubtractB");
+      const uvKind = flock.BABYLON.VertexBuffer.UVKind;
+      const uvsA = meshA.getVerticesData(uvKind);
+      const uvsB = meshB.getVerticesData(uvKind);
+
+      expect(uvsA).to.exist;
+      expect(uvsB).to.exist;
+      expect(uvsA.length).to.be.greaterThan(0);
+      expect(uvsB.length).to.equal(uvsA.length);
+
+      const maxAbsA = Math.max(...Array.from(uvsA, (v) => Math.abs(v)));
+      const maxAbsB = Math.max(...Array.from(uvsB, (v) => Math.abs(v)));
+      expect(maxAbsA).to.be.greaterThan(0.01);
+      expect(maxAbsB).to.be.greaterThan(maxAbsA * 2.5);
+    });
     it("should mark resultant material as internal when intersecting", async function () {
       await flock.createBox("box1", {
         color: "#9932cc",

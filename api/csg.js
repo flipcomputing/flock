@@ -173,6 +173,56 @@ function recenterMeshLocalOrigin(mesh) {
   mesh.refreshBoundingInfo?.();
 }
 
+function applyBoxProjectionUV(mesh, uvScale = 1) {
+  if (!mesh?.getVerticesData || !mesh?.setVerticesData) return;
+
+  const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+  if (!positions || positions.length === 0) return;
+
+  let normals = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
+  if (!normals || normals.length !== positions.length) {
+    const indices = mesh.getIndices ? mesh.getIndices() : null;
+    if (!indices || indices.length === 0) return;
+    normals = [];
+    flock.BABYLON.VertexData.ComputeNormals(positions, indices, normals);
+  }
+
+  const scale = Number.isFinite(uvScale) && uvScale !== 0 ? uvScale : 1;
+  const uvs = new Float32Array((positions.length / 3) * 2);
+
+  for (let i = 0, uvIndex = 0; i < positions.length; i += 3, uvIndex += 2) {
+    const px = positions[i];
+    const py = positions[i + 1];
+    const pz = positions[i + 2];
+    const nx = normals[i];
+    const ny = normals[i + 1];
+    const nz = normals[i + 2];
+
+    const ax = Math.abs(nx);
+    const ay = Math.abs(ny);
+    const az = Math.abs(nz);
+
+    let u;
+    let v;
+
+    if (ax >= ay && ax >= az) {
+      u = nx >= 0 ? -pz : pz;
+      v = py;
+    } else if (ay >= ax && ay >= az) {
+      u = px;
+      v = ny >= 0 ? -pz : pz;
+    } else {
+      u = nz >= 0 ? px : -px;
+      v = py;
+    }
+
+    uvs[uvIndex] = u * scale;
+    uvs[uvIndex + 1] = v * scale;
+  }
+
+  mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
+}
+
 function normalizeMeshAttributesForMerge(meshes) {
   if (!meshes || meshes.length < 2) return;
 
@@ -459,7 +509,7 @@ export const flockCSG = {
       });
   },
 
-  subtractMeshesMerge(modelId, baseMeshName, meshNames) {
+  subtractMeshesMerge(modelId, baseMeshName, meshNames, options = {}) {
     const { modelId: resolvedModelId, blockKey } =
       resolveCsgModelIdentity(modelId);
     modelId = resolvedModelId;
@@ -619,6 +669,9 @@ export const flockCSG = {
           resultMesh.rotation.set(0, 0, 0);
           resultMesh.scaling.set(1, 1, 1);
           resultMesh.computeWorldMatrix(true);
+          if (options.uvProjection === "box") {
+            applyBoxProjectionUV(resultMesh, options.uvScale);
+          }
           flock.applyResultMeshProperties(
             resultMesh,
             actualBase,
@@ -635,7 +688,7 @@ export const flockCSG = {
       });
     });
   },
-  subtractMeshesIndividual(modelId, baseMeshName, meshNames) {
+  subtractMeshesIndividual(modelId, baseMeshName, meshNames, options = {}) {
     const { modelId: resolvedModelId, blockKey } =
       resolveCsgModelIdentity(modelId);
     modelId = resolvedModelId;
@@ -752,6 +805,9 @@ export const flockCSG = {
           );
           resultMesh.position.subtractInPlace(localCenter);
           resultMesh.computeWorldMatrix(true);
+          if (options.uvProjection === "box") {
+            applyBoxProjectionUV(resultMesh, options.uvScale);
+          }
           flock.applyResultMeshProperties(
             resultMesh,
             actualBase,
@@ -768,11 +824,25 @@ export const flockCSG = {
       });
     });
   },
-  subtractMeshes(modelId, baseMeshName, meshNames, approach = "merge") {
+  subtractMeshes(modelId, baseMeshName, meshNames, optionsOrApproach = "merge") {
+    const options =
+      optionsOrApproach && typeof optionsOrApproach === "object"
+        ? optionsOrApproach
+        : {};
+    const approach =
+      typeof optionsOrApproach === "string"
+        ? optionsOrApproach
+        : options.approach || "merge";
+
     if (approach === "individual") {
-      return this.subtractMeshesIndividual(modelId, baseMeshName, meshNames);
+      return this.subtractMeshesIndividual(
+        modelId,
+        baseMeshName,
+        meshNames,
+        options,
+      );
     } else {
-      return this.subtractMeshesMerge(modelId, baseMeshName, meshNames);
+      return this.subtractMeshesMerge(modelId, baseMeshName, meshNames, options);
     }
   },
   intersectMeshes(modelId, meshList) {
