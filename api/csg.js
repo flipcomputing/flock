@@ -598,7 +598,13 @@ export const flockCSG = {
                 (m) => m.name === modelId && m.getTotalVertices() === 0,
               );
               emptyMeshes.forEach((m) => m.dispose());
-              console.warn("[mergeMeshes] CSG merge attempt failed:", error);
+              const message = String(error?.message || "");
+              const expectedPropertyMismatch = message.includes(
+                "same number of properties",
+              );
+              if (!expectedPropertyMismatch || flock?.materialsDebug) {
+                console.warn("[mergeMeshes] CSG merge attempt failed:", error);
+              }
               csgSucceeded = false;
             }
           } else if (flock?.materialsDebug) {
