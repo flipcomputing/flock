@@ -113,6 +113,37 @@ function installWorkspaceJumpDebug(workspace) {
       return out;
     };
   }
+
+  const setMetrics = workspace.setMetrics?.bind(workspace);
+  if (setMetrics) {
+    workspace.setMetrics = function (metrics) {
+      const beforeX = this.scrollX;
+      const beforeY = this.scrollY;
+      const out = setMetrics(metrics);
+      console.log("[blockly-jump-debug] setMetrics", {
+        metrics,
+        beforeX,
+        beforeY,
+        afterX: this.scrollX,
+        afterY: this.scrollY,
+      });
+      return out;
+    };
+  }
+
+  if (!Blockly.__jumpDebugSvgResizeWrapped) {
+    const originalSvgResize = Blockly.svgResize;
+    Blockly.svgResize = function (...args) {
+      const wsArg = args[0];
+      console.log("[blockly-jump-debug] svgResize", {
+        workspaceId: wsArg?.id || null,
+        scrollX: wsArg?.scrollX ?? null,
+        scrollY: wsArg?.scrollY ?? null,
+      });
+      return originalSvgResize.apply(this, args);
+    };
+    Blockly.__jumpDebugSvgResizeWrapped = true;
+  }
 }
 
 export function initializeBlocks() {
