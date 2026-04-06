@@ -1382,6 +1382,24 @@ export const flockCSG = {
     if (forceReferenceMaterial) {
       resultMesh.material = referenceMesh.material.clone("csgResultMaterial");
       resultMesh.material.backFaceCulling = false;
+      const textureName = String(
+        resultMesh.material.diffuseTexture?.name ||
+          resultMesh.material.albedoTexture?.name ||
+          "",
+      ).toLowerCase();
+      const hasRenderableTexture =
+        textureName &&
+        !textureName.endsWith("undefined") &&
+        !textureName.includes("none.png");
+      if (!hasRenderableTexture && resultMesh.convertToFlatShadedMesh) {
+        try {
+          resultMesh.convertToFlatShadedMesh();
+          resultMesh.computeWorldMatrix?.(true);
+          resultMesh.refreshBoundingInfo?.();
+        } catch {
+          // Keep default shading if flat shading conversion fails
+        }
+      }
       return;
     }
 
