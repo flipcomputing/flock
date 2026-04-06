@@ -263,7 +263,7 @@ function hasUsableUVs(mesh) {
 
 function shouldApplyBoxProjection(resultMesh, options = {}) {
   if (options.uvProjection === "box") return true;
-  if (options.uvProjection && options.uvProjection !== "auto") return false;
+  if (options.uvProjection !== "auto") return false;
 
   const hasRenderableTexture = (texture) => {
     if (!texture) return false;
@@ -776,9 +776,6 @@ export const flockCSG = {
         }
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
-          const preserveToolMaterial =
-            flock.shouldPreserveToolMaterialForSubtract(meshNames);
-          const preserveTextureMaterial = flock.toolMeshesUseTextures(validMeshes);
           const scene = baseMesh.getScene();
           const baseDuplicate = cloneForCSG(actualBase, "baseDuplicate");
           let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
@@ -882,17 +879,12 @@ export const flockCSG = {
             modelId,
             blockKey,
             {
-              forceReferenceMaterial:
-                !(preserveToolMaterial || preserveTextureMaterial),
-              flattenNonReferenceSubMaterials: false,
+              forceReferenceMaterial: options.forceReferenceMaterial === true,
+              flattenNonReferenceSubMaterials:
+                options.flattenNonReferenceSubMaterials === true,
             },
           );
-          const forceUvProjectionForTexturedTools =
-            preserveTextureMaterial && !options.uvProjection;
-          if (
-            forceUvProjectionForTexturedTools ||
-            shouldApplyBoxProjection(resultMesh, options)
-          ) {
+          if (shouldApplyBoxProjection(resultMesh, options)) {
             applyBoxProjectionUV(resultMesh, options.uvScale);
           }
 
@@ -948,9 +940,6 @@ export const flockCSG = {
         }
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
-          const preserveToolMaterial =
-            flock.shouldPreserveToolMaterialForSubtract(meshNames);
-          const preserveTextureMaterial = flock.toolMeshesUseTextures(validMeshes);
           const scene = baseMesh.getScene();
           const baseDuplicate = actualBase.clone("baseDuplicate");
           baseDuplicate.setParent(null);
@@ -1031,17 +1020,12 @@ export const flockCSG = {
             modelId,
             blockKey,
             {
-              forceReferenceMaterial:
-                !(preserveToolMaterial || preserveTextureMaterial),
-              flattenNonReferenceSubMaterials: false,
+              forceReferenceMaterial: options.forceReferenceMaterial === true,
+              flattenNonReferenceSubMaterials:
+                options.flattenNonReferenceSubMaterials === true,
             },
           );
-          const forceUvProjectionForTexturedTools =
-            preserveTextureMaterial && !options.uvProjection;
-          if (
-            forceUvProjectionForTexturedTools ||
-            shouldApplyBoxProjection(resultMesh, options)
-          ) {
+          if (shouldApplyBoxProjection(resultMesh, options)) {
             applyBoxProjectionUV(resultMesh, options.uvScale);
           }
 
