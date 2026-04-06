@@ -1478,8 +1478,6 @@ export function createBlocklyWorkspace() {
   // Register comment options for workspace comments
   Blockly.ContextMenuItems.registerCommentOptions();
 
-  if (flock.performanceOverlay) initBlocklyPerfOverlay(workspace);
-
   window.mainWorkspace = workspace;
 
   return workspace;
