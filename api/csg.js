@@ -265,9 +265,22 @@ function shouldApplyBoxProjection(resultMesh, options = {}) {
   if (options.uvProjection === "box") return true;
   if (options.uvProjection && options.uvProjection !== "auto") return false;
 
+  const hasRenderableTexture = (texture) => {
+    if (!texture) return false;
+    const textureName = String(texture.name || "").toLowerCase();
+    if (!textureName) return false;
+    if (textureName.endsWith("undefined")) return false;
+    if (textureName.includes("none.png")) return false;
+    return true;
+  };
+
   const materialHasTexture = (material) => {
     if (!material) return false;
-    if (material.diffuseTexture || material.albedoTexture) return true;
+    if (
+      hasRenderableTexture(material.diffuseTexture) ||
+      hasRenderableTexture(material.albedoTexture)
+    )
+      return true;
     if (material.subMaterials && Array.isArray(material.subMaterials)) {
       return material.subMaterials.some((sub) => materialHasTexture(sub));
     }
@@ -465,9 +478,21 @@ export const flockCSG = {
   },
   toolMeshesUseTextures(meshes) {
     if (!Array.isArray(meshes) || meshes.length === 0) return false;
+    const hasRenderableTexture = (texture) => {
+      if (!texture) return false;
+      const textureName = String(texture.name || "").toLowerCase();
+      if (!textureName) return false;
+      if (textureName.endsWith("undefined")) return false;
+      if (textureName.includes("none.png")) return false;
+      return true;
+    };
     const materialHasTexture = (material) => {
       if (!material) return false;
-      if (material.diffuseTexture || material.albedoTexture) return true;
+      if (
+        hasRenderableTexture(material.diffuseTexture) ||
+        hasRenderableTexture(material.albedoTexture)
+      )
+        return true;
       if (material.subMaterials && Array.isArray(material.subMaterials)) {
         return material.subMaterials.some((sub) => materialHasTexture(sub));
       }
