@@ -375,16 +375,6 @@ function normalizeMeshAttributesForMerge(meshes, { logWarning = true } = {}) {
   });
 }
 
-function meshesHaveMatchingAttributeKinds(meshes) {
-  if (!meshes || meshes.length < 2) return true;
-  const baseline = getMeshAttributeKinds(meshes[0]).slice().sort().join("|");
-  for (let i = 1; i < meshes.length; i++) {
-    const current = getMeshAttributeKinds(meshes[i]).slice().sort().join("|");
-    if (current !== baseline) return false;
-  }
-  return true;
-}
-
 function hasNonFinitePositions(mesh) {
   if (!mesh?.getVerticesData) return true;
   const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
@@ -579,11 +569,8 @@ export const flockCSG = {
             if (!positionsFinite) return true;
             return !sanitizeMeshVertexDataForCSG(mesh);
           });
-          const csgIncompatibleKinds = !meshesHaveMatchingAttributeKinds(
-            meshesToMerge,
-          );
 
-          if (!csgUnsafe && !csgIncompatibleKinds) {
+          if (!csgUnsafe) {
             try {
               let baseCSG = flock.BABYLON.CSG2.FromMesh(meshesToMerge[0], false);
 
@@ -615,9 +602,7 @@ export const flockCSG = {
               csgSucceeded = false;
             }
           } else if (flock?.materialsDebug) {
-            const reason = csgUnsafe
-              ? "non-finite positions"
-              : "incompatible vertex attribute kinds";
+            const reason = "non-finite positions";
             console.log(
               `[mergeMeshes] Skipping CSG merge due ${reason}; using Mesh.MergeMeshes fallback.`,
             );
