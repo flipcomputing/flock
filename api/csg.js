@@ -811,12 +811,9 @@ export const flockCSG = {
           resultMesh.rotation.set(0, 0, 0);
           resultMesh.scaling.set(1, 1, 1);
           resultMesh.computeWorldMatrix(true);
-          flock.applyResultMeshProperties(
-            resultMesh,
-            actualBase,
-            modelId,
-            blockKey,
-          );
+          flock.applyResultMeshProperties(resultMesh, actualBase, modelId, blockKey, {
+            forceReferenceMaterial: true,
+          });
           if (shouldApplyBoxProjection(resultMesh, options)) {
             applyBoxProjectionUV(resultMesh, options.uvScale);
           }
@@ -947,12 +944,9 @@ export const flockCSG = {
           );
           resultMesh.position.subtractInPlace(localCenter);
           resultMesh.computeWorldMatrix(true);
-          flock.applyResultMeshProperties(
-            resultMesh,
-            actualBase,
-            modelId,
-            blockKey,
-          );
+          flock.applyResultMeshProperties(resultMesh, actualBase, modelId, blockKey, {
+            forceReferenceMaterial: true,
+          });
           if (shouldApplyBoxProjection(resultMesh, options)) {
             applyBoxProjectionUV(resultMesh, options.uvScale);
           }
@@ -1257,7 +1251,13 @@ export const flockCSG = {
       }),
     ).then((meshes) => meshes.filter((mesh) => mesh !== null));
   },
-  applyResultMeshProperties(resultMesh, referenceMesh, modelId, blockId) {
+  applyResultMeshProperties(
+    resultMesh,
+    referenceMesh,
+    modelId,
+    blockId,
+    { forceReferenceMaterial = false } = {},
+  ) {
     // Copy transformation properties
     referenceMesh.material.backFaceCulling = false;
 
@@ -1284,6 +1284,12 @@ export const flockCSG = {
     const replaceMaterial = () => {
       return referenceMesh.material.clone("clonedMaterial");
     };
+
+    if (forceReferenceMaterial) {
+      resultMesh.material = referenceMesh.material.clone("csgResultMaterial");
+      resultMesh.material.backFaceCulling = false;
+      return;
+    }
 
     if (resultMesh.material) {
       if (resultMesh.material instanceof flock.BABYLON.MultiMaterial) {
