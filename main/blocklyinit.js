@@ -131,19 +131,6 @@ function installWorkspaceJumpDebug(workspace) {
     };
   }
 
-  if (!Blockly.__jumpDebugSvgResizeWrapped) {
-    const originalSvgResize = Blockly.svgResize;
-    Blockly.svgResize = function (...args) {
-      const wsArg = args[0];
-      console.log("[blockly-jump-debug] svgResize", {
-        workspaceId: wsArg?.id || null,
-        scrollX: wsArg?.scrollX ?? null,
-        scrollY: wsArg?.scrollY ?? null,
-      });
-      return originalSvgResize.apply(this, args);
-    };
-    Blockly.__jumpDebugSvgResizeWrapped = true;
-  }
 }
 
 export function initializeBlocks() {
