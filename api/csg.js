@@ -444,6 +444,18 @@ function resolveCsgModelIdentity(requestedModelId) {
 }
 
 export const flockCSG = {
+  shouldPreserveToolMaterialForSubtract(meshes) {
+    if (!Array.isArray(meshes) || meshes.length === 0) return false;
+    return meshes.some((mesh) => {
+      const name = mesh?.name?.toLowerCase?.() || "";
+      const modelName = mesh?.metadata?.modelName?.toLowerCase?.() || "";
+      return (
+        name.includes("3dtext") ||
+        modelName.includes("3dtext") ||
+        modelName.includes("text")
+      );
+    });
+  },
   mergeCompositeMesh(meshes) {
     if (!meshes || meshes.length === 0) return null;
 
@@ -714,6 +726,8 @@ export const flockCSG = {
         }
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
+          const preserveToolMaterial =
+            flock.shouldPreserveToolMaterialForSubtract(validMeshes);
           const scene = baseMesh.getScene();
           const baseDuplicate = cloneForCSG(actualBase, "baseDuplicate");
           let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
@@ -811,9 +825,15 @@ export const flockCSG = {
           resultMesh.rotation.set(0, 0, 0);
           resultMesh.scaling.set(1, 1, 1);
           resultMesh.computeWorldMatrix(true);
-          flock.applyResultMeshProperties(resultMesh, actualBase, modelId, blockKey, {
-            forceReferenceMaterial: true,
-          });
+          flock.applyResultMeshProperties(
+            resultMesh,
+            actualBase,
+            modelId,
+            blockKey,
+            {
+              forceReferenceMaterial: !preserveToolMaterial,
+            },
+          );
           if (shouldApplyBoxProjection(resultMesh, options)) {
             applyBoxProjectionUV(resultMesh, options.uvScale);
           }
@@ -870,6 +890,8 @@ export const flockCSG = {
         }
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
+          const preserveToolMaterial =
+            flock.shouldPreserveToolMaterialForSubtract(validMeshes);
           const scene = baseMesh.getScene();
           const baseDuplicate = actualBase.clone("baseDuplicate");
           baseDuplicate.setParent(null);
@@ -944,9 +966,15 @@ export const flockCSG = {
           );
           resultMesh.position.subtractInPlace(localCenter);
           resultMesh.computeWorldMatrix(true);
-          flock.applyResultMeshProperties(resultMesh, actualBase, modelId, blockKey, {
-            forceReferenceMaterial: true,
-          });
+          flock.applyResultMeshProperties(
+            resultMesh,
+            actualBase,
+            modelId,
+            blockKey,
+            {
+              forceReferenceMaterial: !preserveToolMaterial,
+            },
+          );
           if (shouldApplyBoxProjection(resultMesh, options)) {
             applyBoxProjectionUV(resultMesh, options.uvScale);
           }
