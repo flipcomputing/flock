@@ -360,6 +360,47 @@ function hasNonFinitePositions(mesh) {
   return false;
 }
 
+function arrayHasNonFiniteValues(values) {
+  if (!values) return false;
+  for (let i = 0; i < values.length; i++) {
+    if (!Number.isFinite(values[i])) return true;
+  }
+  return false;
+}
+
+function sanitizeMeshVertexDataForCSG(mesh) {
+  if (!mesh?.getVerticesData || !mesh?.getVerticesDataKinds) return false;
+
+  const positionKind = flock.BABYLON.VertexBuffer.PositionKind;
+  const normalKind = flock.BABYLON.VertexBuffer.NormalKind;
+  const positions = mesh.getVerticesData(positionKind);
+  if (!positions || positions.length === 0 || arrayHasNonFiniteValues(positions)) {
+    return false;
+  }
+
+  const kinds = mesh.getVerticesDataKinds() || [];
+  const indices = mesh.getIndices ? mesh.getIndices() : null;
+
+  kinds.forEach((kind) => {
+    if (kind === positionKind) return;
+    const values = mesh.getVerticesData(kind);
+    if (!arrayHasNonFiniteValues(values)) return;
+
+    if (kind === normalKind && indices && indices.length > 0) {
+      const normals = [];
+      flock.BABYLON.VertexData.ComputeNormals(positions, indices, normals);
+      mesh.setVerticesData(normalKind, normals, true);
+      return;
+    }
+
+    if (mesh.removeVerticesData) {
+      mesh.removeVerticesData(kind);
+    }
+  });
+
+  return true;
+}
+
 function resolveCsgModelIdentity(requestedModelId) {
   let resolvedModelId = requestedModelId;
   let blockKey = requestedModelId;
@@ -443,9 +484,11 @@ export const flockCSG = {
           const originalMaterial = referenceMesh.material;
           let mergedMesh = null;
           let csgSucceeded = false;
-          const csgUnsafe = meshesToMerge.some((mesh) =>
-            hasNonFinitePositions(mesh),
-          );
+          const csgUnsafe = meshesToMerge.some((mesh) => {
+            const positionsFinite = !hasNonFinitePositions(mesh);
+            if (!positionsFinite) return true;
+            return !sanitizeMeshVertexDataForCSG(mesh);
+          });
 
           if (!csgUnsafe) {
             try {
