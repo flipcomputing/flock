@@ -537,19 +537,20 @@ export const flockCSG = {
               console.warn("[mergeMeshes] CSG merge attempt failed:", error);
               csgSucceeded = false;
             }
-          } else if (csgUnsafe) {
-            console.warn(
-              "[mergeMeshes] Skipping CSG merge due non-finite positions; using Mesh.MergeMeshes fallback.",
-            );
-          } else {
-            console.warn(
-              "[mergeMeshes] Skipping CSG merge due incompatible vertex attribute kinds; using Mesh.MergeMeshes fallback.",
+          } else if (flock?.materialsDebug) {
+            const reason = csgUnsafe
+              ? "non-finite positions"
+              : "incompatible vertex attribute kinds";
+            console.log(
+              `[mergeMeshes] Skipping CSG merge due ${reason}; using Mesh.MergeMeshes fallback.`,
             );
           }
 
           if (!csgSucceeded) {
             try {
-              normalizeMeshAttributesForMerge(meshesToMerge);
+              normalizeMeshAttributesForMerge(meshesToMerge, {
+                logWarning: false,
+              });
               mergedMesh = flock.BABYLON.Mesh.MergeMeshes(
                 meshesToMerge,
                 false,
