@@ -13,21 +13,52 @@ import {
   clearSkyMesh,
   setClearSkyToBlack,
 } from "../ui/blockmesh.js";
-import { registerFieldColour } from "@blockly/field-colour";
+import { FieldColour, registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "../main/themes.js";
 
 registerFieldColour();
+
+const normaliseHexColour = (value) => {
+  if (typeof value !== "string") return "";
+  let hex = value.trim().toLowerCase();
+  if (!hex) return "";
+  if (!hex.startsWith("#")) hex = `#${hex}`;
+  if (/^#[\da-f]{3}$/.test(hex)) {
+    hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+  }
+  return hex;
+};
+
+// When using keyboard navigation, when the colour in a block isn't one of those in the grid this makes the editor start with the container selected so you can use arrow keys to navigate to the swatches.
+const flockFocusPatchKey = Symbol.for("flock.fieldColourFocusPatch");
+const fieldColourPrototype = FieldColour.prototype;
+if (!fieldColourPrototype[flockFocusPatchKey]) {
+  const originalShowEditor = fieldColourPrototype.showEditor_;
+  fieldColourPrototype.showEditor_ = function (e) {
+    originalShowEditor.call(this, e);
+
+    const currentValue = normaliseHexColour(this.getValue?.());
+    if (!currentValue) return;
+
+    const hasMatchingSwatch = this.getOptions?.(false)?.some(
+      (option) => normaliseHexColour(option?.[1]) === currentValue,
+    );
+    if (hasMatchingSwatch) return;
+    const openedWithKeyboard = e === undefined || e instanceof KeyboardEvent;
+    if (!openedWithKeyboard) return;
+
+    Blockly.DropDownDiv.getContentDiv()
+      .querySelector(".blocklyFieldGrid")
+      ?.focus();
+  };
+}
 
 export let nextVariableIndexes = Object.create(null);
 
 // ---------------------------------------------------------------------------
 // Workspace-level block-change dispatcher
-//
-// Instead of each create_*/load_* block registering its own setOnChange
-// listener (which causes every workspace event to fan out to all N blocks),
-// blocks register a handler here.  A single workspace addChangeListener in
-// blockhandling.js iterates this map once per event – reducing N listener
-// invocations to 1.
+//  A single workspace addChangeListener in
+// blockhandling.js iterates this map once per event
 // ---------------------------------------------------------------------------
 
 /**
