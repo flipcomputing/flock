@@ -1419,23 +1419,6 @@ export const flockAnimate = {
     return retargetedGroup;
   },
 
-  // Helper: Wait for mesh to appear in scene
-  async _waitForMesh(meshName, { maxAttempts = 100, interval = 10 } = {}) {
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const mesh = flock.scene.getMeshByName(meshName);
-      if (mesh) return mesh;
-      await new Promise((resolve, reject) => {
-        const timeoutId = setTimeout(resolve, interval);
-        if (flock.abortController && flock.abortController.signal) {
-          flock.abortController.signal.addEventListener("abort", () => {
-            clearTimeout(timeoutId);
-            reject(new Error("Timeout aborted"));
-          });
-        }
-      });
-    }
-    return null;
-  },
   async _playAnimationLoad(
     meshName,
     { animationName, loop = false, restart = true } = {},
