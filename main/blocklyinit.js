@@ -39,7 +39,6 @@ import { registerCustomCommentIcon } from "./customCommentIcon.js";
 
 let workspace = null;
 export { workspace };
-import { flock } from "../flock.js";
 
 function installWorkspaceJumpDebug(workspace) {
   if (!workspace || workspace.__jumpDebugInstalled) return;
@@ -63,8 +62,8 @@ function installWorkspaceJumpDebug(workspace) {
       const beforeX = this.scrollX;
       const requestedX = args[0];
       const stack =
-        new Error()
-          .stack?.split("\n")
+        new Error().stack
+          ?.split("\n")
           .slice(1, 7)
           .map((line) => line.trim()) || [];
       const msSinceFieldEdit = lastFieldEdit
@@ -89,7 +88,6 @@ function installWorkspaceJumpDebug(workspace) {
       return workspaceScroll(...args);
     };
   }
-
 }
 
 export function initializeBlocks() {
@@ -1150,22 +1148,65 @@ export function createBlocklyWorkspace() {
   })();
 
   // ===== OVERRIDE CLIPBOARD METHODS =====
-  // Save original methods
   const origCopy = Blockly.clipboard.copy;
+  const origToastShow = Blockly.Toast?.show;
 
-  // Override copy to add flyout-closing behavior
   Blockly.clipboard.copy = function (block) {
-    // Call original copy
     origCopy.call(Blockly.clipboard, block);
 
-    // If copied from the toolbox flyout, close the flyout
-    if (block && block.isInFlyout) {
+    if (block?.isInFlyout) {
       const tb = Blockly.getMainWorkspace()?.getToolbox?.();
-      const flyout = tb?.getFlyout?.();
-      flyout?.hide?.();
+      tb?.getFlyout?.()?.hide?.();
       tb?.getSelectedItem?.()?.setSelected?.(false);
     }
   };
+
+  function copyWithoutToast(block) {
+    if (!block) return;
+    if (Blockly.Toast?.show) Blockly.Toast.show = () => {};
+    try {
+      Blockly.clipboard.copy.call(Blockly.clipboard, block);
+    } finally {
+      if (Blockly.Toast?.show) Blockly.Toast.show = origToastShow;
+    }
+  }
+
+  function overrideContextMenuCopyItem() {
+    const ids = [
+      "blockCopyToStorage", // Blockly core (common)
+      "blockCopyFromContextMenu", // possible variant
+    ];
+
+    let item = null;
+    for (const id of ids) {
+      item = Blockly.ContextMenuRegistry.registry.getItem(id);
+      if (item) break;
+    }
+    if (!item) return false;
+
+    const original = item.callback;
+
+    item.callback = function (scope, menuOpenEvent, location) {
+      const block = scope?.block;
+      if (block) {
+        copyWithoutToast(block);
+        return;
+      }
+      return original?.call(this, scope, menuOpenEvent, location);
+    };
+
+    return true;
+  }
+
+  (function installCopyOverrideWithRetry(maxAttempts = 20, delayMs = 50) {
+    let attempts = 0;
+    const t = setInterval(() => {
+      attempts++;
+      if (overrideContextMenuCopyItem() || attempts >= maxAttempts) {
+        clearInterval(t);
+      }
+    }, delayMs);
+  })();
 
   function isTypingInInput() {
     const el = document.activeElement;
@@ -1222,7 +1263,6 @@ export function createBlocklyWorkspace() {
     { capture: true },
   );
 
-  // ---- Core paste logic (same behavior as your menu item) ----
   function pasteAsChildOrHere(targetBlock /* may be null */, ws, data) {
     if (!data) return;
     const at = screenToWs(ws, lastCM);
@@ -1334,143 +1374,6 @@ export function createBlocklyWorkspace() {
     },
     { capture: true },
   );
-
-  // ---- Blockly event debug helpers ----
-  (function setupBlocklyEventDebug() {
-    if (!window.Blockly) return;
-
-    const pad = (s, n) => (s + "").padEnd(n, " ");
-    const short = (id) => (id ? id.slice(0, 8) : "");
-
-    // Pretty-print one event
-    function describeEvent(e) {
-      const bits = [
-        pad(e.type, 14),
-        "grp:",
-        pad(e.group || "∅", 12),
-        "ui:",
-        String(!!e.isUiEvent).padEnd(5),
-        "undo:",
-        String(!!e.recordUndo).padEnd(5),
-        "id:",
-        short(e.blockId),
-      ];
-
-      // Extra for moves/connects
-      if (e.type === Blockly.Events.BLOCK_MOVE) {
-        bits.push(
-          " oldParent:",
-          short(e.oldParentId),
-          " -> newParent:",
-          short(e.newParentId),
-          " oldInp:",
-          e.oldInputName || "∅",
-          " -> newInp:",
-          e.newInputName || "∅",
-          " newXY:",
-          e.newCoordinate
-            ? `(${e.newCoordinate.x.toFixed(0)},${e.newCoordinate.y.toFixed(0)})`
-            : "∅",
-        );
-      }
-      // Variable & create
-      if (e.type === Blockly.Events.BLOCK_CREATE)
-        bits.push(" createdIds:", e.ids?.length);
-      if (
-        e.type === Blockly.Events.VAR_CREATE ||
-        e.type === Blockly.Events.VAR_DELETE ||
-        e.type === Blockly.Events.VAR_RENAME
-      ) {
-        bits.push(" varId:", short(e.varId), " name:", e.varName);
-      }
-      // Changes to fields
-      if (e.type === Blockly.Events.CHANGE) {
-        bits.push(
-          " elem:",
-          e.element,
-          " name:",
-          e.name,
-          " old→new:",
-          `${e.oldValue}→${e.newValue}`,
-        );
-      }
-      // UI events (selected, dragging, clicked, etc.)
-      if (e.type === Blockly.Events.UI) {
-        bits.push(
-          " elem:",
-          e.element,
-          " newVal:",
-          e.newValue,
-          " oldVal:",
-          e.oldValue,
-        );
-      }
-      return bits.join("");
-    }
-
-    // Dump undo/redo stack sizes + top group
-    function dumpStacks(ws) {
-      try {
-        const u = ws.getUndoStack?.() || [];
-        const r = ws.getRedoStack?.() || [];
-        const topGrp = u.length ? u[u.length - 1].group || "∅" : "∅";
-        console.log(
-          `%c[UNDO] size:${u.length} topGrp:${topGrp}   [REDO] size:${r.length}`,
-          "color:#0072B2",
-        );
-      } catch (error) {
-        console.warn("Suppressed non-critical error:", error);
-      }
-    }
-
-    // Attach once per workspace you care about:
-    window.attachBlocklyDebug = function attachBlocklyDebug(
-      workspace,
-      label = "WS",
-    ) {
-      if (!workspace || workspace.__debugListenerAttached) return;
-      workspace.__debugListenerAttached = true;
-
-      workspace.addChangeListener((e) => {
-        // Filter noise if you like, but for now log everything:
-        console.log(
-          `%c[${label}] ${describeEvent(e)}`,
-          e.group ? "color:#009E73" : "color:#D55E00",
-        );
-        dumpStacks(workspace);
-      });
-
-      // Warn if something fiddles with grouping
-      const origSetGroup = Blockly.Events.setGroup;
-      Blockly.Events.setGroup = function patchedSetGroup(g) {
-        console.log(
-          `%c[EVT.setGroup] ->`,
-          "color:#aa00ff",
-          g === true
-            ? "(true: start auto-group)"
-            : g === false
-              ? "(false: end auto-group)"
-              : g == null
-                ? "null/∅"
-                : `id:${g}`,
-        );
-        return origSetGroup.call(Blockly.Events, g);
-      };
-
-      // Optional: trace event fire points (very verbose)
-      const origFire = Blockly.Events.fire;
-      Blockly.Events.fire = function patchedFire(evts) {
-        const arr = Array.isArray(evts) ? evts : [evts];
-        console.log(`%c[EVT.fire] ${arr.length} event(s)`, "color:#555");
-        return origFire.call(Blockly.Events, evts);
-      };
-
-      console.log("%cBlockly event debug attached →", "color:#0072B2", label);
-    };
-  })();
-
-  // after you create your workspace:
-  //attachBlocklyDebug(workspace, 'MainWS');
 
   initializeTheme();
   installHoverHighlight(workspace);
