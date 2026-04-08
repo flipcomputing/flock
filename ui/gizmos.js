@@ -3,6 +3,7 @@ import { meshMap, meshBlockIdMap } from "../generators/generators.js";
 import { flock } from "../flock.js";
 import { translate } from "../main/translation.js";
 import {
+  getBlockKeyFromBlock,
   getMeshFromBlockKey,
   getRootMesh,
   updateBlockColorAndHighlight,
@@ -30,8 +31,13 @@ const orangeColor = flock.BABYLON.Color3.FromHexString("#D55E00"); // Colour for
 window.selectedColor = "#ffffff"; // Default color
 let colorPicker = null;
 
+// 3D text scale gizmo axis tracking
+let textScaleAxis = null;
+let textOrigScaleZ = 1;
+
 // Color picking keyboard mode variables
 let colorPickingKeyboardMode = false;
+// eslint-disable-next-line no-unused-vars
 let colorPickingCallback = null;
 let colorPickingCircle = null;
 let colorPickingCirclePosition = { x: 0, y: 0 };
@@ -59,14 +65,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // If gizmos are on, disable them
       try {
-        if (
-          typeof areGizmosEnabled === "function" ? areGizmosEnabled() : true
-        ) {
-          disableGizmos();
-          e.stopPropagation(); // avoid duplicate handlers upstream
-          // don't e.preventDefault() globally unless you *need* to stop other Esc behavior
-        }
-      } catch (err) {
+        disableGizmos();
+      } catch {
         // fail-safe: still attempt to disable
         disableGizmos?.();
       }
@@ -181,10 +181,10 @@ function applyColorAtPosition(canvasX, canvasY) {
   const pickedMesh = pickLeafFromRay(pickRay, scene);
 
   if (pickedMesh) {
-    updateBlockColorAndHighlight(pickedMesh, selectedColor);
+    updateBlockColorAndHighlight(pickedMesh, window.selectedColor);
   } else {
-    flock.setSky(selectedColor);
-    updateBlockColorAndHighlight(meshMap?.["sky"], selectedColor);
+    flock.setSky(window.selectedColor);
+    updateBlockColorAndHighlight(meshMap?.["sky"], window.selectedColor);
   }
 }
 
@@ -322,51 +322,6 @@ function endColorPickingMode() {
   }
 }
 
-function scrollToBlockTopParentLeft(workspace, blockId) {
-  if (!workspace.isMovable()) {
-    console.warn(
-      "Tried to move a non-movable workspace. This could result" +
-        " in blocks becoming inaccessible.",
-    );
-    return;
-  }
-
-  const block = blockId ? workspace.getBlockById(blockId) : null;
-  if (!block) {
-    return;
-  }
-
-  // Find the ultimate parent block
-  let ultimateParent = block;
-  while (ultimateParent.getParent()) {
-    ultimateParent = ultimateParent.getParent();
-  }
-
-  // Get the position of the target block (for top positioning)
-  const blockXY = block.getRelativeToSurfaceXY();
-
-  // Get the position of the ultimate parent (for left positioning)
-  const parentXY = ultimateParent.getRelativeToSurfaceXY();
-
-  // Workspace scale, used to convert from workspace coordinates to pixels
-  const scale = workspace.scale;
-
-  // Convert block positions to pixels
-  const pixelBlockY = blockXY.y * scale;
-  const pixelParentX = parentXY.x * scale;
-
-  const padding = 20;
-  const scrollToY = pixelBlockY - padding;
-  const scrollToX = pixelParentX - padding;
-
-  // Convert to canvas directions (negative values)
-  const x = -scrollToX;
-  const y = -scrollToY;
-
-  // Scroll the workspace
-  workspace.scroll(x, y);
-}
-
 // For composite meshes where visibility needs setting to
 // 0.001 in order to show parent mesh's bounding box
 function resetBoundingBoxVisibilityIfManuallyChanged(mesh) {
@@ -463,9 +418,7 @@ function focusCameraOnMesh() {
   let mesh = gizmoManager.attachedMesh;
   if (mesh && mesh.name === "ground") mesh = null;
   if (!mesh && window.currentMesh) {
-    const blockKey = Object.keys(meshMap).find(
-      (key) => meshMap[key] === window.currentBlock,
-    );
+    const blockKey = getBlockKeyFromBlock(window.currentBlock);
     mesh = getMeshFromBlockKey(blockKey);
   }
   if (!mesh) return;
@@ -547,7 +500,7 @@ export function toggleGizmo(gizmoType) {
 
   // Enable the selected gizmo
   switch (gizmoType) {
-    case "camera":
+    case "camera": {
       if (cameraMode === "play") {
         cameraMode = "fly";
         flock.printText({
@@ -559,11 +512,12 @@ export function toggleGizmo(gizmoType) {
         cameraMode = "play";
       }
 
-      let currentCamera = flock.scene.activeCamera;
+      const currentCamera = flock.scene.activeCamera;
       console.log("Camera", flock.savedCamera);
       flock.scene.activeCamera = flock.savedCamera;
       flock.savedCamera = currentCamera;
       break;
+    }
     case "delete":
       if (!gizmoManager.attachedMesh) {
         flock.printText({
@@ -573,8 +527,8 @@ export function toggleGizmo(gizmoType) {
         });
         return;
       }
-      blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata
-        .blockKey;
+      blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
+        ?.blockKey;
       blockId = meshBlockIdMap[blockKey];
       deleteBlockWithUndo(blockId);
       break;
@@ -588,8 +542,8 @@ export function toggleGizmo(gizmoType) {
         });
         return;
       }
-      blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata
-        .blockKey;
+      blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
+        ?.blockKey;
       blockId = meshBlockIdMap[blockKey];
 
       document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
@@ -649,8 +603,8 @@ export function toggleGizmo(gizmoType) {
         if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
           if (gizmoManager.attachedMesh) {
             resetAttachedMesh();
-            blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata
-              .blockKey;
+            blockKey = findParentWithBlockId(gizmoManager.attachedMesh)
+              ?.metadata?.blockKey;
           }
           let pickedMesh = event.pickInfo.pickedMesh;
 
@@ -735,7 +689,7 @@ export function toggleGizmo(gizmoType) {
             mesh.physics.disablePreStep = false;
           }
 
-          const block = meshMap[mesh.metadata.blockKey];
+          const block = meshMap[mesh?.metadata?.blockKey];
           highlightBlockById(Blockly.getMainWorkspace(), block);
         },
       );
@@ -743,22 +697,17 @@ export function toggleGizmo(gizmoType) {
       gizmoManager.boundingBoxDragBehavior.onDragEndObservable.add(function () {
         const mesh = gizmoManager.attachedMesh;
 
-        if (mesh.savedMotionType && mesh.physics) {
+        if (mesh.savedMotionType != null && mesh.physics) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
 
         mesh.computeWorldMatrix(true);
 
-        const block = meshMap[mesh.metadata.blockKey];
+        const block = meshMap[mesh?.metadata?.blockKey];
 
         if (block) {
           const blockPosition = flock.getBlockPositionFromMesh(mesh);
-          setBlockXYZ(
-            block,
-            blockPosition.x,
-            blockPosition.y,
-            blockPosition.z,
-          );
+          setBlockXYZ(block, blockPosition.x, blockPosition.y, blockPosition.z);
         }
       });
 
@@ -796,21 +745,16 @@ export function toggleGizmo(gizmoType) {
       gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
         const mesh = gizmoManager.attachedMesh;
 
-        if (mesh.savedMotionType && mesh.physics) {
+        if (mesh.savedMotionType != null && mesh.physics) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
         mesh.computeWorldMatrix(true);
 
-        const block = meshMap[mesh.metadata.blockKey];
+        const block = meshMap[mesh?.metadata?.blockKey];
 
         if (block) {
           const blockPosition = flock.getBlockPositionFromMesh(mesh);
-          setBlockXYZ(
-            block,
-            blockPosition.x,
-            blockPosition.y,
-            blockPosition.z,
-          );
+          setBlockXYZ(block, blockPosition.x, blockPosition.y, blockPosition.z);
         }
       });
 
@@ -857,11 +801,11 @@ export function toggleGizmo(gizmoType) {
 
         if (!mesh?.physics) return;
 
-        if (mesh.savedMotionType) {
+        if (mesh.savedMotionType != null) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
 
-        const block = meshMap[mesh.metadata.blockKey];
+        const block = meshMap[mesh?.metadata?.blockKey];
 
         if (!block) return;
 
@@ -942,8 +886,26 @@ export function toggleGizmo(gizmoType) {
 
       break;
 
-    case "scale":
+    case "scale": {
       configureScaleGizmo(gizmoManager);
+      {
+        const sg = gizmoManager.gizmos.scaleGizmo;
+        if (!sg._textAxisObserversRegistered) {
+          sg.xGizmo.dragBehavior.onDragStartObservable.add(
+            () => (textScaleAxis = "x"),
+          );
+          sg.yGizmo.dragBehavior.onDragStartObservable.add(
+            () => (textScaleAxis = "y"),
+          );
+          sg.zGizmo.dragBehavior.onDragStartObservable.add(
+            () => (textScaleAxis = "z"),
+          );
+          sg.uniformScaleGizmo.dragBehavior.onDragStartObservable.add(
+            () => (textScaleAxis = "uniform"),
+          );
+          sg._textAxisObserversRegistered = true;
+        }
+      }
       gizmoManager.onAttachedToMeshObservable.add((mesh) => {
         if (!mesh) return;
 
@@ -968,13 +930,28 @@ export function toggleGizmo(gizmoType) {
         mesh.position.y += deltaY;
 
         const block = Blockly.getMainWorkspace().getBlockById(
-          mesh.metadata.blockKey,
+          mesh?.metadata?.blockKey,
         );
         if (gizmoManager.scaleGizmoEnabled) {
           switch (block?.type) {
             case "create_capsule":
             case "create_cylinder":
               mesh.scaling.z = mesh.scaling.x;
+              break;
+            case "create_3d_text":
+              if (textScaleAxis === "z") {
+                // Z handle: depth only — lock X and Y
+                mesh.scaling.x = 1;
+                mesh.scaling.y = 1;
+              } else if (textScaleAxis === "x" || textScaleAxis === "uniform") {
+                // X or uniform: size only — keep Y = X, lock Z
+                mesh.scaling.y = mesh.scaling.x;
+                mesh.scaling.z = textOrigScaleZ;
+              } else if (textScaleAxis === "y") {
+                // Y handle: size only — keep X = Y, lock Z
+                mesh.scaling.x = mesh.scaling.y;
+                mesh.scaling.z = textOrigScaleZ;
+              }
               break;
           }
         }
@@ -986,6 +963,8 @@ export function toggleGizmo(gizmoType) {
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
         originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+        textOrigScaleZ = mesh.scaling.z;
+        textScaleAxis = null;
 
         const motionType = mesh.physics?.getMotionType();
         mesh.savedMotionType = motionType;
@@ -999,17 +978,20 @@ export function toggleGizmo(gizmoType) {
           mesh.physics.disablePreStep = false;
         }
 
-        const block = meshMap[mesh.metadata.blockKey];
+        const block = meshMap[mesh?.metadata?.blockKey];
         highlightBlockById(Blockly.getMainWorkspace(), block);
       });
 
       gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
         const mesh = gizmoManager.attachedMesh;
-        const block = meshMap[mesh.metadata.blockKey];
+        const block = meshMap[mesh?.metadata?.blockKey];
+        textScaleAxis = null;
 
-        if (mesh.savedMotionType) {
+        if (mesh.savedMotionType != null) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
+
+        flock.updatePhysics(mesh);
 
         try {
           const ensureFreshBounds = (m) => {
@@ -1084,6 +1066,17 @@ export function toggleGizmo(gizmoType) {
               });
               break;
 
+            case "create_3d_text": {
+              const currentSize = getNumberInput(block, "SIZE");
+              const currentDepth = getNumberInput(block, "DEPTH");
+              setNumberInputs(block, {
+                SIZE: currentSize * mesh.scaling.y,
+                DEPTH: currentDepth * mesh.scaling.z,
+              });
+              break;
+            }
+
+            case "load_model":
             case "load_multi_object":
             case "load_object":
             case "load_character": {
@@ -1177,6 +1170,7 @@ export function toggleGizmo(gizmoType) {
       });
 
       break;
+    }
     case "boundingBox":
       gizmoManager.boundingBoxGizmoEnabled = true;
 
@@ -1372,7 +1366,7 @@ export function setGizmoManager(value) {
         }
 
         const block = Blockly.getMainWorkspace().getBlockById(
-          mesh.metadata.blockKey,
+          mesh?.metadata?.blockKey,
         );
 
         if (block && gizmoManager.scaleGizmoEnabled) {
@@ -1395,10 +1389,6 @@ export function setGizmoManager(value) {
       mesh.physics.disablePreStep = false;
     }
 
-    if (mesh) {
-      const block = meshMap[mesh.metadata.blockKey];
-      //highlightBlockById(Blockly.getMainWorkspace(), block);
-    }
     originalAttach(mesh);
 
     if (mesh) {
@@ -1418,8 +1408,8 @@ export function setGizmoManager(value) {
       // KeyCode for 'Delete' key is 46
       // Handle delete action
 
-      const blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata
-        .blockKey;
+      const blockKey = findParentWithBlockId(gizmoManager.attachedMesh)
+        ?.metadata?.blockKey;
       const blockId = meshBlockIdMap[blockKey];
 
       deleteBlockWithUndo(blockId);

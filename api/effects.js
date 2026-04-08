@@ -44,7 +44,7 @@ export const flockEffects = {
       rotation,
     } = {},
   ) {
-    let resultName = name + "_" + flock.scene.getUniqueId();
+    const resultName = flock._reserveName(name);
 
     const particlePromise = new Promise((resolve, reject) => {
       flock.whenModelReady(emitterMesh, (meshInstance) => {
@@ -61,21 +61,45 @@ export const flockEffects = {
               });
           }
 
-          const particleSystem = new flock.BABYLON.ParticleSystem(resultName, 500, flock.scene);
+          const particleSystem = new flock.BABYLON.ParticleSystem(
+            resultName,
+            500,
+            flock.scene,
+          );
           const texturePath = flock.texturePath + shape;
-          particleSystem.particleTexture = new flock.BABYLON.Texture(texturePath, flock.scene);
+          particleSystem.particleTexture = new flock.BABYLON.Texture(
+            texturePath,
+            flock.scene,
+          );
           particleSystem.emitter = meshInstance;
 
-          const meshEmitter = new flock.BABYLON.MeshParticleEmitter(meshInstance);
+          const meshEmitter = new flock.BABYLON.MeshParticleEmitter(
+            meshInstance,
+          );
           particleSystem.particleEmitterType = meshEmitter;
           particleSystem.blendMode = 4;
 
           const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
           const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
 
-          particleSystem.color1 = new flock.BABYLON.Color4(startColor.r, startColor.g, startColor.b, alphas.start);
-          particleSystem.color2 = new flock.BABYLON.Color4(endColor.r, endColor.g, endColor.b, alphas.end);
-          particleSystem.colorDead = new flock.BABYLON.Color4(endColor.r, endColor.g, endColor.b, 0);
+          particleSystem.color1 = new flock.BABYLON.Color4(
+            startColor.r,
+            startColor.g,
+            startColor.b,
+            alphas.start,
+          );
+          particleSystem.color2 = new flock.BABYLON.Color4(
+            endColor.r,
+            endColor.g,
+            endColor.b,
+            alphas.end,
+          );
+          particleSystem.colorDead = new flock.BABYLON.Color4(
+            endColor.r,
+            endColor.g,
+            endColor.b,
+            0,
+          );
 
           particleSystem.minSize = sizes.start;
           particleSystem.maxSize = sizes.end;
@@ -90,23 +114,38 @@ export const flockEffects = {
             ? new flock.BABYLON.Vector3(0, -9.81, 0)
             : flock.BABYLON.Vector3.Zero();
 
-          if (direction && (direction.x !== 0 || direction.y !== 0 || direction.z !== 0)) {
+          if (
+            direction &&
+            (direction.x !== 0 || direction.y !== 0 || direction.z !== 0)
+          ) {
             particleSystem.minEmitPower = 1;
             particleSystem.maxEmitPower = 3;
             meshEmitter.useMeshNormalsForDirection = false;
-            meshEmitter.direction1 = new flock.BABYLON.Vector3(direction.x, direction.y, direction.z);
-            meshEmitter.direction2 = new flock.BABYLON.Vector3(direction.x, direction.y, direction.z);
+            meshEmitter.direction1 = new flock.BABYLON.Vector3(
+              direction.x,
+              direction.y,
+              direction.z,
+            );
+            meshEmitter.direction2 = new flock.BABYLON.Vector3(
+              direction.x,
+              direction.y,
+              direction.z,
+            );
           }
 
           if (rotation) {
             const toRad = Math.PI / 180;
             if (rotation.angularSpeed) {
-              particleSystem.minAngularSpeed = rotation.angularSpeed.min * toRad;
-              particleSystem.maxAngularSpeed = rotation.angularSpeed.max * toRad;
+              particleSystem.minAngularSpeed =
+                rotation.angularSpeed.min * toRad;
+              particleSystem.maxAngularSpeed =
+                rotation.angularSpeed.max * toRad;
             }
             if (rotation.initialRotation) {
-              particleSystem.minInitialRotation = rotation.initialRotation.min * toRad;
-              particleSystem.maxInitialRotation = rotation.initialRotation.max * toRad;
+              particleSystem.minInitialRotation =
+                rotation.initialRotation.min * toRad;
+              particleSystem.maxInitialRotation =
+                rotation.initialRotation.max * toRad;
             }
           }
 
@@ -182,5 +221,6 @@ export const flockEffects = {
     flock.scene.fogDensity = fogDensity;
     flock.scene.fogStart = fogStart;
     flock.scene.fogEnd = fogEnd;
+    flock.updateFogAwareShaderMaterials?.();
   },
 };

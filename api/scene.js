@@ -60,6 +60,7 @@ export const flockScene = {
     if (color && color instanceof flock.BABYLON.Material) {
       const skySphere = createSkySphere();
       flock.sky = skySphere;
+      if (flock.glowLayer) flock.glowLayer.addExcludedMesh(flock.sky);
 
       const isShader = typeof color.setFloat === "function";
       const tex =
@@ -85,9 +86,12 @@ export const flockScene = {
       return;
     }
 
+    if (Array.isArray(color) && color.length === 1) color = color[0];
+
     if (Array.isArray(color) && color.length >= 2) {
       const skySphere = createSkySphere();
       flock.sky = skySphere;
+      if (flock.glowLayer) flock.glowLayer.addExcludedMesh(flock.sky);
 
       if (color.length === 2) {
         const mat = new flock.GradientMaterial("skyGradient", flock.scene);
@@ -126,6 +130,7 @@ export const flockScene = {
       );
       const skySphere = createSkySphere();
       flock.sky = skySphere;
+      if (flock.glowLayer) flock.glowLayer.addExcludedMesh(flock.sky);
 
       const skyMat = new flock.BABYLON.StandardMaterial(
         "skyMaterial",
@@ -166,10 +171,12 @@ export const flockScene = {
     const grad = horizontal
       ? ctx.createLinearGradient(0, 0, w, 0)
       : ctx.createLinearGradient(0, 0, 0, h);
-    const n = Math.max(2, colors.length);
+    const normalizedColors =
+      colors.length === 1 ? [colors[0], colors[0]] : colors;
+    const n = normalizedColors.length;
     for (let i = 0; i < n; i++) {
       const stop = i / (n - 1);
-      const hex = flock.getColorFromString(colors[i]);
+      const hex = flock.getColorFromString(normalizedColors[i]);
       const c3 = flock.BABYLON.Color3.FromHexString(hex);
       const rgb = `rgb(${Math.round(c3.r * 255)}, ${Math.round(c3.g * 255)}, ${Math.round(c3.b * 255)})`;
       grad.addColorStop(stop, rgb);
@@ -184,10 +191,6 @@ export const flockScene = {
     }
     dt.update(false);
 
-    const tex = new flock.BABYLON.Texture(null, flock.scene);
-    tex._texture = dt.getInternalTexture();
-    tex.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-    tex.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
     return dt;
   },
   createMap(image, material) {
@@ -196,24 +199,97 @@ export const flockScene = {
     const mapTexturePhysicalSize = 4;
 
     const applyMaterialToGround = (mesh, mat) => {
-      if (Array.isArray(mat) && mat.length >= 2) {
+      if (Array.isArray(mat) && mat.length === 1) mat = mat[0];
+
+      // Resolve a color list from either a plain array or a material object with
+      // none.png texture and an array of colors.
+      const colorList =
+        Array.isArray(mat) && mat.length >= 2
+          ? mat
+          : mat &&
+              typeof mat === "object" &&
+              Array.isArray(mat.color) &&
+              mat.color.length >= 2 &&
+              (mat.materialName === "none.png" || !mat.materialName)
+            ? mat.color
+            : null;
+
+      if (colorList) {
+        // Normalise UVs to 0–1 so the gradient texture fills the mesh
+        // regardless of whether UVs were previously scaled for tiling.
+        const positions = mesh.getVerticesData(
+          flock.BABYLON.VertexBuffer.PositionKind,
+        );
+        if (positions) {
+          const { minimum, maximum } = mesh.getBoundingInfo();
+          const rangeX = maximum.x - minimum.x || 1;
+          const rangeZ = maximum.z - minimum.z || 1;
+          const uvs = new Float32Array((positions.length / 3) * 2);
+          for (let i = 0, ui = 0; i < positions.length; i += 3, ui += 2) {
+            uvs[ui] = (positions[i] - minimum.x) / rangeX;
+            uvs[ui + 1] = (positions[i + 2] - minimum.z) / rangeZ;
+          }
+          mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
+        }
+
+        const oldMat = mesh.material;
         const standardMat = new flock.BABYLON.StandardMaterial(
           "mapGradientMat",
           flock.scene,
         );
-        const dt = flock.createLinearGradientTexture(mat, {
+        const dt = flock.createLinearGradientTexture(colorList, {
           size: 1024,
           horizontal: false,
         });
         standardMat.diffuseTexture = dt;
+        if (mat && typeof mat === "object" && mat.alpha !== undefined) {
+          const parsedAlpha = parseFloat(mat.alpha);
+          if (Number.isFinite(parsedAlpha)) standardMat.alpha = parsedAlpha;
+        }
         standardMat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
         standardMat.diffuseTexture.wrapU =
           flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         standardMat.diffuseTexture.wrapV =
           flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-        flock.setMaterialWithCleanup(mesh, standardMat);
+        mesh.material = standardMat;
+        // Clean up the displaced material, respecting the managed-material
+        // lifecycle used by setMaterialWithCleanup for non-gradient materials.
+        if (oldMat && oldMat !== standardMat) {
+          if (oldMat.metadata?.isManaged) {
+            const isStillInUse = flock.scene.meshes.some(
+              (m) => m !== mesh && !m.isDisposed() && m.material === oldMat,
+            );
+            if (!isStillInUse) {
+              const cacheKey = oldMat.metadata.cacheKey;
+              if (cacheKey && flock.materialCache[cacheKey]) {
+                delete flock.materialCache[cacheKey];
+              }
+              oldMat.dispose(false, true);
+            }
+          } else if (oldMat.name === "mapGradientMat") {
+            oldMat.dispose(false, true);
+          }
+        }
       } else {
-        flock.setMaterialWithCleanup(mesh, material);
+        // Re-scale UVs for tiled textures in case they were previously
+        // normalised for a gradient (switching back from gradient to texture).
+        const needsTiling = !(mat instanceof flock.GradientMaterial);
+        if (needsTiling) {
+          const positions = mesh.getVerticesData(
+            flock.BABYLON.VertexBuffer.PositionKind,
+          );
+          if (positions) {
+            const { minimum } = mesh.getBoundingInfo();
+            const uvs = new Float32Array((positions.length / 3) * 2);
+            for (let i = 0, ui = 0; i < positions.length; i += 3, ui += 2) {
+              uvs[ui] = (positions[i] - minimum.x) / mapTexturePhysicalSize;
+              uvs[ui + 1] =
+                (positions[i + 2] - minimum.z) / mapTexturePhysicalSize;
+            }
+            mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
+          }
+        }
+        flock.setMaterialWithCleanup(mesh, mat);
       }
     };
 
@@ -240,8 +316,16 @@ export const flockScene = {
       mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
     };
 
+    const isMaterialColorList =
+      material &&
+      typeof material === "object" &&
+      !Array.isArray(material) &&
+      Array.isArray(material.color) &&
+      material.color.length >= 2 &&
+      (material.materialName === "none.png" || !material.materialName);
     const shouldScaleUVs =
       !(Array.isArray(material) && material.length >= 2) &&
+      !isMaterialColorList &&
       !(material instanceof flock.GradientMaterial);
 
     let ground;
@@ -418,6 +502,9 @@ export const flockScene = {
     if (!mesh) return;
 
     if (mesh.name === "ground") {
+      if (mesh.material && !mesh.material.metadata?.isManaged) {
+        mesh.material.dispose(true, true);
+      }
       mesh.dispose();
       flock.ground = null;
       return;
@@ -531,16 +618,35 @@ export const flockScene = {
       if (mesh) flock.disposeMesh(mesh);
     });
   },
-  cloneMesh({ sourceMeshName, cloneId, callback = null }) {
-    const uniqueCloneId = cloneId + "_" + flock.scene.getUniqueId();
+  cloneMesh({ sourceMeshName, cloneId, callback = null } = {}) {
+    if (
+      !sourceMeshName ||
+      typeof sourceMeshName !== "string" ||
+      sourceMeshName.length > 100
+    ) {
+      console.warn("cloneMesh: invalid sourceMeshName");
+      return null;
+    }
+    if (!cloneId || typeof cloneId !== "string" || cloneId.length > 100) {
+      console.warn("cloneMesh: invalid cloneId");
+      return null;
+    }
+    if (callback != null && typeof callback !== "function") {
+      console.warn("cloneMesh: callback must be a function");
+      callback = null;
+    }
+    if (flock.maxMeshesReached()) return "error_" + cloneId;
+
+    const uniqueCloneId = flock._reserveName(cloneId);
 
     flock.whenModelReady(sourceMeshName, (sourceMesh) => {
+      if (!sourceMesh || sourceMesh.isDisposed?.()) return;
+
+      flock._recycleOldestByKey(sourceMeshName);
+
       const clone = sourceMesh.clone(uniqueCloneId);
 
-      sourceMesh.metadata.clones = sourceMesh.metadata.clones || [];
-      sourceMesh.metadata.clones = sourceMesh.metadata.clones.concat(
-        clone.name,
-      );
+      flock._registerInstance(sourceMeshName, clone.name);
 
       if (clone) {
         sourceMesh.computeWorldMatrix(true);

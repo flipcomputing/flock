@@ -9,6 +9,12 @@ export const flockSound = {
     meshName,
     { soundName, loop = false, volume = 1, playbackRate = 1 } = {},
   ) {
+    volume = Number.isFinite(Number(volume)) ? Math.max(0, Math.min(1, Number(volume))) : 1;
+    playbackRate = Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0 ? Number(playbackRate) : 1;
+    if (!soundName || typeof soundName !== "string") {
+      console.warn("playSound: invalid soundName");
+      return;
+    }
     const soundUrl = flock.soundPath + soundName;
 
     // Global (non-spatial) sound
@@ -141,9 +147,7 @@ export const flockSound = {
     if (flock.audioContext) {
       flock.audioContext
         .close()
-        .then(() => {
-          console.log("Audio context closed.");
-        })
+        .then(() => {})
         .catch((error) => {
           console.error("Error closing audio context:", error);
         });
@@ -161,13 +165,7 @@ export const flockSound = {
     {
       notes = [],
       durations = [],
-      instrument = flock.createInstrument("square", {
-        frequency: 440,
-        attack: 0.1,
-        decay: 0.3,
-        sustain: 0.7,
-        release: 1.0,
-      }),
+      instrument = flock.createInstrument("square"),
     } = {},
   ) {
     return new Promise((resolve) => {
@@ -188,7 +186,7 @@ export const flockSound = {
             flock.audioContext = new (window.AudioContext ||
               window.webkitAudioContext)();
             context = flock.audioContext;
-            console.log("Created new audio context (previous was closed)");
+            
           } catch (error) {
             console.error("Could not create audio context:", error);
             resolve();
@@ -285,19 +283,45 @@ export const flockSound = {
 
     // Validate numeric parameters to prevent Web Audio API errors
     if (!isFinite(duration) || !isFinite(playTime) || !isFinite(bpm)) {
-      console.warn('playMidiNote: Invalid parameters', { duration, playTime, bpm });
+      console.warn("playMidiNote: Invalid parameters", {
+        duration,
+        playTime,
+        bpm,
+      });
       return;
     }
 
-    // Create a new oscillator for each note
+    // Create fresh audio nodes per note so ADSR envelopes don't interfere
     const osc = context.createOscillator();
+    const gainNode = context.createGain();
+    gainNode.gain.setValueAtTime(0, context.currentTime); // Start silent to prevent click on first note
     const panner = mesh.metadata.panner;
-    // If an instrument is provided, reuse its gainNode but create a new oscillator each time
-    const gainNode = instrument ? instrument.gainNode : context.createGain();
 
-    // Set oscillator type based on the instrument or default to 'sine'
-    osc.type = instrument ? instrument.oscillator.type : "sine";
+    osc.type = instrument?.type ?? "sine";
     osc.frequency.value = flock.midiToFrequency(note); // Convert MIDI note to frequency
+
+    // Set up LFO effect if specified
+    const effect = instrument?.effect ?? "none";
+    const effectRate = instrument?.effectRate ?? 5;
+    const effectDepth = instrument?.effectDepth ?? 0.5;
+    let lfo = null;
+    let lfoGain = null;
+    if (effect !== "none") {
+      lfo = context.createOscillator();
+      lfoGain = context.createGain();
+      lfo.type = effect === "warble" ? "square" : "sine";
+      lfo.frequency.value = effect === "robot" ? effectRate * 100 : effectRate;
+      lfoGain.gain.value =
+        effect === "tremolo"
+          ? effectDepth
+          : osc.frequency.value * effectDepth * 0.5;
+      lfo.connect(lfoGain);
+      if (effect === "tremolo") {
+        lfoGain.connect(gainNode.gain);
+      } else {
+        lfoGain.connect(osc.frequency);
+      }
+    }
 
     // Connect the oscillator to the gain node and panner
     osc.connect(gainNode);
@@ -306,49 +330,65 @@ export const flockSound = {
 
     const gap = Math.min(0.05, (60 / bpm) * 0.05); // Slightly larger gap
 
-    gainNode.gain.setValueAtTime(
-      1,
-      Math.max(playTime, context.currentTime + 0.01),
+    // Use ADSR from the instrument if available, otherwise use simple defaults
+    const volume = instrument?.volume ?? 1.0;
+    const attack = instrument?.attack ?? 0.01;
+    const decay = instrument?.decay ?? 0.1;
+    const sustain = instrument?.sustain ?? 0.7;
+    const release = instrument?.release ?? 0.2;
+    const noteDuration = flock.durationInSeconds(duration, bpm);
+
+    const startTime = Math.max(playTime, context.currentTime + 0.01);
+    const attackEnd = startTime + attack;
+    const decayEnd = attackEnd + decay;
+    const releaseStart = Math.max(
+      decayEnd,
+      startTime + noteDuration - gap - release,
     );
+    const stopTime = releaseStart + release;
 
-    const fadeOutDuration = Math.min(0.2, duration * 0.2); // Longer fade-out for clarity
-
-    // Compute ramp and stop times and guard against non-finite or nonsensical values
-    const rampTime = playTime + duration - gap - fadeOutDuration;
-    if (!isFinite(rampTime) || rampTime <= playTime) {
-      // Fallback: set gain to 0 shortly after playTime
-      gainNode.gain.setValueAtTime(
-        0,
-        Math.max(playTime + 0.001, context.currentTime + 0.01),
-      );
-    } else {
-      gainNode.gain.linearRampToValueAtTime(0, rampTime);
-    }
+    gainNode.gain.cancelScheduledValues(startTime);
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(volume, attackEnd);
+    gainNode.gain.linearRampToValueAtTime(sustain * volume, decayEnd);
+    gainNode.gain.setValueAtTime(sustain * volume, releaseStart);
+    gainNode.gain.linearRampToValueAtTime(0, stopTime);
 
     osc.start(playTime); // Start the note at playTime
+    if (lfo) lfo.start(playTime);
 
-    let stopTime = playTime + duration - gap;
-    if (!isFinite(stopTime) || stopTime <= playTime) {
-      stopTime = Math.max(playTime + 0.001, context.currentTime + 0.02);
-    }
-    osc.stop(stopTime); // Stop slightly earlier to add a gap
+    const oscStopTime =
+      isFinite(stopTime) && stopTime > playTime
+        ? stopTime
+        : Math.max(playTime + 0.001, context.currentTime + 0.02);
+    osc.stop(oscStopTime);
+    if (lfo) lfo.stop(oscStopTime);
 
-    // Clean up: disconnect the oscillator after it's done
+    // Clean up: disconnect nodes after the note ends
     osc.onended = () => {
       osc.disconnect();
+      gainNode.disconnect();
+      if (lfo) lfo.disconnect();
+      if (lfoGain) lfoGain.disconnect();
     };
 
     // Fallback clean-up in case osc.onended is not triggered
     setTimeout(
       () => {
-        if (osc) {
-          osc.disconnect();
-        }
+        osc.disconnect();
+        gainNode.disconnect();
+        if (lfo) lfo.disconnect();
+        if (lfoGain) lfoGain.disconnect();
       },
       (playTime + duration) * 1000,
     );
   },
   midiToFrequency(note) {
+    const parsed = Number(note);
+    note = Math.min(
+      127,
+      Math.max(0, Math.round(Number.isNaN(parsed) ? 60 : parsed)),
+    ); // Clamp to valid MIDI range 0-127
     return 440 * Math.pow(2, (note - 69) / 12); // Convert MIDI note to frequency
   },
   durationInSeconds(duration, bpm) {
@@ -357,39 +397,48 @@ export const flockSound = {
   createInstrument(
     type,
     {
-      frequency = 440,
+      volume = 1.0,
       attack = 0.1,
       decay = 0.3,
       sustain = 0.7,
       release = 1.0,
+      effect = "none",
+      effectRate = 5,
+      effectDepth = 0.5,
     } = {},
   ) {
-    const audioCtx = flock.audioContext;
+    // Clamp parameters to valid ranges
+    const toNum = (v, def) => {
+      const n = Number(v);
+      return Number.isNaN(n) ? def : n;
+    };
+    const validEffects = ["none", "tremolo", "vibrato", "warble", "robot"];
+    effect = validEffects.includes(effect) ? effect : "none";
+    volume = Math.min(1, Math.max(0, toNum(volume, 1.0)));
+    attack = Math.min(5, Math.max(0, toNum(attack, 0.1)));
+    decay = Math.min(5, Math.max(0, toNum(decay, 0.3)));
+    sustain = Math.min(1, Math.max(0, toNum(sustain, 0.7)));
+    release = Math.min(10, Math.max(0, toNum(release, 1.0)));
+    effectRate = Math.min(20, Math.max(0.1, toNum(effectRate, 5)));
+    effectDepth = Math.min(1, Math.max(0, toNum(effectDepth, 0.5)));
 
-    if (!audioCtx || audioCtx.state === "closed") return;
-
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-
-    // Create ADSR envelope
-    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + attack);
-    gainNode.gain.linearRampToValueAtTime(
+    // Return configuration only — audio nodes are created fresh per note in playMidiNote
+    return {
+      type,
+      volume,
+      attack,
+      decay,
       sustain,
-      audioCtx.currentTime + attack + decay,
-    );
-    gainNode.gain.linearRampToValueAtTime(
-      0,
-      audioCtx.currentTime + attack + decay + release,
-    );
-    oscillator.connect(gainNode).connect(audioCtx.destination);
-
-    return { oscillator, gainNode, audioCtx };
+      release,
+      effect,
+      effectRate,
+      effectDepth,
+    };
   },
   setBPM(meshName, bpm) {
+    const safeBpm = Number.isFinite(Number(bpm)) && Number(bpm) > 0 ? Number(bpm) : 60;
+    bpm = safeBpm;
+
     if (meshName === "__everywhere__") {
       if (!flock.scene.metadata || typeof flock.scene.metadata !== "object") {
         flock.scene.metadata = {};
@@ -401,7 +450,9 @@ export const flockSound = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
         if (!mesh) {
-          throw new Error(`Mesh '${meshName}' not found`);
+          console.warn(`setBPM: mesh '${meshName}' not found`);
+          resolve();
+          return;
         }
 
         if (!mesh.metadata || typeof mesh.metadata !== "object") {
@@ -466,18 +517,6 @@ export const flockSound = {
       mode = "start",
     } = {},
   ) {
-    // Debug logging to check parameters
-    console.log(`[SPEAK DEBUG] Called with:`, {
-      meshName: meshName,
-      text: text,
-      voice: voice,
-      language: language,
-      rate: rate,
-      pitch: pitch,
-      volume: volume,
-      mode: mode,
-    });
-
     // Check for Web Speech API support
     if (!("speechSynthesis" in window)) {
       console.warn("Text-to-speech not supported in this browser");
@@ -498,19 +537,11 @@ export const flockSound = {
 
     // Handle spatial audio if meshName is provided and not "__everywhere__"
     let spatialAudioSetup = null;
-    console.log(
-      `[SPEAK DEBUG] Checking spatial audio setup for meshName: "${meshName}"`,
-    );
     if (meshName && meshName !== "__everywhere__") {
-      console.log(
-        `[SPEAK DEBUG] Setting up spatial audio for mesh: "${meshName}"`,
-      );
       spatialAudioSetup = await flockSound.setupSpatialSpeech(
         utterance,
         meshName,
       );
-    } else {
-      console.log(`[SPEAK DEBUG] Using non-spatial audio (everywhere mode)`);
     }
 
     // Set voice if available - handle voice loading timing
@@ -537,19 +568,6 @@ export const flockSound = {
 
     if (voices.length > 0) {
       let selectedVoice = null;
-
-      // Debug: Log available voices for troubleshooting
-      console.log(
-        "Available voices:",
-        voices.map((v) => ({
-          name: v.name,
-          lang: v.lang,
-          localService: v.localService,
-          default: v.default,
-        })),
-      );
-
-      console.log("Requested voice type:", voice, "language:", language);
 
       // Common voice names by platform and gender
       const commonVoices = {
@@ -721,19 +739,13 @@ export const flockSound = {
 
       if (selectedVoice) {
         utterance.voice = selectedVoice;
-        console.log("Selected voice:", {
-          name: selectedVoice.name,
-          requestedType: voice,
-          lang: selectedVoice.lang,
-          localService: selectedVoice.localService,
-        });
       } else {
         console.warn("No voice found for type:", voice, "using default");
       }
     }
 
     if (mode === "await") {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         utterance.onend = () => {
           if (spatialAudioSetup) {
             spatialAudioSetup.cleanup();
@@ -770,27 +782,31 @@ export const flockSound = {
   },
 
   async setupSpatialSpeech(utterance, meshName) {
-    console.log(
-      `[SPATIAL AUDIO DEBUG] Setting up spatial speech for mesh: ${meshName}`,
-    );
+    if (flock.soundDebug)
+      console.log(
+        `[SPATIAL AUDIO DEBUG] Setting up spatial speech for mesh: ${meshName}`,
+      );
 
     const mesh = flock.scene.getMeshByName(meshName);
     if (!mesh) {
-      console.warn(
-        `[SPATIAL AUDIO DEBUG] Mesh '${meshName}' not found for spatial speech`,
-      );
+      if (flock.soundDebug)
+        console.warn(
+          `[SPATIAL AUDIO DEBUG] Mesh '${meshName}' not found for spatial speech`,
+        );
       return null;
     }
 
-    console.log(
-      `[SPATIAL AUDIO DEBUG] Found mesh '${meshName}' at position:`,
-      mesh.position,
-    );
+    if (flock.soundDebug)
+      console.log(
+        `[SPATIAL AUDIO DEBUG] Found mesh '${meshName}' at position:`,
+        mesh.position,
+      );
 
     // Get or create audio context
     const audioContext = flockSound.getAudioContext();
     if (!audioContext || audioContext.state === "closed") {
-      console.warn("[SPATIAL AUDIO DEBUG] Audio context not available");
+      if (flock.soundDebug)
+        console.warn("[SPATIAL AUDIO DEBUG] Audio context not available");
       return null;
     }
 
@@ -855,7 +871,7 @@ export const flockSound = {
       );
 
       // Debug info (throttled)
-      if (Math.random() < 0.01) {
+      if (flock.soundDebug && Math.random() < 0.01) {
         // ~1% chance per frame
         const distance = flock.BABYLON.Vector3.Distance(
           cameraPosition,
@@ -888,7 +904,6 @@ export const flockSound = {
 
     // Try to use the more advanced approach with MediaStream
     let spatialAudioSource = null;
-    let isPlayingThroughSpatialAudio = false;
 
     // Fallback: Use the original utterance but with enhanced volume calculation
     const originalVolume = utterance.volume;
@@ -940,20 +955,23 @@ export const flockSound = {
     // Set initial volume and log the result
     updateVolumeBasedOnDistance();
 
-    console.log(`[SPATIAL AUDIO DEBUG] Initial spatial setup:`, {
-      originalVolume: originalVolume,
-      currentVolume: utterance.volume,
-      meshName: meshName,
-      meshPosition: mesh.position,
-    });
+    if (flock.soundDebug)
+      console.log(`[SPATIAL AUDIO DEBUG] Initial spatial setup:`, {
+        originalVolume: originalVolume,
+        currentVolume: utterance.volume,
+        meshName: meshName,
+        meshPosition: mesh.position,
+      });
 
-    console.log(
-      `[SPATIAL AUDIO DEBUG] Spatial audio setup complete for '${meshName}'`,
-    );
+    if (flock.soundDebug)
+      console.log(
+        `[SPATIAL AUDIO DEBUG] Spatial audio setup complete for '${meshName}'`,
+      );
 
     return {
       cleanup: () => {
-        console.log("[SPATIAL AUDIO DEBUG] Cleaning up spatial speech");
+        if (flock.soundDebug)
+          console.log("[SPATIAL AUDIO DEBUG] Cleaning up spatial speech");
 
         // Remove render observer
         if (renderObserver && flock.scene?.onBeforeRenderObservable) {
@@ -985,9 +1003,9 @@ export const flockSound = {
           }
         }
 
-        console.log("[SPATIAL AUDIO DEBUG] Spatial speech cleanup complete");
+        if (flock.soundDebug)
+          console.log("[SPATIAL AUDIO DEBUG] Spatial speech cleanup complete");
       },
     };
   },
 };
-

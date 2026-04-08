@@ -21,16 +21,18 @@ function applyPositionWithCurrentBaseRule(
   mesh,
   { x = 0, y = 0, z = 0, useY = true, meshName = "" } = {},
 ) {
-  const { x: nextX, y: nextY, z: nextZ, isCamera } = resolvePositionInputs(
-    mesh,
-    {
-      x,
-      y,
-      z,
-      useY,
-      meshName,
-    },
-  );
+  const {
+    x: nextX,
+    y: nextY,
+    z: nextZ,
+    isCamera,
+  } = resolvePositionInputs(mesh, {
+    x,
+    y,
+    z,
+    useY,
+    meshName,
+  });
 
   mesh.position.set(nextX, useY ? nextY : mesh.position.y, nextZ);
 
@@ -59,6 +61,12 @@ function applyPositionWithCurrentBaseRule(
 
 export function setFlockReference(ref) {
   flock = ref;
+}
+
+// Coerce a value to a finite number, or return the fallback.
+function toFinite(v, fallback = 0) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
 }
 
 export const flockTransform = {
@@ -92,9 +100,11 @@ export const flockTransform = {
           return;
         }
 
-        x ??= mesh.position.x;
-        y ??= mesh.position.y;
-        z ??= mesh.position.z;
+        x = toFinite(x ?? mesh.position.x, mesh.position.x);
+        z = toFinite(z ?? mesh.position.z, mesh.position.z);
+        if (y !== "__ground__level__") {
+          y = toFinite(y ?? mesh.position.y, mesh.position.y);
+        }
 
         if (mesh.physics) {
           if (
@@ -124,7 +134,6 @@ export const flockTransform = {
           );
         }
         mesh.computeWorldMatrix(true);
-        //console.log("Position at", x, y, z, mesh.position.y, mesh);
 
         resolve();
       });
@@ -264,6 +273,9 @@ export const flockTransform = {
     });
   },
   moveByVector(meshName, { x = 0, y = 0, z = 0 } = {}) {
+    x = toFinite(x);
+    y = toFinite(y);
+    z = toFinite(z);
     return new Promise((resolve, reject) => {
       flock.whenModelReady(meshName, (mesh) => {
         if (!mesh) {
@@ -369,6 +381,9 @@ export const flockTransform = {
     }
   },
   rotate(meshName, { x = 0, y = 0, z = 0 } = {}) {
+    x = toFinite(x);
+    y = toFinite(y);
+    z = toFinite(z);
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         if (meshName === "__active_camera__") {
@@ -444,6 +459,9 @@ export const flockTransform = {
     });
   },
   rotateTo(meshName, { x = 0, y = 0, z = 0 } = {}) {
+    x = toFinite(x);
+    y = toFinite(y);
+    z = toFinite(z);
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         if (meshName === "__active_camera__") {
@@ -600,6 +618,9 @@ export const flockTransform = {
       zOrigin = "CENTRE",
     } = {},
   ) {
+    x = Number.isFinite(Number(x)) && Number(x) >= 0 ? Number(x) : 1;
+    y = Number.isFinite(Number(y)) && Number(y) >= 0 ? Number(y) : 1;
+    z = Number.isFinite(Number(z)) && Number(z) >= 0 ? Number(z) : 1;
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         mesh.metadata = mesh.metadata || {};
@@ -659,8 +680,6 @@ export const flockTransform = {
         while (physicsTarget.parent && !physicsTarget.physics) {
           physicsTarget = physicsTarget.parent;
         }
-
-        console.log("Updating physics", mesh.name);
 
         if (physicsTarget.physics && physicsTarget !== mesh) {
           flock.updatePhysics(mesh, physicsTarget);
@@ -802,8 +821,6 @@ export const flockTransform = {
           return;
         }
 
-        const BABYLON = flock.BABYLON;
-
         const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
         function resolvePivotValue(value, axis) {
           if (typeof value === "string") {
@@ -826,14 +843,14 @@ export const flockTransform = {
           y: "MIN",
           z: "CENTER",
         };
-        const oldPivotLocal = new BABYLON.Vector3(
+        const oldPivotLocal = new flock.BABYLON.Vector3(
           resolvePivotValue(prev.x, "x"),
           resolvePivotValue(prev.y, "y"),
           resolvePivotValue(prev.z, "z"),
         );
 
         // NEW pivot from args (Y defaults to MIN above)
-        const newPivotLocal = new BABYLON.Vector3(
+        const newPivotLocal = new flock.BABYLON.Vector3(
           resolvePivotValue(xPivot, "x"),
           resolvePivotValue(yPivot, "y"),
           resolvePivotValue(zPivot, "z"),
@@ -842,12 +859,11 @@ export const flockTransform = {
         // World position of OLD pivot (before change)
         mesh.computeWorldMatrix(true);
         const wmBefore = mesh.getWorldMatrix().clone();
-        const oldPivotWorld = BABYLON.Vector3.TransformCoordinates(
+        const oldPivotWorld = flock.BABYLON.Vector3.TransformCoordinates(
           oldPivotLocal,
           wmBefore,
         );
 
-        // Apply new pivot to mesh (and children, per your existing behavior)
         mesh.setPivotPoint(newPivotLocal);
         mesh
           .getChildMeshes()
@@ -856,7 +872,7 @@ export const flockTransform = {
         // World position of NEW pivot (after change)
         mesh.computeWorldMatrix(true);
         const wmAfter = mesh.getWorldMatrix().clone();
-        const newPivotWorld = BABYLON.Vector3.TransformCoordinates(
+        const newPivotWorld = flock.BABYLON.Vector3.TransformCoordinates(
           newPivotLocal,
           wmAfter,
         );
@@ -868,13 +884,16 @@ export const flockTransform = {
         // Physics sync
         if (mesh.physics) {
           if (
-            mesh.physics.getMotionType() !== BABYLON.PhysicsMotionType.DYNAMIC
+            mesh.physics.getMotionType() !==
+            flock.BABYLON.PhysicsMotionType.DYNAMIC
           ) {
-            mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+            mesh.physics.setMotionType(
+              flock.BABYLON.PhysicsMotionType.ANIMATED,
+            );
           }
           const rq =
             mesh.rotationQuaternion ||
-            BABYLON.Quaternion.FromEulerAngles(
+            flock.BABYLON.Quaternion.FromEulerAngles(
               mesh.rotation.x,
               mesh.rotation.y,
               mesh.rotation.z,

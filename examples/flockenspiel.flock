@@ -324,7 +324,7 @@
                     "id": "z/w*1_|z3d/|i2H=yryr",
                     "inline": true,
                     "extraState": {
-                      "itemCount": 7
+                      "itemCount": 8
                     },
                     "inputs": {
                       "ADD0": {
@@ -332,7 +332,7 @@
                           "type": "colour",
                           "id": "IFj[+;HYKob0_Riy,5GX",
                           "fields": {
-                            "COLOR": "#ff0000"
+                            "COLOR": "#ff6666"
                           }
                         }
                       },
@@ -341,7 +341,7 @@
                           "type": "colour",
                           "id": "m(6KzH~)u`gX=Y~InHLC",
                           "fields": {
-                            "COLOR": "#ff9900"
+                            "COLOR": "#ff9966"
                           }
                         }
                       },
@@ -350,7 +350,7 @@
                           "type": "colour",
                           "id": "f[#oAjB3d}Hr@HwGf3F]",
                           "fields": {
-                            "COLOR": "#ffff00"
+                            "COLOR": "#ffcc66"
                           }
                         }
                       },
@@ -359,7 +359,7 @@
                           "type": "colour",
                           "id": "zlaJ/3,#7jy(y!J={Y:*",
                           "fields": {
-                            "COLOR": "#33ff33"
+                            "COLOR": "#99ff99"
                           }
                         }
                       },
@@ -368,7 +368,7 @@
                           "type": "colour",
                           "id": "@?}izAy0[Ig)G_fhb|BD",
                           "fields": {
-                            "COLOR": "#3333ff"
+                            "COLOR": "#33ffff"
                           }
                         }
                       },
@@ -377,7 +377,7 @@
                           "type": "colour",
                           "id": "H=_i:Mx@E*R-Vbb5_8DY",
                           "fields": {
-                            "COLOR": "#cc33cc"
+                            "COLOR": "#9999ff"
                           }
                         }
                       },
@@ -386,7 +386,16 @@
                           "type": "colour",
                           "id": "D}(g0%4c;4#p57:Pi_#[",
                           "fields": {
-                            "COLOR": "#9932cc"
+                            "COLOR": "#ff99ff"
+                          }
+                        }
+                      },
+                      "ADD7": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "K2mP9xQr8sNv3wLt5uYe",
+                          "fields": {
+                            "COLOR": "#cc66cc"
                           }
                         }
                       }

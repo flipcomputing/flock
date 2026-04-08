@@ -1,22 +1,28 @@
 // Translation module for Flock XR
-// Currently supports English and French
+// Currently supports English and Spanish
 import * as Blockly from "blockly";
-import * as fr from "blockly/msg/fr";
+
 import * as en from "blockly/msg/en";
+import enLocale from "../locale/en.js";
 import * as es from "blockly/msg/es";
+import esLocale from "../locale/es.js";
+
+/*
+// Add when human translations are available
+import * as fr from "blockly/msg/fr";
 import * as it from "blockly/msg/it";
 import * as sv from "blockly/msg/sv";
 import * as pt from "blockly/msg/pt";
 import * as pl from "blockly/msg/pl";
 import * as de from "blockly/msg/de";
-import enLocale from "../locale/en.js";
+
 import frLocale from "../locale/fr.js";
-import esLocale from "../locale/es.js";
 import itLocale from "../locale/it.js";
 import svLocale from "../locale/sv.js";
 import ptLocale from "../locale/pt.js";
 import plLocale from "../locale/pl.js";
 import deLocale from "../locale/de.js";
+*/
 
 // Store original English messages when first loaded
 let originalEnglishMessages = {};
@@ -24,13 +30,13 @@ let isOriginalMessagesCached = false;
 // Load locale files
 const translations = {
   en: enLocale,
-  it: itLocale,
-  fr: frLocale,
   es: esLocale,
+  /* it: itLocale,
+  fr: frLocale,
   sv: svLocale,
   pt: ptLocale,
   pl: plLocale,
-  de: deLocale,
+  de: deLocale,*/
 };
 
 export function getDropdownOption(key) {
@@ -39,94 +45,9 @@ export function getDropdownOption(key) {
 
 let currentLanguage = "en";
 
-// Load saved language preference from localStorage
-async function loadSavedLanguage() {
-  const savedLanguage = localStorage.getItem("flock-language");
-  if (savedLanguage && translations[savedLanguage]) {
-    currentLanguage = savedLanguage;
-    console.log(`Loaded saved language: ${savedLanguage}`);
-    // Apply the saved language translations immediately
-    await applySavedLanguageTranslations();
-  }
-}
-
-// Apply saved language translations (used during initialization)
-async function applySavedLanguageTranslations() {
-  if (currentLanguage === "fr") {
-    // Apply Blockly's French translations
-    const frMessages = fr;
-    Object.keys(frMessages).forEach((key) => {
-      if (typeof frMessages[key] === "string") {
-        Blockly.Msg[key] = frMessages[key];
-      }
-    });
-  } else if (currentLanguage === "es") {
-    // Apply Blockly's Spanish translations
-    const esMessages = es;
-    Object.keys(esMessages).forEach((key) => {
-      if (typeof esMessages[key] === "string") {
-        Blockly.Msg[key] = esMessages[key];
-      }
-    });
-  } else if (currentLanguage === "it") {
-    // Apply Blockly's Italian translations
-    const itMessages = it;
-    Object.keys(itMessages).forEach((key) => {
-      if (typeof itMessages[key] === "string") {
-        Blockly.Msg[key] = itMessages[key];
-      }
-    });
-  } else if (currentLanguage === "sv") {
-    // Apply Blockly's Swedish translations
-    const svMessages = sv;
-    Object.keys(svMessages).forEach((key) => {
-      if (typeof svMessages[key] === "string") {
-        Blockly.Msg[key] = svMessages[key];
-      }
-    });
-  } else if (currentLanguage === "pt") {
-    // Apply Blockly's Portuguese translations
-    const ptMessages = pt;
-    Object.keys(ptMessages).forEach((key) => {
-      if (typeof ptMessages[key] === "string") {
-        Blockly.Msg[key] = ptMessages[key];
-      }
-    });
-  } else if (currentLanguage === "pl") {
-    // Apply Blockly's Polish translations
-    const plMessages = pl;
-    Object.keys(plMessages).forEach((key) => {
-      if (typeof plMessages[key] === "string") {
-        Blockly.Msg[key] = plMessages[key];
-      }
-    });
-  } else if (currentLanguage === "de") {
-    // Apply Blockly's German translations
-    const deMessages = de;
-    Object.keys(deMessages).forEach((key) => {
-      if (typeof deMessages[key] === "string") {
-        Blockly.Msg[key] = deMessages[key];
-      }
-    });
-  }
-
-  // Apply custom translations for all languages
-  Object.keys(translations[currentLanguage]).forEach((key) => {
-    Blockly.Msg[key] = translations[currentLanguage][key];
-  });
-
-  applyContextMenuShortcutTranslations();
-
-  // Update colour picker translations if it exists (for initial load)
-  if (window.flockColorPicker?.refreshTranslations) {
-    window.flockColorPicker.refreshTranslations();
-  }
-}
-
 // Save language preference to localStorage
 function saveLanguagePreference(language) {
   localStorage.setItem("flock-language", language);
-  console.log(`Saved language preference: ${language}`);
 }
 
 function cacheOriginalMessages() {
@@ -136,7 +57,6 @@ function cacheOriginalMessages() {
       originalEnglishMessages[key] = Blockly.Msg[key];
     });
     isOriginalMessagesCached = true;
-    console.log("Original English messages cached");
   }
 }
 
@@ -160,68 +80,14 @@ export async function setLanguage(language) {
 
   currentLanguage = language;
   saveLanguagePreference(language);
-  console.log(`Language changed to: ${language}`);
 
-  if (language === "fr") {
-    // Apply Blockly's French translations
-    Object.keys(fr).forEach((key) => {
-      if (typeof fr[key] === "string") {
-        Blockly.Msg[key] = fr[key];
-      }
-    });
-    console.log("Français sélectionné - Blockly French translations applied!");
-  } else if (language === "es") {
+  if (language === "es") {
     // Apply Blockly's Spanish translations
     Object.keys(es).forEach((key) => {
       if (typeof es[key] === "string") {
         Blockly.Msg[key] = es[key];
       }
     });
-    console.log("Español seleccionado - Blockly Spanish translations applied!");
-  } else if (language === "it") {
-    // Applica le traduzioni italiane di Blockly
-    Object.keys(it).forEach((key) => {
-      if (typeof it[key] === "string") {
-        Blockly.Msg[key] = it[key];
-      }
-    });
-    console.log(
-      "Italiano selezionato - Traduzioni italiane di Blockly applicate!",
-    );
-  } else if (language === "sv") {
-    // Apply Blockly's Swedish translations
-    Object.keys(sv).forEach((key) => {
-      if (typeof sv[key] === "string") {
-        Blockly.Msg[key] = sv[key];
-      }
-    });
-    console.log("Svenskt utvalda - Blockly Swedish translations applied!");
-  } else if (language === "pt") {
-    // Apply Blockly's Portuguese translations
-    Object.keys(pt).forEach((key) => {
-      if (typeof pt[key] === "string") {
-        Blockly.Msg[key] = pt[key];
-      }
-    });
-    console.log(
-      "Português selecionado - Blockly Portuguese translations applied!",
-    );
-  } else if (language === "pl") {
-    // Apply Blockly's Polish translations
-    Object.keys(pl).forEach((key) => {
-      if (typeof pl[key] === "string") {
-        Blockly.Msg[key] = pl[key];
-      }
-    });
-    console.log("Polski wybrany - Blockly Polish translations applied!");
-  } else if (language === "de") {
-    // Apply Blockly's German translations
-    Object.keys(de).forEach((key) => {
-      if (typeof de[key] === "string") {
-        Blockly.Msg[key] = de[key];
-      }
-    });
-    console.log("Deutsch ausgewählt - Blockly German translations applied!");
   } else {
     // Official Blockly English first
     Object.keys(en).forEach((key) => {
@@ -231,9 +97,6 @@ export async function setLanguage(language) {
     Object.keys(enLocale).forEach((key) => {
       Blockly.Msg[key] = enLocale[key];
     });
-    console.log(
-      "English selected - Blockly English and custom translations applied!",
-    );
   }
 
   applyTranslations();
@@ -303,14 +166,65 @@ export function getBlocklyMessage(key) {
   return Blockly.Msg[key] || key;
 }
 
+const keywordHintLabels = {
+  en: "Keyword",
+  es: "Palabra clave",
+};
+
+function getTooltipKeywordLabel() {
+  return keywordHintLabels[currentLanguage] || keywordHintLabels.en;
+}
+
+function tooltipHasKeywordHint(tooltip) {
+  return /(?:keyword|palabra clave)\s*:/iu.test(tooltip);
+}
+
+function findToolboxKeyword(blockType) {
+  const workspace =
+    globalThis.window?.mainWorkspace || Blockly.getMainWorkspace();
+  const languageTree = workspace?.options?.languageTree;
+
+  function searchContents(contents) {
+    if (!Array.isArray(contents)) {
+      return "";
+    }
+
+    for (const item of contents) {
+      if (item?.kind === "block" && item.type === blockType) {
+        return item.keyword || "";
+      }
+
+      const nestedKeyword = searchContents(item?.contents);
+      if (nestedKeyword) {
+        return nestedKeyword;
+      }
+    }
+
+    return "";
+  }
+
+  return searchContents(languageTree?.contents);
+}
+
 // Helper function to get translated tooltips
 export function getTooltip(blockType) {
-  const tooltipKey = blockType + "_tooltip";
-  return (
-    translations[currentLanguage]?.[tooltipKey] ||
-    translations["en"]?.[tooltipKey] ||
-    ""
-  );
+  return () => {
+    const tooltipKey = blockType + "_tooltip";
+    const translatedTooltip =
+      translations[currentLanguage]?.[tooltipKey] ||
+      translations["en"]?.[tooltipKey] ||
+      "";
+    const keyword = findToolboxKeyword(blockType);
+
+    if (!keyword || tooltipHasKeywordHint(translatedTooltip)) {
+      return translatedTooltip;
+    }
+
+    const keywordHint = `${getTooltipKeywordLabel()}: ${keyword}`;
+    return translatedTooltip
+      ? `${translatedTooltip}\n${keywordHint}`
+      : keywordHint;
+  };
 }
 
 // Helper function to get translated snippet options
@@ -413,16 +327,47 @@ export function updateToolboxTranslations() {
   }
 }
 
+function getSubmenuInitializationElements({
+  itemId,
+  submenuId,
+  optionSelector,
+  warningMessage,
+}) {
+  const menuItem = document.getElementById(itemId);
+  const submenu = document.getElementById(submenuId);
+
+  if (!menuItem || !submenu) {
+    console.warn(warningMessage);
+    return null;
+  }
+
+  const options = submenu.querySelectorAll(optionSelector);
+  if (!options.length) {
+    console.warn(warningMessage);
+    return null;
+  }
+
+  return { menuItem, submenu, options };
+}
+
 // Initialize language menu functionality
 export function initializeLanguageMenu() {
-  const languageMenuItem = document.getElementById("language-menu-item");
-  const languageSubmenu = document.getElementById("language-submenu");
-  const languageOptions = languageSubmenu.querySelectorAll("a[data-lang]");
+  const languageMenu = getSubmenuInitializationElements({
+    itemId: "language-menu-item",
+    submenuId: "language-submenu",
+    optionSelector: "a[data-lang]",
+    warningMessage: "Language menu elements not found",
+  });
 
-  if (!languageMenuItem || !languageSubmenu || !languageOptions.length) {
-    console.warn("Language menu elements not found");
+  if (!languageMenu) {
     return;
   }
+
+  const {
+    menuItem: languageMenuItem,
+    submenu: languageSubmenu,
+    options: languageOptions,
+  } = languageMenu;
 
   // Show/hide language submenu
   languageMenuItem.addEventListener("mouseenter", () => {
@@ -479,8 +424,6 @@ export function initializeLanguageMenu() {
       if (menuBtn) menuBtn.focus();
     }
   });
-
-  console.log("Language menu initialized");
 }
 
 // Initialize saved language on startup

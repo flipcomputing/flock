@@ -1,73 +1,10 @@
+import { translate } from "../main/translation.js";
+
 let flock;
 
 export function setFlockReference(ref) {
   flock = ref;
 }
-
-const rumblePatterns = {
-  objectGrab: [
-    { duration: 40, weakMagnitude: 0.1, strongMagnitude: 0.8, pauseAfter: 30 },
-    { duration: 25, weakMagnitude: 0.1, strongMagnitude: 0.4, pauseAfter:  0 },
-  ],
-  objectDrop: [
-    { duration: 60, weakMagnitude: 0.3, strongMagnitude: 1.0, pauseAfter: 20 },
-    { duration: 30, weakMagnitude: 0.1, strongMagnitude: 0.4, pauseAfter:  0 },
-  ],
-  smallCollision: [
-    { duration: 30, weakMagnitude: 0.5, strongMagnitude: 0.2, pauseAfter: 40 },
-    { duration: 20, weakMagnitude: 0.2, strongMagnitude: 0.1, pauseAfter:  0 },
-  ],
-  heavyCollision: [
-    { duration: 100, weakMagnitude: 0.5, strongMagnitude: 1.0, pauseAfter: 30 },
-    { duration:  60, weakMagnitude: 0.3, strongMagnitude: 0.7, pauseAfter: 40 },
-    { duration:  30, weakMagnitude: 0.1, strongMagnitude: 0.3, pauseAfter:  0 },
-  ],
-  snapToGrid: [
-    { duration: 20, weakMagnitude: 0.0, strongMagnitude: 0.9, pauseAfter: 25 },
-    { duration: 20, weakMagnitude: 0.0, strongMagnitude: 0.9, pauseAfter:  0 },
-  ],
-  errorInvalid: [
-    { duration: 50, weakMagnitude: 0.9, strongMagnitude: 0.1, pauseAfter: 25 },
-    { duration: 40, weakMagnitude: 0.7, strongMagnitude: 0.1, pauseAfter: 20 },
-    { duration: 50, weakMagnitude: 0.9, strongMagnitude: 0.1, pauseAfter: 30 },
-    { duration: 30, weakMagnitude: 0.5, strongMagnitude: 0.0, pauseAfter:  0 },
-  ],
-  successConfirmation: [
-    { duration: 30, weakMagnitude: 0.1, strongMagnitude: 0.3, pauseAfter: 40 },
-    { duration: 40, weakMagnitude: 0.2, strongMagnitude: 0.6, pauseAfter: 40 },
-    { duration: 50, weakMagnitude: 0.3, strongMagnitude: 0.9, pauseAfter:  0 },
-  ],
-  slidingGravel: [
-    { duration: 40, weakMagnitude: 0.6, strongMagnitude: 0.2, pauseAfter: 25 },
-    { duration: 25, weakMagnitude: 0.4, strongMagnitude: 0.1, pauseAfter: 20 },
-    { duration: 50, weakMagnitude: 0.7, strongMagnitude: 0.3, pauseAfter: 30 },
-    { duration: 30, weakMagnitude: 0.4, strongMagnitude: 0.1, pauseAfter: 20 },
-    { duration: 45, weakMagnitude: 0.6, strongMagnitude: 0.2, pauseAfter:  0 },
-  ],
-  slidingMetal: [
-    { duration: 90, weakMagnitude: 0.05, strongMagnitude: 0.40, pauseAfter: 25 },
-    { duration: 70, weakMagnitude: 0.05, strongMagnitude: 0.25, pauseAfter:  0 },
-  ],
-  machineRunning: [
-    { duration: 60, weakMagnitude: 0.2, strongMagnitude: 0.5, pauseAfter: 30 },
-    { duration: 60, weakMagnitude: 0.2, strongMagnitude: 0.5, pauseAfter: 30 },
-    { duration: 60, weakMagnitude: 0.2, strongMagnitude: 0.5, pauseAfter: 30 },
-    { duration: 60, weakMagnitude: 0.2, strongMagnitude: 0.5, pauseAfter:  0 },
-  ],
-  explosion: [
-    { duration: 120, weakMagnitude: 0.8, strongMagnitude: 1.0, pauseAfter: 20 },
-    { duration:  80, weakMagnitude: 0.6, strongMagnitude: 0.8, pauseAfter: 30 },
-    { duration:  60, weakMagnitude: 0.3, strongMagnitude: 0.5, pauseAfter: 40 },
-    { duration:  40, weakMagnitude: 0.1, strongMagnitude: 0.2, pauseAfter:  0 },
-  ],
-  teleport: [
-    { duration: 30, weakMagnitude: 0.1, strongMagnitude: 0.2, pauseAfter: 20 },
-    { duration: 50, weakMagnitude: 0.3, strongMagnitude: 0.5, pauseAfter: 20 },
-    { duration: 70, weakMagnitude: 0.5, strongMagnitude: 0.9, pauseAfter: 20 },
-    { duration: 50, weakMagnitude: 0.3, strongMagnitude: 0.5, pauseAfter: 20 },
-    { duration: 30, weakMagnitude: 0.1, strongMagnitude: 0.2, pauseAfter:  0 },
-  ],
-};
 
 export const flockXR = {
   /* 
@@ -106,54 +43,6 @@ export const flockXR = {
       },
     );
   },
-  controllerRumble(motor, strength, duration) {
-    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    for (const gamepad of gamepads) {
-      if (!gamepad || !gamepad.vibrationActuator) continue;
-      const weakMagnitude = motor === "left" ? 0 : strength;
-      const strongMagnitude = motor === "right" ? 0 : strength;
-      gamepad.vibrationActuator.playEffect("dual-rumble", {
-        startDelay: 0,
-        duration: duration,
-        weakMagnitude: weakMagnitude,
-        strongMagnitude: strongMagnitude,
-      });
-    }
-  },
-  controllerRumblePattern(motor, strength, onDuration, offDuration, repeats) {
-    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    for (const gamepad of gamepads) {
-      if (!gamepad || !gamepad.vibrationActuator) continue;
-      const weakMagnitude = motor === "left" ? 0 : strength;
-      const strongMagnitude = motor === "right" ? 0 : strength;
-      for (let i = 0; i < repeats; i++) {
-        gamepad.vibrationActuator.playEffect("dual-rumble", {
-          startDelay: i * (onDuration + offDuration),
-          duration: onDuration,
-          weakMagnitude: weakMagnitude,
-          strongMagnitude: strongMagnitude,
-        });
-      }
-    }
-  },
-  playRumblePattern(patternName) {
-    const pattern = rumblePatterns[patternName];
-    if (!pattern) return;
-    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    for (const gamepad of gamepads) {
-      if (!gamepad || !gamepad.vibrationActuator) continue;
-      let startDelay = 0;
-      for (const pulse of pattern) {
-        gamepad.vibrationActuator.playEffect("dual-rumble", {
-          startDelay,
-          duration: pulse.duration,
-          weakMagnitude: pulse.weakMagnitude,
-          strongMagnitude: pulse.strongMagnitude,
-        });
-        startDelay += pulse.duration + pulse.pauseAfter;
-      }
-    }
-  },
   async setXRMode(mode) {
     await flock.initializeXR(mode);
     flock.printText({
@@ -174,7 +63,8 @@ export const flockXR = {
 
       // Treat ALL mesh subclasses as geometry; we'll still skip LinesMesh explicitly
       const isAbstractMesh = (n) =>
-        typeof BABYLON !== "undefined" && n instanceof BABYLON.AbstractMesh;
+        typeof flock.BABYLON !== "undefined" &&
+        n instanceof flock.BABYLON.AbstractMesh;
       const isLines = (n) => cls(n) === "LinesMesh";
 
       // --- Ghost: top-level + enabled + AbstractMesh + no material (not lines)
@@ -188,14 +78,15 @@ export const flockXR = {
       );
 
       // Shared transparent PBR material (GLTF-friendly)
-      const ghostMat = new BABYLON.PBRMaterial("_tmpExportGhost", scene);
+      const ghostMat = new flock.BABYLON.PBRMaterial("_tmpExportGhost", scene);
       ghostMat.alpha = 0;
-      ghostMat.alphaMode = BABYLON.Engine.ALPHA_BLEND;
-      ghostMat.transparencyMode = BABYLON.PBRMaterial.PBRMATERIAL_ALPHABLEND;
+      ghostMat.alphaMode = flock.BABYLON.Engine.ALPHA_BLEND;
+      ghostMat.transparencyMode =
+        flock.BABYLON.PBRMaterial.PBRMATERIAL_ALPHABLEND;
       ghostMat.disableLighting = true;
       ghostMat.metallic = 0;
       ghostMat.roughness = 1;
-      ghostMat.albedoColor = new BABYLON.Color4(1, 1, 1, 0);
+      ghostMat.albedoColor = new flock.BABYLON.Color4(1, 1, 1, 0);
 
       const patches = targets.map((mesh) => ({
         mesh,
@@ -248,12 +139,31 @@ export const flockXR = {
 
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
-        const rootChild = mesh
+        const anchorMesh = mesh;
+        const rootChild = anchorMesh
           .getChildMeshes()
           .find((child) => child.name === "__root__");
+
+        const exportAnchors = [anchorMesh];
         if (rootChild) {
-          mesh = rootChild;
+          exportAnchors.push(rootChild);
         }
+
+        const allowedNodes = new Set();
+        for (const anchor of exportAnchors) {
+          allowedNodes.add(anchor);
+          anchor
+            .getChildMeshes(false)
+            .forEach((childMesh) => allowedNodes.add(childMesh));
+        }
+
+        const hasDirectRootChild = (node) =>
+          typeof node?.getChildMeshes === "function" &&
+          node.getChildMeshes(true).some((child) => child.name === "__root__");
+        const wrapperNodes = [...allowedNodes].filter(
+          (node) => node.name !== "__root__" && hasDirectRootChild(node),
+        );
+
         const childMeshes = mesh.getChildMeshes(false);
         const meshList = [mesh, ...childMeshes];
         if (format === "STL") {
@@ -267,14 +177,45 @@ export const flockXR = {
         } else if (format === "OBJ") {
           flock.EXPORT.OBJExport.OBJ(mesh);
         } else if (format === "GLB") {
+          const ghostMat = new flock.BABYLON.PBRMaterial(
+            "_tmpExportWrapperGhost",
+            flock.scene,
+          );
+          ghostMat.alpha = 0;
+          ghostMat.alphaMode = flock.BABYLON.Engine.ALPHA_BLEND;
+          ghostMat.transparencyMode =
+            flock.BABYLON.PBRMaterial.PBRMATERIAL_ALPHABLEND;
+          ghostMat.disableLighting = true;
+          ghostMat.metallic = 0;
+          ghostMat.roughness = 1;
+          ghostMat.albedoColor = new flock.BABYLON.Color4(1, 1, 1, 0);
+
+          const wrapperPatches = wrapperNodes.map((wrapperMesh) => ({
+            wrapperMesh,
+            prevMaterial: wrapperMesh.material ?? null,
+          }));
+          for (const { wrapperMesh } of wrapperPatches) {
+            wrapperMesh.material = ghostMat;
+          }
+
           mesh.flipFaces();
-          await flock.EXPORT.GLTF2Export.GLBAsync(flock.scene, mesh.name + ".glb", {
-            shouldExportNode: (node) =>
-              node === mesh || mesh.getChildMeshes().includes(node),
-          }).then((glb) => {
+          try {
+            await flock.EXPORT.GLTF2Export.GLBAsync(
+              flock.scene,
+              mesh.name + ".glb",
+              {
+                shouldExportNode: (node) => allowedNodes.has(node),
+              },
+            ).then((glb) => {
+              glb.downloadFiles();
+            });
+          } finally {
             mesh.flipFaces();
-            glb.downloadFiles();
-          });
+            for (const { wrapperMesh, prevMaterial } of wrapperPatches) {
+              wrapperMesh.material = prevMaterial;
+            }
+            ghostMat.dispose();
+          }
         }
         resolve();
       });

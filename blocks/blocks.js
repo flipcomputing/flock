@@ -1,32 +1,119 @@
 import * as Blockly from "blockly";
 //import "@blockly/block-plus-minus";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
-import { toolbox } from "../toolbox.js";
-import { getOption, translate, getTooltip } from "../main/translation.js";
+import { toolbox, categoryColours } from "../toolbox.js";
+import { translate, getTooltip } from "../main/translation.js";
 import { flock } from "../flock.js";
 
 import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
+  getActiveSceneControllerBlockId,
   clearSkyMesh,
   setClearSkyToBlack,
 } from "../ui/blockmesh.js";
-import { registerFieldColour } from "@blockly/field-colour";
+import { FieldColour, registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "../main/themes.js";
 
 registerFieldColour();
 
-export let nextVariableIndexes = {};
+const normaliseHexColour = (value) => {
+  if (typeof value !== "string") return "";
+  let hex = value.trim().toLowerCase();
+  if (!hex) return "";
+  if (!hex.startsWith("#")) hex = `#${hex}`;
+  if (/^#[\da-f]{3}$/.test(hex)) {
+    hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+  }
+  return hex;
+};
+
+// When using keyboard navigation, when the colour in a block isn't one of those in the grid this makes the editor start with the container selected so you can use arrow keys to navigate to the swatches.
+const flockFocusPatchKey = Symbol.for("flock.fieldColourFocusPatch");
+const fieldColourPrototype = FieldColour.prototype;
+if (!fieldColourPrototype[flockFocusPatchKey]) {
+  const originalShowEditor = fieldColourPrototype.showEditor_;
+  fieldColourPrototype.showEditor_ = function (e) {
+    originalShowEditor.call(this, e);
+
+    const currentValue = normaliseHexColour(this.getValue?.());
+    if (!currentValue) return;
+
+    const hasMatchingSwatch = this.getOptions?.(false)?.some(
+      (option) => normaliseHexColour(option?.[1]) === currentValue,
+    );
+    if (hasMatchingSwatch) return;
+    const openedWithKeyboard = e === undefined || e instanceof KeyboardEvent;
+    if (!openedWithKeyboard) return;
+
+    Blockly.DropDownDiv.getContentDiv()
+      .querySelector(".blocklyFieldGrid")
+      ?.focus();
+  };
+}
+
+export let nextVariableIndexes = Object.create(null);
+
+// ---------------------------------------------------------------------------
+// Workspace-level block-change dispatcher
+//  A single workspace addChangeListener in
+// blockhandling.js iterates this map once per event
+// ---------------------------------------------------------------------------
+
+/**
+ * Map subclass that caches its values array and invalidates the cache
+ * whenever the map is mutated. This avoids allocating a fresh array on every
+ * workspace event (including high-frequency viewport pans) while still
+ * providing a stable snapshot that is safe to iterate even if a handler
+ * registers or removes entries mid-loop.
+ */
+class HandlerRegistry extends Map {
+  #snapshot = null;
+
+  set(key, value) {
+    this.#snapshot = null;
+    return super.set(key, value);
+  }
+
+  delete(key) {
+    this.#snapshot = null;
+    return super.delete(key);
+  }
+
+  clear() {
+    this.#snapshot = null;
+    return super.clear();
+  }
+
+  /** Returns a cached snapshot of current handler values. */
+  cachedValues() {
+    if (!this.#snapshot) this.#snapshot = [...super.values()];
+    return this.#snapshot;
+  }
+}
+
+/** @type {HandlerRegistry} */
+export const blockHandlerRegistry = new HandlerRegistry();
+
+/**
+ * Register a block's change handler with the workspace dispatcher.
+ * Flyout blocks are silently skipped because the dispatcher is attached to
+ * the main workspace only.
+ *
+ * @param {Blockly.Block} block
+ * @param {(changeEvent: object) => void} handler
+ */
+export function registerBlockHandler(block, handler) {
+  if (!block.workspace || block.workspace.isFlyout) return;
+  blockHandlerRegistry.set(block.id, handler);
+}
 
 export const inlineIcon =
   "data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22utf-8%22%3F%3E%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20x%3D%220px%22%20y%3D%220px%22%20width%3D%22122.88px%22%20height%3D%2280.593px%22%20viewBox%3D%220%200%20122.88%2080.593%22%20enable-background%3D%22new%200%200%20122.88%2080.593%22%20xml%3Aspace%3D%22preserve%22%3E%3Cg%3E%3Cpolygon%20fill%3D%22white%22%20points%3D%22122.88%2C80.593%20122.88%2C49.772%2061.44%2C0%200%2C49.772%200%2C80.593%2061.44%2C30.82%20122.88%2C80.593%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
 
-const baseHelpUrl = "https://docs.flockxr.com/blocks/";
-
-export function getHelpUrlFor(blockType) {
-  //return baseHelpUrl + blockType;
-  return "https://flockxr.com";
+export function getHelpUrlFor(_blockType) {
+  return "https://hub.flockxr.com";
 }
 
 // Shared utility to add the toggle button to a block
@@ -89,6 +176,19 @@ export function handleBlockSelect(event) {
 
 export function handleBlockDelete(event) {
   if (event.type === Blockly.Events.BLOCK_DELETE) {
+    const activeControllerBlockId = getActiveSceneControllerBlockId();
+
+    const makeRestoreEvent = (b) => ({
+      type: Blockly.Events.BLOCK_CHANGE,
+      blockId: b.id,
+      workspaceId: b.workspace?.id,
+      element: "field",
+      name: "__restore__",
+      oldValue: null,
+      newValue: null,
+      recordUndo: false,
+    });
+
     // Recursively delete meshes for qualifying blocks
     function deleteMeshesRecursively(blockJson) {
       // Check if block type matches the prefixes
@@ -97,13 +197,66 @@ export function handleBlockDelete(event) {
         blockJson.type.startsWith("create_")
       ) {
         deleteMeshFromBlock(blockJson.id);
+        if (blockJson.type === "create_map") {
+          const ws = Blockly.getMainWorkspace();
+          const nextMapBlock = ws
+            ?.getAllBlocks(false)
+            .find(
+              (b) =>
+                b.type === "create_map" &&
+                b.id !== blockJson.id &&
+                b.isEnabled() &&
+                b.getParent(),
+            );
+          if (nextMapBlock)
+            updateOrCreateMeshFromBlock(
+              nextMapBlock,
+              makeRestoreEvent(nextMapBlock),
+            );
+        }
       } else if (blockJson.type === "set_background_color") {
         deleteMeshFromBlock(blockJson.id);
-        clearSkyMesh();
-        setClearSkyToBlack();
+        if (activeControllerBlockId === blockJson.id) {
+          clearSkyMesh();
+          const ws = Blockly.getMainWorkspace();
+          const nextSkyBlock = ws
+            ?.getAllBlocks(false)
+            .find(
+              (b) =>
+                (b.type === "set_sky_color" ||
+                  b.type === "set_background_color") &&
+                b.id !== blockJson.id &&
+                b.isEnabled() &&
+                b.getParent(),
+            );
+          if (nextSkyBlock)
+            updateOrCreateMeshFromBlock(
+              nextSkyBlock,
+              makeRestoreEvent(nextSkyBlock),
+            );
+          else setClearSkyToBlack();
+        }
       } else if (blockJson.type === "set_sky_color") {
-        clearSkyMesh();
-        setClearSkyToBlack();
+        if (activeControllerBlockId === blockJson.id) {
+          clearSkyMesh();
+          const ws = Blockly.getMainWorkspace();
+          const nextSkyBlock = ws
+            ?.getAllBlocks(false)
+            .find(
+              (b) =>
+                (b.type === "set_sky_color" ||
+                  b.type === "set_background_color") &&
+                b.id !== blockJson.id &&
+                b.isEnabled() &&
+                b.getParent(),
+            );
+          if (nextSkyBlock)
+            updateOrCreateMeshFromBlock(
+              nextSkyBlock,
+              makeRestoreEvent(nextSkyBlock),
+            );
+          else setClearSkyToBlack();
+        }
       }
 
       // Check inputs for child blocks
@@ -159,9 +312,7 @@ export function handleMeshLifecycleChange(block, changeEvent) {
 
     if (!isDisabling) {
       setTimeout(() => {
-        const stillExists = Blockly.getMainWorkspace()?.getBlockById?.(
-          block.id,
-        );
+        const stillExists = block.workspace?.getBlockById?.(block.id);
 
         if (stillExists) {
           updateOrCreateMeshFromBlock(block, changeEvent);
@@ -169,10 +320,11 @@ export function handleMeshLifecycleChange(block, changeEvent) {
       }, 0);
     } else {
       deleteMeshFromBlock(block.id);
-      if (block.type === "set_background_color") {
-        clearSkyMesh();
-        setClearSkyToBlack();
-      } else if (block.type === "set_sky_color") {
+      if (
+        (block.type === "set_background_color" ||
+          block.type === "set_sky_color") &&
+        getActiveSceneControllerBlockId() === block.id
+      ) {
         clearSkyMesh();
         setClearSkyToBlack();
       }
@@ -182,14 +334,17 @@ export function handleMeshLifecycleChange(block, changeEvent) {
 
   if (
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-    Blockly.getMainWorkspace().getBlockById(block.id)
+    block.workspace.getBlockById(block.id)
   ) {
     const createdBlockIds = Array.isArray(changeEvent.ids)
       ? changeEvent.ids
       : [changeEvent.blockId];
 
     if (!createdBlockIds.includes(block.id)) return false;
-    if (window.loadingCode) return true;
+    // Skip mesh creation when loading saved code (recordUndo=false).
+    // But allow it when the user drops a block/snippet (recordUndo=true),
+    // even if loadingCode is true (e.g. while the Snippets flyout is open).
+    if (window.loadingCode && !changeEvent.recordUndo) return true;
     updateOrCreateMeshFromBlock(block, changeEvent);
     return true;
   }
@@ -251,7 +406,7 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
   )
     return false;
 
-  const ws = Blockly.getMainWorkspace();
+  const ws = containerBlock.workspace;
   const changedBlocks =
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
     Array.isArray(changeEvent.ids)
@@ -278,7 +433,6 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
 
 export function findCreateBlock(block) {
   if (!block || typeof block.getParent !== "function") {
-    //console.log("no id");
     return null;
   }
 
@@ -316,8 +470,14 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
     nextVariableIndexes,
   );
 
-  // Handle lifecycle events like enable/disable/move on the block directly
-  if (changeEvent.blockId === block.id) {
+  // Handle lifecycle events like enable/disable/move on the block directly.
+  // Also handle BLOCK_CREATE events where this block is in the created ids
+  // (e.g. when the block is nested inside a snippet's root block).
+  const isThisBlockCreated =
+    changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+    Array.isArray(changeEvent.ids) &&
+    changeEvent.ids.includes(block.id);
+  if (changeEvent.blockId === block.id || isThisBlockCreated) {
     if (handleMeshLifecycleChange(block, changeEvent)) return;
   }
 
@@ -325,26 +485,23 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
   if (handleFieldOrChildChange(block, changeEvent)) return;
 
   // Handle BLOCK_CREATE or BLOCK_CHANGE if a child is attached
+  const ws = block.workspace;
   if (
     (changeEvent.type === Blockly.Events.BLOCK_CREATE ||
       changeEvent.type === Blockly.Events.BLOCK_CHANGE ||
       changeEvent.type === Blockly.Events.BLOCK_MOVE) &&
-    changeEvent.workspaceId === Blockly.getMainWorkspace().id
+    changeEvent.workspaceId === ws.id
   ) {
     if (flock.blockDebug)
       console.log("The changed block is", changeEvent.block);
     if (flock.blockDebug)
       console.log("The changed block is", changeEvent.blockId);
-    const changedBlock = Blockly.getMainWorkspace().getBlockById(
-      changeEvent.blockId,
-    );
+    const changedBlock = ws.getBlockById(changeEvent.blockId);
 
     const createdBlocks =
       changeEvent.type === Blockly.Events.BLOCK_CREATE &&
       Array.isArray(changeEvent.ids)
-        ? changeEvent.ids
-            .map((id) => Blockly.getMainWorkspace().getBlockById(id))
-            .filter(Boolean)
+        ? changeEvent.ids.map((id) => ws.getBlockById(id)).filter(Boolean)
         : [changedBlock].filter(Boolean);
 
     if (!createdBlocks.length) {
@@ -368,7 +525,6 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
         );
     }
     if (flock.blockDebug) console.log("This block is", block.id);
-    // if (flock.blockDebug) console.log("The parent is", parent);
     if (flock.blockDebug) console.log("The type of this block is", block.type);
     if (
       changedBlock &&
@@ -376,9 +532,7 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
       isValueInputDescendantOf(block, changedBlock)
     ) {
       // Only configuration inputs (value-input subtree) affect preview mesh; runtime statement blocks do not.
-      const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-        block.id,
-      );
+      const blockInWorkspace = ws.getBlockById(block.id);
       if (blockInWorkspace) {
         updateOrCreateMeshFromBlock(block, changeEvent);
       }
@@ -409,9 +563,10 @@ function isVariableUsedElsewhere(
   varId,
   excludingBlockId,
   BlocklyNS,
+  allBlocks,
 ) {
   if (!varId) return false;
-  const blocks = workspace.getAllBlocks(false);
+  const blocks = allBlocks ?? workspace.getAllBlocks(false);
   for (const b of blocks) {
     if (b.id === excludingBlockId) continue;
     const fields = getVariableFieldsOnBlock(b, BlocklyNS);
@@ -422,7 +577,7 @@ function isVariableUsedElsewhere(
   return false;
 }
 
-function getFieldVariableType(block, fieldName, BlocklyNS) {
+function getFieldVariableType(block, fieldName) {
   const field = block.getField(fieldName);
   if (!field) return "";
   const model =
@@ -440,9 +595,25 @@ function parseNumericSuffix(name, prefix) {
   return parseInt(rest, 10);
 }
 
+function deriveVariableNameParts(name, fallbackPrefix) {
+  if (typeof name !== "string" || !name.length) {
+    return { prefix: fallbackPrefix, suffix: null };
+  }
+  const numberMatch = name.match(/^(.*?)(\d+)$/);
+  if (numberMatch) {
+    const base = numberMatch[1];
+    const suffix = parseInt(numberMatch[2], 10);
+    return {
+      prefix: base || fallbackPrefix,
+      suffix: Number.isFinite(suffix) ? suffix : null,
+    };
+  }
+  return { prefix: name, suffix: null };
+}
+
 function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
-  // Pick the smallest available suffix >= 1
-  let n = 1;
+  // Pick the smallest available suffix, starting from the tracked counter.
+  let n = nextVariableIndexes[prefix] || 1;
   while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
 
   // Update the counter
@@ -523,18 +694,6 @@ function buildDescendantIdSet(rootBlock) {
   return set;
 }
 
-function countVarUses(workspace, varId, BlocklyNS) {
-  let count = 0;
-  const blocks = workspace.getAllBlocks(false);
-  for (const b of blocks) {
-    const fields = getVariableFieldsOnBlock(b, BlocklyNS);
-    for (const f of fields) {
-      if (f.getValue && f.getValue() === varId) count++;
-    }
-  }
-  return count;
-}
-
 function adoptIsolatedDefaultVarsTo(
   rootBlock,
   toVarId,
@@ -543,9 +702,26 @@ function adoptIsolatedDefaultVarsTo(
   workspace,
   BlocklyNS,
   createdIds,
+  allBlocks,
 ) {
   const descendantIds = buildDescendantIdSet(rootBlock);
   let adopted = 0;
+
+  // Single O(n) pass over all workspace blocks to build:
+  //   varCountMap  – total field-reference count per varId (for orphan detection)
+  //   outsideVarIds – varIds referenced by at least one block outside the subtree
+  // This replaces the O(d×n) pattern of calling getAllBlocks inside the inner loop.
+  const varCountMap = new Map();
+  const outsideVarIds = new Set();
+  for (const bb of allBlocks ?? workspace.getAllBlocks(false)) {
+    const isOutside = !descendantIds.has(bb.id);
+    for (const f2 of getVariableFieldsOnBlock(bb, BlocklyNS)) {
+      const vid2 = f2.getValue && f2.getValue();
+      if (!vid2) continue;
+      varCountMap.set(vid2, (varCountMap.get(vid2) ?? 0) + 1);
+      if (isOutside) outsideVarIds.add(vid2);
+    }
+  }
 
   function collectInputDescendants(block) {
     const descendants = [];
@@ -572,32 +748,21 @@ function adoptIsolatedDefaultVarsTo(
       if (!typeOk) continue;
       if (!model.name || !model.name.startsWith(prefix)) continue;
 
-      // ensure all uses are within subtree
-      let usedOutside = false;
-      const allBlocks = workspace.getAllBlocks(false);
-      for (const bb of allBlocks) {
-        const fields2 = getVariableFieldsOnBlock(bb, BlocklyNS);
-        for (const f2 of fields2) {
-          if (f2.getValue && f2.getValue() === vid) {
-            if (!descendantIds.has(bb.id)) {
-              usedOutside = true;
-              break;
-            }
-          }
-        }
-        if (usedOutside) break;
-      }
-      if (usedOutside) continue;
+      // O(1) containment check using the pre-built set
+      if (outsideVarIds.has(vid)) continue;
 
       f.setValue(toVarId);
       adopted++;
 
-      // clean up orphan if now unused
-      if (countVarUses(workspace, vid, BlocklyNS) === 0) {
+      // Decrement count to reflect the field no longer referencing vid,
+      // then clean up the variable if it is now completely unreferenced.
+      const remaining = (varCountMap.get(vid) ?? 1) - 1;
+      varCountMap.set(vid, remaining);
+      if (remaining === 0) {
         try {
           workspace.deleteVariableById(vid);
-        } catch (_) {
-          /* ignore */
+        } catch (error) {
+          console.warn("Failed to delete unreferenced variable by id:", error);
         }
       }
     }
@@ -611,54 +776,6 @@ function lowestAvailableSuffix(workspace, prefix, type) {
   let n = 1;
   while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
   return n;
-}
-
-/** Compute the max numeric suffix currently present for prefix (type-scoped). */
-function maxExistingSuffix(workspace, prefix, type) {
-  let max = 0;
-  const vars = type
-    ? workspace.getVariablesOfType(type)
-    : workspace.getAllVariables();
-  for (const v of vars) {
-    const n = parseNumericSuffix(v.name, prefix);
-    if (n && n > max) max = n;
-  }
-  return max;
-}
-
-/**
- * After adoption, normalize the creator variable's NAME to the LOWEST free suffix.
- * Then recompute nextVariableIndexes[prefix] = maxSuffix + 1.
- */
-function normalizeVarNameAndIndex(
-  workspace,
-  varId,
-  prefix,
-  type,
-  nextVariableIndexes,
-  opts = {},
-) {
-  const model = workspace.getVariableById(varId);
-  if (!model) return;
-
-  const currentSuffix = parseNumericSuffix(model.name, prefix);
-  const targetSuffix = lowestAvailableSuffix(workspace, prefix, type);
-
-  // If our current name isn't the lowest available, and the lowest is different, rename.
-  if (targetSuffix && targetSuffix !== currentSuffix) {
-    try {
-      workspace
-        .getVariableMap()
-        .renameVariable(model, `${prefix}${targetSuffix}`);
-    } catch (_) {
-      /* ignore rename failures */
-    }
-  }
-
-  if (opts.updateIndex !== false) {
-    const maxSuffix = maxExistingSuffix(workspace, prefix, type);
-    nextVariableIndexes[prefix] = maxSuffix + 1;
-  }
 }
 
 export function ensureFreshVarOnDuplicate(
@@ -719,9 +836,22 @@ export function ensureFreshVarOnDuplicate(
 
   const oldVarId = idField.getValue && idField.getValue();
   if (!oldVarId) return false;
+  const oldVarModel = ws.getVariableById(oldVarId);
+  const { prefix: duplicatePrefix, suffix: duplicateSuffix } =
+    deriveVariableNameParts(oldVarModel?.name, variableNamePrefix);
+
+  if (Number.isInteger(duplicateSuffix)) {
+    const nextFromSource = duplicateSuffix + 1;
+    nextVariableIndexes[duplicatePrefix] = Math.max(
+      nextVariableIndexes[duplicatePrefix] || 1,
+      nextFromSource,
+    );
+  }
 
   // Duplicate/copy/duplicate-parent case?
-  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS)) return false;
+  const allBlocks = ws.getAllBlocks(false);
+  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS, allBlocks))
+    return false;
 
   const varType = getFieldVariableType(block, fieldName, BlocklyNS);
   const group = changeEvent.group || `auto-split-${block.id}-${Date.now()}`;
@@ -736,7 +866,7 @@ export function ensureFreshVarOnDuplicate(
     // Mint a new var with the *lowest* available suffix now.
     const newVarModel = createFreshVariable(
       ws,
-      variableNamePrefix,
+      duplicatePrefix,
       varType,
       nextVariableIndexes,
     );
@@ -762,10 +892,11 @@ export function ensureFreshVarOnDuplicate(
       block,
       newVarId,
       varType,
-      variableNamePrefix,
+      duplicatePrefix,
       ws,
       BlocklyNS,
       createdIds,
+      allBlocks,
     );
 
     // If more children will connect later, remember to finish on subsequent events.
@@ -773,7 +904,7 @@ export function ensureFreshVarOnDuplicate(
       from: oldVarId,
       to: newVarId,
       type: varType,
-      prefix: variableNamePrefix,
+      prefix: duplicatePrefix,
       createdIds: createdIds,
     });
     return true;
@@ -781,7 +912,6 @@ export function ensureFreshVarOnDuplicate(
     BlocklyNS.Events.enable();
     BlocklyNS.Events.setGroup(false);
   }
-  return false;
 }
 
 /*
@@ -1058,27 +1188,11 @@ export const options = {
   // Auto focus the workspace when the mouse enters.
   workspaceAutoFocus: true,
 
-  // Use custom icon for the multi select controls.
-  multiselectIcon: {
-    hideIcon: true,
-    weight: 3,
-    enabledIcon:
-      "https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/select.svg",
-    disabledIcon:
-      "https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/unselect.svg",
-  },
-
-  multiSelectKeys: ["Shift"],
-
-  multiselectCopyPaste: {
-    crossTab: true,
-    menu: true,
-  },
   comments: true,
 };
 
 export function initializeVariableIndexes() {
-  nextVariableIndexes = {
+  nextVariableIndexes = Object.assign(Object.create(null), {
     model: 1,
     box: 1,
     sphere: 1,
@@ -1105,7 +1219,7 @@ export function initializeVariableIndexes() {
     subtracted: 1,
     intersection: 1,
     hull: 1,
-  };
+  });
 
   const workspace = Blockly.getMainWorkspace();
 
@@ -1202,14 +1316,12 @@ export function defineBlocks() {
           "Create a wall with the selected type and color between specified start and end positions.\nKeyword: wall",
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setOnChange((changeEvent) => {
+      registerBlockHandler(this, (changeEvent) => {
         if (
           changeEvent.type === Blockly.Events.BLOCK_CREATE ||
           changeEvent.type === Blockly.Events.BLOCK_CHANGE
         ) {
-          const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id,
-          ); // Check if block is in the main workspace
+          const blockInWorkspace = this.workspace?.getBlockById(this.id); // Check if block is in the main workspace
 
           if (blockInWorkspace) {
             window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
@@ -1228,7 +1340,7 @@ export function defineBlocks() {
 
   Blockly.Extensions.register("dynamic_mesh_dropdown", function () {
     const dropdown = new Blockly.FieldDropdown(function () {
-      const options = [["everywhere", "__everywhere__"]];
+      const options = [[translate("everywhere_option"), "__everywhere__"]];
       const workspace = this.sourceBlock_ && this.sourceBlock_.workspace;
       if (workspace) {
         const variables = workspace.getVariableMap().getAllVariables();
@@ -1407,6 +1519,22 @@ export function defineBlocks() {
     },
   };
 
+  function focusResolvedKeywordBlock(block) {
+    const previouslySelected = Blockly.common?.getSelected?.();
+    if (previouslySelected && previouslySelected !== block) {
+      previouslySelected.unselect?.();
+    }
+
+    Blockly.common?.setSelected?.(block);
+    Blockly.getFocusManager?.()?.focusNode?.(block);
+    block.select?.();
+    block.workspace?.getCursor?.()?.setCurNode?.(block);
+
+    const focusableElement =
+      block.getFocusableElement?.() || block.getSvgRoot?.();
+    focusableElement?.focus?.({ preventScroll: true });
+  }
+
   Blockly.Blocks["keyword_block"] = {
     init: function () {
       this.appendDummyInput().appendField(
@@ -1416,30 +1544,25 @@ export function defineBlocks() {
       this.setTooltip("Type a keyword to change this block.");
       this.setHelpUrl(getHelpUrlFor(this.type));
 
-      this.setOnChange(function (changeEvent) {
+      this.setOnChange(function () {
         // Prevent infinite loops or multiple replacements.
         if (this.isDisposed() || this.isReplaced) {
           return;
         }
         // Get the entered keyword.
         const keyword = this.getFieldValue("KEYWORD").trim();
-        // Lookup the new block type based on the keyword.
-        const blockType = findBlockTypeByKeyword(keyword);
-        if (blockType) {
+        // Lookup the exact toolbox definition based on the keyword.
+        const blockDefinition = findBlockDefinitionByKeyword(keyword);
+        if (blockDefinition?.type) {
           // Mark the block as replaced.
           this.isReplaced = true;
           const workspace = this.workspace;
           // Create the new block.
-          const newBlock = workspace.newBlock(blockType);
-
-          // Apply toolbox settings if defined.
-          const blockDefinition = findBlockDefinitionInToolbox(blockType);
-          if (blockDefinition && blockDefinition.inputs) {
-            applyToolboxSettings(newBlock, blockDefinition.inputs);
-          }
+          const newBlock = workspace.newBlock(blockDefinition.type);
 
           newBlock.initSvg();
           newBlock.render();
+          applyBlockDefinition(newBlock, blockDefinition);
 
           // Position the new block where the old keyword block is.
           const pos = this.getRelativeToSurfaceXY();
@@ -1458,20 +1581,25 @@ export function defineBlocks() {
 
           // Reattach any block that was connected to the keyword block's next connection.
           const nextBlock = this.getNextBlock();
-          if (nextBlock && newBlock.nextConnection) {
-            newBlock.nextConnection.connect(nextBlock.previousConnection);
+          if (nextBlock) {
+            let tailBlock = newBlock;
+            while (tailBlock.getNextBlock?.()) {
+              tailBlock = tailBlock.getNextBlock();
+            }
+
+            if (tailBlock.nextConnection) {
+              tailBlock.nextConnection.connect(nextBlock.previousConnection);
+            }
           }
 
-          // Select the new block for immediate editing.
-          const selectedBlock = Blockly.getSelected();
-          if (selectedBlock) {
-            selectedBlock.unselect();
-          }
-          newBlock.select();
           window.currentBlock = newBlock;
 
           // Dispose of the old keyword block.
           this.dispose();
+
+          requestAnimationFrame(() => {
+            focusResolvedKeywordBlock(newBlock);
+          });
         }
       });
     },
@@ -1487,40 +1615,15 @@ export function defineBlocks() {
     },
   };
 
-  function findBlockTypeByKeyword(keyword) {
+  function findBlockDefinitionByKeyword(keyword) {
     // Recursive helper to search through a contents array.
     function searchContents(contents) {
       if (!Array.isArray(contents)) {
         return null;
       }
       for (const item of contents) {
-        // If this item is a block with the matching keyword, return its type.
+        // If this item is a block with the matching keyword, return its definition.
         if (item.kind === "block" && item.keyword === keyword) {
-          return item.type;
-        }
-        // If the item is a category with its own contents, search recursively.
-        if (item.kind === "category" && Array.isArray(item.contents)) {
-          const result = searchContents(item.contents);
-          if (result !== null) {
-            return result;
-          }
-        }
-      }
-      return null;
-    }
-    return searchContents(toolbox.contents);
-  }
-
-  // Function to find block definition in the toolbox by block type
-  function findBlockDefinitionInToolbox(blockType) {
-    // Recursive helper to search through a contents array.
-    function searchContents(contents) {
-      if (!Array.isArray(contents)) {
-        return null;
-      }
-      for (const item of contents) {
-        // If this item is a block with the matching type, return its definition.
-        if (item.kind === "block" && item.type === blockType) {
           return item;
         }
         // If the item is a category with its own contents, search recursively.
@@ -1536,26 +1639,123 @@ export function defineBlocks() {
     return searchContents(toolbox.contents);
   }
 
+  function applyBlockDefinition(block, definition) {
+    if (!block || !definition) {
+      return;
+    }
+
+    if (definition.extraState && block.loadExtraState) {
+      block.loadExtraState(definition.extraState);
+    }
+
+    if (
+      typeof definition.inline === "boolean" &&
+      typeof block.setInputsInline === "function"
+    ) {
+      block.setInputsInline(definition.inline);
+    }
+
+    if (definition.fields) {
+      for (const fieldName in definition.fields) {
+        const fieldValue = definition.fields[fieldName];
+        const field = block.getField?.(fieldName);
+
+        if (
+          typeof fieldValue === "string" ||
+          typeof fieldValue === "number" ||
+          typeof fieldValue === "boolean"
+        ) {
+          block.setFieldValue(fieldValue, fieldName);
+          continue;
+        }
+
+        if (!fieldValue || typeof fieldValue !== "object") {
+          continue;
+        }
+
+        if (
+          typeof block.setVariableFieldValue === "function" &&
+          typeof fieldValue.name === "string"
+        ) {
+          block.setVariableFieldValue(fieldValue.name, fieldName);
+          continue;
+        }
+
+        if (typeof field?.loadState === "function") {
+          field.loadState(fieldValue);
+          continue;
+        }
+
+        if (fieldValue.id && typeof block.setFieldValue === "function") {
+          block.setFieldValue(fieldValue.id, fieldName);
+          continue;
+        }
+
+        if (fieldValue.name && typeof block.setFieldValue === "function") {
+          block.setFieldValue(fieldValue.name, fieldName);
+        }
+      }
+    }
+
+    if (definition.inputs) {
+      applyToolboxSettings(block, definition.inputs);
+    }
+
+    if (definition.next?.block && block.nextConnection) {
+      const nextDefinition = definition.next.block;
+      const nextBlock = block.workspace.newBlock(nextDefinition.type);
+      nextBlock.initSvg();
+      nextBlock.render();
+      applyBlockDefinition(nextBlock, nextDefinition);
+
+      if (nextBlock.previousConnection) {
+        block.nextConnection.connect(nextBlock.previousConnection);
+      } else {
+        nextBlock.dispose();
+      }
+    }
+
+    block.render?.();
+  }
+
+  function connectToolboxBlock(targetBlock, inputName, definition, asShadow) {
+    if (!definition?.type) {
+      return;
+    }
+
+    const input = targetBlock.getInput(inputName);
+    const connection = input?.connection;
+    if (!connection) {
+      return;
+    }
+
+    const childBlock = targetBlock.workspace.newBlock(definition.type);
+    if (asShadow) {
+      childBlock.setShadow(true);
+    }
+
+    childBlock.initSvg();
+    childBlock.render();
+    applyBlockDefinition(childBlock, definition);
+
+    const childConnection =
+      childBlock.outputConnection || childBlock.previousConnection;
+    if (!childConnection) {
+      childBlock.dispose();
+      return;
+    }
+
+    connection.connect(childConnection);
+  }
+
   // Function to apply settings from the toolbox definition to the new block
   function applyToolboxSettings(newBlock, inputs) {
     for (const inputName in inputs) {
       const input = inputs[inputName];
-      if (input.shadow) {
-        const shadowBlock = Blockly.getMainWorkspace().newBlock(
-          input.shadow.type,
-        );
-        shadowBlock.setShadow(true);
-        // Apply fields (default values) to the shadow block
-        for (const fieldName in input.shadow.fields) {
-          shadowBlock.setFieldValue(input.shadow.fields[fieldName], fieldName);
-        }
-        shadowBlock.initSvg();
-        shadowBlock.render();
-        newBlock
-          .getInput(inputName)
-          .connection.connect(shadowBlock.outputConnection);
-
-        Blockly.getMainWorkspace().cleanUp();
+      if (input.block) {
+        connectToolboxBlock(newBlock, inputName, input.block, false);
+      } else if (input.shadow) {
+        connectToolboxBlock(newBlock, inputName, input.shadow, true);
       }
     }
   }

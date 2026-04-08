@@ -157,9 +157,9 @@ export default {
   number_keyframe: "en: %1 valor: %2", // human
   xyz_keyframe: "en: %1 x: %2 y: %3 z: %4", // human
   animate_keyframes:
-    "animar fotogramas clave en %1 propiedad %2\nfotogramas clave %3\nsuavizado %4 repetir %5 invertir %6 %7", // human
+    "animar fotogramas clave en %1 propiedad %2\nfotogramas clave %3\nsuavizado %4 invertir %5 repetir %6 %7", // human
   animation:
-    "animar fotogramas clave en %1 propiedad %2 grupo %3\nfotogramas clave %4\nsuavizado %5 repetir %6 invertir %7 modo %8", // human
+    "animar fotogramas clave en %1 propiedad %2 grupo %3\nfotogramas clave %4\nsuavizado %5 invertir %6 repetir %7 modo %8", // human
   control_animation_group: "grupo de animación %1 %2", // human
   animate_from: "animar grupo %1 desde %2 segundos", // human
   stop_animations: "parar animaciones %1", // human
@@ -277,6 +277,8 @@ export default {
   create_plane: "añadir plano %1 %2 ancho: %3 alto: %4 \nen x: %5 y: %6 z: %7", // human
 
   // Custom block translations - Sound blocks
+  play_theme:
+    "reproducir tema %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7", // ai
   play_sound:
     "reproducir sonido %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7", // human
   stop_all_sounds: "parar todos los sonidos", // human
@@ -287,7 +289,7 @@ export default {
   set_scene_bpm: "establecer BPM de la escena a %1", // human
   set_mesh_bpm: "establecer BPM de %1 a %2", // human
   create_instrument:
-    "instrumento %1 onda: %2 frecuencia: %3 ataque: %4 decaimiento: %5 sostenido: %6 liberación: %7", // human
+    "instrumento %1 onda: %2\nvolumen: %3 efecto: %4 velocidad: %5 profundidad: %6\nataque: %7 decaimiento: %8 sostenido: %9 liberación: %10", // ai
   instrument: "instrumento %1", // human
   speak:
     "hablar %1 %2 voz: %3 idioma: %4\nvelocidad: %5 tono: %6 volumen: %7 modo: %8", // human
@@ -332,7 +334,8 @@ export default {
   set_xr_mode: "establecer modo XR a %1", // human
   play_rumble_pattern: "reproducir patrón de vibración %1", // ai
   controller_rumble: "vibrar motor %1 con fuerza %2 durante %3 ms", // ai
-  controller_rumble_pattern: "vibrar motor %1 fuerza %2 encendido %3 ms apagado %4 ms %5 veces", // ai
+  controller_rumble_pattern:
+    "vibrar motor %1 fuerza %2 encendido %3 ms apagado %4 ms %5 veces", // ai
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "lista", // human
@@ -364,12 +367,12 @@ export default {
     "Establece el color de fondo de las escenas.\nPalabra clave: background", // human
   create_map_tooltip:
     "Crea un mapa con el nombre y matieral seleccionado.\nPalabra clave: mapa", // human
-  show_tooltip: "mostrar la malla seleccionada.\nPalabra clave: mostrar", // human
-  hide_tooltip: "Ocultar la malla seleccionado.\nPalabra clave: Oculater", // human
+  show_tooltip: "mostrar el objeto seleccionado.\nPalabra clave: mostrar", // human
+  hide_tooltip: "Ocultar el objeto seleccionado.\nPalabra clave: Oculater", // human
   dispose_tooltip:
-    "Eliminar la malla especificada de la escena.\nPalabra clave: disponer", // human
+    "Eliminar el objeto especificado de la escena.\nPalabra clave: disponer", // human
   clone_mesh_tooltip:
-    "clonar una malla y asignrla a una variable.\nPalabra clave: clonar", // human
+    "clonar un objeto y asignrla a una variable.\nPalabra clave: clonar", // human
 
   // Tooltip translations - Models blocks
   load_character_tooltip:
@@ -385,33 +388,33 @@ export default {
   glide_to_seconds_tooltip:
     "Deslízate a una posición especificada durante una duración, con opciones para inversión, bucle y facilidando.", // human
   glide_to_object_tooltip:
-    "Deslízate a la posición de otra malla con desplazamientos x/y/z opcionales (0 por defecto) y opciones de invertir, bucle y facilidando.", // human
+    "Deslízate a la posición de otro objeto con desplazamientos x/y/z opcionales (0 por defecto) y opciones de invertir, bucle y facilidando.", // human
   rotate_anim_tooltip:
-    "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y facilidando.", // human
+    "Rota un objeto a ángulos determinados durante una duración, con opciones de inversión, bucle y facilidando.", // human
   rotate_anim_seconds_tooltip:
-    "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y facilidando.", // human
+    "Rota un objeto a ángulos determinados durante una duración, con opciones de inversión, bucle y facilidando.", // human
   rotate_to_object_tooltip:
-    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
+    "Gira un objeto hacia otro u iguala la rotación de ese objeto durante una duración, con opciones para invertir, repetir y suavizado.",
   animate_property_tooltip:
-    "Anima una propiedad de material de la malla y sus hijos.", // human
+    "Anima una propiedad de material del objeto y sus hijos.", // human
   colour_keyframe_tooltip: "Establece un fotograma clave de color y duración.", // human
   number_keyframe_tooltip:
     "Establece un fotograma clave numérico con duración.", // human
   xyz_keyframe_tooltip: "Establece un fotograma clave XYZ con duración.", // human
   animate_keyframes_tooltip:
-    "Anima un conjunto de fotogramas clave en la malla seleccionada, con facilidando, bucle opcional e inversión.", // human
+    "Anima un conjunto de fotogramas clave en el objeto seleccionado, con facilidando, bucle opcional e inversión.", // human
   animation_tooltip:
-    "Crea un grupo de animación para la malla y propiedad seleccionadas, con fotogramas clave, facilidando, bucle e inversión opcionales. Escoje crear, iniciar o esperar para controlar el comportamiento.", // human
+    "Crea un grupo de animación para el objeto y propiedad seleccionadas, con fotogramas clave, facilidando, bucle e inversión opcionales. Escoje crear, iniciar o esperar para controlar el comportamiento.", // human
   control_animation_group_tooltip:
     "Controla el grupo de animación reproduciéndolo, pausándolo o parandolo.", // human
   animate_from_tooltip:
     "Comienza a animar el grupo desde el tiempo especificado (en segundos).", // human
   stop_animations_tooltip:
-    "Para todas las animaciones de fotogramas clave en la malla seleccionada.\nPalabra clave: para", // human
+    "Para todas las animaciones de fotogramas clave en el objeto seleccionado.\nPalabra clave: para", // human
   switch_animation_tooltip:
-    "Cambia la animación de la malla indicada a la animación dada.\nPalabra clave: cambia", // human
+    "Cambia la animación del objeto indicado a la animación dada.\nPalabra clave: cambia", // human
   play_animation_tooltip:
-    "Reproduce la animación seleccionada una vez en la malla indicada.\nPalabra clave: Reproduce", // human
+    "Reproduce la animación seleccionada una vez en el objeto indicado.\nPalabra clave: Reproduce", // human
 
   // Tooltip translations - Base blocks
   xyz_tooltip: "Crea un vector con coordenadas X, Y, Z", // human
@@ -420,36 +423,36 @@ export default {
   camera_control_tooltip:
     "Asocia una tecla específica a una acción de control de cámara.", // human
   camera_follow_tooltip:
-    "Haz que la cámara siga una malla con una distancia personalizable (radio) al objetivo.\nPalabra clave: Sigue", // human
+    "Haz que la cámara siga un objeto con una distancia personalizable (radio) al objetivo.\nPalabra clave: Sigue", // human
   get_camera_tooltip: "Obtén la cámara actual de la escena", // human
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip:
-    "Fusiona una lista de mallas en uno y almacena el resultado.\nPalabra clave: fusiona", // human
+    "Fusiona una lista de objetos en uno y almacena el resultado.\nPalabra clave: fusiona", // human
   subtract_meshes_tooltip:
-    "Resta una lista de mallas de una malla base y almacena el resultado.\nPalabra clave: Resta", // human
+    "Resta una lista de objetos de un objeto base y almacena el resultado.\nPalabra clave: Resta", // human
   intersection_meshes_tooltip:
-    "Intersecta una lista de mallas y almacena la geometría resultante.\nPalabra clave: intersecta", // human
+    "Intersecta una lista de objetos y almacena la geometría resultante.\nPalabra clave: intersecta", // human
   hull_meshes_tooltip:
-    "Crea una envolvente convexa de una lista de mallas y almacena el resultado.\nPalabra clave: envolvente", // human
+    "Crea una envolvente convexa de una lista de objetos y almacena el resultado.\nPalabra clave: envolvente", // human
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    "Establece relación padre‑hijo entre dos mallas conservando la posición mundial del hijo.\nPalabra clave: padre", // human
+    "Establece relación padre‑hijo entre dos objetos conservando la posición mundial del hijo.\nPalabra clave: padre", // human
   parent_child_tooltip:
-    "Establece relación padre‑hijo entre dos mallas con desplazamiento en la dirección x, y, y z.\nPalabra clave: hijo", // human
+    "Establece relación padre‑hijo entre dos objetos con desplazamiento en la dirección x, y, y z.\nPalabra clave: hijo", // human
   remove_parent_tooltip:
-    "Elimina la relación de paternidad de la malla especificada.\nPalabra clave: elimina", // human
+    "Elimina la relación de paternidad del objeto especificado.\nPalabra clave: elimina", // human
   stop_follow_tooltip:
-    "Prevenir que la malla especificada siga a otra.\nPalabra clave: paraseguir", // human
+    "Prevenir que el objeto especificado siga a otro.\nPalabra clave: paraseguir", // human
   hold_tooltip:
-    "Adjuntar una malla al hueso especificado de otra con desplazamiento en x, y, z.\nPalabra clave: sostenga", // human
+    "Adjuntar un objeto al hueso especificado de otro con desplazamiento en x, y, z.\nPalabra clave: sostenga", // human
   drop_tooltip:
-    "Desprende una malla del hueso al que está adjunta.\nPalabra clave: soltar", // human
+    "Desprende un objeto del hueso al que está adjunto.\nPalabra clave: soltar", // human
   follow_tooltip:
-    "Haz que una malla siga a otra en una posición especificada (arriba, centro o abajo) con desplazamiento en dirección x, y, y z.\nPalabra clave: siigue", // human
+    "Haz que un objeto siga a otro en una posición especificada (arriba, centro o abajo) con desplazamiento en dirección x, y, y z.\nPalabra clave: siigue", // human
   export_mesh_tooltip:
-    "Exporta una malla en STL, OBJ o GLB.\nPalabra clave: exporta", // human
+    "Exporta un objeto en STL, OBJ o GLB.\nPalabra clave: exporta", // human
 
   // Tooltip translations - Control blocks
   wait_tooltip:
@@ -480,9 +483,9 @@ export default {
   forever_tooltip:
     "Ejecuta los bloques dentro de cada fotograma o tras finalizar la iteración anterior.\nPalabra clave: para siempre", // human
   when_clicked_tooltip:
-    "Ejecuta los bloques en el interior cuando active la malla.\nPalabra clave: clic", // human
+    "Ejecuta los bloques en el interior cuando active el objeto.\nPalabra clave: clic", // human
   on_collision_tooltip:
-    "Ejecuta los bloques internos cuando una malla intersecta o deja de intersectar otra.\nPalabra clave: chocar", // human
+    "Ejecuta los bloques internos cuando un objeto intersecta o deja de intersectar otro.\nPalabra clave: chocar", // human
   when_key_event_tooltip:
     "Ejecuta los bloques internos cuando la tecla especificada se pulsa o se suelta.", // human
   when_action_event_tooltip:
@@ -494,23 +497,23 @@ export default {
 
   // Tooltip translations - Materials blocks
   change_color_tooltip:
-    "Cambia el color de la malla seleccionada.\nPalabra clave: color", // human
+    "Cambia el color del objeto seleccionado.\nPalabra clave: color", // human
   change_material_tooltip:
-    "Aplica un material seleccionado con tinte de color a la malla especificada.\nPalabra clave: material", // human
+    "Aplica un material seleccionado con tinte de color al objeto especificado.\nPalabra clave: material", // human
   text_material_tooltip:
     "Crea un material con texto o emoji, especificando ancho, alto, color de fondo y tamaño de texto.", // human
   place_decal_tooltip:
-    "Coloca una calcomanía en una malla usando el material seleccionado.", // human
+    "Coloca una calcomanía en un objeto usando el material seleccionado.", // human
   decal_tooltip:
-    "Crea una calcomanía en una malla con posición, normal, tamaño y material.", // human
-  highlight_tooltip: "Resalta la malla seleccionada.\nPalabra clave: resalta", // human
+    "Crea una calcomanía en un objeto con posición, normal, tamaño y material.", // human
+  highlight_tooltip: "Resalta el objeto seleccionado.\nPalabra clave: resalta", // human
   glow_tooltip:
-    "Añade un efecto de resplandor a la malla seleccionada.\nPalabra clave: resplandor", // human
+    "Añade un efecto de resplandor al objeto seleccionado.\nPalabra clave: resplandor", // human
   tint_tooltip: "Añade un tinte de color.\nPalabra clave: tinte", // human
   set_alpha_tooltip:
-    "Establece el canal alfa (transparencia) del material de una malla. Valores entre 0 y 1.\nPalabra clave: alfa", // human
+    "Establece el canal alfa (transparencia) del material de un objeto. Valores entre 0 y 1.\nPalabra clave: alfa", // human
   clear_effects_tooltip:
-    "Elimina efectos visuales de la malla seleccionada.\nPalabra clave: elimina", // human
+    "Elimina efectos visuales del objeto seleccionado.\nPalabra clave: elimina", // human
   colour_tooltip: "Selecciona un color.\nPalabra clave: color", // human
   skin_colour_tooltip: "Selecciona un color de piel.\nPalabra clave: piel", // human
   greyscale_colour_tooltip:
@@ -520,15 +523,15 @@ export default {
   material_tooltip: "Define propiedades del material", // human
   gradient_material_tooltip: "Define propiedades del material (gradiente)", // human
   set_material_tooltip:
-    "Establecer el material especificado a la malla indicada.", // human
+    "Establecer el material especificado al objeto indicado.", // human
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
-    "Añade física a la malla. Opciones: dinámico, estático, animado o nada.\nPalabra clave: física", // human
+    "Añade física al objeto. Opciones: dinámico, estático, animado o nada.\nPalabra clave: física", // human
   add_physics_shape_tooltip:
-    "Añade una forma física a la malla. Opciones: malla o cápsula.\nPalabra clave: física", // human
+    "Añade una forma física al objeto. Opciones: objeto o cápsula.\nPalabra clave: física", // human
   apply_force_tooltip:
-    "Aplica una fuerza a una malla en direcciones XYZ.\nPalabra clave: fuerza", // human
+    "Aplica una fuerza a un objeto en direcciones XYZ.\nPalabra clave: fuerza", // human
   show_physics_tooltip:
     "Mostrar u ocultar colisionadores físicos para depuración. Marque para mostrar, desmarque para ocultar.\nPalabra clave: depuración de coliionador de física", // human
 
@@ -541,17 +544,17 @@ export default {
   set_action_key_tooltip:
     "Establece la tecla que activa una acción específica (adelante, atrás, izquierda, derecha o botones).", // ai
   meshes_touching_tooltip:
-    "Devuelve verdadero si las dos mallas seleccionadas se están tocando.\nPalabra clave: estántocando", // human
+    "Devuelve verdadero si los dos objetos seleccionados se están tocando.\nPalabra clave: estántocando", // human
   time_tooltip: "Devuelve el tiempo actual en segundos.", // human
   ground_level_tooltip:
     "Devuelve la altura del suelo en la posición x/z actual.", // human
-  distance_to_tooltip: "Calcula la distancia entre dos mallas.", // human
+  distance_to_tooltip: "Calcula la distancia entre dos objetos.", // human
   touching_surface_tooltip:
-    "Comprueba si la malla está tocando una superficie.\nPalabra clave: superficie", // human
+    "Comprueba si el objeto está tocando una superficie.\nPalabra clave: superficie", // human
   mesh_exists_tooltip:
-    "devuelve verdadero si la malla con este nombre está presente en la escena", // human
+    "devuelve verdadero si el objeto con este nombre está presente en la escena", // human
   get_property_tooltip:
-    "Obtiene el valor de la propiedad seleccionada de una malla.\nPalabra clave: obtiene", // human
+    "Obtiene el valor de la propiedad seleccionada de un objeto.\nPalabra clave: obtiene", // human
   canvas_controls_tooltip:
     "Añade o elimina controles de movimiento en el lienzo.\nPalabra clave: lienzo", // human
   button_controls_tooltip:
@@ -563,7 +566,7 @@ export default {
 
   // Tooltip translations - Shapes blocks
   create_particle_effect_tooltip:
-    "Crea un efecto de partículas conectado a una malla con forma, gravedad, tamaño, color, transparencia, duración, fuerza y rotación configurables.", // human
+    "Crea un efecto de partículas conectado a un objeto con forma, gravedad, tamaño, color, transparencia, duración, fuerza y rotación configurables.", // human
   control_particle_system_tooltip:
     "Controla el sistema de partículas iniciándolo, deteniéndolo o reiniciándolo.", // human
   create_box_tooltip:
@@ -578,16 +581,18 @@ export default {
     "Crea un plano 2D de color con ancho, alto y posición especificadas.\nPalabra clave: plano", // human
 
   // Tooltip translations - Sound blocks
+  play_theme_tooltip:
+    "Reproduce un tema musical en un objeto con velocidad, volumen y modo ajustables.\nPalabra clave: tema", // ai
   play_sound_tooltip:
-    "Reproduce el sonido seleccionado en una malla con velocidad, volumen y modo ajustables.\nPalabra clave: sonido", // human
+    "Reproduce el sonido seleccionado en un objeto con velocidad, volumen y modo ajustables.\nPalabra clave: sonido", // human
   stop_all_sounds_tooltip:
     "Para todos los sonidos que estén reproduciendo en la escena.\nPalabra clave: nosonido", // human
   midi_note_tooltip: "Un valor de nota MIDI entre 0 y 127.", // human
   rest_tooltip: "Un pausa (silencio) en una secuencia musical.", // human
   play_notes_tooltip:
-    "Reproduce una secuencia de notas y silencios MIDI con duraciones correspondientes, usando la malla para paneo. Puede devolver inmediatamente o al finalizar.", // human
+    "Reproduce una secuencia de notas y silencios MIDI con duraciones correspondientes, usando el objeto para paneo. Puede devolver inmediatamente o al finalizar.", // human
   set_scene_bpm_tooltip: "Establece el BPM para toda la escena.", // human
-  set_mesh_bpm_tooltip: "Establece el BPM para la malla seleccionada.", // human
+  set_mesh_bpm_tooltip: "Establece el BPM para el objeto seleccionado.", // human
   create_instrument_tooltip:
     "Crea un instrumento y lo asigna a la variable seleccionada.", // human
   instrument_tooltip: "Selecciona un instrumento para reproducir notas.", // human
@@ -599,9 +604,9 @@ export default {
     "Una línea de comentario para ayudar la comprensión de tu código.", // human
   print_text_tooltip: "Texto en el panel de salida.\nPalabra clave: imprimir", // human
   say_tooltip:
-    "Muestra un texto como burbuja de diálogo en una malla.\nPalabra clave: di", // human
+    "Muestra un texto como burbuja de diálogo en un objeto.\nPalabra clave: di", // human
   describe_tooltip:
-    "Establece el nombre visible de una malla. Actualiza los metadatos para accesibilidad.\nPalabra clave: describe", // ai
+    "Establece el nombre visible de un objeto. Actualiza los metadatos para accesibilidad.\nPalabra clave: describe", // ai
   ui_text_tooltip:
     "Añade texto a la pantalla UI y almacena el control en una variable para usar o eliminar luego.", // human
   ui_button_tooltip:
@@ -617,32 +622,32 @@ export default {
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
-    "Mueve una malla cierta cantidad en direcciones x, y, y z.\nPalabra clave: mueve", // human
+    "Mueve un objeto cierta cantidad en direcciones x, y, y z.\nPalabra clave: mueve", // human
   move_by_xyz_single_tooltip:
-    "Mueve una malla una cantidad en cualquiera dirección x, y, o z.\nPalabra clave: mueve", // human
+    "Mueve un objeto una cantidad en cualquiera dirección x, y, o z.\nPalabra clave: mueve", // human
   move_to_xyz_tooltip:
-    "Teletransporta la malla a las coordenadas. Opcionalmente, usa el eje Y.\nPalabra clave: muevepor", // human
+    "Teletransporta el objeto a las coordenadas. Opcionalmente, usa el eje Y.\nPalabra clave: muevepor", // human
   move_to_xyz_single_tooltip:
-    "Teletransporta la malla a la coordenada única especificada.\nPalabra clave: muevepor", // human
+    "Teletransporta el objeto a la coordenada única especificada.\nPalabra clave: muevepor", // human
   move_to_tooltip:
-    "Teletransporta la primera malla a la ubicación de la segunda.\nPalabra clave: muevea", // human
+    "Teletransporta el primer objeto a la ubicación del segundo.\nPalabra clave: muevea", // human
   scale_tooltip:
-    "Redimensiona una malla a los valores x, y, y z y controla el origen del escalado.\nPalabra clave: escala", // human
+    "Redimensiona un objeto a los valores x, y, y z y controla el origen del escalado.\nPalabra clave: escala", // human
   resize_tooltip:
-    "Redimensiona una malla a los valores x, y, y z y controla el origen del escalado.\nPalabra clave: redimensiona", // human
+    "Redimensiona un objeto a los valores x, y, y z y controla el origen del escalado.\nPalabra clave: redimensiona", // human
   rotate_model_xyz_tooltip:
-    "Rota la malla por los valores x, y, z indicados.\nPalabra clave: rota\nKeyword: rotapor", // human
+    "Rota el objeto por los valores x, y, z indicados.\nPalabra clave: rota\nKeyword: rotapor", // human
   rotate_to_tooltip:
-    "Rota la malla para q apunte hacia las coordenadas.\nPalabra clave: rotaa", // human
+    "Rota el objeto para q apunte hacia las coordenadas.\nPalabra clave: rotaa", // human
   look_at_tooltip:
-    "Rota la primera malla hacia la posición de la segunda.\nPalabra clave: mira", // human
+    "Rota el primer objeto hacia la posición de la segunda.\nPalabra clave: mira", // human
   move_forward_tooltip:
-    "Mueve la malla en la dirección especificada. 'adelante' sigue su dirección, 'al lado' lo mueve relativo a la posición de la cámara, y 'strafear' lo mueve al lado relative a la posición de la cámara.\nPalabra clave: empuja", // human
+    "Mueve el objeto en la dirección especificada. 'adelante' sigue su dirección, 'al lado' lo mueve relativo a la posición de la cámara, y 'strafear' lo mueve al lado relative a la posición de la cámara.\nPalabra clave: empuja", // human
   rotate_camera_tooltip:
     "Rota la cámara a la izquierda o derecha los grados indicados.\nPalabra clave: rotate", // ai
   up_tooltip: "Aplica la fuerza hacia arriba especificada.\nPalabra clave: up", // ai
   set_pivot_tooltip:
-    "Establece el punto de anclaje para una malla en los ejes X, Y, y Z.\nPalabra clave: ancla", // human
+    "Establece el punto de anclaje para un objeto en los ejes X, Y, y Z.\nPalabra clave: ancla", // human
   min_centre_max_tooltip:
     "Elige minimo, centro o maximo para el punto de pivote.\nPalabra clave: minmax", // human
 
@@ -810,7 +815,7 @@ export default {
   ANIMATED_option: "animado", // human
   STATIC_option: "estático", // human
 
-  MESH_option: "malla", // human
+  MESH_option: "objeto", // human
   CAPSULE_option: "cápsula", // human
 
   FLAT_option: "Plano", // human, Duplicate key NONE
@@ -892,7 +897,7 @@ export default {
   pin_a_option: "Gesto: InclinarIzquierda", // human
   pin_d_option: "Gesto: InclinarDerecha", // human
   pin_y_option: "Gesto: PantallaArriba", // human
-  pin_h_option: "Gesto: PantallaAbajo", // human
+  pin_g_option: "Gesto: PantallaAbajo", // human
   pin_i_option: "Gesto: Sacudir", // human
 
   SMALL_option: "pequeño", // human
@@ -901,11 +906,43 @@ export default {
 
   ONCE_option: "una vez", // human
   LOOP_option: "bucle", // human
+  everywhere_option: "en todas partes", // ai
+
+  theme_bright_option: "Brillante", // ai
+  theme_calm_option: "Tranquilo", // ai
+  theme_electronic_option: "Electrónico", // ai
+  theme_game_option: "Videojuego", // ai
+  theme_medieval_option: "Medieval", // ai
+  theme_metal_option: "Metal", // ai
+
+  sound_highDown_option: "Tono Alto Descendente", // ai
+  sound_highUp_option: "Tono Alto Ascendente", // ai
+  sound_laser1_option: "Láser 1", // ai
+  sound_laser2_option: "Láser 2", // ai
+  sound_laser3_option: "Láser 3", // ai
+  sound_lowDown_option: "Tono Bajo Descendente", // ai
+  sound_lowRandom_option: "Tono Bajo Aleatorio", // ai
+  sound_lowThreeTone_option: "Tono Bajo Triple", // ai
+  sound_phaseJump1_option: "Salto de Fase 1", // ai
+  sound_powerUp1_option: "Potenciador 1", // ai
+  sound_powerUp2_option: "Potenciador 2", // ai
+  sound_powerUp3_option: "Potenciador 3", // ai
+  sound_powerUp4_option: "Potenciador 4", // ai
+  sound_powerUp5_option: "Potenciador 5", // ai
+  sound_spaceTrash_option: "Basura Espacial", // ai
+  sound_threeTone1_option: "Triple Tono 1", // ai
+  sound_threeTone2_option: "Triple Tono 2", // ai
 
   sine_option: "seno", // human
   square_option: "cuadrada", // human
   sawtooth_option: "diente de sierra", // human
   triangle_option: "triángulo", // human
+
+  none_option: "ninguno", // ai
+  tremolo_option: "trémolo", // ai
+  vibrato_option: "vibrato", // ai
+  warble_option: "gorjeo", // ai
+  robot_option: "robot", // ai
 
   default_option: "Instrumento por defecto (Seno)", // human
   piano_option: "Piano (Cuadrado)", // human
@@ -991,7 +1028,7 @@ export default {
   collect_the_gems_ui: "💎 Recoger las Gemas", // human
   water_map_ui: "💧 Mapa de Agua", // human
   skittles_ui: "🎳 Bolos", // human
-  beetle_ui: "🪲 Escarabajo", // human
+  beetle_ui: "🎲 Escarabajo", // human
   roominator_ui: "🛋️ Habitación", // human
   ball_pit_ui: "🟠 Piscina de Pelotas", // human
   ur_enough_ui: "💗 ¡Eres Suficiente!", // human
@@ -1005,6 +1042,7 @@ export default {
   tree_jump_ui: "🌳 Salto de árbol", // human
   shape_push_ui: "🔶 Empujar forma", // human
   alien_planet_ui: "👽 Planeta alienígena", // human
+  boat_trip_ui: "⛵ Paseo en barco", // ai
   character_designer_ui: "👚 Diseñador de personajes", // human
   sit_down_ui: "🪑 Siéntate", // human
 
@@ -1038,12 +1076,12 @@ export default {
 
   show_shapes_button_ui: "añadir formas y modelos", // human
   color_picker_button_ui: "Escoge color del objeto", // human
-  position_button_ui: "Posicionar malla", // human
-  rotation_button_ui: "Rotar malla", // human
-  scale_button_ui: "Escalar tamaño de malla", // human
-  hide_button_ui: "Seleccionar objeto", // human
-  duplicate_button_ui: "Duplicar malla seleccionada", // human
-  delete_button_ui: "Eliminar malla seleccionada", // human
+  position_button_ui: "Posicionar objeto",
+  rotation_button_ui: "Rotar objeto",
+  scale_button_ui: "Escalar tamaño de objeto",
+  hide_button_ui: "Seleccionar objeto",
+  duplicate_button_ui: "Duplicar objeto seleccionado",
+  delete_button_ui: "Eliminar objeto seleccionado",
   camera_button_ui: "Controles de cámara", // human
 
   info_panel_link_ui:
@@ -1053,11 +1091,11 @@ export default {
 
   about_heading_ui: "Sobre Flock XR", // human
   about_description_intro_ui: "Flock XR es un ", // human
-  about_description_prototype_ui: "prototipo", // human
+  about_description_prototype_ui: "prototipo", // human - outdated
   about_description_made_by_ui: " hecho por ", // human
   about_description_company_ui: "Flip Computing", // human
   about_description_disclaimer_ui:
-    " Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas. Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.", // human
+    " Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas. Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.", // human - outdated
   about_run_intro_ui:
     "Mira las demos para ver lo que puedes hacer. Realiza algunos cambios y haz clic", // human
   about_run_action_ui: "ejecutar.", // human
@@ -1118,19 +1156,19 @@ export default {
 
   // UI status messages
   max_mesh_limit_reached:
-    "⚠️ Límite alcanzado: solo puedes tener {max} mallas en tu mundo.", // human
+    "⚠️ Límite alcanzado: solo puedes tener {max} objetos en tu mundo.",
   high_memory_usage_warning: "Advertencia: uso de memoria alto ({porciento}%)", // human
   physics_out_of_memory_log:
     "La física de Havok se abortó, probablemente por falta de memoria.", // human, AI-generated; needs validation
   physics_out_of_memory_banner_ui:
-    "El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.", // human, AI-generated; needs validation
+    "El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.",
   runtime_error_message: "Error: {mensaje}", // human
   xr_mode_message: "¡Modo XR!", // human
   fly_camera_instructions: "ℹ️ Cámara en vuelo, usa las flechas y Page Up/Down", // human
   select_mesh_delete_prompt:
-    "⚠️ Selecciona una malla y luego haz clic en eliminar.", // human
+    "⚠️ Selecciona un objeto y luego haz clic en eliminar.",
   select_mesh_duplicate_prompt:
-    "⚠️ Selecciona una malla y haz clic en duplicar, luego haz clic para colocar las copias.", // human
+    "⚠️ Selecciona un objeto y haz clic en duplicar, luego haz clic para colocar las copias.",
   position_readout: "Posición: {Posición}", // human
   eyedropper_not_supported_alert:
     "El selector de colores no es compatible con este navegador. Prueba con Chrome o Edge.", // human
@@ -1156,4 +1194,26 @@ export default {
   colour_blend: "mezclar %1 y %2 en %3", // human
 
   dark_contrast_theme_ui: "Oscuro", // human
+
+  // Attachment point options
+  LeftHand_option: "Mano izquierda", // ai
+  RightHand_option: "Mano derecha", // ai
+  Head_option: "Cabeza", // ai
+  Hips_option: "Caderas", // ai
+  Spine_option: "Columna", // ai
+  Spine1_option: "Columna 1", // ai
+  Spine2_option: "Columna 2", // ai
+  Neck_option: "Cuello", // ai
+  LeftShoulder_option: "Hombro izquierdo", // ai
+  LeftArm_option: "Brazo superior izquierdo", // ai
+  LeftForeArm_option: "Antebrazo izquierdo", // ai
+  RightShoulder_option: "Hombro derecho", // ai
+  RightArm_option: "Brazo superior derecho", // ai
+  RightForeArm_option: "Antebrazo derecho", // ai
+  LeftUpLeg_option: "Muslo izquierdo", // ai
+  LeftLeg_option: "Espinilla izquierda", // ai
+  LeftFoot_option: "Pie izquierdo", // ai
+  RightUpLeg_option: "Muslo derecho", // ai
+  RightLeg_option: "Espinilla derecha", // ai
+  RightFoot_option: "Pie derecho", // ai
 };

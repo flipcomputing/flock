@@ -28,7 +28,9 @@ export const flockModels = {
         container.textures = [];
         container.skeletons = [];
         container.animationGroups = [];
-      } catch (_) {}
+      } catch (_) {
+        console.warn("Suppressed non-critical error:", _);
+      }
     };
 
     // --- validate ---
@@ -52,7 +54,15 @@ export const flockModels = {
 
     // --- sanitize ONLY modelName + BASE (NOT the blockKey) ---
     modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
+    // Capture the original base name before sanitization so we can register it as
+    // an alias in modelReadyPromises. This lets whenModelReady("dimnnd monkey", ...)
+    // resolve correctly even though the actual mesh name is "dimnndmonkey".
+    const originalBase = desiredBase;
     desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
+
+    if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
+
+    flock._recycleOldestByKey(modelName);
 
     // --- compose final runtime name using RAW key, and reserve it ---
     const desiredFinalName = desiredBase;
@@ -85,13 +95,26 @@ export const flockModels = {
       rejectReady = rej;
     });
     flock.modelReadyPromises.set(meshName, readyPromise);
+    // Also register the pre-sanitization name (e.g. "dimnnd monkey" → "dimnndmonkey").
+    // This lets event handlers declared before createCharacter (which still hold the
+    // original variable value) resolve correctly via whenModelReady.
+    if (originalBase !== meshName) {
+      flock.modelReadyPromises.set(originalBase, readyPromise);
+    }
 
     const signal = flock.abortController?.signal;
     const onAbort = () => {
       try {
         rejectReady(new Error("aborted"));
-      } catch {}
+      } catch (error) {
+        console.warn("Suppressed non-critical error:", error);
+      }
       flock.modelReadyPromises.delete(meshName);
+      if (
+        originalBase !== meshName &&
+        flock.modelReadyPromises.get(originalBase) === readyPromise
+      )
+        flock.modelReadyPromises.delete(originalBase);
       flock._releaseName?.(meshName);
       signal?.removeEventListener("abort", onAbort);
     };
@@ -165,6 +188,8 @@ export const flockModels = {
         resolveReady(mesh);
         cleanupAbort();
 
+        flock._registerInstance(modelName, meshName);
+
         // Allow the container to be GC'd (anims/skeletons are now in the scene)
         releaseContainer(container);
       })
@@ -173,12 +198,22 @@ export const flockModels = {
         rejectReady(error);
         flock._releaseName(meshName);
         flock.modelReadyPromises.delete(meshName);
+        if (
+          originalBase !== meshName &&
+          flock.modelReadyPromises.get(originalBase) === readyPromise
+        )
+          flock.modelReadyPromises.delete(originalBase);
         cleanupAbort();
       })
       .finally(() => {
         // Optional: drop resolved entry after a short TTL to avoid map growth
         setTimeout(() => {
           flock.modelReadyPromises.delete(meshName);
+          if (
+            originalBase !== meshName &&
+            flock.modelReadyPromises.get(originalBase) === readyPromise
+          )
+            flock.modelReadyPromises.delete(originalBase);
         }, 5000);
       });
 
@@ -201,15 +236,17 @@ export const flockModels = {
         container.textures = [];
         container.skeletons = [];
         container.animationGroups = [];
-      } catch (_) {}
+      } catch (_) {
+        console.warn("Suppressed non-critical error:", _);
+      }
     };
 
     const applyMaterialToHierarchy = (mesh, colorInput) => {
       if (!applyColor || !colorInput) return;
 
-      flock.applyMaterialToHierarchy(mesh, color);
+      flock.applyMaterialToHierarchy(mesh, colorInput);
     };
-    
+
     const setTemplateFlags = (node, tag) => {
       const list = [
         node,
@@ -268,6 +305,8 @@ export const flockModels = {
     };
 
     try {
+      if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
+
       let [desiredBase, bKey] = modelId.includes("__")
         ? modelId.split("__")
         : [modelId, modelId];
@@ -288,7 +327,9 @@ export const flockModels = {
       flock.modelReadyPromises.set(meshName, readyPromise);
 
       if (flock.modelCache[modelName]) {
+        flock._recycleOldestByKey(modelName);
         const mesh = flock.modelCache[modelName].clone(bKey);
+        flock._registerInstance(modelName, meshName);
         finalizeMesh(mesh, meshName, groupName, bKey);
         resolveReady(mesh);
         return meshName;
@@ -296,7 +337,9 @@ export const flockModels = {
 
       if (flock.modelsBeingLoaded[modelName]) {
         flock.modelsBeingLoaded[modelName].then(() => {
+          flock._recycleOldestByKey(modelName);
           const mesh = flock.modelCache[modelName].clone(bKey);
+          flock._registerInstance(modelName, meshName);
           finalizeMesh(mesh, meshName, groupName, bKey);
           resolveReady(mesh);
         });
@@ -342,13 +385,17 @@ export const flockModels = {
         setTemplateFlags(template, modelName);
         flock.modelCache[modelName] = template;
 
+        flock._registerInstance(modelName, meshName);
+
         finalizeMesh(root, meshName, groupName, bKey);
         resolveReady(root);
         releaseContainer(container);
+        delete flock.modelsBeingLoaded[modelName];
       });
 
       return meshName;
-    } catch (e) {
+    } catch (error) {
+      console.warn("createObject failed; returning error id:", error);
       return "error_" + flock.scene.getUniqueId();
     }
   },
@@ -379,8 +426,8 @@ export const flockModels = {
       container.textures = [];
       container.skeletons = [];
       container.animationGroups = [];
-    } catch (_) {
-      /* ignore */
+    } catch (error) {
+      console.warn("releaseContainer cleanup failed:", error);
     }
   },
 };

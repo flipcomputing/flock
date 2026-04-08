@@ -4,6 +4,8 @@ import {
   getHelpUrlFor,
   nextVariableIndexes,
   handleBlockCreateEvent,
+  handleBlockChange,
+  registerBlockHandler,
 } from "./blocks.js";
 import {
   translate,
@@ -190,7 +192,7 @@ export function defineTextBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("text_blocks");
 
-      this.setOnChange((changeEvent) =>
+      registerBlockHandler(this, (changeEvent) =>
         handleBlockCreateEvent(
           this,
           changeEvent,
@@ -271,7 +273,7 @@ export function defineTextBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("text_blocks");
 
-      this.setOnChange((changeEvent) =>
+      registerBlockHandler(this, (changeEvent) =>
         handleBlockCreateEvent(
           this,
           changeEvent,
@@ -348,7 +350,7 @@ export function defineTextBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("text_blocks");
 
-      this.setOnChange((changeEvent) =>
+      registerBlockHandler(this, (changeEvent) =>
         handleBlockCreateEvent(
           this,
           changeEvent,
@@ -454,13 +456,8 @@ export function defineTextBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("text_blocks");
 
-      this.setOnChange((changeEvent) =>
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-        ),
+      registerBlockHandler(this, (changeEvent) =>
+        handleBlockChange(this, changeEvent, variableNamePrefix),
       );
     },
   };

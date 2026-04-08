@@ -1,7 +1,7 @@
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Szene",
-  CATEGORY_MESHES: "Meshes",
+  CATEGORY_MESHES: "Objekte",
   CATEGORY_XR: "XR",
   CATEGORY_EFFECTS: "Effekte",
   CATEGORY_CAMERA: "Kamera",
@@ -156,17 +156,16 @@ export default {
     "rotiere %1 zu x %2 y %3 z %4 in %5 ms\n%6 rückwärts? %7 Schleife? %8 %9",
   rotate_anim_seconds:
     "rotiere %1 zu x %2 y %3 z %4 in %5 Sekunden\n%6 rückwärts? %7 Schleife? %8 %9",
-  rotate_to_object:
-    "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
+  rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   animate_property:
     "animieren %1 %2 zu %3 in %4 ms rückwärts? %5 Schleife? %6 %7",
   colour_keyframe: "bei %1 Farbe: %2",
   number_keyframe: "bei %1 Wert: %2",
   xyz_keyframe: "bei %1 x: %2 y: %3 z: %4",
   animate_keyframes:
-    "animieren Schlüsselbilder von %1 Eigenschaft %2\nKeyframes %3\nEasing %4 Schleife %5 Rückwärts %6 %7",
+    "animieren Schlüsselbilder von %1 Eigenschaft %2\nKeyframes %3\nEasing %4 Rückwärts %5 Schleife %6 %7",
   animation:
-    "animieren Schlüsselbilder von %1 Eigenschaft %2 Gruppe %3\nKeyframes %4\nEasing %5 Schleife %6 Rückwärts %7 Modus %8",
+    "animieren Schlüsselbilder von %1 Eigenschaft %2 Gruppe %3\nKeyframes %4\nEasing %5 Rückwärts %6 Schleife %7 Modus %8",
   control_animation_group: "Animationsgruppe %1 %2",
   animate_from: "animieren Gruppe %1 ab %2 Sekunden",
   stop_animations: "Animationen stoppen %1",
@@ -285,6 +284,8 @@ export default {
     "Ebene hinzufügen %1 %2 Breite: %3 Höhe: %4\nbei x: %5 y: %6 z: %7",
 
   // Sound blocks
+  play_theme:
+    "Thema abspielen %1 %2 von %3\nGeschwindigkeit: %4 Lautstärke: %5 Modus: %6 Async: %7",
   play_sound:
     "Ton abspielen %1 %2 von %3\nGeschwindigkeit: %4 Lautstärke: %5 Modus: %6 Async: %7",
   stop_all_sounds: "Alle Töne stoppen",
@@ -295,7 +296,7 @@ export default {
   set_scene_bpm: "Szenen-BPM auf %1 setzen",
   set_mesh_bpm: "BPM von %1 auf %2 setzen",
   create_instrument:
-    "Instrument %1 Welle: %2 Frequenz: %3 Attacke: %4 Decay: %5 Sustain: %6 Release: %7",
+    "Instrument %1 Welle: %2\nLautstärke: %3 Effekt: %4 Rate: %5 Tiefe: %6\nAttacke: %7 Decay: %8 Sustain: %9 Release: %10",
   instrument: "Instrument %1",
   speak:
     "Sprechen %1 %2 Stimme: %3 Sprache: %4\nTempo: %5 Tonhöhe: %6 Lautstärke: %7 Modus: %8",
@@ -478,7 +479,8 @@ export default {
   set_xr_mode: "XR‑Modus auf %1 setzen",
   play_rumble_pattern: "Vibrationsmuster abspielen %1",
   controller_rumble: "Controller %1 Motor mit Stärke %2 für %3 ms vibrieren",
-  controller_rumble_pattern: "Controller %1 Motor Stärke %2 an %3 ms aus %4 ms %5 mal",
+  controller_rumble_pattern:
+    "Controller %1 Motor Stärke %2 an %3 ms aus %4 ms %5 mal",
 
   // Blockly overrides
   LISTS_CREATE_WITH_INPUT_WITH: "Liste",
@@ -529,13 +531,13 @@ export default {
   glide_to_seconds_tooltip:
     "Gleite zu einer Position über Sekunden mit Optionen zum Rückwärtslaufen, Schleifen und Easing.",
   glide_to_object_tooltip:
-    "Gleite zur Position einer angegebenen Mesh mit optionalen x/y/z-Versätzen (Standard 0) sowie Rückwärts-, Schleifen- und Easing-Optionen.",
+    "Gleite zur Position eines angegebenen Objekts mit optionalen x/y/z-Versätzen (Standard 0) sowie Optionen für Rückwärtslauf, Schleife und Easing.",
   rotate_anim_tooltip:
-    "Rotiert ein Objekt zu angegebenen Winkeln über eine Dauer mit Optionen für Rückwärts, Schleife und Easing.",
+    "Rotiert ein Objekt zu angegebenen Winkeln über eine Dauer mit Optionen für Rückwärtslauf, Schleife und Easing.",
   rotate_anim_seconds_tooltip:
-    "Rotiert ein Objekt über Sekunden mit Unterstützung für Rückläufe, Schleifen und Easing.",
+    "Rotiert ein Objekt über eine angegebene Anzahl Sekunden mit Unterstützung für Rückwärtslauf, Schleife und Easing.",
   rotate_to_object_tooltip:
-    "Rotate a mesh toward another mesh or match that mesh's rotation over a duration with options for reverse, looping, and easing.",
+    "Rotiert ein Objekt in Richtung eines anderen Objekts oder passt seine Rotation an die des Zielobjekts über eine Dauer an; unterstützt Rückwärtslauf, Schleife und Easing.",
   animate_property_tooltip:
     "Animiert eine Materialeigenschaft des Objekts und seiner Kinder.",
   colour_keyframe_tooltip: "Setze Farbe und Dauer für ein Schlüsselbild.",
@@ -664,7 +666,7 @@ export default {
   add_physics_tooltip:
     "Füge Physik zum Objekt hinzu: dynamisch, statisch, animiert oder keine.\nSchlüsselwort: physics",
   add_physics_shape_tooltip:
-    "Füge Physik‑Form hinzu: Mesh oder Kapsel.\nSchlüsselwort: physics",
+    "Füge Physik‑Form hinzu: Objekt oder Kapsel.\nSchlüsselwort: physics",
   apply_force_tooltip:
     "Wende Kraft auf Objekt in XYZ‑Richtung an.\nSchlüsselwort: force",
   show_physics_tooltip:
@@ -687,7 +689,7 @@ export default {
   touching_surface_tooltip:
     "Prüft, ob das Objekt eine Oberfläche berührt.\nSchlüsselwort: surface",
   mesh_exists_tooltip:
-    "Gibt true zurück, wenn das Mesh mit diesem Namen in der Szene vorhanden ist.",
+    "Gibt true zurück, wenn das Objekt mit diesem Namen in der Szene vorhanden ist.",
   get_property_tooltip:
     "Gibt den Wert der gewählten Eigenschaft eines Objekts zurück.\nSchlüsselwort: get",
   canvas_controls_tooltip:
@@ -716,6 +718,8 @@ export default {
     "Erstelle eine farbige 2D-Fläche mit Breite, Höhe und Position.\nSchlüsselwort: plane",
 
   // Tooltip translations - Sound blocks
+  play_theme_tooltip:
+    "Spiele ein Musikthema auf einem Objekt mit anpassbarer Geschwindigkeit, Lautstärke und Modus.\nSchlüsselwort: theme",
   play_sound_tooltip:
     "Spiele den ausgewählten Sound auf einem Objekt mit anpassbarer Geschwindigkeit, Lautstärke und Modus.\nSchlüsselwort: sound",
   stop_all_sounds_tooltip:
@@ -890,7 +894,7 @@ export default {
   ANIMATED_option: "animiert",
   STATIC_option: "statisch",
 
-  MESH_option: "Mesh",
+  MESH_option: "Objekt",
   CAPSULE_option: "Kapsel",
 
   BOTH_option: "beides",
@@ -911,11 +915,43 @@ export default {
 
   ONCE_option: "einmal",
   LOOP_option: "schleife",
+  everywhere_option: "überall",
+
+  theme_bright_option: "Lebhaft",
+  theme_calm_option: "Ruhig",
+  theme_electronic_option: "Elektronisch",
+  theme_game_option: "Spiel",
+  theme_medieval_option: "Mittelalterlich",
+  theme_metal_option: "Metal",
+
+  sound_highDown_option: "Hoch Runter",
+  sound_highUp_option: "Hoch Rauf",
+  sound_laser1_option: "Laser 1",
+  sound_laser2_option: "Laser 2",
+  sound_laser3_option: "Laser 3",
+  sound_lowDown_option: "Tief Runter",
+  sound_lowRandom_option: "Tief Zufällig",
+  sound_lowThreeTone_option: "Tief Dreiklang",
+  sound_phaseJump1_option: "Phasensprung 1",
+  sound_powerUp1_option: "Energie 1",
+  sound_powerUp2_option: "Energie 2",
+  sound_powerUp3_option: "Energie 3",
+  sound_powerUp4_option: "Energie 4",
+  sound_powerUp5_option: "Energie 5",
+  sound_spaceTrash_option: "Weltraumschrott",
+  sound_threeTone1_option: "Dreiklang 1",
+  sound_threeTone2_option: "Dreiklang 2",
 
   sine_option: "Sinus",
   square_option: "Rechteck",
   sawtooth_option: "Sägezahn",
   triangle_option: "Dreieck",
+
+  none_option: "kein",
+  tremolo_option: "Tremolo",
+  vibrato_option: "Vibrato",
+  warble_option: "Trillern",
+  robot_option: "Roboter",
 
   default_option: "Standardinstrument (Sinus)",
   piano_option: "Klavier (Rechteck)",
@@ -1000,7 +1036,7 @@ export default {
   collect_the_gems_ui: "💎 Sammle die Edelsteine",
   water_map_ui: "💧 Wasserkarte",
   skittles_ui: "🎳 Kegeln",
-  beetle_ui: "🪲 Käfer",
+  beetle_ui: "🎲 Käfer",
   roominator_ui: "🛋️ Raum-Designer",
   sit_down_ui: "🪑 Hinsetzen",
   ball_pit_ui: "🟠 Bällebad",
@@ -1015,6 +1051,7 @@ export default {
   tree_jump_ui: "🌳 Baum-Sprung",
   shape_push_ui: "🔶 Form schieben",
   alien_planet_ui: "👽 Alien-Planet",
+  boat_trip_ui: "⛵ Boat trip",
 
   main_menu_ui: "Hauptmenü",
   menu_button_sr_label_ui: "Menü",
@@ -1100,7 +1137,7 @@ export default {
 
   // UI status messages
   max_mesh_limit_reached:
-    "⚠️ Limit erreicht: Du kannst nur {max} Meshes in deiner Welt haben.",
+    "⚠️ Limit erreicht: Du kannst nur {max} Objekte in deiner Welt haben.",
   high_memory_usage_warning: "Warnung: Hoher Speicherverbrauch ({percent}%)",
   physics_out_of_memory_log:
     "Havok-Physik wurde abgebrochen, wahrscheinlich wegen zu wenig Speicher.", // AI-generated; needs validation
@@ -1110,9 +1147,9 @@ export default {
   xr_mode_message: "XR-Modus!",
   fly_camera_instructions: "ℹ️ Flugkamera, nutze Pfeiltasten und Bild auf/ab",
   select_mesh_delete_prompt:
-    "⚠️ Wähle ein Mesh aus und klicke dann auf Löschen.",
+    "⚠️ Wähle ein Objekt aus und klicke dann auf Löschen.",
   select_mesh_duplicate_prompt:
-    "⚠️ Wähle ein Mesh aus, klicke auf Duplizieren und klicke dann, um Kopien zu platzieren.",
+    "⚠️ Wähle ein Objekt aus, klicke auf Duplizieren und klicke dann, um Kopien zu platzieren.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "Das Pipettenwerkzeug wird in diesem Browser nicht unterstützt. Versuche es mit Chrome oder Edge.",
@@ -1145,4 +1182,26 @@ export default {
   about_links_privacy_label_ui: "Datenschutzerklärung",
   about_links_privacy_suffix_ui: " für Flock XR an. ",
   about_links_contact_label_ui: "Kontaktiere uns",
+
+  // Attachment point options
+  LeftHand_option: "Linke Hand",
+  RightHand_option: "Rechte Hand",
+  Head_option: "Kopf",
+  Hips_option: "Hüften",
+  Spine_option: "Wirbelsäule",
+  Spine1_option: "Wirbelsäule 1",
+  Spine2_option: "Wirbelsäule 2",
+  Neck_option: "Hals",
+  LeftShoulder_option: "Linke Schulter",
+  LeftArm_option: "Linker Oberarm",
+  LeftForeArm_option: "Linker Unterarm",
+  RightShoulder_option: "Rechte Schulter",
+  RightArm_option: "Rechter Oberarm",
+  RightForeArm_option: "Rechter Unterarm",
+  LeftUpLeg_option: "Linker Oberschenkel",
+  LeftLeg_option: "Linkes Schienbein",
+  LeftFoot_option: "Linker Fuß",
+  RightUpLeg_option: "Rechter Oberschenkel",
+  RightLeg_option: "Rechtes Schienbein",
+  RightFoot_option: "Rechter Fuß",
 };

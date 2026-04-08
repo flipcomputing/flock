@@ -7,46 +7,66 @@ let manifoldModule = null;
 let manifoldInitPromise = null;
 
 // Initialize the Manifold WASM module once
-async function getManifold() {
+export async function getManifold() {
   if (manifoldModule) return manifoldModule;
   if (manifoldInitPromise) return manifoldInitPromise;
-  
+
   manifoldInitPromise = (async () => {
     try {
       // Load with explicit WASM location using the correct base path
       // Ensure base URL ends with a slash
-      let baseUrl = import.meta.env.BASE_URL || '/';
-      if (!baseUrl.endsWith('/')) baseUrl += '/';
-      
+      let baseUrl = import.meta.env.BASE_URL || "/";
+      if (!baseUrl.endsWith("/")) baseUrl += "/";
+
       const wasm = await Module({
         locateFile: (file) => {
-          if (file.endsWith('.wasm')) {
+          if (file.endsWith(".wasm")) {
             // Use base URL for both dev and production (GitHub Pages)
             return `${baseUrl}wasm/manifold.wasm`;
           }
           return file;
-        }
+        },
       });
-      
+
       // Setup is required for manifold-3d
       if (wasm.setup) {
         wasm.setup();
       }
-      
+
       manifoldModule = wasm;
       return wasm;
     } catch (e) {
-      console.error('[Manifold] Failed to initialize WASM:', e);
+      console.error("[Manifold] Failed to initialize WASM:", e);
       manifoldInitPromise = null; // Reset so it can be retried
       throw e;
     }
   })();
-  
+
   return manifoldInitPromise;
 }
 
 export function setFlockReference(ref) {
   flock = ref;
+}
+
+// Validate a shape/mesh ID: must be a non-empty string, max 100 chars.
+function validateShapeId(id, fnName) {
+  if (!id || typeof id !== "string" || id.length > 100) {
+    console.warn(`${fnName}: invalid id`);
+    return false;
+  }
+  return true;
+}
+
+// Coerce a dimension value to a positive finite number, falling back to `fallback`.
+function toDim(v, fallback) {
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
+function toAlpha(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1;
 }
 
 /**
@@ -56,16 +76,18 @@ export function setFlockReference(ref) {
 function convertPathToPolygons(path, curveSegments = 12) {
   const polygons = [];
   let currentContour = [];
-  let lastX = 0, lastY = 0;
-  let startX = 0, startY = 0;
-  
+  let lastX = 0,
+    lastY = 0;
+  let startX = 0,
+    startY = 0;
+
   const commands = path.commands;
-  
+
   for (let i = 0; i < commands.length; i++) {
     const cmd = commands[i];
-    
+
     switch (cmd.type) {
-      case 'M': // Move to
+      case "M": // Move to
         if (currentContour.length >= 3) {
           polygons.push(currentContour);
         }
@@ -75,46 +97,54 @@ function convertPathToPolygons(path, curveSegments = 12) {
         startX = cmd.x;
         startY = cmd.y;
         break;
-        
-      case 'L': // Line to
+
+      case "L": // Line to
         currentContour.push([cmd.x, -cmd.y]);
         lastX = cmd.x;
         lastY = cmd.y;
         break;
-        
-      case 'Q': // Quadratic bezier curve
+
+      case "Q": // Quadratic bezier curve
         for (let t = 1; t <= curveSegments; t++) {
           const tNorm = t / curveSegments;
           const tInv = 1 - tNorm;
           // Quadratic bezier: P = (1-t)²P0 + 2(1-t)tP1 + t²P2
-          const x = tInv * tInv * lastX + 2 * tInv * tNorm * cmd.x1 + tNorm * tNorm * cmd.x;
-          const y = tInv * tInv * lastY + 2 * tInv * tNorm * cmd.y1 + tNorm * tNorm * cmd.y;
+          const x =
+            tInv * tInv * lastX +
+            2 * tInv * tNorm * cmd.x1 +
+            tNorm * tNorm * cmd.x;
+          const y =
+            tInv * tInv * lastY +
+            2 * tInv * tNorm * cmd.y1 +
+            tNorm * tNorm * cmd.y;
           currentContour.push([x, -y]);
         }
         lastX = cmd.x;
         lastY = cmd.y;
         break;
-        
-      case 'C': // Cubic bezier curve
+
+      case "C": // Cubic bezier curve
         for (let t = 1; t <= curveSegments; t++) {
           const tNorm = t / curveSegments;
           const tInv = 1 - tNorm;
           // Cubic bezier: P = (1-t)³P0 + 3(1-t)²tP1 + 3(1-t)t²P2 + t³P3
-          const x = tInv * tInv * tInv * lastX + 
-                    3 * tInv * tInv * tNorm * cmd.x1 + 
-                    3 * tInv * tNorm * tNorm * cmd.x2 + 
-                    tNorm * tNorm * tNorm * cmd.x;
-          const y = tInv * tInv * tInv * lastY + 
-                    3 * tInv * tInv * tNorm * cmd.y1 + 
-                    3 * tInv * tNorm * tNorm * cmd.y2 + 
-                    tNorm * tNorm * tNorm * cmd.y;
+          const x =
+            tInv * tInv * tInv * lastX +
+            3 * tInv * tInv * tNorm * cmd.x1 +
+            3 * tInv * tNorm * tNorm * cmd.x2 +
+            tNorm * tNorm * tNorm * cmd.x;
+          const y =
+            tInv * tInv * tInv * lastY +
+            3 * tInv * tInv * tNorm * cmd.y1 +
+            3 * tInv * tNorm * tNorm * cmd.y2 +
+            tNorm * tNorm * tNorm * cmd.y;
           currentContour.push([x, -y]);
         }
         lastX = cmd.x;
         lastY = cmd.y;
         break;
-        
-      case 'Z': // Close path
+
+      case "Z": // Close path
         if (currentContour.length >= 3) {
           polygons.push(currentContour);
         }
@@ -124,27 +154,13 @@ function convertPathToPolygons(path, curveSegments = 12) {
         break;
     }
   }
-  
+
   // Don't forget any remaining contour
   if (currentContour.length >= 3) {
     polygons.push(currentContour);
   }
-  
-  return polygons;
-}
 
-/**
- * Calculate the signed area of a polygon to determine winding direction.
- */
-function polygonArea(polygon) {
-  let area = 0;
-  const n = polygon.length;
-  for (let i = 0; i < n; i++) {
-    const j = (i + 1) % n;
-    area += polygon[i][0] * polygon[j][1];
-    area -= polygon[j][0] * polygon[i][1];
-  }
-  return area / 2;
+  return polygons;
 }
 
 /**
@@ -152,77 +168,82 @@ function polygonArea(polygon) {
  * This produces guaranteed watertight geometry suitable for CSG operations.
  */
 async function createManifoldTextMesh(text, fontUrl, options = {}) {
-  const {
-    size = 50,
-    depth = 1,
-    curveSegments = 12
-  } = options;
-  
+  const { size = 50, depth = 1, curveSegments = 12 } = options;
+
   const wasm = await getManifold();
   const { CrossSection } = wasm;
-  
+
   // Load font - handle both URL and already-loaded font
   let font;
-  if (typeof fontUrl === 'string') {
+  if (typeof fontUrl === "string") {
     font = await opentype.load(fontUrl);
   } else {
     font = fontUrl;
   }
-  
+
   // Get the path from the font
   // Scale factor: opentype uses 72 units per em by default
   const fontPath = font.getPath(text, 0, 0, size);
-  
+
   // Convert to polygons
   const polygons = convertPathToPolygons(fontPath, curveSegments);
-  
+
   if (polygons.length === 0) {
-    throw new Error('No valid polygons generated from text');
+    throw new Error("No valid polygons generated from text");
   }
-  
+
   // Manifold CrossSection requires positive area (counter-clockwise winding) for outer contours
   // and negative area (clockwise) for holes. Reverse our polygons to fix winding.
-  const correctedPolygons = polygons.map(poly => [...poly].reverse());
-  
+  const correctedPolygons = polygons.map((poly) => [...poly].reverse());
+
+  let crossSection = null;
   let manifoldMesh = null;
-  
+
   try {
     // Create CrossSection - it handles polygons with holes automatically
-    const crossSection = new CrossSection(correctedPolygons);
-    
+    crossSection = new CrossSection(correctedPolygons);
+
     // Extrude to create 3D manifold mesh
     manifoldMesh = crossSection.extrude(depth);
-    
+
     // Get mesh data
     const meshData = manifoldMesh.getMesh();
-    
+
     // Extract vertex positions and triangle indices
     const vertPos = meshData.vertProperties;
     const triVerts = meshData.triVerts;
     const numProp = meshData.numProp;
-    
+
     // Convert to flat arrays for Babylon.js
     const positions = [];
     const indices = [];
-    
+
     // vertProperties is a flat array with numProp values per vertex
     for (let i = 0; i < vertPos.length; i += numProp) {
       positions.push(vertPos[i], vertPos[i + 1], vertPos[i + 2]);
     }
-    
+
     // triVerts is already a flat array of indices
     for (let i = 0; i < triVerts.length; i++) {
       indices.push(triVerts[i]);
     }
-    
-    // Clean up Manifold objects
-    manifoldMesh.delete();
-    crossSection.delete();
-    
-    return { positions, indices };
-  } catch (e) {
+
+    // Use font cap height (or ascender) as a consistent reference height so that
+    // normalization later is not affected by which glyphs happen to be in the string.
+    // e.g. a lone "*" has a small bounding box but should be scaled the same as "H".
+    const os2 = font.tables && font.tables.os2;
+    const capHeightFontUnits =
+      os2 && os2.sCapHeight > 0 ? os2.sCapHeight : font.ascender;
+    const rawReferenceHeight = (capHeightFontUnits / font.unitsPerEm) * size;
+    const referenceHeight =
+      Number.isFinite(rawReferenceHeight) && rawReferenceHeight > 0
+        ? rawReferenceHeight
+        : null;
+
+    return { positions, indices, referenceHeight };
+  } finally {
     if (manifoldMesh) manifoldMesh.delete();
-    throw e;
+    if (crossSection) crossSection.delete();
   }
 }
 
@@ -234,11 +255,17 @@ export const flockShapes = {
       height = 1,
       depth = 1,
       color = "#9932CC",
-      position = new BABYLON.Vector3(0, 0, 0),
+      position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
       callback = null,
-    },
+    } = {},
   ) {
+    if (!validateShapeId(boxId, "createBox")) return null;
+    width = toDim(width, 1);
+    height = toDim(height, 1);
+    depth = toDim(depth, 1);
+    alpha = toAlpha(alpha);
+
     let blockKey = boxId;
 
     if (boxId.includes("__")) {
@@ -246,10 +273,10 @@ export const flockShapes = {
     }
 
     let groupName = boxId;
+    boxId = flock._reserveName(boxId);
 
-    if (flock.scene.getMeshByName(boxId)) {
-      boxId = boxId + "_" + flock.scene.getUniqueId();
-    }
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
 
     const dimensions = { width, height, depth };
 
@@ -289,6 +316,7 @@ export const flockShapes = {
     flock.applyPhysics(newBox, boxShape);
 
     flock.announceMeshReady(newBox.name, groupName);
+    flock._registerInstance(blockKey, newBox.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -308,11 +336,17 @@ export const flockShapes = {
       diameterX = 1,
       diameterY = 1,
       diameterZ = 1,
-      position = new BABYLON.Vector3(0, 0, 0),
+      position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
       callback = null,
-    },
+    } = {},
   ) {
+    if (!validateShapeId(sphereId, "createSphere")) return null;
+    diameterX = toDim(diameterX, 1);
+    diameterY = toDim(diameterY, 1);
+    diameterZ = toDim(diameterZ, 1);
+    alpha = toAlpha(alpha);
+
     let blockKey = sphereId;
 
     if (sphereId.includes("__")) {
@@ -320,10 +354,10 @@ export const flockShapes = {
     }
 
     let groupName = sphereId;
+    sphereId = flock._reserveName(sphereId);
 
-    if (flock.scene.getMeshByName(sphereId)) {
-      sphereId = sphereId + "_" + flock.scene.getUniqueId();
-    }
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
 
     const dimensions = { diameterX, diameterY, diameterZ };
 
@@ -361,6 +395,7 @@ export const flockShapes = {
     flock.applyPhysics(newSphere, sphereShape);
 
     flock.announceMeshReady(newSphere.name, groupName);
+    flock._registerInstance(blockKey, newSphere.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -384,8 +419,15 @@ export const flockShapes = {
       position,
       alpha = 1,
       callback = null,
-    },
+    } = {},
   ) {
+    if (!validateShapeId(cylinderId, "createCylinder")) return null;
+    height = toDim(height, 1);
+    diameterTop = toDim(diameterTop, 1);
+    diameterBottom = toDim(diameterBottom, 1);
+    tessellation = Math.max(3, Math.round(toDim(tessellation, 24)));
+    alpha = toAlpha(alpha);
+
     const dimensions = {
       height,
       diameterTop,
@@ -401,10 +443,10 @@ export const flockShapes = {
     }
 
     let groupName = cylinderId;
+    cylinderId = flock._reserveName(cylinderId);
 
-    if (flock.scene.getMeshByName(cylinderId)) {
-      cylinderId = cylinderId + "_" + flock.scene.getUniqueId();
-    }
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
 
     // Get or create cached VertexData
     const vertexData = flock.getOrCreateGeometry(
@@ -448,6 +490,7 @@ export const flockShapes = {
     flock.applyPhysics(newCylinder, cylinderShape);
 
     flock.announceMeshReady(newCylinder.name, groupName);
+    flock._registerInstance(blockKey, newCylinder.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -462,8 +505,13 @@ export const flockShapes = {
   },
   createCapsule(
     capsuleId,
-    { color, diameter, height, position, alpha = 1, callback = null },
+    { color, diameter, height, position, alpha = 1, callback = null } = {},
   ) {
+    if (!validateShapeId(capsuleId, "createCapsule")) return null;
+    diameter = toDim(diameter, 1);
+    height = toDim(height, 2);
+    alpha = toAlpha(alpha);
+
     let radius = diameter / 2;
     let blockKey = capsuleId;
 
@@ -480,9 +528,10 @@ export const flockShapes = {
       updatable: false,
     };
 
-    if (flock.scene.getMeshByName(capsuleId)) {
-      capsuleId = capsuleId + "_" + flock.scene.getUniqueId();
-    }
+    capsuleId = flock._reserveName(capsuleId);
+
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
 
     // Get or create cached VertexData
     const vertexData = flock.getOrCreateGeometry(
@@ -535,6 +584,7 @@ export const flockShapes = {
     flock.applyPhysics(newCapsule, capsuleShape);
 
     flock.announceMeshReady(newCapsule.name, groupName);
+    flock._registerInstance(blockKey, newCapsule.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -547,16 +597,23 @@ export const flockShapes = {
 
     return newCapsule.name;
   },
-  createPlane(planeId, { color, width, height, position, callback = null }) {
+  createPlane(
+    planeId,
+    { color, width, height, position = [0, 0, 0], callback = null } = {},
+  ) {
+    if (!validateShapeId(planeId, "createPlane")) return null;
+    width = toDim(width, 1);
+    height = toDim(height, 1);
     let blockKey = planeId;
     if (planeId.includes("__")) {
       [planeId, blockKey] = planeId.split("__");
     }
 
     let groupName = planeId;
-    if (flock.scene.getMeshByName(planeId)) {
-      planeId = planeId + "_" + flock.scene.getUniqueId();
-    }
+    planeId = flock._reserveName(planeId);
+
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
 
     const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
       planeId,
@@ -604,12 +661,13 @@ export const flockShapes = {
 
     flock.setMaterialWithCleanup(newPlane, {
       color: color,
-      materialName: "none.png"
+      materialName: "none.png",
     });
 
     newPlane.metadata.blockKey = blockKey;
 
     flock.announceMeshReady(newPlane.name, groupName);
+    flock._registerInstance(blockKey, newPlane.name);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -626,118 +684,128 @@ export const flockShapes = {
     text,
     font,
     color = "#FFFFFF",
+    alpha = 1,
     size = 50,
     depth = 1.0,
     position = { x: 0, y: 0, z: 0 },
     modelId,
     callback = null,
-    useManifold = true, // Use manifold by default for CSG compatibility
-  }) {
+    useManifold = true,
+  } = {}) {
+    if (!validateShapeId(modelId, "create3DText")) return null;
+    if (!text || typeof text !== "string") {
+      console.warn("create3DText: invalid text");
+      return null;
+    }
+    if (!font || typeof font !== "string") {
+      console.warn("create3DText: invalid font");
+      return null;
+    }
+    size = toDim(size, 50);
+    depth = toDim(depth, 1);
     const { x, y, z } = position;
 
-    // Create the loading promise
-    const loadPromise = new Promise(async (resolve, reject) => {
+    let blockKey = modelId;
+    let meshId = modelId;
+    if (modelId.includes("__")) {
+      [meshId, blockKey] = modelId.split("__");
+    }
+
+    if (!flock._pendingMeshIds) flock._pendingMeshIds = new Set();
+    meshId = flock._reserveName(meshId);
+    flock._pendingMeshIds.add(meshId);
+
+    flock._recycleOldestByKey(blockKey);
+
+    const loadPromise = (async () => {
       try {
         let mesh;
-        
+        let fontReferenceHeight = null;
+
         if (useManifold) {
-          // Use Manifold-based text generation for guaranteed watertight geometry
           try {
-            
-            // Get TTF/OTF font URL - convert JSON font path to TTF if needed
             let fontUrl = font;
-            if (font.endsWith('.json')) {
-              // Use FreeSans Bold as default TTF font for manifold text (matches original)
-              fontUrl = 'fonts/FreeSansBold.ttf';
+            if (font.endsWith(".json")) {
+              fontUrl = "fonts/FreeSansBold.ttf";
             }
-            
-            // Use size directly - manifold will work with scene units
+
             const scaledSize = size;
-            
             const meshData = await createManifoldTextMesh(text, fontUrl, {
               size: scaledSize,
               depth: depth,
-              curveSegments: 12
+              curveSegments: 12,
             });
-            
-            // Create Babylon.js mesh from manifold data
-            mesh = new flock.BABYLON.Mesh(modelId, flock.scene);
+            fontReferenceHeight = meshData.referenceHeight;
+
+            mesh = new flock.BABYLON.Mesh(meshId, flock.scene);
             const vertexData = new flock.BABYLON.VertexData();
-            
+
             vertexData.positions = meshData.positions;
             vertexData.indices = meshData.indices;
-            
-            // Compute normals
+
             const normals = [];
             flock.BABYLON.VertexData.ComputeNormals(
               meshData.positions,
               meshData.indices,
-              normals
+              normals,
             );
             vertexData.normals = normals;
-            
-            // Center the positions on X and Z before applying to mesh
-            // Y stays at base (already correct from manifold creation)
+
             const positions = meshData.positions;
-            let minX = Infinity, maxX = -Infinity;
-            let minZ = Infinity, maxZ = -Infinity;
-            
+            let minX = Infinity,
+              maxX = -Infinity;
+            let minZ = Infinity,
+              maxZ = -Infinity;
+
             for (let i = 0; i < positions.length; i += 3) {
               minX = Math.min(minX, positions[i]);
               maxX = Math.max(maxX, positions[i]);
               minZ = Math.min(minZ, positions[i + 2]);
               maxZ = Math.max(maxZ, positions[i + 2]);
             }
-            
+
             const centerX = (minX + maxX) / 2;
             const centerZ = (minZ + maxZ) / 2;
-            
-            // Offset positions to center on X and Z
+
             const centeredPositions = new Float32Array(positions.length);
             for (let i = 0; i < positions.length; i += 3) {
               centeredPositions[i] = positions[i] - centerX;
-              centeredPositions[i + 1] = positions[i + 1]; // Y unchanged
+              centeredPositions[i + 1] = positions[i + 1];
               centeredPositions[i + 2] = positions[i + 2] - centerZ;
             }
-            
+
             vertexData.positions = centeredPositions;
             vertexData.applyToMesh(mesh);
-            
-            // Flip faces to ensure correct orientation for CSG operations
             mesh.flipFaces();
-            
           } catch (manifoldError) {
-            console.warn('[create3DText] Manifold approach failed, falling back to standard:', manifoldError.message);
+            console.warn(
+              "[create3DText] Manifold approach failed, falling back to standard:",
+              manifoldError.message,
+            );
             useManifold = false;
           }
         }
-        
-        if (!useManifold) {
-          // Fall back to standard Babylon.js CreateText
-          const fontData = await (await fetch(font)).json();
 
+        if (!useManifold) {
+          const fontData = await (await fetch(font)).json();
           mesh = flock.BABYLON.MeshBuilder.CreateText(
-            modelId,
+            meshId,
             text,
             fontData,
-            {
-              size: size,
-              depth: depth,
-            },
+            { size, depth },
             flock.scene,
             earcut,
           );
-
         }
 
-        if (!mesh) {
-          reject(new Error('CreateText returned null'));
-          return;
-        }
+        if (!mesh) throw new Error("CreateText returned null");
 
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.blockKey = blockKey;
         mesh.position.set(x, y, z);
+
         const material = new flock.BABYLON.StandardMaterial(
-          "textMaterial_" + modelId,
+          "textMaterial_" + meshId,
           flock.scene,
         );
 
@@ -746,31 +814,52 @@ export const flockShapes = {
         );
         material.backFaceCulling = false;
         material.emissiveColor = material.diffuseColor.scale(0.2);
-
+        material.alpha = toAlpha(alpha);
         mesh.material = material;
 
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
+
+        const bbExt = mesh.getBoundingInfo().boundingBox.extendSize;
+        const bbHeight = bbExt.y * 2;
+        // Use the font's cap height as the normalization reference so that glyphs
+        // with a small bounding box (e.g. "*") are not scaled up disproportionately.
+        const normReference = fontReferenceHeight ?? bbHeight;
+        if (bbHeight > 0 && Math.abs(normReference - size) > 0.001) {
+          const normScale = size / normReference;
+          const savedPos = mesh.position.clone();
+          mesh.position = flock.BABYLON.Vector3.Zero();
+          mesh.scaling.x = normScale;
+          mesh.scaling.y = normScale;
+          mesh.bakeCurrentTransformIntoVertices();
+          mesh.scaling = flock.BABYLON.Vector3.One();
+          mesh.position = savedPos;
+          mesh.computeWorldMatrix(true);
+          mesh.refreshBoundingInfo();
+        }
+
         mesh.setEnabled(true);
         mesh.visibility = 1;
 
         const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
         flock.applyPhysics(mesh, textShape);
 
+        flock._pendingMeshIds.delete(meshId);
+
+        flock._registerInstance(blockKey, mesh.name);
+
         if (callback) {
           requestAnimationFrame(callback);
         }
-
-        resolve();
       } catch (error) {
-        console.error(`Error creating 3D text '${modelId}':`, error);
-        reject(error);
+        flock._pendingMeshIds?.delete(meshId);
+        console.error(`Error creating 3D text '${meshId}':`, error);
+        throw error;
       }
-    });
+    })();
 
-    // Store promise for whenModelReady coordination
-    flock.modelReadyPromises.set(modelId, loadPromise);
+    flock.modelReadyPromises.set(meshId, loadPromise);
 
-    return modelId;
+    return meshId;
   },
 };

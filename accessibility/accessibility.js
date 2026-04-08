@@ -95,7 +95,7 @@ export function toggleMute() {
     speechMuted
       ? "Screen reader announcements muted."
       : "Screen reader announcements unmuted.",
-    { force: true }
+    { force: true },
   );
 }
 
@@ -105,7 +105,7 @@ export function setMute(value) {
     speechMuted
       ? "Screen reader announcements muted."
       : "Screen reader announcements unmuted.",
-    { force: true }
+    { force: true },
   );
 }
 
@@ -258,11 +258,7 @@ function resolveSpokenText(value) {
 function getObjectLabel(mesh) {
   const md = mesh?.metadata || {};
 
-  const explicit =
-    md.a11yLabel ||
-    md.label ||
-    md.displayName ||
-    md.name;
+  const explicit = md.a11yLabel || md.label || md.displayName || md.name;
 
   if (explicit) return resolveSpokenText(explicit);
 
@@ -270,10 +266,7 @@ function getObjectLabel(mesh) {
   const rootMd = root?.metadata || {};
 
   const rootExplicit =
-    rootMd.a11yLabel ||
-    rootMd.label ||
-    rootMd.displayName ||
-    rootMd.name;
+    rootMd.a11yLabel || rootMd.label || rootMd.displayName || rootMd.name;
 
   if (rootExplicit) return resolveSpokenText(rootExplicit);
 
@@ -301,9 +294,7 @@ function getVerticalLabel(dy) {
 
 function getHorizontalLabel(dot, cross) {
   const frontBack =
-    dot > 0.45 ? "in front of you" :
-    dot < -0.45 ? "behind you" :
-    "beside you";
+    dot > 0.45 ? "in front of you" : dot < -0.45 ? "behind you" : "beside you";
 
   let leftRight = "";
   if (Math.abs(cross) > 0.3) {
@@ -325,7 +316,9 @@ function getCameraForward(scene) {
       const len = Math.sqrt(dir.x * dir.x + dir.z * dir.z) || 1;
       return { x: dir.x / len, z: dir.z / len };
     }
-  } catch {}
+  } catch (error) {
+    console.warn("Suppressed non-critical error:", error);
+  }
 
   try {
     const pos = camera.globalPosition || camera.position;
@@ -336,7 +329,9 @@ function getCameraForward(scene) {
       const len = Math.sqrt(x * x + z * z) || 1;
       return { x: x / len, z: z / len };
     }
-  } catch {}
+  } catch (error) {
+    console.warn("Suppressed non-critical error:", error);
+  }
 
   return { x: 0, z: 1 };
 }
@@ -394,7 +389,8 @@ function getInteractionHint(mesh) {
   }
 
   const interactive = candidates.some(
-    (m) => m?.actionManager || m?.metadata?.interactive || m?.metadata?.clickable
+    (m) =>
+      m?.actionManager || m?.metadata?.interactive || m?.metadata?.clickable,
   );
 
 
@@ -408,7 +404,9 @@ function getRepresentativePosition(root, fallbackMesh) {
 
     try {
       node.computeWorldMatrix?.(true);
-    } catch {}
+    } catch (error) {
+      console.warn("Suppressed non-critical error:", error);
+    }
 
     try {
       const center = node.getBoundingInfo?.()?.boundingBox?.centerWorld;
@@ -420,7 +418,9 @@ function getRepresentativePosition(root, fallbackMesh) {
       ) {
         return center;
       }
-    } catch {}
+    } catch (error) {
+      console.warn("Suppressed non-critical error:", error);
+    }
 
     try {
       const p = node.getAbsolutePosition?.() ?? node.position;
@@ -432,7 +432,9 @@ function getRepresentativePosition(root, fallbackMesh) {
       ) {
         return p;
       }
-    } catch {}
+    } catch (error) {
+      console.warn("Suppressed non-critical error:", error);
+    }
   }
 
   return null;
@@ -498,7 +500,7 @@ function getReferenceAnchor(scene) {
     return {
       kind: "character",
       mesh: bestCharacter,
-      position: characterPos
+      position: characterPos,
     };
   }
 
@@ -543,7 +545,7 @@ function getReferenceAnchor(scene) {
   return {
     kind: "camera",
     mesh: camera || null,
-    position: cameraPos || { x: 0, y: 0, z: 0 }
+    position: cameraPos || { x: 0, y: 0, z: 0 },
   };
 }
 
@@ -605,7 +607,9 @@ function getSceneObjects(scene, options = {}) {
     const dxCam = p.x - cameraPos.x;
     const dyCam = p.y - cameraPos.y;
     const dzCam = p.z - cameraPos.z;
-    const distFromCamera = Math.sqrt(dxCam * dxCam + dyCam * dyCam + dzCam * dzCam);
+    const distFromCamera = Math.sqrt(
+      dxCam * dxCam + dyCam * dyCam + dzCam * dzCam,
+    );
     if (distFromCamera < 0.2) continue;
 
     const lenXZ = Math.sqrt(dxCam * dxCam + dzCam * dzCam) || 1;
@@ -636,7 +640,7 @@ function getSceneObjects(scene, options = {}) {
       mesh.actionManager ||
       root?.metadata?.interactive ||
       root?.metadata?.clickable ||
-      interactionHint
+      interactionHint,
     );
 
     const textLabels = collectNearbyTextForObject(scene, p, root);
@@ -666,7 +670,10 @@ function getSceneObjects(scene, options = {}) {
   return Array.from(byEntityName.values());
 }
 
-function objectToSentence(obj, { includeActionHint = false, includeText = false } = {}) {
+function objectToSentence(
+  obj,
+  { includeActionHint = false, includeText = false } = {},
+) {
   const where = [obj.horizontal, obj.vertical].filter(Boolean).join(" and ");
   let sentence = `${obj.label} is ${where || "nearby"}, ${obj.distanceLabel}.`;
 
@@ -881,7 +888,9 @@ export function describeScene(scene) {
   }
 
   if (mainObjects.length > 0) {
-    parts.push(top.map((o) => objectToSentence(o, { includeText: true })).join(" "));
+    parts.push(
+      top.map((o) => objectToSentence(o, { includeText: true })).join(" "),
+    );
   } else {
     parts.push("I can detect the environment, but no nearby main objects.");
   }
@@ -919,8 +928,7 @@ function describeInitialWorld(scene) {
 
 export function getHelpText(scene) {
   const custom =
-    scene?.metadata?.a11yInstructions ||
-    scene?.metadata?.instructions;
+    scene?.metadata?.a11yInstructions || scene?.metadata?.instructions;
 
   if (custom) return custom;
 
@@ -938,11 +946,16 @@ function announceInteraction(mesh, actionWord = "interacted with") {
   const label = getObjectLabel(root);
   const hint = getInteractionHint(root);
   const pos = getRepresentativePosition(root, mesh);
-  const textLabels = currentScene ? collectNearbyTextForObject(currentScene, pos, root) : [];
+  const textLabels = currentScene
+    ? collectNearbyTextForObject(currentScene, pos, root)
+    : [];
 
   const now = Date.now();
   const interactionKey = `${actionWord}:${label}:${hint}:${(textLabels || []).join("|")}`;
-  if (interactionKey === lastInteractionKey && now - lastInteractionTime < 400) {
+  if (
+    interactionKey === lastInteractionKey &&
+    now - lastInteractionTime < 400
+  ) {
     return;
   }
   lastInteractionKey = interactionKey;
@@ -966,14 +979,15 @@ function attachPointerAnnouncements(scene) {
   if (pointerObserverScene && pointerObserverRef) {
     try {
       pointerObserverScene.onPointerObservable.remove(pointerObserverRef);
-    } catch {}
+    } catch (error) {
+      console.warn("Suppressed non-critical error:", error);
+    }
     pointerObserverRef = null;
     pointerObserverScene = null;
   }
 
   const PointerTypes =
-    window.BABYLON?.PointerEventTypes ||
-    globalThis.BABYLON?.PointerEventTypes;
+    window.BABYLON?.PointerEventTypes || globalThis.BABYLON?.PointerEventTypes;
 
   pointerObserverScene = scene;
 
@@ -988,7 +1002,7 @@ function attachPointerAnnouncements(scene) {
       if (!pickedMesh) return;
 
       const isPick = PointerTypes
-        ? (type === PointerTypes.POINTERPICK || type === PointerTypes.POINTERDOWN)
+        ? type === PointerTypes.POINTERPICK || type === PointerTypes.POINTERDOWN
         : true;
 
       if (!isPick) return;
@@ -1143,8 +1157,10 @@ export function enableSceneDescription(scene) {
   document.addEventListener(
     "keydown",
     (e) => {
-      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
-      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable) return;
+      const tag =
+        e.target && e.target.tagName ? e.target.tagName.toLowerCase() : "";
+      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable)
+        return;
 
       if (!e.ctrlKey || e.altKey || e.metaKey) return;
       if (!e.key) return;
@@ -1178,7 +1194,7 @@ export function enableSceneDescription(scene) {
         announceHelp(currentScene);
       }
     },
-    true
+    true,
   );
 }
 

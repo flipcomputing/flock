@@ -9,7 +9,7 @@ export const flockSensing = {
                   Category: Sensing
   */
 
-    getProperty(modelName, propertyName) {
+  getProperty(modelName, propertyName) {
     const mesh =
       modelName === "__active_camera__"
         ? flock.scene.activeCamera
@@ -166,10 +166,9 @@ export const flockSensing = {
       }
 
       case "VISIBLE":
-          propertyValue = mesh.isEnabled() && mesh.isVisible;
+        propertyValue = mesh.isEnabled() && mesh.isVisible;
         break;
 
-      // Leaving colour-related logic as-is for now, per your request.
       case "ALPHA":
         allMeshes = [mesh].concat(mesh.getDescendants?.() ?? []);
         materialNode = allMeshes.find((node) => node.material);
@@ -204,7 +203,10 @@ export const flockSensing = {
       case "DESCRIPTION": {
         const root = mesh.metadata?.boundingBox ?? mesh;
         propertyValue = root.metadata?.displayName ?? null;
-        if (propertyValue === null && typeof root.getChildMeshes === "function") {
+        if (
+          propertyValue === null &&
+          typeof root.getChildMeshes === "function"
+        ) {
           for (const child of root.getChildMeshes(false)) {
             if (child.metadata?.displayName != null) {
               propertyValue = child.metadata.displayName;
@@ -363,7 +365,8 @@ export const flockSensing = {
   },
   actionPressed(action) {
     const overrides = this._actionMapOverrides;
-    const actionKeys = (overrides && overrides[action]) || this._defaultActionMap[action];
+    const actionKeys =
+      (overrides && overrides[action]) || this._defaultActionMap[action];
 
     if (!actionKeys) {
       return false;

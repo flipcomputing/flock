@@ -992,13 +992,13 @@
         "inputs": {
           "DO": {
             "block": {
-              "type": "play_sound",
+              "type": "play_theme",
               "id": "8#aLU7$bN@?eb8roJxH%",
               "fields": {
                 "ID_VAR": {
                   "id": "sT@2f`QQg?Wd*tit,y/6"
                 },
-                "SOUND_NAME": "theme-electronic.mp3",
+                "THEME_NAME": "theme-electronic.mp3",
                 "MESH_NAME": "musicbox",
                 "MODE": "ONCE",
                 "ASYNC": "START"

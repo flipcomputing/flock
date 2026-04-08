@@ -643,7 +643,10 @@ function detachActivePickHandler() {
   flock.activePickHandlerCapture = false;
 }
 
-function registerActivePickHandler(handler, { capture = false, delay = 0 } = {}) {
+function registerActivePickHandler(
+  handler,
+  { capture = false, delay = 0 } = {},
+) {
   detachActivePickHandler();
   flock.activePickHandler = handler;
   flock.activePickHandlerCapture = capture;

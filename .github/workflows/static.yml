@@ -19,13 +19,13 @@ concurrency:
 
 env:
   VITE_BASE_URL: "/${{ github.event.repository.name }}/"
-  
+
 jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
     environment:
-      name: flock
+      name: ${{ github.event.repository.name }}
       url: ${{ steps.deploy_to_pages.outputs.github_pages_url }}
     steps:
       - name: Checkout

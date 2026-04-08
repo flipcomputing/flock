@@ -32,17 +32,20 @@ npm run test:api glide -- --log-all --verbose
 ### 1. API Coverage Report (`scripts/api-coverage-report.mjs`)
 
 **What it does:**
+
 - Analyzes all 108 API methods in `flock.js`
 - Tracks documentation from two sources: API.md and JSDoc
 - Maps test coverage for each method
 - Generates detailed markdown report
 
 **Usage:**
+
 ```bash
 npm run docs:coverage
 ```
 
 **Output:**
+
 ```
 📊 Total API Methods: 108
 📖 API.md Documentation: 52 methods
@@ -66,12 +69,14 @@ Coverage by Category:
 ### 2. CLI Test Runner (`scripts/run-api-tests.mjs`)
 
 **What it does:**
+
 - Starts Vite dev server automatically
 - Launches headless Playwright browser
 - Runs mocha tests via automation
 - Reports results with proper exit codes
 
 **Usage:**
+
 ```bash
 # Run specific suite
 npm run test:api babylon
@@ -93,6 +98,7 @@ npm run test:api glide -- --log-all --verbose
 ```
 
 **Available suites:**
+
 - `babylon` (3 tests) - Basic API tests
 - `materials` (22 tests) - Material system
 - `physics` (6 tests) - Physics engine
@@ -103,12 +109,14 @@ npm run test:api glide -- --log-all --verbose
 - `@onlyslow` (94 tests) - All slow tests
 
 **Logging Options:**
+
 - `--log-api` - Logs all API method calls with timestamps
 - `--log-tests` - Logs test execution lifecycle (start/pass/fail)
 - `--log-all` - Both API and test logging
 - `--verbose` - Additional diagnostic output
 
 **Log Files:**
+
 - `logs/api-calls.log` - API method calls and frequency
 - `logs/test-execution.log` - Test lifecycle events
 
@@ -117,25 +125,33 @@ npm run test:api glide -- --log-all --verbose
 These are used by the main tools but can be run independently:
 
 #### `extract-api-methods.mjs`
+
 Extracts all API methods from `flock.js` (lines 865-987)
+
 ```bash
 node scripts/utils/extract-api-methods.mjs
 ```
 
 #### `parse-jsdoc.mjs`
+
 Parses JSDoc comments from `api/*.js` files
+
 ```bash
 node scripts/utils/parse-jsdoc.mjs
 ```
 
 #### `parse-api-md.mjs`
+
 Parses documented methods from `API.md`
+
 ```bash
 node scripts/utils/parse-api-md.mjs
 ```
 
 #### `test-analyzer.mjs`
+
 Analyzes which methods have test coverage
+
 ```bash
 node scripts/utils/test-analyzer.mjs
 ```
@@ -145,32 +161,42 @@ node scripts/utils/test-analyzer.mjs
 ### Adding Documentation
 
 #### Option 1: Add to API.md (User-Facing)
+
 1. Run coverage report to identify undocumented methods:
    ```bash
    npm run docs:coverage
    ```
 2. Open `API.md` and add method documentation following existing pattern:
-   ```markdown
+
+   ````markdown
    #### `methodName(param1, param2)`
 
    Description of what the method does.
 
    **Parameters:**
+
    - `param1` (type) - Description
 
    **Returns:** Description
 
    **Example:**
+
    ```javascript
    flock.methodName("value", options);
    ```
+   ````
+
    ```
+
+   ```
+
 3. Re-run coverage to verify:
    ```bash
    npm run docs:coverage
    ```
 
 #### Option 2: Add JSDoc (Developer-Facing)
+
 1. Find method implementation in `api/*.js`
 2. Add JSDoc comment above method:
    ```javascript
@@ -202,17 +228,20 @@ node scripts/utils/test-analyzer.mjs
    ```
 
 **Best Practice:** Document methods in BOTH places:
+
 - API.md for users learning the API
 - JSDoc for developers and IDE autocomplete
 
 ### Adding Tests
 
 1. Run coverage report to identify untested methods:
+
    ```bash
    npm run docs:coverage
    ```
 
 2. Check the **Untested Methods** section and **Coverage by Category**:
+
    ```
    ❌ Mesh operations: 8 methods (0% tested)
      - parentChild
@@ -229,6 +258,7 @@ node scripts/utils/test-analyzer.mjs
    - etc.
 
 4. Follow existing test patterns:
+
    ```javascript
    describe("Mesh operations @mesh", function () {
      let testMesh;
@@ -256,6 +286,7 @@ node scripts/utils/test-analyzer.mjs
    ```
 
 5. Run your new tests:
+
    ```bash
    npm run test:api mesh
    ```
@@ -279,11 +310,13 @@ Test Files:               15 files
 ```
 
 **Well-Covered Categories:**
+
 - ✅ Animation: 100% tested, 55% documented
 - ✅ Transform: 100% tested, 44% documented
 - ✅ CSG Operations: 100% tested
 
 **Priority Areas for Improvement:**
+
 - ❌ Mesh operations: 0% tested, 0% documented
 - ❌ Camera: 0% tested, 100% documented (needs tests!)
 - ❌ Movement: 0% tested, 0% documented
@@ -292,6 +325,7 @@ Test Files:               15 files
 ## Integration with Development Workflow
 
 ### Daily Development
+
 ```bash
 # Before committing changes
 npm run docs:coverage      # Check if new methods need docs
@@ -299,7 +333,9 @@ npm run test:api @notslow  # Run fast tests
 ```
 
 ### Pre-commit Hook (Recommended)
+
 Add to `.git/hooks/pre-commit`:
+
 ```bash
 #!/bin/bash
 npm run test:api @notslow
@@ -310,6 +346,7 @@ fi
 ```
 
 ### CI/CD Pipeline
+
 ```yaml
 # Example GitHub Actions
 - name: Run API Tests
@@ -334,26 +371,31 @@ Shows overall health of the API
 
 **2. Undocumented Methods**
 Lists methods with no documentation in either API.md or JSDoc
+
 - Priority: Add at least API.md documentation
 
 **3. Untested Methods**
 Lists methods with no test coverage
+
 - Priority: Write tests for these methods
 
 **4. Coverage by Category**
 Breaks down by functional area:
+
 - Animation, Transform, Mesh, Camera, Physics, UI, etc.
 - Shows both documentation and test coverage per category
 - Helps identify which areas need attention
 
 **5. Most Tested Methods**
 Shows which methods have the most test coverage
+
 - Good examples for writing new tests
 - Indicates heavily-used API methods
 
 ## Troubleshooting
 
 ### Tests Not Running
+
 ```bash
 # Check if dev server is already running
 lsof -ti:5173 | xargs kill -9
@@ -363,11 +405,13 @@ npm run test:api babylon
 ```
 
 ### Coverage Report Shows 0%
+
 - Check that methods are properly exposed in `flock.js` (lines 865-987)
 - Verify API.md uses pattern: `#### \`methodName(params)\``
 - Verify JSDoc comments are above method definitions
 
 ### Logging Not Working
+
 ```bash
 # Ensure logs directory exists
 mkdir -p logs
@@ -426,24 +470,30 @@ cat logs/api-calls.log
 ### Key Files
 
 **API Definition:**
+
 - `flock.js` (lines 865-987) - All API method bindings
 
 **API Implementation:**
+
 - `api/*.js` - Individual API module implementations
 
 **Tests:**
+
 - `tests/*.test.js` - Mocha test suites
 - `tests/tests.html` - Test runner UI
 
 **Documentation:**
+
 - `API.md` - User-facing documentation
 
 **Reports:**
+
 - `reports/api-coverage.md` - Generated coverage report
 
 ## Future Enhancements
 
 **Potential Additions:**
+
 - [ ] Auto-generate API documentation site from JSDoc
 - [ ] Coverage badges in README
 - [ ] Test coverage thresholds in CI/CD

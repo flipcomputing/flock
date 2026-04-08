@@ -166,17 +166,18 @@ export const flockUI = {
     const sanitize = (val, { maxLen = 500 } = {}) => {
       if (val == null) return "";
       let s = String(val);
-      s = s.normalize('NFKC');
+      s = s.normalize("NFKC");
       const doc = new DOMParser().parseFromString(s, "text/html");
       s = doc.body.textContent || "";
-      s = s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");
+      s = s.replace(/\p{Cc}/gu, "");
       s = s.replace(/\s+/g, " ").trim();
       if (s.length > maxLen) s = s.slice(0, maxLen);
       return s;
     };
 
-    const inputId = id ? sanitize(id, { maxLen: 100 }) : 
-      `input_${Date.now()}_${crypto.randomUUID()}`;
+    const inputId = id
+      ? sanitize(id, { maxLen: 100 })
+      : `input_${Date.now()}_${crypto.randomUUID()}`;
     const submitId = `submit_${inputId}`;
 
     const existingInput = flock.scene.UITexture.getControlByName(inputId);
@@ -189,7 +190,8 @@ export const flockUI = {
       MEDIUM: { width: "300px", height: "50px" },
       LARGE: { width: "400px", height: "60px" },
     };
-    const resolvedSize = sizeMap[(size || "").toUpperCase()] || sizeMap["MEDIUM"];
+    const resolvedSize =
+      sizeMap[(size || "").toUpperCase()] || sizeMap["MEDIUM"];
     const inputWidth = resolvedSize.width;
     const inputHeight = resolvedSize.height;
     const buttonWidth = "50px";
@@ -207,12 +209,14 @@ export const flockUI = {
 
     input.left = `${x}px`;
     input.top = `${y}px`;
-    input.horizontalAlignment = x < 0
-      ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
-      : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    input.verticalAlignment = y < 0
-      ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
-      : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    input.horizontalAlignment =
+      x < 0
+        ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+        : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    input.verticalAlignment =
+      y < 0
+        ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
+        : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
     const button = flock.GUI.Button.CreateSimpleButton(submitId, "✓");
     button.width = buttonWidth;
@@ -335,7 +339,6 @@ export const flockUI = {
     button.height = `${size}px`;
     button.color = color;
     button.background = "transparent";
-    button.thickness = 0;
     button.fontSize = `${40 * flock.displayScale}px`;
     button.fontFamily = fontFamily;
 
@@ -367,128 +370,12 @@ export const flockUI = {
     grid.height = `${160 * flock.displayScale}px`;
     grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-
-    // Position it slightly away from the screen edge
-    grid.left = "20px";
-    grid.top = "-20px";
-
     grid.addRowDefinition(1);
     grid.addRowDefinition(1);
     grid.addColumnDefinition(1);
     grid.addColumnDefinition(1);
     grid.addColumnDefinition(1);
 
-    flock.controlsTexture.addControl(grid);
-
-    const upButton = flock.createSmallButton("△", ["w", "ArrowUp"], color);
-    const downButton = flock.createSmallButton("▽", ["s", "ArrowDown"], color);
-    const leftButton = flock.createSmallButton("◁", ["a", "ArrowLeft"], color);
-    const rightButton = flock.createSmallButton(
-      "▷",
-      ["d", "ArrowRight"],
-      color,
-    );
-
-    // Add padding so buttons don't overlap touch areas
-    [upButton, downButton, leftButton, rightButton].forEach((b) => {
-      b.paddingTop = "4px";
-      b.paddingBottom = "4px";
-      b.paddingLeft = "4px";
-      b.paddingRight = "4px";
-    });
-
-    grid.addControl(upButton, 0, 1);
-    grid.addControl(leftButton, 1, 0);
-    grid.addControl(downButton, 1, 1);
-    grid.addControl(rightButton, 1, 2);
-  },
-  createButtonControls(color) {
-    if (!flock.controlsTexture) return;
-
-    const rightGrid = new flock.GUI.Grid();
-    rightGrid.width = `${160 * flock.displayScale}px`;
-    rightGrid.height = `${160 * flock.displayScale}px`;
-    rightGrid.horizontalAlignment =
-      flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-    rightGrid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-
-    // Position it away from the edge
-    rightGrid.left = "-20px";
-    rightGrid.top = "-20px";
-
-    rightGrid.addRowDefinition(1);
-    rightGrid.addRowDefinition(1);
-    rightGrid.addColumnDefinition(1);
-    rightGrid.addColumnDefinition(1);
-
-    flock.controlsTexture.addControl(rightGrid);
-
-    const button1 = flock.createSmallButton("①", "e", color);
-    const button2 = flock.createSmallButton("②", "r", color);
-    const button3 = flock.createSmallButton("③", "f", color);
-    const button4 = flock.createSmallButton("④", " ", color);
-
-    [button1, button2, button3, button4].forEach((b) => {
-      b.paddingTop = "4px";
-      b.paddingBottom = "4px";
-      b.paddingLeft = "4px";
-      b.paddingRight = "4px";
-    });
-
-    rightGrid.addControl(button1, 0, 0);
-    rightGrid.addControl(button2, 0, 1);
-    rightGrid.addControl(button3, 1, 0);
-    rightGrid.addControl(button4, 1, 1);
-  },
-  createSmallButton(text, keys, color) {
-    if (!flock.controlsTexture) return;
-
-    const keyList = Array.isArray(keys) ? keys : [keys];
-
-    const buttonId = `small-${text}-${Math.random().toString(36).slice(2)}`;
-    const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
-    button.width = `${70 * flock.displayScale}px`;
-    button.height = `${70 * flock.displayScale}px`;
-    button.color = color;
-    button.background = "transparent";
-    button.fontSize = `${40 * flock.displayScale}px`;
-
-    button.fontFamily = fontFamily;
-
-    button.onPointerDownObservable.add(() => {
-      keyList.forEach((key) => {
-        if (key == null) return;
-        flock.canvas.pressedButtons.add(key);
-        flock.gridKeyPressObservable.notifyObservers(key);
-      });
-    });
-
-    const releaseAction = () => {
-      keyList.forEach((key) => {
-        if (key == null) return;
-        flock.canvas.pressedButtons.delete(key);
-        flock.gridKeyReleaseObservable.notifyObservers(key);
-      });
-    };
-
-    button.onPointerUpObservable.add(releaseAction);
-    button.onPointerOutObservable.add(releaseAction);
-
-    return button;
-  },
-  createArrowControls(color) {
-    if (!flock.controlsTexture) return;
-
-    const grid = new flock.GUI.Grid();
-    grid.width = `${240 * flock.displayScale}px`;
-    grid.height = `${160 * flock.displayScale}px`;
-    grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-    grid.addRowDefinition(1);
-    grid.addRowDefinition(1);
-    grid.addColumnDefinition(1);
-    grid.addColumnDefinition(1);
-    grid.addColumnDefinition(1);
     flock.controlsTexture.addControl(grid);
 
     const upButton = flock.createSmallButton("△", ["w", "ArrowUp"], color);
@@ -518,6 +405,7 @@ export const flockUI = {
     rightGrid.addRowDefinition(1);
     rightGrid.addColumnDefinition(1);
     rightGrid.addColumnDefinition(1);
+
     flock.controlsTexture.addControl(rightGrid);
 
     const button1 = flock.createSmallButton("①", "e", color);
@@ -821,12 +709,12 @@ export const flockUI = {
       flock.stackPanel.addControl(bg);
 
       const fadeOut = () => {
-        const anim = new BABYLON.Animation(
+        const anim = new flock.BABYLON.Animation(
           "fadeOut",
           "alpha",
           30,
-          BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-          BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+          flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+          flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
         );
 
         anim.setKeys([

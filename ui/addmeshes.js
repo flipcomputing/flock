@@ -1,9 +1,4 @@
-import * as Blockly from "blockly";
-import {
-  meshMap,
-  meshBlockIdMap,
-  generateUniqueId,
-} from "../generators/generators.js";
+import { meshMap, meshBlockIdMap } from "../generators/generators.js";
 import { flock } from "../flock.js";
 import {
   extractMaterialInfo,
@@ -25,16 +20,14 @@ export function createMeshOnCanvas(block) {
     "create_cylinder",
     "create_capsule",
     "create_plane",
+    "create_3d_text",
   ].includes(block.type);
 
   if (isShape) {
     // Use the same grouping approach as objects for consistency
     // Group all shape creation events together
+    createShapeInternal(block);
 
-    try {
-      createShapeInternal(block);
-    } finally {
-    }
     return;
   }
 
@@ -106,17 +99,7 @@ export function createMeshOnCanvas(block) {
         .getFieldValue("COLOR");
       flock.setSky(color, { clear: true });
       break;
-    case "create_ground":
-      meshId = "ground";
-      meshMap[meshId] = block;
-      meshBlockIdMap[meshId] = block.id;
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
-      flock.createGround(color, "ground");
-      break;
-    case "create_map":
+    case "create_map": {
       meshId = "ground";
       meshMap[meshId] = block;
       meshBlockIdMap[meshId] = block.id;
@@ -143,7 +126,7 @@ export function createMeshOnCanvas(block) {
       flock.createMap(mapName, material);
 
       break;
-
+    }
     // --- Model Loading Blocks --
     case "load_model":
       modelName = block.getFieldValue("MODELS");
@@ -152,9 +135,9 @@ export function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      meshId = modelName + "_" + generateUniqueId();
-      meshMap[meshId] = block;
-      meshBlockIdMap[meshId] = block.id;
+      meshId = `${modelName}__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
       // Use flock API for loading models
 
       newMesh = flock.createModel({
@@ -453,7 +436,7 @@ export function createMeshOnCanvas(block) {
 
 function createShapeInternal(block) {
   const shapeType = block.type;
-  let position, scale, color, newMesh, alpha;
+  let position, color, newMesh, alpha;
   let width,
     height,
     depth,
@@ -627,6 +610,36 @@ function createShapeInternal(block) {
         alpha,
       });
       break;
+
+    case "create_3d_text": {
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#FFFFFF"));
+
+      const textInput = block.getInput("TEXT");
+      const textTarget = textInput?.connection?.targetBlock?.();
+      const textValue = textTarget
+        ? (textTarget.getFieldValue("TEXT") ??
+          textTarget.getFieldValue("NUM") ??
+          "Hello World")
+        : "Hello World";
+
+      const fontSize = parseFloat(getConnectedFieldValue("SIZE", "NUM", "50"));
+      const textDepth = parseFloat(getConnectedFieldValue("DEPTH", "NUM", "1"));
+
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.create3DText({
+        text: String(textValue),
+        font: "fonts/FreeSansBold.ttf",
+        color,
+        alpha,
+        size: fontSize,
+        depth: textDepth,
+        position: { x: position.x, y: position.y, z: position.z },
+        modelId: `3dtext__${block.id}`,
+      });
+      break;
+    }
 
     default:
       return;

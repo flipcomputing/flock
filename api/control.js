@@ -10,13 +10,17 @@ export const flockControl = {
   */
 
   wait(duration) {
+    const ms =
+      Number.isFinite(Number(duration)) && Number(duration) >= 0
+        ? Math.min(Number(duration) * 1000, 2147483647)
+        : 0;
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         if (flock.abortController?.signal) {
           flock.abortController.signal.removeEventListener("abort", onAbort);
         }
         resolve();
-      }, duration * 1000);
+      }, ms);
 
       const onAbort = () => {
         clearTimeout(timeoutId); // Clear the timeout if aborted
@@ -47,6 +51,7 @@ export const flockControl = {
     state = {},
   ) {
     if (state.stopExecution) return; // Check if we should stop further iterations
+    if (flock.abortController?.signal?.aborted) return;
 
     // Execute the loop body
     await loopBody(iteration);
@@ -62,19 +67,43 @@ export const flockControl = {
     }
   },
   waitUntil(conditionFunc) {
+    if (typeof conditionFunc !== "function") {
+      console.warn("waitUntil: conditionFunc must be a function");
+      return Promise.resolve();
+    }
+    const signal = flock.abortController?.signal;
     return new Promise((resolve, reject) => {
+      if (signal?.aborted) {
+        resolve();
+        return;
+      }
+
       const checkCondition = () => {
+        if (signal?.aborted) {
+          flock.scene?.onBeforeRenderObservable?.remove(observer);
+          resolve();
+          return;
+        }
         try {
           if (conditionFunc()) {
-            flock.scene.onBeforeRenderObservable.removeCallback(checkCondition);
+            flock.scene.onBeforeRenderObservable.remove(observer);
             resolve();
           }
         } catch (error) {
-          flock.scene.onBeforeRenderObservable.removeCallback(checkCondition);
+          flock.scene.onBeforeRenderObservable.remove(observer);
           reject(error);
         }
       };
-      flock.scene.onBeforeRenderObservable.add(checkCondition);
+      const observer = flock.scene.onBeforeRenderObservable.add(checkCondition);
+
+      signal?.addEventListener(
+        "abort",
+        () => {
+          flock.scene?.onBeforeRenderObservable?.remove(observer);
+          resolve();
+        },
+        { once: true },
+      );
     });
   },
 };
