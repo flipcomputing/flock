@@ -406,24 +406,7 @@ export function initializeLanguageMenu() {
         menuBtn.setAttribute("aria-expanded", "false");
       }
     });
-  });
-
-  // Handle keyboard navigation for language menu
-  languageMenuItem.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") {
-      e.preventDefault();
-      languageSubmenu.classList.remove("hidden");
-      languageOptions[0].focus();
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      const openAbout = document.getElementById("openAbout");
-      if (openAbout) openAbout.focus();
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      const menuBtn = document.getElementById("menuBtn");
-      if (menuBtn) menuBtn.focus();
-    }
-  });
+  });  
 }
 
 // Initialize saved language on startup
