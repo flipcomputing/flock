@@ -265,18 +265,11 @@ function initializeApp() {
           break;
         }
 
-        case "m": {
-          // Ctrl+M - Open menu
-          e.preventDefault();
-          menuButton.click();
-          const menuDropdown = document.getElementById("menuDropdown");
-          const firstMenuItem = menuDropdown
-            ? menuDropdown.querySelector("li")
-            : null;
-          if (firstMenuItem) {
-            firstMenuItem.focus();
-          }
-          break;
+          case "m": {
+            // Ctrl+M - Move focus to main menu button 
+            e.preventDefault();
+            menuButton.focus();
+            break;
         }
 
         case "g": {
