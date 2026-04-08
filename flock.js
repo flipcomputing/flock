@@ -28,6 +28,10 @@ import "@fontsource/asap";
 import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
 import { characterNames, getModelDisplayName } from "./config";
+import {
+  recordObjectPromptText,
+  recordObjectSayText
+} from "./accessibility/accessibility.js";
 
 const optionalBabylonDeps = { earcut, FlowGraphLog10Block, SetMaterialIDBlock };
 const globalEarcutTarget =
@@ -82,7 +86,7 @@ import { translate } from "./main/translation.js";
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
 
-import { enableSceneDescription, announce } from "./accessibility/accessibility.js"; //Accessibility layer
+import { enableSceneDescription, announceSayText } from "./accessibility/accessibility.js"; //Accessibility layer
 
 export const flock = {
         blockDebug: false,
@@ -1235,7 +1239,6 @@ export const flock = {
                 flock.canvas = flock.document.getElementById("renderCanvas");
                 // Make canvas focusable for keyboard events
                 flock.canvas.tabIndex = 0; 
-                flock.canvas.setAttribute("aria-label", "Flock 3D world canvas");
                 flock.scene = null;
                 flock.havokInstance = null;
                 flock.ground = null;
@@ -2031,10 +2034,60 @@ export const flock = {
                 // Create the new scene
                 flock.scene = new flock.BABYLON.Scene(flock.engine);
 
-                //Enable accessibility layer
+                // Enable accessibility layer
                 enableSceneDescription(flock.scene, flock.canvas);
-                announce("Flock world loaded. Press Control + I to hear a description of your surroundings.", { canvas: flock.canvas });
+                //announce("Flock world loaded. Press Control + I to hear a description of your surroundings.", { canvas: flock.canvas });
 
+                // Announce "say" and "printText" outputs so NVDA reads Blockly say blocks reliably.
+                if (!flock._a11yTextWrapped) {
+                // Wrap say(text, ...)
+                        if (typeof flock.say === "function") {
+                                const originalSay = flock.say.bind(flock);
+
+                                flock.say = (...args) => {
+                                const result = originalSay(...args);
+
+                                const targetName = args?.[0];
+                                const options = args?.[1];
+                                const text =
+                                options && typeof options.text === "string" ? options.text : "";
+
+                                if (text.trim()) {
+                                // Keep the first prompt text, e.g. "Click or tap me"
+                                recordObjectPromptText(targetName, text);
+
+                                // Keep general say text too
+                                recordObjectSayText(targetName, text);
+
+                                // Speak runtime text when not suppressed
+                                announceSayText(text);
+                                }
+
+                                return result;
+                                };
+                        }
+
+                        // Wrap printText({ text: "..." })
+                        if (typeof flock.printText === "function") {
+                                const originalPrintText = flock.printText.bind(flock);
+                                flock.printText = (...args) => {
+                                        const result = originalPrintText(...args);
+
+                                const payload = args?.[0];
+                                const text =
+                                        typeof payload === "string"
+                                        ? payload
+                                        : (payload && typeof payload.text === "string" ? payload.text : "");
+
+                                if (text && text.trim()) {
+                                        announceSayText(text);
+                                }
+                                return result;
+                                };
+                        }
+
+                        flock._a11yTextWrapped = true;
+                }
 
                 flock._renderLoop = () => {
                         try {
