@@ -801,10 +801,10 @@ export default {
   comma_option: ",", // human
   dot_option: ".", // human
   slash_option: "/", // human
-  ArrowLeft_option: "⯇", // human
-  ArrowUp_option: "⯅", // human
-  ArrowRight_option: "⯈", // human
-  ArrowDown_option: "⯆", // human
+  ArrowLeft_option: "◁", // human
+  ArrowUp_option: "△", // human
+  ArrowRight_option: "▷", // human
+  ArrowDown_option: "▽", // human
 
   pressed_option: "pulsar", // human
   released_option: "soltado", // human

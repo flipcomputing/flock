@@ -409,10 +409,10 @@ export default {
   dot_option: ".",
   slash_option: "/",
 
-  ArrowLeft_option: "⯇",
-  ArrowUp_option: "⯅",
-  ArrowRight_option: "⯈",
-  ArrowDown_option: "⯆",
+  ArrowLeft_option: "◁",
+  ArrowUp_option: "△",
+  ArrowRight_option: "▷",
+  ArrowDown_option: "▽",
 
   e_icon_option: "E ✿",
   f_icon_option: "F ✱",
