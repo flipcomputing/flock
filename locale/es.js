@@ -151,7 +151,7 @@ export default {
     "rotar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿invertir? %7 ¿repetir? %8 %9", // human
   rotate_anim_seconds:
     "rotar %1 a x %2 y %3 z %4 en %5 segundos\n%6 ¿invertir? %7 ¿repetir? %8 %9", // human
-  rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
+  rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8", // ai
   animate_property: "animar %1 %2 a %3 en %4 ms ¿invertir? %5 ¿repetir? %6 %7", // human
   colour_keyframe: "en %1 color: %2", // human
   number_keyframe: "en: %1 valor: %2", // human
@@ -216,7 +216,7 @@ export default {
   on_event: "al evento %1", // human
 
   // Custom block translations - Materials blocks
-  change_color: "cambiar color de %1 a %2", // human, 'change color' → cambiar color :contentReference[oaicite:2]{index=2}
+  change_color: "cambiar color de %1 a %2", // human
   change_material: "aplicar material %1 a %2 con color %3", // human
   text_material:
     "material %1 texto %2 color %3 fondo %4\nancho: %5 alto: %6 tamaño: %7", // human
@@ -224,7 +224,7 @@ export default {
   decal:
     "calcomanía en %1 desde x: %2 y: %3 z: %4 \nángulo x: %5 y: %6 z: %7\ntamaño x: %8 y: %9 z: %10 material: %11", // human
   highlight: "resaltar %1 %2", // human
-  glow: "resplandor en %1", // human, 'glow' → resplandor (noun sense) :contentReference[oaicite:3]{index=3}
+  glow: "resplandor en %1", // human
   tint: "tinte %1 %2", // human
   set_alpha: "establecer alfa de %1 a %2", // human
   clear_effects: "limpiar efectos de %1", // human
@@ -248,13 +248,13 @@ export default {
   action_pressed: "%1", // human
   meshes_touching: "%1 tocando %2", // human
   time: "tiempo en %1", // human
-  seconds: "segundos",
-  milliseconds: "milisegundos",
-  minutes: "minutos",
-  ground_level: "nivel del suelo", // human
+  seconds: "segundos", // ai
+  milliseconds: "milisegundos", // ai
+  minutes: "minutos", // ai
+  ground_level: "nivel del suelo", // ai
   distance_to: "distancia de %1 a %2", // human
   touching_surface: "¿%1 está tocando superficie?", // human
-  mesh_exists: "%1 existe?", // human
+  mesh_exists: "%1 existe?", // ai
   get_property: "obtener %1 de %2", // human
   canvas_controls: "controles de lienzo %1", // human
   button_controls: "controles de botón %1 habilitados %2 color %3", // human
@@ -289,7 +289,7 @@ export default {
   set_scene_bpm: "establecer BPM de la escena a %1", // human
   set_mesh_bpm: "establecer BPM de %1 a %2", // human
   create_instrument:
-    "instrumento %1 onda: %2\nvolumen: %3 efecto: %4 velocidad: %5 profundidad: %6\nataque: %7 decaimiento: %8 sostenido: %9 liberación: %10", // ai
+    "instrumento %1 onda: %2\nvolumen: %3 efecto: %4 velocidad: %5 profundidad: %6\nataque: %7 decaimiento: %8 sostenido: %9 liberación: %10", // human
   instrument: "instrumento %1", // human
   speak:
     "hablar %1 %2 voz: %3 idioma: %4\nvelocidad: %5 tono: %6 volumen: %7 modo: %8", // human
@@ -309,8 +309,8 @@ export default {
     "añadir %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9", // human
 
   // Custom block translations - Math blocks
-  random_seeded_int: "entero aleatorio de %1 a %2 semilla: %3", // human
-  to_number: "convertir %1 a %2", // human
+  random_seeded_int: "entero aleatorio de %1 a %2 semilla: %3", // ai
+  to_number: "convertir %1 a %2", // ai
 
   // Custom block translations - Transform blocks
   move_by_xyz: "cambiar posición de %1 por x: %2 y: %3 z: %4", // human
@@ -394,7 +394,7 @@ export default {
   rotate_anim_seconds_tooltip:
     "Rota un objeto a ángulos determinados durante una duración, con opciones de inversión, bucle y facilidando.", // human
   rotate_to_object_tooltip:
-    "Gira un objeto hacia otro u iguala la rotación de ese objeto durante una duración, con opciones para invertir, repetir y suavizado.",
+    "Gira un objeto hacia otro u iguala la rotación de ese objeto durante una duración, con opciones para invertir, repetir y suavizado.", // ai
   animate_property_tooltip:
     "Anima una propiedad de material del objeto y sus hijos.", // human
   colour_keyframe_tooltip: "Establece un fotograma clave de color y duración.", // human
@@ -547,12 +547,12 @@ export default {
     "Devuelve verdadero si los dos objetos seleccionados se están tocando.\nPalabra clave: estántocando", // human
   time_tooltip: "Devuelve el tiempo actual en segundos.", // human
   ground_level_tooltip:
-    "Devuelve la altura del suelo en la posición x/z actual.", // human
+    "Devuelve la altura del suelo en la posición x/z actual.", // ai
   distance_to_tooltip: "Calcula la distancia entre dos objetos.", // human
   touching_surface_tooltip:
     "Comprueba si el objeto está tocando una superficie.\nPalabra clave: superficie", // human
   mesh_exists_tooltip:
-    "devuelve verdadero si el objeto con este nombre está presente en la escena", // human
+    "devuelve verdadero si el objeto con este nombre está presente en la escena", // ai
   get_property_tooltip:
     "Obtiene el valor de la propiedad seleccionada de un objeto.\nPalabra clave: obtiene", // human
   canvas_controls_tooltip:
@@ -617,8 +617,8 @@ export default {
 
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip:
-    "Generar un entero aleatorio con una semilla.\nPalabra clave: semilla", // human
-  to_number_tooltip: "Convertir una cadena en un entero o un flotante", // human
+    "Generar un entero aleatorio con una semilla.\nPalabra clave: semilla", // ai
+  to_number_tooltip: "Convertir una cadena en un entero o un flotante", // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
@@ -676,8 +676,8 @@ export default {
   BounceEase_option: "Suavizado rebote", // human
   ElasticEase_option: "Suavizado elástico", // human
   BackEase_option: "Suavizado retroceso", // human
-  TOWARDS_option: "towards",
-  SAME_ROTATION_option: "same rotation as",
+  TOWARDS_option: "towards", // ai
+  SAME_ROTATION_option: "same rotation as", // ai
 
   EASEIN_option: "entrada suavizado", // human
   EASEOUT_option: "salida suavizado", // human
@@ -818,7 +818,7 @@ export default {
   MESH_option: "objeto", // human
   CAPSULE_option: "cápsula", // human
 
-  FLAT_option: "Plano", // human, Duplicate key NONE
+  FLAT_option: "Plano", // human
 
   ANY_option: "cualquiera", // human
   all_option: "todos", // ai
@@ -834,10 +834,10 @@ export default {
   machineRunning_option: "máquina", // ai
   explosion_option: "explosión", // ai
   teleport_option: "teletransportar", // ai
-  space_infinity_option: "espacio ❖", // human, Duplicate key space
-  q_icon_option: "Q ■", // human, Duplicate key q
-  e_icon_option: "E ✿", // human, Duplicate key e
-  f_icon_option: "F ✱", // human, Duplicate key f
+  space_infinity_option: "espacio ❖", // human
+  q_icon_option: "Q ■", // human
+  e_icon_option: "E ✿", // human
+  f_icon_option: "F ✱", // human
 
   x_coordinate_option: "x", // human
   y_coordinate_option: "y", // human
@@ -881,10 +881,10 @@ export default {
   ACTION_BUTTON3_option: "botón 3", // human
   ACTION_BUTTON4_option: "botón 4", // human
 
-  pin_0_option: "Pin P0 soltado", // human, Duplicate key 0
-  pin_1_option: "Pin P1 soltado", // human, Duplicate key 1
-  pin_2_option: "Pin P2 soltado", // human, Duplicate key 2
-  pin_l_option: "Logo pulsado largo", // human, All have duplicate keys
+  pin_0_option: "Pin P0 soltado", // human
+  pin_1_option: "Pin P1 soltado", // human
+  pin_2_option: "Pin P2 soltado", // human
+  pin_l_option: "Logo pulsado largo", // human
   pin_j_option: "Logo tocado", // human
   pin_h_option: "Logo pulsado", // human
   pin_k_option: "Logo soltado", // human
@@ -897,7 +897,7 @@ export default {
   pin_a_option: "Gesto: InclinarIzquierda", // human
   pin_d_option: "Gesto: InclinarDerecha", // human
   pin_y_option: "Gesto: PantallaArriba", // human
-  pin_g_option: "Gesto: PantallaAbajo", // human
+  pin_g_option: "Gesto: PantallaAbajo", // ai
   pin_i_option: "Gesto: Sacudir", // human
 
   SMALL_option: "pequeño", // human
@@ -1076,12 +1076,12 @@ export default {
 
   show_shapes_button_ui: "añadir formas y modelos", // human
   color_picker_button_ui: "Escoge color del objeto", // human
-  position_button_ui: "Posicionar objeto",
-  rotation_button_ui: "Rotar objeto",
-  scale_button_ui: "Escalar tamaño de objeto",
-  hide_button_ui: "Seleccionar objeto",
-  duplicate_button_ui: "Duplicar objeto seleccionado",
-  delete_button_ui: "Eliminar objeto seleccionado",
+  position_button_ui: "Posicionar objeto", // human
+  rotation_button_ui: "Rotar objeto", // human
+  scale_button_ui: "Escalar tamaño de objeto", // human
+  hide_button_ui: "Seleccionar objeto", // human
+  duplicate_button_ui: "Duplicar objeto seleccionado", // human
+  delete_button_ui: "Eliminar objeto seleccionado", // human
   camera_button_ui: "Controles de cámara", // human
 
   info_panel_link_ui:
@@ -1091,11 +1091,11 @@ export default {
 
   about_heading_ui: "Sobre Flock XR", // human
   about_description_intro_ui: "Flock XR es un ", // human
-  about_description_prototype_ui: "prototipo", // human - outdated
+  about_description_prototype_ui: "prototipo", // human
   about_description_made_by_ui: " hecho por ", // human
   about_description_company_ui: "Flip Computing", // human
   about_description_disclaimer_ui:
-    " Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas. Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.", // human - outdated
+    " Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas. Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.", // human
   about_run_intro_ui:
     "Mira las demos para ver lo que puedes hacer. Realiza algunos cambios y haz clic", // human
   about_run_action_ui: "ejecutar.", // human
@@ -1109,7 +1109,7 @@ export default {
   keyboard_play_ui: "Reproducir", // human
   keyboard_gizmos_ui: "Artilugios", // human
 
-  keyboard_workspace_ui: "Editor de código",
+  keyboard_workspace_ui: "Editor de código", // ai
   keyboard_navigation_ui:
     "Barra de navegación del navegador (los atajos sobrescritos funcionan desde aquí)", // human
 
@@ -1156,19 +1156,19 @@ export default {
 
   // UI status messages
   max_mesh_limit_reached:
-    "⚠️ Límite alcanzado: solo puedes tener {max} objetos en tu mundo.",
+    "⚠️ Límite alcanzado: solo puedes tener {max} objetos en tu mundo.", // human
   high_memory_usage_warning: "Advertencia: uso de memoria alto ({porciento}%)", // human
   physics_out_of_memory_log:
-    "La física de Havok se abortó, probablemente por falta de memoria.", // human, AI-generated; needs validation
+    "La física de Havok se abortó, probablemente por falta de memoria.", // human
   physics_out_of_memory_banner_ui:
-    "El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.",
+    "El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.", // human
   runtime_error_message: "Error: {mensaje}", // human
   xr_mode_message: "¡Modo XR!", // human
   fly_camera_instructions: "ℹ️ Cámara en vuelo, usa las flechas y Page Up/Down", // human
   select_mesh_delete_prompt:
-    "⚠️ Selecciona un objeto y luego haz clic en eliminar.",
+    "⚠️ Selecciona un objeto y luego haz clic en eliminar.", // human
   select_mesh_duplicate_prompt:
-    "⚠️ Selecciona un objeto y haz clic en duplicar, luego haz clic para colocar las copias.",
+    "⚠️ Selecciona un objeto y haz clic en duplicar, luego haz clic para colocar las copias.", // human
   position_readout: "Posición: {Posición}", // human
   eyedropper_not_supported_alert:
     "El selector de colores no es compatible con este navegador. Prueba con Chrome o Edge.", // human
