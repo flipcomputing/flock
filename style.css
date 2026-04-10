@@ -744,7 +744,7 @@ button {
     bottom: 0;
     left: 0;
     width: 100vw;
-    height: calc(34px + env(safe-area-inset-bottom, 0px));
+    height: calc(28px + env(safe-area-inset-bottom, 0px));
     background-color: var(--color-primary);
     color: var(--color-text-on-primary);
     text-align: center;
@@ -775,7 +775,7 @@ button {
   }
 
   #site-footer {
-    bottom: calc(34px + env(safe-area-inset-bottom, 0px) + 4px);
+    bottom: calc(28px + env(safe-area-inset-bottom, 0px) + 1px);
   }
 }
 
@@ -785,7 +785,7 @@ button {
   }
 
   #site-footer {
-    padding-bottom: 18px;
+    padding-bottom: 2px;
     padding-right: 8px;
   }
 
@@ -800,7 +800,7 @@ button {
   }
 
   #site-footer {
-    padding-bottom: 18px;
+    padding-bottom: 2px;
     padding-right: 8px;
   }
 
