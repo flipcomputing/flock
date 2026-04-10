@@ -752,7 +752,7 @@ button {
     background-color: var(--color-primary);
     color: var(--color-text-on-primary);
     text-align: center;
-    line-height: 16px;
+    line-height: normal;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -769,7 +769,8 @@ button {
     height: 100%;
     padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
     margin: 0;
-    font-size: 16px;
+    font-size: 15px;
+    line-height: 1.2;
     cursor: pointer;
     border-radius: 0;
     display: flex;
