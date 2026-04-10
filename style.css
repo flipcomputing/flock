@@ -2,6 +2,8 @@
 @import url("./ui/colourpicker.css");
 
 :root {
+  --app-height: 100vh;
+
   /* Primary Brand Colors */
   --color-primary: #511d91;
   --color-primary-light: #fc3;
@@ -51,6 +53,12 @@
   /* Shadow Colors */
   --color-shadow: rgba(0, 0, 0, 0.1);
   --color-shadow-medium: rgba(0, 0, 0, 0.2);
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --app-height: 100dvh;
+  }
 }
 
 /* Dark theme */
@@ -383,7 +391,7 @@ body {
   user-select: none;
   outline: none;
   -webkit-tap-highlight-color: transparent;
-  height: 100vh;
+  height: var(--app-height);
   width: 100vw;
 }
 
@@ -435,7 +443,7 @@ button {
 /* Layout Styles */
 #maincontent {
   width: 100vw;
-  height: calc(100vh - 50px);
+  height: calc(var(--app-height) - 50px);
   display: flex;
   margin: 0;
   gap: 0;
@@ -718,7 +726,7 @@ button {
 @media (max-width: 768px) {
   #maincontent {
     width: 200vw;
-    height: calc(100vh - var(--dynamic-offset));
+    height: calc(var(--app-height) - var(--dynamic-offset));
     overflow-x: auto;
   }
 
@@ -732,7 +740,7 @@ button {
   #canvasArea {
     flex-basis: 100vw;
     max-width: 100vw;
-    height: calc(100vh - var(--dynamic-offset));
+    height: calc(var(--app-height) - var(--dynamic-offset));
     flex-grow: 1;
   }
 
