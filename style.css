@@ -720,7 +720,7 @@ button {
 }
 @media (max-width: 1024px) {
   :root {
-    --switch-bar-base-height: 36px;
+    --switch-bar-base-height: 44px;
   }
 
   #maincontent {
@@ -786,7 +786,7 @@ button {
 
 @media (min-width: 769px) and (max-width: 1024px) {
   :root {
-    --switch-bar-base-height: 26px;
+    --switch-bar-base-height: 34px;
   }
 }
 
