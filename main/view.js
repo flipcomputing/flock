@@ -227,6 +227,14 @@ function addButtonListener() {
   }
 
   switchViewsBtn.addEventListener("click", togglePanels);
+  switchViewsBtn.addEventListener(
+    "touchend",
+    (e) => {
+      e.preventDefault();
+      togglePanels();
+    },
+    { passive: false },
+  );
 }
 
 // Alternative approach: Instead of CSS transforms, actually reposition elements in DOM
