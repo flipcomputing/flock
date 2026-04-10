@@ -677,7 +677,7 @@ export default {
   ElasticEase_option: "Suavizado elástico", // human
   BackEase_option: "Suavizado retroceso", // human
   TOWARDS_option: "hacia", // human
-  SAME_ROTATION_option: "el mismo rotación que", // human
+  SAME_ROTATION_option: "la mismo rotación que", // human
 
   EASEIN_option: "entrada suavizado", // human
   EASEOUT_option: "salida suavizado", // human
