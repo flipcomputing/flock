@@ -1095,7 +1095,7 @@ export default {
   about_description_made_by_ui: " hecho por ", // human
   about_description_company_ui: "Flip Computing", // human
   about_description_disclaimer_ui:
-    " Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas. Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.", // human
+    " Estamos buscando mojoras, asi que Flock esta siempre cambiando. Si tienes sugerencias o puedes ayudarnos con el desarollo de flock, por favor contactanos.", // human
   about_run_intro_ui:
     "Mira las demos para ver lo que puedes hacer. Realiza algunos cambios y haz clic", // human
   about_run_action_ui: "ejecutar.", // human
