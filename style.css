@@ -745,12 +745,10 @@ button {
 
   #bottomBar {
     position: fixed;
-    bottom: 0;
+    bottom: env(safe-area-inset-bottom, 0px);
     left: 0;
     width: 100vw;
-    height: calc(
-      var(--switch-bar-base-height) + env(safe-area-inset-bottom, 0px)
-    );
+    height: var(--switch-bar-base-height);
     background-color: var(--color-primary);
     color: var(--color-text-on-primary);
     text-align: center;
@@ -784,6 +782,7 @@ button {
     bottom: calc(
       var(--switch-bar-base-height) + env(safe-area-inset-bottom, 0px) + 2px
     );
+    padding: 0;
   }
 }
 
