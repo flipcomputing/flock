@@ -3,6 +3,7 @@
 
 :root {
   --app-height: 100vh;
+  --dynamic-offset: 65px;
 
   /* Primary Brand Colors */
   --color-primary: #511d91;
@@ -717,7 +718,7 @@ button {
 #flocklink img {
   height: 15px;
 }
-@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
+@media (max-width: 1024px) {
   #maincontent {
     width: 200vw;
     height: calc(var(--app-height) - var(--dynamic-offset));
@@ -768,9 +769,7 @@ button {
   }
 }
 
-@media
-  only screen and (orientation: landscape) and (max-width: 1024px),
-  only screen and (orientation: landscape) and (hover: none) and (pointer: coarse) {
+@media only screen and (orientation: landscape) and (max-width: 1024px) {
   #info-panel {
     display: none;
   }
@@ -785,9 +784,7 @@ button {
   }
 }
 
-@media
-  only screen and (orientation: portrait) and (max-width: 1024px),
-  only screen and (orientation: portrait) and (hover: none) and (pointer: coarse) {
+@media only screen and (orientation: portrait) and (max-width: 1024px) {
   #info-panel {
     display: block;
   }
@@ -802,7 +799,7 @@ button {
   }
 }
 
-@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+@media (min-width: 1025px) {
   #bottomBar {
     display: none !important;
   }

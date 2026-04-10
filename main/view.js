@@ -4,10 +4,7 @@ import { flock } from "../flock.js";
 
 // Add this helper function at the top
 export const isNarrowScreen = () => {
-  return (
-    window.innerWidth <= 1024 ||
-    window.matchMedia("(hover: none) and (pointer: coarse)").matches
-  );
+  return window.innerWidth <= 1024;
 };
 
 const isMobile = () => {
@@ -514,12 +511,10 @@ export function toggleDesignMode() {
 }
 
 const adjustViewport = () => {
-  const vh = window.innerHeight * 0.01;
+  const viewportHeight = window.visualViewport?.height || window.innerHeight;
+  const vh = viewportHeight * 0.01;
   document.documentElement.style.setProperty("--vh", `${vh}px`);
-  document.documentElement.style.setProperty(
-    "--app-height",
-    `${window.innerHeight}px`,
-  );
+  document.documentElement.style.setProperty("--app-height", `${viewportHeight}px`);
 };
 
 // Adjust viewport on page load and resize
