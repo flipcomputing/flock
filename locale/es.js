@@ -151,7 +151,7 @@ export default {
     "rotar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿invertir? %7 ¿repetir? %8 %9", // human
   rotate_anim_seconds:
     "rotar %1 a x %2 y %3 z %4 en %5 segundos\n%6 ¿invertir? %7 ¿repetir? %8 %9", // human
-  rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8", // ai
+  rotate_to_object: "rotar %1 %2 %3 en %4 segundos\n%5 ¿invertir? %6 ¿repetir? %7 %8", // human
   animate_property: "animar %1 %2 a %3 en %4 ms ¿invertir? %5 ¿repetir? %6 %7", // human
   colour_keyframe: "en %1 color: %2", // human
   number_keyframe: "en: %1 valor: %2", // human
@@ -248,13 +248,13 @@ export default {
   action_pressed: "%1", // human
   meshes_touching: "%1 tocando %2", // human
   time: "tiempo en %1", // human
-  seconds: "segundos", // ai
-  milliseconds: "milisegundos", // ai
-  minutes: "minutos", // ai
-  ground_level: "nivel del suelo", // ai
+  seconds: "segundos", // human
+  milliseconds: "milisegundos", // human
+  minutes: "minutos", // human
+  ground_level: "nivel del suelo", // human
   distance_to: "distancia de %1 a %2", // human
   touching_surface: "¿%1 está tocando superficie?", // human
-  mesh_exists: "%1 existe?", // ai
+  mesh_exists: "%1 ¿existe?", // human
   get_property: "obtener %1 de %2", // human
   canvas_controls: "controles de lienzo %1", // human
   button_controls: "controles de botón %1 habilitados %2 color %3", // human
@@ -278,7 +278,7 @@ export default {
 
   // Custom block translations - Sound blocks
   play_theme:
-    "reproducir tema %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7", // ai
+    "reproducir tema %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7", // human
   play_sound:
     "reproducir sonido %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7", // human
   stop_all_sounds: "parar todos los sonidos", // human
@@ -301,16 +301,16 @@ export default {
   ui_text:
     "UI texto %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7", // human
   ui_button:
-    "UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 text: %7 background: %8", // human
+    "UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8", // human
   ui_input:
     "UI aporte %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8", // human
-  describe: "describir %1 como %2", // ai
+  describe: "describir %1 como %2", // human
   create_3d_text:
     "añadir %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9", // human
 
   // Custom block translations - Math blocks
-  random_seeded_int: "entero aleatorio de %1 a %2 semilla: %3", // ai
-  to_number: "convertir %1 a %2", // ai
+  random_seeded_int: "numero entero aleatorio de %1 a %2 semilla: %3", // human
+  to_number: "convertir %1 a %2", // human
 
   // Custom block translations - Transform blocks
   move_by_xyz: "cambiar posición de %1 por x: %2 y: %3 z: %4", // human
@@ -324,18 +324,18 @@ export default {
   rotate_to: "rotar %1 a x: %2 y: %3 z: %4", // human
   look_at: "hacer que %1 mire a %2 y? %3", // human
   move_forward: "mover %1 %2 velocidad %3", // human
-  rotate_camera: "rotar cámara %1 grados", // ai
-  up: "arriba %1 fuerza %2", // ai
+  rotate_camera: "rotar cámara %1 grados", // human
+  up: "arriba %1 fuerza %2", // human
   set_pivot: "establecer ancla de %1\nx: %2 y: %3 z: %4", // human
   min_centre_max: "%1", // human
 
   // Custom block translations - XR blocks
   device_camera_background: "usar cámara %1 como fondo", // human
   set_xr_mode: "establecer modo XR a %1", // human
-  play_rumble_pattern: "reproducir patrón de vibración %1", // ai
-  controller_rumble: "vibrar motor %1 con fuerza %2 durante %3 ms", // ai
+  play_rumble_pattern: "reproducir patrón de vibración %1", // human
+  controller_rumble: "vibrar motor %1 con fuerza %2 durante %3 ms", // human
   controller_rumble_pattern:
-    "vibrar motor %1 fuerza %2 encendido %3 ms apagado %4 ms %5 veces", // ai
+    "vibrar %1 fuerza de motor %2 encendido %3 ms apagado %4 ms %5 veces", // human
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "lista", // human
@@ -394,7 +394,7 @@ export default {
   rotate_anim_seconds_tooltip:
     "Rota un objeto a ángulos determinados durante una duración, con opciones de inversión, bucle y facilidando.", // human
   rotate_to_object_tooltip:
-    "Gira un objeto hacia otro u iguala la rotación de ese objeto durante una duración, con opciones para invertir, repetir y suavizado.", // ai
+    "Gira un objeto hacia otro o iguala la rotación de ese objeto durante una duración, con opciones para invertir, repetir y suavizado.", // human
   animate_property_tooltip:
     "Anima una propiedad de material del objeto y sus hijos.", // human
   colour_keyframe_tooltip: "Establece un fotograma clave de color y duración.", // human
@@ -540,19 +540,19 @@ export default {
     "Devuelve verdadero si la tecla especificada está pulsado.\nPalabra clave: estápulsado", // human
   action_pressed_tooltip:
     "Devuelve verdadero si el control de movimiento o acción specificado está activo en teclado, toque o XR.", // human
-  set_action_key: "establecer tecla %1 a %2", // ai
+  set_action_key: "establecer tecla %1 a %2", // human
   set_action_key_tooltip:
     "Establece la tecla que activa una acción específica (adelante, atrás, izquierda, derecha o botones).", // ai
   meshes_touching_tooltip:
     "Devuelve verdadero si los dos objetos seleccionados se están tocando.\nPalabra clave: estántocando", // human
   time_tooltip: "Devuelve el tiempo actual en segundos.", // human
   ground_level_tooltip:
-    "Devuelve la altura del suelo en la posición x/z actual.", // ai
+    "Devuelve la altura del suelo a la posición x/z actual.", // human
   distance_to_tooltip: "Calcula la distancia entre dos objetos.", // human
   touching_surface_tooltip:
     "Comprueba si el objeto está tocando una superficie.\nPalabra clave: superficie", // human
   mesh_exists_tooltip:
-    "devuelve verdadero si el objeto con este nombre está presente en la escena", // ai
+    "devuelve verdadero si el objeto con este nombre está presente en la escena", // human
   get_property_tooltip:
     "Obtiene el valor de la propiedad seleccionada de un objeto.\nPalabra clave: obtiene", // human
   canvas_controls_tooltip:
@@ -582,7 +582,7 @@ export default {
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
-    "Reproduce un tema musical en un objeto con velocidad, volumen y modo ajustables.\nPalabra clave: tema", // ai
+    "Reproduce un tema musical en un objeto con velocidad, volumen y modo ajustables.\nPalabra clave: tema", // human
   play_sound_tooltip:
     "Reproduce el sonido seleccionado en un objeto con velocidad, volumen y modo ajustables.\nPalabra clave: sonido", // human
   stop_all_sounds_tooltip:
@@ -606,7 +606,7 @@ export default {
   say_tooltip:
     "Muestra un texto como burbuja de diálogo en un objeto.\nPalabra clave: di", // human
   describe_tooltip:
-    "Establece el nombre visible de un objeto. Actualiza los metadatos para accesibilidad.\nPalabra clave: describe", // ai
+    "Establece el nombre visible de un objeto. Actualiza los metadatos para accesibilidad.\nPalabra clave: describe", // human
   ui_text_tooltip:
     "Añade texto a la pantalla UI y almacena el control en una variable para usar o eliminar luego.", // human
   ui_button_tooltip:
@@ -617,8 +617,8 @@ export default {
 
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip:
-    "Generar un entero aleatorio con una semilla.\nPalabra clave: semilla", // ai
-  to_number_tooltip: "Convertir una cadena en un entero o un flotante", // ai
+    "Generar un numero entero aleatorio con una semilla.\nPalabra clave: semilla", // human
+  to_number_tooltip: "Convertir una cadena a un numero entero o un flotante", // human
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip:
@@ -644,8 +644,8 @@ export default {
   move_forward_tooltip:
     "Mueve el objeto en la dirección especificada. 'adelante' sigue su dirección, 'al lado' lo mueve relativo a la posición de la cámara, y 'strafear' lo mueve al lado relative a la posición de la cámara.\nPalabra clave: empuja", // human
   rotate_camera_tooltip:
-    "Rota la cámara a la izquierda o derecha los grados indicados.\nPalabra clave: rotate", // ai
-  up_tooltip: "Aplica la fuerza hacia arriba especificada.\nPalabra clave: up", // ai
+    "Rota la cámara a la izquierda o derecha los grados indicados.\nPalabra clave: rotate", // human
+  up_tooltip: "Aplica la fuerza especificada hacia arriba .\nPalabra clave: up", // human
   set_pivot_tooltip:
     "Establece el punto de anclaje para un objeto en los ejes X, Y, y Z.\nPalabra clave: ancla", // human
   min_centre_max_tooltip:
@@ -657,11 +657,11 @@ export default {
   set_xr_mode_tooltip:
     "Establece el modo XR para la escena.\nOpciones: VR, RA, Ventana Mágica.", // human
   play_rumble_pattern_tooltip:
-    "Reproduce un patrón de vibración predefinido en todos los mandos conectados.\nPalabra clave: rumble preset", // ai
+    "Reproduce un patrón de vibración predefinido en todos los mandos conectados.\nPalabra clave: rumble preset", // human
   controller_rumble_tooltip:
-    "Hace vibrar un mando de juego conectado. Elige el motor todos, izquierdo o derecho, establece la fuerza (0 a 1) y cuánto tiempo vibrar en milisegundos.\nPalabra clave: rumble", // ai
+    "Hace vibrar un mando conectado. Elige todos, el izquierdo o el derecho motor, establece la fuerza (0 a 1) y cuánto tiempo para vibrar en milisegundos.\nPalabra clave: vibrar", // human
   controller_rumble_pattern_tooltip:
-    "Hace vibrar un mando de juego conectado en un patrón repetido. Establece el motor, la fuerza (0 a 1), el tiempo encendido, el tiempo apagado y el número de repeticiones.\nPalabra clave: rumble pattern", // ai
+    "Hace vibrar un mando conectado en un patrón repetido. Establece el motor, la fuerza (0 a 1), el tiempo encendido, el tiempo apagado y el número de repeticiones.\nPalabra clave: patrón de vibrar", // human
 
   // Dropdown option translations
   AWAIT_option: "esperar", // human
@@ -676,8 +676,8 @@ export default {
   BounceEase_option: "Suavizado rebote", // human
   ElasticEase_option: "Suavizado elástico", // human
   BackEase_option: "Suavizado retroceso", // human
-  TOWARDS_option: "towards", // ai
-  SAME_ROTATION_option: "same rotation as", // ai
+  TOWARDS_option: "hacia", // human
+  SAME_ROTATION_option: "el mismo rotación que", // human
 
   EASEIN_option: "entrada suavizado", // human
   EASEOUT_option: "salida suavizado", // human
@@ -821,19 +821,19 @@ export default {
   FLAT_option: "Plano", // human
 
   ANY_option: "cualquiera", // human
-  all_option: "todos", // ai
-  objectGrab_option: "agarrar", // ai
-  objectDrop_option: "soltar", // ai
-  smallCollision_option: "golpe leve", // ai
-  heavyCollision_option: "choque fuerte", // ai
-  snapToGrid_option: "ajustar", // ai
-  errorInvalid_option: "error", // ai
-  successConfirmation_option: "éxito", // ai
-  slidingGravel_option: "deslizar grava", // ai
-  slidingMetal_option: "deslizar metal", // ai
-  machineRunning_option: "máquina", // ai
-  explosion_option: "explosión", // ai
-  teleport_option: "teletransportar", // ai
+  all_option: "todos", // human
+  objectGrab_option: "agarrar", // human
+  objectDrop_option: "soltar", // human
+  smallCollision_option: "golpe pequeño", // human
+  heavyCollision_option: "choque fuerte", // human
+  snapToGrid_option: "ajustar", // human
+  errorInvalid_option: "error", // human
+  successConfirmation_option: "éxito", // human
+  slidingGravel_option: "deslizar grava", // human
+  slidingMetal_option: "deslizar metal", // human 
+  machineRunning_option: "máquina", // human
+  explosion_option: "explosión", // human
+  teleport_option: "teletransportar", // human
   space_infinity_option: "espacio ❖", // human
   q_icon_option: "Q ■", // human
   e_icon_option: "E ✿", // human
@@ -864,7 +864,7 @@ export default {
   VISIBLE_option: "visible", // human
   ALPHA_option: "alfa", // human
   COLOUR_option: "color", // human
-  DESCRIPTION_option: "descripción", // ai
+  DESCRIPTION_option: "descripción", // human
   AUTO_option: "automático", // human
   ENABLED_option: "habilitado", // human
   DISABLED_option: "deshabilitado", // human
@@ -897,7 +897,7 @@ export default {
   pin_a_option: "Gesto: InclinarIzquierda", // human
   pin_d_option: "Gesto: InclinarDerecha", // human
   pin_y_option: "Gesto: PantallaArriba", // human
-  pin_g_option: "Gesto: PantallaAbajo", // ai
+  pin_g_option: "Gesto: PantallaAbajo", // human
   pin_i_option: "Gesto: Sacudir", // human
 
   SMALL_option: "pequeño", // human
@@ -906,43 +906,43 @@ export default {
 
   ONCE_option: "una vez", // human
   LOOP_option: "bucle", // human
-  everywhere_option: "en todas partes", // ai
+  everywhere_option: "en todas partes", // human
 
-  theme_bright_option: "Brillante", // ai
-  theme_calm_option: "Tranquilo", // ai
-  theme_electronic_option: "Electrónico", // ai
-  theme_game_option: "Videojuego", // ai
-  theme_medieval_option: "Medieval", // ai
-  theme_metal_option: "Metal", // ai
+  theme_bright_option: "Brillante", // human
+  theme_calm_option: "Tranquilo", // human
+  theme_electronic_option: "Electrónico", // human
+  theme_game_option: "Juego", // human
+  theme_medieval_option: "Medieval", // human
+  theme_metal_option: "Metal", // human
 
-  sound_highDown_option: "Tono Alto Descendente", // ai
-  sound_highUp_option: "Tono Alto Ascendente", // ai
-  sound_laser1_option: "Láser 1", // ai
-  sound_laser2_option: "Láser 2", // ai
-  sound_laser3_option: "Láser 3", // ai
-  sound_lowDown_option: "Tono Bajo Descendente", // ai
-  sound_lowRandom_option: "Tono Bajo Aleatorio", // ai
-  sound_lowThreeTone_option: "Tono Bajo Triple", // ai
-  sound_phaseJump1_option: "Salto de Fase 1", // ai
-  sound_powerUp1_option: "Potenciador 1", // ai
-  sound_powerUp2_option: "Potenciador 2", // ai
-  sound_powerUp3_option: "Potenciador 3", // ai
-  sound_powerUp4_option: "Potenciador 4", // ai
-  sound_powerUp5_option: "Potenciador 5", // ai
-  sound_spaceTrash_option: "Basura Espacial", // ai
-  sound_threeTone1_option: "Triple Tono 1", // ai
-  sound_threeTone2_option: "Triple Tono 2", // ai
+  sound_highDown_option: "Tono Alto Descendente", // human
+  sound_highUp_option: "Tono Alto Ascendente", // human
+  sound_laser1_option: "Láser 1", // human
+  sound_laser2_option: "Láser 2", // human
+  sound_laser3_option: "Láser 3", // human
+  sound_lowDown_option: "Tono Bajo Descendente", // human 
+  sound_lowRandom_option: "Tono Bajo Aleatorio", // human
+  sound_lowThreeTone_option: "Tono Bajo Tres", // human
+  sound_phaseJump1_option: "Salto de Fase 1", // human
+  sound_powerUp1_option: "Potenciador 1", // human
+  sound_powerUp2_option: "Potenciador 2", // human
+  sound_powerUp3_option: "Potenciador 3", // human
+  sound_powerUp4_option: "Potenciador 4", // human
+  sound_powerUp5_option: "Potenciador 5", // human
+  sound_spaceTrash_option: "Basura Espacial", // human
+  sound_threeTone1_option: "Tres Tono 1", // human
+  sound_threeTone2_option: "Tres Tono 2", // human
 
   sine_option: "seno", // human
   square_option: "cuadrada", // human
   sawtooth_option: "diente de sierra", // human
   triangle_option: "triángulo", // human
 
-  none_option: "ninguno", // ai
-  tremolo_option: "trémolo", // ai
-  vibrato_option: "vibrato", // ai
-  warble_option: "gorjeo", // ai
-  robot_option: "robot", // ai
+  none_option: "ninguno", // human
+  tremolo_option: "trémolo", // human
+  vibrato_option: "vibrato", // human
+  warble_option: "gorjeo", // human
+  robot_option: "robot", // human
 
   default_option: "Instrumento por defecto (Seno)", // human
   piano_option: "Piano (Cuadrado)", // human
@@ -1042,7 +1042,7 @@ export default {
   tree_jump_ui: "🌳 Salto de árbol", // human
   shape_push_ui: "🔶 Empujar forma", // human
   alien_planet_ui: "👽 Planeta alienígena", // human
-  boat_trip_ui: "⛵ Paseo en barco", // ai
+  boat_trip_ui: "⛵ Viaje en barco", // human
   character_designer_ui: "👚 Diseñador de personajes", // human
   sit_down_ui: "🪑 Siéntate", // human
 
@@ -1095,7 +1095,7 @@ export default {
   about_description_made_by_ui: " hecho por ", // human
   about_description_company_ui: "Flip Computing", // human
   about_description_disclaimer_ui:
-    " Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas. Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.", // human
+    " Estamos buscando mojoras, asi que Flock esta siempre cambiando. Si tienes sugerencias o puedes ayudarnos con el desarollo de flock, por favor contactanos.", // human
   about_run_intro_ui:
     "Mira las demos para ver lo que puedes hacer. Realiza algunos cambios y haz clic", // human
   about_run_action_ui: "ejecutar.", // human
@@ -1109,7 +1109,7 @@ export default {
   keyboard_play_ui: "Reproducir", // human
   keyboard_gizmos_ui: "Artilugios", // human
 
-  keyboard_workspace_ui: "Editor de código", // ai
+  keyboard_workspace_ui: "Editor de código", // human
   keyboard_navigation_ui:
     "Barra de navegación del navegador (los atajos sobrescritos funcionan desde aquí)", // human
 
@@ -1150,9 +1150,9 @@ export default {
     "Solo se permiten archivos de proyecto .json o .flock.", // human
   invalid_project_alert: "Este archivo no es un proyecto válido de Flock XR.", // human
   failed_to_read_file_alert: "No pudo leer el archivo.", // human
-  drag_drop_hint: "Suelta para abrir el proyecto o importar un fragmento", // ai
+  drag_drop_hint: "Suelta aqui para abrir el proyecto o importar un fragmento", // human
   drop_unsupported_file_alert:
-    "Solo se pueden soltar archivos .flock, .json, .fsnip o .png.", // ai
+    "Solo se pueden soltar archivos .flock, .json, .fsnip o .png.", // human
 
   // UI status messages
   max_mesh_limit_reached:
@@ -1196,24 +1196,24 @@ export default {
   dark_contrast_theme_ui: "Oscuro", // human
 
   // Attachment point options
-  LeftHand_option: "Mano izquierda", // ai
-  RightHand_option: "Mano derecha", // ai
-  Head_option: "Cabeza", // ai
-  Hips_option: "Caderas", // ai
-  Spine_option: "Columna", // ai
-  Spine1_option: "Columna 1", // ai
-  Spine2_option: "Columna 2", // ai
-  Neck_option: "Cuello", // ai
-  LeftShoulder_option: "Hombro izquierdo", // ai
-  LeftArm_option: "Brazo superior izquierdo", // ai
-  LeftForeArm_option: "Antebrazo izquierdo", // ai
-  RightShoulder_option: "Hombro derecho", // ai
-  RightArm_option: "Brazo superior derecho", // ai
-  RightForeArm_option: "Antebrazo derecho", // ai
-  LeftUpLeg_option: "Muslo izquierdo", // ai
-  LeftLeg_option: "Espinilla izquierda", // ai
-  LeftFoot_option: "Pie izquierdo", // ai
-  RightUpLeg_option: "Muslo derecho", // ai
-  RightLeg_option: "Espinilla derecha", // ai
-  RightFoot_option: "Pie derecho", // ai
+  LeftHand_option: "Mano izquierda", // human 
+  RightHand_option: "Mano derecha", // human
+  Head_option: "Cabeza", // human
+  Hips_option: "Caderas", // human
+  Spine_option: "Columna", // human
+  Spine1_option: "Columna 1", // human
+  Spine2_option: "Columna 2", // human
+  Neck_option: "Cuello", // human
+  LeftShoulder_option: "Hombro izquierdo", // human
+  LeftArm_option: "Brazo superior izquierdo", // human
+  LeftForeArm_option: "Antebrazo izquierdo", // human
+  RightShoulder_option: "Hombro derecho", // human
+  RightArm_option: "Brazo superior derecho", // human
+  RightForeArm_option: "Antebrazo derecho", // human
+  LeftUpLeg_option: "Muslo izquierdo", // human
+  LeftLeg_option: "Espinilla izquierda", // human
+  LeftFoot_option: "Pie izquierdo", // human
+  RightUpLeg_option: "Muslo derecho", // human
+  RightLeg_option: "Espinilla derecha", // human
+  RightFoot_option: "Pie derecho", // human
 };
