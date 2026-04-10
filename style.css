@@ -720,7 +720,7 @@ button {
 }
 @media (max-width: 1024px) {
   :root {
-    --switch-bar-base-height: 40px;
+    --switch-bar-base-height: 36px;
   }
 
   #maincontent {
@@ -745,10 +745,12 @@ button {
 
   #bottomBar {
     position: fixed;
-    bottom: env(safe-area-inset-bottom, 0px);
+    bottom: 0;
     left: 0;
     width: 100vw;
-    height: var(--switch-bar-base-height);
+    height: calc(
+      var(--switch-bar-base-height) + env(safe-area-inset-bottom, 0px)
+    );
     background-color: var(--color-primary);
     color: var(--color-text-on-primary);
     text-align: center;
@@ -767,7 +769,7 @@ button {
     color: var(--color-text-on-primary);
     width: 100%;
     height: 100%;
-    padding: 0;
+    padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
     margin: 0;
     font-size: 16px;
     cursor: pointer;
@@ -779,16 +781,14 @@ button {
   }
 
   #site-footer {
-    bottom: calc(
-      var(--switch-bar-base-height) + env(safe-area-inset-bottom, 0px) + 2px
-    );
+    bottom: calc(var(--switch-bar-base-height) + 2px);
     padding: 0;
   }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
   :root {
-    --switch-bar-base-height: 30px;
+    --switch-bar-base-height: 26px;
   }
 }
 
