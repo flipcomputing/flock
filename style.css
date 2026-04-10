@@ -55,12 +55,6 @@
   --color-shadow-medium: rgba(0, 0, 0, 0.2);
 }
 
-@supports (height: 100dvh) {
-  :root {
-    --app-height: 100dvh;
-  }
-}
-
 /* Dark theme */
 [data-theme="dark"] {
   /* Core colours */

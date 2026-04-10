@@ -516,11 +516,21 @@ export function toggleDesignMode() {
 const adjustViewport = () => {
   const vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty("--vh", `${vh}px`);
+  document.documentElement.style.setProperty(
+    "--app-height",
+    `${window.innerHeight}px`,
+  );
 };
 
 // Adjust viewport on page load and resize
 window.addEventListener("load", adjustViewport);
 window.addEventListener("resize", adjustViewport);
+window.addEventListener("orientationchange", adjustViewport);
+document.addEventListener("fullscreenchange", adjustViewport);
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", adjustViewport);
+}
 
 /*
 function toggleToolbox() {
