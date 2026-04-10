@@ -4,7 +4,7 @@ import { flock } from "../flock.js";
 
 // Add this helper function at the top
 export const isNarrowScreen = () => {
-  return window.innerWidth <= 768;
+  return window.innerWidth <= 1024;
 };
 
 const isMobile = () => {
