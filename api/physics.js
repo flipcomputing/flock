@@ -437,6 +437,26 @@ export const flockPhysics = {
       name.includes("__") ? name.split("__")[0] : name.split("_")[0];
 
     const groupName = getGroupRoot(meshName);
+    const getAllGuiControls = () => {
+      const root =
+        flock.scene?.UITexture?._rootContainer ??
+        flock.scene?.UITexture?.rootContainer;
+      if (!root) return [];
+      if (typeof root.getDescendants === "function") {
+        return root.getDescendants(false);
+      }
+      const all = [];
+      const stack = [root];
+      while (stack.length > 0) {
+        const node = stack.pop();
+        const children = node?._children ?? node?.children ?? [];
+        for (const child of children) {
+          all.push(child);
+          stack.push(child);
+        }
+      }
+      return all;
+    };
 
     if (!flock.scene) {
       if (!flock.pendingTriggers.has(groupName))
@@ -450,8 +470,8 @@ export const flockPhysics = {
     if (applyToGroup) {
       let matchingButtons = [];
       if (flock.scene.UITexture) {
-        matchingButtons = flock.scene.UITexture._rootContainer._children.filter(
-          (control) => control.name && getGroupRoot(control.name) === groupName,
+        matchingButtons = getAllGuiControls().filter(
+          (control) => control?.name && getGroupRoot(control.name) === groupName,
         );
       }
       const matching = flock.scene.meshes.filter(
@@ -488,9 +508,7 @@ export const flockPhysics = {
 
     let guiButton = null;
     if (flock.scene.UITexture) {
-      guiButton = flock.scene.UITexture._rootContainer._children.find(
-        (c) => c.name === meshName,
-      );
+      guiButton = flock.scene.UITexture.getControlByName?.(meshName) ?? null;
     }
 
     const tryNow =

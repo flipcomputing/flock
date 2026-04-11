@@ -2531,11 +2531,10 @@ export const flock = {
           // Keep group-applied triggers pending for future siblings.
           remaining.push(pending);
         } else {
+          const guiControl =
+            flock.scene?.UITexture?.getControlByName?.(targetMeshName) ?? null;
           const targetExists =
-            flock.scene?.getMeshByName(targetMeshName) ||
-            flock.scene?.UITexture?._rootContainer?._children?.some(
-              (c) => c.name === targetMeshName,
-            );
+            flock.scene?.getMeshByName(targetMeshName) || guiControl;
 
           if (targetExists) {
             // ✅ Apply to the original target this pending registration was created for.
