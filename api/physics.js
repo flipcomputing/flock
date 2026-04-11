@@ -613,9 +613,28 @@ export const flockPhysics = {
   ) {
     const getGroupRoot = (name) =>
       name.includes("__") ? name.split("__")[0] : name.split("_")[0];
+    const resolveCanonicalGroupName = (rawName) => {
+      const scene = flock.scene;
+      const exact = scene?.getMeshByName?.(rawName);
+      if (exact?.name) return getGroupRoot(exact.name);
+
+      let normalized = rawName.includes("__") ? rawName.split("__")[0] : rawName;
+      normalized = normalized.replace(/[^a-zA-Z0-9._-]/g, "");
+
+      if (normalized && normalized !== rawName) {
+        if (
+          scene?.getMeshByName?.(normalized) ||
+          flock.modelReadyPromises.has(normalized)
+        ) {
+          return getGroupRoot(normalized);
+        }
+      }
+
+      return getGroupRoot(rawName);
+    };
 
     if (applyToGroupOther) {
-      const groupName = getGroupRoot(otherMeshName);
+      const groupName = resolveCanonicalGroupName(otherMeshName);
 
       if (!flock.pendingIntersections.has(groupName)) {
         flock.pendingIntersections.set(groupName, []);

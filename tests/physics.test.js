@@ -279,6 +279,55 @@ export function runPhysicsTests(flock) {
 
       expect(count).to.equal(2);
     });
+
+    it("should canonicalize unsanitized RHS names for pending group registration", async function () {
+      const source = "canonSource_1";
+      const unsanitizedAlias = "canon target !@#";
+      const normalizedAlias = "canontarget";
+      const createdTarget = "canontarget_1";
+
+      await flock.createBox(source, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(source);
+
+      // Mirror whenModelReady alias support: unsanitized id resolves through
+      // the normalized key present in modelReadyPromises.
+      flock.modelReadyPromises.set(normalizedAlias, Promise.resolve(null));
+
+      let count = 0;
+      flock.onIntersect(source, unsanitizedAlias, {
+        trigger: "OnIntersectionEnterTrigger",
+        applyToGroupOther: true,
+        callback: () => {
+          count++;
+        },
+      });
+
+      await flock.createBox(createdTarget, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(createdTarget);
+
+      const sourceMesh = flock.scene.getMeshByName(source);
+      const targetMesh = flock.scene.getMeshByName(createdTarget);
+      expect(sourceMesh).to.exist;
+      expect(targetMesh).to.exist;
+
+      sourceMesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: targetMesh },
+      );
+
+      expect(count).to.equal(1);
+      flock.modelReadyPromises.delete(normalizedAlias);
+    });
   });
 
   describe("applyForce method @physics", function () {
