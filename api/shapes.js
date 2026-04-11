@@ -721,8 +721,16 @@ export const flockShapes = {
       try {
         let mesh;
         let fontReferenceHeight = null;
+        const manifoldRequested = useManifold;
+
+        console.info(
+          `[create3DText][path] meshId=${meshId} blockKey=${blockKey} manifoldRequested=${manifoldRequested}`,
+        );
 
         if (useManifold) {
+          console.info(
+            `[create3DText][path] meshId=${meshId} attempting=manifold`,
+          );
           try {
             let fontUrl = font;
             if (font.endsWith(".json")) {
@@ -777,6 +785,9 @@ export const flockShapes = {
             vertexData.positions = centeredPositions;
             vertexData.applyToMesh(mesh);
             mesh.flipFaces();
+            console.info(
+              `[create3DText][path] meshId=${meshId} used=manifold`,
+            );
           } catch (manifoldError) {
             console.warn(
               "[create3DText] Manifold approach failed, falling back to standard:",
@@ -787,6 +798,12 @@ export const flockShapes = {
         }
 
         if (!useManifold) {
+          const fallbackReason = manifoldRequested
+            ? "manifold_failed"
+            : "manifold_disabled";
+          console.info(
+            `[create3DText][path] meshId=${meshId} used=standard reason=${fallbackReason}`,
+          );
           const fontData = await (await fetch(font)).json();
           mesh = flock.BABYLON.MeshBuilder.CreateText(
             meshId,
