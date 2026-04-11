@@ -1,4 +1,5 @@
 import { translate } from "../main/translation.js";
+import * as fflate from "fflate";
 
 let flock;
 
@@ -178,6 +179,9 @@ export const flockXR = {
           flock.EXPORT.OBJExport.OBJ(mesh);
         } else if (format === "3MF") {
           try {
+            if (!globalThis.fflate) {
+              globalThis.fflate = fflate;
+            }
             const serializer = new flock.EXPORT.ThreeMfSerializer();
             const data = await flock.EXPORT.ThreeMf.SerializeToMemoryAsync(
               serializer,
