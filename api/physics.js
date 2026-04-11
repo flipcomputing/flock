@@ -606,7 +606,35 @@ export const flockPhysics = {
       });
     });
   },
-  onIntersect(meshName, otherMeshName, { trigger, callback }) {
+  onIntersect(
+    meshName,
+    otherMeshName,
+    { trigger, callback, applyToGroupOther = false } = {},
+  ) {
+    const getGroupRoot = (name) =>
+      name.includes("__") ? name.split("__")[0] : name.split("_")[0];
+
+    if (applyToGroupOther && flock.scene) {
+      const groupName = getGroupRoot(otherMeshName);
+      const matching = flock.scene.meshes.filter(
+        (m) => getGroupRoot(m.name) === groupName,
+      );
+      const matchingNames = [...new Set(matching.map((m) => m.name))];
+      const filteredNames = matchingNames.filter((name) => name !== meshName);
+
+      if (filteredNames.length > 0) {
+        return Promise.all(
+          filteredNames.map((name) =>
+            flock.onIntersect(meshName, name, {
+              trigger,
+              callback,
+              applyToGroupOther: false,
+            }),
+          ),
+        );
+      }
+    }
+
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
         if (!mesh) {

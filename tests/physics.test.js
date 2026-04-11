@@ -131,6 +131,99 @@ export function runPhysicsTests(flock) {
 
       expect(intersected).to.be.true;
     });
+
+    it("should register intersections for all matching right-hand group meshes", async function () {
+      const source = "colliderSource_1";
+      const groupA = "groupTarget_1";
+      const groupB = "groupTarget_2";
+
+      await flock.createBox(source, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      await flock.createBox(groupA, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      await flock.createBox(groupB, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(source, groupA, groupB);
+
+      let count = 0;
+      flock.onIntersect(source, groupA, {
+        trigger: "OnIntersectionEnterTrigger",
+        applyToGroupOther: true,
+        callback: () => {
+          count++;
+        },
+      });
+
+      const sourceMesh = flock.scene.getMeshByName(source);
+      const otherA = flock.scene.getMeshByName(groupA);
+      const otherB = flock.scene.getMeshByName(groupB);
+      expect(sourceMesh).to.exist;
+      expect(otherA).to.exist;
+      expect(otherB).to.exist;
+
+      sourceMesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: otherA },
+      );
+      sourceMesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: otherB },
+      );
+
+      expect(count).to.equal(2);
+    });
+
+    it("should skip self-pair when expanding right-hand collision group", async function () {
+      const source = "selfPair_1";
+      const other = "selfPair_2";
+
+      await flock.createBox(source, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      await flock.createBox(other, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(source, other);
+
+      let count = 0;
+      flock.onIntersect(source, source, {
+        trigger: "OnIntersectionEnterTrigger",
+        applyToGroupOther: true,
+        callback: () => {
+          count++;
+        },
+      });
+
+      const sourceMesh = flock.scene.getMeshByName(source);
+      const otherMesh = flock.scene.getMeshByName(other);
+      expect(sourceMesh).to.exist;
+      expect(otherMesh).to.exist;
+
+      sourceMesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: otherMesh },
+      );
+
+      expect(count).to.equal(1);
+    });
   });
 
   describe("applyForce method @physics", function () {
