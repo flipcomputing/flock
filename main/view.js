@@ -265,8 +265,6 @@ function showCodeView() {
   }
 
   onResize("reset");
-
-  console.log("Scrolling to top");
 }
 
 export function showCanvasView() {
