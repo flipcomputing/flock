@@ -710,7 +710,7 @@ export const flockCSG = {
     modelId = resolvedModelId;
     const traceId = options.traceId || "no-trace-id";
     const traceStep = Number.isFinite(options.traceStep) ? options.traceStep : 1;
-    const verboseTrace = traceStep <= 3;
+    const initialTrace = traceStep === 1;
 
     const collectMaterialMeshesDeep = (root) => {
       const out = [];
@@ -754,9 +754,11 @@ export const flockCSG = {
     };
 
     return new Promise((resolve) => {
-      console.info(
-        `[subtractMeshes][path] trace=${traceId} step=${traceStep} approach=merge modelId=${modelId} base=${baseMeshName} tools=${meshNames.length}`,
-      );
+      if (initialTrace) {
+        console.info(
+          `[subtractMeshes][path] trace=${traceId} step=${traceStep} approach=merge modelId=${modelId} base=${baseMeshName} tools=${meshNames.length}`,
+        );
+      }
       flock.whenModelReady(baseMeshName, (baseMesh) => {
         if (!baseMesh) return resolve(null);
         let actualBase = baseMesh.metadata?.modelName
@@ -773,9 +775,11 @@ export const flockCSG = {
         }
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
-          console.info(
-            `[subtractMeshes][merge] trace=${traceId} step=${traceStep} validTools=${validMeshes.length}`,
-          );
+          if (initialTrace) {
+            console.info(
+              `[subtractMeshes][merge] trace=${traceId} step=${traceStep} validTools=${validMeshes.length}`,
+            );
+          }
           const inferredUvProjection =
             options.uvProjection === undefined &&
             flock.toolMeshesUseTextures(validMeshes)
@@ -792,7 +796,7 @@ export const flockCSG = {
             // Check if mesh itself has valid geometry (e.g., manifold text meshes)
             const meshHasGeometry =
               mesh.getTotalVertices && mesh.getTotalVertices() > 0;
-            if (verboseTrace) {
+            if (initialTrace) {
               console.info(
                 `[subtractMeshes][merge] trace=${traceId} toolIndex=${meshIndex} name=${mesh.name} parts=${parts.length} meshHasGeometry=${meshHasGeometry}`,
               );
@@ -834,7 +838,7 @@ export const flockCSG = {
               // Direct mesh without children (e.g., manifold text mesh)
               const clone = cloneForCSG(mesh, `direct_tool_${meshIndex}`);
               subtractDuplicates.push(clone);
-              if (verboseTrace) {
+              if (initialTrace) {
                 console.info(
                   `[subtractMeshes][merge] trace=${traceId} toolIndex=${meshIndex} using=direct_mesh`,
                 );
@@ -842,14 +846,16 @@ export const flockCSG = {
             }
           });
 
-          console.info(
-            `[subtractMeshes][merge] trace=${traceId} step=${traceStep} subtractToolCount=${subtractDuplicates.length}`,
-          );
+          if (initialTrace) {
+            console.info(
+              `[subtractMeshes][merge] trace=${traceId} step=${traceStep} subtractToolCount=${subtractDuplicates.length}`,
+            );
+          }
           subtractDuplicates.forEach((m, idx) => {
             try {
               const meshCSG = flock.BABYLON.CSG2.FromMesh(m, false);
               outerCSG = outerCSG.subtract(meshCSG);
-              if (verboseTrace) {
+              if (initialTrace) {
                 console.info(
                   `[subtractMeshes][merge] trace=${traceId} subtractionIndex=${idx} status=ok tool=${m.name}`,
                 );
@@ -874,9 +880,11 @@ export const flockCSG = {
             if (!resultMesh || resultMesh.getTotalVertices() === 0) {
               throw new Error("CSG produced empty mesh");
             }
-            console.info(
-              `[subtractMeshes][merge] trace=${traceId} step=${traceStep} result=status_ok vertices=${resultMesh.getTotalVertices()}`,
-            );
+            if (initialTrace) {
+              console.info(
+                `[subtractMeshes][merge] trace=${traceId} step=${traceStep} result=status_ok vertices=${resultMesh.getTotalVertices()}`,
+              );
+            }
           } catch (e) {
             console.warn(
               "[subtractMeshesMerge] CSG subtract failed:",
@@ -937,7 +945,7 @@ export const flockCSG = {
     modelId = resolvedModelId;
     const traceId = options.traceId || "no-trace-id";
     const traceStep = Number.isFinite(options.traceStep) ? options.traceStep : 1;
-    const verboseTrace = traceStep <= 3;
+    const initialTrace = traceStep === 1;
 
     const collectMaterialMeshesDeep = (root) => {
       const out = [];
@@ -958,9 +966,11 @@ export const flockCSG = {
     };
 
     return new Promise((resolve) => {
-      console.info(
-        `[subtractMeshes][path] trace=${traceId} step=${traceStep} approach=individual modelId=${modelId} base=${baseMeshName} tools=${meshNames.length}`,
-      );
+      if (initialTrace) {
+        console.info(
+          `[subtractMeshes][path] trace=${traceId} step=${traceStep} approach=individual modelId=${modelId} base=${baseMeshName} tools=${meshNames.length}`,
+        );
+      }
       flock.whenModelReady(baseMeshName, (baseMesh) => {
         if (!baseMesh) return resolve(null);
         let actualBase = baseMesh;
@@ -980,9 +990,11 @@ export const flockCSG = {
         }
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
-          console.info(
-            `[subtractMeshes][individual] trace=${traceId} step=${traceStep} validTools=${validMeshes.length}`,
-          );
+          if (initialTrace) {
+            console.info(
+              `[subtractMeshes][individual] trace=${traceId} step=${traceStep} validTools=${validMeshes.length}`,
+            );
+          }
           const inferredUvProjection =
             options.uvProjection === undefined &&
             flock.toolMeshesUseTextures(validMeshes)
@@ -1002,7 +1014,7 @@ export const flockCSG = {
           const allToolParts = [];
           validMeshes.forEach((mesh, meshIndex) => {
             const parts = collectMaterialMeshesDeep(mesh);
-            if (verboseTrace) {
+            if (initialTrace) {
               console.info(
                 `[subtractMeshes][individual] trace=${traceId} toolIndex=${meshIndex} name=${mesh.name} parts=${parts.length}`,
               );
@@ -1015,14 +1027,16 @@ export const flockCSG = {
             });
           });
 
-          console.info(
-            `[subtractMeshes][individual] trace=${traceId} step=${traceStep} subtractPartCount=${allToolParts.length}`,
-          );
+          if (initialTrace) {
+            console.info(
+              `[subtractMeshes][individual] trace=${traceId} step=${traceStep} subtractPartCount=${allToolParts.length}`,
+            );
+          }
           allToolParts.forEach((part, index) => {
             try {
               const partCSG = flock.BABYLON.CSG2.FromMesh(part, false);
               outerCSG = outerCSG.subtract(partCSG);
-              if (verboseTrace) {
+              if (initialTrace) {
                 console.info(
                   `[subtractMeshes][individual] trace=${traceId} subtractionIndex=${index} status=ok tool=${part.name}`,
                 );
@@ -1044,9 +1058,11 @@ export const flockCSG = {
             if (!resultMesh || resultMesh.getTotalVertices() === 0) {
               throw new Error("CSG produced empty mesh");
             }
-            console.info(
-              `[subtractMeshes][individual] trace=${traceId} step=${traceStep} result=status_ok vertices=${resultMesh.getTotalVertices()}`,
-            );
+            if (initialTrace) {
+              console.info(
+                `[subtractMeshes][individual] trace=${traceId} step=${traceStep} result=status_ok vertices=${resultMesh.getTotalVertices()}`,
+              );
+            }
           } catch (e) {
             console.warn(
               "[subtractMeshesIndividual] CSG subtract failed:",
@@ -1131,9 +1147,15 @@ export const flockCSG = {
       traceId,
       traceStep: nextStep,
     };
-    console.info(
-      `[subtractMeshes][entry] trace=${traceId} step=${nextStep} requestedApproach=${approach} modelId=${modelId} base=${baseMeshName} tools=${meshNames.length}`,
-    );
+    if (nextStep === 1) {
+      console.info(
+        `[subtractMeshes][entry] trace=${traceId} step=${nextStep} requestedApproach=${approach} modelId=${modelId} base=${baseMeshName} tools=${meshNames.length}`,
+      );
+    } else if (nextStep === 2) {
+      console.info(
+        `[subtractMeshes][entry] trace=${traceId} repeated_steps_detected=true suppressing_repetitive_logs=true`,
+      );
+    }
 
     if (approach === "individual") {
       return this.subtractMeshesIndividual(
