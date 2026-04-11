@@ -112,7 +112,7 @@ export function runPhysicsTests(flock) {
 
       let intersected = false;
 
-      flock.onIntersect(box1, box2, {
+      await flock.onIntersect(box1, box2, {
         trigger: "OnIntersectionEnterTrigger",
         callback: () => {
           intersected = true;
@@ -158,7 +158,7 @@ export function runPhysicsTests(flock) {
       boxIds.push(source, groupA, groupB);
 
       let count = 0;
-      flock.onIntersect(source, groupA, {
+      await flock.onIntersect(source, groupA, {
         trigger: "OnIntersectionEnterTrigger",
         applyToGroupOther: true,
         callback: () => {
@@ -204,7 +204,7 @@ export function runPhysicsTests(flock) {
       boxIds.push(source, other);
 
       let count = 0;
-      flock.onIntersect(source, source, {
+      await flock.onIntersect(source, source, {
         trigger: "OnIntersectionEnterTrigger",
         applyToGroupOther: true,
         callback: () => {
@@ -239,7 +239,7 @@ export function runPhysicsTests(flock) {
       boxIds.push(source);
 
       let count = 0;
-      flock.onIntersect(source, futureGroupSeed, {
+      await flock.onIntersect(source, futureGroupSeed, {
         trigger: "OnIntersectionEnterTrigger",
         applyToGroupOther: true,
         callback: () => {
@@ -299,7 +299,7 @@ export function runPhysicsTests(flock) {
       flock.modelReadyPromises.set(normalizedAlias, Promise.resolve(null));
 
       let count = 0;
-      flock.onIntersect(source, unsanitizedAlias, {
+      await flock.onIntersect(source, unsanitizedAlias, {
         trigger: "OnIntersectionEnterTrigger",
         applyToGroupOther: true,
         callback: () => {
