@@ -2503,8 +2503,18 @@ export const flock = {
 
     if (flock.pendingTriggers.has(groupName)) {
       const triggers = flock.pendingTriggers.get(groupName);
+      const remaining = [];
 
-      for (const { trigger, callback, mode, applyToGroup } of triggers) {
+      for (const pending of triggers) {
+        const {
+          meshName: pendingMeshName,
+          trigger,
+          callback,
+          mode,
+          applyToGroup,
+        } = pending;
+        const targetMeshName = pendingMeshName ?? meshName;
+
         if (applyToGroup) {
           // 🔁 Reapply trigger across all matching meshes
           const matching = flock.scene.meshes.filter(
@@ -2518,16 +2528,30 @@ export const flock = {
               applyToGroup: false, // prevent recursion
             });
           }
+          // Keep group-applied triggers pending for future siblings.
+          remaining.push(pending);
         } else {
-          // ✅ Apply to just this specific mesh
-          flock.onTrigger(meshName, {
-            trigger,
-            callback,
-            mode,
-            applyToGroup: false,
-          });
+          const targetExists =
+            flock.scene?.getMeshByName(targetMeshName) ||
+            flock.scene?.UITexture?._rootContainer?._children?.some(
+              (c) => c.name === targetMeshName,
+            );
+
+          if (targetExists) {
+            // ✅ Apply to the original target this pending registration was created for.
+            flock.onTrigger(targetMeshName, {
+              trigger,
+              callback,
+              mode,
+              applyToGroup: false,
+            });
+          } else {
+            remaining.push(pending);
+          }
         }
       }
+
+      flock.pendingTriggers.set(groupName, remaining);
     }
 
     if (flock.pendingIntersections.has(groupName)) {

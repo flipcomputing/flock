@@ -441,7 +441,9 @@ export const flockPhysics = {
     if (!flock.scene) {
       if (!flock.pendingTriggers.has(groupName))
         flock.pendingTriggers.set(groupName, []);
-      flock.pendingTriggers.get(groupName).push({ trigger, callback, mode });
+      flock.pendingTriggers
+        .get(groupName)
+        .push({ meshName, trigger, callback, mode, applyToGroup });
       return;
     }
 
@@ -478,7 +480,9 @@ export const flockPhysics = {
       }
       if (!flock.pendingTriggers.has(groupName))
         flock.pendingTriggers.set(groupName, []);
-      flock.pendingTriggers.get(groupName).push({ trigger, callback, mode });
+      flock.pendingTriggers
+        .get(groupName)
+        .push({ meshName, trigger, callback, mode, applyToGroup });
       return;
     }
 
@@ -497,7 +501,9 @@ export const flockPhysics = {
     if (!tryNow) {
       if (!flock.pendingTriggers.has(groupName))
         flock.pendingTriggers.set(groupName, []);
-      flock.pendingTriggers.get(groupName).push({ trigger, callback, mode });
+      flock.pendingTriggers
+        .get(groupName)
+        .push({ meshName, trigger, callback, mode, applyToGroup });
       return;
     }
 
