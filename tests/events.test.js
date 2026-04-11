@@ -370,6 +370,86 @@ export function runEventsTests(flock) {
 
         expect(count).to.equal(0);
       });
+
+      it("replays pending non-group trigger on the original target mesh only", async function () {
+        const target = "latepick_1";
+        const sibling = "latepick_2";
+
+        let count = 0;
+        flock.onTrigger(target, {
+          trigger: "OnPickTrigger",
+          callback: () => count++,
+          applyToGroup: false,
+        });
+
+        await flock.createBox(sibling, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        await flock.createBox(target, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [2, 0, 0],
+        });
+        meshIds.push(target, sibling);
+
+        const targetMesh = flock.scene.getMeshByName(target);
+        const siblingMesh = flock.scene.getMeshByName(sibling);
+        expect(targetMesh).to.exist;
+        expect(siblingMesh).to.exist;
+
+        siblingMesh.actionManager?.processTrigger(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+        );
+        targetMesh.actionManager?.processTrigger(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+        );
+
+        expect(count).to.equal(1);
+      });
+
+      it("replays pending group trigger across siblings when applyToGroup is true", async function () {
+        const first = "lategroup_1";
+        const second = "lategroup_2";
+
+        let count = 0;
+        flock.onTrigger(first, {
+          trigger: "OnPickTrigger",
+          callback: () => count++,
+          applyToGroup: true,
+        });
+
+        await flock.createBox(first, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        await flock.createBox(second, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [2, 0, 0],
+        });
+        meshIds.push(first, second);
+
+        const mesh1 = flock.scene.getMeshByName(first);
+        const mesh2 = flock.scene.getMeshByName(second);
+        expect(mesh1).to.exist;
+        expect(mesh2).to.exist;
+
+        mesh1.actionManager?.processTrigger(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+        );
+        mesh2.actionManager?.processTrigger(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+        );
+
+        expect(count).to.equal(2);
+      });
     });
   });
 }

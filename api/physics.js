@@ -437,19 +437,41 @@ export const flockPhysics = {
       name.includes("__") ? name.split("__")[0] : name.split("_")[0];
 
     const groupName = getGroupRoot(meshName);
+    const getAllGuiControls = () => {
+      const root =
+        flock.scene?.UITexture?._rootContainer ??
+        flock.scene?.UITexture?.rootContainer;
+      if (!root) return [];
+      if (typeof root.getDescendants === "function") {
+        return root.getDescendants(false);
+      }
+      const all = [];
+      const stack = [root];
+      while (stack.length > 0) {
+        const node = stack.pop();
+        const children = node?._children ?? node?.children ?? [];
+        for (const child of children) {
+          all.push(child);
+          stack.push(child);
+        }
+      }
+      return all;
+    };
 
     if (!flock.scene) {
       if (!flock.pendingTriggers.has(groupName))
         flock.pendingTriggers.set(groupName, []);
-      flock.pendingTriggers.get(groupName).push({ trigger, callback, mode });
+      flock.pendingTriggers
+        .get(groupName)
+        .push({ meshName, trigger, callback, mode, applyToGroup });
       return;
     }
 
     if (applyToGroup) {
       let matchingButtons = [];
       if (flock.scene.UITexture) {
-        matchingButtons = flock.scene.UITexture._rootContainer._children.filter(
-          (control) => control.name && getGroupRoot(control.name) === groupName,
+        matchingButtons = getAllGuiControls().filter(
+          (control) => control?.name && getGroupRoot(control.name) === groupName,
         );
       }
       const matching = flock.scene.meshes.filter(
@@ -478,15 +500,15 @@ export const flockPhysics = {
       }
       if (!flock.pendingTriggers.has(groupName))
         flock.pendingTriggers.set(groupName, []);
-      flock.pendingTriggers.get(groupName).push({ trigger, callback, mode });
+      flock.pendingTriggers
+        .get(groupName)
+        .push({ meshName, trigger, callback, mode, applyToGroup });
       return;
     }
 
     let guiButton = null;
     if (flock.scene.UITexture) {
-      guiButton = flock.scene.UITexture._rootContainer._children.find(
-        (c) => c.name === meshName,
-      );
+      guiButton = flock.scene.UITexture.getControlByName?.(meshName) ?? null;
     }
 
     const tryNow =
@@ -497,7 +519,9 @@ export const flockPhysics = {
     if (!tryNow) {
       if (!flock.pendingTriggers.has(groupName))
         flock.pendingTriggers.set(groupName, []);
-      flock.pendingTriggers.get(groupName).push({ trigger, callback, mode });
+      flock.pendingTriggers
+        .get(groupName)
+        .push({ meshName, trigger, callback, mode, applyToGroup });
       return;
     }
 
@@ -606,7 +630,71 @@ export const flockPhysics = {
       });
     });
   },
-  onIntersect(meshName, otherMeshName, { trigger, callback }) {
+  onIntersect(
+    meshName,
+    otherMeshName,
+    { trigger, callback, applyToGroupOther = false } = {},
+  ) {
+    const getGroupRoot = (name) =>
+      name.includes("__") ? name.split("__")[0] : name.split("_")[0];
+    const resolveCanonicalGroupName = (rawName) => {
+      const scene = flock.scene;
+      const exact = scene?.getMeshByName?.(rawName);
+      if (exact?.name) return getGroupRoot(exact.name);
+
+      let normalized = rawName.includes("__") ? rawName.split("__")[0] : rawName;
+      normalized = normalized.replace(/[^a-zA-Z0-9._-]/g, "");
+
+      if (normalized && normalized !== rawName) {
+        if (
+          scene?.getMeshByName?.(normalized) ||
+          flock.modelReadyPromises.has(normalized)
+        ) {
+          return getGroupRoot(normalized);
+        }
+      }
+
+      return getGroupRoot(rawName);
+    };
+
+    if (applyToGroupOther) {
+      const groupName = resolveCanonicalGroupName(otherMeshName);
+
+      if (!flock.pendingIntersections.has(groupName)) {
+        flock.pendingIntersections.set(groupName, []);
+      }
+
+      const pendingEntry = {
+        meshName,
+        trigger,
+        callback,
+        registeredOthers: new Set(),
+      };
+      flock.pendingIntersections.get(groupName).push(pendingEntry);
+
+      const registerForOther = (name) => {
+        if (name === meshName || pendingEntry.registeredOthers.has(name)) {
+          return Promise.resolve();
+        }
+        pendingEntry.registeredOthers.add(name);
+        return flock.onIntersect(meshName, name, {
+          trigger,
+          callback,
+          applyToGroupOther: false,
+        });
+      };
+
+      if (flock.scene) {
+        const matching = flock.scene.meshes.filter(
+          (m) => getGroupRoot(m.name) === groupName,
+        );
+        const matchingNames = [...new Set(matching.map((m) => m.name))];
+        return Promise.all(matchingNames.map((name) => registerForOther(name)));
+      }
+
+      return;
+    }
+
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
         if (!mesh) {
