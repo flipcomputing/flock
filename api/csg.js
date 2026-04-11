@@ -751,6 +751,9 @@ export const flockCSG = {
     };
 
     return new Promise((resolve) => {
+      console.info(
+        `[subtractMeshes][path] approach=merge modelId=${modelId} base=${baseMeshName} tools=${meshNames.length}`,
+      );
       flock.whenModelReady(baseMeshName, (baseMesh) => {
         if (!baseMesh) return resolve(null);
         let actualBase = baseMesh.metadata?.modelName
@@ -767,6 +770,9 @@ export const flockCSG = {
         }
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
+          console.info(
+            `[subtractMeshes][merge] validTools=${validMeshes.length}`,
+          );
           const inferredUvProjection =
             options.uvProjection === undefined &&
             flock.toolMeshesUseTextures(validMeshes)
@@ -783,6 +789,9 @@ export const flockCSG = {
             // Check if mesh itself has valid geometry (e.g., manifold text meshes)
             const meshHasGeometry =
               mesh.getTotalVertices && mesh.getTotalVertices() > 0;
+            console.info(
+              `[subtractMeshes][merge] toolIndex=${meshIndex} name=${mesh.name} parts=${parts.length} meshHasGeometry=${meshHasGeometry}`,
+            );
 
             if (parts.length > 0) {
               const partClones = parts.map((p, i) =>
@@ -820,17 +829,29 @@ export const flockCSG = {
               // Direct mesh without children (e.g., manifold text mesh)
               const clone = cloneForCSG(mesh, `direct_tool_${meshIndex}`);
               subtractDuplicates.push(clone);
+              console.info(
+                `[subtractMeshes][merge] toolIndex=${meshIndex} using=direct_mesh`,
+              );
             }
           });
 
+          console.info(
+            `[subtractMeshes][merge] subtractToolCount=${subtractDuplicates.length}`,
+          );
           subtractDuplicates.forEach((m, idx) => {
             try {
               const meshCSG = flock.BABYLON.CSG2.FromMesh(m, false);
               outerCSG = outerCSG.subtract(meshCSG);
+              console.info(
+                `[subtractMeshes][merge] subtractionIndex=${idx} status=ok tool=${m.name}`,
+              );
             } catch (e) {
               console.warn(
                 `[subtractMeshesMerge] Subtraction ${idx} failed:`,
                 e.message,
+              );
+              console.info(
+                `[subtractMeshes][merge] subtractionIndex=${idx} status=failed tool=${m.name}`,
               );
             }
           });
@@ -844,6 +865,9 @@ export const flockCSG = {
             if (!resultMesh || resultMesh.getTotalVertices() === 0) {
               throw new Error("CSG produced empty mesh");
             }
+            console.info(
+              `[subtractMeshes][merge] result=status_ok vertices=${resultMesh.getTotalVertices()}`,
+            );
           } catch (e) {
             console.warn(
               "[subtractMeshesMerge] CSG subtract failed:",
@@ -922,6 +946,9 @@ export const flockCSG = {
     };
 
     return new Promise((resolve) => {
+      console.info(
+        `[subtractMeshes][path] approach=individual modelId=${modelId} base=${baseMeshName} tools=${meshNames.length}`,
+      );
       flock.whenModelReady(baseMeshName, (baseMesh) => {
         if (!baseMesh) return resolve(null);
         let actualBase = baseMesh;
@@ -941,6 +968,9 @@ export const flockCSG = {
         }
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
+          console.info(
+            `[subtractMeshes][individual] validTools=${validMeshes.length}`,
+          );
           const inferredUvProjection =
             options.uvProjection === undefined &&
             flock.toolMeshesUseTextures(validMeshes)
@@ -958,8 +988,11 @@ export const flockCSG = {
 
           let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
           const allToolParts = [];
-          validMeshes.forEach((mesh) => {
+          validMeshes.forEach((mesh, meshIndex) => {
             const parts = collectMaterialMeshesDeep(mesh);
+            console.info(
+              `[subtractMeshes][individual] toolIndex=${meshIndex} name=${mesh.name} parts=${parts.length}`,
+            );
             parts.forEach((p) => {
               const dup = p.clone("partDup", null, true);
               dup.computeWorldMatrix(true);
@@ -968,12 +1001,21 @@ export const flockCSG = {
             });
           });
 
-          allToolParts.forEach((part) => {
+          console.info(
+            `[subtractMeshes][individual] subtractPartCount=${allToolParts.length}`,
+          );
+          allToolParts.forEach((part, index) => {
             try {
               const partCSG = flock.BABYLON.CSG2.FromMesh(part, false);
               outerCSG = outerCSG.subtract(partCSG);
+              console.info(
+                `[subtractMeshes][individual] subtractionIndex=${index} status=ok tool=${part.name}`,
+              );
             } catch (e) {
               console.warn(e);
+              console.info(
+                `[subtractMeshes][individual] subtractionIndex=${index} status=failed tool=${part.name}`,
+              );
             }
           });
 
@@ -986,6 +1028,9 @@ export const flockCSG = {
             if (!resultMesh || resultMesh.getTotalVertices() === 0) {
               throw new Error("CSG produced empty mesh");
             }
+            console.info(
+              `[subtractMeshes][individual] result=status_ok vertices=${resultMesh.getTotalVertices()}`,
+            );
           } catch (e) {
             console.warn(
               "[subtractMeshesIndividual] CSG subtract failed:",
@@ -1058,6 +1103,9 @@ export const flockCSG = {
       typeof optionsOrApproach === "string"
         ? optionsOrApproach
         : options.approach || "merge";
+    console.info(
+      `[subtractMeshes][entry] requestedApproach=${approach} modelId=${modelId} base=${baseMeshName} tools=${meshNames.length}`,
+    );
 
     if (approach === "individual") {
       return this.subtractMeshesIndividual(
