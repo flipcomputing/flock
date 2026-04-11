@@ -119,6 +119,7 @@ export const flock = {
   modelReadyPromises: new Map(),
   pendingMeshCreations: 0,
   pendingTriggers: new Map(),
+  pendingIntersections: new Map(),
   _nameRegistry: new Map(),
   _animationFileCache: {},
   getModelDisplayName,
@@ -1833,6 +1834,7 @@ export const flock = {
         flock.geometryCache = {};
         flock.materialCache = {};
         flock.pendingTriggers = new Map();
+        flock.pendingIntersections = new Map();
         flock._nameRegistry = new Map();
         flock._animationFileCache = {};
         flock.ground = null;
@@ -1878,6 +1880,7 @@ export const flock = {
     flock.originalModelTransformations = {};
     flock.geometryCache = {};
     flock.pendingTriggers = new Map();
+    flock.pendingIntersections = new Map();
     flock._nameRegistry = new Map();
     flock._animationFileCache = {};
     flock.materialCache = {};
@@ -2498,32 +2501,49 @@ export const flock = {
     const getGroupRoot = (name) =>
       name.includes("__") ? name.split("__")[0] : name.split("_")[0];
 
-    if (!flock.pendingTriggers.has(groupName)) return;
+    if (flock.pendingTriggers.has(groupName)) {
+      const triggers = flock.pendingTriggers.get(groupName);
 
-    const triggers = flock.pendingTriggers.get(groupName);
-
-    for (const { trigger, callback, mode, applyToGroup } of triggers) {
-      if (applyToGroup) {
-        // 🔁 Reapply trigger across all matching meshes
-        const matching = flock.scene.meshes.filter(
-          (m) => getGroupRoot(m.name) === groupName,
-        );
-        for (const m of matching) {
-          flock.onTrigger(m.name, {
+      for (const { trigger, callback, mode, applyToGroup } of triggers) {
+        if (applyToGroup) {
+          // 🔁 Reapply trigger across all matching meshes
+          const matching = flock.scene.meshes.filter(
+            (m) => getGroupRoot(m.name) === groupName,
+          );
+          for (const m of matching) {
+            flock.onTrigger(m.name, {
+              trigger,
+              callback,
+              mode,
+              applyToGroup: false, // prevent recursion
+            });
+          }
+        } else {
+          // ✅ Apply to just this specific mesh
+          flock.onTrigger(meshName, {
             trigger,
             callback,
             mode,
-            applyToGroup: false, // prevent recursion
+            applyToGroup: false,
           });
         }
-      } else {
-        // ✅ Apply to just this specific mesh
-        flock.onTrigger(meshName, {
-          trigger,
-          callback,
-          mode,
-          applyToGroup: false,
-        });
+      }
+    }
+
+    if (flock.pendingIntersections.has(groupName)) {
+      const intersections = flock.pendingIntersections.get(groupName);
+      for (const pending of intersections) {
+        if (
+          meshName !== pending.meshName &&
+          !pending.registeredOthers.has(meshName)
+        ) {
+          pending.registeredOthers.add(meshName);
+          flock.onIntersect(pending.meshName, meshName, {
+            trigger: pending.trigger,
+            callback: pending.callback,
+            applyToGroupOther: false,
+          });
+        }
       }
     }
   },

@@ -224,6 +224,61 @@ export function runPhysicsTests(flock) {
 
       expect(count).to.equal(1);
     });
+
+    it("should apply right-hand group intersections when targets are created later", async function () {
+      const source = "lateSource_1";
+      const futureGroupSeed = "lateTarget_1";
+      const futureGroupOther = "lateTarget_2";
+
+      await flock.createBox(source, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(source);
+
+      let count = 0;
+      flock.onIntersect(source, futureGroupSeed, {
+        trigger: "OnIntersectionEnterTrigger",
+        applyToGroupOther: true,
+        callback: () => {
+          count++;
+        },
+      });
+
+      await flock.createBox(futureGroupSeed, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      await flock.createBox(futureGroupOther, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(futureGroupSeed, futureGroupOther);
+
+      const sourceMesh = flock.scene.getMeshByName(source);
+      const otherA = flock.scene.getMeshByName(futureGroupSeed);
+      const otherB = flock.scene.getMeshByName(futureGroupOther);
+      expect(sourceMesh).to.exist;
+      expect(otherA).to.exist;
+      expect(otherB).to.exist;
+
+      sourceMesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: otherA },
+      );
+      sourceMesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: otherB },
+      );
+
+      expect(count).to.equal(2);
+    });
   });
 
   describe("applyForce method @physics", function () {
