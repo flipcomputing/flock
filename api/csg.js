@@ -839,6 +839,7 @@ export const flockCSG = {
           try {
             resultMesh = outerCSG.toMesh("resultMesh", scene, {
               centerMesh: false,
+              rebuildNormals: true,
             });
 
             if (!resultMesh || resultMesh.getTotalVertices() === 0) {
@@ -981,6 +982,7 @@ export const flockCSG = {
           try {
             resultMesh = outerCSG.toMesh("resultMesh", scene, {
               centerMesh: false,
+              rebuildNormals: true,
             });
 
             if (!resultMesh || resultMesh.getTotalVertices() === 0) {
