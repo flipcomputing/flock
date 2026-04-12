@@ -885,6 +885,9 @@ export const flockCSG = {
           // assignment (material.js:677). Without this the CSG result is
           // smooth-shaded while the base was flat-shaded, making cut walls
           // appear shiny relative to the surrounding surface.
+          // Only safe on single-material meshes: convertToFlatShadedMesh on a
+          // MultiMaterial shifts submesh boundaries and corrupts face-material
+          // assignment.
           const texName = String(
             resultMesh.material?.diffuseTexture?.name ||
               resultMesh.material?.albedoTexture?.name ||
@@ -894,7 +897,8 @@ export const flockCSG = {
             !texName ||
             texName.endsWith("undefined") ||
             texName.includes("none.png");
-          if (noTexture && typeof resultMesh.convertToFlatShadedMesh === "function") {
+          const isSingleMaterial = !(resultMesh.material instanceof flock.BABYLON.MultiMaterial);
+          if (noTexture && isSingleMaterial && typeof resultMesh.convertToFlatShadedMesh === "function") {
             try {
               resultMesh.convertToFlatShadedMesh();
               resultMesh.computeWorldMatrix?.(true);
@@ -1064,7 +1068,8 @@ export const flockCSG = {
             !texNameI ||
             texNameI.endsWith("undefined") ||
             texNameI.includes("none.png");
-          if (noTextureI && typeof resultMesh.convertToFlatShadedMesh === "function") {
+          const isSingleMaterialI = !(resultMesh.material instanceof flock.BABYLON.MultiMaterial);
+          if (noTextureI && isSingleMaterialI && typeof resultMesh.convertToFlatShadedMesh === "function") {
             try {
               resultMesh.convertToFlatShadedMesh();
               resultMesh.computeWorldMatrix?.(true);
