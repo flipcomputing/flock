@@ -784,7 +784,6 @@ export const flockShapes = {
 
             vertexData.positions = centeredPositions;
             vertexData.applyToMesh(mesh);
-            mesh.flipFaces();
             console.info(
               `[create3DText][path] meshId=${meshId} used=manifold`,
             );
