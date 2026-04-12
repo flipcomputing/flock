@@ -814,6 +814,7 @@ export const flockShapes = {
         );
         material.backFaceCulling = false;
         material.emissiveColor = material.diffuseColor.scale(0.2);
+        material.specularColor = flock.BABYLON.Color3.Black();
         material.alpha = toAlpha(alpha);
         mesh.material = material;
 
