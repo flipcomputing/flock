@@ -870,43 +870,25 @@ export const flockCSG = {
           resultMesh.rotation.set(0, 0, 0);
           resultMesh.scaling.set(1, 1, 1);
           resultMesh.computeWorldMatrix(true);
+          // For single-material bases, force the reference material onto all
+          // faces (including cut walls) and flat-shade the result, matching
+          // how shapes look after initial material assignment (material.js:677).
+          // For multi-material bases keep the CSG-assigned MultiMaterial so
+          // per-face colour assignment is preserved.
+          const baseIsMultiMaterial =
+            actualBase.material instanceof flock.BABYLON.MultiMaterial;
           flock.applyResultMeshProperties(
             resultMesh,
             actualBase,
             modelId,
             blockKey,
             {
-              forceReferenceMaterial: options.forceReferenceMaterial === true,
+              forceReferenceMaterial:
+                options.forceReferenceMaterial !== false && !baseIsMultiMaterial,
               flattenNonReferenceSubMaterials:
                 options.flattenNonReferenceSubMaterials === true,
             },
           );
-          // Apply flat shading to match how regular shapes look after material
-          // assignment (material.js:677). Without this the CSG result is
-          // smooth-shaded while the base was flat-shaded, making cut walls
-          // appear shiny relative to the surrounding surface.
-          // Only safe on single-material meshes: convertToFlatShadedMesh on a
-          // MultiMaterial shifts submesh boundaries and corrupts face-material
-          // assignment.
-          const texName = String(
-            resultMesh.material?.diffuseTexture?.name ||
-              resultMesh.material?.albedoTexture?.name ||
-              "",
-          ).toLowerCase();
-          const noTexture =
-            !texName ||
-            texName.endsWith("undefined") ||
-            texName.includes("none.png");
-          const isSingleMaterial = !(resultMesh.material instanceof flock.BABYLON.MultiMaterial);
-          if (noTexture && isSingleMaterial && typeof resultMesh.convertToFlatShadedMesh === "function") {
-            try {
-              resultMesh.convertToFlatShadedMesh();
-              resultMesh.computeWorldMatrix?.(true);
-              resultMesh.refreshBoundingInfo?.();
-            } catch {
-              // keep smooth shading if conversion fails
-            }
-          }
           if (
             shouldApplyBoxProjection(resultMesh, {
               ...options,
@@ -1048,36 +1030,20 @@ export const flockCSG = {
           );
           resultMesh.position.subtractInPlace(localCenter);
           resultMesh.computeWorldMatrix(true);
+          const baseIsMultiMaterialI =
+            actualBase.material instanceof flock.BABYLON.MultiMaterial;
           flock.applyResultMeshProperties(
             resultMesh,
             actualBase,
             modelId,
             blockKey,
             {
-              forceReferenceMaterial: options.forceReferenceMaterial === true,
+              forceReferenceMaterial:
+                options.forceReferenceMaterial !== false && !baseIsMultiMaterialI,
               flattenNonReferenceSubMaterials:
                 options.flattenNonReferenceSubMaterials === true,
             },
           );
-          const texNameI = String(
-            resultMesh.material?.diffuseTexture?.name ||
-              resultMesh.material?.albedoTexture?.name ||
-              "",
-          ).toLowerCase();
-          const noTextureI =
-            !texNameI ||
-            texNameI.endsWith("undefined") ||
-            texNameI.includes("none.png");
-          const isSingleMaterialI = !(resultMesh.material instanceof flock.BABYLON.MultiMaterial);
-          if (noTextureI && isSingleMaterialI && typeof resultMesh.convertToFlatShadedMesh === "function") {
-            try {
-              resultMesh.convertToFlatShadedMesh();
-              resultMesh.computeWorldMatrix?.(true);
-              resultMesh.refreshBoundingInfo?.();
-            } catch {
-              // keep smooth shading if conversion fails
-            }
-          }
           if (
             shouldApplyBoxProjection(resultMesh, {
               ...options,
