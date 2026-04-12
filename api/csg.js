@@ -775,11 +775,6 @@ export const flockCSG = {
         }
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
-          if (initialTrace) {
-            console.info(
-              `[subtractMeshes][merge] trace=${traceId} step=${traceStep} validTools=${validMeshes.length}`,
-            );
-          }
           const inferredUvProjection =
             options.uvProjection === undefined &&
             flock.toolMeshesUseTextures(validMeshes)
@@ -796,12 +791,6 @@ export const flockCSG = {
             // Check if mesh itself has valid geometry (e.g., manifold text meshes)
             const meshHasGeometry =
               mesh.getTotalVertices && mesh.getTotalVertices() > 0;
-            if (initialTrace) {
-              console.info(
-                `[subtractMeshes][merge] trace=${traceId} toolIndex=${meshIndex} name=${mesh.name} parts=${parts.length} meshHasGeometry=${meshHasGeometry}`,
-              );
-            }
-
             if (parts.length > 0) {
               const partClones = parts.map((p, i) =>
                 cloneForCSG(p, `temp_${meshIndex}_${i}`),
@@ -838,28 +827,12 @@ export const flockCSG = {
               // Direct mesh without children (e.g., manifold text mesh)
               const clone = cloneForCSG(mesh, `direct_tool_${meshIndex}`);
               subtractDuplicates.push(clone);
-              if (initialTrace) {
-                console.info(
-                  `[subtractMeshes][merge] trace=${traceId} toolIndex=${meshIndex} using=direct_mesh`,
-                );
-              }
             }
           });
-
-          if (initialTrace) {
-            console.info(
-              `[subtractMeshes][merge] trace=${traceId} step=${traceStep} subtractToolCount=${subtractDuplicates.length}`,
-            );
-          }
           subtractDuplicates.forEach((m, idx) => {
             try {
               const meshCSG = flock.BABYLON.CSG2.FromMesh(m, false);
               outerCSG = outerCSG.subtract(meshCSG);
-              if (initialTrace) {
-                console.info(
-                  `[subtractMeshes][merge] trace=${traceId} subtractionIndex=${idx} status=ok tool=${m.name}`,
-                );
-              }
             } catch (e) {
               console.warn(
                 `[subtractMeshesMerge] Subtraction ${idx} failed:`,
@@ -879,11 +852,6 @@ export const flockCSG = {
 
             if (!resultMesh || resultMesh.getTotalVertices() === 0) {
               throw new Error("CSG produced empty mesh");
-            }
-            if (initialTrace) {
-              console.info(
-                `[subtractMeshes][merge] trace=${traceId} step=${traceStep} result=status_ok vertices=${resultMesh.getTotalVertices()}`,
-              );
             }
           } catch (e) {
             console.warn(
@@ -990,11 +958,6 @@ export const flockCSG = {
         }
 
         flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
-          if (initialTrace) {
-            console.info(
-              `[subtractMeshes][individual] trace=${traceId} step=${traceStep} validTools=${validMeshes.length}`,
-            );
-          }
           const inferredUvProjection =
             options.uvProjection === undefined &&
             flock.toolMeshesUseTextures(validMeshes)
@@ -1014,11 +977,6 @@ export const flockCSG = {
           const allToolParts = [];
           validMeshes.forEach((mesh, meshIndex) => {
             const parts = collectMaterialMeshesDeep(mesh);
-            if (initialTrace) {
-              console.info(
-                `[subtractMeshes][individual] trace=${traceId} toolIndex=${meshIndex} name=${mesh.name} parts=${parts.length}`,
-              );
-            }
             parts.forEach((p) => {
               const dup = p.clone("partDup", null, true);
               dup.computeWorldMatrix(true);
@@ -1027,20 +985,10 @@ export const flockCSG = {
             });
           });
 
-          if (initialTrace) {
-            console.info(
-              `[subtractMeshes][individual] trace=${traceId} step=${traceStep} subtractPartCount=${allToolParts.length}`,
-            );
-          }
           allToolParts.forEach((part, index) => {
             try {
               const partCSG = flock.BABYLON.CSG2.FromMesh(part, false);
               outerCSG = outerCSG.subtract(partCSG);
-              if (initialTrace) {
-                console.info(
-                  `[subtractMeshes][individual] trace=${traceId} subtractionIndex=${index} status=ok tool=${part.name}`,
-                );
-              }
             } catch (e) {
               console.warn(e);
               console.info(
@@ -1057,11 +1005,6 @@ export const flockCSG = {
 
             if (!resultMesh || resultMesh.getTotalVertices() === 0) {
               throw new Error("CSG produced empty mesh");
-            }
-            if (initialTrace) {
-              console.info(
-                `[subtractMeshes][individual] trace=${traceId} step=${traceStep} result=status_ok vertices=${resultMesh.getTotalVertices()}`,
-              );
             }
           } catch (e) {
             console.warn(
