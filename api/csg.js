@@ -809,8 +809,7 @@ export const flockCSG = {
                 if (unified) {
                   unified.forceSharedVertices();
                   if (
-                    (mesh.metadata?.modelName ||
-                      mesh.metadata?.isManifoldText) &&
+                    mesh.metadata?.modelName &&
                     typeof unified.flipFaces === "function"
                   )
                     unified.flipFaces();
@@ -845,6 +844,8 @@ export const flockCSG = {
             if (!resultMesh || resultMesh.getTotalVertices() === 0) {
               throw new Error("CSG produced empty mesh");
             }
+
+            resultMesh.createNormals(true);
           } catch (e) {
             console.warn(
               "[subtractMeshesMerge] CSG subtract failed:",
@@ -987,6 +988,8 @@ export const flockCSG = {
             if (!resultMesh || resultMesh.getTotalVertices() === 0) {
               throw new Error("CSG produced empty mesh");
             }
+
+            resultMesh.createNormals(true);
           } catch (e) {
             console.warn(
               "[subtractMeshesIndividual] CSG subtract failed:",
