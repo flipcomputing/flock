@@ -1022,16 +1022,13 @@ export const flockCSG = {
           );
           resultMesh.position.subtractInPlace(localCenter);
           resultMesh.computeWorldMatrix(true);
-          const baseIsMultiMaterialI =
-            actualBase.material instanceof flock.BABYLON.MultiMaterial;
           flock.applyResultMeshProperties(
             resultMesh,
             actualBase,
             modelId,
             blockKey,
             {
-              forceReferenceMaterial:
-                options.forceReferenceMaterial !== false && !baseIsMultiMaterialI,
+              forceReferenceMaterial: options.forceReferenceMaterial === true,
               flattenNonReferenceSubMaterials:
                 options.flattenNonReferenceSubMaterials === true,
             },
