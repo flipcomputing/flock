@@ -784,6 +784,24 @@ export const flockShapes = {
 
             vertexData.positions = centeredPositions;
             vertexData.applyToMesh(mesh);
+            mesh.flipFaces();
+            const positionsForNormals = mesh.getVerticesData(
+              flock.BABYLON.VertexBuffer.PositionKind,
+            );
+            const indicesForNormals = mesh.getIndices();
+            if (positionsForNormals && indicesForNormals) {
+              const recalculatedNormals = [];
+              flock.BABYLON.VertexData.ComputeNormals(
+                positionsForNormals,
+                indicesForNormals,
+                recalculatedNormals,
+              );
+              mesh.setVerticesData(
+                flock.BABYLON.VertexBuffer.NormalKind,
+                recalculatedNormals,
+                true,
+              );
+            }
             console.info(
               `[create3DText][path] meshId=${meshId} used=manifold`,
             );
