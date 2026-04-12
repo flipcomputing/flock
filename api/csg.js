@@ -809,7 +809,8 @@ export const flockCSG = {
                 if (unified) {
                   unified.forceSharedVertices();
                   if (
-                    mesh.metadata?.modelName &&
+                    (mesh.metadata?.modelName ||
+                      mesh.metadata?.isManifoldText) &&
                     typeof unified.flipFaces === "function"
                   )
                     unified.flipFaces();

@@ -195,6 +195,82 @@ export function runShapesTests(flock) {
 
         expect(firstId).to.not.equal(secondId);
       });
+
+      it("should set isManifoldText metadata on manifold-created text", async function () {
+        const id = flock.create3DText({
+          text: "A",
+          font: "/fonts/FreeSansBold.ttf",
+          color: "#ffffff",
+          size: 1,
+          depth: 0.2,
+          position: { x: 0, y: 0, z: 0 },
+          modelId: "testManifoldMeta",
+        });
+        createdIds.push(id);
+
+        await new Promise((resolve, reject) => {
+          flock.whenModelReady(id, resolve);
+          setTimeout(() => reject(new Error("timed out")), 25000);
+        });
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh).to.exist;
+        expect(mesh.metadata).to.exist;
+        expect(mesh.metadata.isManifoldText).to.equal(true);
+      });
+
+      it("should produce a valid mesh when text is subtracted from a box @slow", async function () {
+        this.timeout(30000);
+
+        flock.createBox("subtractBase", {
+          color: "#ff0000",
+          width: 4,
+          height: 2,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        createdIds.push("subtractBase");
+
+        const textId = flock.create3DText({
+          text: "Hi",
+          font: "/fonts/FreeSansBold.ttf",
+          color: "#ffffff",
+          size: 1,
+          depth: 0.5,
+          position: { x: 0, y: 0, z: 0 },
+          modelId: "subtractTextTool",
+        });
+        createdIds.push(textId);
+
+        await new Promise((resolve, reject) => {
+          flock.whenModelReady("subtractBase", resolve);
+          setTimeout(() => reject(new Error("box timed out")), 10000);
+        });
+        await new Promise((resolve, reject) => {
+          flock.whenModelReady(textId, resolve);
+          setTimeout(() => reject(new Error("text timed out")), 25000);
+        });
+
+        const resultId = await flock.subtractMeshes(
+          "textSubtractResult",
+          "subtractBase",
+          [textId],
+        );
+        createdIds.push("textSubtractResult");
+
+        expect(resultId).to.be.a("string");
+
+        const resultMesh = flock.scene.getMeshByName(resultId);
+        expect(resultMesh).to.exist;
+        expect(resultMesh.getTotalVertices()).to.be.greaterThan(0);
+
+        const normals = resultMesh.getVerticesData(
+          flock.BABYLON.VertexBuffer.NormalKind,
+        );
+        expect(normals).to.exist;
+        const hasNonZeroNormal = normals.some((v) => v !== 0);
+        expect(hasNonZeroNormal).to.equal(true);
+      });
     });
   });
 }
