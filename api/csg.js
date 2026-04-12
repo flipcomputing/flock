@@ -879,7 +879,7 @@ export const flockCSG = {
             {
               forceReferenceMaterial: options.forceReferenceMaterial === true,
               flattenNonReferenceSubMaterials:
-                options.flattenNonReferenceSubMaterials === true,
+                options.flattenNonReferenceSubMaterials !== false,
             },
           );
           if (
@@ -1031,7 +1031,7 @@ export const flockCSG = {
             {
               forceReferenceMaterial: options.forceReferenceMaterial === true,
               flattenNonReferenceSubMaterials:
-                options.flattenNonReferenceSubMaterials === true,
+                options.flattenNonReferenceSubMaterials !== false,
             },
           );
           if (
