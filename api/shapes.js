@@ -777,6 +777,7 @@ export const flockShapes = {
             vertexData.positions = centeredPositions;
             vertexData.applyToMesh(mesh);
             mesh.flipFaces();
+            mesh.metadata = mesh.metadata || {};
             mesh.metadata.facesFlippedForDisplay = true;
           } catch (manifoldError) {
             console.warn(
