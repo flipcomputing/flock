@@ -721,6 +721,7 @@ export const flockShapes = {
       try {
         let mesh;
         let fontReferenceHeight = null;
+        let usedManifoldPath = false;
         const manifoldRequested = useManifold;
 
         console.info(
@@ -802,6 +803,7 @@ export const flockShapes = {
                 true,
               );
             }
+            usedManifoldPath = true;
             console.info(
               `[create3DText][path] meshId=${meshId} used=manifold`,
             );
@@ -847,7 +849,12 @@ export const flockShapes = {
           flock.getColorFromString(color),
         );
         material.backFaceCulling = false;
-        material.emissiveColor = material.diffuseColor.scale(0.2);
+        material.emissiveColor = material.diffuseColor.scale(
+          usedManifoldPath ? 0.05 : 0.2,
+        );
+        if (usedManifoldPath) {
+          material.specularColor = flock.BABYLON.Color3.Black();
+        }
         material.alpha = toAlpha(alpha);
         mesh.material = material;
 
