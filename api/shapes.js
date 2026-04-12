@@ -777,6 +777,7 @@ export const flockShapes = {
             vertexData.positions = centeredPositions;
             vertexData.applyToMesh(mesh);
             mesh.flipFaces();
+            mesh.metadata.facesFlippedForDisplay = true;
           } catch (manifoldError) {
             console.warn(
               "[create3DText] Manifold approach failed, falling back to standard:",
