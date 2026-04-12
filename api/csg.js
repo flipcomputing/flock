@@ -878,9 +878,31 @@ export const flockCSG = {
             {
               forceReferenceMaterial: options.forceReferenceMaterial === true,
               flattenNonReferenceSubMaterials:
-                options.flattenNonReferenceSubMaterials !== false,
+                options.flattenNonReferenceSubMaterials === true,
             },
           );
+          // Apply flat shading to match how regular shapes look after material
+          // assignment (material.js:677). Without this the CSG result is
+          // smooth-shaded while the base was flat-shaded, making cut walls
+          // appear shiny relative to the surrounding surface.
+          const texName = String(
+            resultMesh.material?.diffuseTexture?.name ||
+              resultMesh.material?.albedoTexture?.name ||
+              "",
+          ).toLowerCase();
+          const noTexture =
+            !texName ||
+            texName.endsWith("undefined") ||
+            texName.includes("none.png");
+          if (noTexture && typeof resultMesh.convertToFlatShadedMesh === "function") {
+            try {
+              resultMesh.convertToFlatShadedMesh();
+              resultMesh.computeWorldMatrix?.(true);
+              resultMesh.refreshBoundingInfo?.();
+            } catch {
+              // keep smooth shading if conversion fails
+            }
+          }
           if (
             shouldApplyBoxProjection(resultMesh, {
               ...options,
@@ -1030,9 +1052,27 @@ export const flockCSG = {
             {
               forceReferenceMaterial: options.forceReferenceMaterial === true,
               flattenNonReferenceSubMaterials:
-                options.flattenNonReferenceSubMaterials !== false,
+                options.flattenNonReferenceSubMaterials === true,
             },
           );
+          const texNameI = String(
+            resultMesh.material?.diffuseTexture?.name ||
+              resultMesh.material?.albedoTexture?.name ||
+              "",
+          ).toLowerCase();
+          const noTextureI =
+            !texNameI ||
+            texNameI.endsWith("undefined") ||
+            texNameI.includes("none.png");
+          if (noTextureI && typeof resultMesh.convertToFlatShadedMesh === "function") {
+            try {
+              resultMesh.convertToFlatShadedMesh();
+              resultMesh.computeWorldMatrix?.(true);
+              resultMesh.refreshBoundingInfo?.();
+            } catch {
+              // keep smooth shading if conversion fails
+            }
+          }
           if (
             shouldApplyBoxProjection(resultMesh, {
               ...options,
