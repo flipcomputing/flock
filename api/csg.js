@@ -870,21 +870,13 @@ export const flockCSG = {
           resultMesh.rotation.set(0, 0, 0);
           resultMesh.scaling.set(1, 1, 1);
           resultMesh.computeWorldMatrix(true);
-          // For single-material bases, force the reference material onto all
-          // faces (including cut walls) and flat-shade the result, matching
-          // how shapes look after initial material assignment (material.js:677).
-          // For multi-material bases keep the CSG-assigned MultiMaterial so
-          // per-face colour assignment is preserved.
-          const baseIsMultiMaterial =
-            actualBase.material instanceof flock.BABYLON.MultiMaterial;
           flock.applyResultMeshProperties(
             resultMesh,
             actualBase,
             modelId,
             blockKey,
             {
-              forceReferenceMaterial:
-                options.forceReferenceMaterial !== false && !baseIsMultiMaterial,
+              forceReferenceMaterial: options.forceReferenceMaterial === true,
               flattenNonReferenceSubMaterials:
                 options.flattenNonReferenceSubMaterials === true,
             },
