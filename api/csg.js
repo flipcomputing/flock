@@ -186,14 +186,17 @@ function applyBoxProjectionUV(mesh, uvScale = 1) {
     currentIndices &&
     currentIndices.length > 0 &&
     currentIndices.length !==
-      (mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind)?.length || 0) /
+      (mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind)?.length ||
+        0) /
         3 &&
     typeof mesh.convertToUnIndexedMesh === "function"
   ) {
     mesh.convertToUnIndexedMesh();
   }
 
-  const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+  const positions = mesh.getVerticesData(
+    flock.BABYLON.VertexBuffer.PositionKind,
+  );
   if (!positions || positions.length === 0) return;
 
   const indices = mesh.getIndices ? mesh.getIndices() : null;
@@ -377,7 +380,9 @@ function normalizeMeshAttributesForMerge(meshes, { logWarning = true } = {}) {
 
 function hasNonFinitePositions(mesh) {
   if (!mesh?.getVerticesData) return true;
-  const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+  const positions = mesh.getVerticesData(
+    flock.BABYLON.VertexBuffer.PositionKind,
+  );
   if (!positions || positions.length === 0) return true;
   for (let i = 0; i < positions.length; i++) {
     if (!Number.isFinite(positions[i])) return true;
@@ -399,13 +404,20 @@ function sanitizeMeshVertexDataForCSG(mesh) {
   const positionKind = flock.BABYLON.VertexBuffer.PositionKind;
   const normalKind = flock.BABYLON.VertexBuffer.NormalKind;
   const positions = mesh.getVerticesData(positionKind);
-  if (!positions || positions.length === 0 || arrayHasNonFiniteValues(positions)) {
+  if (
+    !positions ||
+    positions.length === 0 ||
+    arrayHasNonFiniteValues(positions)
+  ) {
     return false;
   }
 
   const kinds = mesh.getVerticesDataKinds() || [];
   let indices = mesh.getIndices ? mesh.getIndices() : null;
-  if ((!indices || indices.length === 0) && typeof mesh.setIndices === "function") {
+  if (
+    (!indices || indices.length === 0) &&
+    typeof mesh.setIndices === "function"
+  ) {
     indices = Array.from({ length: positions.length / 3 }, (_, i) => i);
     mesh.setIndices(indices);
   }
@@ -491,9 +503,9 @@ export const flockCSG = {
     return meshes.some((mesh) => {
       if (materialHasTexture(mesh?.material)) return true;
       if (!mesh?.getChildMeshes) return false;
-      return mesh.getChildMeshes().some((child) =>
-        materialHasTexture(child?.material),
-      );
+      return mesh
+        .getChildMeshes()
+        .some((child) => materialHasTexture(child?.material));
     });
   },
   mergeCompositeMesh(meshes) {
@@ -563,7 +575,9 @@ export const flockCSG = {
           const originalMaterial = referenceMesh.material;
           let mergedMesh = null;
           let csgSucceeded = false;
+
           normalizeMeshAttributesForMerge(meshesToMerge, { logWarning: false });
+
           const csgUnsafe = meshesToMerge.some((mesh) => {
             const positionsFinite = !hasNonFinitePositions(mesh);
             if (!positionsFinite) return true;
@@ -572,20 +586,38 @@ export const flockCSG = {
 
           if (!csgUnsafe) {
             try {
-              let baseCSG = flock.BABYLON.CSG2.FromMesh(meshesToMerge[0], false);
+              let currentMesh = meshesToMerge[0];
 
               for (let i = 1; i < meshesToMerge.length; i++) {
-                let meshCSG = flock.BABYLON.CSG2.FromMesh(
-                  meshesToMerge[i],
-                  false,
+                const nextMesh = meshesToMerge[i];
+
+                // Perform pairwise normalization to prevent property mismatch
+                const pair = [currentMesh, nextMesh];
+                normalizeMeshAttributesForMerge(pair, { logWarning: false });
+
+                const leftCSG = flock.BABYLON.CSG2.FromMesh(currentMesh, false);
+                const rightCSG = flock.BABYLON.CSG2.FromMesh(nextMesh, false);
+                const combinedCSG = leftCSG.add(rightCSG);
+
+                const oldIntermediate = currentMesh;
+
+                // Convert back to mesh to "bake" geometry before the next addition
+                currentMesh = combinedCSG.toMesh(
+                  "temp_step_" + i,
+                  referenceMesh.getScene(),
+                  {
+                    centerMesh: false,
+                    rebuildNormals: true,
+                  },
                 );
-                baseCSG = baseCSG.add(meshCSG);
+
+                // Dispose the intermediate mesh if it's not part of the original source list
+                if (i > 1 || oldIntermediate !== meshesToMerge[0]) {
+                  oldIntermediate.dispose();
+                }
               }
 
-              mergedMesh = baseCSG.toMesh(modelId, meshesToMerge[0].getScene(), {
-                centerMesh: false,
-                rebuildNormals: true,
-              });
+              mergedMesh = currentMesh;
 
               if (mergedMesh && mergedMesh.getTotalVertices() > 0) {
                 csgSucceeded = true;
@@ -598,20 +630,20 @@ export const flockCSG = {
                 (m) => m.name === modelId && m.getTotalVertices() === 0,
               );
               emptyMeshes.forEach((m) => m.dispose());
-              const message = String(error?.message || "");
-              const expectedPropertyMismatch = message.includes(
-                "same number of properties",
-              );
-              if (!expectedPropertyMismatch || flock?.materialsDebug) {
-                console.warn("[mergeMeshes] CSG merge attempt failed:", error);
+
+              if (
+                !String(error?.message || "").includes(
+                  "same number of properties",
+                ) ||
+                flock?.materialsDebug
+              ) {
+                console.warn(
+                  "[mergeMeshes] Pairwise CSG attempt failed:",
+                  error,
+                );
               }
               csgSucceeded = false;
             }
-          } else if (flock?.materialsDebug) {
-            const reason = "non-finite positions";
-            console.log(
-              `[mergeMeshes] Skipping CSG merge due ${reason}; using Mesh.MergeMeshes fallback.`,
-            );
           }
 
           if (!csgSucceeded) {
@@ -695,7 +727,9 @@ export const flockCSG = {
             console.warn("Suppressed non-critical error:", e);
           }
 
-          validMeshes.forEach((mesh) => mesh.dispose());
+          validMeshes.forEach((mesh) => {
+            if (mesh !== mergedMesh) mesh.dispose();
+          });
 
           return modelId;
         } else {
@@ -703,7 +737,6 @@ export const flockCSG = {
         }
       });
   },
-
   subtractMeshesMerge(modelId, baseMeshName, meshNames, options = {}) {
     const { modelId: resolvedModelId, blockKey } =
       resolveCsgModelIdentity(modelId);
@@ -766,135 +799,137 @@ export const flockCSG = {
           return resolve(null);
         }
 
-        flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
-          const inferredUvProjection =
-            options.uvProjection === undefined &&
-            flock.toolMeshesUseTextures(validMeshes)
-              ? "auto"
-              : options.uvProjection;
-          const scene = baseMesh.getScene();
-          const baseDuplicate = cloneForCSG(actualBase, "baseDuplicate");
-          let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
-          const subtractDuplicates = [];
+        flock
+          .prepareMeshes(modelId, meshNames, blockKey)
+          .then((validMeshes) => {
+            const inferredUvProjection =
+              options.uvProjection === undefined &&
+              flock.toolMeshesUseTextures(validMeshes)
+                ? "auto"
+                : options.uvProjection;
+            const scene = baseMesh.getScene();
+            const baseDuplicate = cloneForCSG(actualBase, "baseDuplicate");
+            let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
+            const subtractDuplicates = [];
 
-          validMeshes.forEach((mesh, meshIndex) => {
-            const parts = collectMaterialMeshesDeep(mesh);
+            validMeshes.forEach((mesh, meshIndex) => {
+              const parts = collectMaterialMeshesDeep(mesh);
 
-            // Check if mesh itself has valid geometry (e.g., manifold text meshes)
-            const meshHasGeometry =
-              mesh.getTotalVertices && mesh.getTotalVertices() > 0;
+              // Check if mesh itself has valid geometry (e.g., manifold text meshes)
+              const meshHasGeometry =
+                mesh.getTotalVertices && mesh.getTotalVertices() > 0;
 
-            if (parts.length > 0) {
-              const partClones = parts.map((p, i) =>
-                cloneForCSG(p, `temp_${meshIndex}_${i}`),
-              );
-              const isDonut =
-                mesh.name.toLowerCase().includes("donut") ||
-                mesh.metadata?.modelName?.toLowerCase().includes("donut");
+              if (parts.length > 0) {
+                const partClones = parts.map((p, i) =>
+                  cloneForCSG(p, `temp_${meshIndex}_${i}`),
+                );
+                const isDonut =
+                  mesh.name.toLowerCase().includes("donut") ||
+                  mesh.metadata?.modelName?.toLowerCase().includes("donut");
 
-              if (isDonut) {
-                partClones.forEach((pc) => subtractDuplicates.push(pc));
-              } else {
-                let unified =
-                  partClones.length > 1
-                    ? flock.BABYLON.Mesh.MergeMeshes(
-                        partClones,
-                        true,
-                        true,
-                        undefined,
-                        false,
-                        true,
-                      )
-                    : partClones[0];
-                if (unified) {
-                  unified.forceSharedVertices();
-                  if (
-                    mesh.metadata?.modelName &&
-                    typeof unified.flipFaces === "function"
-                  )
-                    unified.flipFaces();
-                  subtractDuplicates.push(unified);
+                if (isDonut) {
+                  partClones.forEach((pc) => subtractDuplicates.push(pc));
+                } else {
+                  let unified =
+                    partClones.length > 1
+                      ? flock.BABYLON.Mesh.MergeMeshes(
+                          partClones,
+                          true,
+                          true,
+                          undefined,
+                          false,
+                          true,
+                        )
+                      : partClones[0];
+                  if (unified) {
+                    unified.forceSharedVertices();
+                    if (
+                      mesh.metadata?.modelName &&
+                      typeof unified.flipFaces === "function"
+                    )
+                      unified.flipFaces();
+                    subtractDuplicates.push(unified);
+                  }
                 }
+              } else if (meshHasGeometry) {
+                // Direct mesh without children (e.g., manifold text mesh)
+                const clone = cloneForCSG(mesh, `direct_tool_${meshIndex}`);
+                subtractDuplicates.push(clone);
               }
-            } else if (meshHasGeometry) {
-              // Direct mesh without children (e.g., manifold text mesh)
-              const clone = cloneForCSG(mesh, `direct_tool_${meshIndex}`);
-              subtractDuplicates.push(clone);
-            }
-          });
-
-          subtractDuplicates.forEach((m, idx) => {
-            try {
-              const meshCSG = flock.BABYLON.CSG2.FromMesh(m, false);
-              outerCSG = outerCSG.subtract(meshCSG);
-            } catch (e) {
-              console.warn(
-                `[subtractMeshesMerge] Subtraction ${idx} failed:`,
-                e.message,
-              );
-            }
-          });
-
-          let resultMesh;
-          try {
-            resultMesh = outerCSG.toMesh("resultMesh", scene, {
-              centerMesh: false,
             });
 
-            if (!resultMesh || resultMesh.getTotalVertices() === 0) {
-              throw new Error("CSG produced empty mesh");
-            }
-          } catch (e) {
-            console.warn(
-              "[subtractMeshesMerge] CSG subtract failed:",
-              e.message,
-            );
-            console.warn(
-              "[subtractMeshesMerge] Note: CSG operations require watertight (manifold) geometry. 3D text and merged meshes are typically non-manifold.",
-            );
+            subtractDuplicates.forEach((m, idx) => {
+              try {
+                const meshCSG = flock.BABYLON.CSG2.FromMesh(m, false);
+                outerCSG = outerCSG.subtract(meshCSG);
+              } catch (e) {
+                console.warn(
+                  `[subtractMeshesMerge] Subtraction ${idx} failed:`,
+                  e.message,
+                );
+              }
+            });
 
-            // Clean up any empty meshes
-            flock.scene.meshes
-              .filter(
-                (m) => m.name === "resultMesh" && m.getTotalVertices() === 0,
-              )
-              .forEach((m) => m.dispose());
+            let resultMesh;
+            try {
+              resultMesh = outerCSG.toMesh("resultMesh", scene, {
+                centerMesh: false,
+              });
+
+              if (!resultMesh || resultMesh.getTotalVertices() === 0) {
+                throw new Error("CSG produced empty mesh");
+              }
+            } catch (e) {
+              console.warn(
+                "[subtractMeshesMerge] CSG subtract failed:",
+                e.message,
+              );
+              console.warn(
+                "[subtractMeshesMerge] Note: CSG operations require watertight (manifold) geometry. 3D text and merged meshes are typically non-manifold.",
+              );
+
+              // Clean up any empty meshes
+              flock.scene.meshes
+                .filter(
+                  (m) => m.name === "resultMesh" && m.getTotalVertices() === 0,
+                )
+                .forEach((m) => m.dispose());
+
+              baseDuplicate.dispose();
+              subtractDuplicates.forEach((m) => m.dispose());
+              return resolve(null);
+            }
+
+            resultMesh.position.set(0, 0, 0);
+            resultMesh.rotation.set(0, 0, 0);
+            resultMesh.scaling.set(1, 1, 1);
+            resultMesh.computeWorldMatrix(true);
+            flock.applyResultMeshProperties(
+              resultMesh,
+              actualBase,
+              modelId,
+              blockKey,
+              {
+                forceReferenceMaterial: options.forceReferenceMaterial === true,
+                flattenNonReferenceSubMaterials:
+                  options.flattenNonReferenceSubMaterials === true,
+              },
+            );
+            if (
+              shouldApplyBoxProjection(resultMesh, {
+                ...options,
+                uvProjection: inferredUvProjection,
+              })
+            ) {
+              applyBoxProjectionUV(resultMesh, options.uvScale);
+            }
 
             baseDuplicate.dispose();
             subtractDuplicates.forEach((m) => m.dispose());
-            return resolve(null);
-          }
-
-          resultMesh.position.set(0, 0, 0);
-          resultMesh.rotation.set(0, 0, 0);
-          resultMesh.scaling.set(1, 1, 1);
-          resultMesh.computeWorldMatrix(true);
-          flock.applyResultMeshProperties(
-            resultMesh,
-            actualBase,
-            modelId,
-            blockKey,
-            {
-              forceReferenceMaterial: options.forceReferenceMaterial === true,
-              flattenNonReferenceSubMaterials:
-                options.flattenNonReferenceSubMaterials === true,
-            },
-          );
-          if (
-            shouldApplyBoxProjection(resultMesh, {
-              ...options,
-              uvProjection: inferredUvProjection,
-            })
-          ) {
-            applyBoxProjectionUV(resultMesh, options.uvScale);
-          }
-
-          baseDuplicate.dispose();
-          subtractDuplicates.forEach((m) => m.dispose());
-          baseMesh.dispose();
-          validMeshes.forEach((m) => m.dispose());
-          resolve(modelId);
-        });
+            baseMesh.dispose();
+            validMeshes.forEach((m) => m.dispose());
+            resolve(modelId);
+          });
       });
     });
   },
@@ -940,116 +975,123 @@ export const flockCSG = {
           return resolve(null);
         }
 
-        flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
-          const inferredUvProjection =
-            options.uvProjection === undefined &&
-            flock.toolMeshesUseTextures(validMeshes)
-              ? "auto"
-              : options.uvProjection;
-          const scene = baseMesh.getScene();
-          const baseDuplicate = actualBase.clone("baseDuplicate");
-          baseDuplicate.setParent(null);
-          baseDuplicate.position = actualBase.getAbsolutePosition().clone();
-          baseDuplicate.rotationQuaternion = null;
-          baseDuplicate.rotation = actualBase.absoluteRotationQuaternion
-            ? actualBase.absoluteRotationQuaternion.toEulerAngles()
-            : actualBase.rotation.clone();
-          baseDuplicate.computeWorldMatrix(true);
+        flock
+          .prepareMeshes(modelId, meshNames, blockKey)
+          .then((validMeshes) => {
+            const inferredUvProjection =
+              options.uvProjection === undefined &&
+              flock.toolMeshesUseTextures(validMeshes)
+                ? "auto"
+                : options.uvProjection;
+            const scene = baseMesh.getScene();
+            const baseDuplicate = actualBase.clone("baseDuplicate");
+            baseDuplicate.setParent(null);
+            baseDuplicate.position = actualBase.getAbsolutePosition().clone();
+            baseDuplicate.rotationQuaternion = null;
+            baseDuplicate.rotation = actualBase.absoluteRotationQuaternion
+              ? actualBase.absoluteRotationQuaternion.toEulerAngles()
+              : actualBase.rotation.clone();
+            baseDuplicate.computeWorldMatrix(true);
 
-          let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
-          const allToolParts = [];
-          validMeshes.forEach((mesh) => {
-            const parts = collectMaterialMeshesDeep(mesh);
-            parts.forEach((p) => {
-              const dup = p.clone("partDup", null, true);
-              dup.computeWorldMatrix(true);
-              if (typeof dup.flipFaces === "function") dup.flipFaces();
-              allToolParts.push(dup);
+            let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
+            const allToolParts = [];
+            validMeshes.forEach((mesh) => {
+              const parts = collectMaterialMeshesDeep(mesh);
+              parts.forEach((p) => {
+                const dup = p.clone("partDup", null, true);
+                dup.computeWorldMatrix(true);
+                if (typeof dup.flipFaces === "function") dup.flipFaces();
+                allToolParts.push(dup);
+              });
             });
-          });
 
-          allToolParts.forEach((part) => {
+            allToolParts.forEach((part) => {
+              try {
+                const partCSG = flock.BABYLON.CSG2.FromMesh(part, false);
+                outerCSG = outerCSG.subtract(partCSG);
+              } catch (e) {
+                console.warn(e);
+              }
+            });
+
+            let resultMesh;
             try {
-              const partCSG = flock.BABYLON.CSG2.FromMesh(part, false);
-              outerCSG = outerCSG.subtract(partCSG);
+              resultMesh = outerCSG.toMesh("resultMesh", scene, {
+                centerMesh: false,
+              });
+
+              if (!resultMesh || resultMesh.getTotalVertices() === 0) {
+                throw new Error("CSG produced empty mesh");
+              }
             } catch (e) {
-              console.warn(e);
+              console.warn(
+                "[subtractMeshesIndividual] CSG subtract failed:",
+                e.message,
+              );
+              console.warn(
+                "[subtractMeshesIndividual] Note: CSG operations require watertight (manifold) geometry. 3D text and merged meshes are typically non-manifold.",
+              );
+
+              // Clean up any empty meshes
+              flock.scene.meshes
+                .filter(
+                  (m) => m.name === "resultMesh" && m.getTotalVertices() === 0,
+                )
+                .forEach((m) => m.dispose());
+
+              baseDuplicate.dispose();
+              allToolParts.forEach((t) => t.dispose());
+              return resolve(null);
             }
-          });
 
-          let resultMesh;
-          try {
-            resultMesh = outerCSG.toMesh("resultMesh", scene, {
-              centerMesh: false,
-            });
-
-            if (!resultMesh || resultMesh.getTotalVertices() === 0) {
-              throw new Error("CSG produced empty mesh");
+            const localCenter = resultMesh
+              .getBoundingInfo()
+              .boundingBox.center.clone();
+            resultMesh.setPivotMatrix(
+              flock.BABYLON.Matrix.Translation(
+                localCenter.x,
+                localCenter.y,
+                localCenter.z,
+              ),
+              false,
+            );
+            resultMesh.position.subtractInPlace(localCenter);
+            resultMesh.computeWorldMatrix(true);
+            flock.applyResultMeshProperties(
+              resultMesh,
+              actualBase,
+              modelId,
+              blockKey,
+              {
+                forceReferenceMaterial: options.forceReferenceMaterial === true,
+                flattenNonReferenceSubMaterials:
+                  options.flattenNonReferenceSubMaterials === true,
+              },
+            );
+            if (
+              shouldApplyBoxProjection(resultMesh, {
+                ...options,
+                uvProjection: inferredUvProjection,
+              })
+            ) {
+              applyBoxProjectionUV(resultMesh, options.uvScale);
             }
-          } catch (e) {
-            console.warn(
-              "[subtractMeshesIndividual] CSG subtract failed:",
-              e.message,
-            );
-            console.warn(
-              "[subtractMeshesIndividual] Note: CSG operations require watertight (manifold) geometry. 3D text and merged meshes are typically non-manifold.",
-            );
-
-            // Clean up any empty meshes
-            flock.scene.meshes
-              .filter(
-                (m) => m.name === "resultMesh" && m.getTotalVertices() === 0,
-              )
-              .forEach((m) => m.dispose());
 
             baseDuplicate.dispose();
             allToolParts.forEach((t) => t.dispose());
-            return resolve(null);
-          }
-
-          const localCenter = resultMesh
-            .getBoundingInfo()
-            .boundingBox.center.clone();
-          resultMesh.setPivotMatrix(
-            flock.BABYLON.Matrix.Translation(
-              localCenter.x,
-              localCenter.y,
-              localCenter.z,
-            ),
-            false,
-          );
-          resultMesh.position.subtractInPlace(localCenter);
-          resultMesh.computeWorldMatrix(true);
-          flock.applyResultMeshProperties(
-            resultMesh,
-            actualBase,
-            modelId,
-            blockKey,
-            {
-              forceReferenceMaterial: options.forceReferenceMaterial === true,
-              flattenNonReferenceSubMaterials:
-                options.flattenNonReferenceSubMaterials === true,
-            },
-          );
-          if (
-            shouldApplyBoxProjection(resultMesh, {
-              ...options,
-              uvProjection: inferredUvProjection,
-            })
-          ) {
-            applyBoxProjectionUV(resultMesh, options.uvScale);
-          }
-
-          baseDuplicate.dispose();
-          allToolParts.forEach((t) => t.dispose());
-          baseMesh.dispose();
-          validMeshes.forEach((m) => m.dispose());
-          resolve(modelId);
-        });
+            baseMesh.dispose();
+            validMeshes.forEach((m) => m.dispose());
+            resolve(modelId);
+          });
       });
     });
   },
-  subtractMeshes(modelId, baseMeshName, meshNames, optionsOrApproach = "merge") {
+  subtractMeshes(
+    modelId,
+    baseMeshName,
+    meshNames,
+    optionsOrApproach = "merge",
+  ) {
     const options =
       optionsOrApproach && typeof optionsOrApproach === "object"
         ? optionsOrApproach
@@ -1067,7 +1109,12 @@ export const flockCSG = {
         options,
       );
     } else {
-      return this.subtractMeshesMerge(modelId, baseMeshName, meshNames, options);
+      return this.subtractMeshesMerge(
+        modelId,
+        baseMeshName,
+        meshNames,
+        options,
+      );
     }
   },
   intersectMeshes(modelId, meshList) {
@@ -1345,7 +1392,10 @@ export const flockCSG = {
     referenceMesh,
     modelId,
     blockId,
-    { forceReferenceMaterial = false, flattenNonReferenceSubMaterials = false } = {},
+    {
+      forceReferenceMaterial = false,
+      flattenNonReferenceSubMaterials = false,
+    } = {},
   ) {
     // Copy transformation properties
     referenceMesh.material.backFaceCulling = false;
