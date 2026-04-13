@@ -28,10 +28,7 @@ import "@fontsource/asap";
 import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
 import { characterNames, getModelDisplayName } from "./config";
-import {
-  recordObjectPromptText,
-  recordObjectSayText
-} from "./accessibility/accessibility.js";
+
 
 import { FlowGraphLog10Block } from "@babylonjs/core";
 const optionalBabylonDeps = { earcut, FlowGraphLog10Block };
@@ -91,8 +88,10 @@ import { translate } from "./main/translation.js";
 
 import {
   enableSceneDescription,
-  announce,
-} from "./accessibility/accessibility.js"; //Accessibility layer
+  announceSayText,
+  recordObjectPromptText,
+  recordObjectSayText,
+} from "./accessibility/accessibility.js";
 
 export const flock = {
   blockDebug: false,
@@ -885,13 +884,6 @@ export const flock = {
         ),
       ]);
 
-      if (focusCanvas === true) {
-        // focus canvas if present
-        (
-          document.getElementById("renderCanvas") ||
-          doc.getElementById("renderCanvas")
-        )?.focus();
-      }
     } catch (error) {
       const enhancedError = this.createEnhancedError?.(error, code) ?? error;
       console.error("Enhanced error details:", enhancedError);
@@ -1241,8 +1233,8 @@ export const flock = {
     flock.document = document;
     flock.canvas = flock.document.getElementById("renderCanvas");
     // Make canvas focusable for keyboard events
-    flock.canvas.tabIndex = 0;
-    flock.canvas.setAttribute("aria-label", "Flock 3D world canvas");
+    flock.canvas.tabIndex = -1;
+    //flock.canvas.setAttribute("aria-label", "Flock 3D world canvas");
     flock.scene = null;
     flock.havokInstance = null;
     flock.ground = null;
@@ -1897,10 +1889,53 @@ export const flock = {
 
     //Enable accessibility layer
     enableSceneDescription(flock.scene, flock.canvas);
-    announce(
-      "Flock world loaded. Press Control + I to hear a description of your surroundings.",
-      { canvas: flock.canvas },
-    );
+    // Announce "say" and "printText" outputs so NVDA reads Blockly say blocks reliably.
+    if (!flock._a11yTextWrapped) {
+    // Wrap say(text, ...)
+            if (typeof flock.say === "function") {
+              const originalSay = flock.say.bind(flock);
+              flock.say = (...args) => {
+                const result = originalSay(...args);
+
+                const targetName = args?.[0];
+                const options = args?.[1];
+                const text =
+                  options && typeof options.text === "string" ? options.text : "";
+
+                if (text.trim()) {
+                  // Keep the first prompt text, e.g. "Click or tap me"
+                  recordObjectPromptText(targetName, text);
+
+                  // Keep general say text too
+                  recordObjectSayText(targetName, text);
+
+                }
+
+                return result;
+              };
+            }
+
+            // Wrap printText({ text: "..." })
+            if (typeof flock.printText === "function") {
+              const originalPrintText = flock.printText.bind(flock);
+              flock.printText = (...args) => {
+                const result = originalPrintText(...args);
+
+                const payload = args?.[0];
+                const text =
+                  typeof payload === "string"
+                    ? payload
+                    : (payload && typeof payload.text === "string" ? payload.text : "");
+
+                if (text && text.trim()) {
+                  announceSayText(text);
+                }
+                return result;
+              };
+            }
+
+            flock._a11yTextWrapped = true;
+    }
 
     flock._renderLoop = () => {
       try {

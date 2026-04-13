@@ -26,6 +26,7 @@ let suppressPointerUntil = 0;
 let suppressRuntimeTextUntil = 0;
 let objectSayTextCache = new Map();
 let objectPromptTextCache = new Map();
+let hasSpokenInitialPageIntro = false;
 
 function createA11yRoot() {
   let root = document.getElementById("flock-a11y-root");
@@ -74,7 +75,7 @@ export function announce(message, options = {}) {
   const now = Date.now();
 
   // Tiny dedupe to prevent noisy repeats
-  if (text === lastAnnouncedText && now - lastAnnouncedAt < 250) return;
+  if (text === lastAnnouncedText && now - lastAnnouncedAt < 2000) return;
   lastAnnouncedText = text;
   lastAnnouncedAt = now;
 
@@ -87,26 +88,6 @@ export function announce(message, options = {}) {
     if (mySeq !== announceSeq) return;
     region.textContent = text;
   }, 20);
-}
-
-export function toggleMute() {
-  speechMuted = !speechMuted;
-  announce(
-    speechMuted
-      ? "Screen reader announcements muted."
-      : "Screen reader announcements unmuted.",
-    { force: true },
-  );
-}
-
-export function setMute(value) {
-  speechMuted = Boolean(value);
-  announce(
-    speechMuted
-      ? "Screen reader announcements muted."
-      : "Screen reader announcements unmuted.",
-    { force: true },
-  );
 }
 
 function normaliseName(name) {
@@ -930,11 +911,15 @@ export function getHelpText(scene) {
   const custom =
     scene?.metadata?.a11yInstructions || scene?.metadata?.instructions;
 
-  if (custom) return custom;
+  const baseInstructions = custom
+    ? String(custom).trim()
+    : "Use keyboard controls to navigate and interact with objects. Canvas keyboard controls: Arrow keys or WASD to move camera, Mouse to look around, Space for actions, Tab to navigate to other interface elements.";
 
-  return "Interactive 3D scene canvas where your project runs. Use keyboard controls to navigate and interact with objects. Canvas keyboard controls: Arrow keys or WASD to move camera, Mouse to look around, Space for actions, Tab to navigate to other interface elements. Press Control plus I to hear a scene summary. Press Control plus J to hear the nearest object. Press Control plus H to repeat these instructions. Press Control plus O to mute or unmute announcements.";
+  const ctrlInstructions =
+    " Press Control plus I to hear a scene summary. Press Control plus J to hear the nearest object. Press Control plus H to repeat these instructions.";
+
+  return `${baseInstructions}${ctrlInstructions}`;
 }
-
 export function announceHelp(scene) {
   announce(getHelpText(scene));
 }
@@ -975,19 +960,17 @@ function announceInteraction(mesh, actionWord = "interacted with") {
 function attachPointerAnnouncements(scene) {
   if (!scene || !scene.onPointerObservable) return;
 
-  // Remove observer from previous scene
   if (pointerObserverScene && pointerObserverRef) {
     try {
       pointerObserverScene.onPointerObservable.remove(pointerObserverRef);
-    } catch (error) {
-      console.warn("Suppressed non-critical error:", error);
-    }
+    } catch {}
     pointerObserverRef = null;
     pointerObserverScene = null;
   }
 
   const PointerTypes =
-    window.BABYLON?.PointerEventTypes || globalThis.BABYLON?.PointerEventTypes;
+    window.BABYLON?.PointerEventTypes ||
+    globalThis.BABYLON?.PointerEventTypes;
 
   pointerObserverScene = scene;
 
@@ -998,28 +981,51 @@ function attachPointerAnnouncements(scene) {
       const type = pointerInfo?.type;
       const pickInfo = pointerInfo?.pickInfo;
       const pickedMesh = pickInfo?.pickedMesh;
+      const evt = pointerInfo?.event;
 
       if (!pickedMesh) return;
 
-      const isPick = PointerTypes
-        ? type === PointerTypes.POINTERPICK || type === PointerTypes.POINTERDOWN
+      const isBabylonPick = PointerTypes
+        ? type === PointerTypes.POINTERPICK
         : true;
 
-      if (!isPick) return;
+      // Require a real primary click / tap, not hover or passive movement
+      const isPrimaryMouseClick =
+        !evt ||
+        evt.pointerType === "touch" ||
+        evt.type === "click" ||
+        evt.type === "pointerup" ||
+        evt.type === "mouseup";
 
-      const root = getEntityRoot(pickedMesh);
-      const pos = getRepresentativePosition(root, pickedMesh);
-      const textLabels = currentScene ? collectNearbyTextForObject(currentScene, pos, root) : [];
-      const hint = getInteractionHint(root);
+      if (!isBabylonPick || !isPrimaryMouseClick) return;
 
       if (introInProgress || Date.now() < suppressPointerUntil) return;
 
-      // If the object has meaningful text, let that be the only thing spoken.
+      const root = getEntityRoot(pickedMesh);
+      const pos = getRepresentativePosition(root, pickedMesh);
+      const label = getObjectLabel(root);
+      const sayText = getCachedSayTextForMesh(root);
       const promptText = getCachedPromptTextForMesh(root);
+      const textLabels = currentScene
+        ? collectNearbyTextForObject(currentScene, pos, root)
+        : [];
 
-      if (!promptText && !textLabels.length) {
-        announceInteraction(pickedMesh, "selected");
+      if (sayText) {
+        announce(`${label} says: ${sayText}`);
+        return;
       }
+
+      if (promptText) {
+        announce(`${label}. ${promptText}`);
+        return;
+      }
+
+      if (textLabels.length) {
+        announce(`${label}. ${textLabels.join(". ")}`);
+        return;
+      }
+
+      announceInteraction(pickedMesh, "selected");
     } catch {
       // fail silently
     }
@@ -1064,25 +1070,44 @@ export function announceSayText(text, options = {}) {
 
   if (!spoken) return;
 
-  // Startup should only speak the control instructions.
+  const lower = spoken.toLowerCase();
+  if (
+    lower.includes("flock xr loaded successfully") ||
+    lower.includes("flock world successfully loaded")
+  ) {
+    return;
+  }
+
   if (introInProgress || Date.now() < suppressRuntimeTextUntil) return;
 
   announce(spoken, options);
 }
 
 function scheduleInitialIntro(scene) {
-  if (!scene || lastIntroScene === scene) return;
+  if (!scene) return;
+
+  // Only speak the full intro once per page load, not once per world/scene.
+  if (hasSpokenInitialPageIntro) {
+    introInProgress = false;
+    suppressPointerUntil = 0;
+    suppressRuntimeTextUntil = 0;
+    lastIntroScene = scene;
+    return;
+  }
+
+  if (lastIntroScene === scene) return;
   lastIntroScene = scene;
 
   introInProgress = true;
 
-  suppressPointerUntil = Date.now() + 4000;
-  suppressRuntimeTextUntil = Date.now() + 4000;
+  // Keep suppression longer than the help text is likely to take
+  suppressPointerUntil = Date.now() + 12000;
+  suppressRuntimeTextUntil = Date.now() + 12000;
 
   const finishIntro = () => {
     introInProgress = false;
-    suppressPointerUntil = Date.now() + 2000;
-    suppressRuntimeTextUntil = Date.now() + 2000;
+    suppressPointerUntil = 0;
+    suppressRuntimeTextUntil = 0;
   };
 
   const speakIntro = () => {
@@ -1093,10 +1118,13 @@ function scheduleInitialIntro(scene) {
       announce(helpText, { force: true });
     }
 
+    hasSpokenInitialPageIntro = true;
+
+    // Finish after the screen reader has had time to get through the intro
     setTimeout(() => {
       if (scene !== currentScene) return;
       finishIntro();
-    }, 1400);
+    }, 10000);
   };
 
   const waitUntilReady = (tries = 0) => {
@@ -1157,10 +1185,8 @@ export function enableSceneDescription(scene) {
   document.addEventListener(
     "keydown",
     (e) => {
-      const tag =
-        e.target && e.target.tagName ? e.target.tagName.toLowerCase() : "";
-      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable)
-        return;
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable) return;
 
       if (!e.ctrlKey || e.altKey || e.metaKey) return;
       if (!e.key) return;
@@ -1181,20 +1207,13 @@ export function enableSceneDescription(scene) {
         return;
       }
 
-      if (key === "o") {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleMute();
-        return;
-      }
-
       if (key === "h") {
         e.preventDefault();
         e.stopPropagation();
         announceHelp(currentScene);
       }
     },
-    true,
+    true
   );
 }
 
