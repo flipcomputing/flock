@@ -2,9 +2,8 @@ import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { flock } from "../flock.js";
 
-// Add this helper function at the top
 export const isNarrowScreen = () => {
-  return window.innerWidth <= 768;
+  return window.innerWidth <= 1024;
 };
 
 const isMobile = () => {
@@ -227,6 +226,14 @@ function addButtonListener() {
   }
 
   switchViewsBtn.addEventListener("click", togglePanels);
+  switchViewsBtn.addEventListener(
+    "touchend",
+    (e) => {
+      e.preventDefault();
+      togglePanels();
+    },
+    { passive: false },
+  );
 }
 
 // Alternative approach: Instead of CSS transforms, actually reposition elements in DOM
@@ -258,8 +265,6 @@ function showCodeView() {
   }
 
   onResize("reset");
-
-  console.log("Scrolling to top");
 }
 
 export function showCanvasView() {
@@ -503,13 +508,24 @@ export function toggleDesignMode() {
 }
 
 const adjustViewport = () => {
-  const vh = window.innerHeight * 0.01;
+  const viewportHeight = window.visualViewport?.height || window.innerHeight;
+  const vh = viewportHeight * 0.01;
   document.documentElement.style.setProperty("--vh", `${vh}px`);
+  document.documentElement.style.setProperty(
+    "--app-height",
+    `${viewportHeight}px`,
+  );
 };
 
 // Adjust viewport on page load and resize
 window.addEventListener("load", adjustViewport);
 window.addEventListener("resize", adjustViewport);
+window.addEventListener("orientationchange", adjustViewport);
+document.addEventListener("fullscreenchange", adjustViewport);
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", adjustViewport);
+}
 
 /*
 function toggleToolbox() {

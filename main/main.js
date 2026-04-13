@@ -266,16 +266,9 @@ function initializeApp() {
         }
 
         case "m": {
-          // Ctrl+M - Open menu
+          // Ctrl+M - Move focus to main menu button
           e.preventDefault();
-          menuButton.click();
-          const menuDropdown = document.getElementById("menuDropdown");
-          const firstMenuItem = menuDropdown
-            ? menuDropdown.querySelector("li")
-            : null;
-          if (firstMenuItem) {
-            firstMenuItem.focus();
-          }
+          menuButton.focus();
           break;
         }
 
@@ -404,6 +397,7 @@ window.onload = async function () {
   initializeBlockHandling();
 
   console.log("Welcome to Flock XR 🐦🐦🐦");
+  console.log("Release 1");
 
   // Autosave every 30 seconds: to localStorage and (if a file was saved) to that file
   setInterval(() => {

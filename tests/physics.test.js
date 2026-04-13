@@ -112,7 +112,7 @@ export function runPhysicsTests(flock) {
 
       let intersected = false;
 
-      flock.onIntersect(box1, box2, {
+      await flock.onIntersect(box1, box2, {
         trigger: "OnIntersectionEnterTrigger",
         callback: () => {
           intersected = true;
@@ -130,6 +130,203 @@ export function runPhysicsTests(flock) {
       );
 
       expect(intersected).to.be.true;
+    });
+
+    it("should register intersections for all matching right-hand group meshes", async function () {
+      const source = "colliderSource_1";
+      const groupA = "groupTarget_1";
+      const groupB = "groupTarget_2";
+
+      await flock.createBox(source, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      await flock.createBox(groupA, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      await flock.createBox(groupB, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(source, groupA, groupB);
+
+      let count = 0;
+      await flock.onIntersect(source, groupA, {
+        trigger: "OnIntersectionEnterTrigger",
+        applyToGroupOther: true,
+        callback: () => {
+          count++;
+        },
+      });
+
+      const sourceMesh = flock.scene.getMeshByName(source);
+      const otherA = flock.scene.getMeshByName(groupA);
+      const otherB = flock.scene.getMeshByName(groupB);
+      expect(sourceMesh).to.exist;
+      expect(otherA).to.exist;
+      expect(otherB).to.exist;
+
+      sourceMesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: otherA },
+      );
+      sourceMesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: otherB },
+      );
+
+      expect(count).to.equal(2);
+    });
+
+    it("should skip self-pair when expanding right-hand collision group", async function () {
+      const source = "selfPair_1";
+      const other = "selfPair_2";
+
+      await flock.createBox(source, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      await flock.createBox(other, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(source, other);
+
+      let count = 0;
+      await flock.onIntersect(source, source, {
+        trigger: "OnIntersectionEnterTrigger",
+        applyToGroupOther: true,
+        callback: () => {
+          count++;
+        },
+      });
+
+      const sourceMesh = flock.scene.getMeshByName(source);
+      const otherMesh = flock.scene.getMeshByName(other);
+      expect(sourceMesh).to.exist;
+      expect(otherMesh).to.exist;
+
+      sourceMesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: otherMesh },
+      );
+
+      expect(count).to.equal(1);
+    });
+
+    it("should apply right-hand group intersections when targets are created later", async function () {
+      const source = "lateSource_1";
+      const futureGroupSeed = "lateTarget_1";
+      const futureGroupOther = "lateTarget_2";
+
+      await flock.createBox(source, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(source);
+
+      let count = 0;
+      await flock.onIntersect(source, futureGroupSeed, {
+        trigger: "OnIntersectionEnterTrigger",
+        applyToGroupOther: true,
+        callback: () => {
+          count++;
+        },
+      });
+
+      await flock.createBox(futureGroupSeed, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      await flock.createBox(futureGroupOther, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(futureGroupSeed, futureGroupOther);
+
+      const sourceMesh = flock.scene.getMeshByName(source);
+      const otherA = flock.scene.getMeshByName(futureGroupSeed);
+      const otherB = flock.scene.getMeshByName(futureGroupOther);
+      expect(sourceMesh).to.exist;
+      expect(otherA).to.exist;
+      expect(otherB).to.exist;
+
+      sourceMesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: otherA },
+      );
+      sourceMesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: otherB },
+      );
+
+      expect(count).to.equal(2);
+    });
+
+    it("should canonicalize unsanitized RHS names for pending group registration", async function () {
+      const source = "canonSource_1";
+      const unsanitizedAlias = "canon target !@#";
+      const normalizedAlias = "canontarget";
+      const createdTarget = "canontarget_1";
+
+      await flock.createBox(source, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(source);
+
+      // Mirror whenModelReady alias support: unsanitized id resolves through
+      // the normalized key present in modelReadyPromises.
+      flock.modelReadyPromises.set(normalizedAlias, Promise.resolve(null));
+
+      let count = 0;
+      await flock.onIntersect(source, unsanitizedAlias, {
+        trigger: "OnIntersectionEnterTrigger",
+        applyToGroupOther: true,
+        callback: () => {
+          count++;
+        },
+      });
+
+      await flock.createBox(createdTarget, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      boxIds.push(createdTarget);
+
+      const sourceMesh = flock.scene.getMeshByName(source);
+      const targetMesh = flock.scene.getMeshByName(createdTarget);
+      expect(sourceMesh).to.exist;
+      expect(targetMesh).to.exist;
+
+      sourceMesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: targetMesh },
+      );
+
+      expect(count).to.equal(1);
+      flock.modelReadyPromises.delete(normalizedAlias);
     });
   });
 

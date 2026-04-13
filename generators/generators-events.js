@@ -75,16 +75,20 @@ export function registerEventsGenerators(javascriptGenerator) {
 
     const trigger = block.getFieldValue("TRIGGER");
     const doCode = javascriptGenerator.statementToCode(block, "DO");
+    const isTopLevel = !block.getSurroundParent();
 
     if (
       trigger === "OnIntersectionEnterTrigger" ||
       trigger === "OnIntersectionExitTrigger"
     ) {
+      const applyToGroupOtherLine = isTopLevel
+        ? ",\n            applyToGroupOther: true"
+        : "";
       return `onIntersect(${modelName}, ${otherModelName}, {
             trigger: "${trigger}",
             callback: async function(${modelName}, ${otherModelName}) {
           ${doCode}
-            }
+            }${applyToGroupOtherLine}
           });\n`;
     } else {
       console.error("Invalid trigger type for 'on_collision' block:", trigger);
