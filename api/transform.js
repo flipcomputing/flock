@@ -545,7 +545,7 @@ export const flockTransform = {
       const tgtPos = (
         mesh2.getAbsolutePosition?.() ?? mesh2.absolutePosition
       ).clone();
-      if (!useY) tgtPos.y = camPos.y;
+      if (!useY) tgtPos.y = mesh1.target?.y ?? camPos.y;
       mesh1.setTarget(tgtPos);
       await new Promise((resolve) => {
         const cb = () => {
