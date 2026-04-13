@@ -27,6 +27,7 @@ let suppressRuntimeTextUntil = 0;
 let objectSayTextCache = new Map();
 let objectPromptTextCache = new Map();
 let hasSpokenInitialPageIntro = false;
+let worldInstructionTexts = [];
 
 function createA11yRoot() {
   let root = document.getElementById("flock-a11y-root");
@@ -234,6 +235,35 @@ function resolveSpokenText(value) {
   }
 
   return original;
+}
+
+export function resetWorldInstructionTexts() {
+  worldInstructionTexts = [];
+}
+
+export function recordWorldInstructionText(text) {
+  const spoken = cleanSpokenAnnouncement(resolveSpokenText(text));
+  if (!spoken) return;
+
+  const lower = spoken.toLowerCase();
+
+  // Skip generic startup chatter
+  if (
+    lower.includes("flock xr loaded successfully") ||
+    lower.includes("flock world successfully loaded") ||
+    lower.includes("loading flock xr")
+  ) {
+    return;
+  }
+
+  if (!worldInstructionTexts.includes(spoken)) {
+    worldInstructionTexts.push(spoken);
+  }
+
+  // Keep only a few recent instruction lines
+  if (worldInstructionTexts.length > 5) {
+    worldInstructionTexts = worldInstructionTexts.slice(-5);
+  }
 }
 
 function getObjectLabel(mesh) {
@@ -876,6 +906,10 @@ export function describeScene(scene) {
     parts.push("I can detect the environment, but no nearby main objects.");
   }
 
+  if (worldInstructionTexts.length) {
+    parts.push(`Instructions: ${worldInstructionTexts.join(". ")}.`);
+  }
+
   return parts.join(" ");
 }
 
@@ -1159,7 +1193,7 @@ function scheduleInitialIntro(scene) {
 
 export function enableSceneDescription(scene) {
   currentScene = scene;
-
+  resetWorldInstructionTexts();
   // Ensure live region exists early
   createLiveRegion();
 

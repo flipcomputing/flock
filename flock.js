@@ -91,6 +91,7 @@ import {
   announceSayText,
   recordObjectPromptText,
   recordObjectSayText,
+  recordWorldInstructionText,
 } from "./accessibility/accessibility.js";
 
 export const flock = {
@@ -1931,6 +1932,7 @@ export const flock = {
                     : (payload && typeof payload.text === "string" ? payload.text : "");
 
                 if (text && text.trim()) {
+                  recordWorldInstructionText(text);
                   announceSayText(text);
                 }
                 return result;
