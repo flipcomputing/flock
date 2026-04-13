@@ -731,12 +731,17 @@ export const flockUI = {
         });
       };
 
-      const timeoutId = setTimeout(fadeOut, safeDuration * 1000);
+      let timeoutId = null;
+      if (safeDuration > 0) {
+        timeoutId = setTimeout(fadeOut, safeDuration * 1000);
+      }
 
       flock.abortController.signal.addEventListener(
         "abort",
         () => {
-          clearTimeout(timeoutId);
+          if (timeoutId !== null) {
+            clearTimeout(timeoutId);
+          }
           if (flock.stackPanel) {
             flock.stackPanel.removeControl(bg);
             bg.dispose();

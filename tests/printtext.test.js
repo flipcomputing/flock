@@ -64,5 +64,15 @@ export function runPrintTextTests(flock) {
         done();
       }, 3000);
     });
+
+    it("should keep the control when duration is 0", function (done) {
+      this.timeout(2000);
+      flock.printText({ text: "Persist", duration: 0 });
+      setTimeout(() => {
+        const bg = advancedTexture.getControlByName("textBackground");
+        expect(bg).to.exist;
+        done();
+      }, 250);
+    });
   });
 }
