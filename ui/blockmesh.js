@@ -250,10 +250,15 @@ function getFallbackMeshesForLoadBlock(block, blockKey = null) {
   if (!variableName) return [];
   const matches = findMeshesByBaseName(variableName);
 
+  const ws = block.workspace;
+  const mainWs = Blockly.getMainWorkspace?.();
   console.log("[mesh-lookup:fallback]", {
     blockType: block.type,
     blockId: block.id,
     blockKey: blockKey || block.id,
+    workspaceId: ws?.id ?? null,
+    isFlyout: !!ws?.isFlyout,
+    isMainWorkspace: !!(ws && mainWs && ws === mainWs),
     variableName,
     matchedMeshes: matches.map((m) => ({
       name: m?.name,
@@ -318,20 +323,30 @@ export function getMeshFromBlock(block) {
   if (!blockKey) return null;
   const direct = getMeshFromBlockKey(blockKey);
   if (direct) {
+    const ws = block.workspace;
+    const mainWs = Blockly.getMainWorkspace?.();
     console.log("[mesh-lookup:direct]", {
       blockType: block.type,
       blockId: block.id,
       blockKey,
+      workspaceId: ws?.id ?? null,
+      isFlyout: !!ws?.isFlyout,
+      isMainWorkspace: !!(ws && mainWs && ws === mainWs),
       meshName: direct.name,
       meshBlockKey: direct.metadata?.blockKey ?? null,
     });
     return direct;
   }
 
+  const ws = block.workspace;
+  const mainWs = Blockly.getMainWorkspace?.();
   console.warn("[mesh-lookup:miss]", {
     blockType: block.type,
     blockId: block.id,
     blockKey,
+    workspaceId: ws?.id ?? null,
+    isFlyout: !!ws?.isFlyout,
+    isMainWorkspace: !!(ws && mainWs && ws === mainWs),
     knownSceneKeys: [...new Set((flock.scene?.meshes ?? [])
       .map((m) => m?.metadata?.blockKey)
       .filter(Boolean))].slice(0, 50),
@@ -394,19 +409,29 @@ export function getMeshesFromBlock(block) {
   if (!blockKey) return [];
   const meshes = getMeshesFromBlockKey(blockKey);
   if (meshes.length > 0) {
+    const ws = block.workspace;
+    const mainWs = Blockly.getMainWorkspace?.();
     console.log("[mesh-lookup:direct-many]", {
       blockType: block.type,
       blockId: block.id,
       blockKey,
+      workspaceId: ws?.id ?? null,
+      isFlyout: !!ws?.isFlyout,
+      isMainWorkspace: !!(ws && mainWs && ws === mainWs),
       meshNames: meshes.map((m) => m?.name),
     });
     return meshes;
   }
 
+  const ws = block.workspace;
+  const mainWs = Blockly.getMainWorkspace?.();
   console.warn("[mesh-lookup:miss-many]", {
     blockType: block.type,
     blockId: block.id,
     blockKey,
+    workspaceId: ws?.id ?? null,
+    isFlyout: !!ws?.isFlyout,
+    isMainWorkspace: !!(ws && mainWs && ws === mainWs),
   });
 
   return getFallbackMeshesForLoadBlock(block, blockKey);

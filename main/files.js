@@ -386,6 +386,11 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
     // Validate JSON before loading into workspace
     const validatedJson = validateBlocklyJson(json);
+    console.log("[workspace-load:entry]", {
+      workspaceId: workspace?.id ?? null,
+      topLevelBlocksInJson: validatedJson?.blocks?.blocks?.length ?? 0,
+      variablesInJson: validatedJson?.variables?.length ?? 0,
+    });
     const before = collectWorkspaceSnapshot(workspace);
     const incoming = collectIncomingSnapshot(validatedJson);
     const collidingBlockIds = intersectSets(before.blockIds, incoming.blockIds);
@@ -822,6 +827,12 @@ function appendSnippetBlocksAtViewport(workspace, blocksJson) {
 
 // Private helper: process a project file (used by file input and drag-and-drop)
 function processProjectFileDrop(file, workspace, executeCallback) {
+  console.log("[workspace-import:start]", {
+    fileName: file?.name ?? null,
+    fileSize: file?.size ?? null,
+    workspaceId: workspace?.id ?? null,
+  });
+
   const maxSize = 5 * 1024 * 1024;
   if (file.size > maxSize) {
     alert(translate("file_too_large_alert"));
