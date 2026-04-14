@@ -4,6 +4,66 @@ import { translate } from "./translation.js";
 import { getMetadata } from "meta-png";
 import { AUTOSAVE_KEY } from "../config.js";
 
+function collectWorkspaceSnapshot(ws) {
+  if (!ws) {
+    return {
+      blockIds: new Set(),
+      variableIds: new Set(),
+      blockCount: 0,
+      variableCount: 0,
+    };
+  }
+
+  const blocks = ws.getAllBlocks?.(false) || [];
+  const variables = ws.getVariableMap?.().getAllVariables?.() || [];
+
+  return {
+    blockIds: new Set(blocks.map((b) => b.id).filter(Boolean)),
+    variableIds: new Set(variables.map((v) => v.getId?.()).filter(Boolean)),
+    blockCount: blocks.length,
+    variableCount: variables.length,
+  };
+}
+
+function collectIncomingSnapshot(json) {
+  const blockIds = new Set();
+  const variableIds = new Set();
+
+  const walkBlock = (block) => {
+    if (!block || typeof block !== "object") return;
+    if (block.id) blockIds.add(block.id);
+
+    if (block.inputs && typeof block.inputs === "object") {
+      Object.values(block.inputs).forEach((input) => {
+        walkBlock(input?.block);
+        walkBlock(input?.shadow);
+      });
+    }
+
+    if (block.next?.block) walkBlock(block.next.block);
+  };
+
+  (json?.blocks?.blocks || []).forEach(walkBlock);
+  (json?.variables || []).forEach((v) => {
+    if (v?.id) variableIds.add(v.id);
+  });
+
+  return {
+    blockIds,
+    variableIds,
+    blockCount: blockIds.size,
+    variableCount: variableIds.size,
+  };
+}
+
+function intersectSets(a, b) {
+  const result = [];
+  a.forEach((value) => {
+    if (b.has(value)) result.push(value);
+  });
+  return result;
+}
+
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
   if (workspace && workspace.getAllBlocks) {
@@ -326,9 +386,45 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
     // Validate JSON before loading into workspace
     const validatedJson = validateBlocklyJson(json);
+    const before = collectWorkspaceSnapshot(workspace);
+    const incoming = collectIncomingSnapshot(validatedJson);
+    const collidingBlockIds = intersectSets(before.blockIds, incoming.blockIds);
+    const collidingVariableIds = intersectSets(
+      before.variableIds,
+      incoming.variableIds,
+    );
+
+    console.log("[workspace-load:before]", {
+      existingBlocks: before.blockCount,
+      existingVariables: before.variableCount,
+      incomingBlocks: incoming.blockCount,
+      incomingVariables: incoming.variableCount,
+    });
+    console.log("[workspace-load:collisions]", {
+      blockIdCollisions: collidingBlockIds.length,
+      variableIdCollisions: collidingVariableIds.length,
+      sampleBlockIds: collidingBlockIds.slice(0, 10),
+      sampleVariableIds: collidingVariableIds.slice(0, 10),
+    });
 
     // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
+    const after = collectWorkspaceSnapshot(workspace);
+    const missingIncomingBlockIds = [...incoming.blockIds].filter(
+      (id) => !after.blockIds.has(id),
+    );
+    const missingIncomingVariableIds = [...incoming.variableIds].filter(
+      (id) => !after.variableIds.has(id),
+    );
+
+    console.log("[workspace-load:after]", {
+      resultingBlocks: after.blockCount,
+      resultingVariables: after.variableCount,
+      missingIncomingBlockIds: missingIncomingBlockIds.length,
+      missingIncomingVariableIds: missingIncomingVariableIds.length,
+      sampleMissingBlockIds: missingIncomingBlockIds.slice(0, 10),
+      sampleMissingVariableIds: missingIncomingVariableIds.slice(0, 10),
+    });
     workspace.scroll(0, 0);
     executeCallback();
   } catch (error) {
