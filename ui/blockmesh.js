@@ -190,6 +190,83 @@ export function getMeshesFromBlockKey(blockKey) {
   return set ? [...set] : [];
 }
 
+function getUserVariableNameFromBlock(block, fieldName = "ID_VAR") {
+  if (!block?.workspace || typeof block.getFieldValue !== "function") return null;
+  const variableId = block.getFieldValue(fieldName);
+  if (!variableId) return null;
+  const variableModel = block.workspace.getVariableById?.(variableId);
+  return variableModel?.name ?? null;
+}
+
+function findMeshesByBaseName(baseName) {
+  if (!baseName || !flock?.scene) return [];
+  const candidates = [baseName, baseName.replace(/[^a-zA-Z0-9._-]/g, "")];
+  const seen = new Set();
+  const matches = [];
+
+  for (const name of candidates) {
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+
+    const exact = flock.scene.getMeshByName?.(name);
+    if (exact) matches.push(exact);
+
+    for (const mesh of flock.scene.meshes ?? []) {
+      if (
+        mesh?.name &&
+        mesh.name !== name &&
+        mesh.name.startsWith(`${name}_`) &&
+        Number.isFinite(Number(mesh.name.slice(name.length + 1)))
+      ) {
+        matches.push(mesh);
+      }
+    }
+  }
+
+  return matches;
+}
+
+function rebindMeshesToBlockKey(meshes, blockKey) {
+  if (!blockKey || !Array.isArray(meshes) || meshes.length === 0) return;
+  for (const mesh of meshes) {
+    if (!mesh) continue;
+    mesh.metadata = mesh.metadata || {};
+    mesh.metadata.blockKey = blockKey;
+    const descendants = mesh.getDescendants?.(false) ?? [];
+    for (const child of descendants) {
+      child.metadata = child.metadata || {};
+      child.metadata.blockKey = blockKey;
+    }
+  }
+  _meshIndexDirty = true;
+}
+
+function getFallbackMeshesForLoadBlock(block, blockKey = null) {
+  if (!block) return [];
+  if (!["load_object", "load_multi_object", "load_character"].includes(block.type))
+    return [];
+
+  const variableName = getUserVariableNameFromBlock(block, "ID_VAR");
+  if (!variableName) return [];
+  const matches = findMeshesByBaseName(variableName);
+
+  if (flock.meshDebug) {
+    console.log("[mesh-lookup:fallback]", {
+      blockType: block.type,
+      blockId: block.id,
+      blockKey: blockKey || block.id,
+      variableName,
+      matchedMeshes: matches.map((m) => ({
+        name: m?.name,
+        blockKey: m?.metadata?.blockKey ?? null,
+      })),
+    });
+  }
+
+  rebindMeshesToBlockKey(matches, blockKey || block.id);
+  return matches;
+}
+
 export function getMeshFromBlock(block) {
   if (!block) return null;
 
@@ -241,8 +318,32 @@ export function getMeshFromBlock(block) {
 
   const blockKey = getBlockKeyFromBlock(block) || block.id;
   if (!blockKey) return null;
+  const direct = getMeshFromBlockKey(blockKey);
+  if (direct) {
+    if (flock.meshDebug) {
+      console.log("[mesh-lookup:direct]", {
+        blockType: block.type,
+        blockId: block.id,
+        blockKey,
+        meshName: direct.name,
+        meshBlockKey: direct.metadata?.blockKey ?? null,
+      });
+    }
+    return direct;
+  }
 
-  return getMeshFromBlockKey(blockKey);
+  if (flock.meshDebug) {
+    console.warn("[mesh-lookup:miss]", {
+      blockType: block.type,
+      blockId: block.id,
+      blockKey,
+      knownSceneKeys: [...new Set((flock.scene?.meshes ?? [])
+        .map((m) => m?.metadata?.blockKey)
+        .filter(Boolean))].slice(0, 50),
+    });
+  }
+
+  return getFallbackMeshesForLoadBlock(block, blockKey)[0] ?? null;
 }
 
 export function getMeshesFromBlock(block) {
@@ -297,8 +398,28 @@ export function getMeshesFromBlock(block) {
 
   const blockKey = getBlockKeyFromBlock(block) || block.id;
   if (!blockKey) return [];
+  const meshes = getMeshesFromBlockKey(blockKey);
+  if (meshes.length > 0) {
+    if (flock.meshDebug) {
+      console.log("[mesh-lookup:direct-many]", {
+        blockType: block.type,
+        blockId: block.id,
+        blockKey,
+        meshNames: meshes.map((m) => m?.name),
+      });
+    }
+    return meshes;
+  }
 
-  return getMeshesFromBlockKey(blockKey);
+  if (flock.meshDebug) {
+    console.warn("[mesh-lookup:miss-many]", {
+      blockType: block.type,
+      blockId: block.id,
+      blockKey,
+    });
+  }
+
+  return getFallbackMeshesForLoadBlock(block, blockKey);
 }
 
 // Safe field getter. Returns null when field is missing or name is invalid.
