@@ -2276,7 +2276,9 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   const root = getAttachedAwareRoot(mesh);
   const blockKey = root?.metadata?.blockKey;
 
-  if (!blockKey || !meshMap?.[blockKey]) {
+  if (!blockKey || !meshMap?.[blockKey] ||
+      meshMap[blockKey].disposed ||
+      !meshMap[blockKey].workspace) {
     const ws = Blockly.getMainWorkspace();
     const fallbackBlock = blockKey ? ws?.getBlockById(blockKey) : null;
     if (fallbackBlock) {

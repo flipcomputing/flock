@@ -3,6 +3,7 @@ import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
 import { getMetadata } from "meta-png";
 import { AUTOSAVE_KEY } from "../config.js";
+import { clearMeshMaps } from "../generators/mesh-state.js";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
@@ -327,9 +328,22 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     // Validate JSON before loading into workspace
     const validatedJson = validateBlocklyJson(json);
 
+    // Clear stale mesh-map entries (disposed block references from any previous
+    // run) before loading.  This is critical when the same project is reloaded
+    // because block IDs are identical, so a stale meshMap["abc123"] = oldBlock
+    // entry would otherwise shadow the workspace-lookup fallback and cause
+    // gizmo / block colour updates to silently fail.
+    clearMeshMaps();
+
     // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
     workspace.scroll(0, 0);
+
+    // Allow execution to proceed even if a previous run hasn't fully wound
+    // down yet (isExecuting guard).  runCode() aborts the old run internally
+    // via its abort-controller / run-token mechanism.
+    window.cancelExecution?.();
+
     executeCallback();
   } catch (error) {
     console.error("Failed to load workspace:", error);

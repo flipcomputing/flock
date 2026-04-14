@@ -105,3 +105,10 @@ export function stopCode() {
 window.stopCode = stopCode;
 
 window.executeCode = executeCode;
+
+// Exposed so loadWorkspaceAndExecute can reset the guard before triggering a
+// fresh run.  The new runCode() call will abort the previous one via its own
+// abort-controller / run-token mechanism.
+window.cancelExecution = () => {
+  isExecuting = false;
+};

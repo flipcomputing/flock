@@ -418,7 +418,7 @@ function focusCameraOnMesh() {
   let mesh = gizmoManager.attachedMesh;
   if (mesh && mesh.name === "ground") mesh = null;
   if (!mesh && window.currentMesh) {
-    const blockKey = getBlockKeyFromBlock(window.currentBlock);
+    const blockKey = getBlockKeyFromBlock(window.currentBlock) ?? window.currentBlock?.id ?? null;
     mesh = getMeshFromBlockKey(blockKey);
   }
   if (!mesh) return;
