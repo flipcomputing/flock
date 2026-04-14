@@ -250,18 +250,16 @@ function getFallbackMeshesForLoadBlock(block, blockKey = null) {
   if (!variableName) return [];
   const matches = findMeshesByBaseName(variableName);
 
-  if (flock.meshDebug) {
-    console.log("[mesh-lookup:fallback]", {
-      blockType: block.type,
-      blockId: block.id,
-      blockKey: blockKey || block.id,
-      variableName,
-      matchedMeshes: matches.map((m) => ({
-        name: m?.name,
-        blockKey: m?.metadata?.blockKey ?? null,
-      })),
-    });
-  }
+  console.log("[mesh-lookup:fallback]", {
+    blockType: block.type,
+    blockId: block.id,
+    blockKey: blockKey || block.id,
+    variableName,
+    matchedMeshes: matches.map((m) => ({
+      name: m?.name,
+      blockKey: m?.metadata?.blockKey ?? null,
+    })),
+  });
 
   rebindMeshesToBlockKey(matches, blockKey || block.id);
   return matches;
@@ -320,28 +318,24 @@ export function getMeshFromBlock(block) {
   if (!blockKey) return null;
   const direct = getMeshFromBlockKey(blockKey);
   if (direct) {
-    if (flock.meshDebug) {
-      console.log("[mesh-lookup:direct]", {
-        blockType: block.type,
-        blockId: block.id,
-        blockKey,
-        meshName: direct.name,
-        meshBlockKey: direct.metadata?.blockKey ?? null,
-      });
-    }
-    return direct;
-  }
-
-  if (flock.meshDebug) {
-    console.warn("[mesh-lookup:miss]", {
+    console.log("[mesh-lookup:direct]", {
       blockType: block.type,
       blockId: block.id,
       blockKey,
-      knownSceneKeys: [...new Set((flock.scene?.meshes ?? [])
-        .map((m) => m?.metadata?.blockKey)
-        .filter(Boolean))].slice(0, 50),
+      meshName: direct.name,
+      meshBlockKey: direct.metadata?.blockKey ?? null,
     });
+    return direct;
   }
+
+  console.warn("[mesh-lookup:miss]", {
+    blockType: block.type,
+    blockId: block.id,
+    blockKey,
+    knownSceneKeys: [...new Set((flock.scene?.meshes ?? [])
+      .map((m) => m?.metadata?.blockKey)
+      .filter(Boolean))].slice(0, 50),
+  });
 
   return getFallbackMeshesForLoadBlock(block, blockKey)[0] ?? null;
 }
@@ -400,24 +394,20 @@ export function getMeshesFromBlock(block) {
   if (!blockKey) return [];
   const meshes = getMeshesFromBlockKey(blockKey);
   if (meshes.length > 0) {
-    if (flock.meshDebug) {
-      console.log("[mesh-lookup:direct-many]", {
-        blockType: block.type,
-        blockId: block.id,
-        blockKey,
-        meshNames: meshes.map((m) => m?.name),
-      });
-    }
-    return meshes;
-  }
-
-  if (flock.meshDebug) {
-    console.warn("[mesh-lookup:miss-many]", {
+    console.log("[mesh-lookup:direct-many]", {
       blockType: block.type,
       blockId: block.id,
       blockKey,
+      meshNames: meshes.map((m) => m?.name),
     });
+    return meshes;
   }
+
+  console.warn("[mesh-lookup:miss-many]", {
+    blockType: block.type,
+    blockId: block.id,
+    blockKey,
+  });
 
   return getFallbackMeshesForLoadBlock(block, blockKey);
 }
