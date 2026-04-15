@@ -451,6 +451,10 @@ export function initializeBlockHandling() {
 });*/
 
   workspace.addChangeListener((event) => {
+    if (flock.isLoadingWorkspaceJson) {
+      return;
+    }
+
     // Track the currently selected block.
     if (event.type === Blockly.Events.SELECTED) {
       window.currentBlock = event.newElementId
@@ -509,22 +513,13 @@ export function initializeBlockHandling() {
       event.type === Blockly.Events.BLOCK_DELETE &&
       Array.isArray(event.ids)
     ) {
-      const isWorkspaceLoadDelete =
-        (flock.isLoadingWorkspaceJson || window.loadingCode) &&
-        event.recordUndo === false;
-      const sizeBeforeDelete = blockHandlerRegistry.size;
-      if (!isWorkspaceLoadDelete) {
-        for (const id of event.ids) {
-          blockHandlerRegistry.delete(id);
-        }
+      for (const id of event.ids) {
+        blockHandlerRegistry.delete(id);
       }
       if (window.debugImportLinkage) {
         console.log("[import-debug] registry delete purge", {
           deletedIds: event.ids.length,
-          sizeBeforeDelete,
           sizeAfterDelete: blockHandlerRegistry.size,
-          loadingCode: !!window.loadingCode,
-          isWorkspaceLoadDelete,
           recordUndo: event.recordUndo,
         });
       }
