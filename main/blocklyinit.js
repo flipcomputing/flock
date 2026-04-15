@@ -761,12 +761,19 @@ export function createBlocklyWorkspace() {
       });
       if (!match) return false;
 
+      const focusManager = Blockly.getFocusManager?.();
+      const currentlySelected = toolbox.getSelectedItem?.();
+      if (currentlySelected === match) {
+        focusManager?.focusTree?.(toolbox);
+        focusManager?.focusNode?.(match);
+        return true;
+      }
+
       expandCategoryBranch(match);
       toolbox.setSelectedItem?.(match);
       const selectedItem = toolbox.getSelectedItem?.();
       if (selectedItem !== match) return false;
 
-      const focusManager = Blockly.getFocusManager?.();
       focusManager?.focusTree?.(toolbox);
       const isSelectable =
         typeof selectedItem.isSelectable === "function"
