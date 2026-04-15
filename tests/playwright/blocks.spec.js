@@ -188,4 +188,151 @@ test.describe("Create Blockly project and open Events flyout", () => {
     await expect(renderCanvas).toBeVisible();
     await expect(renderCanvas).toHaveScreenshot("canvas-baseline.png");
   });
+
+  test("supports persistent toolbox category prefix typing without timeout", async ({
+    page,
+  }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    await page.waitForFunction(
+      () => {
+        const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+        const tb = ws?.getToolbox?.();
+        return !!(ws && tb && (tb.getToolboxItems?.()?.length ?? 0) > 0);
+      },
+      { timeout: 20000 },
+    );
+
+    const selectedAfterTyping = await page.evaluate(async () => {
+      const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+      const tb = ws?.getToolbox?.();
+      if (!ws || !tb) return null;
+
+      const toolboxDiv =
+        tb.HtmlDiv ||
+        document.querySelector(".blocklyToolboxDiv, .blocklyToolbox");
+      if (!(toolboxDiv instanceof HTMLElement)) return null;
+
+      const keydown = (key, extra = {}) => {
+        toolboxDiv.dispatchEvent(
+          new KeyboardEvent("keydown", {
+            key,
+            code: key.length === 1 ? `Key${key.toUpperCase()}` : key,
+            bubbles: true,
+            cancelable: true,
+            ...extra,
+          }),
+        );
+      };
+      const selectedName = () => tb.getSelectedItem?.()?.getName?.() || "";
+      const waitFor = async (predicate, timeoutMs = 2000) => {
+        const start = performance.now();
+        while (performance.now() - start < timeoutMs) {
+          if (predicate()) return true;
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+        }
+        return false;
+      };
+
+      window.Blockly?.getFocusManager?.()?.focusTree?.(tb);
+      toolboxDiv.focus();
+
+      keydown("c");
+      keydown("o");
+      keydown("n");
+      await waitFor(
+        () => selectedName().toLowerCase().startsWith("con"),
+        2000,
+      );
+      keydown("d");
+      const condition = selectedName().toLowerCase();
+
+      keydown("Escape");
+      keydown("c");
+      keydown("o");
+      keydown("n");
+      const connect = selectedName().toLowerCase();
+      const focusedTree = window.Blockly?.getFocusManager?.()?.getFocusedTree?.();
+      const toolboxStillFocused = focusedTree === tb;
+      const activeInToolbox = !!document.activeElement?.closest?.(
+        ".blocklyToolboxDiv, .blocklyToolbox",
+      );
+
+      const selectedItem = tb.getSelectedItem?.();
+      const selectedExpanded =
+        typeof selectedItem?.isExpanded === "function"
+          ? selectedItem.isExpanded()
+          : null;
+      const parent =
+        selectedItem?.getParent?.() ||
+        selectedItem?.parentToolboxItem_ ||
+        selectedItem?.parentItem_ ||
+        selectedItem?.parent_;
+      const parentExpanded =
+        typeof parent?.isExpanded === "function" ? parent.isExpanded() : null;
+
+      keydown("Escape");
+      keydown("s");
+      keydown("t");
+      keydown("r");
+      const strings = selectedName().toLowerCase();
+
+      const stringsItem = tb.getSelectedItem?.();
+      const stringsParent =
+        stringsItem?.getParent?.() ||
+        stringsItem?.parentToolboxItem_ ||
+        stringsItem?.parentItem_ ||
+        stringsItem?.parent_;
+      const stringsParentExpanded =
+        typeof stringsParent?.isExpanded === "function"
+          ? stringsParent.isExpanded()
+          : null;
+
+      keydown("Escape");
+      keydown("s");
+      keydown("c");
+      keydown("e");
+      const scene = selectedName().toLowerCase();
+
+      keydown("f", { ctrlKey: true });
+      await waitFor(() => {
+        const active = document.activeElement;
+        return active instanceof HTMLInputElement && active.type === "search";
+      }, 2000);
+      const focused = document.activeElement;
+      const searchFocused =
+        focused instanceof HTMLInputElement && focused.type === "search";
+
+      toolboxDiv.focus();
+      keydown("c");
+      const control = selectedName().toLowerCase();
+
+      return {
+        condition,
+        connect,
+        toolboxStillFocused,
+        activeInToolbox,
+        strings,
+        scene,
+        control,
+        searchFocused,
+        selectedExpanded,
+        parentExpanded,
+        stringsParentExpanded,
+      };
+    });
+
+    expect(selectedAfterTyping).not.toBeNull();
+    expect(selectedAfterTyping.searchFocused).toBe(true);
+    expect(selectedAfterTyping.condition).toContain("condition");
+    expect(selectedAfterTyping.connect).toContain("connect");
+    expect(selectedAfterTyping.toolboxStillFocused).toBe(true);
+    expect(selectedAfterTyping.activeInToolbox).toBe(true);
+    expect(selectedAfterTyping.strings).toContain("string");
+    expect(selectedAfterTyping.scene).toContain("scene");
+    expect(selectedAfterTyping.control).toContain("control");
+    expect(selectedAfterTyping.selectedExpanded).toBe(true);
+    expect(selectedAfterTyping.parentExpanded).toBe(true);
+    expect(selectedAfterTyping.stringsParentExpanded).toBe(true);
+  });
 });
