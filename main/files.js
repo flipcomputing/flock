@@ -3,6 +3,7 @@ import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
 import { getMetadata } from "meta-png";
 import { AUTOSAVE_KEY } from "../config.js";
+import { rebuildBlockHandlerRegistryFromWorkspace } from "../blocks/blocks.js";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
@@ -343,6 +344,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
     // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
+    rebuildBlockHandlerRegistryFromWorkspace(workspace);
 
     if (debugImportLinkage) {
       const afterBlocks = workspace.getAllBlocks(false);

@@ -106,7 +106,32 @@ export const blockHandlerRegistry = new HandlerRegistry();
  */
 export function registerBlockHandler(block, handler) {
   if (!block.workspace || block.workspace.isFlyout) return;
+  block.__flockBlockHandler = handler;
   blockHandlerRegistry.set(block.id, handler);
+}
+
+export function rebuildBlockHandlerRegistryFromWorkspace(
+  ws = Blockly.getMainWorkspace?.(),
+) {
+  if (!ws || typeof ws.getAllBlocks !== "function") return;
+
+  blockHandlerRegistry.clear();
+
+  const blocks = ws.getAllBlocks(false);
+  for (const block of blocks) {
+    if (!block || block.workspace?.isFlyout) continue;
+    const handler = block.__flockBlockHandler;
+    if (typeof handler !== "function") continue;
+    blockHandlerRegistry.set(block.id, handler);
+  }
+
+  if (window.debugImportLinkage) {
+    console.log("[import-debug] rebuilt block handler registry", {
+      workspaceId: ws.id,
+      blockCount: blocks.length,
+      handlerCount: blockHandlerRegistry.size,
+    });
+  }
 }
 
 export const inlineIcon =
