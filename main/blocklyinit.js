@@ -709,10 +709,26 @@ export function createBlocklyWorkspace() {
       toolbox.HtmlDiv || document.querySelector(".blocklyToolboxDiv");
     if (!toolboxDiv) return;
     let categoryTypePrefix = "";
+    const TOOLBOX_OR_FLYOUT_SELECTOR =
+      ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout";
 
     const resetCategoryTypePrefix = () => {
       categoryTypePrefix = "";
     };
+    const stopEvent = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+    };
+    const isInToolboxOrFlyout = (element) =>
+      !!element?.closest?.(TOOLBOX_OR_FLYOUT_SELECTOR);
+    const isEditableTarget = (target) =>
+      !!(
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      );
 
     const isToolboxContext = (element) =>
       !!element?.closest?.(".blocklyToolboxDiv, .blocklyToolbox");
@@ -869,17 +885,10 @@ export function createBlocklyWorkspace() {
         const activeElement = document.activeElement;
         const targetElement = e.target instanceof Element ? e.target : null;
         const inToolboxContext =
-          !!targetElement?.closest?.(
-            ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
-          ) ||
-          !!activeElement?.closest?.(
-            ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
-          );
+          isInToolboxOrFlyout(targetElement) || isInToolboxOrFlyout(activeElement);
         if (!inToolboxContext) return;
 
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
+        stopEvent(e);
         focusToolboxSearch();
       },
       true,
@@ -940,28 +949,17 @@ export function createBlocklyWorkspace() {
           const targetElement = target instanceof Element ? target : null;
           const activeElement = document.activeElement;
           const inToolboxContext =
-            !!targetElement?.closest?.(
-              ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
-            ) ||
-            !!activeElement?.closest?.(
-              ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
-            );
+            isInToolboxOrFlyout(targetElement) ||
+            isInToolboxOrFlyout(activeElement);
 
           if (inToolboxContext) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
+            stopEvent(e);
             focusToolboxSearch();
             return;
           }
         }
 
-        if (
-          target &&
-          (target.tagName === "INPUT" ||
-            target.tagName === "TEXTAREA" ||
-            target.isContentEditable)
-        ) {
+        if (isEditableTarget(target)) {
           return;
         }
 
@@ -984,9 +982,7 @@ export function createBlocklyWorkspace() {
           categoryTypePrefix = categoryTypePrefix.slice(0, -1);
           if (!categoryTypePrefix) return;
           if (applyPrefixMatch(categoryTypePrefix)) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
+            stopEvent(e);
           }
           return;
         }
@@ -998,9 +994,7 @@ export function createBlocklyWorkspace() {
           !e.metaKey &&
           !e.altKey;
         if (isPrintableKey) {
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
+          stopEvent(e);
 
           const nextPrefix = `${categoryTypePrefix}${e.key}`;
           if (applyPrefixMatch(nextPrefix)) {
@@ -1009,9 +1003,7 @@ export function createBlocklyWorkspace() {
             categoryTypePrefix = e.key;
           }
           if (
-            !document.activeElement?.closest?.(
-              ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
-            )
+            !isInToolboxOrFlyout(document.activeElement)
           ) {
             toolboxDiv.focus();
             Blockly.getFocusManager?.()?.focusTree?.(toolbox);
@@ -1024,9 +1016,7 @@ export function createBlocklyWorkspace() {
 
         if (e.key === "ArrowRight" && flyoutVisible) {
           resetCategoryTypePrefix();
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
+          stopEvent(e);
           const flyoutWorkspace = flyout.getWorkspace?.();
           if (flyoutWorkspace) {
             Blockly.getFocusManager().focusTree(flyoutWorkspace);
@@ -1041,9 +1031,7 @@ export function createBlocklyWorkspace() {
             selectedItem &&
             typeof selectedItem.toggleExpanded === "function"
           ) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
+            stopEvent(e);
             selectedItem.toggleExpanded();
           }
         }
