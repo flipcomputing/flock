@@ -737,6 +737,24 @@ export function createBlocklyWorkspace() {
           : true;
       });
 
+    const getParentCategory = (item) =>
+      item?.getParent?.() ||
+      item?.parentToolboxItem_ ||
+      item?.parentItem_ ||
+      item?.parent_;
+
+    const expandCategoryBranch = (item) => {
+      const seen = new Set();
+      let current = item;
+      while (current && !seen.has(current)) {
+        seen.add(current);
+        if (typeof current.setExpanded === "function") {
+          current.setExpanded(true);
+        }
+        current = getParentCategory(current);
+      }
+    };
+
     const applyPrefixMatch = (prefix) => {
       if (!prefix) return false;
       const normalizedPrefix = normalizeLabel(prefix);
@@ -748,6 +766,7 @@ export function createBlocklyWorkspace() {
       });
       if (!match) return false;
 
+      expandCategoryBranch(match);
       toolbox.setSelectedItem?.(match);
       Blockly.getFocusManager()?.focusTree?.(toolbox);
       Blockly.getFocusManager()?.focusNode?.(match);

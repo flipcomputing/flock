@@ -237,6 +237,25 @@ test.describe("Create Blockly project and open Events flyout", () => {
       const condition = selectedName().toLowerCase();
 
       keydown("Escape");
+      keydown("c");
+      keydown("o");
+      keydown("n");
+      const connect = selectedName().toLowerCase();
+
+      const selectedItem = tb.getSelectedItem?.();
+      const selectedExpanded =
+        typeof selectedItem?.isExpanded === "function"
+          ? selectedItem.isExpanded()
+          : null;
+      const parent =
+        selectedItem?.getParent?.() ||
+        selectedItem?.parentToolboxItem_ ||
+        selectedItem?.parentItem_ ||
+        selectedItem?.parent_;
+      const parentExpanded =
+        typeof parent?.isExpanded === "function" ? parent.isExpanded() : null;
+
+      keydown("Escape");
       keydown("s");
       keydown("c");
       keydown("e");
@@ -252,13 +271,24 @@ test.describe("Create Blockly project and open Events flyout", () => {
       keydown("c");
       const control = selectedName().toLowerCase();
 
-      return { condition, scene, control, searchFocused };
+      return {
+        condition,
+        connect,
+        scene,
+        control,
+        searchFocused,
+        selectedExpanded,
+        parentExpanded,
+      };
     });
 
     expect(selectedAfterTyping).not.toBeNull();
     expect(selectedAfterTyping.searchFocused).toBe(true);
     expect(selectedAfterTyping.condition).toContain("condition");
+    expect(selectedAfterTyping.connect).toContain("connect");
     expect(selectedAfterTyping.scene).toContain("scene");
     expect(selectedAfterTyping.control).toContain("control");
+    expect(selectedAfterTyping.selectedExpanded).toBe(true);
+    expect(selectedAfterTyping.parentExpanded).toBe(true);
   });
 });
