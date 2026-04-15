@@ -14,6 +14,13 @@ import {
   createBlockForCharacter,
 } from "./blocklyutil.js";
 import { roundPositionValue } from "./blocklyshadowutil.js";
+import {
+  createCanvasCircle,
+  getCanvasCircle,
+  destroyCanvasCircle,
+  moveCanvasCircle,
+  clickCanvasCircle,
+} from "./canvas-utils.js";
 
 const colorFields = {
   HAIR_COLOR: "#000000", // Hair: black
@@ -666,8 +673,6 @@ function cleanupPlacementMode() {
 
 let placementCallback = null; // Keyboard placement callback singleton
 let keyboardPlacementMode = false;
-let placementCircle = null;
-let placementCirclePosition = { x: 0, y: 0 };
 
 function showShapes() {
   cancelPlacement(); // Always remove all placement modes when menu is opened/closed
@@ -748,59 +753,11 @@ function endKeyboardPlacementMode() {
   keyboardPlacementMode = false;
   placementCallback = null;
 
-  if (placementCircle) {
-    placementCircle.remove();
-    placementCircle = null;
-  }
+  destroyCanvasCircle();
 
   document.removeEventListener("keydown", handlePlacementKeydown);
 
   document.body.style.cursor = "default";
-}
-
-function createPlacementCircle() {
-  if (placementCircle) placementCircle.remove();
-  placementCircle = document.createElement("div");
-  placementCircle.style.position = "fixed";
-  placementCircle.style.width = "20px";
-  placementCircle.style.height = "20px";
-  placementCircle.style.borderRadius = "50%";
-  placementCircle.style.border = "2px solid #FFD700";
-  placementCircle.style.backgroundColor = "rgba(255, 215, 0, 0.3)";
-  placementCircle.style.pointerEvents = "none";
-  placementCircle.style.zIndex = "9999";
-  placementCircle.style.transform = "translate(-50%, -50%)";
-
-  // Initialize position here:
-  const canvas = flock.scene.getEngine().getRenderingCanvas();
-  const canvasRect = canvas.getBoundingClientRect();
-  placementCirclePosition.x = canvasRect.width / 2;
-  placementCirclePosition.y = canvasRect.height * 0.7;
-
-  updatePlacementCirclePosition();
-  document.body.appendChild(placementCircle);
-}
-
-function updatePlacementCirclePosition() {
-  if (!placementCircle) return;
-
-  const canvas = flock.scene.getEngine().getRenderingCanvas();
-  const canvasRect = canvas.getBoundingClientRect();
-
-  // Constrain position to canvas bounds
-  placementCirclePosition.x = Math.max(
-    10,
-    Math.min(canvasRect.width - 10, placementCirclePosition.x),
-  );
-  placementCirclePosition.y = Math.max(
-    10,
-    Math.min(canvasRect.height - 10, placementCirclePosition.y),
-  );
-
-  // Position relative to canvas
-  placementCircle.style.left =
-    canvasRect.left + placementCirclePosition.x + "px";
-  placementCircle.style.top = canvasRect.top + placementCirclePosition.y + "px";
 }
 
 // --- Menu Keyboard Navigation Handling ---
@@ -892,42 +849,38 @@ function handlePlacementKeydown(event) {
   switch (event.key) {
     case "ArrowRight":
       event.preventDefault();
-      if (!placementCircle) {
-        createPlacementCircle();
+      if (!getCanvasCircle()) {
+        createCanvasCircle();
         document.body.style.cursor = "none";
       }
-      placementCirclePosition.x += moveDistance;
-      updatePlacementCirclePosition();
+      moveCanvasCircle(moveDistance, 0);
       break;
 
     case "ArrowLeft":
       event.preventDefault();
-      if (!placementCircle) {
-        createPlacementCircle();
+      if (!getCanvasCircle()) {
+        createCanvasCircle();
         document.body.style.cursor = "none";
       }
-      placementCirclePosition.x -= moveDistance;
-      updatePlacementCirclePosition();
+      moveCanvasCircle(-moveDistance, 0);
       break;
 
     case "ArrowDown":
       event.preventDefault();
-      if (!placementCircle) {
-        createPlacementCircle();
+      if (!getCanvasCircle()) {
+        createCanvasCircle();
         document.body.style.cursor = "none";
       }
-      placementCirclePosition.y += moveDistance;
-      updatePlacementCirclePosition();
+      moveCanvasCircle(0, moveDistance);
       break;
 
     case "ArrowUp":
       event.preventDefault();
-      if (!placementCircle) {
-        createPlacementCircle();
+      if (!getCanvasCircle()) {
+        createCanvasCircle();
         document.body.style.cursor = "none";
       }
-      placementCirclePosition.y -= moveDistance;
-      updatePlacementCirclePosition();
+      moveCanvasCircle(0, -moveDistance);
       break;
 
     case "Enter":
@@ -950,17 +903,19 @@ function handlePlacementKeydown(event) {
 
 function triggerPlacement() {
   if (!placementCallback || !keyboardPlacementMode) return;
-  // Use placementCirclePosition as the "click" location for keyboard placement
   const canvas = flock.scene.getEngine().getRenderingCanvas();
   const canvasRect = canvas.getBoundingClientRect();
-  const syntheticEvent = {
-    clientX: canvasRect.left + placementCirclePosition.x,
-    clientY: canvasRect.top + placementCirclePosition.y,
-    defaultPosition: flock.BABYLON.Vector3.Zero(),
-  };
 
-  placementCallback(syntheticEvent);
-  cancelPlacement();
+  // Re-implement this using the clickCanvasCircle callback
+  clickCanvasCircle((x, y) => {
+    const syntheticEvent = {
+      clientX: canvasRect.left + x,
+      clientY: canvasRect.top + y,
+      defaultPosition: flock.BABYLON.Vector3.Zero(),
+    };
+    placementCallback(syntheticEvent);
+    cancelPlacement();
+  });
 }
 
 // Export functions to be used globally
