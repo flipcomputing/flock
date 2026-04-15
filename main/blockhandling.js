@@ -508,9 +508,14 @@ export function initializeBlockHandling() {
       event.type === Blockly.Events.BLOCK_DELETE &&
       Array.isArray(event.ids)
     ) {
+      const isWorkspaceLoadDelete =
+        (window.__flockIsLoadingWorkspaceJson || window.loadingCode) &&
+        event.recordUndo === false;
       const sizeBeforeDelete = blockHandlerRegistry.size;
-      for (const id of event.ids) {
-        blockHandlerRegistry.delete(id);
+      if (!isWorkspaceLoadDelete) {
+        for (const id of event.ids) {
+          blockHandlerRegistry.delete(id);
+        }
       }
       if (window.debugImportLinkage) {
         console.log("[import-debug] registry delete purge", {
@@ -518,6 +523,7 @@ export function initializeBlockHandling() {
           sizeBeforeDelete,
           sizeAfterDelete: blockHandlerRegistry.size,
           loadingCode: !!window.loadingCode,
+          isWorkspaceLoadDelete,
           recordUndo: event.recordUndo,
         });
       }
