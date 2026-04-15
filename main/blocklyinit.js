@@ -768,12 +768,20 @@ export function createBlocklyWorkspace() {
 
       const focusManager = Blockly.getFocusManager?.();
       focusManager?.focusTree?.(toolbox);
-      focusManager?.focusNode?.(selectedItem);
+      const isSelectable =
+        typeof selectedItem.isSelectable === "function"
+          ? selectedItem.isSelectable()
+          : true;
+      if (isSelectable) {
+        focusManager?.focusNode?.(selectedItem);
+      } else {
+        toolboxDiv.focus();
+      }
 
       if (focusManager?.getFocusedTree?.() !== toolbox) {
         focusManager?.focusTree?.(toolbox);
       }
-      if (focusManager?.getFocusedNode?.() !== selectedItem) {
+      if (isSelectable && focusManager?.getFocusedNode?.() !== selectedItem) {
         const clickTarget =
           selectedItem.getClickTarget?.() || selectedItem.getDiv?.();
         clickTarget?.focus?.();
@@ -985,6 +993,14 @@ export function createBlocklyWorkspace() {
             categoryTypePrefix = nextPrefix;
           } else if (applyPrefixMatch(e.key)) {
             categoryTypePrefix = e.key;
+          }
+          if (
+            !document.activeElement?.closest?.(
+              ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
+            )
+          ) {
+            toolboxDiv.focus();
+            Blockly.getFocusManager?.()?.focusTree?.(toolbox);
           }
           return;
         }
