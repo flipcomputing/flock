@@ -1,7 +1,10 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
-import { blockHandlerRegistry } from "../blocks/blocks.js";
+import {
+  blockHandlerRegistry,
+  getBlockHandlerRegistrySnapshot,
+} from "../blocks/blocks.js";
 import { announceToScreenReader } from "./input.js";
 
 function asBlocklyBlock(candidate) {
@@ -520,13 +523,53 @@ export function initializeBlockHandling() {
       event.element === "field"
     ) {
       const block = workspace.getBlockById(event.blockId);
+      let parentLoadCharacter = null;
+      let cursor = block;
+      while (cursor) {
+        if (cursor.type === "load_character") {
+          parentLoadCharacter = cursor;
+          break;
+        }
+        cursor = cursor.getParent?.();
+      }
+
+      const loadCharacterHasRegistryHandler = parentLoadCharacter
+        ? blockHandlerRegistry.has(parentLoadCharacter.id)
+        : null;
+      const loadCharacterHandlerMatchesBlock = parentLoadCharacter
+        ? blockHandlerRegistry.get(parentLoadCharacter.id) ===
+          parentLoadCharacter.__flockBlockHandler
+        : null;
+
       console.log("[import-debug] dispatch field change", {
         name: event.name,
         blockId: event.blockId,
         blockType: block?.type ?? null,
         workspaceId: event.workspaceId,
         handlerCount: handlers.length,
+        parentLoadCharacterId: parentLoadCharacter?.id ?? null,
+        parentLoadCharacterInRegistry: loadCharacterHasRegistryHandler,
+        parentLoadCharacterHandlerMatchesBlock:
+          loadCharacterHandlerMatchesBlock,
       });
+
+      if (
+        block?.type === "colour" &&
+        event.name === "COLOR" &&
+        parentLoadCharacter &&
+        !loadCharacterHasRegistryHandler
+      ) {
+        const registry = getBlockHandlerRegistrySnapshot(workspace);
+        console.log(
+          "[import-debug] missing parent load_character in registry during colour change",
+          {
+            parentLoadCharacterId: parentLoadCharacter.id,
+            registrySize: registry.registrySize,
+            registryStaleCount: registry.staleCount,
+            registryLoadCharacterCount: registry.byType.load_character || 0,
+          },
+        );
+      }
     }
 
     for (const handler of handlers) {

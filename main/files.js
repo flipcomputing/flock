@@ -3,7 +3,10 @@ import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
 import { getMetadata } from "meta-png";
 import { AUTOSAVE_KEY } from "../config.js";
-import { rebuildBlockHandlerRegistryFromWorkspace } from "../blocks/blocks.js";
+import {
+  rebuildBlockHandlerRegistryFromWorkspace,
+  getBlockHandlerRegistrySnapshot,
+} from "../blocks/blocks.js";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
@@ -331,6 +334,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     const debugImportLinkage =
       typeof window !== "undefined" && window.debugImportLinkage;
     if (debugImportLinkage) {
+      const beforeRegistry = getBlockHandlerRegistrySnapshot(workspace);
       const beforeBlocks = workspace.getAllBlocks(false);
       const beforeCharacters = beforeBlocks.filter(
         (block) => block.type === "load_character",
@@ -339,6 +343,9 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
         workspaceId: workspace.id,
         beforeBlockCount: beforeBlocks.length,
         beforeLoadCharacterIds: beforeCharacters.map((block) => block.id),
+        registrySize: beforeRegistry.registrySize,
+        registryStaleCount: beforeRegistry.staleCount,
+        registryLoadCharacterCount: beforeRegistry.byType.load_character || 0,
       });
     }
 
@@ -347,6 +354,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     rebuildBlockHandlerRegistryFromWorkspace(workspace);
 
     if (debugImportLinkage) {
+      const afterRegistry = getBlockHandlerRegistrySnapshot(workspace);
       const afterBlocks = workspace.getAllBlocks(false);
       const afterCharacters = afterBlocks.filter(
         (block) => block.type === "load_character",
@@ -355,6 +363,9 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
         workspaceId: workspace.id,
         afterBlockCount: afterBlocks.length,
         afterLoadCharacterIds: afterCharacters.map((block) => block.id),
+        registrySize: afterRegistry.registrySize,
+        registryStaleCount: afterRegistry.staleCount,
+        registryLoadCharacterCount: afterRegistry.byType.load_character || 0,
       });
     }
 
