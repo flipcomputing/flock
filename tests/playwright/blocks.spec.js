@@ -188,4 +188,77 @@ test.describe("Create Blockly project and open Events flyout", () => {
     await expect(renderCanvas).toBeVisible();
     await expect(renderCanvas).toHaveScreenshot("canvas-baseline.png");
   });
+
+  test("supports persistent toolbox category prefix typing without timeout", async ({
+    page,
+  }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    await page.waitForFunction(
+      () => {
+        const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+        const tb = ws?.getToolbox?.();
+        return !!(ws && tb && (tb.getToolboxItems?.()?.length ?? 0) > 0);
+      },
+      { timeout: 20000 },
+    );
+
+    const selectedAfterTyping = await page.evaluate(async () => {
+      const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+      const tb = ws?.getToolbox?.();
+      if (!ws || !tb) return null;
+
+      const toolboxDiv =
+        tb.HtmlDiv ||
+        document.querySelector(".blocklyToolboxDiv, .blocklyToolbox");
+      if (!(toolboxDiv instanceof HTMLElement)) return null;
+
+      const keydown = (key, extra = {}) => {
+        toolboxDiv.dispatchEvent(
+          new KeyboardEvent("keydown", {
+            key,
+            code: key.length === 1 ? `Key${key.toUpperCase()}` : key,
+            bubbles: true,
+            cancelable: true,
+            ...extra,
+          }),
+        );
+      };
+      const selectedName = () => tb.getSelectedItem?.()?.getName?.() || "";
+
+      window.Blockly?.getFocusManager?.()?.focusTree?.(tb);
+      toolboxDiv.focus();
+
+      keydown("c");
+      keydown("o");
+      keydown("n");
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      keydown("d");
+      const condition = selectedName().toLowerCase();
+
+      keydown("Escape");
+      keydown("s");
+      keydown("c");
+      keydown("e");
+      const scene = selectedName().toLowerCase();
+
+      keydown("f", { ctrlKey: true });
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      const focused = document.activeElement;
+      const searchFocused =
+        focused instanceof HTMLInputElement && focused.type === "search";
+
+      toolboxDiv.focus();
+      keydown("c");
+      const control = selectedName().toLowerCase();
+
+      return { condition, scene, control, searchFocused };
+    });
+
+    expect(selectedAfterTyping).not.toBeNull();
+    expect(selectedAfterTyping.searchFocused).toBe(true);
+    expect(selectedAfterTyping.condition).toContain("condition");
+    expect(selectedAfterTyping.scene).toContain("scene");
+    expect(selectedAfterTyping.control).toContain("control");
+  });
 });
