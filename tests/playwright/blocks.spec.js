@@ -241,6 +241,11 @@ test.describe("Create Blockly project and open Events flyout", () => {
       keydown("o");
       keydown("n");
       const connect = selectedName().toLowerCase();
+      const focusedTree = window.Blockly?.getFocusManager?.()?.getFocusedTree?.();
+      const toolboxStillFocused = focusedTree === tb;
+      const activeInToolbox = !!document.activeElement?.closest?.(
+        ".blocklyToolboxDiv, .blocklyToolbox",
+      );
 
       const selectedItem = tb.getSelectedItem?.();
       const selectedExpanded =
@@ -291,6 +296,8 @@ test.describe("Create Blockly project and open Events flyout", () => {
       return {
         condition,
         connect,
+        toolboxStillFocused,
+        activeInToolbox,
         strings,
         scene,
         control,
@@ -305,6 +312,8 @@ test.describe("Create Blockly project and open Events flyout", () => {
     expect(selectedAfterTyping.searchFocused).toBe(true);
     expect(selectedAfterTyping.condition).toContain("condition");
     expect(selectedAfterTyping.connect).toContain("connect");
+    expect(selectedAfterTyping.toolboxStillFocused).toBe(true);
+    expect(selectedAfterTyping.activeInToolbox).toBe(true);
     expect(selectedAfterTyping.strings).toContain("string");
     expect(selectedAfterTyping.scene).toContain("scene");
     expect(selectedAfterTyping.control).toContain("control");

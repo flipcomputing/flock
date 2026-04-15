@@ -960,17 +960,15 @@ export function createBlocklyWorkspace() {
           !e.metaKey &&
           !e.altKey;
         if (isPrintableKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+
           const nextPrefix = `${categoryTypePrefix}${e.key}`;
           if (applyPrefixMatch(nextPrefix)) {
             categoryTypePrefix = nextPrefix;
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
           } else if (applyPrefixMatch(e.key)) {
             categoryTypePrefix = e.key;
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
           }
           return;
         }
