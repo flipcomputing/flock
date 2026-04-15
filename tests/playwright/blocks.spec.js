@@ -225,6 +225,14 @@ test.describe("Create Blockly project and open Events flyout", () => {
         );
       };
       const selectedName = () => tb.getSelectedItem?.()?.getName?.() || "";
+      const waitFor = async (predicate, timeoutMs = 2000) => {
+        const start = performance.now();
+        while (performance.now() - start < timeoutMs) {
+          if (predicate()) return true;
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+        }
+        return false;
+      };
 
       window.Blockly?.getFocusManager?.()?.focusTree?.(tb);
       toolboxDiv.focus();
@@ -232,7 +240,10 @@ test.describe("Create Blockly project and open Events flyout", () => {
       keydown("c");
       keydown("o");
       keydown("n");
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      await waitFor(
+        () => selectedName().toLowerCase().startsWith("con"),
+        2000,
+      );
       keydown("d");
       const condition = selectedName().toLowerCase();
 
@@ -284,7 +295,10 @@ test.describe("Create Blockly project and open Events flyout", () => {
       const scene = selectedName().toLowerCase();
 
       keydown("f", { ctrlKey: true });
-      await new Promise((resolve) => setTimeout(resolve, 25));
+      await waitFor(() => {
+        const active = document.activeElement;
+        return active instanceof HTMLInputElement && active.type === "search";
+      }, 2000);
       const focused = document.activeElement;
       const searchFocused =
         focused instanceof HTMLInputElement && focused.type === "search";
