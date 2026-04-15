@@ -515,7 +515,7 @@ export function initializeBlockHandling() {
     // without allocating a new array on every event.
     const handlers = blockHandlerRegistry.cachedValues();
     if (
-      window.debugImportLinkage &&
+      (window.debugImportLinkage || window.__debugImportLinkageAuto) &&
       event.type === Blockly.Events.BLOCK_CHANGE &&
       event.element === "field"
     ) {

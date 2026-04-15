@@ -328,7 +328,14 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     const validatedJson = validateBlocklyJson(json);
 
     const debugImportLinkage =
-      typeof window !== "undefined" && window.debugImportLinkage;
+      typeof window !== "undefined" &&
+      (window.debugImportLinkage || window.__debugImportLinkageAuto);
+    if (typeof window !== "undefined" && !window.__debugImportLinkageAuto) {
+      window.__debugImportLinkageAuto = true;
+      console.log(
+        "[import-debug] auto-enabled import linkage debug for full project load",
+      );
+    }
     if (debugImportLinkage) {
       const beforeBlocks = workspace.getAllBlocks(false);
       const beforeCharacters = beforeBlocks.filter(
