@@ -37,7 +37,6 @@ let textOrigScaleZ = 1;
 
 // Color picking keyboard mode variables
 let colorPickingKeyboardMode = false;
-// eslint-disable-next-line no-unused-vars
 let colorPickingCallback = null;
 let colorPickingCircle = null;
 let colorPickingCirclePosition = { x: 0, y: 0 };
