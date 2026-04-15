@@ -257,6 +257,23 @@ test.describe("Create Blockly project and open Events flyout", () => {
 
       keydown("Escape");
       keydown("s");
+      keydown("t");
+      keydown("r");
+      const strings = selectedName().toLowerCase();
+
+      const stringsItem = tb.getSelectedItem?.();
+      const stringsParent =
+        stringsItem?.getParent?.() ||
+        stringsItem?.parentToolboxItem_ ||
+        stringsItem?.parentItem_ ||
+        stringsItem?.parent_;
+      const stringsParentExpanded =
+        typeof stringsParent?.isExpanded === "function"
+          ? stringsParent.isExpanded()
+          : null;
+
+      keydown("Escape");
+      keydown("s");
       keydown("c");
       keydown("e");
       const scene = selectedName().toLowerCase();
@@ -274,11 +291,13 @@ test.describe("Create Blockly project and open Events flyout", () => {
       return {
         condition,
         connect,
+        strings,
         scene,
         control,
         searchFocused,
         selectedExpanded,
         parentExpanded,
+        stringsParentExpanded,
       };
     });
 
@@ -286,9 +305,11 @@ test.describe("Create Blockly project and open Events flyout", () => {
     expect(selectedAfterTyping.searchFocused).toBe(true);
     expect(selectedAfterTyping.condition).toContain("condition");
     expect(selectedAfterTyping.connect).toContain("connect");
+    expect(selectedAfterTyping.strings).toContain("string");
     expect(selectedAfterTyping.scene).toContain("scene");
     expect(selectedAfterTyping.control).toContain("control");
     expect(selectedAfterTyping.selectedExpanded).toBe(true);
     expect(selectedAfterTyping.parentExpanded).toBe(true);
+    expect(selectedAfterTyping.stringsParentExpanded).toBe(true);
   });
 });

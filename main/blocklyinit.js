@@ -724,17 +724,12 @@ export function createBlocklyWorkspace() {
         .replace(/\p{Diacritic}/gu, "")
         .trim();
 
-    const getSelectableCategories = () =>
+    const getMatchableCategories = () =>
       (toolbox.getToolboxItems?.() || []).filter((item) => {
         const def =
           item.getToolboxItemDef?.() || item.toolboxItemDef || item.toolboxItemDef_;
         const kind = (def?.kind || "").toLowerCase();
-        if (kind === "search" || kind === "sep" || kind === "label") {
-          return false;
-        }
-        return typeof item.isSelectable === "function"
-          ? item.isSelectable()
-          : true;
+        return kind === "category";
       });
 
     const getParentCategory = (item) =>
@@ -760,7 +755,7 @@ export function createBlocklyWorkspace() {
       const normalizedPrefix = normalizeLabel(prefix);
       if (!normalizedPrefix) return false;
 
-      const match = getSelectableCategories().find((item) => {
+      const match = getMatchableCategories().find((item) => {
         const label = item.getName?.() || item.getToolboxItemDef?.()?.name || "";
         return normalizeLabel(label).startsWith(normalizedPrefix);
       });
