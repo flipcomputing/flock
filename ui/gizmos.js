@@ -23,11 +23,8 @@ import {
   pickLeafFromRay,
 } from "./meshhelpers.js";
 import {
-  createCanvasCircle,
   getCanvasCircle,
   destroyCanvasCircle,
-  moveCanvasCircle,
-  clickCanvasCircle,
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
 } from "./canvas-utils.js";
@@ -44,7 +41,6 @@ let colorPicker = null;
 let textScaleAxis = null;
 let textOrigScaleZ = 1;
 
-let _onPickMeshRef = null;
 let cameraMode = "play";
 
 // Track DO sections and their associated blocks for cleanup
@@ -150,7 +146,7 @@ function pickMeshFromCanvas() {
     // Exit if outside canvas
     if (eventIsOutOfCanvasBounds(event, canvasRect)) {
       window.removeEventListener("click", onPickMesh);
-      endColorPickingMode();
+      stopCanvasKeyboardMode();
       // restore cursors
       document.body.style.cursor = "default";
       canvas.style.cursor = "auto";
@@ -191,22 +187,6 @@ function applyColorAtPosition(canvasX, canvasY) {
   } else {
     flock.setSky(window.selectedColor);
     updateBlockColorAndHighlight(meshMap?.["sky"], window.selectedColor);
-  }
-}
-
-function endColorPickingMode() {
-  stopCanvasKeyboardMode();
-
-  // Remove pointer listener if active
-  if (_onPickMeshRef) {
-    document.removeEventListener("pointerdown", _onPickMeshRef, true);
-    _onPickMeshRef = null;
-  }
-
-  document.body.style.cursor = "default";
-
-  if (getCanvasCircle()) {
-    destroyCanvasCircle();
   }
 }
 
@@ -391,7 +371,7 @@ export function disableGizmos() {
   gizmoManager.rotationGizmoEnabled = false;
   gizmoManager.scaleGizmoEnabled = false;
   gizmoManager.boundingBoxGizmoEnabled = false;
-  endColorPickingMode();
+  stopCanvasKeyboardMode();
 }
 
 // Toggle which Gizmo is being used

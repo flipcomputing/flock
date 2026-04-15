@@ -99,6 +99,9 @@ export function stopCanvasKeyboardMode() {
   keyboardModeCallback = null;
   document.removeEventListener("keydown", handleKeydown);
   destroyCanvasCircle();
+  // Reinstate mouse cursor when exiting keyboard mode
+  const canvas = flock.scene?.getEngine?.()?.getRenderingCanvas?.();
+  if (canvas) canvas.style.cursor = "";
   document.body.style.cursor = "default";
 }
 
@@ -106,6 +109,9 @@ export function stopCanvasKeyboardMode() {
 function ensureCircle() {
   if (!getCanvasCircle()) {
     createCanvasCircle();
+    // Remove cursor otherwise you get both which is confusing
+    const canvas = flock.scene.getEngine().getRenderingCanvas();
+    canvas.style.cursor = "none";
     document.body.style.cursor = "none";
   }
 }

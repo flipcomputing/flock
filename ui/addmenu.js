@@ -15,11 +15,8 @@ import {
 } from "./blocklyutil.js";
 import { roundPositionValue } from "./blocklyshadowutil.js";
 import {
-  createCanvasCircle,
-  getCanvasCircle,
-  destroyCanvasCircle,
-  moveCanvasCircle,
-  clickCanvasCircle,
+  startCanvasKeyboardMode,
+  stopCanvasKeyboardMode,
 } from "./canvas-utils.js";
 
 const colorFields = {
@@ -267,7 +264,7 @@ function selectCharacter(characterName) {
   };
 
   try {
-    startKeyboardPlacementMode?.(flock.activePickHandler);
+    startPlacementKeyboardMode();
   } catch (error) {
     console.warn("Unable to start keyboard placement mode.", error);
   }
@@ -319,7 +316,7 @@ function selectShape(shapeType) {
   };
 
   // Start keyboard placement mode with singleton handler
-  startKeyboardPlacementMode(flock.activePickHandler);
+  startPlacementKeyboardMode();
 
   // Also set up mouse click as fallback
   document.body.style.cursor = "crosshair";
@@ -388,7 +385,7 @@ function selectObjectWithCommand(objectName, menu, command) {
   };
 
   try {
-    startKeyboardPlacementMode?.(flock.activePickHandler);
+    startPlacementKeyboardMode();
   } catch (error) {
     console.warn("Unable to start keyboard placement mode.", error);
   }
@@ -667,12 +664,9 @@ function registerActivePickHandler(
 
 function cleanupPlacementMode() {
   detachActivePickHandler();
-  endKeyboardPlacementMode();
+  stopCanvasKeyboardMode();
   document.body.style.cursor = "default";
 }
-
-let placementCallback = null; // Keyboard placement callback singleton
-let keyboardPlacementMode = false;
 
 function showShapes() {
   cancelPlacement(); // Always remove all placement modes when menu is opened/closed
@@ -749,22 +743,10 @@ function removeKeyboardNavigation() {
   });
 }
 
-function endKeyboardPlacementMode() {
-  keyboardPlacementMode = false;
-  placementCallback = null;
-
-  destroyCanvasCircle();
-
-  document.removeEventListener("keydown", handlePlacementKeydown);
-
-  document.body.style.cursor = "default";
-}
-
 // --- Menu Keyboard Navigation Handling ---
 
 function handleShapeMenuKeydown(event) {
   if (!keyboardNavigationActive) return;
-  if (keyboardPlacementMode) return;
   const allItems = getAllNavigableItems();
   if (allItems.length === 0) return;
 
@@ -834,88 +816,19 @@ function handleShapeMenuKeydown(event) {
   }
 }
 
-function startKeyboardPlacementMode(callback) {
-  endKeyboardPlacementMode();
-  keyboardPlacementMode = true;
-  placementCallback = callback;
-  document.addEventListener("keydown", handlePlacementKeydown);
-  document.body.style.cursor = "crosshair";
-}
-
-function handlePlacementKeydown(event) {
-  if (!keyboardPlacementMode) return;
-
-  const moveDistance = event.shiftKey ? 10 : 2;
-  switch (event.key) {
-    case "ArrowRight":
-      event.preventDefault();
-      if (!getCanvasCircle()) {
-        createCanvasCircle();
-        document.body.style.cursor = "none";
-      }
-      moveCanvasCircle(moveDistance, 0);
-      break;
-
-    case "ArrowLeft":
-      event.preventDefault();
-      if (!getCanvasCircle()) {
-        createCanvasCircle();
-        document.body.style.cursor = "none";
-      }
-      moveCanvasCircle(-moveDistance, 0);
-      break;
-
-    case "ArrowDown":
-      event.preventDefault();
-      if (!getCanvasCircle()) {
-        createCanvasCircle();
-        document.body.style.cursor = "none";
-      }
-      moveCanvasCircle(0, moveDistance);
-      break;
-
-    case "ArrowUp":
-      event.preventDefault();
-      if (!getCanvasCircle()) {
-        createCanvasCircle();
-        document.body.style.cursor = "none";
-      }
-      moveCanvasCircle(0, -moveDistance);
-      break;
-
-    case "Enter":
-    case " ":
-    case "Spacebar":
-    case "Space":
-      event.preventDefault();
-      triggerPlacement();
-      break;
-
-    case "Escape":
-      event.preventDefault();
-      cancelPlacement();
-      break;
-
-    default:
-      break;
-  }
-}
-
-function triggerPlacement() {
-  if (!placementCallback || !keyboardPlacementMode) return;
-  const canvas = flock.scene.getEngine().getRenderingCanvas();
-  const canvasRect = canvas.getBoundingClientRect();
-
-  // Re-implement this using the clickCanvasCircle callback
-  clickCanvasCircle((x, y) => {
-    const syntheticEvent = {
+function startPlacementKeyboardMode() {
+  startCanvasKeyboardMode((x, y) => {
+    const canvasRect = flock.scene
+      .getEngine()
+      .getRenderingCanvas()
+      .getBoundingClientRect();
+    flock.activePickHandler({
       clientX: canvasRect.left + x,
       clientY: canvasRect.top + y,
       defaultPosition: flock.BABYLON.Vector3.Zero(),
-    };
-    placementCallback(syntheticEvent);
+    });
     cancelPlacement();
-  });
+  }, keyboardNavigationActive);
 }
 
 // Export functions to be used globally
