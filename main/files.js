@@ -334,22 +334,6 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
     const debugImportLinkage =
       typeof window !== "undefined" && window.debugImportLinkage;
-    if (debugImportLinkage) {
-      const beforeRegistry = getBlockHandlerRegistrySnapshot(workspace);
-      const beforeBlocks = workspace.getAllBlocks(false);
-      const beforeCharacters = beforeBlocks.filter(
-        (block) => block.type === "load_character",
-      );
-      console.log("[import-debug] full load start", {
-        workspaceId: workspace.id,
-        beforeBlockCount: beforeBlocks.length,
-        beforeLoadCharacterIds: beforeCharacters.map((block) => block.id),
-        registrySize: beforeRegistry.registrySize,
-        registryStaleCount: beforeRegistry.staleCount,
-        registryLoadCharacterCount: beforeRegistry.byType.load_character || 0,
-      });
-    }
-
     const registryBeforeLoad = new Map(blockHandlerRegistry.entries());
 
     window.__flockIsLoadingWorkspaceJson = true;

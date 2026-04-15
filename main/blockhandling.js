@@ -552,22 +552,6 @@ export function initializeBlockHandling() {
       const loadCharacterHasRegistryHandler = parentLoadCharacter
         ? blockHandlerRegistry.has(parentLoadCharacter.id)
         : null;
-      const loadCharacterHandlerMatchesBlock = parentLoadCharacter
-        ? blockHandlerRegistry.get(parentLoadCharacter.id) ===
-          parentLoadCharacter.__flockBlockHandler
-        : null;
-
-      console.log("[import-debug] dispatch field change", {
-        name: event.name,
-        blockId: event.blockId,
-        blockType: block?.type ?? null,
-        workspaceId: event.workspaceId,
-        handlerCount: handlers.length,
-        parentLoadCharacterId: parentLoadCharacter?.id ?? null,
-        parentLoadCharacterInRegistry: loadCharacterHasRegistryHandler,
-        parentLoadCharacterHandlerMatchesBlock:
-          loadCharacterHandlerMatchesBlock,
-      });
 
       if (
         block?.type === "colour" &&

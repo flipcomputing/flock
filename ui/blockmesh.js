@@ -458,36 +458,8 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
       block.type,
       changeEvent.type,
     );
-  if (
-    window.debugImportLinkage &&
-    block?.type === "load_character" &&
-    (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
-      changeEvent?.type === Blockly.Events.BLOCK_CREATE)
-  ) {
-    console.log("[import-debug] updateOrCreateMeshFromBlock entered", {
-      blockId: block.id,
-      eventType: changeEvent.type,
-      eventElement: changeEvent.element,
-      eventName: changeEvent.name,
-      eventBlockId: changeEvent.blockId,
-      loadingCode: !!window.loadingCode,
-      recordUndo: changeEvent?.recordUndo,
-    });
-  }
 
   if (!isMainWorkspaceEvent(changeEvent, block)) {
-    if (
-      window.debugImportLinkage &&
-      block?.type === "load_character"
-    ) {
-      console.log("[import-debug] updateOrCreateMeshFromBlock rejected event", {
-        reason: "not-main-workspace-event",
-        blockId: block.id,
-        eventWorkspaceId: changeEvent?.workspaceId,
-        blockWorkspaceId: block?.workspace?.id,
-        mainWorkspaceId: Blockly.getMainWorkspace()?.id,
-      });
-    }
     return;
   }
 
