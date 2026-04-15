@@ -1325,3 +1325,18 @@ body.color-picker-open #renderCanvas {
   overflow: visible !important; /* override old scrollbar-hiding rule */
   list-style: none;
 }
+
+/* Style for the yellow circle to place/select using kb controls */
+.canvas-selector-circle {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #ffff00;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10000;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.3),
+    0 0 8px rgba(255, 255, 0, 0.5);
+  transform: translate(-50%, -50%);
+}
