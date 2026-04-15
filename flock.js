@@ -886,6 +886,14 @@ export const flock = {
         ),
       ]);
 
+      if (focusCanvas === true) {
+        // focus canvas if present
+        (
+          document.getElementById("renderCanvas") ||
+          doc.getElementById("renderCanvas")
+        )?.focus();
+      }
+
     } catch (error) {
       const enhancedError = this.createEnhancedError?.(error, code) ?? error;
       console.error("Enhanced error details:", enhancedError);
