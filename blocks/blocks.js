@@ -110,6 +110,22 @@ export function registerBlockHandler(block, handler) {
   blockHandlerRegistry.set(block.id, handler);
 }
 
+export function rebuildBlockHandlerRegistryFromWorkspace(
+  ws = Blockly.getMainWorkspace?.(),
+) {
+  if (!ws || typeof ws.getAllBlocks !== "function") return;
+
+  blockHandlerRegistry.clear();
+
+  const blocks = ws.getAllBlocks(false);
+  for (const block of blocks) {
+    if (!block || block.workspace?.isFlyout) continue;
+    const handler = block.__flockBlockHandler;
+    if (typeof handler !== "function") continue;
+    blockHandlerRegistry.set(block.id, handler);
+  }
+}
+
 export function getBlockHandlerRegistrySnapshot(
   ws = Blockly.getMainWorkspace?.(),
 ) {
