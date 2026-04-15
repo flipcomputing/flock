@@ -715,7 +715,9 @@ export function createBlocklyWorkspace() {
     };
 
     const isToolboxContext = (element) =>
-      !!element?.closest?.(".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout");
+      !!element?.closest?.(".blocklyToolboxDiv, .blocklyToolbox");
+    const isFlyoutContext = (element) =>
+      !!element?.closest?.(".blocklyFlyout, .blocklyFlyoutEntry");
 
     const normalizeLabel = (label) =>
       (label || "")
@@ -892,6 +894,11 @@ export function createBlocklyWorkspace() {
         if (
           target.matches?.("input[type='search'], input#toolbox-search-input")
         ) {
+          resetCategoryTypePrefix();
+          return;
+        }
+
+        if (isFlyoutContext(target)) {
           resetCategoryTypePrefix();
           return;
         }
