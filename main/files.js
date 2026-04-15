@@ -337,6 +337,8 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
       typeof window !== "undefined" && window.debugImportLinkage;
 
     flock.isLoadingWorkspaceJson = true;
+    const eventsWereEnabled = Blockly.Events.isEnabled();
+    if (eventsWereEnabled) Blockly.Events.disable();
     try {
       workspace.clear();
       blockHandlerRegistry.clear();
@@ -345,6 +347,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
       Blockly.serialization.workspaces.load(validatedJson, workspace);
       rebuildBlockHandlerRegistryFromWorkspace(workspace);
     } finally {
+      if (eventsWereEnabled) Blockly.Events.enable();
       flock.isLoadingWorkspaceJson = false;
     }
 

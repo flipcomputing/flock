@@ -1,7 +1,6 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
-import { flock } from "../flock.js";
 import {
   blockHandlerRegistry,
   getBlockHandlerRegistrySnapshot,
@@ -451,10 +450,6 @@ export function initializeBlockHandling() {
 });*/
 
   workspace.addChangeListener((event) => {
-    if (flock.isLoadingWorkspaceJson) {
-      return;
-    }
-
     // Track the currently selected block.
     if (event.type === Blockly.Events.SELECTED) {
       window.currentBlock = event.newElementId
