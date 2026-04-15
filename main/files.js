@@ -3,6 +3,7 @@ import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
 import { getMetadata } from "meta-png";
 import { AUTOSAVE_KEY } from "../config.js";
+import { flock } from "../flock.js";
 import {
   blockHandlerRegistry,
   rebuildBlockHandlerRegistryFromWorkspace,
@@ -335,7 +336,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     const debugImportLinkage =
       typeof window !== "undefined" && window.debugImportLinkage;
 
-    window.__flockIsLoadingWorkspaceJson = true;
+    flock.isLoadingWorkspaceJson = true;
     try {
       workspace.clear();
       blockHandlerRegistry.clear();
@@ -344,7 +345,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
       Blockly.serialization.workspaces.load(validatedJson, workspace);
       rebuildBlockHandlerRegistryFromWorkspace(workspace);
     } finally {
-      window.__flockIsLoadingWorkspaceJson = false;
+      flock.isLoadingWorkspaceJson = false;
     }
 
     if (debugImportLinkage) {

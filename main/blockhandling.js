@@ -1,6 +1,7 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
+import { flock } from "../flock.js";
 import {
   blockHandlerRegistry,
   getBlockHandlerRegistrySnapshot,
@@ -509,7 +510,7 @@ export function initializeBlockHandling() {
       Array.isArray(event.ids)
     ) {
       const isWorkspaceLoadDelete =
-        (window.__flockIsLoadingWorkspaceJson || window.loadingCode) &&
+        (flock.isLoadingWorkspaceJson || window.loadingCode) &&
         event.recordUndo === false;
       const sizeBeforeDelete = blockHandlerRegistry.size;
       if (!isWorkspaceLoadDelete) {
