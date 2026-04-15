@@ -6,7 +6,6 @@ import { AUTOSAVE_KEY } from "../config.js";
 import { flock } from "../flock.js";
 import {
   blockHandlerRegistry,
-  rebuildBlockHandlerRegistryFromWorkspace,
   getBlockHandlerRegistrySnapshot,
 } from "../blocks/blocks.js";
 
@@ -345,7 +344,6 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
       // Load the validated JSON
       Blockly.serialization.workspaces.load(validatedJson, workspace);
-      rebuildBlockHandlerRegistryFromWorkspace(workspace);
     } finally {
       if (eventsWereEnabled) Blockly.Events.enable();
       flock.isLoadingWorkspaceJson = false;
