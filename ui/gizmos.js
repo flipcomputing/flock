@@ -28,6 +28,8 @@ import {
   destroyCanvasCircle,
   moveCanvasCircle,
   clickCanvasCircle,
+  startCanvasKeyboardMode,
+  stopCanvasKeyboardMode,
 } from "./canvas-utils.js";
 export let gizmoManager;
 
@@ -41,10 +43,6 @@ let colorPicker = null;
 // 3D text scale gizmo axis tracking
 let textScaleAxis = null;
 let textOrigScaleZ = 1;
-
-// Color picking keyboard mode variables
-let colorPickingKeyboardMode = false;
-let colorPickingCallback = null;
 
 let _onPickMeshRef = null;
 let cameraMode = "play";
@@ -165,7 +163,7 @@ function pickMeshFromCanvas() {
     canvas.style.cursor = "crosshair";
   };
 
-  startColorPickingKeyboardMode(onPickMesh);
+  startCanvasKeyboardMode((x, y) => applyColorAtPosition(x, y));
   document.body.style.cursor = "crosshair";
   canvas.style.cursor = "crosshair";
 
@@ -196,65 +194,8 @@ function applyColorAtPosition(canvasX, canvasY) {
   }
 }
 
-// Color Picking Keyboard Mode Functions
-
-function startColorPickingKeyboardMode(callback) {
-  endColorPickingMode();
-  colorPickingKeyboardMode = true;
-  colorPickingCallback = callback;
-  document.addEventListener("keydown", handleColorPickingKeydown);
-  document.body.style.cursor = "crosshair";
-}
-
-function handleColorPickingKeydown(event) {
-  function preventDefaultEventAndDefineColourPickingCircle() {
-    event.preventDefault();
-    if (!getCanvasCircle()) {
-      createCanvasCircle();
-      document.body.style.cursor = "none";
-    }
-  }
-
-  if (!colorPickingKeyboardMode) return;
-
-  const moveDistance = event.shiftKey ? 10 : 2;
-  switch (event.key) {
-    case "ArrowRight":
-      preventDefaultEventAndDefineColourPickingCircle();
-      moveCanvasCircle(moveDistance, 0);
-      break;
-    case "ArrowLeft":
-      preventDefaultEventAndDefineColourPickingCircle();
-      moveCanvasCircle(-moveDistance, 0);
-      break;
-    case "ArrowUp":
-      preventDefaultEventAndDefineColourPickingCircle();
-      moveCanvasCircle(0, -moveDistance);
-      break;
-    case "ArrowDown":
-      preventDefaultEventAndDefineColourPickingCircle();
-      moveCanvasCircle(0, moveDistance);
-      break;
-    case "Enter":
-      event.preventDefault();
-      // Apply the colour at the circle's position
-      clickCanvasCircle((x, y) => applyColorAtPosition(x, y));
-      break;
-    case "Escape":
-      event.preventDefault();
-      break;
-  }
-}
-
 function endColorPickingMode() {
-  colorPickingKeyboardMode = false;
-  colorPickingCallback = null;
-
-  // Remove keyboard listener(s)
-  document.removeEventListener("keydown", handleColorPickingKeydown, {
-    capture: true,
-  });
-  document.removeEventListener("keydown", handleColorPickingKeydown);
+  stopCanvasKeyboardMode();
 
   // Remove pointer listener if active
   if (_onPickMeshRef) {

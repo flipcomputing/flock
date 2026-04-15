@@ -4,6 +4,8 @@ import { flock } from "../flock.js";
 // One circle selector can be active on the canvas at once
 let canvasCircle = null;
 let canvasCirclePosition = { x: 0, y: 0 };
+let keyboardModeActive = false;
+let keyboardModeCallback = null;
 
 // Returns a reference to the canvasCircle
 export function getCanvasCircle() {
@@ -71,5 +73,87 @@ export function moveCanvasCircle(dx, dy) {
 export function clickCanvasCircle(callback) {
   if (canvasCircle) {
     callback(canvasCirclePosition.x, canvasCirclePosition.y);
+  }
+}
+
+// Start keyboard mode on the canvas
+export function startCanvasKeyboardMode(
+  callback,
+  showCircleImmediately = false,
+) {
+  stopCanvasKeyboardMode(); // Ensure any existing mode is cleared
+  keyboardModeActive = true;
+  keyboardModeCallback = callback;
+  document.addEventListener("keydown", handleKeydown);
+  if (showCircleImmediately) {
+    createCanvasCircle();
+    document.body.style.cursor = "none"; // Hide cursor when circle is active
+  } else {
+    document.body.style.cursor = "default";
+  }
+}
+
+// Stop using keyboard mode on the canvas
+export function stopCanvasKeyboardMode() {
+  keyboardModeActive = false;
+  keyboardModeCallback = null;
+  document.removeEventListener("keydown", handleKeydown);
+  destroyCanvasCircle();
+  document.body.style.cursor = "default";
+}
+
+// Make sure there actually is a circle
+function ensureCircle() {
+  if (!getCanvasCircle()) {
+    createCanvasCircle();
+    document.body.style.cursor = "none";
+  }
+}
+
+// Deal with key down events for canvas keyboard mode
+function handleKeydown(event) {
+  if (!keyboardModeActive) return;
+
+  const moveDistance = event.shiftKey ? 10 : 2;
+  switch (event.key) {
+    case "ArrowRight":
+      event.preventDefault();
+      ensureCircle();
+      moveCanvasCircle(moveDistance, 0);
+      break;
+
+    case "ArrowLeft":
+      event.preventDefault();
+      ensureCircle();
+      moveCanvasCircle(-moveDistance, 0);
+      break;
+
+    case "ArrowDown":
+      event.preventDefault();
+      ensureCircle();
+      moveCanvasCircle(0, moveDistance);
+      break;
+
+    case "ArrowUp":
+      event.preventDefault();
+      ensureCircle();
+      moveCanvasCircle(0, -moveDistance);
+      break;
+
+    case "Enter":
+    case " ":
+    case "Spacebar":
+    case "Space":
+      event.preventDefault();
+      clickCanvasCircle(keyboardModeCallback);
+      break;
+
+    case "Escape":
+      event.preventDefault();
+      stopCanvasKeyboardMode();
+      break;
+
+    default:
+      break;
   }
 }
