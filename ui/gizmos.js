@@ -988,6 +988,7 @@ function handlePositionGizmo() {
 }
 
 // Bounds: Allow the user to move the mesh
+// Legacy?
 function handleBoundsGizmo() {
   gizmoManager.boundingBoxGizmoEnabled = true;
   gizmoManager.boundingBoxDragBehavior.onDragStartObservable.add(function () {
@@ -1192,6 +1193,9 @@ function handleCameraGizmo() {
       duration: 15,
       color: "white",
     });
+    // Focus the canvas so you can use the camera controls
+    const canvas = flock.scene.getEngine().getRenderingCanvas();
+    canvas.focus();
   } else {
     cameraMode = "play";
   }
