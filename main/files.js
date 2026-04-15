@@ -327,8 +327,35 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     // Validate JSON before loading into workspace
     const validatedJson = validateBlocklyJson(json);
 
+    const debugImportLinkage =
+      typeof window !== "undefined" && window.debugImportLinkage;
+    if (debugImportLinkage) {
+      const beforeBlocks = workspace.getAllBlocks(false);
+      const beforeCharacters = beforeBlocks.filter(
+        (block) => block.type === "load_character",
+      );
+      console.log("[import-debug] full load start", {
+        workspaceId: workspace.id,
+        beforeBlockCount: beforeBlocks.length,
+        beforeLoadCharacterIds: beforeCharacters.map((block) => block.id),
+      });
+    }
+
     // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
+
+    if (debugImportLinkage) {
+      const afterBlocks = workspace.getAllBlocks(false);
+      const afterCharacters = afterBlocks.filter(
+        (block) => block.type === "load_character",
+      );
+      console.log("[import-debug] full load complete", {
+        workspaceId: workspace.id,
+        afterBlockCount: afterBlocks.length,
+        afterLoadCharacterIds: afterCharacters.map((block) => block.id),
+      });
+    }
+
     workspace.scroll(0, 0);
     executeCallback();
   } catch (error) {

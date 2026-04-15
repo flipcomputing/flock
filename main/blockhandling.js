@@ -514,6 +514,21 @@ export function initializeBlockHandling() {
     // mid-iteration mutations (e.g. a handler that creates or deletes blocks)
     // without allocating a new array on every event.
     const handlers = blockHandlerRegistry.cachedValues();
+    if (
+      window.debugImportLinkage &&
+      event.type === Blockly.Events.BLOCK_CHANGE &&
+      event.element === "field"
+    ) {
+      const block = workspace.getBlockById(event.blockId);
+      console.log("[import-debug] dispatch field change", {
+        name: event.name,
+        blockId: event.blockId,
+        blockType: block?.type ?? null,
+        workspaceId: event.workspaceId,
+        handlerCount: handlers.length,
+      });
+    }
+
     for (const handler of handlers) {
       handler(event);
     }

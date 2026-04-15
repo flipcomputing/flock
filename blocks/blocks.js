@@ -384,14 +384,37 @@ export function handleFieldOrChildChange(containerBlock, changeEvent) {
 
   const ws = Blockly.getMainWorkspace?.();
   const changedBlock = ws?.getBlockById?.(changeEvent.blockId);
-  if (!changedBlock) return false;
+  if (!changedBlock) {
+    if (window.debugImportLinkage && containerBlock?.type === "load_character") {
+      console.log("[import-debug] load_character field change missing block", {
+        containerId: containerBlock.id,
+        eventBlockId: changeEvent.blockId,
+        eventName: changeEvent.name,
+      });
+    }
+    return false;
+  }
 
   if (changedBlock.id === containerBlock.id) {
+    if (window.debugImportLinkage && containerBlock?.type === "load_character") {
+      console.log("[import-debug] load_character direct field change", {
+        containerId: containerBlock.id,
+        eventName: changeEvent.name,
+      });
+    }
     updateOrCreateMeshFromBlock(containerBlock, changeEvent);
     return true;
   }
 
   if (isValueInputDescendantOf(containerBlock, changedBlock)) {
+    if (window.debugImportLinkage && containerBlock?.type === "load_character") {
+      console.log("[import-debug] load_character descendant field change", {
+        containerId: containerBlock.id,
+        changedBlockId: changedBlock.id,
+        changedBlockType: changedBlock.type,
+        eventName: changeEvent.name,
+      });
+    }
     updateOrCreateMeshFromBlock(containerBlock, changeEvent);
     return true;
   }
@@ -421,6 +444,15 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
       parent === containerBlock &&
       isValueInputDescendantOf(containerBlock, changed)
     ) {
+      if (window.debugImportLinkage && containerBlock?.type === "load_character") {
+        console.log("[import-debug] load_character parent-linked update", {
+          containerId: containerBlock.id,
+          changedBlockId: changed.id,
+          changedBlockType: changed.type,
+          eventType: changeEvent.type,
+          loadingCode: !!window.loadingCode,
+        });
+      }
       if (!window.loadingCode) {
         updateOrCreateMeshFromBlock(containerBlock, changeEvent);
       }

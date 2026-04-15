@@ -113,6 +113,37 @@ export function defineModelBlocks() {
       this.setStyle("scene_blocks");
 
       registerBlockHandler(this, (changeEvent) => {
+        if (
+          window.debugImportLinkage &&
+          (changeEvent.type === Blockly.Events.BLOCK_CHANGE ||
+            changeEvent.type === Blockly.Events.BLOCK_CREATE)
+        ) {
+          const isDirectEvent = changeEvent.blockId === this.id;
+          const changedBlock = this.workspace?.getBlockById?.(changeEvent.blockId);
+          const isColourLeaf =
+            changedBlock?.type === "colour" &&
+            [
+              "HAIR_COLOR",
+              "SKIN_COLOR",
+              "EYES_COLOR",
+              "TSHIRT_COLOR",
+              "SHORTS_COLOR",
+              "SLEEVES_COLOR",
+            ].some((inputName) => this.getInputTargetBlock(inputName)?.id === changedBlock.id);
+          if (isDirectEvent || isColourLeaf) {
+            console.log("[import-debug] load_character handler saw event", {
+              containerId: this.id,
+              eventType: changeEvent.type,
+              eventElement: changeEvent.element,
+              eventName: changeEvent.name,
+              eventBlockId: changeEvent.blockId,
+              changedBlockType: changedBlock?.type ?? null,
+              loadingCode: !!window.loadingCode,
+              inWorkspace: !!this.workspace?.getBlockById?.(this.id),
+            });
+          }
+        }
+
         // Always handle variable naming first (even if mesh is skipped)
         handleBlockCreateEvent(
           this,
