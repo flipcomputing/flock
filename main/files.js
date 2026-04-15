@@ -4,6 +4,7 @@ import { translate } from "./translation.js";
 import { getMetadata } from "meta-png";
 import { AUTOSAVE_KEY } from "../config.js";
 import {
+  blockHandlerRegistry,
   rebuildBlockHandlerRegistryFromWorkspace,
   getBlockHandlerRegistrySnapshot,
 } from "../blocks/blocks.js";
@@ -349,9 +350,36 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
       });
     }
 
+    const registryBeforeLoad = new Map(blockHandlerRegistry.entries());
+
     // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
     rebuildBlockHandlerRegistryFromWorkspace(workspace);
+
+    if (
+      blockHandlerRegistry.size === 0 &&
+      registryBeforeLoad.size > 0 &&
+      workspace.getAllBlocks(false).length > 0
+    ) {
+      let restoredByIdCount = 0;
+      for (const block of workspace.getAllBlocks(false)) {
+        const priorHandler = registryBeforeLoad.get(block.id);
+        if (typeof priorHandler === "function") {
+          blockHandlerRegistry.set(block.id, priorHandler);
+          restoredByIdCount++;
+        }
+      }
+
+      if (debugImportLinkage) {
+        console.log(
+          "[import-debug] registry rebuild returned 0; restored handlers by id from pre-load snapshot",
+          {
+            restoredByIdCount,
+            registrySizeAfterRestore: blockHandlerRegistry.size,
+          },
+        );
+      }
+    }
 
     if (debugImportLinkage) {
       const afterRegistry = getBlockHandlerRegistrySnapshot(workspace);

@@ -508,8 +508,18 @@ export function initializeBlockHandling() {
       event.type === Blockly.Events.BLOCK_DELETE &&
       Array.isArray(event.ids)
     ) {
+      const sizeBeforeDelete = blockHandlerRegistry.size;
       for (const id of event.ids) {
         blockHandlerRegistry.delete(id);
+      }
+      if (window.debugImportLinkage) {
+        console.log("[import-debug] registry delete purge", {
+          deletedIds: event.ids.length,
+          sizeBeforeDelete,
+          sizeAfterDelete: blockHandlerRegistry.size,
+          loadingCode: !!window.loadingCode,
+          recordUndo: event.recordUndo,
+        });
       }
     }
 
