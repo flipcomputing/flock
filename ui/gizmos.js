@@ -1186,6 +1186,8 @@ function handleDeleteGizmo() {
 
 // Camera: Toggle between play and fly camera modes
 function handleCameraGizmo() {
+  const cameraButton = document.getElementById("cameraButton");
+
   if (cameraMode === "play") {
     cameraMode = "fly";
     flock.printText({
@@ -1193,17 +1195,19 @@ function handleCameraGizmo() {
       duration: 15,
       color: "white",
     });
-    // Focus the canvas so you can use the camera controls
-    const canvas = flock.scene.getEngine().getRenderingCanvas();
-    canvas.focus();
+    cameraButton.classList.add("active");
   } else {
     cameraMode = "play";
+    cameraButton.classList.remove("active");
   }
 
   const currentCamera = flock.scene.activeCamera;
   console.log("Camera", flock.savedCamera);
   flock.scene.activeCamera = flock.savedCamera;
   flock.savedCamera = currentCamera;
+  // Focus the canvas so you can use the camera controls
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  canvas.focus();
 }
 
 function turnOffAllGizmos() {
