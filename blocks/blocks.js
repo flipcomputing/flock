@@ -386,7 +386,7 @@ export function handleFieldOrChildChange(containerBlock, changeEvent) {
   const changedBlock = ws?.getBlockById?.(changeEvent.blockId);
   if (!changedBlock) {
     if (
-      (window.debugImportLinkage || window.__debugImportLinkageAuto) &&
+      window.debugImportLinkage &&
       containerBlock?.type === "load_character"
     ) {
       console.log("[import-debug] load_character field change missing block", {
@@ -400,7 +400,7 @@ export function handleFieldOrChildChange(containerBlock, changeEvent) {
 
   if (changedBlock.id === containerBlock.id) {
     if (
-      (window.debugImportLinkage || window.__debugImportLinkageAuto) &&
+      window.debugImportLinkage &&
       containerBlock?.type === "load_character"
     ) {
       console.log("[import-debug] load_character direct field change", {
@@ -414,7 +414,7 @@ export function handleFieldOrChildChange(containerBlock, changeEvent) {
 
   if (isValueInputDescendantOf(containerBlock, changedBlock)) {
     if (
-      (window.debugImportLinkage || window.__debugImportLinkageAuto) &&
+      window.debugImportLinkage &&
       containerBlock?.type === "load_character"
     ) {
       console.log("[import-debug] load_character descendant field change", {
@@ -454,7 +454,7 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
       isValueInputDescendantOf(containerBlock, changed)
     ) {
       if (
-        (window.debugImportLinkage || window.__debugImportLinkageAuto) &&
+        window.debugImportLinkage &&
         containerBlock?.type === "load_character"
       ) {
         console.log("[import-debug] load_character parent-linked update", {

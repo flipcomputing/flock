@@ -459,7 +459,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
       changeEvent.type,
     );
   if (
-    (window.debugImportLinkage || window.__debugImportLinkageAuto) &&
+    window.debugImportLinkage &&
     block?.type === "load_character" &&
     (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
       changeEvent?.type === Blockly.Events.BLOCK_CREATE)
@@ -477,7 +477,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 
   if (!isMainWorkspaceEvent(changeEvent, block)) {
     if (
-      (window.debugImportLinkage || window.__debugImportLinkageAuto) &&
+      window.debugImportLinkage &&
       block?.type === "load_character"
     ) {
       console.log("[import-debug] updateOrCreateMeshFromBlock rejected event", {

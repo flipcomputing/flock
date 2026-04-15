@@ -114,7 +114,7 @@ export function defineModelBlocks() {
 
       registerBlockHandler(this, (changeEvent) => {
         if (
-          (window.debugImportLinkage || window.__debugImportLinkageAuto) &&
+          window.debugImportLinkage &&
           (changeEvent.type === Blockly.Events.BLOCK_CHANGE ||
             changeEvent.type === Blockly.Events.BLOCK_CREATE)
         ) {
