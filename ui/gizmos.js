@@ -945,16 +945,22 @@ function handleSelectGizmo() {
   // Wait until the click has propagated otherwise
   // the keyboard mode gets cancelled immediately
   setTimeout(() => {
-    startCanvasKeyboardMode((x, y) => {
-      if (gizmoManager.attachedMesh) {
-        resetAttachedMesh();
-        blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
-          ?.blockKey;
-      }
-      const pick = flock.scene.pick(x, y);
-      applySelection(pick?.pickedMesh, pick?.pickedPoint);
-      stopCanvasKeyboardMode();
-    });
+    startCanvasKeyboardMode(
+      (x, y) => {
+        if (gizmoManager.attachedMesh) {
+          resetAttachedMesh();
+          blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
+            ?.blockKey;
+        }
+        const pick = flock.scene.pick(x, y);
+        applySelection(pick?.pickedMesh, pick?.pickedPoint);
+        stopCanvasKeyboardMode();
+      },
+      false,
+      (x, y) =>
+        !!flock.scene.pick(x, y, (m) => m.isPickable && m.name !== "ground")
+          ?.hit,
+    );
   }, 0);
 
   // Store the pointer observable
