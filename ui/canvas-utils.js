@@ -182,6 +182,12 @@ function handleKeydown(event) {
       moveCanvasCircle(0, -moveDistance);
       break;
 
+    // Tab is assumed to restart keyboard nav mode
+    case "Tab":
+      event.preventDefault(); // don't actually tab!
+      stopCanvasKeyboardMode();
+      break;
+
     case "Enter":
     case " ":
     case "Spacebar":
