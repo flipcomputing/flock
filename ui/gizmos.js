@@ -26,6 +26,7 @@ import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
 } from "./canvas-utils.js";
+import { createAxisKeyboardHandler } from "./axis-keyboard.js";
 export let gizmoManager;
 
 const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
@@ -41,6 +42,7 @@ let textOrigScaleZ = 1;
 
 let cameraMode = "play";
 let activeDuplicatePickHandler = null; // Are they in the middle of a duplication?
+let stopAxisKeyboard = null; // Are they transforming?
 
 // Track DO sections and their associated blocks for cleanup
 const gizmoCreatedBlocks = new Map(); // blockId -> { parentId, createdDoSection, timestamp }
@@ -75,6 +77,9 @@ document.addEventListener("DOMContentLoaded", function () {
           document
             .getElementById("duplicateButton")
             ?.classList.remove("active");
+          // Clean up mid-transform state if relevant
+          stopAxisKeyboard?.();
+          stopAxisKeyboard = null;
         }
         disableGizmos();
       } catch {
@@ -394,6 +399,11 @@ export function toggleGizmo(gizmoType) {
     activeDuplicatePickHandler = null;
     if (gizmoType === "duplicate") return;
   }
+
+  // If they were mid-transform, clean up
+  stopAxisKeyboard?.();
+  stopAxisKeyboard = null;
+
   disableGizmos();
   resetAttachedMeshIfMeshAttached();
 
@@ -828,6 +838,36 @@ function handleRotationGizmo() {
 // Position: Allow the user to move the mesh by dragging it
 function handlePositionGizmo() {
   configurePositionGizmo(gizmoManager);
+
+  const mesh = gizmoManager.attachedMesh;
+  if (mesh) {
+    const original = mesh.position.clone();
+    setTimeout(() => {
+      stopAxisKeyboard = createAxisKeyboardHandler({
+        onMove: (dx, dy, dz) => {
+          mesh.position.x += dx;
+          mesh.position.y += dy;
+          mesh.position.z += dz;
+        },
+        onConfirm: () => {
+          mesh.computeWorldMatrix(true);
+          const block = meshMap[mesh?.metadata?.blockKey];
+          if (block) {
+            const pos = flock.getBlockPositionFromMesh(mesh);
+            setBlockXYZ(block, pos.x, pos.y, pos.z);
+          }
+          disableGizmos();
+        },
+        onCancel: () => {
+          mesh.position.copyFrom(original);
+          disableGizmos();
+        },
+        stepNormal: 0.1,
+        stepFast: 1,
+      });
+    }, 0);
+  }
+
   gizmoManager.onAttachedToMeshObservable.add((mesh) => {
     if (!mesh) return;
 
