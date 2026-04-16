@@ -1,5 +1,9 @@
 import * as Blockly from "blockly";
 import { translate } from "./translation.js";
+import {
+  isCanvasKeyboardModeActive,
+  stopCanvasKeyboardMode,
+} from "../ui/canvas-utils.js";
 
 export function setupInput() {
   // Get the canvas element
@@ -182,8 +186,26 @@ export function setupInput() {
       if (e.key !== "Tab") return;
       const activeElement = document.activeElement;
 
+      // If canvas keyboard mode is active, exit it and advance to the next tab stop
+      if (isCanvasKeyboardModeActive()) {
+        e.preventDefault();
+        const focusableElements = getFocusableElements();
+        const canvas = document.getElementById("renderCanvas");
+        const canvasIdx = focusableElements.indexOf(canvas);
+        const nextIdx = e.shiftKey
+          ? canvasIdx <= 0
+            ? focusableElements.length - 1
+            : canvasIdx - 1
+          : canvasIdx >= focusableElements.length - 1
+            ? 0
+            : canvasIdx + 1;
+        stopCanvasKeyboardMode(false);
+        focusableElements[nextIdx]?.focus({ preventScroll: true });
+        return;
+      }
+
       // Let workspace search handle tabs when focussed
-      if (active?.closest?.(".blockly-ws-search")) {
+      if (activeElement?.closest?.(".blockly-ws-search")) {
         return;
       }
 

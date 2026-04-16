@@ -109,8 +109,13 @@ export function startCanvasKeyboardMode(
   }
 }
 
+export function isCanvasKeyboardModeActive() {
+  return keyboardCursorActive;
+}
+
 // Stop using keyboard mode on the canvas
-export function stopCanvasKeyboardMode() {
+// Pass restoreFocus = false when the caller will manage focus themselves (e.g. Tab nav)
+export function stopCanvasKeyboardMode(restoreFocus = true) {
   keyboardCursorActive = false;
   keyboardCursorCallback = null;
   hitChecker = null;
@@ -122,7 +127,9 @@ export function stopCanvasKeyboardMode() {
   document.body.style.cursor = "default";
   // Reinstate focus to element in focus prior to entering
   // canvas cursor mode (otherwise this is annoying for kb users)
-  previouslyFocusedElement?.focus({ preventScroll: true });
+  if (restoreFocus) {
+    previouslyFocusedElement?.focus({ preventScroll: true });
+  }
   previouslyFocusedElement = null;
 }
 
