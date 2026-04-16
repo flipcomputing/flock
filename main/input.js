@@ -111,9 +111,9 @@ export function setupInput() {
       }
 
       // 6) Blockly MAIN WORKSPACE (one level above blocks)
-      // Your DOM shows:
-      // <svg class="blocklySvg"> <g class="blocklyWorkspace" tabindex="0"> ... <g class="blocklyBlockCanvas">...</g> ... </g> </svg>
-      // We want the g.blocklyWorkspace INSIDE a blocklySvg, but NOT inside any svg.blocklyFlyout.
+      document
+        .querySelectorAll(".blockly-ws-search input, .blockly-ws-search button")
+        .forEach(pushUnique);
       const workspaceGroup = Array.from(
         document.querySelectorAll("svg.blocklySvg g.blocklyWorkspace"),
       )
@@ -181,6 +181,11 @@ export function setupInput() {
 
       if (e.key !== "Tab") return;
       const activeElement = document.activeElement;
+
+      // Let workspace search handle tabs when focussed
+      if (active?.closest?.(".blockly-ws-search")) {
+        return;
+      }
 
       // Special handling for details navigation
       const detailsElement = document.getElementById("info-details");
