@@ -40,6 +40,7 @@ let textScaleAxis = null;
 let textOrigScaleZ = 1;
 
 let cameraMode = "play";
+let activeDuplicatePickHandler = null; // Are they in the middle of a duplication?
 
 // Track DO sections and their associated blocks for cleanup
 const gizmoCreatedBlocks = new Map(); // blockId -> { parentId, createdDoSection, timestamp }
@@ -67,6 +68,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // If gizmos are on, disable them
       try {
+        // If they are mid-duplicate, clean up that state and UI
+        if (activeDuplicatePickHandler) {
+          window.removeEventListener("click", activeDuplicatePickHandler);
+          activeDuplicatePickHandler = null;
+          document
+            .getElementById("duplicateButton")
+            ?.classList.remove("active");
+        }
         disableGizmos();
       } catch {
         // fail-safe: still attempt to disable
@@ -374,6 +383,17 @@ export function disableGizmos() {
 
 // Toggle which Gizmo is being used
 export function toggleGizmo(gizmoType) {
+  // No buttons should be highlighted
+  document
+    .querySelectorAll(".gizmo-button")
+    .forEach((btn) => btn.classList.remove("active"));
+
+  // If they abandoned a duplicate half way, remove listener
+  if (activeDuplicatePickHandler) {
+    window.removeEventListener("click", activeDuplicatePickHandler);
+    activeDuplicatePickHandler = null;
+    if (gizmoType === "duplicate") return;
+  }
   disableGizmos();
   resetAttachedMeshIfMeshAttached();
 
@@ -996,6 +1016,16 @@ function handleDuplicateGizmo() {
   }
   blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
     ?.blockKey;
+
+  // Make sure that if there is already a selected mesh
+  // its bounding box is visible so the user knows what they are duplicating
+  const meshToClone = gizmoManager.attachedMesh;
+  meshToClone.showBoundingBox = true;
+
+  // Highlight the duplicate button until the clone is placed
+  const duplicateButton = document.getElementById("duplicateButton");
+  duplicateButton.classList.add("active");
+
   blockId = meshBlockIdMap[blockKey];
 
   document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
@@ -1007,6 +1037,10 @@ function handleDuplicateGizmo() {
 
     if (eventIsOutOfCanvasBounds(event, canvasRect)) {
       window.removeEventListener("click", onPickMesh);
+      // Clean up the mid-duplicate state
+      activeDuplicatePickHandler = null;
+      duplicateButton.classList.remove("active");
+      meshToClone.showBoundingBox = false;
       document.body.style.cursor = "default";
       return;
     }
@@ -1027,18 +1061,40 @@ function handleDuplicateGizmo() {
 
     if (pickResult.hit) {
       const pickedPosition = pickResult.pickedPoint;
-
       const workspace = Blockly.getMainWorkspace();
       const originalBlock = workspace.getBlockById(blockId);
       duplicateBlockAndInsert(originalBlock, workspace, pickedPosition);
     }
   };
 
+  // Store a reference to this listener so we can get rid of it
+  // if they abort half way through a duplication
+  activeDuplicatePickHandler = onPickMesh;
+
   // Use setTimeout to defer listener setup
-  document.body.style.cursor = "crosshair";
   setTimeout(() => {
     window.addEventListener("click", onPickMesh);
   }, 50);
+
+  // Keyboard mode: use canvas circle to place the duplicate
+  setTimeout(() => {
+    startCanvasKeyboardMode(
+      (x, y) => {
+        const pickResult = flock.scene.pick(x, y, (mesh) => mesh.isPickable);
+        if (pickResult?.hit) {
+          const workspace = Blockly.getMainWorkspace();
+          const originalBlock = workspace.getBlockById(blockId);
+          duplicateBlockAndInsert(
+            originalBlock,
+            workspace,
+            pickResult.pickedPoint,
+          );
+        }
+      },
+      false,
+      (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit,
+    );
+  }, 0);
 }
 
 // Delete: Remove the selected mesh and its corresponding block
