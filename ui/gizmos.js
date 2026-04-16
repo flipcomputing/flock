@@ -996,6 +996,12 @@ function handleDuplicateGizmo() {
   }
   blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
     ?.blockKey;
+
+  // Make sure that if there is already a selected mesh
+  // its bounding box is visible so the user knows what they are duplicating
+  const meshToClone = gizmoManager.attachedMesh;
+  meshToClone.showBoundingBox = true;
+
   blockId = meshBlockIdMap[blockKey];
 
   document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
@@ -1027,18 +1033,45 @@ function handleDuplicateGizmo() {
 
     if (pickResult.hit) {
       const pickedPosition = pickResult.pickedPoint;
+      window.removeEventListener("click", onPickMesh);
+      document.body.style.cursor = "default";
+      stopCanvasKeyboardMode();
 
       const workspace = Blockly.getMainWorkspace();
       const originalBlock = workspace.getBlockById(blockId);
+      meshToClone.showBoundingBox = false; // Hide bounding box of original mesh
       duplicateBlockAndInsert(originalBlock, workspace, pickedPosition);
     }
   };
 
   // Use setTimeout to defer listener setup
-  document.body.style.cursor = "crosshair";
   setTimeout(() => {
     window.addEventListener("click", onPickMesh);
   }, 50);
+
+  // Keyboard mode: use canvas circle to place the duplicate
+  setTimeout(() => {
+    startCanvasKeyboardMode(
+      (x, y) => {
+        const pickResult = flock.scene.pick(x, y, (mesh) => mesh.isPickable);
+        if (pickResult?.hit) {
+          const workspace = Blockly.getMainWorkspace();
+          const originalBlock = workspace.getBlockById(blockId);
+          meshToClone.showBoundingBox = false; // Hide bounding box of original mesh
+          duplicateBlockAndInsert(
+            originalBlock,
+            workspace,
+            pickResult.pickedPoint,
+          );
+        }
+        window.removeEventListener("click", onPickMesh);
+        document.body.style.cursor = "default";
+        stopCanvasKeyboardMode();
+      },
+      false,
+      (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit,
+    );
+  }, 0);
 }
 
 // Delete: Remove the selected mesh and its corresponding block
