@@ -648,6 +648,83 @@ export function initializeWorkspace() {
   }
   workspaceSearch.init();
 
+  // Override the workspace centering for workspace search as it jumps all over the place by default!
+  const originalCenter = workspace.centerOnBlock.bind(workspace);
+
+  workspace.centerOnBlock = function (blockId) {
+    if (workspaceSearch && workspaceSearch.htmlDiv.style.display !== "none") {
+      const block = this.getBlockById(blockId);
+      if (block) {
+        const scale = this.scale;
+        const blockXY = block.getRelativeToSurfaceXY();
+        let yOffset = 0;
+
+        const searchTerm = workspaceSearch.inputElement.value.toLowerCase();
+        if (searchTerm) {
+          for (const input of block.inputList) {
+            const match = input.fieldRow.some((f) =>
+              f.getText().toLowerCase().includes(searchTerm),
+            );
+            if (match) {
+              const fieldGui = input.fieldRow[0]?.getSvgRoot();
+              if (fieldGui && fieldGui.getBBox) {
+                yOffset = fieldGui.getBBox().y;
+              }
+              break;
+            }
+          }
+        }
+
+        const workspaceMetrics = this.getMetrics();
+        const currentBlockX = blockXY.x * scale + this.scrollX;
+        const currentBlockY = blockXY.y * scale + this.scrollY;
+
+        const blockHW = block.getHeightWidth();
+        const blockWidth = blockHW.width * scale;
+
+        const viewportWidth = workspaceMetrics.viewWidth;
+        const viewportHeight = workspaceMetrics.viewHeight;
+        const searchBarHeight = 50;
+        const leftMargin = 10;
+        const buffer = 5;
+
+        // 1. HORIZONTAL LOGIC:
+        // Only move X if the block's left edge is hidden or too far right.
+        // We ignore the specific row's internal X offset to keep it stable.
+        let finalScrollX = this.scrollX;
+        const isHorizontallyVisible =
+          currentBlockX >= leftMargin - buffer &&
+          currentBlockX + blockWidth <= viewportWidth;
+
+        if (!isHorizontallyVisible) {
+          finalScrollX = -blockXY.x * scale + leftMargin;
+        }
+
+        // 2. VERTICAL LOGIC:
+        // Strict check for the specific row (y + yOffset)
+        const currentRowY = currentBlockY + yOffset * scale;
+        const isRowVisible =
+          currentRowY >= searchBarHeight + buffer &&
+          currentRowY + 20 * scale <= viewportHeight - buffer;
+
+        let finalScrollY = this.scrollY;
+        if (!isRowVisible) {
+          finalScrollY = -(blockXY.y + yOffset) * scale + 50;
+        }
+
+        // 3. EXECUTION:
+        if (finalScrollX === this.scrollX && finalScrollY === this.scrollY) {
+          return;
+        }
+
+        this.scroll(finalScrollX, finalScrollY);
+        return;
+      }
+    }
+
+    originalCenter(blockId);
+  };
+
   // Set up auto value behavior
   setupAutoValueBehavior(workspace);
 
