@@ -83,15 +83,21 @@ export function createAxisKeyboardHandler({
       case "Enter":
       case " ": {
         event.preventDefault();
-        onConfirm();
-        stop();
+        try {
+          onConfirm();
+        } finally {
+          stop();
+        }
         break;
       }
 
       case "Escape":
         event.preventDefault();
-        onCancel();
-        stop();
+        try {
+          onCancel();
+        } finally {
+          stop();
+        }
         break;
     }
   }
