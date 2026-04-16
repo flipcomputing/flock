@@ -183,7 +183,7 @@ export function setupInput() {
       const activeElement = document.activeElement;
 
       // Let workspace search handle tabs when focussed
-      if (active?.closest?.(".blockly-ws-search")) {
+      if (activeElement?.closest?.(".blockly-ws-search")) {
         return;
       }
 
