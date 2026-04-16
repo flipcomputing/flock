@@ -143,6 +143,18 @@ function registerBlocklyPlayShortcut() {
     keyCodes: [keyCode],
     preconditionFn: (ws) => !ws.isDragging(),
     callback: (_ws, event) => {
+      const targetElement = event?.target instanceof Element ? event.target : null;
+      const activeElement = document.activeElement;
+      const inToolboxContext =
+        !!targetElement?.closest?.(
+          ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
+        ) ||
+        !!activeElement?.closest?.(
+          ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
+        );
+      if (inToolboxContext) {
+        return false;
+      }
       event.preventDefault();
       void executeCode({ focusCanvas: false });
       return true;

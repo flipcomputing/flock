@@ -26,6 +26,12 @@ export const flockCamera = {
         }
         flock.ensureVerticalConstraint(mesh);
 
+        const existingCamera = flock.scene.activeCamera;
+        if (existingCamera instanceof flock.BABYLON.ArcRotateCamera) {
+          existingCamera.detachControl();
+          existingCamera.dispose();
+        }
+
         let camera;
 
         if (front) {

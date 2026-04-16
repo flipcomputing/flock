@@ -708,6 +708,122 @@ export function createBlocklyWorkspace() {
     const toolboxDiv =
       toolbox.HtmlDiv || document.querySelector(".blocklyToolboxDiv");
     if (!toolboxDiv) return;
+    let categoryTypePrefix = "";
+    const TOOLBOX_OR_FLYOUT_SELECTOR =
+      ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout";
+
+    const resetCategoryTypePrefix = () => {
+      categoryTypePrefix = "";
+    };
+    const stopEvent = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+    };
+    const isInToolboxOrFlyout = (element) =>
+      !!element?.closest?.(TOOLBOX_OR_FLYOUT_SELECTOR);
+    const isEditableTarget = (target) =>
+      !!(
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      );
+
+    const isToolboxContext = (element) =>
+      !!element?.closest?.(".blocklyToolboxDiv, .blocklyToolbox");
+    const isFlyoutContext = (element) =>
+      !!element?.closest?.(".blocklyFlyout, .blocklyFlyoutEntry");
+
+    const normalizeLabel = (label) =>
+      (label || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .trim();
+
+    const getMatchableCategories = () =>
+      (toolbox.getToolboxItems?.() || []).filter((item) => {
+        const def =
+          item.getToolboxItemDef?.() ||
+          item.toolboxItemDef ||
+          item.toolboxItemDef_;
+        const kind = (def?.kind || "").toLowerCase();
+        return kind === "category";
+      });
+
+    const getParentCategory = (item) =>
+      item?.getParent?.() ||
+      item?.parentToolboxItem_ ||
+      item?.parentItem_ ||
+      item?.parent_;
+
+    const expandCategoryBranch = (item) => {
+      const seen = new Set();
+      let current = item;
+      while (current && !seen.has(current)) {
+        seen.add(current);
+        if (typeof current.setExpanded === "function") {
+          current.setExpanded(true);
+        }
+        current = getParentCategory(current);
+      }
+    };
+
+    const applyPrefixMatch = (prefix) => {
+      if (!prefix) return false;
+      const normalizedPrefix = normalizeLabel(prefix);
+      if (!normalizedPrefix) return false;
+
+      const match = getMatchableCategories().find((item) => {
+        const label =
+          item.getName?.() || item.getToolboxItemDef?.()?.name || "";
+        return normalizeLabel(label).startsWith(normalizedPrefix);
+      });
+      if (!match) return false;
+
+      const focusManager = Blockly.getFocusManager?.();
+      const currentlySelected = toolbox.getSelectedItem?.();
+      if (currentlySelected === match) {
+        focusManager?.focusTree?.(toolbox);
+        focusManager?.focusNode?.(match);
+        return true;
+      }
+
+      expandCategoryBranch(match);
+      toolbox.setSelectedItem?.(match);
+      const selectedItem = toolbox.getSelectedItem?.();
+      if (selectedItem !== match) return false;
+
+      focusManager?.focusTree?.(toolbox);
+      const isSelectable =
+        typeof selectedItem.isSelectable === "function"
+          ? selectedItem.isSelectable()
+          : true;
+      if (isSelectable) {
+        focusManager?.focusNode?.(selectedItem);
+      } else {
+        toolboxDiv.focus();
+      }
+      const selectedClickTarget =
+        selectedItem.getClickTarget?.() || selectedItem.getDiv?.();
+      selectedClickTarget?.scrollIntoView?.({
+        block: "nearest",
+        inline: "nearest",
+      });
+      if (focusManager?.getFocusedTree?.() !== toolbox) {
+        focusManager?.focusTree?.(toolbox);
+      }
+      if (isSelectable && focusManager?.getFocusedNode?.() !== selectedItem) {
+        const clickTarget =
+          selectedItem.getClickTarget?.() || selectedItem.getDiv?.();
+        clickTarget?.focus?.();
+        focusManager?.focusTree?.(toolbox);
+        focusManager?.focusNode?.(selectedItem);
+      }
+
+      return true;
+    };
 
     // Ctrl+F should focus the toolbox search when focus is in the toolbox
     const getSearchToolboxItem = () =>
@@ -744,6 +860,7 @@ export function createBlocklyWorkspace() {
       const searchItem = getSearchToolboxItem();
       if (!searchItem) return false;
 
+      resetCategoryTypePrefix();
       toolbox.setSelectedItem?.(searchItem);
       const triggerMatchBlocks = (searchInput) => {
         if (!searchInput) return;
@@ -776,18 +893,57 @@ export function createBlocklyWorkspace() {
         const activeElement = document.activeElement;
         const targetElement = e.target instanceof Element ? e.target : null;
         const inToolboxContext =
-          !!targetElement?.closest?.(
-            ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
-          ) ||
-          !!activeElement?.closest?.(
-            ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
-          );
+          isInToolboxOrFlyout(targetElement) ||
+          isInToolboxOrFlyout(activeElement);
         if (!inToolboxContext) return;
 
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
+        stopEvent(e);
         focusToolboxSearch();
+      },
+      true,
+    );
+
+    host.addEventListener(
+      "focusin",
+      (e) => {
+        const target = e.target instanceof Element ? e.target : null;
+        if (!target) return;
+
+        if (
+          target.matches?.("input[type='search'], input#toolbox-search-input")
+        ) {
+          resetCategoryTypePrefix();
+          return;
+        }
+
+        if (isFlyoutContext(target)) {
+          resetCategoryTypePrefix();
+          return;
+        }
+
+        if (!isToolboxContext(target)) {
+          resetCategoryTypePrefix();
+        }
+      },
+      true,
+    );
+
+    host.addEventListener(
+      "focusout",
+      (e) => {
+        const next =
+          e.relatedTarget instanceof Element ? e.relatedTarget : null;
+        if (!next || !isToolboxContext(next)) {
+          resetCategoryTypePrefix();
+        }
+      },
+      true,
+    );
+
+    toolboxDiv.addEventListener(
+      "click",
+      () => {
+        resetCategoryTypePrefix();
       },
       true,
     );
@@ -803,28 +959,63 @@ export function createBlocklyWorkspace() {
           const targetElement = target instanceof Element ? target : null;
           const activeElement = document.activeElement;
           const inToolboxContext =
-            !!targetElement?.closest?.(
-              ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
-            ) ||
-            !!activeElement?.closest?.(
-              ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
-            );
+            isInToolboxOrFlyout(targetElement) ||
+            isInToolboxOrFlyout(activeElement);
 
           if (inToolboxContext) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
+            stopEvent(e);
             focusToolboxSearch();
             return;
           }
         }
 
+        if (isEditableTarget(target)) {
+          return;
+        }
+
+        if (e.key === "Escape") {
+          resetCategoryTypePrefix();
+          return;
+        }
+
         if (
-          target &&
-          (target.tagName === "INPUT" ||
-            target.tagName === "TEXTAREA" ||
-            target.isContentEditable)
+          e.key === "ArrowUp" ||
+          e.key === "ArrowDown" ||
+          e.key === "ArrowLeft" ||
+          e.key === "ArrowRight"
         ) {
+          resetCategoryTypePrefix();
+        }
+
+        if (e.key === "Backspace") {
+          if (!categoryTypePrefix) return;
+          categoryTypePrefix = categoryTypePrefix.slice(0, -1);
+          if (!categoryTypePrefix) return;
+          if (applyPrefixMatch(categoryTypePrefix)) {
+            stopEvent(e);
+          }
+          return;
+        }
+
+        const isPrintableKey =
+          e.key.length === 1 &&
+          e.key !== " " &&
+          !e.ctrlKey &&
+          !e.metaKey &&
+          !e.altKey;
+        if (isPrintableKey) {
+          stopEvent(e);
+
+          const nextPrefix = `${categoryTypePrefix}${e.key}`;
+          if (applyPrefixMatch(nextPrefix)) {
+            categoryTypePrefix = nextPrefix;
+          } else if (applyPrefixMatch(e.key)) {
+            categoryTypePrefix = e.key;
+          }
+          if (!isInToolboxOrFlyout(document.activeElement)) {
+            toolboxDiv.focus();
+            Blockly.getFocusManager?.()?.focusTree?.(toolbox);
+          }
           return;
         }
 
@@ -832,9 +1023,8 @@ export function createBlocklyWorkspace() {
         const flyoutVisible = !!flyout && !!flyout.isVisible?.();
 
         if (e.key === "ArrowRight" && flyoutVisible) {
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
+          resetCategoryTypePrefix();
+          stopEvent(e);
           const flyoutWorkspace = flyout.getWorkspace?.();
           if (flyoutWorkspace) {
             Blockly.getFocusManager().focusTree(flyoutWorkspace);
@@ -843,14 +1033,13 @@ export function createBlocklyWorkspace() {
         }
 
         if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+          resetCategoryTypePrefix();
           const selectedItem = toolbox.getSelectedItem?.();
           if (
             selectedItem &&
             typeof selectedItem.toggleExpanded === "function"
           ) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
+            stopEvent(e);
             selectedItem.toggleExpanded();
           }
         }
