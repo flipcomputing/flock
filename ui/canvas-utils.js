@@ -8,6 +8,8 @@ let keyboardCursorActive = false;
 let keyboardCursorCallback = null;
 let hitChecker = null;
 
+const heldKeys = new Set(); // Track held down keys
+
 // Returns a reference to the canvasCircle
 export function getCanvasCircle() {
   return canvasCircle;
@@ -92,6 +94,8 @@ export function startCanvasKeyboardMode(
   isValidPosition = null,
 ) {
   stopCanvasKeyboardMode(); // Ensure any existing mode is cleared
+  document.addEventListener("keydown", handleKeydown);
+  document.addEventListener("keyup", handleKeyup);
   keyboardCursorActive = true;
   keyboardCursorCallback = callback;
   hitChecker = isValidPosition;
@@ -110,6 +114,8 @@ export function stopCanvasKeyboardMode() {
   keyboardCursorCallback = null;
   hitChecker = null;
   document.removeEventListener("keydown", handleKeydown);
+  document.removeEventListener("keyup", handleKeyup);
+  heldKeys.clear();
   destroyCanvasCircle();
   // Reinstate mouse cursor when exiting keyboard mode
   const canvas = flock.scene?.getEngine?.()?.getRenderingCanvas?.();
@@ -135,27 +141,20 @@ function handleKeydown(event) {
   const moveDistance = event.shiftKey ? 10 : 2;
   switch (event.key) {
     case "ArrowRight":
-      event.preventDefault();
-      ensureCircle();
-      moveCanvasCircle(moveDistance, 0);
-      break;
-
     case "ArrowLeft":
-      event.preventDefault();
-      ensureCircle();
-      moveCanvasCircle(-moveDistance, 0);
-      break;
-
     case "ArrowDown":
-      event.preventDefault();
-      ensureCircle();
-      moveCanvasCircle(0, moveDistance);
-      break;
-
     case "ArrowUp":
       event.preventDefault();
+      heldKeys.add(event.key);
       ensureCircle();
-      moveCanvasCircle(0, -moveDistance);
+      // Calculate where to move
+      const dx =
+        (heldKeys.has("ArrowRight") ? moveDistance : 0) -
+        (heldKeys.has("ArrowLeft") ? moveDistance : 0);
+      const dy =
+        (heldKeys.has("ArrowDown") ? moveDistance : 0) -
+        (heldKeys.has("ArrowUp") ? moveDistance : 0);
+      moveCanvasCircle(dx, dy);
       break;
 
     case "Enter":
@@ -194,4 +193,9 @@ function handleKeydown(event) {
     default:
       break;
   }
+}
+
+// Remove from heldKeys when key is released
+function handleKeyup(event) {
+  heldKeys.delete(event.key);
 }
