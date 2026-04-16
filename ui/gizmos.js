@@ -392,6 +392,7 @@ export function toggleGizmo(gizmoType) {
   if (activeDuplicatePickHandler) {
     window.removeEventListener("click", activeDuplicatePickHandler);
     activeDuplicatePickHandler = null;
+    if (gizmoType === "duplicate") return;
   }
   disableGizmos();
   resetAttachedMeshIfMeshAttached();
@@ -1060,15 +1061,8 @@ function handleDuplicateGizmo() {
 
     if (pickResult.hit) {
       const pickedPosition = pickResult.pickedPoint;
-      window.removeEventListener("click", onPickMesh);
-      activeDuplicatePickHandler = null;
-      document.body.style.cursor = "default";
-      stopCanvasKeyboardMode();
-
       const workspace = Blockly.getMainWorkspace();
       const originalBlock = workspace.getBlockById(blockId);
-      meshToClone.showBoundingBox = false; // Hide bounding box of original mesh
-      duplicateButton.classList.remove("active"); // Unhighlight the button
       duplicateBlockAndInsert(originalBlock, workspace, pickedPosition);
     }
   };
@@ -1090,18 +1084,12 @@ function handleDuplicateGizmo() {
         if (pickResult?.hit) {
           const workspace = Blockly.getMainWorkspace();
           const originalBlock = workspace.getBlockById(blockId);
-          meshToClone.showBoundingBox = false; // Hide bounding box of original mesh
-          duplicateButton.classList.remove("active"); // Unhighlight the button
           duplicateBlockAndInsert(
             originalBlock,
             workspace,
             pickResult.pickedPoint,
           );
         }
-        window.removeEventListener("click", onPickMesh);
-        activeDuplicatePickHandler = null;
-        document.body.style.cursor = "default";
-        stopCanvasKeyboardMode();
       },
       false,
       (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit,

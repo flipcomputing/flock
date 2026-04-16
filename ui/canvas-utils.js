@@ -7,6 +7,7 @@ let canvasCirclePosition = { x: 0, y: 0 };
 let keyboardCursorActive = false;
 let keyboardCursorCallback = null;
 let hitChecker = null;
+let previouslyFocusedElement = null; // Save previous focus to return to later
 
 // Returns a reference to the canvasCircle
 export function getCanvasCircle() {
@@ -28,6 +29,7 @@ export function createCanvasCircle() {
   // Create the visual indicator circle
   canvasCircle = document.createElement("div");
   canvasCircle.className = "canvas-selector-circle"; // Set style
+  canvasCircle.tabIndex = -1;
   document.body.appendChild(canvasCircle);
 
   // Initialize position to canvas center
@@ -92,12 +94,15 @@ export function startCanvasKeyboardMode(
   isValidPosition = null,
 ) {
   stopCanvasKeyboardMode(); // Ensure any existing mode is cleared
+  previouslyFocusedElement = document.activeElement; // Save current focus
   keyboardCursorActive = true;
   keyboardCursorCallback = callback;
   hitChecker = isValidPosition;
   document.addEventListener("keydown", handleKeydown);
   if (showCircleImmediately) {
     createCanvasCircle();
+
+    canvasCircle.focus({ preventScroll: true }); // Focus the circle
     document.body.style.cursor = "none"; // Hide cursor when circle is active
   } else {
     document.body.style.cursor = "default";
@@ -115,12 +120,17 @@ export function stopCanvasKeyboardMode() {
   const canvas = flock.scene?.getEngine?.()?.getRenderingCanvas?.();
   if (canvas) canvas.style.cursor = "";
   document.body.style.cursor = "default";
+  // Reinstate focus to element in focus prior to entering
+  // canvas cursor mode (otherwise this is annoying for kb users)
+  previouslyFocusedElement?.focus({ preventScroll: true });
+  previouslyFocusedElement = null;
 }
 
 // Make sure there actually is a circle
 function ensureCircle() {
   if (!getCanvasCircle()) {
     createCanvasCircle();
+    canvasCircle.focus({ preventScroll: true }); // Focus the circle
     // Remove cursor otherwise you get both which is confusing
     const canvas = flock.scene.getEngine().getRenderingCanvas();
     canvas.style.cursor = "none";
@@ -132,6 +142,20 @@ function ensureCircle() {
 function handleKeydown(event) {
   if (!keyboardCursorActive) return;
 
+  // If a button was focused and they pressed enter/space, don't
+  // move the circle, interact with the button
+  const tag = (event.target?.tagName || "").toLowerCase();
+  if (
+    (tag === "button" ||
+      tag === "input" ||
+      tag === "textarea" ||
+      tag === "select" ||
+      event.target?.isContentEditable) &&
+    (event.key === "Enter" || event.key === " " || event.key === "Spacebar")
+  ) {
+    console.log("Button interaction, not moving canvas circle");
+    return;
+  }
   const moveDistance = event.shiftKey ? 10 : 2;
   switch (event.key) {
     case "ArrowRight":
