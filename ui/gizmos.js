@@ -919,7 +919,7 @@ function handleSelectGizmo() {
         pickedMesh.visibility = 0.001;
         if (flock.meshDebug) console.log(pickedMesh.visibility);
       }
-      const block = meshMap[blockKey];
+      const block = meshMap[pickedMesh?.metadata?.blockKey];
       highlightBlockById(Blockly.getMainWorkspace(), block);
       gizmoManager.attachToMesh(pickedMesh);
       pickedMesh.showBoundingBox = true;
