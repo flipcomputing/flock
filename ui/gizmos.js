@@ -68,6 +68,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // If gizmos are on, disable them
       try {
+        // If they are mid-duplicate, clean up that state and UI
+        if (activeDuplicatePickHandler) {
+          window.removeEventListener("click", activeDuplicatePickHandler);
+          activeDuplicatePickHandler = null;
+          document
+            .getElementById("duplicateButton")
+            ?.classList.remove("active");
+        }
         disableGizmos();
       } catch {
         // fail-safe: still attempt to disable
@@ -375,9 +383,6 @@ export function disableGizmos() {
 
 // Toggle which Gizmo is being used
 export function toggleGizmo(gizmoType) {
-  disableGizmos();
-  resetAttachedMeshIfMeshAttached();
-
   // No buttons should be highlighted
   document
     .querySelectorAll(".gizmo-button")
@@ -388,6 +393,8 @@ export function toggleGizmo(gizmoType) {
     window.removeEventListener("click", activeDuplicatePickHandler);
     activeDuplicatePickHandler = null;
   }
+  disableGizmos();
+  resetAttachedMeshIfMeshAttached();
 
   document.body.style.cursor = "default";
 
