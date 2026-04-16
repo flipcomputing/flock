@@ -1002,6 +1002,10 @@ function handleDuplicateGizmo() {
   const meshToClone = gizmoManager.attachedMesh;
   meshToClone.showBoundingBox = true;
 
+  // Highlight the duplicate button until the clone is placed
+  const duplicateButton = document.getElementById("duplicateButton");
+  duplicateButton.classList.add("active");
+
   blockId = meshBlockIdMap[blockKey];
 
   document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
@@ -1040,6 +1044,7 @@ function handleDuplicateGizmo() {
       const workspace = Blockly.getMainWorkspace();
       const originalBlock = workspace.getBlockById(blockId);
       meshToClone.showBoundingBox = false; // Hide bounding box of original mesh
+      duplicateButton.classList.remove("active"); // Unhighlight the button
       duplicateBlockAndInsert(originalBlock, workspace, pickedPosition);
     }
   };
@@ -1058,6 +1063,7 @@ function handleDuplicateGizmo() {
           const workspace = Blockly.getMainWorkspace();
           const originalBlock = workspace.getBlockById(blockId);
           meshToClone.showBoundingBox = false; // Hide bounding box of original mesh
+          duplicateButton.classList.remove("active"); // Unhighlight the button
           duplicateBlockAndInsert(
             originalBlock,
             workspace,
