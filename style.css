@@ -1349,7 +1349,7 @@ body.color-picker-open #renderCanvas {
     0 0 8px rgba(255, 68, 68, 0.5);
 }
 
-/* Animate an invalid cursor when trying to place on an invalid target */
+/* Animate the invalid cursor when trying to place on an invalid target */
 .canvas-selector-circle--no-hit::before {
   content: "";
   position: absolute;

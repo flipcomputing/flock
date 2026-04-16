@@ -181,6 +181,7 @@ function handleKeydown(event) {
           { once: true },
         );
       } else {
+        // The location was valid, do the click
         clickCanvasCircle(keyboardCursorCallback);
       }
       break;

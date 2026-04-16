@@ -817,6 +817,9 @@ function handleShapeMenuKeydown(event) {
 }
 
 function startPlacementKeyboardMode() {
+  const isValidHit = (x, y) =>
+    !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit;
+
   startCanvasKeyboardMode(
     (x, y) => {
       const canvasRect = flock.scene
@@ -831,7 +834,7 @@ function startPlacementKeyboardMode() {
       cancelPlacement();
     },
     keyboardNavigationActive,
-    (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit,
+    isValidHit,
   );
 }
 
