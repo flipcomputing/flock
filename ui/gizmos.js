@@ -900,6 +900,63 @@ function handleSelectGizmo() {
   let blockKey;
   gizmoManager.selectGizmoEnabled = true;
 
+  function applySelection(pickedMesh, pickedPoint) {
+    if (pickedMesh && pickedMesh.name !== "ground") {
+      const position = pickedMesh.getAbsolutePosition();
+      const roundedPosition = roundVectorToFixed(position, 2);
+      flock.printText({
+        text: translate("position_readout").replace(
+          "{position}",
+          String(roundedPosition),
+        ),
+        duration: 30,
+        color: "black",
+      });
+      if (flock.meshDebug) console.log(pickedMesh.parent);
+      if (pickedMesh.parent) {
+        pickedMesh = getRootMesh(pickedMesh.parent);
+        if (flock.meshDebug) console.log(pickedMesh.visibility);
+        pickedMesh.visibility = 0.001;
+        if (flock.meshDebug) console.log(pickedMesh.visibility);
+      }
+      const block = meshMap[blockKey];
+      highlightBlockById(Blockly.getMainWorkspace(), block);
+      gizmoManager.attachToMesh(pickedMesh);
+      pickedMesh.showBoundingBox = true;
+    } else {
+      if (pickedMesh && pickedMesh.name === "ground") {
+        const roundedPosition = roundVectorToFixed(pickedPoint, 2);
+        flock.printText({
+          text: translate("position_readout").replace(
+            "{position}",
+            String(roundedPosition),
+          ),
+          duration: 30,
+          color: "black",
+        });
+      }
+      if (gizmoManager.attachedMesh) {
+        resetChildMeshesOfAttachedMesh();
+        gizmoManager.attachToMesh(null);
+      }
+    }
+  }
+
+  // Wait until the click has propagated otherwise
+  // the keyboard mode gets cancelled immediately
+  setTimeout(() => {
+    startCanvasKeyboardMode((x, y) => {
+      if (gizmoManager.attachedMesh) {
+        resetAttachedMesh();
+        blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
+          ?.blockKey;
+      }
+      const pick = flock.scene.pick(x, y);
+      applySelection(pick?.pickedMesh, pick?.pickedPoint);
+      stopCanvasKeyboardMode();
+    });
+  }, 0);
+
   // Store the pointer observable
   const pointerObservable = flock.scene.onPointerObservable;
 
@@ -911,62 +968,8 @@ function handleSelectGizmo() {
         blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
           ?.blockKey;
       }
-      let pickedMesh = event.pickInfo.pickedMesh;
 
-      if (pickedMesh && pickedMesh.name !== "ground") {
-        const position = pickedMesh.getAbsolutePosition();
-
-        // Round the coordinates to 2 decimal places
-        const roundedPosition = roundVectorToFixed(position, 2);
-
-        flock.printText({
-          text: translate("position_readout").replace(
-            "{position}",
-            String(roundedPosition),
-          ),
-          duration: 30,
-          color: "black",
-        });
-
-        if (flock.meshDebug) console.log(pickedMesh.parent);
-
-        if (pickedMesh.parent) {
-          pickedMesh = getRootMesh(pickedMesh.parent);
-          if (flock.meshDebug) console.log(pickedMesh.visibility);
-          pickedMesh.visibility = 0.001;
-          if (flock.meshDebug) console.log(pickedMesh.visibility);
-        }
-
-        const block = meshMap[blockKey];
-        highlightBlockById(Blockly.getMainWorkspace(), block);
-
-        // Attach the gizmo to the selected mesh
-        gizmoManager.attachToMesh(pickedMesh);
-
-        // Show bounding box for the selected mesh
-        pickedMesh.showBoundingBox = true;
-      } else {
-        if (pickedMesh && pickedMesh.name === "ground") {
-          const position = event.pickInfo.pickedPoint;
-
-          const roundedPosition = roundVectorToFixed(position, 2);
-
-          flock.printText({
-            text: translate("position_readout").replace(
-              "{position}",
-              String(roundedPosition),
-            ),
-            duration: 30,
-            color: "black",
-          });
-        }
-
-        // Deselect if no mesh is picked
-        if (gizmoManager.attachedMesh) {
-          resetChildMeshesOfAttachedMesh();
-          gizmoManager.attachToMesh(null); // Detach the gizmo
-        }
-      }
+      applySelection(event.pickInfo.pickedMesh, event.pickInfo.pickedPoint);
 
       pointerObservable.remove(pointerObserver);
     }
