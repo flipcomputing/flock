@@ -4,8 +4,8 @@ import { flock } from "../flock.js";
 // One circle selector can be active on the canvas at once
 let canvasCircle = null;
 let canvasCirclePosition = { x: 0, y: 0 };
-let keyboardModeActive = false;
-let keyboardModeCallback = null;
+let keyboardCursorActive = false;
+let keyboardCursorCallback = null;
 
 // Returns a reference to the canvasCircle
 export function getCanvasCircle() {
@@ -82,8 +82,8 @@ export function startCanvasKeyboardMode(
   showCircleImmediately = false,
 ) {
   stopCanvasKeyboardMode(); // Ensure any existing mode is cleared
-  keyboardModeActive = true;
-  keyboardModeCallback = callback;
+  keyboardCursorActive = true;
+  keyboardCursorCallback = callback;
   document.addEventListener("keydown", handleKeydown);
   if (showCircleImmediately) {
     createCanvasCircle();
@@ -95,8 +95,8 @@ export function startCanvasKeyboardMode(
 
 // Stop using keyboard mode on the canvas
 export function stopCanvasKeyboardMode() {
-  keyboardModeActive = false;
-  keyboardModeCallback = null;
+  keyboardCursorActive = false;
+  keyboardCursorCallback = null;
   document.removeEventListener("keydown", handleKeydown);
   destroyCanvasCircle();
   // Reinstate mouse cursor when exiting keyboard mode
@@ -118,7 +118,7 @@ function ensureCircle() {
 
 // Deal with key down events for canvas keyboard mode
 function handleKeydown(event) {
-  if (!keyboardModeActive) return;
+  if (!keyboardCursorActive) return;
 
   const moveDistance = event.shiftKey ? 10 : 2;
   switch (event.key) {
@@ -151,7 +151,8 @@ function handleKeydown(event) {
     case "Spacebar":
     case "Space":
       event.preventDefault();
-      clickCanvasCircle(keyboardModeCallback);
+      ensureCircle(); // It must exist to click it
+      clickCanvasCircle(keyboardCursorCallback);
       break;
 
     case "Escape":
