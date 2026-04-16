@@ -745,7 +745,9 @@ export function createBlocklyWorkspace() {
     const getMatchableCategories = () =>
       (toolbox.getToolboxItems?.() || []).filter((item) => {
         const def =
-          item.getToolboxItemDef?.() || item.toolboxItemDef || item.toolboxItemDef_;
+          item.getToolboxItemDef?.() ||
+          item.toolboxItemDef ||
+          item.toolboxItemDef_;
         const kind = (def?.kind || "").toLowerCase();
         return kind === "category";
       });
@@ -774,7 +776,8 @@ export function createBlocklyWorkspace() {
       if (!normalizedPrefix) return false;
 
       const match = getMatchableCategories().find((item) => {
-        const label = item.getName?.() || item.getToolboxItemDef?.()?.name || "";
+        const label =
+          item.getName?.() || item.getToolboxItemDef?.()?.name || "";
         return normalizeLabel(label).startsWith(normalizedPrefix);
       });
       if (!match) return false;
@@ -802,7 +805,12 @@ export function createBlocklyWorkspace() {
       } else {
         toolboxDiv.focus();
       }
-
+      const selectedClickTarget =
+        selectedItem.getClickTarget?.() || selectedItem.getDiv?.();
+      selectedClickTarget?.scrollIntoView?.({
+        block: "nearest",
+        inline: "nearest",
+      });
       if (focusManager?.getFocusedTree?.() !== toolbox) {
         focusManager?.focusTree?.(toolbox);
       }
@@ -885,7 +893,8 @@ export function createBlocklyWorkspace() {
         const activeElement = document.activeElement;
         const targetElement = e.target instanceof Element ? e.target : null;
         const inToolboxContext =
-          isInToolboxOrFlyout(targetElement) || isInToolboxOrFlyout(activeElement);
+          isInToolboxOrFlyout(targetElement) ||
+          isInToolboxOrFlyout(activeElement);
         if (!inToolboxContext) return;
 
         stopEvent(e);
@@ -922,7 +931,8 @@ export function createBlocklyWorkspace() {
     host.addEventListener(
       "focusout",
       (e) => {
-        const next = e.relatedTarget instanceof Element ? e.relatedTarget : null;
+        const next =
+          e.relatedTarget instanceof Element ? e.relatedTarget : null;
         if (!next || !isToolboxContext(next)) {
           resetCategoryTypePrefix();
         }
@@ -1002,9 +1012,7 @@ export function createBlocklyWorkspace() {
           } else if (applyPrefixMatch(e.key)) {
             categoryTypePrefix = e.key;
           }
-          if (
-            !isInToolboxOrFlyout(document.activeElement)
-          ) {
+          if (!isInToolboxOrFlyout(document.activeElement)) {
             toolboxDiv.focus();
             Blockly.getFocusManager?.()?.focusTree?.(toolbox);
           }
