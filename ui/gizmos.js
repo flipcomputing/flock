@@ -23,8 +23,6 @@ import {
   pickLeafFromRay,
 } from "./meshhelpers.js";
 import {
-  getCanvasCircle,
-  destroyCanvasCircle,
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
 } from "./canvas-utils.js";
