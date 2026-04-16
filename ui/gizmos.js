@@ -40,6 +40,7 @@ let textScaleAxis = null;
 let textOrigScaleZ = 1;
 
 let cameraMode = "play";
+let activeDuplicatePickHandler = null; // Are they in the middle of a duplication?
 
 // Track DO sections and their associated blocks for cleanup
 const gizmoCreatedBlocks = new Map(); // blockId -> { parentId, createdDoSection, timestamp }
@@ -376,6 +377,17 @@ export function disableGizmos() {
 export function toggleGizmo(gizmoType) {
   disableGizmos();
   resetAttachedMeshIfMeshAttached();
+
+  // No buttons should be highlighted
+  document
+    .querySelectorAll(".gizmo-button")
+    .forEach((btn) => btn.classList.remove("active"));
+
+  // If they abandoned a duplicate half way, remove listener
+  if (activeDuplicatePickHandler) {
+    window.removeEventListener("click", activeDuplicatePickHandler);
+    activeDuplicatePickHandler = null;
+  }
 
   document.body.style.cursor = "default";
 
@@ -1038,6 +1050,7 @@ function handleDuplicateGizmo() {
     if (pickResult.hit) {
       const pickedPosition = pickResult.pickedPoint;
       window.removeEventListener("click", onPickMesh);
+      activeDuplicatePickHandler = null;
       document.body.style.cursor = "default";
       stopCanvasKeyboardMode();
 
@@ -1048,6 +1061,10 @@ function handleDuplicateGizmo() {
       duplicateBlockAndInsert(originalBlock, workspace, pickedPosition);
     }
   };
+
+  // Store a reference to this listener so we can get rid of it
+  // if they abort half way through a duplication
+  activeDuplicatePickHandler = onPickMesh;
 
   // Use setTimeout to defer listener setup
   setTimeout(() => {
@@ -1071,6 +1088,7 @@ function handleDuplicateGizmo() {
           );
         }
         window.removeEventListener("click", onPickMesh);
+        activeDuplicatePickHandler = null;
         document.body.style.cursor = "default";
         stopCanvasKeyboardMode();
       },
