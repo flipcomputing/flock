@@ -817,18 +817,22 @@ function handleShapeMenuKeydown(event) {
 }
 
 function startPlacementKeyboardMode() {
-  startCanvasKeyboardMode((x, y) => {
-    const canvasRect = flock.scene
-      .getEngine()
-      .getRenderingCanvas()
-      .getBoundingClientRect();
-    flock.activePickHandler({
-      clientX: canvasRect.left + x,
-      clientY: canvasRect.top + y,
-      defaultPosition: flock.BABYLON.Vector3.Zero(),
-    });
-    cancelPlacement();
-  }, keyboardNavigationActive);
+  startCanvasKeyboardMode(
+    (x, y) => {
+      const canvasRect = flock.scene
+        .getEngine()
+        .getRenderingCanvas()
+        .getBoundingClientRect();
+      flock.activePickHandler({
+        clientX: canvasRect.left + x,
+        clientY: canvasRect.top + y,
+        defaultPosition: flock.BABYLON.Vector3.Zero(),
+      });
+      cancelPlacement();
+    },
+    keyboardNavigationActive,
+    (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit,
+  );
 }
 
 // Export functions to be used globally

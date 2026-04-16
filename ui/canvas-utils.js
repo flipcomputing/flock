@@ -6,6 +6,7 @@ let canvasCircle = null;
 let canvasCirclePosition = { x: 0, y: 0 };
 let keyboardCursorActive = false;
 let keyboardCursorCallback = null;
+let hitChecker = null;
 
 // Returns a reference to the canvasCircle
 export function getCanvasCircle() {
@@ -38,6 +39,13 @@ export function createCanvasCircle() {
   updateCanvasCirclePosition();
 }
 
+// Check whether current position is on a pickable mesh
+function updateCanvasCircleHitState() {
+  if (!canvasCircle || !hitChecker) return;
+  const valid = hitChecker(canvasCirclePosition.x, canvasCirclePosition.y);
+  canvasCircle.classList.toggle("canvas-selector-circle--no-hit", !valid);
+}
+
 // Update the circle position and constrain it to the canvas
 export function updateCanvasCirclePosition() {
   if (!canvasCircle) return;
@@ -58,6 +66,7 @@ export function updateCanvasCirclePosition() {
   // Position relative to canvas
   canvasCircle.style.left = canvasBounds.left + canvasCirclePosition.x + "px";
   canvasCircle.style.top = canvasBounds.top + canvasCirclePosition.y + "px";
+  updateCanvasCircleHitState();
 }
 
 // Changes the coordinates of the canvasCircle
@@ -80,10 +89,12 @@ export function clickCanvasCircle(callback) {
 export function startCanvasKeyboardMode(
   callback,
   showCircleImmediately = false,
+  isValidPosition = null,
 ) {
   stopCanvasKeyboardMode(); // Ensure any existing mode is cleared
   keyboardCursorActive = true;
   keyboardCursorCallback = callback;
+  hitChecker = isValidPosition;
   document.addEventListener("keydown", handleKeydown);
   if (showCircleImmediately) {
     createCanvasCircle();
@@ -97,6 +108,7 @@ export function startCanvasKeyboardMode(
 export function stopCanvasKeyboardMode() {
   keyboardCursorActive = false;
   keyboardCursorCallback = null;
+  hitChecker = null;
   document.removeEventListener("keydown", handleKeydown);
   destroyCanvasCircle();
   // Reinstate mouse cursor when exiting keyboard mode
@@ -152,7 +164,25 @@ function handleKeydown(event) {
     case "Space":
       event.preventDefault();
       ensureCircle(); // It must exist to click it
-      clickCanvasCircle(keyboardCursorCallback);
+      // If there's a hitChecker and it returns false
+      // show invalid press animation instead of clicking
+      if (
+        hitChecker &&
+        !hitChecker(canvasCirclePosition.x, canvasCirclePosition.y)
+      ) {
+        canvasCircle.classList.add("canvas-selector-circle--invalid-press");
+        canvasCircle.addEventListener(
+          "animationend",
+          () => {
+            canvasCircle.classList.remove(
+              "canvas-selector-circle--invalid-press",
+            );
+          },
+          { once: true },
+        );
+      } else {
+        clickCanvasCircle(keyboardCursorCallback);
+      }
       break;
 
     case "Escape":
