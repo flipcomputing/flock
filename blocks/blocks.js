@@ -111,18 +111,29 @@ if (
   const originalUnhighlight = renderedConnectionPrototype.unhighlight;
   renderedConnectionPrototype.unhighlight = function (...args) {
     const sourceBlock = this.getSourceBlock?.() || this.sourceBlock_;
-    const isLoadObjectAxisConnection =
-      sourceBlock?.type === "load_object" &&
-      (sourceBlock.getInput?.("X")?.connection === this ||
-        sourceBlock.getInput?.("Y")?.connection === this ||
-        sourceBlock.getInput?.("Z")?.connection === this);
-    if (!isLoadObjectAxisConnection) {
+    if (sourceBlock?.type !== "load_object") {
       originalUnhighlight.apply(this, args);
       return;
     }
+
+    let axis = null;
+    if (sourceBlock.getInput?.("X")?.connection === this) axis = "x";
+    else if (sourceBlock.getInput?.("Y")?.connection === this) axis = "y";
+    else if (sourceBlock.getInput?.("Z")?.connection === this) axis = "z";
+    if (!axis) {
+      originalUnhighlight.apply(this, args);
+      return;
+    }
+
+    const colour = loadObjectAxisColourByName[axis];
     const highlightPath = this.findHighlightSvg?.();
-    if (highlightPath) {
+    if (highlightPath && colour) {
+      highlightPath.setAttribute("data-load-object-axis", axis);
       highlightPath.style.display = "";
+      highlightPath.style.stroke = colour;
+      highlightPath.style.strokeWidth = "2px";
+      highlightPath.style.strokeOpacity = "1";
+      highlightPath.style.fill = "none";
     }
     this.highlighted = true;
   };
