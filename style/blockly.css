@@ -713,7 +713,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
   .blocklyFieldRect,
 .blocklyBlockCanvas g[data-load-object-axis][data-load-object-axis-owner]
   .blocklyPath.blocklyBlockBackground {
-  stroke-width: 1px;
+  stroke-width: 1px !important;
+  stroke-opacity: 1 !important;
   vector-effect: non-scaling-stroke;
 }
 
@@ -724,7 +725,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
   .blocklyFieldRect,
 .blocklyBlockCanvas g[data-load-object-axis="x"][data-load-object-axis-owner]
   .blocklyPath.blocklyBlockBackground {
-  stroke: #0072b2;
+  stroke: #0072b2 !important;
 }
 
 .blocklyBlockCanvas g[data-load-object-axis="y"][data-load-object-axis-owner]
@@ -734,7 +735,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
   .blocklyFieldRect,
 .blocklyBlockCanvas g[data-load-object-axis="y"][data-load-object-axis-owner]
   .blocklyPath.blocklyBlockBackground {
-  stroke: #009e73;
+  stroke: #009e73 !important;
 }
 
 .blocklyBlockCanvas g[data-load-object-axis="z"][data-load-object-axis-owner]
@@ -744,7 +745,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
   .blocklyFieldRect,
 .blocklyBlockCanvas g[data-load-object-axis="z"][data-load-object-axis-owner]
   .blocklyPath.blocklyBlockBackground {
-  stroke: #d55e00;
+  stroke: #d55e00 !important;
 }
 
 .blocklyWidgetDiv input.blocklyHtmlInput[data-load-object-axis] {
