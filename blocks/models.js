@@ -243,6 +243,11 @@ export function defineModelBlocks() {
           changeEvent.type === Blockly.Events.BLOCK_MOVE
         ) {
           this.render();
+          setTimeout(() => {
+            if (!this.disposed) {
+              this.render();
+            }
+          }, 0);
         }
 
         if (
