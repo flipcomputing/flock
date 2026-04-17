@@ -1,4 +1,9 @@
 import * as Blockly from "blockly";
+import {
+  updateAllBlockIcons,
+  setCurrentIconColor,
+  getIconColorForBackground,
+} from "../blocks/blockIcons.js";
 
 export const categoryColours = {
   Events: 5,
@@ -131,6 +136,18 @@ function setBinAndZoomIcons(themeName) {
   }
 }
 
+export function getIconColorForTheme(themeName) {
+  switch (themeName) {
+    case "light":
+    case "dark":
+      return "black";
+    case "contrast":
+    case "dark-contrast":
+    default:
+      return "white";
+  }
+}
+
 // Function to call when switching themes
 function switchTheme(themeName) {
   document.body.setAttribute("data-theme", themeName);
@@ -168,7 +185,13 @@ function switchTheme(themeName) {
     workspace.setTheme(blocklyTheme);
   }
 
+  const iconColor = getIconColorForTheme(themeName);
+  setCurrentIconColor(iconColor);
+
   workspace.updateToolbox(workspace.options.languageTree);
+
+  updateAllBlockIcons(workspace, iconColor);
+
   // Optional: Save theme preference
   localStorage.setItem("blocklyTheme", themeName);
 }

@@ -15,6 +15,10 @@ import {
 } from "../ui/blockmesh.js";
 import { FieldColour, registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "../main/themes.js";
+import {
+  makeInlineIcon,
+  TOGGLE_BUTTON_FIELD_NAME,
+} from "./blockIcons.js";
 
 registerFieldColour();
 
@@ -109,8 +113,7 @@ export function registerBlockHandler(block, handler) {
   blockHandlerRegistry.set(block.id, handler);
 }
 
-export const inlineIcon =
-  "data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22utf-8%22%3F%3E%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20x%3D%220px%22%20y%3D%220px%22%20width%3D%22122.88px%22%20height%3D%2280.593px%22%20viewBox%3D%220%200%20122.88%2080.593%22%20enable-background%3D%22new%200%200%20122.88%2080.593%22%20xml%3Aspace%3D%22preserve%22%3E%3Cg%3E%3Cpolygon%20fill%3D%22white%22%20points%3D%22122.88%2C80.593%20122.88%2C49.772%2061.44%2C0%200%2C49.772%200%2C80.593%2061.44%2C30.82%20122.88%2C80.593%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
+export const inlineIcon = makeInlineIcon("white");
 
 export function getHelpUrlFor(_blockType) {
   return "https://hub.flockxr.com";
@@ -119,10 +122,10 @@ export function getHelpUrlFor(_blockType) {
 // Shared utility to add the toggle button to a block
 export function addToggleButton(block) {
   const toggleButton = new Blockly.FieldImage(
-    inlineIcon, // Custom icon
+    makeInlineIcon("white"),
     30,
     30,
-    "*", // Width, Height, Alt text
+    "*",
     () => {
       block.toggleDoBlock();
     },
@@ -131,7 +134,7 @@ export function addToggleButton(block) {
   block
     .appendDummyInput()
     .setAlign(Blockly.inputs.Align.RIGHT)
-    .appendField(toggleButton, "TOGGLE_BUTTON");
+    .appendField(toggleButton, TOGGLE_BUTTON_FIELD_NAME);
 }
 
 // Shared utility for the mutationToDom function

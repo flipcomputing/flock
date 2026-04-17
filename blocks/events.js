@@ -5,7 +5,6 @@ import {
   addToggleButton,
   mutationToDom,
   domToMutation,
-  inlineIcon,
   updateShape,
 } from "./blocks.js";
 import {
@@ -14,6 +13,19 @@ import {
   getDropdownOption,
   getOption,
 } from "../main/translation.js";
+import {
+  makeStartIcon,
+  makeRepeatIcon,
+  makeClickIcon,
+  makeCollisionIcon,
+  makeKeyboardIcon,
+  makePressIcon,
+  makeOnEventIcon,
+  makeInlineIcon,
+  getCurrentIconColor,
+  BLOCK_ICON_FIELD_NAME,
+  TOGGLE_BUTTON_FIELD_NAME,
+} from "./blockIcons.js";
 
 export function defineEventsBlocks() {
   Blockly.Blocks["start"] = {
@@ -34,6 +46,17 @@ export function defineEventsBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("events_blocks");
+      this.inputList[0].insertFieldAt(
+        0,
+        new Blockly.FieldImage(
+          makeStartIcon(getCurrentIconColor()),
+          18,
+          18,
+          "*",
+          null,
+        ),
+        BLOCK_ICON_FIELD_NAME,
+      );
     },
   };
 
@@ -56,6 +79,17 @@ export function defineEventsBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("events_blocks");
       this.isInline = false;
+      this.inputList[0].insertFieldAt(
+        0,
+        new Blockly.FieldImage(
+          makeRepeatIcon(getCurrentIconColor()),
+          32,
+          32,
+          "*",
+          null,
+        ),
+        BLOCK_ICON_FIELD_NAME,
+      );
       addToggleButton(this);
     },
     mutationToDom: function () {
@@ -137,10 +171,21 @@ export function defineEventsBlocks() {
       this.isInline = false;
       this.setPreviousStatement(false);
       this.setNextStatement(false);
+      this.inputList[0].insertFieldAt(
+        0,
+        new Blockly.FieldImage(
+          makeClickIcon(getCurrentIconColor()),
+          22,
+          22,
+          "*",
+          null,
+        ),
+        BLOCK_ICON_FIELD_NAME,
+      );
 
       // Add inline toggle button
       const toggleButton = new Blockly.FieldImage(
-        inlineIcon,
+        makeInlineIcon("white"),
         30,
         30,
         "*",
@@ -152,7 +197,7 @@ export function defineEventsBlocks() {
       // Add toggle button to a separate input
       this.appendDummyInput()
         .setAlign(Blockly.inputs.Align.RIGHT) // Align toggle button to the right
-        .appendField(toggleButton, "TOGGLE_BUTTON");
+        .appendField(toggleButton, TOGGLE_BUTTON_FIELD_NAME);
     },
 
     mutationToDom: function () {
@@ -238,13 +283,24 @@ export function defineEventsBlocks() {
       this.setStyle("events_blocks");
       // Set default state to top-level block
       this.isInline = false;
+      this.inputList[0].insertFieldAt(
+        0,
+        new Blockly.FieldImage(
+          makeCollisionIcon(getCurrentIconColor()),
+          24,
+          24,
+          "*",
+          null,
+        ),
+        BLOCK_ICON_FIELD_NAME,
+      );
 
       // Add the toggle button
       const toggleButton = new Blockly.FieldImage(
-        inlineIcon, // Custom icon
+        makeInlineIcon("white"),
         30,
         30,
-        "*", // Width, Height, Alt text
+        "*",
         () => {
           this.toggleDoBlock();
         },
@@ -253,7 +309,7 @@ export function defineEventsBlocks() {
       // Append the toggle button to the block
       this.appendDummyInput()
         .setAlign(Blockly.inputs.Align.RIGHT)
-        .appendField(toggleButton, "TOGGLE_BUTTON");
+        .appendField(toggleButton, TOGGLE_BUTTON_FIELD_NAME);
     },
     mutationToDom: function () {
       const container = document.createElement("mutation");
@@ -376,6 +432,17 @@ export function defineEventsBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("events_blocks");
+      this.inputList[0].insertFieldAt(
+        0,
+        new Blockly.FieldImage(
+          makeKeyboardIcon(getCurrentIconColor()),
+          36,
+          36,
+          "*",
+          null,
+        ),
+        BLOCK_ICON_FIELD_NAME,
+      );
       addToggleButton(this);
     },
     mutationToDom: function () {
@@ -449,6 +516,17 @@ export function defineEventsBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("events_blocks");
+      this.inputList[0].insertFieldAt(
+        0,
+        new Blockly.FieldImage(
+          makePressIcon(getCurrentIconColor()),
+          32,
+          32,
+          "*",
+          null,
+        ),
+        BLOCK_ICON_FIELD_NAME,
+      );
       addToggleButton(this);
     },
     mutationToDom: function () {
@@ -577,6 +655,17 @@ export function defineEventsBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("events_blocks");
+      this.inputList[0].insertFieldAt(
+        0,
+        new Blockly.FieldImage(
+          makeOnEventIcon(getCurrentIconColor()),
+          28,
+          28,
+          "*",
+          null,
+        ),
+        BLOCK_ICON_FIELD_NAME,
+      );
       addToggleButton(this);
     },
     mutationToDom: function () {
