@@ -262,12 +262,22 @@ export function defineModelBlocks() {
       applyAxisInputIndicators();
 
       registerBlockHandler(this, (changeEvent) => {
+        const axisTargetIds = axisInputNames
+          .map((inputName) => this.getInputTargetBlock(inputName)?.id)
+          .filter(Boolean);
+        const isThisBlockCreated =
+          changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+          Array.isArray(changeEvent.ids) &&
+          changeEvent.ids.includes(this.id);
+        const isAxisTargetCreated =
+          changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+          Array.isArray(changeEvent.ids) &&
+          changeEvent.ids.some((id) => axisTargetIds.includes(id));
         const isRelevantAxisEvent =
           changeEvent.blockId === this.id ||
-          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-          changeEvent.type === Blockly.Events.BLOCK_MOVE ||
-          changeEvent.type === Blockly.Events.BLOCK_DELETE ||
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE;
+          axisTargetIds.includes(changeEvent.blockId) ||
+          isThisBlockCreated ||
+          isAxisTargetCreated;
         if (isRelevantAxisEvent) {
           applyAxisInputIndicators();
         }

@@ -705,30 +705,65 @@ body[data-theme="dark"] .blocklyTreeLabel {
   vector-effect: non-scaling-stroke;
 }
 
-/* Add Object XYZ numeric indicator outlines (always visible, subtle inner stroke). */
+/* Add Object XYZ numeric indicator outlines (always visible, subtle 1px stroke). */
 .blocklyBlockCanvas g[data-load-object-axis][data-load-object-axis-owner]
-  .blocklyEditableText[style*="cursor: text"]
-  > rect {
+  .blocklyEditableText
+  > rect,
+.blocklyBlockCanvas g[data-load-object-axis][data-load-object-axis-owner]
+  .blocklyFieldRect,
+.blocklyBlockCanvas g[data-load-object-axis][data-load-object-axis-owner]
+  .blocklyPath.blocklyBlockBackground {
   stroke-width: 1px;
   vector-effect: non-scaling-stroke;
 }
 
 .blocklyBlockCanvas g[data-load-object-axis="x"][data-load-object-axis-owner]
-  .blocklyEditableText[style*="cursor: text"]
-  > rect {
+  .blocklyEditableText
+  > rect,
+.blocklyBlockCanvas g[data-load-object-axis="x"][data-load-object-axis-owner]
+  .blocklyFieldRect,
+.blocklyBlockCanvas g[data-load-object-axis="x"][data-load-object-axis-owner]
+  .blocklyPath.blocklyBlockBackground {
   stroke: #0072b2;
 }
 
 .blocklyBlockCanvas g[data-load-object-axis="y"][data-load-object-axis-owner]
-  .blocklyEditableText[style*="cursor: text"]
-  > rect {
+  .blocklyEditableText
+  > rect,
+.blocklyBlockCanvas g[data-load-object-axis="y"][data-load-object-axis-owner]
+  .blocklyFieldRect,
+.blocklyBlockCanvas g[data-load-object-axis="y"][data-load-object-axis-owner]
+  .blocklyPath.blocklyBlockBackground {
   stroke: #009e73;
 }
 
 .blocklyBlockCanvas g[data-load-object-axis="z"][data-load-object-axis-owner]
-  .blocklyEditableText[style*="cursor: text"]
-  > rect {
+  .blocklyEditableText
+  > rect,
+.blocklyBlockCanvas g[data-load-object-axis="z"][data-load-object-axis-owner]
+  .blocklyFieldRect,
+.blocklyBlockCanvas g[data-load-object-axis="z"][data-load-object-axis-owner]
+  .blocklyPath.blocklyBlockBackground {
   stroke: #d55e00;
+}
+
+.blocklyWidgetDiv input.blocklyHtmlInput[data-load-object-axis] {
+  border-width: 1px !important;
+}
+
+.blocklyWidgetDiv input.blocklyHtmlInput[data-load-object-axis="x"] {
+  border-color: #0072b2 !important;
+  box-shadow: inset 0 0 0 1px #0072b2;
+}
+
+.blocklyWidgetDiv input.blocklyHtmlInput[data-load-object-axis="y"] {
+  border-color: #009e73 !important;
+  box-shadow: inset 0 0 0 1px #009e73;
+}
+
+.blocklyWidgetDiv input.blocklyHtmlInput[data-load-object-axis="z"] {
+  border-color: #d55e00 !important;
+  box-shadow: inset 0 0 0 1px #d55e00;
 }
 
 /* Blockly injection container */

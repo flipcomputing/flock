@@ -57,6 +57,49 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
   };
 }
 
+const loadObjectAxisInputPatchKey = Symbol.for("flock.loadObjectAxisInputPatch");
+const fieldNumberPrototype = Blockly.FieldNumber?.prototype;
+const loadObjectAxisColourByName = Object.freeze({
+  x: "#0072B2",
+  y: "#009E73",
+  z: "#D55E00",
+});
+
+if (fieldNumberPrototype && !fieldNumberPrototype[loadObjectAxisInputPatchKey]) {
+  const originalShowEditor = fieldNumberPrototype.showEditor_;
+
+  const getLoadObjectAxis = (field) => {
+    const sourceBlock = field.getSourceBlock?.();
+    if (!sourceBlock) return null;
+    const svgRoot = sourceBlock.getSvgRoot?.();
+    if (!svgRoot) return null;
+    const axis = svgRoot.getAttribute("data-load-object-axis");
+    const ownerId = svgRoot.getAttribute("data-load-object-axis-owner");
+    if (!axis || !ownerId) return null;
+    const ownerBlock = sourceBlock.workspace?.getBlockById?.(ownerId);
+    if (!ownerBlock || ownerBlock.type !== "load_object") return null;
+    return axis;
+  };
+
+  fieldNumberPrototype.showEditor_ = function (e) {
+    originalShowEditor.call(this, e);
+
+    const axis = getLoadObjectAxis(this);
+    if (!axis) return;
+    const colour = loadObjectAxisColourByName[axis];
+    if (!colour) return;
+    const htmlInput =
+      this.htmlInput_ ||
+      Blockly.WidgetDiv.DIV?.querySelector?.("input.blocklyHtmlInput");
+    if (!htmlInput) return;
+    htmlInput.setAttribute("data-load-object-axis", axis);
+    htmlInput.style.boxShadow = `inset 0 0 0 1px ${colour}`;
+    htmlInput.style.borderColor = colour;
+  };
+
+  fieldNumberPrototype[loadObjectAxisInputPatchKey] = true;
+}
+
 export let nextVariableIndexes = Object.create(null);
 
 // ---------------------------------------------------------------------------
