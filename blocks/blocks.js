@@ -72,14 +72,13 @@ if (fieldNumberPrototype && !fieldNumberPrototype[loadObjectAxisInputPatchKey]) 
   const getLoadObjectAxis = (field) => {
     const sourceBlock = field.getSourceBlock?.();
     if (!sourceBlock) return null;
-    const svgRoot = sourceBlock.getSvgRoot?.();
-    if (!svgRoot) return null;
-    const axis = svgRoot.getAttribute("data-load-object-axis");
-    const ownerId = svgRoot.getAttribute("data-load-object-axis-owner");
-    if (!axis || !ownerId) return null;
-    const ownerBlock = sourceBlock.workspace?.getBlockById?.(ownerId);
-    if (!ownerBlock || ownerBlock.type !== "load_object") return null;
-    return axis;
+    const parentBlock = sourceBlock.getParent?.();
+    if (!parentBlock || parentBlock.type !== "load_object") return null;
+
+    if (parentBlock.getInputTargetBlock("X") === sourceBlock) return "x";
+    if (parentBlock.getInputTargetBlock("Y") === sourceBlock) return "y";
+    if (parentBlock.getInputTargetBlock("Z") === sourceBlock) return "z";
+    return null;
   };
 
   fieldNumberPrototype.showEditor_ = function (e) {
@@ -1106,11 +1105,6 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
 
     const b = this.block_;
     if (b?.type === "load_object") {
-      const svgRoot = b.getSvgRoot?.();
-      if (svgRoot) {
-        svgRoot.setAttribute("data-load-object-axis-owner", b.id);
-      }
-
       const axisColourByInput = Object.freeze({
         X: "#00B1D9",
         Y: "#00CDB2",

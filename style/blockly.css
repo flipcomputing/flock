@@ -705,49 +705,6 @@ body[data-theme="dark"] .blocklyTreeLabel {
   vector-effect: non-scaling-stroke;
 }
 
-/* Add Object XYZ numeric indicator outlines (always visible, subtle 1px stroke). */
-.blocklyBlockCanvas g[data-load-object-axis][data-load-object-axis-owner]
-  .blocklyEditableText
-  > rect,
-.blocklyBlockCanvas g[data-load-object-axis][data-load-object-axis-owner]
-  .blocklyFieldRect,
-.blocklyBlockCanvas g[data-load-object-axis][data-load-object-axis-owner]
-  .blocklyPath.blocklyBlockBackground {
-  stroke-width: 1px !important;
-  stroke-opacity: 1 !important;
-  vector-effect: non-scaling-stroke;
-}
-
-.blocklyBlockCanvas g[data-load-object-axis="x"][data-load-object-axis-owner]
-  .blocklyEditableText
-  > rect,
-.blocklyBlockCanvas g[data-load-object-axis="x"][data-load-object-axis-owner]
-  .blocklyFieldRect,
-.blocklyBlockCanvas g[data-load-object-axis="x"][data-load-object-axis-owner]
-  .blocklyPath.blocklyBlockBackground {
-  stroke: #00b1d9 !important;
-}
-
-.blocklyBlockCanvas g[data-load-object-axis="y"][data-load-object-axis-owner]
-  .blocklyEditableText
-  > rect,
-.blocklyBlockCanvas g[data-load-object-axis="y"][data-load-object-axis-owner]
-  .blocklyFieldRect,
-.blocklyBlockCanvas g[data-load-object-axis="y"][data-load-object-axis-owner]
-  .blocklyPath.blocklyBlockBackground {
-  stroke: #00cdb2 !important;
-}
-
-.blocklyBlockCanvas g[data-load-object-axis="z"][data-load-object-axis-owner]
-  .blocklyEditableText
-  > rect,
-.blocklyBlockCanvas g[data-load-object-axis="z"][data-load-object-axis-owner]
-  .blocklyFieldRect,
-.blocklyBlockCanvas g[data-load-object-axis="z"][data-load-object-axis-owner]
-  .blocklyPath.blocklyBlockBackground {
-  stroke: #eba200 !important;
-}
-
 .blocklyWidgetDiv input.blocklyHtmlInput[data-load-object-axis] {
   border-width: 1px !important;
 }
@@ -769,7 +726,6 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
 /* Always-on load_object axis input indicators rendered by the custom renderer. */
 .blocklyBlockCanvas
-  g[data-load-object-axis-owner]
   .blocklyHighlightedConnectionPath[data-load-object-axis] {
   stroke-width: 2px !important;
   stroke-opacity: 1 !important;
