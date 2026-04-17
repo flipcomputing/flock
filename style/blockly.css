@@ -767,6 +767,14 @@ body[data-theme="dark"] .blocklyTreeLabel {
   box-shadow: inset 0 0 0 1px #d55e00;
 }
 
+/* Thicker always-on axis indicators rendered on load_object input connections. */
+.blocklyBlockCanvas
+  g[data-load-object-axis-owner]
+  .blocklyHighlightedConnectionPath {
+  stroke-width: 6px !important;
+  stroke-opacity: 1 !important;
+}
+
 /* Blockly injection container */
 #blocklyDiv {
   position: relative;

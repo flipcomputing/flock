@@ -1104,6 +1104,26 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
     super.draw();
 
     const b = this.block_;
+    if (b?.type === "load_object") {
+      const svgRoot = b.getSvgRoot?.();
+      if (svgRoot) {
+        svgRoot.setAttribute("data-load-object-axis-owner", b.id);
+      }
+
+      const axisColourByInput = Object.freeze({
+        X: "#0072B2",
+        Y: "#009E73",
+        Z: "#D55E00",
+      });
+      Object.entries(axisColourByInput).forEach(([inputName, colour]) => {
+        const inputConnection = b.getInput?.(inputName)?.connection;
+        if (inputConnection?.highlight) {
+          inputConnection.highlight(colour);
+        }
+      });
+      return;
+    }
+
     if (b?.type !== "if_clause") return;
 
     // Don’t paint seam covers on insertion markers / connection previews.

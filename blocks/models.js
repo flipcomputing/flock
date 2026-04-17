@@ -150,11 +150,6 @@ export function defineModelBlocks() {
   Blockly.Blocks["load_object"] = {
     init: function () {
       const axisInputNames = ["X", "Y", "Z"];
-      const axisColourByInput = Object.freeze({
-        X: "#0072B2",
-        Y: "#009E73",
-        Z: "#D55E00",
-      });
       const axisIndicatorAttr = "data-load-object-axis";
       const axisOwnerAttr = "data-load-object-axis-owner";
       const defaultObject = "Star.glb";
@@ -241,12 +236,6 @@ export function defineModelBlocks() {
       const applyAxisInputIndicators = () => {
         clearAxisInputIndicators();
         axisInputNames.forEach((inputName) => {
-          const inputConnection = this.getInput(inputName)?.connection;
-          const axisColour = axisColourByInput[inputName];
-          if (inputConnection?.highlight && axisColour) {
-            inputConnection.highlight(axisColour);
-          }
-
           const axisBlock = this.getInputTargetBlock(inputName);
           const axisRoot = axisBlock?.getSvgRoot?.();
           if (!axisRoot) return;
