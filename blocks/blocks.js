@@ -57,6 +57,36 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
   };
 }
 
+const getAxisInputClass = (field) => {
+  const svgRoot = field?.getSourceBlock?.()?.getSvgRoot?.();
+  if (!svgRoot?.classList) return null;
+  if (svgRoot.classList.contains("blocklyAxisInputX")) return "blocklyAxisInputX";
+  if (svgRoot.classList.contains("blocklyAxisInputY")) return "blocklyAxisInputY";
+  if (svgRoot.classList.contains("blocklyAxisInputZ")) return "blocklyAxisInputZ";
+  return null;
+};
+
+const flockNumberAxisPatchKey = Symbol.for("flock.fieldNumberAxisPatch");
+const fieldNumberPrototype = Blockly.FieldNumber?.prototype;
+if (fieldNumberPrototype && !fieldNumberPrototype[flockNumberAxisPatchKey]) {
+  const originalShowEditor = fieldNumberPrototype.showEditor_;
+  fieldNumberPrototype.showEditor_ = function (...args) {
+    originalShowEditor.call(this, ...args);
+
+    const widgetDiv = document.querySelector(".blocklyWidgetDiv");
+    if (!widgetDiv) return;
+
+    widgetDiv.classList.remove(
+      "blocklyAxisInputX",
+      "blocklyAxisInputY",
+      "blocklyAxisInputZ",
+    );
+
+    const axisInputClass = getAxisInputClass(this);
+    if (axisInputClass) widgetDiv.classList.add(axisInputClass);
+  };
+}
+
 export let nextVariableIndexes = Object.create(null);
 
 // ---------------------------------------------------------------------------

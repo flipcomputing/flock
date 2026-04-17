@@ -9,9 +9,9 @@
   --color-shadow: grey;
   --color-outline-focus: #fc3;
   --block-outline-focus: #fff200;
-  --color-axis-x: #0072b2;
-  --color-axis-y: #009e73;
-  --color-axis-z: #d55e00;
+  --color-axis-x: #ff4d4d;
+  --color-axis-y: #59c173;
+  --color-axis-z: #4d9dff;
 
   /* Dropdown & menu semantics */
   --color-dropdown-text: var(--color-text);
@@ -34,9 +34,9 @@
   --color-search-highlight: #ed808b;
   --color-shadow: grey;
   --color-outline-focus: #fc3;
-  --color-axis-x: #0072b2;
-  --color-axis-y: #009e73;
-  --color-axis-z: #d55e00;
+  --color-axis-x: #ff4d4d;
+  --color-axis-y: #59c173;
+  --color-axis-z: #4d9dff;
 
   /* Dropdown & menu semantics */
   --color-dropdown-text: var(--color-text);
@@ -49,22 +49,37 @@
   );
 }
 
-g.blocklyAxisInputX .blocklyEditableText[style*="cursor: text"] > rect,
+g.blocklyAxisInputX .blocklyEditableText > rect,
 g.blocklyAxisInputX .blocklyFieldRect {
   stroke: var(--color-axis-x) !important;
   stroke-width: 1px !important;
 }
 
-g.blocklyAxisInputY .blocklyEditableText[style*="cursor: text"] > rect,
+g.blocklyAxisInputY .blocklyEditableText > rect,
 g.blocklyAxisInputY .blocklyFieldRect {
   stroke: var(--color-axis-y) !important;
   stroke-width: 1px !important;
 }
 
-g.blocklyAxisInputZ .blocklyEditableText[style*="cursor: text"] > rect,
+g.blocklyAxisInputZ .blocklyEditableText > rect,
 g.blocklyAxisInputZ .blocklyFieldRect {
   stroke: var(--color-axis-z) !important;
   stroke-width: 1px !important;
+}
+
+.blocklyWidgetDiv.blocklyAxisInputX input.blocklyHtmlInput {
+  border-color: var(--color-axis-x) !important;
+  box-shadow: inset 0 0 0 1px var(--color-axis-x) !important;
+}
+
+.blocklyWidgetDiv.blocklyAxisInputY input.blocklyHtmlInput {
+  border-color: var(--color-axis-y) !important;
+  box-shadow: inset 0 0 0 1px var(--color-axis-y) !important;
+}
+
+.blocklyWidgetDiv.blocklyAxisInputZ input.blocklyHtmlInput {
+  border-color: var(--color-axis-z) !important;
+  box-shadow: inset 0 0 0 1px var(--color-axis-z) !important;
 }
 
 [data-theme="dark-contrast"] .blocklyInsertionMarker path {

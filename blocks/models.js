@@ -225,11 +225,15 @@ export function defineModelBlocks() {
           Y: "blocklyAxisInputY",
           Z: "blocklyAxisInputZ",
         };
+        const axisClasses = Object.values(axisClassMap);
 
         Object.entries(axisClassMap).forEach(([inputName, className]) => {
           const targetBlock = this.getInput(inputName)?.connection?.targetBlock();
           const svgRoot = targetBlock?.getSvgRoot?.();
-          if (svgRoot) svgRoot.classList.add(className);
+          if (!svgRoot) return;
+
+          svgRoot.classList.remove(...axisClasses);
+          svgRoot.classList.add(className);
         });
       };
 
