@@ -58,11 +58,7 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
 }
 
 const loadObjectAxisInputPatchKey = Symbol.for("flock.loadObjectAxisInputPatch");
-const loadObjectConnectionHighlightPatchKey = Symbol.for(
-  "flock.loadObjectConnectionHighlightPatch",
-);
 const fieldNumberPrototype = Blockly.FieldNumber?.prototype;
-const renderedConnectionPrototype = Blockly.RenderedConnection?.prototype;
 const loadObjectAxisColourByName = Object.freeze({
   // Gamma-adjusted to visually match Babylon gizmo arrows on screen.
   x: "#00B1D9",
@@ -102,52 +98,6 @@ if (fieldNumberPrototype && !fieldNumberPrototype[loadObjectAxisInputPatchKey]) 
   };
 
   fieldNumberPrototype[loadObjectAxisInputPatchKey] = true;
-}
-
-if (
-  renderedConnectionPrototype &&
-  !renderedConnectionPrototype[loadObjectConnectionHighlightPatchKey]
-) {
-  const originalHighlight = renderedConnectionPrototype.highlight;
-  const originalUnhighlight = renderedConnectionPrototype.unhighlight;
-  const getLoadObjectAxisForConnection = (connection) => {
-    const sourceBlock = connection.getSourceBlock?.() || connection.sourceBlock_;
-    if (!sourceBlock || sourceBlock.type !== "load_object") return null;
-    if (sourceBlock.getInput?.("X")?.connection === connection) return "x";
-    if (sourceBlock.getInput?.("Y")?.connection === connection) return "y";
-    if (sourceBlock.getInput?.("Z")?.connection === connection) return "z";
-    return null;
-  };
-  const styleLoadObjectAxisPath = (connection, axis) => {
-    const colour = loadObjectAxisColourByName[axis];
-    const highlightPath = connection.findHighlightSvg?.();
-    if (!highlightPath || !colour) return;
-    highlightPath.style.display = "";
-    highlightPath.style.stroke = colour;
-    highlightPath.style.strokeWidth = "2px";
-    highlightPath.style.strokeOpacity = "1";
-    highlightPath.style.fill = "none";
-    highlightPath.setAttribute("data-load-object-axis", axis);
-  };
-
-  renderedConnectionPrototype.highlight = function (...args) {
-    originalHighlight.apply(this, args);
-    const axis = getLoadObjectAxisForConnection(this);
-    if (!axis) return;
-    styleLoadObjectAxisPath(this, axis);
-  };
-
-  renderedConnectionPrototype.unhighlight = function (...args) {
-    const axis = getLoadObjectAxisForConnection(this);
-    if (!axis) {
-      originalUnhighlight.apply(this, args);
-      return;
-    }
-    this.highlighted = true;
-    styleLoadObjectAxisPath(this, axis);
-  };
-
-  renderedConnectionPrototype[loadObjectConnectionHighlightPatchKey] = true;
 }
 
 export let nextVariableIndexes = Object.create(null);
@@ -1158,6 +1108,33 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
       ["X", "Y", "Z"].forEach((inputName) => {
         const inputConnection = b.getInput?.(inputName)?.connection;
         inputConnection?.highlight?.();
+        const highlightPath = inputConnection?.findHighlightSvg?.();
+        if (!highlightPath || !inputConnection?.id) return;
+
+        const axis = inputName.toLowerCase();
+        const colour = loadObjectAxisColourByName[axis];
+        if (!colour) return;
+
+        const persistentPathId = `${inputConnection.id}-load-object-axis`;
+        let persistentPath = document.getElementById(persistentPathId);
+        if (!persistentPath) {
+          persistentPath = highlightPath.cloneNode(false);
+          persistentPath.id = persistentPathId;
+          persistentPath.classList.add("loadObjectAxisPersistentPath");
+          highlightPath.parentNode?.appendChild(persistentPath);
+        }
+
+        const connectionPathData = highlightPath.getAttribute("d");
+        if (connectionPathData) {
+          persistentPath.setAttribute("d", connectionPathData);
+        }
+        persistentPath.setAttribute("data-load-object-axis", axis);
+        persistentPath.style.display = "";
+        persistentPath.style.stroke = colour;
+        persistentPath.style.strokeWidth = "2px";
+        persistentPath.style.strokeOpacity = "1";
+        persistentPath.style.fill = "none";
+        persistentPath.style.pointerEvents = "none";
       });
       return;
     }
