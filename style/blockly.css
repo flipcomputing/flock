@@ -9,6 +9,9 @@
   --color-shadow: grey;
   --color-outline-focus: #fc3;
   --block-outline-focus: #fff200;
+  --color-axis-x: #0072b2;
+  --color-axis-y: #009e73;
+  --color-axis-z: #d55e00;
 
   /* Dropdown & menu semantics */
   --color-dropdown-text: var(--color-text);
@@ -31,6 +34,9 @@
   --color-search-highlight: #ed808b;
   --color-shadow: grey;
   --color-outline-focus: #fc3;
+  --color-axis-x: #0072b2;
+  --color-axis-y: #009e73;
+  --color-axis-z: #d55e00;
 
   /* Dropdown & menu semantics */
   --color-dropdown-text: var(--color-text);
@@ -41,6 +47,24 @@
     --color-dropdown-menu-border,
     1px solid rgba(0, 0, 0, 0.1)
   );
+}
+
+g.blocklyAxisInputX .blocklyEditableText[style*="cursor: text"] > rect,
+g.blocklyAxisInputX .blocklyFieldRect {
+  stroke: var(--color-axis-x) !important;
+  stroke-width: 1px !important;
+}
+
+g.blocklyAxisInputY .blocklyEditableText[style*="cursor: text"] > rect,
+g.blocklyAxisInputY .blocklyFieldRect {
+  stroke: var(--color-axis-y) !important;
+  stroke-width: 1px !important;
+}
+
+g.blocklyAxisInputZ .blocklyEditableText[style*="cursor: text"] > rect,
+g.blocklyAxisInputZ .blocklyFieldRect {
+  stroke: var(--color-axis-z) !important;
+  stroke-width: 1px !important;
 }
 
 [data-theme="dark-contrast"] .blocklyInsertionMarker path {

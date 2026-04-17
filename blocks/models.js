@@ -219,6 +219,20 @@ export function defineModelBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("scene_blocks");
 
+      const applyAxisInputOutlineClasses = () => {
+        const axisClassMap = {
+          X: "blocklyAxisInputX",
+          Y: "blocklyAxisInputY",
+          Z: "blocklyAxisInputZ",
+        };
+
+        Object.entries(axisClassMap).forEach(([inputName, className]) => {
+          const targetBlock = this.getInput(inputName)?.connection?.targetBlock();
+          const svgRoot = targetBlock?.getSvgRoot?.();
+          if (svgRoot) svgRoot.classList.add(className);
+        });
+      };
+
       // Function to update the COLOR field based on the selected model
       const updateColorField = () => {
         const selectedObject = this.getFieldValue("MODELS");
@@ -234,6 +248,7 @@ export function defineModelBlocks() {
       };
 
       updateColorField();
+      applyAxisInputOutlineClasses();
 
       registerBlockHandler(this, (changeEvent) => {
         if (
@@ -246,6 +261,7 @@ export function defineModelBlocks() {
         }
 
         handleBlockChange(this, changeEvent, variableNamePrefix);
+        applyAxisInputOutlineClasses();
 
         if (
           this.id !== changeEvent.blockId &&
