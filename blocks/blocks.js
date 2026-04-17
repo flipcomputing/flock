@@ -58,7 +58,11 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
 }
 
 const loadObjectAxisInputPatchKey = Symbol.for("flock.loadObjectAxisInputPatch");
+const loadObjectConnectionUnhighlightPatchKey = Symbol.for(
+  "flock.loadObjectConnectionUnhighlightPatch",
+);
 const fieldNumberPrototype = Blockly.FieldNumber?.prototype;
+const renderedConnectionPrototype = Blockly.RenderedConnection?.prototype;
 const loadObjectAxisColourByName = Object.freeze({
   // Gamma-adjusted to visually match Babylon gizmo arrows on screen.
   x: "#00B1D9",
@@ -98,6 +102,31 @@ if (fieldNumberPrototype && !fieldNumberPrototype[loadObjectAxisInputPatchKey]) 
   };
 
   fieldNumberPrototype[loadObjectAxisInputPatchKey] = true;
+}
+
+if (
+  renderedConnectionPrototype &&
+  !renderedConnectionPrototype[loadObjectConnectionUnhighlightPatchKey]
+) {
+  const originalUnhighlight = renderedConnectionPrototype.unhighlight;
+  renderedConnectionPrototype.unhighlight = function (...args) {
+    const sourceBlock = this.getSourceBlock?.() || this.sourceBlock_;
+    const isLoadObjectAxisConnection =
+      sourceBlock?.type === "load_object" &&
+      (sourceBlock.getInput?.("X")?.connection === this ||
+        sourceBlock.getInput?.("Y")?.connection === this ||
+        sourceBlock.getInput?.("Z")?.connection === this);
+    if (!isLoadObjectAxisConnection) {
+      originalUnhighlight.apply(this, args);
+      return;
+    }
+    const highlightPath = this.findHighlightSvg?.();
+    if (highlightPath) {
+      highlightPath.style.display = "";
+    }
+    this.highlighted = true;
+  };
+  renderedConnectionPrototype[loadObjectConnectionUnhighlightPatchKey] = true;
 }
 
 export let nextVariableIndexes = Object.create(null);
@@ -1109,32 +1138,18 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
         const inputConnection = b.getInput?.(inputName)?.connection;
         inputConnection?.highlight?.();
         const highlightPath = inputConnection?.findHighlightSvg?.();
-        if (!highlightPath || !inputConnection?.id) return;
+        if (!highlightPath) return;
 
         const axis = inputName.toLowerCase();
         const colour = loadObjectAxisColourByName[axis];
         if (!colour) return;
 
-        const persistentPathId = `${inputConnection.id}-load-object-axis`;
-        let persistentPath = document.getElementById(persistentPathId);
-        if (!persistentPath) {
-          persistentPath = highlightPath.cloneNode(false);
-          persistentPath.id = persistentPathId;
-          persistentPath.classList.add("loadObjectAxisPersistentPath");
-          highlightPath.parentNode?.appendChild(persistentPath);
-        }
-
-        const connectionPathData = highlightPath.getAttribute("d");
-        if (connectionPathData) {
-          persistentPath.setAttribute("d", connectionPathData);
-        }
-        persistentPath.setAttribute("data-load-object-axis", axis);
-        persistentPath.style.display = "";
-        persistentPath.style.stroke = colour;
-        persistentPath.style.strokeWidth = "2px";
-        persistentPath.style.strokeOpacity = "1";
-        persistentPath.style.fill = "none";
-        persistentPath.style.pointerEvents = "none";
+        highlightPath.setAttribute("data-load-object-axis", axis);
+        highlightPath.style.display = "";
+        highlightPath.style.stroke = colour;
+        highlightPath.style.strokeWidth = "2px";
+        highlightPath.style.strokeOpacity = "1";
+        highlightPath.style.fill = "none";
       });
       return;
     }
