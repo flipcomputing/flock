@@ -5,6 +5,7 @@ import { translate } from "../main/translation.js";
 import {
   getBlockKeyFromBlock,
   getMeshFromBlockKey,
+  getMeshFromBlock,
   getRootMesh,
   updateBlockColorAndHighlight,
 } from "./blockmesh.js";
@@ -94,8 +95,18 @@ document.addEventListener("DOMContentLoaded", function () {
   ); // capture=true so we run before scene/camera handlers
 
   window.addEventListener("keydown", (event) => {
-    // Check if both Ctrl and the comma key (,) are pressed
-    if (event.ctrlKey && event.code === "Comma" /*|| event.code === "KeyF"*/) {
+    if (event.ctrlKey || event.altKey || event.metaKey) return;
+    const t = event.target;
+    const tag = (t?.tagName || "").toLowerCase();
+    if (
+      t?.isContentEditable ||
+      tag === "input" ||
+      tag === "textarea" ||
+      tag === "select"
+    )
+      return;
+
+    if (event.code === "KeyF") {
       focusCameraOnMesh();
     }
   });
@@ -297,67 +308,31 @@ function deleteBlockWithUndo(blockId) {
 function focusCameraOnMesh() {
   let mesh = gizmoManager.attachedMesh;
   if (mesh && mesh.name === "ground") mesh = null;
-  if (!mesh && window.currentMesh) {
-    const blockKey = getBlockKeyFromBlock(window.currentBlock);
-    mesh = getMeshFromBlockKey(blockKey);
+  if (!mesh && window.currentBlock) {
+    mesh = getMeshFromBlock(window.currentBlock);
+    if (mesh && mesh.name === "ground") mesh = null;
   }
   if (!mesh) return;
 
   mesh.computeWorldMatrix(true);
-  const boundingInfo = mesh.getBoundingInfo();
-  const newTarget = boundingInfo.boundingBox.centerWorld; // Center of the new mesh
-  const camera = flock.scene.activeCamera;
+  const { min, max } = mesh.getHierarchyBoundingVectors(true);
+  const newTarget = flock.BABYLON.Vector3.Center(min, max);
 
-  if (camera.metadata && camera.metadata.following) {
-    const player = camera.metadata.following; // The player (mesh) the camera is following
-    const playerDistance = 5; // Fixed distance between player and target
-
-    // Keep the player's original Y position
-    const originalPlayerY = player.position.y;
-
-    // Position the player further away from camera than the target
-    player.position = new flock.BABYLON.Vector3(
-      newTarget.x,
-      originalPlayerY,
-      newTarget.z + playerDistance, // Higher Z value to be further from camera
-    );
-
-    // Calculate direction to target
-    const directionToTarget = newTarget.subtract(player.position);
-    directionToTarget.normalize();
-
-    // Calculate the angle to face the target
-    let angle = Math.atan2(directionToTarget.x, directionToTarget.z);
-
-    // Set player rotation directly
-    player.rotation.y = angle;
-
-    // Calculate camera position behind the player
-    const cameraDistance = camera.radius;
-    const cameraPosition = new flock.BABYLON.Vector3(
-      player.position.x,
-      player.position.y + camera.radius * 0.3, // Slight elevation for better view
-      player.position.z + cameraDistance, // Camera is now behind player (higher Z)
-    );
-
-    // Update camera position and target
-    camera.setPosition(cameraPosition);
-    camera.setTarget(player.position);
-  } else {
-    // For other types of cameras
-    const currentDistance = camera.radius || 10;
-    const currentYPosition = camera.position.y;
-
-    // Position camera in front of the mesh
-    const newCameraPosition = new flock.BABYLON.Vector3(
-      newTarget.x,
-      currentYPosition,
-      newTarget.z - currentDistance, // Camera closer to screen than target
-    );
-
-    camera.position = newCameraPosition;
-    camera.setTarget(newTarget);
+  if (flock.scene.activeCamera?.metadata?.following) {
+    handleCameraGizmo();
   }
+
+  const camera = flock.scene.activeCamera;
+  const size = max.subtract(min);
+  const currentDistance = Math.max(size.x, size.y, size.z) * 2;
+
+  camera.position = new flock.BABYLON.Vector3(
+    newTarget.x,
+    newTarget.y + currentDistance * 0.3,
+    newTarget.z - currentDistance,
+  );
+
+  camera.setTarget(newTarget);
 }
 
 function getScaledSize(mesh) {
