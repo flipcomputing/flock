@@ -58,7 +58,11 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
 }
 
 const loadObjectAxisInputPatchKey = Symbol.for("flock.loadObjectAxisInputPatch");
+const loadObjectConnectionHighlightPatchKey = Symbol.for(
+  "flock.loadObjectConnectionHighlightPatch",
+);
 const fieldNumberPrototype = Blockly.FieldNumber?.prototype;
+const renderedConnectionPrototype = Blockly.RenderedConnection?.prototype;
 const loadObjectAxisColourByName = Object.freeze({
   // Gamma-adjusted to visually match Babylon gizmo arrows on screen.
   x: "#00B1D9",
@@ -98,6 +102,38 @@ if (fieldNumberPrototype && !fieldNumberPrototype[loadObjectAxisInputPatchKey]) 
   };
 
   fieldNumberPrototype[loadObjectAxisInputPatchKey] = true;
+}
+
+if (
+  renderedConnectionPrototype &&
+  !renderedConnectionPrototype[loadObjectConnectionHighlightPatchKey]
+) {
+  const originalHighlight = renderedConnectionPrototype.highlight;
+  renderedConnectionPrototype.highlight = function (...args) {
+    originalHighlight.apply(this, args);
+
+    const sourceBlock = this.getSourceBlock?.() || this.sourceBlock_;
+    if (!sourceBlock || sourceBlock.type !== "load_object") return;
+
+    let axis = null;
+    if (sourceBlock.getInput?.("X")?.connection === this) axis = "x";
+    else if (sourceBlock.getInput?.("Y")?.connection === this) axis = "y";
+    else if (sourceBlock.getInput?.("Z")?.connection === this) axis = "z";
+    if (!axis) return;
+
+    const colour = loadObjectAxisColourByName[axis];
+    const highlightPath = this.findHighlightSvg?.();
+    if (!highlightPath || !colour) return;
+
+    highlightPath.style.display = "";
+    highlightPath.style.stroke = colour;
+    highlightPath.style.strokeWidth = "2px";
+    highlightPath.style.strokeOpacity = "1";
+    highlightPath.style.fill = "none";
+    highlightPath.setAttribute("data-load-object-axis", axis);
+  };
+
+  renderedConnectionPrototype[loadObjectConnectionHighlightPatchKey] = true;
 }
 
 export let nextVariableIndexes = Object.create(null);
@@ -1105,31 +1141,9 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
 
     const b = this.block_;
     if (b?.type === "load_object") {
-      const svgRoot = b.getSvgRoot?.();
-      if (svgRoot) {
-        svgRoot.setAttribute("data-load-object-axis-owner", "true");
-      }
-
-      const axisColourByInput = Object.freeze({
-        X: "#00B1D9",
-        Y: "#00CDB2",
-        Z: "#EBA200",
-      });
-      Object.entries(axisColourByInput).forEach(([inputName, colour]) => {
+      ["X", "Y", "Z"].forEach((inputName) => {
         const inputConnection = b.getInput?.(inputName)?.connection;
         inputConnection?.highlight?.();
-        const highlightPath = inputConnection?.findHighlightSvg?.();
-        if (highlightPath) {
-          highlightPath.style.display = "";
-          highlightPath.style.stroke = colour;
-          highlightPath.style.strokeWidth = "2px";
-          highlightPath.style.strokeOpacity = "1";
-          highlightPath.style.fill = "none";
-          highlightPath.setAttribute(
-            "data-load-object-axis",
-            inputName.toLowerCase(),
-          );
-        }
       });
       return;
     }
