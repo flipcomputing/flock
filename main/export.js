@@ -333,6 +333,9 @@ async function generateSVG(block) {
 	  stroke: #555;
 	  stroke-width: 30;
 	}
+	[data-axis="X"] .blocklyPath { stroke: #1A9EE0 !important; stroke-width: 2px !important; }
+	[data-axis="Y"] .blocklyPath { stroke: #00CC96 !important; stroke-width: 2px !important; }
+	[data-axis="Z"] .blocklyPath { stroke: #F07020 !important; stroke-width: 2px !important; }
   `;
   svgBlock.insertBefore(style, svgBlock.firstChild);
 
