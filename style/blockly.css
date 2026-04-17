@@ -706,22 +706,22 @@ body[data-theme="dark"] .blocklyTreeLabel {
 }
 
 .blocklyWidgetDiv input.blocklyHtmlInput[data-load-object-axis] {
-  border-width: 1px !important;
+  border-width: 2px !important;
 }
 
 .blocklyWidgetDiv input.blocklyHtmlInput[data-load-object-axis="x"] {
   border-color: #00b1d9 !important;
-  box-shadow: inset 0 0 0 1px #00b1d9;
+  box-shadow: inset 0 0 0 2px #00b1d9;
 }
 
 .blocklyWidgetDiv input.blocklyHtmlInput[data-load-object-axis="y"] {
   border-color: #00cdb2 !important;
-  box-shadow: inset 0 0 0 1px #00cdb2;
+  box-shadow: inset 0 0 0 2px #00cdb2;
 }
 
 .blocklyWidgetDiv input.blocklyHtmlInput[data-load-object-axis="z"] {
   border-color: #eba200 !important;
-  box-shadow: inset 0 0 0 1px #eba200;
+  box-shadow: inset 0 0 0 2px #eba200;
 }
 
 /* Always-on load_object axis input indicators rendered by the custom renderer. */
