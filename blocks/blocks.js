@@ -109,28 +109,42 @@ if (
   !renderedConnectionPrototype[loadObjectConnectionHighlightPatchKey]
 ) {
   const originalHighlight = renderedConnectionPrototype.highlight;
-  renderedConnectionPrototype.highlight = function (...args) {
-    originalHighlight.apply(this, args);
-
-    const sourceBlock = this.getSourceBlock?.() || this.sourceBlock_;
-    if (!sourceBlock || sourceBlock.type !== "load_object") return;
-
-    let axis = null;
-    if (sourceBlock.getInput?.("X")?.connection === this) axis = "x";
-    else if (sourceBlock.getInput?.("Y")?.connection === this) axis = "y";
-    else if (sourceBlock.getInput?.("Z")?.connection === this) axis = "z";
-    if (!axis) return;
-
+  const originalUnhighlight = renderedConnectionPrototype.unhighlight;
+  const getLoadObjectAxisForConnection = (connection) => {
+    const sourceBlock = connection.getSourceBlock?.() || connection.sourceBlock_;
+    if (!sourceBlock || sourceBlock.type !== "load_object") return null;
+    if (sourceBlock.getInput?.("X")?.connection === connection) return "x";
+    if (sourceBlock.getInput?.("Y")?.connection === connection) return "y";
+    if (sourceBlock.getInput?.("Z")?.connection === connection) return "z";
+    return null;
+  };
+  const styleLoadObjectAxisPath = (connection, axis) => {
     const colour = loadObjectAxisColourByName[axis];
-    const highlightPath = this.findHighlightSvg?.();
+    const highlightPath = connection.findHighlightSvg?.();
     if (!highlightPath || !colour) return;
-
     highlightPath.style.display = "";
     highlightPath.style.stroke = colour;
     highlightPath.style.strokeWidth = "2px";
     highlightPath.style.strokeOpacity = "1";
     highlightPath.style.fill = "none";
     highlightPath.setAttribute("data-load-object-axis", axis);
+  };
+
+  renderedConnectionPrototype.highlight = function (...args) {
+    originalHighlight.apply(this, args);
+    const axis = getLoadObjectAxisForConnection(this);
+    if (!axis) return;
+    styleLoadObjectAxisPath(this, axis);
+  };
+
+  renderedConnectionPrototype.unhighlight = function (...args) {
+    const axis = getLoadObjectAxisForConnection(this);
+    if (!axis) {
+      originalUnhighlight.apply(this, args);
+      return;
+    }
+    this.highlighted = true;
+    styleLoadObjectAxisPath(this, axis);
   };
 
   renderedConnectionPrototype[loadObjectConnectionHighlightPatchKey] = true;
