@@ -729,6 +729,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
   .blocklyHighlightedConnectionPath[data-load-object-axis] {
   stroke-width: 2px !important;
   stroke-opacity: 1 !important;
+  vector-effect: non-scaling-stroke;
 }
 
 /* Blockly injection container */

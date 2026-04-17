@@ -134,6 +134,7 @@ if (
       highlightPath.style.strokeWidth = "2px";
       highlightPath.style.strokeOpacity = "1";
       highlightPath.style.fill = "none";
+      highlightPath.style.vectorEffect = "non-scaling-stroke";
     }
     this.highlighted = true;
   };
@@ -1161,6 +1162,7 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
         highlightPath.style.strokeWidth = "2px";
         highlightPath.style.strokeOpacity = "1";
         highlightPath.style.fill = "none";
+        highlightPath.style.vectorEffect = "non-scaling-stroke";
       });
       return;
     }
