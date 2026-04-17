@@ -1117,8 +1117,17 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
       });
       Object.entries(axisColourByInput).forEach(([inputName, colour]) => {
         const inputConnection = b.getInput?.(inputName)?.connection;
-        if (inputConnection?.highlight) {
-          inputConnection.highlight(colour);
+        const highlightPath = inputConnection?.findHighlightSvg?.();
+        if (highlightPath) {
+          highlightPath.style.display = "";
+          highlightPath.style.stroke = colour;
+          highlightPath.style.strokeWidth = "2px";
+          highlightPath.style.strokeOpacity = "1";
+          highlightPath.style.fill = "none";
+          highlightPath.setAttribute(
+            "data-load-object-axis",
+            inputName.toLowerCase(),
+          );
         }
       });
       return;
