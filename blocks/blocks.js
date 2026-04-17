@@ -18,6 +18,7 @@ import { createThemeConfig } from "../main/themes.js";
 import {
   makeInlineIcon,
   TOGGLE_BUTTON_FIELD_NAME,
+  AXIS_COLORS,
 } from "./blockIcons.js";
 
 registerFieldColour();
@@ -1057,8 +1058,25 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
     super.drawBottom_();
   }
 
+  colorizeAxisInput_() {
+    const b = this.block_;
+    if (!b.outputConnection?.isConnected()) return;
+    const parentInput =
+      b.outputConnection.targetConnection?.getParentInput?.();
+    if (!parentInput) return;
+    const color = AXIS_COLORS[parentInput.name];
+    if (!color) return;
+    const pathObj = this.pathObject_;
+    const mainPath =
+      pathObj?.svgPath_ || pathObj?.svgPath || pathObj?.path_ || null;
+    if (!mainPath) return;
+    mainPath.setAttribute("stroke", color);
+    mainPath.setAttribute("stroke-width", "2");
+  }
+
   draw() {
     super.draw();
+    this.colorizeAxisInput_();
 
     const b = this.block_;
     if (b?.type !== "if_clause") return;

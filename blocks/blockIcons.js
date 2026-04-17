@@ -156,9 +156,3 @@ export const AXIS_COLORS = {
   Y: "#00CC96",
   Z: "#F07020",
 };
-
-export function makeAxisDotUrl(color) {
-  return buildSvgDataUri(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14"><rect x="1.5" y="1.5" width="11" height="11" rx="3" fill="none" stroke="${color}" stroke-width="2"/></svg>`,
-  );
-}
