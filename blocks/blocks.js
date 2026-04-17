@@ -60,9 +60,10 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
 const loadObjectAxisInputPatchKey = Symbol.for("flock.loadObjectAxisInputPatch");
 const fieldNumberPrototype = Blockly.FieldNumber?.prototype;
 const loadObjectAxisColourByName = Object.freeze({
-  x: "#0072B2",
-  y: "#009E73",
-  z: "#D55E00",
+  // Gamma-adjusted to visually match Babylon gizmo arrows on screen.
+  x: "#00B1D9",
+  y: "#00CDB2",
+  z: "#EBA200",
 });
 
 if (fieldNumberPrototype && !fieldNumberPrototype[loadObjectAxisInputPatchKey]) {
@@ -1111,9 +1112,9 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
       }
 
       const axisColourByInput = Object.freeze({
-        X: "#0072B2",
-        Y: "#009E73",
-        Z: "#D55E00",
+        X: "#00B1D9",
+        Y: "#00CDB2",
+        Z: "#EBA200",
       });
       Object.entries(axisColourByInput).forEach(([inputName, colour]) => {
         const inputConnection = b.getInput?.(inputName)?.connection;
