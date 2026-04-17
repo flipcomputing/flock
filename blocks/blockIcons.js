@@ -150,3 +150,15 @@ export function updateBlockIcons(workspace, iconColor) {
 export function updateAllBlockIcons(workspace, iconColor) {
   updateBlockIcons(workspace, iconColor);
 }
+
+export const AXIS_COLORS = {
+  X: "#0072B2",
+  Y: "#009E73",
+  Z: "#D55E00",
+};
+
+export function makeAxisDotUrl(color) {
+  return buildSvgDataUri(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="${color}" stroke="rgba(255,255,255,0.4)" stroke-width="0.5"/></svg>`,
+  );
+}

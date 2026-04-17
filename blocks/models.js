@@ -20,8 +20,24 @@ import {
 } from "../config.js";
 import { flock } from "../flock.js";
 import { translate, getTooltip } from "../main/translation.js";
+import { makeAxisDotUrl, AXIS_COLORS } from "./blockIcons.js";
 
 export function defineModelBlocks() {
+  function addAxisDots(block) {
+    block.getInput("X").appendField(
+      new Blockly.FieldImage(makeAxisDotUrl(AXIS_COLORS.X), 12, 12, "x"),
+      "X_AXIS_DOT",
+    );
+    block.getInput("Y").appendField(
+      new Blockly.FieldImage(makeAxisDotUrl(AXIS_COLORS.Y), 12, 12, "y"),
+      "Y_AXIS_DOT",
+    );
+    block.getInput("Z").appendField(
+      new Blockly.FieldImage(makeAxisDotUrl(AXIS_COLORS.Z), 12, 12, "z"),
+      "Z_AXIS_DOT",
+    );
+  }
+
   Blockly.Blocks["load_character"] = {
     init: function () {
       const variableNamePrefix = "character";
@@ -109,6 +125,7 @@ export function defineModelBlocks() {
         previousStatement: null,
         nextStatement: null,
       });
+      addAxisDots(this);
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("scene_blocks");
 
@@ -216,6 +233,7 @@ export function defineModelBlocks() {
         previousStatement: null,
         nextStatement: null,
       });
+      addAxisDots(this);
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("scene_blocks");
 
@@ -323,6 +341,7 @@ export function defineModelBlocks() {
         previousStatement: null,
         nextStatement: null,
       });
+      addAxisDots(this);
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("scene_blocks");
 
@@ -545,7 +564,7 @@ export function defineModelBlocks() {
         previousStatement: null,
         nextStatement: null,
       });
-
+      addAxisDots(this);
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("scene_blocks");
 
