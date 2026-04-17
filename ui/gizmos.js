@@ -108,6 +108,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (event.code === "KeyF") {
       focusCameraOnMesh();
+    } else if (event.code === "KeyV") {
+      viewMeshWithCamera();
     }
   });
 
@@ -323,16 +325,157 @@ function focusCameraOnMesh() {
   }
 
   const camera = flock.scene.activeCamera;
-  const size = max.subtract(min);
-  const currentDistance = Math.max(size.x, size.y, size.z) * 2;
+  const currentDistance = camera.radius || 10;
+  const currentYPosition = camera.position.y;
 
   camera.position = new flock.BABYLON.Vector3(
     newTarget.x,
-    newTarget.y + currentDistance * 0.3,
+    currentYPosition,
     newTarget.z - currentDistance,
   );
-
   camera.setTarget(newTarget);
+}
+
+function viewMeshWithCamera() {
+  let mesh = gizmoManager.attachedMesh;
+  if (mesh && mesh.name === "ground") mesh = null;
+
+  if (!mesh && window.currentBlock) {
+    mesh = getMeshFromBlock(window.currentBlock);
+    if (mesh && mesh.name === "ground") mesh = null;
+  }
+
+  const camera = flock.scene.activeCamera;
+
+  if (!camera?.metadata?.following) {
+    if (mesh) focusCameraOnMesh();
+    return;
+  }
+
+  if (!mesh) return;
+
+  const BABYLON = flock.BABYLON;
+  const player = camera.metadata.following;
+
+  mesh.computeWorldMatrix(true);
+  const { min, max } = mesh.getHierarchyBoundingVectors(true);
+  const target = BABYLON.Vector3.Center(min, max);
+
+  const size = max.subtract(min);
+  const extent = Math.max(size.x, size.y, size.z);
+
+  const playerY = player.position.y;
+  const playerDistance = Math.max(extent * 2, 4);
+
+  // Try a few candidate directions around the mesh.
+  const candidateAngles = [
+    -Math.PI / 2,
+    0,
+    Math.PI / 2,
+    Math.PI,
+    -Math.PI / 4,
+    Math.PI / 4,
+    (3 * Math.PI) / 4,
+    (-3 * Math.PI) / 4,
+  ];
+
+  let chosenPlayerPos = null;
+  let chosenYaw = null;
+
+  const scene = flock.scene;
+  const ignoreSet = new Set([mesh, player]);
+  mesh.getChildMeshes?.(false).forEach((m) => ignoreSet.add(m));
+  player.getChildMeshes?.(false).forEach((m) => ignoreSet.add(m));
+
+  function isBlockingMesh(hitMesh) {
+    if (!hitMesh) return false;
+    if (ignoreSet.has(hitMesh)) return false;
+    if (hitMesh.name === "ground") return false;
+    if (!hitMesh.isEnabled?.()) return false;
+    if (!hitMesh.isVisible) return false;
+    return hitMesh.isPickable !== false;
+  }
+
+  function getYawToTarget(fromPos, toPos) {
+    const dir = toPos.subtract(fromPos);
+    return Math.atan2(dir.x, dir.z);
+  }
+
+  function hasClearView(playerPos, yaw) {
+    // Camera behind player, looking towards player/mesh.
+    const testRadius = Math.max(extent / 2, 5);
+    const testBeta = Math.PI / 3;
+
+    // For ArcRotateCamera around player:
+    // x offset = radius * cos(alpha) * sin(beta)
+    // z offset = radius * sin(alpha) * sin(beta)
+    // To put camera behind player relative to yaw:
+    const alpha = -yaw - Math.PI / 2;
+
+    const camPos = new BABYLON.Vector3(
+      playerPos.x + testRadius * Math.cos(alpha) * Math.sin(testBeta),
+      playerPos.y + testRadius * Math.cos(testBeta),
+      playerPos.z + testRadius * Math.sin(alpha) * Math.sin(testBeta),
+    );
+
+    const direction = target.subtract(camPos);
+    const length = direction.length();
+    if (length < 0.001) return true;
+
+    const ray = new BABYLON.Ray(camPos, direction.normalize(), length);
+    const hit = scene.pickWithRay(ray, (candidate) =>
+      isBlockingMesh(candidate),
+    );
+    return !hit?.hit;
+  }
+
+  for (const angle of candidateAngles) {
+    const playerPos = new BABYLON.Vector3(
+      target.x - Math.cos(angle) * playerDistance,
+      playerY,
+      target.z - Math.sin(angle) * playerDistance,
+    );
+
+    const yaw = getYawToTarget(playerPos, target);
+
+    if (hasClearView(playerPos, yaw)) {
+      chosenPlayerPos = playerPos;
+      chosenYaw = yaw;
+      break;
+    }
+
+    if (!chosenPlayerPos) {
+      chosenPlayerPos = playerPos;
+      chosenYaw = yaw;
+    }
+  }
+
+  if (!chosenPlayerPos) return;
+
+  const PLAYER_FORWARD_OFFSET = Math.PI;
+  const playerRotation = BABYLON.Quaternion.FromEulerAngles(
+    0,
+    chosenYaw + PLAYER_FORWARD_OFFSET,
+    0,
+  );
+
+  player.position.copyFrom(chosenPlayerPos);
+  player.rotationQuaternion = playerRotation;
+
+  if (player.physics) {
+    player.physics.setTargetTransform(chosenPlayerPos, playerRotation);
+  }
+
+  // Keep camera following player, but place it behind the player.
+  if ("lockedTarget" in camera) {
+    camera.lockedTarget = player;
+  }
+
+  camera.beta = Math.PI / 2;
+  camera.radius = Math.max(extent / 2, 5);
+
+  // Behind player relative to the direction the player is facing toward the mesh.
+  camera.alpha = -chosenYaw - Math.PI / 2;
 }
 
 function getScaledSize(mesh) {
