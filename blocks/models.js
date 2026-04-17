@@ -237,6 +237,15 @@ export function defineModelBlocks() {
 
       registerBlockHandler(this, (changeEvent) => {
         if (
+          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+          changeEvent.type === Blockly.Events.BLOCK_DELETE ||
+          changeEvent.type === Blockly.Events.BLOCK_CHANGE ||
+          changeEvent.type === Blockly.Events.BLOCK_MOVE
+        ) {
+          this.render();
+        }
+
+        if (
           changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
           changeEvent.element === "field" &&
           changeEvent.name === "MODELS" &&
