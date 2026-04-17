@@ -1117,6 +1117,7 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
       });
       Object.entries(axisColourByInput).forEach(([inputName, colour]) => {
         const inputConnection = b.getInput?.(inputName)?.connection;
+        inputConnection?.highlight?.();
         const highlightPath = inputConnection?.findHighlightSvg?.();
         if (highlightPath) {
           highlightPath.style.display = "";
