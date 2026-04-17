@@ -15,7 +15,10 @@ import {
 } from "../ui/blockmesh.js";
 import { FieldColour, registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "../main/themes.js";
-import { makeInlineIcon, TOGGLE_BUTTON_FIELD_NAME } from "./blockIcons.js";
+import {
+  makeInlineIcon,
+  TOGGLE_BUTTON_FIELD_NAME,
+} from "./blockIcons.js";
 
 registerFieldColour();
 
@@ -1055,13 +1058,10 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
   }
 
   colorizeAxisInput_() {
-    const AXIS_COLORS = {
-      X: "#1A9EE0",
-      Y: "#00CC96",
-      Z: "#F07020",
-    };
-
     const b = this.block_;
+    const svgRoot = b.getSvgRoot?.();
+    if (!svgRoot) return;
+    svgRoot.removeAttribute("data-axis");
     if (!b.outputConnection?.isConnected()) return;
     const targetConn = b.outputConnection.targetConnection;
     if (!targetConn) return;
@@ -1071,12 +1071,9 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
       (input) => input.connection === targetConn,
     );
     if (!parentInput) return;
-    const color = AXIS_COLORS[parentInput.name];
-    if (!color) return;
-    const mainPath = b.getSvgRoot?.()?.querySelector?.(".blocklyPath");
-    if (!mainPath) return;
-    mainPath.setAttribute("stroke", color);
-    mainPath.setAttribute("stroke-width", "3");
+    if (parentInput.name === "X" || parentInput.name === "Y" || parentInput.name === "Z") {
+      svgRoot.setAttribute("data-axis", parentInput.name);
+    }
   }
 
   draw() {

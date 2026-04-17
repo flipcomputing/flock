@@ -4,6 +4,9 @@
   --color-bg: white;
   --color-text: black;
   --color-text-label: var(--color-text);
+  --axis-x-color: #1A9EE0;
+  --axis-y-color: #00CC96;
+  --axis-z-color: #F07020;
   --color-border-highlight: #ee5d6c;
   --color-search-highlight: #ed808b;
   --color-shadow: grey;
@@ -815,3 +818,8 @@ textarea.blocklyCommentText.blocklyTextarea.blocklyText {
   max-width: 100% !important;
   box-sizing: border-box !important;
 }
+
+/* XYZ axis input outlines — survive theme changes via CSS */
+[data-axis="X"] .blocklyPath { stroke: var(--axis-x-color) !important; stroke-width: 2px !important; }
+[data-axis="Y"] .blocklyPath { stroke: var(--axis-y-color) !important; stroke-width: 2px !important; }
+[data-axis="Z"] .blocklyPath { stroke: var(--axis-z-color) !important; stroke-width: 2px !important; }
