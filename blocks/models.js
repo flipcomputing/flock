@@ -149,6 +149,9 @@ export function defineModelBlocks() {
 
   Blockly.Blocks["load_object"] = {
     init: function () {
+      const axisInputNames = ["X", "Y", "Z"];
+      const axisIndicatorAttr = "data-load-object-axis";
+      const axisOwnerAttr = "data-load-object-axis-owner";
       const defaultObject = "Star.glb";
       const defaultColours = objectColours[defaultObject];
       const defaultColour = Array.isArray(defaultColours)
@@ -219,6 +222,28 @@ export function defineModelBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("scene_blocks");
 
+      const clearAxisInputIndicators = () => {
+        const parentSvg = this.workspace?.getParentSvg?.();
+        if (!parentSvg) return;
+        parentSvg
+          .querySelectorAll(`[${axisOwnerAttr}="${this.id}"]`)
+          .forEach((svgRoot) => {
+            svgRoot.removeAttribute(axisIndicatorAttr);
+            svgRoot.removeAttribute(axisOwnerAttr);
+          });
+      };
+
+      const applyAxisInputIndicators = () => {
+        clearAxisInputIndicators();
+        axisInputNames.forEach((inputName) => {
+          const axisBlock = this.getInputTargetBlock(inputName);
+          const axisRoot = axisBlock?.getSvgRoot?.();
+          if (!axisRoot) return;
+          axisRoot.setAttribute(axisIndicatorAttr, inputName.toLowerCase());
+          axisRoot.setAttribute(axisOwnerAttr, this.id);
+        });
+      };
+
       // Function to update the COLOR field based on the selected model
       const updateColorField = () => {
         const selectedObject = this.getFieldValue("MODELS");
@@ -234,8 +259,19 @@ export function defineModelBlocks() {
       };
 
       updateColorField();
+      applyAxisInputIndicators();
 
       registerBlockHandler(this, (changeEvent) => {
+        const isRelevantAxisEvent =
+          changeEvent.blockId === this.id ||
+          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+          changeEvent.type === Blockly.Events.BLOCK_MOVE ||
+          changeEvent.type === Blockly.Events.BLOCK_DELETE ||
+          changeEvent.type === Blockly.Events.BLOCK_CHANGE;
+        if (isRelevantAxisEvent) {
+          applyAxisInputIndicators();
+        }
+
         if (
           changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
           changeEvent.element === "field" &&

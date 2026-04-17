@@ -705,6 +705,32 @@ body[data-theme="dark"] .blocklyTreeLabel {
   vector-effect: non-scaling-stroke;
 }
 
+/* Add Object XYZ numeric indicator outlines (always visible, subtle inner stroke). */
+.blocklyBlockCanvas g[data-load-object-axis][data-load-object-axis-owner]
+  .blocklyEditableText[style*="cursor: text"]
+  > rect {
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.blocklyBlockCanvas g[data-load-object-axis="x"][data-load-object-axis-owner]
+  .blocklyEditableText[style*="cursor: text"]
+  > rect {
+  stroke: #0072b2;
+}
+
+.blocklyBlockCanvas g[data-load-object-axis="y"][data-load-object-axis-owner]
+  .blocklyEditableText[style*="cursor: text"]
+  > rect {
+  stroke: #009e73;
+}
+
+.blocklyBlockCanvas g[data-load-object-axis="z"][data-load-object-axis-owner]
+  .blocklyEditableText[style*="cursor: text"]
+  > rect {
+  stroke: #d55e00;
+}
+
 /* Blockly injection container */
 #blocklyDiv {
   position: relative;
