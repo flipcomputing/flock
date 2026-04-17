@@ -1061,14 +1061,17 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
   colorizeAxisInput_() {
     const b = this.block_;
     if (!b.outputConnection?.isConnected()) return;
-    const parentInput =
-      b.outputConnection.targetConnection?.getParentInput?.();
+    const targetConn = b.outputConnection.targetConnection;
+    if (!targetConn) return;
+    const parentBlock = b.outputConnection.targetBlock();
+    if (!parentBlock) return;
+    const parentInput = (parentBlock.inputList || []).find(
+      (input) => input.connection === targetConn,
+    );
     if (!parentInput) return;
     const color = AXIS_COLORS[parentInput.name];
     if (!color) return;
-    const pathObj = this.pathObject_;
-    const mainPath =
-      pathObj?.svgPath_ || pathObj?.svgPath || pathObj?.path_ || null;
+    const mainPath = b.getSvgRoot?.()?.querySelector?.(".blocklyPath");
     if (!mainPath) return;
     mainPath.setAttribute("stroke", color);
     mainPath.setAttribute("stroke-width", "2");
