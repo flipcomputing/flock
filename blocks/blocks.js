@@ -1105,6 +1105,11 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
 
     const b = this.block_;
     if (b?.type === "load_object") {
+      const svgRoot = b.getSvgRoot?.();
+      if (svgRoot) {
+        svgRoot.setAttribute("data-load-object-axis-owner", "true");
+      }
+
       const axisColourByInput = Object.freeze({
         X: "#00B1D9",
         Y: "#00CDB2",

@@ -726,7 +726,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
 /* Always-on load_object axis input indicators rendered by the custom renderer. */
 .blocklyBlockCanvas
-  .blocklyHighlightedConnectionPath[data-load-object-axis] {
+  g[data-load-object-axis-owner]
+  .blocklyHighlightedConnectionPath {
   stroke-width: 2px !important;
   stroke-opacity: 1 !important;
 }
