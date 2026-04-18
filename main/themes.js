@@ -83,6 +83,23 @@ export const contrastCategoryColours = {
 
 const LOW_VISION_THEME = "low-vision";
 let lowVisionIconListenerRegistered = false;
+const LOW_VISION_TOOLBOX_ACCENTS = {
+  "events.svg": "#d4695d",
+  "scene.svg": "#4f8f59",
+  "motion.svg": "#d48642",
+  "animate.svg": "#cc6b86",
+  "looks.svg": "#8c6ed6",
+  "sound.svg": "#cf8466",
+  "sensing.svg": "#4f8fc7",
+  "snippets.svg": "#5a9abc",
+  "control.svg": "#4f9f52",
+  "conditions.svg": "#4f73c9",
+  "variables.svg": "#b45d94",
+  "text.svg": "#5f88c8",
+  "lists.svg": "#b45d94",
+  "math.svg": "#5f74c6",
+  "functions.svg": "#9662bf",
+};
 
 function ensureLowVisionIconListener(workspace) {
   if (lowVisionIconListenerRegistered || !workspace) return;
@@ -92,6 +109,28 @@ function ensureLowVisionIconListener(workspace) {
     }
   });
   lowVisionIconListenerRegistered = true;
+}
+
+function applyLowVisionToolboxAccents() {
+  const rows = document.querySelectorAll(".blocklyToolboxCategory");
+  for (const row of rows) {
+    const icon = row.querySelector("img.customToolboxIcon");
+    if (!icon) continue;
+    const src = icon.getAttribute("src") || "";
+    const iconName = src.split("/").pop() || "";
+    const accent = LOW_VISION_TOOLBOX_ACCENTS[iconName];
+    if (!accent) continue;
+    row.style.borderLeft = `4px solid ${accent}`;
+    row.style.paddingLeft = "6px";
+  }
+}
+
+function clearLowVisionToolboxAccents() {
+  const rows = document.querySelectorAll(".blocklyToolboxCategory");
+  for (const row of rows) {
+    row.style.borderLeft = "";
+    row.style.paddingLeft = "";
+  }
 }
 
 function setLogos(themeName) {
@@ -209,8 +248,10 @@ function switchTheme(themeName) {
   updateAllBlockIcons(workspace, iconColor);
   if (themeName === LOW_VISION_THEME) {
     applyLowVisionCategoryIcons(workspace);
+    applyLowVisionToolboxAccents();
   } else {
     clearLowVisionCategoryIcons(workspace);
+    clearLowVisionToolboxAccents();
   }
 
   // Optional: Save theme preference
