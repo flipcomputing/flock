@@ -803,6 +803,14 @@ body[data-theme="low-vision"]
   outline-offset: 2px;
 }
 
+/* Keyboard focus for DROPDOWN fields */
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyDropdownField .blocklyDropdownRect,
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyFieldDropdown .blocklyDropdownRect,
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyEditableText .blocklyDropdownRect {
+  stroke: var(--block-outline-focus) !important;
+  stroke-width: 3px !important;
+}
+
 .blocklyKeyboardNavigation .blocklyActiveFocus.blocklyImageField image[style*="cursor: pointer"] {
   stroke: var(--block-outline-focus);
   stroke-width: 5px;
@@ -812,6 +820,15 @@ body[data-theme="low-vision"]
 .blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyImageField {
   outline: 5px dashed var(--block-outline-focus);
   outline-offset: 2px;
+}
+
+/* Passive keyboard focus for DROPDOWN fields */
+.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyDropdownField .blocklyDropdownRect,
+.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyFieldDropdown .blocklyDropdownRect,
+.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyEditableText .blocklyDropdownRect {
+  stroke: var(--color-outline-focus) !important;
+  stroke-width: 3px !important;
+  stroke-dasharray: 4 2;
 }
 
 .blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyImageField image[style*="cursor: pointer"] {
