@@ -156,21 +156,21 @@ const CATEGORY_ICON_BY_STYLE = {
 };
 
 const CATEGORY_ACCENT_BY_STYLE = {
-  events_blocks: "#d4695d",
-  scene_blocks: "#4f8f59",
-  transform_blocks: "#d48642",
-  animate_blocks: "#cc6b86",
-  materials_blocks: "#8c6ed6",
-  sound_blocks: "#cf8466",
-  sensing_blocks: "#4f8fc7",
-  snippets_blocks: "#5a9abc",
-  control_blocks: "#4f9f52",
-  logic_blocks: "#4f73c9",
-  variable_blocks: "#b45d94",
-  text_blocks: "#5f88c8",
-  list_blocks: "#b45d94",
-  math_blocks: "#5f74c6",
-  procedure_blocks: "#9662bf",
+  events_blocks: "#d99d98",
+  scene_blocks: "#bed998",
+  transform_blocks: "#d3d998",
+  animate_blocks: "#d9c898",
+  materials_blocks: "#c398d9",
+  sound_blocks: "#d9b398",
+  sensing_blocks: "#98d9d9",
+  snippets_blocks: "#98c3d9",
+  control_blocks: "#98d998",
+  logic_blocks: "#98b8d9",
+  variable_blocks: "#d998b8",
+  text_blocks: "#98d9c3",
+  list_blocks: "#ad98d9",
+  math_blocks: "#98a3d9",
+  procedure_blocks: "#ce98d9",
 };
 
 export function makeInlineIcon(color) {
