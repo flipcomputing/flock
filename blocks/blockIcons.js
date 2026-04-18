@@ -192,6 +192,7 @@ export function updateBlockIcons(workspace, iconColor) {
   if (!workspace) return;
   const blocks = getWorkspaceAndFlyoutBlocks(workspace);
   for (const block of blocks) {
+    if (!block || typeof block.getField !== "function") continue;
     const iconField = block.getField(BLOCK_ICON_FIELD_NAME);
     if (iconField) {
       const maker = BLOCK_ICON_MAKERS[block.type];
@@ -238,6 +239,13 @@ export function applyLowVisionCategoryIcons(workspace) {
   if (!workspace) return;
   const blocks = getWorkspaceAndFlyoutBlocks(workspace);
   for (const block of blocks) {
+    if (
+      !block ||
+      typeof block.getField !== "function" ||
+      !Array.isArray(block.inputList)
+    ) {
+      continue;
+    }
     const iconPath = getCategoryIconForBlock(block);
     if (!iconPath) continue;
 
@@ -257,6 +265,13 @@ export function clearLowVisionCategoryIcons(workspace) {
   if (!workspace) return;
   const blocks = getWorkspaceAndFlyoutBlocks(workspace);
   for (const block of blocks) {
+    if (
+      !block ||
+      typeof block.getField !== "function" ||
+      typeof block.removeField !== "function"
+    ) {
+      continue;
+    }
     if (block.getField(LOW_VISION_BAR_FIELD_NAME)) {
       block.removeField(LOW_VISION_BAR_FIELD_NAME, true);
     }
