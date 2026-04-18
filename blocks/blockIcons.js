@@ -1,4 +1,19 @@
 import * as Blockly from "blockly";
+import eventsIconSvg from "../images/events.svg?raw";
+import sceneIconSvg from "../images/scene.svg?raw";
+import transformIconSvg from "../images/motion.svg?raw";
+import animateIconSvg from "../images/animate.svg?raw";
+import materialsIconSvg from "../images/looks.svg?raw";
+import soundIconSvg from "../images/sound.svg?raw";
+import sensingIconSvg from "../images/sensing.svg?raw";
+import snippetsIconSvg from "../images/snippets.svg?raw";
+import controlIconSvg from "../images/control.svg?raw";
+import logicIconSvg from "../images/conditions.svg?raw";
+import variableIconSvg from "../images/variables.svg?raw";
+import textIconSvg from "../images/text.svg?raw";
+import listIconSvg from "../images/lists.svg?raw";
+import mathIconSvg from "../images/math.svg?raw";
+import procedureIconSvg from "../images/functions.svg?raw";
 
 function buildSvgDataUri(svgContent) {
   return "data:image/svg+xml," + encodeURIComponent(svgContent);
@@ -123,21 +138,21 @@ const LOW_VISION_ICON_FIELD_NAME = "LOW_VISION_CATEGORY_ICON";
 const LOW_VISION_BAR_FIELD_NAME = "LOW_VISION_CATEGORY_BAR";
 
 const CATEGORY_ICON_BY_STYLE = {
-  events_blocks: "E",
-  scene_blocks: "S",
-  transform_blocks: "T",
-  animate_blocks: "A",
-  materials_blocks: "M",
-  sound_blocks: "🔊",
-  sensing_blocks: "👁",
-  snippets_blocks: "✂",
-  control_blocks: "C",
-  logic_blocks: "L",
-  variable_blocks: "V",
-  text_blocks: "T",
-  list_blocks: "≡",
-  math_blocks: "∑",
-  procedure_blocks: "ƒ",
+  events_blocks: eventsIconSvg,
+  scene_blocks: sceneIconSvg,
+  transform_blocks: transformIconSvg,
+  animate_blocks: animateIconSvg,
+  materials_blocks: materialsIconSvg,
+  sound_blocks: soundIconSvg,
+  sensing_blocks: sensingIconSvg,
+  snippets_blocks: snippetsIconSvg,
+  control_blocks: controlIconSvg,
+  logic_blocks: logicIconSvg,
+  variable_blocks: variableIconSvg,
+  text_blocks: textIconSvg,
+  list_blocks: listIconSvg,
+  math_blocks: mathIconSvg,
+  procedure_blocks: procedureIconSvg,
 };
 
 const CATEGORY_ACCENT_BY_STYLE = {
@@ -201,37 +216,30 @@ function getBlockStyleName(block) {
 
 function getCategoryIconForBlock(block) {
   const styleName = getBlockStyleName(block);
-  const symbol = CATEGORY_ICON_BY_STYLE[styleName];
-  if (!symbol) return null;
-  return makeLowVisionCategoryIconByStyle(styleName, symbol);
+  return makeLowVisionCategoryIconDataUrl(styleName);
 }
 
-function getCategoryAccentForStyle(styleName) {
-  return CATEGORY_ACCENT_BY_STYLE[styleName] || "#cfcfcf";
-}
-
-function makeLowVisionCategoryIconByStyle(styleName, symbolOverride) {
-  const symbol = symbolOverride || CATEGORY_ICON_BY_STYLE[styleName] || "?";
-  const color = getCategoryAccentForStyle(styleName);
-  const escaped = symbol
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><text x="9" y="13" text-anchor="middle" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="${color}">${escaped}</text></svg>`;
-  return "data:image/svg+xml," + encodeURIComponent(svg);
+function withSvgFill(svg, fillColor) {
+  const fillAttr = ` fill="${fillColor}"`;
+  if (svg.includes("<svg") && !svg.includes(fillAttr)) {
+    return svg.replace("<svg", `<svg${fillAttr}`);
+  }
+  return svg;
 }
 
 export function makeLowVisionCategoryIconDataUrl(styleName) {
-  return makeLowVisionCategoryIconByStyle(styleName);
+  const iconSvg = CATEGORY_ICON_BY_STYLE[styleName];
+  const accent = CATEGORY_ACCENT_BY_STYLE[styleName];
+  if (!iconSvg || !accent) return "";
+  return buildSvgDataUri(withSvgFill(iconSvg, accent));
 }
 
 export function applyLowVisionCategoryIcons(workspace) {
   if (!workspace) return;
   const blocks = workspace.getAllBlocks(false);
   for (const block of blocks) {
-    const styleName = getBlockStyleName(block);
     const iconPath = getCategoryIconForBlock(block);
-    if (!iconPath || !styleName) continue;
+    if (!iconPath) continue;
 
     const firstInput = block.inputList?.[0];
     if (!firstInput) continue;
