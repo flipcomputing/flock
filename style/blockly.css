@@ -819,7 +819,7 @@ textarea.blocklyCommentText.blocklyTextarea.blocklyText {
   box-sizing: border-box !important;
 }
 
-/* XYZ axis input outlines — survive theme changes via CSS */
-[data-axis="X"] .blocklyPath { stroke: var(--axis-x-color) !important; stroke-width: 2px !important; }
-[data-axis="Y"] .blocklyPath { stroke: var(--axis-y-color) !important; stroke-width: 2px !important; }
-[data-axis="Z"] .blocklyPath { stroke: var(--axis-z-color) !important; stroke-width: 2px !important; }
+/* XYZ axis input outlines — only visible when parent block is selected */
+.blocklySelected [data-axis="X"] .blocklyPath { stroke: var(--axis-x-color) !important; stroke-width: 2px !important; }
+.blocklySelected [data-axis="Y"] .blocklyPath { stroke: var(--axis-y-color) !important; stroke-width: 2px !important; }
+.blocklySelected [data-axis="Z"] .blocklyPath { stroke: var(--axis-z-color) !important; stroke-width: 2px !important; }
