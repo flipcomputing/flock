@@ -149,8 +149,10 @@ const CATEGORY_ICON_BY_STYLE = {
   control_blocks: controlIconSvg,
   logic_blocks: logicIconSvg,
   variable_blocks: variableIconSvg,
+  variables_blocks: variableIconSvg,
   text_blocks: textIconSvg,
   list_blocks: listIconSvg,
+  lists_blocks: listIconSvg,
   math_blocks: mathIconSvg,
   procedure_blocks: procedureIconSvg,
 };
@@ -167,8 +169,10 @@ const CATEGORY_ACCENT_BY_STYLE = {
   control_blocks: "#98d998",
   logic_blocks: "#98b8d9",
   variable_blocks: "#d998b8",
+  variables_blocks: "#d998b8",
   text_blocks: "#98d9c3",
   list_blocks: "#ad98d9",
+  lists_blocks: "#ad98d9",
   math_blocks: "#98a3d9",
   procedure_blocks: "#ce98d9",
 };

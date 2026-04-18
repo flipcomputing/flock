@@ -134,20 +134,25 @@ function applyLowVisionToolboxAccents() {
   if (document.body.getAttribute("data-theme") !== LOW_VISION_THEME) return;
   const rows = document.querySelectorAll(".blocklyToolboxCategory");
   for (const row of rows) {
-    const icon = row.querySelector("img.customToolboxIcon");
-    if (!icon) continue;
-    const src = icon.dataset.lvOrigSrc || icon.getAttribute("src") || "";
-    const styleName = getLowVisionToolboxStyleNameFromSrc(src);
-    if (!styleName) continue;
-    if (!icon.dataset.lvOrigSrc) {
-      icon.dataset.lvOrigSrc = src;
+    const icons = row.querySelectorAll(
+      "img.customToolboxIcon, img.blocklyToolboxCategoryIconOpen, img.blocklyToolboxCategoryIconClosed",
+    );
+    for (const icon of icons) {
+      const src = icon.dataset.lvOrigSrc || icon.getAttribute("src") || "";
+      const styleName = getLowVisionToolboxStyleNameFromSrc(src);
+      if (!styleName) continue;
+      if (!icon.dataset.lvOrigSrc) {
+        icon.dataset.lvOrigSrc = src;
+      }
+      icon.setAttribute("src", makeLowVisionCategoryIconDataUrl(styleName));
     }
-    icon.setAttribute("src", makeLowVisionCategoryIconDataUrl(styleName));
   }
 }
 
 function clearLowVisionToolboxAccents() {
-  const icons = document.querySelectorAll(".blocklyToolboxCategory img.customToolboxIcon");
+  const icons = document.querySelectorAll(
+    ".blocklyToolboxCategory img.customToolboxIcon, .blocklyToolboxCategory img.blocklyToolboxCategoryIconOpen, .blocklyToolboxCategory img.blocklyToolboxCategoryIconClosed",
+  );
   for (const icon of icons) {
     if (icon.dataset.lvOrigSrc) {
       icon.setAttribute("src", icon.dataset.lvOrigSrc);
@@ -607,7 +612,7 @@ function getThemeBaseStyles(themeName) {
         workspaceBackgroundColour: "#121212",
         toolboxBackgroundColour: "#1E1E1E",
         toolboxForegroundColour: "#F0F0F0",
-        flyoutBackgroundColour: "#1E1E1E",
+        flyoutBackgroundColour: "#3A3A3A",
         flyoutForegroundColour: "#CFCFCF",
         flyoutOpacity: 1,
         scrollbarColour: "#E0E0E0",
