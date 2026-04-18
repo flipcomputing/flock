@@ -820,6 +820,6 @@ textarea.blocklyCommentText.blocklyTextarea.blocklyText {
 }
 
 /* XYZ axis input outlines — visible when parent block is selected or a field within it is being edited */
-[data-xyz-active] [data-axis="X"] .blocklyPath { stroke: var(--axis-x-color) !important; stroke-width: 2px !important; }
-[data-xyz-active] [data-axis="Y"] .blocklyPath { stroke: var(--axis-y-color) !important; stroke-width: 2px !important; }
-[data-xyz-active] [data-axis="Z"] .blocklyPath { stroke: var(--axis-z-color) !important; stroke-width: 2px !important; }
+[data-xyz-active] > [data-axis="X"] .blocklyPath { stroke: var(--axis-x-color) !important; stroke-width: 2px !important; }
+[data-xyz-active] > [data-axis="Y"] .blocklyPath { stroke: var(--axis-y-color) !important; stroke-width: 2px !important; }
+[data-xyz-active] > [data-axis="Z"] .blocklyPath { stroke: var(--axis-z-color) !important; stroke-width: 2px !important; }
