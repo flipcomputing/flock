@@ -192,12 +192,6 @@ export function applyLowVisionCategoryIcons(workspace) {
     const iconPath = getCategoryIconForBlock(block);
     if (!iconPath) continue;
 
-    const existingIconField = block.getField(BLOCK_ICON_FIELD_NAME);
-    if (existingIconField) {
-      existingIconField.setValue(iconPath);
-      continue;
-    }
-
     const firstInput = block.inputList?.[0];
     if (!firstInput) continue;
     if (block.getField(LOW_VISION_ICON_FIELD_NAME)) continue;
