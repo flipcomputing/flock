@@ -145,10 +145,15 @@ function getLowVisionToolboxStyleNameFromSrc(src) {
 
 function ensureLowVisionIconListener(workspace) {
   if (lowVisionIconListenerRegistered || !workspace) return;
-  workspace.addChangeListener(() => {
+  workspace.addChangeListener((event) => {
     if (document.body.getAttribute("data-theme") === LOW_VISION_THEME) {
-      applyLowVisionCategoryIcons(workspace);
-      applyLowVisionToolboxAccents();
+      const isToolboxCategorySwitch =
+        event?.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
+        event?.type === "toolbox_item_select";
+      applyLowVisionDecorations(workspace, {
+        hideFlyoutWhileApplying: isToolboxCategorySwitch,
+        preload: false,
+      });
     }
   });
   lowVisionIconListenerRegistered = true;
@@ -189,6 +194,35 @@ function setLowVisionFlyoutLoadingVisibility(workspace, isLoading) {
   const flyoutSvg = flyoutWorkspace?.getParentSvg?.();
   if (!flyoutSvg) return;
   flyoutSvg.style.visibility = isLoading ? "hidden" : "";
+}
+
+function applyLowVisionDecorations(
+  workspace,
+  { hideFlyoutWhileApplying = false, preload = false } = {},
+) {
+  if (!workspace) return;
+  if (hideFlyoutWhileApplying) {
+    setLowVisionFlyoutLoadingVisibility(workspace, true);
+  }
+
+  const applyDecorations = () => {
+    applyLowVisionCategoryIcons(workspace);
+    applyLowVisionToolboxAccents();
+    requestAnimationFrame(() => {
+      applyLowVisionCategoryIcons(workspace);
+      applyLowVisionToolboxAccents();
+      if (hideFlyoutWhileApplying) {
+        setLowVisionFlyoutLoadingVisibility(workspace, false);
+      }
+    });
+    setTimeout(() => applyLowVisionToolboxAccents(), 0);
+  };
+
+  if (preload) {
+    Promise.resolve(preloadLowVisionCategoryIcons()).finally(applyDecorations);
+  } else {
+    applyDecorations();
+  }
 }
 
 function setLogos(themeName) {
@@ -305,15 +339,9 @@ function switchTheme(themeName) {
   workspace.updateToolbox(workspace.options.languageTree);
   updateAllBlockIcons(workspace, iconColor);
   if (themeName === LOW_VISION_THEME) {
-    setLowVisionFlyoutLoadingVisibility(workspace, true);
-    Promise.resolve(preloadLowVisionCategoryIcons()).finally(() => {
-      applyLowVisionCategoryIcons(workspace);
-      applyLowVisionToolboxAccents();
-      requestAnimationFrame(() => {
-        applyLowVisionToolboxAccents();
-        setLowVisionFlyoutLoadingVisibility(workspace, false);
-      });
-      setTimeout(() => applyLowVisionToolboxAccents(), 0);
+    applyLowVisionDecorations(workspace, {
+      hideFlyoutWhileApplying: true,
+      preload: true,
     });
   } else {
     clearLowVisionCategoryIcons(workspace);
