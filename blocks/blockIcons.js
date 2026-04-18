@@ -210,7 +210,7 @@ function getCategoryAccentForBlock(block) {
 }
 
 function makeCategoryChipIcon(iconPath, accentColour) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><rect x="0" y="0" width="18" height="18" rx="4" fill="${accentColour}"/><image href="${iconPath}" x="3" y="3" width="12" height="12"/></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><mask id="iconMask" x="0" y="0" width="18" height="18" style="mask-type: alpha;"><image href="${iconPath}" x="0" y="0" width="18" height="18"/></mask><rect x="0" y="0" width="18" height="18" fill="${accentColour}" mask="url(#iconMask)"/></svg>`;
   return "data:image/svg+xml," + encodeURIComponent(svg);
 }
 

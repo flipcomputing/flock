@@ -120,19 +120,32 @@ function applyLowVisionToolboxAccents() {
     const iconName = (src.split("/").pop() || "").split("?")[0].split("#")[0];
     const accent = LOW_VISION_TOOLBOX_ACCENTS[iconName];
     if (!accent) continue;
-    icon.style.setProperty("background-color", accent, "important");
-    icon.style.setProperty("border-radius", "4px", "important");
-    icon.style.setProperty("padding", "2px", "important");
+    if (!icon.dataset.lvOrigSrc) {
+      icon.dataset.lvOrigSrc = src;
+    }
+    icon.setAttribute(
+      "src",
+      makeLowVisionTintedIconDataUrl(icon.dataset.lvOrigSrc, accent),
+    );
+    icon.style.removeProperty("background-color");
+    icon.style.removeProperty("border-radius");
+    icon.style.removeProperty("padding");
   }
 }
 
 function clearLowVisionToolboxAccents() {
   const icons = document.querySelectorAll(".blocklyToolboxCategory img.customToolboxIcon");
   for (const icon of icons) {
-    icon.style.removeProperty("background-color");
-    icon.style.removeProperty("border-radius");
-    icon.style.removeProperty("padding");
+    if (icon.dataset.lvOrigSrc) {
+      icon.setAttribute("src", icon.dataset.lvOrigSrc);
+      delete icon.dataset.lvOrigSrc;
+    }
   }
+}
+
+function makeLowVisionTintedIconDataUrl(iconHref, accentColour) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><mask id="toolboxIconMask" x="0" y="0" width="18" height="18" style="mask-type: alpha;"><image href="${iconHref}" x="0" y="0" width="18" height="18"/></mask><rect x="0" y="0" width="18" height="18" fill="${accentColour}" mask="url(#toolboxIconMask)"/></svg>`;
+  return "data:image/svg+xml," + encodeURIComponent(svg);
 }
 
 function setLogos(themeName) {
