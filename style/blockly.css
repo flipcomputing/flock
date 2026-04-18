@@ -600,6 +600,15 @@ body[data-theme="low-vision"] .blocklyField text.blocklyText.blocklyFieldText {
   fill: #000000 !important;
 }
 
+body[data-theme="low-vision"]
+  .blocklyField
+  text.blocklyText.blocklyFieldText.blocklyDropdownText,
+body[data-theme="low-vision"]
+  .blocklyField
+  text.blocklyText.blocklyFieldText.blocklyDropDownText {
+  fill: #f0f0f0 !important;
+}
+
 [data-theme="low-vision"] .blocklyDropdownText,
 [data-theme="low-vision"] .blocklyDropDownText {
   fill: #f0f0f0 !important;
