@@ -613,22 +613,27 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
 [data-theme="low-vision"] .blocklyDropdownText,
 [data-theme="low-vision"] .blocklyDropDownText {
-  fill: #000000 !important;
-  color: #000000 !important;
+  fill: #f0f0f0 !important;
+  color: #f0f0f0 !important;
 }
 
 [data-theme="low-vision"] .blocklyEditableText > rect,
-[data-theme="low-vision"] .blocklyNonEditableText > rect,
-[data-theme="low-vision"] .blocklyDropdownRect {
+[data-theme="low-vision"] .blocklyNonEditableText > rect:not(.blocklyDropdownRect) {
   fill: #ffffff !important;
+  stroke: #cfcfcf !important;
+  stroke-width: 1.5px !important;
+}
+
+[data-theme="low-vision"] .blocklyDropdownRect {
+  fill: #1e1e1e !important;
   stroke: #cfcfcf !important;
   stroke-width: 1.5px !important;
 }
 
 [data-theme="low-vision"] .blocklyDropdownArrow,
 [data-theme="low-vision"] .blocklyDropdownArrow > path {
-  fill: #9a9a9a !important;
-  stroke: #9a9a9a !important;
+  fill: #cfcfcf !important;
+  stroke: #cfcfcf !important;
 }
 
 [data-theme="low-vision"] image.blocklyFieldImage {
