@@ -1041,6 +1041,7 @@ export default {
   light_theme_ui: "Ljust",
   dark_theme_ui: "Mörkt",
   contrast_theme_ui: "Kontrast",
+  low_vision_theme_ui: "Nedsatt syn",
 
   run_code_button_ui: "Kör din kod",
   stop_code_button_ui: "Stoppa din kod",

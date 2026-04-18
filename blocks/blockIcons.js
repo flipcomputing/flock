@@ -1,3 +1,5 @@
+import * as Blockly from "blockly";
+
 function buildSvgDataUri(svgContent) {
   return "data:image/svg+xml," + encodeURIComponent(svgContent);
 }
@@ -117,6 +119,25 @@ export const eventIcon = makeOnEventIcon("white");
 
 export const BLOCK_ICON_FIELD_NAME = "BLOCK_ICON";
 export const TOGGLE_BUTTON_FIELD_NAME = "TOGGLE_BUTTON";
+const LOW_VISION_ICON_FIELD_NAME = "LOW_VISION_CATEGORY_ICON";
+
+const CATEGORY_ICON_BY_STYLE = {
+  events_blocks: "./images/events.svg",
+  scene_blocks: "./images/scene.svg",
+  transform_blocks: "./images/motion.svg",
+  animate_blocks: "./images/animate.svg",
+  materials_blocks: "./images/looks.svg",
+  sound_blocks: "./images/sound.svg",
+  sensing_blocks: "./images/sensing.svg",
+  snippets_blocks: "./images/snippets.svg",
+  control_blocks: "./images/control.svg",
+  logic_blocks: "./images/conditions.svg",
+  variable_blocks: "./images/variables.svg",
+  text_blocks: "./images/text.svg",
+  list_blocks: "./images/lists.svg",
+  math_blocks: "./images/math.svg",
+  procedure_blocks: "./images/functions.svg",
+};
 
 export function makeInlineIcon(color) {
   const svg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="122.88px" height="80.593px" viewBox="0 0 122.88 80.593" xml:space="preserve"><g><polygon fill="${color}" points="122.88,80.593 122.88,49.772 61.44,0 0,49.772 0,80.593 61.44,30.82 122.88,80.593"/></g></svg>`;
@@ -149,4 +170,52 @@ export function updateBlockIcons(workspace, iconColor) {
 
 export function updateAllBlockIcons(workspace, iconColor) {
   updateBlockIcons(workspace, iconColor);
+}
+
+function getBlockStyleName(block) {
+  if (!block) return "";
+  if (typeof block.getStyleName === "function") {
+    return block.getStyleName() || "";
+  }
+  return block.styleName_ || "";
+}
+
+function getCategoryIconForBlock(block) {
+  const styleName = getBlockStyleName(block);
+  return CATEGORY_ICON_BY_STYLE[styleName] || null;
+}
+
+export function applyLowVisionCategoryIcons(workspace) {
+  if (!workspace) return;
+  const blocks = workspace.getAllBlocks(false);
+  for (const block of blocks) {
+    const iconPath = getCategoryIconForBlock(block);
+    if (!iconPath) continue;
+
+    const existingIconField = block.getField(BLOCK_ICON_FIELD_NAME);
+    if (existingIconField) {
+      existingIconField.setValue(iconPath);
+      continue;
+    }
+
+    const firstInput = block.inputList?.[0];
+    if (!firstInput) continue;
+    if (block.getField(LOW_VISION_ICON_FIELD_NAME)) continue;
+
+    firstInput.insertFieldAt(
+      0,
+      new Blockly.FieldImage(iconPath, 18, 18, "*", null),
+      LOW_VISION_ICON_FIELD_NAME,
+    );
+  }
+}
+
+export function clearLowVisionCategoryIcons(workspace) {
+  if (!workspace) return;
+  const blocks = workspace.getAllBlocks(false);
+  for (const block of blocks) {
+    if (block.getField(LOW_VISION_ICON_FIELD_NAME)) {
+      block.removeField(LOW_VISION_ICON_FIELD_NAME, true);
+    }
+  }
 }

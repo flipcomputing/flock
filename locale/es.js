@@ -1060,6 +1060,7 @@ export default {
   light_theme_ui: "Claro", // human
   dark_theme_ui: "Oscuro", // human
   contrast_theme_ui: "Contraste", // human
+  low_vision_theme_ui: "Baja visión",
 
   run_code_button_ui: "Ejecutar tu código", // human
   stop_code_button_ui: "Detener tu código", // human

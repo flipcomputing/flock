@@ -234,6 +234,30 @@
   --color-shadow-medium: rgba(0, 0, 0, 0.2);
 }
 
+/* Low-vision theme */
+[data-theme="low-vision"] {
+  --color-bg: #121212;
+  --color-bg-alt: #1e1e1e;
+  --color-text: #f0f0f0;
+  --color-text-primary: #f0f0f0;
+  --color-text-brand: #f0f0f0;
+  --color-menu-item: #f0f0f0;
+  --color-muted: #cfcfcf;
+  --color-border: #e0e0e0;
+  --color-border-light: #cfcfcf;
+  --color-shadow: rgba(0, 0, 0, 0.7);
+  --color-shadow-medium: rgba(0, 0, 0, 0.7);
+  --color-button-bg: #1e1e1e;
+  --color-button-bg-hover: #2a2a2a;
+  --color-button-bg-focus: #2f2f2f;
+  --color-button-primary: #f0f0f0;
+  --color-button-scroll: rgba(224, 224, 224, 0.5);
+  --color-text-on-primary: #f0f0f0;
+  --color-menu-hover: #2a2a2a;
+  --color-focus-ring: #e0e0e0;
+  --color-outline-focus: #e0e0e0;
+}
+
 #info-panel {
   margin-top: 15px;
   margin-left: 10px;
@@ -462,6 +486,10 @@ button {
   background-color: #090909 !important;
 }
 
+[data-theme="low-vision"] #canvasArea {
+  background-color: #121212 !important;
+}
+
 #menu {
   display: flex;
   height: 50px;
@@ -576,6 +604,10 @@ button {
   fill: #ffffff !important;
 }
 
+[data-theme="low-vision"] #flockeditor .icon path {
+  fill: #f0f0f0 !important;
+}
+
 [data-theme="contrast"] .gizmo-button img {
   color: #ffffff !important;
 }
@@ -584,10 +616,16 @@ button {
   color: #ffffff !important;
 }
 
+[data-theme="low-vision"] .gizmo-button img,
+[data-theme="low-vision"] .bigbutton svg {
+  color: #f0f0f0 !important;
+}
+
 /* Make links in 'About' modal visible in dark and contrast themes */
 [data-theme="dark"] .modal-content a,
 [data-theme="dark-contrast"] .modal-content a,
-[data-theme="contrast"] .modal-content a {
+[data-theme="contrast"] .modal-content a,
+[data-theme="low-vision"] .modal-content a {
   color: var(--color-primary-light);
 }
 
@@ -924,15 +962,18 @@ button {
   display: inline-block;
 }
 
-[data-theme="dark-contrast"] #main-menu a {
+[data-theme="dark-contrast"] #main-menu a,
+[data-theme="low-vision"] #main-menu a {
   color: var(--color-text-primary);
 }
 
-[data-theme="dark-contrast"] #menuDropdown .menu-item .menu-label {
+[data-theme="dark-contrast"] #menuDropdown .menu-item .menu-label,
+[data-theme="low-vision"] #menuDropdown .menu-item .menu-label {
   color: var(--color-text-primary);
 }
 
-[data-theme="dark-contrast"] #menuDropdown .menu-item .menu-icon svg {
+[data-theme="dark-contrast"] #menuDropdown .menu-item .menu-icon svg,
+[data-theme="low-vision"] #menuDropdown .menu-item .menu-icon svg {
   color: var(--color-text-primary);
 }
 
@@ -1028,6 +1069,10 @@ button {
 }
 
 [data-theme="contrast"] input {
+  border-style: solid;
+}
+
+[data-theme="low-vision"] input {
   border-style: solid;
 }
 

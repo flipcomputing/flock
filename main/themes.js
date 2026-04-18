@@ -2,7 +2,8 @@ import * as Blockly from "blockly";
 import {
   updateAllBlockIcons,
   setCurrentIconColor,
-  getIconColorForBackground,
+  applyLowVisionCategoryIcons,
+  clearLowVisionCategoryIcons,
 } from "../blocks/blockIcons.js";
 
 export const categoryColours = {
@@ -80,12 +81,26 @@ export const contrastCategoryColours = {
   Procedures: "#83398f",
 };
 
+const LOW_VISION_THEME = "low-vision";
+let lowVisionIconListenerRegistered = false;
+
+function ensureLowVisionIconListener(workspace) {
+  if (lowVisionIconListenerRegistered || !workspace) return;
+  workspace.addChangeListener(() => {
+    if (document.body.getAttribute("data-theme") === LOW_VISION_THEME) {
+      applyLowVisionCategoryIcons(workspace);
+    }
+  });
+  lowVisionIconListenerRegistered = true;
+}
+
 function setLogos(themeName) {
   const bird = document.getElementById("logo");
   const inlineLogo = document.getElementById("flocklogo");
   if (!bird || !inlineLogo) return;
   switch (themeName) {
     case "dark-contrast":
+    case "low-vision":
       inlineLogo.src = "./images/inline-flock-xr-dark1.svg";
       bird.src = "./images/flock-bird-mascot-2colours-dark1.svg";
       break;
@@ -125,7 +140,7 @@ function setBinAndZoomIcons(themeName) {
   const binIcon = document.getElementsByClassName("blocklyTrash");
   const zoomIcons = document.getElementsByClassName("blocklyZoom");
 
-  if (themeName == "contrast") {
+  if (themeName === "contrast" || themeName === "low-vision") {
     const iconsURL = "./images/blocklywhitesprites.png";
     setIconImage(binIcon, iconsURL);
     setIconImage(zoomIcons, iconsURL);
@@ -143,6 +158,7 @@ export function getIconColorForTheme(themeName) {
       return "black";
     case "contrast":
     case "dark-contrast":
+    case "low-vision":
     default:
       return "white";
   }
@@ -155,6 +171,7 @@ function switchTheme(themeName) {
   const workspace = Blockly.getMainWorkspace();
 
   if (!workspace) return;
+  ensureLowVisionIconListener(workspace);
 
   Blockly.utils.colour.setHsvSaturation(0.3);
   Blockly.utils.colour.setHsvValue(0.85);
@@ -189,8 +206,12 @@ function switchTheme(themeName) {
   setCurrentIconColor(iconColor);
 
   workspace.updateToolbox(workspace.options.languageTree);
-
   updateAllBlockIcons(workspace, iconColor);
+  if (themeName === LOW_VISION_THEME) {
+    applyLowVisionCategoryIcons(workspace);
+  } else {
+    clearLowVisionCategoryIcons(workspace);
+  }
 
   // Optional: Save theme preference
   localStorage.setItem("blocklyTheme", themeName);
@@ -438,6 +459,38 @@ function getThemeBaseStyles(themeName) {
         insertionMarkerOpacity: 1,
         markerColour: "#FF0000",
         cursorColour: "#FF0000",
+      },
+    },
+    "low-vision": {
+      events: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      scene: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      transform: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      animate: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      materials: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      sound: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      sensing: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      snippets: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      control: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      logic: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      variables: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      text: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      lists: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      math: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      procedures: { colourPrimary: "#1E1E1E", colourSecondary: "#1E1E1E" },
+      components: {
+        workspaceBackgroundColour: "#121212",
+        toolboxBackgroundColour: "#1E1E1E",
+        toolboxForegroundColour: "#F0F0F0",
+        flyoutBackgroundColour: "#1E1E1E",
+        flyoutForegroundColour: "#CFCFCF",
+        flyoutOpacity: 1,
+        scrollbarColour: "#E0E0E0",
+        insertionMarkerColour: "#E0E0E0",
+        insertionMarkerOpacity: 1,
+        markerColour: "#E0E0E0",
+        cursorColour: "#E0E0E0",
+        fieldColour: "#1E1E1E",
+        fieldTextColour: "#F0F0F0",
       },
     },
   };
