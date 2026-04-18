@@ -279,7 +279,7 @@ function setBinAndZoomIcons(themeName) {
   const binIcon = document.getElementsByClassName("blocklyTrash");
   const zoomIcons = document.getElementsByClassName("blocklyZoom");
 
-  if (themeName === "contrast" || themeName === "low-vision") {
+  if (themeName === "contrast") {
     const iconsURL = "./images/blocklywhitesprites.png";
     setIconImage(binIcon, iconsURL);
     setIconImage(zoomIcons, iconsURL);
