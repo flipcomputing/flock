@@ -120,16 +120,18 @@ function applyLowVisionToolboxAccents() {
     const iconName = (src.split("/").pop() || "").split("?")[0].split("#")[0];
     const accent = LOW_VISION_TOOLBOX_ACCENTS[iconName];
     if (!accent) continue;
-    row.style.setProperty("box-shadow", `inset 4px 0 0 ${accent}`, "important");
-    row.style.setProperty("padding-left", "6px", "important");
+    icon.style.setProperty("background-color", accent, "important");
+    icon.style.setProperty("border-radius", "4px", "important");
+    icon.style.setProperty("padding", "2px", "important");
   }
 }
 
 function clearLowVisionToolboxAccents() {
-  const rows = document.querySelectorAll(".blocklyToolboxCategory");
-  for (const row of rows) {
-    row.style.removeProperty("box-shadow");
-    row.style.removeProperty("padding-left");
+  const icons = document.querySelectorAll(".blocklyToolboxCategory img.customToolboxIcon");
+  for (const icon of icons) {
+    icon.style.removeProperty("background-color");
+    icon.style.removeProperty("border-radius");
+    icon.style.removeProperty("padding");
   }
 }
 

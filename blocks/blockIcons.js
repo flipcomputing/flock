@@ -209,8 +209,8 @@ function getCategoryAccentForBlock(block) {
   return CATEGORY_ACCENT_BY_STYLE[styleName] || "#cfcfcf";
 }
 
-function makeAccentBarIcon(hexColour) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="6" height="18" viewBox="0 0 6 18"><rect x="1" y="1" width="4" height="16" rx="2" fill="${hexColour}"/></svg>`;
+function makeCategoryChipIcon(iconPath, accentColour) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><rect x="0" y="0" width="18" height="18" rx="4" fill="${accentColour}"/><image href="${iconPath}" x="3" y="3" width="12" height="12"/></svg>`;
   return "data:image/svg+xml," + encodeURIComponent(svg);
 }
 
@@ -223,18 +223,17 @@ export function applyLowVisionCategoryIcons(workspace) {
 
     const firstInput = block.inputList?.[0];
     if (!firstInput) continue;
-    if (!block.getField(LOW_VISION_BAR_FIELD_NAME)) {
+    if (!block.getField(LOW_VISION_ICON_FIELD_NAME)) {
       const accentColour = getCategoryAccentForBlock(block);
       firstInput.insertFieldAt(
         0,
-        new Blockly.FieldImage(makeAccentBarIcon(accentColour), 6, 18, "*", null),
-        LOW_VISION_BAR_FIELD_NAME,
-      );
-    }
-    if (!block.getField(LOW_VISION_ICON_FIELD_NAME)) {
-      firstInput.insertFieldAt(
-        1,
-        new Blockly.FieldImage(iconPath, 18, 18, "*", null),
+        new Blockly.FieldImage(
+          makeCategoryChipIcon(iconPath, accentColour),
+          18,
+          18,
+          "*",
+          null,
+        ),
         LOW_VISION_ICON_FIELD_NAME,
       );
     }

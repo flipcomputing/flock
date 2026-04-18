@@ -237,9 +237,6 @@ body[data-theme="low-vision"] {
   .blocklyToolboxCategoryLabel {
     color: #f0f0f0 !important;
   }
-  .customToolboxIcon {
-    filter: invert(1);
-  }
 }
 
 textarea.blocklyCommentText.blocklyTextarea.blocklyText {
