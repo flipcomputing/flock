@@ -96,6 +96,7 @@ const LOW_VISION_TOOLBOX_ACCENTS = {
   "control.svg": "control_blocks",
   "conditions.svg": "logic_blocks",
   "variables.svg": "variable_blocks",
+  "data.svg": "variable_blocks",
   "text.svg": "text_blocks",
   "lists.svg": "list_blocks",
   "math.svg": "math_blocks",
@@ -130,6 +131,7 @@ function ensureLowVisionIconListener(workspace) {
 }
 
 function applyLowVisionToolboxAccents() {
+  if (document.body.getAttribute("data-theme") !== LOW_VISION_THEME) return;
   const rows = document.querySelectorAll(".blocklyToolboxCategory");
   for (const row of rows) {
     const icon = row.querySelector("img.customToolboxIcon");
