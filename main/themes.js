@@ -123,6 +123,7 @@ function ensureLowVisionIconListener(workspace) {
   workspace.addChangeListener(() => {
     if (document.body.getAttribute("data-theme") === LOW_VISION_THEME) {
       applyLowVisionCategoryIcons(workspace);
+      applyLowVisionToolboxAccents();
     }
   });
   lowVisionIconListenerRegistered = true;
@@ -269,6 +270,8 @@ function switchTheme(themeName) {
   if (themeName === LOW_VISION_THEME) {
     applyLowVisionCategoryIcons(workspace);
     applyLowVisionToolboxAccents();
+    requestAnimationFrame(() => applyLowVisionToolboxAccents());
+    setTimeout(() => applyLowVisionToolboxAccents(), 0);
   } else {
     clearLowVisionCategoryIcons(workspace);
     clearLowVisionToolboxAccents();
