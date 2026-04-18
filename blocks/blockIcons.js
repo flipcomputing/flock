@@ -123,21 +123,39 @@ const LOW_VISION_ICON_FIELD_NAME = "LOW_VISION_CATEGORY_ICON";
 const LOW_VISION_BAR_FIELD_NAME = "LOW_VISION_CATEGORY_BAR";
 
 const CATEGORY_ICON_BY_STYLE = {
-  events_blocks: "./images/events.svg",
-  scene_blocks: "./images/scene.svg",
-  transform_blocks: "./images/motion.svg",
-  animate_blocks: "./images/animate.svg",
-  materials_blocks: "./images/looks.svg",
-  sound_blocks: "./images/sound.svg",
-  sensing_blocks: "./images/sensing.svg",
-  snippets_blocks: "./images/snippets.svg",
-  control_blocks: "./images/control.svg",
-  logic_blocks: "./images/conditions.svg",
-  variable_blocks: "./images/variables.svg",
-  text_blocks: "./images/text.svg",
-  list_blocks: "./images/lists.svg",
-  math_blocks: "./images/math.svg",
-  procedure_blocks: "./images/functions.svg",
+  events_blocks: "E",
+  scene_blocks: "S",
+  transform_blocks: "T",
+  animate_blocks: "A",
+  materials_blocks: "M",
+  sound_blocks: "🔊",
+  sensing_blocks: "👁",
+  snippets_blocks: "✂",
+  control_blocks: "C",
+  logic_blocks: "L",
+  variable_blocks: "V",
+  text_blocks: "T",
+  list_blocks: "≡",
+  math_blocks: "∑",
+  procedure_blocks: "ƒ",
+};
+
+const CATEGORY_ACCENT_BY_STYLE = {
+  events_blocks: "#d4695d",
+  scene_blocks: "#4f8f59",
+  transform_blocks: "#d48642",
+  animate_blocks: "#cc6b86",
+  materials_blocks: "#8c6ed6",
+  sound_blocks: "#cf8466",
+  sensing_blocks: "#4f8fc7",
+  snippets_blocks: "#5a9abc",
+  control_blocks: "#4f9f52",
+  logic_blocks: "#4f73c9",
+  variable_blocks: "#b45d94",
+  text_blocks: "#5f88c8",
+  list_blocks: "#b45d94",
+  math_blocks: "#5f74c6",
+  procedure_blocks: "#9662bf",
 };
 
 export function makeInlineIcon(color) {
@@ -183,15 +201,37 @@ function getBlockStyleName(block) {
 
 function getCategoryIconForBlock(block) {
   const styleName = getBlockStyleName(block);
-  return CATEGORY_ICON_BY_STYLE[styleName] || null;
+  const symbol = CATEGORY_ICON_BY_STYLE[styleName];
+  if (!symbol) return null;
+  return makeLowVisionCategoryIconByStyle(styleName, symbol);
+}
+
+function getCategoryAccentForStyle(styleName) {
+  return CATEGORY_ACCENT_BY_STYLE[styleName] || "#cfcfcf";
+}
+
+function makeLowVisionCategoryIconByStyle(styleName, symbolOverride) {
+  const symbol = symbolOverride || CATEGORY_ICON_BY_STYLE[styleName] || "?";
+  const color = getCategoryAccentForStyle(styleName);
+  const escaped = symbol
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><text x="9" y="13" text-anchor="middle" font-size="12" font-family="Arial, sans-serif" font-weight="700" fill="${color}">${escaped}</text></svg>`;
+  return "data:image/svg+xml," + encodeURIComponent(svg);
+}
+
+export function makeLowVisionCategoryIconDataUrl(styleName) {
+  return makeLowVisionCategoryIconByStyle(styleName);
 }
 
 export function applyLowVisionCategoryIcons(workspace) {
   if (!workspace) return;
   const blocks = workspace.getAllBlocks(false);
   for (const block of blocks) {
+    const styleName = getBlockStyleName(block);
     const iconPath = getCategoryIconForBlock(block);
-    if (!iconPath) continue;
+    if (!iconPath || !styleName) continue;
 
     const firstInput = block.inputList?.[0];
     if (!firstInput) continue;
@@ -201,10 +241,6 @@ export function applyLowVisionCategoryIcons(workspace) {
         new Blockly.FieldImage(iconPath, 18, 18, "*", null),
         LOW_VISION_ICON_FIELD_NAME,
       );
-    }
-    const blockRoot = block.getSvgRoot?.();
-    if (blockRoot) {
-      blockRoot.setAttribute("data-lv-style", getBlockStyleName(block));
     }
   }
 }
@@ -218,10 +254,6 @@ export function clearLowVisionCategoryIcons(workspace) {
     }
     if (block.getField(LOW_VISION_ICON_FIELD_NAME)) {
       block.removeField(LOW_VISION_ICON_FIELD_NAME, true);
-    }
-    const blockRoot = block.getSvgRoot?.();
-    if (blockRoot) {
-      blockRoot.removeAttribute("data-lv-style");
     }
   }
 }

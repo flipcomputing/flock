@@ -4,6 +4,7 @@ import {
   setCurrentIconColor,
   applyLowVisionCategoryIcons,
   clearLowVisionCategoryIcons,
+  makeLowVisionCategoryIconDataUrl,
 } from "../blocks/blockIcons.js";
 
 export const categoryColours = {
@@ -84,38 +85,21 @@ export const contrastCategoryColours = {
 const LOW_VISION_THEME = "low-vision";
 let lowVisionIconListenerRegistered = false;
 const LOW_VISION_TOOLBOX_ACCENTS = {
-  "events.svg": "#d4695d",
-  "scene.svg": "#4f8f59",
-  "motion.svg": "#d48642",
-  "animate.svg": "#cc6b86",
-  "looks.svg": "#8c6ed6",
-  "sound.svg": "#cf8466",
-  "sensing.svg": "#4f8fc7",
-  "snippets.svg": "#5a9abc",
-  "control.svg": "#4f9f52",
-  "conditions.svg": "#4f73c9",
-  "variables.svg": "#b45d94",
-  "text.svg": "#5f88c8",
-  "lists.svg": "#b45d94",
-  "math.svg": "#5f74c6",
-  "functions.svg": "#9662bf",
-};
-const LOW_VISION_ICON_FILTERS = {
-  "events.svg": "invert(47%) sepia(56%) saturate(592%) hue-rotate(320deg) brightness(96%) contrast(92%)",
-  "scene.svg": "invert(50%) sepia(23%) saturate(825%) hue-rotate(79deg) brightness(91%) contrast(85%)",
-  "motion.svg": "invert(58%) sepia(38%) saturate(771%) hue-rotate(346deg) brightness(92%) contrast(88%)",
-  "animate.svg": "invert(54%) sepia(30%) saturate(792%) hue-rotate(292deg) brightness(90%) contrast(90%)",
-  "looks.svg": "invert(50%) sepia(23%) saturate(1754%) hue-rotate(223deg) brightness(90%) contrast(85%)",
-  "sound.svg": "invert(60%) sepia(26%) saturate(760%) hue-rotate(337deg) brightness(90%) contrast(89%)",
-  "sensing.svg": "invert(56%) sepia(42%) saturate(687%) hue-rotate(176deg) brightness(93%) contrast(86%)",
-  "snippets.svg": "invert(58%) sepia(21%) saturate(888%) hue-rotate(159deg) brightness(93%) contrast(90%)",
-  "control.svg": "invert(51%) sepia(27%) saturate(1046%) hue-rotate(74deg) brightness(95%) contrast(87%)",
-  "conditions.svg": "invert(43%) sepia(30%) saturate(1070%) hue-rotate(190deg) brightness(94%) contrast(91%)",
-  "variables.svg": "invert(48%) sepia(24%) saturate(1068%) hue-rotate(289deg) brightness(89%) contrast(90%)",
-  "text.svg": "invert(54%) sepia(17%) saturate(1172%) hue-rotate(183deg) brightness(92%) contrast(89%)",
-  "lists.svg": "invert(48%) sepia(24%) saturate(1068%) hue-rotate(289deg) brightness(89%) contrast(90%)",
-  "math.svg": "invert(50%) sepia(23%) saturate(1290%) hue-rotate(201deg) brightness(90%) contrast(89%)",
-  "functions.svg": "invert(47%) sepia(20%) saturate(1235%) hue-rotate(238deg) brightness(90%) contrast(89%)",
+  "events.svg": "events_blocks",
+  "scene.svg": "scene_blocks",
+  "motion.svg": "transform_blocks",
+  "animate.svg": "animate_blocks",
+  "looks.svg": "materials_blocks",
+  "sound.svg": "sound_blocks",
+  "sensing.svg": "sensing_blocks",
+  "snippets.svg": "snippets_blocks",
+  "control.svg": "control_blocks",
+  "conditions.svg": "logic_blocks",
+  "variables.svg": "variable_blocks",
+  "text.svg": "text_blocks",
+  "lists.svg": "list_blocks",
+  "math.svg": "math_blocks",
+  "functions.svg": "procedure_blocks",
 };
 
 function ensureLowVisionIconListener(workspace) {
@@ -135,18 +119,22 @@ function applyLowVisionToolboxAccents() {
     if (!icon) continue;
     const src = icon.getAttribute("src") || "";
     const iconName = (src.split("/").pop() || "").split("?")[0].split("#")[0];
-    const accent = LOW_VISION_TOOLBOX_ACCENTS[iconName];
-    if (!accent) continue;
-    icon.style.setProperty("filter", LOW_VISION_ICON_FILTERS[iconName] || "none", "important");
-    icon.style.setProperty("opacity", "1", "important");
+    const styleName = LOW_VISION_TOOLBOX_ACCENTS[iconName];
+    if (!styleName) continue;
+    if (!icon.dataset.lvOrigSrc) {
+      icon.dataset.lvOrigSrc = src;
+    }
+    icon.setAttribute("src", makeLowVisionCategoryIconDataUrl(styleName));
   }
 }
 
 function clearLowVisionToolboxAccents() {
   const icons = document.querySelectorAll(".blocklyToolboxCategory img.customToolboxIcon");
   for (const icon of icons) {
-    icon.style.removeProperty("filter");
-    icon.style.removeProperty("opacity");
+    if (icon.dataset.lvOrigSrc) {
+      icon.setAttribute("src", icon.dataset.lvOrigSrc);
+      delete icon.dataset.lvOrigSrc;
+    }
   }
 }
 
