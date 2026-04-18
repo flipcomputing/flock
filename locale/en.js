@@ -1055,6 +1055,7 @@ export default {
   light_theme_ui: "Light",
   dark_theme_ui: "Dark 2",
   dark_contrast_theme_ui: "Dark",
+  low_vision_theme_ui: "Low vision",
   contrast_theme_ui: "Contrast",
 
   run_code_button_ui: "Run your code",

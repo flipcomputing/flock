@@ -2,7 +2,10 @@ import * as Blockly from "blockly";
 import {
   updateAllBlockIcons,
   setCurrentIconColor,
-  getIconColorForBackground,
+  applyLowVisionCategoryIcons,
+  clearLowVisionCategoryIcons,
+  makeLowVisionCategoryIconDataUrl,
+  preloadLowVisionCategoryIcons,
 } from "../blocks/blockIcons.js";
 
 export const categoryColours = {
@@ -80,12 +83,163 @@ export const contrastCategoryColours = {
   Procedures: "#83398f",
 };
 
+const LOW_VISION_THEME = "low-vision";
+let lowVisionIconListenerRegistered = false;
+const LOW_VISION_TOOLBOX_ACCENTS = {
+  "events.svg": "events_blocks",
+  "scene.svg": "scene_blocks",
+  "meshes.svg": "scene_meshes_blocks",
+  "xr.svg": "scene_xr_blocks",
+  "lights.svg": "scene_lights_blocks",
+  "camera.svg": "scene_camera_blocks",
+  "motion.svg": "transform_blocks",
+  "physics.svg": "transform_physics_blocks",
+  "connect.svg": "transform_connect_blocks",
+  "combine.svg": "transform_combine_blocks",
+  "animate.svg": "animate_blocks",
+  "keyframe.svg": "animate_keyframe_blocks",
+  "looks.svg": "materials_blocks",
+  "sound.svg": "sound_blocks",
+  "sensing.svg": "sensing_blocks",
+  "snippets.svg": "snippets_blocks",
+  "arrows.svg": "snippets_arrows_blocks",
+  "control.svg": "control_blocks",
+  "conditions.svg": "logic_blocks",
+  "variables.svg": "variable_blocks",
+  "data.svg": "variable_blocks",
+  "text.svg": "text_blocks",
+  "lists.svg": "list_blocks",
+  "math.svg": "math_blocks",
+  "functions.svg": "procedure_blocks",
+};
+
+function getLowVisionToolboxStyleNameFromSrc(src) {
+  const lowerSrc = (src || "").toLowerCase();
+  if (!lowerSrc || lowerSrc.startsWith("data:")) return "";
+
+  let directIconName = (lowerSrc.split("/").pop() || "").split("?")[0].split("#")[0];
+  try {
+    const parsed = new URL(lowerSrc, window.location.href);
+    directIconName = (parsed.pathname.split("/").pop() || directIconName).toLowerCase();
+  } catch {
+    // Keep fallback parsing above.
+  }
+
+  if (LOW_VISION_TOOLBOX_ACCENTS[directIconName]) {
+    return LOW_VISION_TOOLBOX_ACCENTS[directIconName];
+  }
+
+  for (const [iconName, styleName] of Object.entries(LOW_VISION_TOOLBOX_ACCENTS)) {
+    const stem = iconName.replace(".svg", "");
+    if (
+      lowerSrc.includes(`/${iconName}`) ||
+      lowerSrc.includes(`/${stem}-`) ||
+      lowerSrc.endsWith(`/${stem}`) ||
+      lowerSrc.endsWith(iconName)
+    ) {
+      return styleName;
+    }
+  }
+  return "";
+}
+
+function ensureLowVisionIconListener(workspace) {
+  if (lowVisionIconListenerRegistered || !workspace) return;
+  workspace.addChangeListener((event) => {
+    if (document.body.getAttribute("data-theme") === LOW_VISION_THEME) {
+      const isToolboxCategorySwitch =
+        event?.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
+        event?.type === "toolbox_item_select";
+      applyLowVisionDecorations(workspace, {
+        hideFlyoutWhileApplying: isToolboxCategorySwitch,
+        preload: false,
+      });
+    }
+  });
+  lowVisionIconListenerRegistered = true;
+}
+
+function applyLowVisionToolboxAccents() {
+  if (document.body.getAttribute("data-theme") !== LOW_VISION_THEME) return;
+  const rows = document.querySelectorAll(".blocklyToolboxCategory");
+  for (const row of rows) {
+    const icons = row.querySelectorAll("img");
+    for (const icon of icons) {
+      const src = icon.dataset.lvOrigSrc || icon.getAttribute("src") || "";
+      const styleName =
+        icon.dataset.lvStyleName || getLowVisionToolboxStyleNameFromSrc(src);
+      if (!styleName) continue;
+      if (!icon.dataset.lvOrigSrc) {
+        icon.dataset.lvOrigSrc = src;
+      }
+      icon.dataset.lvStyleName = styleName;
+      icon.setAttribute("src", makeLowVisionCategoryIconDataUrl(styleName));
+    }
+  }
+}
+
+function clearLowVisionToolboxAccents() {
+  const icons = document.querySelectorAll(".blocklyToolboxCategory img");
+  for (const icon of icons) {
+    if (icon.dataset.lvOrigSrc) {
+      icon.setAttribute("src", icon.dataset.lvOrigSrc);
+      delete icon.dataset.lvOrigSrc;
+      delete icon.dataset.lvStyleName;
+    }
+  }
+}
+
+function setLowVisionFlyoutLoadingVisibility(workspace, isLoading) {
+  const flyoutWorkspace = workspace?.getFlyout?.()?.getWorkspace?.();
+  const flyoutSvg = flyoutWorkspace?.getParentSvg?.();
+  if (!flyoutSvg) return;
+  flyoutSvg.style.visibility = isLoading ? "hidden" : "";
+}
+
+function reflowLowVisionFlyout(workspace) {
+  const flyout = workspace?.getFlyout?.();
+  if (!flyout || typeof flyout.reflow !== "function") return;
+  flyout.reflow();
+}
+
+function applyLowVisionDecorations(
+  workspace,
+  { hideFlyoutWhileApplying = false, preload = false } = {},
+) {
+  if (!workspace) return;
+  if (hideFlyoutWhileApplying) {
+    setLowVisionFlyoutLoadingVisibility(workspace, true);
+  }
+
+  const applyDecorations = () => {
+    applyLowVisionCategoryIcons(workspace);
+    applyLowVisionToolboxAccents();
+    reflowLowVisionFlyout(workspace);
+    requestAnimationFrame(() => {
+      applyLowVisionCategoryIcons(workspace);
+      applyLowVisionToolboxAccents();
+      reflowLowVisionFlyout(workspace);
+      if (hideFlyoutWhileApplying) {
+        setLowVisionFlyoutLoadingVisibility(workspace, false);
+      }
+    });
+    setTimeout(() => applyLowVisionToolboxAccents(), 0);
+  };
+
+  if (preload) {
+    Promise.resolve(preloadLowVisionCategoryIcons()).finally(applyDecorations);
+  } else {
+    applyDecorations();
+  }
+}
+
 function setLogos(themeName) {
   const bird = document.getElementById("logo");
   const inlineLogo = document.getElementById("flocklogo");
   if (!bird || !inlineLogo) return;
   switch (themeName) {
     case "dark-contrast":
+    case "low-vision":
       inlineLogo.src = "./images/inline-flock-xr-dark1.svg";
       bird.src = "./images/flock-bird-mascot-2colours-dark1.svg";
       break;
@@ -125,7 +279,7 @@ function setBinAndZoomIcons(themeName) {
   const binIcon = document.getElementsByClassName("blocklyTrash");
   const zoomIcons = document.getElementsByClassName("blocklyZoom");
 
-  if (themeName == "contrast") {
+  if (themeName === "contrast") {
     const iconsURL = "./images/blocklywhitesprites.png";
     setIconImage(binIcon, iconsURL);
     setIconImage(zoomIcons, iconsURL);
@@ -143,6 +297,7 @@ export function getIconColorForTheme(themeName) {
       return "black";
     case "contrast":
     case "dark-contrast":
+    case "low-vision":
     default:
       return "white";
   }
@@ -155,6 +310,7 @@ function switchTheme(themeName) {
   const workspace = Blockly.getMainWorkspace();
 
   if (!workspace) return;
+  ensureLowVisionIconListener(workspace);
 
   Blockly.utils.colour.setHsvSaturation(0.3);
   Blockly.utils.colour.setHsvValue(0.85);
@@ -189,8 +345,17 @@ function switchTheme(themeName) {
   setCurrentIconColor(iconColor);
 
   workspace.updateToolbox(workspace.options.languageTree);
-
   updateAllBlockIcons(workspace, iconColor);
+  if (themeName === LOW_VISION_THEME) {
+    applyLowVisionDecorations(workspace, {
+      hideFlyoutWhileApplying: true,
+      preload: true,
+    });
+  } else {
+    clearLowVisionCategoryIcons(workspace);
+    clearLowVisionToolboxAccents();
+    setLowVisionFlyoutLoadingVisibility(workspace, false);
+  }
 
   // Optional: Save theme preference
   localStorage.setItem("blocklyTheme", themeName);
@@ -199,6 +364,8 @@ function switchTheme(themeName) {
 // Create theme configuration for all themes
 export function createThemeConfig(themeName) {
   const baseStyles = getThemeBaseStyles(themeName);
+  const listBlockStyle =
+    themeName === LOW_VISION_THEME ? baseStyles.lists : baseStyles.variables;
 
   return {
     name: themeName,
@@ -216,7 +383,7 @@ export function createThemeConfig(themeName) {
       logic_blocks: baseStyles.logic,
       variable_blocks: baseStyles.variables,
       text_blocks: baseStyles.text,
-      list_blocks: baseStyles.variables,
+      list_blocks: listBlockStyle,
       math_blocks: baseStyles.math,
       procedure_blocks: baseStyles.procedures,
     },
@@ -438,6 +605,98 @@ function getThemeBaseStyles(themeName) {
         insertionMarkerOpacity: 1,
         markerColour: "#FF0000",
         cursorColour: "#FF0000",
+      },
+    },
+    "low-vision": {
+      events: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      scene: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      transform: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      animate: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      materials: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      sound: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      sensing: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      snippets: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      control: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      logic: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      variables: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      text: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      lists: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      math: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      procedures: {
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
+      },
+      components: {
+        workspaceBackgroundColour: "#d8d8d8",
+        toolboxBackgroundColour: "#1E1E1E",
+        toolboxForegroundColour: "#F0F0F0",
+        flyoutBackgroundColour: "#3A3A3A",
+        flyoutForegroundColour: "#CFCFCF",
+        flyoutOpacity: 1,
+        scrollbarColour: "#E0E0E0",
+        insertionMarkerColour: "#E0E0E0",
+        insertionMarkerOpacity: 1,
+        markerColour: "#E0E0E0",
+        cursorColour: "#E0E0E0",
+        fieldColour: "#1E1E1E",
+        fieldTextColour: "#000000",
       },
     },
   };
