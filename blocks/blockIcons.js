@@ -278,19 +278,15 @@ export function clearLowVisionCategoryIcons(workspace) {
   if (!workspace) return;
   const blocks = getWorkspaceAndFlyoutBlocks(workspace);
   for (const block of blocks) {
-    if (
-      !block ||
-      typeof block.getField !== "function" ||
-      typeof block.removeField !== "function"
-    ) {
+    if (!block || typeof block.getField !== "function") {
       continue;
     }
-    if (block.getField(LOW_VISION_BAR_FIELD_NAME)) {
-      block.removeField(LOW_VISION_BAR_FIELD_NAME, true);
-    }
-    if (block.getField(LOW_VISION_ICON_FIELD_NAME)) {
-      block.removeField(LOW_VISION_ICON_FIELD_NAME, true);
-    }
+    const firstInput = block.inputList?.[0];
+    if (!firstInput || typeof firstInput.removeField !== "function") continue;
+    if (block.getField(LOW_VISION_BAR_FIELD_NAME))
+      firstInput.removeField(LOW_VISION_BAR_FIELD_NAME, true);
+    if (block.getField(LOW_VISION_ICON_FIELD_NAME))
+      firstInput.removeField(LOW_VISION_ICON_FIELD_NAME, true);
   }
 }
 

@@ -148,9 +148,7 @@ function applyLowVisionToolboxAccents() {
   if (document.body.getAttribute("data-theme") !== LOW_VISION_THEME) return;
   const rows = document.querySelectorAll(".blocklyToolboxCategory");
   for (const row of rows) {
-    const icons = row.querySelectorAll(
-      "img.customToolboxIcon, img.blocklyToolboxCategoryIconOpen, img.blocklyToolboxCategoryIconClosed",
-    );
+    const icons = row.querySelectorAll("img");
     for (const icon of icons) {
       const src = icon.dataset.lvOrigSrc || icon.getAttribute("src") || "";
       const styleName =
@@ -166,9 +164,7 @@ function applyLowVisionToolboxAccents() {
 }
 
 function clearLowVisionToolboxAccents() {
-  const icons = document.querySelectorAll(
-    ".blocklyToolboxCategory img.customToolboxIcon, .blocklyToolboxCategory img.blocklyToolboxCategoryIconOpen, .blocklyToolboxCategory img.blocklyToolboxCategoryIconClosed",
-  );
+  const icons = document.querySelectorAll(".blocklyToolboxCategory img");
   for (const icon of icons) {
     if (icon.dataset.lvOrigSrc) {
       icon.setAttribute("src", icon.dataset.lvOrigSrc);
@@ -325,7 +321,7 @@ export function createThemeConfig(themeName) {
       logic_blocks: baseStyles.logic,
       variable_blocks: baseStyles.variables,
       text_blocks: baseStyles.text,
-      list_blocks: baseStyles.variables,
+      list_blocks: baseStyles.lists,
       math_blocks: baseStyles.math,
       procedure_blocks: baseStyles.procedures,
     },
