@@ -184,6 +184,13 @@ function clearLowVisionToolboxAccents() {
   }
 }
 
+function setLowVisionFlyoutLoadingVisibility(workspace, isLoading) {
+  const flyoutWorkspace = workspace?.getFlyout?.()?.getWorkspace?.();
+  const flyoutSvg = flyoutWorkspace?.getParentSvg?.();
+  if (!flyoutSvg) return;
+  flyoutSvg.style.visibility = isLoading ? "hidden" : "";
+}
+
 function setLogos(themeName) {
   const bird = document.getElementById("logo");
   const inlineLogo = document.getElementById("flocklogo");
@@ -298,14 +305,20 @@ function switchTheme(themeName) {
   workspace.updateToolbox(workspace.options.languageTree);
   updateAllBlockIcons(workspace, iconColor);
   if (themeName === LOW_VISION_THEME) {
-    preloadLowVisionCategoryIcons();
-    applyLowVisionCategoryIcons(workspace);
-    applyLowVisionToolboxAccents();
-    requestAnimationFrame(() => applyLowVisionToolboxAccents());
-    setTimeout(() => applyLowVisionToolboxAccents(), 0);
+    setLowVisionFlyoutLoadingVisibility(workspace, true);
+    Promise.resolve(preloadLowVisionCategoryIcons()).finally(() => {
+      applyLowVisionCategoryIcons(workspace);
+      applyLowVisionToolboxAccents();
+      requestAnimationFrame(() => {
+        applyLowVisionToolboxAccents();
+        setLowVisionFlyoutLoadingVisibility(workspace, false);
+      });
+      setTimeout(() => applyLowVisionToolboxAccents(), 0);
+    });
   } else {
     clearLowVisionCategoryIcons(workspace);
     clearLowVisionToolboxAccents();
+    setLowVisionFlyoutLoadingVisibility(workspace, false);
   }
 
   // Optional: Save theme preference

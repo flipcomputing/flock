@@ -349,14 +349,19 @@ export function makeLowVisionCategoryIconDataUrl(styleName) {
 }
 
 export function preloadLowVisionCategoryIcons() {
-  if (typeof Image === "undefined") return;
+  if (typeof Image === "undefined") return Promise.resolve();
+  const pendingDecodes = [];
   for (const styleName of Object.keys(CATEGORY_ICON_BY_STYLE)) {
     const dataUrl = makeLowVisionCategoryIconDataUrl(styleName);
     if (!dataUrl) continue;
     const img = new Image();
     img.decoding = "sync";
     img.src = dataUrl;
+    if (typeof img.decode === "function") {
+      pendingDecodes.push(img.decode().catch(() => {}));
+    }
   }
+  return Promise.allSettled(pendingDecodes);
 }
 
 export function applyLowVisionCategoryIcons(workspace) {
