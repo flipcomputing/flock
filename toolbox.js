@@ -3445,7 +3445,7 @@ const toolboxLists = {
   name: "%{BKY_CATEGORY_LISTS}",
   icon: "./images/lists.svg",
   //colour: categoryColours["Lists"],
-  categorystyle: "variables_category",
+  categorystyle: "lists_category",
   custom: "LIST",
   contents: [
     {
