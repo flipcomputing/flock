@@ -220,8 +220,17 @@ function getBlockStyleName(block) {
 }
 
 function getCategoryIconForBlock(block) {
-  const styleName = getBlockStyleName(block);
+  const styleName = getLowVisionStyleNameForBlock(block);
   return makeLowVisionCategoryIconDataUrl(styleName);
+}
+
+function getLowVisionStyleNameForBlock(block) {
+  const styleName = getBlockStyleName(block);
+  if (styleName) return styleName;
+  const blockType = block?.type || "";
+  if (blockType.startsWith("lists_")) return "list_blocks";
+  if (blockType.startsWith("variables_")) return "variable_blocks";
+  return styleName;
 }
 
 function withSvgFill(svg, fillColor) {

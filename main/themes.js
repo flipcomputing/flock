@@ -105,14 +105,28 @@ const LOW_VISION_TOOLBOX_ACCENTS = {
 
 function getLowVisionToolboxStyleNameFromSrc(src) {
   const lowerSrc = (src || "").toLowerCase();
-  const directIconName = (lowerSrc.split("/").pop() || "").split("?")[0].split("#")[0];
+  if (!lowerSrc || lowerSrc.startsWith("data:")) return "";
+
+  let directIconName = (lowerSrc.split("/").pop() || "").split("?")[0].split("#")[0];
+  try {
+    const parsed = new URL(lowerSrc, window.location.href);
+    directIconName = (parsed.pathname.split("/").pop() || directIconName).toLowerCase();
+  } catch {
+    // Keep fallback parsing above.
+  }
+
   if (LOW_VISION_TOOLBOX_ACCENTS[directIconName]) {
     return LOW_VISION_TOOLBOX_ACCENTS[directIconName];
   }
 
   for (const [iconName, styleName] of Object.entries(LOW_VISION_TOOLBOX_ACCENTS)) {
     const stem = iconName.replace(".svg", "");
-    if (lowerSrc.includes(iconName) || lowerSrc.includes(stem)) {
+    if (
+      lowerSrc.includes(`/${iconName}`) ||
+      lowerSrc.includes(`/${stem}-`) ||
+      lowerSrc.endsWith(`/${stem}`) ||
+      lowerSrc.endsWith(iconName)
+    ) {
       return styleName;
     }
   }
@@ -139,11 +153,13 @@ function applyLowVisionToolboxAccents() {
     );
     for (const icon of icons) {
       const src = icon.dataset.lvOrigSrc || icon.getAttribute("src") || "";
-      const styleName = getLowVisionToolboxStyleNameFromSrc(src);
+      const styleName =
+        icon.dataset.lvStyleName || getLowVisionToolboxStyleNameFromSrc(src);
       if (!styleName) continue;
       if (!icon.dataset.lvOrigSrc) {
         icon.dataset.lvOrigSrc = src;
       }
+      icon.dataset.lvStyleName = styleName;
       icon.setAttribute("src", makeLowVisionCategoryIconDataUrl(styleName));
     }
   }
@@ -157,6 +173,7 @@ function clearLowVisionToolboxAccents() {
     if (icon.dataset.lvOrigSrc) {
       icon.setAttribute("src", icon.dataset.lvOrigSrc);
       delete icon.dataset.lvOrigSrc;
+      delete icon.dataset.lvStyleName;
     }
   }
 }
