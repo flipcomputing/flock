@@ -190,7 +190,7 @@ const BLOCK_ICON_MAKERS = {
 
 export function updateBlockIcons(workspace, iconColor) {
   if (!workspace) return;
-  const blocks = workspace.getAllBlocks(false);
+  const blocks = getWorkspaceAndFlyoutBlocks(workspace);
   for (const block of blocks) {
     const iconField = block.getField(BLOCK_ICON_FIELD_NAME);
     if (iconField) {
@@ -236,7 +236,7 @@ export function makeLowVisionCategoryIconDataUrl(styleName) {
 
 export function applyLowVisionCategoryIcons(workspace) {
   if (!workspace) return;
-  const blocks = workspace.getAllBlocks(false);
+  const blocks = getWorkspaceAndFlyoutBlocks(workspace);
   for (const block of blocks) {
     const iconPath = getCategoryIconForBlock(block);
     if (!iconPath) continue;
@@ -255,7 +255,7 @@ export function applyLowVisionCategoryIcons(workspace) {
 
 export function clearLowVisionCategoryIcons(workspace) {
   if (!workspace) return;
-  const blocks = workspace.getAllBlocks(false);
+  const blocks = getWorkspaceAndFlyoutBlocks(workspace);
   for (const block of blocks) {
     if (block.getField(LOW_VISION_BAR_FIELD_NAME)) {
       block.removeField(LOW_VISION_BAR_FIELD_NAME, true);
@@ -264,4 +264,13 @@ export function clearLowVisionCategoryIcons(workspace) {
       block.removeField(LOW_VISION_ICON_FIELD_NAME, true);
     }
   }
+}
+
+function getWorkspaceAndFlyoutBlocks(workspace) {
+  const blocks = workspace.getAllBlocks(false) || [];
+  const flyoutWorkspace = workspace.getFlyout?.()?.getWorkspace?.();
+  if (flyoutWorkspace) {
+    blocks.push(...(flyoutWorkspace.getAllBlocks(false) || []));
+  }
+  return blocks;
 }
