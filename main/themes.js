@@ -550,7 +550,7 @@ function getThemeBaseStyles(themeName) {
         markerColour: "#E0E0E0",
         cursorColour: "#E0E0E0",
         fieldColour: "#1E1E1E",
-        fieldTextColour: "#F0F0F0",
+        fieldTextColour: "#000000",
       },
     },
   };
