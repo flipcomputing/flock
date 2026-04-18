@@ -630,6 +630,27 @@ export function initializeWorkspace() {
   workspace.addChangeListener(handleBlockSelect);
   workspace.addChangeListener(handleBlockDelete);
 
+  let activeXyzBlock = null;
+  workspace.addChangeListener((event) => {
+    if (event.type !== Blockly.Events.SELECTED) return;
+    if (!event.newElementId) {
+      const widgetDiv = document.querySelector(".blocklyWidgetDiv");
+      if (widgetDiv?.childElementCount > 0) return;
+      activeXyzBlock?.getSvgRoot()?.removeAttribute("data-xyz-active");
+      activeXyzBlock = null;
+      return;
+    }
+    let block = workspace.getBlockById(event.newElementId);
+    while (block && !block.inputList?.some((i) => ["X", "Y", "Z"].includes(i.name))) {
+      block = block.getParent?.() ?? null;
+    }
+    if (block !== activeXyzBlock) {
+      activeXyzBlock?.getSvgRoot()?.removeAttribute("data-xyz-active");
+      activeXyzBlock = block ?? null;
+      activeXyzBlock?.getSvgRoot()?.setAttribute("data-xyz-active", "");
+    }
+  });
+
   // Initialize workspace search
   const workspaceSearch = new WorkspaceSearch(workspace);
   const originalWorkspaceSearchKeydown =
