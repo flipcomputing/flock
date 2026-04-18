@@ -236,6 +236,12 @@ const LOW_VISION_STYLE_BY_ICON_FILE = {
   "functions.svg": "procedure_blocks",
 };
 const LOW_VISION_STYLE_BY_BLOCK_TYPE = buildLowVisionStyleByBlockType();
+const LOW_VISION_SUBCATEGORY_STYLE_OVERRIDES = new Set([
+  "scene_blocks",
+  "transform_blocks",
+  "animate_blocks",
+  "snippets_blocks",
+]);
 
 export function makeInlineIcon(color) {
   const svg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="122.88px" height="80.593px" viewBox="0 0 122.88 80.593" xml:space="preserve"><g><polygon fill="${color}" points="122.88,80.593 122.88,49.772 61.44,0 0,49.772 0,80.593 61.44,30.82 122.88,80.593"/></g></svg>`;
@@ -285,10 +291,13 @@ function getCategoryIconForBlock(block) {
 }
 
 function getLowVisionStyleNameForBlock(block) {
+  const styleName = getBlockStyleName(block);
+  if (styleName && !LOW_VISION_SUBCATEGORY_STYLE_OVERRIDES.has(styleName)) {
+    return styleName;
+  }
+
   const explicitSubcategoryStyle = LOW_VISION_STYLE_BY_BLOCK_TYPE[block?.type];
   if (explicitSubcategoryStyle) return explicitSubcategoryStyle;
-
-  const styleName = getBlockStyleName(block);
   if (styleName) return styleName;
 
   const blockType = block?.type || "";
