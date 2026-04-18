@@ -634,15 +634,6 @@ body[data-theme="low-vision"]
   stroke: #cfcfcf !important;
 }
 
-[data-theme="low-vision"] image.blocklyFieldImage {
-  filter: brightness(0) invert(1);
-}
-
-[data-theme="low-vision"] .blocklyBlockCanvas g.blocklyDraggable image,
-[data-theme="low-vision"] .blocklyFlyout g.blocklyDraggable image {
-  filter: brightness(0) invert(1);
-}
-
 /* === Blockly v12 desktop: center icon + label within the full row === */
 @media (min-width: 769px) {
   .blocklyToolboxCategoryContainer[aria-level="2"] > .blocklyToolboxCategory {

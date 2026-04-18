@@ -117,19 +117,19 @@ function applyLowVisionToolboxAccents() {
     const icon = row.querySelector("img.customToolboxIcon");
     if (!icon) continue;
     const src = icon.getAttribute("src") || "";
-    const iconName = src.split("/").pop() || "";
+    const iconName = (src.split("/").pop() || "").split("?")[0].split("#")[0];
     const accent = LOW_VISION_TOOLBOX_ACCENTS[iconName];
     if (!accent) continue;
-    row.style.borderLeft = `4px solid ${accent}`;
-    row.style.paddingLeft = "6px";
+    row.style.setProperty("box-shadow", `inset 4px 0 0 ${accent}`, "important");
+    row.style.setProperty("padding-left", "6px", "important");
   }
 }
 
 function clearLowVisionToolboxAccents() {
   const rows = document.querySelectorAll(".blocklyToolboxCategory");
   for (const row of rows) {
-    row.style.borderLeft = "";
-    row.style.paddingLeft = "";
+    row.style.removeProperty("box-shadow");
+    row.style.removeProperty("padding-left");
   }
 }
 
