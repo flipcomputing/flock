@@ -270,6 +270,17 @@ async function generateSVG(block) {
     });
   });
 
+  // Apply axis input outline colors directly as presentation attributes.
+  // CSS [data-axis] rules in the <style> tag are unreliable when the SVG
+  // is rendered via canvas (browser sandboxing can suppress stylesheet application).
+  const axisExportColors = { X: "#1A9EE0", Y: "#00CC96", Z: "#F07020" };
+  for (const [axis, color] of Object.entries(axisExportColors)) {
+    svgBlock.querySelectorAll(`[data-axis="${axis}"] .blocklyPath`).forEach((path) => {
+      path.setAttribute("stroke", color);
+      path.setAttribute("stroke-width", "2");
+    });
+  }
+
   const serializer = new XMLSerializer();
 
   svgBlock.removeAttribute("transform");
@@ -333,9 +344,6 @@ async function generateSVG(block) {
 	  stroke: #555;
 	  stroke-width: 30;
 	}
-	[data-axis="X"] .blocklyPath { stroke: #1A9EE0 !important; stroke-width: 2px !important; }
-	[data-axis="Y"] .blocklyPath { stroke: #00CC96 !important; stroke-width: 2px !important; }
-	[data-axis="Z"] .blocklyPath { stroke: #F07020 !important; stroke-width: 2px !important; }
   `;
   svgBlock.insertBefore(style, svgBlock.firstChild);
 
