@@ -611,6 +611,14 @@ body[data-theme="dark"] .blocklyTreeLabel {
   fill: #000000 !important;
 }
 
+[data-theme="low-vision"] .blocklyEditableText .blocklyText,
+[data-theme="low-vision"] .blocklyNonEditableText .blocklyText,
+[data-theme="low-vision"] .blocklyEditableText .blocklyFieldText,
+[data-theme="low-vision"] .blocklyNonEditableText .blocklyFieldText {
+  fill: #000000 !important;
+  color: #000000 !important;
+}
+
 [data-theme="low-vision"] .blocklyDropdownText,
 [data-theme="low-vision"] .blocklyDropDownText {
   fill: #f0f0f0 !important;
