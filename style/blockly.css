@@ -549,6 +549,16 @@ body[data-theme="dark"] .blocklyTreeLabel {
   fill-opacity: 0.8 !important;
 }
 
+[data-theme="low-vision"] .blocklyFlyout,
+[data-theme="low-vision"] .blocklyFlyoutBackground {
+  opacity: 1 !important;
+}
+
+[data-theme="low-vision"] .blocklyFlyoutBackground {
+  fill: #1e1e1e !important;
+  fill-opacity: 1 !important;
+}
+
 .blocklyTreeSelected {
   border-left: 4px solid #fc3 !important;
 }
