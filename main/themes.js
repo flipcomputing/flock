@@ -196,6 +196,12 @@ function setLowVisionFlyoutLoadingVisibility(workspace, isLoading) {
   flyoutSvg.style.visibility = isLoading ? "hidden" : "";
 }
 
+function reflowLowVisionFlyout(workspace) {
+  const flyout = workspace?.getFlyout?.();
+  if (!flyout || typeof flyout.reflow !== "function") return;
+  flyout.reflow();
+}
+
 function applyLowVisionDecorations(
   workspace,
   { hideFlyoutWhileApplying = false, preload = false } = {},
@@ -208,9 +214,11 @@ function applyLowVisionDecorations(
   const applyDecorations = () => {
     applyLowVisionCategoryIcons(workspace);
     applyLowVisionToolboxAccents();
+    reflowLowVisionFlyout(workspace);
     requestAnimationFrame(() => {
       applyLowVisionCategoryIcons(workspace);
       applyLowVisionToolboxAccents();
+      reflowLowVisionFlyout(workspace);
       if (hideFlyoutWhileApplying) {
         setLowVisionFlyoutLoadingVisibility(workspace, false);
       }
