@@ -24,6 +24,9 @@ function canRestoreFocus(element) {
 }
 
 function openInfoModal() {
+  if (!infoModal || !closeInfoModal) {
+    return;
+  }
   previouslyFocused = document.activeElement;
   infoModal.classList.remove("hidden");
   infoModal.setAttribute("aria-hidden", "false");
@@ -35,13 +38,16 @@ function openInfoModal() {
 }
 
 function hideInfoModal() {
+  if (!infoModal) {
+    return;
+  }
   infoModal.classList.add("hidden");
   infoModal.setAttribute("aria-hidden", "true");
   infoModal.removeAttribute("aria-modal");
 
   if (canRestoreFocus(previouslyFocused)) {
     previouslyFocused.focus();
-  } else {
+  } else if (menuBtn) {
     menuBtn.focus();
   }
 
@@ -52,11 +58,16 @@ class AccessibleFlyoutMenu {
   constructor() {
     this.menuButton = document.getElementById("menuBtn");
     this.menuDropdown = document.getElementById("menuDropdown");
-    this.menuItems = this.menuDropdown.querySelectorAll(".menu-item");
+    this.menuItems = [];
     this.isMenuOpen = false;
     this.currentFocus = -1;
     this.currentOpenSubmenu = null;
 
+    if (!this.menuButton || !this.menuDropdown) {
+      return;
+    }
+
+    this.menuItems = this.menuDropdown.querySelectorAll(".menu-item");
     this.init();
   }
 
@@ -147,7 +158,7 @@ class AccessibleFlyoutMenu {
 
         let handled = false;
 
-        if (!infoModal.classList.contains("hidden")) {
+        if (infoModal && !infoModal.classList.contains("hidden")) {
           hideInfoModal();
           handled = true;
         }
@@ -202,6 +213,9 @@ class AccessibleFlyoutMenu {
   }
 
   focusFirstMenuItem() {
+    if (this.menuItems.length === 0) {
+      return;
+    }
     this.currentFocus = 0;
     this.menuItems[0].focus();
   }
@@ -369,56 +383,67 @@ class AccessibleFlyoutMenu {
 // Initialize the menu when DOM is loaded
 let menuFlyout;
 document.addEventListener("DOMContentLoaded", () => {
+  if (!menuBtn || !document.getElementById("menuDropdown")) {
+    return;
+  }
   menuFlyout = new AccessibleFlyoutMenu();
 });
 
-hubMenuItem.addEventListener("click", (e) => {
-  e.preventDefault();
-  menuFlyout?.closeAllMenus();
-  menuBtn.focus();
-  window.open("https://hub.flockxr.com/", "_blank", "noopener,noreferrer");
-});
+if (hubMenuItem) {
+  hubMenuItem.addEventListener("click", (e) => {
+    e.preventDefault();
+    menuFlyout?.closeAllMenus();
+    menuBtn?.focus();
+    window.open("https://hub.flockxr.com/", "_blank", "noopener,noreferrer");
+  });
+}
 
 // Language menu interactions are now handled in main/translation.js
 
 // Open modal when About is clicked
-openAbout.addEventListener("click", (e) => {
-  e.preventDefault();
-  menuFlyout?.closeAllMenus();
-  openInfoModal();
-});
+if (openAbout) {
+  openAbout.addEventListener("click", (e) => {
+    e.preventDefault();
+    menuFlyout?.closeAllMenus();
+    openInfoModal();
+  });
+}
 
 // Close modal on close button
-closeInfoModal.addEventListener("click", () => {
-  hideInfoModal();
-});
+if (closeInfoModal) {
+  closeInfoModal.addEventListener("click", () => {
+    hideInfoModal();
+  });
+}
 
 // Handle keyboard events for modal
-infoModal.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    e.preventDefault();
-    e.stopPropagation();
-    hideInfoModal();
-  } else if (e.key === "Tab") {
-    // Trap focus within modal
-    const focusableElements = infoModal.querySelectorAll(
-      'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])',
-    );
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
+if (infoModal) {
+  infoModal.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      hideInfoModal();
+    } else if (e.key === "Tab") {
+      // Trap focus within modal
+      const focusableElements = infoModal.querySelectorAll(
+        'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])',
+      );
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
 
-    if (e.shiftKey && document.activeElement === firstElement) {
-      e.preventDefault();
-      lastElement.focus();
-    } else if (!e.shiftKey && document.activeElement === lastElement) {
-      e.preventDefault();
-      firstElement.focus();
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
     }
-  }
-});
+  });
 
-window.addEventListener("click", (e) => {
-  if (e.target === infoModal) {
-    hideInfoModal();
-  }
-});
+  window.addEventListener("click", (e) => {
+    if (e.target === infoModal) {
+      hideInfoModal();
+    }
+  });
+}
