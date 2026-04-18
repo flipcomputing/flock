@@ -102,6 +102,22 @@ const LOW_VISION_TOOLBOX_ACCENTS = {
   "functions.svg": "procedure_blocks",
 };
 
+function getLowVisionToolboxStyleNameFromSrc(src) {
+  const lowerSrc = (src || "").toLowerCase();
+  const directIconName = (lowerSrc.split("/").pop() || "").split("?")[0].split("#")[0];
+  if (LOW_VISION_TOOLBOX_ACCENTS[directIconName]) {
+    return LOW_VISION_TOOLBOX_ACCENTS[directIconName];
+  }
+
+  for (const [iconName, styleName] of Object.entries(LOW_VISION_TOOLBOX_ACCENTS)) {
+    const stem = iconName.replace(".svg", "");
+    if (lowerSrc.includes(iconName) || lowerSrc.includes(stem)) {
+      return styleName;
+    }
+  }
+  return "";
+}
+
 function ensureLowVisionIconListener(workspace) {
   if (lowVisionIconListenerRegistered || !workspace) return;
   workspace.addChangeListener(() => {
@@ -117,9 +133,8 @@ function applyLowVisionToolboxAccents() {
   for (const row of rows) {
     const icon = row.querySelector("img.customToolboxIcon");
     if (!icon) continue;
-    const src = icon.getAttribute("src") || "";
-    const iconName = (src.split("/").pop() || "").split("?")[0].split("#")[0];
-    const styleName = LOW_VISION_TOOLBOX_ACCENTS[iconName];
+    const src = icon.dataset.lvOrigSrc || icon.getAttribute("src") || "";
+    const styleName = getLowVisionToolboxStyleNameFromSrc(src);
     if (!styleName) continue;
     if (!icon.dataset.lvOrigSrc) {
       icon.dataset.lvOrigSrc = src;
