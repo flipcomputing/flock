@@ -306,6 +306,8 @@ function switchTheme(themeName) {
 // Create theme configuration for all themes
 export function createThemeConfig(themeName) {
   const baseStyles = getThemeBaseStyles(themeName);
+  const listBlockStyle =
+    themeName === LOW_VISION_THEME ? baseStyles.lists : baseStyles.variables;
 
   return {
     name: themeName,
@@ -323,7 +325,7 @@ export function createThemeConfig(themeName) {
       logic_blocks: baseStyles.logic,
       variable_blocks: baseStyles.variables,
       text_blocks: baseStyles.text,
-      list_blocks: baseStyles.lists,
+      list_blocks: listBlockStyle,
       math_blocks: baseStyles.math,
       procedure_blocks: baseStyles.procedures,
     },
