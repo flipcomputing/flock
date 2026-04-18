@@ -631,6 +631,22 @@ body[data-theme="low-vision"]
   stroke: #cfcfcf !important;
 }
 
+[data-theme="low-vision"] g[data-lv-style="events_blocks"] image.blocklyFieldImage { filter: invert(47%) sepia(56%) saturate(592%) hue-rotate(320deg) brightness(96%) contrast(92%); }
+[data-theme="low-vision"] g[data-lv-style="scene_blocks"] image.blocklyFieldImage { filter: invert(50%) sepia(23%) saturate(825%) hue-rotate(79deg) brightness(91%) contrast(85%); }
+[data-theme="low-vision"] g[data-lv-style="transform_blocks"] image.blocklyFieldImage { filter: invert(58%) sepia(38%) saturate(771%) hue-rotate(346deg) brightness(92%) contrast(88%); }
+[data-theme="low-vision"] g[data-lv-style="animate_blocks"] image.blocklyFieldImage { filter: invert(54%) sepia(30%) saturate(792%) hue-rotate(292deg) brightness(90%) contrast(90%); }
+[data-theme="low-vision"] g[data-lv-style="materials_blocks"] image.blocklyFieldImage { filter: invert(50%) sepia(23%) saturate(1754%) hue-rotate(223deg) brightness(90%) contrast(85%); }
+[data-theme="low-vision"] g[data-lv-style="sound_blocks"] image.blocklyFieldImage { filter: invert(60%) sepia(26%) saturate(760%) hue-rotate(337deg) brightness(90%) contrast(89%); }
+[data-theme="low-vision"] g[data-lv-style="sensing_blocks"] image.blocklyFieldImage { filter: invert(56%) sepia(42%) saturate(687%) hue-rotate(176deg) brightness(93%) contrast(86%); }
+[data-theme="low-vision"] g[data-lv-style="snippets_blocks"] image.blocklyFieldImage { filter: invert(58%) sepia(21%) saturate(888%) hue-rotate(159deg) brightness(93%) contrast(90%); }
+[data-theme="low-vision"] g[data-lv-style="control_blocks"] image.blocklyFieldImage { filter: invert(51%) sepia(27%) saturate(1046%) hue-rotate(74deg) brightness(95%) contrast(87%); }
+[data-theme="low-vision"] g[data-lv-style="logic_blocks"] image.blocklyFieldImage { filter: invert(43%) sepia(30%) saturate(1070%) hue-rotate(190deg) brightness(94%) contrast(91%); }
+[data-theme="low-vision"] g[data-lv-style="variable_blocks"] image.blocklyFieldImage,
+[data-theme="low-vision"] g[data-lv-style="list_blocks"] image.blocklyFieldImage { filter: invert(48%) sepia(24%) saturate(1068%) hue-rotate(289deg) brightness(89%) contrast(90%); }
+[data-theme="low-vision"] g[data-lv-style="text_blocks"] image.blocklyFieldImage { filter: invert(54%) sepia(17%) saturate(1172%) hue-rotate(183deg) brightness(92%) contrast(89%); }
+[data-theme="low-vision"] g[data-lv-style="math_blocks"] image.blocklyFieldImage { filter: invert(50%) sepia(23%) saturate(1290%) hue-rotate(201deg) brightness(90%) contrast(89%); }
+[data-theme="low-vision"] g[data-lv-style="procedure_blocks"] image.blocklyFieldImage { filter: invert(47%) sepia(20%) saturate(1235%) hue-rotate(238deg) brightness(90%) contrast(89%); }
+
 /* === Blockly v12 desktop: center icon + label within the full row === */
 @media (min-width: 769px) {
   .blocklyToolboxCategoryContainer[aria-level="2"] > .blocklyToolboxCategory {

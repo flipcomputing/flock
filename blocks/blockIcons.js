@@ -140,24 +140,6 @@ const CATEGORY_ICON_BY_STYLE = {
   procedure_blocks: "./images/functions.svg",
 };
 
-const CATEGORY_ACCENT_BY_STYLE = {
-  events_blocks: "#d4695d",
-  scene_blocks: "#4f8f59",
-  transform_blocks: "#d48642",
-  animate_blocks: "#cc6b86",
-  materials_blocks: "#8c6ed6",
-  sound_blocks: "#cf8466",
-  sensing_blocks: "#4f8fc7",
-  snippets_blocks: "#5a9abc",
-  control_blocks: "#4f9f52",
-  logic_blocks: "#4f73c9",
-  variable_blocks: "#b45d94",
-  text_blocks: "#5f88c8",
-  list_blocks: "#b45d94",
-  math_blocks: "#5f74c6",
-  procedure_blocks: "#9662bf",
-};
-
 export function makeInlineIcon(color) {
   const svg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="122.88px" height="80.593px" viewBox="0 0 122.88 80.593" xml:space="preserve"><g><polygon fill="${color}" points="122.88,80.593 122.88,49.772 61.44,0 0,49.772 0,80.593 61.44,30.82 122.88,80.593"/></g></svg>`;
   return "data:image/svg+xml," + encodeURIComponent(svg);
@@ -204,16 +186,6 @@ function getCategoryIconForBlock(block) {
   return CATEGORY_ICON_BY_STYLE[styleName] || null;
 }
 
-function getCategoryAccentForBlock(block) {
-  const styleName = getBlockStyleName(block);
-  return CATEGORY_ACCENT_BY_STYLE[styleName] || "#cfcfcf";
-}
-
-function makeCategoryChipIcon(iconPath, accentColour) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><mask id="iconMask" x="0" y="0" width="18" height="18" style="mask-type: alpha;"><image href="${iconPath}" x="0" y="0" width="18" height="18"/></mask><rect x="0" y="0" width="18" height="18" fill="${accentColour}" mask="url(#iconMask)"/></svg>`;
-  return "data:image/svg+xml," + encodeURIComponent(svg);
-}
-
 export function applyLowVisionCategoryIcons(workspace) {
   if (!workspace) return;
   const blocks = workspace.getAllBlocks(false);
@@ -224,18 +196,15 @@ export function applyLowVisionCategoryIcons(workspace) {
     const firstInput = block.inputList?.[0];
     if (!firstInput) continue;
     if (!block.getField(LOW_VISION_ICON_FIELD_NAME)) {
-      const accentColour = getCategoryAccentForBlock(block);
       firstInput.insertFieldAt(
         0,
-        new Blockly.FieldImage(
-          makeCategoryChipIcon(iconPath, accentColour),
-          18,
-          18,
-          "*",
-          null,
-        ),
+        new Blockly.FieldImage(iconPath, 18, 18, "*", null),
         LOW_VISION_ICON_FIELD_NAME,
       );
+    }
+    const blockRoot = block.getSvgRoot?.();
+    if (blockRoot) {
+      blockRoot.setAttribute("data-lv-style", getBlockStyleName(block));
     }
   }
 }
@@ -249,6 +218,10 @@ export function clearLowVisionCategoryIcons(workspace) {
     }
     if (block.getField(LOW_VISION_ICON_FIELD_NAME)) {
       block.removeField(LOW_VISION_ICON_FIELD_NAME, true);
+    }
+    const blockRoot = block.getSvgRoot?.();
+    if (blockRoot) {
+      blockRoot.removeAttribute("data-lv-style");
     }
   }
 }

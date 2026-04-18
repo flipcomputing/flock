@@ -100,6 +100,23 @@ const LOW_VISION_TOOLBOX_ACCENTS = {
   "math.svg": "#5f74c6",
   "functions.svg": "#9662bf",
 };
+const LOW_VISION_ICON_FILTERS = {
+  "events.svg": "invert(47%) sepia(56%) saturate(592%) hue-rotate(320deg) brightness(96%) contrast(92%)",
+  "scene.svg": "invert(50%) sepia(23%) saturate(825%) hue-rotate(79deg) brightness(91%) contrast(85%)",
+  "motion.svg": "invert(58%) sepia(38%) saturate(771%) hue-rotate(346deg) brightness(92%) contrast(88%)",
+  "animate.svg": "invert(54%) sepia(30%) saturate(792%) hue-rotate(292deg) brightness(90%) contrast(90%)",
+  "looks.svg": "invert(50%) sepia(23%) saturate(1754%) hue-rotate(223deg) brightness(90%) contrast(85%)",
+  "sound.svg": "invert(60%) sepia(26%) saturate(760%) hue-rotate(337deg) brightness(90%) contrast(89%)",
+  "sensing.svg": "invert(56%) sepia(42%) saturate(687%) hue-rotate(176deg) brightness(93%) contrast(86%)",
+  "snippets.svg": "invert(58%) sepia(21%) saturate(888%) hue-rotate(159deg) brightness(93%) contrast(90%)",
+  "control.svg": "invert(51%) sepia(27%) saturate(1046%) hue-rotate(74deg) brightness(95%) contrast(87%)",
+  "conditions.svg": "invert(43%) sepia(30%) saturate(1070%) hue-rotate(190deg) brightness(94%) contrast(91%)",
+  "variables.svg": "invert(48%) sepia(24%) saturate(1068%) hue-rotate(289deg) brightness(89%) contrast(90%)",
+  "text.svg": "invert(54%) sepia(17%) saturate(1172%) hue-rotate(183deg) brightness(92%) contrast(89%)",
+  "lists.svg": "invert(48%) sepia(24%) saturate(1068%) hue-rotate(289deg) brightness(89%) contrast(90%)",
+  "math.svg": "invert(50%) sepia(23%) saturate(1290%) hue-rotate(201deg) brightness(90%) contrast(89%)",
+  "functions.svg": "invert(47%) sepia(20%) saturate(1235%) hue-rotate(238deg) brightness(90%) contrast(89%)",
+};
 
 function ensureLowVisionIconListener(workspace) {
   if (lowVisionIconListenerRegistered || !workspace) return;
@@ -120,32 +137,17 @@ function applyLowVisionToolboxAccents() {
     const iconName = (src.split("/").pop() || "").split("?")[0].split("#")[0];
     const accent = LOW_VISION_TOOLBOX_ACCENTS[iconName];
     if (!accent) continue;
-    if (!icon.dataset.lvOrigSrc) {
-      icon.dataset.lvOrigSrc = src;
-    }
-    icon.setAttribute(
-      "src",
-      makeLowVisionTintedIconDataUrl(icon.dataset.lvOrigSrc, accent),
-    );
-    icon.style.removeProperty("background-color");
-    icon.style.removeProperty("border-radius");
-    icon.style.removeProperty("padding");
+    icon.style.setProperty("filter", LOW_VISION_ICON_FILTERS[iconName] || "none", "important");
+    icon.style.setProperty("opacity", "1", "important");
   }
 }
 
 function clearLowVisionToolboxAccents() {
   const icons = document.querySelectorAll(".blocklyToolboxCategory img.customToolboxIcon");
   for (const icon of icons) {
-    if (icon.dataset.lvOrigSrc) {
-      icon.setAttribute("src", icon.dataset.lvOrigSrc);
-      delete icon.dataset.lvOrigSrc;
-    }
+    icon.style.removeProperty("filter");
+    icon.style.removeProperty("opacity");
   }
-}
-
-function makeLowVisionTintedIconDataUrl(iconHref, accentColour) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><mask id="toolboxIconMask" x="0" y="0" width="18" height="18" style="mask-type: alpha;"><image href="${iconHref}" x="0" y="0" width="18" height="18"/></mask><rect x="0" y="0" width="18" height="18" fill="${accentColour}" mask="url(#toolboxIconMask)"/></svg>`;
-  return "data:image/svg+xml," + encodeURIComponent(svg);
 }
 
 function setLogos(themeName) {
