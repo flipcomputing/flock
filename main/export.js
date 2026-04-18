@@ -170,7 +170,7 @@ async function exportWorkspaceAsSVG(workspace) {
   const axisExportColors = { X: "#1A9EE0", Y: "#00CC96", Z: "#F07020" };
   for (const [axis, color] of Object.entries(axisExportColors)) {
     svgBlock
-      .querySelectorAll(`[data-axis="${axis}"] .blocklyPath`)
+      .querySelectorAll(`:scope >[data-axis="${axis}"] .blocklyPath`)
       .forEach((path) => {
         path.setAttribute("stroke", color);
         path.setAttribute("stroke-width", "2");
@@ -283,7 +283,7 @@ async function generateSVG(block) {
   const axisExportColors = { X: "#1A9EE0", Y: "#00CC96", Z: "#F07020" };
   for (const [axis, color] of Object.entries(axisExportColors)) {
     svgBlock
-      .querySelectorAll(`[data-axis="${axis}"] .blocklyPath`)
+      .querySelectorAll(`:scope >[data-axis="${axis}"] .blocklyPath`)
       .forEach((path) => {
         path.setAttribute("stroke", color);
         path.setAttribute("stroke-width", "2");
