@@ -596,27 +596,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
   color: #f0f0f0 !important;
 }
 
-[data-theme="low-vision"] .custom_zelos_renderer-renderer.classic-theme .blocklyEditableText > text,
-[data-theme="low-vision"] .custom_zelos_renderer-renderer.classic-theme .blocklyNonEditableText > text,
-[data-theme="low-vision"] .custom_zelos_renderer-renderer.classic-theme .blocklyDropdownText,
-[data-theme="low-vision"] .custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
+body[data-theme="low-vision"] .blocklyField text.blocklyText.blocklyFieldText {
   fill: #000000 !important;
-  color: #000000 !important;
-}
-
-[data-theme="low-vision"] .blocklyNonEditableText > text,
-[data-theme="low-vision"] .blocklyEditableText > text,
-[data-theme="low-vision"] .blocklyNonEditableText > g > text,
-[data-theme="low-vision"] .blocklyEditableText > g > text {
-  fill: #000000 !important;
-}
-
-[data-theme="low-vision"] .blocklyEditableText .blocklyText,
-[data-theme="low-vision"] .blocklyNonEditableText .blocklyText,
-[data-theme="low-vision"] .blocklyEditableText .blocklyFieldText,
-[data-theme="low-vision"] .blocklyNonEditableText .blocklyFieldText {
-  fill: #000000 !important;
-  color: #000000 !important;
 }
 
 [data-theme="low-vision"] .blocklyDropdownText,
