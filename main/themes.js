@@ -5,6 +5,7 @@ import {
   applyLowVisionCategoryIcons,
   clearLowVisionCategoryIcons,
   makeLowVisionCategoryIconDataUrl,
+  preloadLowVisionCategoryIcons,
 } from "../blocks/blockIcons.js";
 
 export const categoryColours = {
@@ -288,6 +289,7 @@ function switchTheme(themeName) {
   workspace.updateToolbox(workspace.options.languageTree);
   updateAllBlockIcons(workspace, iconColor);
   if (themeName === LOW_VISION_THEME) {
+    preloadLowVisionCategoryIcons();
     applyLowVisionCategoryIcons(workspace);
     applyLowVisionToolboxAccents();
     requestAnimationFrame(() => applyLowVisionToolboxAccents());
@@ -622,7 +624,7 @@ function getThemeBaseStyles(themeName) {
         colourText: "#F0F0F0",
       },
       components: {
-        workspaceBackgroundColour: "#121212",
+        workspaceBackgroundColour: "#d8d8d8",
         toolboxBackgroundColour: "#1E1E1E",
         toolboxForegroundColour: "#F0F0F0",
         flyoutBackgroundColour: "#3A3A3A",

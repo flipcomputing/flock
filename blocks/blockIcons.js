@@ -176,6 +176,7 @@ const CATEGORY_ACCENT_BY_STYLE = {
   math_blocks: "#98a3d9",
   procedure_blocks: "#ce98d9",
 };
+const LOW_VISION_ICON_DATA_URL_BY_STYLE = new Map();
 
 export function makeInlineIcon(color) {
   const svg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="122.88px" height="80.593px" viewBox="0 0 122.88 80.593" xml:space="preserve"><g><polygon fill="${color}" points="122.88,80.593 122.88,49.772 61.44,0 0,49.772 0,80.593 61.44,30.82 122.88,80.593"/></g></svg>`;
@@ -242,10 +243,26 @@ function withSvgFill(svg, fillColor) {
 }
 
 export function makeLowVisionCategoryIconDataUrl(styleName) {
+  if (LOW_VISION_ICON_DATA_URL_BY_STYLE.has(styleName)) {
+    return LOW_VISION_ICON_DATA_URL_BY_STYLE.get(styleName);
+  }
   const iconSvg = CATEGORY_ICON_BY_STYLE[styleName];
   const accent = CATEGORY_ACCENT_BY_STYLE[styleName];
   if (!iconSvg || !accent) return "";
-  return buildSvgDataUri(withSvgFill(iconSvg, accent));
+  const dataUrl = buildSvgDataUri(withSvgFill(iconSvg, accent));
+  LOW_VISION_ICON_DATA_URL_BY_STYLE.set(styleName, dataUrl);
+  return dataUrl;
+}
+
+export function preloadLowVisionCategoryIcons() {
+  if (typeof Image === "undefined") return;
+  for (const styleName of Object.keys(CATEGORY_ICON_BY_STYLE)) {
+    const dataUrl = makeLowVisionCategoryIconDataUrl(styleName);
+    if (!dataUrl) continue;
+    const img = new Image();
+    img.decoding = "sync";
+    img.src = dataUrl;
+  }
 }
 
 export function applyLowVisionCategoryIcons(workspace) {
