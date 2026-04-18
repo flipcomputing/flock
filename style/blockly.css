@@ -590,6 +590,26 @@ body[data-theme="dark"] .blocklyTreeLabel {
   fill: white !important;
 }
 
+[data-theme="low-vision"] .blocklyText,
+[data-theme="low-vision"] .blocklyDropdownText,
+[data-theme="low-vision"] .blocklyDropDownText,
+[data-theme="low-vision"] .blocklyTreeLabel {
+  fill: #f0f0f0 !important;
+  color: #f0f0f0 !important;
+}
+
+[data-theme="low-vision"] .custom_zelos_renderer-renderer.classic-theme .blocklyEditableText > text,
+[data-theme="low-vision"] .custom_zelos_renderer-renderer.classic-theme .blocklyNonEditableText > text,
+[data-theme="low-vision"] .custom_zelos_renderer-renderer.classic-theme .blocklyDropdownText,
+[data-theme="low-vision"] .custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
+  fill: #f0f0f0 !important;
+  color: #f0f0f0 !important;
+}
+
+[data-theme="low-vision"] image.blocklyFieldImage {
+  filter: brightness(0) invert(1);
+}
+
 /* === Blockly v12 desktop: center icon + label within the full row === */
 @media (min-width: 769px) {
   .blocklyToolboxCategoryContainer[aria-level="2"] > .blocklyToolboxCategory {
