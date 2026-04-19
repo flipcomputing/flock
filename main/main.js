@@ -408,6 +408,21 @@ function initializeApp() {
 }
 
 window.onload = async function () {
+  const blocklyContainer = document.getElementById("blocklyDiv");
+  if (!blocklyContainer) {
+    const standaloneScript = document.getElementById("flock");
+    if (standaloneScript) {
+      console.log(
+        "Skipping editor initialization: standalone script detected without #blocklyDiv.",
+      );
+    } else {
+      console.warn(
+        "Skipping editor initialization: missing required #blocklyDiv container.",
+      );
+    }
+    return;
+  }
+
   // Resize Blockly workspace and Babylon.js canvas when the window is resized
   window.addEventListener("resize", onResize);
 
@@ -417,6 +432,10 @@ window.onload = async function () {
   addExportContextMenuOptions();
 
   createBlocklyWorkspace();
+  if (!workspace) {
+    console.error("Blockly workspace failed to initialize; aborting editor setup.");
+    return;
+  }
   registerBlocklyPlayShortcut();
   initializeWorkspace();
   overrideSearchPlugin(workspace);
