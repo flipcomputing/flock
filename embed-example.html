@@ -39,6 +39,20 @@
         border-radius: 8px;
         background: #ece9ff;
       }
+
+      .made-with-flock {
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid #d7d2ff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .made-with-flock img {
+        height: 22px;
+        width: auto;
+      }
     </style>
   </head>
   <body>
@@ -92,6 +106,18 @@
         <code>project=</code>
         value in the embed link.
       </p>
+
+      <footer class="made-with-flock">
+        <span>Made with Flock XR</span>
+        <a
+          href="https://flipcomputing.com/flockxr/"
+          rel="noopener noreferrer"
+          target="_blank"
+          aria-label="Visit the Flock XR website"
+        >
+          <img src="./images/inline-flock-xr.svg" alt="Flock XR logo" />
+        </a>
+      </footer>
     </div>
     <script>
       (() => {
