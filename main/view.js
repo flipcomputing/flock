@@ -89,6 +89,7 @@ function resizeCanvas() {
         mainContent.style.maxWidth = `${playerWidth}px`;
         mainContent.style.marginLeft = "auto";
         mainContent.style.marginRight = "auto";
+        mainContent.style.boxSizing = "border-box";
       }
 
       const embedTopBar = document.getElementById("embedTopBar");
@@ -97,6 +98,7 @@ function resizeCanvas() {
         embedTopBar.style.left = `${left}px`;
         embedTopBar.style.right = "auto";
         embedTopBar.style.transform = "none";
+        embedTopBar.style.boxSizing = "border-box";
       }
 
       const embedBottomBar = document.getElementById("embedBottomBar");
@@ -105,6 +107,7 @@ function resizeCanvas() {
         embedBottomBar.style.left = `${left}px`;
         embedBottomBar.style.right = "auto";
         embedBottomBar.style.transform = "none";
+        embedBottomBar.style.boxSizing = "border-box";
       }
     };
 

@@ -92,6 +92,7 @@ function addEmbedPlaybackControls() {
     borderLeft: "2px solid #511d91",
     borderRight: "2px solid #511d91",
     borderBottom: "1px solid #cfcde0",
+    boxSizing: "border-box",
   });
 
   const buttonRow = document.createElement("div");
@@ -208,6 +209,7 @@ function addEmbedBottomBar() {
     borderLeft: "2px solid #511d91",
     borderRight: "2px solid #511d91",
     borderBottom: "2px solid #511d91",
+    boxSizing: "border-box",
   });
 
   const logoLink = document.createElement("a");
@@ -274,6 +276,7 @@ function applyEmbedMode() {
   flock.embedMode = true;
 
   document.documentElement.style.setProperty("--dynamic-offset", "0px");
+  document.documentElement.style.background = "#e5e5eb";
   const embedBottomBar = addEmbedBottomBar();
   const bottomHeight = embedBottomBar?.offsetHeight || 40;
   if (mainContent) {
