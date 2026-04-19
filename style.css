@@ -1144,6 +1144,10 @@ body.embed-mode #embedBottomBar a:focus {
   outline-offset: 2px;
 }
 
+body.embed-mode {
+  background: #e5e5eb;
+}
+
 /* Show crosshair on canvas whenever colour picker is open */
 body.color-picker-open #renderCanvas {
   cursor: crosshair;

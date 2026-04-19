@@ -237,6 +237,7 @@ function applyEmbedMode() {
   const gizmoButtons = document.getElementById("gizmoButtons");
   const flockLink = document.getElementById("flocklink");
   const resizer = document.getElementById("resizer");
+  const infoPanel = document.getElementById("info-panel");
   const canvasArea = document.getElementById("canvasArea");
   const mainContent = document.getElementById("maincontent");
   const canvas = document.getElementById("renderCanvas");
@@ -246,6 +247,7 @@ function applyEmbedMode() {
   if (bottomBar) bottomBar.style.display = "none";
   if (gizmoButtons) gizmoButtons.style.display = "none";
   if (resizer) resizer.style.display = "none";
+  if (infoPanel) infoPanel.style.display = "none";
   if (canvasArea) {
     canvasArea.style.display = "block";
     canvasArea.style.width = "100%";

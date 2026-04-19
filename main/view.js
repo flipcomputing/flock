@@ -68,33 +68,36 @@ function resizeCanvas() {
     canvas.style.maxWidth = "100%";
     canvas.style.maxHeight = "100%";
 
-    const renderedCanvasWidth = Math.max(
-      1,
-      Math.round(canvas.getBoundingClientRect().width),
-    );
-    const playerWidth = Math.max(1, renderedCanvasWidth + 6);
-    const mainContent = document.getElementById("maincontent");
-    if (mainContent) {
-      mainContent.style.maxWidth = `${playerWidth}px`;
-      mainContent.style.marginLeft = "auto";
-      mainContent.style.marginRight = "auto";
-    }
+    const applyPlayerWidth = (width) => {
+      const playerWidth = Math.max(1, width + 6);
+      const mainContent = document.getElementById("maincontent");
+      if (mainContent) {
+        mainContent.style.maxWidth = `${playerWidth}px`;
+        mainContent.style.marginLeft = "auto";
+        mainContent.style.marginRight = "auto";
+      }
 
-    const embedTopBar = document.getElementById("embedTopBar");
-    if (embedTopBar) {
-      embedTopBar.style.width = `${playerWidth}px`;
-      embedTopBar.style.left = "50%";
-      embedTopBar.style.right = "auto";
-      embedTopBar.style.transform = "translateX(-50%)";
-    }
+      const embedTopBar = document.getElementById("embedTopBar");
+      if (embedTopBar) {
+        embedTopBar.style.width = `${playerWidth}px`;
+        embedTopBar.style.left = "50%";
+        embedTopBar.style.right = "auto";
+        embedTopBar.style.transform = "translateX(-50%)";
+      }
 
-    const embedBottomBar = document.getElementById("embedBottomBar");
-    if (embedBottomBar) {
-      embedBottomBar.style.width = `${playerWidth}px`;
-      embedBottomBar.style.left = "50%";
-      embedBottomBar.style.right = "auto";
-      embedBottomBar.style.transform = "translateX(-50%)";
-    }
+      const embedBottomBar = document.getElementById("embedBottomBar");
+      if (embedBottomBar) {
+        embedBottomBar.style.width = `${playerWidth}px`;
+        embedBottomBar.style.left = "50%";
+        embedBottomBar.style.right = "auto";
+        embedBottomBar.style.transform = "translateX(-50%)";
+      }
+    };
+
+    applyPlayerWidth(fittedWidth);
+    requestAnimationFrame(() => {
+      applyPlayerWidth(Math.round(canvas.getBoundingClientRect().width));
+    });
 
     if (canvas.width !== fittedWidth || canvas.height !== fittedHeight) {
       canvas.width = fittedWidth;
