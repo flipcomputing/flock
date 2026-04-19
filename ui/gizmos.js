@@ -163,7 +163,8 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function pickMeshFromCanvas() {
-  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
+  if (!canvas || !flock.scene) return;
 
   const onPickMesh = function (event) {
     const canvasRect = canvas.getBoundingClientRect();
@@ -1413,7 +1414,24 @@ export function enableGizmos() {
     scrollCharactersRightButton,
   ];
 
-  buttons.forEach((button) => button.removeAttribute("disabled"));
+  const requiredButtons = [
+    positionButton,
+    rotationButton,
+    scaleButton,
+    hideButton,
+    duplicateButton,
+    deleteButton,
+    cameraButton,
+    showShapesButton,
+    scrollModelsLeftButton,
+    scrollModelsRightButton,
+    scrollObjectsLeftButton,
+    scrollObjectsRightButton,
+    scrollCharactersLeftButton,
+    scrollCharactersRightButton,
+  ];
+  if (requiredButtons.some((button) => !button)) return;
+  buttons.forEach((button) => button?.removeAttribute("disabled"));
 
   // Attach event listeners
   positionButton.addEventListener("click", () => toggleGizmo("position"));

@@ -277,11 +277,13 @@ function selectCharacter(characterName) {
 }
 
 function selectShape(shapeType) {
-  document.getElementById("shapes-dropdown").style.display = "none";
+  const dropdown = document.getElementById("shapes-dropdown");
+  if (dropdown) dropdown.style.display = "none";
   removeKeyboardNavigation();
   detachActivePickHandler();
 
-  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
+  if (!canvas || !flock.scene) return;
 
   flock.activePickHandler = function onPick(event) {
     const canvasRect = canvas.getBoundingClientRect();
@@ -341,7 +343,8 @@ function selectObjectWithCommand(objectName, menu, command) {
   removeKeyboardNavigation();
 
   const workspace = Blockly.getMainWorkspace();
-  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
+  if (!canvas || !flock.scene) return;
 
   function cleanup() {
     cleanupPlacementMode();
@@ -672,6 +675,7 @@ function showShapes() {
   cancelPlacement(); // Always remove all placement modes when menu is opened/closed
 
   const dropdown = document.getElementById("shapes-dropdown");
+  if (!dropdown) return;
   const isVisible = dropdown.style.display !== "none";
 
   if (isVisible) {
@@ -806,7 +810,8 @@ function handleShapeMenuKeydown(event) {
       break;
     case "Escape": {
       event.preventDefault();
-      document.getElementById("shapes-dropdown").style.display = "none";
+      const dropdown = document.getElementById("shapes-dropdown");
+      if (dropdown) dropdown.style.display = "none";
       removeKeyboardNavigation();
       cancelPlacement();
       const shapesButton = document.getElementById("showShapesButton");
@@ -817,15 +822,14 @@ function handleShapeMenuKeydown(event) {
 }
 
 function startPlacementKeyboardMode() {
+  const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
+  if (!flock.scene || !canvas) return;
   const isValidHit = (x, y) =>
     !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit;
 
   startCanvasKeyboardMode(
     (x, y) => {
-      const canvasRect = flock.scene
-        .getEngine()
-        .getRenderingCanvas()
-        .getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
       flock.activePickHandler({
         clientX: canvasRect.left + x,
         clientY: canvasRect.top + y,
