@@ -195,19 +195,26 @@ function applyEmbedMode() {
   const resizer = document.getElementById("resizer");
   const canvasArea = document.getElementById("canvasArea");
   const mainContent = document.getElementById("maincontent");
+  const canvas = document.getElementById("renderCanvas");
 
   if (header) header.style.display = "none";
   if (codePanel) codePanel.style.display = "none";
   if (bottomBar) bottomBar.style.display = "none";
   if (gizmoButtons) gizmoButtons.style.display = "none";
-  if (flockLink) flockLink.style.display = "none";
   if (resizer) resizer.style.display = "none";
   if (canvasArea) {
     canvasArea.style.display = "block";
     canvasArea.style.width = "100%";
     canvasArea.style.flex = "1 1 100%";
   }
-  if (mainContent) mainContent.style.transform = "translateX(0px)";
+  if (mainContent) {
+    mainContent.style.transform = "translateX(0px)";
+    mainContent.tabIndex = -1;
+  }
+  if (canvas) {
+    canvas.tabIndex = 0;
+  }
+  if (flockLink) flockLink.style.display = "block";
   flock.embedMode = true;
 
   document.documentElement.style.setProperty("--dynamic-offset", "0px");
