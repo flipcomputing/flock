@@ -19,7 +19,7 @@
 
       iframe {
         width: 100%;
-        aspect-ratio: 16 / 9;
+        height: min(540px, calc(100vh - 220px));
         border: 0;
         border-radius: 12px;
         box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
@@ -39,19 +39,53 @@
         <code>Fidget spinner.flock</code>
         project in player-only mode.
       </p>
+      <p>
+        Optional preset via URL:
+        <code>?size=compact</code>,
+        <code>?size=default</code>,
+        <code>?size=tall</code>,
+        or
+        <code>?size=full</code>.
+      </p>
       <iframe
+        id="embedPlayer"
         title="Flock XR embedded project player"
         allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
         src="./index.html?embed=true&project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
       ></iframe>
 
       <p>
-        Embed URL:
+        Open in full editor:
         <a
-          href="./index.html?embed=true&project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
-          >open player directly</a
+          href="https://flipcomputing.github.io/flock/?project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
+          rel="noopener noreferrer"
+          target="_blank"
+          >open project on flipcomputing.github.io/flock</a
         >
       </p>
     </div>
+    <script>
+      (() => {
+        const sizePresets = {
+          compact: 360,
+          default: 540,
+          tall: 720,
+          full: 9999,
+        };
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedSize = (urlParams.get("size") || "default").toLowerCase();
+        const maxHeight = sizePresets[requestedSize] ?? sizePresets.default;
+        const iframe = document.getElementById("embedPlayer");
+
+        if (!iframe) return;
+
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const verticalPadding = 220;
+        const fittedHeight = Math.max(240, viewportHeight - verticalPadding);
+        const finalHeight = Math.min(maxHeight, fittedHeight);
+
+        iframe.style.height = `${finalHeight}px`;
+      })();
+    </script>
   </body>
 </html>
