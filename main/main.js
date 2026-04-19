@@ -179,7 +179,7 @@ function addEmbedPlaybackControls() {
   actions.appendChild(openInFlockButton);
   topBar.appendChild(actions);
 
-  document.body.appendChild(topBar);
+  document.body.prepend(topBar);
   return topBar;
 }
 
@@ -214,7 +214,11 @@ function applyEmbedMode() {
   if (canvas) {
     canvas.tabIndex = 0;
   }
-  if (flockLink) flockLink.style.display = "block";
+  if (flockLink) {
+    flockLink.style.display = "block";
+    const flockLinkAnchor = flockLink.querySelector("a");
+    if (flockLinkAnchor) flockLinkAnchor.tabIndex = 0;
+  }
   flock.embedMode = true;
 
   document.documentElement.style.setProperty("--dynamic-offset", "0px");
