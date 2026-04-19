@@ -19,10 +19,13 @@
 
       iframe {
         width: 100%;
-        height: min(540px, calc(100vh - 220px));
+        max-width: 100%;
+        aspect-ratio: 16 / 9;
         border: 0;
         border-radius: 12px;
         box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        display: block;
+        margin-inline: auto;
       }
 
       code {
@@ -79,12 +82,23 @@
 
         if (!iframe) return;
 
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-        const verticalPadding = 220;
-        const fittedHeight = Math.max(240, viewportHeight - verticalPadding);
-        const finalHeight = Math.min(maxHeight, fittedHeight);
+        const updateSize = () => {
+          const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+          const containerWidth = iframe.parentElement?.clientWidth || iframe.clientWidth;
+          const verticalPadding = 220;
+          const fittedHeight = Math.max(240, viewportHeight - verticalPadding);
+          const allowedHeight = Math.min(maxHeight, fittedHeight);
+          const heightFromWidth = containerWidth * (9 / 16);
 
-        iframe.style.height = `${finalHeight}px`;
+          const finalHeight = Math.min(allowedHeight, heightFromWidth);
+          const finalWidth = finalHeight * (16 / 9);
+
+          iframe.style.height = `${Math.round(finalHeight)}px`;
+          iframe.style.width = `${Math.round(finalWidth)}px`;
+        };
+
+        updateSize();
+        window.addEventListener("resize", updateSize);
       })();
     </script>
   </body>
