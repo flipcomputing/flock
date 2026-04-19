@@ -33,31 +33,23 @@
   </head>
   <body>
     <div class="embed-shell">
-      <h1>Flock XR embed example</h1>
+      <h1>Flock XR project embed</h1>
       <p>
-        Use this URL directly in an iframe to load a remote
+        This page embeds a remote
         <code>Fidget spinner.flock</code>
-        project (served with CORS headers) in player-only mode.
+        project in player-only mode.
       </p>
-      <p>
-        It uses
-        <code>?project=</code>
-        plus
-        <code>?embed=true</code>
-        on the main app URL.
-      </p>
-
-      <pre><code>&lt;iframe
-  title="Flock XR embedded project"
-  allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
-  src="./index.html?embed=true&amp;project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
-&gt;&lt;/iframe&gt;</code></pre>
+      <iframe
+        title="Flock XR embedded project player"
+        allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
+        src="./index.html?embed=true&project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
+      ></iframe>
 
       <p>
-        Preview link:
+        Embed URL:
         <a
           href="./index.html?embed=true&project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
-          >open embedded player URL</a
+          >open player directly</a
         >
       </p>
     </div>
