@@ -17,6 +17,12 @@
         max-width: 960px;
       }
 
+      .embed-stage {
+        position: relative;
+        width: fit-content;
+        max-width: 100%;
+      }
+
       iframe {
         width: 100%;
         max-width: 100%;
@@ -41,12 +47,17 @@
       }
 
       .made-with-flock {
-        margin-top: 24px;
-        padding-top: 16px;
-        border-top: 1px solid #d7d2ff;
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
         display: flex;
         align-items: center;
         gap: 10px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(4px);
+        font-size: 13px;
       }
 
       .made-with-flock img {
@@ -77,12 +88,26 @@
         <code>&amp;controls=playstop</code>
         to show Play/Stop buttons on top of the embedded player.
       </p>
-      <iframe
-        id="embedPlayer"
-        title="Flock XR embedded project player"
-        allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
-        src="./index.html?embed=true&project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
-      ></iframe>
+      <div class="embed-stage">
+        <iframe
+          id="embedPlayer"
+          title="Flock XR embedded project player"
+          allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
+          src="./index.html?embed=true&project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
+        ></iframe>
+
+        <footer class="made-with-flock">
+          <span>Made with Flock XR</span>
+          <a
+            href="https://flipcomputing.com/flockxr/"
+            rel="noopener noreferrer"
+            target="_blank"
+            aria-label="Visit the Flock XR website"
+          >
+            <img src="./images/inline-flock-xr.svg" alt="Flock XR logo" />
+          </a>
+        </footer>
+      </div>
 
       <p>
         Open in full editor:
@@ -113,17 +138,6 @@
         value in the embed link.
       </p>
 
-      <footer class="made-with-flock">
-        <span>Made with Flock XR</span>
-        <a
-          href="https://flipcomputing.com/flockxr/"
-          rel="noopener noreferrer"
-          target="_blank"
-          aria-label="Visit the Flock XR website"
-        >
-          <img src="./images/inline-flock-xr.svg" alt="Flock XR logo" />
-        </a>
-      </footer>
     </div>
     <script>
       (() => {
