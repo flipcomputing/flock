@@ -129,13 +129,11 @@ function addEmbedPlaybackControls() {
   const playButton = createActionButton("runCodeButton", "Play", () => {
       void executeCode();
     });
-  playButton.tabIndex = 1;
   buttonRow.appendChild(playButton);
 
   const stopButton = createActionButton("stopCodeButton", "Stop", () => {
       stopCode();
     });
-  stopButton.tabIndex = 2;
   buttonRow.appendChild(stopButton);
   topBar.appendChild(buttonRow);
 
@@ -167,7 +165,6 @@ function addEmbedPlaybackControls() {
   openInFlockButton.style.display = "inline-flex";
   openInFlockButton.style.alignItems = "center";
   openInFlockButton.style.justifyContent = "center";
-  openInFlockButton.tabIndex = 3;
   openInFlockButton.innerHTML = `
     <span class="icon" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -210,7 +207,6 @@ function addEmbedBottomBar() {
   logoLink.href = "https://flockxr.com/";
   logoLink.target = "_blank";
   logoLink.rel = "noopener noreferrer";
-  logoLink.tabIndex = 5;
   logoLink.setAttribute("aria-label", "Visit Flock XR website");
 
   const logo = document.createElement("img");
@@ -254,7 +250,7 @@ function applyEmbedMode() {
     mainContent.tabIndex = -1;
   }
   if (canvas) {
-    canvas.tabIndex = shouldShowEmbedPlaybackControls() ? 4 : 1;
+    canvas.tabIndex = 0;
   }
   if (flockLink) flockLink.style.display = "none";
   flock.embedMode = true;
