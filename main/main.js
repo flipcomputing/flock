@@ -297,6 +297,15 @@ function applyEmbedMode() {
     });
     canvas.dataset.logoTabBound = "true";
   }
+  if (canvas && logoLink && !logoLink.dataset.canvasTabBound) {
+    logoLink.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && event.shiftKey) {
+        event.preventDefault();
+        canvas.focus();
+      }
+    });
+    logoLink.dataset.canvasTabBound = "true";
+  }
   onResize("reset");
 }
 

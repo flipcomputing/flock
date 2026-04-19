@@ -1128,12 +1128,15 @@ details summary:focus,
   background-color: var(--color-button-bg-hover);
 }
 
+body.embed-mode #canvasArea {
+  padding: 3px;
+  box-sizing: border-box;
+}
+
 body.embed-mode #renderCanvas:focus {
-  outline: none;
-  box-shadow:
-    inset 0 0 0 4px var(--color-focus),
-    inset 0 0 0 6px var(--color-focus-ring);
-  background-color: transparent;
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+  background-color: var(--color-button-bg-hover);
 }
 
 body.embed-mode #embedBottomBar a:focus {
