@@ -68,7 +68,11 @@ function resizeCanvas() {
     canvas.style.maxWidth = "100%";
     canvas.style.maxHeight = "100%";
 
-    const playerWidth = Math.max(1, fittedWidth + 6);
+    const renderedCanvasWidth = Math.max(
+      1,
+      Math.round(canvas.getBoundingClientRect().width),
+    );
+    const playerWidth = Math.max(1, renderedCanvasWidth + 6);
     const mainContent = document.getElementById("maincontent");
     if (mainContent) {
       mainContent.style.maxWidth = `${playerWidth}px`;
