@@ -83,9 +83,9 @@ function addEmbedPlaybackControls() {
     right: "0",
     zIndex: "1000",
     display: "flex",
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
     alignItems: "center",
-    gap: "0",
+    gap: "8px",
     padding: "6px 8px",
     background: "#ffffff",
     borderBottom: "1px solid #e8e3ff",
@@ -132,6 +132,33 @@ function addEmbedPlaybackControls() {
   );
   topBar.appendChild(buttonRow);
 
+  const actions = document.createElement("div");
+  Object.assign(actions.style, {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+  });
+
+  const openInFlockButton = document.createElement("a");
+  const projectUrl = new URLSearchParams(window.location.search).get("project");
+  const targetUrl = projectUrl
+    ? `https://flipcomputing.github.io/flock/?project=${encodeURIComponent(projectUrl)}`
+    : "https://flipcomputing.github.io/flock/";
+  openInFlockButton.href = targetUrl;
+  openInFlockButton.target = "_blank";
+  openInFlockButton.rel = "noopener noreferrer";
+  openInFlockButton.className = "bigbutton";
+  openInFlockButton.title = "Open in Flock";
+  openInFlockButton.setAttribute("aria-label", "Open in Flock");
+  openInFlockButton.style.minWidth = "36px";
+  openInFlockButton.style.minHeight = "36px";
+  openInFlockButton.style.margin = "0";
+  openInFlockButton.style.padding = "2px 8px";
+  openInFlockButton.style.textDecoration = "none";
+  openInFlockButton.textContent = "↗";
+  actions.appendChild(openInFlockButton);
+  topBar.appendChild(actions);
+
   document.body.appendChild(topBar);
   return topBar;
 }
@@ -162,13 +189,18 @@ function applyEmbedMode() {
   if (mainContent) mainContent.style.transform = "translateX(0px)";
   flock.embedMode = true;
 
-  let offset = "0px";
-  document.documentElement.style.setProperty("--dynamic-offset", offset);
+  document.documentElement.style.setProperty("--dynamic-offset", "0px");
+  if (mainContent) {
+    mainContent.style.marginTop = "0";
+    mainContent.style.height = "var(--app-height)";
+  }
   if (shouldShowEmbedPlaybackControls()) {
     const topBar = addEmbedPlaybackControls();
     const barHeight = topBar?.offsetHeight || 52;
-    offset = `${barHeight}px`;
-    document.documentElement.style.setProperty("--dynamic-offset", offset);
+    if (mainContent) {
+      mainContent.style.marginTop = `${barHeight}px`;
+      mainContent.style.height = `calc(var(--app-height) - ${barHeight}px)`;
+    }
   }
   onResize("reset");
 }
