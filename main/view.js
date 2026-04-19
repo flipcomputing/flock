@@ -44,12 +44,13 @@ window.addEventListener("resize", handleWindowResize);
 function resizeCanvas() {
   const canvasArea = document.getElementById("canvasArea");
   const canvas = document.getElementById("renderCanvas");
+  if (!canvasArea || !canvas) return;
 
   const areaWidth = canvasArea.clientWidth;
   let areaHeight = canvasArea.clientHeight;
 
   const gizmoButtons = document.getElementById("gizmoButtons");
-  if (gizmoButtons.style.display != "none") {
+  if (gizmoButtons && gizmoButtons.style.display != "none") {
     areaHeight -= 60; //Gizmos visible
   }
 
@@ -87,6 +88,7 @@ function switchView(view) {
   const canvasArea = document.getElementById("canvasArea");
   const flockLink = document.getElementById("flocklink");
   const resizer = document.getElementById("resizer");
+  if (!blocklyArea || !canvasArea || !flockLink) return;
 
   if (view === "both") {
     viewMode = "both";
@@ -126,6 +128,7 @@ window.switchView = switchView;
 
 function toggleMenu() {
   const menu = document.getElementById("menu");
+  if (!menu) return;
   const currentDisplay = window.getComputedStyle(menu).display;
 
   if (currentDisplay != "none") {
@@ -173,7 +176,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Request fullscreen on mobile only when running as a PWA
   if (isMobile() && isFullscreen) {
     requestFullscreen();
-    document.getElementById("fullscreenToggle").style.display = "none";
+    const fullscreenToggle = document.getElementById("fullscreenToggle");
+    if (fullscreenToggle) fullscreenToggle.style.display = "none";
   }
 
   if (window.matchMedia("(display-mode: fullscreen)").matches) {
@@ -224,6 +228,7 @@ function addButtonListener() {
   if (!isNarrowScreen()) {
     return;
   }
+  if (!switchViewsBtn) return;
 
   switchViewsBtn.addEventListener("click", togglePanels);
   switchViewsBtn.addEventListener(
@@ -241,6 +246,7 @@ function addButtonListener() {
 
 function showCodeView() {
   const blocklyArea = document.getElementById("codePanel");
+  if (!blocklyArea) return;
   blocklyArea.style.display = "block";
 
   currentView = "code";
@@ -248,13 +254,14 @@ function showCodeView() {
   if (isNarrowScreen()) {
     // Instead of CSS transform, change the layout directly
     const canvasArea = document.getElementById("canvasArea");
+    if (!canvasArea) return;
 
     // Hide canvas, show code full width
     canvasArea.style.display = "none";
     blocklyArea.style.width = "100%";
     blocklyArea.style.flex = "1 1 100%";
 
-    switchViewsBtn.textContent = "<< Canvas";
+    if (switchViewsBtn) switchViewsBtn.textContent = "<< Canvas";
 
     // Blockly resize after DOM changes
     requestAnimationFrame(() => {
@@ -270,7 +277,7 @@ function showCodeView() {
 export function showCanvasView() {
   const gizmoButtons = document.getElementById("gizmoButtons");
   const flockLink = document.getElementById("flocklink");
-
+  if (!gizmoButtons || !flockLink) return;
   gizmoButtons.style.display = "block";
   flockLink.style.display = "block";
 
@@ -278,8 +285,9 @@ export function showCanvasView() {
 
   if (isNarrowScreen()) {
     // Instead of CSS transform, change the layout directly
-    const blocklyArea = document.getElementById("codePanel");
     const canvasArea = document.getElementById("canvasArea");
+    const blocklyArea = document.getElementById("codePanel");
+    if (!blocklyArea || !canvasArea) return;
 
     // Hide code, show canvas full width
     blocklyArea.style.display = "none";
@@ -287,7 +295,7 @@ export function showCanvasView() {
     canvasArea.style.width = "100%";
     canvasArea.style.flex = "1 1 100%";
 
-    switchViewsBtn.textContent = "Code >>";
+    if (switchViewsBtn) switchViewsBtn.textContent = "Code >>";
   }
 
   onResize();
@@ -298,6 +306,7 @@ function addSwipeListeners() {
   if (!isNarrowScreen()) {
     return;
   }
+  if (!bottomBar) return;
 
   let startX = 0;
   let startTime = 0;
@@ -338,6 +347,7 @@ function setupViewObserver() {
   if (!window.IntersectionObserver || !isNarrowScreen()) return;
 
   const blocklyArea = document.getElementById("codePanel");
+  if (!blocklyArea) return;
 
   const observer = new IntersectionObserver(
     (entries) => {
@@ -374,6 +384,7 @@ export function initializeUI() {
   if (isNarrowScreen()) {
     const blocklyArea = document.getElementById("codePanel");
     const canvasArea = document.getElementById("canvasArea");
+    if (!blocklyArea || !canvasArea) return;
 
     // Determine initial view based on which panel is visible
     if (
@@ -394,6 +405,7 @@ function togglePanels() {
   if (!isNarrowScreen()) {
     return;
   }
+  if (!switchViewsBtn) return;
 
   // Check button text instead of currentView to avoid state mismatch
   if (switchViewsBtn.textContent === "Code >>") {
@@ -411,6 +423,9 @@ export function togglePlayMode() {
   const bottomBar = document.getElementById("bottomBar");
   const flockLink = document.getElementById("flocklink");
   const resizer = document.getElementById("resizer");
+  if (!blocklyArea || !canvasArea || !gizmoButtons || !bottomBar || !flockLink) {
+    return;
+  }
 
   const gizmosVisible =
     gizmoButtons &&
@@ -422,7 +437,7 @@ export function togglePlayMode() {
 
     // Clear any transforms that might be applied
     if (isNarrowScreen()) {
-      container.style.transform = "translateX(0px)";
+      if (container) container.style.transform = "translateX(0px)";
     }
 
     showCanvasView();
@@ -476,6 +491,9 @@ export function toggleDesignMode() {
   const flockLink = document.getElementById("flocklink");
   const infoPanel = document.getElementById("info-panel");
   const resizer = document.getElementById("resizer");
+  if (!blocklyArea || !canvasArea || !gizmoButtons || !flockLink || !infoPanel) {
+    return;
+  }
 
   if (flock.scene.debugLayer.isVisible()) {
     switchView("both");
@@ -567,11 +585,14 @@ class PanelResizer {
     this.startX = 0;
     this.startCanvasWidth = 0;
     this.startCodeWidth = 0;
+    this.enabled =
+      !!this.resizer && !!this.canvasArea && !!this.codePanel && !!this.mainContent;
 
     this.init();
   }
 
   init() {
+    if (!this.enabled) return;
     // Mouse events
     this.resizer.addEventListener("mousedown", this.startResize.bind(this));
     document.addEventListener("mousemove", this.handleResize.bind(this));
@@ -590,6 +611,7 @@ class PanelResizer {
   }
 
   startResize(e) {
+    if (!this.enabled) return;
     this.isResizing = true;
 
     // Add resizing class to prevent hover effects
@@ -613,7 +635,7 @@ class PanelResizer {
   }
 
   handleResize(e) {
-    if (!this.isResizing) return;
+    if (!this.enabled || !this.isResizing) return;
 
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const deltaX = clientX - this.startX;
@@ -642,7 +664,7 @@ class PanelResizer {
   }
 
   stopResize() {
-    if (!this.isResizing) return;
+    if (!this.enabled || !this.isResizing) return;
 
     this.isResizing = false;
 
@@ -656,6 +678,7 @@ class PanelResizer {
   }
 
   handleKeyboard(e) {
+    if (!this.enabled) return;
     const step = 20; // pixels
     let deltaX = 0;
 

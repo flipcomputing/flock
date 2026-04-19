@@ -4,6 +4,7 @@ import { translate } from "./translation.js";
 export function setupInput() {
   // Get the canvas element
   const canvas = document.getElementById("renderCanvas");
+  if (!canvas) return;
 
   // For mouse events
   canvas.addEventListener("mousedown", disableSelection);
