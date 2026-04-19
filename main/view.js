@@ -79,7 +79,7 @@ function resizeCanvas() {
         1,
         Math.round(canvas.getBoundingClientRect().width),
       );
-      const playerWidth = Math.max(1, measuredCanvasWidth + 6);
+      const playerWidth = Math.max(1, measuredCanvasWidth);
       const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
       const left = Math.max(0, Math.round((viewportWidth - playerWidth) / 2));
 
