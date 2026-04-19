@@ -55,6 +55,68 @@ function isEmbedModeEnabled() {
   return normalized !== "false" && normalized !== "0" && normalized !== "off";
 }
 
+function shouldShowEmbedPlaybackControls() {
+  const controlsParam = new URLSearchParams(window.location.search).get(
+    "controls",
+  );
+  if (!controlsParam) return false;
+
+  const normalized = controlsParam.trim().toLowerCase();
+  return (
+    normalized === "playstop" ||
+    normalized === "play-stop" ||
+    normalized === "true" ||
+    normalized === "1"
+  );
+}
+
+function addEmbedPlaybackControls() {
+  const existingControls = document.getElementById("embedPlaybackControls");
+  if (existingControls) return;
+
+  const controls = document.createElement("div");
+  controls.id = "embedPlaybackControls";
+  Object.assign(controls.style, {
+    position: "fixed",
+    top: "12px",
+    right: "12px",
+    zIndex: "1000",
+    display: "flex",
+    gap: "8px",
+  });
+
+  const createButton = (label, onClick) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    Object.assign(button.style, {
+      border: "none",
+      borderRadius: "999px",
+      padding: "8px 12px",
+      fontSize: "14px",
+      fontWeight: "600",
+      cursor: "pointer",
+      color: "#ffffff",
+      background: "#511d91",
+    });
+    button.addEventListener("click", onClick);
+    return button;
+  };
+
+  controls.appendChild(
+    createButton("Play", () => {
+      void executeCode();
+    }),
+  );
+  controls.appendChild(
+    createButton("Stop", () => {
+      stopCode();
+    }),
+  );
+
+  document.body.appendChild(controls);
+}
+
 function applyEmbedMode() {
   if (!isEmbedModeEnabled()) return;
 
@@ -81,6 +143,9 @@ function applyEmbedMode() {
   if (mainContent) mainContent.style.transform = "translateX(0px)";
 
   document.documentElement.style.setProperty("--dynamic-offset", "0px");
+  if (shouldShowEmbedPlaybackControls()) {
+    addEmbedPlaybackControls();
+  }
   onResize("reset");
 }
 
