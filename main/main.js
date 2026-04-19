@@ -71,50 +71,79 @@ function shouldShowEmbedPlaybackControls() {
 }
 
 function addEmbedPlaybackControls() {
-  const existingControls = document.getElementById("embedPlaybackControls");
+  const existingControls = document.getElementById("embedTopBar");
   if (existingControls) return;
 
-  const controls = document.createElement("div");
-  controls.id = "embedPlaybackControls";
-  Object.assign(controls.style, {
+  const topBar = document.createElement("div");
+  topBar.id = "embedTopBar";
+  Object.assign(topBar.style, {
     position: "fixed",
-    top: "12px",
-    right: "12px",
+    top: "0",
+    left: "0",
+    right: "0",
     zIndex: "1000",
     display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "8px",
+    padding: "6px 10px",
+    background: "#ffffff",
+    borderBottom: "1px solid #e8e3ff",
+  });
+
+  const buttonRow = document.createElement("div");
+  Object.assign(buttonRow.style, {
+    display: "flex",
+    alignItems: "center",
     gap: "8px",
   });
 
-  const createButton = (label, onClick) => {
+  const createActionButton = (templateId, fallbackLabel, onClick) => {
+    const template = document.getElementById(templateId);
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = label;
-    Object.assign(button.style, {
-      border: "none",
-      borderRadius: "999px",
-      padding: "8px 12px",
-      fontSize: "14px",
-      fontWeight: "600",
-      cursor: "pointer",
-      color: "#ffffff",
-      background: "#511d91",
-    });
+    button.className = "bigbutton";
+    button.title = fallbackLabel;
+    button.setAttribute("aria-label", fallbackLabel);
+    button.style.minWidth = "44px";
+    button.style.minHeight = "44px";
+
+    if (template) {
+      button.innerHTML = template.innerHTML;
+    } else {
+      button.textContent = fallbackLabel;
+    }
     button.addEventListener("click", onClick);
     return button;
   };
 
-  controls.appendChild(
-    createButton("Play", () => {
+  buttonRow.appendChild(
+    createActionButton("runCodeButton", "Play", () => {
       void executeCode();
     }),
   );
-  controls.appendChild(
-    createButton("Stop", () => {
+  buttonRow.appendChild(
+    createActionButton("stopCodeButton", "Stop", () => {
       stopCode();
     }),
   );
+  topBar.appendChild(buttonRow);
 
-  document.body.appendChild(controls);
+  const logoLink = document.createElement("a");
+  logoLink.href = "https://flipcomputing.com/flockxr/";
+  logoLink.target = "_blank";
+  logoLink.rel = "noopener noreferrer";
+  logoLink.ariaLabel = "Visit Flock XR website";
+
+  const logo = document.createElement("img");
+  logo.src = "./images/inline-flock-xr.svg";
+  logo.alt = "Flock XR";
+  logo.style.height = "20px";
+  logo.style.width = "auto";
+  logoLink.appendChild(logo);
+  topBar.appendChild(logoLink);
+
+  document.body.appendChild(topBar);
 }
 
 function applyEmbedMode() {
@@ -142,7 +171,8 @@ function applyEmbedMode() {
   }
   if (mainContent) mainContent.style.transform = "translateX(0px)";
 
-  document.documentElement.style.setProperty("--dynamic-offset", "0px");
+  const offset = shouldShowEmbedPlaybackControls() ? "52px" : "0px";
+  document.documentElement.style.setProperty("--dynamic-offset", offset);
   if (shouldShowEmbedPlaybackControls()) {
     addEmbedPlaybackControls();
   }
