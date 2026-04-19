@@ -198,8 +198,8 @@ function addEmbedBottomBar() {
     display: "flex",
     justifyContent: "flex-end",
     alignItems: "center",
-    padding: "8px 12px",
-    minHeight: "40px",
+    padding: "4px 12px",
+    minHeight: "28px",
     background: "#ffffff",
     borderTop: "1px solid #e8e3ff",
   });
@@ -247,11 +247,9 @@ function applyEmbedMode() {
   if (gizmoButtons) gizmoButtons.style.display = "none";
   if (resizer) resizer.style.display = "none";
   if (canvasArea) {
-    canvasArea.style.display = "flex";
+    canvasArea.style.display = "block";
     canvasArea.style.width = "100%";
     canvasArea.style.flex = "1 1 100%";
-    canvasArea.style.justifyContent = "center";
-    canvasArea.style.alignItems = "center";
   }
   if (mainContent) {
     mainContent.style.transform = "translateX(0px)";
@@ -259,6 +257,8 @@ function applyEmbedMode() {
   }
   if (canvas) {
     canvas.tabIndex = 0;
+    canvas.style.display = "block";
+    canvas.style.margin = "0 auto";
   }
   if (flockLink) flockLink.style.display = "none";
   flock.embedMode = true;
@@ -292,9 +292,23 @@ function applyEmbedMode() {
   }
   if (canvas && logoLink && !canvas.dataset.logoTabBound) {
     canvas.addEventListener("keydown", (event) => {
-      if (event.key === "Tab" && !event.shiftKey) {
+      if (event.key !== "Tab") return;
+
+      if (!event.shiftKey) {
         event.preventDefault();
         logoLink.focus();
+        return;
+      }
+
+      const unmuteButton = document.getElementById("babylonUnmuteButton");
+      const unmuteVisible =
+        unmuteButton &&
+        getComputedStyle(unmuteButton).display !== "none" &&
+        getComputedStyle(unmuteButton).visibility !== "hidden";
+
+      if (!unmuteVisible && openInFlockButton) {
+        event.preventDefault();
+        openInFlockButton.focus();
       }
     });
     canvas.dataset.logoTabBound = "true";
