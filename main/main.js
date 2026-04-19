@@ -126,16 +126,17 @@ function addEmbedPlaybackControls() {
     return button;
   };
 
-  buttonRow.appendChild(
-    createActionButton("runCodeButton", "Play", () => {
+  const playButton = createActionButton("runCodeButton", "Play", () => {
       void executeCode();
-    }),
-  );
-  buttonRow.appendChild(
-    createActionButton("stopCodeButton", "Stop", () => {
+    });
+  playButton.tabIndex = 1;
+  buttonRow.appendChild(playButton);
+
+  const stopButton = createActionButton("stopCodeButton", "Stop", () => {
       stopCode();
-    }),
-  );
+    });
+  stopButton.tabIndex = 2;
+  buttonRow.appendChild(stopButton);
   topBar.appendChild(buttonRow);
 
   const actions = document.createElement("div");
@@ -166,6 +167,7 @@ function addEmbedPlaybackControls() {
   openInFlockButton.style.display = "inline-flex";
   openInFlockButton.style.alignItems = "center";
   openInFlockButton.style.justifyContent = "center";
+  openInFlockButton.tabIndex = 3;
   openInFlockButton.innerHTML = `
     <span class="icon" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -181,6 +183,46 @@ function addEmbedPlaybackControls() {
 
   document.body.prepend(topBar);
   return topBar;
+}
+
+function addEmbedBottomBar() {
+  const existingBar = document.getElementById("embedBottomBar");
+  if (existingBar) return existingBar;
+
+  const bar = document.createElement("div");
+  bar.id = "embedBottomBar";
+  Object.assign(bar.style, {
+    position: "fixed",
+    left: "0",
+    right: "0",
+    bottom: "0",
+    zIndex: "1000",
+    display: "flex",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    padding: "8px 12px",
+    minHeight: "40px",
+    background: "#ffffff",
+    borderTop: "1px solid #e8e3ff",
+  });
+
+  const logoLink = document.createElement("a");
+  logoLink.href = "https://flockxr.com/";
+  logoLink.target = "_blank";
+  logoLink.rel = "noopener noreferrer";
+  logoLink.tabIndex = 5;
+  logoLink.setAttribute("aria-label", "Visit Flock XR website");
+
+  const logo = document.createElement("img");
+  logo.src = "./images/inline-flock-xr.svg";
+  logo.alt = "Flock XR";
+  logo.style.height = "28px";
+  logo.style.width = "auto";
+  logoLink.appendChild(logo);
+  bar.appendChild(logoLink);
+
+  document.body.appendChild(bar);
+  return bar;
 }
 
 function applyEmbedMode() {
@@ -212,26 +254,24 @@ function applyEmbedMode() {
     mainContent.tabIndex = -1;
   }
   if (canvas) {
-    canvas.tabIndex = 0;
+    canvas.tabIndex = shouldShowEmbedPlaybackControls() ? 4 : 1;
   }
-  if (flockLink) {
-    flockLink.style.display = "block";
-    const flockLinkAnchor = flockLink.querySelector("a");
-    if (flockLinkAnchor) flockLinkAnchor.tabIndex = 0;
-  }
+  if (flockLink) flockLink.style.display = "none";
   flock.embedMode = true;
 
   document.documentElement.style.setProperty("--dynamic-offset", "0px");
+  const embedBottomBar = addEmbedBottomBar();
+  const bottomHeight = embedBottomBar?.offsetHeight || 40;
   if (mainContent) {
     mainContent.style.marginTop = "0";
-    mainContent.style.height = "var(--app-height)";
+    mainContent.style.height = `calc(var(--app-height) - ${bottomHeight}px)`;
   }
   if (shouldShowEmbedPlaybackControls()) {
     const topBar = addEmbedPlaybackControls();
     const barHeight = topBar?.offsetHeight || 52;
     if (mainContent) {
       mainContent.style.marginTop = `${barHeight}px`;
-      mainContent.style.height = `calc(var(--app-height) - ${barHeight}px)`;
+      mainContent.style.height = `calc(var(--app-height) - ${barHeight + bottomHeight}px)`;
     }
   }
   onResize("reset");
