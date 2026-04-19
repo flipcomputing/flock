@@ -1150,6 +1150,9 @@ body.embed-mode {
 
 body.embed-mode #maincontent {
   background: #e5e5eb;
+  border-left: 2px solid #511d91;
+  border-right: 2px solid #511d91;
+  box-sizing: border-box;
 }
 
 /* Show crosshair on canvas whenever colour picker is open */

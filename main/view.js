@@ -72,6 +72,44 @@ function resizeCanvas() {
       canvas.width = fittedWidth;
       canvas.height = fittedHeight;
     }
+
+
+    const syncEmbedFrame = () => {
+      const measuredCanvasWidth = Math.max(
+        1,
+        Math.round(canvas.getBoundingClientRect().width),
+      );
+      const playerWidth = Math.max(1, measuredCanvasWidth + 6);
+      const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+      const left = Math.max(0, Math.round((viewportWidth - playerWidth) / 2));
+
+      const mainContent = document.getElementById("maincontent");
+      if (mainContent) {
+        mainContent.style.width = `${playerWidth}px`;
+        mainContent.style.maxWidth = `${playerWidth}px`;
+        mainContent.style.marginLeft = "auto";
+        mainContent.style.marginRight = "auto";
+      }
+
+      const embedTopBar = document.getElementById("embedTopBar");
+      if (embedTopBar) {
+        embedTopBar.style.width = `${playerWidth}px`;
+        embedTopBar.style.left = `${left}px`;
+        embedTopBar.style.right = "auto";
+        embedTopBar.style.transform = "none";
+      }
+
+      const embedBottomBar = document.getElementById("embedBottomBar");
+      if (embedBottomBar) {
+        embedBottomBar.style.width = `${playerWidth}px`;
+        embedBottomBar.style.left = `${left}px`;
+        embedBottomBar.style.right = "auto";
+        embedBottomBar.style.transform = "none";
+      }
+    };
+
+    syncEmbedFrame();
+    requestAnimationFrame(syncEmbedFrame);
     return;
   }
 
