@@ -72,6 +72,7 @@ function resizeCanvas() {
       const playerWidth = Math.max(1, width + 6);
       const mainContent = document.getElementById("maincontent");
       if (mainContent) {
+        mainContent.style.width = `${playerWidth}px`;
         mainContent.style.maxWidth = `${playerWidth}px`;
         mainContent.style.marginLeft = "auto";
         mainContent.style.marginRight = "auto";
