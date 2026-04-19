@@ -252,7 +252,6 @@ function applyEmbedMode() {
     canvasArea.style.flex = "1 1 100%";
     canvasArea.style.justifyContent = "center";
     canvasArea.style.alignItems = "center";
-    canvasArea.style.overflow = "hidden";
   }
   if (mainContent) {
     mainContent.style.transform = "translateX(0px)";
