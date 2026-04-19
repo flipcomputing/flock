@@ -50,8 +50,18 @@ function resizeCanvas() {
   let areaHeight = canvasArea.clientHeight;
 
   if (flock.embedMode) {
-    const fittedWidth = Math.max(1, Math.round(areaWidth));
-    const fittedHeight = Math.max(1, Math.round(areaHeight));
+    const aspectRatio = 16 / 9;
+
+    let fittedWidth;
+    let fittedHeight;
+    if (areaWidth / areaHeight > aspectRatio) {
+      fittedHeight = Math.max(1, Math.round(areaHeight));
+      fittedWidth = Math.max(1, Math.round(fittedHeight * aspectRatio));
+    } else {
+      fittedWidth = Math.max(1, Math.round(areaWidth));
+      fittedHeight = Math.max(1, Math.round(fittedWidth / aspectRatio));
+    }
+
     canvas.style.width = `${fittedWidth}px`;
     canvas.style.height = `${fittedHeight}px`;
 

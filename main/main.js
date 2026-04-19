@@ -247,9 +247,12 @@ function applyEmbedMode() {
   if (gizmoButtons) gizmoButtons.style.display = "none";
   if (resizer) resizer.style.display = "none";
   if (canvasArea) {
-    canvasArea.style.display = "block";
+    canvasArea.style.display = "flex";
     canvasArea.style.width = "100%";
     canvasArea.style.flex = "1 1 100%";
+    canvasArea.style.justifyContent = "center";
+    canvasArea.style.alignItems = "center";
+    canvasArea.style.overflow = "hidden";
   }
   if (mainContent) {
     mainContent.style.transform = "translateX(0px)";
