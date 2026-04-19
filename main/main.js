@@ -107,9 +107,15 @@ function addEmbedPlaybackControls() {
     button.setAttribute("aria-label", fallbackLabel);
     button.style.minWidth = "36px";
     button.style.minHeight = "36px";
+    button.style.width = "36px";
+    button.style.height = "36px";
     button.style.margin = "0";
     button.style.marginLeft = "0";
-    button.style.padding = "2px";
+    button.style.padding = "0";
+    button.style.display = "inline-flex";
+    button.style.alignItems = "center";
+    button.style.justifyContent = "center";
+    button.style.lineHeight = "1";
 
     if (template) {
       button.innerHTML = template.innerHTML;
@@ -152,9 +158,14 @@ function addEmbedPlaybackControls() {
   openInFlockButton.setAttribute("aria-label", "Open in Flock");
   openInFlockButton.style.minWidth = "36px";
   openInFlockButton.style.minHeight = "36px";
+  openInFlockButton.style.width = "36px";
+  openInFlockButton.style.height = "36px";
   openInFlockButton.style.margin = "0";
-  openInFlockButton.style.padding = "2px";
+  openInFlockButton.style.padding = "0";
   openInFlockButton.style.textDecoration = "none";
+  openInFlockButton.style.display = "inline-flex";
+  openInFlockButton.style.alignItems = "center";
+  openInFlockButton.style.justifyContent = "center";
   openInFlockButton.innerHTML = `
     <span class="icon" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
