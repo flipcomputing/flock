@@ -118,7 +118,7 @@ async function showUpdateNotification() {
   const { applyTranslations } = await import("./translation.js");
   applyTranslations();
 
-  document.getElementById("reload-btn").addEventListener("click", () => {
+  reloadBtn.addEventListener("click", () => {
     // Reload the page to activate the new service worker
     window.location.reload();
   });
@@ -214,22 +214,26 @@ function initializeApp() {
   const exportCodeButton = document.getElementById("exportCodeButton");
   const openButton = document.getElementById("openButton");
   const menuButton = document.getElementById("menuBtn");
-
+  if (!runCodeButton || !stopCodeButton || !exportCodeButton || !fileInput) {
+    return;
+  }
   runCodeButton.addEventListener("click", executeCode);
   stopCodeButton.addEventListener("click", stopCode);
   exportCodeButton.addEventListener("click", exportCode);
 
   // Make open button work with keyboard
-  openButton.addEventListener("click", () => {
-    fileInput.click();
-  });
-
-  openButton.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
+  if (openButton) {
+    openButton.addEventListener("click", () => {
       fileInput.click();
-    }
-  });
+    });
+
+    openButton.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        fileInput.click();
+      }
+    });
+  }
 
   // Enable the file input after initialization
   fileInput.removeAttribute("disabled");
@@ -280,7 +284,7 @@ function initializeApp() {
         case "m": {
           // Ctrl+M - Move focus to main menu button
           e.preventDefault();
-          menuButton.focus();
+          if (menuButton) menuButton.focus();
           break;
         }
 
@@ -304,13 +308,17 @@ function initializeApp() {
     },
     true,
   );
-  toggleDesignButton.addEventListener("click", toggleDesignMode);
+  if (toggleDesignButton) {
+    toggleDesignButton.addEventListener("click", toggleDesignMode);
+  }
 
-  togglePlayButton.addEventListener("click", togglePlayMode);
+  if (togglePlayButton) {
+    togglePlayButton.addEventListener("click", togglePlayMode);
+  }
 
-  document
-    .getElementById("fullscreenToggle")
-    .addEventListener("click", function () {
+  const fullscreenToggleEl = document.getElementById("fullscreenToggle");
+  if (fullscreenToggleEl) {
+    fullscreenToggleEl.addEventListener("click", function () {
       if (!document.fullscreenElement) {
         // Go fullscreen
         if (document.documentElement.requestFullscreen) {
@@ -341,28 +349,32 @@ function initializeApp() {
         }
       }
     });
+  }
 
-  document
-    .getElementById("project-new")
-    .addEventListener("click", function (e) {
+  const projectNew = document.getElementById("project-new");
+  if (projectNew) {
+    projectNew.addEventListener("click", function (e) {
       e.preventDefault();
       newProject();
-      document.getElementById("menuDropdown").classList.add("hidden");
+      document.getElementById("menuDropdown")?.classList.add("hidden");
     });
-  document
-    .getElementById("project-open")
-    .addEventListener("click", function (e) {
+  }
+  const projectOpen = document.getElementById("project-open");
+  if (projectOpen) {
+    projectOpen.addEventListener("click", function (e) {
       e.preventDefault();
       fileInput.click();
-      document.getElementById("menuDropdown").classList.add("hidden");
+      document.getElementById("menuDropdown")?.classList.add("hidden");
     });
-  document
-    .getElementById("project-save")
-    .addEventListener("click", function (e) {
+  }
+  const projectSave = document.getElementById("project-save");
+  if (projectSave) {
+    projectSave.addEventListener("click", function (e) {
       e.preventDefault();
       exportCode();
-      document.getElementById("menuDropdown").classList.add("hidden");
+      document.getElementById("menuDropdown")?.classList.add("hidden");
     });
+  }
 
   initializeUI();
 
@@ -375,8 +387,8 @@ function initializeApp() {
 
   //toolboxControl.removeAttribute("disabled");
   runCodeButton.removeAttribute("disabled");
-  exampleSelect.removeAttribute("disabled");
-  fullscreenToggle.removeAttribute("disabled");
+  if (exampleSelect) exampleSelect.removeAttribute("disabled");
+  if (fullscreenToggle) fullscreenToggle.removeAttribute("disabled");
 
   // Add event listeners for buttons and controls
   /*toolboxControl.addEventListener("mouseover", function () {
@@ -384,7 +396,9 @@ function initializeApp() {
                 toggleToolbox();
         });*/
 
-  exampleSelect.addEventListener("change", loadExampleWrapper);
+  if (exampleSelect) {
+    exampleSelect.addEventListener("change", loadExampleWrapper);
+  }
 
   // Make setLanguage available globally for the menu
   window.setLanguage = async (lang) => await setLanguage(lang);
@@ -433,9 +447,9 @@ window.onload = async function () {
     }
   });
 
-  document
-    .getElementById("info-details")
-    .addEventListener("toggle", function () {
+  const infoDetails = document.getElementById("info-details");
+  if (infoDetails) {
+    infoDetails.addEventListener("toggle", function () {
       if (this.open) {
         setTimeout(() => {
           const content = this.querySelector(".content");
@@ -451,6 +465,7 @@ window.onload = async function () {
         }
       }
     });
+  }
 
   // Initial view setup
   window.loadingCode = true;
