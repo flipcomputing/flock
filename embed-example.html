@@ -6,13 +6,30 @@
     <title>Flock XR embed example</title>
   </head>
   <body>
+    <h1>Flock XR embed example</h1>
+    <p>
+      This page uses a plain iframe embed. Set the <code>size</code> URL parameter
+      on the iframe source (for example <code>size=default</code> or
+      <code>size=compact</code>) along with <code>controls=playstop</code>.
+    </p>
+
     <iframe
       title="Flock XR embedded project player"
-      width="960"
-      height="540"
+      width="800"
+      height="450"
       style="border: 0"
       allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
-      src="./index.html?embed=true&controls=playstop&project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
+      src="./index.html?embed=true&size=default&controls=playstop&project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
     ></iframe>
+
+    <h2>Copy/paste embed snippet</h2>
+    <pre><code>&lt;iframe
+  title="Flock XR embedded project player"
+  width="800"
+  height="450"
+  style="border: 0"
+  allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
+  src="https://your-host/flock/index.html?embed=true&amp;size=default&amp;controls=playstop&amp;project=YOUR_RAW_FLOCK_URL"
+&gt;&lt;/iframe&gt;</code></pre>
   </body>
 </html>
