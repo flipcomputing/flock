@@ -150,6 +150,7 @@ function addEmbedPlaybackControls() {
     ? `https://flipcomputing.github.io/flock/?project=${encodeURIComponent(projectUrl)}`
     : "https://flipcomputing.github.io/flock/";
   openInFlockButton.href = targetUrl;
+  openInFlockButton.id = "embedOpenInFlock";
   openInFlockButton.target = "_blank";
   openInFlockButton.rel = "noopener noreferrer";
   openInFlockButton.className = "bigbutton";
@@ -208,11 +209,16 @@ function addEmbedBottomBar() {
   logoLink.target = "_blank";
   logoLink.rel = "noopener noreferrer";
   logoLink.setAttribute("aria-label", "Visit Flock XR website");
+  logoLink.style.display = "inline-flex";
+  logoLink.style.alignItems = "center";
+  logoLink.style.justifyContent = "center";
+  logoLink.style.padding = "2px";
+  logoLink.style.borderRadius = "4px";
 
   const logo = document.createElement("img");
   logo.src = "./images/inline-flock-xr.svg";
   logo.alt = "Flock XR";
-  logo.style.height = "28px";
+  logo.style.height = "15px";
   logo.style.width = "auto";
   logoLink.appendChild(logo);
   bar.appendChild(logoLink);
@@ -269,6 +275,27 @@ function applyEmbedMode() {
       mainContent.style.marginTop = `${barHeight}px`;
       mainContent.style.height = `calc(var(--app-height) - ${barHeight + bottomHeight}px)`;
     }
+  }
+
+  const openInFlockButton = document.getElementById("embedOpenInFlock");
+  const logoLink = document.querySelector("#embedBottomBar a");
+  if (canvas && openInFlockButton && !openInFlockButton.dataset.canvasTabBound) {
+    openInFlockButton.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && !event.shiftKey) {
+        event.preventDefault();
+        canvas.focus();
+      }
+    });
+    openInFlockButton.dataset.canvasTabBound = "true";
+  }
+  if (canvas && logoLink && !canvas.dataset.logoTabBound) {
+    canvas.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && !event.shiftKey) {
+        event.preventDefault();
+        logoLink.focus();
+      }
+    });
+    canvas.dataset.logoTabBound = "true";
   }
   onResize("reset");
 }
