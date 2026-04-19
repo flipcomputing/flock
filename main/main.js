@@ -185,6 +185,7 @@ function addEmbedPlaybackControls() {
 
 function applyEmbedMode() {
   if (!isEmbedModeEnabled()) return;
+  document.body.classList.add("embed-mode");
 
   const header = document.querySelector("header");
   const codePanel = document.getElementById("codePanel");
