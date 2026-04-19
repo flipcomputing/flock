@@ -81,7 +81,7 @@ function applyEmbedMode() {
   if (mainContent) mainContent.style.transform = "translateX(0px)";
 
   document.documentElement.style.setProperty("--dynamic-offset", "0px");
-  switchView("canvas");
+  onResize("reset");
 }
 
 if ("serviceWorker" in navigator) {
