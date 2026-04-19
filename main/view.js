@@ -46,8 +46,82 @@ function resizeCanvas() {
   const canvas = document.getElementById("renderCanvas");
   if (!canvasArea || !canvas) return;
 
-  const areaWidth = canvasArea.clientWidth;
-  let areaHeight = canvasArea.clientHeight;
+  const areaRect = canvasArea.getBoundingClientRect();
+  const areaWidth = Math.max(1, Math.round(areaRect.width));
+  let areaHeight = Math.max(1, Math.round(areaRect.height));
+
+  if (flock.embedMode) {
+    const aspectRatio = 16 / 9;
+
+    const availableHeight = Math.max(1, areaHeight - 4);
+
+    let fittedHeight = Math.max(1, Math.round(availableHeight));
+    let fittedWidth = Math.max(1, Math.round(fittedHeight * aspectRatio));
+
+    if (fittedWidth > areaWidth) {
+      fittedWidth = Math.max(1, Math.round(areaWidth));
+      fittedHeight = Math.max(1, Math.round(fittedWidth / aspectRatio));
+    }
+
+    canvas.style.width = `${fittedWidth}px`;
+    canvas.style.height = `${fittedHeight}px`;
+    canvas.style.maxWidth = "100%";
+    canvas.style.maxHeight = "100%";
+
+    if (canvas.width !== fittedWidth || canvas.height !== fittedHeight) {
+      canvas.width = fittedWidth;
+      canvas.height = fittedHeight;
+    }
+
+
+    const syncEmbedFrame = () => {
+      const measuredCanvasWidth = Math.max(
+        1,
+        Math.round(canvas.getBoundingClientRect().width),
+      );
+      const playerWidth = Math.max(1, measuredCanvasWidth);
+
+      const embedShell = document.getElementById("embedShell");
+      if (embedShell) {
+        embedShell.style.width = "100%";
+        embedShell.style.maxWidth = "100%";
+        embedShell.style.marginLeft = "0";
+        embedShell.style.marginRight = "0";
+        embedShell.style.boxSizing = "border-box";
+      }
+
+      const mainContent = document.getElementById("maincontent");
+      if (mainContent) {
+        mainContent.style.width = "100%";
+        mainContent.style.maxWidth = "100%";
+        mainContent.style.marginLeft = "0";
+        mainContent.style.marginRight = "0";
+        mainContent.style.boxSizing = "border-box";
+      }
+
+      const embedTopBar = document.getElementById("embedTopBar");
+      if (embedTopBar) {
+        embedTopBar.style.width = "100%";
+        embedTopBar.style.left = "0";
+        embedTopBar.style.right = "0";
+        embedTopBar.style.transform = "none";
+        embedTopBar.style.boxSizing = "border-box";
+      }
+
+      const embedBottomBar = document.getElementById("embedBottomBar");
+      if (embedBottomBar) {
+        embedBottomBar.style.width = "100%";
+        embedBottomBar.style.left = "0";
+        embedBottomBar.style.right = "0";
+        embedBottomBar.style.transform = "none";
+        embedBottomBar.style.boxSizing = "border-box";
+      }
+    };
+
+    syncEmbedFrame();
+    requestAnimationFrame(syncEmbedFrame);
+    return;
+  }
 
   const gizmoButtons = document.getElementById("gizmoButtons");
   if (gizmoButtons && gizmoButtons.style.display != "none") {

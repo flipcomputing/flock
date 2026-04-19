@@ -47,6 +47,308 @@ import {
   translate,
 } from "./translation.js";
 
+function isEmbedModeEnabled() {
+  const embedParam = new URLSearchParams(window.location.search).get("embed");
+  if (embedParam === null) return false;
+
+  const normalized = embedParam.trim().toLowerCase();
+  return normalized !== "false" && normalized !== "0" && normalized !== "off";
+}
+
+function addEmbedPlaybackControls() {
+  const existingControls = document.getElementById("embedTopBar");
+  if (existingControls) return existingControls;
+
+  const topBar = document.createElement("div");
+  topBar.id = "embedTopBar";
+  Object.assign(topBar.style, {
+    position: "relative",
+    top: "0",
+    left: "0",
+    right: "0",
+    zIndex: "1000",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "8px",
+    padding: "6px 8px",
+    background: "#ffffff",
+    border: "0",
+    borderBottom: "1px solid #cfcde0",
+    boxSizing: "border-box",
+  });
+
+  const buttonRow = document.createElement("div");
+  Object.assign(buttonRow.style, {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+  });
+
+  const createActionButton = (templateId, fallbackLabel, onClick) => {
+    const template = document.getElementById(templateId);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "bigbutton";
+    button.title = fallbackLabel;
+    button.setAttribute("aria-label", fallbackLabel);
+    button.style.minWidth = "36px";
+    button.style.minHeight = "36px";
+    button.style.width = "36px";
+    button.style.height = "36px";
+    button.style.margin = "0";
+    button.style.padding = "0";
+    button.style.display = "inline-flex";
+    button.style.alignItems = "center";
+    button.style.justifyContent = "center";
+    button.style.lineHeight = "1";
+
+    if (template) {
+      button.innerHTML = template.innerHTML;
+    } else {
+      button.textContent = fallbackLabel;
+    }
+    button.addEventListener("click", onClick);
+    return button;
+  };
+
+  const playButton = createActionButton("runCodeButton", "Play", () => {
+    void executeCode();
+  });
+  buttonRow.appendChild(playButton);
+
+  const stopButton = createActionButton("stopCodeButton", "Stop", () => {
+    stopCode();
+  });
+  buttonRow.appendChild(stopButton);
+  topBar.appendChild(buttonRow);
+
+  const actions = document.createElement("div");
+  Object.assign(actions.style, {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+  });
+
+  const openInFlockButton = document.createElement("a");
+  const projectUrl = new URLSearchParams(window.location.search).get("project");
+  const targetUrl = projectUrl
+    ? `https://flipcomputing.github.io/flock/?project=${encodeURIComponent(projectUrl)}`
+    : "https://flipcomputing.github.io/flock/";
+  openInFlockButton.href = targetUrl;
+  openInFlockButton.id = "embedOpenInFlock";
+  openInFlockButton.target = "_blank";
+  openInFlockButton.rel = "noopener noreferrer";
+  openInFlockButton.className = "bigbutton";
+  openInFlockButton.title = "Open in Flock";
+  openInFlockButton.setAttribute("aria-label", "Open in Flock");
+  openInFlockButton.style.minWidth = "36px";
+  openInFlockButton.style.minHeight = "36px";
+  openInFlockButton.style.width = "36px";
+  openInFlockButton.style.height = "36px";
+  openInFlockButton.style.margin = "0";
+  openInFlockButton.style.padding = "0";
+  openInFlockButton.style.textDecoration = "none";
+  openInFlockButton.style.display = "inline-flex";
+  openInFlockButton.style.alignItems = "center";
+  openInFlockButton.style.justifyContent = "center";
+  openInFlockButton.innerHTML = `
+    <span class="icon" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+        <path fill="currentColor" d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0-201.4 201.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3 448 192c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 96C35.8 96 0 131.8 0 176L0 432c0 44.2 35.8 80 80 80l256 0c44.2 0 80-35.8 80-80l0-80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 80c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l80 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 96z"/>
+      </svg>
+    </span>
+  `;
+  actions.appendChild(openInFlockButton);
+  topBar.appendChild(actions);
+
+  document.body.prepend(topBar);
+  return topBar;
+}
+
+function shouldShowEmbedPlaybackControls() {
+  const controlsParam = new URLSearchParams(window.location.search).get(
+    "controls",
+  );
+  if (!controlsParam) return false;
+
+  const normalized = controlsParam.trim().toLowerCase();
+  return (
+    normalized === "playstop" ||
+    normalized === "play-stop" ||
+    normalized === "true" ||
+    normalized === "1"
+  );
+}
+
+function addEmbedBottomBar() {
+  const existingBar = document.getElementById("embedBottomBar");
+  if (existingBar) return existingBar;
+
+  const bar = document.createElement("div");
+  bar.id = "embedBottomBar";
+  Object.assign(bar.style, {
+    position: "relative",
+    left: "0",
+    right: "0",
+    bottom: "0",
+    zIndex: "1000",
+    display: "flex",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    padding: "6px 6px",
+    minHeight: "0",
+    lineHeight: "1",
+    background: "#ffffff",
+    border: "0",
+    borderTop: "1px solid #cfcde0",
+    boxSizing: "border-box",
+  });
+
+  const logoLink = document.createElement("a");
+  logoLink.href = "https://flockxr.com/";
+  logoLink.target = "_blank";
+  logoLink.rel = "noopener noreferrer";
+  logoLink.setAttribute("aria-label", "Visit Flock XR website");
+  logoLink.style.display = "inline-flex";
+  logoLink.style.alignItems = "center";
+  logoLink.style.justifyContent = "center";
+  logoLink.style.padding = "2px";
+  logoLink.style.borderRadius = "4px";
+
+  const logo = document.createElement("img");
+  logo.src = "./images/inline-flock-xr.svg";
+  logo.alt = "Flock XR";
+  logo.style.height = "15px";
+  logo.style.width = "auto";
+  logoLink.appendChild(logo);
+  bar.appendChild(logoLink);
+
+  document.body.appendChild(bar);
+  return bar;
+}
+
+function applyEmbedMode() {
+  if (!isEmbedModeEnabled()) return;
+  document.body.classList.add("embed-mode");
+
+  const header = document.querySelector("header");
+  const codePanel = document.getElementById("codePanel");
+  const bottomBar = document.getElementById("bottomBar");
+  const gizmoButtons = document.getElementById("gizmoButtons");
+  const flockLink = document.getElementById("flocklink");
+  const resizer = document.getElementById("resizer");
+  const infoPanel = document.getElementById("info-panel");
+  const canvasArea = document.getElementById("canvasArea");
+  const mainContent = document.getElementById("maincontent");
+  const canvas = document.getElementById("renderCanvas");
+
+  if (header) header.style.display = "none";
+  if (codePanel) codePanel.style.display = "none";
+  if (bottomBar) bottomBar.style.display = "none";
+  if (gizmoButtons) gizmoButtons.style.display = "none";
+  if (resizer) resizer.style.display = "none";
+  if (infoPanel) infoPanel.style.display = "none";
+
+  if (canvasArea) {
+    canvasArea.style.display = "block";
+    canvasArea.style.width = "100%";
+    canvasArea.style.height = "100%";
+    canvasArea.style.flex = "1 1 100%";
+    canvasArea.style.overflow = "hidden";
+  }
+
+  if (mainContent) {
+    mainContent.style.transform = "translateX(0px)";
+    mainContent.style.marginTop = "0";
+    mainContent.style.height = "auto";
+    mainContent.tabIndex = -1;
+  }
+
+  if (canvas) {
+    canvas.tabIndex = 0;
+    canvas.style.display = "block";
+    canvas.style.margin = "0 auto";
+  }
+
+  if (flockLink) flockLink.style.display = "none";
+  flock.embedMode = true;
+
+  document.documentElement.style.setProperty("--dynamic-offset", "0px");
+  document.documentElement.style.background = "#e5e5eb";
+
+  const embedBottomBar = addEmbedBottomBar();
+  let embedTopBar = null;
+
+  if (shouldShowEmbedPlaybackControls()) {
+    embedTopBar = addEmbedPlaybackControls();
+  }
+
+  let embedShell = document.getElementById("embedShell");
+  if (!embedShell) {
+    embedShell = document.createElement("div");
+    embedShell.id = "embedShell";
+    document.body.appendChild(embedShell);
+  }
+
+  if (embedTopBar) embedShell.appendChild(embedTopBar);
+  if (mainContent) embedShell.appendChild(mainContent);
+  if (embedBottomBar) embedShell.appendChild(embedBottomBar);
+
+  const openInFlockButton = document.getElementById("embedOpenInFlock");
+  const logoLink = document.querySelector("#embedBottomBar a");
+
+  if (
+    canvas &&
+    openInFlockButton &&
+    !openInFlockButton.dataset.canvasTabBound
+  ) {
+    openInFlockButton.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && !event.shiftKey) {
+        event.preventDefault();
+        canvas.focus();
+      }
+    });
+    openInFlockButton.dataset.canvasTabBound = "true";
+  }
+
+  if (canvas && logoLink && !canvas.dataset.logoTabBound) {
+    canvas.addEventListener("keydown", (event) => {
+      if (event.key !== "Tab") return;
+
+      if (!event.shiftKey) {
+        event.preventDefault();
+        logoLink.focus();
+        return;
+      }
+
+      const unmuteButton = document.getElementById("babylonUnmuteButton");
+      const unmuteVisible =
+        unmuteButton &&
+        getComputedStyle(unmuteButton).display !== "none" &&
+        getComputedStyle(unmuteButton).visibility !== "hidden";
+
+      if (!unmuteVisible && openInFlockButton) {
+        event.preventDefault();
+        openInFlockButton.focus();
+      }
+    });
+    canvas.dataset.logoTabBound = "true";
+  }
+
+  if (canvas && logoLink && !logoLink.dataset.canvasTabBound) {
+    logoLink.addEventListener("keydown", (event) => {
+      if (event.key === "Tab" && event.shiftKey) {
+        event.preventDefault();
+        canvas.focus();
+      }
+    });
+    logoLink.dataset.canvasTabBound = "true";
+  }
+
+  onResize("reset");
+}
+
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker
     .register("./sw.js")
@@ -143,7 +445,8 @@ function registerBlocklyPlayShortcut() {
     keyCodes: [keyCode],
     preconditionFn: (ws) => !ws.isDragging(),
     callback: (_ws, event) => {
-      const targetElement = event?.target instanceof Element ? event.target : null;
+      const targetElement =
+        event?.target instanceof Element ? event.target : null;
       const activeElement = document.activeElement;
       const inToolboxContext =
         !!targetElement?.closest?.(
@@ -433,7 +736,9 @@ window.onload = async function () {
 
   createBlocklyWorkspace();
   if (!workspace) {
-    console.error("Blockly workspace failed to initialize; aborting editor setup.");
+    console.error(
+      "Blockly workspace failed to initialize; aborting editor setup.",
+    );
     return;
   }
   registerBlocklyPlayShortcut();
@@ -503,6 +808,7 @@ window.onload = async function () {
   }
 
   initializeApp();
+  applyEmbedMode();
 
   setupFileInput(workspace, executeCode);
   setupDragAndDrop(workspace, executeCode);

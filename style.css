@@ -1128,6 +1128,64 @@ details summary:focus,
   background-color: var(--color-button-bg-hover);
 }
 
+body.embed-mode #maincontent {
+  display: flex;
+  flex-direction: column;
+}
+
+body.embed-mode #canvasArea {
+  flex: 1;
+}
+
+body.embed-mode #renderCanvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+body.embed-mode #maincontent {
+  box-sizing: border-box;
+}
+
+body.embed-mode #embedTopBar {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+body.embed-mode #embedBottomBar {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+body.embed-mode #canvasArea {
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body.embed-mode #embedShell {
+  background: #ffffff;
+  border: 2px solid #511d91;
+  border-radius: 12px;   /* adjust as needed */
+  box-sizing: border-box;
+  overflow: hidden;      /* important: clips inner content to rounded corners */
+}
+
+body.embed-mode #embedBottomBar a,
+body.embed-mode #embedBottomBar img {
+  display: block;
+}
+
+body.embed-mode #renderCanvas:focus {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+  background-color: var(--color-button-bg-hover);
+}
+
+body.embed-mode #embedBottomBar a:focus {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 /* Show crosshair on canvas whenever colour picker is open */
 body.color-picker-open #renderCanvas {
   cursor: crosshair;

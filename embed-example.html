@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Flock XR embed example</title>
+		<style>
+			body {
+				background-color: #eeeeee;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Flock XR embed example</h1>
+
+		<iframe
+		  title="Flock XR embedded project player"
+		  width="604"
+		  height="420"
+		  style="border: 0; display: block; margin: 0 auto; border-radius: 12px; overflow: hidden;"
+		  allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
+		  src="./index.html?embed=true&size=default&controls=playstop&project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
+		></iframe>
+
+		<h2>Copy/paste embed snippet</h2>
+		<pre><code>&lt;iframe
+		  title="Flock XR embedded project player"
+		  width="604"
+		  height="420"
+		  style="border: 0; display: block; margin: 0 auto; border-radius: 12px; overflow: hidden;"
+		  allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
+		  src="https://your-host/flock/index.html?embed=true&amp;size=default&amp;controls=playstop&amp;project=YOUR_RAW_FLOCK_URL"
+		&gt;&lt;/iframe&gt;</code></pre>
+	</body>
+</html>
