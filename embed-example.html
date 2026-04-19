@@ -32,6 +32,13 @@
         font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas,
           "Liberation Mono", "Courier New", monospace;
       }
+
+      pre {
+        overflow-x: auto;
+        padding: 12px;
+        border-radius: 8px;
+        background: #ece9ff;
+      }
     </style>
   </head>
   <body>
@@ -65,6 +72,25 @@
           target="_blank"
           >open project on flipcomputing.github.io/flock</a
         >
+      </p>
+
+      <h2>Embed code snippet</h2>
+      <p>Copy this snippet into your own web page:</p>
+      <pre><code>&lt;iframe
+  title="Flock XR embedded project player"
+  allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
+  src="https://flipcomputing.github.io/flock/?embed=true&amp;project=YOUR_RAW_FLOCK_URL"
+&gt;&lt;/iframe&gt;</code></pre>
+
+      <h2>Hosting your project on GitHub</h2>
+      <p>
+        Upload your
+        <code>.flock</code>
+        file to a GitHub repository, then copy the file’s
+        <strong>Raw</strong>
+        URL and use that as the
+        <code>project=</code>
+        value in the embed link.
       </p>
     </div>
     <script>
