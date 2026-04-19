@@ -462,7 +462,7 @@ button {
 /* Layout Styles */
 #maincontent {
   width: 100vw;
-  height: calc(var(--app-height) - var(--dynamic-offset));
+  height: calc(var(--app-height) - 50px);
   display: flex;
   margin: 0;
   gap: 0;
@@ -1130,8 +1130,15 @@ details summary:focus,
 
 body.embed-mode #renderCanvas:focus {
   outline: none;
-  box-shadow: inset 0 0 0 3px var(--color-focus);
+  box-shadow:
+    inset 0 0 0 4px var(--color-focus),
+    inset 0 0 0 6px var(--color-focus-ring);
   background-color: transparent;
+}
+
+body.embed-mode #embedBottomBar a:focus {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 /* Show crosshair on canvas whenever colour picker is open */
