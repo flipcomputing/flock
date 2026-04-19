@@ -185,6 +185,7 @@ const CATEGORY_ACCENT_BY_STYLE = {
 const LOW_VISION_ICON_DATA_URL_BY_STYLE = new Map();
 const LOW_VISION_ICON_SVG_BY_STYLE = new Map();
 const LOW_VISION_ICON_LOAD_PROMISE_BY_STYLE = new Map();
+const LOW_VISION_REFRESH_PENDING_BY_WORKSPACE = new WeakMap();
 
 const LOW_VISION_STYLE_BY_ICON_FILE = {
   "events.svg": "events_blocks",
@@ -263,9 +264,27 @@ function getBlockStyleName(block) {
   return block.styleName_ || "";
 }
 
-function getCategoryIconForBlock(block) {
-  const styleName = getLowVisionStyleNameForBlock(block);
-  return makeLowVisionCategoryIconDataUrl(styleName);
+function scheduleLowVisionIconRefresh(workspace, styleName) {
+  if (!workspace || !styleName) return;
+  const pendingLoad = LOW_VISION_ICON_LOAD_PROMISE_BY_STYLE.get(styleName);
+  if (!pendingLoad) return;
+
+  let pendingStyles = LOW_VISION_REFRESH_PENDING_BY_WORKSPACE.get(workspace);
+  if (!pendingStyles) {
+    pendingStyles = new Set();
+    LOW_VISION_REFRESH_PENDING_BY_WORKSPACE.set(workspace, pendingStyles);
+  }
+  if (pendingStyles.has(styleName)) return;
+  pendingStyles.add(styleName);
+
+  pendingLoad
+    .then(() => {
+      pendingStyles.delete(styleName);
+      applyLowVisionCategoryIcons(workspace);
+    })
+    .catch(() => {
+      pendingStyles.delete(styleName);
+    });
 }
 
 function getLowVisionStyleNameForBlock(block) {
@@ -398,8 +417,12 @@ export function applyLowVisionCategoryIcons(workspace) {
     ) {
       continue;
     }
-    const iconPath = getCategoryIconForBlock(block);
-    if (!iconPath) continue;
+    const styleName = getLowVisionStyleNameForBlock(block);
+    const iconPath = makeLowVisionCategoryIconDataUrl(styleName);
+    if (!iconPath) {
+      scheduleLowVisionIconRefresh(workspace, styleName);
+      continue;
+    }
 
     const firstInput = block.inputList?.[0];
     if (!firstInput) continue;
