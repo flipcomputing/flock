@@ -1,29 +1,5 @@
 import * as Blockly from "blockly";
 import { toolbox as toolboxDefinition } from "../toolbox.js";
-import eventsIconSvg from "../images/events.svg?raw";
-import sceneIconSvg from "../images/scene.svg?raw";
-import meshesIconSvg from "../images/meshes.svg?raw";
-import xrIconSvg from "../images/xr.svg?raw";
-import lightsIconSvg from "../images/lights.svg?raw";
-import cameraIconSvg from "../images/camera.svg?raw";
-import transformIconSvg from "../images/motion.svg?raw";
-import physicsIconSvg from "../images/physics.svg?raw";
-import connectIconSvg from "../images/connect.svg?raw";
-import combineIconSvg from "../images/combine.svg?raw";
-import animateIconSvg from "../images/animate.svg?raw";
-import keyframeIconSvg from "../images/keyframe.svg?raw";
-import materialsIconSvg from "../images/looks.svg?raw";
-import soundIconSvg from "../images/sound.svg?raw";
-import sensingIconSvg from "../images/sensing.svg?raw";
-import snippetsIconSvg from "../images/snippets.svg?raw";
-import arrowsIconSvg from "../images/arrows.svg?raw";
-import controlIconSvg from "../images/control.svg?raw";
-import logicIconSvg from "../images/conditions.svg?raw";
-import variableIconSvg from "../images/variables.svg?raw";
-import textIconSvg from "../images/text.svg?raw";
-import listIconSvg from "../images/lists.svg?raw";
-import mathIconSvg from "../images/math.svg?raw";
-import procedureIconSvg from "../images/functions.svg?raw";
 
 function buildSvgDataUri(svgContent) {
   return "data:image/svg+xml," + encodeURIComponent(svgContent);
@@ -147,34 +123,34 @@ export const TOGGLE_BUTTON_FIELD_NAME = "TOGGLE_BUTTON";
 const LOW_VISION_ICON_FIELD_NAME = "LOW_VISION_CATEGORY_ICON";
 const LOW_VISION_BAR_FIELD_NAME = "LOW_VISION_CATEGORY_BAR";
 
-const CATEGORY_ICON_BY_STYLE = {
-  events_blocks: eventsIconSvg,
-  scene_blocks: sceneIconSvg,
-  scene_meshes_blocks: meshesIconSvg,
-  scene_xr_blocks: xrIconSvg,
-  scene_lights_blocks: lightsIconSvg,
-  scene_camera_blocks: cameraIconSvg,
-  transform_blocks: transformIconSvg,
-  transform_physics_blocks: physicsIconSvg,
-  transform_connect_blocks: connectIconSvg,
-  transform_combine_blocks: combineIconSvg,
-  animate_blocks: animateIconSvg,
-  animate_keyframe_blocks: keyframeIconSvg,
-  materials_blocks: materialsIconSvg,
-  sound_blocks: soundIconSvg,
-  sensing_blocks: sensingIconSvg,
-  snippets_blocks: snippetsIconSvg,
-  snippets_physics_blocks: physicsIconSvg,
-  snippets_arrows_blocks: arrowsIconSvg,
-  control_blocks: controlIconSvg,
-  logic_blocks: logicIconSvg,
-  variable_blocks: variableIconSvg,
-  variables_blocks: variableIconSvg,
-  text_blocks: textIconSvg,
-  list_blocks: listIconSvg,
-  lists_blocks: listIconSvg,
-  math_blocks: mathIconSvg,
-  procedure_blocks: procedureIconSvg,
+const CATEGORY_ICON_PATH_BY_STYLE = {
+  events_blocks: "../images/events.svg",
+  scene_blocks: "../images/scene.svg",
+  scene_meshes_blocks: "../images/meshes.svg",
+  scene_xr_blocks: "../images/xr.svg",
+  scene_lights_blocks: "../images/lights.svg",
+  scene_camera_blocks: "../images/camera.svg",
+  transform_blocks: "../images/motion.svg",
+  transform_physics_blocks: "../images/physics.svg",
+  transform_connect_blocks: "../images/connect.svg",
+  transform_combine_blocks: "../images/combine.svg",
+  animate_blocks: "../images/animate.svg",
+  animate_keyframe_blocks: "../images/keyframe.svg",
+  materials_blocks: "../images/looks.svg",
+  sound_blocks: "../images/sound.svg",
+  sensing_blocks: "../images/sensing.svg",
+  snippets_blocks: "../images/snippets.svg",
+  snippets_physics_blocks: "../images/physics.svg",
+  snippets_arrows_blocks: "../images/arrows.svg",
+  control_blocks: "../images/control.svg",
+  logic_blocks: "../images/conditions.svg",
+  variable_blocks: "../images/variables.svg",
+  variables_blocks: "../images/variables.svg",
+  text_blocks: "../images/text.svg",
+  list_blocks: "../images/lists.svg",
+  lists_blocks: "../images/lists.svg",
+  math_blocks: "../images/math.svg",
+  procedure_blocks: "../images/functions.svg",
 };
 
 const CATEGORY_ACCENT_BY_STYLE = {
@@ -207,6 +183,9 @@ const CATEGORY_ACCENT_BY_STYLE = {
   procedure_blocks: "#ce98d9",
 };
 const LOW_VISION_ICON_DATA_URL_BY_STYLE = new Map();
+const LOW_VISION_ICON_SVG_BY_STYLE = new Map();
+const LOW_VISION_ICON_LOAD_PROMISE_BY_STYLE = new Map();
+const LOW_VISION_REFRESH_PENDING_BY_WORKSPACE = new WeakMap();
 
 const LOW_VISION_STYLE_BY_ICON_FILE = {
   "events.svg": "events_blocks",
@@ -285,9 +264,27 @@ function getBlockStyleName(block) {
   return block.styleName_ || "";
 }
 
-function getCategoryIconForBlock(block) {
-  const styleName = getLowVisionStyleNameForBlock(block);
-  return makeLowVisionCategoryIconDataUrl(styleName);
+function scheduleLowVisionIconRefresh(workspace, styleName) {
+  if (!workspace || !styleName) return;
+  const pendingLoad = LOW_VISION_ICON_LOAD_PROMISE_BY_STYLE.get(styleName);
+  if (!pendingLoad) return;
+
+  let pendingStyles = LOW_VISION_REFRESH_PENDING_BY_WORKSPACE.get(workspace);
+  if (!pendingStyles) {
+    pendingStyles = new Set();
+    LOW_VISION_REFRESH_PENDING_BY_WORKSPACE.set(workspace, pendingStyles);
+  }
+  if (pendingStyles.has(styleName)) return;
+  pendingStyles.add(styleName);
+
+  pendingLoad
+    .then(() => {
+      pendingStyles.delete(styleName);
+      applyLowVisionCategoryIcons(workspace);
+    })
+    .catch(() => {
+      pendingStyles.delete(styleName);
+    });
 }
 
 function getLowVisionStyleNameForBlock(block) {
@@ -349,7 +346,11 @@ export function makeLowVisionCategoryIconDataUrl(styleName) {
   if (LOW_VISION_ICON_DATA_URL_BY_STYLE.has(styleName)) {
     return LOW_VISION_ICON_DATA_URL_BY_STYLE.get(styleName);
   }
-  const iconSvg = CATEGORY_ICON_BY_STYLE[styleName];
+  const iconSvg = LOW_VISION_ICON_SVG_BY_STYLE.get(styleName);
+  if (!iconSvg) {
+    loadLowVisionCategoryIconSvg(styleName);
+    return "";
+  }
   const accent = CATEGORY_ACCENT_BY_STYLE[styleName];
   if (!iconSvg || !accent) return "";
   const dataUrl = buildSvgDataUri(withSvgFill(iconSvg, accent));
@@ -357,18 +358,50 @@ export function makeLowVisionCategoryIconDataUrl(styleName) {
   return dataUrl;
 }
 
+function loadLowVisionCategoryIconSvg(styleName) {
+  if (LOW_VISION_ICON_SVG_BY_STYLE.has(styleName)) {
+    return Promise.resolve(LOW_VISION_ICON_SVG_BY_STYLE.get(styleName));
+  }
+  if (LOW_VISION_ICON_LOAD_PROMISE_BY_STYLE.has(styleName)) {
+    return LOW_VISION_ICON_LOAD_PROMISE_BY_STYLE.get(styleName);
+  }
+  const iconPath = CATEGORY_ICON_PATH_BY_STYLE[styleName];
+  if (!iconPath) return Promise.resolve("");
+
+  const iconUrl = new URL(iconPath, import.meta.url).href;
+  const loadPromise = fetch(iconUrl)
+    .then((response) => (response.ok ? response.text() : ""))
+    .then((svgText) => {
+      LOW_VISION_ICON_SVG_BY_STYLE.set(styleName, svgText || "");
+      LOW_VISION_ICON_LOAD_PROMISE_BY_STYLE.delete(styleName);
+      return svgText || "";
+    })
+    .catch(() => {
+      LOW_VISION_ICON_LOAD_PROMISE_BY_STYLE.delete(styleName);
+      return "";
+    });
+  LOW_VISION_ICON_LOAD_PROMISE_BY_STYLE.set(styleName, loadPromise);
+  return loadPromise;
+}
+
 export function preloadLowVisionCategoryIcons() {
-  if (typeof Image === "undefined") return Promise.resolve();
+  if (typeof Image === "undefined" || typeof fetch !== "function") {
+    return Promise.resolve();
+  }
   const pendingDecodes = [];
-  for (const styleName of Object.keys(CATEGORY_ICON_BY_STYLE)) {
-    const dataUrl = makeLowVisionCategoryIconDataUrl(styleName);
-    if (!dataUrl) continue;
-    const img = new Image();
-    img.decoding = "sync";
-    img.src = dataUrl;
-    if (typeof img.decode === "function") {
-      pendingDecodes.push(img.decode().catch(() => {}));
-    }
+  for (const styleName of Object.keys(CATEGORY_ICON_PATH_BY_STYLE)) {
+    pendingDecodes.push(
+      loadLowVisionCategoryIconSvg(styleName).then(() => {
+        const dataUrl = makeLowVisionCategoryIconDataUrl(styleName);
+        if (!dataUrl) return;
+        const img = new Image();
+        img.decoding = "sync";
+        img.src = dataUrl;
+        if (typeof img.decode === "function") {
+          return img.decode().catch(() => {});
+        }
+      }),
+    );
   }
   return Promise.allSettled(pendingDecodes);
 }
@@ -384,8 +417,12 @@ export function applyLowVisionCategoryIcons(workspace) {
     ) {
       continue;
     }
-    const iconPath = getCategoryIconForBlock(block);
-    if (!iconPath) continue;
+    const styleName = getLowVisionStyleNameForBlock(block);
+    const iconPath = makeLowVisionCategoryIconDataUrl(styleName);
+    if (!iconPath) {
+      scheduleLowVisionIconRefresh(workspace, styleName);
+      continue;
+    }
 
     const firstInput = block.inputList?.[0];
     if (!firstInput) continue;
