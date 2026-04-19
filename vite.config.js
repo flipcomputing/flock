@@ -253,6 +253,7 @@ export default {
       writeBundle(options) {
         const outDir = options.dir ?? "dist";
         copyFileSync("cubeart.html", resolve(outDir, "cubeart.html"));
+        copyFileSync("embed-example.html", resolve(outDir, "embed-example.html"));
 
         // Generate _headers for Cloudflare Pages (and any static host that supports it).
         // The Vite dev/preview server sets these headers directly; the _headers file
