@@ -49,6 +49,19 @@ function resizeCanvas() {
   const areaWidth = canvasArea.clientWidth;
   let areaHeight = canvasArea.clientHeight;
 
+  if (flock.embedMode) {
+    const fittedWidth = Math.max(1, Math.round(areaWidth));
+    const fittedHeight = Math.max(1, Math.round(areaHeight));
+    canvas.style.width = `${fittedWidth}px`;
+    canvas.style.height = `${fittedHeight}px`;
+
+    if (canvas.width !== fittedWidth || canvas.height !== fittedHeight) {
+      canvas.width = fittedWidth;
+      canvas.height = fittedHeight;
+    }
+    return;
+  }
+
   const gizmoButtons = document.getElementById("gizmoButtons");
   if (gizmoButtons && gizmoButtons.style.display != "none") {
     areaHeight -= 60; //Gizmos visible

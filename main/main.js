@@ -105,9 +105,11 @@ function addEmbedPlaybackControls() {
     button.className = "bigbutton";
     button.title = fallbackLabel;
     button.setAttribute("aria-label", fallbackLabel);
-    button.style.minWidth = "44px";
-    button.style.minHeight = "44px";
+    button.style.minWidth = "36px";
+    button.style.minHeight = "36px";
     button.style.margin = "0";
+    button.style.marginLeft = "0";
+    button.style.padding = "2px";
 
     if (template) {
       button.innerHTML = template.innerHTML;
@@ -158,6 +160,7 @@ function applyEmbedMode() {
     canvasArea.style.flex = "1 1 100%";
   }
   if (mainContent) mainContent.style.transform = "translateX(0px)";
+  flock.embedMode = true;
 
   let offset = "0px";
   document.documentElement.style.setProperty("--dynamic-offset", offset);
