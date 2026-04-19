@@ -46,8 +46,9 @@ function resizeCanvas() {
   const canvas = document.getElementById("renderCanvas");
   if (!canvasArea || !canvas) return;
 
-  const areaWidth = canvasArea.clientWidth;
-  let areaHeight = canvasArea.clientHeight;
+  const areaRect = canvasArea.getBoundingClientRect();
+  const areaWidth = Math.max(1, Math.round(areaRect.width));
+  let areaHeight = Math.max(1, Math.round(areaRect.height));
 
   if (flock.embedMode) {
     const aspectRatio = 16 / 9;
@@ -64,6 +65,8 @@ function resizeCanvas() {
 
     canvas.style.width = `${fittedWidth}px`;
     canvas.style.height = `${fittedHeight}px`;
+    canvas.style.maxWidth = "100%";
+    canvas.style.maxHeight = "100%";
 
     if (canvas.width !== fittedWidth || canvas.height !== fittedHeight) {
       canvas.width = fittedWidth;

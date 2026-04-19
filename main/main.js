@@ -249,7 +249,9 @@ function applyEmbedMode() {
   if (canvasArea) {
     canvasArea.style.display = "block";
     canvasArea.style.width = "100%";
+    canvasArea.style.height = "100%";
     canvasArea.style.flex = "1 1 100%";
+    canvasArea.style.overflow = "hidden";
   }
   if (mainContent) {
     mainContent.style.transform = "translateX(0px)";
