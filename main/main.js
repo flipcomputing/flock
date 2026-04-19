@@ -72,7 +72,7 @@ function shouldShowEmbedPlaybackControls() {
 
 function addEmbedPlaybackControls() {
   const existingControls = document.getElementById("embedTopBar");
-  if (existingControls) return;
+  if (existingControls) return existingControls;
 
   const topBar = document.createElement("div");
   topBar.id = "embedTopBar";
@@ -83,10 +83,10 @@ function addEmbedPlaybackControls() {
     right: "0",
     zIndex: "1000",
     display: "flex",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
-    gap: "8px",
-    padding: "6px 10px",
+    gap: "0",
+    padding: "6px 8px",
     background: "#ffffff",
     borderBottom: "1px solid #e8e3ff",
   });
@@ -95,7 +95,7 @@ function addEmbedPlaybackControls() {
   Object.assign(buttonRow.style, {
     display: "flex",
     alignItems: "center",
-    gap: "8px",
+    gap: "4px",
   });
 
   const createActionButton = (templateId, fallbackLabel, onClick) => {
@@ -107,6 +107,7 @@ function addEmbedPlaybackControls() {
     button.setAttribute("aria-label", fallbackLabel);
     button.style.minWidth = "44px";
     button.style.minHeight = "44px";
+    button.style.margin = "0";
 
     if (template) {
       button.innerHTML = template.innerHTML;
@@ -129,21 +130,8 @@ function addEmbedPlaybackControls() {
   );
   topBar.appendChild(buttonRow);
 
-  const logoLink = document.createElement("a");
-  logoLink.href = "https://flipcomputing.com/flockxr/";
-  logoLink.target = "_blank";
-  logoLink.rel = "noopener noreferrer";
-  logoLink.ariaLabel = "Visit Flock XR website";
-
-  const logo = document.createElement("img");
-  logo.src = "./images/inline-flock-xr.svg";
-  logo.alt = "Flock XR";
-  logo.style.height = "20px";
-  logo.style.width = "auto";
-  logoLink.appendChild(logo);
-  topBar.appendChild(logoLink);
-
   document.body.appendChild(topBar);
+  return topBar;
 }
 
 function applyEmbedMode() {
@@ -171,10 +159,13 @@ function applyEmbedMode() {
   }
   if (mainContent) mainContent.style.transform = "translateX(0px)";
 
-  const offset = shouldShowEmbedPlaybackControls() ? "52px" : "0px";
+  let offset = "0px";
   document.documentElement.style.setProperty("--dynamic-offset", offset);
   if (shouldShowEmbedPlaybackControls()) {
-    addEmbedPlaybackControls();
+    const topBar = addEmbedPlaybackControls();
+    const barHeight = topBar?.offsetHeight || 52;
+    offset = `${barHeight}px`;
+    document.documentElement.style.setProperty("--dynamic-offset", offset);
   }
   onResize("reset");
 }
