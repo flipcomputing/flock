@@ -88,10 +88,7 @@ function addEmbedPlaybackControls() {
     gap: "8px",
     padding: "6px 8px",
     background: "#e5e5eb",
-    borderTop: "2px solid #511d91",
-    borderLeft: "2px solid #511d91",
-    borderRight: "2px solid #511d91",
-    borderBottom: "1px solid #511d91",
+    borderBottom: "1px solid #cfcde0",
   });
 
   const buttonRow = document.createElement("div");
@@ -204,10 +201,7 @@ function addEmbedBottomBar() {
     padding: "4px 12px",
     minHeight: "28px",
     background: "#e5e5eb",
-    borderTop: "1px solid #511d91",
-    borderLeft: "2px solid #511d91",
-    borderRight: "2px solid #511d91",
-    borderBottom: "2px solid #511d91",
+    borderTop: "1px solid #cfcde0",
   });
 
   const logoLink = document.createElement("a");
