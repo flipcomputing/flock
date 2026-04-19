@@ -18,20 +18,26 @@
       }
 
       .embed-stage {
-        position: relative;
-        width: fit-content;
+        width: 100%;
         max-width: 100%;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #ffffff;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+      }
+
+      .embed-stage:focus-within {
+        box-shadow:
+          0 12px 32px rgba(0, 0, 0, 0.12),
+          0 0 0 4px #ffeb3b;
       }
 
       iframe {
         width: 100%;
-        max-width: 100%;
         aspect-ratio: 16 / 9;
         border: 0;
-        border-radius: 12px;
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        border-radius: 0;
         display: block;
-        margin-inline: auto;
       }
 
       code {
@@ -47,17 +53,14 @@
       }
 
       .made-with-flock {
-        position: absolute;
-        left: 12px;
-        bottom: 12px;
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.88);
-        backdrop-filter: blur(4px);
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 12px;
+        background: #ffffff;
         font-size: 13px;
+        border-top: 1px solid #e8e3ff;
       }
 
       .made-with-flock img {
@@ -93,7 +96,7 @@
           id="embedPlayer"
           title="Flock XR embedded project player"
           allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
-          src="./index.html?embed=true&project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
+          src="./index.html?embed=true&controls=playstop&project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
         ></iframe>
 
         <footer class="made-with-flock">
@@ -156,17 +159,22 @@
 
         const updateSize = () => {
           const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-          const containerWidth = iframe.parentElement?.clientWidth || iframe.clientWidth;
+          const embedStage = iframe.parentElement;
+          const containerWidth = embedStage?.clientWidth || iframe.clientWidth;
           const verticalPadding = 220;
           const fittedHeight = Math.max(240, viewportHeight - verticalPadding);
           const allowedHeight = Math.min(maxHeight, fittedHeight);
           const heightFromWidth = containerWidth * (9 / 16);
 
           const finalHeight = Math.min(allowedHeight, heightFromWidth);
-          const finalWidth = finalHeight * (16 / 9);
-
           iframe.style.height = `${Math.round(finalHeight)}px`;
-          iframe.style.width = `${Math.round(finalWidth)}px`;
+          iframe.style.width = "100%";
+
+          if (embedStage) {
+            const maxPlayableWidth = Math.round(finalHeight * (16 / 9));
+            embedStage.style.maxWidth = `${maxPlayableWidth}px`;
+            embedStage.style.marginInline = "auto";
+          }
         };
 
         updateSize();
