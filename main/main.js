@@ -47,6 +47,43 @@ import {
   translate,
 } from "./translation.js";
 
+function isEmbedModeEnabled() {
+  const embedParam = new URLSearchParams(window.location.search).get("embed");
+  if (embedParam === null) return false;
+
+  const normalized = embedParam.trim().toLowerCase();
+  return normalized !== "false" && normalized !== "0" && normalized !== "off";
+}
+
+function applyEmbedMode() {
+  if (!isEmbedModeEnabled()) return;
+
+  const header = document.querySelector("header");
+  const codePanel = document.getElementById("codePanel");
+  const bottomBar = document.getElementById("bottomBar");
+  const gizmoButtons = document.getElementById("gizmoButtons");
+  const flockLink = document.getElementById("flocklink");
+  const resizer = document.getElementById("resizer");
+  const canvasArea = document.getElementById("canvasArea");
+  const mainContent = document.getElementById("maincontent");
+
+  if (header) header.style.display = "none";
+  if (codePanel) codePanel.style.display = "none";
+  if (bottomBar) bottomBar.style.display = "none";
+  if (gizmoButtons) gizmoButtons.style.display = "none";
+  if (flockLink) flockLink.style.display = "none";
+  if (resizer) resizer.style.display = "none";
+  if (canvasArea) {
+    canvasArea.style.display = "block";
+    canvasArea.style.width = "100%";
+    canvasArea.style.flex = "1 1 100%";
+  }
+  if (mainContent) mainContent.style.transform = "translateX(0px)";
+
+  document.documentElement.style.setProperty("--dynamic-offset", "0px");
+  switchView("canvas");
+}
+
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker
     .register("./sw.js")
@@ -503,6 +540,7 @@ window.onload = async function () {
   }
 
   initializeApp();
+  applyEmbedMode();
 
   setupFileInput(workspace, executeCode);
   setupDragAndDrop(workspace, executeCode);

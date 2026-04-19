@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flock XR embed example</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family:
+          "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, sans-serif;
+        background: #f4f3ff;
+      }
+
+      .embed-shell {
+        max-width: 960px;
+      }
+
+      iframe {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border: 0;
+        border-radius: 12px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+      }
+
+      code {
+        font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="embed-shell">
+      <h1>Flock XR embed example</h1>
+      <p>
+        This example loads a remote
+        <code>Fidget spinner.flock</code>
+        project from GitHub raw content using
+        <code>?project=</code>
+        plus
+        <code>?embed=true</code>
+        to show player-only mode.
+      </p>
+
+      <iframe
+        title="Flock XR embedded project"
+        allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
+        src="./index.html?embed=true&project=https%3A%2F%2Fraw.githubusercontent.com%2Fflipcomputing%2Fflockxr-projects%2Frefs%2Fheads%2Fmain%2FFidget%2520spinner.flock"
+      ></iframe>
+    </div>
+  </body>
+</html>
