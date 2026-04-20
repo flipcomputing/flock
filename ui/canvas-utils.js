@@ -102,7 +102,7 @@ export function startCanvasKeyboardMode(
   keyboardCursorActive = true;
   keyboardCursorCallback = callback;
   hitChecker = isValidPosition;
-  document.addEventListener("keydown", handleKeydown);
+
   if (showCircleImmediately) {
     createCanvasCircle();
 

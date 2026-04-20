@@ -40,6 +40,10 @@ const orangeColor = flock.BABYLON.Color3.FromHexString("#D55E00"); // Colour for
 
 const FAST_CURSOR = 1; // Step for moving KB cursor quickly
 const DEFAULT_CURSOR = 0.1; // Step for moving KB cursor slowly (default)
+const FAST_ROTATION = 0.05;
+const DEFAULT_ROTATION = 0.5;
+const FAST_SCALE = 0.05;
+const DEFAULT_SCALE = 0.5;
 
 window.selectedColor = "#ffffff"; // Default color
 let colorPicker = null;
@@ -566,6 +570,103 @@ function startMoveKeyboardHandler(mesh) {
   }, 0);
 }
 
+// Rotate a mesh using the keyboard
+function startRotateKeyboardHandler(mesh) {
+  document.body.style.cursor = "default";
+  stopAxisKeyboard?.();
+  stopAxisKeyboard = null;
+  setTimeout(() => {
+    stopAxisKeyboard = createAxisKeyboardHandler({
+      onMove: (dx, dy, dz) => {
+        if (mesh.rotationQuaternion) {
+          mesh.rotation = mesh.rotationQuaternion.toEulerAngles();
+          mesh.rotationQuaternion = null;
+        }
+        mesh.rotation.x += dx;
+        mesh.rotation.y += dy;
+        mesh.rotation.z += dz;
+      },
+      onConfirm: () => {
+        updateRotationBlock(mesh); // Update/create blockly block
+        exitGizmoState();
+        document.getElementById("rotationButton")?.focus();
+      },
+      onCancel: () => {
+        updateRotationBlock(mesh); // Update/create blockly block
+        exitGizmoState();
+        gizmoManager.attachToMesh(null);
+        document.getElementById("rotationButton")?.focus();
+      },
+      stepNormal: DEFAULT_ROTATION,
+      stepFast: FAST_ROTATION,
+    });
+  }, 0);
+}
+
+// Update the blockly block after a rotation
+function updateRotationBlock(mesh) {
+  const block = meshMap[mesh?.metadata?.blockKey];
+  if (!block) return;
+
+  const groupId = Blockly.utils.idGenerator.genUid();
+  Blockly.Events.setGroup(groupId);
+
+  let addedDoSection = false;
+  if (!block.getInput("DO")) {
+    block.appendStatementInput("DO").setCheck(null).appendField("");
+    addedDoSection = true;
+  }
+
+  let rotateBlock = null;
+  const modelVariable = block.getFieldValue("ID_VAR");
+  const statementConnection = block.getInput("DO").connection;
+  if (statementConnection?.targetBlock()) {
+    let currentBlock = statementConnection.targetBlock();
+    while (currentBlock) {
+      if (
+        currentBlock.type === "rotate_to" &&
+        currentBlock.getFieldValue("MODEL") === modelVariable
+      ) {
+        rotateBlock = currentBlock;
+        break;
+      }
+      currentBlock = currentBlock.getNextBlock();
+    }
+  }
+
+  if (!rotateBlock) {
+    rotateBlock = Blockly.getMainWorkspace().newBlock("rotate_to");
+    rotateBlock.setFieldValue(modelVariable, "MODEL");
+    rotateBlock.initSvg();
+    rotateBlock.render();
+    ["X", "Y", "Z"].forEach((axis) => {
+      const input = rotateBlock.getInput(axis);
+      const shadow = Blockly.getMainWorkspace().newBlock("math_number");
+      shadow.setFieldValue("1", "NUM");
+      shadow.setShadow(true);
+      shadow.initSvg();
+      shadow.render();
+      input.connection.connect(shadow.outputConnection);
+    });
+    rotateBlock.render();
+    block.getInput("DO").connection.connect(rotateBlock.previousConnection);
+    gizmoCreatedBlocks.set(rotateBlock.id, {
+      parentId: block.id,
+      createdDoSection: addedDoSection,
+      timestamp: Date.now(),
+    });
+  }
+
+  const currentRotation = getMeshRotationInDegrees(mesh);
+  setBlockXYZ(
+    rotateBlock,
+    currentRotation.x,
+    currentRotation.y,
+    currentRotation.z,
+  );
+  Blockly.Events.setGroup(null);
+}
+
 // Pick a mesh (used by multiple gizmos)
 function pickMeshFromScene(onPicked) {
   cleanupScenePick(); // Stop picking
@@ -984,8 +1085,34 @@ function handleScaleGizmo() {
 function handleRotationGizmo() {
   configureRotationGizmo(gizmoManager);
 
+  // Show that rotation is active
+  const rotationButton = document.getElementById("rotationButton");
+  rotationButton.classList.add("active");
+
+  const mesh = gizmoManager.attachedMesh;
+  if (mesh) {
+    startRotateKeyboardHandler(mesh);
+  } else {
+    pickMeshFromScene((pickedMesh) => {
+      if (!pickedMesh || pickedMesh.name === "ground") return;
+      if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
+      gizmoManager.attachToMesh(pickedMesh);
+    });
+  }
+
+  let lastRotatedMesh = gizmoManager.attachedMesh;
+
   const rotateObs = gizmoManager.onAttachedToMeshObservable.add((mesh) => {
-    if (!mesh) return;
+    if (!mesh) {
+      updateRotationBlock(lastRotatedMesh); // properly update block if they click out
+      exitGizmoState();
+      gizmoManager.attachToMesh(null);
+      return;
+    }
+
+    lastRotatedMesh = mesh;
+
+    startRotateKeyboardHandler(mesh);
 
     const blockKey = mesh?.metadata?.blockKey;
     const blockId = blockKey ? meshMap[blockKey] : null;
@@ -1037,81 +1164,7 @@ function handleRotationGizmo() {
         mesh.physics.setMotionType(mesh.savedMotionType);
       }
 
-      const block = meshMap[mesh?.metadata?.blockKey];
-
-      if (!block) return;
-
-      const groupId = Blockly.utils.idGenerator.genUid();
-      Blockly.Events.setGroup(groupId);
-
-      let addedDoSection = false;
-      if (!block.getInput("DO")) {
-        block.appendStatementInput("DO").setCheck(null).appendField("");
-        addedDoSection = true;
-      }
-
-      // Check if the 'rotate_to' block already exists in the 'DO' section
-      let rotateBlock = null;
-      let modelVariable = block.getFieldValue("ID_VAR");
-      const statementConnection = block.getInput("DO").connection;
-      if (statementConnection && statementConnection.targetBlock()) {
-        // Iterate through the blocks in the 'do' section to find 'rotate_to'
-        let currentBlock = statementConnection.targetBlock();
-        while (currentBlock) {
-          if (currentBlock.type === "rotate_to") {
-            const modelField = currentBlock.getFieldValue("MODEL");
-            if (modelField === modelVariable) {
-              rotateBlock = currentBlock;
-              break;
-            }
-          }
-          currentBlock = currentBlock.getNextBlock();
-        }
-      }
-
-      // Create a new 'rotate_to' block if it doesn't exist
-      if (!rotateBlock) {
-        rotateBlock = Blockly.getMainWorkspace().newBlock("rotate_to");
-        rotateBlock.setFieldValue(modelVariable, "MODEL");
-        rotateBlock.initSvg();
-        rotateBlock.render();
-
-        // Add shadow blocks for X, Y, Z inputs
-        ["X", "Y", "Z"].forEach((axis) => {
-          const input = rotateBlock.getInput(axis);
-          const shadowBlock =
-            Blockly.getMainWorkspace().newBlock("math_number");
-          shadowBlock.setFieldValue("1", "NUM");
-          shadowBlock.setShadow(true);
-          shadowBlock.initSvg();
-          shadowBlock.render();
-          input.connection.connect(shadowBlock.outputConnection);
-        });
-
-        rotateBlock.render(); // Render the new block
-        // Connect the new 'rotate_to' block to the 'do' section
-        block.getInput("DO").connection.connect(rotateBlock.previousConnection);
-
-        // Track this block for DO section cleanup
-        const timestamp = Date.now();
-        gizmoCreatedBlocks.set(rotateBlock.id, {
-          parentId: block.id,
-          createdDoSection: addedDoSection,
-          timestamp: timestamp,
-        });
-      }
-
-      const currentRotation = getMeshRotationInDegrees(mesh);
-
-      setBlockXYZ(
-        rotateBlock,
-        currentRotation.x,
-        currentRotation.y,
-        currentRotation.z,
-      );
-
-      // End undo group
-      Blockly.Events.setGroup(null);
+      updateRotationBlock(mesh); // Update blockly block
     },
   );
 
@@ -1445,6 +1498,9 @@ function turnOffAllGizmos() {
 // Add undo handler to clean up DO sections when undoing block creation
 function addUndoHandler() {
   const workspace = Blockly.getMainWorkspace();
+
+  if (workspace._gizmoUndoHandlerRegistered) return;
+  workspace._gizmoUndoHandlerRegistered = true;
 
   workspace.addChangeListener(function (event) {
     if (event.type === Blockly.Events.BLOCK_DELETE && event.oldJson) {
