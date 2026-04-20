@@ -40,10 +40,10 @@ const orangeColor = flock.BABYLON.Color3.FromHexString("#D55E00"); // Colour for
 
 const FAST_CURSOR = 1; // Step for moving KB cursor quickly
 const DEFAULT_CURSOR = 0.1; // Step for moving KB cursor slowly (default)
-const FAST_ROTATION = 0.05;
-const DEFAULT_ROTATION = 0.5;
-const FAST_SCALE = 0.05;
-const DEFAULT_SCALE = 0.5;
+const FAST_ROTATION = 0.5;
+const DEFAULT_ROTATION = 0.05;
+const FAST_SCALE = 0.5;
+const DEFAULT_SCALE = 0.05;
 
 window.selectedColor = "#ffffff"; // Default color
 let colorPicker = null;
@@ -603,6 +603,36 @@ function startRotateKeyboardHandler(mesh) {
   }, 0);
 }
 
+// Scale a mesh using the keyboard
+function startScaleKeyboardHandler(mesh) {
+  document.body.style.cursor = "default";
+  stopAxisKeyboard?.();
+  stopAxisKeyboard = null;
+  setTimeout(() => {
+    stopAxisKeyboard = createAxisKeyboardHandler({
+      onMove: (dx, dy, dz) => {
+        mesh.scaling.x = Math.max(0.01, mesh.scaling.x + dx);
+        mesh.scaling.y = Math.max(0.01, mesh.scaling.y + dy);
+        mesh.scaling.z = Math.max(0.01, mesh.scaling.z + dz);
+        flock.updatePhysics(mesh);
+      },
+      onConfirm: () => {
+        updateScaleBlock(mesh);
+        exitGizmoState();
+        document.getElementById("scaleButton")?.focus();
+      },
+      onCancel: () => {
+        updateScaleBlock(mesh);
+        exitGizmoState();
+        gizmoManager.attachToMesh(null);
+        document.getElementById("scaleButton")?.focus();
+      },
+      stepNormal: DEFAULT_SCALE,
+      stepFast: FAST_SCALE,
+    });
+  }, 0);
+}
+
 // Update the blockly block after a rotation
 function updateRotationBlock(mesh) {
   const block = meshMap[mesh?.metadata?.blockKey];
@@ -696,6 +726,170 @@ function pickMeshFromScene(onPicked) {
     );
     document.body.style.cursor = "crosshair";
   }, 0);
+}
+
+// Update blockly block after a scale
+function updateScaleBlock(mesh, originalBottomY = null) {
+  const block = meshMap[mesh?.metadata?.blockKey];
+  if (!block) return;
+
+  flock.updatePhysics(mesh);
+
+  try {
+    const ensureFreshBounds = (m) => {
+      m.computeWorldMatrix(true);
+      m.refreshBoundingInfo();
+      return m.getBoundingInfo().boundingBox;
+    };
+
+    const bbox = ensureFreshBounds(mesh);
+    const newBottomY = bbox.minimumWorld.y;
+    if (originalBottomY !== null) {
+      mesh.position.y += originalBottomY - newBottomY;
+    }
+
+    const sizeLocal = bbox.extendSize.scale(2);
+    const w = sizeLocal.x * mesh.scaling.x;
+    const h = sizeLocal.y * mesh.scaling.y;
+    const d = sizeLocal.z * mesh.scaling.z;
+
+    switch (block.type) {
+      case "create_plane":
+        setNumberInputs(block, { WIDTH: w, HEIGHT: h });
+        break;
+
+      case "create_box":
+        setNumberInputs(block, { WIDTH: w, HEIGHT: h, DEPTH: d });
+        break;
+
+      case "create_capsule":
+        setNumberInputs(block, { HEIGHT: h, DIAMETER: w });
+        break;
+
+      case "create_cylinder": {
+        const newScaledDiameter = w;
+
+        const currentTop = getNumberInput(block, "DIAMETER_TOP");
+        const currentBottom = getNumberInput(block, "DIAMETER_BOTTOM");
+
+        let newTop;
+        let newBottom;
+
+        if (
+          Number.isFinite(currentTop) &&
+          Number.isFinite(currentBottom) &&
+          currentTop > 0 &&
+          currentBottom > 0
+        ) {
+          if (currentTop >= currentBottom) {
+            newTop = newScaledDiameter;
+            newBottom = newTop * (currentBottom / currentTop);
+          } else {
+            newBottom = newScaledDiameter;
+            newTop = newBottom * (currentTop / currentBottom);
+          }
+        } else {
+          newTop = newScaledDiameter;
+          newBottom = newScaledDiameter;
+        }
+
+        setNumberInputs(block, {
+          HEIGHT: h,
+          DIAMETER_TOP: newTop,
+          DIAMETER_BOTTOM: newBottom,
+        });
+        break;
+      }
+
+      case "create_sphere":
+        setNumberInputs(block, {
+          DIAMETER_X: w,
+          DIAMETER_Y: h,
+          DIAMETER_Z: d,
+        });
+        break;
+
+      case "create_3d_text": {
+        const currentSize = getNumberInput(block, "SIZE");
+        const currentDepth = getNumberInput(block, "DEPTH");
+        setNumberInputs(block, {
+          SIZE: currentSize * mesh.scaling.y,
+          DEPTH: currentDepth * mesh.scaling.z,
+        });
+        break;
+      }
+
+      case "load_model":
+      case "load_multi_object":
+      case "load_object":
+      case "load_character": {
+        const groupId = Blockly.utils.idGenerator.genUid();
+        Blockly.Events.setGroup(groupId);
+
+        let addedDoSection = false;
+        if (!block.getInput("DO")) {
+          block.appendStatementInput("DO").setCheck(null).appendField("");
+          addedDoSection = true;
+        }
+
+        let resizeBlock = null;
+        const modelVariable = block.getFieldValue("ID_VAR");
+
+        const stmt = block.getInput("DO")?.connection?.targetBlock?.();
+        for (let cur = stmt; cur; cur = cur.getNextBlock?.()) {
+          if (
+            cur.type === "resize" &&
+            cur.getFieldValue?.("BLOCK_NAME") === modelVariable
+          ) {
+            resizeBlock = cur;
+            break;
+          }
+        }
+
+        if (!resizeBlock) {
+          resizeBlock = Blockly.getMainWorkspace().newBlock("resize");
+          resizeBlock.setFieldValue(modelVariable, "BLOCK_NAME");
+          resizeBlock.initSvg();
+          resizeBlock.render();
+
+          ["X", "Y", "Z"].forEach((axis) => {
+            const input = resizeBlock.getInput(axis);
+            const shadow = Blockly.getMainWorkspace().newBlock("math_number");
+            shadow.setFieldValue("1", "NUM");
+            shadow.setShadow(true);
+            shadow.initSvg();
+            shadow.render();
+            input.connection.connect(shadow.outputConnection);
+          });
+
+          resizeBlock.render();
+          block
+            .getInput("DO")
+            .connection.connect(resizeBlock.previousConnection);
+
+          gizmoCreatedBlocks.set(resizeBlock.id, {
+            parentId: block.id,
+            createdDoSection: addedDoSection,
+            timestamp: Date.now(),
+          });
+        }
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        const sizeLocalScaled = getScaledSize(mesh);
+
+        setNumberInputs(resizeBlock, {
+          X: sizeLocalScaled.x,
+          Y: sizeLocalScaled.y,
+          Z: sizeLocalScaled.z,
+        });
+
+        Blockly.Events.setGroup(null);
+        break;
+      }
+    }
+  } catch (e) {
+    console.error("Error updating block values:", e);
+  }
 }
 
 // Clean up after picking
@@ -819,8 +1013,32 @@ function handleScaleGizmo() {
     }
   }
 
+  // Highlight scale button
+  const scaleButton = document.getElementById("scaleButton");
+  scaleButton.classList.add("active");
+
+  const mesh = gizmoManager.attachedMesh;
+  if (mesh) {
+    startScaleKeyboardHandler(mesh);
+  } else {
+    pickMeshFromScene((pickedMesh) => {
+      if (!pickedMesh || pickedMesh.name === "ground") return;
+      if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
+      gizmoManager.attachToMesh(pickedMesh);
+    });
+  }
+
+  let lastScaledMesh = gizmoManager.attachedMesh;
   const scaleObs = gizmoManager.onAttachedToMeshObservable.add((mesh) => {
-    if (!mesh) return;
+    if (!mesh) {
+      updateScaleBlock(lastScaledMesh); // update blockly block
+      exitGizmoState();
+      gizmoManager.attachToMesh(null); // unselect
+      return;
+    }
+
+    lastScaledMesh = mesh;
+    startScaleKeyboardHandler(mesh);
 
     const blockKey = mesh?.metadata?.blockKey;
     const blockId = blockKey ? meshMap[blockKey] : null;
@@ -909,170 +1127,12 @@ function handleScaleGizmo() {
   const scaleDragEnd = gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(
     () => {
       const mesh = gizmoManager.attachedMesh;
-      const block = meshMap[mesh?.metadata?.blockKey];
       textScaleAxis = null;
 
       if (mesh.savedMotionType != null) {
         mesh.physics.setMotionType(mesh.savedMotionType);
       }
-
-      flock.updatePhysics(mesh);
-
-      try {
-        const ensureFreshBounds = (m) => {
-          m.computeWorldMatrix(true);
-          m.refreshBoundingInfo();
-          return m.getBoundingInfo().boundingBox;
-        };
-
-        const bbox = ensureFreshBounds(mesh);
-
-        const newBottomY = bbox.minimumWorld.y;
-        mesh.position.y += originalBottomY - newBottomY;
-
-        const sizeLocal = bbox.extendSize.scale(2);
-        const w = sizeLocal.x * mesh.scaling.x;
-        const h = sizeLocal.y * mesh.scaling.y;
-        const d = sizeLocal.z * mesh.scaling.z;
-
-        switch (block.type) {
-          case "create_plane":
-            setNumberInputs(block, { WIDTH: w, HEIGHT: h });
-            break;
-
-          case "create_box":
-            setNumberInputs(block, { WIDTH: w, HEIGHT: h, DEPTH: d });
-            break;
-
-          case "create_capsule":
-            setNumberInputs(block, { HEIGHT: h, DIAMETER: w });
-            break;
-
-          case "create_cylinder": {
-            const newScaledDiameter = w;
-
-            const currentTop = getNumberInput(block, "DIAMETER_TOP");
-            const currentBottom = getNumberInput(block, "DIAMETER_BOTTOM");
-
-            let newTop;
-            let newBottom;
-
-            if (
-              Number.isFinite(currentTop) &&
-              Number.isFinite(currentBottom) &&
-              currentTop > 0 &&
-              currentBottom > 0
-            ) {
-              if (currentTop >= currentBottom) {
-                newTop = newScaledDiameter;
-                newBottom = newTop * (currentBottom / currentTop);
-              } else {
-                newBottom = newScaledDiameter;
-                newTop = newBottom * (currentTop / currentBottom);
-              }
-            } else {
-              newTop = newScaledDiameter;
-              newBottom = newScaledDiameter;
-            }
-
-            setNumberInputs(block, {
-              HEIGHT: h,
-              DIAMETER_TOP: newTop,
-              DIAMETER_BOTTOM: newBottom,
-            });
-            break;
-          }
-
-          case "create_sphere":
-            setNumberInputs(block, {
-              DIAMETER_X: w,
-              DIAMETER_Y: h,
-              DIAMETER_Z: d,
-            });
-            break;
-
-          case "create_3d_text": {
-            const currentSize = getNumberInput(block, "SIZE");
-            const currentDepth = getNumberInput(block, "DEPTH");
-            setNumberInputs(block, {
-              SIZE: currentSize * mesh.scaling.y,
-              DEPTH: currentDepth * mesh.scaling.z,
-            });
-            break;
-          }
-
-          case "load_model":
-          case "load_multi_object":
-          case "load_object":
-          case "load_character": {
-            const groupId = Blockly.utils.idGenerator.genUid();
-            Blockly.Events.setGroup(groupId);
-
-            let addedDoSection = false;
-            if (!block.getInput("DO")) {
-              block.appendStatementInput("DO").setCheck(null).appendField("");
-              addedDoSection = true;
-            }
-
-            let resizeBlock = null;
-            const modelVariable = block.getFieldValue("ID_VAR");
-
-            const stmt = block.getInput("DO")?.connection?.targetBlock?.();
-            for (let cur = stmt; cur; cur = cur.getNextBlock?.()) {
-              if (
-                cur.type === "resize" &&
-                cur.getFieldValue?.("BLOCK_NAME") === modelVariable
-              ) {
-                resizeBlock = cur;
-                break;
-              }
-            }
-
-            if (!resizeBlock) {
-              resizeBlock = Blockly.getMainWorkspace().newBlock("resize");
-              resizeBlock.setFieldValue(modelVariable, "BLOCK_NAME");
-              resizeBlock.initSvg();
-              resizeBlock.render();
-
-              ["X", "Y", "Z"].forEach((axis) => {
-                const input = resizeBlock.getInput(axis);
-                const shadow =
-                  Blockly.getMainWorkspace().newBlock("math_number");
-                shadow.setFieldValue("1", "NUM");
-                shadow.setShadow(true);
-                shadow.initSvg();
-                shadow.render();
-                input.connection.connect(shadow.outputConnection);
-              });
-
-              resizeBlock.render();
-              block
-                .getInput("DO")
-                .connection.connect(resizeBlock.previousConnection);
-
-              gizmoCreatedBlocks.set(resizeBlock.id, {
-                parentId: block.id,
-                createdDoSection: addedDoSection,
-                timestamp: Date.now(),
-              });
-            }
-            mesh.computeWorldMatrix(true);
-            mesh.refreshBoundingInfo();
-            const sizeLocalScaled = getScaledSize(mesh);
-
-            setNumberInputs(resizeBlock, {
-              X: sizeLocalScaled.x,
-              Y: sizeLocalScaled.y,
-              Z: sizeLocalScaled.z,
-            });
-
-            Blockly.Events.setGroup(null);
-            break;
-          }
-        }
-      } catch (e) {
-        console.error("Error updating block values:", e);
-      }
+      updateScaleBlock(mesh, originalBottomY);
     },
   );
 
