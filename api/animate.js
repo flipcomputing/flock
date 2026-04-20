@@ -111,13 +111,15 @@ export const flockAnimate = {
     { animationName, loop = true, restart = false } = {},
   ) {
     return new Promise((resolve) => {
-      flock.whenModelReady(meshName, (mesh) => {
-        flock.switchToAnimation(
-          flock.scene,
-          mesh,
-          animationName,
-          loop,
-          restart,
+      flock.whenModelReady(meshName, async (mesh) => {
+        await Promise.resolve(
+          flock.switchToAnimation(
+            flock.scene,
+            mesh,
+            animationName,
+            loop,
+            restart,
+          ),
         );
         resolve();
       });
@@ -1500,15 +1502,26 @@ export const flockAnimate = {
   },
   _switchToAnimationModel(
     scene,
-    mesh,
+    meshOrGroup,
     animationName,
     loop = true,
     restart = false,
   ) {
     const newAnimationName = animationName;
+    const findMeshWithSkeleton = (candidateRoot) => {
+      if (candidateRoot?.skeleton) return candidateRoot;
+      if (candidateRoot?.getChildMeshes) {
+        for (const child of candidateRoot.getChildMeshes()) {
+          if (child.skeleton) return child;
+        }
+      }
+      return null;
+    };
+    const rootMesh = meshOrGroup;
+    const skeletonMesh = findMeshWithSkeleton(rootMesh);
 
-    if (!mesh) {
-      console.error(`Mesh ${mesh.name} not found.`);
+    if (!rootMesh) {
+      console.error(`Mesh ${rootMesh?.name} not found.`);
       return null;
     }
 
@@ -1517,37 +1530,113 @@ export const flockAnimate = {
     let targetAnimationGroup = flock.scene?.animationGroups?.find(
       (group) =>
         group.name === newAnimationName &&
-        flock._animationGroupTargetsDescendant(group, mesh),
+        flock._animationGroupTargetsDescendant(group, rootMesh),
     );
 
     if (!targetAnimationGroup) {
-      console.error(`Animation "${newAnimationName}" not found.`);
-      return null;
+      rootMesh.metadata = rootMesh.metadata || {};
+      rootMesh.metadata.embeddedAnimationGroups =
+        rootMesh.metadata.embeddedAnimationGroups || {};
+
+      targetAnimationGroup =
+        rootMesh.metadata.embeddedAnimationGroups[newAnimationName] || null;
+
+      if (!targetAnimationGroup) {
+        const sourceGroup = flock.scene?.animationGroups?.find(
+          (group) =>
+            (group.name === newAnimationName ||
+              group.name?.endsWith?.(`.${newAnimationName}`)) &&
+            group.targetedAnimations?.length > 0,
+        );
+
+        if (sourceGroup) {
+          const boneMap = {};
+          const tnMap = {};
+
+          skeletonMesh?.skeleton?.bones?.forEach((b) => {
+            boneMap[b.name] = b;
+            if (b._linkedTransformNode) {
+              tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
+            }
+          });
+
+          if (rootMesh.getDescendants) {
+            rootMesh.getDescendants(false).forEach((node) => {
+              if (node?.name) tnMap[node.name] = node;
+            });
+          }
+          if (rootMesh?.name) {
+            tnMap[rootMesh.name] = rootMesh;
+          }
+
+          const retargetedGroup = new flock.BABYLON.AnimationGroup(
+            `${rootMesh.name}.${newAnimationName}`,
+            scene,
+          );
+
+          for (const ta of sourceGroup.targetedAnimations) {
+            let target = null;
+            if (ta.target instanceof flock.BABYLON.Bone) {
+              target = boneMap[ta.target.name];
+            } else if (ta.target instanceof flock.BABYLON.TransformNode) {
+              target = tnMap[ta.target.name];
+            }
+            if (!target && ta.target?.name) {
+              target = tnMap[ta.target.name] || null;
+            }
+            if (target && ta.animation) {
+              const animCopy = ta.animation.clone(
+                `${ta.animation.name}_${rootMesh.name}`,
+              );
+              retargetedGroup.addTargetedAnimation(animCopy, target);
+            }
+          }
+
+          if (retargetedGroup.targetedAnimations.length > 0) {
+            rootMesh.metadata.embeddedAnimationGroups[newAnimationName] =
+              retargetedGroup;
+            targetAnimationGroup = retargetedGroup;
+          } else {
+            retargetedGroup.dispose();
+          }
+        }
+      }
     }
 
-    if (!mesh.animationGroups) {
-      mesh.animationGroups = [];
-      flock.stopAnimationsTargetingMesh(scene, mesh);
+    if (!targetAnimationGroup) {
+      return flock._switchToAnimationLoad(
+        scene,
+        rootMesh,
+        newAnimationName,
+        loop,
+        restart,
+        true,
+      );
+    }
+
+    if (!rootMesh.animationGroups) {
+      rootMesh.animationGroups = [];
+      flock.stopAnimationsTargetingMesh(scene, rootMesh);
     }
 
     if (
-      mesh.animationGroups[0] &&
-      mesh.animationGroups[0].name !== newAnimationName
+      rootMesh.animationGroups[0] &&
+      rootMesh.animationGroups[0].name !== newAnimationName
     ) {
-      flock.stopAnimationsTargetingMesh(scene, mesh);
-      mesh.animationGroups[0].stop();
-      mesh.animationGroups = [];
+      flock.stopAnimationsTargetingMesh(scene, rootMesh);
+      rootMesh.animationGroups[0].stop();
+      rootMesh.animationGroups = [];
     }
 
     if (
-      !mesh.animationGroups[0] ||
-      (mesh.animationGroups[0].name == newAnimationName && restart)
+      !rootMesh.animationGroups[0] ||
+      (rootMesh.animationGroups[0].name == newAnimationName && restart)
     ) {
-      flock.stopAnimationsTargetingMesh(scene, mesh);
-      mesh.animationGroups[0] = targetAnimationGroup;
-      mesh.animationGroups[0].reset();
-      mesh.animationGroups[0].stop();
-      mesh.animationGroups[0].start(
+      flock.stopAnimationsTargetingMesh(scene, rootMesh);
+      rootMesh.animationGroups[0] = targetAnimationGroup;
+      rootMesh.animationGroups[0].reset();
+      rootMesh.animationGroups[0].stop();
+      rootMesh.animationGroups[0].start(
         loop,
         1.0,
         targetAnimationGroup.from,
@@ -1557,7 +1646,7 @@ export const flockAnimate = {
     }
 
     // Update physics shape based on animation
-    const physicsMesh = mesh;
+    const physicsMesh = rootMesh;
 
     updateCapsuleShapeForAnimation(physicsMesh, animationName);
 
@@ -1579,12 +1668,14 @@ export const flockAnimate = {
       console.error(`Mesh '${meshName}' not found for animation.`);
       return;
     }
-    const animGroup = flock.switchToAnimation(
-      flock.scene,
-      mesh,
-      animationName,
-      loop,
-      restart,
+    const animGroup = await Promise.resolve(
+      flock.switchToAnimation(
+        flock.scene,
+        mesh,
+        animationName,
+        loop,
+        restart,
+      ),
     );
     if (!animGroup) {
       console.warn(
