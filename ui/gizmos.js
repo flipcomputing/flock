@@ -508,6 +508,13 @@ function getScaledSize(mesh) {
 // Clean up gizmo state if aborted
 function exitGizmoState() {
   cleanupScenePick(); // Stop picking
+
+  // Properly clean up if duplicating
+  if (activeDuplicatePickHandler) {
+    window.removeEventListener("click", activeDuplicatePickHandler);
+    activeDuplicatePickHandler = null;
+  }
+
   // Stop the axis keyboard
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
@@ -624,10 +631,9 @@ export function toggleGizmo(gizmoType) {
     .forEach((btn) => btn.classList.remove("active"));
 
   // If they abandoned a duplicate half way, remove listener
-  if (activeDuplicatePickHandler) {
-    window.removeEventListener("click", activeDuplicatePickHandler);
-    activeDuplicatePickHandler = null;
-    if (gizmoType === "duplicate") return;
+  if (gizmoType === "duplicate" && activeDuplicatePickHandler) {
+    exitGizmoState();
+    return;
   }
 
   // If they were mid-transform, clean up
