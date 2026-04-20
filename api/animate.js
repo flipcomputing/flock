@@ -1500,12 +1500,22 @@ export const flockAnimate = {
   },
   _switchToAnimationModel(
     scene,
-    mesh,
+    meshOrGroup,
     animationName,
     loop = true,
     restart = false,
   ) {
     const newAnimationName = animationName;
+    const findMeshWithSkeleton = (rootMesh) => {
+      if (rootMesh?.skeleton) return rootMesh;
+      if (rootMesh?.getChildMeshes) {
+        for (const child of rootMesh.getChildMeshes()) {
+          if (child.skeleton) return child;
+        }
+      }
+      return rootMesh;
+    };
+    const mesh = findMeshWithSkeleton(meshOrGroup);
 
     if (!mesh) {
       console.error(`Mesh ${mesh.name} not found.`);
@@ -1519,6 +1529,62 @@ export const flockAnimate = {
         group.name === newAnimationName &&
         flock._animationGroupTargetsDescendant(group, mesh),
     );
+
+    if (!targetAnimationGroup && mesh?.skeleton) {
+      mesh.metadata = mesh.metadata || {};
+      mesh.metadata.embeddedAnimationGroups =
+        mesh.metadata.embeddedAnimationGroups || {};
+
+      targetAnimationGroup =
+        mesh.metadata.embeddedAnimationGroups[newAnimationName] || null;
+
+      if (!targetAnimationGroup) {
+        const sourceGroup = flock.scene?.animationGroups?.find(
+          (group) =>
+            group.name === newAnimationName &&
+            group.targetedAnimations?.length > 0,
+        );
+
+        if (sourceGroup) {
+          const boneMap = {};
+          const tnMap = {};
+          mesh.skeleton.bones.forEach((b) => {
+            boneMap[b.name] = b;
+            if (b._linkedTransformNode) {
+              tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
+            }
+          });
+
+          const retargetedGroup = new flock.BABYLON.AnimationGroup(
+            `${mesh.name}.${newAnimationName}`,
+            scene,
+          );
+
+          for (const ta of sourceGroup.targetedAnimations) {
+            let target = null;
+            if (ta.target instanceof flock.BABYLON.Bone) {
+              target = boneMap[ta.target.name];
+            } else if (ta.target instanceof flock.BABYLON.TransformNode) {
+              target = tnMap[ta.target.name];
+            }
+            if (target && ta.animation) {
+              const animCopy = ta.animation.clone(
+                `${ta.animation.name}_${mesh.name}`,
+              );
+              retargetedGroup.addTargetedAnimation(animCopy, target);
+            }
+          }
+
+          if (retargetedGroup.targetedAnimations.length > 0) {
+            mesh.metadata.embeddedAnimationGroups[newAnimationName] =
+              retargetedGroup;
+            targetAnimationGroup = retargetedGroup;
+          } else {
+            retargetedGroup.dispose();
+          }
+        }
+      }
+    }
 
     if (!targetAnimationGroup) {
       console.error(`Animation "${newAnimationName}" not found.`);
