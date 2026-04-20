@@ -1040,7 +1040,10 @@ function handleScaleGizmo() {
     startScaleKeyboardHandler(mesh);
   } else {
     pickMeshFromScene((pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === "ground") return;
+      if (!pickedMesh || pickedMesh.name === "ground") {
+        exitGizmoState();
+        return;
+      }
       if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
       gizmoManager.attachToMesh(pickedMesh);
     });
@@ -1172,7 +1175,10 @@ function handleRotationGizmo() {
     startRotateKeyboardHandler(mesh);
   } else {
     pickMeshFromScene((pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === "ground") return;
+      if (!pickedMesh || pickedMesh.name === "ground") {
+        exitGizmoState();
+        return;
+      }
       if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
       gizmoManager.attachToMesh(pickedMesh);
     });
@@ -1264,7 +1270,10 @@ function handlePositionGizmo() {
     startMoveKeyboardHandler(mesh);
   } else {
     pickMeshFromScene((pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === "ground") return;
+      if (!pickedMesh || pickedMesh.name === "ground") {
+        exitGizmoState();
+        return;
+      }
       if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
       gizmoManager.attachToMesh(pickedMesh);
     });
