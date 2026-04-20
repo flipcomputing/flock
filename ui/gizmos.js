@@ -1242,9 +1242,8 @@ function handleRotationGizmo() {
         mesh = mesh.parent;
       }
 
-      if (!mesh?.physics) return;
-
-      if (mesh.savedMotionType != null) {
+      // Is there any physics to restore?
+      if (mesh?.physics && mesh.savedMotionType != null) {
         mesh.physics.setMotionType(mesh.savedMotionType);
       }
 
