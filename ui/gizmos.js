@@ -28,7 +28,11 @@ import {
   stopCanvasKeyboardMode,
 } from "./canvas-utils.js";
 import { createAxisKeyboardHandler } from "./axis-keyboard.js";
+import { cleanup } from "manifold-3d/lib/animation.js";
 export let gizmoManager;
+
+// Enable debug messages
+const DEBUG = true;
 
 const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
 const greenColor = flock.BABYLON.Color3.FromHexString("#009E73"); // Colour for Y-axis
@@ -44,10 +48,12 @@ let colorPicker = null;
 let textScaleAxis = null;
 let textOrigScaleZ = 1;
 
+// Track state
 let cameraMode = "play";
-let activeDuplicatePickHandler = null; // Are they in the middle of a duplication?
-let stopAxisKeyboard = null; // Are they transforming?
-let positionGizmoObserver = null; // Are they in [move mesh] state?
+let activePick = null; // [Select mesh?]
+let activeDuplicatePickHandler = null; // [Clone mesh?]
+let stopAxisKeyboard = null; // Axis keyboard active?
+let positionGizmoObserver = null; // [Move mesh?]
 
 // Track DO sections and their associated blocks for cleanup
 const gizmoCreatedBlocks = new Map(); // blockId -> { parentId, createdDoSection, timestamp }
@@ -501,6 +507,7 @@ function getScaledSize(mesh) {
 
 // Clean up gizmo state if aborted
 function exitGizmoState() {
+  cleanupScenePick(); // Stop picking
   // Stop the axis keyboard
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
@@ -553,13 +560,25 @@ function startMoveKeyboardHandler(mesh) {
 
 // Pick a mesh (used by multiple gizmos)
 function pickMeshFromScene(onPicked) {
+  cleanupScenePick(); // Stop picking
   resetAttachedMesh();
+
+  const pointerObservable = flock.scene.onPointerObservable;
+  const pointerObserver = pointerObservable.add((event) => {
+    if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
+      cleanupScenePick();
+      onPicked(event.pickInfo.pickedMesh, event.pickInfo.pickedPoint);
+    }
+  });
+
+  activePick = { pointerObservable, pointerObserver };
+
   setTimeout(() => {
     startCanvasKeyboardMode(
       (x, y) => {
         const pick = flock.scene.pick(x, y);
+        cleanupScenePick();
         onPicked(pick?.pickedMesh, pick?.pickedPoint);
-        stopCanvasKeyboardMode();
       },
       false,
       (x, y) =>
@@ -568,14 +587,16 @@ function pickMeshFromScene(onPicked) {
     );
     document.body.style.cursor = "crosshair";
   }, 0);
+}
 
-  const pointerObservable = flock.scene.onPointerObservable;
-  const pointerObserver = pointerObservable.add((event) => {
-    if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
-      onPicked(event.pickInfo.pickedMesh, event.pickInfo.pickedPoint);
-      pointerObservable.remove(pointerObserver);
-    }
-  });
+// Clean up after picking
+function cleanupScenePick() {
+  if (activePick) {
+    activePick.pointerObservable.remove(activePick.pointerObserver);
+    activePick = null;
+  }
+  stopCanvasKeyboardMode();
+  document.body.style.cursor = "default";
 }
 
 export function disableGizmos() {
@@ -1707,3 +1728,6 @@ export function configureScaleGizmo(
 // Export functions for global access
 window.toggleGizmo = toggleGizmo;
 window.turnOffAllGizmos = turnOffAllGizmos;
+if (DEBUG) {
+  window._debugPick = () => flock.scene.onPointerObservable._observers.length;
+}
