@@ -679,7 +679,17 @@ function updateRotationBlock(mesh) {
       input.connection.connect(shadow.outputConnection);
     });
     rotateBlock.render();
-    block.getInput("DO").connection.connect(rotateBlock.previousConnection);
+
+    // Make sure not to replace any existing blocks in DO
+    const firstBlock = statementConnection.targetBlock();
+    if (firstBlock) {
+      let tail = firstBlock;
+      while (tail.getNextBlock()) tail = tail.getNextBlock();
+      tail.nextConnection.connect(rotateBlock.previousConnection);
+    } else {
+      block.getInput("DO").connection.connect(rotateBlock.previousConnection);
+    }
+
     gizmoCreatedBlocks.set(rotateBlock.id, {
       parentId: block.id,
       createdDoSection: addedDoSection,
@@ -863,9 +873,17 @@ function updateScaleBlock(mesh, originalBottomY = null) {
           });
 
           resizeBlock.render();
-          block
-            .getInput("DO")
-            .connection.connect(resizeBlock.previousConnection);
+
+          const doFirstBlock = block.getInput("DO").connection.targetBlock();
+          if (doFirstBlock) {
+            let tail = doFirstBlock;
+            while (tail.getNextBlock()) tail = tail.getNextBlock();
+            tail.nextConnection.connect(resizeBlock.previousConnection);
+          } else {
+            block
+              .getInput("DO")
+              .connection.connect(resizeBlock.previousConnection);
+          }
 
           gizmoCreatedBlocks.set(resizeBlock.id, {
             parentId: block.id,
