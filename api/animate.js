@@ -1530,7 +1530,7 @@ export const flockAnimate = {
         flock._animationGroupTargetsDescendant(group, mesh),
     );
 
-    if (!targetAnimationGroup && mesh?.skeleton) {
+    if (!targetAnimationGroup) {
       mesh.metadata = mesh.metadata || {};
       mesh.metadata.embeddedAnimationGroups =
         mesh.metadata.embeddedAnimationGroups || {};
@@ -1541,19 +1541,33 @@ export const flockAnimate = {
       if (!targetAnimationGroup) {
         const sourceGroup = flock.scene?.animationGroups?.find(
           (group) =>
-            group.name === newAnimationName &&
+            (group.name === newAnimationName ||
+              group.name?.endsWith?.(`.${newAnimationName}`)) &&
             group.targetedAnimations?.length > 0,
         );
 
         if (sourceGroup) {
           const boneMap = {};
           const tnMap = {};
-          mesh.skeleton.bones.forEach((b) => {
+          const meshWithSkeleton = mesh.skeleton
+            ? mesh
+            : mesh.getChildMeshes?.().find((m) => !!m.skeleton) || null;
+
+          meshWithSkeleton?.skeleton?.bones?.forEach((b) => {
             boneMap[b.name] = b;
             if (b._linkedTransformNode) {
               tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
             }
           });
+
+          if (mesh.getDescendants) {
+            mesh.getDescendants(false).forEach((node) => {
+              if (node?.name) tnMap[node.name] = node;
+            });
+          }
+          if (mesh?.name) {
+            tnMap[mesh.name] = mesh;
+          }
 
           const retargetedGroup = new flock.BABYLON.AnimationGroup(
             `${mesh.name}.${newAnimationName}`,
@@ -1566,6 +1580,9 @@ export const flockAnimate = {
               target = boneMap[ta.target.name];
             } else if (ta.target instanceof flock.BABYLON.TransformNode) {
               target = tnMap[ta.target.name];
+            }
+            if (!target && ta.target?.name) {
+              target = tnMap[ta.target.name] || null;
             }
             if (target && ta.animation) {
               const animCopy = ta.animation.clone(
