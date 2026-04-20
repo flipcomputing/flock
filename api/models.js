@@ -328,7 +328,9 @@ export const flockModels = {
 
       if (flock.modelCache[modelName]) {
         flock._recycleOldestByKey(modelName);
-        const mesh = flock.modelCache[modelName].clone(bKey);
+        const mesh = flock.modelCache[modelName].clone(
+          flock.modelCache[modelName].name,
+        );
         flock._registerInstance(modelName, meshName);
         finalizeMesh(mesh, meshName, groupName, bKey);
         resolveReady(mesh);
@@ -338,7 +340,9 @@ export const flockModels = {
       if (flock.modelsBeingLoaded[modelName]) {
         flock.modelsBeingLoaded[modelName].then(() => {
           flock._recycleOldestByKey(modelName);
-          const mesh = flock.modelCache[modelName].clone(bKey);
+          const mesh = flock.modelCache[modelName].clone(
+            flock.modelCache[modelName].name,
+          );
           flock._registerInstance(modelName, meshName);
           finalizeMesh(mesh, meshName, groupName, bKey);
           resolveReady(mesh);
