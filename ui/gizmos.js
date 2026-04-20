@@ -958,6 +958,10 @@ function handleRotationGizmo() {
 function handlePositionGizmo() {
   configurePositionGizmo(gizmoManager);
 
+  // Highlight the move button
+  const positionButton = document.getElementById("positionButton");
+  positionButton.classList.add("active");
+
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
     const original = mesh.position.clone();
@@ -967,18 +971,29 @@ function handlePositionGizmo() {
           mesh.position.x += dx;
           mesh.position.y += dy;
           mesh.position.z += dz;
-        },
-        onConfirm: () => {
+          // Update the blockly block
           mesh.computeWorldMatrix(true);
           const block = meshMap[mesh?.metadata?.blockKey];
           if (block) {
             const pos = flock.getBlockPositionFromMesh(mesh);
             setBlockXYZ(block, pos.x, pos.y, pos.z);
           }
+        },
+        onConfirm: () => {
+          positionButton.classList.remove("active");
           disableGizmos();
         },
         onCancel: () => {
+          positionButton.classList.remove("active");
+          // Replace mesh
           mesh.position.copyFrom(original);
+          // Replace blockly block
+          mesh.computeWorldMatrix(true);
+          const block = meshMap[mesh?.metadata?.blockKey];
+          if (block) {
+            const pos = flock.getBlockPositionFromMesh(mesh);
+            setBlockXYZ(block, pos.x, pos.y, pos.z);
+          }
           disableGizmos();
         },
         stepNormal: 0.1,
