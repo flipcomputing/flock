@@ -385,14 +385,14 @@ export const flockModels = {
           flock.ensureStandardMaterial(root);
         }
 
-        const template = root.clone(`${modelName}_template`);
-        setTemplateFlags(template, modelName);
-        flock.modelCache[modelName] = template;
+        setTemplateFlags(root, modelName);
+        flock.modelCache[modelName] = root;
 
+        const mesh = root.clone(root.name);
         flock._registerInstance(modelName, meshName);
 
-        finalizeMesh(root, meshName, groupName, bKey);
-        resolveReady(root);
+        finalizeMesh(mesh, meshName, groupName, bKey);
+        resolveReady(mesh);
         releaseContainer(container);
         delete flock.modelsBeingLoaded[modelName];
       });
