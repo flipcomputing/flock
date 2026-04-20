@@ -1506,19 +1506,20 @@ export const flockAnimate = {
     restart = false,
   ) {
     const newAnimationName = animationName;
-    const findMeshWithSkeleton = (rootMesh) => {
-      if (rootMesh?.skeleton) return rootMesh;
-      if (rootMesh?.getChildMeshes) {
-        for (const child of rootMesh.getChildMeshes()) {
+    const findMeshWithSkeleton = (candidateRoot) => {
+      if (candidateRoot?.skeleton) return candidateRoot;
+      if (candidateRoot?.getChildMeshes) {
+        for (const child of candidateRoot.getChildMeshes()) {
           if (child.skeleton) return child;
         }
       }
-      return rootMesh;
+      return null;
     };
-    const mesh = findMeshWithSkeleton(meshOrGroup);
+    const rootMesh = meshOrGroup;
+    const skeletonMesh = findMeshWithSkeleton(rootMesh);
 
-    if (!mesh) {
-      console.error(`Mesh ${mesh.name} not found.`);
+    if (!rootMesh) {
+      console.error(`Mesh ${rootMesh?.name} not found.`);
       return null;
     }
 
@@ -1527,16 +1528,16 @@ export const flockAnimate = {
     let targetAnimationGroup = flock.scene?.animationGroups?.find(
       (group) =>
         group.name === newAnimationName &&
-        flock._animationGroupTargetsDescendant(group, mesh),
+        flock._animationGroupTargetsDescendant(group, rootMesh),
     );
 
     if (!targetAnimationGroup) {
-      mesh.metadata = mesh.metadata || {};
-      mesh.metadata.embeddedAnimationGroups =
-        mesh.metadata.embeddedAnimationGroups || {};
+      rootMesh.metadata = rootMesh.metadata || {};
+      rootMesh.metadata.embeddedAnimationGroups =
+        rootMesh.metadata.embeddedAnimationGroups || {};
 
       targetAnimationGroup =
-        mesh.metadata.embeddedAnimationGroups[newAnimationName] || null;
+        rootMesh.metadata.embeddedAnimationGroups[newAnimationName] || null;
 
       if (!targetAnimationGroup) {
         const sourceGroup = flock.scene?.animationGroups?.find(
@@ -1549,28 +1550,25 @@ export const flockAnimate = {
         if (sourceGroup) {
           const boneMap = {};
           const tnMap = {};
-          const meshWithSkeleton = mesh.skeleton
-            ? mesh
-            : mesh.getChildMeshes?.().find((m) => !!m.skeleton) || null;
 
-          meshWithSkeleton?.skeleton?.bones?.forEach((b) => {
+          skeletonMesh?.skeleton?.bones?.forEach((b) => {
             boneMap[b.name] = b;
             if (b._linkedTransformNode) {
               tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
             }
           });
 
-          if (mesh.getDescendants) {
-            mesh.getDescendants(false).forEach((node) => {
+          if (rootMesh.getDescendants) {
+            rootMesh.getDescendants(false).forEach((node) => {
               if (node?.name) tnMap[node.name] = node;
             });
           }
-          if (mesh?.name) {
-            tnMap[mesh.name] = mesh;
+          if (rootMesh?.name) {
+            tnMap[rootMesh.name] = rootMesh;
           }
 
           const retargetedGroup = new flock.BABYLON.AnimationGroup(
-            `${mesh.name}.${newAnimationName}`,
+            `${rootMesh.name}.${newAnimationName}`,
             scene,
           );
 
@@ -1586,14 +1584,14 @@ export const flockAnimate = {
             }
             if (target && ta.animation) {
               const animCopy = ta.animation.clone(
-                `${ta.animation.name}_${mesh.name}`,
+                `${ta.animation.name}_${rootMesh.name}`,
               );
               retargetedGroup.addTargetedAnimation(animCopy, target);
             }
           }
 
           if (retargetedGroup.targetedAnimations.length > 0) {
-            mesh.metadata.embeddedAnimationGroups[newAnimationName] =
+            rootMesh.metadata.embeddedAnimationGroups[newAnimationName] =
               retargetedGroup;
             targetAnimationGroup = retargetedGroup;
           } else {
@@ -1608,29 +1606,29 @@ export const flockAnimate = {
       return null;
     }
 
-    if (!mesh.animationGroups) {
-      mesh.animationGroups = [];
-      flock.stopAnimationsTargetingMesh(scene, mesh);
+    if (!rootMesh.animationGroups) {
+      rootMesh.animationGroups = [];
+      flock.stopAnimationsTargetingMesh(scene, rootMesh);
     }
 
     if (
-      mesh.animationGroups[0] &&
-      mesh.animationGroups[0].name !== newAnimationName
+      rootMesh.animationGroups[0] &&
+      rootMesh.animationGroups[0].name !== newAnimationName
     ) {
-      flock.stopAnimationsTargetingMesh(scene, mesh);
-      mesh.animationGroups[0].stop();
-      mesh.animationGroups = [];
+      flock.stopAnimationsTargetingMesh(scene, rootMesh);
+      rootMesh.animationGroups[0].stop();
+      rootMesh.animationGroups = [];
     }
 
     if (
-      !mesh.animationGroups[0] ||
-      (mesh.animationGroups[0].name == newAnimationName && restart)
+      !rootMesh.animationGroups[0] ||
+      (rootMesh.animationGroups[0].name == newAnimationName && restart)
     ) {
-      flock.stopAnimationsTargetingMesh(scene, mesh);
-      mesh.animationGroups[0] = targetAnimationGroup;
-      mesh.animationGroups[0].reset();
-      mesh.animationGroups[0].stop();
-      mesh.animationGroups[0].start(
+      flock.stopAnimationsTargetingMesh(scene, rootMesh);
+      rootMesh.animationGroups[0] = targetAnimationGroup;
+      rootMesh.animationGroups[0].reset();
+      rootMesh.animationGroups[0].stop();
+      rootMesh.animationGroups[0].start(
         loop,
         1.0,
         targetAnimationGroup.from,
@@ -1640,7 +1638,7 @@ export const flockAnimate = {
     }
 
     // Update physics shape based on animation
-    const physicsMesh = mesh;
+    const physicsMesh = rootMesh;
 
     updateCapsuleShapeForAnimation(physicsMesh, animationName);
 
