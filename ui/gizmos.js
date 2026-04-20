@@ -519,6 +519,7 @@ function exitGizmoState() {
 
 // Start the keyboard handler for moving a mesh
 function startMoveKeyboardHandler(mesh) {
+  document.body.style.cursor = "default";
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
   setTimeout(() => {
@@ -538,11 +539,43 @@ function startMoveKeyboardHandler(mesh) {
         exitGizmoState();
         document.getElementById("positionButton")?.focus();
       },
-      onCancel: () => exitGizmoState(),
+      onCancel: () => {
+        exitGizmoState();
+        // Deselect so you get [select mesh] for next tool
+        gizmoManager.attachToMesh(null);
+        document.getElementById("positionButton")?.focus();
+      },
       stepNormal: DEFAULT_CURSOR,
       stepFast: FAST_CURSOR,
     });
   }, 0);
+}
+
+// Pick a mesh (used by multiple gizmos)
+function pickMeshFromScene(onPicked) {
+  resetAttachedMesh();
+  setTimeout(() => {
+    startCanvasKeyboardMode(
+      (x, y) => {
+        const pick = flock.scene.pick(x, y);
+        onPicked(pick?.pickedMesh, pick?.pickedPoint);
+        stopCanvasKeyboardMode();
+      },
+      false,
+      (x, y) =>
+        !!flock.scene.pick(x, y, (m) => m.isPickable && m.name !== "ground")
+          ?.hit,
+    );
+    document.body.style.cursor = "crosshair";
+  }, 0);
+
+  const pointerObservable = flock.scene.onPointerObservable;
+  const pointerObserver = pointerObservable.add((event) => {
+    if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
+      onPicked(event.pickInfo.pickedMesh, event.pickInfo.pickedPoint);
+      pointerObservable.remove(pointerObserver);
+    }
+  });
 }
 
 export function disableGizmos() {
@@ -557,6 +590,13 @@ export function disableGizmos() {
 
 // Toggle which Gizmo is being used
 export function toggleGizmo(gizmoType) {
+  // Is this gizmo already active? If so, toggle it off
+  const button = document.getElementById(`${gizmoType}Button`);
+  if (button?.classList.contains("active")) {
+    exitGizmoState();
+    return;
+  }
+
   // No buttons should be highlighted
   document
     .querySelectorAll(".gizmo-button")
@@ -1015,6 +1055,12 @@ function handlePositionGizmo() {
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
     startMoveKeyboardHandler(mesh);
+  } else {
+    pickMeshFromScene((pickedMesh) => {
+      if (!pickedMesh || pickedMesh.name === "ground") return;
+      if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
+      gizmoManager.attachToMesh(pickedMesh);
+    });
   }
 
   // Don't attach to multiple meshes
@@ -1118,7 +1164,6 @@ function handleBoundsGizmo() {
 
 // Select: Allow the user to select a mesh by clicking on it
 function handleSelectGizmo() {
-  let blockKey;
   gizmoManager.selectGizmoEnabled = true;
 
   function applySelection(pickedMesh, pickedPoint) {
@@ -1163,44 +1208,8 @@ function handleSelectGizmo() {
     }
   }
 
-  // Wait until the click has propagated otherwise
-  // the keyboard mode gets cancelled immediately
-  setTimeout(() => {
-    startCanvasKeyboardMode(
-      (x, y) => {
-        if (gizmoManager.attachedMesh) {
-          resetAttachedMesh();
-          blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
-            ?.blockKey;
-        }
-        const pick = flock.scene.pick(x, y);
-        applySelection(pick?.pickedMesh, pick?.pickedPoint);
-        stopCanvasKeyboardMode();
-      },
-      false,
-      (x, y) =>
-        !!flock.scene.pick(x, y, (m) => m.isPickable && m.name !== "ground")
-          ?.hit,
-    );
-  }, 0);
-
-  // Store the pointer observable
-  const pointerObservable = flock.scene.onPointerObservable;
-
-  // Add the observer
-  const pointerObserver = pointerObservable.add((event) => {
-    if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
-      if (gizmoManager.attachedMesh) {
-        resetAttachedMesh();
-        blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
-          ?.blockKey;
-      }
-
-      applySelection(event.pickInfo.pickedMesh, event.pickInfo.pickedPoint);
-
-      pointerObservable.remove(pointerObserver);
-    }
-  });
+  // Use helper function to pick the mesh
+  pickMeshFromScene(applySelection);
 }
 
 // Duplicate: Create a copy of the selected mesh and its corresponding block,
