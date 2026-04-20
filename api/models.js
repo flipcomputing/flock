@@ -248,42 +248,40 @@ export const flockModels = {
     };
 
     const setTemplateFlags = (node, tag) => {
-      const list = [
-        node,
-        ...node
-          .getDescendants(false)
-          .filter((n) => n instanceof flock.BABYLON.AbstractMesh),
-      ];
+      const list = [node, ...node.getDescendants(false)];
       list.forEach((m) => {
         m.metadata = m.metadata || {};
+        m.metadata.originalNodeName = m.metadata.originalNodeName || m.name;
         m.metadata.isTemplate = true;
         m.metadata.templateTag = tag;
-        m.isPickable = false;
+        if ("isPickable" in m) m.isPickable = false;
         if (typeof m.setEnabled === "function") m.setEnabled(false);
-        m.isVisible = false;
-        m.visibility = 0;
+        if ("isVisible" in m) m.isVisible = false;
+        if ("visibility" in m) m.visibility = 0;
       });
     };
 
     const setInstanceFlags = (node) => {
-      const list = [
-        node,
-        ...node
-          .getDescendants(false)
-          .filter((n) => n instanceof flock.BABYLON.AbstractMesh),
-      ];
+      const list = [node, ...node.getDescendants(false)];
       list.forEach((m) => {
         if (m.metadata?.isTemplate) {
           m.metadata = { ...m.metadata, isTemplate: false };
         }
-        m.isPickable = true;
+        if ("isPickable" in m) m.isPickable = true;
         if (typeof m.setEnabled === "function") m.setEnabled(true);
-        m.isVisible = true;
-        m.visibility = 1;
+        if ("isVisible" in m) m.isVisible = true;
+        if ("visibility" in m) m.visibility = 1;
       });
     };
 
     const finalizeMesh = (mesh, mName, gName, bKey) => {
+      const allNodes = [mesh, ...mesh.getDescendants(false)];
+      allNodes.forEach((node) => {
+        if (node?.metadata?.originalNodeName) {
+          node.name = node.metadata.originalNodeName;
+        }
+      });
+
       flock.setupMesh(
         mesh,
         modelName,
