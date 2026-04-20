@@ -111,13 +111,15 @@ export const flockAnimate = {
     { animationName, loop = true, restart = false } = {},
   ) {
     return new Promise((resolve) => {
-      flock.whenModelReady(meshName, (mesh) => {
-        flock.switchToAnimation(
-          flock.scene,
-          mesh,
-          animationName,
-          loop,
-          restart,
+      flock.whenModelReady(meshName, async (mesh) => {
+        await Promise.resolve(
+          flock.switchToAnimation(
+            flock.scene,
+            mesh,
+            animationName,
+            loop,
+            restart,
+          ),
         );
         resolve();
       });
@@ -1602,8 +1604,14 @@ export const flockAnimate = {
     }
 
     if (!targetAnimationGroup) {
-      console.error(`Animation "${newAnimationName}" not found.`);
-      return null;
+      return flock._switchToAnimationLoad(
+        scene,
+        rootMesh,
+        newAnimationName,
+        loop,
+        restart,
+        true,
+      );
     }
 
     if (!rootMesh.animationGroups) {
@@ -1660,12 +1668,14 @@ export const flockAnimate = {
       console.error(`Mesh '${meshName}' not found for animation.`);
       return;
     }
-    const animGroup = flock.switchToAnimation(
-      flock.scene,
-      mesh,
-      animationName,
-      loop,
-      restart,
+    const animGroup = await Promise.resolve(
+      flock.switchToAnimation(
+        flock.scene,
+        mesh,
+        animationName,
+        loop,
+        restart,
+      ),
     );
     if (!animGroup) {
       console.warn(
