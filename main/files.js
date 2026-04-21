@@ -1,6 +1,5 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
-import { flock } from "../flock.js";
 import { translate } from "./translation.js";
 import { getMetadata } from "meta-png";
 import { AUTOSAVE_KEY } from "../config.js";
@@ -8,15 +7,6 @@ import { blockHandlerRegistry } from "../blocks/blocks.js";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
-  if (workspace && workspace.getAllBlocks) {
-    const usedModels = Blockly.Variables.allUsedVarModels(workspace);
-    const allModels = workspace.getVariableMap().getAllVariables();
-    for (const model of allModels) {
-      if (!usedModels.find((element) => element.getId() === model.getId())) {
-        workspace.deleteVariableById(model.getId());
-      }
-    }
-  }
   const state = Blockly.serialization.workspaces.save(workspace);
   const key = AUTOSAVE_KEY;
   localStorage.setItem(key, JSON.stringify(state));
