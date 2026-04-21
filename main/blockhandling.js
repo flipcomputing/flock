@@ -138,8 +138,7 @@ export function initializeBlockHandling() {
     "microbit_input",
   ];
 
-  // Preserve selection/cursor focus while tidying.
-  workspace.cleanUp = function () {
+  function layoutTopLevelBlocks() {
     const spacing = 40;
     const cursorX = 10;
     let cursorY = 10;
@@ -236,6 +235,24 @@ export function initializeBlockHandling() {
         }
       }
     }
+  }
+
+  function pruneUnusedVariables() {
+    const usedModels = Blockly.Variables.allUsedVarModels(workspace);
+    const usedIds = new Set(usedModels.map((model) => model.getId()));
+    const allModels = workspace.getVariableMap().getAllVariables();
+    for (const model of allModels) {
+      if (!usedIds.has(model.getId())) {
+        workspace.deleteVariableById(model.getId());
+      }
+    }
+  }
+
+  // Preserve selection/cursor focus while tidying.
+  // This is invoked by explicit "Clean up blocks" actions.
+  workspace.cleanUp = function () {
+    layoutTopLevelBlocks();
+    pruneUnusedVariables();
   };
 
   workspace.addChangeListener(Blockly.Events.disableOrphans);
@@ -481,7 +498,7 @@ export function initializeBlockHandling() {
         const wasEnabled = Blockly.Events.isEnabled();
         try {
           if (wasEnabled) Blockly.Events.disable(); // don't create undo entries
-          workspace.cleanUp();
+          layoutTopLevelBlocks();
         } finally {
           if (wasEnabled) Blockly.Events.enable();
         }
@@ -496,7 +513,7 @@ export function initializeBlockHandling() {
     ) {
       const block = workspace.getBlockById(event.blockId);
       if (block && !block.getParent()) {
-        workspace.cleanUp();
+        layoutTopLevelBlocks();
       }
     }
 
