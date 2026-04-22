@@ -963,7 +963,21 @@ function startDuplicatePlacement() {
       const pickedPosition = pickResult.pickedPoint;
       const workspace = Blockly.getMainWorkspace();
       const originalBlock = workspace.getBlockById(blockId);
-      duplicateBlockAndInsert(originalBlock, workspace, pickedPosition);
+      // If they deleted the original block while picking, exit gracefully
+      if (!originalBlock) {
+        meshToClone.showBoundingBox = false;
+        exitGizmoState();
+        return;
+      }
+      // Otherwise carry on adding the new block
+      const newBlock = duplicateBlockAndInsert(
+        originalBlock,
+        workspace,
+        pickedPosition,
+      );
+      if (newBlock) {
+        highlightBlockById(workspace, newBlock);
+      }
     }
   };
 
@@ -984,11 +998,20 @@ function startDuplicatePlacement() {
         if (pickResult?.hit) {
           const workspace = Blockly.getMainWorkspace();
           const originalBlock = workspace.getBlockById(blockId);
-          duplicateBlockAndInsert(
+          // If they deleted the original block while picking, exit gracefully
+          if (!originalBlock) {
+            meshToClone.showBoundingBox = false;
+            exitGizmoState();
+            return;
+          }
+          const newBlock = duplicateBlockAndInsert(
             originalBlock,
             workspace,
             pickResult.pickedPoint,
           );
+          if (newBlock) {
+            highlightBlockById(workspace, newBlock);
+          }
         }
       },
       false,
