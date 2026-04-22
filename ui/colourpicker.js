@@ -1,5 +1,5 @@
 import { translate } from "../main/translation.js";
-import { disableGizmos } from "./gizmos.js";
+import { disableGizmos, exitGizmoState } from "./gizmos.js";
 
 const COLOR_PALETTES = {
   Bright: [
@@ -1846,7 +1846,7 @@ class CustomColorPicker {
   }
 
   open(color = this.currentColor) {
-    disableGizmos();
+    exitGizmoState();
 
     // Show first so layout has real sizes
     this.container.style.display = "block";

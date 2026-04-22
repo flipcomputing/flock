@@ -530,7 +530,7 @@ function getScaledSize(mesh) {
 }
 
 // Clean up gizmo state if aborted
-function exitGizmoState() {
+export function exitGizmoState() {
   cleanupScenePick(); // Stop picking
 
   // Properly clean up if duplicating
