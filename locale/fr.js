@@ -1168,7 +1168,7 @@ export default {
   select_mesh_delete_prompt:
     "⚠️ Sélectionnez un objet puis cliquez sur supprimer.",
   select_mesh_duplicate_prompt:
-    "⚠️ Sélectionnez un objet puis cliquez sur dupliquer, puis cliquez pour placer les copies.",
+    "ℹ️ Sélectionnez un objet à dupliquer, puis cliquez pour placer les copies.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "L'outil pipette n'est pas pris en charge dans ce navigateur. Essayez d'utiliser Chrome ou Edge.",

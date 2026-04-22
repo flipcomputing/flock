@@ -1150,7 +1150,7 @@ export default {
   select_mesh_delete_prompt:
     "⚠️ Wähle ein Objekt aus und klicke dann auf Löschen.",
   select_mesh_duplicate_prompt:
-    "⚠️ Wähle ein Objekt aus, klicke auf Duplizieren und klicke dann, um Kopien zu platzieren.",
+    "ℹ️ Wähle ein Objekt auf Duplizieren und klicke dann, um Kopien zu platzieren.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "Das Pipettenwerkzeug wird in diesem Browser nicht unterstützt. Versuche es mit Chrome oder Edge.",

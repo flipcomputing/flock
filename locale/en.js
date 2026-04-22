@@ -1159,7 +1159,7 @@ export default {
   fly_camera_instructions: "ℹ️ Fly camera, use arrow keys and page up/down",
   select_mesh_delete_prompt: "⚠️ Select an object then click delete.",
   select_mesh_duplicate_prompt:
-    "⚠️ Select an object then click duplicate, then click to place copies.",
+    "ℹ️ Select an object to duplicate, then click to place copies.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "Color picker tool is not supported in this browser. Try using Chrome or Edge.",

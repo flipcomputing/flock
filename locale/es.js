@@ -1170,7 +1170,7 @@ export default {
   select_mesh_delete_prompt:
     "⚠️ Selecciona un objeto y luego haz clic en eliminar.", // human
   select_mesh_duplicate_prompt:
-    "⚠️ Selecciona un objeto y haz clic en duplicar, luego haz clic para colocar las copias.", // human
+    "ℹ️ Selecciona un objeto para duplicar, luego haz clic para colocar las copias.", // Google (had to update it)
   position_readout: "Posición: {Posición}", // human
   eyedropper_not_supported_alert:
     "El selector de colores no es compatible con este navegador. Prueba con Chrome o Edge.", // human

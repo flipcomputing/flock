@@ -1146,7 +1146,7 @@ export default {
     "ℹ️ Flygkamera, använd piltangenterna och Page Up/Down",
   select_mesh_delete_prompt: "⚠️ Välj ett objekt och klicka sedan på ta bort.",
   select_mesh_duplicate_prompt:
-    "⚠️ Välj ett objekt och klicka på duplicera, klicka sedan för att placera kopior.",
+    "ℹ️ Välj ett objekt att duplicera och klicka sedan för att placera kopior.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "Färgväljaren stöds inte i den här webbläsaren. Prova Chrome eller Edge.",

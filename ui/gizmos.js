@@ -189,7 +189,7 @@ function pickMeshFromCanvas() {
       stopCanvasKeyboardMode();
       // restore cursors
       document.body.style.cursor = "default";
-      canvas.style.cursor = "auto";
+      flock.scene.defaultCursor = "";
       return;
     }
 
@@ -908,6 +908,96 @@ function updateScaleBlock(mesh, originalBottomY = null) {
   }
 }
 
+function startDuplicatePlacement() {
+  let blockKey, blockId, canvas, onPickMesh;
+  if (!gizmoManager.attachedMesh) {
+    flock.printText({
+      text: translate("select_mesh_duplicate_prompt"),
+      duration: 30,
+      color: "black",
+    });
+    return;
+  }
+  blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
+    ?.blockKey;
+
+  // Make sure that if there is already a selected mesh
+  // its bounding box is visible so the user knows what they are duplicating
+  const meshToClone = gizmoManager.attachedMesh;
+  meshToClone.showBoundingBox = true;
+
+  blockId = meshBlockIdMap[blockKey];
+
+  document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+
+  canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
+
+  onPickMesh = function (event) {
+    const canvasRect = canvas.getBoundingClientRect();
+
+    if (eventIsOutOfCanvasBounds(event, canvasRect)) {
+      window.removeEventListener("click", onPickMesh);
+      // Clean up the mid-duplicate state
+      activeDuplicatePickHandler = null;
+      duplicateButton.classList.remove("active");
+      meshToClone.showBoundingBox = false;
+      document.body.style.cursor = "default";
+      return;
+    }
+
+    const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
+
+    const pickRay = flock.scene.createPickingRay(
+      canvasX,
+      canvasY,
+      flock.BABYLON.Matrix.Identity(),
+      flock.scene.activeCamera,
+    );
+
+    const pickResult = flock.scene.pickWithRay(
+      pickRay,
+      (mesh) => mesh.isPickable,
+    );
+
+    if (pickResult.hit) {
+      const pickedPosition = pickResult.pickedPoint;
+      const workspace = Blockly.getMainWorkspace();
+      const originalBlock = workspace.getBlockById(blockId);
+      duplicateBlockAndInsert(originalBlock, workspace, pickedPosition);
+    }
+  };
+
+  // Store a reference to this listener so we can get rid of it
+  // if they abort half way through a duplication
+  activeDuplicatePickHandler = onPickMesh;
+
+  // Use setTimeout to defer listener setup
+  setTimeout(() => {
+    window.addEventListener("click", onPickMesh);
+  }, 50);
+
+  // Keyboard mode: use canvas circle to place the duplicate
+  setTimeout(() => {
+    startCanvasKeyboardMode(
+      (x, y) => {
+        const pickResult = flock.scene.pick(x, y, (mesh) => mesh.isPickable);
+        if (pickResult?.hit) {
+          const workspace = Blockly.getMainWorkspace();
+          const originalBlock = workspace.getBlockById(blockId);
+          duplicateBlockAndInsert(
+            originalBlock,
+            workspace,
+            pickResult.pickedPoint,
+          );
+        }
+      },
+      false,
+      (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit,
+    );
+    flock.scene.defaultCursor = "crosshair";
+  }, 0);
+}
+
 // Clean up after picking
 function cleanupScenePick() {
   if (activePick) {
@@ -1440,96 +1530,30 @@ function handleSelectGizmo() {
 // Duplicate: Create a copy of the selected mesh and its corresponding block,
 // and allow the user to place it by clicking on the canvas
 function handleDuplicateGizmo() {
-  let blockKey, blockId, canvas, onPickMesh;
+  // Set button active state
+  const duplicateButton = document.getElementById("duplicateButton");
+  duplicateButton.classList.add("active");
+
+  // Check if mesh already selected, if not prompt to select
   if (!gizmoManager.attachedMesh) {
     flock.printText({
       text: translate("select_mesh_duplicate_prompt"),
       duration: 30,
       color: "black",
     });
+    pickMeshFromScene((pickedMesh) => {
+      if (!pickedMesh || pickedMesh.name === "ground") {
+        exitGizmoState();
+        return;
+      }
+      gizmoManager.attachToMesh(pickedMesh);
+      startDuplicatePlacement();
+    });
     return;
   }
-  blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
-    ?.blockKey;
 
-  // Make sure that if there is already a selected mesh
-  // its bounding box is visible so the user knows what they are duplicating
-  const meshToClone = gizmoManager.attachedMesh;
-  meshToClone.showBoundingBox = true;
-
-  // Highlight the duplicate button until the clone is placed
-  const duplicateButton = document.getElementById("duplicateButton");
-  duplicateButton.classList.add("active");
-
-  blockId = meshBlockIdMap[blockKey];
-
-  document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
-
-  canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
-
-  onPickMesh = function (event) {
-    const canvasRect = canvas.getBoundingClientRect();
-
-    if (eventIsOutOfCanvasBounds(event, canvasRect)) {
-      window.removeEventListener("click", onPickMesh);
-      // Clean up the mid-duplicate state
-      activeDuplicatePickHandler = null;
-      duplicateButton.classList.remove("active");
-      meshToClone.showBoundingBox = false;
-      document.body.style.cursor = "default";
-      return;
-    }
-
-    const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
-
-    const pickRay = flock.scene.createPickingRay(
-      canvasX,
-      canvasY,
-      flock.BABYLON.Matrix.Identity(),
-      flock.scene.activeCamera,
-    );
-
-    const pickResult = flock.scene.pickWithRay(
-      pickRay,
-      (mesh) => mesh.isPickable,
-    );
-
-    if (pickResult.hit) {
-      const pickedPosition = pickResult.pickedPoint;
-      const workspace = Blockly.getMainWorkspace();
-      const originalBlock = workspace.getBlockById(blockId);
-      duplicateBlockAndInsert(originalBlock, workspace, pickedPosition);
-    }
-  };
-
-  // Store a reference to this listener so we can get rid of it
-  // if they abort half way through a duplication
-  activeDuplicatePickHandler = onPickMesh;
-
-  // Use setTimeout to defer listener setup
-  setTimeout(() => {
-    window.addEventListener("click", onPickMesh);
-  }, 50);
-
-  // Keyboard mode: use canvas circle to place the duplicate
-  setTimeout(() => {
-    startCanvasKeyboardMode(
-      (x, y) => {
-        const pickResult = flock.scene.pick(x, y, (mesh) => mesh.isPickable);
-        if (pickResult?.hit) {
-          const workspace = Blockly.getMainWorkspace();
-          const originalBlock = workspace.getBlockById(blockId);
-          duplicateBlockAndInsert(
-            originalBlock,
-            workspace,
-            pickResult.pickedPoint,
-          );
-        }
-      },
-      false,
-      (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit,
-    );
-  }, 0);
+  // Place the duplicate
+  startDuplicatePlacement();
 }
 
 // Delete: Remove the selected mesh and its corresponding block
