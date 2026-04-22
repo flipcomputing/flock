@@ -1,5 +1,5 @@
 import { translate } from "../main/translation.js";
-import { disableGizmos } from "./gizmos.js";
+import { exitGizmoState } from "./gizmos.js";
 
 const COLOR_PALETTES = {
   Bright: [
@@ -222,7 +222,7 @@ class CustomColorPicker {
     if (!(cssW > 0 && cssH > 0)) return;
 
     const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 100, l: 60 };
-    
+
     const g = this.lightCtx.createLinearGradient(0, 0, 0, cssH);
     g.addColorStop(0, `hsl(${hsl.h}, ${hsl.s}%, ${L_MAX}%)`);
     g.addColorStop(
@@ -1846,7 +1846,7 @@ class CustomColorPicker {
   }
 
   open(color = this.currentColor) {
-    disableGizmos();
+    exitGizmoState();
 
     // Show first so layout has real sizes
     this.container.style.display = "block";
@@ -1854,6 +1854,21 @@ class CustomColorPicker {
     this.container.style.pointerEvents = "auto";
     this.isOpen = true;
     document.body.classList.add("color-picker-open");
+    document.getElementById("colorPickerButton")?.classList.add("active");
+
+    // Add P shortcut to pick current colour
+    if (document._colorPickerShortcut) {
+      document.removeEventListener("keydown", document._colorPickerShortcut);
+    }
+    document._colorPickerShortcut = (e) => {
+      if (e.key !== "p" && e.key !== "P") return;
+      const tag = (e.target?.tagName || "").toLowerCase();
+      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable)
+        return;
+      e.preventDefault();
+      this.container.querySelector(".color-picker-use")?.click();
+    };
+    document.addEventListener("keydown", document._colorPickerShortcut);
 
     // --- Positioning (unchanged) ---
     const colorButton = document.getElementById("colorPickerButton");
@@ -2062,8 +2077,11 @@ class CustomColorPicker {
     this.container.style.display = "none";
     this.isOpen = false;
     document.body.classList.remove("color-picker-open");
+    document.getElementById("colorPickerButton")?.classList.remove("active");
     document.removeEventListener("click", this.outsideClickHandler, true);
     window.removeEventListener("keydown", this.globalEscapeHandler, true);
+    document.removeEventListener("keydown", document._colorPickerShortcut);
+    document._colorPickerShortcut = null;
   }
 
   confirmColor() {

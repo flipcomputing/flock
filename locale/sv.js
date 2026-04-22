@@ -1059,7 +1059,7 @@ export default {
   position_button_ui: "Positionera objekt",
   rotation_button_ui: "Rotera objekt",
   scale_button_ui: "Skala objekt-storlek",
-  hide_button_ui: "Välj objekt",
+  select_button_ui: "Välj objekt",
   duplicate_button_ui: "Duplicera valt objekt",
   delete_button_ui: "Radera valt objekt",
   camera_button_ui: "Kamerakontroller",
@@ -1144,9 +1144,9 @@ export default {
   xr_mode_message: "XR-läge!",
   fly_camera_instructions:
     "ℹ️ Flygkamera, använd piltangenterna och Page Up/Down",
-  select_mesh_delete_prompt: "⚠️ Välj ett objekt och klicka sedan på ta bort.",
+  select_mesh_delete_prompt: "ℹ️ Klicka på ett objekt för att ta bort det.",
   select_mesh_duplicate_prompt:
-    "⚠️ Välj ett objekt och klicka på duplicera, klicka sedan för att placera kopior.",
+    "ℹ️ Välj ett objekt att duplicera och klicka sedan för att placera kopior.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "Färgväljaren stöds inte i den här webbläsaren. Prova Chrome eller Edge.",

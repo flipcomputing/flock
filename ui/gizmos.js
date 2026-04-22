@@ -26,6 +26,7 @@ import {
 import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
+  getCanvasCircle,
 } from "./canvas-utils.js";
 import { createAxisKeyboardHandler } from "./axis-keyboard.js";
 import { cleanup } from "manifold-3d/lib/animation.js";
@@ -70,6 +71,33 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener(
     "keydown",
     (e) => {
+      // If they press Tab while a gizmo button
+      // is active, exit the gizmo state
+      if (e.key === "Tab" && document.querySelector(".gizmo-button.active")) {
+        e.preventDefault();
+        exitGizmoState();
+      }
+
+      // Handle Delete key to delete selected mesh
+      if (e.key === "Delete" && gizmoManager?.attachedMesh) {
+        const t = e.target;
+        const tag = (t?.tagName || "").toLowerCase();
+        if (
+          !t?.isContentEditable &&
+          tag !== "input" &&
+          tag !== "textarea" &&
+          tag !== "select"
+        ) {
+          if (Blockly.getMainWorkspace()?.getInjectionDiv()?.contains(t))
+            return;
+          e.stopPropagation();
+          const blockKey = findParentWithBlockId(gizmoManager.attachedMesh)
+            ?.metadata?.blockKey;
+          deleteBlockWithUndo(meshBlockIdMap[blockKey]);
+          return;
+        }
+      }
+
       // Only plain Esc (no modifiers)
       if (e.key !== "Escape" || e.ctrlKey || e.altKey || e.metaKey) return;
 
@@ -87,18 +115,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // If gizmos are on, disable them
       try {
-        // If they are mid-duplicate, clean up that state and UI
-        if (activeDuplicatePickHandler) {
-          window.removeEventListener("click", activeDuplicatePickHandler);
-          activeDuplicatePickHandler = null;
-          document
-            .getElementById("duplicateButton")
-            ?.classList.remove("active");
-          // Clean up mid-transform state if relevant
-          stopAxisKeyboard?.();
-          stopAxisKeyboard = null;
-        }
-        disableGizmos();
+        exitGizmoState();
+        gizmoManager?.attachToMesh(null);
       } catch {
         // fail-safe: still attempt to disable
         disableGizmos?.();
@@ -191,7 +209,7 @@ function pickMeshFromCanvas() {
       stopCanvasKeyboardMode();
       // restore cursors
       document.body.style.cursor = "default";
-      canvas.style.cursor = "auto";
+      flock.scene.defaultCursor = "";
       return;
     }
 
@@ -512,7 +530,7 @@ function getScaledSize(mesh) {
 }
 
 // Clean up gizmo state if aborted
-function exitGizmoState() {
+export function exitGizmoState() {
   cleanupScenePick(); // Stop picking
 
   // Properly clean up if duplicating
@@ -708,14 +726,14 @@ function updateRotationBlock(mesh) {
 }
 
 // Pick a mesh (used by multiple gizmos)
-function pickMeshFromScene(onPicked) {
+function pickMeshFromScene(onPicked, persistent = false) {
   cleanupScenePick(); // Stop picking
   resetAttachedMesh();
 
   const pointerObservable = flock.scene.onPointerObservable;
   const pointerObserver = pointerObservable.add((event) => {
     if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
-      cleanupScenePick();
+      if (!persistent) cleanupScenePick();
       onPicked(event.pickInfo.pickedMesh, event.pickInfo.pickedPoint);
     }
   });
@@ -726,7 +744,7 @@ function pickMeshFromScene(onPicked) {
     startCanvasKeyboardMode(
       (x, y) => {
         const pick = flock.scene.pick(x, y);
-        cleanupScenePick();
+        if (!persistent) cleanupScenePick();
         onPicked(pick?.pickedMesh, pick?.pickedPoint);
       },
       false,
@@ -735,6 +753,7 @@ function pickMeshFromScene(onPicked) {
           ?.hit,
     );
     document.body.style.cursor = "crosshair";
+    flock.scene.defaultCursor = "crosshair";
   }, 0);
 }
 
@@ -910,6 +929,116 @@ function updateScaleBlock(mesh, originalBottomY = null) {
   }
 }
 
+function startDuplicatePlacement() {
+  let blockKey, blockId, canvas, onPickMesh;
+  if (!gizmoManager.attachedMesh) {
+    flock.printText({
+      text: translate("select_mesh_duplicate_prompt"),
+      duration: 30,
+      color: "black",
+    });
+    return;
+  }
+  blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
+    ?.blockKey;
+
+  // Make sure that if there is already a selected mesh
+  // its bounding box is visible so the user knows what they are duplicating
+  const meshToClone = gizmoManager.attachedMesh;
+  meshToClone.showBoundingBox = true;
+
+  blockId = meshBlockIdMap[blockKey];
+
+  document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+
+  canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
+
+  onPickMesh = function (event) {
+    const canvasRect = canvas.getBoundingClientRect();
+
+    if (eventIsOutOfCanvasBounds(event, canvasRect)) {
+      window.removeEventListener("click", onPickMesh);
+      meshToClone.showBoundingBox = false;
+      exitGizmoState();
+      return;
+    }
+
+    const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
+
+    const pickRay = flock.scene.createPickingRay(
+      canvasX,
+      canvasY,
+      flock.BABYLON.Matrix.Identity(),
+      flock.scene.activeCamera,
+    );
+
+    const pickResult = flock.scene.pickWithRay(
+      pickRay,
+      (mesh) => mesh.isPickable,
+    );
+
+    if (pickResult.hit) {
+      const pickedPosition = pickResult.pickedPoint;
+      const workspace = Blockly.getMainWorkspace();
+      const originalBlock = workspace.getBlockById(blockId);
+      // If they deleted the original block while picking, exit gracefully
+      if (!originalBlock) {
+        meshToClone.showBoundingBox = false;
+        exitGizmoState();
+        return;
+      }
+      // Otherwise carry on adding the new block
+      const newBlock = duplicateBlockAndInsert(
+        originalBlock,
+        workspace,
+        pickedPosition,
+      );
+      if (newBlock) {
+        highlightBlockById(workspace, newBlock);
+      }
+    }
+  };
+
+  // Store a reference to this listener so we can get rid of it
+  // if they abort half way through a duplication
+  activeDuplicatePickHandler = onPickMesh;
+
+  // Use setTimeout to defer listener setup
+  setTimeout(() => {
+    window.addEventListener("click", onPickMesh);
+  }, 50);
+
+  // Keyboard mode: use canvas circle to place the duplicate
+  setTimeout(() => {
+    startCanvasKeyboardMode(
+      (x, y) => {
+        const pickResult = flock.scene.pick(x, y, (mesh) => mesh.isPickable);
+        if (pickResult?.hit) {
+          const workspace = Blockly.getMainWorkspace();
+          const originalBlock = workspace.getBlockById(blockId);
+          // If they deleted the original block while picking, exit gracefully
+          if (!originalBlock) {
+            meshToClone.showBoundingBox = false;
+            exitGizmoState();
+            return;
+          }
+          const newBlock = duplicateBlockAndInsert(
+            originalBlock,
+            workspace,
+            pickResult.pickedPoint,
+          );
+          if (newBlock) {
+            highlightBlockById(workspace, newBlock);
+          }
+        }
+      },
+      false,
+      (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit,
+    );
+    flock.scene.defaultCursor = "crosshair";
+  }, 0);
+}
+
 // Clean up after picking
 function cleanupScenePick() {
   if (activePick) {
@@ -918,6 +1047,7 @@ function cleanupScenePick() {
   }
   stopCanvasKeyboardMode();
   document.body.style.cursor = "default";
+  if (flock.scene) flock.scene.defaultCursor = "default";
 }
 
 // Add to list of cleanup we need to run
@@ -961,11 +1091,7 @@ export function toggleGizmo(gizmoType) {
     return;
   }
 
-  // If they were mid-transform, clean up
-  stopAxisKeyboard?.();
-  stopAxisKeyboard = null;
-
-  disableGizmos();
+  exitGizmoState(); // Clean up any existing gizmo state
   resetAttachedMeshIfMeshAttached();
 
   document.body.style.cursor = "default";
@@ -1388,6 +1514,7 @@ function handleBoundsGizmo() {
 // Select: Allow the user to select a mesh by clicking on it
 function handleSelectGizmo() {
   gizmoManager.selectGizmoEnabled = true;
+  document.getElementById("selectButton")?.classList.add("active");
 
   function applySelection(pickedMesh, pickedPoint) {
     if (pickedMesh && pickedMesh.name !== "ground") {
@@ -1429,122 +1556,84 @@ function handleSelectGizmo() {
         gizmoManager.attachToMesh(null);
       }
     }
+    setTimeout(() => {
+      if (!getCanvasCircle()) document.body.style.cursor = "crosshair";
+    }, 0);
   }
 
   // Use helper function to pick the mesh
-  pickMeshFromScene(applySelection);
+  pickMeshFromScene(applySelection, true);
 }
 
 // Duplicate: Create a copy of the selected mesh and its corresponding block,
 // and allow the user to place it by clicking on the canvas
 function handleDuplicateGizmo() {
-  let blockKey, blockId, canvas, onPickMesh;
+  // Set button active state
+  const duplicateButton = document.getElementById("duplicateButton");
+  duplicateButton.classList.add("active");
+
+  // Check if mesh already selected, if not prompt to select
   if (!gizmoManager.attachedMesh) {
     flock.printText({
       text: translate("select_mesh_duplicate_prompt"),
       duration: 30,
       color: "black",
     });
+    pickMeshFromScene((pickedMesh) => {
+      if (!pickedMesh || pickedMesh.name === "ground") {
+        exitGizmoState();
+        return;
+      }
+      gizmoManager.attachToMesh(pickedMesh);
+      startDuplicatePlacement();
+    });
     return;
   }
-  blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
-    ?.blockKey;
 
-  // Make sure that if there is already a selected mesh
-  // its bounding box is visible so the user knows what they are duplicating
-  const meshToClone = gizmoManager.attachedMesh;
-  meshToClone.showBoundingBox = true;
-
-  // Highlight the duplicate button until the clone is placed
-  const duplicateButton = document.getElementById("duplicateButton");
-  duplicateButton.classList.add("active");
-
-  blockId = meshBlockIdMap[blockKey];
-
-  document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
-
-  canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
-
-  onPickMesh = function (event) {
-    const canvasRect = canvas.getBoundingClientRect();
-
-    if (eventIsOutOfCanvasBounds(event, canvasRect)) {
-      window.removeEventListener("click", onPickMesh);
-      // Clean up the mid-duplicate state
-      activeDuplicatePickHandler = null;
-      duplicateButton.classList.remove("active");
-      meshToClone.showBoundingBox = false;
-      document.body.style.cursor = "default";
-      return;
-    }
-
-    const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
-
-    const pickRay = flock.scene.createPickingRay(
-      canvasX,
-      canvasY,
-      flock.BABYLON.Matrix.Identity(),
-      flock.scene.activeCamera,
-    );
-
-    const pickResult = flock.scene.pickWithRay(
-      pickRay,
-      (mesh) => mesh.isPickable,
-    );
-
-    if (pickResult.hit) {
-      const pickedPosition = pickResult.pickedPoint;
-      const workspace = Blockly.getMainWorkspace();
-      const originalBlock = workspace.getBlockById(blockId);
-      duplicateBlockAndInsert(originalBlock, workspace, pickedPosition);
-    }
-  };
-
-  // Store a reference to this listener so we can get rid of it
-  // if they abort half way through a duplication
-  activeDuplicatePickHandler = onPickMesh;
-
-  // Use setTimeout to defer listener setup
-  setTimeout(() => {
-    window.addEventListener("click", onPickMesh);
-  }, 50);
-
-  // Keyboard mode: use canvas circle to place the duplicate
-  setTimeout(() => {
-    startCanvasKeyboardMode(
-      (x, y) => {
-        const pickResult = flock.scene.pick(x, y, (mesh) => mesh.isPickable);
-        if (pickResult?.hit) {
-          const workspace = Blockly.getMainWorkspace();
-          const originalBlock = workspace.getBlockById(blockId);
-          duplicateBlockAndInsert(
-            originalBlock,
-            workspace,
-            pickResult.pickedPoint,
-          );
-        }
-      },
-      false,
-      (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit,
-    );
-  }, 0);
+  // Place the duplicate
+  startDuplicatePlacement();
 }
 
 // Delete: Remove the selected mesh and its corresponding block
 function handleDeleteGizmo() {
-  let blockKey, blockId;
-  if (!gizmoManager.attachedMesh) {
-    flock.printText({
-      text: translate("select_mesh_delete_prompt"),
-      duration: 30,
-      color: "black",
-    });
+  // Highlight the button
+  document.getElementById("deleteButton")?.classList.add("active");
+
+  function applyDelete(pickedMesh) {
+    if (!pickedMesh || pickedMesh.name === "ground") {
+      if (
+        document.getElementById("deleteButton")?.classList.contains("active")
+      ) {
+        pickMeshFromScene(applyDelete, false);
+      }
+      return;
+    }
+    const blockKey = findParentWithBlockId(pickedMesh)?.metadata?.blockKey;
+    const blockId = meshBlockIdMap[blockKey];
+    deleteBlockWithUndo(blockId);
+    setTimeout(() => {
+      if (
+        document.getElementById("deleteButton")?.classList.contains("active")
+      ) {
+        pickMeshFromScene(applyDelete, false);
+      }
+    }, 0);
+  }
+
+  // If a mesh selected, delete it instantly
+  if (gizmoManager.attachedMesh) {
+    applyDelete(gizmoManager.attachedMesh);
     return;
   }
-  blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
-    ?.blockKey;
-  blockId = meshBlockIdMap[blockKey];
-  deleteBlockWithUndo(blockId);
+
+  // Explain how to delete
+  flock.printText({
+    text: translate("select_mesh_delete_prompt"),
+    duration: 30,
+    color: "black",
+  });
+
+  pickMeshFromScene(applyDelete);
 }
 
 // Camera: Toggle between play and fly camera modes
@@ -1565,7 +1654,7 @@ function handleCameraGizmo() {
   }
 
   const currentCamera = flock.scene.activeCamera;
-  console.log("Camera", flock.savedCamera);
+
   flock.scene.activeCamera = flock.savedCamera;
   flock.savedCamera = currentCamera;
   // Focus the canvas so you can use the camera controls
@@ -1643,7 +1732,7 @@ export function enableGizmos() {
   const positionButton = document.getElementById("positionButton");
   const rotationButton = document.getElementById("rotationButton");
   const scaleButton = document.getElementById("scaleButton");
-  const hideButton = document.getElementById("hideButton");
+  const selectButton = document.getElementById("selectButton");
   const duplicateButton = document.getElementById("duplicateButton");
   const deleteButton = document.getElementById("deleteButton");
   const cameraButton = document.getElementById("cameraButton");
@@ -1676,7 +1765,7 @@ export function enableGizmos() {
     positionButton,
     rotationButton,
     scaleButton,
-    hideButton,
+    selectButton,
     duplicateButton,
     deleteButton,
     cameraButton,
@@ -1695,7 +1784,7 @@ export function enableGizmos() {
     positionButton,
     rotationButton,
     scaleButton,
-    hideButton,
+    selectButton,
     duplicateButton,
     deleteButton,
     cameraButton,
@@ -1714,11 +1803,14 @@ export function enableGizmos() {
   positionButton.addEventListener("click", () => toggleGizmo("position"));
   rotationButton.addEventListener("click", () => toggleGizmo("rotation"));
   scaleButton.addEventListener("click", () => toggleGizmo("scale"));
-  hideButton.addEventListener("click", () => toggleGizmo("select"));
+  selectButton.addEventListener("click", () => toggleGizmo("select"));
   cameraButton.addEventListener("click", () => toggleGizmo("camera"));
   duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
   deleteButton.addEventListener("click", () => toggleGizmo("delete"));
-  showShapesButton.addEventListener("click", window.showShapes);
+  showShapesButton.addEventListener("click", () => {
+    exitGizmoState(); // Unhighlight other buttons
+    window.showShapes();
+  });
   scrollModelsLeftButton.addEventListener("click", () =>
     window.scrollModels(-1),
   );
@@ -1825,6 +1917,8 @@ export function setGizmoManager(value) {
 }
 
 export function disposeGizmoManager() {
+  exitGizmoState(); // Clear up gizmo state and event listeners
+  if (cameraMode === "fly") cameraMode = "play"; // Reset camera mode
   if (gizmoManager) {
     gizmoManager.dispose();
     gizmoManager = null; // Clear the global reference for garbage collection

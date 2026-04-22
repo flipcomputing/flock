@@ -1079,7 +1079,7 @@ export default {
   position_button_ui: "Posiziona oggetto",
   rotation_button_ui: "Ruota oggetto",
   scale_button_ui: "Scal'oggetto",
-  hide_button_ui: "Seleziona oggetto",
+  select_button_ui: "Seleziona oggetto",
   duplicate_button_ui: "Duplica oggetto selezionato",
   delete_button_ui: "Elimina oggetto selezionato",
   camera_button_ui: "Controlli camera",
@@ -1163,10 +1163,9 @@ export default {
   runtime_error_message: "Errore: {message}",
   xr_mode_message: "Modalità XR!",
   fly_camera_instructions: "ℹ️ Telecamera volante, usa le frecce e Pag su/giù",
-  select_mesh_delete_prompt:
-    "⚠️ Seleziona un oggetto e poi fai clic su elimina.",
+  select_mesh_delete_prompt: "ℹ️ Clicca su un oggetto per eliminarlo.",
   select_mesh_duplicate_prompt:
-    "⚠️ Seleziona un oggetto, fai clic su duplica e poi fai clic per posizionare le copie.",
+    "ℹ️ Seleziona un oggetto da duplicare, quindi fai clic per posizionare le copie.",
   position_readout: "Posizione: {position}",
   eyedropper_not_supported_alert:
     "Lo strumento contagocce non è supportato in questo browser. Prova a usare Chrome o Edge.",

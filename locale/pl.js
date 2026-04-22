@@ -1077,7 +1077,7 @@ export default {
   position_button_ui: "Ustaw pozycję obiektu",
   rotation_button_ui: "Obróć obiekt",
   scale_button_ui: "Zmień skalę obiektu",
-  hide_button_ui: "Wybierz obiekt",
+  select_button_ui: "Wybierz obiekt",
   duplicate_button_ui: "Duplikuj wybrany obiekt",
   delete_button_ui: "Usuń wybrany obiekt",
   camera_button_ui: "Kontrola kamery",
@@ -1161,9 +1161,9 @@ export default {
   xr_mode_message: "Tryb XR!",
   fly_camera_instructions:
     "ℹ️ Kamera lotu, użyj klawiszy strzałek i Page Up/Down",
-  select_mesh_delete_prompt: "⚠️ Wybierz obiekt, a następnie kliknij usuń.",
+  select_mesh_delete_prompt: "ℹ️ Kliknij obiekt, aby go usunąć.",
   select_mesh_duplicate_prompt:
-    "⚠️ Wybierz obiekt, kliknij duplikuj, a potem kliknij, aby umieścić kopie.",
+    "ℹ️ Wybierz obiekt do powielenia, a następnie kliknij, aby umieścić kopie.",
   position_readout: "Pozycja: {position}",
   eyedropper_not_supported_alert:
     "Narzędzie próbnika kolorów nie jest obsługiwane w tej przeglądarce. Spróbuj użyć Chrome lub Edge.",

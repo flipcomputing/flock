@@ -1074,7 +1074,7 @@ export default {
   position_button_ui: "Position object",
   rotation_button_ui: "Rotate object",
   scale_button_ui: "Scale object size",
-  hide_button_ui: "Select object",
+  select_button_ui: "Select object",
   duplicate_button_ui: "Duplicate selected object",
   delete_button_ui: "Delete selected object",
   camera_button_ui: "Camera controls",
@@ -1157,9 +1157,9 @@ export default {
   runtime_error_message: "Error: {message}",
   xr_mode_message: "XR Mode!",
   fly_camera_instructions: "ℹ️ Fly camera, use arrow keys and page up/down",
-  select_mesh_delete_prompt: "⚠️ Select an object then click delete.",
+  select_mesh_delete_prompt: "ℹ️ Click an object to delete it.",
   select_mesh_duplicate_prompt:
-    "⚠️ Select an object then click duplicate, then click to place copies.",
+    "ℹ️ Select an object to duplicate, then click to place copies.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "Color picker tool is not supported in this browser. Try using Chrome or Edge.",

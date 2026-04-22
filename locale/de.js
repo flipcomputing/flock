@@ -1082,7 +1082,7 @@ export default {
   position_button_ui: "Positionieren",
   rotation_button_ui: "Rotieren",
   scale_button_ui: "Skalieren",
-  hide_button_ui: "Objekt auswählen",
+  select_button_ui: "Objekt auswählen",
   duplicate_button_ui: "Duplizieren",
   delete_button_ui: "Löschen",
   camera_button_ui: "Kamera-Steuerung",
@@ -1147,10 +1147,9 @@ export default {
   runtime_error_message: "Fehler: {message}",
   xr_mode_message: "XR-Modus!",
   fly_camera_instructions: "ℹ️ Flugkamera, nutze Pfeiltasten und Bild auf/ab",
-  select_mesh_delete_prompt:
-    "⚠️ Wähle ein Objekt aus und klicke dann auf Löschen.",
+  select_mesh_delete_prompt: "ℹ️ Klicke auf ein Objekt, um es zu löschen.",
   select_mesh_duplicate_prompt:
-    "⚠️ Wähle ein Objekt aus, klicke auf Duplizieren und klicke dann, um Kopien zu platzieren.",
+    "ℹ️ Wähle ein Objekt zum Duplizieren aus und klicke dann, um Kopien zu platzieren.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "Das Pipettenwerkzeug wird in diesem Browser nicht unterstützt. Versuche es mit Chrome oder Edge.",

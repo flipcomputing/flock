@@ -151,7 +151,8 @@ export default {
     "rotar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿invertir? %7 ¿repetir? %8 %9", // human
   rotate_anim_seconds:
     "rotar %1 a x %2 y %3 z %4 en %5 segundos\n%6 ¿invertir? %7 ¿repetir? %8 %9", // human
-  rotate_to_object: "rotar %1 %2 %3 en %4 segundos\n%5 ¿invertir? %6 ¿repetir? %7 %8", // human
+  rotate_to_object:
+    "rotar %1 %2 %3 en %4 segundos\n%5 ¿invertir? %6 ¿repetir? %7 %8", // human
   animate_property: "animar %1 %2 a %3 en %4 ms ¿invertir? %5 ¿repetir? %6 %7", // human
   colour_keyframe: "en %1 color: %2", // human
   number_keyframe: "en: %1 valor: %2", // human
@@ -830,7 +831,7 @@ export default {
   errorInvalid_option: "error", // human
   successConfirmation_option: "éxito", // human
   slidingGravel_option: "deslizar grava", // human
-  slidingMetal_option: "deslizar metal", // human 
+  slidingMetal_option: "deslizar metal", // human
   machineRunning_option: "máquina", // human
   explosion_option: "explosión", // human
   teleport_option: "teletransportar", // human
@@ -920,7 +921,7 @@ export default {
   sound_laser1_option: "Láser 1", // human
   sound_laser2_option: "Láser 2", // human
   sound_laser3_option: "Láser 3", // human
-  sound_lowDown_option: "Tono Bajo Descendente", // human 
+  sound_lowDown_option: "Tono Bajo Descendente", // human
   sound_lowRandom_option: "Tono Bajo Aleatorio", // human
   sound_lowThreeTone_option: "Tono Bajo Tres", // human
   sound_phaseJump1_option: "Salto de Fase 1", // human
@@ -1080,7 +1081,7 @@ export default {
   position_button_ui: "Posicionar objeto", // human
   rotation_button_ui: "Rotar objeto", // human
   scale_button_ui: "Escalar tamaño de objeto", // human
-  hide_button_ui: "Seleccionar objeto", // human
+  select_button_ui: "Seleccionar objeto", // human
   duplicate_button_ui: "Duplicar objeto seleccionado", // human
   delete_button_ui: "Eliminar objeto seleccionado", // human
   camera_button_ui: "Controles de cámara", // human
@@ -1166,10 +1167,9 @@ export default {
   runtime_error_message: "Error: {mensaje}", // human
   xr_mode_message: "¡Modo XR!", // human
   fly_camera_instructions: "ℹ️ Cámara en vuelo, usa las flechas y Page Up/Down", // human
-  select_mesh_delete_prompt:
-    "⚠️ Selecciona un objeto y luego haz clic en eliminar.", // human
+  select_mesh_delete_prompt: "ℹ️ Haz clic en un objeto para eliminarlo.", // Google translate
   select_mesh_duplicate_prompt:
-    "⚠️ Selecciona un objeto y haz clic en duplicar, luego haz clic para colocar las copias.", // human
+    "ℹ️ Selecciona un objeto para duplicar, luego haz clic para colocar las copias.", // Google (had to update it)
   position_readout: "Posición: {Posición}", // human
   eyedropper_not_supported_alert:
     "El selector de colores no es compatible con este navegador. Prueba con Chrome o Edge.", // human
@@ -1197,7 +1197,7 @@ export default {
   dark_contrast_theme_ui: "Oscuro", // human
 
   // Attachment point options
-  LeftHand_option: "Mano izquierda", // human 
+  LeftHand_option: "Mano izquierda", // human
   RightHand_option: "Mano derecha", // human
   Head_option: "Cabeza", // human
   Hips_option: "Caderas", // human

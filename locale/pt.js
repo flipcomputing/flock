@@ -1069,7 +1069,7 @@ export default {
   position_button_ui: "Posicionar o objeto",
   rotation_button_ui: "Rodar o objeto",
   scale_button_ui: "Escalar o tamanho do objeto",
-  hide_button_ui: "Selecionar objeto",
+  select_button_ui: "Selecionar objeto",
   duplicate_button_ui: "Duplicar o objeto selecionado",
   delete_button_ui: "Eliminar o objeto selecionado",
   camera_button_ui: "Controlos da câmara",
@@ -1153,9 +1153,9 @@ export default {
   runtime_error_message: "Erro: {message}",
   xr_mode_message: "Modo XR!",
   fly_camera_instructions: "ℹ️ Câmera de voo, use as setas e Page Up/Down",
-  select_mesh_delete_prompt: "⚠️ Selecione um objeto e clique em apagar.",
+  select_mesh_delete_prompt: "ℹ️ Clique em um objeto para excluí-lo.",
   select_mesh_duplicate_prompt:
-    "⚠️ Selecione um objeto, clique em duplicar e depois clique para posicionar as cópias.",
+    "ℹ️ Selecione um objeto para duplicar, depois clique para posicionar as cópias.",
   position_readout: "Posição: {position}",
   eyedropper_not_supported_alert:
     "A ferramenta conta-gotas não é suportada neste navegador. Tente usar o Chrome ou Edge.",
