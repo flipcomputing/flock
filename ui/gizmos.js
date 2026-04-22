@@ -26,6 +26,7 @@ import {
 import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
+  getCanvasCircle,
 } from "./canvas-utils.js";
 import { createAxisKeyboardHandler } from "./axis-keyboard.js";
 import { cleanup } from "manifold-3d/lib/animation.js";
@@ -87,18 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // If gizmos are on, disable them
       try {
-        // If they are mid-duplicate, clean up that state and UI
-        if (activeDuplicatePickHandler) {
-          window.removeEventListener("click", activeDuplicatePickHandler);
-          activeDuplicatePickHandler = null;
-          document
-            .getElementById("duplicateButton")
-            ?.classList.remove("active");
-          // Clean up mid-transform state if relevant
-          stopAxisKeyboard?.();
-          stopAxisKeyboard = null;
-        }
-        disableGizmos();
+        exitGizmoState();
       } catch {
         // fail-safe: still attempt to disable
         disableGizmos?.();
@@ -708,14 +698,14 @@ function updateRotationBlock(mesh) {
 }
 
 // Pick a mesh (used by multiple gizmos)
-function pickMeshFromScene(onPicked) {
+function pickMeshFromScene(onPicked, persistent = false) {
   cleanupScenePick(); // Stop picking
   resetAttachedMesh();
 
   const pointerObservable = flock.scene.onPointerObservable;
   const pointerObserver = pointerObservable.add((event) => {
     if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
-      cleanupScenePick();
+      if (!persistent) cleanupScenePick();
       onPicked(event.pickInfo.pickedMesh, event.pickInfo.pickedPoint);
     }
   });
@@ -726,7 +716,7 @@ function pickMeshFromScene(onPicked) {
     startCanvasKeyboardMode(
       (x, y) => {
         const pick = flock.scene.pick(x, y);
-        cleanupScenePick();
+        if (!persistent) cleanupScenePick();
         onPicked(pick?.pickedMesh, pick?.pickedPoint);
       },
       false,
@@ -1388,6 +1378,7 @@ function handleBoundsGizmo() {
 // Select: Allow the user to select a mesh by clicking on it
 function handleSelectGizmo() {
   gizmoManager.selectGizmoEnabled = true;
+  document.getElementById("selectButton")?.classList.add("active");
 
   function applySelection(pickedMesh, pickedPoint) {
     if (pickedMesh && pickedMesh.name !== "ground") {
@@ -1429,10 +1420,13 @@ function handleSelectGizmo() {
         gizmoManager.attachToMesh(null);
       }
     }
+    setTimeout(() => {
+      if (!getCanvasCircle()) document.body.style.cursor = "crosshair";
+    }, 0);
   }
 
   // Use helper function to pick the mesh
-  pickMeshFromScene(applySelection);
+  pickMeshFromScene(applySelection, true);
 }
 
 // Duplicate: Create a copy of the selected mesh and its corresponding block,
@@ -1643,7 +1637,7 @@ export function enableGizmos() {
   const positionButton = document.getElementById("positionButton");
   const rotationButton = document.getElementById("rotationButton");
   const scaleButton = document.getElementById("scaleButton");
-  const hideButton = document.getElementById("hideButton");
+  const hideButton = document.getElementById("selectButton");
   const duplicateButton = document.getElementById("duplicateButton");
   const deleteButton = document.getElementById("deleteButton");
   const cameraButton = document.getElementById("cameraButton");
@@ -1676,7 +1670,7 @@ export function enableGizmos() {
     positionButton,
     rotationButton,
     scaleButton,
-    hideButton,
+    selectButton,
     duplicateButton,
     deleteButton,
     cameraButton,
@@ -1714,7 +1708,7 @@ export function enableGizmos() {
   positionButton.addEventListener("click", () => toggleGizmo("position"));
   rotationButton.addEventListener("click", () => toggleGizmo("rotation"));
   scaleButton.addEventListener("click", () => toggleGizmo("scale"));
-  hideButton.addEventListener("click", () => toggleGizmo("select"));
+  selectButton.addEventListener("click", () => toggleGizmo("select"));
   cameraButton.addEventListener("click", () => toggleGizmo("camera"));
   duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
   deleteButton.addEventListener("click", () => toggleGizmo("delete"));

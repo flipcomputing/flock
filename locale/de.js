@@ -1082,7 +1082,7 @@ export default {
   position_button_ui: "Positionieren",
   rotation_button_ui: "Rotieren",
   scale_button_ui: "Skalieren",
-  hide_button_ui: "Objekt auswählen",
+  select_button_ui: "Objekt auswählen",
   duplicate_button_ui: "Duplizieren",
   delete_button_ui: "Löschen",
   camera_button_ui: "Kamera-Steuerung",

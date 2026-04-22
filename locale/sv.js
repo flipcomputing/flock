@@ -1059,7 +1059,7 @@ export default {
   position_button_ui: "Positionera objekt",
   rotation_button_ui: "Rotera objekt",
   scale_button_ui: "Skala objekt-storlek",
-  hide_button_ui: "Välj objekt",
+  select_button_ui: "Välj objekt",
   duplicate_button_ui: "Duplicera valt objekt",
   delete_button_ui: "Radera valt objekt",
   camera_button_ui: "Kamerakontroller",

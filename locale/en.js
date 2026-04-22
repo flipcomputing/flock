@@ -1074,7 +1074,7 @@ export default {
   position_button_ui: "Position object",
   rotation_button_ui: "Rotate object",
   scale_button_ui: "Scale object size",
-  hide_button_ui: "Select object",
+  select_button_ui: "Select object",
   duplicate_button_ui: "Duplicate selected object",
   delete_button_ui: "Delete selected object",
   camera_button_ui: "Camera controls",
