@@ -958,11 +958,8 @@ function startDuplicatePlacement() {
 
     if (eventIsOutOfCanvasBounds(event, canvasRect)) {
       window.removeEventListener("click", onPickMesh);
-      // Clean up the mid-duplicate state
-      activeDuplicatePickHandler = null;
-      duplicateButton.classList.remove("active");
       meshToClone.showBoundingBox = false;
-      document.body.style.cursor = "default";
+      exitGizmoState();
       return;
     }
 
