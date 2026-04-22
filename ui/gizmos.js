@@ -1581,19 +1581,37 @@ function handleDuplicateGizmo() {
 
 // Delete: Remove the selected mesh and its corresponding block
 function handleDeleteGizmo() {
-  let blockKey, blockId;
-  if (!gizmoManager.attachedMesh) {
-    flock.printText({
-      text: translate("select_mesh_delete_prompt"),
-      duration: 30,
-      color: "black",
-    });
+  // Highlight the button
+  document.getElementById("deleteButton")?.classList.add("active");
+
+  function applyDelete(pickedMesh) {
+    if (!pickedMesh || pickedMesh.name === "ground") return;
+    const blockKey = findParentWithBlockId(pickedMesh)?.metadata?.blockKey;
+    const blockId = meshBlockIdMap[blockKey];
+    deleteBlockWithUndo(blockId);
+    setTimeout(() => {
+      if (
+        document.getElementById("deleteButton")?.classList.contains("active")
+      ) {
+        pickMeshFromScene(applyDelete, false);
+      }
+    }, 0);
+  }
+
+  // If a mesh selected, delete it instantly
+  if (gizmoManager.attachedMesh) {
+    applyDelete(gizmoManager.attachedMesh);
     return;
   }
-  blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
-    ?.blockKey;
-  blockId = meshBlockIdMap[blockKey];
-  deleteBlockWithUndo(blockId);
+
+  // Explain how to delete
+  flock.printText({
+    text: translate("select_mesh_delete_prompt"),
+    duration: 30,
+    color: "black",
+  });
+
+  pickMeshFromScene(applyDelete);
 }
 
 // Camera: Toggle between play and fly camera modes

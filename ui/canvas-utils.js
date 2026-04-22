@@ -4,6 +4,7 @@ import { flock } from "../flock.js";
 // One circle selector can be active on the canvas at once
 let canvasCircle = null;
 let canvasCirclePosition = { x: 0, y: 0 };
+let canvasCirclePositionSet = false;
 let keyboardCursorActive = false;
 let keyboardCursorCallback = null;
 let hitChecker = null;
@@ -34,11 +35,14 @@ export function createCanvasCircle() {
   canvasCircle.tabIndex = -1;
   document.body.appendChild(canvasCircle);
 
-  // Initialize position to canvas center
-  const canvas = flock.scene.getEngine().getRenderingCanvas();
-  const canvasBounds = canvas.getBoundingClientRect();
-  canvasCirclePosition.x = canvasBounds.width / 2;
-  canvasCirclePosition.y = canvasBounds.height / 2;
+  if (!canvasCirclePositionSet) {
+    // Initialize position to canvas center
+    const canvas = flock.scene.getEngine().getRenderingCanvas();
+    const canvasBounds = canvas.getBoundingClientRect();
+    canvasCirclePosition.x = canvasBounds.width / 2;
+    canvasCirclePosition.y = canvasBounds.height / 2;
+    canvasCirclePositionSet = true;
+  }
 
   updateCanvasCirclePosition();
 }

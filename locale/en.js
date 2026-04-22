@@ -1157,7 +1157,7 @@ export default {
   runtime_error_message: "Error: {message}",
   xr_mode_message: "XR Mode!",
   fly_camera_instructions: "ℹ️ Fly camera, use arrow keys and page up/down",
-  select_mesh_delete_prompt: "⚠️ Select an object then click delete.",
+  select_mesh_delete_prompt: "ℹ️ Click an object to delete it.",
   select_mesh_duplicate_prompt:
     "ℹ️ Select an object to duplicate, then click to place copies.",
   position_readout: "Position: {position}",

@@ -1161,7 +1161,7 @@ export default {
   xr_mode_message: "Tryb XR!",
   fly_camera_instructions:
     "ℹ️ Kamera lotu, użyj klawiszy strzałek i Page Up/Down",
-  select_mesh_delete_prompt: "⚠️ Wybierz obiekt, a następnie kliknij usuń.",
+  select_mesh_delete_prompt: "ℹ️ Kliknij obiekt, aby go usunąć.",
   select_mesh_duplicate_prompt:
     "ℹ️ Wybierz obiekt do powielenia, a następnie kliknij, aby umieścić kopie.",
   position_readout: "Pozycja: {position}",

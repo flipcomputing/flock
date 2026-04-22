@@ -1144,7 +1144,7 @@ export default {
   xr_mode_message: "XR-läge!",
   fly_camera_instructions:
     "ℹ️ Flygkamera, använd piltangenterna och Page Up/Down",
-  select_mesh_delete_prompt: "⚠️ Välj ett objekt och klicka sedan på ta bort.",
+  select_mesh_delete_prompt: "ℹ️ Klicka på ett objekt för att ta bort det.",
   select_mesh_duplicate_prompt:
     "ℹ️ Välj ett objekt att duplicera och klicka sedan för att placera kopior.",
   position_readout: "Position: {position}",

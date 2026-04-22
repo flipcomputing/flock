@@ -1163,8 +1163,7 @@ export default {
   runtime_error_message: "Errore: {message}",
   xr_mode_message: "Modalità XR!",
   fly_camera_instructions: "ℹ️ Telecamera volante, usa le frecce e Pag su/giù",
-  select_mesh_delete_prompt:
-    "⚠️ Seleziona un oggetto e poi fai clic su elimina.",
+  select_mesh_delete_prompt: "ℹ️ Clicca su un oggetto per eliminarlo.",
   select_mesh_duplicate_prompt:
     "ℹ️ Seleziona un oggetto da duplicare, quindi fai clic per posizionare le copie.",
   position_readout: "Posizione: {position}",

@@ -1165,8 +1165,7 @@ export default {
   xr_mode_message: "Mode XR !",
   fly_camera_instructions:
     "ℹ️ Caméra en vol, utilisez les flèches et Page haut/bas",
-  select_mesh_delete_prompt:
-    "⚠️ Sélectionnez un objet puis cliquez sur supprimer.",
+  select_mesh_delete_prompt: "ℹ️ Cliquez sur un objet pour le supprimer.",
   select_mesh_duplicate_prompt:
     "ℹ️ Sélectionnez un objet à dupliquer, puis cliquez pour placer les copies.",
   position_readout: "Position: {position}",
