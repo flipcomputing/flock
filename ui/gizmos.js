@@ -78,6 +78,26 @@ document.addEventListener("DOMContentLoaded", function () {
         exitGizmoState();
       }
 
+      // Handle Delete key to delete selected mesh
+      if (e.key === "Delete" && gizmoManager?.attachedMesh) {
+        const t = e.target;
+        const tag = (t?.tagName || "").toLowerCase();
+        if (
+          !t?.isContentEditable &&
+          tag !== "input" &&
+          tag !== "textarea" &&
+          tag !== "select"
+        ) {
+          if (Blockly.getMainWorkspace()?.getInjectionDiv()?.contains(t))
+            return;
+          e.stopPropagation();
+          const blockKey = findParentWithBlockId(gizmoManager.attachedMesh)
+            ?.metadata?.blockKey;
+          deleteBlockWithUndo(meshBlockIdMap[blockKey]);
+          return;
+        }
+      }
+
       // Only plain Esc (no modifiers)
       if (e.key !== "Escape" || e.ctrlKey || e.altKey || e.metaKey) return;
 
@@ -733,6 +753,7 @@ function pickMeshFromScene(onPicked, persistent = false) {
           ?.hit,
     );
     document.body.style.cursor = "crosshair";
+    flock.scene.defaultCursor = "crosshair";
   }, 0);
 }
 
@@ -1029,6 +1050,7 @@ function cleanupScenePick() {
   }
   stopCanvasKeyboardMode();
   document.body.style.cursor = "default";
+  if (flock.scene) flock.scene.defaultCursor = "crosshair";
 }
 
 // Add to list of cleanup we need to run
@@ -1785,7 +1807,10 @@ export function enableGizmos() {
   cameraButton.addEventListener("click", () => toggleGizmo("camera"));
   duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
   deleteButton.addEventListener("click", () => toggleGizmo("delete"));
-  showShapesButton.addEventListener("click", window.showShapes);
+  showShapesButton.addEventListener("click", () => {
+    exitGizmoState(); // Unhighlight other buttons
+    window.showShapes();
+  });
   scrollModelsLeftButton.addEventListener("click", () =>
     window.scrollModels(-1),
   );
