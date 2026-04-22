@@ -130,9 +130,16 @@ export function stopCanvasKeyboardMode() {
   const canvas = flock.scene?.getEngine?.()?.getRenderingCanvas?.();
   if (canvas) canvas.style.cursor = "";
   document.body.style.cursor = "default";
-  // Reinstate focus to element in focus prior to entering
-  // canvas cursor mode (otherwise this is annoying for kb users)
-  previouslyFocusedElement?.focus({ preventScroll: true });
+  // Reinstate focus to prior element but only if focus
+  // is currently on the body or nothing (i.e. not on another element)
+  const currentActive = document.activeElement;
+  const focusIsOnNothing =
+    !currentActive ||
+    currentActive === document.body ||
+    currentActive.tagName?.toLowerCase() === "canvas";
+  if (focusIsOnNothing) {
+    previouslyFocusedElement?.focus({ preventScroll: true });
+  }
   previouslyFocusedElement = null;
 }
 
