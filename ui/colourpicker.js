@@ -222,7 +222,7 @@ class CustomColorPicker {
     if (!(cssW > 0 && cssH > 0)) return;
 
     const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 100, l: 60 };
-    
+
     const g = this.lightCtx.createLinearGradient(0, 0, 0, cssH);
     g.addColorStop(0, `hsl(${hsl.h}, ${hsl.s}%, ${L_MAX}%)`);
     g.addColorStop(
@@ -1854,6 +1854,7 @@ class CustomColorPicker {
     this.container.style.pointerEvents = "auto";
     this.isOpen = true;
     document.body.classList.add("color-picker-open");
+    document.getElementById("colorPickerButton")?.classList.add("active");
 
     // --- Positioning (unchanged) ---
     const colorButton = document.getElementById("colorPickerButton");
@@ -2062,6 +2063,7 @@ class CustomColorPicker {
     this.container.style.display = "none";
     this.isOpen = false;
     document.body.classList.remove("color-picker-open");
+    document.getElementById("colorPickerButton")?.classList.remove("active");
     document.removeEventListener("click", this.outsideClickHandler, true);
     window.removeEventListener("keydown", this.globalEscapeHandler, true);
   }
