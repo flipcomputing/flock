@@ -1091,11 +1091,7 @@ export function toggleGizmo(gizmoType) {
     return;
   }
 
-  // If they were mid-transform, clean up
-  stopAxisKeyboard?.();
-  stopAxisKeyboard = null;
-
-  disableGizmos();
+  exitGizmoState(); // Clean up any existing gizmo state
   resetAttachedMeshIfMeshAttached();
 
   document.body.style.cursor = "default";
