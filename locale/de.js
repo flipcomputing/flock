@@ -1149,7 +1149,7 @@ export default {
   fly_camera_instructions: "ℹ️ Flugkamera, nutze Pfeiltasten und Bild auf/ab",
   select_mesh_delete_prompt: "ℹ️ Klicke auf ein Objekt, um es zu löschen.",
   select_mesh_duplicate_prompt:
-    "ℹ️ Wähle ein Objekt auf Duplizieren und klicke dann, um Kopien zu platzieren.",
+    "ℹ️ Wähle ein Objekt zum Duplizieren aus und klicke dann, um Kopien zu platzieren.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "Das Pipettenwerkzeug wird in diesem Browser nicht unterstützt. Versuche es mit Chrome oder Edge.",
