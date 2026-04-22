@@ -1856,6 +1856,17 @@ class CustomColorPicker {
     document.body.classList.add("color-picker-open");
     document.getElementById("colorPickerButton")?.classList.add("active");
 
+    // Add P shortcut to pick current colour
+    document._colorPickerShortcut = (e) => {
+      if (e.key !== "p" && e.key !== "P") return;
+      const tag = (e.target?.tagName || "").toLowerCase();
+      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable)
+        return;
+      e.preventDefault();
+      this.container.querySelector(".color-picker-use")?.click();
+    };
+    document.addEventListener("keydown", document._colorPickerShortcut);
+
     // --- Positioning (unchanged) ---
     const colorButton = document.getElementById("colorPickerButton");
     const canvasArea = document.getElementById("canvasArea");
@@ -2066,6 +2077,8 @@ class CustomColorPicker {
     document.getElementById("colorPickerButton")?.classList.remove("active");
     document.removeEventListener("click", this.outsideClickHandler, true);
     window.removeEventListener("keydown", this.globalEscapeHandler, true);
+    document.removeEventListener("keydown", document._colorPickerShortcut);
+    document._colorPickerShortcut = null;
   }
 
   confirmColor() {
