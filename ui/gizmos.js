@@ -1604,7 +1604,14 @@ function handleDeleteGizmo() {
   document.getElementById("deleteButton")?.classList.add("active");
 
   function applyDelete(pickedMesh) {
-    if (!pickedMesh || pickedMesh.name === "ground") return;
+    if (!pickedMesh || pickedMesh.name === "ground") {
+      if (
+        document.getElementById("deleteButton")?.classList.contains("active")
+      ) {
+        pickMeshFromScene(applyDelete, false);
+      }
+      return;
+    }
     const blockKey = findParentWithBlockId(pickedMesh)?.metadata?.blockKey;
     const blockId = meshBlockIdMap[blockKey];
     deleteBlockWithUndo(blockId);
