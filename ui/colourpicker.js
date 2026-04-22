@@ -1,5 +1,5 @@
 import { translate } from "../main/translation.js";
-import { disableGizmos, exitGizmoState } from "./gizmos.js";
+import { exitGizmoState } from "./gizmos.js";
 
 const COLOR_PALETTES = {
   Bright: [
@@ -1857,6 +1857,9 @@ class CustomColorPicker {
     document.getElementById("colorPickerButton")?.classList.add("active");
 
     // Add P shortcut to pick current colour
+    if (document._colorPickerShortcut) {
+      document.removeEventListener("keydown", document._colorPickerShortcut);
+    }
     document._colorPickerShortcut = (e) => {
       if (e.key !== "p" && e.key !== "P") return;
       const tag = (e.target?.tagName || "").toLowerCase();
