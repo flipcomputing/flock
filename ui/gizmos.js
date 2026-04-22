@@ -1047,7 +1047,7 @@ function cleanupScenePick() {
   }
   stopCanvasKeyboardMode();
   document.body.style.cursor = "default";
-  if (flock.scene) flock.scene.defaultCursor = "crosshair";
+  if (flock.scene) flock.scene.defaultCursor = "default";
 }
 
 // Add to list of cleanup we need to run
