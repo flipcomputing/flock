@@ -71,6 +71,13 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener(
     "keydown",
     (e) => {
+      // If they press Tab while a gizmo button
+      // is active, exit the gizmo state
+      if (e.key === "Tab" && document.querySelector(".gizmo-button.active")) {
+        e.preventDefault();
+        exitGizmoState();
+      }
+
       // Only plain Esc (no modifiers)
       if (e.key !== "Escape" || e.ctrlKey || e.altKey || e.metaKey) return;
 
@@ -89,6 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // If gizmos are on, disable them
       try {
         exitGizmoState();
+        gizmoManager?.attachToMesh(null);
       } catch {
         // fail-safe: still attempt to disable
         disableGizmos?.();
