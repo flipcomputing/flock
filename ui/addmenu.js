@@ -655,6 +655,7 @@ function registerActivePickHandler(
   { capture = false, delay = 0 } = {},
 ) {
   detachActivePickHandler();
+  document.getElementById("showShapesButton")?.classList.add("active");
   flock.activePickHandler = handler;
   flock.activePickHandlerCapture = capture;
 
@@ -669,6 +670,7 @@ function cleanupPlacementMode() {
   detachActivePickHandler();
   stopCanvasKeyboardMode();
   document.body.style.cursor = "default";
+  document.getElementById("showShapesButton")?.classList.remove("active");
 }
 
 function showShapes() {
