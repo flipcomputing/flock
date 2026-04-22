@@ -1736,7 +1736,7 @@ export function enableGizmos() {
   const positionButton = document.getElementById("positionButton");
   const rotationButton = document.getElementById("rotationButton");
   const scaleButton = document.getElementById("scaleButton");
-  const hideButton = document.getElementById("selectButton");
+  const selectButton = document.getElementById("selectButton");
   const duplicateButton = document.getElementById("duplicateButton");
   const deleteButton = document.getElementById("deleteButton");
   const cameraButton = document.getElementById("cameraButton");
@@ -1788,7 +1788,7 @@ export function enableGizmos() {
     positionButton,
     rotationButton,
     scaleButton,
-    hideButton,
+    selectButton,
     duplicateButton,
     deleteButton,
     cameraButton,
