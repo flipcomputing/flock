@@ -1565,7 +1565,7 @@ function handleCameraGizmo() {
   }
 
   const currentCamera = flock.scene.activeCamera;
-  console.log("Camera", flock.savedCamera);
+
   flock.scene.activeCamera = flock.savedCamera;
   flock.savedCamera = currentCamera;
   // Focus the canvas so you can use the camera controls
@@ -1825,6 +1825,8 @@ export function setGizmoManager(value) {
 }
 
 export function disposeGizmoManager() {
+  exitGizmoState(); // Clear up gizmo state and event listeners
+  if (cameraMode === "fly") cameraMode = "play"; // Reset camera mode
   if (gizmoManager) {
     gizmoManager.dispose();
     gizmoManager = null; // Clear the global reference for garbage collection
