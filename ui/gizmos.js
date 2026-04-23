@@ -29,7 +29,6 @@ import {
   getCanvasCircle,
 } from "./canvas-utils.js";
 import { createAxisKeyboardHandler } from "./axis-keyboard.js";
-import { cleanup } from "manifold-3d/lib/animation.js";
 export let gizmoManager;
 
 // Enable debug messages

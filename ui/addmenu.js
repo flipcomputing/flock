@@ -17,6 +17,8 @@ import { roundPositionValue } from "./blocklyshadowutil.js";
 import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
+  setCrosshairCursor,
+  setDefaultCursor,
 } from "./canvas-utils.js";
 
 const colorFields = {
@@ -269,7 +271,7 @@ function selectCharacter(characterName) {
     console.warn("Unable to start keyboard placement mode.", error);
   }
 
-  document.body.style.cursor = "crosshair";
+  setCrosshairCursor();
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -321,7 +323,7 @@ function selectShape(shapeType) {
   startPlacementKeyboardMode();
 
   // Also set up mouse click as fallback
-  document.body.style.cursor = "crosshair";
+  setCrosshairCursor();
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -394,7 +396,7 @@ function selectObjectWithCommand(objectName, menu, command) {
   }
 
   // Mouse click fallback (capture=true)
-  document.body.style.cursor = "crosshair";
+  setCrosshairCursor();
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -669,7 +671,7 @@ function registerActivePickHandler(
 function cleanupPlacementMode() {
   detachActivePickHandler();
   stopCanvasKeyboardMode();
-  document.body.style.cursor = "default";
+  setDefaultCursor();
   document.getElementById("showShapesButton")?.classList.remove("active");
 }
 

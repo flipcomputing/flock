@@ -240,3 +240,21 @@ function handleKeydown(event) {
 function handleKeyup(event) {
   heldKeys.delete(event.key);
 }
+
+// Set cursor to crosshair
+export function setCrosshairCursor() {
+  const canvas =
+    flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
+  document.body.style.cursor = "crosshair";
+  canvas.style.cursor = "crosshair";
+  flock.scene.defaultCursor = "crosshair";
+}
+
+// Restore default cursor
+export function setDefaultCursor() {
+  document.body.style.cursor = "default";
+ if (flock.scene) {
+    flock.scene.hoverCursor = "pointer"; // Babylon.js default
+    flock.scene.defaultCursor = ""; // Babylon.js default (inherits from body)
+  }
+}
