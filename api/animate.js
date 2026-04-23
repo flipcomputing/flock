@@ -35,6 +35,12 @@ const updateCapsuleShapeForAnimation = (physicsMesh, animationName) => {
     return;
   }
 
+  // Capture pre-switch bottom Y (world)
+  physicsMesh.computeWorldMatrix?.(true);
+  physicsMesh.refreshBoundingInfo?.(true);
+  const preMinY =
+    physicsMesh.getBoundingInfo?.()?.boundingBox?.minimumWorld?.y ?? null;
+
   const motionType = physicsMesh.physics.getMotionType();
   const massProps = physicsMesh.physics.getMassProperties();
   const disablePreStep = physicsMesh.physics.disablePreStep;
@@ -65,6 +71,28 @@ const updateCapsuleShapeForAnimation = (physicsMesh, animationName) => {
   physicsMesh.physics.setMotionType(motionType);
   physicsMesh.physics.setMassProperties(massProps);
   physicsMesh.physics.disablePreStep = disablePreStep;
+
+  // Correct transform so bottom Y stays unchanged after shape swap
+  physicsMesh.computeWorldMatrix?.(true);
+  physicsMesh.refreshBoundingInfo?.(true);
+  const postMinY =
+    physicsMesh.getBoundingInfo?.()?.boundingBox?.minimumWorld?.y ?? null;
+
+  if (Number.isFinite(preMinY) && Number.isFinite(postMinY)) {
+    const deltaY = preMinY - postMinY;
+    if (Math.abs(deltaY) > 1e-5) {
+      physicsMesh.position.y += deltaY;
+      physicsMesh.computeWorldMatrix?.(true);
+
+      if (physicsMesh.physics?._pluginData?.hpBodyId) {
+        physicsMesh.physics.setTargetTransform(
+          physicsMesh.absolutePosition ?? physicsMesh.position,
+          physicsMesh.absoluteRotationQuaternion ||
+            flock.BABYLON.Quaternion.FromEulerVector(physicsMesh.rotation),
+        );
+      }
+    }
+  }
 
   physicsMesh.metadata.currentPhysicsShapeType = desiredShapeType;
 };
