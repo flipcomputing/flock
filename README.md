@@ -1,69 +1,70 @@
-# flock
+# Flock XR
 
-**[Flock XR](https://flockxr.com/) - Creative coding in 3D**\
+[Flock XR](https://flockxr.com/) is a free, open-source tool for creating and exploring 3D worlds in the browser, designed for education and accessible on low-cost devices.
+
+It enables educators, students, and families to build interactive 3D experiences without downloads or logins, making it easy to use in classrooms, clubs, and at home.
+
+## Key features
+
+- No login required  
+- Runs entirely in the browser (including Chromebooks, tablets, and low-spec devices)  
+- Designed for schools, clubs, and home learning  
+- Supported by curriculum resources and ready-to-use lesson materials  
+
+### What can you do with Flock XR?
+
+Flock XR has been designed as a bridge between Scratch and professional 3D tools, such as Babylon JS, UEFN, Unity and Godot. 
+
+- Build and explore interactive 3D environments  
+- Create worlds using visual gizmos and block-based coding  
+- Teach coding, game design, and digital storytelling through hands-on projects  
+- Run engaging learning activities without installing software  
+
+### Who is it for?
+
+- Teachers and educators worldwide  
+- Students (primary through secondary education)  
+- Clubs, coding groups, and informal learning communities  
+- Parents and home educators supporting creative learning 
+
+👉 Try it now: [app.flockxr.com](https://app.flockxr.com/)
 A project from: [Flip Computing](https://flipcomputing.com/).
 
-Current pilot version: [app.flockxr.com](https://app.flockxr.com/)
+### Supporters
 
-## Project Statistics
-
-[![CodeQL](https://github.com/flipcomputing/flock/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/flipcomputing/flock/actions/workflows/github-code-scanning/codeql)
-[![Mocha tests](https://github.com/flipcomputing/flock/actions/workflows/run-mocha-tests.yml/badge.svg)](https://github.com/flipcomputing/flock/actions/workflows/run-mocha-tests.yml)
-
-Flock XR is a free 3D coding and design tool to allow young people aged around 9-14+ to make interactive experiences, games, animations, VR experiences and more. Flock XR runs in a web browser with no accounts or downloads needed.
-
-Flock XR has been designed as a bridge between Scratch and professional 3D tools, such as Babylon JS, UEFN, Unity and Godot. Flock XR builds on our experience working in schools and clubs to create engaging resources for young people to use and personalise.
-
-A new version of our 3D block-based programming language is currently under development. Lots of features need more work and may change!
+The development of Flock XR is supported by grants from [Nlnet Foundation](https://nlnet.nl/project/FlockXR/), [UK Games Fund](https://www.ukgamesfund.com/funded-project/flock-xr/), and [MediaCity Immersive Technologies Innovation Hub](https://www.mediacityuk.co.uk/immersive-technologies-innovation-hub/).
 
 We are looking for funding to take Flock XR further so please [get in touch](https://flipcomputing.com/contact/) if you can help.
 
-Flock XR is based on Blockly, the Babylon JS library and the Havok physics engine. Most 3D assets have been created within the project using Blender, with some use of CC0 3D assets from [Quaternius](https://quaternius.com/) and [Kenney.nl](https://kenney.nl/).
-
-## End user documentation
+### End user documentation
 
 Please see our [documentation hub](https://hub.flockxr.com) and [free resources for clubs](https://github.com/flipcomputing/flock/blob/main/docs/docs.md).
 
 ## Development info
 
-View the current development version at [flipcomputing.github.io/flock/](https://flipcomputing.github.io/flock/)
+Full details of Flock XR versions including the latest Development version can be found at  [flockxr.com/versions/](https://flockxr.com/versions/)
 
-### Prerequisites
+You will also find full dev setup for [contirbuting to Flock XR](https://github.com/flipcomputing/flockupdate/blob/main/CONTRIBUTING.md) in our guide. 
 
-- Node.js (version 18 or higher)
-- Git
+Flock XR is licensed under the MIT License. By contributing, you agree that your contributions will be licensed under the same license.
 
-### Dev set up
+### Project Structure
 
-- Fork the repo on GitHub
-- Clone your fork to your local machine: `https://github.com/USERNAME/flock.git` or `git@github.com:USERNAME/flock.git`
-- Navigate to the project: `cd flock`
-- Install dependencies: `npm install`
+Flock XR is based on Blockly, the Babylon JS library and the Havok physics engine. Most 3D assets have been created within the project using Blender, with some audio from [Kenney.nl](https://kenney.nl/).
 
-### Contributing
+- JavaScript (considering TypeScript migration)
+- Babylon.js - 3D rendering engine
+- Google Blockly - Visual programming blocks
+- Vite - Build tool
+- Node.js - Development environment
+- Progressive Web App features
+- Mocha & Chai - Unit testing framework
+- Playwright - End-to-end testing framework
 
-- Create a feature branch: `git checkout -b your-feature-name`
-- Make your changes
-- Push to your fork: `git push origin your-feature-name`
-- Create a Pull Request on GitHub
+### Project Statistics
 
-### Run locally
-
-`npm run dev`
-
-You should see it here: http://localhost:5173/
-
-### Run tests
-
-For detailed testing documentation including Playwright end-to-end tests and Mocha unit tests, see the [Testing section in CONTRIBUTING.md](CONTRIBUTING.md#testing).
-
-For CSP constraints and required runtime origins, see [docs/CSP_POLICY.md](docs/CSP_POLICY.md).
-
-**Quick start:**
-
-- Mocha tests (browser): http://localhost:5173/tests/tests.html (with dev server running)
-- Mocha tests (CLI): `npm run test:api @notslow` (automated, headless)
-- Playwright tests: `npx playwright test`
+[![CodeQL](https://github.com/flipcomputing/flock/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/flipcomputing/flock/actions/workflows/github-code-scanning/codeql)
+[![Mocha tests](https://github.com/flipcomputing/flock/actions/workflows/run-mocha-tests.yml/badge.svg)](https://github.com/flipcomputing/flock/actions/workflows/run-mocha-tests.yml)
 
 ### API Quality Tools
 
@@ -94,16 +95,3 @@ npm run test:api @onlyslow   # All slow tests (94 tests)
 - 48% documented in API.md (52 methods)
 - 49% tested (53 methods)
 - 226 total tests across 15 test files
-
-### Project Structure
-
-This is a Vite-based project using:
-
-- Blockly for visual programming blocks
-- Babylon.js for 3D rendering
-- Havok physics engine
-- Mocha & Chai for testing
-
-### Supporters
-
-The development of Flock XR is supported by grants from [Nlnet Foundation](https://nlnet.nl/project/FlockXR/) and [UK Games Fund](https://www.ukgamesfund.com/funded-project/flock-xr/).
