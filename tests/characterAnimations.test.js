@@ -232,5 +232,33 @@ export function runCharacterAnimationTests(flock) {
       expect(info?.name).to.equal("Jump");
       expect(jumpGroup.isPlaying).to.equal(false);
     });
+
+    it("keeps mesh POSITION_Y on the anchor/base during physics glide and animation switches", async function () {
+      const meshId = animationMeshIds[0];
+
+      await flock.setPhysics(meshId, "DYNAMIC");
+
+      await pumpAnimation(
+        flock,
+        flock.switchAnimation(meshId, {
+          animationName: "Walk",
+          loop: true,
+          restart: true,
+        }),
+        "Walk",
+      );
+
+      await pumpAnimation(
+        flock,
+        flock.glideTo(meshId, {
+          x: 2,
+          y: 0,
+          z: 1,
+          duration: 0.2,
+        }),
+      );
+
+      expect(flock.getProperty(meshId, "POSITION_Y")).to.equal(0);
+    });
   });
 }

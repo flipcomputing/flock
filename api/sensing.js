@@ -22,11 +22,42 @@ export const flockSensing = {
     // Ensure world transforms are current.
     mesh.computeWorldMatrix(true);
 
-    // Use a consistent world position call (works for meshes and cameras).
-    const position =
+    // Use a consistent world position call (works for meshes, lights, and cameras).
+    const absolutePosition =
       typeof mesh.getAbsolutePosition === "function"
         ? mesh.getAbsolutePosition()
         : (mesh.globalPosition ?? mesh.position);
+
+    const usesAbsolutePosition =
+      modelName === "__active_camera__" || modelName === "__main_light__";
+
+    const hasNumericXYZ = (value) =>
+      value &&
+      Number.isFinite(value.x) &&
+      Number.isFinite(value.y) &&
+      Number.isFinite(value.z);
+
+    const position = (() => {
+      if (usesAbsolutePosition) {
+        return absolutePosition;
+      }
+
+      const anchor =
+        typeof flock._getAnchor === "function" ? flock._getAnchor(mesh) : null;
+      if (hasNumericXYZ(anchor)) {
+        return anchor;
+      }
+
+      const blockPosition =
+        typeof flock.getBlockPositionFromMesh === "function"
+          ? flock.getBlockPositionFromMesh(mesh)
+          : null;
+      if (hasNumericXYZ(blockPosition)) {
+        return blockPosition;
+      }
+
+      return absolutePosition;
+    })();
 
     // Robust rotation: prefer quaternion if present, else fall back to Euler.
     const rotEuler = mesh.absoluteRotationQuaternion

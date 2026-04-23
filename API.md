@@ -570,6 +570,11 @@ whenActionEvent("BUTTON1", async () => {
 
 Gets a property value from a mesh.
 
+Position properties use these coordinate semantics:
+
+- For meshes, `POSITION_X`, `POSITION_Y`, and `POSITION_Z` report the mesh anchor/base position (Y defaults to the mesh base/min Y), not raw absolute origin.
+- For `__active_camera__` and `__main_light__`, position properties report absolute world position.
+
 ### Events and Control Flow
 
 #### `forever(callback)`
