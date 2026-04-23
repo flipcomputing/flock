@@ -44,7 +44,7 @@ Please see our [documentation hub](https://hub.flockxr.com) and [free resources 
 
 Full details of Flock XR versions including the latest Development version can be found at  [flockxr.com/versions/](https://flockxr.com/versions/)
 
-You will also find full dev setup for [contirbuting to Flock XR](https://github.com/flipcomputing/flockupdate/blob/main/CONTRIBUTING.md) in our guide. 
+You will also find full dev setup for [contributing to Flock XR](https://github.com/flipcomputing/flockupdate/blob/main/CONTRIBUTING.md) in our guide. 
 
 Flock XR is licensed under the MIT License. By contributing, you agree that your contributions will be licensed under the same license.
 
