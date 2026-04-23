@@ -27,6 +27,8 @@ import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
   getCanvasCircle,
+  setCrosshairCursor,
+  setDefaultCursor,
 } from "./canvas-utils.js";
 import { createAxisKeyboardHandler } from "./axis-keyboard.js";
 export let gizmoManager;
@@ -948,7 +950,7 @@ function startDuplicatePlacement() {
 
   blockId = meshBlockIdMap[blockKey];
 
-  document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+  setCrosshairCursor();
 
   canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
 
@@ -1045,8 +1047,7 @@ function cleanupScenePick() {
     activePick = null;
   }
   stopCanvasKeyboardMode();
-  document.body.style.cursor = "default";
-  if (flock.scene) flock.scene.defaultCursor = "default";
+  setDefaultCursor();
 }
 
 // Add to list of cleanup we need to run
