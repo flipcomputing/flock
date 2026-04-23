@@ -79,7 +79,7 @@ export function runGetPropertyTests(flock) {
       expect(result).to.be.null;
     });
 
-    it("reads position values from a mesh", function () {
+    it("reads position values from mesh anchor/base coordinates", function () {
       const meshId = flock.createBox("getProperty-position", {
         width: 2,
         height: 4,
@@ -89,7 +89,7 @@ export function runGetPropertyTests(flock) {
       createdIds.push(meshId);
 
       const mesh = flock.scene.getMeshByName(meshId);
-      const position = mesh.getAbsolutePosition();
+      const position = flock._getAnchor(mesh);
 
       expect(flock.getProperty(meshId, "POSITION_X")).to.equal(
         toFixedNumber(position.x),
@@ -100,6 +100,35 @@ export function runGetPropertyTests(flock) {
       expect(flock.getProperty(meshId, "POSITION_Z")).to.equal(
         toFixedNumber(position.z),
       );
+    });
+
+    it("falls back to getBlockPositionFromMesh when anchor data is unavailable", function () {
+      const meshId = flock.createBox("getProperty-position-fallback", {
+        width: 2,
+        height: 4,
+        depth: 2,
+        position: [4, 3, -2],
+      });
+      createdIds.push(meshId);
+
+      const mesh = flock.scene.getMeshByName(meshId);
+      const expected = flock.getBlockPositionFromMesh(mesh);
+      const originalGetAnchor = flock._getAnchor;
+
+      flock._getAnchor = () => null;
+      try {
+        expect(flock.getProperty(meshId, "POSITION_X")).to.equal(
+          toFixedNumber(expected.x),
+        );
+        expect(flock.getProperty(meshId, "POSITION_Y")).to.equal(
+          toFixedNumber(expected.y),
+        );
+        expect(flock.getProperty(meshId, "POSITION_Z")).to.equal(
+          toFixedNumber(expected.z),
+        );
+      } finally {
+        flock._getAnchor = originalGetAnchor;
+      }
     });
 
     it("returns rotation in degrees from quaternions", function () {
