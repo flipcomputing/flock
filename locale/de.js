@@ -1059,6 +1059,7 @@ export default {
   project_new_ui: "Neu",
   project_open_ui: "Öffnen",
   project_save_ui: "Speichern",
+  project_share_ui: "Teilen",
   language_submenu_ui: "Sprache",
   about_submenu_ui: "Über",
   hub_submenu_ui: "Hub",

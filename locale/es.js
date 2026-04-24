@@ -1053,6 +1053,7 @@ export default {
   project_new_ui: "Nuevo", // human
   project_open_ui: "Abrir", // human
   project_save_ui: "Guardar", // human
+  project_share_ui: "Compartir",
   language_submenu_ui: "Idioma", // human
   about_submenu_ui: "Sobre nosotros", // human
   hub_submenu_ui: "Centro", // human

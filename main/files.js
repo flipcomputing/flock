@@ -425,6 +425,19 @@ export function loadWorkspace(workspace, executeCallback) {
     return;
   }
 
+  const fragment = window.location.hash;
+  if (fragment.startsWith("#p=")) {
+    const encoded = fragment.slice(3);
+    import("./share.js")
+      .then(({ decodeProject }) => decodeProject(encoded))
+      .then((json) => loadWorkspaceAndExecute(json, workspace, effectiveCallback))
+      .catch((err) => {
+        console.error("Failed to load shared project:", err);
+        loadStarter();
+      });
+    return;
+  }
+
   if (projectUrl) {
     if (projectUrl === "starter") {
       loadStarter();

@@ -678,6 +678,22 @@ function initializeApp() {
     });
   }
 
+  const projectShare = document.getElementById("project-share");
+  if (projectShare) {
+    projectShare.addEventListener("click", async function (e) {
+      e.preventDefault();
+      document.getElementById("menuDropdown")?.classList.add("hidden");
+      try {
+        const { shareProject, showShareToast } = await import("./share.js");
+        await shareProject();
+        showShareToast("Share link copied to clipboard!");
+      } catch (err) {
+        console.error("Failed to share project:", err);
+        alert("Failed to copy share link.");
+      }
+    });
+  }
+
   initializeUI();
 
   enableGizmos();

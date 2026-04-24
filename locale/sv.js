@@ -1033,6 +1033,7 @@ export default {
   project_new_ui: "Nytt",
   project_open_ui: "Öppna",
   project_save_ui: "Spara",
+  project_share_ui: "Dela",
   language_submenu_ui: "Språk",
   about_submenu_ui: "Om",
   hub_submenu_ui: "Nav",
