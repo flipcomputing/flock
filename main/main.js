@@ -604,7 +604,7 @@ function initializeApp() {
         case "e": // Ctrl+E - Focus Blockly workspace/editor and move cursor
           e.preventDefault();
           Blockly.keyboardNavigationController?.setIsActive?.(true);
-         
+          Blockly.getFocusManager()?.focusTree?.(workspace);
           break;
       }
     },
