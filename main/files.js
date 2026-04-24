@@ -319,6 +319,37 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     // Validate JSON before loading into workspace
     const validatedJson = validateBlocklyJson(json);
 
+    // Populate trashcan before clearing so blocks are recoverable
+    try {
+      if (workspace.trashcan) {
+        const maxItems = workspace.options.maxTrashcanContents || 32;
+        const existing = workspace.trashcan.contents;
+        const newItems = workspace
+          .getTopBlocks(false)
+          .filter((b) => !b.isShadow())
+          .map((b) => {
+            const state = JSON.parse(
+              JSON.stringify(Blockly.serialization.blocks.save(b))
+            );
+            delete state.id;
+            delete state.x;
+            delete state.y;
+            delete state.enabled;
+            delete state.disabledReasons;
+            return JSON.stringify(state);
+          })
+          .filter((s) => s && !existing.includes(s));
+        if (newItems.length) {
+          workspace.trashcan.contents = [...newItems, ...existing].slice(
+            0,
+            maxItems
+          );
+        }
+      }
+    } catch (trashcanError) {
+      console.warn("Could not populate trashcan:", trashcanError);
+    }
+
     // Clear workspace and handlers
     const eventsWereEnabled = Blockly.Events.isEnabled();
     if (eventsWereEnabled) Blockly.Events.disable();
