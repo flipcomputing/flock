@@ -71,39 +71,14 @@ export async function decodeProject(encoded) {
   return JSON.parse(text);
 }
 
-export async function shareProject() {
+export async function buildShareUrl() {
   const json = Blockly.serialization.workspaces.save(workspace);
   const encoded = await encodeProject(json);
-  const url =
+  return (
     window.location.origin +
     window.location.pathname +
     window.location.search +
     "#p=" +
-    encoded;
-  await navigator.clipboard.writeText(url);
-}
-
-export function showShareToast(message) {
-  const toast = document.createElement("div");
-  toast.textContent = message;
-  Object.assign(toast.style, {
-    position: "fixed",
-    bottom: "24px",
-    left: "50%",
-    transform: "translateX(-50%)",
-    background: "#333",
-    color: "#fff",
-    padding: "10px 20px",
-    borderRadius: "6px",
-    fontSize: "14px",
-    zIndex: "9999",
-    opacity: "1",
-    transition: "opacity 0.4s ease",
-    pointerEvents: "none",
-  });
-  document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.style.opacity = "0";
-    setTimeout(() => toast.remove(), 400);
-  }, 2000);
+    encoded
+  );
 }

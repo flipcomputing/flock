@@ -678,18 +678,80 @@ function initializeApp() {
     });
   }
 
+  const shareModal = document.getElementById("shareModal");
+  const shareUrlInput = document.getElementById("shareUrl");
+  const copyShareUrl = document.getElementById("copyShareUrl");
+  const closeShareModal = document.getElementById("closeShareModal");
+
+  function openShareModal(url) {
+    shareUrlInput.value = url;
+    shareModal.classList.remove("hidden");
+    shareModal.removeAttribute("aria-hidden");
+    shareModal.setAttribute("aria-modal", "true");
+    copyShareUrl.focus();
+  }
+
+  function hideShareModal() {
+    shareModal.classList.add("hidden");
+    shareModal.setAttribute("aria-hidden", "true");
+    shareModal.removeAttribute("aria-modal");
+    document.getElementById("project-share")?.focus();
+  }
+
+  if (closeShareModal) {
+    closeShareModal.addEventListener("click", hideShareModal);
+  }
+
+  if (shareModal) {
+    shareModal.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        hideShareModal();
+      } else if (e.key === "Tab") {
+        const focusable = shareModal.querySelectorAll(
+          'button, input, [tabindex]:not([tabindex="-1"])',
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
+  }
+
+  if (copyShareUrl) {
+    copyShareUrl.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(shareUrlInput.value);
+        const { translate } = await import("./translation.js");
+        const original = copyShareUrl.textContent;
+        copyShareUrl.textContent = translate("share_copied_ui") || "Copied!";
+        setTimeout(() => {
+          copyShareUrl.textContent = original;
+        }, 2000);
+      } catch {
+        shareUrlInput.select();
+      }
+    });
+  }
+
   const projectShare = document.getElementById("project-share");
   if (projectShare) {
     projectShare.addEventListener("click", async function (e) {
       e.preventDefault();
       document.getElementById("menuDropdown")?.classList.add("hidden");
       try {
-        const { shareProject, showShareToast } = await import("./share.js");
-        await shareProject();
-        showShareToast("Share link copied to clipboard!");
+        const { buildShareUrl } = await import("./share.js");
+        const url = await buildShareUrl();
+        openShareModal(url);
       } catch (err) {
-        console.error("Failed to share project:", err);
-        alert("Failed to copy share link.");
+        console.error("Failed to build share link:", err);
+        alert("Failed to generate share link.");
       }
     });
   }

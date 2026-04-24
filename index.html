@@ -705,6 +705,45 @@
                 </div>
               </div>
             </div>
+            <!-- Share modal -->
+            <div
+              id="shareModal"
+              class="modal hidden"
+              role="dialog"
+              aria-labelledby="share-modal-title"
+              aria-modal="true"
+            >
+              <div class="modal-content" tabindex="-1">
+                <button
+                  type="button"
+                  class="close-button"
+                  id="closeShareModal"
+                  aria-label="Close share dialog"
+                >
+                  &times;
+                </button>
+                <h2 id="share-modal-title" data-i18n="share_heading">
+                  Share Project
+                </h2>
+                <div class="share-url-row">
+                  <input
+                    type="text"
+                    id="shareUrl"
+                    readonly
+                    aria-label="Share link"
+                  />
+                  <button
+                    type="button"
+                    id="copyShareUrl"
+                    class="bigbutton"
+                    data-i18n="share_copy"
+                  >
+                    Copy link
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <!-- Moved menu script to main/menu.js -->
             <script type="module" src="main/menu.js"></script>
 

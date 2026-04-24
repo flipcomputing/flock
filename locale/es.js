@@ -1054,6 +1054,9 @@ export default {
   project_open_ui: "Abrir", // human
   project_save_ui: "Guardar", // human
   project_share_ui: "Compartir",
+  share_heading_ui: "Compartir proyecto",
+  share_copy_ui: "Copiar enlace",
+  share_copied_ui: "¡Copiado!",
   language_submenu_ui: "Idioma", // human
   about_submenu_ui: "Sobre nosotros", // human
   hub_submenu_ui: "Centro", // human
