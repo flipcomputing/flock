@@ -59,7 +59,6 @@ let cameraMode = "play";
 let activePick = null; // [Select mesh?]
 let activeDuplicatePickHandler = null; // [Clone mesh?]
 let stopAxisKeyboard = null; // Axis keyboard active?
-let restoreCameraArrowKeys = null; // Saved camera arrow-key bindings while gizmo KB is active
 
 // Keep track of things to clean up
 const cleanupFns = [];
@@ -531,38 +530,13 @@ function getScaledSize(mesh) {
   };
 }
 
-// Temporarily strip arrow-key codes from the active camera so it doesn't
-// move while the gizmo keyboard handler has control of those keys.
-function pauseCameraArrowKeys() {
-  if (restoreCameraArrowKeys) return;
-  const cam = flock.scene?.activeCamera;
-  if (!cam) return;
-  const arrowCodes = new Set([37, 38, 39, 40]);
-  const keyProps = [
-    "keysUp",
-    "keysDown",
-    "keysLeft",
-    "keysRight",
-    "keysRotateLeft",
-    "keysRotateRight",
-    "keysRotateUp",
-    "keysRotateDown",
-  ];
-  const saved = {};
-  for (const prop of keyProps) {
-    if (Array.isArray(cam[prop])) {
-      saved[prop] = [...cam[prop]];
-      cam[prop] = cam[prop].filter((k) => !arrowCodes.has(k));
-    }
+// If the rendering canvas currently has focus, move focus to body so the
+// camera doesn't intercept arrow keys while the gizmo keyboard handler runs.
+function blurCanvasIfFocused() {
+  const canvas = flock.scene?.getEngine?.()?.getRenderingCanvas?.();
+  if (canvas && document.activeElement === canvas) {
+    canvas.blur();
   }
-  restoreCameraArrowKeys = () => {
-    restoreCameraArrowKeys = null;
-    const c = flock.scene?.activeCamera;
-    if (!c) return;
-    for (const [prop, keys] of Object.entries(saved)) {
-      if (Array.isArray(c[prop])) c[prop] = keys;
-    }
-  };
 }
 
 // Clean up gizmo state if aborted
@@ -575,10 +549,9 @@ export function exitGizmoState() {
     activeDuplicatePickHandler = null;
   }
 
-  // Stop the axis keyboard and restore camera arrow keys
+  // Stop the axis keyboard
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
-  restoreCameraArrowKeys?.();
 
   // Run all queued cleanup functions
   runCleanups();
@@ -596,7 +569,7 @@ function startMoveKeyboardHandler(mesh) {
   document.body.style.cursor = "default";
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
-  pauseCameraArrowKeys();
+  blurCanvasIfFocused();
   setTimeout(() => {
     stopAxisKeyboard = createAxisKeyboardHandler({
       onMove: (dx, dy, dz) => {
@@ -631,7 +604,7 @@ function startRotateKeyboardHandler(mesh) {
   document.body.style.cursor = "default";
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
-  pauseCameraArrowKeys();
+  blurCanvasIfFocused();
   setTimeout(() => {
     stopAxisKeyboard = createAxisKeyboardHandler({
       onMove: (dx, dy, dz) => {
@@ -665,7 +638,7 @@ function startScaleKeyboardHandler(mesh) {
   document.body.style.cursor = "default";
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
-  pauseCameraArrowKeys();
+  blurCanvasIfFocused();
   setTimeout(() => {
     stopAxisKeyboard = createAxisKeyboardHandler({
       onMove: (dx, dy, dz) => {
