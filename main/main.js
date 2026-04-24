@@ -690,6 +690,7 @@ function initializeApp() {
   //toolboxControl.removeAttribute("disabled");
   runCodeButton.removeAttribute("disabled");
   if (exampleSelect) exampleSelect.removeAttribute("disabled");
+
   if (fullscreenToggle) fullscreenToggle.removeAttribute("disabled");
 
   // Add event listeners for buttons and controls
@@ -700,6 +701,11 @@ function initializeApp() {
 
   if (exampleSelect) {
     exampleSelect.addEventListener("change", loadExampleWrapper);
+    exampleSelect.addEventListener("keydown", (e) => {
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault();
+      }
+    });
   }
 
   // Make setLanguage available globally for the menu
