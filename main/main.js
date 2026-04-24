@@ -372,8 +372,15 @@ function initializeApp() {
                 toggleToolbox();
         });*/
 
+ if (exampleSelect) {
   exampleSelect.addEventListener("change", loadExampleWrapper);
-
+  exampleSelect.addEventListener("keydown", (e) => {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+      e.preventDefault();
+    }
+  });
+ }
+  
   // Make setLanguage available globally for the menu
   window.setLanguage = async (lang) => await setLanguage(lang);
 
