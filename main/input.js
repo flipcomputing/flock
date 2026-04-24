@@ -144,7 +144,7 @@ export function setupInput() {
         "#colorPickerButton",
         "#projectName",
         "#exportCodeButton",
-        "#exampleSelect",
+        //"#exampleSelect",
         "#toggleDesign",
         "#togglePlay",
         "#fullscreenToggle",
