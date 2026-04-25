@@ -99,6 +99,7 @@ class HandlerRegistry extends Map {
 
 /** @type {HandlerRegistry} */
 export const blockHandlerRegistry = new HandlerRegistry();
+const flockHandlerRefKey = Symbol.for("flock.blockHandlerRef");
 
 /**
  * Register a block's change handler with the workspace dispatcher.
@@ -110,6 +111,7 @@ export const blockHandlerRegistry = new HandlerRegistry();
  */
 export function registerBlockHandler(block, handler) {
   if (!block.workspace || block.workspace.isFlyout) return;
+  block[flockHandlerRefKey] = handler;
   blockHandlerRegistry.set(block.id, handler);
   console.log("[workspace-debug] registerBlockHandler", {
     blockId: block.id,
@@ -117,6 +119,26 @@ export function registerBlockHandler(block, handler) {
     workspaceId: block.workspace.id,
     registrySize: blockHandlerRegistry.size,
   });
+}
+
+export function rebuildBlockHandlerRegistryFromWorkspace(workspace) {
+  if (!workspace) return 0;
+  let restored = 0;
+  const blocks = workspace.getAllBlocks(false);
+  for (const block of blocks) {
+    if (!block || block.workspace?.isFlyout) continue;
+    const handler = block[flockHandlerRefKey];
+    if (typeof handler !== "function") continue;
+    blockHandlerRegistry.set(block.id, handler);
+    restored += 1;
+  }
+  console.log("[workspace-debug] rebuildBlockHandlerRegistryFromWorkspace", {
+    workspaceId: workspace.id,
+    blockCount: blocks.length,
+    restoredHandlers: restored,
+    registrySize: blockHandlerRegistry.size,
+  });
+  return restored;
 }
 
 export const inlineIcon = makeInlineIcon("white");
