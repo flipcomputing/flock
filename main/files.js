@@ -568,6 +568,8 @@ export async function exportCode(workspace) {
       await writable.close();
       currentFileHandle = fileHandle;
       updateSaveButtonState();
+      document.getElementById("projectName").value =
+        getSafeImportedFileBaseName(fileHandle.name);
     } else {
       const blob = new Blob([jsonString], { type: FLOCK_MIME });
       const link = document.createElement("a");

@@ -1124,7 +1124,7 @@ details summary:focus,
 
 #exportCodeButton.no-autosave {
   outline: 2px dashed currentColor;
-  outline-offset: 3px;
+  outline-offset: -3px;
 }
 
 #renderCanvas:focus {
