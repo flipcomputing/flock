@@ -2110,6 +2110,13 @@ function replaceMeshModel(currentMesh, block) {
 }
 
 export function updateBlockColorAndHighlight(mesh, selectedColor) {
+  console.log("[color][workspace-debug] updateBlockColorAndHighlight:enter", {
+    meshName: mesh?.name ?? null,
+    meshType: mesh?.type ?? null,
+    selectedColor: selectedColor ?? null,
+    mainWorkspaceId: Blockly.getMainWorkspace()?.id ?? null,
+  });
+
   // ---------- helpers
   const withUndoGroup = (fn) => {
     try {

@@ -242,6 +242,11 @@ function applyColorAtPosition(canvasX, canvasY) {
   );
 
   const pickedMesh = pickLeafFromRay(pickRay, scene);
+  console.log("[color][workspace-debug] applyColorAtPosition", {
+    pickedMeshName: pickedMesh?.name ?? null,
+    pickedMeshType: pickedMesh?.type ?? null,
+    selectedColor: window.selectedColor ?? null,
+  });
 
   if (pickedMesh) {
     updateBlockColorAndHighlight(pickedMesh, window.selectedColor);
