@@ -579,10 +579,20 @@ export function initializeBlockHandling() {
         matchingAncestorHandlerIds,
         handlerDebug,
       });
-      if (matchingAncestorHandlerIds.length === 0 && handlers.length === 0) {
+      const isActionableMeshUpdateEvent =
+        event.type === Blockly.Events.BLOCK_CHANGE ||
+        event.type === Blockly.Events.BLOCK_MOVE;
+      if (
+        matchingAncestorHandlerIds.length === 0 &&
+        handlers.length === 0 &&
+        isActionableMeshUpdateEvent
+      ) {
         console.warn(
-          "[workspace-debug] Handler registry is empty for dispatched event",
+          "[workspace-debug] Handler registry is empty for dispatched actionable event",
           {
+            eventType: event.type,
+            eventElement: event.element ?? null,
+            eventName: event.name ?? null,
             eventBlockId: event.blockId ?? null,
             eventBlockType: eventBlock?.type ?? null,
             eventAncestorIds,
