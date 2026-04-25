@@ -209,6 +209,31 @@ export function getHandlerDebugForBlock(workspace, blockId) {
   };
 }
 
+export function getHandlerRegistryDebugSnapshot(workspace, sampleSize = 20) {
+  const sample = [];
+  let index = 0;
+  for (const [blockId, handler] of blockHandlerRegistry.entries()) {
+    if (index >= sampleSize) break;
+    const block = workspace?.getBlockById?.(blockId) ?? null;
+    sample.push({
+      blockId,
+      blockType: block?.type ?? null,
+      blockWorkspaceId: block?.workspace?.id ?? null,
+      blockExistsInWorkspace: Boolean(block),
+      hasHandlerFunction: typeof handler === "function",
+      hasHandlerRefOnBlock: Boolean(block?.[flockHandlerRefKey]),
+    });
+    index += 1;
+  }
+
+  return {
+    workspaceId: workspace?.id ?? null,
+    registrySize: blockHandlerRegistry.size,
+    sampledEntries: sample.length,
+    sample,
+  };
+}
+
 export const inlineIcon = makeInlineIcon("white");
 
 export function getHelpUrlFor(_blockType) {

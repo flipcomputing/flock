@@ -4,6 +4,7 @@ import { translate } from "./translation.js";
 import {
   blockHandlerRegistry,
   getHandlerDebugForBlock,
+  getHandlerRegistryDebugSnapshot,
 } from "../blocks/blocks.js";
 import { announceToScreenReader } from "./input.js";
 
@@ -567,6 +568,18 @@ export function initializeBlockHandling() {
         workspace,
         event.blockId ?? null,
       );
+      const isColourFieldChange =
+        event.type === Blockly.Events.BLOCK_CHANGE &&
+        event.element === "field" &&
+        event.name === "COLOR";
+      if (isColourFieldChange) {
+        console.log("[workspace-debug] colour-change registry snapshot", {
+          eventBlockId: event.blockId ?? null,
+          eventWorkspaceId: event.workspaceId ?? null,
+          handlerDebug,
+          registrySnapshot: getHandlerRegistryDebugSnapshot(workspace),
+        });
+      }
       console.log("[workspace-debug] dispatching block event", {
         eventType: event.type,
         eventElement: event.element ?? null,
@@ -597,6 +610,7 @@ export function initializeBlockHandling() {
             eventBlockType: eventBlock?.type ?? null,
             eventAncestorIds,
             registrySize: blockHandlerRegistry.size,
+            registrySnapshot: getHandlerRegistryDebugSnapshot(workspace),
           },
         );
       } else if (matchingAncestorHandlerIds.length === 0 && handlers.length > 0) {
