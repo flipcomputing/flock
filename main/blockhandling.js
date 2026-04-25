@@ -1,7 +1,10 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
-import { blockHandlerRegistry } from "../blocks/blocks.js";
+import {
+  blockHandlerRegistry,
+  getHandlerDebugForBlock,
+} from "../blocks/blocks.js";
 import { announceToScreenReader } from "./input.js";
 
 function asBlocklyBlock(candidate) {
@@ -545,6 +548,10 @@ export function initializeBlockHandling() {
       event.type === Blockly.Events.BLOCK_MOVE ||
       event.type === Blockly.Events.BLOCK_CREATE
     ) {
+      const handlerDebug = getHandlerDebugForBlock(
+        workspace,
+        event.blockId ?? null,
+      );
       console.log("[workspace-debug] dispatching block event", {
         eventType: event.type,
         eventElement: event.element ?? null,
@@ -552,6 +559,7 @@ export function initializeBlockHandling() {
         eventBlockId: event.blockId ?? null,
         eventWorkspaceId: event.workspaceId ?? null,
         handlerCount: handlers.length,
+        handlerDebug,
       });
     }
     for (const handler of handlers) {

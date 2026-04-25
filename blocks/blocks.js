@@ -141,6 +141,31 @@ export function rebuildBlockHandlerRegistryFromWorkspace(workspace) {
   return restored;
 }
 
+export function getHandlerDebugForBlock(workspace, blockId) {
+  if (!workspace || !blockId) {
+    return {
+      blockId: blockId ?? null,
+      workspaceId: workspace?.id ?? null,
+      blockExistsInWorkspace: false,
+      blockType: null,
+      hasHandlerRefOnBlock: false,
+      hasRegistryEntry: false,
+      registrySize: blockHandlerRegistry.size,
+    };
+  }
+
+  const block = workspace.getBlockById(blockId);
+  return {
+    blockId,
+    workspaceId: workspace.id,
+    blockExistsInWorkspace: Boolean(block),
+    blockType: block?.type ?? null,
+    hasHandlerRefOnBlock: Boolean(block?.[flockHandlerRefKey]),
+    hasRegistryEntry: blockHandlerRegistry.has(blockId),
+    registrySize: blockHandlerRegistry.size,
+  };
+}
+
 export const inlineIcon = makeInlineIcon("white");
 
 export function getHelpUrlFor(_blockType) {
