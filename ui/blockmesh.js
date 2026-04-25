@@ -1170,7 +1170,7 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     block.workspace.id !== mainWorkspace.id
   ) {
     console.warn(
-      "[color][workspace-debug] Skipping updateMeshFromBlock for block in non-main workspace",
+      "[color][workspace-debug] Block is in non-main workspace; attempting best-effort update",
       {
         blockId: block.id,
         blockType: block.type,
@@ -1178,7 +1178,6 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
         mainWorkspaceId: mainWorkspace.id,
       },
     );
-    return;
   }
 
   if (
@@ -1187,14 +1186,13 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     changeEvent.workspaceId !== mainWorkspace.id
   ) {
     console.warn(
-      "[color][workspace-debug] Skipping updateMeshFromBlock for event in non-main workspace",
+      "[color][workspace-debug] Event is from non-main workspace; attempting best-effort update",
       {
         eventType: changeEvent.type,
         eventWorkspaceId: changeEvent.workspaceId,
         mainWorkspaceId: mainWorkspace.id,
       },
     );
-    return;
   }
 
   if (flock.meshDebug) {
@@ -1232,7 +1230,9 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   }
 
   const changedBlock = changeEvent.blockId
-    ? (block?.workspace || mainWorkspace)?.getBlockById(changeEvent.blockId)
+    ? mainWorkspace?.getBlockById(changeEvent.blockId) ||
+      block?.workspace?.getBlockById(changeEvent.blockId) ||
+      null
     : null;
   if (changeEvent.blockId && !changedBlock) {
     console.warn(
