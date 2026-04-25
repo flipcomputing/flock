@@ -579,14 +579,24 @@ export function initializeBlockHandling() {
         matchingAncestorHandlerIds,
         handlerDebug,
       });
-      if (matchingAncestorHandlerIds.length === 0) {
+      if (matchingAncestorHandlerIds.length === 0 && handlers.length === 0) {
         console.warn(
-          "[workspace-debug] No handler registered for event block or its ancestors",
+          "[workspace-debug] Handler registry is empty for dispatched event",
           {
             eventBlockId: event.blockId ?? null,
             eventBlockType: eventBlock?.type ?? null,
             eventAncestorIds,
             registrySize: blockHandlerRegistry.size,
+          },
+        );
+      } else if (matchingAncestorHandlerIds.length === 0 && handlers.length > 0) {
+        console.log(
+          "[workspace-debug] No direct ancestor handler match; event will still fan out to registered handlers",
+          {
+            eventBlockId: event.blockId ?? null,
+            eventBlockType: eventBlock?.type ?? null,
+            eventAncestorIds,
+            handlerCount: handlers.length,
           },
         );
       }
