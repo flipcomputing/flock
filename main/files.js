@@ -337,6 +337,10 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
     // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
+    console.error("[workspace-debug] about to rebuild block handler registry", {
+      workspaceId: workspace.id,
+      topBlockCount: workspace.getTopBlocks(false).length,
+    });
     const restoredHandlers =
       rebuildBlockHandlerRegistryFromWorkspace(workspace);
     console.log("[workspace-debug] workspace loaded", {
@@ -345,6 +349,24 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
       restoredHandlers,
       handlerRegistrySize: blockHandlerRegistry.size,
     });
+    if (
+      workspace.getTopBlocks(false).length > 0 &&
+      restoredHandlers === 0 &&
+      blockHandlerRegistry.size === 0
+    ) {
+      const topBlockSample = workspace
+        .getTopBlocks(false)
+        .slice(0, 10)
+        .map((block) => ({ id: block.id, type: block.type }));
+      console.error(
+        "[workspace-debug] top blocks exist but handler registry remains empty after rebuild",
+        {
+          workspaceId: workspace.id,
+          topBlockCount: workspace.getTopBlocks(false).length,
+          topBlockSample,
+        },
+      );
+    }
 
     workspace.scroll(0, 0);
     executeCallback();
