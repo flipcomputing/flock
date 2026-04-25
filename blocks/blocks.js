@@ -111,6 +111,12 @@ export const blockHandlerRegistry = new HandlerRegistry();
 export function registerBlockHandler(block, handler) {
   if (!block.workspace || block.workspace.isFlyout) return;
   blockHandlerRegistry.set(block.id, handler);
+  console.log("[workspace-debug] registerBlockHandler", {
+    blockId: block.id,
+    blockType: block.type,
+    workspaceId: block.workspace.id,
+    registrySize: blockHandlerRegistry.size,
+  });
 }
 
 export const inlineIcon = makeInlineIcon("white");

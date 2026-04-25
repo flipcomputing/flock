@@ -80,54 +80,49 @@ function isMainWorkspaceEvent(changeEvent, block) {
   const ws = block?.workspace;
 
   if (!ws) {
-    if (flock.meshDebug)
-      console.log("[isMainWorkspaceEvent] false: block has no workspace", {
-        blockId: block?.id,
-        eventType: changeEvent?.type,
-        eventWorkspaceId: changeEvent?.workspaceId,
-      });
+    console.log("[workspace-debug] isMainWorkspaceEvent=false:no-workspace", {
+      blockId: block?.id ?? null,
+      blockType: block?.type ?? null,
+      eventType: changeEvent?.type ?? null,
+      eventWorkspaceId: changeEvent?.workspaceId ?? null,
+      mainWorkspaceId: mainWs?.id ?? null,
+    });
     return false;
   }
 
   if (ws.isFlyout) {
-    if (flock.meshDebug)
-      console.log(
-        "[isMainWorkspaceEvent] false: block is in flyout workspace",
-        {
-          blockId: block?.id,
-          eventType: changeEvent?.type,
-          eventWorkspaceId: changeEvent?.workspaceId,
-          blockWorkspaceId: ws.id,
-          mainWorkspaceId: mainWs?.id,
-        },
-      );
+    console.log("[workspace-debug] isMainWorkspaceEvent=false:flyout", {
+      blockId: block?.id ?? null,
+      blockType: block?.type ?? null,
+      eventType: changeEvent?.type ?? null,
+      eventWorkspaceId: changeEvent?.workspaceId ?? null,
+      blockWorkspaceId: ws.id,
+      mainWorkspaceId: mainWs?.id ?? null,
+    });
     return false;
   }
 
   if (ws !== mainWs) {
-    if (flock.meshDebug)
-      console.log(
-        "[isMainWorkspaceEvent] false: block is in a non-main, non-flyout workspace",
-        {
-          blockId: block?.id,
-          eventType: changeEvent?.type,
-          eventWorkspaceId: changeEvent?.workspaceId,
-          blockWorkspaceId: ws.id,
-          mainWorkspaceId: mainWs?.id,
-        },
-      );
+    console.log("[workspace-debug] isMainWorkspaceEvent=false:non-main-block", {
+      blockId: block?.id ?? null,
+      blockType: block?.type ?? null,
+      eventType: changeEvent?.type ?? null,
+      eventWorkspaceId: changeEvent?.workspaceId ?? null,
+      blockWorkspaceId: ws.id,
+      mainWorkspaceId: mainWs?.id ?? null,
+    });
     return false;
   }
 
   if (changeEvent?.workspaceId && changeEvent.workspaceId !== ws.id) {
-    if (flock.meshDebug)
-      console.log("[isMainWorkspaceEvent] false: event workspaceId mismatch", {
-        blockId: block?.id,
-        eventType: changeEvent?.type,
-        eventWorkspaceId: changeEvent.workspaceId,
-        blockWorkspaceId: ws.id,
-        mainWorkspaceId: mainWs?.id,
-      });
+    console.log("[workspace-debug] isMainWorkspaceEvent=false:event-mismatch", {
+      blockId: block?.id ?? null,
+      blockType: block?.type ?? null,
+      eventType: changeEvent?.type ?? null,
+      eventWorkspaceId: changeEvent.workspaceId,
+      blockWorkspaceId: ws.id,
+      mainWorkspaceId: mainWs?.id ?? null,
+    });
     return false;
   }
 
@@ -452,14 +447,26 @@ export function setClearSkyToBlack() {
 
 // Add this function before updateMeshFromBlock
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-  if (flock.meshDebug)
-    console.log(
-      "Update or create mesh from block",
-      block.type,
-      changeEvent.type,
-    );
+  console.log("[workspace-debug] updateOrCreateMeshFromBlock:enter", {
+    blockId: block?.id ?? null,
+    blockType: block?.type ?? null,
+    blockWorkspaceId: block?.workspace?.id ?? null,
+    eventType: changeEvent?.type ?? null,
+    eventElement: changeEvent?.element ?? null,
+    eventName: changeEvent?.name ?? null,
+    eventWorkspaceId: changeEvent?.workspaceId ?? null,
+  });
 
-  if (!isMainWorkspaceEvent(changeEvent, block)) {
+  const isMain = isMainWorkspaceEvent(changeEvent, block);
+  if (!isMain) {
+    console.log("[workspace-debug] updateOrCreateMeshFromBlock:exit-not-main", {
+      blockId: block?.id ?? null,
+      blockType: block?.type ?? null,
+      blockWorkspaceId: block?.workspace?.id ?? null,
+      eventType: changeEvent?.type ?? null,
+      eventWorkspaceId: changeEvent?.workspaceId ?? null,
+      mainWorkspaceId: Blockly.getMainWorkspace()?.id ?? null,
+    });
     return;
   }
 
