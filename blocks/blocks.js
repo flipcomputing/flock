@@ -130,18 +130,7 @@ export function rebuildBlockHandlerRegistryFromWorkspace(workspace) {
   let restored = 0;
   const missingHandlerRefBlocks = [];
   const blocks = workspace.getAllBlocks(false);
-  const meshDriverBlocks = blocks.filter((block) => {
-    const type = block?.type || "";
-    return (
-      type.startsWith("create_") ||
-      type.startsWith("load_") ||
-      type === "set_sky_color" ||
-      type === "set_background_color" ||
-      type === "create_ground" ||
-      type === "create_map"
-    );
-  });
-  const meshDriverBlockCount = meshDriverBlocks.length;
+  const blocksWithHandlerRef = [];
   for (const block of blocks) {
     if (!block || block.workspace?.isFlyout) continue;
     const handler = block[flockHandlerRefKey];
@@ -152,13 +141,14 @@ export function rebuildBlockHandlerRegistryFromWorkspace(workspace) {
       });
       continue;
     }
+    blocksWithHandlerRef.push(block);
     blockHandlerRegistry.set(block.id, handler);
     restored += 1;
   }
   const rebuildSummary = {
     workspaceId: workspace.id,
     blockCount: blocks.length,
-    meshDriverBlockCount,
+    blocksWithHandlerRefCount: blocksWithHandlerRef.length,
     restoredHandlers: restored,
     blocksMissingHandlerRef: missingHandlerRefBlocks.length,
     missingHandlerRefSample: missingHandlerRefBlocks.slice(0, 10),
@@ -166,27 +156,27 @@ export function rebuildBlockHandlerRegistryFromWorkspace(workspace) {
   };
   console.log("[workspace-debug] rebuildBlockHandlerRegistryFromWorkspace", rebuildSummary);
   console.log(
-    `[workspace-debug] rebuild summary workspaceId=${rebuildSummary.workspaceId} blockCount=${rebuildSummary.blockCount} meshDriverBlockCount=${rebuildSummary.meshDriverBlockCount} restoredHandlers=${rebuildSummary.restoredHandlers} blocksMissingHandlerRef=${rebuildSummary.blocksMissingHandlerRef} registrySize=${rebuildSummary.registrySize}`,
+    `[workspace-debug] rebuild summary workspaceId=${rebuildSummary.workspaceId} blockCount=${rebuildSummary.blockCount} blocksWithHandlerRefCount=${rebuildSummary.blocksWithHandlerRefCount} restoredHandlers=${rebuildSummary.restoredHandlers} blocksMissingHandlerRef=${rebuildSummary.blocksMissingHandlerRef} registrySize=${rebuildSummary.registrySize}`,
   );
-  const missingMeshDriverHandlers = meshDriverBlocks
+  const missingRegistryEntries = blocksWithHandlerRef
     .filter((block) => !blockHandlerRegistry.has(block.id))
     .map((block) => ({ id: block.id, type: block.type }));
-  if (missingMeshDriverHandlers.length > 0) {
+  if (missingRegistryEntries.length > 0) {
     console.warn(
-      "[workspace-debug] mesh-driving blocks missing handler registration after rebuild",
+      "[workspace-debug] blocks with handler refs missing registry entry after rebuild",
       {
         workspaceId: workspace.id,
-        missingMeshDriverHandlerCount: missingMeshDriverHandlers.length,
-        missingMeshDriverHandlerSample: missingMeshDriverHandlers.slice(0, 10),
+        missingRegistryEntryCount: missingRegistryEntries.length,
+        missingRegistryEntrySample: missingRegistryEntries.slice(0, 10),
       },
     );
   }
-  if (meshDriverBlockCount > 0 && restored === 0) {
+  if (blocksWithHandlerRef.length > 0 && restored === 0) {
     console.warn(
-      "[workspace-debug] Registry rebuild restored 0 handlers despite mesh-driving blocks",
+      "[workspace-debug] Registry rebuild restored 0 handlers despite handler refs",
       {
         workspaceId: workspace.id,
-        meshDriverBlockCount,
+        blocksWithHandlerRefCount: blocksWithHandlerRef.length,
         blocksMissingHandlerRef: missingHandlerRefBlocks.length,
       },
     );
