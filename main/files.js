@@ -762,9 +762,7 @@ function processProjectFileDrop(file, workspace, executeCallback) {
 
       document.getElementById("projectName").value =
         getSafeImportedFileBaseName(file.name);
-      if (!currentFileHandle || currentFileHandle.name !== file.name) {
-        clearFileHandle();
-      }
+      clearFileHandle();
       loadWorkspaceAndExecute(json, workspace, executeCallback);
     } catch (e) {
       console.error("Error loading Blockly project:", e);
@@ -980,7 +978,11 @@ export async function openFile(workspace, executeCallback) {
     } catch (e) {
       if (e.name === "AbortError") return;
       console.error("Error opening file:", e);
-      alert(translate("invalid_project_alert"));
+      if (e.message === "File content is too large") {
+        alert(translate("file_too_large_alert"));
+      } else {
+        alert(translate("invalid_project_alert"));
+      }
       window.loadingCode = false;
     }
   } else {
