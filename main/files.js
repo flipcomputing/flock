@@ -923,9 +923,7 @@ export function setupFileInput(workspace, executeCallback) {
         document.getElementById("projectName").value =
           getSafeImportedFileBaseName(file.name);
 
-        if (!currentFileHandle || currentFileHandle.name !== file.name) {
-          clearFileHandle();
-        }
+        clearFileHandle();
         loadWorkspaceAndExecute(json, workspace, executeCallback);
       } catch (e) {
         console.error("Error loading Blockly project:", e);
