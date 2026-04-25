@@ -762,7 +762,9 @@ function processProjectFileDrop(file, workspace, executeCallback) {
 
       document.getElementById("projectName").value =
         getSafeImportedFileBaseName(file.name);
-      clearFileHandle();
+      if (!currentFileHandle || currentFileHandle.name !== file.name) {
+        clearFileHandle();
+      }
       loadWorkspaceAndExecute(json, workspace, executeCallback);
     } catch (e) {
       console.error("Error loading Blockly project:", e);
@@ -913,7 +915,9 @@ export function setupFileInput(workspace, executeCallback) {
         document.getElementById("projectName").value =
           getSafeImportedFileBaseName(file.name);
 
-        clearFileHandle();
+        if (!currentFileHandle || currentFileHandle.name !== file.name) {
+          clearFileHandle();
+        }
         loadWorkspaceAndExecute(json, workspace, executeCallback);
       } catch (e) {
         console.error("Error loading Blockly project:", e);
