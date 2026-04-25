@@ -323,17 +323,30 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     const validatedJson = validateBlocklyJson(json);
 
     // Clear workspace with events enabled so normal delete/trash semantics run.
-    const eventsWereEnabled = Blockly.Events.isEnabled();
-    if (!eventsWereEnabled) Blockly.Events.enable();
-    workspace.clear();
+    // Preserve nested event-disable depth and restore it afterward.
+    let disabledDepth = 0;
+    while (!Blockly.Events.isEnabled()) {
+      Blockly.Events.enable();
+      disabledDepth += 1;
+    }
+    try {
+      workspace.clear();
 
-    // Keep registry clearing isolated from workspace clear events.
-    Blockly.Events.disable();
-    blockHandlerRegistry.clear();
-    console.log("[workspace-debug] blockHandlerRegistry cleared", {
-      size: blockHandlerRegistry.size,
-    });
-    if (eventsWereEnabled) Blockly.Events.enable();
+      // Keep registry clearing isolated from workspace clear events.
+      Blockly.Events.disable();
+      try {
+        blockHandlerRegistry.clear();
+        console.log("[workspace-debug] blockHandlerRegistry cleared", {
+          size: blockHandlerRegistry.size,
+        });
+      } finally {
+        Blockly.Events.enable();
+      }
+    } finally {
+      for (let i = 0; i < disabledDepth; i += 1) {
+        Blockly.Events.disable();
+      }
+    }
 
     // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
