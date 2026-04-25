@@ -1133,7 +1133,7 @@ details summary:focus,
   background-position: bottom;
   background-size: 100% 4px;
   background-repeat: repeat-x;
-  padding-bottom: 4px;
+  padding-bottom: 7px;
 }
 
 #renderCanvas:focus {
