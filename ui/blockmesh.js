@@ -1218,14 +1218,23 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       "create_map",
     ].includes(block.type)
   ) {
-    if (flock.meshDebug)
-      console.log("No mesh and not a special block type, returning");
+    console.log(
+      "[color][workspace-debug] updateMeshFromBlock:exit-no-mesh-for-block",
+      {
+        blockId: block?.id ?? null,
+        blockType: block?.type ?? null,
+      },
+    );
     return;
   }
 
   if (block.type === "change_color") {
-    if (flock.meshDebug)
-      console.log("Skipping live update for change_color block");
+    console.log(
+      "[color][workspace-debug] updateMeshFromBlock:exit-change_color_block",
+      {
+        blockId: block?.id ?? null,
+      },
+    );
     return;
   }
 
@@ -1250,8 +1259,13 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   let cursor = changedBlock;
   while (cursor) {
     if (cursor.type === "change_color") {
-      if (flock.meshDebug)
-        console.log("Skipping live update for change_color subtree");
+      console.log(
+        "[color][workspace-debug] updateMeshFromBlock:exit-change_color_subtree",
+        {
+          changedBlockId: changedBlock?.id ?? null,
+          changedBlockType: changedBlock?.type ?? null,
+        },
+      );
       return;
     }
     cursor = cursor.getParent?.();
@@ -1336,21 +1350,40 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       block.type === "create_map"
     ) {
       if (changeEvent.type === Blockly.Events.BLOCK_MOVE) {
-        if (flock.meshDebug)
-          console.log(
-            "Ignoring BLOCK_MOVE for scene block with no input change",
-          );
+        console.log(
+          "[color][workspace-debug] updateMeshFromBlock:exit-scene-block-move",
+          {
+            blockId: block?.id ?? null,
+            blockType: block?.type ?? null,
+            eventBlockId: changeEvent?.blockId ?? null,
+          },
+        );
         return;
       }
       changed = "COLOR";
     } else {
-      if (flock.meshDebug)
-        console.log("No relevant change detected, returning");
+      console.log(
+        "[color][workspace-debug] updateMeshFromBlock:exit-no-relevant-change",
+        {
+          blockId: block?.id ?? null,
+          blockType: block?.type ?? null,
+          eventBlockId: changeEvent?.blockId ?? null,
+          eventElement: changeEvent?.element ?? null,
+          eventName: changeEvent?.name ?? null,
+          changedBlockId: changedBlock?.id ?? null,
+          changedBlockType: changedBlock?.type ?? null,
+        },
+      );
       return;
     }
   }
 
-  if (flock.meshDebug) console.log(`Processing change type: ${changed}`);
+  console.log("[color][workspace-debug] updateMeshFromBlock:resolved-change", {
+    blockId: block?.id ?? null,
+    blockType: block?.type ?? null,
+    changed,
+    meshCount: meshes.length,
+  });
 
   if (
     (block.type === "load_object" ||
