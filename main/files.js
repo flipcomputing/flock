@@ -507,9 +507,16 @@ function getSafeImportedFileBaseName(fileName) {
 // Holds the FileSystemFileHandle from the last explicit save (File System Access API)
 let currentFileHandle = null;
 
+export function updateSaveButtonState() {
+  document
+    .getElementById("exportCodeButton")
+    ?.classList.toggle("no-autosave", !currentFileHandle);
+}
+
 // Clears the stored file handle (call whenever a new project is loaded)
 export function clearFileHandle() {
   currentFileHandle = null;
+  updateSaveButtonState();
 }
 
 // Function to export project code
@@ -560,6 +567,7 @@ export async function exportCode(workspace) {
       await writable.write(jsonString);
       await writable.close();
       currentFileHandle = fileHandle;
+      updateSaveButtonState();
     } else {
       const blob = new Blob([jsonString], { type: FLOCK_MIME });
       const link = document.createElement("a");
@@ -974,6 +982,7 @@ export async function openFile(workspace, executeCallback) {
       document.getElementById("projectName").value =
         getSafeImportedFileBaseName(file.name);
       currentFileHandle = fileHandle;
+      updateSaveButtonState();
       loadWorkspaceAndExecute(json, workspace, executeCallback);
     } catch (e) {
       if (e.name === "AbortError") return;

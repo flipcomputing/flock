@@ -1122,6 +1122,11 @@ details summary:focus,
   background-color: var(--color-button-bg-hover);
 }
 
+#exportCodeButton.no-autosave {
+  outline: 2px dashed currentColor;
+  outline-offset: 3px;
+}
+
 #renderCanvas:focus {
   outline: 3px solid var(--color-focus);
   outline-offset: -3px;

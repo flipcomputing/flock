@@ -28,6 +28,7 @@ import {
   loadExampleWrapper,
   newProject,
   openFile,
+  updateSaveButtonState,
 } from "./files.js";
 import {
   onResize,
@@ -822,4 +823,5 @@ window.onload = async function () {
   setupInput();
 
   loadWorkspace(workspace, executeCode);
+  updateSaveButtonState();
 };
