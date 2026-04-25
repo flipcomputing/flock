@@ -166,6 +166,11 @@ export function getHandlerDebugForBlock(workspace, blockId) {
   };
 }
 
+export function dispatchBlockUpdateFromEvent(block, changeEvent) {
+  if (!block || !changeEvent) return;
+  updateOrCreateMeshFromBlock(block, changeEvent);
+}
+
 export const inlineIcon = makeInlineIcon("white");
 
 export function getHelpUrlFor(_blockType) {
