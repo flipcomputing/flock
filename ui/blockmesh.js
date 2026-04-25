@@ -1151,6 +1151,52 @@ function getXYZFromBlock(block) {
 }
 
 export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
+  const mainWorkspace = Blockly.getMainWorkspace();
+  console.log("[color][workspace-debug] updateMeshFromBlock:enter", {
+    blockId: block?.id ?? null,
+    blockType: block?.type ?? null,
+    blockWorkspaceId: block?.workspace?.id ?? null,
+    eventType: changeEvent?.type ?? null,
+    eventElement: changeEvent?.element ?? null,
+    eventName: changeEvent?.name ?? null,
+    eventBlockId: changeEvent?.blockId ?? null,
+    eventWorkspaceId: changeEvent?.workspaceId ?? null,
+    mainWorkspaceId: mainWorkspace?.id ?? null,
+  });
+
+  if (
+    mainWorkspace &&
+    block?.workspace &&
+    block.workspace.id !== mainWorkspace.id
+  ) {
+    console.warn(
+      "[color][workspace-debug] Skipping updateMeshFromBlock for block in non-main workspace",
+      {
+        blockId: block.id,
+        blockType: block.type,
+        blockWorkspaceId: block.workspace.id,
+        mainWorkspaceId: mainWorkspace.id,
+      },
+    );
+    return;
+  }
+
+  if (
+    mainWorkspace &&
+    changeEvent?.workspaceId &&
+    changeEvent.workspaceId !== mainWorkspace.id
+  ) {
+    console.warn(
+      "[color][workspace-debug] Skipping updateMeshFromBlock for event in non-main workspace",
+      {
+        eventType: changeEvent.type,
+        eventWorkspaceId: changeEvent.workspaceId,
+        mainWorkspaceId: mainWorkspace.id,
+      },
+    );
+    return;
+  }
+
   if (flock.meshDebug) {
     console.log("=== UPDATE MESH FROM BLOCK ===");
     console.log("Block type:", block.type);
@@ -1186,8 +1232,18 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   }
 
   const changedBlock = changeEvent.blockId
-    ? Blockly.getMainWorkspace().getBlockById(changeEvent.blockId)
+    ? (block?.workspace || mainWorkspace)?.getBlockById(changeEvent.blockId)
     : null;
+  if (changeEvent.blockId && !changedBlock) {
+    console.warn(
+      "[color][workspace-debug] Changed block not found in resolved workspace",
+      {
+        eventBlockId: changeEvent.blockId,
+        blockWorkspaceId: block?.workspace?.id ?? null,
+        mainWorkspaceId: mainWorkspace?.id ?? null,
+      },
+    );
+  }
 
   const parent = changedBlock?.getParent() || changedBlock;
 
