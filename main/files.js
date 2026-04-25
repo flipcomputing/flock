@@ -327,10 +327,18 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     // Keep registry clearing isolated from workspace clear events.
     Blockly.Events.disable();
     blockHandlerRegistry.clear();
+    console.log("[workspace-debug] blockHandlerRegistry cleared", {
+      size: blockHandlerRegistry.size,
+    });
     if (eventsWereEnabled) Blockly.Events.enable();
 
     // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
+    console.log("[workspace-debug] workspace loaded", {
+      workspaceId: workspace.id,
+      topBlockCount: workspace.getTopBlocks(false).length,
+      handlerRegistrySize: blockHandlerRegistry.size,
+    });
 
     workspace.scroll(0, 0);
     executeCallback();
