@@ -2225,7 +2225,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   };
 
   const logColorResolutionDebug = (stage, details = {}) => {
-    console.debug("[color][workspace-debug]", {
+    console.log("[color][workspace-debug]", {
       stage,
       mainWorkspaceId: Blockly.getMainWorkspace()?.id ?? null,
       ...details,
