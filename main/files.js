@@ -337,10 +337,12 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
     // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
-    rebuildBlockHandlerRegistryFromWorkspace(workspace);
+    const restoredHandlers =
+      rebuildBlockHandlerRegistryFromWorkspace(workspace);
     console.log("[workspace-debug] workspace loaded", {
       workspaceId: workspace.id,
       topBlockCount: workspace.getTopBlocks(false).length,
+      restoredHandlers,
       handlerRegistrySize: blockHandlerRegistry.size,
     });
 
