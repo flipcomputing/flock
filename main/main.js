@@ -27,6 +27,7 @@ import {
   setupDragAndDrop,
   loadExampleWrapper,
   newProject,
+  openFile,
 } from "./files.js";
 import {
   onResize,
@@ -527,13 +528,13 @@ function initializeApp() {
   // Make open button work with keyboard
   if (openButton) {
     openButton.addEventListener("click", () => {
-      fileInput.click();
+      openFile(workspace, executeCode);
     });
 
     openButton.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        fileInput.click();
+        openFile(workspace, executeCode);
       }
     });
   }
@@ -556,7 +557,7 @@ function initializeApp() {
       switch (key) {
         case "o": // Ctrl+O - Open file
           e.preventDefault();
-          document.getElementById("fileInput").click();
+          openFile(workspace, executeCode);
           break;
 
         case "s": // Ctrl+S - Save/Export
@@ -665,7 +666,7 @@ function initializeApp() {
   if (projectOpen) {
     projectOpen.addEventListener("click", function (e) {
       e.preventDefault();
-      fileInput.click();
+      openFile(workspace, executeCode);
       document.getElementById("menuDropdown")?.classList.add("hidden");
     });
   }

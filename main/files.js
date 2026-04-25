@@ -937,6 +937,57 @@ export function setupFileInput(workspace, executeCallback) {
   });
 }
 
+// Open a file using showOpenFilePicker (Chrome/Edge/Safari) with <input> fallback
+export async function openFile(workspace, executeCallback) {
+  if ("showOpenFilePicker" in window) {
+    try {
+      const [fileHandle] = await window.showOpenFilePicker({
+        mode: "readwrite",
+        types: [
+          {
+            description: translate("project_file_description"),
+            accept: {
+              "application/vnd.flock+json": [".flock"],
+              "application/json": [".json"],
+            },
+          },
+        ],
+      });
+      const file = await fileHandle.getFile();
+      if (file.size > 5 * 1024 * 1024) {
+        alert(translate("file_too_large_alert"));
+        return;
+      }
+      const text = await file.text();
+      if (text.length > 4 * 1024 * 1024) {
+        throw new Error("File content is too large");
+      }
+      const json = JSON.parse(text);
+      if (
+        !json ||
+        typeof json !== "object" ||
+        !json.blocks ||
+        typeof json.blocks !== "object" ||
+        !json.blocks.blocks
+      ) {
+        throw new Error("Invalid Blockly project file structure");
+      }
+      window.loadingCode = true;
+      document.getElementById("projectName").value =
+        getSafeImportedFileBaseName(file.name);
+      currentFileHandle = fileHandle;
+      loadWorkspaceAndExecute(json, workspace, executeCallback);
+    } catch (e) {
+      if (e.name === "AbortError") return;
+      console.error("Error opening file:", e);
+      alert(translate("invalid_project_alert"));
+      window.loadingCode = false;
+    }
+  } else {
+    document.getElementById("fileInput").click();
+  }
+}
+
 // Function to load example projects
 export function loadExample(workspace, executeCallback) {
   window.loadingCode = true;
