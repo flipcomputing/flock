@@ -4,7 +4,6 @@ import { flock } from "../flock.js";
 import { translate } from "./translation.js";
 import { getMetadata } from "meta-png";
 import { AUTOSAVE_KEY } from "../config.js";
-import { blockHandlerRegistry } from "../blocks/blocks.js";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
@@ -328,13 +327,6 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
     // Validate JSON before loading into workspace
     const validatedJson = validateBlocklyJson(json);
-
-    // Clear workspace and handlers
-    const eventsWereEnabled = Blockly.Events.isEnabled();
-    if (eventsWereEnabled) Blockly.Events.disable();
-    workspace.clear();
-    blockHandlerRegistry.clear();
-    if (eventsWereEnabled) Blockly.Events.enable();
 
      // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);

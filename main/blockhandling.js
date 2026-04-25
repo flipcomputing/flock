@@ -506,7 +506,9 @@ export function initializeBlockHandling() {
       Array.isArray(event.ids)
     ) {
       for (const id of event.ids) {
-        blockHandlerRegistry.delete(id);
+        if (!workspace.getBlockById(id)) {
+          blockHandlerRegistry.delete(id);
+        }
       }
     }
 
