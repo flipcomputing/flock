@@ -517,9 +517,16 @@ function getSafeImportedFileBaseName(fileName) {
 // Holds the FileSystemFileHandle from the last explicit save (File System Access API)
 let currentFileHandle = null;
 
+export function updateSaveButtonState() {
+  document
+    .getElementById("exportCodeButton")
+    ?.classList.toggle("no-autosave", !currentFileHandle);
+}
+
 // Clears the stored file handle (call whenever a new project is loaded)
 export function clearFileHandle() {
   currentFileHandle = null;
+  updateSaveButtonState();
 }
 
 // Function to export project code
@@ -570,6 +577,9 @@ export async function exportCode(workspace) {
       await writable.write(jsonString);
       await writable.close();
       currentFileHandle = fileHandle;
+      updateSaveButtonState();
+      document.getElementById("projectName").value =
+        getSafeImportedFileBaseName(fileHandle.name);
     } else {
       const blob = new Blob([jsonString], { type: FLOCK_MIME });
       const link = document.createElement("a");
@@ -941,6 +951,62 @@ export function setupFileInput(workspace, executeCallback) {
     };
     reader.readAsText(file);
   });
+}
+
+// Open a file using showOpenFilePicker (Chrome/Edge/Safari) with <input> fallback
+export async function openFile(workspace, executeCallback) {
+  if ("showOpenFilePicker" in window) {
+    try {
+      const [fileHandle] = await window.showOpenFilePicker({
+        mode: "readwrite",
+        types: [
+          {
+            description: translate("project_file_description"),
+            accept: {
+              "application/vnd.flock+json": [".flock"],
+              "application/json": [".json"],
+            },
+          },
+        ],
+      });
+      const file = await fileHandle.getFile();
+      if (file.size > 5 * 1024 * 1024) {
+        alert(translate("file_too_large_alert"));
+        return;
+      }
+      const text = await file.text();
+      if (text.length > 4 * 1024 * 1024) {
+        throw new Error("File content is too large");
+      }
+      const json = JSON.parse(text);
+      if (
+        !json ||
+        typeof json !== "object" ||
+        !json.blocks ||
+        typeof json.blocks !== "object" ||
+        !json.blocks.blocks
+      ) {
+        throw new Error("Invalid Blockly project file structure");
+      }
+      window.loadingCode = true;
+      document.getElementById("projectName").value =
+        getSafeImportedFileBaseName(file.name);
+      currentFileHandle = fileHandle;
+      updateSaveButtonState();
+      loadWorkspaceAndExecute(json, workspace, executeCallback);
+    } catch (e) {
+      if (e.name === "AbortError") return;
+      console.error("Error opening file:", e);
+      if (e.message === "File content is too large") {
+        alert(translate("file_too_large_alert"));
+      } else {
+        alert(translate("invalid_project_alert"));
+      }
+      window.loadingCode = false;
+    }
+  } else {
+    document.getElementById("fileInput").click();
+  }
 }
 
 // Function to load example projects

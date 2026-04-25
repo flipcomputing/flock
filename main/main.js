@@ -27,6 +27,8 @@ import {
   setupDragAndDrop,
   loadExampleWrapper,
   newProject,
+  openFile,
+  updateSaveButtonState,
 } from "./files.js";
 import {
   onResize,
@@ -208,16 +210,18 @@ function initializeApp() {
   exportCodeButton.addEventListener("click", exportCode);
 
   // Make open button work with keyboard
-  openButton.addEventListener("click", () => {
-    fileInput.click();
-  });
+  if (openButton) {
+    openButton.addEventListener("click", () => {
+      openFile(workspace, executeCode);
+    });
 
-  openButton.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      fileInput.click();
-    }
-  });
+    openButton.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openFile(workspace, executeCode);
+      }
+    });
+  }
 
   // Enable the file input after initialization
   fileInput.removeAttribute("disabled");
@@ -237,7 +241,7 @@ function initializeApp() {
       switch (key) {
         case "o": // Ctrl+O - Open file
           e.preventDefault();
-          document.getElementById("fileInput").click();
+          openFile(workspace, executeCode);
           break;
 
         case "s": // Ctrl+S - Save/Export
@@ -341,8 +345,9 @@ function initializeApp() {
     .getElementById("project-open")
     .addEventListener("click", function (e) {
       e.preventDefault();
-      fileInput.click();
-      document.getElementById("menuDropdown").classList.add("hidden");
+
+      openFile(workspace, executeCode);
+      document.getElementById("menuDropdown")?.classList.add("hidden");
     });
   document
     .getElementById("project-save")
@@ -372,15 +377,15 @@ function initializeApp() {
                 toggleToolbox();
         });*/
 
- if (exampleSelect) {
-  exampleSelect.addEventListener("change", loadExampleWrapper);
-  exampleSelect.addEventListener("keydown", (e) => {
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-      e.preventDefault();
-    }
-  });
- }
-  
+  if (exampleSelect) {
+    exampleSelect.addEventListener("change", loadExampleWrapper);
+    exampleSelect.addEventListener("keydown", (e) => {
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault();
+      }
+    });
+  }
+
   // Make setLanguage available globally for the menu
   window.setLanguage = async (lang) => await setLanguage(lang);
 
@@ -471,4 +476,5 @@ window.onload = async function () {
   setupInput();
 
   loadWorkspace(workspace, executeCode);
+  updateSaveButtonState();
 };

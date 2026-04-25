@@ -1073,6 +1073,20 @@ details summary:focus,
   background-color: var(--color-button-bg-hover);
 }
 
+#exportCodeButton.no-autosave .icon {
+  background-image: repeating-linear-gradient(
+    to right,
+    orange,
+    orange 4px,
+    transparent 4px,
+    transparent 6px
+  );
+  background-position: bottom;
+  background-size: 100% 4px;
+  background-repeat: repeat-x;
+  padding-bottom: 7px;
+}
+
 #renderCanvas:focus {
   outline: 3px solid var(--color-focus);
   outline-offset: -3px;
