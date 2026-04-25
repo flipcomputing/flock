@@ -344,6 +344,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
             0,
             maxItems
           );
+          workspace.trashcan.setMinOpenness(0.1);
         }
       }
     } catch (trashcanError) {
