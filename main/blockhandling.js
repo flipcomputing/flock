@@ -527,12 +527,18 @@ export function initializeBlockHandling() {
     }
 
     // Purge deleted blocks from the registry, then dispatch to handlers.
+    // Guard: only remove if no live block with that ID exists. When
+    // workspaces.load() queues DELETE events during its internal clear()
+    // and flushes them after creating new blocks with the same IDs, the
+    // new handlers must not be evicted.
     if (
       event.type === Blockly.Events.BLOCK_DELETE &&
       Array.isArray(event.ids)
     ) {
       for (const id of event.ids) {
-        blockHandlerRegistry.delete(id);
+        if (!workspace.getBlockById(id)) {
+          blockHandlerRegistry.delete(id);
+        }
       }
     }
 
