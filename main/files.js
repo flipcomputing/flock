@@ -319,14 +319,17 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     // Validate JSON before loading into workspace
     const validatedJson = validateBlocklyJson(json);
 
-    // Clear workspace and handlers
+    // Clear workspace with events enabled so normal delete/trash semantics run.
     const eventsWereEnabled = Blockly.Events.isEnabled();
-    if (eventsWereEnabled) Blockly.Events.disable();
+    if (!eventsWereEnabled) Blockly.Events.enable();
     workspace.clear();
+
+    // Keep registry clearing isolated from workspace clear events.
+    Blockly.Events.disable();
     blockHandlerRegistry.clear();
     if (eventsWereEnabled) Blockly.Events.enable();
 
-     // Load the validated JSON
+    // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
 
     workspace.scroll(0, 0);

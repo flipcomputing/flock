@@ -2224,6 +2224,20 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     TShirt: "TSHIRT_COLOR",
   };
 
+  const logColorResolutionDebug = (stage, details = {}) => {
+    console.debug("[color][workspace-debug]", {
+      stage,
+      mainWorkspaceId: Blockly.getMainWorkspace()?.id ?? null,
+      ...details,
+    });
+  };
+
+  const isBlockFromCurrentWorkspace = (candidateBlock) => {
+    const mainWorkspace = Blockly.getMainWorkspace();
+    if (!candidateBlock || !mainWorkspace) return true;
+    return candidateBlock.workspace?.id === mainWorkspace.id;
+  };
+
   // ---------- main ----------
   let block = null;
 
@@ -2240,6 +2254,11 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       wsBlocks.find((b) => b.type === "set_sky_color");
 
     block = backgroundBlock || skyBlock || meshMap?.["sky"];
+    logColorResolutionDebug("background-block-picked", {
+      selectedBlockId: block?.id ?? null,
+      selectedBlockType: block?.type ?? null,
+      selectedBlockWorkspaceId: block?.workspace?.id ?? null,
+    });
 
     if (!block) {
       // Create sky block
@@ -2253,6 +2272,19 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       const connection = startBlock.getInput("DO").connection;
       if (connection && block.previousConnection)
         connection.connect(block.previousConnection);
+    }
+
+    if (!isBlockFromCurrentWorkspace(block)) {
+      console.warn(
+        "[color] background/sky block belongs to a different workspace",
+        {
+          blockId: block.id,
+          blockType: block.type,
+          blockWorkspaceId: block.workspace?.id ?? null,
+          mainWorkspaceId: Blockly.getMainWorkspace()?.id ?? null,
+        },
+      );
+      return;
     }
 
     withUndoGroup(() => {
@@ -2275,6 +2307,12 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   // Mesh → block
   const root = getAttachedAwareRoot(mesh);
   const blockKey = root?.metadata?.blockKey;
+  logColorResolutionDebug("mesh-color-update-start", {
+    meshName: mesh?.name ?? null,
+    rootName: root?.name ?? null,
+    blockKey: blockKey ?? null,
+    meshMapHasBlockKey: Boolean(blockKey && meshMap?.[blockKey]),
+  });
 
   if (!blockKey || !meshMap?.[blockKey]) {
     const ws = Blockly.getMainWorkspace();
@@ -2301,6 +2339,25 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     return;
   }
   block = meshMap[blockKey];
+  logColorResolutionDebug("mesh-block-resolved", {
+    meshName: mesh?.name ?? null,
+    blockKey,
+    blockId: block?.id ?? null,
+    blockType: block?.type ?? null,
+    blockWorkspaceId: block?.workspace?.id ?? null,
+  });
+
+  if (!isBlockFromCurrentWorkspace(block)) {
+    console.warn("[color] Resolved block belongs to a different workspace", {
+      mesh: mesh?.name,
+      blockKey,
+      blockId: block?.id ?? null,
+      blockType: block?.type ?? null,
+      blockWorkspaceId: block?.workspace?.id ?? null,
+      mainWorkspaceId: Blockly.getMainWorkspace()?.id ?? null,
+    });
+    return;
+  }
 
   const materialName = mesh?.material?.name?.replace(/_clone$/, "");
   const colorIndex = mesh?.metadata?.materialIndex;
