@@ -1185,9 +1185,35 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     return;
   }
 
+  const mainWorkspace = Blockly.getMainWorkspace();
   const changedBlock = changeEvent.blockId
-    ? Blockly.getMainWorkspace().getBlockById(changeEvent.blockId)
+    ? mainWorkspace?.getBlockById(changeEvent.blockId)
     : null;
+
+  if (
+    changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
+    changeEvent?.blockId &&
+    !changedBlock
+  ) {
+    const eventWorkspace =
+      Blockly.Workspace?.getById?.(changeEvent.workspaceId) || null;
+    const blockInEventWorkspace = eventWorkspace?.getBlockById?.(
+      changeEvent.blockId,
+    );
+
+    console.warn(
+      "[blockmesh debug] BLOCK_CHANGE for missing block in main workspace",
+      {
+        blockId: changeEvent.blockId,
+        eventWorkspaceId: changeEvent.workspaceId,
+        mainWorkspaceId: mainWorkspace?.id,
+        foundInEventWorkspace: Boolean(blockInEventWorkspace),
+        eventType: changeEvent.type,
+        eventElement: changeEvent.element,
+        eventName: changeEvent.name,
+      },
+    );
+  }
 
   const parent = changedBlock?.getParent() || changedBlock;
 
