@@ -86,7 +86,7 @@ class HandlerRegistry extends Map {
   }
 
   clear() {
-    console.warn("[workspace-debug] blockHandlerRegistry.clear()", {
+    console.log("[workspace-debug] blockHandlerRegistry.clear() [debug trace]", {
       sizeBefore: this.size,
       stack: new Error().stack,
     });
@@ -155,7 +155,7 @@ export function rebuildBlockHandlerRegistryFromWorkspace(workspace) {
     blockHandlerRegistry.set(block.id, handler);
     restored += 1;
   }
-  console.log("[workspace-debug] rebuildBlockHandlerRegistryFromWorkspace", {
+  const rebuildSummary = {
     workspaceId: workspace.id,
     blockCount: blocks.length,
     meshDriverBlockCount,
@@ -163,7 +163,11 @@ export function rebuildBlockHandlerRegistryFromWorkspace(workspace) {
     blocksMissingHandlerRef: missingHandlerRefBlocks.length,
     missingHandlerRefSample: missingHandlerRefBlocks.slice(0, 10),
     registrySize: blockHandlerRegistry.size,
-  });
+  };
+  console.log("[workspace-debug] rebuildBlockHandlerRegistryFromWorkspace", rebuildSummary);
+  console.log(
+    `[workspace-debug] rebuild summary workspaceId=${rebuildSummary.workspaceId} blockCount=${rebuildSummary.blockCount} meshDriverBlockCount=${rebuildSummary.meshDriverBlockCount} restoredHandlers=${rebuildSummary.restoredHandlers} blocksMissingHandlerRef=${rebuildSummary.blocksMissingHandlerRef} registrySize=${rebuildSummary.registrySize}`,
+  );
   const missingMeshDriverHandlers = meshDriverBlocks
     .filter((block) => !blockHandlerRegistry.has(block.id))
     .map((block) => ({ id: block.id, type: block.type }));

@@ -337,7 +337,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
     // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
-    console.error("[workspace-debug] about to rebuild block handler registry", {
+    console.log("[workspace-debug] about to rebuild block handler registry", {
       workspaceId: workspace.id,
       topBlockCount: workspace.getTopBlocks(false).length,
     });
