@@ -1123,7 +1123,7 @@ details summary:focus,
 }
 
 #exportCodeButton.no-autosave .icon {
-  border-bottom: 4px solid orange;
+  border-bottom: 4px dashed orange;
   padding-bottom: 3px;
 }
 
