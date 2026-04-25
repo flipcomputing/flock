@@ -548,6 +548,17 @@ export function initializeBlockHandling() {
       event.type === Blockly.Events.BLOCK_MOVE ||
       event.type === Blockly.Events.BLOCK_CREATE
     ) {
+      const eventBlock =
+        event.blockId && typeof workspace.getBlockById === "function"
+          ? workspace.getBlockById(event.blockId)
+          : null;
+      const eventAncestorIds =
+        typeof eventBlock?.getAncestors === "function"
+          ? eventBlock.getAncestors().map((block) => block.id)
+          : [];
+      const matchingAncestorHandlerIds = eventAncestorIds.filter((id) =>
+        blockHandlerRegistry.has(id),
+      );
       const handlerDebug = getHandlerDebugForBlock(
         workspace,
         event.blockId ?? null,
@@ -559,8 +570,22 @@ export function initializeBlockHandling() {
         eventBlockId: event.blockId ?? null,
         eventWorkspaceId: event.workspaceId ?? null,
         handlerCount: handlers.length,
+        eventBlockType: eventBlock?.type ?? null,
+        eventAncestorIds,
+        matchingAncestorHandlerIds,
         handlerDebug,
       });
+      if (matchingAncestorHandlerIds.length === 0) {
+        console.warn(
+          "[workspace-debug] No handler registered for event block or its ancestors",
+          {
+            eventBlockId: event.blockId ?? null,
+            eventBlockType: eventBlock?.type ?? null,
+            eventAncestorIds,
+            registrySize: blockHandlerRegistry.size,
+          },
+        );
+      }
     }
     for (const handler of handlers) {
       handler(event);
