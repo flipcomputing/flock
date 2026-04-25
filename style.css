@@ -1122,9 +1122,8 @@ details summary:focus,
   background-color: var(--color-button-bg-hover);
 }
 
-#exportCodeButton.no-autosave {
-  outline: 2px dashed currentColor;
-  outline-offset: -3px;
+#exportCodeButton.no-autosave .icon {
+  border-bottom: 2px solid orange;
 }
 
 #renderCanvas:focus {
