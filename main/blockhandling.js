@@ -3,7 +3,6 @@ import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
 import {
   blockHandlerRegistry,
-  dispatchBlockUpdateFromEvent,
   getHandlerDebugForBlock,
 } from "../blocks/blocks.js";
 import { announceToScreenReader } from "./input.js";
@@ -590,31 +589,6 @@ export function initializeBlockHandling() {
             registrySize: blockHandlerRegistry.size,
           },
         );
-      }
-      if (
-        handlers.length === 0 &&
-        (event.type === Blockly.Events.BLOCK_CHANGE ||
-          event.type === Blockly.Events.BLOCK_MOVE)
-      ) {
-        const fallbackBlock = eventAncestorBlocks.find((block) => {
-          const type = block?.type || "";
-          return (
-            type.startsWith("create_") ||
-            type.startsWith("load_") ||
-            type === "set_sky_color" ||
-            type === "set_background_color" ||
-            type === "create_ground" ||
-            type === "create_map"
-          );
-        });
-        if (fallbackBlock) {
-          console.warn("[workspace-debug] Fallback dispatch without registry", {
-            eventBlockId: event.blockId ?? null,
-            fallbackBlockId: fallbackBlock.id,
-            fallbackBlockType: fallbackBlock.type,
-          });
-          dispatchBlockUpdateFromEvent(fallbackBlock, event);
-        }
       }
     }
     for (const handler of handlers) {

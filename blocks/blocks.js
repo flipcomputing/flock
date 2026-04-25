@@ -86,6 +86,10 @@ class HandlerRegistry extends Map {
   }
 
   clear() {
+    console.warn("[workspace-debug] blockHandlerRegistry.clear()", {
+      sizeBefore: this.size,
+      stack: new Error().stack,
+    });
     this.#snapshot = null;
     return super.clear();
   }
@@ -125,6 +129,17 @@ export function rebuildBlockHandlerRegistryFromWorkspace(workspace) {
   if (!workspace) return 0;
   let restored = 0;
   const blocks = workspace.getAllBlocks(false);
+  const meshDriverBlockCount = blocks.filter((block) => {
+    const type = block?.type || "";
+    return (
+      type.startsWith("create_") ||
+      type.startsWith("load_") ||
+      type === "set_sky_color" ||
+      type === "set_background_color" ||
+      type === "create_ground" ||
+      type === "create_map"
+    );
+  }).length;
   for (const block of blocks) {
     if (!block || block.workspace?.isFlyout) continue;
     const handler = block[flockHandlerRefKey];
@@ -135,6 +150,7 @@ export function rebuildBlockHandlerRegistryFromWorkspace(workspace) {
   console.log("[workspace-debug] rebuildBlockHandlerRegistryFromWorkspace", {
     workspaceId: workspace.id,
     blockCount: blocks.length,
+    meshDriverBlockCount,
     restoredHandlers: restored,
     registrySize: blockHandlerRegistry.size,
   });
@@ -164,11 +180,6 @@ export function getHandlerDebugForBlock(workspace, blockId) {
     hasRegistryEntry: blockHandlerRegistry.has(blockId),
     registrySize: blockHandlerRegistry.size,
   };
-}
-
-export function dispatchBlockUpdateFromEvent(block, changeEvent) {
-  if (!block || !changeEvent) return;
-  updateOrCreateMeshFromBlock(block, changeEvent);
 }
 
 export const inlineIcon = makeInlineIcon("white");
