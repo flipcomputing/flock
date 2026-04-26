@@ -279,6 +279,28 @@ function resetAttachedMeshIfMeshAttached() {
   }
 }
 
+function attachMeshForActiveTool(pickedMesh) {
+  if (!gizmoManager) return null;
+
+  if (!pickedMesh || pickedMesh.name === "ground") {
+    gizmoManager.attachToMesh(null);
+    return null;
+  }
+
+  if (pickedMesh.parent) {
+    pickedMesh = getRootMesh(pickedMesh.parent);
+  }
+
+  gizmoManager.attachToMesh(pickedMesh);
+
+  const blockId = meshMap[pickedMesh?.metadata?.blockKey];
+  if (blockId) {
+    highlightBlockById(Blockly.getMainWorkspace(), blockId);
+  }
+
+  return pickedMesh;
+}
+
 function eventIsOutOfCanvasBounds(event, canvasRect) {
   return (
     event.clientX < canvasRect.left ||
@@ -1170,8 +1192,7 @@ function handleScaleGizmo() {
         exitGizmoState();
         return;
       }
-      if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
-      gizmoManager.attachToMesh(pickedMesh);
+      attachMeshForActiveTool(pickedMesh);
     });
   }
 
@@ -1305,8 +1326,7 @@ function handleRotationGizmo() {
         exitGizmoState();
         return;
       }
-      if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
-      gizmoManager.attachToMesh(pickedMesh);
+      attachMeshForActiveTool(pickedMesh);
     });
   }
 
@@ -1584,7 +1604,7 @@ function handleDuplicateGizmo() {
         exitGizmoState();
         return;
       }
-      gizmoManager.attachToMesh(pickedMesh);
+      attachMeshForActiveTool(pickedMesh);
       startDuplicatePlacement();
     });
     return;
