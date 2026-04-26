@@ -109,7 +109,7 @@ export function createAxisKeyboardHandler({
 
   function stop() {
     axis = null;
-    document.removeEventListener("keydown", handler);
+    document.removeEventListener("keydown", handler, true);
   }
 
   return stop;

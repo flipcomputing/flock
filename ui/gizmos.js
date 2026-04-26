@@ -752,12 +752,21 @@ function updateRotationBlock(mesh) {
 function pickMeshFromScene(onPicked, persistent = false) {
   cleanupScenePick(); // Stop picking
   resetAttachedMesh();
+  let hasPicked = false;
+
+  const handlePicked = (pickedMesh, pickedPoint) => {
+    if (!persistent) {
+      if (hasPicked) return;
+      hasPicked = true;
+      cleanupScenePick();
+    }
+    onPicked(pickedMesh, pickedPoint);
+  };
 
   const pointerObservable = flock.scene.onPointerObservable;
   const pointerObserver = pointerObservable.add((event) => {
     if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
-      if (!persistent) cleanupScenePick();
-      onPicked(event.pickInfo.pickedMesh, event.pickInfo.pickedPoint);
+      handlePicked(event.pickInfo.pickedMesh, event.pickInfo.pickedPoint);
     }
   });
 
@@ -767,8 +776,7 @@ function pickMeshFromScene(onPicked, persistent = false) {
     startCanvasKeyboardMode(
       (x, y) => {
         const pick = flock.scene.pick(x, y);
-        if (!persistent) cleanupScenePick();
-        onPicked(pick?.pickedMesh, pick?.pickedPoint);
+        handlePicked(pick?.pickedMesh, pick?.pickedPoint);
       },
       false,
       (x, y) =>
@@ -1410,36 +1418,46 @@ function handlePositionGizmo() {
   const positionButton = document.getElementById("positionButton");
   positionButton.classList.add("active");
 
-  const mesh = gizmoManager.attachedMesh;
-  if (mesh) {
-    startMoveKeyboardHandler(mesh);
-  } else {
-    pickMeshFromScene((pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === "ground") {
-        exitGizmoState();
-        return;
-      }
-      if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
-      gizmoManager.attachToMesh(pickedMesh);
-    });
-  }
-
-  const posObs = gizmoManager.onAttachedToMeshObservable.add((mesh) => {
+  let keyboardAttachedMesh = null;
+  const activatePositionKeyboardForMesh = (mesh) => {
     if (!mesh) {
       exitGizmoState();
       return;
     }
 
-    startMoveKeyboardHandler(mesh); // Reattach
+    if (keyboardAttachedMesh === mesh) return;
+    keyboardAttachedMesh = mesh;
+
+    startMoveKeyboardHandler(mesh);
 
     const blockKey = mesh?.metadata?.blockKey;
     const blockId = blockKey ? meshMap[blockKey] : null;
     if (!blockId) return;
 
     highlightBlockById(Blockly.getMainWorkspace(), blockId);
+  };
+
+  const posObs = gizmoManager.onAttachedToMeshObservable.add((mesh) => {
+    activatePositionKeyboardForMesh(mesh);
   });
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(posObs));
+
+  const mesh = gizmoManager.attachedMesh;
+  if (mesh) {
+    activatePositionKeyboardForMesh(mesh);
+  } else {
+    pickMeshFromScene((pickedMesh) => {
+      if (!pickedMesh || pickedMesh.name === "ground") {
+        exitGizmoState();
+        return;
+      }
+      if (pickedMesh.parent) {
+        pickedMesh = getRootMesh(pickedMesh.parent);
+      }
+      gizmoManager.attachToMesh(pickedMesh);
+    });
+  }
 
   const posDragStart =
     gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(() => {
@@ -1874,32 +1892,32 @@ export function setGizmoManager(value) {
       mesh = null;
     }
 
+    if (mesh?.parent) {
+      mesh = getRootMesh(mesh.parent);
+    }
+
+    if (mesh && mesh === gizmoManager.attachedMesh) return;
+
     clearAttachedMeshDisposeObserver();
 
     if (gizmoManager.attachedMesh) {
       resetAttachedMesh();
 
-      if (mesh) {
-        while (mesh && mesh.parent && !mesh.parent.physics) {
-          mesh = mesh.parent;
-        }
+      const block = Blockly.getMainWorkspace().getBlockById(
+        mesh?.metadata?.blockKey,
+      );
 
-        const block = Blockly.getMainWorkspace().getBlockById(
-          mesh?.metadata?.blockKey,
-        );
+      if (block && gizmoManager.scaleGizmoEnabled) {
+        switch (block.type) {
+          case "create_plane":
+          case "create_capsule":
+          case "create_cylinder":
+            gizmoManager.gizmos.scaleGizmo.zGizmo.isEnabled = false;
 
-        if (block && gizmoManager.scaleGizmoEnabled) {
-          switch (block.type) {
-            case "create_plane":
-            case "create_capsule":
-            case "create_cylinder":
-              gizmoManager.gizmos.scaleGizmo.zGizmo.isEnabled = false;
+            break;
 
-              break;
-
-            default:
-              gizmoManager.gizmos.scaleGizmo.zGizmo.isEnabled = true;
-          }
+          default:
+            gizmoManager.gizmos.scaleGizmo.zGizmo.isEnabled = true;
         }
       }
     }
