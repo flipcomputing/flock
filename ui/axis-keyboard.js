@@ -53,6 +53,7 @@ export function createAxisKeyboardHandler({
       case "ArrowUp":
       case "ArrowDown": {
         event.preventDefault();
+        event.stopPropagation(); 
         const sign =
           event.key === "ArrowRight" || event.key === "ArrowUp" ? 1 : -1;
         if (axis) {
@@ -72,11 +73,13 @@ export function createAxisKeyboardHandler({
 
       case "PageUp":
         event.preventDefault();
+        event.stopPropagation(); 
         if (!axis) onMove(0, step, 0);
         break;
 
       case "PageDown":
         event.preventDefault();
+        event.stopPropagation(); 
         if (!axis) onMove(0, -step, 0);
         break;
 
@@ -102,7 +105,7 @@ export function createAxisKeyboardHandler({
     }
   }
 
-  document.addEventListener("keydown", handler);
+  document.addEventListener("keydown", handler, true);
 
   function stop() {
     axis = null;
