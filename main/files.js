@@ -726,6 +726,23 @@ function appendSnippetBlocksAtViewport(workspace, blocksJson) {
   });
 }
 
+function isValidProjectFileJson(json) {
+  if (!json || typeof json !== "object") {
+    return false;
+  }
+
+  if (Object.keys(json).length === 0) {
+    return true;
+  }
+
+  return (
+    !!json.blocks &&
+    typeof json.blocks === "object" &&
+    !!json.blocks.blocks &&
+    Array.isArray(json.blocks.blocks)
+  );
+}
+
 // Private helper: process a project file (used by file input and drag-and-drop)
 function processProjectFileDrop(file, workspace, executeCallback) {
   const maxSize = 5 * 1024 * 1024;
@@ -752,13 +769,7 @@ function processProjectFileDrop(file, workspace, executeCallback) {
         throw new Error("File content is too large");
       }
       const json = JSON.parse(text);
-      if (
-        !json ||
-        typeof json !== "object" ||
-        !json.blocks ||
-        typeof json.blocks !== "object" ||
-        !json.blocks.blocks
-      ) {
+      if (!isValidProjectFileJson(json)) {
         throw new Error("Invalid Blockly project file structure");
       }
 
@@ -902,13 +913,7 @@ export function setupFileInput(workspace, executeCallback) {
           throw new Error("File content is too large");
         }
         const json = JSON.parse(text);
-        if (
-          !json ||
-          typeof json !== "object" ||
-          !json.blocks ||
-          typeof json.blocks !== "object" ||
-          !json.blocks.blocks
-        ) {
+        if (!isValidProjectFileJson(json)) {
           throw new Error("Invalid Blockly project file structure");
         }
 
@@ -961,13 +966,7 @@ export async function openFile(workspace, executeCallback) {
         throw new Error("File content is too large");
       }
       const json = JSON.parse(text);
-      if (
-        !json ||
-        typeof json !== "object" ||
-        !json.blocks ||
-        typeof json.blocks !== "object" ||
-        !json.blocks.blocks
-      ) {
+      if (!isValidProjectFileJson(json)) {
         throw new Error("Invalid Blockly project file structure");
       }
       window.loadingCode = true;
