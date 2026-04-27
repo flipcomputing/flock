@@ -996,8 +996,9 @@ function startDuplicatePlacement() {
     const maxAttempts = 20;
 
     const resolveSourceMesh = () => {
-      const newBlockKey = getBlockKeyFromBlock(newBlock) || newBlock.id;
-      let nextSource = getMeshFromBlockKey(newBlockKey) || getMeshFromBlock(newBlock);
+      const newBlockKey = getBlockKeyFromBlock(newBlock);
+      let nextSource = (newBlockKey ? getMeshFromBlockKey(newBlockKey) : null) ||
+        getMeshFromBlock(newBlock);
 
       if (!nextSource && attempt < maxAttempts) {
         attempt += 1;
