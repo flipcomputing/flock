@@ -976,6 +976,7 @@ function startDuplicatePlacement() {
   // Make sure that if there is already a selected mesh
   // its bounding box is visible so the user knows what they are duplicating
   const meshToClone = gizmoManager.attachedMesh;
+  meshToClone.visibility = 0.001;
   meshToClone.showBoundingBox = true;
 
   blockId = meshBlockIdMap[blockKey];
