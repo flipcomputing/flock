@@ -1012,6 +1012,7 @@ function startDuplicatePlacement() {
         meshToClone.showBoundingBox = false;
       }
       meshToClone = nextSource;
+      gizmoManager.attachToMesh(meshToClone);
       meshToClone.visibility = 0.001;
       meshToClone.showBoundingBox = true;
     };
