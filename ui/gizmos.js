@@ -59,6 +59,8 @@ let cameraMode = "play";
 let activePick = null; // [Select mesh?]
 let activeDuplicatePickHandler = null; // [Clone mesh?]
 let stopAxisKeyboard = null; // Axis keyboard active?
+let duplicateModeActive = false;
+let duplicateRafId = null;
 
 // Keep track of things to clean up
 const cleanupFns = [];
@@ -554,6 +556,12 @@ function getScaledSize(mesh) {
 
 // Clean up gizmo state if aborted
 export function exitGizmoState() {
+  duplicateModeActive = false;
+  if (duplicateRafId !== null) {
+    cancelAnimationFrame(duplicateRafId);
+    duplicateRafId = null;
+  }
+
   cleanupScenePick(); // Stop picking
 
   // Properly clean up if duplicating
@@ -975,15 +983,62 @@ function startDuplicatePlacement() {
 
   // Make sure that if there is already a selected mesh
   // its bounding box is visible so the user knows what they are duplicating
-  const meshToClone = gizmoManager.attachedMesh;
+  let meshToClone = gizmoManager.attachedMesh;
   meshToClone.visibility = 0.001;
   meshToClone.showBoundingBox = true;
 
   blockId = meshBlockIdMap[blockKey];
+  duplicateModeActive = true;
 
   setCrosshairCursor();
 
   canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
+
+  const updateDuplicateChainSource = (newBlock, workspace) => {
+    if (!newBlock) return;
+
+    highlightBlockById(workspace, newBlock);
+    blockId = newBlock.id;
+    setCrosshairCursor();
+
+    let attempt = 0;
+    const maxAttempts = 20;
+
+    const resolveSourceMesh = () => {
+      duplicateRafId = null;
+      if (!duplicateModeActive) return;
+
+      const newBlockKey = getBlockKeyFromBlock(newBlock);
+      let nextSource = (newBlockKey ? getMeshFromBlockKey(newBlockKey) : null) ||
+        getMeshFromBlock(newBlock);
+
+      if (!nextSource && attempt < maxAttempts) {
+        attempt += 1;
+        duplicateRafId = requestAnimationFrame(resolveSourceMesh);
+        return;
+      }
+
+      if (!nextSource) return;
+      if (nextSource.parent) nextSource = getRootMesh(nextSource.parent);
+
+      if (duplicateModeActive) {
+        if (meshToClone && meshToClone !== nextSource) {
+          meshToClone.showBoundingBox = false;
+          resetBoundingBoxVisibilityIfManuallyChanged(meshToClone);
+        }
+        meshToClone = nextSource;
+        gizmoManager.attachToMesh(meshToClone);
+        meshToClone.visibility = 0.001;
+        meshToClone.showBoundingBox = true;
+      }
+    };
+
+    if (duplicateRafId !== null) {
+      cancelAnimationFrame(duplicateRafId);
+      duplicateRafId = null;
+    }
+    duplicateRafId = requestAnimationFrame(resolveSourceMesh);
+  };
 
   onPickMesh = function (event) {
     const canvasRect = canvas.getBoundingClientRect();
@@ -1025,9 +1080,7 @@ function startDuplicatePlacement() {
         workspace,
         pickedPosition,
       );
-      if (newBlock) {
-        highlightBlockById(workspace, newBlock);
-      }
+      updateDuplicateChainSource(newBlock, workspace);
     }
   };
 
@@ -1059,9 +1112,7 @@ function startDuplicatePlacement() {
             workspace,
             pickResult.pickedPoint,
           );
-          if (newBlock) {
-            highlightBlockById(workspace, newBlock);
-          }
+          updateDuplicateChainSource(newBlock, workspace);
         }
       },
       false,
