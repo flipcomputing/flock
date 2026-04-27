@@ -69,6 +69,25 @@ export function highlightBlockById(workspace, block) {
   }
 }
 
+export function focusHighlightedBlock(workspace = Blockly.getMainWorkspace()) {
+  if (!workspace) return false;
+
+  const selectedBlock = Blockly.common?.getSelected?.();
+  if (!selectedBlock || selectedBlock.workspace !== workspace) return false;
+
+  Blockly.keyboardNavigationController?.setIsActive?.(true);
+  const focusManager = Blockly.getFocusManager?.();
+  focusManager?.focusNode?.(selectedBlock);
+  selectedBlock.select?.();
+  workspace.getCursor?.()?.setCurNode?.(selectedBlock);
+
+  const focusableElement =
+    selectedBlock.getFocusableElement?.() || selectedBlock.getSvgRoot?.();
+  focusableElement?.focus?.({ preventScroll: true });
+
+  return true;
+}
+
 function ensureAddMenuSelectionCleanup(workspace) {
   if (!workspace || workspace.__addMenuSelectionCleanupAttached) return;
 
