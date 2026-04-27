@@ -12,6 +12,11 @@ export function createAxisKeyboardHandler({
   let axis = null;
 
   function handler(event) {
+    // Don't interfere with text inputs
+    const t = event.target;
+    const tag = (t?.tagName || "").toLowerCase();
+    if (t?.isContentEditable || tag === "input" || tag === "textarea" || tag === "select") return;
+    
     const step = event.shiftKey ? stepFast : stepNormal;
 
     switch (event.key) {
