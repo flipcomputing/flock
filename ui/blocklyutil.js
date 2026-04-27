@@ -17,6 +17,7 @@ function clearAddMenuHighlight(workspace, newSelectedId) {
   if (
     !lastAddMenuHighlighted ||
     lastAddMenuHighlighted.workspace !== workspace ||
+    !newSelectedId ||
     lastAddMenuHighlighted.blockId === newSelectedId
   ) {
     return;
