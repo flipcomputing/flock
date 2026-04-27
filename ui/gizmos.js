@@ -1024,6 +1024,7 @@ function startDuplicatePlacement() {
       if (duplicateModeActive) {
         if (meshToClone && meshToClone !== nextSource) {
           meshToClone.showBoundingBox = false;
+          resetBoundingBoxVisibilityIfManuallyChanged(meshToClone);
         }
         meshToClone = nextSource;
         gizmoManager.attachToMesh(meshToClone);
