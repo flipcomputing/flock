@@ -975,7 +975,7 @@ function startDuplicatePlacement() {
 
   // Make sure that if there is already a selected mesh
   // its bounding box is visible so the user knows what they are duplicating
-  const meshToClone = gizmoManager.attachedMesh;
+  let meshToClone = gizmoManager.attachedMesh;
   meshToClone.visibility = 0.001;
   meshToClone.showBoundingBox = true;
 
@@ -984,6 +984,40 @@ function startDuplicatePlacement() {
   setCrosshairCursor();
 
   canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
+
+  const updateDuplicateChainSource = (newBlock, workspace) => {
+    if (!newBlock) return;
+
+    highlightBlockById(workspace, newBlock);
+    blockId = newBlock.id;
+    setCrosshairCursor();
+
+    let attempt = 0;
+    const maxAttempts = 20;
+
+    const resolveSourceMesh = () => {
+      const newBlockKey = getBlockKeyFromBlock(newBlock) || newBlock.id;
+      let nextSource = getMeshFromBlockKey(newBlockKey) || getMeshFromBlock(newBlock);
+
+      if (!nextSource && attempt < maxAttempts) {
+        attempt += 1;
+        requestAnimationFrame(resolveSourceMesh);
+        return;
+      }
+
+      if (!nextSource) return;
+      if (nextSource.parent) nextSource = getRootMesh(nextSource.parent);
+
+      if (meshToClone && meshToClone !== nextSource) {
+        meshToClone.showBoundingBox = false;
+      }
+      meshToClone = nextSource;
+      meshToClone.visibility = 0.001;
+      meshToClone.showBoundingBox = true;
+    };
+
+    requestAnimationFrame(resolveSourceMesh);
+  };
 
   onPickMesh = function (event) {
     const canvasRect = canvas.getBoundingClientRect();
@@ -1025,9 +1059,7 @@ function startDuplicatePlacement() {
         workspace,
         pickedPosition,
       );
-      if (newBlock) {
-        highlightBlockById(workspace, newBlock);
-      }
+      updateDuplicateChainSource(newBlock, workspace);
     }
   };
 
@@ -1059,9 +1091,7 @@ function startDuplicatePlacement() {
             workspace,
             pickResult.pickedPoint,
           );
-          if (newBlock) {
-            highlightBlockById(workspace, newBlock);
-          }
+          updateDuplicateChainSource(newBlock, workspace);
         }
       },
       false,
