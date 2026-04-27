@@ -59,6 +59,8 @@ let cameraMode = "play";
 let activePick = null; // [Select mesh?]
 let activeDuplicatePickHandler = null; // [Clone mesh?]
 let stopAxisKeyboard = null; // Axis keyboard active?
+let duplicateModeActive = false;
+let duplicateRafId = null;
 
 // Keep track of things to clean up
 const cleanupFns = [];
@@ -554,6 +556,12 @@ function getScaledSize(mesh) {
 
 // Clean up gizmo state if aborted
 export function exitGizmoState() {
+  duplicateModeActive = false;
+  if (duplicateRafId !== null) {
+    cancelAnimationFrame(duplicateRafId);
+    duplicateRafId = null;
+  }
+
   cleanupScenePick(); // Stop picking
 
   // Properly clean up if duplicating
@@ -980,6 +988,7 @@ function startDuplicatePlacement() {
   meshToClone.showBoundingBox = true;
 
   blockId = meshBlockIdMap[blockKey];
+  duplicateModeActive = true;
 
   setCrosshairCursor();
 
@@ -996,29 +1005,38 @@ function startDuplicatePlacement() {
     const maxAttempts = 20;
 
     const resolveSourceMesh = () => {
+      duplicateRafId = null;
+      if (!duplicateModeActive) return;
+
       const newBlockKey = getBlockKeyFromBlock(newBlock);
       let nextSource = (newBlockKey ? getMeshFromBlockKey(newBlockKey) : null) ||
         getMeshFromBlock(newBlock);
 
       if (!nextSource && attempt < maxAttempts) {
         attempt += 1;
-        requestAnimationFrame(resolveSourceMesh);
+        duplicateRafId = requestAnimationFrame(resolveSourceMesh);
         return;
       }
 
       if (!nextSource) return;
       if (nextSource.parent) nextSource = getRootMesh(nextSource.parent);
 
-      if (meshToClone && meshToClone !== nextSource) {
-        meshToClone.showBoundingBox = false;
+      if (duplicateModeActive) {
+        if (meshToClone && meshToClone !== nextSource) {
+          meshToClone.showBoundingBox = false;
+        }
+        meshToClone = nextSource;
+        gizmoManager.attachToMesh(meshToClone);
+        meshToClone.visibility = 0.001;
+        meshToClone.showBoundingBox = true;
       }
-      meshToClone = nextSource;
-      gizmoManager.attachToMesh(meshToClone);
-      meshToClone.visibility = 0.001;
-      meshToClone.showBoundingBox = true;
     };
 
-    requestAnimationFrame(resolveSourceMesh);
+    if (duplicateRafId !== null) {
+      cancelAnimationFrame(duplicateRafId);
+      duplicateRafId = null;
+    }
+    duplicateRafId = requestAnimationFrame(resolveSourceMesh);
   };
 
   onPickMesh = function (event) {
