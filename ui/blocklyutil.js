@@ -28,6 +28,30 @@ function clearAddMenuHighlight(workspace, newSelectedId) {
   lastAddMenuHighlighted = null;
 }
 
+function restoreFocusAfterPassiveHighlight(previouslyFocused) {
+  const canFocus = (el) =>
+    !!el &&
+    typeof el.focus === "function" &&
+    document.contains(el) &&
+    !el.hasAttribute?.("disabled");
+
+  if (canFocus(previouslyFocused)) {
+    previouslyFocused.focus({ preventScroll: true });
+    return;
+  }
+
+  const activeGizmoButton = document.querySelector(".gizmo-button.active");
+  if (canFocus(activeGizmoButton)) {
+    activeGizmoButton.focus({ preventScroll: true });
+    return;
+  }
+
+  const canvas = document.getElementById("renderCanvas");
+  if (canFocus(canvas)) {
+    canvas.focus({ preventScroll: true });
+  }
+}
+
 export function appendWithUndo(spec, ws, groupId) {
   let block;
   try {
@@ -60,32 +84,13 @@ export function highlightBlockById(workspace, block) {
     Blockly.keyboardNavigationController?.setIsActive?.(true);
     const focusManager = Blockly.getFocusManager?.();
     focusManager?.focusNode?.(block);
-    previouslyFocused?.focus?.({ preventScroll: true });
+    restoreFocusAfterPassiveHighlight(previouslyFocused);
 
     trackAddMenuHighlight(workspace, block.id);
 
     // Scroll to position the block at the top and its parent at the left
     scrollToBlockTopParentLeft(workspace, block.id);
   }
-}
-
-export function focusHighlightedBlock(workspace = Blockly.getMainWorkspace()) {
-  if (!workspace) return false;
-
-  const selectedBlock = Blockly.common?.getSelected?.();
-  if (!selectedBlock || selectedBlock.workspace !== workspace) return false;
-
-  Blockly.keyboardNavigationController?.setIsActive?.(true);
-  const focusManager = Blockly.getFocusManager?.();
-  focusManager?.focusNode?.(selectedBlock);
-  selectedBlock.select?.();
-  workspace.getCursor?.()?.setCurNode?.(selectedBlock);
-
-  const focusableElement =
-    selectedBlock.getFocusableElement?.() || selectedBlock.getSvgRoot?.();
-  focusableElement?.focus?.({ preventScroll: true });
-
-  return true;
 }
 
 function ensureAddMenuSelectionCleanup(workspace) {
