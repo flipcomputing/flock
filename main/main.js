@@ -48,7 +48,6 @@ import {
   initializeSavedLanguage,
   translate,
 } from "./translation.js";
-import { focusHighlightedBlock } from "../ui/blocklyutil.js";
 
 function isEmbedModeEnabled() {
   const embedParam = new URLSearchParams(window.location.search).get("embed");
@@ -606,10 +605,8 @@ function initializeApp() {
 
         case "e": // Ctrl+E - Focus Blockly workspace/editor and move cursor
           e.preventDefault();
-          if (!focusHighlightedBlock(workspace)) {
-            Blockly.keyboardNavigationController?.setIsActive?.(true);
-            Blockly.getFocusManager()?.focusTree?.(workspace);
-          }
+          Blockly.keyboardNavigationController?.setIsActive?.(true);
+          Blockly.getFocusManager()?.focusTree?.(workspace);
           break;
       }
     },
