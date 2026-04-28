@@ -352,6 +352,16 @@ export const flockModels = {
         flock.modelPath,
         modelName,
         flock.scene,
+        undefined,
+        undefined,
+        flock.BABYLON_LOADER?.GLTFLoaderAnimationStartMode
+          ? {
+              gltf: {
+                animationStartMode:
+                  flock.BABYLON_LOADER.GLTFLoaderAnimationStartMode.NONE,
+              },
+            }
+          : undefined,
       );
       flock.modelsBeingLoaded[modelName] = loadPromise;
 
