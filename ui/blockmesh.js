@@ -526,13 +526,14 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 function isBlockConnectedToEnabledChain(block) {
   if (!block?.isEnabled?.()) return false;
 
-  if (block.previousConnection) {
-    return block.previousConnection.isConnected?.() ?? false;
+  let root = block;
+  let parent = block.getParent?.();
+  while (parent) {
+    root = parent;
+    parent = parent.getParent?.();
   }
 
-  if (block.getParent?.()) return true;
-
-  return true;
+  return root?.isEnabled?.() ?? false;
 }
 
 function isBlockIdDescendantOf(rootBlock, id) {
