@@ -440,6 +440,9 @@ export function createMeshOnCanvas(block) {
 
 function isEligibleForMeshCreation(block) {
   if (!block?.isEnabled?.()) return false;
+  if (block.previousConnection && !block.previousConnection.isConnected?.()) {
+    return false;
+  }
 
   let root = block;
   const visited = new Set();
@@ -465,9 +468,6 @@ function isEligibleForMeshCreation(block) {
 
     break;
   }
-
-  // Mesh blocks must be attached under a top-level controller chain.
-  if (root === block) return false;
 
   return root?.isEnabled?.() ?? false;
 }

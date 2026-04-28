@@ -525,6 +525,9 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 
 function isBlockConnectedToEnabledChain(block) {
   if (!block?.isEnabled?.()) return false;
+  if (block.previousConnection && !block.previousConnection.isConnected?.()) {
+    return false;
+  }
 
   let root = block;
   const visited = new Set();
@@ -550,8 +553,6 @@ function isBlockConnectedToEnabledChain(block) {
 
     break;
   }
-
-  if (root === block) return false;
 
   return root?.isEnabled?.() ?? false;
 }
