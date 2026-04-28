@@ -455,7 +455,9 @@ function isEligibleForMeshCreation(block) {
 
     const previousConnection = root.previousConnection;
     const previousBlock =
-      previousConnection?.isConnected?.() && previousConnection.targetBlock?.();
+      previousConnection?.isConnected?.() &&
+      (previousConnection.targetBlock?.() ||
+        previousConnection.targetConnection?.getSourceBlock?.());
     if (previousBlock && previousBlock !== root) {
       root = previousBlock;
       continue;
