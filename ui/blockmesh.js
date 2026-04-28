@@ -526,26 +526,14 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 function isBlockConnectedToEnabledChain(block) {
   if (!block?.isEnabled?.()) return false;
 
+  let root = block;
   let parent = block.getParent?.();
   while (parent) {
-    if (!parent.isEnabled?.()) return false;
+    root = parent;
     parent = parent.getParent?.();
   }
 
-  // For statement blocks, walk the entire upstream statement chain and ensure
-  // each link is connected and enabled.
-  let cursor = block;
-  while (cursor?.previousConnection) {
-    const previousConnection = cursor.previousConnection;
-    if (!previousConnection.isConnected?.()) return false;
-
-    const previousBlock = previousConnection.targetBlock?.();
-    if (!previousBlock?.isEnabled?.()) return false;
-
-    cursor = previousBlock;
-  }
-
-  return true;
+  return root?.isEnabled?.() ?? false;
 }
 
 function isBlockIdDescendantOf(rootBlock, id) {
