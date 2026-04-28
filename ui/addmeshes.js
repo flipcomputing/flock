@@ -448,6 +448,9 @@ function isEligibleForMeshCreation(block) {
     parent = parent.getParent?.();
   }
 
+  // Mesh blocks must be attached under a top-level controller chain.
+  if (root === block) return false;
+
   return root?.isEnabled?.() ?? false;
 }
 

@@ -533,6 +533,8 @@ function isBlockConnectedToEnabledChain(block) {
     parent = parent.getParent?.();
   }
 
+  if (root === block) return false;
+
   return root?.isEnabled?.() ?? false;
 }
 
