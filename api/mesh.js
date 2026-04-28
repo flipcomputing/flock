@@ -692,6 +692,10 @@ export const flockMesh = {
   setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z) {
     mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
 
+    [mesh, ...mesh.getChildMeshes()].forEach((m) => {
+      m.skeleton?.returnToRest();
+    });
+
     const bb =
       flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(mesh);
 
