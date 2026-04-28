@@ -463,18 +463,6 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     return;
   }
 
-  if (
-    [
-      "set_sky_color",
-      "set_background_color",
-      "create_ground",
-      "create_map",
-    ].includes(block.type)
-  ) {
-    // Always proceed to update
-    updateMeshFromBlock(null, block, changeEvent);
-    return;
-  }
   const meshes = getMeshesFromBlock(block);
   const isConnectedToEnabledChain = isBlockConnectedToEnabledChain(block);
   if (flock.meshDebug) console.log(meshes);
