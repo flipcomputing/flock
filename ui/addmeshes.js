@@ -7,6 +7,10 @@ import {
 } from "./blockmesh.js";
 
 export function createMeshOnCanvas(block) {
+  if (!isEligibleForMeshCreation(block)) {
+    return;
+  }
+
   const mesh = getMeshFromBlock(block);
   if (mesh) {
     console.warn("Mesh already exists for block", block.id);
@@ -432,6 +436,22 @@ export function createMeshOnCanvas(block) {
     meshMap[block.id] = block;
     meshBlockIdMap[block.id] = block.id;
   }
+}
+
+function isEligibleForMeshCreation(block) {
+  if (!block?.isEnabled?.()) return false;
+  if (block.previousConnection && !block.previousConnection.isConnected?.()) {
+    return false;
+  }
+
+  let root = block;
+  let parent = block.getParent?.();
+  while (parent) {
+    root = parent;
+    parent = parent.getParent?.();
+  }
+
+  return root?.isEnabled?.() ?? false;
 }
 
 function createShapeInternal(block) {

@@ -452,6 +452,13 @@ export function setClearSkyToBlack() {
 
 // Add this function before updateMeshFromBlock
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
+  const sceneControllerTypes = [
+    "set_sky_color",
+    "set_background_color",
+    "create_ground",
+    "create_map",
+  ];
+
   if (flock.meshDebug)
     console.log(
       "Update or create mesh from block",
@@ -463,19 +470,8 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     return;
   }
 
-  if (
-    [
-      "set_sky_color",
-      "set_background_color",
-      "create_ground",
-      "create_map",
-    ].includes(block.type)
-  ) {
-    // Always proceed to update
-    updateMeshFromBlock(null, block, changeEvent);
-    return;
-  }
   const meshes = getMeshesFromBlock(block);
+  const isConnectedToEnabledChain = isBlockConnectedToEnabledChain(block);
   if (flock.meshDebug) console.log(meshes);
   const wasDisabled =
     changeEvent?.oldValue === true || changeEvent?.oldValue === "true";
@@ -488,13 +484,24 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     nowEnabled;
   const isImmediateEnabledCreate =
     changeEvent?.type === Blockly.Events.BLOCK_CREATE &&
-    block.isEnabled() &&
+    isConnectedToEnabledChain &&
     meshes.length === 0;
+
+  if (!isConnectedToEnabledChain) {
+    if (meshes.length) {
+      deleteMeshFromBlock(block.id);
+    }
+    return;
+  }
   if ((window.loadingCode && !changeEvent?.recordUndo) || block.disposed)
     return;
   const alreadyCreatingMesh = meshMap[block.id] !== undefined;
   if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate)) {
-    createMeshOnCanvas(block);
+    if (sceneControllerTypes.includes(block.type)) {
+      updateMeshFromBlock(meshes, block, changeEvent);
+    } else {
+      createMeshOnCanvas(block);
+    }
     return;
   }
   if (flock.meshDebug) {
@@ -510,15 +517,26 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
       changeEvent?.type === Blockly.Events.BLOCK_CREATE ||
       changeEvent?.type === Blockly.Events.BLOCK_MOVE) &&
     (meshes.length ||
-      [
-        "set_sky_color",
-        "set_background_color",
-        "create_ground",
-        "create_map",
-      ].includes(block.type))
+      sceneControllerTypes.includes(block.type))
   ) {
     updateMeshFromBlock(meshes, block, changeEvent);
   }
+}
+
+function isBlockConnectedToEnabledChain(block) {
+  if (!block?.isEnabled?.()) return false;
+  if (block.previousConnection && !block.previousConnection.isConnected?.()) {
+    return false;
+  }
+
+  let root = block;
+  let parent = block.getParent?.();
+  while (parent) {
+    root = parent;
+    parent = parent.getParent?.();
+  }
+
+  return root?.isEnabled?.() ?? false;
 }
 
 function isBlockIdDescendantOf(rootBlock, id) {
@@ -1279,13 +1297,6 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       block.type === "create_ground" ||
       block.type === "create_map"
     ) {
-      if (changeEvent.type === Blockly.Events.BLOCK_MOVE) {
-        if (flock.meshDebug)
-          console.log(
-            "Ignoring BLOCK_MOVE for scene block with no input change",
-          );
-        return;
-      }
       changed = "COLOR";
     } else {
       if (flock.meshDebug)
