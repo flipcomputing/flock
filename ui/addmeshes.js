@@ -442,10 +442,26 @@ function isEligibleForMeshCreation(block) {
   if (!block?.isEnabled?.()) return false;
 
   let root = block;
-  let parent = block.getParent?.();
-  while (parent) {
-    root = parent;
-    parent = parent.getParent?.();
+  const visited = new Set();
+
+  while (root && !visited.has(root.id)) {
+    visited.add(root.id);
+
+    const parent = root.getParent?.();
+    if (parent) {
+      root = parent;
+      continue;
+    }
+
+    const previousConnection = root.previousConnection;
+    const previousBlock =
+      previousConnection?.isConnected?.() && previousConnection.targetBlock?.();
+    if (previousBlock && previousBlock !== root) {
+      root = previousBlock;
+      continue;
+    }
+
+    break;
   }
 
   // Mesh blocks must be attached under a top-level controller chain.
