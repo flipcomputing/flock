@@ -525,6 +525,9 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 
 function isBlockConnectedToEnabledChain(block) {
   if (!block?.isEnabled?.()) return false;
+  if (block.previousConnection && !block.previousConnection.isConnected?.()) {
+    return false;
+  }
 
   let root = block;
   let parent = block.getParent?.();

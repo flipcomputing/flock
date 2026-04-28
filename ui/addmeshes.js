@@ -440,6 +440,9 @@ export function createMeshOnCanvas(block) {
 
 function isEligibleForMeshCreation(block) {
   if (!block?.isEnabled?.()) return false;
+  if (block.previousConnection && !block.previousConnection.isConnected?.()) {
+    return false;
+  }
 
   let root = block;
   let parent = block.getParent?.();
