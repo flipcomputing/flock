@@ -476,6 +476,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     return;
   }
   const meshes = getMeshesFromBlock(block);
+  const isConnectedToEnabledChain = isBlockConnectedToEnabledChain(block);
   if (flock.meshDebug) console.log(meshes);
   const wasDisabled =
     changeEvent?.oldValue === true || changeEvent?.oldValue === "true";
@@ -488,8 +489,15 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     nowEnabled;
   const isImmediateEnabledCreate =
     changeEvent?.type === Blockly.Events.BLOCK_CREATE &&
-    block.isEnabled() &&
+    isConnectedToEnabledChain &&
     meshes.length === 0;
+
+  if (!isConnectedToEnabledChain) {
+    if (meshes.length) {
+      deleteMeshFromBlock(block.id);
+    }
+    return;
+  }
   if ((window.loadingCode && !changeEvent?.recordUndo) || block.disposed)
     return;
   const alreadyCreatingMesh = meshMap[block.id] !== undefined;
@@ -519,6 +527,23 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   ) {
     updateMeshFromBlock(meshes, block, changeEvent);
   }
+}
+
+function isBlockConnectedToEnabledChain(block) {
+  if (!block?.isEnabled?.()) return false;
+
+  let parent = block.getParent?.();
+  while (parent) {
+    if (!parent.isEnabled?.()) return false;
+    parent = parent.getParent?.();
+  }
+
+  const previousConnection = block.previousConnection;
+  if (!previousConnection) return true;
+  if (!previousConnection.isConnected?.()) return false;
+
+  const previousBlock = previousConnection.targetBlock?.();
+  return previousBlock?.isEnabled?.() ?? false;
 }
 
 function isBlockIdDescendantOf(rootBlock, id) {
