@@ -520,11 +520,16 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 function isBlockConnectedToEnabledChain(block) {
   if (!block?.isEnabled?.()) return false;
 
-  let parent = block.getParent?.();
+  const immediateParent = block.getParent?.();
+  let parent = immediateParent;
   while (parent) {
     if (!parent.isEnabled?.()) return false;
     parent = parent.getParent?.();
   }
+
+  // If a block is parented into a statement input stack, that's enough to
+  // consider it connected to the enabled chain (parents already validated).
+  if (immediateParent) return true;
 
   const previousConnection = block.previousConnection;
   if (!previousConnection) return true;
