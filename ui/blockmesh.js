@@ -530,7 +530,11 @@ function isBlockConnectedToEnabledChain(block) {
   if (!previousConnection) return true;
   if (!previousConnection.isConnected?.()) return false;
 
-  const previousBlock = previousConnection.targetBlock?.();
+  const previousBlock =
+    previousConnection.targetBlock?.() ||
+    previousConnection.targetConnection?.getSourceBlock?.() ||
+    block.getParent?.();
+
   return previousBlock?.isEnabled?.() ?? false;
 }
 
