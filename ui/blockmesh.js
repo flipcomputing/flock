@@ -452,6 +452,13 @@ export function setClearSkyToBlack() {
 
 // Add this function before updateMeshFromBlock
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
+  const sceneControllerTypes = [
+    "set_sky_color",
+    "set_background_color",
+    "create_ground",
+    "create_map",
+  ];
+
   if (flock.meshDebug)
     console.log(
       "Update or create mesh from block",
@@ -490,7 +497,11 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     return;
   const alreadyCreatingMesh = meshMap[block.id] !== undefined;
   if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate)) {
-    createMeshOnCanvas(block);
+    if (sceneControllerTypes.includes(block.type)) {
+      updateMeshFromBlock(meshes, block, changeEvent);
+    } else {
+      createMeshOnCanvas(block);
+    }
     return;
   }
   if (flock.meshDebug) {
@@ -506,12 +517,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
       changeEvent?.type === Blockly.Events.BLOCK_CREATE ||
       changeEvent?.type === Blockly.Events.BLOCK_MOVE) &&
     (meshes.length ||
-      [
-        "set_sky_color",
-        "set_background_color",
-        "create_ground",
-        "create_map",
-      ].includes(block.type))
+      sceneControllerTypes.includes(block.type))
   ) {
     updateMeshFromBlock(meshes, block, changeEvent);
   }
