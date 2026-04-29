@@ -1704,11 +1704,13 @@ function handleDeleteGizmo() {
 
   function applyDelete(pickedMesh) {
     if (!pickedMesh || pickedMesh.name === "ground") {
-      if (
-        document.getElementById("deleteButton")?.classList.contains("active")
-      ) {
-        pickMeshFromScene(applyDelete, false);
-      }
+      setTimeout(() => {
+        if (
+          document.getElementById("deleteButton")?.classList.contains("active")
+        ) {
+          pickMeshFromScene(applyDelete, false);
+        }
+      }, 0);
       return;
     }
     const blockKey = findParentWithBlockId(pickedMesh)?.metadata?.blockKey;
