@@ -486,6 +486,10 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     changeEvent?.type === Blockly.Events.BLOCK_CREATE &&
     isConnectedToEnabledChain &&
     meshes.length === 0;
+  const isConnectedMove =
+    changeEvent?.type === Blockly.Events.BLOCK_MOVE &&
+    isConnectedToEnabledChain &&
+    meshes.length === 0;
 
   if (!isConnectedToEnabledChain) {
     if (meshes.length) {
@@ -496,7 +500,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   if ((window.loadingCode && !changeEvent?.recordUndo) || block.disposed)
     return;
   const alreadyCreatingMesh = meshMap[block.id] !== undefined;
-  if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate)) {
+  if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate || isConnectedMove)) {
     if (sceneControllerTypes.includes(block.type)) {
       updateMeshFromBlock(meshes, block, changeEvent);
     } else {
