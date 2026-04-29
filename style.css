@@ -1526,8 +1526,8 @@ body.color-picker-open #renderCanvas {
 
 .area-outline {
   position: absolute;
-  border: 5px solid var(--color-border);
+  outline: 5px solid var(--color-border);
+  background: rgba(128, 128, 128, 0.15);
   pointer-events: none; /* Let clicks pass through */
   z-index: 10000;
-  box-sizing: border-box;
 }

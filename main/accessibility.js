@@ -4,11 +4,11 @@
 const AccessibilityManager = {
   overlay: null,
   areas: [
-    { selector: "#menuleft", label: "1" }, // Top left menu
+    { selector: "#menuleft", label: "1" }, // Top left menu (line 148 input.js - demo menu is excluded?)
     { selector: "#menuright", label: "2" }, // Top right
     { selector: "#renderCanvas", label: "3" }, // Main canvas
     { selector: "#gizmoButtons", label: "4" }, // Gizmos
-    { selector: "#resizer", label: "5" }, // Resizer
+    { selector: "#resizer", label: "5", pad: -3 }, // Resizer
     {
       selector: "#blockly-0",
       label: "6",
@@ -104,11 +104,12 @@ const AccessibilityManager = {
         container.appendChild(badge);
 
         const highlight = document.createElement("div");
+        const pad = area.pad ?? 1;
         highlight.className = "area-outline";
-        highlight.style.top = `${rect.top}px`;
-        highlight.style.left = `${rect.left}px`;
-        highlight.style.width = `${rect.width}px`;
-        highlight.style.height = `${rect.height}px`;
+        highlight.style.top = `${rect.top - pad}px`;
+        highlight.style.left = `${rect.left - pad}px`;
+        highlight.style.width = `${rect.width + pad * 2}px`;
+        highlight.style.height = `${rect.height + pad * 2}px`;
         container.appendChild(highlight);
       }
     });
