@@ -1165,6 +1165,7 @@ export function toggleGizmo(gizmoType) {
   // Is this gizmo already active? If so, toggle it off
   const button = document.getElementById(`${gizmoType}Button`);
   if (button?.classList.contains("active")) {
+    if (gizmoType === "camera") handleCameraGizmo();
     exitGizmoState();
     return;
   }
