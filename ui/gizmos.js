@@ -218,13 +218,11 @@ function pickMeshFromCanvas() {
 
     const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
     applyColorAtPosition(canvasX, canvasY);
-    document.body.style.cursor = "crosshair";
-    canvas.style.cursor = "crosshair";
   };
 
   startCanvasKeyboardMode((x, y) => applyColorAtPosition(x, y));
-  document.body.style.cursor = "crosshair";
-  canvas.style.cursor = "crosshair";
+  document.body.style.cursor = "crosshair"; // works
+  flock.scene.defaultCursor = "crosshair";
 
   setTimeout(() => {
     window.addEventListener("click", onPickMesh);
