@@ -754,6 +754,16 @@ function updateRotationBlock(mesh) {
   Blockly.Events.setGroup(null);
 }
 
+// Composite models (e.g. imported glTF) have no geometry on the root mesh;
+// their bounding box only renders when visibility > 0, so we use 0.001.
+function enableBoundingBox(mesh) {
+  if (!mesh) return;
+  if (!mesh.getTotalVertices || mesh.getTotalVertices() === 0) {
+    mesh.visibility = 0.001;
+  }
+  mesh.showBoundingBox = true;
+}
+
 // Pick a mesh (used by multiple gizmos)
 function pickMeshFromScene(onPicked, persistent = false) {
   cleanupScenePick(); // Stop picking
@@ -982,8 +992,7 @@ function startDuplicatePlacement() {
   // Make sure that if there is already a selected mesh
   // its bounding box is visible so the user knows what they are duplicating
   let meshToClone = gizmoManager.attachedMesh;
-  meshToClone.visibility = 0.001;
-  meshToClone.showBoundingBox = true;
+  enableBoundingBox(meshToClone);
 
   blockId = meshBlockIdMap[blockKey];
   duplicateModeActive = true;
@@ -1007,7 +1016,8 @@ function startDuplicatePlacement() {
       if (!duplicateModeActive) return;
 
       const newBlockKey = getBlockKeyFromBlock(newBlock);
-      let nextSource = (newBlockKey ? getMeshFromBlockKey(newBlockKey) : null) ||
+      let nextSource =
+        (newBlockKey ? getMeshFromBlockKey(newBlockKey) : null) ||
         getMeshFromBlock(newBlock);
 
       if (!nextSource && attempt < maxAttempts) {
@@ -1026,8 +1036,7 @@ function startDuplicatePlacement() {
         }
         meshToClone = nextSource;
         gizmoManager.attachToMesh(meshToClone);
-        meshToClone.visibility = 0.001;
-        meshToClone.showBoundingBox = true;
+        enableBoundingBox(meshToClone);
       }
     };
 
