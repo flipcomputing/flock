@@ -4,6 +4,21 @@ let DEBUG = true;
 
 const AccessibilityManager = {
   overlay: null,
+  areas: [
+    { selector: "#menuleft", label: "1" }, // Top left menu
+    { selector: "#menuright", label: "2" }, // Top right
+    { selector: "#renderCanvas", label: "3" }, // Main canvas
+    { selector: "#gizmoButtons", label: "4" }, // Gizmos
+    { selector: "#resizer", label: "5" }, // Resizer
+    {
+      selector: "#blockly-0",
+      label: "6",
+      onActivate() {
+        document.querySelector("#blocklyDiv")?.focus();
+      },
+    }, // Blockly toolbox
+    { selector: "svg.blocklySvg", label: "7" }, // Block workspace
+  ],
 
   init() {
     this.createOverlay();
@@ -48,6 +63,28 @@ const AccessibilityManager = {
           if (DEBUG) console.log("🐟 Escape pressed");
           this.toggle(false);
         }
+        // Handle number keys
+        if (e.key >= "1" && e.key <= "9") {
+          // Only if the overlay is open (otherwise you can't type numbers)
+          if (!this.overlay.classList.contains("hidden")) {
+            // Find the area and set the focus
+            const area = this.areas.find((a) => a.label === e.key);
+            if (area) {
+              e.preventDefault(); // Don't type the number!
+
+              const el = document.querySelector(area.selector);
+              const focusable =
+                el?.querySelector(
+                  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+                ) ?? el; // Focus the area itself if no suitable child
+
+              if (focusable) {
+                this.toggle(false);
+                focusable.focus();
+              }
+            }
+          }
+        }
       },
       true,
     ); // 'true' uses the capture phase to beat Blockly's listeners
@@ -57,19 +94,9 @@ const AccessibilityManager = {
     const container = document.getElementById("area-menu-content");
     container.innerHTML = ""; // Clear old numbers
 
-    const areas = [
-      { selector: "#menuleft", label: "1" }, // Top left menu
-      { selector: "#menuright", label: "2" }, // Top right
-      { selector: "#renderCanvas", label: "3" }, // Main canvas
-      { selector: "#gizmoButtons", label: "4" }, // Gizmos
-      { selector: "#resizer", label: "5" }, // Resizer
-      { selector: "#blockly-0", label: "6" }, // Block selector
-      { selector: "#blocklyDiv", label: "7" }, // Block workspace
-    ];
-
-    areas.forEach((area) => {
+    this.areas.forEach((area) => {
       const el = document.querySelector(area.selector);
-      if (el && el.offsetWidth > 0) {
+      if (el && (el.offsetWidth > 0 || el.getBoundingClientRect().width > 0)) {
         const rect = el.getBoundingClientRect();
 
         const badge = document.createElement("div");
