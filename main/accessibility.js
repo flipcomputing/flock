@@ -64,7 +64,7 @@ const AccessibilityManager = {
       { selector: "#gizmoButtons", label: "4" }, // Gizmos
       { selector: "#resizer", label: "5" }, // Resizer
       { selector: "#blockly-0", label: "6" }, // Block selector
-      //{ selector: "#.blocklyWorkspace", label: "7" }, // Block workspace
+      { selector: "#blocklyDiv", label: "7" }, // Block workspace
     ];
 
     areas.forEach((area) => {
@@ -76,13 +76,12 @@ const AccessibilityManager = {
         badge.className = "area-number-badge";
         badge.innerText = area.label;
 
-        // Position the badge exactly over the element
-        badge.style.top = `${rect.top + 20}px`;
-        badge.style.left = `${rect.left + 20}px`;
+        // Position the badge in the center of the area
+        badge.style.top = `${rect.top + rect.height / 2 - 20}px`;
+        badge.style.left = `${rect.left + rect.width / 2 - 20}px`;
 
         container.appendChild(badge);
 
-        // Optional: Add a dashed border highlight to the area itself
         const highlight = document.createElement("div");
         highlight.className = "area-outline";
         highlight.style.top = `${rect.top}px`;
