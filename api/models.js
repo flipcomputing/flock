@@ -359,7 +359,7 @@ export const flockModels = {
 
       loadPromise.then((container) => {
         container.addAllToScene();
-
+        container.animationGroups.forEach((ag) => ag.stop());
         container.meshes.forEach((m) => {
           m.metadata = m.metadata || {};
           m.metadata.isTemplate = true;
