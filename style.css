@@ -1051,7 +1051,7 @@ button {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .close-button {
@@ -1179,9 +1179,9 @@ body.embed-mode #canvasArea {
 body.embed-mode #embedShell {
   background: #ffffff;
   border: 2px solid #511d91;
-  border-radius: 12px;   /* adjust as needed */
+  border-radius: 12px; /* adjust as needed */
   box-sizing: border-box;
-  overflow: hidden;      /* important: clips inner content to rounded corners */
+  overflow: hidden; /* important: clips inner content to rounded corners */
 }
 
 body.embed-mode #embedBottomBar a,
@@ -1490,4 +1490,32 @@ body.color-picker-open #renderCanvas {
 
 .canvas-selector-circle--invalid-press {
   animation: circle-invalid-flash 0.25s ease-out;
+}
+
+kbd {
+  background: #eee;
+  border: 1px solid #b4b4b4;
+  border-radius: 3px;
+  padding: 1px 4px;
+  color: #333;
+}
+
+.area-menu-content {
+  border: 10px solid --color-border;
+  background: var(--color-bg-overlay);
+}
+
+#area-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: --color-bg-overlay;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000; /* Ensure it stays on top of Babylon canvas */
+  color: white;
 }
