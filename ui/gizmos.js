@@ -257,6 +257,17 @@ function resetBoundingBoxVisibilityIfManuallyChanged(mesh) {
   if (mesh && mesh.visibility === 0.001) mesh.visibility = 0;
 }
 
+// Composite models (e.g. imported glTF) have no geometry on the root mesh;
+// the bounding box only renders when visibility > 0, so we use 0.001.
+// Regular primitive shapes have their own geometry and must not be dimmed.
+function isCompositeMesh(mesh) {
+  return (
+    mesh &&
+    (!mesh.getTotalVertices || mesh.getTotalVertices() === 0) &&
+    mesh.getChildMeshes().length > 0
+  );
+}
+
 function hideBoundingBox(mesh) {
   mesh.showBoundingBox = false;
 }
@@ -982,7 +993,7 @@ function startDuplicatePlacement() {
   // Make sure that if there is already a selected mesh
   // its bounding box is visible so the user knows what they are duplicating
   let meshToClone = gizmoManager.attachedMesh;
-  meshToClone.visibility = 0.001;
+  if (isCompositeMesh(meshToClone)) meshToClone.visibility = 0.001;
   meshToClone.showBoundingBox = true;
 
   blockId = meshBlockIdMap[blockKey];
@@ -1026,7 +1037,7 @@ function startDuplicatePlacement() {
         }
         meshToClone = nextSource;
         gizmoManager.attachToMesh(meshToClone);
-        meshToClone.visibility = 0.001;
+        if (isCompositeMesh(meshToClone)) meshToClone.visibility = 0.001;
         meshToClone.showBoundingBox = true;
       }
     };
@@ -1620,7 +1631,7 @@ function handleSelectGizmo() {
       if (pickedMesh.parent) {
         pickedMesh = getRootMesh(pickedMesh.parent);
         if (flock.meshDebug) console.log(pickedMesh.visibility);
-        pickedMesh.visibility = 0.001;
+        if (isCompositeMesh(pickedMesh)) pickedMesh.visibility = 0.001;
         if (flock.meshDebug) console.log(pickedMesh.visibility);
       }
       const block = meshMap[pickedMesh?.metadata?.blockKey];
