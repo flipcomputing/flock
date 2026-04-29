@@ -257,19 +257,18 @@ function resetBoundingBoxVisibilityIfManuallyChanged(mesh) {
   if (mesh && mesh.visibility === 0.001) mesh.visibility = 0;
 }
 
-// Composite models (e.g. imported glTF) have no geometry on the root mesh;
-// the bounding box only renders when visibility > 0, so we use 0.001.
-// Regular primitive shapes have their own geometry and must not be dimmed.
-function isCompositeMesh(mesh) {
-  return (
-    mesh &&
-    (!mesh.getTotalVertices || mesh.getTotalVertices() === 0) &&
-    mesh.getChildMeshes().length > 0
-  );
-}
-
 function hideBoundingBox(mesh) {
   mesh.showBoundingBox = false;
+}
+
+// Composite models (e.g. imported glTF) have no geometry on the root mesh;
+// their bounding box only renders when visibility > 0, so we use 0.001.
+function enableBoundingBox(mesh) {
+  if (!mesh) return;
+  if (!mesh.getTotalVertices || mesh.getTotalVertices() === 0) {
+    mesh.visibility = 0.001;
+  }
+  mesh.showBoundingBox = true;
 }
 
 function resetChildMeshesOfAttachedMesh() {
@@ -993,8 +992,7 @@ function startDuplicatePlacement() {
   // Make sure that if there is already a selected mesh
   // its bounding box is visible so the user knows what they are duplicating
   let meshToClone = gizmoManager.attachedMesh;
-  if (isCompositeMesh(meshToClone)) meshToClone.visibility = 0.001;
-  meshToClone.showBoundingBox = true;
+  enableBoundingBox(meshToClone);
 
   blockId = meshBlockIdMap[blockKey];
   duplicateModeActive = true;
@@ -1037,8 +1035,7 @@ function startDuplicatePlacement() {
         }
         meshToClone = nextSource;
         gizmoManager.attachToMesh(meshToClone);
-        if (isCompositeMesh(meshToClone)) meshToClone.visibility = 0.001;
-        meshToClone.showBoundingBox = true;
+        enableBoundingBox(meshToClone);
       }
     };
 
@@ -1631,13 +1628,11 @@ function handleSelectGizmo() {
       if (pickedMesh.parent) {
         pickedMesh = getRootMesh(pickedMesh.parent);
         if (flock.meshDebug) console.log(pickedMesh.visibility);
-        if (isCompositeMesh(pickedMesh)) pickedMesh.visibility = 0.001;
-        if (flock.meshDebug) console.log(pickedMesh.visibility);
       }
       const block = meshMap[pickedMesh?.metadata?.blockKey];
       highlightBlockById(Blockly.getMainWorkspace(), block);
       gizmoManager.attachToMesh(pickedMesh);
-      pickedMesh.showBoundingBox = true;
+      enableBoundingBox(pickedMesh);
     } else {
       if (pickedMesh && pickedMesh.name === "ground") {
         const roundedPosition = roundVectorToFixed(pickedPoint, 2);
