@@ -15,18 +15,10 @@ const AccessibilityManager = {
     // Create the element dynamically so you don't have to edit index.html
     const div = document.createElement("div");
     div.id = "area-menu-overlay";
-    div.className = "area-menu-content";
+    div.className = "hidden";
     div.classList.add("hidden");
     div.innerHTML = `
-    
-        <h3>Jump to Area</h3>
-        <ul>
-            <li><kbd>1</kbd> 3D View</li>
-            <li><kbd>2</kbd> Blocks</li>
-            <li><kbd>3</kbd> Code Preview</li>
-        </ul>
-        <p>Press <kbd>Esc</kbd> to close</p>
-          
+        <div id="area-menu-content"> </div>        
     `;
     document.body.appendChild(div);
     this.overlay = div;
@@ -36,9 +28,8 @@ const AccessibilityManager = {
 
   toggle(show) {
     if (this.overlay) {
+      if (show) this.renderHighlights();
       this.overlay.classList.toggle("hidden", !show);
-      if (DEBUG)
-        console.log("🐟 Visibility", this.overlay.classList.contains("hidden"));
     }
   },
 
@@ -60,6 +51,47 @@ const AccessibilityManager = {
       },
       true,
     ); // 'true' uses the capture phase to beat Blockly's listeners
+  },
+
+  renderHighlights() {
+    const container = document.getElementById("area-menu-content");
+    container.innerHTML = ""; // Clear old numbers
+
+    const areas = [
+      { selector: "#menuleft", label: "1" }, // Top left menu
+      { selector: "#menuright", label: "2" }, // Top right
+      { selector: "#renderCanvas", label: "3" }, // Main canvas
+      { selector: "#gizmoButtons", label: "4" }, // Gizmos
+      { selector: "#resizer", label: "5" }, // Resizer
+      { selector: "#blockly-0", label: "6" }, // Block selector
+      //{ selector: "#.blocklyWorkspace", label: "7" }, // Block workspace
+    ];
+
+    areas.forEach((area) => {
+      const el = document.querySelector(area.selector);
+      if (el && el.offsetWidth > 0) {
+        const rect = el.getBoundingClientRect();
+
+        const badge = document.createElement("div");
+        badge.className = "area-number-badge";
+        badge.innerText = area.label;
+
+        // Position the badge exactly over the element
+        badge.style.top = `${rect.top + 20}px`;
+        badge.style.left = `${rect.left + 20}px`;
+
+        container.appendChild(badge);
+
+        // Optional: Add a dashed border highlight to the area itself
+        const highlight = document.createElement("div");
+        highlight.className = "area-outline";
+        highlight.style.top = `${rect.top}px`;
+        highlight.style.left = `${rect.left}px`;
+        highlight.style.width = `${rect.width}px`;
+        highlight.style.height = `${rect.height}px`;
+        container.appendChild(highlight);
+      }
+    });
   },
 };
 

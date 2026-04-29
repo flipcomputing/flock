@@ -1492,18 +1492,7 @@ body.color-picker-open #renderCanvas {
   animation: circle-invalid-flash 0.25s ease-out;
 }
 
-kbd {
-  background: #eee;
-  border: 1px solid #b4b4b4;
-  border-radius: 3px;
-  padding: 1px 4px;
-  color: #333;
-}
-
-.area-menu-content {
-  border: 10px solid --color-border;
-  background: var(--color-bg-overlay);
-}
+/* Area Menu Styles */
 
 #area-menu-overlay {
   position: fixed;
@@ -1511,11 +1500,34 @@ kbd {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: --color-bg-overlay;
+  background: var(--color-bg-overlay);
   display: flex;
   flex-direction: column;
+  z-index: 10000; /* Ensure it stays on top of Babylon canvas */
+  color: var(--color-text-on-primary);
+}
+
+.area-number-badge {
+  position: absolute;
+  background: var(--color-text-primary);
+  color: var(--color-button-bg);
+  width: 40px;
+  height: 40px;
+  border-radius: 20%;
+  display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10000; /* Ensure it stays on top of Babylon canvas */
-  color: white;
+  font-size: 30px;
+  font-weight: bold;
+  box-shadow: 0 0 15px var(--color-shadow);
+  z-index: 10001;
+  border: 3px solid var(--color-button-bg);
+}
+
+.area-outline {
+  position: absolute;
+  border: 5px solid var(--color-border);
+  pointer-events: none; /* Let clicks pass through */
+  z-index: 10000;
+  box-sizing: border-box;
 }
