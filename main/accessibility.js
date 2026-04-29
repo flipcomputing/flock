@@ -1,6 +1,5 @@
 // Area menu accessed with Ctrl + B to quickly skip to
 // different areas on the interface
-let DEBUG = true;
 
 const AccessibilityManager = {
   overlay: null,
@@ -23,7 +22,6 @@ const AccessibilityManager = {
   init() {
     this.createOverlay();
     this.setupListeners();
-    if (DEBUG) console.log("🐟 Area overlay initialized");
   },
 
   createOverlay() {
@@ -37,8 +35,6 @@ const AccessibilityManager = {
     `;
     document.body.appendChild(div);
     this.overlay = div;
-
-    if (DEBUG) console.log("🐟 Overlay div", this.overlay);
   },
 
   toggle(show) {
@@ -54,13 +50,11 @@ const AccessibilityManager = {
       (e) => {
         // Open: Ctrl+B
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
-          if (DEBUG) console.log("🐟 Ctrl B pressed");
           e.preventDefault();
           this.toggle(true);
         }
         // Close: Escape
         if (e.key === "Escape") {
-          if (DEBUG) console.log("🐟 Escape pressed");
           this.toggle(false);
         }
         // Handle number keys
