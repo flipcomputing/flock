@@ -45,7 +45,7 @@ const AccessibilityManager = {
         // Open: Ctrl+B
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
           e.preventDefault();
-          this.toggle(true);
+          this.toggle(this.overlay.classList.contains("hidden"));
         }
         // Close: Escape
         if (e.key === "Escape") {
