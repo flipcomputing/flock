@@ -9,13 +9,7 @@ const AccessibilityManager = {
     { selector: "#renderCanvas", label: "3" }, // Main canvas
     { selector: "#gizmoButtons", label: "4" }, // Gizmos
     { selector: "#resizer", label: "5", pad: -3 }, // Resizer
-    {
-      selector: "#blockly-0",
-      label: "6",
-      onActivate() {
-        document.querySelector("#blocklyDiv")?.focus();
-      },
-    }, // Blockly toolbox
+    { selector: ".blocklyToolbox", label: "6" }, // Blockly toolbox
     { selector: "svg.blocklySvg", label: "7" }, // Block workspace
   ],
 
@@ -65,6 +59,7 @@ const AccessibilityManager = {
             const area = this.areas.find((a) => a.label === e.key);
             if (area) {
               e.preventDefault(); // Don't type the number!
+              this.toggle(false); // Close the menu
 
               const el = document.querySelector(area.selector);
               const focusable =
@@ -72,10 +67,7 @@ const AccessibilityManager = {
                   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
                 ) ?? el; // Focus the area itself if no suitable child
 
-              if (focusable) {
-                this.toggle(false);
-                focusable.focus();
-              }
+              focusable?.focus();
             }
           }
         }
