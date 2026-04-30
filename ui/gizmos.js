@@ -754,11 +754,11 @@ function updateRotationBlock(mesh) {
   Blockly.Events.setGroup(null);
 }
 
-// Composite models (e.g. imported glTF) have no geometry on the root mesh;
-// their bounding box only renders when visibility > 0, so we use 0.001.
+// Model meshes are wrapped by MakeNotPickableAndWrapInBoundingBox which sets
+// visibility=0 on the wrapper box; bounding box only renders when visibility > 0.
 function enableBoundingBox(mesh) {
   if (!mesh) return;
-  if (!mesh.getTotalVertices || mesh.getTotalVertices() === 0) {
+  if (!mesh.getTotalVertices || mesh.getTotalVertices() === 0 || mesh.visibility === 0) {
     mesh.visibility = 0.001;
   }
   mesh.showBoundingBox = true;
