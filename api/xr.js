@@ -52,6 +52,7 @@ export const flockXR = {
     });
   },
   setControllerLedColor(controllerIndex, color) {
+    console.log("[setControllerLedColor] called", { controllerIndex, color });
     const index = Math.max(0, Math.trunc(Number(controllerIndex)));
     const xrGamepads =
       flock.xrHelper?.baseExperience?.input?.inputSources
@@ -60,10 +61,34 @@ export const flockXR = {
     const browserGamepads = Array.from(navigator?.getGamepads?.() ?? []).filter(
       Boolean,
     );
+    console.log("[setControllerLedColor] gamepad pools", {
+      index,
+      xrGamepadCount: xrGamepads.length,
+      browserGamepadCount: browserGamepads.length,
+      xrGamepads: xrGamepads.map((gp) => ({
+        id: gp?.id,
+        mapping: gp?.mapping,
+      })),
+      browserGamepads: browserGamepads.map((gp) => ({
+        id: gp?.id,
+        mapping: gp?.mapping,
+      })),
+    });
 
     const gamepad = xrGamepads[index] ?? browserGamepads[index];
+    console.log("[setControllerLedColor] selected gamepad", {
+      index,
+      selectedFrom: xrGamepads[index] ? "xrGamepads" : "browserGamepads",
+      gamepadId: gamepad?.id,
+      hasLightIndicator: typeof gamepad?.lightIndicator?.setColor === "function",
+      hasLedsArray: Array.isArray(gamepad?.leds),
+      hasFirstLedSetter: typeof gamepad?.leds?.[0]?.setColor === "function",
+    });
 
-    if (!gamepad) return;
+    if (!gamepad) {
+      console.log("[setControllerLedColor] no gamepad found for index", index);
+      return;
+    }
 
     const hexToRgb = (hex) => {
       const trimmed = String(hex).trim();
@@ -78,18 +103,29 @@ export const flockXR = {
     };
 
     const rgb = hexToRgb(color);
-    if (!rgb) return;
+    if (!rgb) {
+      console.log("[setControllerLedColor] invalid color format", { color });
+      return;
+    }
+    console.log("[setControllerLedColor] parsed color", { color, rgb });
 
     try {
       if (typeof gamepad.lightIndicator?.setColor === "function") {
         gamepad.lightIndicator.setColor(rgb.r, rgb.g, rgb.b);
+        console.log("[setControllerLedColor] used lightIndicator.setColor");
         return;
       }
 
       if (typeof gamepad.leds?.[0]?.setColor === "function") {
         gamepad.leds[0].setColor(rgb.r, rgb.g, rgb.b);
+        console.log("[setControllerLedColor] used leds[0].setColor");
+        return;
       }
+      console.log(
+        "[setControllerLedColor] no supported LED API on selected gamepad",
+      );
     } catch {
+      console.log("[setControllerLedColor] LED set failed");
       // silent by design
     }
   },
