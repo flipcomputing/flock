@@ -218,10 +218,6 @@ const GizmoMenuManager = {
           const entry = this.buttons.find((b) => b.label === e.key);
           if (entry) this.activateButton(entry);
         }
-
-        if (e.key === "Tab") {
-          console.log("current focus", document.activeElement);
-        }
       },
       true,
     );
