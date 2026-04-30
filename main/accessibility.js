@@ -1,7 +1,7 @@
 // Area menu accessed with Ctrl + B to quickly skip to
 // different areas on the interface
 
-const AccessibilityManager = {
+const AreaManager = {
   overlay: null,
   areas: [
     { selector: "#menuleft", label: "1" }, // Top left menu (line 148 input.js - demo menu is excluded?)
@@ -24,9 +24,7 @@ const AccessibilityManager = {
     div.id = "area-menu-overlay";
     div.className = "hidden";
     div.classList.add("hidden");
-    div.innerHTML = `
-        <div id="area-menu-content"> </div>        
-    `;
+    div.innerHTML = `<div id="area-menu-content"> </div>`;
     document.body.appendChild(div);
     this.overlay = div;
   },
@@ -140,5 +138,119 @@ const AccessibilityManager = {
   },
 };
 
+/* Overlay for gizmo buttons */
+const GizmoMenuManager = {
+  overlay: null,
+  buttons: [
+    { id: "showShapesButton", label: "1" },
+    { id: "colorPickerButton", label: "2" },
+    { id: "positionButton", label: "3" },
+    { id: "rotationButton", label: "4" },
+    { id: "scaleButton", label: "5" },
+    { id: "selectButton", label: "6" },
+    { id: "duplicateButton", label: "7" },
+    { id: "deleteButton", label: "8" },
+    { id: "cameraButton", label: "9" },
+  ],
+
+  init() {
+    this.createOverlay();
+    this.setupListeners();
+  },
+
+  createOverlay() {
+    const div = document.createElement("div");
+    div.id = "gizmo-menu-overlay";
+    div.className = "hidden";
+    div.innerHTML = `<div id="gizmo-menu-content"></div>`;
+    document.body.appendChild(div);
+    this.overlay = div;
+  },
+
+  isOpen() {
+    return !this.overlay.classList.contains("hidden");
+  },
+
+  toggle(show) {
+    if (!this.overlay) return;
+    if (show) {
+      this.renderBadges();
+      // Focus 1st button if nothing in gizmos is already focused,
+      // but if another gizmo is active, leave focus there
+      const alreadyFocused = document.activeElement?.closest("#gizmoButtons");
+
+      if (!alreadyFocused) {
+        const btn =
+          document.querySelector(".gizmo-button.active") ||
+          document.getElementById("showShapesButton");
+        if (btn && !btn.disabled && btn.offsetParent !== null) btn.focus();
+      }
+    }
+    this.overlay.classList.toggle("hidden", !show);
+  },
+
+  setupListeners() {
+    window.addEventListener(
+      "keydown",
+      (e) => {
+        // Show the overlay on Ctrl+G
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "g") {
+          e.preventDefault();
+          e.stopPropagation(); // prevent main.js from also handling this
+          this.toggle(!this.isOpen());
+          return;
+        }
+
+        // Do nothing if the overlay isn't open
+        if (!this.isOpen()) return;
+
+        // Guard against typing in inputs triggering gizmo shortcuts
+        const t = e.target;
+        const tag = (t?.tagName || "").toLowerCase();
+        if (
+          t?.isContentEditable ||
+          tag === "input" ||
+          tag === "textarea" ||
+          tag === "select"
+        )
+          return;
+
+        // If the overlay is open and a number key is pressed,
+        // activate the gizmo
+        if (e.key >= "1" && e.key <= "9") {
+          const entry = this.buttons.find((b) => b.label === e.key);
+          if (entry) this.activateButton(entry);
+        }
+      },
+      true,
+    );
+  },
+
+  activateButton(entry) {
+    this.toggle(false);
+    const el = document.getElementById(entry.id);
+    if (!el) return;
+    el.focus();
+    if (!el.disabled) el.click();
+  },
+
+  renderBadges() {
+    const container = document.getElementById("gizmo-menu-content");
+    container.innerHTML = "";
+    this.buttons.forEach((entry) => {
+      const el = document.getElementById(entry.id);
+      if (!el || el.offsetParent === null) return;
+      const rect = el.getBoundingClientRect();
+      const badge = document.createElement("div");
+      badge.className = "gizmo-key-badge";
+      badge.innerText = entry.label;
+      badge.style.top = `${rect.top + rect.height + 8}px`;
+      badge.style.left = `${rect.left + rect.width / 2}px`;
+      container.appendChild(badge);
+    });
+  },
+};
+
 // Start it up
-AccessibilityManager.init();
+AreaManager.init();
+GizmoMenuManager.init();
