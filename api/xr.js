@@ -167,16 +167,52 @@ export const flockXR = {
       if (!device.opened) await device.open();
 
       if (productId === 0x09cc || productId === 0x0ce6) {
-        const reportId = 0x02;
-        const data = new Uint8Array(48);
-        data[0] = 0x02;
-        data[1] = 0x03;
-        data[2] = 0x00;
-        data[45] = rgb.r;
-        data[46] = rgb.g;
-        data[47] = rgb.b;
-        await device.sendReport(reportId, data);
-        return true;
+        const usbData = new Uint8Array(47);
+        usbData[0] = 0x02; // valid flag 0
+        usbData[1] = 0x03; // valid flag 1 (lightbar + player leds)
+        usbData[44] = rgb.r;
+        usbData[45] = rgb.g;
+        usbData[46] = rgb.b;
+
+        const btData = new Uint8Array(77);
+        btData[0] = 0x02; // valid flag 0
+        btData[1] = 0x03; // valid flag 1
+        btData[2] = 0x00; // valid flag 2
+        btData[45] = rgb.r;
+        btData[46] = rgb.g;
+        btData[47] = rgb.b;
+
+        const outputReportIds = new Set(
+          device.collections.flatMap((collection) =>
+            (collection.outputReports || []).map((report) => report.reportId),
+          ),
+        );
+        console.log("[setControllerLedColor] DualSense output report IDs", [
+          ...outputReportIds,
+        ]);
+
+        const attempts = [
+          { reportId: 0x02, data: usbData, label: "dualsense-usb-0x02" },
+          { reportId: 0x31, data: btData, label: "dualsense-bt-0x31" },
+        ];
+
+        for (const attempt of attempts) {
+          try {
+            await device.sendReport(attempt.reportId, attempt.data);
+            console.log(
+              "[setControllerLedColor] WebHID sendReport success",
+              attempt.label,
+            );
+            return true;
+          } catch (error) {
+            console.log(
+              "[setControllerLedColor] WebHID sendReport failed",
+              attempt.label,
+              error,
+            );
+          }
+        }
+        return false;
       }
 
       const ds4ReportId = 0x05;
