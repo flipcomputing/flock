@@ -521,6 +521,19 @@ export function clearFileHandle() {
   updateSaveButtonState();
 }
 
+function isFileAutosavePermissionError(error) {
+  const name = error?.name || "";
+  if (name === "AbortError" || name === "NotAllowedError") return true;
+
+  const message = String(error?.message || "").toLowerCase();
+  return (
+    message.includes("permission") ||
+    message.includes("denied") ||
+    message.includes("aborted") ||
+    message.includes("cancel")
+  );
+}
+
 // Function to export project code
 export async function exportCode(workspace) {
   try {
@@ -602,6 +615,9 @@ export async function autoSaveToFile(workspace) {
     await writable.write(jsonString);
     await writable.close();
   } catch (e) {
+    if (isFileAutosavePermissionError(e)) {
+      clearFileHandle();
+    }
     console.error("Error during file autosave:", e);
   }
 }
