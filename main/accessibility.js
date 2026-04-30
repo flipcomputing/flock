@@ -201,6 +201,17 @@ const GizmoMenuManager = {
         // Do nothing if the overlay isn't open
         if (!this.isOpen()) return;
 
+        // Guard against typing in inputs triggering gizmo shortcuts
+        const t = e.target;
+        const tag = (t?.tagName || "").toLowerCase();
+        if (
+          t?.isContentEditable ||
+          tag === "input" ||
+          tag === "textarea" ||
+          tag === "select"
+        )
+          return;
+
         // If the overlay is open and a number key is pressed,
         // activate the gizmo
         if (e.key >= "1" && e.key <= "9") {
