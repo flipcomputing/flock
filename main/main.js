@@ -48,6 +48,7 @@ import {
   initializeSavedLanguage,
   translate,
 } from "./translation.js";
+import "./accessibility.js";
 
 function isEmbedModeEnabled() {
   const embedParam = new URLSearchParams(window.location.search).get("embed");
