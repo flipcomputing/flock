@@ -178,8 +178,11 @@ const GizmoMenuManager = {
       // Focus 1st button if nothing in gizmos is already focused,
       // but if another gizmo is active, leave focus there
       const alreadyFocused = document.activeElement?.closest("#gizmoButtons");
+
       if (!alreadyFocused) {
-        const btn = document.getElementById("showShapesButton");
+        const btn =
+          document.querySelector(".gizmo-button.active") ||
+          document.getElementById("showShapesButton");
         if (btn && !btn.disabled && btn.offsetParent !== null) btn.focus();
       }
     }
