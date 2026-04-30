@@ -51,7 +51,7 @@ export const flockXR = {
       color: "white",
     });
   },
-  setControllerLedColor(controllerIndex, color) {
+  async setControllerLedColor(controllerIndex, color) {
     console.log("[setControllerLedColor] called", { controllerIndex, color });
     const index = Math.max(0, Math.trunc(Number(controllerIndex)));
     const xrGamepads =
@@ -124,9 +124,73 @@ export const flockXR = {
       console.log(
         "[setControllerLedColor] no supported LED API on selected gamepad",
       );
+
+      const hidResult = await this.setPlayStationControllerLedViaHid?.(
+        gamepad,
+        rgb,
+      );
+      if (hidResult) {
+        console.log("[setControllerLedColor] used WebHID fallback");
+      } else {
+        console.log("[setControllerLedColor] WebHID fallback unavailable/failed");
+      }
     } catch {
       console.log("[setControllerLedColor] LED set failed");
       // silent by design
+    }
+  },
+  async setPlayStationControllerLedViaHid(gamepad, rgb) {
+    try {
+      if (!navigator?.hid) return false;
+      const id = String(gamepad?.id ?? "");
+      const vendorMatch = id.match(/Vendor:\s*([0-9a-fA-F]{4})/);
+      const productMatch = id.match(/Product:\s*([0-9a-fA-F]{4})/);
+      const vendorId = vendorMatch ? parseInt(vendorMatch[1], 16) : null;
+      const productId = productMatch ? parseInt(productMatch[1], 16) : null;
+      if (vendorId !== 0x054c || !productId) return false;
+
+      const paired = navigator.hid
+        .getDevices()
+        .then((devices) =>
+          devices.find(
+            (d) => d.vendorId === vendorId && d.productId === productId,
+          ),
+        );
+      let device = await paired;
+      if (!device) {
+        const requested = await navigator.hid.requestDevice({
+          filters: [{ vendorId, productId }],
+        });
+        device = requested?.[0];
+      }
+      if (!device) return false;
+      if (!device.opened) await device.open();
+
+      if (productId === 0x09cc || productId === 0x0ce6) {
+        const reportId = 0x02;
+        const data = new Uint8Array(48);
+        data[0] = 0x02;
+        data[1] = 0x03;
+        data[2] = 0x00;
+        data[45] = rgb.r;
+        data[46] = rgb.g;
+        data[47] = rgb.b;
+        await device.sendReport(reportId, data);
+        return true;
+      }
+
+      const ds4ReportId = 0x05;
+      const ds4Data = new Uint8Array(32);
+      ds4Data[0] = 0x05;
+      ds4Data[1] = 0xff;
+      ds4Data[6] = rgb.r;
+      ds4Data[7] = rgb.g;
+      ds4Data[8] = rgb.b;
+      await device.sendReport(ds4ReportId, ds4Data);
+      return true;
+    } catch (error) {
+      console.log("[setControllerLedColor] WebHID fallback error", error);
+      return false;
     }
   },
   exportMesh(meshName, format) {

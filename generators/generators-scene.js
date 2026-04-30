@@ -690,6 +690,6 @@ export function registerSceneGenerators(javascriptGenerator) {
         javascriptGenerator.ORDER_NONE,
       ) || '"#ffffff"';
 
-    return `setControllerLedColor(${controllerIndex}, ${color});\n`;
+    return `await setControllerLedColor(${controllerIndex}, ${color});\n`;
   };
 }
