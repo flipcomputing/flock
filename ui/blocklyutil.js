@@ -17,6 +17,7 @@ function clearAddMenuHighlight(workspace, newSelectedId) {
   if (
     !lastAddMenuHighlighted ||
     lastAddMenuHighlighted.workspace !== workspace ||
+    !newSelectedId ||
     lastAddMenuHighlighted.blockId === newSelectedId
   ) {
     return;
@@ -26,6 +27,30 @@ function clearAddMenuHighlight(workspace, newSelectedId) {
   block?.unselect?.();
 
   lastAddMenuHighlighted = null;
+}
+
+function restoreFocusAfterPassiveHighlight(previouslyFocused) {
+  const canFocus = (el) =>
+    !!el &&
+    typeof el.focus === "function" &&
+    document.contains(el) &&
+    !el.hasAttribute?.("disabled");
+
+  if (canFocus(previouslyFocused)) {
+    previouslyFocused.focus({ preventScroll: true });
+    return;
+  }
+
+  const activeGizmoButton = document.querySelector(".gizmo-button.active");
+  if (canFocus(activeGizmoButton)) {
+    activeGizmoButton.focus({ preventScroll: true });
+    return;
+  }
+
+  const canvas = document.getElementById("renderCanvas");
+  if (canFocus(canvas)) {
+    canvas.focus({ preventScroll: true });
+  }
 }
 
 export function appendWithUndo(spec, ws, groupId) {
@@ -60,7 +85,7 @@ export function highlightBlockById(workspace, block) {
     Blockly.keyboardNavigationController?.setIsActive?.(true);
     const focusManager = Blockly.getFocusManager?.();
     focusManager?.focusNode?.(block);
-    previouslyFocused?.focus?.({ preventScroll: true });
+    restoreFocusAfterPassiveHighlight(previouslyFocused);
 
     trackAddMenuHighlight(workspace, block.id);
 
