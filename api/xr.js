@@ -51,6 +51,41 @@ export const flockXR = {
       color: "white",
     });
   },
+  setControllerLedColor(controllerIndex, color) {
+    const gamepads =
+      typeof navigator?.getGamepads === "function" ? navigator.getGamepads() : [];
+    const gamepad = gamepads?.[Math.trunc(Number(controllerIndex))];
+
+    if (!gamepad) return;
+
+    const hexToRgb = (hex) => {
+      const trimmed = String(hex).trim();
+      const match = trimmed.match(/^#?([0-9a-fA-F]{6})$/);
+      if (!match) return null;
+      const value = match[1];
+      return {
+        r: parseInt(value.slice(0, 2), 16),
+        g: parseInt(value.slice(2, 4), 16),
+        b: parseInt(value.slice(4, 6), 16),
+      };
+    };
+
+    const rgb = hexToRgb(color);
+    if (!rgb) return;
+
+    try {
+      if (typeof gamepad.lightIndicator?.setColor === "function") {
+        gamepad.lightIndicator.setColor(rgb.r, rgb.g, rgb.b);
+        return;
+      }
+
+      if (typeof gamepad.leds?.[0]?.setColor === "function") {
+        gamepad.leds[0].setColor(rgb.r, rgb.g, rgb.b);
+      }
+    } catch {
+      // silent by design
+    }
+  },
   exportMesh(meshName, format) {
     //meshName = "scene";
 

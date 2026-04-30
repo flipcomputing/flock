@@ -175,4 +175,31 @@ export function defineXRBlocks() {
       this.setStyle("scene_blocks");
     },
   };
+
+  Blockly.Blocks["set_controller_led_color"] = {
+    init: function () {
+      this.jsonInit({
+        type: "set_controller_led_color",
+        message0: translate("set_controller_led_color"),
+        args0: [
+          {
+            type: "input_value",
+            name: "CONTROLLER_INDEX",
+            check: "Number",
+          },
+          {
+            type: "input_value",
+            name: "COLOR",
+            check: "Colour",
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Scene"],
+        tooltip: getTooltip("set_controller_led_color"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("scene_blocks");
+    },
+  };
 }

@@ -337,6 +337,7 @@ export default {
   controller_rumble: "vibrar motor %1 con fuerza %2 durante %3 ms", // human
   controller_rumble_pattern:
     "vibrar %1 fuerza de motor %2 encendido %3 ms apagado %4 ms %5 veces", // human
+  set_controller_led_color: "establecer color del LED del mando %1 a %2", // human
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "lista", // human
@@ -663,6 +664,8 @@ export default {
     "Hace vibrar un mando conectado. Elige todos, el izquierdo o el derecho motor, establece la fuerza (0 a 1) y cuánto tiempo para vibrar en milisegundos.\nPalabra clave: vibrar", // human
   controller_rumble_pattern_tooltip:
     "Hace vibrar un mando conectado en un patrón repetido. Establece el motor, la fuerza (0 a 1), el tiempo encendido, el tiempo apagado y el número de repeticiones.\nPalabra clave: patrón de vibrar", // human
+  set_controller_led_color_tooltip:
+    "Establece el color del LED de un mando conectado por índice. Si el control de LED no es compatible, este bloque no hace nada.\nPalabra clave: led del mando", // human
 
   // Dropdown option translations
   AWAIT_option: "esperar", // human

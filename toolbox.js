@@ -607,6 +607,29 @@ const toolboxSceneXR = {
       type: "export_mesh",
       keyword: "export",
     },
+    {
+      kind: "block",
+      type: "set_controller_led_color",
+      keyword: "controller led",
+      inputs: {
+        CONTROLLER_INDEX: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        COLOR: {
+          shadow: {
+            type: "colour",
+            fields: {
+              COLOR: "#ffffff",
+            },
+          },
+        },
+      },
+    },
     /*{
                         kind: "block",
                         type: "play_rumble_pattern",

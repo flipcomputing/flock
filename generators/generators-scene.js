@@ -675,4 +675,21 @@ export function registerSceneGenerators(javascriptGenerator) {
     // Generate the code that calls the helper function
     return `exportMesh(${meshVar}, "${format}");\n`;
   };
+
+  javascriptGenerator.forBlock["set_controller_led_color"] = function (block) {
+    const controllerIndex =
+      javascriptGenerator.valueToCode(
+        block,
+        "CONTROLLER_INDEX",
+        javascriptGenerator.ORDER_NONE,
+      ) || "0";
+    const color =
+      javascriptGenerator.valueToCode(
+        block,
+        "COLOR",
+        javascriptGenerator.ORDER_NONE,
+      ) || '"#ffffff"';
+
+    return `setControllerLedColor(${controllerIndex}, ${color});\n`;
+  };
 }

@@ -338,6 +338,7 @@ export default {
   controller_rumble: "rumble %1 motor at strength %2 for %3 ms",
   controller_rumble_pattern:
     "rumble %1 motor strength %2 on %3 ms off %4 ms %5 times",
+  set_controller_led_color: "set controller %1 LED color to %2",
 
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "list",
@@ -648,6 +649,8 @@ export default {
     "Make a connected game controller rumble. Choose all, left, or right motor, set the strength (0 to 1), and how long to rumble in milliseconds.\nKeyword: rumble",
   controller_rumble_pattern_tooltip:
     "Make a connected game controller rumble in a repeating pattern. Set the motor, strength (0 to 1), on time, off time, and number of repeats.\nKeyword: rumble pattern",
+  set_controller_led_color_tooltip:
+    "Set the LED color for a connected game controller by index. If LED control is unsupported, this block does nothing.\nKeyword: controller led",
 
   // Dropdown option translations
   AWAIT_option: "await",
