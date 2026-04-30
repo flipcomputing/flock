@@ -234,7 +234,7 @@ const GizmoMenuManager = {
       const badge = document.createElement("div");
       badge.className = "gizmo-key-badge";
       badge.innerText = entry.label;
-      badge.style.top = `${rect.top + rect.width + 10}px`;
+      badge.style.top = `${rect.top + rect.height + 8}px`;
       badge.style.left = `${rect.left + rect.width / 2}px`;
       container.appendChild(badge);
     });
