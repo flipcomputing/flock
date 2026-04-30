@@ -758,7 +758,7 @@ function updateRotationBlock(mesh) {
 // their bounding box only renders when visibility > 0, so we use 0.001.
 function enableBoundingBox(mesh) {
   if (!mesh) return;
-  if (!mesh.getTotalVertices || mesh.getTotalVertices() === 0) {
+  if (!mesh.visibility || mesh.visibility === 0) {
     mesh.visibility = 0.001;
   }
   mesh.showBoundingBox = true;
