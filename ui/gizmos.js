@@ -758,7 +758,7 @@ function updateRotationBlock(mesh) {
 // showBoundingBox only renders when visibility > 0.
 function enableBoundingBox(mesh) {
   if (!mesh) return;
-  if (mesh.visibility === 0) {
+  if (!mesh.visibility) {
     mesh.visibility = 0.001;
   }
   mesh.showBoundingBox = true;
