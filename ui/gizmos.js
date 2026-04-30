@@ -789,6 +789,7 @@ function pickMeshFromScene(onPicked, persistent = false) {
   activePick = { pointerObservable, pointerObserver };
 
   setTimeout(() => {
+    if (hasPicked) return;
     startCanvasKeyboardMode(
       (x, y) => {
         const pick = flock.scene.pick(x, y);
@@ -1379,7 +1380,7 @@ function handleScaleGizmo() {
 
 // Rotation: Allow the user to rotate the mesh by dragging it
 function handleRotationGizmo() {
-  configureRotationGizmo(gizmoManager, { updateToMatchAttachedMesh: true });
+  configureRotationGizmo(gizmoManager);
 
   // Show that rotation is active
   const rotationButton = document.getElementById("rotationButton");
