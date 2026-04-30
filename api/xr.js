@@ -52,9 +52,16 @@ export const flockXR = {
     });
   },
   setControllerLedColor(controllerIndex, color) {
-    const gamepads =
-      typeof navigator?.getGamepads === "function" ? navigator.getGamepads() : [];
-    const gamepad = gamepads?.[Math.trunc(Number(controllerIndex))];
+    const index = Math.max(0, Math.trunc(Number(controllerIndex)));
+    const xrGamepads =
+      flock.xrHelper?.baseExperience?.input?.inputSources
+        ?.map((inputSource) => inputSource?.gamepad)
+        ?.filter(Boolean) ?? [];
+    const browserGamepads = Array.from(navigator?.getGamepads?.() ?? []).filter(
+      Boolean,
+    );
+
+    const gamepad = xrGamepads[index] ?? browserGamepads[index];
 
     if (!gamepad) return;
 
