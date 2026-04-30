@@ -166,6 +166,22 @@ export const flockXR = {
       if (!device) return false;
       if (!device.opened) await device.open();
 
+      const outputReportIds = new Set(
+        device.collections.flatMap((collection) =>
+          (collection.outputReports || []).map((report) => report.reportId),
+        ),
+      );
+      console.log("[setControllerLedColor] output report IDs", [...outputReportIds]);
+
+      const ds4ReportId = 0x05;
+      const ds4Data = new Uint8Array(31);
+      ds4Data[0] = 0xff;
+      ds4Data[1] = 0x00;
+      ds4Data[2] = 0x00;
+      ds4Data[5] = rgb.r;
+      ds4Data[6] = rgb.g;
+      ds4Data[7] = rgb.b;
+
       if (productId === 0x09cc || productId === 0x0ce6) {
         const usbData = new Uint8Array(47);
         usbData[0] = 0x03; // valid flag 1 (lightbar + player leds)
@@ -184,19 +200,18 @@ export const flockXR = {
         btData[45] = rgb.g;
         btData[46] = rgb.b;
 
-        const outputReportIds = new Set(
-          device.collections.flatMap((collection) =>
-            (collection.outputReports || []).map((report) => report.reportId),
-          ),
-        );
-        console.log("[setControllerLedColor] DualSense output report IDs", [
-          ...outputReportIds,
-        ]);
-
-        const attempts = [
+        const attempts = [];
+        if (outputReportIds.has(0x05)) {
+          attempts.push({
+            reportId: 0x05,
+            data: ds4Data,
+            label: "dualsense-ds4compat-0x05",
+          });
+        }
+        attempts.push(
           { reportId: 0x02, data: usbData, label: "dualsense-usb-0x02" },
           { reportId: 0x31, data: btData, label: "dualsense-bt-0x31" },
-        ];
+        );
 
         for (const attempt of attempts) {
           try {
@@ -217,14 +232,6 @@ export const flockXR = {
         return false;
       }
 
-      const ds4ReportId = 0x05;
-      const ds4Data = new Uint8Array(31);
-      ds4Data[0] = 0xff;
-      ds4Data[1] = 0x00;
-      ds4Data[2] = 0x00;
-      ds4Data[5] = rgb.r;
-      ds4Data[6] = rgb.g;
-      ds4Data[7] = rgb.b;
       await device.sendReport(ds4ReportId, ds4Data);
       return true;
     } catch (error) {
