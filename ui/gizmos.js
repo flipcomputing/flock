@@ -754,11 +754,11 @@ function updateRotationBlock(mesh) {
   Blockly.Events.setGroup(null);
 }
 
-// Model meshes are wrapped by MakeNotPickableAndWrapInBoundingBox which sets
-// visibility=0 on the wrapper box; bounding box only renders when visibility > 0.
+// MakeNotPickableAndWrapInBoundingBox sets visibility=0 on the bb wrapper;
+// showBoundingBox only renders when visibility > 0.
 function enableBoundingBox(mesh) {
   if (!mesh) return;
-  if (!mesh.getTotalVertices || mesh.getTotalVertices() === 0 || mesh.visibility === 0) {
+  if (mesh.visibility === 0) {
     mesh.visibility = 0.001;
   }
   mesh.showBoundingBox = true;
