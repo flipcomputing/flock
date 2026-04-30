@@ -1507,10 +1507,11 @@ body.color-picker-open #renderCanvas {
   color: var(--color-text-on-primary);
 }
 
+/* Colours hard coded to ensure visibility across all themes */
 .area-number-badge {
   position: absolute;
-  background: var(--color-text-primary);
-  color: var(--color-button-bg);
+  background: #000;
+  color: #fff;
   width: 40px;
   height: 40px;
   border-radius: 20%;
@@ -1521,12 +1522,19 @@ body.color-picker-open #renderCanvas {
   font-weight: bold;
   box-shadow: 0 0 15px var(--color-shadow);
   z-index: 10001;
-  border: 3px solid var(--color-button-bg);
+  border: 3px solid #fff;
 }
 
+/* Which area badge is currently focused */
+.area-number-badge:focus {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Highlights the selectable areas */
 .area-outline {
   position: absolute;
-  outline: 5px solid var(--color-border);
+  outline: 5px solid #fff;
   background: rgba(128, 128, 128, 0.15);
   pointer-events: none; /* Let clicks pass through */
   z-index: 10000;

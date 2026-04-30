@@ -33,7 +33,13 @@ const AccessibilityManager = {
 
   toggle(show) {
     if (this.overlay) {
-      if (show) this.renderHighlights();
+      if (show) {
+        this.renderHighlights();
+        setTimeout(
+          () => this.overlay.querySelector(".area-number-badge")?.focus(),
+          0,
+        );
+      }
       this.overlay.classList.toggle("hidden", !show);
     }
   },
@@ -57,23 +63,48 @@ const AccessibilityManager = {
           if (!this.overlay.classList.contains("hidden")) {
             // Find the area and set the focus
             const area = this.areas.find((a) => a.label === e.key);
-            if (area) {
-              e.preventDefault(); // Don't type the number!
-              this.toggle(false); // Close the menu
-
-              const el = document.querySelector(area.selector);
-              const focusable =
-                el?.querySelector(
-                  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-                ) ?? el; // Focus the area itself if no suitable child
-
-              focusable?.focus();
-            }
+            if (area) this.activateArea(area);
           }
+        }
+        // Tab through badges when overlay is open
+        if (e.key === "Tab" && !this.overlay.classList.contains("hidden")) {
+          e.preventDefault();
+          const badges = [
+            ...this.overlay.querySelectorAll(".area-number-badge"),
+          ];
+          if (badges.length === 0) return;
+          const currentIndex = badges.indexOf(document.activeElement);
+          const nextIndex = e.shiftKey
+            ? (currentIndex - 1 + badges.length) % badges.length
+            : (currentIndex + 1) % badges.length;
+          badges[nextIndex].focus();
+        }
+        // Enter opens the area if a badge is focused
+        if (e.key === "Enter" && !this.overlay.classList.contains("hidden")) {
+          const focused = document.activeElement;
+          // Do nothing if a badge is not focused
+          if (!focused?.classList.contains("area-number-badge")) return;
+          e.preventDefault();
+
+          // Find the area and set the focus
+          const area = this.areas.find((a) => a.label === focused.innerText);
+          if (area) this.activateArea(area);
         }
       },
       true,
     ); // 'true' uses the capture phase to beat Blockly's listeners
+  },
+
+  // Set the focus to this area and close overlay
+  activateArea(area) {
+    this.toggle(false); // Close the menu
+    const el = document.querySelector(area.selector);
+    const focusable =
+      el?.querySelector(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      ) ?? el; // Focus the area itself if no suitable child
+
+    focusable?.focus();
   },
 
   renderHighlights() {
@@ -87,6 +118,7 @@ const AccessibilityManager = {
 
         const badge = document.createElement("div");
         badge.className = "area-number-badge";
+        badge.tabIndex = 0; // Make badges focusable
         badge.innerText = area.label;
 
         // Position the badge in the center of the area
