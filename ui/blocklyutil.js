@@ -56,11 +56,11 @@ export function highlightBlockById(workspace, block) {
     clearAddMenuHighlight(workspace, block.id);
 
     block.select();
-    const previouslyFocused = document.activeElement;
+    /*const previouslyFocused = document.activeElement;
     Blockly.keyboardNavigationController?.setIsActive?.(true);
     const focusManager = Blockly.getFocusManager?.();
     focusManager?.focusNode?.(block);
-    previouslyFocused?.focus?.({ preventScroll: true });
+    previouslyFocused?.focus?.({ preventScroll: true });*/
 
     trackAddMenuHighlight(workspace, block.id);
 
