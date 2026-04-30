@@ -159,7 +159,7 @@ export const flockXR = {
       let device = await paired;
       if (!device) {
         const requested = await navigator.hid.requestDevice({
-          filters: [{ vendorId, productId }],
+          filters: [{ vendorId, productId, usagePage: 0x01, usage: 0x05 }],
         });
         device = requested?.[0];
       }
@@ -168,19 +168,21 @@ export const flockXR = {
 
       if (productId === 0x09cc || productId === 0x0ce6) {
         const usbData = new Uint8Array(47);
-        usbData[0] = 0x02; // valid flag 0
-        usbData[1] = 0x03; // valid flag 1 (lightbar + player leds)
-        usbData[44] = rgb.r;
-        usbData[45] = rgb.g;
-        usbData[46] = rgb.b;
+        usbData[0] = 0x03; // valid flag 1 (lightbar + player leds)
+        usbData[1] = 0x00; // motor right
+        usbData[2] = 0x00; // motor left
+        usbData[43] = rgb.r;
+        usbData[44] = rgb.g;
+        usbData[45] = rgb.b;
 
         const btData = new Uint8Array(77);
-        btData[0] = 0x02; // valid flag 0
-        btData[1] = 0x03; // valid flag 1
-        btData[2] = 0x00; // valid flag 2
-        btData[45] = rgb.r;
-        btData[46] = rgb.g;
-        btData[47] = rgb.b;
+        btData[0] = 0x03; // valid flag 1
+        btData[1] = 0x00; // valid flag 2
+        btData[2] = 0x00; // motor right
+        btData[3] = 0x00; // motor left
+        btData[44] = rgb.r;
+        btData[45] = rgb.g;
+        btData[46] = rgb.b;
 
         const outputReportIds = new Set(
           device.collections.flatMap((collection) =>
@@ -216,12 +218,13 @@ export const flockXR = {
       }
 
       const ds4ReportId = 0x05;
-      const ds4Data = new Uint8Array(32);
-      ds4Data[0] = 0x05;
-      ds4Data[1] = 0xff;
-      ds4Data[6] = rgb.r;
-      ds4Data[7] = rgb.g;
-      ds4Data[8] = rgb.b;
+      const ds4Data = new Uint8Array(31);
+      ds4Data[0] = 0xff;
+      ds4Data[1] = 0x00;
+      ds4Data[2] = 0x00;
+      ds4Data[5] = rgb.r;
+      ds4Data[6] = rgb.g;
+      ds4Data[7] = rgb.b;
       await device.sendReport(ds4ReportId, ds4Data);
       return true;
     } catch (error) {
