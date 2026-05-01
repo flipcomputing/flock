@@ -132,8 +132,16 @@ export const flockMovement = {
 
     // --- Step-up probe to allow ledge hops when near ground ---
     if (grounded || withinCoyoteTime) {
-      const probeStartLow = model.position.add(
-        new flock.BABYLON.Vector3(0, 0.05, 0),
+      // Anchor probe at ground level so the probe height is consistent across
+      // capsule sizes. For characters localCenter.y ≈ height/2 so groundY ≈
+      // model.position.y; for wide/short meshes (e.g. airplane) localCenter.y ≈ 0
+      // so model.position.y is at the capsule mid-height, not ground level.
+      const localCenterY = cap.localCenter ? cap.localCenter.y : 0;
+      const groundY = model.position.y - (cap.height / 2 - localCenterY);
+      const probeStartLow = new flock.BABYLON.Vector3(
+        model.position.x,
+        groundY + 0.05,
+        model.position.z,
       );
       const probeEndLow = probeStartLow.add(
         horizontalForward.scale(stepProbeDistance),
