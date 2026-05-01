@@ -16,7 +16,7 @@ export const flockMovement = {
     if (!cap || typeof cap.radius !== "number" || typeof cap.height !== "number") {
       if (!model._playerCapsulePending) {
         model._playerCapsulePending = true;
-        flock.setPhysicsShape(modelName, "PLAYER_CAPSULE").then(() => {
+        flock.setPhysicsShape(modelName, "CAPSULE").then(() => {
           delete model._playerCapsulePending;
         });
       }

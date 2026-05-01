@@ -318,7 +318,7 @@ export const flockPhysics = {
         mesh.metadata = mesh.metadata || {};
 
         // --- CAPSULE path (player collider) ---
-        const applyCapsuleToRoot = (targetMesh, createFn = flock.createCapsuleFromBoundingBox.bind(flock)) => {
+        const applyCapsuleToRoot = (targetMesh, createFn = flock.createPlayerCapsuleFromBoundingBox.bind(flock)) => {
           targetMesh.computeWorldMatrix(true);
           const { motionType, disablePreStep } =
             capturePhysicsState(targetMesh);
@@ -401,10 +401,6 @@ export const flockPhysics = {
           case "CAPSULE":
             // Only on root (player), no children
             applyCapsuleToRoot(mesh);
-            break;
-
-          case "PLAYER_CAPSULE":
-            applyCapsuleToRoot(mesh, flock.createPlayerCapsuleFromBoundingBox.bind(flock));
             break;
 
           case "MESH":
