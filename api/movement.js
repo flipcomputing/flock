@@ -10,11 +10,11 @@ export const flockMovement = {
     if (!model || speed === 0) return;
 
     // --- Ensure player capsule ---
-    // Triggers when: no physics, no capsule metadata, or capsule is degenerate
-    // (height ≤ 2×radius means the cylinder section has collapsed to a sphere).
+    // Switch any mesh to player capsule on first moveForward call.
+    // createPlayerCapsuleFromBoundingBox marks cap.isPlayerCapsule = true;
+    // the default capsule from setupMesh leaves it false.
     const cap = model.metadata?.physicsCapsule;
-    const capsuleDegenerate = cap && cap.height <= 2 * cap.radius;
-    if (!model.physics || !cap || typeof cap.radius !== "number" || typeof cap.height !== "number" || capsuleDegenerate) {
+    if (!model.physics || !cap?.isPlayerCapsule) {
       if (!model._playerCapsulePending) {
         model._playerCapsulePending = true;
         flock.setPhysicsShape(modelName, "PLAYER_CAPSULE").then(() => {

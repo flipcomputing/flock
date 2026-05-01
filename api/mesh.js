@@ -55,6 +55,7 @@ export const flockMesh = {
       height: adjustedHeight,
       baseY: localCenter.y - adjustedHeight / 2,
       localCenter,
+      isPlayerCapsule: true,
     };
 
     return shape;
@@ -109,6 +110,7 @@ export const flockMesh = {
       height: adjustedHeight,
       baseY: localCenter.y - adjustedHeight / 2,
       localCenter,
+      isPlayerCapsule: false,
     };
 
     return shape;
