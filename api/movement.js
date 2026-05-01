@@ -212,10 +212,19 @@ export const flockMovement = {
     }
 
     // --- Vertical: let gravity act; just clamp extremes ---
-    const clampedVertical = Math.min(
-      Math.max(currentVelocity.y, -maxVerticalVelocity),
-      maxVerticalVelocity,
-    );
+    // When grounded, suppress small upward velocities from physics penetration
+    // correction (floor/slope normal reactions). Large upward values (jumps,
+    // deliberate boosts) are preserved. Threshold of 1.0 m/s is well above
+    // typical solver correction velocities and well below any jump velocity.
+    let clampedVertical;
+    if (grounded && currentVelocity.y > 0 && currentVelocity.y < 1.0) {
+      clampedVertical = 0;
+    } else {
+      clampedVertical = Math.min(
+        Math.max(currentVelocity.y, -maxVerticalVelocity),
+        maxVerticalVelocity,
+      );
+    }
 
     const finalVelocity = new flock.BABYLON.Vector3(
       appliedHorizontalVelocity.x,
