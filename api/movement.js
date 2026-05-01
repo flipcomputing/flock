@@ -11,14 +11,17 @@ export const flockMovement = {
 
     flock.ensureVerticalConstraint(model);
 
-    // --- Tunables ---
+    // --- Ensure player capsule ---
     const cap = model.metadata?.physicsCapsule;
-    if (
-      !cap ||
-      typeof cap.radius !== "number" ||
-      typeof cap.height !== "number"
-    )
+    if (!cap || typeof cap.radius !== "number" || typeof cap.height !== "number") {
+      if (!model._playerCapsulePending) {
+        model._playerCapsulePending = true;
+        flock.setPhysicsShape(modelName, "PLAYER_CAPSULE").then(() => {
+          delete model._playerCapsulePending;
+        });
+      }
       return;
+    }
     const capsuleRadius = cap.radius;
 
     // height is the full capsule height (including hemispherical caps)

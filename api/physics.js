@@ -318,14 +318,14 @@ export const flockPhysics = {
         mesh.metadata = mesh.metadata || {};
 
         // --- CAPSULE path (player collider) ---
-        const applyCapsuleToRoot = (targetMesh) => {
+        const applyCapsuleToRoot = (targetMesh, createFn = flock.createCapsuleFromBoundingBox.bind(flock)) => {
           targetMesh.computeWorldMatrix(true);
           const { motionType, disablePreStep } =
             capturePhysicsState(targetMesh);
           disposePhysics(targetMesh);
 
           // IMPORTANT: use targetMesh (not outer mesh)
-          const physicsShape = flock.createCapsuleFromBoundingBox(
+          const physicsShape = createFn(
             targetMesh,
             flock.scene,
           );
@@ -401,6 +401,10 @@ export const flockPhysics = {
           case "CAPSULE":
             // Only on root (player), no children
             applyCapsuleToRoot(mesh);
+            break;
+
+          case "PLAYER_CAPSULE":
+            applyCapsuleToRoot(mesh, flock.createPlayerCapsuleFromBoundingBox.bind(flock));
             break;
 
           case "MESH":

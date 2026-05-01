@@ -7,6 +7,58 @@ export function setFlockReference(ref) {
 }
 
 export const flockMesh = {
+  createPlayerCapsuleFromBoundingBox(mesh, scene) {
+    mesh.computeWorldMatrix(true);
+    const boundingInfo = mesh.getBoundingInfo();
+    const localMin = boundingInfo.boundingBox.minimum;
+    const localMax = boundingInfo.boundingBox.maximum;
+
+    const height = (localMax.y - localMin.y) * Math.abs(mesh.scaling.y);
+    const width = (localMax.x - localMin.x) * Math.abs(mesh.scaling.x);
+    const depth = (localMax.z - localMin.z) * Math.abs(mesh.scaling.z);
+
+    // Cap radius so the cylinder section is always at least height/3 tall,
+    // preventing degenerate sphere shapes for wide/flat meshes like aircraft.
+    const radius = Math.min(Math.min(width, depth) / 2, height / 3);
+
+    const shrinkAmount = 0.01;
+    const adjustedHeight = Math.max(0, height - shrinkAmount);
+    const cylinderHeight = Math.max(0, adjustedHeight - 2 * radius);
+
+    const localCenter = new flock.BABYLON.Vector3(
+      (localMin.x + localMax.x) / 2,
+      (localMin.y + localMax.y) / 2,
+      (localMin.z + localMax.z) / 2,
+    );
+
+    const segmentStart = new flock.BABYLON.Vector3(
+      localCenter.x,
+      localCenter.y - cylinderHeight / 2,
+      localCenter.z,
+    );
+    const segmentEnd = new flock.BABYLON.Vector3(
+      localCenter.x,
+      localCenter.y + cylinderHeight / 2,
+      localCenter.z,
+    );
+
+    const shape = new flock.BABYLON.PhysicsShapeCapsule(
+      segmentStart,
+      segmentEnd,
+      radius,
+      scene,
+    );
+
+    if (!mesh.metadata) mesh.metadata = {};
+    mesh.metadata.physicsCapsule = {
+      radius,
+      height: adjustedHeight,
+      baseY: localCenter.y - adjustedHeight / 2,
+      localCenter,
+    };
+
+    return shape;
+  },
   createCapsuleFromBoundingBox(mesh, scene) {
     mesh.computeWorldMatrix(true);
     const boundingInfo = mesh.getBoundingInfo();
