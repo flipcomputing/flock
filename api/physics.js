@@ -58,7 +58,7 @@ const disposePhysics = (targetMesh) => {
 const createPhysicsShape = (mesh, shapeType) => {
   if (shapeType === "CAPSULE") {
     mesh.computeWorldMatrix(true);
-    return flock.createCapsuleFromBoundingBox(mesh, flock.scene);
+    return flock.createShapeFromBoundingBox(mesh, flock.scene);
   }
   return new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
 };
@@ -325,7 +325,7 @@ export const flockPhysics = {
           disposePhysics(targetMesh);
 
           // IMPORTANT: use targetMesh (not outer mesh)
-          const physicsShape = flock.createCapsuleFromBoundingBox(
+          const physicsShape = flock.createShapeFromBoundingBox(
             targetMesh,
             flock.scene,
           );

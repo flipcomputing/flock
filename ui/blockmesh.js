@@ -1536,7 +1536,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
         );
         break;
       case "Capsule":
-        newShape = flock.createCapsuleFromBoundingBox(mesh, mesh.getScene());
+        newShape = flock.createShapeFromBoundingBox(mesh, mesh.getScene());
         break;
       default:
         console.log("Unknown or unsupported physics shape type: " + shapeType);

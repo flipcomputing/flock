@@ -64,7 +64,7 @@ const updateCapsuleShapeForAnimation = (physicsMesh, animationName) => {
       flock.scene,
     );
   } else {
-    newShape = flock.createCapsuleFromBoundingBox(physicsMesh, flock.scene);
+    newShape = flock.createShapeFromBoundingBox(physicsMesh, flock.scene);
   }
 
   physicsMesh.physics.shape = newShape;

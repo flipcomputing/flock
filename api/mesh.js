@@ -7,31 +7,36 @@ export function setFlockReference(ref) {
 }
 
 export const flockMesh = {
-  createCapsuleFromBoundingBox(mesh, scene) {
+  createShapeFromBoundingBox(mesh, scene) {
     mesh.computeWorldMatrix(true);
     const boundingInfo = mesh.getBoundingInfo();
-    // Use LOCAL bounding box coordinates
     const localMin = boundingInfo.boundingBox.minimum;
     const localMax = boundingInfo.boundingBox.maximum;
 
-    // Apply the mesh's scaling to get actual dimensions
     const height = (localMax.y - localMin.y) * Math.abs(mesh.scaling.y);
     const width = (localMax.x - localMin.x) * Math.abs(mesh.scaling.x);
     const depth = (localMax.z - localMin.z) * Math.abs(mesh.scaling.z);
 
     const radius = Math.min(width, depth) / 2;
 
-    // Shrink the capsule vertically to allow intersections
-    const shrinkAmount = 0.01; // Adjust this value as needed
-    const adjustedHeight = Math.max(0, height - shrinkAmount);
-    const cylinderHeight = Math.max(0, adjustedHeight - 2 * radius);
-
-    // Center the capsule at the bounding box center in LOCAL space
     const localCenter = new flock.BABYLON.Vector3(
       (localMin.x + localMax.x) / 2,
       (localMin.y + localMax.y) / 2,
       (localMin.z + localMax.z) / 2,
     );
+
+    if (height < 2 * radius) {
+      return new flock.BABYLON.PhysicsShapeBox(
+        localCenter,
+        flock.BABYLON.Quaternion.Identity(),
+        new flock.BABYLON.Vector3(width, height, depth),
+        scene,
+      );
+    }
+
+    const shrinkAmount = 0.01;
+    const adjustedHeight = Math.max(0, height - shrinkAmount);
+    const cylinderHeight = adjustedHeight - 2 * radius;
 
     const segmentStart = new flock.BABYLON.Vector3(
       localCenter.x,
@@ -797,21 +802,7 @@ export const flockMesh = {
       flock.scene,
     );
 
-    const { boundingBox } = bb.getBoundingInfo();
-    const bbWidth = boundingBox.maximum.x - boundingBox.minimum.x;
-    const bbHeight = boundingBox.maximum.y - boundingBox.minimum.y;
-    const bbDepth = boundingBox.maximum.z - boundingBox.minimum.z;
-    const capsuleRadius = Math.min(bbWidth, bbDepth) / 2;
-    const useCapsule = bbHeight >= 2 * capsuleRadius;
-
-    const boxShape = useCapsule
-      ? flock.createCapsuleFromBoundingBox(bb, flock.scene)
-      : new flock.BABYLON.PhysicsShapeBox(
-          boundingBox.center,
-          flock.BABYLON.Quaternion.Identity(),
-          new flock.BABYLON.Vector3(bbWidth, bbHeight, bbDepth),
-          flock.scene,
-        );
+    const boxShape = flock.createShapeFromBoundingBox(bb, flock.scene);
 
     boxBody.shape = boxShape;
     boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
