@@ -7,13 +7,12 @@ export function setFlockReference(ref) {
 export const flockMovement = {
   moveForward(modelName, speed) {
     const model = flock.scene.getMeshByName(modelName);
-    if (!model || !model.physics || speed === 0) return;
-
-    flock.ensureVerticalConstraint(model);
+    if (!model || speed === 0) return;
 
     // --- Ensure player capsule ---
+    // Covers: no physics yet, wrong shape type, explicit setPhysicsShape not called.
     const cap = model.metadata?.physicsCapsule;
-    if (!cap || typeof cap.radius !== "number" || typeof cap.height !== "number") {
+    if (!model.physics || !cap || typeof cap.radius !== "number" || typeof cap.height !== "number") {
       if (!model._playerCapsulePending) {
         model._playerCapsulePending = true;
         flock.setPhysicsShape(modelName, "CAPSULE").then(() => {
@@ -22,6 +21,8 @@ export const flockMovement = {
       }
       return;
     }
+
+    flock.ensureVerticalConstraint(model);
     const capsuleRadius = cap.radius;
 
     // height is the full capsule height (including hemispherical caps)
