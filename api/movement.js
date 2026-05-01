@@ -35,7 +35,7 @@ export const flockMovement = {
 
     const maxSlopeAngleDeg = 45;
     const groundCheckDistance = 0.3;
-    const coyoteTimeMs = 120; // brief grace after leaving ground
+    const coyoteTimeMs = 250; // brief grace after leaving ground
     const airControlFactor = 0.0; // 0 = no airborne acceleration
     const airDragPerTick = 0.9; // horizontal decay while airborne
     const stepHeight = 0.3;
@@ -131,7 +131,10 @@ export const flockMovement = {
     }
 
     // --- Step-up probe to allow ledge hops when near ground ---
-    if (grounded || withinCoyoteTime) {
+    // Only use for tall capsules (characters). Short capsules like vehicles
+    // ride over small bumps naturally via their hemispherical base, and the
+    // probe causes false boosts on slope-crest transition faces.
+    if ((grounded || withinCoyoteTime) && cap.height > stepHeight * 3) {
       // Anchor probe at ground level so the probe height is consistent across
       // capsule sizes. For characters localCenter.y ≈ height/2 so groundY ≈
       // model.position.y; for wide/short meshes (e.g. airplane) localCenter.y ≈ 0
