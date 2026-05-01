@@ -318,7 +318,7 @@ export const flockPhysics = {
         mesh.metadata = mesh.metadata || {};
 
         // --- CAPSULE path (player collider) ---
-        const applyCapsuleToRoot = (targetMesh, createFn = flock.createCapsuleFromBoundingBox.bind(flock), massProperties = { mass: 1, restitution: 0.5 }) => {
+        const applyCapsuleToRoot = (targetMesh, createFn = flock.createCapsuleFromBoundingBox.bind(flock)) => {
           targetMesh.computeWorldMatrix(true);
           const { motionType, disablePreStep } =
             capturePhysicsState(targetMesh);
@@ -344,7 +344,7 @@ export const flockPhysics = {
             flock.scene,
           );
           physicsBody.shape = physicsShape;
-          physicsBody.setMassProperties(massProperties);
+          physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
           physicsBody.disablePreStep = disablePreStep ?? false;
 
           targetMesh.physics = physicsBody;
@@ -403,15 +403,7 @@ export const flockPhysics = {
             break;
 
           case "PLAYER_CAPSULE":
-            applyCapsuleToRoot(
-              mesh,
-              (m, s) => {
-                const shape = flock.createPlayerCapsuleFromBoundingBox(m, s);
-                if (shape) shape.material = { friction: 0, restitution: 0 };
-                return shape;
-              },
-              { mass: 1, restitution: 0 },
-            );
+            applyCapsuleToRoot(mesh, flock.createPlayerCapsuleFromBoundingBox.bind(flock));
             break;
 
           case "MESH":

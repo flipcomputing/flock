@@ -75,7 +75,7 @@ export const flockMovement = {
       startPosition: groundCheckStart,
       endPosition: groundCheckEnd,
       shouldHitTriggers: false,
-      ignoredBodies: [], // must be an array
+      ignoredBodies: [model.physics],
       collisionFilterGroup: -1,
       collisionFilterMask: -1,
     };
@@ -155,7 +155,7 @@ export const flockMovement = {
         startPosition: probeStartLow,
         endPosition: probeEndLow,
         shouldHitTriggers: false,
-        ignoredBodies: [],
+        ignoredBodies: [model.physics],
         collisionFilterGroup: -1,
         collisionFilterMask: -1,
       };
