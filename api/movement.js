@@ -170,23 +170,31 @@ export const flockMovement = {
       havokPlugin.shapeCast(stepProbeQueryLow, lowResult, lowHitResult);
 
       if (lowResult.hasHit) {
-        const highResult = new flock.BABYLON.ShapeCastResult();
-        const highHitResult = new flock.BABYLON.ShapeCastResult();
-        havokPlugin.shapeCast(stepProbeQueryHigh, highResult, highHitResult);
-        if (!highResult.hasHit) {
-          // Only boost if we haven't recently boosted
-          const lastStepBoost = model._lastStepBoost || 0;
-          if (nowMs - lastStepBoost > 400) {
-            model._lastStepBoost = nowMs;
+        const lowHitNormal = lowResult.hitNormalWorld;
+        const upDot = lowHitNormal
+          ? flock.BABYLON.Vector3.Dot(lowHitNormal.normalize(), up)
+          : 0;
+        // Only step up for near-vertical surfaces (ledges), not slopes.
+        // Downward slope faces have upDot > 0.5 and should not trigger a boost.
+        if (upDot < 0.5) {
+          const highResult = new flock.BABYLON.ShapeCastResult();
+          const highHitResult = new flock.BABYLON.ShapeCastResult();
+          havokPlugin.shapeCast(stepProbeQueryHigh, highResult, highHitResult);
+          if (!highResult.hasHit) {
+            // Only boost if we haven't recently boosted
+            const lastStepBoost = model._lastStepBoost || 0;
+            if (nowMs - lastStepBoost > 400) {
+              model._lastStepBoost = nowMs;
 
-            // Apply upward boost
-            const boostedVelocity = new flock.BABYLON.Vector3(
-              appliedHorizontalVelocity.x,
-              Math.max(currentVelocity.y, 2.5),
-              appliedHorizontalVelocity.z,
-            );
-            model.physics.setLinearVelocity(boostedVelocity);
-            return; // Skip rest of movement logic this frame
+              // Apply upward boost
+              const boostedVelocity = new flock.BABYLON.Vector3(
+                appliedHorizontalVelocity.x,
+                Math.max(currentVelocity.y, 2.5),
+                appliedHorizontalVelocity.z,
+              );
+              model.physics.setLinearVelocity(boostedVelocity);
+              return; // Skip rest of movement logic this frame
+            }
           }
         }
       }
