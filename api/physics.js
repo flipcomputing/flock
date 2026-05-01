@@ -60,22 +60,6 @@ const createPhysicsShape = (mesh, shapeType) => {
     mesh.computeWorldMatrix(true);
     return flock.createCapsuleFromBoundingBox(mesh, flock.scene);
   }
-  if (mesh.getTotalVertices() === 0) {
-    mesh.computeWorldMatrix(true);
-    mesh.refreshBoundingInfo(true);
-    const bb = mesh.getBoundingInfo().boundingBox;
-    const extents = new flock.BABYLON.Vector3(
-      bb.maximum.x - bb.minimum.x,
-      bb.maximum.y - bb.minimum.y,
-      bb.maximum.z - bb.minimum.z,
-    );
-    return new flock.BABYLON.PhysicsShapeBox(
-      bb.center,
-      flock.BABYLON.Quaternion.Identity(),
-      extents,
-      flock.scene,
-    );
-  }
   return new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
 };
 

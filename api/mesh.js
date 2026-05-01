@@ -797,7 +797,21 @@ export const flockMesh = {
       flock.scene,
     );
 
-    const boxShape = flock.createCapsuleFromBoundingBox(bb, flock.scene);
+    const { boundingBox } = bb.getBoundingInfo();
+    const bbWidth = boundingBox.maximum.x - boundingBox.minimum.x;
+    const bbHeight = boundingBox.maximum.y - boundingBox.minimum.y;
+    const bbDepth = boundingBox.maximum.z - boundingBox.minimum.z;
+    const capsuleRadius = Math.min(bbWidth, bbDepth) / 2;
+    const useCapsule = bbHeight >= 2 * capsuleRadius;
+
+    const boxShape = useCapsule
+      ? flock.createCapsuleFromBoundingBox(bb, flock.scene)
+      : new flock.BABYLON.PhysicsShapeBox(
+          boundingBox.center,
+          flock.BABYLON.Quaternion.Identity(),
+          new flock.BABYLON.Vector3(bbWidth, bbHeight, bbDepth),
+          flock.scene,
+        );
 
     boxBody.shape = boxShape;
     boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
