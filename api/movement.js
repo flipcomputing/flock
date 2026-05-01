@@ -10,12 +10,14 @@ export const flockMovement = {
     if (!model || speed === 0) return;
 
     // --- Ensure player capsule ---
-    // Covers: no physics yet, wrong shape type, explicit setPhysicsShape not called.
+    // Triggers when: no physics, no capsule metadata, or capsule is degenerate
+    // (height ≤ 2×radius means the cylinder section has collapsed to a sphere).
     const cap = model.metadata?.physicsCapsule;
-    if (!model.physics || !cap || typeof cap.radius !== "number" || typeof cap.height !== "number") {
+    const capsuleDegenerate = cap && cap.height <= 2 * cap.radius;
+    if (!model.physics || !cap || typeof cap.radius !== "number" || typeof cap.height !== "number" || capsuleDegenerate) {
       if (!model._playerCapsulePending) {
         model._playerCapsulePending = true;
-        flock.setPhysicsShape(modelName, "CAPSULE").then(() => {
+        flock.setPhysicsShape(modelName, "PLAYER_CAPSULE").then(() => {
           delete model._playerCapsulePending;
         });
       }

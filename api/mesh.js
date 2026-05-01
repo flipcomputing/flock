@@ -849,7 +849,7 @@ export const flockMesh = {
       flock.scene,
     );
 
-    const boxShape = flock.createPlayerCapsuleFromBoundingBox(bb, flock.scene);
+    const boxShape = flock.createCapsuleFromBoundingBox(bb, flock.scene);
 
     boxBody.shape = boxShape;
     boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
