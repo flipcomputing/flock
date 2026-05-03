@@ -1478,7 +1478,10 @@ export const flockAnimate = {
     mesh._currentAnimGroup = retargetedGroup;
     mesh.metadata.currentAnimationName = animationName;
 
+    // Update physics shape based on animation
     const physicsMesh = meshOrGroup;
+
+    updateCapsuleShapeForAnimation(physicsMesh, animationName);
 
     const shouldBlend = blendDuration > 0 && (outgoingGroup !== null || !previousGroup);
     if (shouldBlend) {
@@ -1495,12 +1498,8 @@ export const flockAnimate = {
       retargetedGroup.stop();
       retargetedGroup.reset();
       retargetedGroup.start(loop);
-      flock._blendAnimationGroups(effectiveOutgoing, retargetedGroup, blendDuration, scene, mesh, () => {
-        updateCapsuleShapeForAnimation(physicsMesh, animationName);
-      });
+      flock._blendAnimationGroups(effectiveOutgoing, retargetedGroup, blendDuration, scene, mesh);
     } else {
-      // Update physics shape immediately when not blending
-      updateCapsuleShapeForAnimation(physicsMesh, animationName);
       if (outgoingGroup) {
         outgoingGroup.stop();
       }
@@ -1807,8 +1806,6 @@ export const flockAnimate = {
         ? previousGroup
         : null;
 
-    const physicsMesh = rootMesh;
-
     const shouldBlend = blendDuration > 0 && (outgoingGroup !== null || !previousGroup);
     if (shouldBlend) {
       let effectiveOutgoing = outgoingGroup;
@@ -1834,9 +1831,7 @@ export const flockAnimate = {
         targetAnimationGroup.to,
         false,
       );
-      flock._blendAnimationGroups(effectiveOutgoing, targetAnimationGroup, blendDuration, scene, rootMesh, () => {
-        updateCapsuleShapeForAnimation(physicsMesh, animationName);
-      });
+      flock._blendAnimationGroups(effectiveOutgoing, targetAnimationGroup, blendDuration, scene, rootMesh);
     } else {
       if (outgoingGroup) {
         flock.stopAnimationsTargetingMesh(scene, rootMesh);
@@ -1868,9 +1863,12 @@ export const flockAnimate = {
         );
         rootMesh.animationGroups[0].setWeightForAllAnimatables(1);
       }
-      // Update physics shape immediately when not blending
-      updateCapsuleShapeForAnimation(physicsMesh, animationName);
     }
+
+    // Update physics shape based on animation
+    const physicsMesh = rootMesh;
+
+    updateCapsuleShapeForAnimation(physicsMesh, animationName);
 
     return targetAnimationGroup;
   },
