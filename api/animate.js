@@ -1485,15 +1485,19 @@ export const flockAnimate = {
 
     const shouldBlend = blendDuration > 0 && (outgoingGroup !== null || !previousGroup);
     if (shouldBlend) {
-      let effectiveOutgoing = outgoingGroup;
-      if (!effectiveOutgoing) {
-        const snap = flock._createCurrentPoseGroup(mesh, scene);
-        if (snap) {
-          snap._isSnapshot = true;
-          snap.start(true, 1.0, 0, 1, false);
-          snap.setWeightForAllAnimatables(1);
-          effectiveOutgoing = snap;
-        }
+      // Stop the outgoing animation immediately so its position/bone tracks don't
+      // continue running during the blend (prevents trigger intersection jitter).
+      if (outgoingGroup) outgoingGroup.stop();
+
+      // Use a frozen pose snapshot as the blend-out source so the transition is
+      // still visually smooth even though the live animation is stopped.
+      const snap = flock._createCurrentPoseGroup(mesh, scene);
+      let effectiveOutgoing = null;
+      if (snap) {
+        snap._isSnapshot = true;
+        snap.start(true, 1.0, 0, 1, false);
+        snap.setWeightForAllAnimatables(1);
+        effectiveOutgoing = snap;
       }
       retargetedGroup.stop();
       retargetedGroup.reset();
@@ -1808,18 +1812,20 @@ export const flockAnimate = {
 
     const shouldBlend = blendDuration > 0 && (outgoingGroup !== null || !previousGroup);
     if (shouldBlend) {
-      let effectiveOutgoing = outgoingGroup;
-      if (!effectiveOutgoing) {
-        const skeletonMesh = findMeshWithSkeleton(rootMesh);
-        if (skeletonMesh) {
-          const snap = flock._createCurrentPoseGroup(skeletonMesh, scene);
-          if (snap) {
-            snap._isSnapshot = true;
-            snap.start(true, 1.0, 0, 1, false);
-            snap.setWeightForAllAnimatables(1);
-            effectiveOutgoing = snap;
-          }
-        }
+      // Stop the outgoing animation immediately so its position/bone tracks don't
+      // continue running during the blend (prevents trigger intersection jitter).
+      if (outgoingGroup) outgoingGroup.stop();
+
+      // Use a frozen pose snapshot as the blend-out source so the transition is
+      // still visually smooth even though the live animation is stopped.
+      const skeletonMesh = findMeshWithSkeleton(rootMesh);
+      const snap = skeletonMesh ? flock._createCurrentPoseGroup(skeletonMesh, scene) : null;
+      let effectiveOutgoing = null;
+      if (snap) {
+        snap._isSnapshot = true;
+        snap.start(true, 1.0, 0, 1, false);
+        snap.setWeightForAllAnimatables(1);
+        effectiveOutgoing = snap;
       }
       rootMesh.animationGroups[0] = targetAnimationGroup;
       targetAnimationGroup.reset();
