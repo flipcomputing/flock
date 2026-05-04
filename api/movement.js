@@ -60,19 +60,7 @@ export const flockMovement = {
     const up = flock.BABYLON.Vector3.Up();
     const scene = flock.scene;
 
-    const isCharacterMesh =
-      model.metadata?.isCharacter === true ||
-      model.metadata?.kind === "character" ||
-      model.metadata?.type === "character" ||
-      (model.name || "").toLowerCase().includes("character") ||
-      (model.metadata?.modelName || "").toLowerCase().includes("character") ||
-      (model.name || "").toLowerCase().includes("liz") ||
-      (model.metadata?.modelName || "").toLowerCase().includes("liz");
-
-    const capsuleLocalCenter =
-      !isCharacterMesh && cap.localCenter
-        ? cap.localCenter
-        : flock.BABYLON.Vector3.Zero();
+    const capsuleLocalCenter = cap.localCenter || flock.BABYLON.Vector3.Zero();
 
     // Desired horizontal direction from camera
     const cameraForward = scene.activeCamera.getForwardRay().direction;
