@@ -1501,7 +1501,6 @@ export const flockAnimate = {
       }
       mesh._animationEverPlayed = true;
       retargetedGroup.stop();
-      retargetedGroup.reset();
       retargetedGroup.start(loop);
       flock._blendAnimationGroups(effectiveOutgoing, retargetedGroup, blendDuration, scene, mesh);
     } else {
@@ -1837,7 +1836,6 @@ export const flockAnimate = {
       }
       if (skeletonMesh) skeletonMesh._animationEverPlayed = true;
       rootMesh.animationGroups[0] = targetAnimationGroup;
-      targetAnimationGroup.reset();
       targetAnimationGroup.stop();
       targetAnimationGroup.start(
         loop,
