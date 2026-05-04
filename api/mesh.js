@@ -222,12 +222,12 @@ export const flockMesh = {
     if (cylinderLength <= 0) {
       const cylinderStart = new flock.BABYLON.Vector3(
         localCenter.x,
-        localCenter.y - adjustedHeight / 2,
+        localCenter.y - height / 2,
         localCenter.z,
       );
       const cylinderEnd = new flock.BABYLON.Vector3(
         localCenter.x,
-        localCenter.y + adjustedHeight / 2,
+        localCenter.y + height / 2,
         localCenter.z,
       );
       shape = new flock.BABYLON.PhysicsShapeCylinder(
@@ -241,7 +241,7 @@ export const flockMesh = {
         {
           meshName: mesh.name,
           meshId: mesh.id,
-          adjustedHeight,
+          height,
           radius,
         },
       );*/
