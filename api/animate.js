@@ -1819,16 +1819,20 @@ export const flockAnimate = {
 
     const shouldBlend = blendDuration > 0 && previousGroup !== null && previousGroup !== targetAnimationGroup && skeletonMesh?._animationEverPlayed;
     if (shouldBlend) {
-      let effectiveOutgoing = outgoingGroup;
-      if (!effectiveOutgoing) {
-        if (skeletonMesh) {
-          const snap = flock._createCurrentPoseGroup(skeletonMesh, scene);
-          if (snap) {
-            snap._isSnapshot = true;
-            snap.start(true, 1.0, 0, 1, false);
-            snap.setWeightForAllAnimatables(1);
-            effectiveOutgoing = snap;
-          }
+      // Always stop the outgoing animation immediately and freeze its pose as a
+      // snapshot. Letting a live animation continue to drive bones (e.g.
+      // oscillating antennae) during the weight fade causes jitter.
+      if (outgoingGroup) {
+        outgoingGroup.stop();
+      }
+      let effectiveOutgoing = null;
+      if (skeletonMesh) {
+        const snap = flock._createCurrentPoseGroup(skeletonMesh, scene);
+        if (snap) {
+          snap._isSnapshot = true;
+          snap.start(true, 1.0, 0, 1, false);
+          snap.setWeightForAllAnimatables(1);
+          effectiveOutgoing = snap;
         }
       }
       if (skeletonMesh) skeletonMesh._animationEverPlayed = true;
