@@ -603,6 +603,18 @@ export async function exportCode(workspace) {
 export async function autoSaveToFile(workspace) {
   if (!currentFileHandle) return;
   try {
+    if (typeof currentFileHandle.queryPermission === "function") {
+      const permission = await currentFileHandle.queryPermission({
+        mode: "readwrite",
+      });
+      if (permission !== "granted") {
+        if (permission === "denied") {
+          clearFileHandle();
+        }
+        return;
+      }
+    }
+
     const ws =
       workspace && workspace.getAllBlocks
         ? workspace
