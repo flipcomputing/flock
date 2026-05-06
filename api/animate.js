@@ -35,11 +35,33 @@ const updateCapsuleShapeForAnimation = (physicsMesh, animationName) => {
     return;
   }
 
-  // Capture pre-switch bottom Y (world)
-  physicsMesh.computeWorldMatrix?.(true);
-  physicsMesh.refreshBoundingInfo?.(true);
-  const preMinY =
-    physicsMesh.getBoundingInfo?.()?.boundingBox?.minimumWorld?.y ?? null;
+  // Read the local-space bottom Y of a capsule or cylinder shape directly from
+  // its geometry. The bounding-box approach gave preMinY ≈ postMinY for
+  // characters (mesh geometry is unchanged by capsule orientation), so the
+  // correction was always zero. Using the shape's own pointA/pointB/radius
+  // gives the actual capsule bottom regardless of orientation.
+  const getShapeLocalBottomY = (shape) => {
+    if (
+      flock?.BABYLON?.PhysicsShapeCapsule &&
+      shape instanceof flock.BABYLON.PhysicsShapeCapsule &&
+      shape.pointA &&
+      shape.pointB &&
+      shape.radius !== undefined
+    ) {
+      return Math.min(shape.pointA.y, shape.pointB.y) - shape.radius;
+    }
+    if (
+      flock?.BABYLON?.PhysicsShapeCylinder &&
+      shape instanceof flock.BABYLON.PhysicsShapeCylinder &&
+      shape.pointA &&
+      shape.pointB
+    ) {
+      return Math.min(shape.pointA.y, shape.pointB.y);
+    }
+    return null;
+  };
+
+  const preBottomLocalY = getShapeLocalBottomY(physicsMesh.physics.shape);
 
   const motionType = physicsMesh.physics.getMotionType();
   const massProps = physicsMesh.physics.getMassProperties();
@@ -72,14 +94,11 @@ const updateCapsuleShapeForAnimation = (physicsMesh, animationName) => {
   physicsMesh.physics.setMassProperties(massProps);
   physicsMesh.physics.disablePreStep = disablePreStep;
 
-  // Correct transform so bottom Y stays unchanged after shape swap
-  physicsMesh.computeWorldMatrix?.(true);
-  physicsMesh.refreshBoundingInfo?.(true);
-  const postMinY =
-    physicsMesh.getBoundingInfo?.()?.boundingBox?.minimumWorld?.y ?? null;
-
-  if (Number.isFinite(preMinY) && Number.isFinite(postMinY)) {
-    const deltaY = preMinY - postMinY;
+  // Keep the capsule bottom at the same world Y after the shape swap so the
+  // mesh does not teleport into or away from the terrain when orientation changes.
+  const postBottomLocalY = getShapeLocalBottomY(newShape);
+  if (Number.isFinite(preBottomLocalY) && Number.isFinite(postBottomLocalY)) {
+    const deltaY = preBottomLocalY - postBottomLocalY;
     if (Math.abs(deltaY) > 1e-5) {
       physicsMesh.position.y += deltaY;
       physicsMesh.computeWorldMatrix?.(true);
