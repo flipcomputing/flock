@@ -49,6 +49,7 @@ import {
   translate,
 } from "./translation.js";
 import { ShortcutsPanel } from "./accessibility.js";
+import { InputManager } from "./inputmanager.js";
 import "./context.js";
 
 function isEmbedModeEnabled() {
@@ -584,7 +585,7 @@ function initializeApp() {
   }
   runCodeButton.addEventListener("click", executeCode);
   stopCodeButton.addEventListener("click", stopCode);
-  exportCodeButton.addEventListener("click", exportCode);
+  exportCodeButton.addEventListener("click", () => exportCode(workspace));
 
   // Make open button work with keyboard
   if (openButton) {
@@ -603,67 +604,19 @@ function initializeApp() {
   // Enable the file input after initialization
   fileInput.removeAttribute("disabled");
 
-  // keydown event listener (capture phase to ensure shortcuts
-  // are handled before any other handler can stop propagation)
-  document.addEventListener(
-    "keydown",
-    function (e) {
-      // Check for modifier key (Ctrl on Windows/Linux, Cmd on Mac)
-      if (!(e.ctrlKey || e.metaKey)) return;
-
-      let key = e.key.toLowerCase();
-      if (e.code === "KeyM" && key !== "m") key = "m";
-      if (e.code === "KeyE" && key !== "e") key = "e";
-
-      switch (key) {
-        case "o": // Ctrl+O - Open file
-          e.preventDefault();
-          openFile(workspace, executeCode);
-          break;
-
-        case "s": // Ctrl+S - Save/Export
-          e.preventDefault();
-          exportCode(workspace); // Or saveWorkspace(workspace) for autosave
-          break;
-
-        case "p": // Ctrl+P - Execute code
-          e.preventDefault();
-          const canvas = document.getElementById("renderCanvas");
-          canvas.focus({ preventScroll: true });
-          break;
-
-        case "/": {
-          e.preventDefault();
-          ShortcutsPanel.toggle();
-          break;
-        }
-
-        case "m": {
-          // Ctrl+M - Move focus to main menu button
-          e.preventDefault();
-          if (menuButton) menuButton.focus();
-          break;
-        }
-
-        case "g": {
-          // Ctrl+G - Focus shapes button
-          e.preventDefault();
-          const btn = document.getElementById("showShapesButton");
-          if (btn && !btn.disabled && btn.offsetParent !== null) {
-            btn.focus();
-          }
-          break;
-        }
-
-        case "e": // Ctrl+E - Focus Blockly workspace/editor and move cursor
-          e.preventDefault();
-          Blockly.keyboardNavigationController?.setIsActive?.(true);
-          Blockly.getFocusManager()?.focusTree?.(workspace);
-          break;
-      }
-    },
-    true,
-  );
+  InputManager.on("*", "Mod+KeyO", (e) => { e.preventDefault(); openFile(workspace, executeCode); });
+  InputManager.on("*", "Mod+KeyS", (e) => { e.preventDefault(); exportCode(workspace); });
+  InputManager.on("*", "Mod+KeyP", (e) => {
+    e.preventDefault();
+    document.getElementById("renderCanvas")?.focus({ preventScroll: true });
+  });
+  InputManager.on("*", "Mod+Slash", (e) => { e.preventDefault(); ShortcutsPanel.toggle(); });
+  InputManager.on("*", "Mod+KeyM", (e) => { e.preventDefault(); if (menuButton) menuButton.focus(); });
+  InputManager.on("*", "Mod+KeyE", (e) => {
+    e.preventDefault();
+    Blockly.keyboardNavigationController?.setIsActive?.(true);
+    Blockly.getFocusManager()?.focusTree?.(workspace);
+  });
   if (toggleDesignButton) {
     toggleDesignButton.addEventListener("click", toggleDesignMode);
   }
@@ -727,7 +680,7 @@ function initializeApp() {
   if (projectSave) {
     projectSave.addEventListener("click", function (e) {
       e.preventDefault();
-      exportCode();
+      exportCode(workspace);
       document.getElementById("menuDropdown")?.classList.add("hidden");
     });
   }
