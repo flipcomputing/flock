@@ -11,7 +11,12 @@ on:
 
 jobs:
   build:
-    runs-on: ["ubuntu-latest", "windows-2022"]
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-2022]
+        node-version: [20.x, 22.x, 24.x]
 
     strategy:
       matrix:
