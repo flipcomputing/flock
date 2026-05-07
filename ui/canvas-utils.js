@@ -232,7 +232,6 @@ function handleKeydown(event) {
 
     case "Escape":
       event.preventDefault();
-      event.stopPropagation();
       stopCanvasKeyboardMode();
       break;
 

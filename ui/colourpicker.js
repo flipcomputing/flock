@@ -1867,6 +1867,7 @@ class CustomColorPicker {
     // Add P shortcut to pick current colour
     InputManager.on("*", "KeyP", (e) => {
       if (ContextManager.getCurrentContext() === "TYPING") return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
       e.preventDefault();
       this.container.querySelector(".color-picker-use")?.click();
     });

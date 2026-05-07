@@ -105,6 +105,8 @@ function registerBindings() {
     "Escape",
     noMod(() => {
       try {
+        const cameraButton = document.getElementById("cameraButton");
+        if (cameraButton?.classList.contains("active")) handleCameraGizmo();
         exitGizmoState();
         gizmoManager?.attachToMesh(null);
       } catch {
@@ -175,6 +177,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function pickMeshFromCanvas() {
   const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
   if (!canvas || !flock.scene) return;
+  GizmoMenuManager.toggle(true);
 
   const onPickMesh = function (event) {
     const canvasRect = canvas.getBoundingClientRect();

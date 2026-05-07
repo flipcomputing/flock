@@ -20,6 +20,7 @@ import {
   setCrosshairCursor,
   setDefaultCursor,
 } from "./canvas-utils.js";
+import { GizmoMenuManager } from "../main/accessibility.js";
 
 const colorFields = {
   HAIR_COLOR: "#000000", // Hair: black
@@ -828,6 +829,7 @@ function handleShapeMenuKeydown(event) {
 function startPlacementKeyboardMode() {
   const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
   if (!flock.scene || !canvas) return;
+  GizmoMenuManager.toggle(true);
   const isValidHit = (x, y) =>
     !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit;
 

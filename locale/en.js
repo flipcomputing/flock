@@ -150,8 +150,7 @@ export default {
     "glide %1 to x: %2 y: %3 z: %4 in %5 seconds \n%6 return? %7 loop? %8 %9",
   glide_to_object:
     "glide %1 to %2 in %6 seconds \noffset x: %3 y: %4 z: %5\n%7 return? %8 loop? %9 %10",
-  glide_to_axis:
-    "glide %1 %2 %3 in %4 seconds\n%5 return? %6 loop? %7 %8",
+  glide_to_axis: "glide %1 %2 %3 in %4 seconds\n%5 return? %6 loop? %7 %8",
   rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   rotate_anim:
     "rotate %1 to x: %2 y: %3 z: %4 in %5 ms\n%6 reverse? %7 loop? %8  %9",
@@ -1259,4 +1258,44 @@ export default {
   // Service worker update notification
   update_available_ui: "A new version of Flock is available.",
   reload_button_ui: "Reload",
+
+  // Keyboard shortcuts panel — title and close button
+  shortcut_panel_title: "Keyboard shortcuts",
+  shortcut_panel_close: "Close keyboard shortcuts",
+
+  // Keyboard shortcuts panel — labels
+  shortcut_show_hide_help: "Show/hide shortcut help",
+  shortcut_move_between_areas: "Move between menus, canvas and editor",
+  shortcut_confirm: "Confirm",
+  shortcut_exit: "Exit",
+  shortcut_play: "Play",
+  shortcut_undo: "Undo",
+  shortcut_redo: "Redo",
+  shortcut_browser_nav:
+    "Browser navigation bar (overridden shortcuts work from here)",
+  shortcut_main_menu: "Main menu",
+  shortcut_open_file: "Open file",
+  shortcut_save_export: "Save / export",
+  shortcut_open_close_area_menu: "Open/close area menu",
+  shortcut_toggle_area: "Toggle area",
+  shortcut_select_area: "Select area",
+  shortcut_code_editor: "Code editor",
+  shortcut_add_block_by_name: "Add block by name",
+  shortcut_search_block: "Search for a block",
+  shortcut_move_through_blocks: "Move through blocks",
+  shortcut_open_gizmos: "Gizmos",
+  shortcut_select_gizmo: "Select gizmo",
+  shortcut_keyboard_cursor_gizmos: "Keyboard cursor for gizmos",
+  shortcut_lock_transform: "Lock transform to axis",
+  shortcut_transform_3d: "Transform in 3D",
+  shortcut_focus_camera: "Focus camera on object",
+  shortcut_quick_colour: "Quick use colour in colour picker",
+  shortcut_delete_object: "Delete object",
+
+  // Keyboard shortcuts panel — category names
+  shortcut_category_main: "Main",
+  shortcut_category_menu: "Menu",
+  shortcut_category_area_menu: "Area menu",
+  shortcut_category_editor: "Editor",
+  shortcut_category_gizmos: "Gizmos",
 };

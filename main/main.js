@@ -604,14 +604,26 @@ function initializeApp() {
   // Enable the file input after initialization
   fileInput.removeAttribute("disabled");
 
-  InputManager.on("*", "Mod+KeyO", (e) => { e.preventDefault(); openFile(workspace, executeCode); });
-  InputManager.on("*", "Mod+KeyS", (e) => { e.preventDefault(); exportCode(workspace); });
+  InputManager.on("*", "Mod+KeyO", (e) => {
+    e.preventDefault();
+    openFile(workspace, executeCode);
+  });
+  InputManager.on("*", "Mod+KeyS", (e) => {
+    e.preventDefault();
+    exportCode(workspace);
+  });
   InputManager.on("*", "Mod+KeyP", (e) => {
     e.preventDefault();
     document.getElementById("renderCanvas")?.focus({ preventScroll: true });
   });
-  InputManager.on("*", "Mod+Slash", (e) => { e.preventDefault(); ShortcutsPanel.toggle(); });
-  InputManager.on("*", "Mod+KeyM", (e) => { e.preventDefault(); if (menuButton) menuButton.focus(); });
+  InputManager.on("*", "Mod+Slash", (e) => {
+    e.preventDefault();
+    ShortcutsPanel.toggle();
+  });
+  InputManager.on("*", "Mod+KeyM", (e) => {
+    e.preventDefault();
+    if (menuButton) menuButton.focus();
+  });
   InputManager.on("*", "Mod+KeyE", (e) => {
     e.preventDefault();
     Blockly.keyboardNavigationController?.setIsActive?.(true);

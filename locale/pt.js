@@ -1207,4 +1207,44 @@ export default {
   RightUpLeg_option: "Coxa direita",
   RightLeg_option: "Canela direita",
   RightFoot_option: "Pé direito",
+
+  // Keyboard shortcuts panel — title and close button
+  shortcut_panel_title: "Atalhos de teclado",
+  shortcut_panel_close: "Fechar atalhos de teclado",
+
+  // Keyboard shortcuts panel — labels
+  shortcut_show_hide_help: "Mostrar/ocultar atalhos de teclado",
+  shortcut_move_between_areas: "Mover entre menus, canvas e editor",
+  shortcut_confirm: "Confirmar",
+  shortcut_exit: "Sair",
+  shortcut_play: "Executar",
+  shortcut_undo: "Desfazer",
+  shortcut_redo: "Refazer",
+  shortcut_browser_nav:
+    "Barra de endereço do navegador (atalhos bloqueados funcionam daqui)",
+  shortcut_main_menu: "Menu principal",
+  shortcut_open_file: "Abrir ficheiro",
+  shortcut_save_export: "Guardar / exportar",
+  shortcut_open_close_area_menu: "Abrir/fechar menu de áreas",
+  shortcut_toggle_area: "Alternar área",
+  shortcut_select_area: "Selecionar área",
+  shortcut_code_editor: "Editor de código",
+  shortcut_add_block_by_name: "Adicionar bloco por nome",
+  shortcut_search_block: "Procurar um bloco",
+  shortcut_move_through_blocks: "Navegar pelos blocos",
+  shortcut_open_gizmos: "Gizmos",
+  shortcut_select_gizmo: "Selecionar gizmo",
+  shortcut_keyboard_cursor_gizmos: "Cursor de teclado para gizmos",
+  shortcut_lock_transform: "Bloquear transformação no eixo",
+  shortcut_transform_3d: "Transformar em 3D",
+  shortcut_focus_camera: "Focar câmara no objeto",
+  shortcut_quick_colour: "Uso rápido de cor no seletor de cores",
+  shortcut_delete_object: "Eliminar objeto",
+
+  // Keyboard shortcuts panel — category names
+  shortcut_category_main: "Geral",
+  shortcut_category_menu: "Menu",
+  shortcut_category_area_menu: "Menu de áreas",
+  shortcut_category_editor: "Editor",
+  shortcut_category_gizmos: "Gizmos",
 };
