@@ -585,7 +585,7 @@ function initializeApp() {
   }
   runCodeButton.addEventListener("click", executeCode);
   stopCodeButton.addEventListener("click", stopCode);
-  exportCodeButton.addEventListener("click", exportCode);
+  exportCodeButton.addEventListener("click", () => exportCode(workspace));
 
   // Make open button work with keyboard
   if (openButton) {
@@ -680,7 +680,7 @@ function initializeApp() {
   if (projectSave) {
     projectSave.addEventListener("click", function (e) {
       e.preventDefault();
-      exportCode();
+      exportCode(workspace);
       document.getElementById("menuDropdown")?.classList.add("hidden");
     });
   }
