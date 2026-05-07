@@ -267,7 +267,7 @@ const GizmoMenuManager = {
 
 // Check their platform (Mac or not Mac) to show the correct modifier key
 function isMac() {
-  return navigator.platform.toUpperCase().includes("MAC");
+  return (navigator.userAgentData?.platform ?? navigator.platform).toUpperCase().includes("MAC");
 }
 
 // List of shortcuts to show in the panel, with categories for grouping
