@@ -495,6 +495,13 @@ button {
   box-shadow: 0px 0px 10px var(--color-shadow);
   z-index: 10;
 }
+
+#blocklyZoomControls .toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--color-border);
+  margin: 0 4px;
+}
 [data-theme="dark"] #canvasArea {
   background-color: #2c2c2c !important;
 }
