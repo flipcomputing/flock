@@ -1215,4 +1215,44 @@ export default {
   RightUpLeg_option: "Prawe udo",
   RightLeg_option: "Prawe podudzie",
   RightFoot_option: "Prawa stopa",
+
+  // Keyboard shortcuts panel — title and close button
+  shortcut_panel_title: "Skróty klawiaturowe",
+  shortcut_panel_close: "Zamknij skróty klawiaturowe",
+
+  // Keyboard shortcuts panel — labels
+  shortcut_show_hide_help: "Pokaż/ukryj skróty klawiaturowe",
+  shortcut_move_between_areas: "Przechodzenie między menu, płótnem i edytorem",
+  shortcut_confirm: "Potwierdź",
+  shortcut_exit: "Wyjdź",
+  shortcut_play: "Uruchom",
+  shortcut_undo: "Cofnij",
+  shortcut_redo: "Ponów",
+  shortcut_browser_nav:
+    "Pasek adresu przeglądarki (zablokowane skróty działają stąd)",
+  shortcut_main_menu: "Menu główne",
+  shortcut_open_file: "Otwórz plik",
+  shortcut_save_export: "Zapisz / eksportuj",
+  shortcut_open_close_area_menu: "Otwórz/zamknij menu obszarów",
+  shortcut_toggle_area: "Przełącz obszar",
+  shortcut_select_area: "Wybierz obszar",
+  shortcut_code_editor: "Edytor kodu",
+  shortcut_add_block_by_name: "Dodaj blok według nazwy",
+  shortcut_search_block: "Szukaj bloku",
+  shortcut_move_through_blocks: "Nawiguj między blokami",
+  shortcut_open_gizmos: "Gizmos",
+  shortcut_select_gizmo: "Wybierz gizmo",
+  shortcut_keyboard_cursor_gizmos: "Kursor klawiatury dla gizmos",
+  shortcut_lock_transform: "Zablokuj transformację na osi",
+  shortcut_transform_3d: "Transformuj w 3D",
+  shortcut_focus_camera: "Skieruj kamerę na obiekt",
+  shortcut_quick_colour: "Szybkie użycie koloru w selektorze kolorów",
+  shortcut_delete_object: "Usuń obiekt",
+
+  // Keyboard shortcuts panel — category names
+  shortcut_category_main: "Ogólne",
+  shortcut_category_menu: "Menu",
+  shortcut_category_area_menu: "Menu obszarów",
+  shortcut_category_editor: "Edytor",
+  shortcut_category_gizmos: "Gizmos",
 };

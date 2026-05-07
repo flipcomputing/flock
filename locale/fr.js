@@ -147,8 +147,7 @@ export default {
     "glisser %1 vers x %2 y %3 z %4 en %5 secondes \n%6 retour? %7 boucle? %8 %9",
   glide_to_object:
     "glisser %1 vers %2 en %6 secondes\ndécalage x: %3 y: %4 z: %5\n%7 retour? %8 boucle? %9 %10",
-  glide_to_axis:
-    "glisser %1 %2 %3 en %4 secondes\n%5 retour? %6 boucle? %7 %8",
+  glide_to_axis: "glisser %1 %2 %3 en %4 secondes\n%5 retour? %6 boucle? %7 %8",
   rotate_anim:
     "tourner %1 vers x %2 y %3 z %4 en %5 ms\n%6 inverse? %7 boucle? %8 %9",
   rotate_anim_seconds:
@@ -1220,4 +1219,44 @@ export default {
   RightUpLeg_option: "Cuisse droite",
   RightLeg_option: "Tibia droit",
   RightFoot_option: "Pied droit",
+
+  // Keyboard shortcuts panel — title and close button
+  shortcut_panel_title: "Raccourcis clavier",
+  shortcut_panel_close: "Fermer les raccourcis clavier",
+
+  // Keyboard shortcuts panel — labels
+  shortcut_show_hide_help: "Afficher/masquer les raccourcis clavier",
+  shortcut_move_between_areas: "Se déplacer entre les menus, le canvas et l'éditeur",
+  shortcut_confirm: "Confirmer",
+  shortcut_exit: "Quitter",
+  shortcut_play: "Lancer",
+  shortcut_undo: "Annuler",
+  shortcut_redo: "Rétablir",
+  shortcut_browser_nav:
+    "Barre d'adresse du navigateur (les raccourcis bloqués fonctionnent depuis ici)",
+  shortcut_main_menu: "Menu principal",
+  shortcut_open_file: "Ouvrir un fichier",
+  shortcut_save_export: "Enregistrer / exporter",
+  shortcut_open_close_area_menu: "Ouvrir/fermer le menu des zones",
+  shortcut_toggle_area: "Changer de zone",
+  shortcut_select_area: "Sélectionner une zone",
+  shortcut_code_editor: "Éditeur de code",
+  shortcut_add_block_by_name: "Ajouter un bloc par nom",
+  shortcut_search_block: "Rechercher un bloc",
+  shortcut_move_through_blocks: "Naviguer dans les blocs",
+  shortcut_open_gizmos: "Gizmos",
+  shortcut_select_gizmo: "Sélectionner un gizmo",
+  shortcut_keyboard_cursor_gizmos: "Curseur clavier pour les gizmos",
+  shortcut_lock_transform: "Verrouiller la transformation sur un axe",
+  shortcut_transform_3d: "Transformer en 3D",
+  shortcut_focus_camera: "Centrer la caméra sur l'objet",
+  shortcut_quick_colour: "Utiliser rapidement une couleur dans le sélecteur",
+  shortcut_delete_object: "Supprimer l'objet",
+
+  // Keyboard shortcuts panel — category names
+  shortcut_category_main: "Général",
+  shortcut_category_menu: "Menu",
+  shortcut_category_area_menu: "Menu des zones",
+  shortcut_category_editor: "Éditeur",
+  shortcut_category_gizmos: "Gizmos",
 };

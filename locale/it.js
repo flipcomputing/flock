@@ -152,8 +152,7 @@ export default {
     "scivola %1 a x %2 y %3 z %4 in %5 secondi \n%6 ritorna? %7 ripeti? %8 %9",
   glide_to_object:
     "scivola %1 verso %2 in %6 secondi\noffset x: %3 y: %4 z: %5\n%7 ritorna? %8 ripeti? %9 %10",
-  glide_to_axis:
-    "scivola %1 %2 %3 in %4 secondi\n%5 ritorna? %6 ripeti? %7 %8",
+  glide_to_axis: "scivola %1 %2 %3 in %4 secondi\n%5 ritorna? %6 ripeti? %7 %8",
   rotate_anim:
     "ruota %1 a x %2 y %3 z %4 in %5 ms\n%6 inverti? %7 ripeti? %8  %9",
   rotate_anim_seconds:
@@ -1211,4 +1210,44 @@ export default {
   RightUpLeg_option: "Coscia destra",
   RightLeg_option: "Stinco destro",
   RightFoot_option: "Piede destro",
+
+  // Keyboard shortcuts panel — title and close button
+  shortcut_panel_title: "Scorciatoie da tastiera",
+  shortcut_panel_close: "Chiudi le scorciatoie da tastiera",
+
+  // Keyboard shortcuts panel — labels
+  shortcut_show_hide_help: "Mostra/nascondi scorciatoie da tastiera",
+  shortcut_move_between_areas: "Spostarsi tra menu, canvas ed editor",
+  shortcut_confirm: "Conferma",
+  shortcut_exit: "Esci",
+  shortcut_play: "Avvia",
+  shortcut_undo: "Annulla",
+  shortcut_redo: "Ripristina",
+  shortcut_browser_nav:
+    "Barra degli indirizzi del browser (le scorciatoie bloccate funzionano da qui)",
+  shortcut_main_menu: "Menu principale",
+  shortcut_open_file: "Apri file",
+  shortcut_save_export: "Salva / esporta",
+  shortcut_open_close_area_menu: "Apri/chiudi menu delle aree",
+  shortcut_toggle_area: "Cambia area",
+  shortcut_select_area: "Seleziona area",
+  shortcut_code_editor: "Editor di codice",
+  shortcut_add_block_by_name: "Aggiungi blocco per nome",
+  shortcut_search_block: "Cerca un blocco",
+  shortcut_move_through_blocks: "Navigare tra i blocchi",
+  shortcut_open_gizmos: "Gizmos",
+  shortcut_select_gizmo: "Seleziona gizmo",
+  shortcut_keyboard_cursor_gizmos: "Cursore da tastiera per i gizmos",
+  shortcut_lock_transform: "Blocca trasformazione sull'asse",
+  shortcut_transform_3d: "Trasforma in 3D",
+  shortcut_focus_camera: "Centra la telecamera sull'oggetto",
+  shortcut_quick_colour: "Uso rapido del colore nel selettore colori",
+  shortcut_delete_object: "Elimina oggetto",
+
+  // Keyboard shortcuts panel — category names
+  shortcut_category_main: "Generale",
+  shortcut_category_menu: "Menu",
+  shortcut_category_area_menu: "Menu delle aree",
+  shortcut_category_editor: "Editor",
+  shortcut_category_gizmos: "Gizmos",
 };

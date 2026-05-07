@@ -1,5 +1,6 @@
 import { InputManager } from "./inputmanager.js";
 import { ContextManager } from "./context.js";
+import { translate } from "./translation.js";
 
 // Area menu accessed with Ctrl + B to quickly skip to
 // different areas on the interface
@@ -273,70 +274,36 @@ function isMac() {
 function getShortcuts() {
   const mod = isMac() ? "⌘" : "Ctrl";
   return [
-    { label: "Show/hide shortcut help", keys: `${mod} + /`, category: "Main" },
-    {
-      label: "Move between menus, canvas and editor",
-      keys: `Tab`,
-      category: "Main",
-    },
-    { label: "Confirm", keys: `Enter`, category: "Main" },
-    { label: "Exit", keys: `Esc`, category: "Main" },
-    { label: "Play", keys: `${mod} + P`, category: "Main" },
-    { label: "Undo", keys: `${mod} + Z`, category: "Main" },
-    { label: "Redo", keys: `${mod} + Shift + Z`, category: "Main" },
-    {
-      label: "Browser navigation bar (overriden shortcuts work from here)",
-      keys: `${mod} + L`,
-      category: "Main",
-    },
+    { label: translate("shortcut_show_hide_help"), keys: `${mod} + /`, category: translate("shortcut_category_main") },
+    { label: translate("shortcut_move_between_areas"), keys: `Tab`, category: translate("shortcut_category_main") },
+    { label: translate("shortcut_confirm"), keys: `Enter`, category: translate("shortcut_category_main") },
+    { label: translate("shortcut_exit"), keys: `Esc`, category: translate("shortcut_category_main") },
+    { label: translate("shortcut_play"), keys: `${mod} + P`, category: translate("shortcut_category_main") },
+    { label: translate("shortcut_undo"), keys: `${mod} + Z`, category: translate("shortcut_category_main") },
+    { label: translate("shortcut_redo"), keys: `${mod} + Shift + Z`, category: translate("shortcut_category_main") },
+    { label: translate("shortcut_browser_nav"), keys: `${mod} + L`, category: translate("shortcut_category_main") },
 
-    { label: "Main menu", keys: `${mod} + M`, category: "Menu" },
-    { label: "Open file", keys: `${mod} + O`, category: "Menu" },
-    { label: "Save / export", keys: `${mod} + S`, category: "Menu" },
+    { label: translate("shortcut_main_menu"), keys: `${mod} + M`, category: translate("shortcut_category_menu") },
+    { label: translate("shortcut_open_file"), keys: `${mod} + O`, category: translate("shortcut_category_menu") },
+    { label: translate("shortcut_save_export"), keys: `${mod} + S`, category: translate("shortcut_category_menu") },
 
-    {
-      label: "Open/close area menu",
-      keys: `${mod} + B`,
-      category: "Area menu",
-    },
-    { label: "Toggle area", keys: `Tab`, category: "Area menu" },
-    { label: "Select area", keys: `1-9 / Enter`, category: "Area menu" },
+    { label: translate("shortcut_open_close_area_menu"), keys: `${mod} + B`, category: translate("shortcut_category_area_menu") },
+    { label: translate("shortcut_toggle_area"), keys: `Tab`, category: translate("shortcut_category_area_menu") },
+    { label: translate("shortcut_select_area"), keys: `1-9 / Enter`, category: translate("shortcut_category_area_menu") },
 
-    { label: "Code editor", keys: `${mod} + E`, category: "Editor" },
-    {
-      label: "Add block by name",
-      keys: `${mod} + ]`,
-      category: "Editor",
-    },
-    { label: "Search for a block", keys: `${mod} + F`, category: "Editor" },
-    { label: "Move through blocks", keys: `↑ ↓ ← →`, category: "Editor" },
+    { label: translate("shortcut_code_editor"), keys: `${mod} + E`, category: translate("shortcut_category_editor") },
+    { label: translate("shortcut_add_block_by_name"), keys: `${mod} + ]`, category: translate("shortcut_category_editor") },
+    { label: translate("shortcut_search_block"), keys: `${mod} + F`, category: translate("shortcut_category_editor") },
+    { label: translate("shortcut_move_through_blocks"), keys: `↑ ↓ ← →`, category: translate("shortcut_category_editor") },
 
-    { label: "Gizmos", keys: `${mod} + G`, category: "Gizmos" },
-    {
-      label: "Select gizmo",
-      keys: `1-9`,
-      category: "Gizmos",
-    },
-
-    {
-      label: "Keyboard cursor for gizmos",
-      keys: `↑ ↓ ← →`,
-      category: "Gizmos",
-    },
-    {
-      label: "Lock transform to axis",
-      keys: `X Y Z`,
-      category: "Gizmos",
-    },
-    { label: "Transform in 3D", keys: `↑ ↓ ← → PgUp PgDn`, category: "Gizmos" },
-    { label: "Focus camera on object", keys: `F`, category: "Gizmos" },
-
-    {
-      label: "Quick use colour in colour picker",
-      keys: `P`,
-      category: "Gizmos",
-    },
-    { label: "Delete object", keys: `Del`, category: "Gizmos" },
+    { label: translate("shortcut_open_gizmos"), keys: `${mod} + G`, category: translate("shortcut_category_gizmos") },
+    { label: translate("shortcut_select_gizmo"), keys: `1-9`, category: translate("shortcut_category_gizmos") },
+    { label: translate("shortcut_keyboard_cursor_gizmos"), keys: `↑ ↓ ← →`, category: translate("shortcut_category_gizmos") },
+    { label: translate("shortcut_lock_transform"), keys: `X Y Z`, category: translate("shortcut_category_gizmos") },
+    { label: translate("shortcut_transform_3d"), keys: `↑ ↓ ← → PgUp PgDn`, category: translate("shortcut_category_gizmos") },
+    { label: translate("shortcut_focus_camera"), keys: `F`, category: translate("shortcut_category_gizmos") },
+    { label: translate("shortcut_quick_colour"), keys: `P`, category: translate("shortcut_category_gizmos") },
+    { label: translate("shortcut_delete_object"), keys: `Del`, category: translate("shortcut_category_gizmos") },
   ];
 }
 
@@ -371,11 +338,11 @@ const ShortcutsPanel = {
     div.id = "shortcutsPanel";
     div.className = "shortcuts-panel hidden shortcuts-panel--left";
     div.setAttribute("role", "region");
-    div.setAttribute("aria-label", "Keyboard shortcuts");
+    div.setAttribute("aria-label", translate("shortcut_panel_title"));
     div.tabIndex = 0;
-    div.innerHTML = `      
-        <button type="button" class="close-button" id="closeShortcutsPanel" aria-label="Close keyboard shortcuts">&times;</button>
-        <h1 id="shortcuts-panel-title">Keyboard shortcuts</h1>
+    div.innerHTML = `
+        <button type="button" class="close-button" id="closeShortcutsPanel" aria-label="${translate("shortcut_panel_close")}">&times;</button>
+        <h1 id="shortcuts-panel-title">${translate("shortcut_panel_title")}</h1>
         <table id="shortcuts-table"><tbody></tbody></table>
       `;
     document.body.appendChild(div);
@@ -383,6 +350,9 @@ const ShortcutsPanel = {
   },
 
   show() {
+    this.panel.setAttribute("aria-label", translate("shortcut_panel_title"));
+    this.panel.querySelector("#shortcuts-panel-title").textContent = translate("shortcut_panel_title");
+    this.panel.querySelector("#closeShortcutsPanel").setAttribute("aria-label", translate("shortcut_panel_close"));
     const tbody = this.panel.querySelector("tbody");
     const groups = getShortcuts().reduce((acc, s) => {
       (acc[s.category] ??= []).push(s);
