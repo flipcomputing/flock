@@ -130,6 +130,11 @@ export function setupInput() {
         pushUnique(workspaceGroup);
       }
 
+      // 6b) Workspace toolbar
+      ["#undoBtn", "#redoBtn", "#zoomOutBtn", "#zoomInBtn"].forEach((sel) =>
+        pushUnique(document.querySelector(sel)),
+      );
+
       // 7) Main UI controls (in natural order)
       [
         "#menuBtn",
