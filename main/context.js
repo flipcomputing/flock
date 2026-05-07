@@ -54,8 +54,14 @@ export const ContextManager = {
     }
 
     // GIZMO: Is a gizmo currently active?
+    // Yield to EDITOR if the user is actively working in Blockly
     if (document.querySelector(".gizmo-button.active")) {
-      return "GIZMO";
+      const currentGesture = window.Blockly?.Gesture?.getCurrentGesture?.();
+      const isBlocklyActive =
+        currentGesture?.isDragging?.() ||
+        activeEl?.closest(".blocklySvg") ||
+        activeEl?.closest(".blocklyToolbox");
+      if (!isBlocklyActive) return "GIZMO";
     }
 
     // RESIZER: Are they changing the canvas size?
