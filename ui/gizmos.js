@@ -129,7 +129,8 @@ document.addEventListener("DOMContentLoaded", function () {
         window.selectedColor = newColor;
       },
       onClose: () => {
-        // After color picker closes, start mesh selection
+        // Re-activate button: painting mode is still a gizmo action
+        document.getElementById("colorPickerButton")?.classList.add("active");
         pickMeshFromCanvas();
       },
       excludeFromClose: (target) => {
@@ -164,6 +165,7 @@ document.addEventListener("DOMContentLoaded", function () {
     colorButton.addEventListener("click", (event) => {
       event.preventDefault();
       if (colorPicker) {
+        GizmoMenuManager.toggle(false);
         colorPicker.open(window.selectedColor);
       }
     });
@@ -180,10 +182,7 @@ function pickMeshFromCanvas() {
     // Exit if outside canvas
     if (eventIsOutOfCanvasBounds(event, canvasRect)) {
       window.removeEventListener("click", onPickMesh);
-      stopCanvasKeyboardMode();
-      // restore cursors
-      document.body.style.cursor = "default";
-      flock.scene.defaultCursor = "";
+      exitGizmoState();
       return;
     }
 
@@ -191,8 +190,16 @@ function pickMeshFromCanvas() {
     applyColorAtPosition(canvasX, canvasY);
   };
 
+  // Register cleanup so Escape during painting mode also tears down correctly
+  onExit(() => {
+    window.removeEventListener("click", onPickMesh);
+    stopCanvasKeyboardMode();
+    document.body.style.cursor = "default";
+    if (flock.scene) flock.scene.defaultCursor = "";
+  });
+
   startCanvasKeyboardMode((x, y) => applyColorAtPosition(x, y));
-  document.body.style.cursor = "crosshair"; // works
+  document.body.style.cursor = "crosshair";
   flock.scene.defaultCursor = "crosshair";
 
   setTimeout(() => {
