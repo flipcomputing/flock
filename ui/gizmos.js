@@ -1292,8 +1292,8 @@ export function toggleGizmo(gizmoType) {
     return;
   }
 
-  GizmoMenuManager.toggle(true);
   exitGizmoState(); // Clean up any existing gizmo state
+  GizmoMenuManager.toggle(true);
   resetAttachedMeshIfMeshAttached();
 
   document.body.style.cursor = "default";

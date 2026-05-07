@@ -1,3 +1,6 @@
+import { InputManager } from "./inputmanager.js";
+import { ContextManager } from "./context.js";
+
 // Area menu accessed with Ctrl + B to quickly skip to
 // different areas on the interface
 
@@ -179,6 +182,7 @@ const GizmoMenuManager = {
     if (!this.overlay) return;
     if (show) {
       this.renderBadges();
+
       // Focus 1st button if nothing in gizmos is already focused,
       // but if another gizmo is active, leave focus there
       const alreadyFocused = document.activeElement?.closest("#gizmoButtons");
@@ -197,46 +201,38 @@ const GizmoMenuManager = {
     window.addEventListener(
       "keydown",
       (e) => {
-        // Show the overlay on Ctrl+G
+        // Ctrl+G: toggle overlay from any context
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "g") {
           e.preventDefault();
-          e.stopPropagation(); // prevent main.js from also handling this
+          e.stopPropagation();
           this.toggle(!this.isOpen());
           return;
         }
 
-        // Do nothing if the overlay isn't open
         if (!this.isOpen()) return;
 
-        // Guard against typing in inputs triggering gizmo shortcuts
-        const t = e.target;
-        const tag = (t?.tagName || "").toLowerCase();
-        if (
-          t?.isContentEditable ||
-          tag === "input" ||
-          tag === "textarea" ||
-          tag === "select"
-        )
-          return;
+        // Respect TYPING and OVERLAY contexts
+        const ctx = ContextManager.getCurrentContext();
+        if (ctx === "TYPING" || ctx === "OVERLAY") return;
 
-        // If the overlay is open and a number key is pressed,
-        // activate the gizmo
         if (e.key >= "1" && e.key <= "9") {
           const entry = this.buttons.find((b) => b.label === e.key);
-          if (entry) this.activateButton(entry);
+          if (entry) {
+            this.activateButton(entry);
+            e.stopPropagation();
+          }
         }
         if (e.key === "Escape") {
-          e.preventDefault();
           this.toggle(false);
         }
       },
       true,
     );
 
+    // Move the badges if the window is resized
     const gizmoButtons = document.getElementById("gizmoButtons");
     const resizer = document.getElementById("resizer");
     if (gizmoButtons) {
-      // Move the badges if the window is resized
       new ResizeObserver(() => {
         if (this.isOpen()) this.renderBadges();
       }).observe(gizmoButtons);
