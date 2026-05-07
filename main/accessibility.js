@@ -71,7 +71,7 @@ const AreaManager = {
       if (badges.length === 0) return;
       const currentIndex = badges.indexOf(document.activeElement);
       const nextIndex = reverse
-        ? (currentIndex - 1 + badges.length) % badges.length
+        ? currentIndex === -1 ? badges.length - 1 : (currentIndex - 1 + badges.length) % badges.length
         : (currentIndex + 1) % badges.length;
       badges[nextIndex].focus();
     };

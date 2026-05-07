@@ -150,8 +150,7 @@ export default {
     "glide %1 to x: %2 y: %3 z: %4 in %5 seconds \n%6 return? %7 loop? %8 %9",
   glide_to_object:
     "glide %1 to %2 in %6 seconds \noffset x: %3 y: %4 z: %5\n%7 return? %8 loop? %9 %10",
-  glide_to_axis:
-    "glide %1 %2 %3 in %4 seconds\n%5 return? %6 loop? %7 %8",
+  glide_to_axis: "glide %1 %2 %3 in %4 seconds\n%5 return? %6 loop? %7 %8",
   rotate_to_object: "rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8",
   rotate_anim:
     "rotate %1 to x: %2 y: %3 z: %4 in %5 ms\n%6 reverse? %7 loop? %8  %9",
@@ -1272,7 +1271,8 @@ export default {
   shortcut_play: "Play",
   shortcut_undo: "Undo",
   shortcut_redo: "Redo",
-  shortcut_browser_nav: "Browser navigation bar (overriden shortcuts work from here)",
+  shortcut_browser_nav:
+    "Browser navigation bar (overridden shortcuts work from here)",
   shortcut_main_menu: "Main menu",
   shortcut_open_file: "Open file",
   shortcut_save_export: "Save / export",
