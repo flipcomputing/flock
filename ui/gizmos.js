@@ -105,6 +105,8 @@ function registerBindings() {
     "Escape",
     noMod(() => {
       try {
+        const cameraButton = document.getElementById("cameraButton");
+        if (cameraButton?.classList.contains("active")) handleCameraGizmo();
         exitGizmoState();
         gizmoManager?.attachToMesh(null);
       } catch {
