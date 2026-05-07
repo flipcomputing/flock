@@ -1207,4 +1207,10 @@ export default {
   RightUpLeg_option: "Coxa direita",
   RightLeg_option: "Canela direita",
   RightFoot_option: "Pé direito",
+
+  // Workspace toolbar
+  toolbar_undo_ui: "Desfazer",
+  toolbar_redo_ui: "Refazer",
+  toolbar_zoom_out_ui: "Reduzir zoom",
+  toolbar_zoom_in_ui: "Aumentar zoom",
 };

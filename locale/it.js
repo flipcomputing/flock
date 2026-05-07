@@ -1211,4 +1211,10 @@ export default {
   RightUpLeg_option: "Coscia destra",
   RightLeg_option: "Stinco destro",
   RightFoot_option: "Piede destro",
+
+  // Workspace toolbar
+  toolbar_undo_ui: "Annulla",
+  toolbar_redo_ui: "Ripeti",
+  toolbar_zoom_out_ui: "Riduci zoom",
+  toolbar_zoom_in_ui: "Aumenta zoom",
 };

@@ -1198,4 +1198,10 @@ export default {
   RightUpLeg_option: "Höger lår",
   RightLeg_option: "Höger smalben",
   RightFoot_option: "Höger fot",
+
+  // Workspace toolbar
+  toolbar_undo_ui: "Ångra",
+  toolbar_redo_ui: "Gör om",
+  toolbar_zoom_out_ui: "Zooma ut",
+  toolbar_zoom_in_ui: "Zooma in",
 };

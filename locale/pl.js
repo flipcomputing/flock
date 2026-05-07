@@ -1215,4 +1215,10 @@ export default {
   RightUpLeg_option: "Prawe udo",
   RightLeg_option: "Prawe podudzie",
   RightFoot_option: "Prawa stopa",
+
+  // Workspace toolbar
+  toolbar_undo_ui: "Cofnij",
+  toolbar_redo_ui: "Ponów",
+  toolbar_zoom_out_ui: "Oddal",
+  toolbar_zoom_in_ui: "Przybliż",
 };

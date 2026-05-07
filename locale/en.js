@@ -1259,4 +1259,10 @@ export default {
   // Service worker update notification
   update_available_ui: "A new version of Flock is available.",
   reload_button_ui: "Reload",
+
+  // Workspace toolbar
+  toolbar_undo_ui: "Undo",
+  toolbar_redo_ui: "Redo",
+  toolbar_zoom_out_ui: "Zoom out",
+  toolbar_zoom_in_ui: "Zoom in",
 };

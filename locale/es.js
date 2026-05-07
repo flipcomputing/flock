@@ -1221,4 +1221,10 @@ export default {
   RightUpLeg_option: "Muslo derecho", // human
   RightLeg_option: "Espinilla derecha", // human
   RightFoot_option: "Pie derecho", // human
+
+  // Workspace toolbar
+  toolbar_undo_ui: "Deshacer",
+  toolbar_redo_ui: "Rehacer",
+  toolbar_zoom_out_ui: "Alejar",
+  toolbar_zoom_in_ui: "Acercar",
 };
