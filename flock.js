@@ -1241,7 +1241,6 @@ export const flock = {
     flock.canvas.tabIndex = 0;
     flock.canvas.setAttribute("aria-label", "Flock 3D world canvas");
     flock.scene = null;
-    flock.havokInstance = null;
     flock.ground = null;
     flock.sky = null;
     flock.engineReady = false;
@@ -1257,7 +1256,6 @@ export const flock = {
     flock.displayScale = displayScale;
     flock.BABYLON.Database.IDBStorageEnabled = true;
     flock.BABYLON.Engine.CollisionsEpsilon = 0.00005;
-    flock.havokInstance = await HavokPhysics();
     await flock.document.fonts.ready; // Wait for all fonts to be loaded
     flock.abortController = new AbortController();
 
@@ -1922,8 +1920,10 @@ export const flock = {
     // Abort controller for clean-up
     flock.abortController = new AbortController();
 
-    // Enable physics — reinitialize Havok WASM so the old heap is freed
-    flock.havokInstance = await HavokPhysics();
+    // Enable physics 
+    if (!flock.havokInstance) {
+      flock.havokInstance = await HavokPhysics();
+    }
     flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
     flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), flock.hk);
     setFlockCSG(flock);
