@@ -836,6 +836,14 @@ button {
     justify-content: center;
     touch-action: manipulation;
   }
+
+  #blocklyZoomControls {
+    bottom: calc(9px + max(8px, env(safe-area-inset-bottom, 0px)));
+  }
+
+  #blocklyDiv {
+    height: calc(100% - 59px - max(8px, env(safe-area-inset-bottom, 0px))) !important;
+  }
 }
 
 @media only screen and (orientation: landscape) and (max-width: 768px) {
