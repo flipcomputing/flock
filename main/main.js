@@ -586,6 +586,14 @@ function initializeApp() {
   stopCodeButton.addEventListener("click", stopCode);
   exportCodeButton.addEventListener("click", exportCode);
 
+  // Add zoom in and out buttons
+  const zoomInBtn = document.getElementById("zoomInBtn");
+  const zoomOutBtn = document.getElementById("zoomOutBtn");
+  if (zoomInBtn)
+    zoomInBtn.addEventListener("click", () => workspace.zoomCenter(1));
+  if (zoomOutBtn)
+    zoomOutBtn.addEventListener("click", () => workspace.zoomCenter(-1));
+
   // Make open button work with keyboard
   if (openButton) {
     openButton.addEventListener("click", () => {
