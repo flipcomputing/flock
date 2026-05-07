@@ -57,7 +57,8 @@ const AreaManager = {
     InputManager.on("OVERLAY", "Escape", () => this.toggle(false));
 
     for (let i = 1; i <= 9; i++) {
-      InputManager.on("OVERLAY", `Digit${i}`, () => {
+      InputManager.on("OVERLAY", `Digit${i}`, (e) => {
+        e.preventDefault();
         const area = this.areas.find((a) => a.label === String(i));
         if (area) this.activateArea(area);
       });
