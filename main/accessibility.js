@@ -48,54 +48,47 @@ const AreaManager = {
   },
 
   setupListeners() {
-    window.addEventListener(
-      "keydown",
-      (e) => {
-        // Open: Ctrl+B
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
-          e.preventDefault();
-          this.toggle(this.overlay.classList.contains("hidden"));
-        }
-        // Close: Escape
-        if (e.key === "Escape") {
-          this.toggle(false);
-        }
-        // Handle number keys
-        if (e.key >= "1" && e.key <= "9") {
-          // Only if the overlay is open (otherwise you can't type numbers)
-          if (!this.overlay.classList.contains("hidden")) {
-            // Find the area and set the focus
-            const area = this.areas.find((a) => a.label === e.key);
-            if (area) this.activateArea(area);
-          }
-        }
-        // Tab through badges when overlay is open
-        if (e.key === "Tab" && !this.overlay.classList.contains("hidden")) {
-          e.preventDefault();
-          const badges = [
-            ...this.overlay.querySelectorAll(".area-number-badge"),
-          ];
-          if (badges.length === 0) return;
-          const currentIndex = badges.indexOf(document.activeElement);
-          const nextIndex = e.shiftKey
-            ? (currentIndex - 1 + badges.length) % badges.length
-            : (currentIndex + 1) % badges.length;
-          badges[nextIndex].focus();
-        }
-        // Enter opens the area if a badge is focused
-        if (e.key === "Enter" && !this.overlay.classList.contains("hidden")) {
-          const focused = document.activeElement;
-          // Do nothing if a badge is not focused
-          if (!focused?.classList.contains("area-number-badge")) return;
-          e.preventDefault();
+    InputManager.on("*", "Mod+KeyB", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.toggle(this.overlay.classList.contains("hidden"));
+    });
 
-          // Find the area and set the focus
-          const area = this.areas.find((a) => a.label === focused.innerText);
-          if (area) this.activateArea(area);
-        }
-      },
-      true,
-    ); // 'true' uses the capture phase to beat Blockly's listeners
+    InputManager.on("OVERLAY", "Escape", () => this.toggle(false));
+
+    for (let i = 1; i <= 9; i++) {
+      InputManager.on("OVERLAY", `Digit${i}`, () => {
+        const area = this.areas.find((a) => a.label === String(i));
+        if (area) this.activateArea(area);
+      });
+    }
+
+    const cycleBadges = (reverse) => {
+      const badges = [...this.overlay.querySelectorAll(".area-number-badge")];
+      if (badges.length === 0) return;
+      const currentIndex = badges.indexOf(document.activeElement);
+      const nextIndex = reverse
+        ? (currentIndex - 1 + badges.length) % badges.length
+        : (currentIndex + 1) % badges.length;
+      badges[nextIndex].focus();
+    };
+
+    InputManager.on("OVERLAY", "Tab", (e) => {
+      e.preventDefault();
+      cycleBadges(false);
+    });
+    InputManager.on("OVERLAY", "Shift+Tab", (e) => {
+      e.preventDefault();
+      cycleBadges(true);
+    });
+
+    InputManager.on("OVERLAY", "Enter", (e) => {
+      const focused = document.activeElement;
+      if (!focused?.classList.contains("area-number-badge")) return;
+      e.preventDefault();
+      const area = this.areas.find((a) => a.label === focused.innerText);
+      if (area) this.activateArea(area);
+    });
   },
 
   // Set the focus to this area and close overlay
@@ -184,7 +177,7 @@ const GizmoMenuManager = {
     if (show) {
       this.renderBadges();
 
-      // Check if the overlay should exit
+      // Check if the Gizmo number shortcut overlay should exit
       this._watcher = () => {
         const ctx = ContextManager.getCurrentContext();
         if (ctx !== "GIZMO" && ctx !== "NAVIGATION") this.toggle(false);
@@ -209,35 +202,25 @@ const GizmoMenuManager = {
   },
 
   setupListeners() {
-    window.addEventListener(
-      "keydown",
-      (e) => {
-        // Ctrl+G: toggle overlay from any context
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "g") {
-          e.preventDefault();
-          e.stopPropagation();
-          this.toggle(!this.isOpen());
-          return;
-        }
+    // Toggle gizmo menu with Ctrl + G
+    InputManager.on("*", "Mod+KeyG", (e) => {
+      const ctx = ContextManager.getCurrentContext();
+      if (ctx === "TYPING" || ctx === "OVERLAY") return;
+      e.preventDefault();
+      e.stopPropagation();
+      this.toggle(!this.isOpen());
+    });
 
+    // Activate gizmo buttons with number keys
+    for (let i = 1; i <= 9; i++) {
+      InputManager.on("*", `Digit${i}`, () => {
         if (!this.isOpen()) return;
+        const entry = this.buttons.find((b) => b.label === String(i));
+        if (entry) this.activateButton(entry);
+      });
+    }
 
-        // Respect TYPING and OVERLAY contexts
-        const ctx = ContextManager.getCurrentContext();
-        if (ctx === "TYPING" || ctx === "OVERLAY") return;
-
-        if (e.key >= "1" && e.key <= "9") {
-          const entry = this.buttons.find((b) => b.label === e.key);
-          if (entry) {
-            this.activateButton(entry);
-            e.stopPropagation();
-          }
-        }
-      },
-      true,
-    );
-
-    // Move the badges if the window is resized
+    // Move the gizmo buttons if the window is resized
     const gizmoButtons = document.getElementById("gizmoButtons");
     const resizer = document.getElementById("resizer");
     if (gizmoButtons) {
@@ -434,6 +417,8 @@ const ShortcutsPanel = {
   },
 
   setupListeners() {
+    // Not handled by InputManager as they are set specifically
+    // to listen when the panel has focus, not globally
     document.addEventListener("click", (e) => {
       if (e.target.id === "closeShortcutsPanel") this.hide();
     });
