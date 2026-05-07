@@ -208,7 +208,7 @@ const GizmoMenuManager = {
       if (ctx === "TYPING" || ctx === "OVERLAY") return;
       e.preventDefault();
       e.stopPropagation();
-      this.toggle(!this.isOpen());
+      this.toggle(true);
     });
 
     // Activate gizmo buttons with number keys
