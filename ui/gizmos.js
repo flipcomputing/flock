@@ -583,7 +583,6 @@ export function exitGizmoState() {
     .forEach((btn) => btn.classList.remove("active"));
   disableGizmos();
   document.body.style.cursor = "default";
-  GizmoMenuManager.toggle(false);
 }
 
 // Start the keyboard handler for moving a mesh

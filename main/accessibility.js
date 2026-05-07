@@ -108,6 +108,7 @@ const AreaManager = {
       ) ?? el; // Focus the area itself if no suitable child
 
     focusable?.focus();
+    if (area.selector === "#gizmoButtons") GizmoMenuManager.toggle(true);
   },
 
   renderHighlights() {
@@ -183,6 +184,16 @@ const GizmoMenuManager = {
     if (show) {
       this.renderBadges();
 
+      // Check if the overlay should exit
+      this._watcher = () => {
+        const ctx = ContextManager.getCurrentContext();
+        if (ctx !== "GIZMO" && ctx !== "NAVIGATION") this.toggle(false);
+      };
+      document.addEventListener("focusin", this._watcher);
+      document.addEventListener("pointerdown", this._watcher, {
+        capture: true,
+      });
+
       // Focus 1st button if nothing in gizmos is already focused,
       // but if another gizmo is active, leave focus there
       const alreadyFocused = document.activeElement?.closest("#gizmoButtons");
@@ -221,9 +232,6 @@ const GizmoMenuManager = {
             this.activateButton(entry);
             e.stopPropagation();
           }
-        }
-        if (e.key === "Escape") {
-          this.toggle(false);
         }
       },
       true,
