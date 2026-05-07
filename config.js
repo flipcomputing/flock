@@ -1,5 +1,8 @@
 import { getDropdownOption, translate } from "./main/translation.js";
 
+export const SHORTCUTS_HELP_URL =
+  "https://hub.flockxr.com/knowledge-base/keyboard-controls/";
+
 export const themeNames = [
   "theme-bright.mp3",
   "theme-calm.mp3",
@@ -428,7 +431,6 @@ export const attachNames = [
   "RightLeg",
   "RightFoot",
 ];
-
 
 export const attachBlockMapping = {
   LeftHand: "Hold",
