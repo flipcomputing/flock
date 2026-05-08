@@ -28,6 +28,12 @@ export const flockCamera = {
 
         let camera;
 
+        const existingCamera = flock.scene.activeCamera;
+        if (existingCamera instanceof flock.BABYLON.ArcRotateCamera) {
+          existingCamera.detachControl();
+          existingCamera.dispose();
+        }
+
         if (front) {
           // Original attachCamera behavior - start in front then move behind
           // Calculate direction character is facing
