@@ -1402,25 +1402,30 @@ export function setGizmoManager(value) {
 
   const canvas = flock.scene.getEngine().getRenderingCanvas();
 
-  // Add event listener for keydown events on the canvas
-  canvas.addEventListener("keydown", function (event) {
+  function handleCanvasKeydown(event) {
     if (event.keyCode === 46) {
-      // KeyCode for 'Delete' key is 46
-      // Handle delete action
-
       const blockKey = findParentWithBlockId(gizmoManager.attachedMesh)
         ?.metadata?.blockKey;
       const blockId = meshBlockIdMap[blockKey];
-
       deleteBlockWithUndo(blockId);
     }
-  });
+  }
+
+  canvas.addEventListener("keydown", handleCanvasKeydown);
+  gizmoManager._canvasKeydownHandler = handleCanvasKeydown;
+  gizmoManager._canvas = canvas;
 }
 
 export function disposeGizmoManager() {
   if (gizmoManager) {
+    if (gizmoManager._canvasKeydownHandler && gizmoManager._canvas) {
+      gizmoManager._canvas.removeEventListener(
+        "keydown",
+        gizmoManager._canvasKeydownHandler,
+      );
+    }
     gizmoManager.dispose();
-    gizmoManager = null; // Clear the global reference for garbage collection
+    gizmoManager = null;
   }
 }
 
