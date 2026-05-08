@@ -405,6 +405,29 @@ export const flock = {
       (isWasmRuntimeError && message.includes("abort"))
     );
   },
+  showWasmOOMBanner(messageKey) {
+    const doc = flock.document;
+    if (!doc?.body) return;
+    const warningId = "havok-oom-warning";
+    if (doc.getElementById(warningId)) return;
+    const banner = doc.createElement("div");
+    banner.id = warningId;
+    banner.textContent = translate(messageKey);
+    banner.style.position = "fixed";
+    banner.style.top = "0";
+    banner.style.left = "0";
+    banner.style.right = "0";
+    banner.style.padding = "12px";
+    banner.style.background = "#3b0b0b";
+    banner.style.color = "#ffb3b3";
+    banner.style.fontSize = "16px";
+    banner.style.fontFamily = "'Asap', sans-serif";
+    banner.style.zIndex = "10000";
+    banner.style.textAlign = "center";
+    banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.4)";
+    banner.style.borderBottom = "2px solid #d33";
+    doc.body.prepend(banner);
+  },
   handlePhysicsOutOfMemory(error) {
     if (flock.havokAbortHandled) {
       return;
@@ -436,27 +459,7 @@ export const flock = {
     const doc = flock.document;
     if (!doc?.body) return;
 
-    const warningId = "havok-oom-warning";
-    if (doc.getElementById(warningId)) return;
-
-    const banner = doc.createElement("div");
-    banner.id = warningId;
-    banner.textContent = translate("physics_out_of_memory_banner_ui");
-    banner.style.position = "fixed";
-    banner.style.top = "0";
-    banner.style.left = "0";
-    banner.style.right = "0";
-    banner.style.padding = "12px";
-    banner.style.background = "#3b0b0b";
-    banner.style.color = "#ffb3b3";
-    banner.style.fontSize = "16px";
-    banner.style.fontFamily = "'Asap', sans-serif";
-    banner.style.zIndex = "10000";
-    banner.style.textAlign = "center";
-    banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.4)";
-    banner.style.borderBottom = "2px solid #d33";
-
-    doc.body.prepend(banner);
+    flock.showWasmOOMBanner("physics_out_of_memory_banner_ui");
   },
   validateCode(code) {
     if (typeof code !== "string") {
@@ -1266,7 +1269,11 @@ export const flock = {
         manifoldMeshInstance: manifoldWasm.Mesh,
       });
     } catch (error) {
-      console.error("Error initializing CSG2:", error);
+      if (flock.isPhysicsMemoryAbort(error)) {
+        flock.showWasmOOMBanner("wasm_out_of_memory_banner_ui");
+      } else {
+        console.error("Error initializing CSG2:", error);
+      }
     }
 
     flock.canvas.addEventListener(
@@ -1920,10 +1927,18 @@ export const flock = {
     // Abort controller for clean-up
     flock.abortController = new AbortController();
 
-    // Enable physics 
-    if (!flock.havokInstance) {
-      flock.havokInstance = await HavokPhysics();
+    // Enable physics — reuse existing WASM instance to avoid repeated allocation
+    try {
+      if (!flock.havokInstance) {
+        flock.havokInstance = await HavokPhysics();
+      }
+    } catch (error) {
+      if (flock.isPhysicsMemoryAbort(error)) {
+        flock.handlePhysicsOutOfMemory(error);
+      }
+      throw error;
     }
+
     flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
     flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), flock.hk);
     setFlockCSG(flock);

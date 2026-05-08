@@ -50,7 +50,7 @@ export async function executeCode(options = {}) {
     isExecuting = false; // Reset the flag if there's an error
 
     // Load the starter project if execution fails
-    const starter = "examples/starter.flock";
+    /*const starter = "examples/starter.flock";
     fetchProjectJson(starter)
       .then((json) => {
         loadWorkspaceAndExecute(json, workspace, executeCode);
@@ -60,7 +60,7 @@ export async function executeCode(options = {}) {
           "Error loading starter project after execution failure:",
           loadError,
         );
-      });
+      });*/
     return; // Exit after handling the error
   }
 
