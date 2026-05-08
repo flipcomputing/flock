@@ -1273,55 +1273,59 @@ export const flock = {
       console.error("Error initializing CSG2:", error);
     }
 
-    flock.canvas.addEventListener(
-      "touchend",
-      (event) => {
-        if (event.touches.length === 0) {
-          const input = flock.scene.activeCamera.inputs?.attached?.pointers;
-          // Add null check for input itself
-          if (
-            input &&
-            (input._pointA !== null ||
-              input._pointB !== null ||
-              input._isMultiTouch === true)
-          ) {
-            flock._hardResetCameraControls(flock.scene.activeCamera, {
-              reattachDelayMs: 100,
-              noPreventDefault: true,
-            });
+    if (!flock._canvasListenersRegistered) {
+      flock._canvasListenersRegistered = true;
+
+      flock.canvas.addEventListener(
+        "touchend",
+        (event) => {
+          if (event.touches.length === 0) {
+            const input = flock.scene.activeCamera.inputs?.attached?.pointers;
+            // Add null check for input itself
+            if (
+              input &&
+              (input._pointA !== null ||
+                input._pointB !== null ||
+                input._isMultiTouch === true)
+            ) {
+              flock._hardResetCameraControls(flock.scene.activeCamera, {
+                reattachDelayMs: 100,
+                noPreventDefault: true,
+              });
+            }
           }
-        }
-      },
-      { passive: false },
-    );
+        },
+        { passive: false },
+      );
 
-    flock.canvas.addEventListener("keydown", function (event) {
-      flock.canvas.currentKeyPressed = event.key;
-      flock.canvas.pressedKeys.add(event.key);
-    });
+      flock.canvas.addEventListener("keydown", function (event) {
+        flock.canvas.currentKeyPressed = event.key;
+        flock.canvas.pressedKeys.add(event.key);
+      });
 
-    flock.canvas.addEventListener("keyup", function (event) {
-      flock.canvas.pressedKeys.delete(event.key);
-    });
+      flock.canvas.addEventListener("keyup", function (event) {
+        flock.canvas.pressedKeys.delete(event.key);
+      });
 
-    flock.canvas.addEventListener("blur", () => {
-      // Clear all pressed keys when window loses focus
-      flock.canvas.pressedKeys.clear();
-      flock.canvas.pressedButtons.clear();
-      flock._hardResetCameraControls(flock.scene?.activeCamera);
-    });
+      flock.canvas.addEventListener("blur", () => {
+        // Clear all pressed keys when window loses focus
+        flock.canvas.pressedKeys.clear();
+        flock.canvas.pressedButtons.clear();
+        flock._hardResetCameraControls(flock.scene?.activeCamera);
+      });
 
-    // Hardening for rare pointer/input desync where camera keeps moving
-    // after input ends or browser focus changes.
-    window.addEventListener("blur", () => {
-      flock.canvas.pressedKeys.clear();
-      flock.canvas.pressedButtons.clear();
-      flock._hardResetCameraControls(flock.scene?.activeCamera);
-    });
+      // Hardening for rare pointer/input desync where camera keeps moving
+      // after input ends or browser focus changes.
+      window.addEventListener("blur", () => {
+        flock.canvas.pressedKeys.clear();
+        flock.canvas.pressedButtons.clear();
+        flock._hardResetCameraControls(flock.scene?.activeCamera);
+      });
 
-    window.addEventListener("pointerup", () => {
-      flock._hardResetCameraControls(flock.scene?.activeCamera);
-    });
+      window.addEventListener("pointerup", () => {
+        flock._hardResetCameraControls(flock.scene?.activeCamera);
+      });
+    }
 
     flock.engineReady = true;
   },
