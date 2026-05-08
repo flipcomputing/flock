@@ -1814,7 +1814,6 @@ export const flock = {
         // Dispose physics engine and release WASM heap
         flock.hk?.dispose();
         flock.hk = null;
-        flock.havokInstance = null;
 
         // Dispose the Babylon.js engine
         flock.engine?.dispose();
