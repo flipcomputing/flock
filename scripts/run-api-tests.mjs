@@ -166,7 +166,11 @@ function resolveSuite(id, dropdownIds) {
   if (aliased.startsWith("@")) {
     const bare = aliased.slice(1);
     if (dropdownIds.includes(bare)) return bare;
+  } else {
+    const withAt = "@" + aliased;
+    if (dropdownIds.includes(withAt)) return withAt;
   }
+
   return null;
 }
 // Resolution against the dropdown happens after the page loads — see runTests.
