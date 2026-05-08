@@ -1548,14 +1548,6 @@ export const flock = {
 
     if (flock.scene) {
       try {
-        // Check if WebGL context is lost before disposal operations
-        const canvas = flock.engine?.getRenderingCanvas();
-        const gl = canvas?.getContext("webgl") || canvas?.getContext("webgl2");
-        if (gl?.isContextLost?.()) {
-          console.warn(
-            "WebGL context already lost, skipping some disposal operations",
-          );
-        }
 
         // Stop all sounds and animations first
         flock.stopAllSounds();
