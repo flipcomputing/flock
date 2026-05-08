@@ -151,9 +151,26 @@ const logAll = args.includes("--log-all");
 const requestedSuite = args.find((arg) => !arg.startsWith("--")) || "all";
 const suiteAliases = {
   translate: "translation",
-  movement: "translation",
 };
-const suite = suiteAliases[requestedSuite] || requestedSuite;
+
+// Resolve a requested suite ID against the live dropdown contents from
+// tests.html. Some dropdown entries are "@"-prefixed (e.g. "@new",
+// "@notslow"); most use a bare name and keep "@" only for the mocha grep
+// pattern. Accept either form so a user passing "@sensing" finds the
+// "sensing" entry rather than timing out for 30s on a missing dropdown
+// option. Returns the resolved ID if found, or null if neither the input
+// (after alias) nor its bare-form fallback matches a dropdown option.
+function resolveSuite(id, dropdownIds) {
+  const aliased = suiteAliases[id] || id;
+  if (dropdownIds.includes(aliased)) return aliased;
+  if (aliased.startsWith("@")) {
+    const bare = aliased.slice(1);
+    if (dropdownIds.includes(bare)) return bare;
+  }
+  return null;
+}
+// Resolution against the dropdown happens after the page loads — see runTests.
+const suite = requestedSuite;
 
 // Enable both logs if --log-all is specified
 if (logAll) {
@@ -575,19 +592,55 @@ async function runTests(suiteId = "all") {
     throw error;
   }
 
+  // Resolve the requested suite against the dropdown's actual options. The
+  // dropdown in tests.html fills incrementally (loadAllTests awaits each
+  // suite's import()), so a one-shot read may miss entries near the end of
+  // the list. Poll up to 30s — matching Playwright's default selectOption
+  // timeout — but on miss we throw an immediate, descriptive error instead
+  // of Playwright's misleading "did not find some options" message. Lets
+  // users pass either "@sensing" or "sensing" interchangeably.
+  const readDropdownIds = () =>
+    page.evaluate(() => {
+      const sel = document.getElementById("testSelect");
+      return sel
+        ? Array.from(sel.options)
+            .map((o) => o.value)
+            .filter((v) => v)
+        : [];
+    });
+  let dropdownIds = await readDropdownIds();
+  let resolvedSuiteId = resolveSuite(suiteId, dropdownIds);
+  const resolveDeadline = Date.now() + 30000;
+  while (!resolvedSuiteId && Date.now() < resolveDeadline) {
+    await page.waitForTimeout(200);
+    dropdownIds = await readDropdownIds();
+    resolvedSuiteId = resolveSuite(suiteId, dropdownIds);
+  }
+  if (!resolvedSuiteId) {
+    throw new Error(
+      `Suite "${suiteId}" is not in the test page dropdown after waiting 30s. ` +
+        `Available IDs: ${dropdownIds.join(", ")}. ` +
+        `Tip: pass the bare suite ID (e.g. "sensing") rather than its mocha tag ("@sensing").`,
+    );
+  }
+
   // Find suite info for diagnostics
-  const suiteInfo = AVAILABLE_SUITES.find((s) => s.id === suiteId);
+  const suiteInfo = AVAILABLE_SUITES.find((s) => s.id === resolvedSuiteId);
   const patternInfo = suiteInfo ? suiteInfo.pattern : "unknown";
 
   // Select test suite
-  console.log(`🧪 Running test suite: ${suiteId}`);
+  if (resolvedSuiteId !== suiteId) {
+    console.log(`🧪 Running test suite: ${suiteId} → ${resolvedSuiteId}`);
+  } else {
+    console.log(`🧪 Running test suite: ${resolvedSuiteId}`);
+  }
   if (verbose) {
     console.log(`   Suite: ${suiteInfo?.name || "Unknown"}`);
     console.log(`   Pattern: ${patternInfo || "none (all tests)"}`);
   }
   console.log();
 
-  await page.selectOption("#testSelect", suiteId);
+  await page.selectOption("#testSelect", resolvedSuiteId);
 
   // Wait for the selection to register and grep filter to be applied
   await page.waitForTimeout(1000);
