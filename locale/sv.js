@@ -147,8 +147,7 @@ export default {
     "glid %1 till x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9",
   glide_to_object:
     "glid %1 till %2 på %6 sekunder\nförskjutning x: %3 y: %4 z: %5\n%7 återvända? %8 loop? %9 %10",
-  glide_to_axis:
-    "glid %1 %2 %3 på %4 sekunder\n%5 återvända? %6 loop? %7 %8",
+  glide_to_axis: "glid %1 %2 %3 på %4 sekunder\n%5 återvända? %6 loop? %7 %8",
   rotate_anim:
     "rotera %1 till x %2 y %3 z %4 på %5 ms\n%6 omvänd? %7 loop? %8  %9",
   rotate_anim_seconds:
@@ -1204,4 +1203,43 @@ export default {
   toolbar_redo_ui: "Gör om",
   toolbar_zoom_out_ui: "Zooma ut",
   toolbar_zoom_in_ui: "Zooma in",
+  // Keyboard shortcuts panel — title and close button
+  shortcut_panel_title: "Tangentbordsgenvägar",
+  shortcut_panel_close: "Stäng tangentbordsgenvägar",
+
+  // Keyboard shortcuts panel — labels
+  shortcut_show_hide_help: "Visa/dölj tangentbordsgenvägar",
+  shortcut_move_between_areas: "Flytta mellan menyer, canvas och editor",
+  shortcut_confirm: "Bekräfta",
+  shortcut_exit: "Avsluta",
+  shortcut_play: "Kör",
+  shortcut_undo: "Ångra",
+  shortcut_redo: "Gör om",
+  shortcut_browser_nav:
+    "Webbläsarens adressfält (blockerade genvägar fungerar härifrån)",
+  shortcut_main_menu: "Huvudmeny",
+  shortcut_open_file: "Öppna fil",
+  shortcut_save_export: "Spara / exportera",
+  shortcut_open_close_area_menu: "Öppna/stäng områdesmeny",
+  shortcut_toggle_area: "Växla område",
+  shortcut_select_area: "Välj område",
+  shortcut_code_editor: "Kodeditor",
+  shortcut_add_block_by_name: "Lägg till block efter namn",
+  shortcut_search_block: "Sök efter ett block",
+  shortcut_move_through_blocks: "Navigera bland block",
+  shortcut_open_gizmos: "Gizmos",
+  shortcut_select_gizmo: "Välj gizmo",
+  shortcut_keyboard_cursor_gizmos: "Tangentbordskursor för gizmos",
+  shortcut_lock_transform: "Lås transformering till axel",
+  shortcut_transform_3d: "Transformera i 3D",
+  shortcut_focus_camera: "Rikta kameran mot objekt",
+  shortcut_quick_colour: "Snabb färganvändning i färgväljaren",
+  shortcut_delete_object: "Ta bort objekt",
+
+  // Keyboard shortcuts panel — category names
+  shortcut_category_main: "Allmänt",
+  shortcut_category_menu: "Meny",
+  shortcut_category_area_menu: "Områdesmeny",
+  shortcut_category_editor: "Editor",
+  shortcut_category_gizmos: "Gizmos",
 };

@@ -105,6 +105,8 @@ function registerBindings() {
     "Escape",
     noMod(() => {
       try {
+        const cameraButton = document.getElementById("cameraButton");
+        if (cameraButton?.classList.contains("active")) handleCameraGizmo();
         exitGizmoState();
         gizmoManager?.attachToMesh(null);
       } catch {
@@ -129,7 +131,8 @@ document.addEventListener("DOMContentLoaded", function () {
         window.selectedColor = newColor;
       },
       onClose: () => {
-        // After color picker closes, start mesh selection
+        // Re-activate button: painting mode is still a gizmo action
+        document.getElementById("colorPickerButton")?.classList.add("active");
         pickMeshFromCanvas();
       },
       excludeFromClose: (target) => {
@@ -164,6 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
     colorButton.addEventListener("click", (event) => {
       event.preventDefault();
       if (colorPicker) {
+        GizmoMenuManager.toggle(false);
         colorPicker.open(window.selectedColor);
       }
     });
@@ -173,6 +177,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function pickMeshFromCanvas() {
   const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
   if (!canvas || !flock.scene) return;
+  GizmoMenuManager.toggle(true);
 
   const onPickMesh = function (event) {
     const canvasRect = canvas.getBoundingClientRect();
@@ -180,10 +185,7 @@ function pickMeshFromCanvas() {
     // Exit if outside canvas
     if (eventIsOutOfCanvasBounds(event, canvasRect)) {
       window.removeEventListener("click", onPickMesh);
-      stopCanvasKeyboardMode();
-      // restore cursors
-      document.body.style.cursor = "default";
-      flock.scene.defaultCursor = "";
+      exitGizmoState();
       return;
     }
 
@@ -191,8 +193,16 @@ function pickMeshFromCanvas() {
     applyColorAtPosition(canvasX, canvasY);
   };
 
+  // Register cleanup so Escape during painting mode also tears down correctly
+  onExit(() => {
+    window.removeEventListener("click", onPickMesh);
+    stopCanvasKeyboardMode();
+    document.body.style.cursor = "default";
+    if (flock.scene) flock.scene.defaultCursor = "";
+  });
+
   startCanvasKeyboardMode((x, y) => applyColorAtPosition(x, y));
-  document.body.style.cursor = "crosshair"; // works
+  document.body.style.cursor = "crosshair";
   flock.scene.defaultCursor = "crosshair";
 
   setTimeout(() => {
@@ -583,7 +593,6 @@ export function exitGizmoState() {
     .forEach((btn) => btn.classList.remove("active"));
   disableGizmos();
   document.body.style.cursor = "default";
-  GizmoMenuManager.toggle(false);
 }
 
 // Start the keyboard handler for moving a mesh
@@ -1292,8 +1301,8 @@ export function toggleGizmo(gizmoType) {
     return;
   }
 
-  GizmoMenuManager.toggle(true);
   exitGizmoState(); // Clean up any existing gizmo state
+  GizmoMenuManager.toggle(true);
   resetAttachedMeshIfMeshAttached();
 
   document.body.style.cursor = "default";

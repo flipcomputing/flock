@@ -1214,4 +1214,43 @@ export default {
   toolbar_redo_ui: "Wiederholen",
   toolbar_zoom_out_ui: "Verkleinern",
   toolbar_zoom_in_ui: "Vergrößern",
+  // Keyboard shortcuts panel — title and close button
+  shortcut_panel_title: "Tastaturkürzel",
+  shortcut_panel_close: "Tastaturkürzel schließen",
+
+  // Keyboard shortcuts panel — labels
+  shortcut_show_hide_help: "Tastaturkürzel ein-/ausblenden",
+  shortcut_move_between_areas: "Zwischen Menüs, Canvas und Editor wechseln",
+  shortcut_confirm: "Bestätigen",
+  shortcut_exit: "Beenden",
+  shortcut_play: "Abspielen",
+  shortcut_undo: "Rückgängig",
+  shortcut_redo: "Wiederholen",
+  shortcut_browser_nav:
+    "Browser-Adressleiste (überschriebene Tastaturkürzel funktionieren von hier)",
+  shortcut_main_menu: "Hauptmenü",
+  shortcut_open_file: "Datei öffnen",
+  shortcut_save_export: "Speichern / Exportieren",
+  shortcut_open_close_area_menu: "Bereichsmenü öffnen/schließen",
+  shortcut_toggle_area: "Bereich umschalten",
+  shortcut_select_area: "Bereich auswählen",
+  shortcut_code_editor: "Code-Editor",
+  shortcut_add_block_by_name: "Block nach Name hinzufügen",
+  shortcut_search_block: "Nach einem Block suchen",
+  shortcut_move_through_blocks: "Durch Blöcke navigieren",
+  shortcut_open_gizmos: "Gizmos",
+  shortcut_select_gizmo: "Gizmo auswählen",
+  shortcut_keyboard_cursor_gizmos: "Tastaturcursor für Gizmos",
+  shortcut_lock_transform: "Transformation auf Achse einschränken",
+  shortcut_transform_3d: "In 3D transformieren",
+  shortcut_focus_camera: "Kamera auf Objekt ausrichten",
+  shortcut_quick_colour: "Schnellfarbauswahl im Farbwähler",
+  shortcut_delete_object: "Objekt löschen",
+
+  // Keyboard shortcuts panel — category names
+  shortcut_category_main: "Allgemein",
+  shortcut_category_menu: "Menü",
+  shortcut_category_area_menu: "Bereichsmenü",
+  shortcut_category_editor: "Editor",
+  shortcut_category_gizmos: "Gizmos",
 };

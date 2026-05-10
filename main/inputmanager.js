@@ -8,8 +8,7 @@ import { ContextManager } from "./context.js";
 // Work out what key combo was pressed (e.g. Ctrl+Shift+KeyA)
 function _keyCombo(event) {
   const mods = [
-    event.ctrlKey && "Ctrl",
-    event.metaKey && "Meta",
+    (event.ctrlKey || event.metaKey) && "Mod",
     event.altKey && "Alt",
     event.shiftKey && "Shift",
   ].filter(Boolean);
@@ -47,13 +46,13 @@ const InputManager = {
         return;
       }
     }
+    const combo = _keyCombo(event);
     const handler =
+      this._registry[`${context}:${combo}`] ||
+      this._registry[`*:${combo}`] ||
       this._registry[`${context}:${event.code}`] ||
-      this._registry[`*:${event.code}`];
-    _debugShow(
-      _keyCombo(event),
-      handler ? `${context}:${event.code}` : "external",
-    );
+      this._registry[`*:${event.code}`]; // Wildcard context *
+    _debugShow(combo, handler ? `${context}:${combo}` : "external");
     if (handler) handler(event);
   },
 };

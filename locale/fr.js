@@ -1225,4 +1225,43 @@ export default {
   toolbar_redo_ui: "Rétablir",
   toolbar_zoom_out_ui: "Dézoomer",
   toolbar_zoom_in_ui: "Zoomer",
+  // Keyboard shortcuts panel — title and close button
+  shortcut_panel_title: "Raccourcis clavier",
+  shortcut_panel_close: "Fermer les raccourcis clavier",
+
+  // Keyboard shortcuts panel — labels
+  shortcut_show_hide_help: "Afficher/masquer les raccourcis clavier",
+  shortcut_move_between_areas: "Se déplacer entre les menus, le canvas et l'éditeur",
+  shortcut_confirm: "Confirmer",
+  shortcut_exit: "Quitter",
+  shortcut_play: "Lancer",
+  shortcut_undo: "Annuler",
+  shortcut_redo: "Rétablir",
+  shortcut_browser_nav:
+    "Barre d'adresse du navigateur (les raccourcis bloqués fonctionnent depuis ici)",
+  shortcut_main_menu: "Menu principal",
+  shortcut_open_file: "Ouvrir un fichier",
+  shortcut_save_export: "Enregistrer / exporter",
+  shortcut_open_close_area_menu: "Ouvrir/fermer le menu des zones",
+  shortcut_toggle_area: "Changer de zone",
+  shortcut_select_area: "Sélectionner une zone",
+  shortcut_code_editor: "Éditeur de code",
+  shortcut_add_block_by_name: "Ajouter un bloc par nom",
+  shortcut_search_block: "Rechercher un bloc",
+  shortcut_move_through_blocks: "Naviguer dans les blocs",
+  shortcut_open_gizmos: "Gizmos",
+  shortcut_select_gizmo: "Sélectionner un gizmo",
+  shortcut_keyboard_cursor_gizmos: "Curseur clavier pour les gizmos",
+  shortcut_lock_transform: "Verrouiller la transformation sur un axe",
+  shortcut_transform_3d: "Transformer en 3D",
+  shortcut_focus_camera: "Centrer la caméra sur l'objet",
+  shortcut_quick_colour: "Utiliser rapidement une couleur dans le sélecteur",
+  shortcut_delete_object: "Supprimer l'objet",
+
+  // Keyboard shortcuts panel — category names
+  shortcut_category_main: "Général",
+  shortcut_category_menu: "Menu",
+  shortcut_category_area_menu: "Menu des zones",
+  shortcut_category_editor: "Éditeur",
+  shortcut_category_gizmos: "Gizmos",
 };

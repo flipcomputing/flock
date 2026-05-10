@@ -29,7 +29,6 @@ import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
 import { characterNames, getModelDisplayName } from "./config";
 
-
 import { FlowGraphLog10Block } from "@babylonjs/core";
 const optionalBabylonDeps = { earcut, FlowGraphLog10Block };
 const globalEarcutTarget =
@@ -893,7 +892,6 @@ export const flock = {
           doc.getElementById("renderCanvas")
         )?.focus();
       }
-
     } catch (error) {
       const enhancedError = this.createEnhancedError?.(error, code) ?? error;
       console.error("Enhanced error details:", enhancedError);
@@ -1247,7 +1245,6 @@ export const flock = {
     flock.canvas.tabIndex = -1;
     //flock.canvas.setAttribute("aria-label", "Flock 3D world canvas");
     flock.scene = null;
-    flock.havokInstance = null;
     flock.ground = null;
     flock.sky = null;
     flock.engineReady = false;
@@ -1263,7 +1260,6 @@ export const flock = {
     flock.displayScale = displayScale;
     flock.BABYLON.Database.IDBStorageEnabled = true;
     flock.BABYLON.Engine.CollisionsEpsilon = 0.00005;
-    flock.havokInstance = await HavokPhysics();
     await flock.document.fonts.ready; // Wait for all fonts to be loaded
     flock.abortController = new AbortController();
 
@@ -1815,7 +1811,6 @@ export const flock = {
         // Dispose physics engine and release WASM heap
         flock.hk?.dispose();
         flock.hk = null;
-        flock.havokInstance = null;
 
         // Dispose the Babylon.js engine
         flock.engine?.dispose();
@@ -1905,51 +1900,52 @@ export const flock = {
     enableSceneDescription(flock.scene, flock.canvas);
     // Announce "say" and "printText" outputs so NVDA reads Blockly say blocks reliably.
     if (!flock._a11yTextWrapped) {
-    // Wrap say(text, ...)
-            if (typeof flock.say === "function") {
-              const originalSay = flock.say.bind(flock);
-              flock.say = (...args) => {
-                const result = originalSay(...args);
+      // Wrap say(text, ...)
+      if (typeof flock.say === "function") {
+        const originalSay = flock.say.bind(flock);
+        flock.say = (...args) => {
+          const result = originalSay(...args);
 
-                const targetName = args?.[0];
-                const options = args?.[1];
-                const text =
-                  options && typeof options.text === "string" ? options.text : "";
+          const targetName = args?.[0];
+          const options = args?.[1];
+          const text =
+            options && typeof options.text === "string" ? options.text : "";
 
-                if (text.trim()) {
-                  // Keep the first prompt text, e.g. "Click or tap me"
-                  recordObjectPromptText(targetName, text);
+          if (text.trim()) {
+            // Keep the first prompt text, e.g. "Click or tap me"
+            recordObjectPromptText(targetName, text);
 
-                  // Keep general say text too
-                  recordObjectSayText(targetName, text);
+            // Keep general say text too
+            recordObjectSayText(targetName, text);
+          }
 
-                }
+          return result;
+        };
+      }
 
-                return result;
-              };
-            }
+      // Wrap printText({ text: "..." })
+      if (typeof flock.printText === "function") {
+        const originalPrintText = flock.printText.bind(flock);
+        flock.printText = (...args) => {
+          const result = originalPrintText(...args);
 
-            // Wrap printText({ text: "..." })
-            if (typeof flock.printText === "function") {
-              const originalPrintText = flock.printText.bind(flock);
-              flock.printText = (...args) => {
-                const result = originalPrintText(...args);
+          const payload = args?.[0];
+          const text =
+            typeof payload === "string"
+              ? payload
+              : payload && typeof payload.text === "string"
+                ? payload.text
+                : "";
 
-                const payload = args?.[0];
-                const text =
-                  typeof payload === "string"
-                    ? payload
-                    : (payload && typeof payload.text === "string" ? payload.text : "");
+          if (text && text.trim()) {
+            recordWorldInstructionText(text);
+            announceSayText(text);
+          }
+          return result;
+        };
+      }
 
-                if (text && text.trim()) {
-                  recordWorldInstructionText(text);
-                  announceSayText(text);
-                }
-                return result;
-              };
-            }
-
-            flock._a11yTextWrapped = true;
+      flock._a11yTextWrapped = true;
     }
 
     flock._renderLoop = () => {
@@ -1973,8 +1969,10 @@ export const flock = {
     // Abort controller for clean-up
     flock.abortController = new AbortController();
 
-    // Enable physics — reinitialize Havok WASM so the old heap is freed
-    flock.havokInstance = await HavokPhysics();
+    // Enable physics 
+    if (!flock.havokInstance) {
+      flock.havokInstance = await HavokPhysics();
+    }
     flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
     flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), flock.hk);
     setFlockCSG(flock);

@@ -1227,4 +1227,43 @@ export default {
   toolbar_redo_ui: "Rehacer",
   toolbar_zoom_out_ui: "Alejar",
   toolbar_zoom_in_ui: "Acercar",
+  // Keyboard shortcuts panel — title and close button
+  shortcut_panel_title: "Atajos de teclado",
+  shortcut_panel_close: "Cerrar atajos de teclado",
+
+  // Keyboard shortcuts panel — labels
+  shortcut_show_hide_help: "Mostrar/ocultar atajos de teclado",
+  shortcut_move_between_areas: "Moverse entre menús, canvas y editor",
+  shortcut_confirm: "Confirmar",
+  shortcut_exit: "Salir",
+  shortcut_play: "Reproducir",
+  shortcut_undo: "Deshacer",
+  shortcut_redo: "Rehacer",
+  shortcut_browser_nav:
+    "Barra de navegación del navegador (los atajos bloqueados funcionan desde aquí)",
+  shortcut_main_menu: "Menú principal",
+  shortcut_open_file: "Abrir archivo",
+  shortcut_save_export: "Guardar / exportar",
+  shortcut_open_close_area_menu: "Abrir/cerrar menú de áreas",
+  shortcut_toggle_area: "Cambiar área",
+  shortcut_select_area: "Seleccionar área",
+  shortcut_code_editor: "Editor de código",
+  shortcut_add_block_by_name: "Añadir bloque por nombre",
+  shortcut_search_block: "Buscar un bloque",
+  shortcut_move_through_blocks: "Navegar por los bloques",
+  shortcut_open_gizmos: "Gizmos",
+  shortcut_select_gizmo: "Seleccionar gizmo",
+  shortcut_keyboard_cursor_gizmos: "Cursor de teclado para gizmos",
+  shortcut_lock_transform: "Bloquear transformación en eje",
+  shortcut_transform_3d: "Transformar en 3D",
+  shortcut_focus_camera: "Enfocar cámara en objeto",
+  shortcut_quick_colour: "Usar color rápido en el selector de color",
+  shortcut_delete_object: "Eliminar objeto",
+
+  // Keyboard shortcuts panel — category names
+  shortcut_category_main: "General",
+  shortcut_category_menu: "Menú",
+  shortcut_category_area_menu: "Menú de áreas",
+  shortcut_category_editor: "Editor",
+  shortcut_category_gizmos: "Gizmos",
 };

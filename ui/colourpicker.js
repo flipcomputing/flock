@@ -1,5 +1,7 @@
 import { translate } from "../main/translation.js";
 import { exitGizmoState } from "./gizmos.js";
+import { InputManager } from "../main/inputmanager.js";
+import { ContextManager } from "../main/context.js";
 
 const COLOR_PALETTES = {
   Bright: [
@@ -1863,18 +1865,12 @@ class CustomColorPicker {
     document.getElementById("colorPickerButton")?.classList.add("active");
 
     // Add P shortcut to pick current colour
-    if (document._colorPickerShortcut) {
-      document.removeEventListener("keydown", document._colorPickerShortcut);
-    }
-    document._colorPickerShortcut = (e) => {
-      if (e.key !== "p" && e.key !== "P") return;
-      const tag = (e.target?.tagName || "").toLowerCase();
-      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable)
-        return;
+    InputManager.on("*", "KeyP", (e) => {
+      if (ContextManager.getCurrentContext() === "TYPING") return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
       e.preventDefault();
       this.container.querySelector(".color-picker-use")?.click();
-    };
-    document.addEventListener("keydown", document._colorPickerShortcut);
+    });
 
     // --- Positioning (unchanged) ---
     const colorButton = document.getElementById("colorPickerButton");
@@ -2086,8 +2082,7 @@ class CustomColorPicker {
     document.getElementById("colorPickerButton")?.classList.remove("active");
     document.removeEventListener("click", this.outsideClickHandler, true);
     window.removeEventListener("keydown", this.globalEscapeHandler, true);
-    document.removeEventListener("keydown", document._colorPickerShortcut);
-    document._colorPickerShortcut = null;
+    InputManager.off("*", "KeyP");
   }
 
   confirmColor() {
