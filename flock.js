@@ -388,12 +388,16 @@ export const flock = {
     }, 5000);
 
     // Clean up when aborted
-    signal?.addEventListener("abort", () => {
-      if (flock.memoryMonitorInterval) {
-        clearInterval(flock.memoryMonitorInterval);
-        flock.memoryMonitorInterval = null;
-      }
-    });
+    signal?.addEventListener(
+      "abort",
+      () => {
+        if (flock.memoryMonitorInterval) {
+          clearInterval(flock.memoryMonitorInterval);
+          flock.memoryMonitorInterval = null;
+        }
+      },
+      { once: true },
+    );
   },
   isPhysicsMemoryAbort(error) {
     const message = `${error?.message ?? error}`.toLowerCase();
@@ -1833,7 +1837,7 @@ export const flock = {
         //flock.hk?.dispose();
         //flock.hk = null;
 
-        flock.havokPlugin?.dispose();  // Babylon's HavokPlugin wrapper
+        flock.havokPlugin?.dispose(); // Babylon's HavokPlugin wrapper
         flock.havokPlugin = null;
 
         // Dispose the Babylon.js engine
@@ -1888,6 +1892,10 @@ export const flock = {
       }
     } else {
       console.log("No scene to dispose");
+      if (flock.abortController) {
+        flock.abortController.abort();
+        flock.abortController = null;
+      }
     }
   },
   async initializeNewScene() {
@@ -1918,6 +1926,7 @@ export const flock = {
 
     // Create the new scene
     flock.scene = new flock.BABYLON.Scene(flock.engine);
+    flock.scene.eventListeners = [];
 
     //Enable accessibility layer
     enableSceneDescription(flock.scene, flock.canvas);
@@ -1944,9 +1953,6 @@ export const flock = {
     const defaultClearColor = flock.BABYLON.Color3.FromHexString("#33334c");
     flock.scene.clearColor = defaultClearColor.clone?.() ?? defaultClearColor;
     flock.initialClearColor = defaultClearColor.clone?.() ?? defaultClearColor;
-
-    // Abort controller for clean-up
-    flock.abortController = new AbortController();
 
     // Enable physics — reuse existing WASM instance to avoid repeated allocation
     try {
