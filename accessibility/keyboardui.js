@@ -475,7 +475,7 @@ const ShortcutsPanel = {
     tbody.innerHTML = Object.entries(groups)
       .map(
         ([cat, items]) => `
-      <tr><th colspan="2">${cat}</th></tr>
+      <tr><th colspan="2" scope="rowgroup">${cat}</th></tr>
       ${items.map(({ label, keys }) => `<tr><td>${label}</td><td>${formatKeys(keys)}</td></tr>`).join("")}
     `,
       )
