@@ -1808,8 +1808,8 @@ export const flock = {
         flock.hk = null;
 
         // Dispose the Babylon.js engine
-        flock.engine?.dispose();
-        flock.engine = null;
+        //flock.engine?.dispose();
+        //flock.engine = null;
 
         // Close audio context
         if (flock.audioContext && flock.audioContext.state !== "closed") {
