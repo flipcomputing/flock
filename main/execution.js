@@ -39,28 +39,15 @@ export async function executeCode(options = {}) {
     flock.scene.debugLayer.hide();
   }
 
-  // Generate the code from the workspace
-  const code = javascriptGenerator.workspaceToCode(workspace);
-
   try {
+    // Generate the code from the workspace
+    const code = javascriptGenerator.workspaceToCode(workspace);
     console.log(code);
     await flock.runCode(code, options);
   } catch (error) {
     console.error("Error executing Blockly code:", error);
     isExecuting = false; // Reset the flag if there's an error
 
-    // Load the starter project if execution fails
-    /*const starter = "examples/starter.flock";
-    fetchProjectJson(starter)
-      .then((json) => {
-        loadWorkspaceAndExecute(json, workspace, executeCode);
-      })
-      .catch((loadError) => {
-        console.error(
-          "Error loading starter project after execution failure:",
-          loadError,
-        );
-      });*/
     return; // Exit after handling the error
   }
 
