@@ -1578,13 +1578,14 @@ export const flock = {
     flock.flockNotReady = true;
     // Log WASM linear memory size before and after each run
     function getHavokMemoryMB() {
-        return flock.hk.HEAP8?.buffer?.byteLength / (1024 * 1024);
+      return flock.hk._hknp.HP_GetStatistics();
     }
 
-    // Before run
-    console.log('Havok memory before:', getHavokMemoryMB(), 'MB');
-
     if (flock.scene) {
+      // Before run
+      if (flock.memoryDebug)
+        console.log("Havok memory before:", getHavokMemoryMB(), "MB");
+
       try {
         // Stop all sounds and animations first
         flock.stopAllSounds();
@@ -1755,6 +1756,8 @@ export const flock = {
           }
           if (mesh?.dispose && typeof mesh.dispose === "function") {
             try {
+              mesh.physics?.shape?.dispose();
+              mesh.physics?.dispose();
               mesh.dispose();
             } catch (error) {
               console.warn("Error disposing mesh:", error);

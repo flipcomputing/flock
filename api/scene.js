@@ -597,6 +597,7 @@ export const flockScene = {
     meshesToDispose.reverse().forEach((currentMesh) => {
       if (!currentMesh.isDisposed()) {
         if (currentMesh.physics) {
+          currentMesh.physics.shape?.dispose()
           currentMesh.physics.dispose();
         }
         flock.scene.removeMesh(currentMesh);

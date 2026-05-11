@@ -58,13 +58,32 @@ export const flockMovement = {
     if (!physicsEngine) return;
     const havokPlugin = physicsEngine.getPhysicsPlugin();
 
-    const groundQuery = {
-      shape: new flock.BABYLON.PhysicsShapeCapsule(
+    const groundShapeKey = `${capsuleHeightBottomOffset}:${capsuleRadius}`;
+    if (
+      !model._groundQueryShape ||
+      model._groundQueryShapeKey !== groundShapeKey
+    ) {
+      model._groundQueryShape?.dispose();
+      model._groundQueryShape = new flock.BABYLON.PhysicsShapeCapsule(
         new flock.BABYLON.Vector3(0, -capsuleHeightBottomOffset, 0),
         new flock.BABYLON.Vector3(0, capsuleHeightBottomOffset, 0),
         capsuleRadius,
         scene,
-      ),
+      );
+      model._groundQueryShapeKey = groundShapeKey;
+      if (!model._queryShapeCleanupRegistered) {
+        model._queryShapeCleanupRegistered = true;
+        model.onDisposeObservable.add(() => {
+          model._groundQueryShape?.dispose();
+          model._groundQueryShape = null;
+          model._stepProbeShape?.dispose();
+          model._stepProbeShape = null;
+        });
+      }
+    }
+
+    const groundQuery = {
+      shape: model._groundQueryShape,
       rotation: model.rotationQuaternion || flock.BABYLON.Quaternion.Identity(),
       startPosition: groundCheckStart,
       endPosition: groundCheckEnd,
@@ -139,12 +158,22 @@ export const flockMovement = {
         horizontalForward.scale(stepProbeDistance),
       );
 
-      const stepProbeQueryLow = {
-        shape: new flock.BABYLON.PhysicsShapeSphere(
+      const stepSphereRadius = capsuleRadius * 0.8;
+      if (
+        !model._stepProbeShape ||
+        model._stepProbeShapeRadius !== stepSphereRadius
+      ) {
+        model._stepProbeShape?.dispose();
+        model._stepProbeShape = new flock.BABYLON.PhysicsShapeSphere(
           new flock.BABYLON.Vector3(0, 0, 0),
-          capsuleRadius * 0.8,
+          stepSphereRadius,
           scene,
-        ),
+        );
+        model._stepProbeShapeRadius = stepSphereRadius;
+      }
+
+      const stepProbeQueryLow = {
+        shape: model._stepProbeShape,
         rotation: flock.BABYLON.Quaternion.Identity(),
         startPosition: probeStartLow,
         endPosition: probeEndLow,
@@ -314,7 +343,7 @@ export const flockMovement = {
     );
   },
   updateDynamicMeshPositions(scene, dynamicMeshes) {
-     dynamicMeshes.forEach((mesh) => {
+    dynamicMeshes.forEach((mesh) => {
       mesh.physics.setCollisionCallbackEnabled(true);
       const observable = mesh.physics.getCollisionObservable();
       observable.add((collisionEvent) => {
