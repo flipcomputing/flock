@@ -1931,7 +1931,8 @@ export const flock = {
           flock.handlePhysicsOutOfMemory(error);
           return;
         }
-        throw error;
+        flock.engine?.stopRenderLoop(flock._renderLoop);
+        flock.showRuntimeErrorBanner?.(error.message);
       }
     };
 
