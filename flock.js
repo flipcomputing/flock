@@ -1576,6 +1576,13 @@ export const flock = {
   },
   async disposeOldScene() {
     flock.flockNotReady = true;
+    // Log WASM linear memory size before and after each run
+    function getHavokMemoryMB() {
+        return flock.hk.HEAP8?.buffer?.byteLength / (1024 * 1024);
+    }
+
+    // Before run
+    console.log('Havok memory before:', getHavokMemoryMB(), 'MB');
 
     if (flock.scene) {
       try {
@@ -2163,7 +2170,7 @@ export const flock = {
     });
   },
   removeEventListeners() {
-    flock.scene.eventListeners?.forEach(({ event, handler }) => {
+    flock.scene?.eventListeners?.forEach(({ event, handler }) => {
       flock.document.removeEventListener(event, handler);
     });
 
