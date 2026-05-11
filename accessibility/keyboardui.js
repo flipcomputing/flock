@@ -27,7 +27,6 @@ const AreaManager = {
     // Create the element dynamically so you don't have to edit index.html
     const div = document.createElement("div");
     div.id = "area-menu-overlay";
-    div.className = "hidden";
     div.classList.add("hidden");
     div.setAttribute("role", "dialog");
     div.setAttribute("aria-modal", "true");
