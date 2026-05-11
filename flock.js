@@ -1915,6 +1915,7 @@ export const flock = {
     flock.pendingTriggers = new Map();
     flock.pendingIntersections = new Map();
     flock._nameRegistry = new Map();
+    flock.modelReadyPromises = new Map();
     flock._animationFileCache = {};
     flock.materialCache = {};
     flock.havokAbortHandled = false;
