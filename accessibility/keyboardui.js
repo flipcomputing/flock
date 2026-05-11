@@ -45,11 +45,13 @@ const AreaManager = {
         document
           .querySelectorAll("body > *:not(#area-menu-overlay)")
           .forEach((el) => (el.inert = true));
+        this.previousFocus = document.activeElement;
         setTimeout(() => this.overlay.focus(), 0);
       } else {
         document
           .querySelectorAll("body > *:not(#area-menu-overlay)")
           .forEach((el) => (el.inert = false));
+        this.previousFocus?.focus();
       }
       this.overlay.classList.toggle("hidden", !show);
     }
