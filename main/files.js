@@ -345,17 +345,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
       console.error(
         "Security validation failed - JSON may contain malicious content",
       );
-      throw error; // Re-throw security errors - don't try to recover
-    }
-
-    // Handle corruption errors
-    if (error.message.includes("isDeadOrDying")) {
-      console.warn("Workspace might be corrupted, attempting reset.");
-      workspace.clear();
-      // Note: localStorage usage - be aware this won't work in Claude artifacts
-      if (typeof localStorage !== "undefined") {
-        localStorage.removeItem(AUTOSAVE_KEY);
-      }
+      throw error; // Re-throw errors - don't try to recover
     }
   }
 }
