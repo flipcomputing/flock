@@ -42,7 +42,14 @@ const AreaManager = {
       if (show) {
         GizmoMenuManager.toggle(false); // Close gizmo menu if open
         this.renderHighlights();
+        document
+          .querySelectorAll("body > *:not(#area-menu-overlay)")
+          .forEach((el) => (el.inert = true));
         setTimeout(() => this.overlay.focus(), 0);
+      } else {
+        document
+          .querySelectorAll("body > *:not(#area-menu-overlay)")
+          .forEach((el) => (el.inert = false));
       }
       this.overlay.classList.toggle("hidden", !show);
     }
