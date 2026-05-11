@@ -691,6 +691,32 @@ export const flock = {
       },
     });
   },
+  howRuntimeErrorBanner(message) {
+    const doc = flock.document;
+    if (!doc?.body) return;
+    const bannerId = "runtime-error-banner";
+    doc.getElementById(bannerId)?.remove();
+    const banner = doc.createElement("div");
+    banner.id = bannerId;
+    banner.textContent = message;
+    banner.style.position = "fixed";
+    banner.style.top = "0";
+    banner.style.left = "0";
+    banner.style.right = "0";
+    banner.style.padding = "12px";
+    banner.style.background = "#3b0b0b";
+    banner.style.color = "#ffb3b3";
+    banner.style.fontSize = "16px";
+    banner.style.fontFamily = "'Asap', sans-serif";
+    banner.style.zIndex = "10000";
+    banner.style.textAlign = "center";
+    banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.4)";
+    banner.style.borderBottom = "2px solid #d33";
+    banner.style.cursor = "pointer";
+    banner.title = "Click to dismiss";
+    banner.addEventListener("click", () => banner.remove());
+    doc.body.prepend(banner);
+  },
   async runCode(code, options = {}) {
     const { focusCanvas = true } = options;
 
@@ -896,14 +922,15 @@ export const flock = {
       const enhancedError = this.createEnhancedError?.(error, code) ?? error;
       console.error("Enhanced error details:", enhancedError);
 
-      this.printText?.({
-        text: translate("runtime_error_message").replace(
-          "{message}",
-          error.message,
-        ),
-        duration: 5,
-        color: "#ff0000",
-      });
+      const errorMessage = translate("runtime_error_message").replace(
+        "{message}",
+        error.message,
+      );
+      if (flock.stackPanel) {
+        this.printText?.({ text: errorMessage, duration: 5, color: "#ff0000" });
+      } else {
+        this.showRuntimeErrorBanner?.(errorMessage);
+      }
 
       try {
         this.audioContext?.close?.();
@@ -1548,7 +1575,6 @@ export const flock = {
 
     if (flock.scene) {
       try {
-
         // Stop all sounds and animations first
         flock.stopAllSounds();
         flock.engine?.stopRenderLoop();
