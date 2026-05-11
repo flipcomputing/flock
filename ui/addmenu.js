@@ -20,7 +20,7 @@ import {
   setCrosshairCursor,
   setDefaultCursor,
 } from "./canvas-utils.js";
-import { GizmoMenuManager } from "../main/accessibility.js";
+import { GizmoMenuManager } from "../accessibility/keyboardui.js";
 
 const colorFields = {
   HAIR_COLOR: "#000000", // Hair: black

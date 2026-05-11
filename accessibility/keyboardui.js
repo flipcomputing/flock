@@ -1,6 +1,6 @@
-import { InputManager } from "./inputmanager.js";
-import { ContextManager } from "./context.js";
-import { translate } from "./translation.js";
+import { InputManager } from "../main/inputmanager.js";
+import { ContextManager } from "../main/context.js";
+import { translate } from "../main/translation.js";
 import { SHORTCUTS_HELP_URL } from "../config.js";
 
 // Area menu accessed with Ctrl + B to quickly skip to
