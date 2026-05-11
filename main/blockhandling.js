@@ -591,7 +591,7 @@ function observeBlocklyInputs() {
 
   // Observe only the Blockly container to avoid scanning the entire document
   const blocklyContainer =
-    workspace.getParentSvg()?.closest("#blocklyDiv") ??
+    workspace?.getParentSvg()?.closest("#blocklyDiv") ??
     document.getElementById("blocklyDiv") ??
     document.body;
   observer.observe(blocklyContainer, { childList: true, subtree: true });

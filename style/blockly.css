@@ -256,6 +256,11 @@ body[data-theme="low-vision"] {
   transition: opacity 0.15s ease;
 }
 
+/* Non-current matches get a pale yellow background */
+#blocklyDiv.blockly-search-active .ws-search-match:not(.ws-search-current) > path.blocklyPath {
+  fill: rgba(255, 242, 0, 0.3) !important;
+}
+
 /* Current match gets a yellow outline */
 #blocklyDiv.blockly-search-active .ws-search-current > path.blocklyPath {
   stroke: var(--block-outline-focus) !important;
