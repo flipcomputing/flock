@@ -4,9 +4,9 @@
   --color-bg: white;
   --color-text: black;
   --color-text-label: var(--color-text);
-  --axis-x-color: #1A9EE0;
-  --axis-y-color: #00CC96;
-  --axis-z-color: #F07020;
+  --axis-x-color: #1a9ee0;
+  --axis-y-color: #00cc96;
+  --axis-z-color: #f07020;
   --color-border-highlight: #ee5d6c;
   --color-search-highlight: #ed808b;
   --color-shadow: grey;
@@ -191,7 +191,9 @@ textarea.blocklyCommentText.blocklyTextarea.blocklyText {
   fill: rgba(255, 255, 255, 0.85) !important;
 }
 
-[data-theme="low-vision"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+[data-theme="low-vision"]
+  .blocklyMainWorkspaceScrollbar
+  .blocklyScrollbarHandle {
   fill: rgba(224, 224, 224, 0.85) !important;
 }
 
@@ -414,24 +416,19 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   cursor: pointer !important;
 }
 
-/* Search Highlight Styles */
-.blockly-ws-search {
-  background: var(--color-bg);
-  margin-top: 5px;
-  border: solid var(--color-border-highlight) 4px;
-  box-shadow: 0px 10px 20px var(--color-shadow);
-  justify-content: center;
-  padding: 0.25em;
-  position: absolute;
-  z-index: 70;
-}
-
 path.blocklyPath.blockly-ws-search-highlight {
   fill: var(--color-search-highlight);
 }
 
 path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   fill: var(--color-border-highlight);
+}
+
+[data-theme="dark"] .blockly-ws-search button,
+[data-theme="dark-contrast"] .blockly-ws-search button,
+[data-theme="low-vision"] .blockly-ws-search button,
+[data-theme="contrast"] .blockly-ws-search button {
+  filter: invert(1);
 }
 
 /* Responsive Styles */
@@ -578,7 +575,6 @@ body[data-theme="dark"] .blocklyTreeLabel {
   border-radius: 4px;
 }
 
-
 /* Add custom selection outline for both level 1 and 2 categories */
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
   > .blocklyToolboxCategory,
@@ -623,7 +619,9 @@ body[data-theme="low-vision"]
 }
 
 [data-theme="low-vision"] .blocklyEditableText > rect,
-[data-theme="low-vision"] .blocklyNonEditableText > rect:not(.blocklyDropdownRect) {
+[data-theme="low-vision"]
+  .blocklyNonEditableText
+  > rect:not(.blocklyDropdownRect) {
   fill: #ffffff !important;
   stroke: #cfcfcf !important;
   stroke-width: 1.5px !important;
@@ -802,14 +800,22 @@ body[data-theme="low-vision"]
 }
 
 /* Keyboard focus for DROPDOWN fields */
-.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyDropdownField .blocklyDropdownRect,
-.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyFieldDropdown .blocklyDropdownRect,
-.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyEditableText .blocklyDropdownRect {
+.blocklyKeyboardNavigation
+  .blocklyActiveFocus.blocklyDropdownField
+  .blocklyDropdownRect,
+.blocklyKeyboardNavigation
+  .blocklyActiveFocus.blocklyFieldDropdown
+  .blocklyDropdownRect,
+.blocklyKeyboardNavigation
+  .blocklyActiveFocus.blocklyEditableText
+  .blocklyDropdownRect {
   stroke: var(--block-outline-focus) !important;
   stroke-width: 3px !important;
 }
 
-.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyImageField image[style*="cursor: pointer"] {
+.blocklyKeyboardNavigation
+  .blocklyActiveFocus.blocklyImageField
+  image[style*="cursor: pointer"] {
   stroke: var(--block-outline-focus);
   stroke-width: 5px;
 }
@@ -821,19 +827,27 @@ body[data-theme="low-vision"]
 }
 
 /* Passive keyboard focus for DROPDOWN fields */
-.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyDropdownField .blocklyDropdownRect,
-.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyFieldDropdown .blocklyDropdownRect,
-.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyEditableText .blocklyDropdownRect {
+.blocklyKeyboardNavigation
+  .blocklyPassiveFocus.blocklyDropdownField
+  .blocklyDropdownRect,
+.blocklyKeyboardNavigation
+  .blocklyPassiveFocus.blocklyFieldDropdown
+  .blocklyDropdownRect,
+.blocklyKeyboardNavigation
+  .blocklyPassiveFocus.blocklyEditableText
+  .blocklyDropdownRect {
   stroke: var(--color-outline-focus) !important;
   stroke-width: 3px !important;
   stroke-dasharray: 4 2;
 }
 
-.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyImageField image[style*="cursor: pointer"] {
+.blocklyKeyboardNavigation
+  .blocklyPassiveFocus.blocklyImageField
+  image[style*="cursor: pointer"] {
   stroke: var(--color-outline-focus);
   stroke-width: 5px;
-  stroke-dasharray: 4 2;      /* Blockly-style short dash */
-  stroke-linecap: butt;       /* square dash ends */
+  stroke-dasharray: 4 2; /* Blockly-style short dash */
+  stroke-linecap: butt; /* square dash ends */
   vector-effect: non-scaling-stroke;
 }
 
@@ -948,13 +962,21 @@ textarea.blocklyCommentText.blocklyTextarea.blocklyText {
   box-sizing: border-box !important;
 }
 
-
 /* XYZ axis input outlines — survive theme changes via CSS */
 [data-xyz-active] > [data-axis="X"] .blocklyPath,
-[data-axis="X"].blocklySelected .blocklyPath { stroke: var(--axis-x-color) !important; stroke-width: 2px !important; }
+[data-axis="X"].blocklySelected .blocklyPath {
+  stroke: var(--axis-x-color) !important;
+  stroke-width: 2px !important;
+}
 
 [data-xyz-active] > [data-axis="Y"] .blocklyPath,
-[data-axis="Y"].blocklySelected .blocklyPath { stroke: var(--axis-y-color) !important; stroke-width: 2px !important; }
+[data-axis="Y"].blocklySelected .blocklyPath {
+  stroke: var(--axis-y-color) !important;
+  stroke-width: 2px !important;
+}
 
 [data-xyz-active] > [data-axis="Z"] .blocklyPath,
-[data-axis="Z"].blocklySelected .blocklyPath { stroke: var(--axis-z-color) !important; stroke-width: 2px !important; }
+[data-axis="Z"].blocklySelected .blocklyPath {
+  stroke: var(--axis-z-color) !important;
+  stroke-width: 2px !important;
+}
