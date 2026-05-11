@@ -257,8 +257,22 @@ body[data-theme="low-vision"] {
 }
 
 /* Non-current matches get a pale yellow background */
-#blocklyDiv.blockly-search-active .ws-search-match:not(.ws-search-current) > path.blocklyPath {
+#blocklyDiv.blockly-search-active
+  .ws-search-match:not(.ws-search-current)
+  > path.blocklyPath {
   fill: rgba(255, 242, 0, 0.3) !important;
+}
+
+/* Low-vision: replace fill with a dashed white stroke for better contrast */
+[data-theme="low-vision"]
+  #blocklyDiv.blockly-search-active
+  .ws-search-match:not(.ws-search-current)
+  > path.blocklyPath {
+  fill: revert !important;
+  stroke: #ffffff !important;
+  stroke-width: 10px !important;
+  stroke-dasharray: 8 4;
+  paint-order: stroke fill;
 }
 
 /* Current match gets a yellow outline */
