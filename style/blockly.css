@@ -427,6 +427,14 @@ body[data-theme="low-vision"] {
   filter: invert(1);
 }
 
+[data-theme="dark"] .blockly-ws-search button:focus,
+[data-theme="dark-contrast"] .blockly-ws-search button:focus,
+[data-theme="low-vision"] .blockly-ws-search button:focus,
+[data-theme="contrast"] .blockly-ws-search button:focus {
+  outline: 3px solid #0033cc; /* inverts to #ffcc33 (~#fc3) after filter: invert(1) */
+  outline-offset: 2px;
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
   :root {
