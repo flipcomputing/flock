@@ -687,7 +687,10 @@ export function initializeWorkspace() {
     const svg = block.getSvgRoot();
     if (svg) {
       svg.classList.add("ws-search-current");
-      svg.parentNode?.appendChild(svg);
+      let top = block;
+      while (top.getSurroundParent()) top = top.getSurroundParent();
+      const topSvg = top.getSvgRoot();
+      if (topSvg) topSvg.parentNode?.appendChild(topSvg);
     }
   };
   workspaceSearch.unhighlightCurrentSelection = function (block) {
