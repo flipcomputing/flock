@@ -198,9 +198,6 @@ textarea.blocklyCommentText.blocklyTextarea.blocklyText {
 }
 
 body[data-theme="contrast"] {
-  .blocklyWidgetDiv .blocklyMenuItemContent {
-    color: black !important;
-  }
   .blocklyField text.blocklyText.blocklyFieldText {
     fill: black !important;
   }
@@ -241,9 +238,6 @@ body[data-theme="low-vision"] {
   }
 }
 
-textarea.blocklyCommentText.blocklyTextarea.blocklyText {
-  color: black;
-}
 /* Search Highlight Styles */
 .blockly-ws-search {
   background: var(--color-bg);
@@ -416,14 +410,6 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   cursor: pointer !important;
 }
 
-path.blocklyPath.blockly-ws-search-highlight {
-  fill: var(--color-search-highlight);
-}
-
-path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
-  fill: var(--color-border-highlight);
-}
-
 [data-theme="dark"] .blockly-ws-search button,
 [data-theme="dark-contrast"] .blockly-ws-search button,
 [data-theme="low-vision"] .blockly-ws-search button,
@@ -462,16 +448,6 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 [data-theme="low-vision"] .blocklyPath {
   stroke: #e0e0e0 !important;
   stroke-width: 2.5px !important;
-}
-
-/* Toolbox category selection outline */
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
-  > .blocklyToolboxCategory,
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"]
-  > .blocklyToolboxCategory {
-  outline: 2px solid var(--color-outline-focus);
-  outline-offset: -2px;
-  border-radius: 4px;
 }
 
 /* 2. Default item text color */
@@ -566,23 +542,6 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
 .blocklyToolboxCategoryContainer:focus {
   outline: none !important;
-}
-
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
-  > .blocklyToolboxCategory {
-  outline: 2px solid #fc3;
-  outline-offset: -2px;
-  border-radius: 4px;
-}
-
-/* Add custom selection outline for both level 1 and 2 categories */
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
-  > .blocklyToolboxCategory,
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"]
-  > .blocklyToolboxCategory {
-  outline: 2px solid #fc3;
-  outline-offset: -2px;
-  border-radius: 4px;
 }
 
 [data-theme="contrast"] .blocklyText {
@@ -777,22 +736,6 @@ body[data-theme="low-vision"]
   }
 }
 
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
-  > .blocklyToolboxCategory {
-  outline: 2px solid #fc3;
-  outline-offset: -2px;
-  border-radius: 4px;
-}
-
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
-  > .blocklyToolboxCategory,
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"]
-  > .blocklyToolboxCategory {
-  outline: 2px solid #fc3;
-  outline-offset: -2px;
-  border-radius: 4px;
-}
-
 /* Keyboard focus for image BUTTON fields only (e.g. plus/minus/toggle icons) */
 .blocklyKeyboardNavigation .blocklyActiveFocus.blocklyImageField {
   outline: 5px solid var(--block-outline-focus);
@@ -947,11 +890,6 @@ body[data-theme="low-vision"]
   fill: #c9b85a !important;
   stroke: #a89940 !important;
   stroke-width: 2px !important;
-}
-
-/* Wrap long lines inside the workspace-comment editor */
-textarea.blocklyCommentText.blocklyTextarea.blocklyText {
-  color: black;
 }
 
 /* Keep block comment editor constrained to its bubble */
