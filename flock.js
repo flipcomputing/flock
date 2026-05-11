@@ -1830,8 +1830,11 @@ export const flock = {
         flock.scene = null;
 
         // Dispose physics engine and release WASM heap
-        flock.hk?.dispose();
-        flock.hk = null;
+        //flock.hk?.dispose();
+        //flock.hk = null;
+
+        flock.havokPlugin?.dispose();  // Babylon's HavokPlugin wrapper
+        flock.havokPlugin = null;
 
         // Dispose the Babylon.js engine
         //flock.engine?.dispose();
