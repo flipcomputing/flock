@@ -42,15 +42,18 @@ const AreaManager = {
       if (show) {
         GizmoMenuManager.toggle(false); // Close gizmo menu if open
         this.renderHighlights();
+        this._previousInertStates = new Map();
         document
           .querySelectorAll("body > *:not(#area-menu-overlay)")
-          .forEach((el) => (el.inert = true));
+          .forEach((el) => {
+            this._previousInertStates.set(el, el.inert);
+            el.inert = true;
+          });
         this.previousFocus = document.activeElement;
         setTimeout(() => this.overlay.focus(), 0);
       } else {
-        document
-          .querySelectorAll("body > *:not(#area-menu-overlay)")
-          .forEach((el) => (el.inert = false));
+        this._previousInertStates?.forEach((wasInert, el) => (el.inert = wasInert));
+        this._previousInertStates = null;
         this.previousFocus?.focus();
       }
       this.overlay.classList.toggle("hidden", !show);
