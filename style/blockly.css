@@ -250,12 +250,17 @@ body[data-theme="low-vision"] {
   z-index: 70;
 }
 
-path.blocklyPath.blockly-ws-search-highlight {
-  fill: var(--color-search-highlight);
+/* Fade top-level blocks that contain no search matches */
+#blocklyDiv.blockly-search-active .ws-search-fade {
+  opacity: 0.4;
+  transition: opacity 0.15s ease;
 }
 
-path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
-  fill: var(--color-border-highlight);
+/* Current match gets a yellow outline */
+#blocklyDiv.blockly-search-active .ws-search-current > path.blocklyPath {
+  stroke: var(--block-outline-focus) !important;
+  stroke-width: 10px !important;
+  paint-order: stroke fill;
 }
 
 @media (min-width: 769px) {

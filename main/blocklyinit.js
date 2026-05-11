@@ -648,6 +648,52 @@ export function initializeWorkspace() {
   }
   workspaceSearch.init();
 
+  // Fade non-matching blocks during search
+  const blocklyDiv = document.getElementById("blocklyDiv");
+  const originalOpen = workspaceSearch.open.bind(workspaceSearch);
+  const originalClose = workspaceSearch.close.bind(workspaceSearch);
+  workspaceSearch.open = function () {
+    originalOpen();
+    blocklyDiv?.classList.add("blockly-search-active");
+  };
+  workspaceSearch.close = function () {
+    originalClose();
+    blocklyDiv?.classList.remove("blockly-search-active");
+  };
+
+  // Override highlight methods to work at block-group level so the plugin's
+  // injected fill: #000 rule never applies to matched block paths.
+  workspaceSearch.highlightSearchGroup = function (blocks) {
+    const matchTopIds = new Set();
+    blocks.forEach((block) => {
+      block.getSvgRoot()?.classList.add("ws-search-match");
+      let top = block;
+      while (top.getSurroundParent()) top = top.getSurroundParent();
+      matchTopIds.add(top.id);
+    });
+    workspace.getTopBlocks(false).forEach((block) => {
+      if (!matchTopIds.has(block.id)) {
+        block.getSvgRoot()?.classList.add("ws-search-fade");
+      }
+    });
+  };
+  workspaceSearch.unhighlightSearchGroup = function (blocks) {
+    blocks.forEach((block) => block.getSvgRoot()?.classList.remove("ws-search-match"));
+    workspace.getTopBlocks(false).forEach((block) => {
+      block.getSvgRoot()?.classList.remove("ws-search-fade");
+    });
+  };
+  workspaceSearch.highlightCurrentSelection = function (block) {
+    const svg = block.getSvgRoot();
+    if (svg) {
+      svg.classList.add("ws-search-current");
+      svg.parentNode?.appendChild(svg);
+    }
+  };
+  workspaceSearch.unhighlightCurrentSelection = function (block) {
+    block.getSvgRoot()?.classList.remove("ws-search-current");
+  };
+
   // Override the workspace centering for workspace search as it jumps all over the place by default!
   const originalCenter = workspace.centerOnBlock.bind(workspace);
 
