@@ -2,6 +2,7 @@ import { InputManager } from "../main/inputmanager.js";
 import { ContextManager } from "../main/context.js";
 import { translate } from "../main/translation.js";
 import { SHORTCUTS_HELP_URL } from "../config.js";
+import { stopCanvasKeyboardMode } from "../ui/canvas-utils.js";
 
 // Area menu accessed with Ctrl + B to quickly skip to
 // different areas on the interface
@@ -46,6 +47,7 @@ const AreaManager = {
   toggle(show) {
     if (this.overlay) {
       if (show) {
+        stopCanvasKeyboardMode(); // Stop canvas keyboard cursor if active
         GizmoMenuManager.toggle(false); // Close gizmo menu if open
         this.renderHighlights();
         this._previousInertStates = new Map();
