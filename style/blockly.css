@@ -578,6 +578,13 @@ body[data-theme="dark"] .blocklyTreeLabel {
   outline: none !important;
 }
 
+.blocklyKeyboardNavigation .blocklyToolbox:has(.blocklyActiveFocus),
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyToolbox,
+.blocklyKeyboardNavigation .blocklyFlyout:has(.blocklyActiveFocus),
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyFlyout {
+  outline: none !important;
+}
+
 [data-theme="contrast"] .blocklyText {
   fill: white !important;
 }
