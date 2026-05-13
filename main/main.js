@@ -50,7 +50,7 @@ import {
 } from "./translation.js";
 import { ShortcutsPanel } from "../accessibility/keyboardui.js";
 import { InputManager } from "./inputmanager.js";
-import "./context.js";
+import { ContextManager } from "./context.js";
 
 function isEmbedModeEnabled() {
   const embedParam = new URLSearchParams(window.location.search).get("embed");
@@ -642,6 +642,17 @@ function initializeApp() {
     e.preventDefault();
     Blockly.keyboardNavigationController?.setIsActive?.(true);
     Blockly.getFocusManager()?.focusTree?.(workspace);
+  });
+  InputManager.on("*", "KeyT", (e) => {
+    const ctx = ContextManager.getCurrentContext();
+    if (ctx === "TYPING" || ctx === "EDITOR") return;
+    if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+    e.preventDefault();
+    const toolbox = workspace.getToolbox?.();
+    if (!toolbox) return;
+    const toolboxDiv = toolbox.HtmlDiv || document.querySelector(".blocklyToolboxDiv");
+    toolboxDiv?.focus();
+    Blockly.getFocusManager()?.focusTree?.(toolbox);
   });
   if (toggleDesignButton) {
     toggleDesignButton.addEventListener("click", toggleDesignMode);
