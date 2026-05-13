@@ -1285,6 +1285,7 @@ export default {
   shortcut_toggle_area: "Toggle area",
   shortcut_select_area: "Select area",
   shortcut_code_editor: "Code editor",
+  shortcut_toolbox: "Toolbox",
   shortcut_add_block_by_name: "Add block by name",
   shortcut_search_block: "Search for a block",
   shortcut_move_through_blocks: "Move through blocks",

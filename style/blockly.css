@@ -12,6 +12,7 @@
   --color-shadow: grey;
   --color-outline-focus: #fc3;
   --block-outline-focus: #fff200;
+  --color-toolbox-focus: var(--color-outline-focus);
 
   /* Dropdown & menu semantics */
   --color-dropdown-text: var(--color-text);
@@ -55,6 +56,10 @@
   --color-search-highlight: #cfcfcf;
   --color-shadow: rgba(0, 0, 0, 0.6);
   --color-outline-focus: #e0e0e0;
+}
+
+[data-theme="low-vision"] {
+  --color-toolbox-focus: #fc3;
 }
 
 [data-theme="dark-contrast"] .blocklyInsertionMarker path {
@@ -370,8 +375,19 @@ body[data-theme="low-vision"] {
   > .blocklyToolboxCategory,
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"]
   > .blocklyToolboxCategory {
-  outline: 2px solid var(--color-outline-focus);
-  outline-offset: -2px;
+  outline: 5px solid var(--color-toolbox-focus);
+  outline-offset: 0px;
+  border-radius: 4px;
+}
+
+/* Keyboard-focused toolbox category (Blockly 13 FocusManager active node) */
+.blocklyKeyboardNavigation .blocklyToolbox .blocklyActiveFocus,
+.blocklyKeyboardNavigation
+  .blocklyToolbox
+  .blocklyActiveFocus
+  > .blocklyToolboxCategory {
+  outline: 5px solid var(--color-toolbox-focus) !important;
+  outline-offset: 0px !important;
   border-radius: 4px;
 }
 

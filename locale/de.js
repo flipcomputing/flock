@@ -1235,6 +1235,7 @@ export default {
   shortcut_toggle_area: "Bereich umschalten",
   shortcut_select_area: "Bereich auswählen",
   shortcut_code_editor: "Code-Editor",
+  shortcut_toolbox: "Werkzeugkasten",
   shortcut_add_block_by_name: "Block nach Name hinzufügen",
   shortcut_search_block: "Nach einem Block suchen",
   shortcut_move_through_blocks: "Durch Blöcke navigieren",

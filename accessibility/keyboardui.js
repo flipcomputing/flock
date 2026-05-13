@@ -58,7 +58,9 @@ const AreaManager = {
         this.previousFocus = document.activeElement;
         setTimeout(() => this.overlay.focus(), 0);
       } else {
-        this._previousInertStates?.forEach((wasInert, el) => (el.inert = wasInert));
+        this._previousInertStates?.forEach(
+          (wasInert, el) => (el.inert = wasInert),
+        );
         this._previousInertStates = null;
         this.previousFocus?.focus();
       }
@@ -110,6 +112,13 @@ const AreaManager = {
       e.preventDefault();
       const area = this.areas.find((a) => a.label === focused.innerText);
       if (area) this.activateArea(area);
+    });
+
+    // Re-render if the browser window gets resized
+    window.addEventListener("resize", () => {
+      if (!this.overlay.classList.contains("hidden")) {
+        requestAnimationFrame(() => this.renderHighlights());
+      }
     });
   },
 
@@ -377,6 +386,11 @@ function getShortcuts() {
     {
       label: translate("shortcut_code_editor"),
       keys: `${mod} + E`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_toolbox"),
+      keys: `T`,
       category: translate("shortcut_category_editor"),
     },
     {

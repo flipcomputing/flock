@@ -1242,6 +1242,7 @@ export default {
   shortcut_toggle_area: "Przełącz obszar",
   shortcut_select_area: "Wybierz obszar",
   shortcut_code_editor: "Edytor kodu",
+  shortcut_toolbox: "Przybornik",
   shortcut_add_block_by_name: "Dodaj blok według nazwy",
   shortcut_search_block: "Szukaj bloku",
   shortcut_move_through_blocks: "Nawiguj między blokami",
