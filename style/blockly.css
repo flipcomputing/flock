@@ -508,6 +508,14 @@ body[data-theme="low-vision"] {
   color: #000000 !important;
 }
 
+.blocklyFieldColour .blocklyFieldGrid .blocklyFieldGridItem:focus {
+  box-shadow: 0 0 0 4px #000 !important;
+}
+
+[data-theme="low-vision"] .blocklyFieldColour .blocklyFieldGrid .blocklyFieldGridItem:focus {
+  box-shadow: 0 0 0 4px #fff !important;
+}
+
 body .blocklyHtmlInput {
   font-family:
     "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
