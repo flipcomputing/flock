@@ -22,13 +22,11 @@ import {
   saveWorkspace,
   loadWorkspace,
   exportCode,
-  autoSaveToFile,
   setupFileInput,
   setupDragAndDrop,
   loadExampleWrapper,
   newProject,
   openFile,
-  updateSaveButtonState,
 } from "./files.js";
 import {
   onResize,
@@ -418,7 +416,6 @@ window.onload = async function () {
     } catch (error) {
       console.error("Autosave to localStorage failed:", error);
     }
-    autoSaveToFile(workspace);
   }, 30000);
 
   (async () => {

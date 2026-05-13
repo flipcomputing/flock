@@ -493,34 +493,6 @@ function getSafeImportedFileBaseName(fileName) {
   return baseName.substring(0, 50) || "untitled";
 }
 
-// Holds the FileSystemFileHandle from the last explicit save (File System Access API)
-let currentFileHandle = null;
-
-export function updateSaveButtonState() {
-  document
-    .getElementById("exportCodeButton")
-    ?.classList.toggle("no-autosave", !currentFileHandle);
-}
-
-// Clears the stored file handle (call whenever a new project is loaded)
-export function clearFileHandle() {
-  currentFileHandle = null;
-  updateSaveButtonState();
-}
-
-function isFileAutosavePermissionError(error) {
-  const name = error?.name || "";
-  if (name === "AbortError" || name === "NotAllowedError") return true;
-
-  const message = String(error?.message || "").toLowerCase();
-  return (
-    message.includes("permission") ||
-    message.includes("denied") ||
-    message.includes("aborted") ||
-    message.includes("cancel")
-  );
-}
-
 // Function to export project code
 export async function exportCode(workspace) {
   try {
@@ -568,8 +540,6 @@ export async function exportCode(workspace) {
       const writable = await fileHandle.createWritable();
       await writable.write(jsonString);
       await writable.close();
-      currentFileHandle = fileHandle;
-      updateSaveButtonState();
       document.getElementById("projectName").value =
         getSafeImportedFileBaseName(fileHandle.name);
     } else {
@@ -583,54 +553,6 @@ export async function exportCode(workspace) {
     }
   } catch (e) {
     console.error("Error exporting project:", e);
-  }
-}
-
-// Autosave to the last explicitly-saved file handle (no picker shown)
-export async function autoSaveToFile(workspace) {
-  if (!currentFileHandle) return;
-  try {
-    if (typeof currentFileHandle.queryPermission === "function") {
-      const permission = await currentFileHandle.queryPermission({
-        mode: "readwrite",
-      });
-      if (permission !== "granted") {
-        if (permission === "denied") {
-          clearFileHandle();
-        }
-        return;
-      }
-    }
-
-    const ws =
-      workspace && workspace.getAllBlocks
-        ? workspace
-        : Blockly.getMainWorkspace();
-    if (!ws || !ws.getAllBlocks) return;
-
-    // Don't overwrite the user's file with an empty workspace
-    // (transient empty states during load / clear / language-switch).
-    if (ws.getAllBlocks(false).length === 0) return;
-
-    const json = Blockly.serialization.workspaces.save(ws);
-    if (!json || !json.blocks || !json.blocks.blocks?.length) return;
-
-    const jsonString = JSON.stringify(json, null, 2);
-    const writable = await currentFileHandle.createWritable();
-    try {
-      await writable.write(jsonString);
-      await writable.close();
-    } catch (writeError) {
-      // Make sure we don't leave a half-written file: aborting discards
-      // the staged bytes so the original file is untouched.
-      try { await writable.abort(); } catch {}
-      throw writeError;
-    }
-  } catch (e) {
-    if (isFileAutosavePermissionError(e)) {
-      clearFileHandle();
-    }
-    console.error("Error during file autosave:", e);
   }
 }
 
@@ -802,7 +724,6 @@ function processProjectFileDrop(file, workspace, executeCallback) {
 
       document.getElementById("projectName").value =
         getSafeImportedFileBaseName(file.name);
-      clearFileHandle();
       loadWorkspaceAndExecute(json, workspace, executeCallback);
     } catch (e) {
       console.error("Error loading Blockly project:", e);
@@ -953,7 +874,6 @@ export function setupFileInput(workspace, executeCallback) {
         document.getElementById("projectName").value =
           getSafeImportedFileBaseName(file.name);
 
-        clearFileHandle();
         loadWorkspaceAndExecute(json, workspace, executeCallback);
       } catch (e) {
         console.error("Error loading Blockly project:", e);
@@ -1011,7 +931,6 @@ export async function openFile(workspace, executeCallback) {
       window.loadingCode = true;
       document.getElementById("projectName").value =
         getSafeImportedFileBaseName(file.name);
-      clearFileHandle();
       loadWorkspaceAndExecute(json, workspace, executeCallback);
     } catch (e) {
       if (e.name === "AbortError") return;
@@ -1044,7 +963,6 @@ export function loadExample(workspace, executeCallback) {
     fetchProjectJson(exampleFile)
       .then((json) => {
         console.log("Loading:", selectedOption);
-        clearFileHandle();
         loadWorkspaceAndExecute(json, workspace, executeCallback);
       })
       .catch((error) => {
