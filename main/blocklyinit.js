@@ -1,5 +1,4 @@
 import * as Blockly from "blockly";
-import { KeyboardNavigation } from "@blockly/keyboard-navigation";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { initializeTheme } from "./themes.js";
@@ -790,8 +789,6 @@ export function createBlocklyWorkspace() {
 
   registerCustomCommentIcon();
 
-  KeyboardNavigation.registerKeyboardNavigationStyles();
-
   // Manually create a navigation-deferring toolbox
   class NavigationDeferringToolbox extends Blockly.Toolbox {
     onKeyDown_() {
@@ -847,8 +844,7 @@ export function createBlocklyWorkspace() {
     shortcutRegistry.removeAllKeyMappings?.("menu");
     shortcutRegistry.unregister?.("menu");
   }
-  new KeyboardNavigation(workspace);
-
+ 
   const toolbox = workspace.getToolbox();
   toolbox.onKeyDown_ = function () {
     return false;

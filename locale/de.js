@@ -1209,6 +1209,11 @@ export default {
   RightLeg_option: "Rechtes Schienbein",
   RightFoot_option: "Rechter Fuß",
 
+  // Workspace toolbar
+  toolbar_undo_ui: "Rückgängig",
+  toolbar_redo_ui: "Wiederholen",
+  toolbar_zoom_out_ui: "Verkleinern",
+  toolbar_zoom_in_ui: "Vergrößern",
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: "Tastaturkürzel",
   shortcut_panel_close: "Tastaturkürzel schließen",

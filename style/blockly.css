@@ -359,6 +359,8 @@ body[data-theme="low-vision"] {
   border-radius: 4px;
 }
 
+.blocklyZoomIn,
+.blocklyZoomOut,
 .blocklyZoomReset {
   display: none;
 }

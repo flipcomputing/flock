@@ -1220,6 +1220,11 @@ export default {
   RightLeg_option: "Tibia droit",
   RightFoot_option: "Pied droit",
 
+  // Workspace toolbar
+  toolbar_undo_ui: "Annuler",
+  toolbar_redo_ui: "Rétablir",
+  toolbar_zoom_out_ui: "Dézoomer",
+  toolbar_zoom_in_ui: "Zoomer",
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: "Raccourcis clavier",
   shortcut_panel_close: "Fermer les raccourcis clavier",

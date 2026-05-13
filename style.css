@@ -474,6 +474,34 @@ button {
   position: relative;
   background-color: #f3f3f3;
 }
+
+#codePanel {
+  position: relative;
+}
+
+#blocklyZoomControls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 0 8px;
+  background-color: var(--color-bg);
+  box-shadow: 0px 0px 10px var(--color-shadow);
+  z-index: 10;
+}
+
+#blocklyZoomControls .toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--color-border);
+  margin: 0 4px;
+}
 [data-theme="dark"] #canvasArea {
   background-color: #2c2c2c !important;
 }
@@ -815,6 +843,14 @@ button {
     justify-content: center;
     touch-action: manipulation;
   }
+
+  #blocklyZoomControls {
+    bottom: calc(9px + max(8px, env(safe-area-inset-bottom, 0px)));
+  }
+
+  #blocklyDiv {
+    height: calc(100% - 59px - max(8px, env(safe-area-inset-bottom, 0px))) !important;
+  }
 }
 
 @media only screen and (orientation: landscape) and (max-width: 768px) {
@@ -868,7 +904,7 @@ button {
 
   #blocklyDiv {
     width: 100% !important;
-    height: 100% !important;
+    height: calc(100% - 50px) !important;
     position: relative;
   }
 

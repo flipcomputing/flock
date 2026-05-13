@@ -2,7 +2,7 @@ run = "npm run dev"
 entrypoint = "main.js"
 
 hidden = [".config", ".gitignore"]
-modules = ["nodejs-20", "python-3.11"]
+modules = [ "python-3.11", "nodejs-22"]
 
 [nix]
 channel = "stable-22_11"
