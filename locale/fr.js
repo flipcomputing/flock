@@ -1231,7 +1231,8 @@ export default {
 
   // Keyboard shortcuts panel — labels
   shortcut_show_hide_help: "Afficher/masquer les raccourcis clavier",
-  shortcut_move_between_areas: "Se déplacer entre les menus, le canvas et l'éditeur",
+  shortcut_move_between_areas:
+    "Se déplacer entre les menus, le canvas et l'éditeur",
   shortcut_confirm: "Confirmer",
   shortcut_exit: "Quitter",
   shortcut_play: "Lancer",

@@ -596,10 +596,8 @@ function initializeApp() {
     zoomInBtn.addEventListener("click", () => workspace.zoomCenter(1));
   if (zoomOutBtn)
     zoomOutBtn.addEventListener("click", () => workspace.zoomCenter(-1));
-  if (undoBtn)
-    undoBtn.addEventListener("click", () => workspace.undo(false));
-  if (redoBtn)
-    redoBtn.addEventListener("click", () => workspace.undo(true));
+  if (undoBtn) undoBtn.addEventListener("click", () => workspace.undo(false));
+  if (redoBtn) redoBtn.addEventListener("click", () => workspace.undo(true));
 
   // Make open button work with keyboard
   if (openButton) {
@@ -650,7 +648,8 @@ function initializeApp() {
     e.preventDefault();
     const toolbox = workspace.getToolbox?.();
     if (!toolbox) return;
-    const toolboxDiv = toolbox.HtmlDiv || document.querySelector(".blocklyToolboxDiv");
+    const toolboxDiv =
+      toolbox.HtmlDiv || document.querySelector(".blocklyToolboxDiv");
     toolboxDiv?.focus();
     Blockly.getFocusManager()?.focusTree?.(toolbox);
   });
