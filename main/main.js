@@ -413,7 +413,11 @@ window.onload = async function () {
 
   // Autosave every 30 seconds: to localStorage and (if a file was saved) to that file
   setInterval(() => {
-    saveWorkspace(workspace);
+    try {
+      saveWorkspace(workspace);
+    } catch (error) {
+      console.error("Autosave to localStorage failed:", error);
+    }
     autoSaveToFile(workspace);
   }, 30000);
 

@@ -18,7 +18,11 @@ export function saveWorkspace(workspace) {
   }
   const state = Blockly.serialization.workspaces.save(workspace);
   const key = AUTOSAVE_KEY;
-  localStorage.setItem(key, JSON.stringify(state));
+  try {
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.error("Failed to autosave workspace to localStorage:", error);
+  }
 }
 
 function validateBlocklyJson(json) {
@@ -328,7 +332,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     // Validate JSON before loading into workspace
     const validatedJson = validateBlocklyJson(json);
 
-     // Load the validated JSON
+    // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
 
     workspace.scroll(0, 0);
