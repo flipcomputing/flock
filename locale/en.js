@@ -1259,6 +1259,11 @@ export default {
   update_available_ui: "A new version of Flock is available.",
   reload_button_ui: "Reload",
 
+  // Workspace toolbar
+  toolbar_undo_ui: "Undo",
+  toolbar_redo_ui: "Redo",
+  toolbar_zoom_out_ui: "Zoom out",
+  toolbar_zoom_in_ui: "Zoom in",
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: "Keyboard shortcuts",
   shortcut_panel_close: "Close keyboard shortcuts",

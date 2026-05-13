@@ -16,6 +16,12 @@ const AreaManager = {
     { selector: "#resizer", label: "5", pad: -3, name: "Resizer" },
     { selector: ".blocklyToolbox", label: "6", name: "Toolbox" },
     { selector: "svg.blocklySvg", label: "7", name: "Code editor" },
+    {
+      selector: "#blocklyZoomControls",
+      label: "8",
+      name: "Workspace controls",
+      extend: { top: -8 },
+    },
   ],
 
   init() {
@@ -144,11 +150,16 @@ const AreaManager = {
 
         const highlight = document.createElement("div");
         const pad = area.pad ?? 1;
+        const ext = area.extend ?? {};
+        const eTop = ext.top ?? 0;
+        const eBottom = ext.bottom ?? 0;
+        const eLeft = ext.left ?? 0;
+        const eRight = ext.right ?? 0;
         highlight.className = "area-outline";
-        highlight.style.top = `${rect.top - pad}px`;
-        highlight.style.left = `${rect.left - pad}px`;
-        highlight.style.width = `${rect.width + pad * 2}px`;
-        highlight.style.height = `${rect.height + pad * 2}px`;
+        highlight.style.top = `${rect.top - pad - eTop}px`;
+        highlight.style.left = `${rect.left - pad - eLeft}px`;
+        highlight.style.width = `${rect.width + pad * 2 + eLeft + eRight}px`;
+        highlight.style.height = `${rect.height + pad * 2 + eTop + eBottom}px`;
         container.appendChild(highlight);
       }
     });
