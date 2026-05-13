@@ -1224,6 +1224,7 @@ export default {
   shortcut_toggle_area: "Växla område",
   shortcut_select_area: "Välj område",
   shortcut_code_editor: "Kodeditor",
+  shortcut_toolbox: "Verktygslåda",
   shortcut_add_block_by_name: "Lägg till block efter namn",
   shortcut_search_block: "Sök efter ett block",
   shortcut_move_through_blocks: "Navigera bland block",

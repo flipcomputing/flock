@@ -389,6 +389,11 @@ function getShortcuts() {
       category: translate("shortcut_category_editor"),
     },
     {
+      label: translate("shortcut_toolbox"),
+      keys: `T`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
       label: translate("shortcut_add_block_by_name"),
       keys: `${mod} + ]`,
       category: translate("shortcut_category_editor"),

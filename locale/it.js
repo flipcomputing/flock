@@ -1237,6 +1237,7 @@ export default {
   shortcut_toggle_area: "Cambia area",
   shortcut_select_area: "Seleziona area",
   shortcut_code_editor: "Editor di codice",
+  shortcut_toolbox: "Casella degli strumenti",
   shortcut_add_block_by_name: "Aggiungi blocco per nome",
   shortcut_search_block: "Cerca un blocco",
   shortcut_move_through_blocks: "Navigare tra i blocchi",
