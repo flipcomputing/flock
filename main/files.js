@@ -608,11 +608,24 @@ export async function autoSaveToFile(workspace) {
         : Blockly.getMainWorkspace();
     if (!ws || !ws.getAllBlocks) return;
 
+    // Don't overwrite the user's file with an empty workspace
+    // (transient empty states during load / clear / language-switch).
+    if (ws.getAllBlocks(false).length === 0) return;
+
     const json = Blockly.serialization.workspaces.save(ws);
+    if (!json || !json.blocks || !json.blocks.blocks?.length) return;
+
     const jsonString = JSON.stringify(json, null, 2);
     const writable = await currentFileHandle.createWritable();
-    await writable.write(jsonString);
-    await writable.close();
+    try {
+      await writable.write(jsonString);
+      await writable.close();
+    } catch (writeError) {
+      // Make sure we don't leave a half-written file: aborting discards
+      // the staged bytes so the original file is untouched.
+      try { await writable.abort(); } catch {}
+      throw writeError;
+    }
   } catch (e) {
     if (isFileAutosavePermissionError(e)) {
       clearFileHandle();
