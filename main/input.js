@@ -105,28 +105,18 @@ export function setupInput() {
         elements.push(target);
       }
 
-      // 6) Blockly MAIN WORKSPACE (one level above blocks)
+      // 6) Blockly MAIN WORKSPACE
       document
         .querySelectorAll(".blockly-ws-search input, .blockly-ws-search button")
         .forEach(pushUnique);
-      const workspaceGroup = Array.from(
-        document.querySelectorAll("svg.blocklySvg g.blocklyWorkspace"),
-      )
-        .filter((ws) => !ws.closest("svg.blocklyFlyout")) // exclude flyout workspaces
-        // If there are multiple, prefer the one that actually contains the block canvas
-        .sort((a, b) => {
-          const aHasCanvas = !!a.querySelector("g.blocklyBlockCanvas");
-          const bHasCanvas = !!b.querySelector("g.blocklyBlockCanvas");
-          return Number(bHasCanvas) - Number(aHasCanvas);
-        })[0];
+      const blocklySvg = document.querySelector("svg.blocklySvg");
+      const workspaceGroup = blocklySvg?.querySelector("g.blocklyWorkspace");
 
-      if (workspaceGroup && isElementVisible(workspaceGroup)) {
-        if (workspaceGroup.getAttribute("tabindex") !== "0") {
-          workspaceGroup.setAttribute("tabindex", "0");
-        }
-        workspaceGroup.setAttribute("role", "group"); // lets AT know it's an interactive region
+      if (workspaceGroup && isElementVisible(blocklySvg)) {
+        // Force tabIndex=0 — Blockly's focus manager may have set it to -1
+        workspaceGroup.setAttribute("tabindex", "0");
+        workspaceGroup.setAttribute("role", "group");
         workspaceGroup.setAttribute("aria-label", "Blocks workspace");
-        workspaceGroup.setAttribute("focusable", "true"); // helpful for SVG focus on some browsers
         pushUnique(workspaceGroup);
       }
 
@@ -166,8 +156,10 @@ export function setupInput() {
         currentElement = currentElement.parentElement;
       }
 
-      // Check if element has actual dimensions
-      const rect = element.getBoundingClientRect();
+      // For SVG child elements, use the owning SVG's bounding rect
+      // since <g> elements may return zero dimensions even when visible
+      const rectSource = element.ownerSVGElement ?? element;
+      const rect = rectSource.getBoundingClientRect();
       return rect.width > 0 && rect.height > 0;
     }
 
@@ -206,7 +198,15 @@ export function setupInput() {
       if (focusableElements.length === 0) return;
 
       const currentElement = document.activeElement;
-      const currentIndex = focusableElements.indexOf(currentElement);
+      let currentIndex = focusableElements.indexOf(currentElement);
+
+      // If not directly in the list, check if inside a tracked container
+      // (e.g. Blockly moved focus internally to a block within the flyout/workspace)
+      if (currentIndex === -1) {
+        currentIndex = focusableElements.findIndex(
+          (el) => el !== currentElement && el.contains?.(currentElement),
+        );
+      }
 
       // Only manage tab navigation for our tracked elements
       if (currentIndex === -1 || currentElement.closest("details[open]"))
