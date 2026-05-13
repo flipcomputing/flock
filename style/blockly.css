@@ -166,7 +166,18 @@ body[data-theme="dark-contrast"] {
 }
 
 textarea.blocklyCommentText.blocklyTextarea.blocklyText {
-  color: black;
+  color: black !important;
+}
+
+/* Always 2px so border-width never changes on focus (prevents text wiggle) */
+.blocklyComment .blocklyTextarea {
+  border-width: 2px !important;
+}
+
+.blocklyCommentText.blocklyActiveFocus {
+  border-color: #000 !important;
+  background-color: #fff !important;
+  color: #000 !important;
 }
 
 .blocklyTreeRow {
