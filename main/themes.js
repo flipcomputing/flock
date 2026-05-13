@@ -280,11 +280,11 @@ function setBinAndZoomIcons(themeName) {
   const zoomIcons = document.getElementsByClassName("blocklyZoom");
 
   if (themeName === "contrast") {
-    const iconsURL = "./images/blocklywhitesprites.png";
+    const iconsURL = "./images/blocklywhitesprites.svg";
     setIconImage(binIcon, iconsURL);
     setIconImage(zoomIcons, iconsURL);
   } else {
-    const iconsURL = getBlocklyMediaPath() + "sprites.png";
+    const iconsURL = getBlocklyMediaPath() + "sprites.svg";
     setIconImage(binIcon, iconsURL);
     setIconImage(zoomIcons, iconsURL);
   }
