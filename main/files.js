@@ -351,6 +351,8 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
       );
       throw error; // Re-throw errors - don't try to recover
     }
+
+    console.error("Workspace load failed:", error);
   }
 }
 
