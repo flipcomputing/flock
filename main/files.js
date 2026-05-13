@@ -992,7 +992,6 @@ export function newProject() {
   // Load the empty project template
   fetchProjectJson("examples/new.flock")
     .then((json) => {
-      clearFileHandle();
       loadWorkspaceAndExecute(json, workspace, window.executeCode);
     })
     .catch((error) => {

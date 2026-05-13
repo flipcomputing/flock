@@ -477,5 +477,4 @@ window.onload = async function () {
   setupInput();
 
   loadWorkspace(workspace, executeCode);
-  
 };
