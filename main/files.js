@@ -5,30 +5,14 @@ import { translate } from "./translation.js";
 import { getMetadata } from "meta-png";
 import { AUTOSAVE_KEY } from "../config.js";
 
-// Function to save the current workspace state
 export function saveWorkspace(workspace) {
-  if (!workspace || !workspace.getAllBlocks) {
-    return;
-  }
-  if (workspace.getAllBlocks(false).length === 0) {
-    return;
-  }
-
-  if (workspace && workspace.getAllBlocks) {
-    const usedModels = Blockly.Variables.allUsedVarModels(workspace);
-    const allModels = workspace.getVariableMap().getAllVariables();
-    for (const model of allModels) {
-      if (!usedModels.find((element) => element.getId() === model.getId())) {
-        workspace.deleteVariableById(model.getId());
-      }
-    }
-  }
-  const state = Blockly.serialization.workspaces.save(workspace);
-  const key = AUTOSAVE_KEY;
   try {
+    if (!workspace || !workspace.getAllBlocks) return;
+    const state = Blockly.serialization.workspaces.save(workspace);
+    if (!state || !state.blocks || !state.blocks.blocks?.length) return;
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(state));
-  } catch (error) {
-    console.error("Failed to autosave workspace to localStorage:", error);
+  } catch (e) {
+    console.error("Autosave failed; keeping previous state", e);
   }
 }
 
