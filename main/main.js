@@ -48,7 +48,7 @@ import {
   initializeSavedLanguage,
   translate,
 } from "./translation.js";
-import { ShortcutsPanel } from "./accessibility.js";
+import { ShortcutsPanel } from "../accessibility/keyboardui.js";
 import { InputManager } from "./inputmanager.js";
 import "./context.js";
 

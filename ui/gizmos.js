@@ -32,7 +32,7 @@ import {
 } from "./canvas-utils.js";
 import { createAxisKeyboardHandler } from "./axis-keyboard.js";
 import { InputManager } from "../main/inputmanager.js";
-import { GizmoMenuManager } from "../main/accessibility.js";
+import { GizmoMenuManager } from "../accessibility/keyboardui.js";
 export let gizmoManager;
 
 // Enable debug messages

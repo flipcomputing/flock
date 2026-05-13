@@ -1,6 +1,6 @@
-import { InputManager } from "./inputmanager.js";
-import { ContextManager } from "./context.js";
-import { translate } from "./translation.js";
+import { InputManager } from "../main/inputmanager.js";
+import { ContextManager } from "../main/context.js";
+import { translate } from "../main/translation.js";
 import { SHORTCUTS_HELP_URL } from "../config.js";
 
 // Area menu accessed with Ctrl + B to quickly skip to
@@ -33,7 +33,6 @@ const AreaManager = {
     // Create the element dynamically so you don't have to edit index.html
     const div = document.createElement("div");
     div.id = "area-menu-overlay";
-    div.className = "hidden";
     div.classList.add("hidden");
     div.setAttribute("role", "dialog");
     div.setAttribute("aria-modal", "true");
@@ -49,7 +48,19 @@ const AreaManager = {
       if (show) {
         GizmoMenuManager.toggle(false); // Close gizmo menu if open
         this.renderHighlights();
+        this._previousInertStates = new Map();
+        document
+          .querySelectorAll("body > *:not(#area-menu-overlay)")
+          .forEach((el) => {
+            this._previousInertStates.set(el, el.inert);
+            el.inert = true;
+          });
+        this.previousFocus = document.activeElement;
         setTimeout(() => this.overlay.focus(), 0);
+      } else {
+        this._previousInertStates?.forEach((wasInert, el) => (el.inert = wasInert));
+        this._previousInertStates = null;
+        this.previousFocus?.focus();
       }
       this.overlay.classList.toggle("hidden", !show);
     }
@@ -486,7 +497,7 @@ const ShortcutsPanel = {
     tbody.innerHTML = Object.entries(groups)
       .map(
         ([cat, items]) => `
-      <tr><th colspan="2">${cat}</th></tr>
+      <tr><th colspan="2" scope="rowgroup">${cat}</th></tr>
       ${items.map(({ label, keys }) => `<tr><td>${label}</td><td>${formatKeys(keys)}</td></tr>`).join("")}
     `,
       )
