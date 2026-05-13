@@ -7,6 +7,13 @@ import { AUTOSAVE_KEY } from "../config.js";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
+  if (!workspace || !workspace.getAllBlocks) {
+    return;
+  }
+  if (workspace.getAllBlocks(false).length === 0) {
+    return;
+  }
+
   if (workspace && workspace.getAllBlocks) {
     const usedModels = Blockly.Variables.allUsedVarModels(workspace);
     const allModels = workspace.getVariableMap().getAllVariables();
