@@ -453,11 +453,15 @@ export function loadWorkspace(workspace, executeCallback) {
         });
     }
   } else if (savedState) {
-    loadWorkspaceAndExecute(
-      JSON.parse(savedState),
-      workspace,
-      effectiveCallback,
-    );
+    try {
+      loadWorkspaceAndExecute(
+        JSON.parse(savedState),
+        workspace,
+        effectiveCallback,
+      );
+    } catch (error) {
+      console.error("Autosave entry could not be loaded:", error);
+    }
   } else {
     loadStarter();
   }
