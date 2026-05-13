@@ -36,27 +36,55 @@ export const flockMovement = {
     const stepProbeDistance = 0.6;
     const maxVerticalVelocity = 3.0;
 
-    const up = flock.BABYLON.Vector3.Up();
     const scene = flock.scene;
-
-    // Desired horizontal direction from camera
-    const cameraForward = scene.activeCamera.getForwardRay().direction;
-    const horizontalForward = new flock.BABYLON.Vector3(
-      cameraForward.x,
-      0,
-      cameraForward.z,
-    ).normalize();
-    const desiredHorizontalVelocity = horizontalForward.scale(speed);
-
-    // --- Grounded check via capsule shapeCast ---
-    const groundCheckStart = model.position.clone();
-    const groundCheckEnd = groundCheckStart.add(
-      new flock.BABYLON.Vector3(0, -groundCheckDistance, 0),
-    );
-
     const physicsEngine = scene.getPhysicsEngine();
     if (!physicsEngine) return;
     const havokPlugin = physicsEngine.getPhysicsPlugin();
+
+    const B = flock.BABYLON;
+    const up = B.Vector3.UpReadOnly;
+
+    // One-time per-mesh cache of scratch state to keep this hot path alloc-free.
+    let cache = model._moveForwardCache;
+    if (!cache) {
+      const makeQuery = () => ({
+        shape: null,
+        rotation: new B.Quaternion(0, 0, 0, 1),
+        startPosition: new B.Vector3(),
+        endPosition: new B.Vector3(),
+        shouldHitTriggers: false,
+        ignoredBodies: [],
+        collisionFilterGroup: -1,
+        collisionFilterMask: -1,
+      });
+      cache = model._moveForwardCache = {
+        groundCastResult: new B.ShapeCastResult(),
+        groundHitResult: new B.ShapeCastResult(),
+        stepLowResult: new B.ShapeCastResult(),
+        stepLowHitResult: new B.ShapeCastResult(),
+        stepHighResult: new B.ShapeCastResult(),
+        stepHighHitResult: new B.ShapeCastResult(),
+        groundQuery: makeQuery(),
+        stepLowQuery: makeQuery(),
+        stepHighQuery: makeQuery(),
+        forwardLocal: B.Vector3.Forward(),
+        cameraForward: new B.Vector3(),
+        horizontalForward: new B.Vector3(),
+        desiredHorizontalVelocity: new B.Vector3(),
+        currentVelocity: new B.Vector3(),
+        currentHorizontalVelocity: new B.Vector3(),
+        appliedHorizontalVelocity: new B.Vector3(),
+        finalVelocity: new B.Vector3(),
+        boostedVelocity: new B.Vector3(),
+        facingDirection: new B.Vector3(),
+        normalScratch: new B.Vector3(),
+        angularVelocity: new B.Vector3(),
+        deltaEuler: new B.Vector3(),
+        targetRotation: new B.Quaternion(),
+        currentRotationConjugate: new B.Quaternion(),
+        deltaRotation: new B.Quaternion(),
+      };
+    }
 
     const groundShapeKey = `${capsuleHeightBottomOffset}:${capsuleRadius}`;
     if (
@@ -64,9 +92,9 @@ export const flockMovement = {
       model._groundQueryShapeKey !== groundShapeKey
     ) {
       model._groundQueryShape?.dispose();
-      model._groundQueryShape = new flock.BABYLON.PhysicsShapeCapsule(
-        new flock.BABYLON.Vector3(0, -capsuleHeightBottomOffset, 0),
-        new flock.BABYLON.Vector3(0, capsuleHeightBottomOffset, 0),
+      model._groundQueryShape = new B.PhysicsShapeCapsule(
+        new B.Vector3(0, -capsuleHeightBottomOffset, 0),
+        new B.Vector3(0, capsuleHeightBottomOffset, 0),
         capsuleRadius,
         scene,
       );
@@ -82,26 +110,42 @@ export const flockMovement = {
       }
     }
 
-    const groundQuery = {
-      shape: model._groundQueryShape,
-      rotation: model.rotationQuaternion || flock.BABYLON.Quaternion.Identity(),
-      startPosition: groundCheckStart,
-      endPosition: groundCheckEnd,
-      shouldHitTriggers: false,
-      ignoredBodies: [], // must be an array
-      collisionFilterGroup: -1,
-      collisionFilterMask: -1,
-    };
+    // Camera forward direction (no alloc)
+    scene.activeCamera.getDirectionToRef(
+      cache.forwardLocal,
+      cache.cameraForward,
+    );
 
-    const groundResult = new flock.BABYLON.ShapeCastResult();
-    const groundHitResult = new flock.BABYLON.ShapeCastResult();
-    havokPlugin.shapeCast(groundQuery, groundResult, groundHitResult);
+    const horizontalForward = cache.horizontalForward;
+    horizontalForward.set(cache.cameraForward.x, 0, cache.cameraForward.z);
+    horizontalForward.normalize();
+    horizontalForward.scaleToRef(speed, cache.desiredHorizontalVelocity);
+
+    // --- Grounded check via capsule shapeCast ---
+    const groundQuery = cache.groundQuery;
+    groundQuery.shape = model._groundQueryShape;
+    groundQuery.startPosition.copyFrom(model.position);
+    groundQuery.endPosition.copyFrom(model.position);
+    groundQuery.endPosition.y -= groundCheckDistance;
+    if (model.rotationQuaternion) {
+      groundQuery.rotation.copyFrom(model.rotationQuaternion);
+    } else {
+      groundQuery.rotation.copyFromFloats(0, 0, 0, 1);
+    }
+
+    havokPlugin.shapeCast(
+      groundQuery,
+      cache.groundCastResult,
+      cache.groundHitResult,
+    );
 
     let grounded = false;
-    if (groundResult.hasHit) {
-      const n = groundResult.hitNormalWorld;
+    if (cache.groundCastResult.hasHit) {
+      const n = cache.groundCastResult.hitNormalWorld;
       if (n) {
-        const dot = flock.BABYLON.Vector3.Dot(n.normalize(), up);
+        cache.normalScratch.copyFrom(n);
+        cache.normalScratch.normalize();
+        const dot = B.Vector3.Dot(cache.normalScratch, up);
         const clampedDot = Math.min(Math.max(dot, -1), 1);
         const angleDeg = (Math.acos(clampedDot) * 180) / Math.PI;
         grounded = angleDeg <= maxSlopeAngleDeg;
@@ -121,94 +165,82 @@ export const flockMovement = {
       : false;
 
     // --- Horizontal control policy ---
-    const currentVelocity = model.physics.getLinearVelocity();
-    const currentHorizontalVelocity = new flock.BABYLON.Vector3(
-      currentVelocity.x,
-      0,
-      currentVelocity.z,
-    );
+    model.physics.getLinearVelocityToRef(cache.currentVelocity);
+    const currentVelocity = cache.currentVelocity;
+    cache.currentHorizontalVelocity.set(currentVelocity.x, 0, currentVelocity.z);
 
-    let appliedHorizontalVelocity;
+    const appliedHorizontalVelocity = cache.appliedHorizontalVelocity;
     if (grounded || withinCoyoteTime) {
       // full control on ground/coyote
-      appliedHorizontalVelocity = desiredHorizontalVelocity;
+      appliedHorizontalVelocity.copyFrom(cache.desiredHorizontalVelocity);
     } else {
       // airborne: no acceleration toward input, apply drag
-      appliedHorizontalVelocity =
-        currentHorizontalVelocity.scale(airDragPerTick);
+      cache.currentHorizontalVelocity.scaleToRef(
+        airDragPerTick,
+        appliedHorizontalVelocity,
+      );
       if (airControlFactor > 0) {
-        appliedHorizontalVelocity = appliedHorizontalVelocity.add(
-          desiredHorizontalVelocity.scale(airControlFactor),
+        cache.desiredHorizontalVelocity.scaleAndAddToRef(
+          airControlFactor,
+          appliedHorizontalVelocity,
         );
       }
     }
 
     // --- Step-up probe to allow ledge hops when near ground ---
     if (grounded || withinCoyoteTime) {
-      const probeStartLow = model.position.add(
-        new flock.BABYLON.Vector3(0, 0.05, 0),
-      );
-      const probeEndLow = probeStartLow.add(
-        horizontalForward.scale(stepProbeDistance),
-      );
-      const probeStartHigh = probeStartLow.add(
-        new flock.BABYLON.Vector3(0, stepHeight + 0.1, 0),
-      );
-      const probeEndHigh = probeStartHigh.add(
-        horizontalForward.scale(stepProbeDistance),
-      );
-
       const stepSphereRadius = capsuleRadius * 0.8;
       if (
         !model._stepProbeShape ||
         model._stepProbeShapeRadius !== stepSphereRadius
       ) {
         model._stepProbeShape?.dispose();
-        model._stepProbeShape = new flock.BABYLON.PhysicsShapeSphere(
-          new flock.BABYLON.Vector3(0, 0, 0),
+        model._stepProbeShape = new B.PhysicsShapeSphere(
+          new B.Vector3(0, 0, 0),
           stepSphereRadius,
           scene,
         );
         model._stepProbeShapeRadius = stepSphereRadius;
       }
 
-      const stepProbeQueryLow = {
-        shape: model._stepProbeShape,
-        rotation: flock.BABYLON.Quaternion.Identity(),
-        startPosition: probeStartLow,
-        endPosition: probeEndLow,
-        shouldHitTriggers: false,
-        ignoredBodies: [],
-        collisionFilterGroup: -1,
-        collisionFilterMask: -1,
-      };
-      const stepProbeQueryHigh = {
-        ...stepProbeQueryLow,
-        startPosition: probeStartHigh,
-        endPosition: probeEndHigh,
-      };
+      const lowQuery = cache.stepLowQuery;
+      lowQuery.shape = model._stepProbeShape;
+      lowQuery.startPosition.copyFrom(model.position);
+      lowQuery.startPosition.y += 0.05;
+      horizontalForward.scaleToRef(stepProbeDistance, lowQuery.endPosition);
+      lowQuery.endPosition.addInPlace(lowQuery.startPosition);
 
-      const lowResult = new flock.BABYLON.ShapeCastResult();
-      const lowHitResult = new flock.BABYLON.ShapeCastResult();
-      havokPlugin.shapeCast(stepProbeQueryLow, lowResult, lowHitResult);
+      const highQuery = cache.stepHighQuery;
+      highQuery.shape = model._stepProbeShape;
+      highQuery.startPosition.copyFrom(lowQuery.startPosition);
+      highQuery.startPosition.y += stepHeight + 0.1;
+      horizontalForward.scaleToRef(stepProbeDistance, highQuery.endPosition);
+      highQuery.endPosition.addInPlace(highQuery.startPosition);
 
-      if (lowResult.hasHit) {
-        const highResult = new flock.BABYLON.ShapeCastResult();
-        const highHitResult = new flock.BABYLON.ShapeCastResult();
-        havokPlugin.shapeCast(stepProbeQueryHigh, highResult, highHitResult);
-        if (!highResult.hasHit) {
+      havokPlugin.shapeCast(
+        lowQuery,
+        cache.stepLowResult,
+        cache.stepLowHitResult,
+      );
+
+      if (cache.stepLowResult.hasHit) {
+        havokPlugin.shapeCast(
+          highQuery,
+          cache.stepHighResult,
+          cache.stepHighHitResult,
+        );
+        if (!cache.stepHighResult.hasHit) {
           // Only boost if we haven't recently boosted
           const lastStepBoost = model._lastStepBoost || 0;
           if (nowMs - lastStepBoost > 400) {
             model._lastStepBoost = nowMs;
 
-            // Apply upward boost
-            const boostedVelocity = new flock.BABYLON.Vector3(
+            cache.boostedVelocity.set(
               appliedHorizontalVelocity.x,
               Math.max(currentVelocity.y, 2.5),
               appliedHorizontalVelocity.z,
             );
-            model.physics.setLinearVelocity(boostedVelocity);
+            model.physics.setLinearVelocity(cache.boostedVelocity);
             return; // Skip rest of movement logic this frame
           }
         }
@@ -221,34 +253,39 @@ export const flockMovement = {
       maxVerticalVelocity,
     );
 
-    const finalVelocity = new flock.BABYLON.Vector3(
+    cache.finalVelocity.set(
       appliedHorizontalVelocity.x,
       clampedVertical,
       appliedHorizontalVelocity.z,
     );
-    model.physics.setLinearVelocity(finalVelocity);
+    model.physics.setLinearVelocity(cache.finalVelocity);
 
     // --- Face movement direction if there is meaningful horizontal speed ---
     const horizontalSpeedSq = appliedHorizontalVelocity.lengthSquared();
     if (horizontalSpeedSq > 1e-6) {
-      const facingDirection = appliedHorizontalVelocity.normalize();
-      const targetRotation = flock.BABYLON.Quaternion.FromLookDirectionLH(
-        facingDirection,
+      appliedHorizontalVelocity.normalizeToRef(cache.facingDirection);
+      B.Quaternion.FromLookDirectionLHToRef(
+        cache.facingDirection,
         up,
+        cache.targetRotation,
       );
-      const currentRotation =
-        model.rotationQuaternion || flock.BABYLON.Quaternion.Identity();
-      const deltaRotation = targetRotation.multiply(
-        currentRotation.conjugate(),
+      if (model.rotationQuaternion) {
+        cache.currentRotationConjugate.copyFrom(model.rotationQuaternion);
+      } else {
+        cache.currentRotationConjugate.copyFromFloats(0, 0, 0, 1);
+      }
+      cache.currentRotationConjugate.conjugateInPlace();
+      cache.targetRotation.multiplyToRef(
+        cache.currentRotationConjugate,
+        cache.deltaRotation,
       );
-      const deltaEuler = deltaRotation.toEulerAngles();
-      model.physics.setAngularVelocity(
-        new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0),
-      );
+      cache.deltaRotation.toEulerAnglesToRef(cache.deltaEuler);
+      cache.angularVelocity.set(0, cache.deltaEuler.y * 5, 0);
+      model.physics.setAngularVelocity(cache.angularVelocity);
     }
 
     if (!model.rotationQuaternion) {
-      model.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+      model.rotationQuaternion = B.Quaternion.RotationYawPitchRoll(
         model.rotation.y,
         model.rotation.x,
         model.rotation.z,
@@ -266,52 +303,66 @@ export const flockMovement = {
 
     flock.ensureVerticalConstraint(model);
 
+    const B = flock.BABYLON;
+    const up = B.Vector3.UpReadOnly;
     const sidewaysSpeed = speed;
 
-    // Get the camera's right direction vector (perpendicular to the forward direction)
-    const cameraRight = flock.scene.activeCamera
-      .getDirection(flock.BABYLON.Vector3.Right())
-      .normalize();
+    let cache = model._moveSidewaysCache;
+    if (!cache) {
+      cache = model._moveSidewaysCache = {
+        rightLocal: B.Vector3.Right(),
+        cameraRight: new B.Vector3(),
+        currentVelocity: new B.Vector3(),
+        finalVelocity: new B.Vector3(),
+        facingDirection: new B.Vector3(),
+        angularVelocity: new B.Vector3(),
+        deltaEuler: new B.Vector3(),
+        targetRotation: new B.Quaternion(),
+        currentRotationConjugate: new B.Quaternion(),
+        deltaRotation: new B.Quaternion(),
+      };
+    }
 
-    const moveDirection = cameraRight.scale(sidewaysSpeed);
-    const currentVelocity = model.physics.getLinearVelocity();
-
-    // Set linear velocity in the sideways direction
-    model.physics.setLinearVelocity(
-      new flock.BABYLON.Vector3(
-        moveDirection.x,
-        currentVelocity.y, // Keep Y velocity (no vertical movement)
-        moveDirection.z,
-      ),
+    flock.scene.activeCamera.getDirectionToRef(
+      cache.rightLocal,
+      cache.cameraRight,
     );
+    cache.cameraRight.normalize();
+
+    model.physics.getLinearVelocityToRef(cache.currentVelocity);
+
+    cache.finalVelocity.set(
+      cache.cameraRight.x * sidewaysSpeed,
+      cache.currentVelocity.y, // Keep Y velocity (no vertical movement)
+      cache.cameraRight.z * sidewaysSpeed,
+    );
+    model.physics.setLinearVelocity(cache.finalVelocity);
 
     // Rotate the model to face the direction of movement
-    const facingDirection =
-      sidewaysSpeed <= 0
-        ? new flock.BABYLON.Vector3(
-            -cameraRight.x,
-            0,
-            -cameraRight.z,
-          ).normalize() // Right
-        : new flock.BABYLON.Vector3(
-            cameraRight.x,
-            0,
-            cameraRight.z,
-          ).normalize(); // Left
+    const sign = sidewaysSpeed <= 0 ? -1 : 1;
+    cache.facingDirection.set(
+      cache.cameraRight.x * sign,
+      0,
+      cache.cameraRight.z * sign,
+    );
+    cache.facingDirection.normalize();
 
-    const targetRotation = flock.BABYLON.Quaternion.FromLookDirectionLH(
-      facingDirection,
-      flock.BABYLON.Vector3.Up(),
+    B.Quaternion.FromLookDirectionLHToRef(
+      cache.facingDirection,
+      up,
+      cache.targetRotation,
     );
 
-    const currentRotation = model.rotationQuaternion;
-    const deltaRotation = targetRotation.multiply(currentRotation.conjugate());
-    const deltaEuler = deltaRotation.toEulerAngles();
-
-    // Apply angular velocity to smoothly rotate the player
-    model.physics.setAngularVelocity(
-      new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0),
+    cache.currentRotationConjugate.copyFrom(model.rotationQuaternion);
+    cache.currentRotationConjugate.conjugateInPlace();
+    cache.targetRotation.multiplyToRef(
+      cache.currentRotationConjugate,
+      cache.deltaRotation,
     );
+    cache.deltaRotation.toEulerAnglesToRef(cache.deltaEuler);
+
+    cache.angularVelocity.set(0, cache.deltaEuler.y * 5, 0);
+    model.physics.setAngularVelocity(cache.angularVelocity);
 
     // Normalize the model's rotation to avoid drift
     model.rotationQuaternion.x = 0;
@@ -322,25 +373,37 @@ export const flockMovement = {
     const model = flock.scene.getMeshByName(modelName);
     if (!model || speed === 0) return;
 
+    const B = flock.BABYLON;
+    const up = B.Vector3.UpReadOnly;
     const sidewaysSpeed = -speed;
 
-    // Get the camera's right direction vector (perpendicular to the forward direction)
-    const cameraRight = flock.scene.activeCamera
-      .getForwardRay()
-      .direction.cross(flock.BABYLON.Vector3.Up())
-      .normalize();
+    let cache = model._strafeCache;
+    if (!cache) {
+      cache = model._strafeCache = {
+        forwardLocal: B.Vector3.Forward(),
+        cameraForward: new B.Vector3(),
+        cameraRight: new B.Vector3(),
+        currentVelocity: new B.Vector3(),
+        finalVelocity: new B.Vector3(),
+      };
+    }
 
-    const moveDirection = cameraRight.scale(sidewaysSpeed);
-    const currentVelocity = model.physics.getLinearVelocity();
-
-    // Set linear velocity in the sideways direction (left or right)
-    model.physics.setLinearVelocity(
-      new flock.BABYLON.Vector3(
-        moveDirection.x,
-        currentVelocity.y,
-        moveDirection.z,
-      ),
+    // cameraRight = normalize(cameraForward × up)
+    flock.scene.activeCamera.getDirectionToRef(
+      cache.forwardLocal,
+      cache.cameraForward,
     );
+    B.Vector3.CrossToRef(cache.cameraForward, up, cache.cameraRight);
+    cache.cameraRight.normalize();
+
+    model.physics.getLinearVelocityToRef(cache.currentVelocity);
+
+    cache.finalVelocity.set(
+      cache.cameraRight.x * sidewaysSpeed,
+      cache.currentVelocity.y,
+      cache.cameraRight.z * sidewaysSpeed,
+    );
+    model.physics.setLinearVelocity(cache.finalVelocity);
   },
   updateDynamicMeshPositions(scene, dynamicMeshes) {
     dynamicMeshes.forEach((mesh) => {
