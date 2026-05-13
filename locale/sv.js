@@ -1198,6 +1198,11 @@ export default {
   RightLeg_option: "Höger smalben",
   RightFoot_option: "Höger fot",
 
+  // Workspace toolbar
+  toolbar_undo_ui: "Ångra",
+  toolbar_redo_ui: "Gör om",
+  toolbar_zoom_out_ui: "Zooma ut",
+  toolbar_zoom_in_ui: "Zooma in",
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: "Tangentbordsgenvägar",
   shortcut_panel_close: "Stäng tangentbordsgenvägar",
