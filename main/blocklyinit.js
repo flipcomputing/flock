@@ -677,7 +677,9 @@ export function initializeWorkspace() {
     });
   };
   workspaceSearch.unhighlightSearchGroup = function (blocks) {
-    blocks.forEach((block) => block.getSvgRoot()?.classList.remove("ws-search-match"));
+    blocks.forEach((block) =>
+      block.getSvgRoot()?.classList.remove("ws-search-match"),
+    );
     workspace.getTopBlocks(false).forEach((block) => {
       block.getSvgRoot()?.classList.remove("ws-search-fade");
     });
@@ -816,25 +818,27 @@ export function createBlocklyWorkspace() {
     if (event.type !== Blockly.Events.SELECTED) return;
 
     if (!event.newElementId) {
-      const widgetDiv = document.querySelector('.blocklyWidgetDiv');
+      const widgetDiv = document.querySelector(".blocklyWidgetDiv");
       if (widgetDiv?.childElementCount > 0) return;
-      activeXyzBlock?.getSvgRoot()?.removeAttribute('data-xyz-active');
+      activeXyzBlock?.getSvgRoot()?.removeAttribute("data-xyz-active");
       activeXyzBlock = null;
       return;
     }
 
     let block = workspace.getBlockById(event.newElementId);
-    while (block && !block.inputList?.some(i => ['X','Y','Z'].includes(i.name))) {
+    while (
+      block &&
+      !block.inputList?.some((i) => ["X", "Y", "Z"].includes(i.name))
+    ) {
       block = block.getParent?.() ?? null;
     }
 
     if (block !== activeXyzBlock) {
-      activeXyzBlock?.getSvgRoot()?.removeAttribute('data-xyz-active');
+      activeXyzBlock?.getSvgRoot()?.removeAttribute("data-xyz-active");
       activeXyzBlock = block ?? null;
-      activeXyzBlock?.getSvgRoot()?.setAttribute('data-xyz-active', '');
+      activeXyzBlock?.getSvgRoot()?.setAttribute("data-xyz-active", "");
     }
   });
-
 
   // Initialize keyboard navigation.
 
@@ -844,7 +848,7 @@ export function createBlocklyWorkspace() {
     shortcutRegistry.removeAllKeyMappings?.("menu");
     shortcutRegistry.unregister?.("menu");
   }
- 
+
   const toolbox = workspace.getToolbox();
   toolbox.onKeyDown_ = function () {
     return false;
@@ -1498,6 +1502,7 @@ export function createBlocklyWorkspace() {
     }
   };
 
+  // Assuming Blockly 13 has removed toasts, this is not needed
   function copyWithoutToast(block) {
     if (!block) return;
     if (Blockly.Toast?.show) Blockly.Toast.show = () => {};

@@ -166,7 +166,23 @@ body[data-theme="dark-contrast"] {
 }
 
 textarea.blocklyCommentText.blocklyTextarea.blocklyText {
-  color: black;
+  color: black !important;
+}
+
+textarea.blocklyCommentText::placeholder {
+  color: #999 !important;
+  font-style: italic;
+}
+
+/* Always 2px so border-width never changes on focus (prevents text wiggle) */
+.blocklyComment .blocklyTextarea {
+  border-width: 2px !important;
+}
+
+.blocklyCommentText.blocklyActiveFocus {
+  border-color: #000 !important;
+  background-color: #fff !important;
+  color: #000 !important;
 }
 
 .blocklyTreeRow {
@@ -497,6 +513,14 @@ body[data-theme="low-vision"] {
   color: #000000 !important;
 }
 
+.blocklyFieldColour .blocklyFieldGrid .blocklyFieldGridItem:focus {
+  box-shadow: 0 0 0 4px #000 !important;
+}
+
+[data-theme="low-vision"] .blocklyFieldColour .blocklyFieldGrid .blocklyFieldGridItem:focus {
+  box-shadow: 0 0 0 4px #fff !important;
+}
+
 body .blocklyHtmlInput {
   font-family:
     "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
@@ -575,6 +599,13 @@ body[data-theme="dark"] .blocklyTreeLabel {
 }
 
 .blocklyToolboxCategoryContainer:focus {
+  outline: none !important;
+}
+
+.blocklyKeyboardNavigation .blocklyToolbox:has(.blocklyActiveFocus),
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyToolbox,
+.blocklyKeyboardNavigation .blocklyFlyout:has(.blocklyActiveFocus),
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyFlyout {
   outline: none !important;
 }
 
