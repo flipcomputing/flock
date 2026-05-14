@@ -2,7 +2,6 @@ import * as Blockly from "blockly";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { initializeTheme } from "./themes.js";
-import { installHoverHighlight } from "./blockhandling.js";
 import { translate } from "./translation.js";
 import {
   options,
@@ -1631,7 +1630,6 @@ export function createBlocklyWorkspace() {
   );
 
   initializeTheme();
-  installHoverHighlight(workspace);
 
   // Register comment options for workspace comments
   Blockly.ContextMenuItems.registerCommentOptions();
