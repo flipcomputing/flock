@@ -42,7 +42,7 @@ export async function executeCode(options = {}) {
   try {
     // Generate the code from the workspace
     const code = javascriptGenerator.workspaceToCode(workspace);
-    console.log(code);
+    //console.log(code);
     await flock.runCode(code, options);
   } catch (error) {
     console.error("Error executing Blockly code:", error);
