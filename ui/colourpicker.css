@@ -532,7 +532,7 @@
 .color-picker-close:focus {
   background: #f0f0f0;
   color: #333;
-  outline: 3px solid var(--color-outline-focus);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -655,7 +655,7 @@
 
 .color-brightness:hover,
 .color-brightness:focus {
-  outline: 3px solid var(--color-outline-focus);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
   transform: scale(1.02);
 }
@@ -707,7 +707,7 @@
 .advanced-toggle:hover,
 .advanced-toggle:focus {
   background: #e8e8e8;
-  outline: 3px solid var(--color-outline-focus);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -751,7 +751,7 @@
 }
 
 .rgb-slider:focus {
-  outline: 3px solid var(--color-outline-focus);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -787,7 +787,7 @@
 }
 
 .rgb-number:focus {
-  outline: 3px solid var(--color-outline-focus);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -807,7 +807,7 @@
 }
 
 .css-color-input:focus {
-  outline: 3px solid var(--color-outline-focus);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
