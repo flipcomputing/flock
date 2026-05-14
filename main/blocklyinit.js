@@ -842,13 +842,6 @@ export function createBlocklyWorkspace() {
 
   // Initialize keyboard navigation.
 
-  const shortcutRegistry = Blockly.ShortcutRegistry.registry;
-  const keyboardShortcuts = shortcutRegistry.getRegistry?.();
-  if (keyboardShortcuts?.menu) {
-    shortcutRegistry.removeAllKeyMappings?.("menu");
-    shortcutRegistry.unregister?.("menu");
-  }
-
   const toolbox = workspace.getToolbox();
   toolbox.onKeyDown_ = function () {
     return false;
