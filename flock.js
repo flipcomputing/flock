@@ -1591,6 +1591,22 @@ export const flock = {
         flock.stopAllSounds();
         flock.engine?.stopRenderLoop();
 
+        if (flock.ground?.metadata) {
+          const md = flock.ground.metadata;
+          try {
+            if (md.heightmapBody?._pluginData?.hpBodyId && flock.hk?.world) {
+              flock.hk._hknp.HP_World_RemoveBody(
+                flock.hk.world,
+                md.heightmapBody._pluginData.hpBodyId,
+              );
+            }
+          } catch (e) { /* ignore */ }
+          try { md.heightmapBody?.dispose(); } catch {}
+          try { md.heightmapShape?.dispose(); } catch {}
+          md.heightmapBody = null;
+          md.heightmapShape = null;
+        }
+
         flock._cameraControlBindings = null;
         flock._actionMapOverrides = null;
 

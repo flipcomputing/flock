@@ -395,7 +395,14 @@ export const flockScene = {
               false,
               flock.scene,
             );
-            body.shape = new flock.BABYLON.PhysicsShapeMesh(gm, flock.scene);
+            const heightmapShape = new flock.BABYLON.PhysicsShapeMesh(
+              gm,
+              flock.scene,
+            );
+            body.shape = heightmapShape;
+            gm.metadata = gm.metadata || {};
+            gm.metadata.heightmapBody = body;
+            gm.metadata.heightmapShape = heightmapShape;
             if (shouldScaleUVs) scaleGroundUVs(gm);
             applyMaterialToGround(gm, material);
           },
@@ -505,6 +512,27 @@ export const flockScene = {
       if (mesh.material && !mesh.material.metadata?.isManaged) {
         mesh.material.dispose(true, true);
       }
+      const md = mesh.metadata;
+      if (md?.heightmapBody) {
+        try {
+          if (md.heightmapBody._pluginData?.hpBodyId && flock.hk?.world) {
+            flock.hk._hknp.HP_World_RemoveBody(
+              flock.hk.world,
+              md.heightmapBody._pluginData.hpBodyId,
+            );
+          }
+        } catch (e) {
+          /* ignore */
+        }
+        try {
+          md.heightmapBody.dispose();
+        } catch {}
+        try {
+          md.heightmapShape?.dispose();
+        } catch {}
+        md.heightmapBody = null;
+        md.heightmapShape = null;
+      }
       mesh.dispose();
       flock.ground = null;
       return;
@@ -597,7 +625,7 @@ export const flockScene = {
     meshesToDispose.reverse().forEach((currentMesh) => {
       if (!currentMesh.isDisposed()) {
         if (currentMesh.physics) {
-          currentMesh.physics.shape?.dispose()
+          currentMesh.physics.shape?.dispose();
           currentMesh.physics.dispose();
         }
         flock.scene.removeMesh(currentMesh);
