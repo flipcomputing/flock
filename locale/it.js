@@ -1244,6 +1244,7 @@ export default {
   shortcut_select_previous_result: "Risultato di ricerca precedente",
   shortcut_focus_result: "Vai al risultato di ricerca selezionato",
   shortcut_move_through_blocks: "Navigare tra i blocchi",
+  shortcut_start_move_block: "Sposta blocco",
   shortcut_open_gizmos: "Gizmos",
   shortcut_select_gizmo: "Seleziona gizmo",
   shortcut_keyboard_cursor_gizmos: "Cursore da tastiera per i gizmos",
