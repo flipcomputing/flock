@@ -645,13 +645,60 @@ function initializeApp() {
     const ctx = ContextManager.getCurrentContext();
     if (ctx === "TYPING") return;
     if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+    if (document.activeElement?.closest(".blocklyToolbox")) return;
     e.preventDefault();
-    const toolbox = workspace.getToolbox?.();
-    if (!toolbox) return;
-    const toolboxDiv =
-      toolbox.HtmlDiv || document.querySelector(".blocklyToolboxDiv");
-    toolboxDiv?.focus();
-    Blockly.getFocusManager()?.focusTree?.(toolbox);
+     e.stopImmediatePropagation();
+      // Defer focus until after this keydown event finishes dispatching.
+      // The Blockly v13 toolbox-search category synchronously focuses its
+      // <input> when the toolbox receives focus, so moving focus inline
+      // here causes the 't' keypress to be typed into the search box.
+      setTimeout(() => {
+        const toolbox = workspace.getToolbox?.();
+        if (!toolbox) return;
+
+        const SearchCategory = Blockly.registry.getClass(
+          Blockly.registry.Type.TOOLBOX_ITEM,
+          "search",
+        );
+        const isSearchItem = (item) => {
+          if (!item) return false;
+          const def = item.getToolboxItemDef?.() || item.toolboxItemDef;
+          const kind = (def?.kind || "").toLowerCase();
+          return (
+            (SearchCategory && item instanceof SearchCategory) ||
+            kind === "search"
+          );
+        };
+
+        const selected = toolbox.getSelectedItem?.();
+        const previous = toolbox.getPreviouslySelectedItem?.();
+        const isFirstUse =
+          previous == null && (!selected || isSearchItem(selected));
+
+        let target = isFirstUse || !selected || isSearchItem(selected)
+          ? (toolbox.getToolboxItems?.() || []).find((item) => {
+              const def = item.getToolboxItemDef?.() || item.toolboxItemDef;
+              const kind = (def?.kind || "").toLowerCase();
+              if (isSearchItem(item) || kind === "sep" || kind === "label") {
+                return false;
+              }
+              return typeof item.isSelectable === "function"
+                ? item.isSelectable()
+                : true;
+            })
+          : selected;
+
+        const focusManager = Blockly.getFocusManager?.();
+        focusManager?.focusTree?.(toolbox);
+        if (target) {
+          toolbox.setSelectedItem?.(target);
+          focusManager?.focusNode?.(target);
+        } else {
+          const toolboxDiv =
+            toolbox.HtmlDiv || document.querySelector(".blocklyToolboxDiv");
+          toolboxDiv?.focus();
+        }
+      }, 0);
   });
   if (toggleDesignButton) {
     toggleDesignButton.addEventListener("click", toggleDesignMode);
