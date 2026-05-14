@@ -143,21 +143,8 @@ export function initializeBlockHandling() {
     const cursorX = 10;
     let cursorY = 10;
 
-    // --- Preserve current focus/selection/cursor ---
-    const prevSelected =
-      (Blockly.common && Blockly.common.getSelected?.()) || null;
-
-    // Keyboard Navigation (if installed)
-    const navCursor = workspace.getCursor?.() || null;
-    const prevCurNode = navCursor?.getCurNode ? navCursor.getCurNode() : null;
-
-    // Keep track of the exact focused element (for keyboard users)
-    const prevActiveEl = document.activeElement;
-
-    // Group events to reduce churn / side-effects
     Blockly.Events.setGroup(true);
     try {
-      // Get top-level roots (Blockly already filters by parent=null)
       const topBlocks = (workspace.getTopBlocks(false) || [])
         .filter((b) => !!b && !b.isInFlyout && !b.isShadow?.())
         .sort(
@@ -179,21 +166,37 @@ export function initializeBlockHandling() {
         }
       }
 
-      // Original z-order behaviour: top-level blocks (any type) to the front.
-      // Reuse topBlocks (already computed above) instead of getAllBlocks() to
-      // avoid iterating every block in the workspace and triggering unnecessary
-      // DOM reflows.
+      // Bring top-level blocks to the front in z-order so orphan blocks
+      // (newly created, just-detached, dropped on existing stacks) render on
+      // top of anything underneath them. canvas.appendChild on an existing
+      // child detaches+reattaches the node, which drops DOM focus on any
+      // focused descendant — so we snapshot document.activeElement around the
+      // loop and restore it afterwards. In Blockly v13, after a duplicate or
+      // delete this preserves the focus the focus_manager just placed on the
+      // new / fallback block.
       try {
         const canvas = workspace.getBlockCanvas?.();
         if (canvas) {
+          const activeBefore = document.activeElement;
+          const activeInsideCanvas =
+            activeBefore && canvas.contains(activeBefore) ? activeBefore : null;
+
           for (const b of topBlocks) {
             const svg = b.getSvgRoot?.();
-            if (svg && svg.parentNode === canvas) {
-              const isSelected = prevSelected && b.id === prevSelected.id;
+            if (svg && svg.parentNode === canvas && svg !== canvas.lastChild) {
               canvas.appendChild(svg);
-              if (isSelected) {
-                prevSelected.select();
-              }
+            }
+          }
+
+          if (
+            activeInsideCanvas &&
+            document.contains(activeInsideCanvas) &&
+            document.activeElement !== activeInsideCanvas
+          ) {
+            try {
+              activeInsideCanvas.focus({ preventScroll: true });
+            } catch {
+              // best-effort focus restoration
             }
           }
         }
@@ -202,38 +205,6 @@ export function initializeBlockHandling() {
       }
     } finally {
       Blockly.Events.setGroup(false);
-
-      // --- Restore selection and focus deterministically ---
-      // Re-select the previously selected block (if it still exists in this workspace)
-      if (prevSelected && !prevSelected.isDeadOrDying?.()) {
-        prevSelected.select?.();
-
-        // Restore keyboard nav cursor position (if available)
-        if (navCursor && prevCurNode) {
-          try {
-            navCursor.setCurNode(prevCurNode);
-          } catch (error) {
-            console.warn("Suppressed non-critical error:", error);
-          }
-        }
-
-        // Put DOM focus back on the block's SVG root for keyboard users
-        const svgRoot = prevSelected.getSvgRoot?.();
-        if (svgRoot && svgRoot.focus) {
-          try {
-            svgRoot.focus({ preventScroll: true });
-          } catch (error) {
-            console.warn("Suppressed non-critical error:", error);
-          }
-        } else if (prevActiveEl && document.contains(prevActiveEl)) {
-          // Fallback: restore whatever had focus before
-          try {
-            prevActiveEl.focus?.({ preventScroll: true });
-          } catch (error) {
-            console.warn("Suppressed non-critical error:", error);
-          }
-        }
-      }
     }
   }
 
@@ -504,6 +475,8 @@ export function initializeBlockHandling() {
     ) {
       clearTimeout(cleanupTimeout);
       cleanupTimeout = setTimeout(() => {
+        const activeBefore = document.activeElement;
+
         const wasEnabled = Blockly.Events.isEnabled();
         try {
           if (wasEnabled) Blockly.Events.disable(); // don't create undo entries
@@ -512,6 +485,21 @@ export function initializeBlockHandling() {
           if (wasEnabled) Blockly.Events.enable();
         }
         Blockly.Events.disableOrphans(workspace);
+
+        // Restore focus if the cleanup blurred it. Only restore if the
+        // element is still in the DOM and currently lacks focus.
+        if (
+          activeBefore &&
+          activeBefore !== document.body &&
+          document.contains(activeBefore) &&
+          document.activeElement !== activeBefore
+        ) {
+          try {
+            activeBefore.focus?.({ preventScroll: true });
+          } catch {
+            // best-effort
+          }
+        }
       }, 300); // adjust if you want snappier/slower cleanup
     }
 
