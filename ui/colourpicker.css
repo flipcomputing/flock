@@ -532,7 +532,7 @@
 .color-picker-close:focus {
   background: #f0f0f0;
   color: #333;
-  outline: 3px solid #511d91;
+  outline: 3px solid var(--color-outline-focus);
   outline-offset: 2px;
 }
 
@@ -655,7 +655,7 @@
 
 .color-brightness:hover,
 .color-brightness:focus {
-  outline: 3px solid #511d91;
+  outline: 3px solid var(--color-outline-focus);
   outline-offset: 2px;
   transform: scale(1.02);
 }
@@ -707,8 +707,7 @@
 .advanced-toggle:hover,
 .advanced-toggle:focus {
   background: #e8e8e8;
-  border-color: #511d91;
-  outline: 3px solid #511d91;
+  outline: 3px solid var(--color-outline-focus);
   outline-offset: 2px;
 }
 
@@ -752,7 +751,7 @@
 }
 
 .rgb-slider:focus {
-  outline: 3px solid #511d91;
+  outline: 3px solid var(--color-outline-focus);
   outline-offset: 2px;
 }
 
@@ -788,9 +787,8 @@
 }
 
 .rgb-number:focus {
-  outline: 3px solid #511d91;
+  outline: 3px solid var(--color-outline-focus);
   outline-offset: 2px;
-  border-color: #511d91;
 }
 
 /* CSS input */
@@ -805,13 +803,12 @@
   border-radius: 8px;
   font-size: 16px;
   font-family: monospace;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .css-color-input:focus {
-  outline: 3px solid #511d91;
+  outline: 3px solid var(--color-outline-focus);
   outline-offset: 2px;
-  border-color: #511d91;
 }
 
 /* Action buttons */
