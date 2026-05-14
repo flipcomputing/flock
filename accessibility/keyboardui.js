@@ -399,13 +399,28 @@ function getShortcuts() {
       category: translate("shortcut_category_editor"),
     },
     {
+      label: translate("shortcut_move_through_blocks"),
+      keys: `↑ ↓ ← →`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
       label: translate("shortcut_search_block"),
       keys: `${mod} + F`,
       category: translate("shortcut_category_editor"),
     },
     {
-      label: translate("shortcut_move_through_blocks"),
-      keys: `↑ ↓ ← →`,
+      label: translate("shortcut_select_next_result"),
+      keys: `Enter`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_select_previous_result"),
+      keys: `Shift + Enter`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_focus_result"),
+      keys: `Esc`,
       category: translate("shortcut_category_editor"),
     },
 
