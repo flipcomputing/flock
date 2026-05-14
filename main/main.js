@@ -643,7 +643,7 @@ function initializeApp() {
   });
   InputManager.on("*", "KeyT", (e) => {
     const ctx = ContextManager.getCurrentContext();
-    if (ctx === "TYPING" || ctx === "EDITOR") return;
+    if (ctx === "TYPING") return;
     if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
     e.preventDefault();
     const toolbox = workspace.getToolbox?.();
