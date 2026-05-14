@@ -1231,6 +1231,7 @@ export default {
   shortcut_select_previous_result: "Föregående sökresultat",
   shortcut_focus_result: "Gå till valt sökresultat",
   shortcut_move_through_blocks: "Navigera bland block",
+  shortcut_start_move_block: "Flytta block",
   shortcut_open_gizmos: "Gizmos",
   shortcut_select_gizmo: "Välj gizmo",
   shortcut_keyboard_cursor_gizmos: "Tangentbordskursor för gizmos",

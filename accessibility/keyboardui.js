@@ -425,6 +425,11 @@ function getShortcuts() {
       keys: `Esc`,
       category: translate("shortcut_category_editor"),
     },
+    {
+      label: translate("shortcut_start_move_block"),
+      keys: `M`,
+      category: translate("shortcut_category_editor"),
+    },
 
     {
       label: translate("shortcut_open_gizmos"),
