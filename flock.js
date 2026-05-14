@@ -1732,6 +1732,20 @@ export const flock = {
           }
         });
 
+        if (flock.scene.meshes) {
+          for (const mesh of flock.scene.meshes) {
+            const c = mesh?.metadata?.uprightConstraint;
+            if (c) {
+              try {
+                c.dispose();
+              } catch (e) {
+                console.warn("Error disposing constraint:", e);
+              }
+              mesh.metadata.uprightConstraint = null;
+            }
+          }
+        }
+
         // Dispose all meshes and their action managers
         const meshesToDispose = flock.scene.meshes
           ? [...flock.scene.meshes]
@@ -1758,6 +1772,7 @@ export const flock = {
             try {
               mesh.physics?.shape?.dispose();
               mesh.physics?.dispose();
+
               mesh.dispose();
             } catch (error) {
               console.warn("Error disposing mesh:", error);
@@ -1839,16 +1854,17 @@ export const flock = {
         // Wait for async operations to complete
         await new Promise((resolve) => setTimeout(resolve, 100));
 
+        // Dispose physics engine and release WASM heap
+        try {
+          flock.hk?.dispose(); // Babylon's HavokPlugin wrapper
+        } catch (error) {
+          console.warn("Error disposing HavokPlugin:", error);
+        }
+        flock.hk = null;
+
         // Dispose of the scene
         flock.scene.dispose();
         flock.scene = null;
-
-        // Dispose physics engine and release WASM heap
-        //flock.hk?.dispose();
-        //flock.hk = null;
-
-        flock.havokPlugin?.dispose(); // Babylon's HavokPlugin wrapper
-        flock.havokPlugin = null;
 
         // Dispose the Babylon.js engine
         //flock.engine?.dispose();

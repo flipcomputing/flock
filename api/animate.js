@@ -61,7 +61,15 @@ const updateCapsuleShapeForAnimation = (physicsMesh, animationName) => {
     newShape = flock.createCapsuleFromBoundingBox(physicsMesh, flock.scene);
   }
 
+  const oldShape = physicsMesh.physics.shape;
   physicsMesh.physics.shape = newShape;
+  if (oldShape && oldShape !== newShape) {
+    try {
+      oldShape.dispose();
+    } catch (e) {
+      console.warn("Error disposing previous physics shape:", e);
+    }
+  }
   physicsMesh.physics.setMotionType(motionType);
   physicsMesh.physics.setMassProperties(massProps);
   physicsMesh.physics.disablePreStep = disablePreStep;
