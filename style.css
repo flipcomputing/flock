@@ -720,13 +720,9 @@ button {
 }
 
 #shapes-dropdown ul li.keyboard-focused {
-  background-color: var(--color-bg-glass-focused);
-  box-shadow: 0 0 0 2px #007acc;
+  outline: 3px solid var(--color-outline-focus);
+  outline-offset: -3px;
   border-radius: 5px;
-}
-
-#shapes-dropdown ul li.keyboard-focused img {
-  transform: scale(1.2);
 }
 
 /* Scrollable Container with Arrows */

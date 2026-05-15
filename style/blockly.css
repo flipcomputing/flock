@@ -524,6 +524,11 @@ body[data-theme="low-vision"] {
   color: var(--color-menu-item-text) !important;
 }
 
+/* Fix offsetParent so the plugin's scroll-into-view logic targets the right container. */
+.blocklyFieldGridContainer {
+  position: relative;
+}
+
 /* Ensure key labels in field_grid_dropdown are readable on light dropdowns. */
 .blocklyFieldGrid .blocklyFieldGridItem {
   color: #000000 !important;
@@ -535,6 +540,10 @@ body[data-theme="low-vision"] {
 
 [data-theme="low-vision"] .blocklyFieldColour .blocklyFieldGrid .blocklyFieldGridItem:focus {
   box-shadow: 0 0 0 4px #fff !important;
+}
+
+.blocklyFieldGrid .blocklyFieldGridItem:focus {
+  outline: 3px solid var(--color-outline-focus) !important;
 }
 
 body .blocklyHtmlInput {
