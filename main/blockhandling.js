@@ -3,6 +3,7 @@ import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
 import { blockHandlerRegistry } from "../blocks/blocks.js";
 import { announceToScreenReader } from "./input.js";
+import { TOP_BLOCK_TYPES } from "../config.js";
 
 function asBlocklyBlock(candidate) {
   if (!candidate || typeof candidate !== "object") {
@@ -113,19 +114,7 @@ export function initializeBlockHandling() {
     }
   });
 
-  const blockTypesToCleanUp = [
-    "start",
-    "forever",
-    "when_clicked",
-    "when_touches",
-    "on_collision",
-    "when_key_event",
-    "when_action_event",
-    "on_event",
-    "procedures_defnoreturn",
-    "procedures_defreturn",
-    "microbit_input",
-  ];
+  const blockTypesToCleanUp = TOP_BLOCK_TYPES;
 
   function layoutTopLevelBlocks() {
     const spacing = 40;
@@ -332,135 +321,7 @@ export function initializeBlockHandling() {
         focusKeywordField(keywordBlock);
       }, 100);
     }
-
-    /*else if (event.ctrlKey && event.key === "[") {
-		event.preventDefault();
-
-		let selectedBlock = null;
-		const cursor = workspace.getCursor();
-		if (cursor?.getCurNode()) {
-			const currentNode = cursor.getCurNode();
-			if (currentNode) {
-				const block = currentNode.getSourceBlock();
-				if (block) {
-					selectedBlock = block;
-				}
-			}
-		} else {
-			selectedBlock = window.currentBlock;
-		}
-
-		if (!selectedBlock) {
-			return;
-		}
-
-		let inputName = "DO";
-		if (selectedBlock.type === "controls_if") {
-			inputName = "DO0";
-		}
-		const statementInput = selectedBlock.getInput(inputName);
-		if (!statementInput) {
-			return;
-		}
-
-		const inputConnection = statementInput.connection;
-		if (!inputConnection) {
-			return;
-		}
-
-		// Create a new block to be added inside (change type if necessary)
-		const insideBlock = workspace.newBlock("keyword");
-		insideBlock.initSvg();
-		insideBlock.render();
-
-		// If the input already has a block connected, append to the end of the chain.
-		if (inputConnection.targetBlock()) {
-			let lastBlock = inputConnection.targetBlock();
-			while (lastBlock.getNextBlock()) {
-				lastBlock = lastBlock.getNextBlock();
-			}
-			lastBlock.nextConnection.connect(
-				insideBlock.previousConnection,
-			);
-		} else {
-			// Connect directly if there is no block inside yet.
-			inputConnection.connect(insideBlock.previousConnection);
-		}
-
-		window.currentBlock = insideBlock;
-		insideBlock.select();
-
-		// Open the editor after a short delay if the new block has a text field
-		setTimeout(() => {
-			const textInputField = insideBlock.getField("KEYWORD");
-			if (textInputField) {
-				textInputField.showEditor_();
-			}
-		}, 100);
-	}*/
   });
-
-  /*document.addEventListener("keydown", (e) => {
-	if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "k") {
-		e.preventDefault(); // stop the default T key behavior
-		const workspace = Blockly.getMainWorkspace(); 
-		if(!keyboardNav){
-			keyboardNav = new KeyboardNavigation(workspace);
-			const flockTheme = Blockly.Theme.defineTheme('classic', {
-				  base: Blockly.Themes.Modern,
-				  blockStyles: {
-					'logic_blocks': { 
-					  colourPrimary: Blockly.Msg['LOGIC_HUE']
-					},
-					'loop_blocks': { 
-					  colourPrimary: Blockly.Msg['LOOPS_HUE']
-					},
-					'math_blocks': { 
-					  colourPrimary: Blockly.Msg['MATH_HUE']
-					},
-					'text_blocks': { 
-					  colourPrimary: Blockly.Msg['TEXTS_HUE']
-					},
-					'list_blocks': { 
-					  colourPrimary: Blockly.Msg['LISTS_HUE']
-					},
-					'variable_blocks': { 
-					  colourPrimary: Blockly.Msg['VARIABLES_HUE']
-					},
-					'procedure_blocks': { 
-					  colourPrimary: Blockly.Msg['PROCEDURES_HUE']
-					}
-					// Your custom categories can be added here too
-				  }
-				});
-
-			workspace.setTheme(flockTheme);
-		}
-	}
-	else if (e.ctrlKey && e.shiftKey &&  e.key.toLowerCase() === "l") {
-		e.preventDefault(); // stop the default T key behavior
-		const workspace = Blockly.getMainWorkspace(); 
-
-		const toolbox = workspace.getToolbox();
-		if (!toolbox) return;
-
-		const items = toolbox.getToolboxItems();
-		for (let i = 0; i < items.length; i++) {
-			const item = items[i];
-			if (
-				item.getName &&
-				item.getName().toLowerCase() === "scene" &&
-				item.isSelectable &&
-				item.isSelectable()
-			) {
-				toolbox.selectItemByPosition(i);
-				return;
-			}
-		}
-
-		console.warn("Scene category not found in toolbox");
-	}
-});*/
 
   workspace.addChangeListener((event) => {
     // Track the currently selected block.

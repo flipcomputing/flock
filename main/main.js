@@ -11,6 +11,7 @@ import { enableGizmos } from "../ui/gizmos.js";
 import { executeCode, stopCode } from "./execution.js";
 import "../ui/addmeshes.js";
 import "../ui/colourpicker.js";
+import { TOP_BLOCK_TYPES } from "../config.js";
 import {
   initializeBlocks,
   initializeWorkspace,
@@ -470,6 +471,222 @@ function registerBlocklyPlayShortcut() {
   });
 }
 
+function registerTopBlockReorderShortcuts() {
+  function refreshMoveIndicator(ws) {
+    const block = session?.block;
+    if (!block) return;
+
+    // Try to locate the active KeyboardMover via the controller.
+    const ctrl = Blockly.keyboardNavigationController;
+    let mover = ctrl?.mover;
+    if (!mover && ctrl) {
+      for (const k of Object.keys(ctrl)) {
+        const v = ctrl[k];
+        if (v && v.constructor?.name?.includes("Mover")) {
+          mover = v;
+          break;
+        }
+      }
+    }
+
+    // Common refresh hooks — different beta builds expose different ones.
+    const indicator =
+      mover?.moveIndicator ?? mover?.indicator ?? mover?.moveIndicator_;
+    if (indicator?.updateLocation) {
+      indicator.updateLocation(block);
+      return;
+    }
+    if (indicator?.update) {
+      indicator.update(block);
+      return;
+    }
+    if (mover?.updateIndicator) {
+      mover.updateIndicator();
+      return;
+    }
+
+    // DOM fallback: translate the indicator SVG to the block's new XY.
+    const xy = block.getRelativeToSurfaceXY();
+    const el = ws
+      .getInjectionDiv()
+      ?.querySelector(".blocklyMoveIndicator, [data-id*='moveIndicator']");
+    if (el) {
+      el.setAttribute("transform", `translate(${xy.x}, ${xy.y})`);
+    }
+  }
+
+  const registry = Blockly.ShortcutRegistry.registry;
+  const origRegistry = registry.getRegistry?.() ?? {};
+
+  // Active move session, set on start_move / start_move_stack.
+  // snapshot: Map<block, originalY> for all top blocks at session start,
+  // so abort_move can restore everything we displaced.
+  let session = null;
+
+  function asBlock(node) {
+    return node &&
+      typeof node.getRelativeToSurfaceXY === "function" &&
+      typeof node.moveTo === "function"
+      ? node
+      : null;
+  }
+
+  function focusedBlock() {
+    return asBlock(Blockly.getFocusManager?.().getFocusedNode?.());
+  }
+
+  function isTopBlock(b) {
+    if (!b) return false;
+    if (b.outputConnection) return false;
+    if (b.previousConnection?.targetBlock?.()) return false;
+    return !b.getParent();
+  }
+
+  function topBlocksSortedY(ws) {
+    return (ws.getTopBlocks(false) || [])
+      .slice()
+      .sort(
+        (a, b) => a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
+      );
+  }
+
+  function findIndicatorEl(ws) {
+    return (
+      ws
+        .getInjectionDiv()
+        ?.querySelector(".blocklyMoveIndicator, [class*='oveIndicator']") ??
+      document.querySelector(".blocklyMoveIndicator, [class*='oveIndicator']")
+    );
+  }
+
+  function syncIndicator() {
+    Blockly.KeyboardMover?.mover?.repositionMoveIndicator?.();
+  }
+
+  function scrollBlockIntoView(ws, block) {
+    const rect = block.getBoundingRectangle?.();
+    if (!rect) return;
+    if (typeof ws.scrollBoundsIntoView === "function") {
+      ws.scrollBoundsIntoView(rect, /* padding */ 20);
+    } else if (typeof ws.scrollBlockIntoView === "function") {
+      ws.scrollBlockIntoView(block.id);
+    }
+  }
+
+  function swap(direction, ws) {
+    const block = session?.block;
+    if (!block || !isTopBlock(block)) return false;
+
+    const ordered = topBlocksSortedY(ws);
+    const idx = ordered.indexOf(block);
+    const newIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= ordered.length) return true;
+
+    const reordered = ordered.slice();
+    [reordered[idx], reordered[newIdx]] = [reordered[newIdx], reordered[idx]];
+
+    // Same constants as layoutTopLevelBlocks.
+    const SPACING = 40;
+    const X = 10;
+    let cursorY = 10;
+
+    const prevGroup = Blockly.Events.getGroup();
+    Blockly.Events.setGroup(prevGroup || true);
+    try {
+      for (const b of reordered) {
+        const xy = b.getRelativeToSurfaceXY();
+        if (xy.x !== X || xy.y !== cursorY) {
+          b.moveTo(new Blockly.utils.Coordinate(X, cursorY));
+        }
+        const h = b.getHeightWidth?.().height || 40;
+        cursorY += h + SPACING;
+      }
+    } finally {
+      Blockly.Events.setGroup(prevGroup);
+    }
+
+    syncIndicator();
+    scrollBlockIntoView(ws, block);
+    return true;
+  }
+
+  function wrap(name, handler) {
+    const existing = origRegistry[name];
+    if (!existing) return;
+    const orig = existing.callback;
+    registry.unregister(name);
+    registry.register({
+      ...existing,
+      callback: (ws, event, shortcut) => handler(ws, event, shortcut, orig),
+    });
+  }
+ 
+  function openSession(ws) {
+    session = null;
+    const block = focusedBlock();
+    if (!TOP_BLOCK_TYPES.includes(block.type)) return;
+    console.log("Moving top block", block.type, TOP_BLOCK_TYPES.includes(block.type));
+    const snapshot = new Map();
+    for (const b of ws.getTopBlocks(false) || []) {
+      snapshot.set(b, b.getRelativeToSurfaceXY().y);
+    }
+    session = { block, snapshot };
+  }
+
+  wrap("start_move", (ws, e, s, orig) => {
+    const r = orig(ws, e, s);
+    openSession(ws);
+    return r;
+  });
+  wrap("start_move_stack", (ws, e, s, orig) => {
+    const r = orig(ws, e, s);
+    openSession(ws);
+    return r;
+  });
+
+  wrap("move_up", (ws, e, s, orig) => {
+    if (session && isTopBlock(session.block)) return swap("up", ws);
+    return orig(ws, e, s);
+  });
+  wrap("move_down", (ws, e, s, orig) => {
+    if (session && isTopBlock(session.block)) return swap("down", ws);
+    return orig(ws, e, s);
+  });
+
+  wrap("finish_move", (ws, e, s, orig) => {
+    session = null;
+    return orig(ws, e, s);
+  });
+
+  wrap("abort_move", (ws, e, s, orig) => {
+    if (session) {
+      const focused = session.block;
+      const focusedOrigY = session.snapshot.get(focused);
+      const indicatorEl = findIndicatorEl(ws);
+
+      const prevGroup = Blockly.Events.getGroup();
+      Blockly.Events.setGroup(prevGroup || true);
+      try {
+        for (const [block, y] of session.snapshot) {
+          const cur = block.getRelativeToSurfaceXY();
+          if (cur.y !== y) {
+            block.moveTo(new Blockly.utils.Coordinate(cur.x, y));
+          }
+        }
+      } finally {
+        Blockly.Events.setGroup(prevGroup);
+      }
+
+      if (focused && focusedOrigY != null) {
+        syncIndicator();
+        scrollBlockIntoView(ws, focused);
+      }
+      session = null;
+    }
+    return orig(ws, e, s);
+  });
+}
+
 function initializeApp() {
   //console.log("Initializing Flock XR ...");
 
@@ -843,7 +1060,9 @@ window.onload = async function () {
     );
     return;
   }
+
   registerBlocklyPlayShortcut();
+  registerTopBlockReorderShortcuts();
   initializeWorkspace();
   overrideSearchPlugin(workspace);
   initializeBlockHandling();

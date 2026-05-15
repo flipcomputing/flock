@@ -3,6 +3,20 @@ import { getDropdownOption, translate } from "./main/translation.js";
 export const SHORTCUTS_HELP_URL =
   "https://hub.flockxr.com/knowledge-base/keyboard-controls/";
 
+export const TOP_BLOCK_TYPES = Object.freeze([
+  "start",
+  "forever",
+  "when_clicked",
+  "when_touches",
+  "on_collision",
+  "when_key_event",
+  "when_action_event",
+  "on_event",
+  "procedures_defnoreturn",
+  "procedures_defreturn",
+  "microbit_input",
+]);
+
 export const themeNames = [
   "theme-bright.mp3",
   "theme-calm.mp3",
