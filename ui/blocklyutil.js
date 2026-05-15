@@ -13,10 +13,21 @@ function trackBlockHighlight(workspace, blockId) {
   lastAddMenuHighlighted = { workspace, blockId };
   const block = workspace.getBlockById(blockId);
   block.select();
-  /*const previouslyFocused = document.activeElement;
-  Blockly.keyboardNavigationController?.setIsActive?.(true); // Make sure keyboard navigation is active
-  Blockly.getFocusManager().focusNode(block);
-  previouslyFocused?.focus();*/
+  ensurePassiveFocusWrapper(workspace);
+}
+
+function ensurePassiveFocusWrapper(workspace) {
+    if (!workspace || workspace.__addMenuPassiveFocusWrapped) return;
+    const orig = workspace.getRestoredFocusableNode?.bind(workspace);
+    if (!orig) return;
+    workspace.getRestoredFocusableNode = (prevTree, prevNode) => {
+      if (lastAddMenuHighlighted?.workspace === workspace) {
+        const block = workspace.getBlockById(lastAddMenuHighlighted.blockId);
+        if (block) return block;
+      }
+      return orig(prevTree, prevNode);
+    };
+    workspace.__addMenuPassiveFocusWrapped = true;
 }
 
 function clearAddMenuHighlight(workspace, newSelectedId) {
@@ -60,11 +71,6 @@ export function highlightBlockById(workspace, block) {
     ensureAddMenuSelectionCleanup(workspace);
 
     clearAddMenuHighlight(workspace, block.id);
-
-    //block.select();
-    // Update the keyboard cursor position passively so that Ctrl+E returns
-    // the user to this block, not wherever keyboard navigation last was.
-    //workspace.getCursor?.()?.setCurNode?.(block);
 
     trackBlockHighlight(workspace, block.id);
 
