@@ -12,32 +12,21 @@ function asBlocklyBlock(candidate) {
   return typeof candidate.getNextBlock === "function" ? candidate : null;
 }
 
-function getSelectedBlockFromCursor(cursor) {
-  if (!cursor) {
+function getSelectedBlockFromFocusedNode(node) {
+  if (!node) {
     return null;
   }
 
-  if (typeof cursor.getSourceBlock === "function") {
-    const sourceBlock = asBlocklyBlock(cursor.getSourceBlock());
-    if (sourceBlock) {
-      return sourceBlock;
-    }
+  const direct = asBlocklyBlock(node);
+  if (direct) {
+    return direct;
   }
 
-  if (typeof cursor.getCurNode !== "function") {
-    return null;
+  if (typeof node.getSourceBlock === "function") {
+    return asBlocklyBlock(node.getSourceBlock());
   }
 
-  const currentNode = cursor.getCurNode();
-  if (!currentNode) {
-    return null;
-  }
-
-  if (typeof currentNode.getSourceBlock === "function") {
-    return asBlocklyBlock(currentNode.getSourceBlock());
-  }
-
-  return asBlocklyBlock(currentNode.sourceBlock_);
+  return asBlocklyBlock(node.sourceBlock_);
 }
 
 function getSelectedBlockForKeywordShortcut() {
@@ -46,8 +35,9 @@ function getSelectedBlockForKeywordShortcut() {
     return selected;
   }
 
+  const focusedNode = Blockly.getFocusManager?.()?.getFocusedNode?.();
   return (
-    getSelectedBlockFromCursor(workspace.getCursor()) ||
+    getSelectedBlockFromFocusedNode(focusedNode) ||
     asBlocklyBlock(window.currentBlock)
   );
 }
@@ -73,7 +63,6 @@ function focusBlocklyBlock(block) {
   Blockly.common?.setSelected?.(block);
   getBlocklyFocusManager()?.focusNode?.(block);
   block.select?.();
-  workspace.getCursor?.()?.setCurNode?.(block);
 
   const focusableElement =
     block.getFocusableElement?.() || block.getSvgRoot?.();
