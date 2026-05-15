@@ -949,10 +949,17 @@ function findOrCreateResizeBlock(mesh) {
     resizeBlock.initSvg();
     resizeBlock.render();
 
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo();
+    const initialSize = getScaledSize(mesh);
+    const axisValues = { X: initialSize.x, Y: initialSize.y, Z: initialSize.z };
+
     ["X", "Y", "Z"].forEach((axis) => {
       const input = resizeBlock.getInput(axis);
       const shadow = Blockly.getMainWorkspace().newBlock("math_number");
-      shadow.setFieldValue("1", "NUM");
+      const value = axisValues[axis];
+      const num = Number.isFinite(value) && value > 0 ? value : 1;
+      shadow.setFieldValue(String(Math.round(num * 10) / 10), "NUM");
       shadow.setShadow(true);
       shadow.initSvg();
       shadow.render();
