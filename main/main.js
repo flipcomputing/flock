@@ -638,7 +638,6 @@ function initializeApp() {
   });
   InputManager.on("*", "Mod+KeyE", (e) => {
     e.preventDefault();
-    Blockly.keyboardNavigationController?.setIsActive?.(true);
     Blockly.getFocusManager()?.focusTree?.(workspace);
   });
   InputManager.on("*", "KeyT", (e) => {
