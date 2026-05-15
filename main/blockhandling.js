@@ -224,6 +224,36 @@ export function initializeBlockHandling() {
     pruneUnusedVariables();
   };
 
+  // Unify all undo-recording events fired during a drag (mouse or keyboard
+  // nav) into a single group, so one undo press reverts the whole move.
+  // Some internal Blockly/plugin code (Mover post-drop, dynamic-connection
+  // finalize, etc.) emits follow-up events with new or null group IDs,
+  // splitting the move across multiple undo entries.
+  let __dragSessionGroup = null;
+  let __dragSessionTimer = null;
+  workspace.addChangeListener((event) => {
+    if (event.type === Blockly.Events.BLOCK_DRAG) {
+      if (event.isStart) {
+        __dragSessionGroup =
+          event.group || `drag-${Date.now()}-${Math.random()}`;
+        if (__dragSessionTimer) {
+          clearTimeout(__dragSessionTimer);
+          __dragSessionTimer = null;
+        }
+      } else {
+        if (__dragSessionTimer) clearTimeout(__dragSessionTimer);
+        __dragSessionTimer = setTimeout(() => {
+          __dragSessionGroup = null;
+          __dragSessionTimer = null;
+        }, 200);
+      }
+      return;
+    }
+    if (__dragSessionGroup && event.recordUndo && event.group !== __dragSessionGroup) {
+      event.group = __dragSessionGroup;
+    }
+  });
+  
   workspace.addChangeListener(Blockly.Events.disableOrphans);
 
   let cleanupTimeout = null;
@@ -442,17 +472,27 @@ export function initializeBlockHandling() {
 
     // Workaround for Blockly not checking for orphans on key
     if (event.type === Blockly.Events.BLOCK_DRAG && event.isStart === false) {
+      // Preserve the move's event group so the disabled-state change
+      // from disableOrphans collapses into the same undo step.
+      const eventGroup = event.group;
       // Wait until Blockly has fully settled
       queueMicrotask(() => {
-        Blockly.Events.disableOrphans({
-          type: Blockly.Events.BLOCK_MOVE,
-          workspaceId: workspace.id,
-          blockId: event.blockId,
-          oldParentId: undefined,
-          newParentId: undefined,
-          recordUndo: false,
-          isUiEvent: false,
-        });
+        const prevGroup = Blockly.Events.getGroup();
+        if (eventGroup) Blockly.Events.setGroup(eventGroup);
+        try {
+          Blockly.Events.disableOrphans({
+            type: Blockly.Events.BLOCK_MOVE,
+            workspaceId: workspace.id,
+            blockId: event.blockId,
+            oldParentId: undefined,
+            newParentId: undefined,
+            recordUndo: false,
+            isUiEvent: false,
+            group: eventGroup,
+          });
+        } finally {
+          Blockly.Events.setGroup(prevGroup);
+        }
       });
     }
     // Debounced cleanup on structural changes.
@@ -462,6 +502,9 @@ export function initializeBlockHandling() {
         event.type === Blockly.Events.BLOCK_CREATE ||
         event.type === Blockly.Events.BLOCK_DELETE)
     ) {
+      // Capture this event's group so the cleanup's disableOrphans call
+      // is attributed to the same undo entry as the triggering change.
+      const eventGroup = event.group;
       clearTimeout(cleanupTimeout);
       cleanupTimeout = setTimeout(() => {
         const activeBefore = document.activeElement;
@@ -473,7 +516,14 @@ export function initializeBlockHandling() {
         } finally {
           if (wasEnabled) Blockly.Events.enable();
         }
-        Blockly.Events.disableOrphans(workspace);
+
+        const prevGroup = Blockly.Events.getGroup();
+        if (eventGroup) Blockly.Events.setGroup(eventGroup);
+        try {
+          Blockly.Events.disableOrphans(workspace);
+        } finally {
+          Blockly.Events.setGroup(prevGroup);
+        }
 
         // Restore focus if the cleanup blurred it. Only restore if the
         // element is still in the DOM and currently lacks focus.
