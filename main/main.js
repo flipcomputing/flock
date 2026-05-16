@@ -47,6 +47,8 @@ import {
   translate,
 } from "./translation.js";
 
+let projectChanged = true;
+
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker
     .register("./sw.js")
@@ -448,8 +450,9 @@ window.onload = async function () {
   // Autosave every 30 seconds: to localStorage and (if a file was saved) to that file
   setInterval(() => {
     try {
-      if (document.visibilityState !== "visible") return;
+      if (!projectChanged) return;
       saveWorkspace(workspace);
+      projectChanged = false;
     } catch (error) {
       console.error("Autosave to localStorage failed:", error);
     }
@@ -469,6 +472,9 @@ window.onload = async function () {
       initializeVariableIndexes();
       window.loadingCode = false;
     }
+    if (window.loadingCode) return;
+    if (event.isUiEvent) return;
+    projectChanged = true;
   });
 
   document
