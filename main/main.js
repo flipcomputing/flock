@@ -77,7 +77,15 @@ if ("serviceWorker" in navigator) {
 }
 
 let globalErrorBannerShown = false;
+function isBenignAbort(error) {
+  return error?.name === "AbortError" || error?.message === "aborted";
+}
+
 function handleGlobalError(error, source) {
+  if (isBenignAbort(error)) {
+    console.debug(`[${source}] suppressed abort:`, error);
+    return;
+  }
   if (globalErrorBannerShown) return;
   globalErrorBannerShown = true;
   console.error(`[${source}]`, error);
@@ -428,7 +436,7 @@ window.onload = async function () {
     );
     return;
   }
-  
+
   registerBlocklyPlayShortcut();
   initializeWorkspace();
   overrideSearchPlugin(workspace);
