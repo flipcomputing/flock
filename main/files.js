@@ -347,6 +347,9 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     }
 
     console.error("Workspace load failed:", error);
+    flock.showRuntimeErrorBanner?.(
+      "Couldn't open your saved project — it may be corrupted. Try reloading or opening a new project." + error.message,
+    );
   }
 }
 

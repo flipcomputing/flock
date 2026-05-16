@@ -46,6 +46,9 @@ export async function executeCode(options = {}) {
     await flock.runCode(code, options);
   } catch (error) {
     console.error("Error executing Blockly code:", error);
+    flock.showRuntimeErrorBanner?.(
+      "Couldn't run your project: " + error.message,
+    );
     isExecuting = false; // Reset the flag if there's an error
 
     return; // Exit after handling the error
