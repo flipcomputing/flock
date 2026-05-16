@@ -2013,7 +2013,17 @@ export const flock = {
     } catch (error) {
       if (flock.isPhysicsMemoryAbort(error)) {
         flock.handlePhysicsOutOfMemory(error);
+      } else {
+        flock.showRuntimeErrorBanner?.(
+          "Physics engine failed to load: " + (error?.message ?? error),
+        );
       }
+      try {
+        flock.scene?.dispose();
+      } catch (disposeError) {
+        console.error("Failed to dispose scene after physics init failure:", disposeError);
+      }
+      flock.scene = null;
       throw error;
     }
 
