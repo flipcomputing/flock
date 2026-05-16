@@ -476,8 +476,8 @@ export function loadWorkspace(workspace, executeCallback) {
         effectiveCallback,
       );
     } catch (error) {
-      console.error("Could not run project:", error);
-      flock.showRuntimeErrorBanner?.("Could not run project:" + error.message);
+      console.error("Could not load project:", error);
+      flock.showRuntimeErrorBanner?.("Could not load project:" + error.message);
     }
   } else {
     loadStarter();

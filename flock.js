@@ -1990,7 +1990,7 @@ export const flock = {
           return;
         }
         flock.engine?.stopRenderLoop(flock._renderLoop);
-        flock.showRuntimeErrorBanner?.(error.message);
+        flock.showRuntimeErrorBanner?.("Project crashed while running: " + error.message);
       }
     };
 
