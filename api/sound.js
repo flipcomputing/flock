@@ -9,8 +9,13 @@ export const flockSound = {
     meshName,
     { soundName, loop = false, volume = 1, playbackRate = 1 } = {},
   ) {
-    volume = Number.isFinite(Number(volume)) ? Math.max(0, Math.min(1, Number(volume))) : 1;
-    playbackRate = Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0 ? Number(playbackRate) : 1;
+    volume = Number.isFinite(Number(volume))
+      ? Math.max(0, Math.min(1, Number(volume)))
+      : 1;
+    playbackRate =
+      Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0
+        ? Number(playbackRate)
+        : 1;
     if (!soundName || typeof soundName !== "string") {
       console.warn("playSound: invalid soundName");
       return;
@@ -186,7 +191,6 @@ export const flockSound = {
             flock.audioContext = new (window.AudioContext ||
               window.webkitAudioContext)();
             context = flock.audioContext;
-            
           } catch (error) {
             console.error("Could not create audio context:", error);
             resolve();
@@ -436,7 +440,8 @@ export const flockSound = {
     };
   },
   setBPM(meshName, bpm) {
-    const safeBpm = Number.isFinite(Number(bpm)) && Number(bpm) > 0 ? Number(bpm) : 60;
+    const safeBpm =
+      Number.isFinite(Number(bpm)) && Number(bpm) > 0 ? Number(bpm) : 60;
     bpm = safeBpm;
 
     if (meshName === "__everywhere__") {
@@ -465,6 +470,8 @@ export const flockSound = {
     });
   },
   updateListenerPositionAndOrientation(context, camera) {
+    if (!context || !camera || camera.isDisposed?.()) return;
+
     const { x: cx, y: cy, z: cz } = camera.position;
     const forwardVector = camera.getForwardRay().direction;
 

@@ -1588,6 +1588,11 @@ export const flock = {
         flock.stopAllSounds();
         flock.engine?.stopRenderLoop();
 
+        if (flock.audioListenerObserver) {
+          flock.scene.onBeforeRenderObservable.remove(flock.audioListenerObserver);
+          flock.audioListenerObserver = null;
+        }
+        
         if (flock.ground?.metadata) {
           const md = flock.ground.metadata;
           try {
@@ -2114,10 +2119,9 @@ export const flock = {
 
     // Observable for audio updates
 
-    flock.scene.onBeforeRenderObservable.add(() => {
-      const context = flock.getAudioContext();
+    flock.audioListenerObserver = flock.scene.onBeforeRenderObservable.add(() => {
       flock.updateListenerPositionAndOrientation(
-        context,
+        flock.getAudioContext(),
         flock.scene.activeCamera,
       );
     });
