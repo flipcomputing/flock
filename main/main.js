@@ -448,6 +448,7 @@ window.onload = async function () {
   // Autosave every 30 seconds: to localStorage and (if a file was saved) to that file
   setInterval(() => {
     try {
+      if (document.visibilityState !== "visible") return;
       saveWorkspace(workspace);
     } catch (error) {
       console.error("Autosave to localStorage failed:", error);
