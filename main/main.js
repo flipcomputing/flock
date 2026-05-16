@@ -400,7 +400,16 @@ window.onload = async function () {
   // Initialize Blockly and add custom context menu options
   addExportContextMenuOptions();
 
-  createBlocklyWorkspace();
+  try {
+    createBlocklyWorkspace();
+  } catch (error) {
+    console.error("Failed to create Blockly workspace:", error);
+    flock.showRuntimeErrorBanner?.(
+      "Couldn't start the editor. Please reload to try again: " + error.message,
+    );
+    return;
+  }
+  
   registerBlocklyPlayShortcut();
   initializeWorkspace();
   overrideSearchPlugin(workspace);

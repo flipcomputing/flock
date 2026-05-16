@@ -410,7 +410,7 @@ export const flock = {
     );
   },
   showWasmOOMBanner(messageKey) {
-    const doc = flock.document;
+    const doc = flock.document ?? globalThis.document;
     if (!doc?.body) return;
     const warningId = "havok-oom-warning";
     if (doc.getElementById(warningId)) return;
@@ -426,7 +426,7 @@ export const flock = {
     banner.style.color = "#ffb3b3";
     banner.style.fontSize = "16px";
     banner.style.fontFamily = "'Asap', sans-serif";
-    banner.style.zIndex = "10000";
+    banner.style.zIndex = "20000";
     banner.style.textAlign = "center";
     banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.4)";
     banner.style.borderBottom = "2px solid #d33";
@@ -696,7 +696,8 @@ export const flock = {
     });
   },
   showRuntimeErrorBanner(message) {
-    const doc = flock.document;
+    const doc = flock.document ?? globalThis.document;
+    console.log("Showing runtime error banner", doc);
     if (!doc?.body) return;
     const bannerId = "runtime-error-banner";
     doc.getElementById(bannerId)?.remove();
@@ -712,7 +713,7 @@ export const flock = {
     banner.style.color = "#ffb3b3";
     banner.style.fontSize = "16px";
     banner.style.fontFamily = "'Asap', sans-serif";
-    banner.style.zIndex = "10000";
+    banner.style.zIndex = "20000";
     banner.style.textAlign = "center";
     banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.4)";
     banner.style.borderBottom = "2px solid #d33";
@@ -923,18 +924,8 @@ export const flock = {
         )?.focus();
       }
     } catch (error) {
-      const enhancedError = this.createEnhancedError?.(error, code) ?? error;
+      const enhancedError = flock.createEnhancedError?.(error, code) ?? error;
       console.error("Enhanced error details:", enhancedError);
-
-      const errorMessage = translate("runtime_error_message").replace(
-        "{message}",
-        error.message,
-      );
-      if (flock.stackPanel) {
-        this.printText?.({ text: errorMessage, duration: 5, color: "#ff0000" });
-      } else {
-        this.showRuntimeErrorBanner?.(errorMessage);
-      }
 
       try {
         this.audioContext?.close?.();

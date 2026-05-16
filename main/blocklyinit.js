@@ -655,6 +655,7 @@ export function initializeWorkspace() {
 }
 
 export function createBlocklyWorkspace() {
+
   // Register the custom renderer
   Blockly.registry.register(
     Blockly.registry.Type.RENDERER,
