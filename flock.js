@@ -1294,6 +1294,9 @@ export const flock = {
         flock.showWasmOOMBanner("wasm_out_of_memory_banner_ui");
       } else {
         console.error("Error initializing CSG2:", error);
+        flock.showRuntimeErrorBanner?.(
+          "Error initializing CSG2: " + (error?.message ?? error),
+        );
       }
     }
 
@@ -2760,9 +2763,12 @@ export function initializeFlock() {
 
         flock.runCode(userCode);
       })
-      .catch((error) => {
-        console.error("Error initializing flock:", error);
-      });
+    .catch((error) => {
+      console.error("Error initializing flock:", error);
+      flock.showRuntimeErrorBanner?.(
+        "Failed to start: " + (error?.message ?? error),
+      );
+    });
   }
 }
 
