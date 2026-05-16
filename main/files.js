@@ -400,9 +400,9 @@ export function loadWorkspace(workspace, executeCallback) {
   try {
     savedState = localStorage.getItem(AUTOSAVE_KEY);
   } catch (e) {
-    console.error("Failed to read autosave from localStorage", e);
+    console.error("Can't access browser storage (localStorage)", e);
     flock.showRuntimeErrorBanner?.(
-      "Couldn't load saved project from browser storage: " + e.message,
+      "Can't access browser storage." + e.message,
     );
     savedState = null;
   }
