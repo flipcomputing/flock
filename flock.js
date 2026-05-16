@@ -697,7 +697,6 @@ export const flock = {
   },
   showRuntimeErrorBanner(message) {
     const doc = flock.document ?? globalThis.document;
-    console.log("Showing runtime error banner", doc);
     if (!doc?.body) return;
     const bannerId = "runtime-error-banner";
     doc.getElementById(bannerId)?.remove();
@@ -1562,6 +1561,13 @@ export const flock = {
       lockstepMaxSteps: 4,
     });
 
+    flock.engine.onContextLostObservable.add(() => {
+      console.error("WebGL context lost");
+      flock.showRuntimeErrorBanner?.(
+        "Graphics context lost. Please reload to recover.",
+      );
+    });
+    
     flock.engine.enableOfflineSupport = false;
     flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
   },
