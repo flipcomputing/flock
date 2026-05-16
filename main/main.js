@@ -76,6 +76,25 @@ if ("serviceWorker" in navigator) {
     });
 }
 
+let globalErrorBannerShown = false;
+function handleGlobalError(error, source) {
+  if (globalErrorBannerShown) return;
+  globalErrorBannerShown = true;
+  console.error(`[${source}]`, error);
+  const message = error?.message || String(error) || "Unknown error";
+  flock.showRuntimeErrorBanner?.(
+    "Something went wrong. Please reload to try again: " + message,
+  );
+}
+
+window.addEventListener("error", (event) => {
+  if (!event.error) return; // skip resource-load errors (img/script 404s)
+  handleGlobalError(event.error, "uncaught error");
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  handleGlobalError(event.reason, "unhandled rejection");
+});
 async function showUpdateNotification() {
   const banner = document.createElement("div");
   Object.assign(banner.style, {
