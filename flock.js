@@ -1994,6 +1994,9 @@ export const flock = {
           flock.handlePhysicsOutOfMemory(error);
           return;
         }
+        if (flock.flockNotReady || flock.disposed) {
+          return;
+        }
         flock.engine?.stopRenderLoop(flock._renderLoop);
         flock.showRuntimeErrorBanner?.("Project crashed while running: " + error.message);
       }
