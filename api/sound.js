@@ -24,30 +24,64 @@ export const flockSound = {
 
     // Global (non-spatial) sound
     if (meshName === "__everywhere__") {
-      const sound = await flock.BABYLON.CreateSoundAsync(soundName, soundUrl, {
-        spatialEnabled: false,
-        autoplay: false,
-        loop,
-        volume,
-        playbackRate,
-      });
+      const registry = loop
+        ? (flock.everywhereLoopedSounds ??= new Map())
+        : (flock.everywhereCurrentSounds ??= new Map());
 
-      sound.play();
-      flock.globalSounds.push(sound);
+      const existing = registry.get(soundName);
+      if (existing) return existing;
 
-      if (!loop) {
-        return new Promise((resolve) => {
-          sound.onEndedObservable.addOnce(() => {
-            const index = flock.globalSounds.indexOf(sound);
-            if (index !== -1) {
-              flock.globalSounds.splice(index, 1);
-            }
-            resolve();
+      let resolveEnd;
+      const endPromise = loop
+        ? null
+        : new Promise((r) => {
+            resolveEnd = r;
           });
-        });
-      }
 
-      return sound;
+      const inflight = (async () => {
+        let sound;
+        try {
+          sound = await flock.BABYLON.CreateSoundAsync(soundName, soundUrl, {
+            spatialEnabled: false,
+            autoplay: false,
+            loop,
+            volume,
+            playbackRate,
+          });
+        } catch (e) {
+          if (registry.get(soundName) === inflight) registry.delete(soundName);
+          resolveEnd?.();
+          throw e;
+        }
+
+        if (registry.get(soundName) !== inflight) {
+          try {
+            sound.dispose?.();
+          } catch (_) {}
+          resolveEnd?.();
+          return loop ? sound : endPromise;
+        }
+
+        sound._soundName = soundName;
+        sound._endPromise = endPromise;
+        registry.set(soundName, sound);
+        flock.globalSounds.push(sound);
+
+        if (!loop) {
+          sound.onEndedObservable.addOnce(() => {
+            if (registry.get(soundName) === sound) registry.delete(soundName);
+            const idx = flock.globalSounds.indexOf(sound);
+            if (idx !== -1) flock.globalSounds.splice(idx, 1);
+            resolveEnd();
+          });
+        }
+
+        sound.play();
+        return loop ? sound : endPromise;
+      })();
+
+      registry.set(soundName, inflight);
+      return inflight;
     }
 
     // Spatial sound for a mesh
@@ -64,70 +98,92 @@ export const flockSound = {
       });
     });
 
-    // Main sound logic for mesh-attached sounds
     async function attachSoundToMesh(mesh) {
-      if (!mesh.metadata || typeof mesh.metadata !== "object") {
+      if (!mesh.metadata || typeof mesh.metadata !== "object")
         mesh.metadata = {};
-      }
 
-      const currentSound = mesh.metadata.currentSound;
+      const slotKey = loop ? "currentLoopedSound" : "currentSound";
+      const existing = mesh.metadata[slotKey];
 
-      if (currentSound) {
-        try {
-          currentSound.stop();
-        } catch (e) {
-          console.warn("Failed to stop sound:", e);
+      if (existing) {
+        if (existing._soundName === soundName) {
+          return existing._inflight ?? existing;
         }
-
-        const index = flock.globalSounds.indexOf(currentSound);
-        if (index !== -1) {
-          flock.globalSounds.splice(index, 1);
+        // Different sound for this slot: stop old, replace.
+        if (!existing._inflight) {
+          try {
+            existing.stop?.();
+          } catch (e) {
+            console.warn("Failed to stop sound:", e);
+          }
+          const idx = flock.globalSounds.indexOf(existing);
+          if (idx !== -1) flock.globalSounds.splice(idx, 1);
         }
-
-        if (mesh.metadata?.currentSound === currentSound) {
-          delete mesh.metadata.currentSound;
-        }
+        if (mesh.metadata[slotKey] === existing) delete mesh.metadata[slotKey];
       }
 
-      const sound = await flock.BABYLON.CreateSoundAsync(soundName, soundUrl, {
-        spatialEnabled: true,
-        spatialDistanceModel: "linear",
-        spatialMaxDistance: 20,
-        autoplay: false,
-        loop,
-        volume,
-        playbackRate,
-      });
-
-      if (sound.spatial && !mesh.isDisposed()) {
-        await sound.spatial.attach(mesh);
-      }
-
-      sound.play();
-
-      mesh.metadata.currentSound = sound;
-      sound._attachedMesh = mesh;
-
-      if (!flock.globalSounds.includes(sound)) {
-        flock.globalSounds.push(sound);
-      }
-
-      if (!loop) {
-        return new Promise((resolve) => {
-          sound.onEndedObservable.addOnce(() => {
-            if (mesh.metadata?.currentSound === sound) {
-              delete mesh.metadata.currentSound;
-            }
-            const index = flock.globalSounds.indexOf(sound);
-            if (index !== -1) {
-              flock.globalSounds.splice(index, 1);
-            }
-            resolve();
+      let resolveEnd;
+      const endPromise = loop
+        ? null
+        : new Promise((r) => {
+            resolveEnd = r;
           });
-        });
-      }
 
-      return sound;
+      const reservation = { _soundName: soundName };
+      mesh.metadata[slotKey] = reservation;
+
+      const inflight = (async () => {
+        let sound;
+        try {
+          sound = await flock.BABYLON.CreateSoundAsync(soundName, soundUrl, {
+            spatialEnabled: true,
+            spatialDistanceModel: "linear",
+            spatialMaxDistance: 20,
+            autoplay: false,
+            loop,
+            volume,
+            playbackRate,
+          });
+          if (sound.spatial && !mesh.isDisposed()) {
+            await sound.spatial.attach(mesh);
+          }
+        } catch (e) {
+          if (mesh.metadata?.[slotKey] === reservation)
+            delete mesh.metadata[slotKey];
+          resolveEnd?.();
+          throw e;
+        }
+
+        if (mesh.metadata?.[slotKey] !== reservation) {
+          try {
+            sound.dispose?.();
+          } catch (_) {}
+          resolveEnd?.();
+          return loop ? sound : endPromise;
+        }
+
+        sound._soundName = soundName;
+        sound._attachedMesh = mesh;
+        sound._endPromise = endPromise;
+        mesh.metadata[slotKey] = sound;
+        flock.globalSounds.push(sound);
+
+        if (!loop) {
+          sound.onEndedObservable.addOnce(() => {
+            if (mesh.metadata?.[slotKey] === sound)
+              delete mesh.metadata[slotKey];
+            const idx = flock.globalSounds.indexOf(sound);
+            if (idx !== -1) flock.globalSounds.splice(idx, 1);
+            resolveEnd();
+          });
+        }
+
+        sound.play();
+        return loop ? sound : endPromise;
+      })();
+
+      reservation._inflight = inflight;
+      return inflight;
     }
   },
   stopAllSounds() {
@@ -145,6 +201,9 @@ export const flockSound = {
     });
 
     flock.globalSounds = [];
+    flock.everywhereCurrentSounds?.clear();
+    flock.everywhereLoopedSounds?.clear();
+    flock.activeNotes?.clear();
 
     if (!flock.audioContext || flock.audioContext.state === "closed") return;
 
@@ -173,7 +232,12 @@ export const flockSound = {
       instrument = flock.createInstrument("square"),
     } = {},
   ) {
-    return new Promise((resolve) => {
+    const registry = (flock.activeNotes ??= new Map());
+    const key = meshName ?? "__everywhere__";
+    const existing = registry.get(key);
+    if (existing) return existing;
+
+    const promise = new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
         notes = notes.map((note) => (note === "_" ? null : note));
         durations = durations.map(Number);
@@ -183,9 +247,9 @@ export const flockSound = {
           getBPM(mesh) || getBPM(mesh?.parent) || getBPM(scene) || 60;
         let bpm = getBPMFromMeshOrScene(mesh, flock.scene);
         bpm = Number(bpm);
-        if (!isFinite(bpm) || bpm <= 0) bpm = 60; // default BPM
+        if (!isFinite(bpm) || bpm <= 0) bpm = 60;
 
-        let context = flock.audioContext; // Ensure a global audio context
+        let context = flock.audioContext;
         if (!context || context.state === "closed") {
           try {
             flock.audioContext = new (window.AudioContext ||
@@ -199,6 +263,7 @@ export const flockSound = {
         }
         if (!context || context.state === "closed") {
           console.log("Audio context is closed or not available.");
+          resolve();
           return;
         }
 
@@ -207,72 +272,72 @@ export const flockSound = {
             await context.resume();
           } catch (error) {
             console.warn("Could not resume audio context:", error);
+            resolve();
             return;
           }
         }
-        if (mesh && mesh.position) {
-          // Create the panner node only once if it doesn't exist
-          if (!mesh.metadata.panner) {
-            const panner = context.createPanner();
-            mesh.metadata.panner = panner;
 
-            // Configure the panner for aggressive spatial effects to match playSound behavior
-            panner.panningModel = "HRTF";
-            panner.distanceModel = "exponential"; // More aggressive than linear
-            panner.refDistance = 1.0;
-            panner.maxDistance = 15;
-            panner.rolloffFactor = 1;
-            panner.connect(context.destination);
-          }
-
-          const panner = mesh.metadata.panner; // Reuse the same panner node
-
-          // Continuously update the panner position while notes are playing
-          const observer = flock.scene.onBeforeRenderObservable.add(() => {
-            const { x, y, z } = mesh.position;
-            panner.positionX.value = -x;
-            panner.positionY.value = y;
-            panner.positionZ.value = z;
-          });
-
-          // Iterate over the notes and schedule playback
-          let offsetTime = 0;
-          for (let i = 0; i < notes.length; i++) {
-            const note = notes[i];
-            let duration = Number(durations[i]);
-            if (!isFinite(duration) || duration <= 0) {
-              duration = 1; // default to 1 beat if missing/invalid
-            }
-
-            if (note !== null) {
-              flock.playMidiNote(
-                context,
-                mesh,
-                note,
-                duration,
-                bpm,
-                context.currentTime + offsetTime, // Schedule the note
-                instrument,
-              );
-            }
-
-            offsetTime += flock.durationInSeconds(duration, bpm);
-          }
-
-          // Resolve the promise after the last note has played
-          setTimeout(
-            () => {
-              flock.scene.onBeforeRenderObservable.remove(observer);
-              resolve();
-            },
-            (offsetTime + 1) * 1000,
-          ); // Add a small buffer after the last note finishes
-        } else {
+        if (!mesh || !mesh.position) {
           console.error("Mesh does not have a position property:", mesh);
           resolve();
+          return;
         }
+
+        if (!mesh.metadata.panner) {
+          const panner = context.createPanner();
+          mesh.metadata.panner = panner;
+          panner.panningModel = "HRTF";
+          panner.distanceModel = "exponential";
+          panner.refDistance = 1.0;
+          panner.maxDistance = 15;
+          panner.rolloffFactor = 1;
+          panner.connect(context.destination);
+        }
+
+        const panner = mesh.metadata.panner;
+
+        const observer = flock.scene?.onBeforeRenderObservable?.add(() => {
+          if (mesh.isDisposed?.()) return;
+          const { x, y, z } = mesh.position;
+          panner.positionX.value = -x;
+          panner.positionY.value = y;
+          panner.positionZ.value = z;
+        });
+
+        let offsetTime = 0;
+        for (let i = 0; i < notes.length; i++) {
+          const note = notes[i];
+          let duration = Number(durations[i]);
+          if (!isFinite(duration) || duration <= 0) duration = 1;
+
+          if (note !== null) {
+            flock.playMidiNote(
+              context,
+              mesh,
+              note,
+              duration,
+              bpm,
+              context.currentTime + offsetTime,
+              instrument,
+            );
+          }
+
+          offsetTime += flock.durationInSeconds(duration, bpm);
+        }
+
+        setTimeout(() => {
+          if (observer) flock.scene?.onBeforeRenderObservable?.remove(observer);
+          resolve();
+        }, offsetTime * 1000);
       });
     });
+
+    registry.set(key, promise);
+    promise.finally(() => {
+      if (registry.get(key) === promise) registry.delete(key);
+    });
+
+    return promise;
   },
   playMidiNote(
     context,
