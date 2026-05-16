@@ -13,6 +13,9 @@ export function saveWorkspace(workspace) {
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(state));
   } catch (e) {
     console.error("Autosave failed; keeping previous state", e);
+    flock.showRuntimeErrorBanner?.(
+      "Autosave failed. Try saving to file:\n" + e.message,
+    );
   }
 }
 
@@ -393,7 +396,17 @@ export function loadWorkspace(workspace, executeCallback) {
   const reset = urlParams.get("reset");
   const autoplay = urlParams.get("autoplay") !== "false";
   const effectiveCallback = autoplay ? executeCallback : () => {};
-  const savedState = localStorage.getItem(AUTOSAVE_KEY);
+  let savedState;
+  try {
+    savedState = localStorage.getItem(AUTOSAVE_KEY);
+  } catch (e) {
+    console.error("Failed to read autosave from localStorage", e);
+    flock.showRuntimeErrorBanner?.(
+      "Couldn't load saved project from browser storage: " + e.message,
+    );
+    savedState = null;
+  }
+
   const starter = "examples/starter.flock";
 
   function loadStarter() {
@@ -460,7 +473,8 @@ export function loadWorkspace(workspace, executeCallback) {
         effectiveCallback,
       );
     } catch (error) {
-      console.error("Autosave entry could not be loaded:", error);
+      console.error("Could not run project:", error);
+      flock.showRuntimeErrorBanner?.("Could not run project:" + error.message);
     }
   } else {
     loadStarter();

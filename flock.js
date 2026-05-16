@@ -695,7 +695,7 @@ export const flock = {
       },
     });
   },
-  howRuntimeErrorBanner(message) {
+  showRuntimeErrorBanner(message) {
     const doc = flock.document;
     if (!doc?.body) return;
     const bannerId = "runtime-error-banner";
@@ -1600,9 +1600,15 @@ export const flock = {
                 md.heightmapBody._pluginData.hpBodyId,
               );
             }
-          } catch (e) { /* ignore */ }
-          try { md.heightmapBody?.dispose(); } catch {}
-          try { md.heightmapShape?.dispose(); } catch {}
+          } catch (e) {
+            /* ignore */
+          }
+          try {
+            md.heightmapBody?.dispose();
+          } catch {}
+          try {
+            md.heightmapShape?.dispose();
+          } catch {}
           md.heightmapBody = null;
           md.heightmapShape = null;
         }
