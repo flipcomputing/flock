@@ -247,9 +247,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const isFullscreen = window.matchMedia("(display-mode: fullscreen)").matches;
 
-  // Request fullscreen on mobile only when running as a PWA
+  // No need to request fullscreen in PWA
   if (isMobile() && isFullscreen) {
-    requestFullscreen();
+    //requestFullscreen();
     const fullscreenToggle = document.getElementById("fullscreenToggle");
     if (fullscreenToggle) fullscreenToggle.style.display = "none";
   }
