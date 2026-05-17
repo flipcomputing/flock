@@ -404,16 +404,6 @@ function selectObjectWithCommand(objectName, menu, command) {
   });
 }
 
-// Scroll function to move the object row left or right
-function scrollObjects(direction) {
-  const objectRow = document.getElementById("object-row");
-  const scrollAmount = 100; // Adjust scroll amount as needed
-  objectRow.scrollBy({
-    left: direction * scrollAmount,
-    behavior: "smooth",
-  });
-}
-
 // Function to load characters into the menu
 function loadCharacterImages() {
   const characterRow = document.getElementById("character-row");
@@ -432,16 +422,6 @@ function loadCharacterImages() {
     li.appendChild(img);
 
     characterRow.appendChild(li);
-  });
-}
-
-// Scroll function to move the character row left or right
-function scrollCharacters(direction) {
-  const characterRow = document.getElementById("character-row");
-  const scrollAmount = 100; // Adjust scroll amount as needed
-  characterRow.scrollBy({
-    left: direction * scrollAmount,
-    behavior: "smooth",
   });
 }
 
@@ -597,18 +577,40 @@ function navigateVertical(allItems, currentIndex, direction) {
   focusItem(closestItem);
 }
 
+function scrollRowWithWrap(row, direction, step = 68) {
+  if (!row) return;
+
+  const max = Math.max(0, row.scrollWidth - row.clientWidth);
+  const current = row.scrollLeft;
+  const next = current + direction * step;
+
+  // Wrap when next move would go out of bounds
+  if (direction > 0 && next >= max - 1) {
+    row.scrollTo({ left: 0, behavior: "smooth" });
+    return;
+  }
+  if (direction < 0 && next <= 1) {
+    row.scrollTo({ left: max, behavior: "smooth" });
+    return;
+  }
+
+  row.scrollTo({ left: next, behavior: "smooth" });
+}
+
 function scrollModels(direction) {
-  const modelRow = document.getElementById("model-row");
-  const scrollAmount = 100; // Adjust as needed
-  modelRow.scrollBy({
-    left: direction * scrollAmount,
-    behavior: "smooth",
-  });
+  scrollRowWithWrap(document.getElementById("model-row"), direction, 68);
+}
+function scrollObjects(direction) {
+  scrollRowWithWrap(document.getElementById("object-row"), direction, 68);
+}
+function scrollCharacters(direction) {
+  scrollRowWithWrap(document.getElementById("character-row"), direction, 68);
 }
 
 // Shared function to load images into the menu
 function loadImages(rowId, namesArray, selectCallback) {
   const row = document.getElementById(rowId);
+ 
   row.replaceChildren(); // Clear existing items
 
   namesArray.forEach((name) => {

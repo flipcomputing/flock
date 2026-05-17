@@ -738,7 +738,25 @@ button {
   white-space: nowrap;
   flex-grow: 1;
   display: flex;
-  gap: 10px;
+}
+
+#model-row,
+#object-row,
+#character-row {
+  scroll-snap-type: x mandatory;
+}
+
+#model-row li,
+#object-row li,
+#character-row li {
+  scroll-snap-align: start;
+}
+
+#model-row::after,
+#object-row::after,
+#character-row::after {
+  content: "";
+  flex: 0 0 10px; 
 }
 
 .scroll-button {
