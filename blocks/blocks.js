@@ -15,10 +15,7 @@ import {
 } from "../ui/blockmesh.js";
 import { FieldColour, registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "../main/themes.js";
-import {
-  makeInlineIcon,
-  TOGGLE_BUTTON_FIELD_NAME,
-} from "./blockIcons.js";
+import { makeInlineIcon, TOGGLE_BUTTON_FIELD_NAME } from "./blockIcons.js";
 
 registerFieldColour();
 
@@ -1071,7 +1068,11 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
       (input) => input.connection === targetConn,
     );
     if (!parentInput) return;
-    if (parentInput.name === "X" || parentInput.name === "Y" || parentInput.name === "Z") {
+    if (
+      parentInput.name === "X" ||
+      parentInput.name === "Y" ||
+      parentInput.name === "Z"
+    ) {
       svgRoot.setAttribute("data-axis", parentInput.name);
     }
   }
@@ -1542,22 +1543,6 @@ export function defineBlocks() {
     },
   };
 
-  function focusResolvedKeywordBlock(block) {
-    const previouslySelected = Blockly.common?.getSelected?.();
-    if (previouslySelected && previouslySelected !== block) {
-      previouslySelected.unselect?.();
-    }
-
-    Blockly.common?.setSelected?.(block);
-    Blockly.getFocusManager?.()?.focusNode?.(block);
-    block.select?.();
-    block.workspace?.getCursor?.()?.setCurNode?.(block);
-
-    const focusableElement =
-      block.getFocusableElement?.() || block.getSvgRoot?.();
-    focusableElement?.focus?.({ preventScroll: true });
-  }
-
   Blockly.Blocks["keyword_block"] = {
     init: function () {
       this.appendDummyInput().appendField(
@@ -1619,10 +1604,7 @@ export function defineBlocks() {
 
           // Dispose of the old keyword block.
           this.dispose();
-
-          requestAnimationFrame(() => {
-            focusResolvedKeywordBlock(newBlock);
-          });
+          setTimeout(() => Blockly.getFocusManager().focusNode(newBlock), 0);
         }
       });
     },
