@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Request fullscreen on mobile only when running as a PWA
   if (isMobile() && isFullscreen) {
-    requestFullscreen();
+    //requestFullscreen();
     document.getElementById("fullscreenToggle").style.display = "none";
   }
 
