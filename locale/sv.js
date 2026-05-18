@@ -1247,4 +1247,12 @@ export default {
   shortcut_category_area_menu: "Områdesmeny",
   shortcut_category_editor: "Editor",
   shortcut_category_gizmos: "Gizmos",
+
+  // Blockly keyboard navigation toast messages
+  KEYBOARD_NAV_WORKSPACE_NAVIGATION_HINT: "Använd piltangenterna för att navigera", // machine
+  KEYBOARD_NAV_BLOCK_NAVIGATION_HINT: "Använd höger piltangent för att navigera inuti block", // machine
+  KEYBOARD_NAV_CONSTRAINED_MOVE_HINT: "Använd piltangenterna för att flytta, sedan %1 för att acceptera positionen", // machine
+  KEYBOARD_NAV_UNCONSTRAINED_MOVE_HINT: "Håll inne %1 och använd piltangenterna för att flytta fritt, sedan %2 för att acceptera", // machine
+  KEYBOARD_NAV_COPIED_HINT: "Kopierat. Tryck %1 för att klistra in.", // machine
+  KEYBOARD_NAV_CUT_HINT: "Klippt ut. Tryck %1 för att klistra in.", // machine
 };

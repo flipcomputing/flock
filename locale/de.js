@@ -1258,4 +1258,12 @@ export default {
   shortcut_category_area_menu: "Bereichsmenü",
   shortcut_category_editor: "Editor",
   shortcut_category_gizmos: "Gizmos",
+
+  // Blockly keyboard navigation toast messages
+  KEYBOARD_NAV_WORKSPACE_NAVIGATION_HINT: "Verwende die Pfeiltasten zum Navigieren", // machine
+  KEYBOARD_NAV_BLOCK_NAVIGATION_HINT: "Verwende die rechte Pfeiltaste, um innerhalb von Blöcken zu navigieren", // machine
+  KEYBOARD_NAV_CONSTRAINED_MOVE_HINT: "Verwende die Pfeiltasten zum Bewegen, dann %1 zum Bestätigen der Position", // machine
+  KEYBOARD_NAV_UNCONSTRAINED_MOVE_HINT: "Halte %1 gedrückt und verwende die Pfeiltasten zum freien Bewegen, dann %2 zum Bestätigen", // machine
+  KEYBOARD_NAV_COPIED_HINT: "Kopiert. Drücke %1 zum Einfügen.", // machine
+  KEYBOARD_NAV_CUT_HINT: "Ausgeschnitten. Drücke %1 zum Einfügen.", // machine
 };

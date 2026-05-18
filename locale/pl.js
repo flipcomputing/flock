@@ -1265,4 +1265,12 @@ export default {
   shortcut_category_area_menu: "Menu obszarów",
   shortcut_category_editor: "Edytor",
   shortcut_category_gizmos: "Gizmos",
+
+  // Blockly keyboard navigation toast messages
+  KEYBOARD_NAV_WORKSPACE_NAVIGATION_HINT: "Użyj klawiszy strzałek do nawigacji", // machine
+  KEYBOARD_NAV_BLOCK_NAVIGATION_HINT: "Użyj klawisza strzałki w prawo, aby nawigować wewnątrz bloków", // machine
+  KEYBOARD_NAV_CONSTRAINED_MOVE_HINT: "Użyj klawiszy strzałek do przesuwania, następnie %1 aby zaakceptować pozycję", // machine
+  KEYBOARD_NAV_UNCONSTRAINED_MOVE_HINT: "Przytrzymaj %1 i użyj klawiszy strzałek do swobodnego przesuwania, następnie %2 aby zaakceptować", // machine
+  KEYBOARD_NAV_COPIED_HINT: "Skopiowano. Naciśnij %1, aby wkleić.", // machine
+  KEYBOARD_NAV_CUT_HINT: "Wycięto. Naciśnij %1, aby wkleić.", // machine
 };

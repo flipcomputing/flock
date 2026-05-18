@@ -1271,4 +1271,12 @@ export default {
   shortcut_category_area_menu: "Menú de áreas",
   shortcut_category_editor: "Editor",
   shortcut_category_gizmos: "Gizmos",
+
+  // Blockly keyboard navigation toast messages
+  KEYBOARD_NAV_WORKSPACE_NAVIGATION_HINT: "Usa las teclas de flecha para navegar", // machine
+  KEYBOARD_NAV_BLOCK_NAVIGATION_HINT: "Usa la tecla de flecha derecha para navegar dentro de los bloques", // machine
+  KEYBOARD_NAV_CONSTRAINED_MOVE_HINT: "Usa las teclas de flecha para mover, luego %1 para aceptar la posición", // machine
+  KEYBOARD_NAV_UNCONSTRAINED_MOVE_HINT: "Mantén %1 y usa las teclas de flecha para mover libremente, luego %2 para aceptar", // machine
+  KEYBOARD_NAV_COPIED_HINT: "Copiado. Presiona %1 para pegar.", // machine
+  KEYBOARD_NAV_CUT_HINT: "Cortado. Presiona %1 para pegar.", // machine
 };
