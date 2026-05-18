@@ -1232,6 +1232,8 @@ export default {
   shortcut_select_previous_result: "Sök: föregående resultat",
   shortcut_focus_result: "Sök: gå till valt block",
   shortcut_nav_toolbox_blocks: "Navigera bland kategorier och block",
+  shortcut_toolbox_typing: "Hoppa till kategori",
+  shortcut_toolbox_typing_hint: "Börja skriva dess namn",
   shortcut_context_menu: "Öppna snabbmeny",
   shortcut_duplicate_block: "Duplicera block",
   shortcut_detach_block: "Koppla loss block",

@@ -391,6 +391,11 @@ function getShortcuts() {
       category: translate("shortcut_category_toolbox"),
     },
     {
+      label: translate("shortcut_toolbox_typing"),
+      keys: `"${translate("shortcut_toolbox_typing_hint")}"`,
+      category: translate("shortcut_category_toolbox"),
+    },
+    {
       label: translate("shortcut_nav_toolbox_blocks"),
       keys: `↑ ↓ ← →`,
       category: translate("shortcut_category_toolbox"),
@@ -534,6 +539,9 @@ function getShortcuts() {
 // Formats keys for menu nicely
 // You can use + or / and these won't be <kbd> tagged
 function formatKeys(keys) {
+  if (keys.startsWith('"') && keys.endsWith('"')) {
+    return keys.slice(1, -1);
+  }
   return keys
     .split(/( \+ | \/ )/)
     .map((part) =>

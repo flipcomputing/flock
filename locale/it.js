@@ -1245,6 +1245,8 @@ export default {
   shortcut_select_previous_result: "Ricerca: risultato precedente",
   shortcut_focus_result: "Ricerca: vai al blocco selezionato",
   shortcut_nav_toolbox_blocks: "Navigare tra categorie e blocchi",
+  shortcut_toolbox_typing: "Vai alla categoria",
+  shortcut_toolbox_typing_hint: "Inizia a digitare il nome",
   shortcut_context_menu: "Apri menu contestuale",
   shortcut_duplicate_block: "Duplica blocco",
   shortcut_detach_block: "Stacca blocco",

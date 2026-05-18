@@ -1293,6 +1293,8 @@ export default {
   shortcut_select_previous_result: "Search: Previous result",
   shortcut_focus_result: "Search: Go to selected block",
   shortcut_nav_toolbox_blocks: "Navigate categories and blocks",
+  shortcut_toolbox_typing: "Skip to category",
+  shortcut_toolbox_typing_hint: "Start typing its name",
   shortcut_context_menu: "Open context menu",
   shortcut_duplicate_block: "Duplicate block",
   shortcut_detach_block: "Detach block",
