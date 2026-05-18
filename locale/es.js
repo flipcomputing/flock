@@ -1228,7 +1228,7 @@ export default {
   toolbar_zoom_out_ui: "Alejar",
   toolbar_zoom_in_ui: "Acercar",
   // Keyboard shortcuts panel — title and close button
-  shortcut_panel_title: "Atajos de teclado",
+  shortcut_panel_title: "Controles de teclado",
   shortcut_panel_close: "Cerrar atajos de teclado",
 
   // Keyboard shortcuts panel — labels

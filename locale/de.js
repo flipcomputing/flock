@@ -1215,7 +1215,7 @@ export default {
   toolbar_zoom_out_ui: "Verkleinern",
   toolbar_zoom_in_ui: "Vergrößern",
   // Keyboard shortcuts panel — title and close button
-  shortcut_panel_title: "Tastaturkürzel",
+  shortcut_panel_title: "Tastatursteuerung",
   shortcut_panel_close: "Tastaturkürzel schließen",
 
   // Keyboard shortcuts panel — labels

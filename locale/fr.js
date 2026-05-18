@@ -1226,7 +1226,7 @@ export default {
   toolbar_zoom_out_ui: "Dézoomer",
   toolbar_zoom_in_ui: "Zoomer",
   // Keyboard shortcuts panel — title and close button
-  shortcut_panel_title: "Raccourcis clavier",
+  shortcut_panel_title: "Commandes clavier",
   shortcut_panel_close: "Fermer les raccourcis clavier",
 
   // Keyboard shortcuts panel — labels

@@ -1204,7 +1204,7 @@ export default {
   toolbar_zoom_out_ui: "Zooma ut",
   toolbar_zoom_in_ui: "Zooma in",
   // Keyboard shortcuts panel — title and close button
-  shortcut_panel_title: "Tangentbordsgenvägar",
+  shortcut_panel_title: "Tangentbordskontroller",
   shortcut_panel_close: "Stäng tangentbordsgenvägar",
 
   // Keyboard shortcuts panel — labels

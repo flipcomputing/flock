@@ -1217,7 +1217,7 @@ export default {
   toolbar_zoom_out_ui: "Riduci zoom",
   toolbar_zoom_in_ui: "Aumenta zoom",
   // Keyboard shortcuts panel — title and close button
-  shortcut_panel_title: "Scorciatoie da tastiera",
+  shortcut_panel_title: "Controlli da tastiera",
   shortcut_panel_close: "Chiudi le scorciatoie da tastiera",
 
   // Keyboard shortcuts panel — labels

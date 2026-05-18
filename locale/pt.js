@@ -1214,7 +1214,7 @@ export default {
   toolbar_zoom_out_ui: "Reduzir zoom",
   toolbar_zoom_in_ui: "Aumentar zoom",
   // Keyboard shortcuts panel — title and close button
-  shortcut_panel_title: "Atalhos de teclado",
+  shortcut_panel_title: "Controlos de teclado",
   shortcut_panel_close: "Fechar atalhos de teclado",
 
   // Keyboard shortcuts panel — labels

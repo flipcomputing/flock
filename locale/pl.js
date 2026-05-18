@@ -1222,7 +1222,7 @@ export default {
   toolbar_zoom_out_ui: "Oddal",
   toolbar_zoom_in_ui: "Przybliż",
   // Keyboard shortcuts panel — title and close button
-  shortcut_panel_title: "Skróty klawiaturowe",
+  shortcut_panel_title: "Sterowanie klawiaturą",
   shortcut_panel_close: "Zamknij skróty klawiaturowe",
 
   // Keyboard shortcuts panel — labels
