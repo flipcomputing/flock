@@ -319,7 +319,7 @@ function getShortcuts() {
     },
     {
       label: translate("shortcut_move_between_areas"),
-      keys: `Tab`,
+      keys: `Tab / Shift + Tab`,
       category: translate("shortcut_category_main"),
     },
     {
@@ -386,13 +386,50 @@ function getShortcuts() {
     },
 
     {
+      label: translate("shortcut_toolbox"),
+      keys: `T`,
+      category: translate("shortcut_category_toolbox"),
+    },
+    {
+      label: translate("shortcut_nav_toolbox_blocks"),
+      keys: `↑ ↓ ← →`,
+      category: translate("shortcut_category_toolbox"),
+    },
+    {
+      label: translate("shortcut_add_block"),
+      keys: `Enter`,
+      category: translate("shortcut_category_toolbox"),
+    },
+
+    {
       label: translate("shortcut_code_editor"),
       keys: `${mod} + E`,
       category: translate("shortcut_category_editor"),
     },
     {
-      label: translate("shortcut_toolbox"),
-      keys: `T`,
+      label: translate("shortcut_select_workspace"),
+      keys: `W`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_move_through_blocks"),
+      keys: `↑ ↓`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_move_in_out_blocks"),
+      keys: `← →`,
+      category: translate("shortcut_category_editor"),
+    },
+
+    {
+      label: translate("shortcut_next_block_stack"),
+      keys: `N`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_prev_block_stack"),
+      keys: `B`,
       category: translate("shortcut_category_editor"),
     },
     {
@@ -401,8 +438,33 @@ function getShortcuts() {
       category: translate("shortcut_category_editor"),
     },
     {
-      label: translate("shortcut_move_through_blocks"),
-      keys: `↑ ↓ ← →`,
+      label: translate("shortcut_context_menu"),
+      keys: `${mod} + Enter`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_duplicate_block"),
+      keys: `D`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_detach_block"),
+      keys: `X`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_start_move_block"),
+      keys: `M`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_move_arrows"),
+      keys: `↑ ↓`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_move_anywhere"),
+      keys: `${mod} + ↑ ↓ ← →`,
       category: translate("shortcut_category_editor"),
     },
     {
@@ -423,11 +485,6 @@ function getShortcuts() {
     {
       label: translate("shortcut_focus_result"),
       keys: `Esc`,
-      category: translate("shortcut_category_editor"),
-    },
-    {
-      label: translate("shortcut_start_move_block"),
-      keys: `M`,
       category: translate("shortcut_category_editor"),
     },
 
@@ -480,12 +537,14 @@ function formatKeys(keys) {
   return keys
     .split(/( \+ | \/ )/)
     .map((part) =>
-      part === " + " || part === " / "
+      part === " + "
         ? part
-        : part
-            .split(" ")
-            .map((k) => `<kbd>${k}</kbd>`)
-            .join(" "),
+        : part === " / "
+          ? "<br>"
+          : part
+              .split(" ")
+              .map((k) => `<kbd>${k}</kbd>`)
+              .join(" "),
     )
     .join("");
 }
