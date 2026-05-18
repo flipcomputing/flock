@@ -1219,6 +1219,7 @@ export default {
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: "Controlli da tastiera",
   shortcut_panel_close: "Chiudi le scorciatoie da tastiera",
+  shortcut_panel_help_link: "Apri il collegamento all'aiuto per i controlli da tastiera",
 
   // Keyboard shortcuts panel — labels
   shortcut_show_hide_help: "Mostra/nascondi scorciatoie da tastiera",

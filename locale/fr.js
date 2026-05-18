@@ -1228,6 +1228,7 @@ export default {
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: "Commandes clavier",
   shortcut_panel_close: "Fermer les raccourcis clavier",
+  shortcut_panel_help_link: "Ouvrir le lien d'aide des commandes clavier",
 
   // Keyboard shortcuts panel — labels
   shortcut_show_hide_help: "Afficher/masquer les raccourcis clavier",

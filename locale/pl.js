@@ -1224,6 +1224,7 @@ export default {
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: "Sterowanie klawiaturą",
   shortcut_panel_close: "Zamknij skróty klawiaturowe",
+  shortcut_panel_help_link: "Otwórz łącze pomocy sterowania klawiaturą",
 
   // Keyboard shortcuts panel — labels
   shortcut_show_hide_help: "Pokaż/ukryj skróty klawiaturowe",

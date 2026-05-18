@@ -1230,6 +1230,7 @@ export default {
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: "Controles de teclado",
   shortcut_panel_close: "Cerrar atajos de teclado",
+  shortcut_panel_help_link: "Abrir enlace de ayuda de controles de teclado",
 
   // Keyboard shortcuts panel — labels
   shortcut_show_hide_help: "Mostrar/ocultar atajos de teclado",

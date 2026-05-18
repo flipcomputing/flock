@@ -1216,6 +1216,7 @@ export default {
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: "Controlos de teclado",
   shortcut_panel_close: "Fechar atalhos de teclado",
+  shortcut_panel_help_link: "Abrir ligação de ajuda dos controlos do teclado",
 
   // Keyboard shortcuts panel — labels
   shortcut_show_hide_help: "Mostrar/ocultar atalhos de teclado",

@@ -1217,6 +1217,7 @@ export default {
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: "Tastatursteuerung",
   shortcut_panel_close: "Tastaturkürzel schließen",
+  shortcut_panel_help_link: "Hilfe-Link für Tastatursteuerung öffnen",
 
   // Keyboard shortcuts panel — labels
   shortcut_show_hide_help: "Tastaturkürzel ein-/ausblenden",

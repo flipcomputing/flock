@@ -1206,6 +1206,7 @@ export default {
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: "Tangentbordskontroller",
   shortcut_panel_close: "Stäng tangentbordsgenvägar",
+  shortcut_panel_help_link: "Öppna hjälplänk för tangentbordskontroller",
 
   // Keyboard shortcuts panel — labels
   shortcut_show_hide_help: "Visa/dölj tangentbordsgenvägar",

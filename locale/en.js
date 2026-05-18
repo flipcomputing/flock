@@ -1267,6 +1267,7 @@ export default {
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: "Keyboard Controls",
   shortcut_panel_close: "Close keyboard shortcuts",
+  shortcut_panel_help_link: "Open keyboard controls help link",
 
   // Keyboard shortcuts panel — labels
   shortcut_show_hide_help: "Show/hide shortcut help",
