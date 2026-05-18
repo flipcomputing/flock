@@ -538,7 +538,10 @@ body[data-theme="low-vision"] {
   box-shadow: 0 0 0 4px #000 !important;
 }
 
-[data-theme="low-vision"] .blocklyFieldColour .blocklyFieldGrid .blocklyFieldGridItem:focus {
+[data-theme="low-vision"]
+  .blocklyFieldColour
+  .blocklyFieldGrid
+  .blocklyFieldGridItem:focus {
   box-shadow: 0 0 0 4px #fff !important;
 }
 
@@ -625,6 +628,10 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
 .blocklyToolboxCategoryContainer:focus {
   outline: none !important;
+}
+
+.blocklyWorkspaceFocusRing {
+  stroke: none !important;
 }
 
 .blocklyKeyboardNavigation .blocklyToolbox:has(.blocklyActiveFocus),
