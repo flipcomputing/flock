@@ -1676,17 +1676,11 @@ kbd {
   outline-offset: -2px;
 }
 
-.shortcuts-panel .close-button {
-  position: absolute;
-  top: 1em;
-  right: 1em;
-  float: none;
-  width: 1.5em;
-  height: 1.5em;
-  padding: 0;
+.shortcuts-panel-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  margin-bottom: 0.5em;
 }
 
 .shortcuts-panel .help-link-button:focus {
@@ -1697,7 +1691,7 @@ kbd {
 
 .shortcuts-panel h1 {
   font-size: 1.8em;
-  margin-top: 10px;
+  margin: 0;
 }
 
 .shortcuts-panel #shortcuts-table {
