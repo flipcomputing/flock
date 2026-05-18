@@ -260,6 +260,10 @@ body[data-theme="low-vision"] {
 }
 
 /* Search Highlight Styles */
+.shortcuts-panel-open .blockly-ws-search {
+  transform: translateX(-400px);
+}
+
 .blockly-ws-search {
   background: var(--color-bg);
   margin-top: 5px;
@@ -267,7 +271,7 @@ body[data-theme="low-vision"] {
   justify-content: center;
   padding: 0.25em;
   position: absolute;
-  z-index: 70;
+  z-index: 100;
 }
 
 /* Fade top-level blocks that contain no search matches */

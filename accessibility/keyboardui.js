@@ -463,7 +463,7 @@ function getShortcuts() {
     },
     {
       label: translate("shortcut_quick_colour"),
-      keys: `P`,
+      keys: `C`,
       category: translate("shortcut_category_gizmos"),
     },
     {
@@ -539,6 +539,7 @@ const ShortcutsPanel = {
       .join("");
     this.previousFocus = document.activeElement;
     this.panel.classList.remove("hidden");
+    document.body.classList.add("shortcuts-panel-open");
     this.panel.focus();
     document.getElementById("shortcutsBtn")?.classList.add("active");
   },
@@ -547,6 +548,7 @@ const ShortcutsPanel = {
     this.previousFocus?.focus();
     this.previousFocus = null;
     this.panel.classList.add("hidden");
+    document.body.classList.remove("shortcuts-panel-open");
     document.getElementById("shortcutsBtn")?.classList.remove("active");
   },
 

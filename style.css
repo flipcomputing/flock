@@ -1699,3 +1699,7 @@ kbd {
   font-size: 1.8em;
   margin-top: 10px;
 }
+
+.shortcuts-panel #shortcuts-table {
+  margin-bottom: 1.5em;
+}

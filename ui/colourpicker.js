@@ -1864,8 +1864,8 @@ class CustomColorPicker {
     document.body.classList.add("color-picker-open");
     document.getElementById("colorPickerButton")?.classList.add("active");
 
-    // Add P shortcut to pick current colour
-    InputManager.on("*", "KeyP", (e) => {
+    // Add C shortcut to pick current colour
+    InputManager.on("*", "KeyC", (e) => {
       if (ContextManager.getCurrentContext() === "TYPING") return;
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
       e.preventDefault();
