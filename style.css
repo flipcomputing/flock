@@ -611,6 +611,10 @@ button {
   background-color: var(--color-focus);
 }
 
+.bigbutton.active {
+  box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+
 #colorPickerButton svg {
   /* filter: invert(1) brightness(2); Make palette icon white */
   fill: #ffffff !important;
@@ -756,7 +760,7 @@ button {
 #object-row::after,
 #character-row::after {
   content: "";
-  flex: 0 0 10px; 
+  flex: 0 0 10px;
 }
 
 .scroll-button {
@@ -863,7 +867,9 @@ button {
   }
 
   #blocklyDiv {
-    height: calc(100% - 59px - max(8px, env(safe-area-inset-bottom, 0px))) !important;
+    height: calc(
+      100% - 59px - max(8px, env(safe-area-inset-bottom, 0px))
+    ) !important;
   }
 }
 
@@ -1674,4 +1680,16 @@ kbd {
 .shortcuts-panel:focus {
   outline: 2px solid var(--color-focus);
   outline-offset: -2px;
+}
+
+.shortcuts-panel .close-button {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  float: none;
+}
+
+.shortcuts-panel h1 {
+  font-size: 1.8em;
+  margin-top: 10px;
 }

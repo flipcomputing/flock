@@ -541,12 +541,14 @@ const ShortcutsPanel = {
     this.previousFocus = document.activeElement;
     this.panel.classList.remove("hidden");
     this.panel.focus();
+    document.getElementById("shortcutsBtn")?.classList.add("active");
   },
 
   hide() {
     this.previousFocus?.focus();
     this.previousFocus = null;
     this.panel.classList.add("hidden");
+    document.getElementById("shortcutsBtn")?.classList.remove("active");
   },
 
   toggle() {
