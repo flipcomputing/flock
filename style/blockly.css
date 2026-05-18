@@ -631,7 +631,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
 }
 
 .blocklyWorkspaceFocusRing {
-  stroke: none !important;
+  stroke: var(--color-outline-focus) !important;
 }
 
 .blocklyKeyboardNavigation .blocklyToolbox:has(.blocklyActiveFocus),
