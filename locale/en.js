@@ -1311,9 +1311,12 @@ export default {
 
   // Blockly keyboard navigation toast messages
   KEYBOARD_NAV_WORKSPACE_NAVIGATION_HINT: "Use the arrow keys to navigate",
-  KEYBOARD_NAV_BLOCK_NAVIGATION_HINT: "Use the right arrow key to navigate inside of blocks",
-  KEYBOARD_NAV_CONSTRAINED_MOVE_HINT: "Use the arrow keys to move, then %1 to accept the position",
-  KEYBOARD_NAV_UNCONSTRAINED_MOVE_HINT: "Hold %1 and use arrow keys to move freely, then %2 to accept the position",
+  KEYBOARD_NAV_BLOCK_NAVIGATION_HINT:
+    "Use the right arrow key to navigate inside of blocks",
+  KEYBOARD_NAV_CONSTRAINED_MOVE_HINT:
+    "Use the arrow keys to move, then %1 to accept the position",
+  KEYBOARD_NAV_UNCONSTRAINED_MOVE_HINT:
+    "Hold %1 and use arrow keys to move freely, then %2 to accept the position",
   KEYBOARD_NAV_COPIED_HINT: "Copied. Press %1 to paste.",
   KEYBOARD_NAV_CUT_HINT: "Cut. Press %1 to paste.",
 };
