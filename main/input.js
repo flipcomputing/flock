@@ -121,9 +121,13 @@ export function setupInput() {
       }
 
       // 6b) Workspace toolbar
-      ["#undoBtn", "#redoBtn", "#zoomOutBtn", "#zoomInBtn"].forEach((sel) =>
-        pushUnique(document.querySelector(sel)),
-      );
+      [
+        "#undoBtn",
+        "#redoBtn",
+        "#zoomOutBtn",
+        "#zoomInBtn",
+        "#shortcutsBtn",
+      ].forEach((sel) => pushUnique(document.querySelector(sel)));
 
       // 7) Main UI controls (in natural order)
       [

@@ -819,6 +819,9 @@ function initializeApp() {
     zoomOutBtn.addEventListener("click", () => workspace.zoomCenter(-1));
   if (undoBtn) undoBtn.addEventListener("click", () => workspace.undo(false));
   if (redoBtn) redoBtn.addEventListener("click", () => workspace.undo(true));
+  const shortcutsBtn = document.getElementById("shortcutsBtn");
+  if (shortcutsBtn)
+    shortcutsBtn.addEventListener("click", () => ShortcutsPanel.toggle());
 
   // Make open button work with keyboard
   if (openButton) {
