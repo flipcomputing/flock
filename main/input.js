@@ -129,6 +129,15 @@ export function setupInput() {
         "#shortcutsBtn",
       ].forEach((sel) => pushUnique(document.querySelector(sel)));
 
+      // 6c) Shortcuts panel (when visible)
+      const shortcutsPanel = document.getElementById("shortcutsPanel");
+      pushUnique(shortcutsPanel);
+      if (shortcutsPanel) {
+        shortcutsPanel
+          .querySelectorAll("a[href], button:not([disabled])")
+          .forEach(pushUnique);
+      }
+
       // 7) Main UI controls (in natural order)
       [
         "#menuBtn",

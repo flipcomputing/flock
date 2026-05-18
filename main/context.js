@@ -44,7 +44,7 @@ export const ContextManager = {
     if (isInput || isBlocklyTyping) return "TYPING";
 
     // OVERLAY: are they currently in an overlay?
-    const overlaySelectors = "#area-menu-overlay, .shortcuts-panel";
+    const overlaySelectors = "#area-menu-overlay";
     const isOverlayVisible = Array.from(
       document.querySelectorAll(overlaySelectors),
     ).some((el) => window.getComputedStyle(el).display !== "none");
