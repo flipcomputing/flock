@@ -620,12 +620,16 @@ function registerTopBlockReorderShortcuts() {
       callback: (ws, event, shortcut) => handler(ws, event, shortcut, orig),
     });
   }
- 
+
   function openSession(ws) {
     session = null;
     const block = focusedBlock();
     if (!TOP_BLOCK_TYPES.includes(block.type)) return;
-    console.log("Moving top block", block.type, TOP_BLOCK_TYPES.includes(block.type));
+    console.log(
+      "Moving top block",
+      block.type,
+      TOP_BLOCK_TYPES.includes(block.type),
+    );
     const snapshot = new Map();
     for (const b of ws.getTopBlocks(false) || []) {
       snapshot.set(b, b.getRelativeToSurfaceXY().y);
@@ -869,6 +873,7 @@ function initializeApp() {
     // <input> when the toolbox receives focus, so moving focus inline
     // here causes the 't' keypress to be typed into the search box.
     setTimeout(() => {
+      Blockly.keyboardNavigationController?.setIsActive(true);
       const toolbox = workspace.getToolbox?.();
       if (!toolbox) return;
 

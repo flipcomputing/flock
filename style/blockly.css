@@ -12,7 +12,7 @@
   --color-shadow: grey;
   --color-outline-focus: #fc3;
   --block-outline-focus: #fff200;
-  --color-toolbox-focus: var(--color-outline-focus);
+  --color-toolbox-focus: var(--block-outline-focus);
 
   /* Dropdown & menu semantics */
   --color-dropdown-text: var(--color-text);
@@ -370,24 +370,16 @@ body[data-theme="low-vision"] {
   outline: none;
 }
 
-/* Toolbox category selection outline */
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
-  > .blocklyToolboxCategory,
-.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"]
-  > .blocklyToolboxCategory {
-  outline: 5px solid var(--color-toolbox-focus);
-  outline-offset: 0px;
-  border-radius: 4px;
-}
-
 /* Keyboard-focused toolbox category (Blockly 13 FocusManager active node) */
-.blocklyKeyboardNavigation .blocklyToolbox .blocklyActiveFocus,
 .blocklyKeyboardNavigation
   .blocklyToolbox
   .blocklyActiveFocus
-  > .blocklyToolboxCategory {
-  outline: 5px solid var(--color-toolbox-focus) !important;
-  outline-offset: 0px !important;
+  > .blocklyToolboxCategory,
+.blocklyKeyboardNavigation
+  .blocklyToolbox
+  .blocklyToolboxCategory.blocklyActiveFocus {
+  outline: none !important;
+  box-shadow: inset 0 0 0 3px var(--color-toolbox-focus) !important;
   border-radius: 4px;
 }
 
