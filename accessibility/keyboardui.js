@@ -556,6 +556,7 @@ const ShortcutsPanel = {
   init() {
     this.createPanel();
     this.setupListeners();
+    window.flockShortcutsPanel = this;
   },
 
   createPanel() {
@@ -576,7 +577,7 @@ const ShortcutsPanel = {
     this.panel = div;
   },
 
-  show() {
+  renderContent() {
     this.panel.setAttribute("aria-label", translate("shortcut_panel_title"));
     this.panel.querySelector("#shortcuts-panel-title").textContent = translate(
       "shortcut_panel_title",
@@ -594,11 +595,21 @@ const ShortcutsPanel = {
     `,
       )
       .join("");
+  },
+
+  show() {
+    this.renderContent();
     this.previousFocus = document.activeElement;
     this.panel.classList.remove("hidden");
     document.body.classList.add("shortcuts-panel-open");
     this.panel.focus();
     document.getElementById("shortcutsBtn")?.classList.add("active");
+  },
+
+  refreshTranslations() {
+    if (!this.panel.classList.contains("hidden")) {
+      this.renderContent();
+    }
   },
 
   hide() {

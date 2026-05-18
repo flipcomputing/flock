@@ -113,6 +113,11 @@ export async function setLanguage(language) {
     window.flockColorPicker.refreshTranslations();
   }
 
+  // Update shortcuts panel if open
+  if (window.flockShortcutsPanel?.refreshTranslations) {
+    window.flockShortcutsPanel.refreshTranslations();
+  }
+
   // Refresh the workspace to show updated language
   const workspace = Blockly.getMainWorkspace();
   if (workspace) {
