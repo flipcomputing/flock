@@ -468,6 +468,7 @@ button {
   gap: 0;
   box-sizing: border-box;
   overflow-x: hidden;
+  position: relative;
 }
 
 #canvasArea {
@@ -493,7 +494,7 @@ button {
   padding: 0 8px;
   background-color: var(--color-bg);
   box-shadow: 0px 0px 10px var(--color-shadow);
-  z-index: 10;
+  z-index: 100;
 }
 
 #blocklyZoomControls .toolbar-divider {
@@ -1656,25 +1657,18 @@ kbd {
   font-size: 1.2em;
 }
 
-/* Shortcuts panel — floats over UI, pointer events pass through the wrapper */
+/* Shortcuts panel — overlays main content area, does not affect editor layout */
 .shortcuts-panel {
-  position: fixed;
+  position: absolute;
   top: 0;
   bottom: 0;
-  width: min(300px, 100%);
+  right: 0;
+  width: 400px;
+  box-sizing: border-box;
   background-color: var(--color-bg);
   padding: 1.5em;
   overflow-y: auto;
-  z-index: 10002;
-}
-
-.shortcuts-panel--left {
-  left: 0;
-}
-
-.shortcuts-panel--right {
-  right: 0;
-  left: auto;
+  z-index: 90;
 }
 
 .shortcuts-panel:focus {
@@ -1682,14 +1676,24 @@ kbd {
   outline-offset: -2px;
 }
 
-.shortcuts-panel .close-button {
-  position: absolute;
-  top: 1em;
-  right: 1em;
-  float: none;
+.shortcuts-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5em;
+}
+
+.shortcuts-panel .help-link-button:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .shortcuts-panel h1 {
   font-size: 1.8em;
-  margin-top: 10px;
+  margin: 0;
+}
+
+.shortcuts-panel #shortcuts-table {
+  margin-bottom: 1.5em;
 }

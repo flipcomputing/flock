@@ -319,7 +319,7 @@ function getShortcuts() {
     },
     {
       label: translate("shortcut_move_between_areas"),
-      keys: `Tab`,
+      keys: `Tab / Shift + Tab`,
       category: translate("shortcut_category_main"),
     },
     {
@@ -386,13 +386,55 @@ function getShortcuts() {
     },
 
     {
+      label: translate("shortcut_toolbox"),
+      keys: `T`,
+      category: translate("shortcut_category_toolbox"),
+    },
+    {
+      label: translate("shortcut_toolbox_typing"),
+      keys: `"${translate("shortcut_toolbox_typing_hint")}"`,
+      category: translate("shortcut_category_toolbox"),
+    },
+    {
+      label: translate("shortcut_nav_toolbox_blocks"),
+      keys: `↑ ↓ ← →`,
+      category: translate("shortcut_category_toolbox"),
+    },
+    {
+      label: translate("shortcut_add_block"),
+      keys: `Enter`,
+      category: translate("shortcut_category_toolbox"),
+    },
+
+    {
       label: translate("shortcut_code_editor"),
       keys: `${mod} + E`,
       category: translate("shortcut_category_editor"),
     },
     {
-      label: translate("shortcut_toolbox"),
-      keys: `T`,
+      label: translate("shortcut_select_workspace"),
+      keys: `W`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_move_through_blocks"),
+      keys: `↑ ↓`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_move_in_out_blocks"),
+      keys: `← →`,
+      category: translate("shortcut_category_editor"),
+    },
+
+    {
+      label: translate("shortcut_next_block_stack"),
+      keys: `N`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_prev_block_stack"),
+      keys: `B`,
       category: translate("shortcut_category_editor"),
     },
     {
@@ -401,8 +443,33 @@ function getShortcuts() {
       category: translate("shortcut_category_editor"),
     },
     {
-      label: translate("shortcut_move_through_blocks"),
-      keys: `↑ ↓ ← →`,
+      label: translate("shortcut_context_menu"),
+      keys: `${mod} + Enter`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_duplicate_block"),
+      keys: `D`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_detach_block"),
+      keys: `X`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_start_move_block"),
+      keys: `M`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_move_arrows"),
+      keys: `↑ ↓`,
+      category: translate("shortcut_category_editor"),
+    },
+    {
+      label: translate("shortcut_move_anywhere"),
+      keys: `${mod} + ↑ ↓ ← →`,
       category: translate("shortcut_category_editor"),
     },
     {
@@ -423,11 +490,6 @@ function getShortcuts() {
     {
       label: translate("shortcut_focus_result"),
       keys: `Esc`,
-      category: translate("shortcut_category_editor"),
-    },
-    {
-      label: translate("shortcut_start_move_block"),
-      keys: `M`,
       category: translate("shortcut_category_editor"),
     },
 
@@ -463,7 +525,7 @@ function getShortcuts() {
     },
     {
       label: translate("shortcut_quick_colour"),
-      keys: `P`,
+      keys: `C`,
       category: translate("shortcut_category_gizmos"),
     },
     {
@@ -477,54 +539,60 @@ function getShortcuts() {
 // Formats keys for menu nicely
 // You can use + or / and these won't be <kbd> tagged
 function formatKeys(keys) {
+  if (keys.startsWith('"') && keys.endsWith('"')) {
+    return keys.slice(1, -1);
+  }
   return keys
     .split(/( \+ | \/ )/)
     .map((part) =>
-      part === " + " || part === " / "
+      part === " + "
         ? part
-        : part
-            .split(" ")
-            .map((k) => `<kbd>${k}</kbd>`)
-            .join(" "),
+        : part === " / "
+          ? "<br>"
+          : part
+              .split(" ")
+              .map((k) => `<kbd>${k}</kbd>`)
+              .join(" "),
     )
     .join("");
 }
 
 const ShortcutsPanel = {
   panel: null,
-  dock: "left",
   previousFocus: null,
 
   init() {
     this.createPanel();
     this.setupListeners();
+    window.flockShortcutsPanel = this;
   },
 
   createPanel() {
     const div = document.createElement("div");
     div.id = "shortcutsPanel";
-    div.className = "shortcuts-panel hidden shortcuts-panel--left";
+    div.className = "shortcuts-panel hidden";
     div.setAttribute("role", "region");
     div.setAttribute("aria-label", translate("shortcut_panel_title"));
     div.tabIndex = 0;
     div.innerHTML = `
-        <button type="button" class="close-button" id="closeShortcutsPanel" aria-label="${translate("shortcut_panel_close")}">&times;</button>
-        <a href="${SHORTCUTS_HELP_URL}" target="_blank" rel="noopener noreferrer" class="help-link-button" aria-label="Open keyboard shortcuts help page"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg></a>
-        <h1 id="shortcuts-panel-title">${translate("shortcut_panel_title")}</h1>
+        <div class="shortcuts-panel-header">
+          <h1 id="shortcuts-panel-title">${translate("shortcut_panel_title")}</h1>
+          <a href="${SHORTCUTS_HELP_URL}" target="_blank" rel="noopener noreferrer" class="help-link-button" aria-label="${translate("shortcut_panel_help_link")}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg></a>
+        </div>
         <table id="shortcuts-table"><tbody></tbody></table>
       `;
-    document.body.appendChild(div);
+    document.getElementById("maincontent").appendChild(div);
     this.panel = div;
   },
 
-  show() {
+  renderContent() {
     this.panel.setAttribute("aria-label", translate("shortcut_panel_title"));
     this.panel.querySelector("#shortcuts-panel-title").textContent = translate(
       "shortcut_panel_title",
     );
     this.panel
-      .querySelector("#closeShortcutsPanel")
-      .setAttribute("aria-label", translate("shortcut_panel_close"));
+      .querySelector(".help-link-button")
+      .setAttribute("aria-label", translate("shortcut_panel_help_link"));
     const tbody = this.panel.querySelector("tbody");
     const groups = getShortcuts().reduce((acc, s) => {
       (acc[s.category] ??= []).push(s);
@@ -538,16 +606,28 @@ const ShortcutsPanel = {
     `,
       )
       .join("");
+  },
+
+  show() {
+    this.renderContent();
     this.previousFocus = document.activeElement;
     this.panel.classList.remove("hidden");
+    document.body.classList.add("shortcuts-panel-open");
     this.panel.focus();
     document.getElementById("shortcutsBtn")?.classList.add("active");
+  },
+
+  refreshTranslations() {
+    if (!this.panel.classList.contains("hidden")) {
+      this.renderContent();
+    }
   },
 
   hide() {
     this.previousFocus?.focus();
     this.previousFocus = null;
     this.panel.classList.add("hidden");
+    document.body.classList.remove("shortcuts-panel-open");
     document.getElementById("shortcutsBtn")?.classList.remove("active");
   },
 
@@ -555,27 +635,8 @@ const ShortcutsPanel = {
     this.panel.classList.contains("hidden") ? this.show() : this.hide();
   },
 
-  setDock(side) {
-    this.dock = side;
-    this.panel.classList.toggle("shortcuts-panel--left", side === "left");
-    this.panel.classList.toggle("shortcuts-panel--right", side === "right");
-  },
-
   setupListeners() {
-    // Not handled by InputManager as they are set specifically
-    // to listen when the panel has focus, not globally
-    document.addEventListener("click", (e) => {
-      if (e.target.id === "closeShortcutsPanel") this.hide();
-    });
     this.panel.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        this.setDock("left");
-      }
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        this.setDock("right");
-      }
       if (e.key === "ArrowUp") {
         e.preventDefault();
         this.panel.scrollBy({ top: -100, behavior: "instant" });
@@ -584,7 +645,7 @@ const ShortcutsPanel = {
         e.preventDefault();
         this.panel.scrollBy({ top: 100, behavior: "instant" });
       }
-      if (e.key === "Tab" || e.key === "Escape") {
+      if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
         this.hide();
