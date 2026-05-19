@@ -38,6 +38,21 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
   fieldColourPrototype.showEditor_ = function (e) {
     originalShowEditor.call(this, e);
 
+    // v13.0.0-beta.5 + @blockly/field-colour@6.0.12: the colour grid dropdown
+    // is mis-positioned by Blockly.DropDownDiv.showPositionedByField — it lands
+    // pinned to the workspace's top-left edge instead of next to the field.
+    // The cause is somewhere in v13's positioning math. Re-anchor the dropdown to
+    // the field manually as a stopgap until upstream ships a v13 fix.
+    const xy = this.getAbsoluteXY_();
+    const size = this.getSize();
+    const dd = document.querySelector(".blocklyDropDownDiv");
+    const parent = dd?.parentElement;
+    if (dd && parent && xy) {
+      const parentRect = parent.getBoundingClientRect();
+      dd.style.top = `${xy.y + (size?.height || 21) - parentRect.y}px`;
+      dd.style.left = `${xy.x - parentRect.x}px`;
+    }
+
     const currentValue = normaliseHexColour(this.getValue?.());
     if (!currentValue) return;
 
