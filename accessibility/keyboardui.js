@@ -577,6 +577,10 @@ const InfoPanel = {
     btn.textContent = label;
     btn.addEventListener("click", () => this.toggle(id));
     this._tablist.appendChild(btn);
+    const divider = document.createElement("div");
+    divider.className = "toolbar-divider";
+    divider.setAttribute("aria-hidden", "true");
+    this._tablist.appendChild(divider);
 
     const panel = document.createElement("div");
     panel.id = `info-tab-panel-${id}`;
@@ -623,14 +627,31 @@ const InfoPanel = {
   },
 };
 
+const SHORTCUTS_FONT_SIZES = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8];
+const SHORTCUTS_FONT_SIZE_KEY = "flock-shortcuts-font-size";
+const SHORTCUTS_FONT_SIZE_DEFAULT = 1.2;
+
 const ShortcutsPanel = {
   panel: null,
   previousFocus: null,
+  fontSize: parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
 
   init() {
     this.createPanel();
     this.setupListeners();
     window.flockShortcutsPanel = this;
+  },
+
+  adjustFontSize(delta) {
+    const sizes = SHORTCUTS_FONT_SIZES;
+    const idx = sizes.indexOf(this.fontSize);
+    const next = sizes[Math.max(0, Math.min(sizes.length - 1, idx + delta))];
+    if (next === this.fontSize) return;
+    this.fontSize = next;
+    localStorage.setItem(SHORTCUTS_FONT_SIZE_KEY, next);
+    this.panel.querySelector("#shortcuts-table").style.fontSize = next + "em";
+    this.panel.querySelector(".shortcuts-decrease-btn").disabled = next === sizes[0];
+    this.panel.querySelector(".shortcuts-increase-btn").disabled = next === sizes[sizes.length - 1];
   },
 
   createPanel() {
@@ -644,11 +665,23 @@ const ShortcutsPanel = {
     panel.innerHTML = `
         <div class="shortcuts-panel-header">
           <h2 id="shortcuts-panel-title" class="shortcuts-panel-title"></h2>
-          <a href="${SHORTCUTS_HELP_URL}" target="_blank" rel="noopener noreferrer" class="help-link-button" aria-label="${translate("shortcut_panel_help_link")}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg></a>
+          <div class="shortcuts-panel-controls">
+            <button class="bigbutton shortcuts-decrease-btn" aria-label="Decrease text size" title="Decrease text size"><span aria-hidden="true">A</span></button>
+            <button class="bigbutton shortcuts-increase-btn" aria-label="Increase text size" title="Increase text size"><span aria-hidden="true">A</span></button>
+            <a href="${SHORTCUTS_HELP_URL}" target="_blank" rel="noopener noreferrer" class="help-link-button" aria-label="${translate("shortcut_panel_help_link")}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg></a>
+          </div>
         </div>
-        <table id="shortcuts-table"><tbody></tbody></table>
+        <table id="shortcuts-table"><colgroup><col style="width:33%"><col></colgroup><tbody></tbody></table>
       `;
     this.panel = panel;
+    const sizes = SHORTCUTS_FONT_SIZES;
+    const decreaseBtn = panel.querySelector(".shortcuts-decrease-btn");
+    const increaseBtn = panel.querySelector(".shortcuts-increase-btn");
+    decreaseBtn.disabled = this.fontSize === sizes[0];
+    increaseBtn.disabled = this.fontSize === sizes[sizes.length - 1];
+    decreaseBtn.addEventListener("click", () => this.adjustFontSize(-1));
+    increaseBtn.addEventListener("click", () => this.adjustFontSize(1));
+    panel.querySelector("#shortcuts-table").style.fontSize = this.fontSize + "em";
     this.renderContent();
   },
 

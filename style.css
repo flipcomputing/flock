@@ -495,7 +495,8 @@ button {
   z-index: 100;
 }
 
-#blocklyZoomControls .toolbar-divider {
+#blocklyZoomControls .toolbar-divider,
+#info-panel-tabs .toolbar-divider {
   width: 1px;
   height: 24px;
   background-color: var(--color-border);
@@ -1611,9 +1612,6 @@ body.color-picker-open #renderCanvas {
   table-layout: fixed;
 }
 
-#shortcuts-table td:first-child {
-  width: 70%;
-}
 
 #shortcuts-table td {
   padding: 0.5em;
@@ -1695,6 +1693,31 @@ kbd {
   font-size: 1.5em;
   font-weight: bold;
   margin: 0;
+}
+
+.shortcuts-panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.shortcuts-decrease-btn,
+.shortcuts-increase-btn {
+  font-weight: bold;
+  margin-left: 0;
+}
+
+.shortcuts-decrease-btn span {
+  font-size: 0.75em;
+}
+
+.shortcuts-increase-btn span {
+  font-size: 1.1em;
+}
+
+.shortcuts-panel-header .help-link-button {
+  color: var(--color-text-primary);
+  margin-left: 12px;
 }
 
 .shortcuts-panel-header .help-link-button:focus {
