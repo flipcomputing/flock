@@ -264,6 +264,11 @@ body[data-theme="low-vision"] {
   transform: translateX(-400px);
 }
 
+.shortcuts-panel-open .blocklyTrash {
+  translate: -400px 0;
+  transition: translate 0.2s ease;
+}
+
 .blockly-ws-search {
   background: var(--color-bg);
   margin-top: 5px;
