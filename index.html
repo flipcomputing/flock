@@ -1285,6 +1285,26 @@
                   />
                 </svg>
               </button>
+              <div id="flocklink">
+                <a
+                  href="https://flockxr.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  id="info-panel-link"
+                  data-i18n="info_panel_link"
+                  aria-label="Visit Flock XR website (opens in new tab)"
+                  title="Visit Flock XR website"
+                >
+                  <img
+                    src="./images/inline-flock-xr.svg"
+                    alt="Flock XR logo"
+                    id="flocklogo"
+                  />
+                  <span class="sr-only">
+                    Visit Flock XR website in a new tab
+                  </span>
+                </a>
+              </div>
             </aside>
             <!-- Info panel collapse starts -->
 
@@ -1292,32 +1312,14 @@
               id="info-panel"
               role="complementary"
               aria-label="Information panel"
-            ></aside>
-
-            <footer id="site-footer">
-              <nav aria-label="Footer navigation">
-                <div id="flocklink">
-                  <a
-                    href="https://flockxr.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    id="info-panel-link"
-                    data-i18n="info_panel_link"
-                    aria-label="Visit Flock XR website (opens in new tab)"
-                    title="Visit Flock XR website"
-                  >
-                    <img
-                      src="./images/inline-flock-xr.svg"
-                      alt="Flock XR logo"
-                      id="flocklogo"
-                    />
-                    <span class="sr-only">
-                      Visit Flock XR website in a new tab
-                    </span>
-                  </a>
-                </div>
-              </nav>
-            </footer>
+            >
+              <div
+                id="info-panel-tabs"
+                role="tablist"
+                aria-label="Information panel tabs"
+              ></div>
+              <div id="info-panel-body"></div>
+            </aside>
           </section>
           <div
             class="resizer"
@@ -1413,25 +1415,6 @@
                     <path
                       fill="currentColor"
                       d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM184 296c0 13.3 10.7 24 24 24s24-10.7 24-24l0-64 64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0 0-64c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 64-64 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0 0 64z"
-                    />
-                  </svg>
-                </div>
-              </button>
-              <div class="toolbar-divider" aria-hidden="true"></div>
-              <button
-                class="bigbutton"
-                id="shortcutsBtn"
-                aria-label="Keyboard shortcuts"
-                title="Keyboard shortcuts"
-                data-i18n="shortcut_panel_title"
-                data-i18n-attrs="title,aria-label"
-              >
-                <div class="icon" aria-hidden="true">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
-                    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                    <path
-                      fill="currentColor"
-                      d="M64 64C28.7 64 0 92.7 0 128L0 384c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64L64 64zM175.1 224l16 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16zm-72 32c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16l16 0c8.8 0 16 7.2 16 16l0 16zm128 0c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16l16 0c8.8 0 16 7.2 16 16l0 16zm128 0c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16l16 0c8.8 0 16 7.2 16 16l0 16zm72-32l16 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16zM80 336c0-8.8 7.2-16 16-16l288 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-288 0c-8.8 0-16-7.2-16-16l0-16zm336-16l16 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16z"
                     />
                   </svg>
                 </div>

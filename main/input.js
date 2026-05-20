@@ -67,8 +67,16 @@ export function setupInput() {
         .querySelectorAll("#gizmoButtons button, #gizmoButtons input")
         .forEach(pushUnique);
 
-      // 4) Logo link + resizer
+      // 4) Logo link, keyboard tab, shortcuts panel contents (if open), resizer
       pushUnique(document.querySelector("#info-panel-link"));
+      pushUnique(document.querySelector("#info-tab-btn-shortcuts"));
+      const shortcutsTabPanel = document.getElementById("info-tab-panel-shortcuts");
+      if (shortcutsTabPanel && !shortcutsTabPanel.classList.contains("hidden")) {
+        pushUnique(shortcutsTabPanel);
+        shortcutsTabPanel
+          .querySelectorAll("a[href], button:not([disabled])")
+          .forEach(pushUnique);
+      }
       pushUnique(document.querySelector("#resizer"));
 
       // 5) Search inputs (toolbox flyout etc.)
@@ -144,7 +152,7 @@ export function setupInput() {
           .forEach(pushUnique);
       }
 
-      ["#undoBtn", "#redoBtn", "#zoomOutBtn", "#zoomInBtn", "#shortcutsBtn"].forEach((sel) =>
+      ["#undoBtn", "#redoBtn", "#zoomOutBtn", "#zoomInBtn"].forEach((sel) =>
         pushUnique(document.querySelector(sel)),
       );
 

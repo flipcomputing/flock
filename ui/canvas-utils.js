@@ -159,7 +159,7 @@ function ensureCircle() {
 // Deal with key down events for canvas keyboard mode
 function handleKeydown(event) {
   if (!keyboardCursorActive) return;
-  if (event.target?.closest?.(".shortcuts-panel")) return;
+  if (event.target?.closest?.("#info-panel")) return;
 
   // If a button was focused and they pressed enter/space, don't
   // move the circle, interact with the button

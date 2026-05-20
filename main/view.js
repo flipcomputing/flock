@@ -168,7 +168,7 @@ function switchView(view) {
     viewMode = "both";
     codeMode = "both";
     blocklyArea.style.display = "block";
-    canvasArea.style.display = "block";
+    canvasArea.style.display = "";
     flockLink.style.display = "block";
     if (resizer) resizer.style.display = "block";
     blocklyArea.style.width = "0";
@@ -187,7 +187,7 @@ function switchView(view) {
   } else if (view === "canvas") {
     viewMode = "canvas";
     blocklyArea.style.display = "none";
-    canvasArea.style.display = "block";
+    canvasArea.style.display = "";
     flockLink.style.display = "block";
     if (resizer) resizer.style.display = "none";
     onResize("reset");
@@ -365,7 +365,7 @@ export function showCanvasView() {
 
     // Hide code, show canvas full width
     blocklyArea.style.display = "none";
-    canvasArea.style.display = "block";
+    canvasArea.style.display = "";
     canvasArea.style.width = "100%";
     canvasArea.style.flex = "1 1 100%";
 
@@ -525,7 +525,7 @@ export function togglePlayMode() {
   } else {
     if (flock.scene) flock.scene.debugLayer.hide();
     blocklyArea.style.display = "block";
-    canvasArea.style.display = "block";
+    canvasArea.style.display = "";
     gizmoButtons.style.display = "block";
     bottomBar.style.display = "block";
     flockLink.style.display = "block";
@@ -577,7 +577,7 @@ export function toggleDesignMode() {
   } else {
     blocklyArea.style.display = "none";
     codeMode = "none";
-    canvasArea.style.display = "block";
+    canvasArea.style.display = "";
     canvasArea.style.width = "0";
     gizmoButtons.style.display = "block";
     flockLink.style.display = "none";

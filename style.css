@@ -258,11 +258,6 @@
   --color-outline-focus: #e0e0e0;
 }
 
-#info-panel {
-  margin-top: 25px;
-  margin-left: 10px;
-  margin-right: 10px;
-}
 
 ::placeholder {
   color: var(--color-text-primary);
@@ -378,7 +373,6 @@
     transform: rotate(360deg);
   }
 }
-p
 
 /* Hide main content by default - more aggressive for deployment */
 #flockeditor {
@@ -474,6 +468,9 @@ button {
 #canvasArea {
   position: relative;
   background-color: #f3f3f3;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 #codePanel {
@@ -497,7 +494,8 @@ button {
   z-index: 100;
 }
 
-#blocklyZoomControls .toolbar-divider {
+#blocklyZoomControls .toolbar-divider,
+#info-panel-tabs .toolbar-divider {
   width: 1px;
   height: 24px;
   background-color: var(--color-border);
@@ -582,7 +580,7 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  padding: 0;
+  padding: 5px 5px 25px 0px;
   margin: 0;
   box-sizing: border-box;
 }
@@ -787,21 +785,11 @@ button {
   right: -15px;
 }
 
-#site-footer {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  padding: 0.3em;
-  background: transparent;
-  width: auto;
-  z-index: 10;
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
-}
-
 #flocklink {
-  background: transparent;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding: 0 0.5em;
 }
 
 #flocklink img {
@@ -879,11 +867,6 @@ button {
     display: none;
   }
 
-  #site-footer {
-    padding-bottom: calc(8px + max(8px, env(safe-area-inset-bottom, 0px)));
-    padding-right: 8px;
-  }
-
   .resizer {
     display: none;
   }
@@ -891,12 +874,7 @@ button {
 
 @media only screen and (orientation: portrait) and (max-width: 1024px) {
   #info-panel {
-    display: block;
-  }
-
-  #site-footer {
-    padding-bottom: calc(8px + max(8px, env(safe-area-inset-bottom, 0px)));
-    padding-right: 8px;
+    display: flex;
   }
 
   .resizer {
@@ -1633,9 +1611,6 @@ body.color-picker-open #renderCanvas {
   table-layout: fixed;
 }
 
-#shortcuts-table td:first-child {
-  width: 70%;
-}
 
 #shortcuts-table td {
   padding: 0.5em;
@@ -1657,25 +1632,55 @@ kbd {
   font-size: 1.2em;
 }
 
-/* Shortcuts panel — overlays main content area, does not affect editor layout */
-.shortcuts-panel {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  width: 400px;
-  box-sizing: border-box;
-  background-color: var(--color-bg);
-  padding: 1.5em;
-  overflow-y: auto;
-  z-index: 90;
+/* Info panel tabs */
+#info-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  border-top: 1px solid var(--color-border);
 }
 
-.shortcuts-panel:focus {
+.info-tab-btn {
+  border-radius: 0;
+}
+
+.info-tab-btn.active {
+  background-color: var(--color-button-bg-hover);
+  box-shadow: none;
+}
+
+#info-panel-tabs {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 50px;
+  min-height: 50px;
+  max-height: 50px;
+  padding: 0px 4px 2px 8px;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+  box-sizing: border-box;
+}
+
+
+#info-panel-body {
+  background-color: var(--color-bg);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.info-tab-panel {
+  padding: 1em;
+}
+
+.info-tab-panel:focus {
   outline: 2px solid var(--color-focus);
   outline-offset: -2px;
 }
 
+/* Shortcuts tab content */
 .shortcuts-panel-header {
   display: flex;
   align-items: center;
@@ -1683,17 +1688,43 @@ kbd {
   margin-bottom: 0.5em;
 }
 
-.shortcuts-panel .help-link-button:focus {
+.shortcuts-panel-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 0;
+}
+
+.shortcuts-panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.shortcuts-decrease-btn,
+.shortcuts-increase-btn {
+  font-weight: bold;
+  margin-left: 0;
+}
+
+.shortcuts-decrease-btn span {
+  font-size: 0.75em;
+}
+
+.shortcuts-increase-btn span {
+  font-size: 1.1em;
+}
+
+.shortcuts-panel-header .help-link-button {
+  color: var(--color-text-primary);
+  margin-left: 12px;
+}
+
+.shortcuts-panel-header .help-link-button:focus {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
-.shortcuts-panel h1 {
-  font-size: 1.8em;
-  margin: 0;
-}
-
-.shortcuts-panel #shortcuts-table {
+#shortcuts-table {
   margin-bottom: 1.5em;
 }
