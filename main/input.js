@@ -141,18 +141,7 @@ export function setupInput() {
         .querySelectorAll("textarea.blocklyCommentText")
         .forEach(pushUnique);
 
-      // 6c) Trash can
-
-      const trashCan = document.querySelector("g.blocklyTrash");
-      if (trashCan) {
-        if (!trashCan.hasAttribute("tabindex") || trashCan.tabIndex < 0)
-          trashCan.setAttribute("tabindex", "0");
-        trashCan.setAttribute("role", "button");
-        if (!trashCan.getAttribute("aria-label"))
-          trashCan.setAttribute("aria-label", "Trash");
-        pushUnique(trashCan);
-      }
-
+     
       // 6c) Shortcuts panel (when visible), then undo/redo/zoom
  
       const shortcutsPanel = document.getElementById("shortcutsPanel");
