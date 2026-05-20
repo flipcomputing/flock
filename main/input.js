@@ -129,14 +129,6 @@ export function setupInput() {
           el.setAttribute("aria-label", "Workspace comment");
         pushUnique(el);
       });
-      document.querySelectorAll("g.blocklyCommentIconGroup").forEach((el) => {
-        if (!el.hasAttribute("tabindex") || el.tabIndex < 0)
-          el.setAttribute("tabindex", "0");
-        if (!el.getAttribute("role")) el.setAttribute("role", "button");
-        if (!el.getAttribute("aria-label"))
-          el.setAttribute("aria-label", "Block comment");
-        pushUnique(el);
-      });
       document
         .querySelectorAll("textarea.blocklyCommentText")
         .forEach(pushUnique);
