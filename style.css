@@ -580,7 +580,7 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  padding: 0;
+  padding: 5px 5px 25px 0px;
   margin: 0;
   box-sizing: border-box;
 }
@@ -785,21 +785,11 @@ button {
   right: -15px;
 }
 
-#site-footer {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  padding: 0.3em;
-  background: transparent;
-  width: auto;
-  z-index: 10;
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
-}
-
 #flocklink {
-  background: transparent;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding: 0 0.5em;
 }
 
 #flocklink img {
@@ -877,24 +867,14 @@ button {
     display: none;
   }
 
-  #site-footer {
-    padding-bottom: calc(8px + max(8px, env(safe-area-inset-bottom, 0px)));
-    padding-right: 8px;
-  }
-
   .resizer {
     display: none;
   }
 }
 
 @media only screen and (orientation: portrait) and (max-width: 1024px) {
-  #info-panel:not(.hidden) {
+  #info-panel {
     display: flex;
-  }
-
-  #site-footer {
-    padding-bottom: calc(8px + max(8px, env(safe-area-inset-bottom, 0px)));
-    padding-right: 8px;
   }
 
   .resizer {
@@ -1664,39 +1644,31 @@ kbd {
   border-top: 1px solid var(--color-border);
 }
 
-#info-panel-tabs {
-  display: flex;
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-bg);
-}
-
 .info-tab-btn {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  padding: 0.5em 1em;
-  cursor: pointer;
-  font-size: 0.9em;
-  color: var(--color-text-primary);
-  margin-bottom: -1px;
-}
-
-.info-tab-btn:hover {
-  background-color: var(--color-button-bg-hover);
+  border-radius: 0;
 }
 
 .info-tab-btn.active {
-  border-bottom-color: var(--color-primary);
-  font-weight: bold;
+  background-color: var(--color-button-bg-hover);
+  box-shadow: none;
 }
 
-.info-tab-btn:focus {
-  outline: 2px solid var(--color-focus);
-  outline-offset: -2px;
+#info-panel-tabs {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 50px;
+  min-height: 50px;
+  max-height: 50px;
+  padding: 0px 4px 2px 8px;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+  box-sizing: border-box;
 }
+
 
 #info-panel-body {
+  background-color: var(--color-bg);
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -1714,8 +1686,15 @@ kbd {
 /* Shortcuts tab content */
 .shortcuts-panel-header {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 0.5em;
+}
+
+.shortcuts-panel-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 0;
 }
 
 .shortcuts-panel-header .help-link-button:focus {
