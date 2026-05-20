@@ -72,6 +72,7 @@ export function setupInput() {
       pushUnique(document.querySelector("#info-tab-btn-shortcuts"));
       const shortcutsTabPanel = document.getElementById("info-tab-panel-shortcuts");
       if (shortcutsTabPanel && !shortcutsTabPanel.classList.contains("hidden")) {
+        pushUnique(shortcutsTabPanel);
         shortcutsTabPanel
           .querySelectorAll("a[href], button:not([disabled])")
           .forEach(pushUnique);
@@ -151,7 +152,7 @@ export function setupInput() {
           .forEach(pushUnique);
       }
 
-      ["#undoBtn", "#redoBtn", "#zoomOutBtn", "#zoomInBtn", "#shortcutsBtn"].forEach((sel) =>
+      ["#undoBtn", "#redoBtn", "#zoomOutBtn", "#zoomInBtn"].forEach((sel) =>
         pushUnique(document.querySelector(sel)),
       );
 

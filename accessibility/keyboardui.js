@@ -749,6 +749,7 @@ const ShortcutsPanel = {
         e.preventDefault();
         e.stopPropagation();
         this.hide();
+        document.getElementById("info-tab-btn-shortcuts")?.focus();
       }
     });
   },
