@@ -373,7 +373,6 @@
     transform: rotate(360deg);
   }
 }
-p
 
 /* Hide main content by default - more aggressive for deployment */
 #flockeditor {

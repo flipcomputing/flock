@@ -634,7 +634,9 @@ const SHORTCUTS_FONT_SIZE_DEFAULT = 1.2;
 const ShortcutsPanel = {
   panel: null,
   previousFocus: null,
-  fontSize: parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
+  fontSize:
+    parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) ||
+    SHORTCUTS_FONT_SIZE_DEFAULT,
 
   init() {
     this.createPanel();
@@ -650,8 +652,10 @@ const ShortcutsPanel = {
     this.fontSize = next;
     localStorage.setItem(SHORTCUTS_FONT_SIZE_KEY, next);
     this.panel.querySelector("#shortcuts-table").style.fontSize = next + "em";
-    this.panel.querySelector(".shortcuts-decrease-btn").disabled = next === sizes[0];
-    this.panel.querySelector(".shortcuts-increase-btn").disabled = next === sizes[sizes.length - 1];
+    this.panel.querySelector(".shortcuts-decrease-btn").disabled =
+      next === sizes[0];
+    this.panel.querySelector(".shortcuts-increase-btn").disabled =
+      next === sizes[sizes.length - 1];
   },
 
   createPanel() {
@@ -681,7 +685,8 @@ const ShortcutsPanel = {
     increaseBtn.disabled = this.fontSize === sizes[sizes.length - 1];
     decreaseBtn.addEventListener("click", () => this.adjustFontSize(-1));
     increaseBtn.addEventListener("click", () => this.adjustFontSize(1));
-    panel.querySelector("#shortcuts-table").style.fontSize = this.fontSize + "em";
+    panel.querySelector("#shortcuts-table").style.fontSize =
+      this.fontSize + "em";
     this.renderContent();
   },
 
@@ -689,8 +694,9 @@ const ShortcutsPanel = {
     document
       .getElementById("info-tab-btn-shortcuts")
       .setAttribute("aria-label", translate("shortcut_panel_title"));
-    this.panel.querySelector("#shortcuts-panel-title").textContent =
-      translate("shortcut_panel_title");
+    this.panel.querySelector("#shortcuts-panel-title").textContent = translate(
+      "shortcut_panel_title",
+    );
     this.panel
       .querySelector(".help-link-button")
       .setAttribute("aria-label", translate("shortcut_panel_help_link"));
