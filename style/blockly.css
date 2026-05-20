@@ -260,10 +260,6 @@ body[data-theme="low-vision"] {
 }
 
 /* Search Highlight Styles */
-.shortcuts-panel-open .blockly-ws-search {
-  transform: translateX(-400px);
-}
-
 .blockly-ws-search {
   background: var(--color-bg);
   margin-top: 5px;

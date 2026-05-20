@@ -257,7 +257,7 @@ function applyEmbedMode() {
   if (infoPanel) infoPanel.style.display = "none";
 
   if (canvasArea) {
-    canvasArea.style.display = "block";
+    canvasArea.style.display = "";
     canvasArea.style.width = "100%";
     canvasArea.style.height = "100%";
     canvasArea.style.flex = "1 1 100%";

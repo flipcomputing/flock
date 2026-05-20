@@ -258,11 +258,6 @@
   --color-outline-focus: #e0e0e0;
 }
 
-#info-panel {
-  margin-top: 25px;
-  margin-left: 10px;
-  margin-right: 10px;
-}
 
 ::placeholder {
   color: var(--color-text-primary);
@@ -474,6 +469,9 @@ button {
 #canvasArea {
   position: relative;
   background-color: #f3f3f3;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 #codePanel {
@@ -890,8 +888,8 @@ button {
 }
 
 @media only screen and (orientation: portrait) and (max-width: 1024px) {
-  #info-panel {
-    display: block;
+  #info-panel:not(.hidden) {
+    display: flex;
   }
 
   #site-footer {
@@ -1657,43 +1655,75 @@ kbd {
   font-size: 1.2em;
 }
 
-/* Shortcuts panel — overlays main content area, does not affect editor layout */
-.shortcuts-panel {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  width: 400px;
-  box-sizing: border-box;
-  background-color: var(--color-bg);
-  padding: 1.5em;
-  overflow-y: auto;
-  z-index: 90;
+/* Info panel tabs */
+#info-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  border-top: 1px solid var(--color-border);
 }
 
-.shortcuts-panel:focus {
+#info-panel-tabs {
+  display: flex;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+}
+
+.info-tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  font-size: 0.9em;
+  color: var(--color-text-primary);
+  margin-bottom: -1px;
+}
+
+.info-tab-btn:hover {
+  background-color: var(--color-button-bg-hover);
+}
+
+.info-tab-btn.active {
+  border-bottom-color: var(--color-primary);
+  font-weight: bold;
+}
+
+.info-tab-btn:focus {
   outline: 2px solid var(--color-focus);
   outline-offset: -2px;
 }
 
+#info-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.info-tab-panel {
+  padding: 1em;
+}
+
+.info-tab-panel:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+/* Shortcuts tab content */
 .shortcuts-panel-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 0.5em;
 }
 
-.shortcuts-panel .help-link-button:focus {
+.shortcuts-panel-header .help-link-button:focus {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
-.shortcuts-panel h1 {
-  font-size: 1.8em;
-  margin: 0;
-}
-
-.shortcuts-panel #shortcuts-table {
+#shortcuts-table {
   margin-bottom: 1.5em;
 }

@@ -557,6 +557,79 @@ function formatKeys(keys) {
     .join("");
 }
 
+const InfoPanel = {
+  _tabs: new Map(),
+  _activeId: null,
+
+  init() {
+    this._el = document.getElementById("info-panel");
+    this._tablist = document.getElementById("info-panel-tabs");
+    this._body = document.getElementById("info-panel-body");
+  },
+
+  register(id, label) {
+    const btn = document.createElement("button");
+    btn.id = `info-tab-btn-${id}`;
+    btn.className = "info-tab-btn";
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", "false");
+    btn.setAttribute("aria-controls", `info-tab-panel-${id}`);
+    btn.textContent = label;
+    btn.addEventListener("click", () => this.toggle(id));
+    this._tablist.appendChild(btn);
+
+    const panel = document.createElement("div");
+    panel.id = `info-tab-panel-${id}`;
+    panel.className = "info-tab-panel hidden";
+    panel.setAttribute("role", "tabpanel");
+    panel.setAttribute("aria-labelledby", `info-tab-btn-${id}`);
+    panel.tabIndex = 0;
+    this._body.appendChild(panel);
+
+    this._tabs.set(id, { btn, panel });
+    return panel;
+  },
+
+  activate(id) {
+    if (this._activeId && this._activeId !== id) {
+      const cur = this._tabs.get(this._activeId);
+      cur.btn.setAttribute("aria-selected", "false");
+      cur.btn.classList.remove("active");
+      cur.panel.classList.add("hidden");
+    }
+    const tab = this._tabs.get(id);
+    if (!tab) return;
+    this._activeId = id;
+    tab.btn.setAttribute("aria-selected", "true");
+    tab.btn.classList.add("active");
+    tab.panel.classList.remove("hidden");
+    this._el.classList.remove("hidden");
+  },
+
+  deactivate(id) {
+    const tab = this._tabs.get(id);
+    if (!tab) return;
+    tab.btn.setAttribute("aria-selected", "false");
+    tab.btn.classList.remove("active");
+    tab.panel.classList.add("hidden");
+    if (this._activeId === id) {
+      this._activeId = null;
+      const anyVisible = [...this._tabs.values()].some(
+        (t) => !t.panel.classList.contains("hidden"),
+      );
+      if (!anyVisible) this._el.classList.add("hidden");
+    }
+  },
+
+  toggle(id) {
+    const tab = this._tabs.get(id);
+    if (!tab) return;
+    tab.panel.classList.contains("hidden")
+      ? this.activate(id)
+      : this.deactivate(id);
+  },
+};
+
 const ShortcutsPanel = {
   panel: null,
   previousFocus: null,
@@ -568,28 +641,22 @@ const ShortcutsPanel = {
   },
 
   createPanel() {
-    const div = document.createElement("div");
-    div.id = "shortcutsPanel";
-    div.className = "shortcuts-panel hidden";
-    div.setAttribute("role", "region");
-    div.setAttribute("aria-label", translate("shortcut_panel_title"));
-    div.tabIndex = 0;
-    div.innerHTML = `
+    const panel = InfoPanel.register(
+      "shortcuts",
+      translate("shortcut_panel_title"),
+    );
+    panel.innerHTML = `
         <div class="shortcuts-panel-header">
-          <h1 id="shortcuts-panel-title">${translate("shortcut_panel_title")}</h1>
           <a href="${SHORTCUTS_HELP_URL}" target="_blank" rel="noopener noreferrer" class="help-link-button" aria-label="${translate("shortcut_panel_help_link")}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg></a>
         </div>
         <table id="shortcuts-table"><tbody></tbody></table>
       `;
-    document.getElementById("maincontent").appendChild(div);
-    this.panel = div;
+    this.panel = panel;
   },
 
   renderContent() {
-    this.panel.setAttribute("aria-label", translate("shortcut_panel_title"));
-    this.panel.querySelector("#shortcuts-panel-title").textContent = translate(
-      "shortcut_panel_title",
-    );
+    document.getElementById("info-tab-btn-shortcuts").textContent =
+      translate("shortcut_panel_title");
     this.panel
       .querySelector(".help-link-button")
       .setAttribute("aria-label", translate("shortcut_panel_help_link"));
@@ -611,8 +678,7 @@ const ShortcutsPanel = {
   show() {
     this.renderContent();
     this.previousFocus = document.activeElement;
-    this.panel.classList.remove("hidden");
-    document.body.classList.add("shortcuts-panel-open");
+    InfoPanel.activate("shortcuts");
     this.panel.focus();
     document.getElementById("shortcutsBtn")?.classList.add("active");
   },
@@ -626,8 +692,7 @@ const ShortcutsPanel = {
   hide() {
     this.previousFocus?.focus();
     this.previousFocus = null;
-    this.panel.classList.add("hidden");
-    document.body.classList.remove("shortcuts-panel-open");
+    InfoPanel.deactivate("shortcuts");
     document.getElementById("shortcutsBtn")?.classList.remove("active");
   },
 
@@ -637,13 +702,14 @@ const ShortcutsPanel = {
 
   setupListeners() {
     this.panel.addEventListener("keydown", (e) => {
+      const scroller = document.getElementById("info-panel-body");
       if (e.key === "ArrowUp") {
         e.preventDefault();
-        this.panel.scrollBy({ top: -100, behavior: "instant" });
+        scroller?.scrollBy({ top: -100, behavior: "instant" });
       }
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        this.panel.scrollBy({ top: 100, behavior: "instant" });
+        scroller?.scrollBy({ top: 100, behavior: "instant" });
       }
       if (e.key === "Escape") {
         e.preventDefault();
@@ -657,6 +723,7 @@ const ShortcutsPanel = {
 // Start it up
 AreaManager.init();
 GizmoMenuManager.init();
+InfoPanel.init();
 ShortcutsPanel.init();
 
-export { ShortcutsPanel, GizmoMenuManager };
+export { InfoPanel, ShortcutsPanel, GizmoMenuManager };
