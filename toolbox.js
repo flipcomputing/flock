@@ -4981,9 +4981,7 @@ Blockly.registry.register(
   true,
 );
 
-class CustomCollapsibleToolboxCategory
-  extends Blockly.CollapsibleToolboxCategory
-{
+class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategory {
   constructor(categoryDef, toolbox, opt_parent) {
     super(categoryDef, toolbox, opt_parent);
     // Store the original icon and color
@@ -5033,6 +5031,10 @@ class CustomCollapsibleToolboxCategory
     this.parentToolbox_?.setSelectedItem?.(this);
     this.setSelected(true);
     this.setExpanded(true);
+    Blockly.keyboardNavigationController?.setIsActive?.(true);
+    const focusManager = Blockly.getFocusManager?.();
+    focusManager?.focusTree?.(this.parentToolbox_);
+    focusManager?.focusNode?.(this);
   }
 
   ensureKeyboardFocusedSelection_() {

@@ -795,6 +795,38 @@ export function createBlocklyWorkspace() {
     onKeyDown_() {
       return false; // Defer to keyboard navigation plugin
     }
+
+    setSelectedItem(item) {
+      super.setSelectedItem(item);
+      this.collapseUnrelatedCategories_(this.getSelectedItem());
+    }
+
+    // Accordion behaviour: navigating to a category collapses every other
+    // expandable category, keeping only the selected item and its ancestors
+    // open.
+    collapseUnrelatedCategories_(selectedItem) {
+      if (!selectedItem) return;
+      const keepOpen = new Set();
+      const visited = new Set();
+      let current = selectedItem;
+      while (current && !visited.has(current)) {
+        visited.add(current);
+        keepOpen.add(current);
+        current = current.getParent?.() ?? null;
+      }
+      for (const candidate of this.getToolboxItems()) {
+        if (keepOpen.has(candidate)) continue;
+        if (
+          typeof candidate.isExpanded !== "function" ||
+          typeof candidate.setExpanded !== "function"
+        ) {
+          continue;
+        }
+        if (candidate.isExpanded()) {
+          candidate.setExpanded(false);
+        }
+      }
+    }
   }
 
   // Register it before inject
