@@ -5,7 +5,7 @@ export function runButtonControlsTests(flock) {
     beforeEach(function () {
       flock.canvas ??= {};
       flock.canvas.pressedButtons ??= new Set();
-      flock.displayScale ??= 1;
+      flock.displayScale = 1;
       flock.gridKeyPressObservable ??= new flock.BABYLON.Observable();
       flock.gridKeyReleaseObservable ??= new flock.BABYLON.Observable();
     });
