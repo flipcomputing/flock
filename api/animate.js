@@ -1693,9 +1693,12 @@ export const flockAnimate = {
     }
 
     let elapsed = 0;
+    let lastBlendTime = performance.now();
     incomingGroup.setWeightForAllAnimatables(0);
     const observer = scene.onBeforeRenderObservable.add(() => {
-      const dt = scene.getEngine().getDeltaTime() / 1000;
+      const now = performance.now();
+      const dt = (now - lastBlendTime) / 1000;
+      lastBlendTime = now;
       elapsed += dt;
       const t = Math.min(elapsed / blendDuration, 1);
       incomingGroup.setWeightForAllAnimatables(t);
