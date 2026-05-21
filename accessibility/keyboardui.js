@@ -764,7 +764,9 @@ const ShortcutsPanel = {
 // Start it up
 AreaManager.init();
 GizmoMenuManager.init();
-InfoPanel.init();
-ShortcutsPanel.init();
+if (document.getElementById("info-panel-tabs")) {
+  InfoPanel.init();
+  ShortcutsPanel.init();
+}
 
 export { InfoPanel, ShortcutsPanel, GizmoMenuManager };
