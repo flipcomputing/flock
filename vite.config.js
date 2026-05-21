@@ -14,6 +14,10 @@ const CSP_META_POLICY =
   "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://static.cloudflareinsights.com https://app.flockxr.com https://flipcomputing.github.io/flock/; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://app.flockxr.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://app.flockxr.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
 const CSP_HEADER_POLICY = `${CSP_META_POLICY}; frame-ancestors 'self'`;
 
+// Dev server CSP: no analytics domains, ws: added for Vite HMR WebSocket
+const CSP_DEV_POLICY =
+  "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://app.flockxr.com https://flipcomputing.github.io/flock/; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://app.flockxr.com; font-src 'self' data:; connect-src 'self' https: ws: https://app.flockxr.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'; frame-ancestors 'self'";
+
 export default {
   // Ensure assets/chunk URLs are correct in standalone/PWA and under subpaths
   base: BASE_URL,
@@ -276,7 +280,7 @@ export default {
   server: {
     host: "0.0.0.0",
     headers: {
-      "Content-Security-Policy": CSP_HEADER_POLICY,
+      "Content-Security-Policy": CSP_DEV_POLICY,
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "SAMEORIGIN",
       "Referrer-Policy": "strict-origin-when-cross-origin",
