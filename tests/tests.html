@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flock Test Example</title>
     <link rel="icon" href="/images/favicon.ico" />
+    <script>
+      // Stop the Babylon inspector from injecting its Typekit stylesheet,
+      // which is blocked by the page's CSP. Matches index.html.
+      window.BABYLON_SKIP_FONT_LOADING = true;
+    </script>
     <style>
       body {
         font-family: Arial, sans-serif;
