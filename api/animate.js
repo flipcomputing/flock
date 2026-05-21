@@ -1010,6 +1010,26 @@ export const flockAnimate = {
       return mesh.position[axis] + halfSize;
     }
   },
+  _getCurrentPropertyValue(mesh, property, propertyToAnimate) {
+    const parts = propertyToAnimate.split(".");
+    let obj = mesh;
+    for (const part of parts) {
+      if (obj == null) return undefined;
+      obj = obj[part];
+    }
+    return obj;
+  },
+  _setPropertyValue(mesh, propertyToAnimate, value) {
+    const parts = propertyToAnimate.split(".");
+    let obj = mesh;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (obj == null) return;
+      obj = obj[parts[i]];
+    }
+    if (obj != null) {
+      obj[parts[parts.length - 1]] = value;
+    }
+  },
   _resolvePropertyToAnimate(property, mesh) {
     if (!mesh) {
       console.warn("Mesh not found.");
@@ -1022,6 +1042,14 @@ export const flockAnimate = {
         return mesh.material?.diffuseColor !== undefined
           ? "material.diffuseColor"
           : "material.albedoColor";
+
+      case "diffuseColor":
+        flock.ensureUniqueMaterial(mesh);
+        return "material.diffuseColor";
+
+      case "albedoColor":
+        flock.ensureUniqueMaterial(mesh);
+        return "material.albedoColor";
 
       case "alpha":
         if (mesh.material) {
@@ -1051,6 +1079,8 @@ export const flockAnimate = {
 
     switch (property) {
       case "color":
+      case "diffuseColor":
+      case "albedoColor":
         return flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3;
 
       case "position":
@@ -1119,7 +1149,7 @@ export const flockAnimate = {
     }
 
     // Colors remain unchanged
-    if (property === "color") {
+    if (["color", "diffuseColor", "albedoColor"].includes(property)) {
       return flock.BABYLON.Color3.FromHexString(value);
     }
 
