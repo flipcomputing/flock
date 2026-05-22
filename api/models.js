@@ -33,6 +33,12 @@ export const flockModels = {
       }
     };
 
+    // --- bail if there is no live scene (e.g. called during dispose) ---
+    if (!flock.scene || flock.scene.isDisposed) {
+      console.warn("createCharacter: no active scene");
+      return "error_no_scene";
+    }
+
     // --- validate ---
     if (!modelName || typeof modelName !== "string" || modelName.length > 100) {
       console.warn("createCharacter: invalid modelName");
@@ -94,6 +100,11 @@ export const flockModels = {
       resolveReady = res;
       rejectReady = rej;
     });
+    // Aborted loads reject this promise; attach a benign catch so the
+    // rejection never surfaces as an unhandled rejection when no
+    // whenModelReady consumer attached a handler. Real consumers still
+    // observe the rejection via their own .then/.catch registrations.
+    readyPromise.catch(() => {});
     flock.modelReadyPromises.set(meshName, readyPromise);
     // Also register the pre-sanitization name (e.g. "dimnnd monkey" → "dimnndmonkey").
     // This lets event handlers declared before createCharacter (which still hold the
@@ -131,6 +142,20 @@ export const flockModels = {
       { signal: flock.abortController?.signal },
     )
       .then((container) => {
+        // The scene was disposed / the load was aborted while this
+        // container was still loading. Drop it without touching the
+        // (now null) scene. onAbort has already rejected readyPromise
+        // and released the reserved name.
+        if (signal?.aborted || !flock.scene || flock.scene.isDisposed) {
+          try {
+            container?.dispose?.();
+          } catch (_) {
+            console.warn("Suppressed non-critical error:", _);
+          }
+          cleanupAbort();
+          return;
+        }
+
         container.addAllToScene();
 
         const mesh = container.meshes[0];
@@ -303,6 +328,10 @@ export const flockModels = {
     };
 
     try {
+      if (!flock.scene || flock.scene.isDisposed) {
+        console.warn("createObject: no active scene");
+        return "error_no_scene";
+      }
       if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
 
       let [desiredBase, bKey] = modelId.includes("__")
@@ -337,6 +366,7 @@ export const flockModels = {
 
       if (flock.modelsBeingLoaded[modelName]) {
         flock.modelsBeingLoaded[modelName].then(() => {
+          if (!flock.scene || flock.scene.isDisposed) return;
           flock._recycleOldestByKey(modelName);
           const mesh = flock.modelCache[modelName].clone(
             flock.modelCache[modelName].name,
@@ -358,6 +388,17 @@ export const flockModels = {
       // ... inside the loadPromise.then block ...
 
       loadPromise.then((container) => {
+        // Scene disposed while the container was loading: drop it.
+        if (!flock.scene || flock.scene.isDisposed) {
+          try {
+            container?.dispose?.();
+          } catch (_) {
+            console.warn("Suppressed non-critical error:", _);
+          }
+          delete flock.modelsBeingLoaded[modelName];
+          return;
+        }
+
         container.addAllToScene();
         container.animationGroups.forEach((ag) => ag.stop());
         container.meshes.forEach((m) => {
