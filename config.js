@@ -457,6 +457,10 @@ export const attachBlockMapping = {
 // perspective. LeftHand (viewer's left) maps to mixamorig:RightHand, etc.
 export const AUTOSAVE_KEY = "flock_autosave.flock";
 
+// Feature flag for autosaving to the last explicitly-saved file. localStorage
+// autosave is unaffected by this flag.
+export const AUTOSAVE_TO_FILE_ENABLED = false;
+
 export const attachMixamoMapping = {
   LeftHand: "mixamorig:RightHand",
   Hold: "mixamorig:RightHand",
