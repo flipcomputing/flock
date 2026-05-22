@@ -144,13 +144,26 @@ export const flockModels = {
       .then((container) => {
         // The scene was disposed / the load was aborted while this
         // container was still loading. Drop it without touching the
-        // (now null) scene. onAbort has already rejected readyPromise
-        // and released the reserved name.
+        // (now null) scene. On the abort path onAbort has already
+        // rejected readyPromise and released the reserved name; on the
+        // disposed-without-abort path we must do that cleanup here so
+        // whenModelReady waiters settle and the name isn't leaked.
         if (signal?.aborted || !flock.scene || flock.scene.isDisposed) {
           try {
             container?.dispose?.();
           } catch (_) {
             console.warn("Suppressed non-critical error:", _);
+          }
+          if (!signal?.aborted) {
+            rejectReady(new Error("scene disposed"));
+            flock.modelReadyPromises.delete(meshName);
+            if (
+              originalBase !== meshName &&
+              flock.modelReadyPromises.get(originalBase) === readyPromise
+            ) {
+              flock.modelReadyPromises.delete(originalBase);
+            }
+            flock._releaseName?.(meshName);
           }
           cleanupAbort();
           return;
