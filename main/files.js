@@ -2,7 +2,7 @@ import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
 import { getMetadata } from "meta-png";
-import { AUTOSAVE_KEY } from "../config.js";
+import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED } from "../config.js";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
@@ -509,7 +509,10 @@ let currentFileHandle = null;
 export function updateSaveButtonState() {
   document
     .getElementById("exportCodeButton")
-    ?.classList.toggle("no-autosave", !currentFileHandle);
+    ?.classList.toggle(
+      "no-autosave",
+      AUTOSAVE_TO_FILE_ENABLED && !currentFileHandle,
+    );
 }
 
 // Clears the stored file handle (call whenever a new project is loaded)

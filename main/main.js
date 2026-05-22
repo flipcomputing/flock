@@ -15,7 +15,7 @@ import {
 import { executeCode, stopCode } from "./execution.js";
 import "../ui/addmeshes.js";
 import "../ui/colourpicker.js";
-import { TOP_BLOCK_TYPES } from "../config.js";
+import { TOP_BLOCK_TYPES, AUTOSAVE_TO_FILE_ENABLED } from "../config.js";
 import {
   initializeBlocks,
   initializeWorkspace,
@@ -1085,10 +1085,13 @@ window.onload = async function () {
   console.log("Welcome to Flock XR 🐦🐦🐦");
   console.log("Release 1");
 
-  // Autosave every 30 seconds: to localStorage and (if a file was saved) to that file
+  // Autosave every 30 seconds: to localStorage and (if enabled and a file was
+  // saved) to that file
   setInterval(() => {
     saveWorkspace(workspace);
-    autoSaveToFile(workspace);
+    if (AUTOSAVE_TO_FILE_ENABLED) {
+      autoSaveToFile(workspace);
+    }
   }, 30000);
 
   (async () => {
