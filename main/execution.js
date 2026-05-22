@@ -1,6 +1,6 @@
 import { flock } from "../flock.js";
 import { currentView, isNarrowScreen, showCanvasView } from "./view.js";
-import { fetchProjectJson, loadWorkspaceAndExecute } from "./files.js";
+import { handleError } from "../ui/notifications.js";
 import { setGizmoManager, disposeGizmoManager } from "../ui/gizmos.js";
 import { javascriptGenerator } from "blockly/javascript";
 import { workspace } from "./blocklyinit.js";
@@ -46,21 +46,8 @@ export async function executeCode(options = {}) {
     console.log(code);
     await flock.runCode(code, options);
   } catch (error) {
-    console.error("Error executing Blockly code:", error);
     isExecuting = false; // Reset the flag if there's an error
-
-    // Load the starter project if execution fails
-    const starter = "examples/starter.flock";
-    fetchProjectJson(starter)
-      .then((json) => {
-        loadWorkspaceAndExecute(json, workspace, executeCode);
-      })
-      .catch((loadError) => {
-        console.error(
-          "Error loading starter project after execution failure:",
-          loadError,
-        );
-      });
+    handleError(error, { source: "project-run", fatal: false });
     return; // Exit after handling the error
   }
 

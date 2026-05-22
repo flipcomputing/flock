@@ -1158,6 +1158,14 @@ export default {
   physics_out_of_memory_banner_ui:
     "Physics engine ran out of memory. Try reducing the number of physics objects or reloading your project.",
   runtime_error_message: "Error: {message}",
+  error_startup: "Flock couldn't start up. Try reloading the page.",
+  error_project_crash:
+    "Your project hit a problem. Press Stop, check your blocks, then press Play again.",
+  error_webgl_lost: "The 3D view stopped working. Try reloading the page.",
+  error_physics_oom:
+    "Your project ran out of memory. Try reloading the page and using fewer blocks.",
+  banner_reload: "Reload",
+  banner_dismiss: "Dismiss",
   xr_mode_message: "XR Mode!",
   fly_camera_instructions: "ℹ️ Fly camera, use arrow keys and page up/down",
   select_mesh_delete_prompt: "ℹ️ Click an object to delete it.",
