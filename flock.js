@@ -1543,7 +1543,7 @@ export const flock = {
   async disposeOldScene() {
     flock.flockNotReady = true;
 
-    //if (flock.memoryDebug)
+    if (flock.memoryDebug)
     if(flock.hk)
     {
       const [result, stats] = flock.hk._hknp.HP_GetStatistics();
@@ -1563,6 +1563,7 @@ export const flock = {
       console.log("Havok debug geometries:", numDebugGeometries);
       console.log("Havok worlds:", numWorlds);
       console.log("Havok query collectors:", numQueryCollectors);
+      console.log("Havok heap memory:", (flock.havokInstance.HEAPU8.buffer.byteLength / (1024 * 1024)).toFixed(2), "MB");
     }
    
     if (flock.scene) {
