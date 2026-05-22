@@ -510,9 +510,6 @@ export const flockScene = {
       if (mesh.physicsShape) {
         mesh.physicsShape.dispose();
       }
-      if (mesh.physics) {
-        mesh.physics.dispose();
-      }
       mesh.dispose();
       flock.ground = null;
       return;
@@ -606,6 +603,9 @@ export const flockScene = {
       if (!currentMesh.isDisposed()) {
         if (currentMesh.physicsShape) {
           currentMesh.physicsShape.dispose();
+        }
+        if (mesh.physics.shape) {
+          mesh.physics.shape.dispose();
         }
         if (currentMesh.physics) {
           currentMesh.physics.dispose();
