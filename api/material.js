@@ -51,6 +51,14 @@ export const flockMaterial = {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   },
   getColorFromString(colourString) {
+    if (typeof colourString !== "string") {
+      return "#000000";
+    }
+
+    if (!colourString) {
+      return "#000000";
+    }
+
     if (/^([0-9A-F]{3}|[0-9A-F]{6})$/i.test(colourString)) {
       return `#${colourString.toLowerCase()}`;
     }
@@ -74,7 +82,7 @@ export const flockMaterial = {
       const r = parseInt(matches[0]);
       const g = parseInt(matches[1]);
       const b = parseInt(matches[2]);
-      const result = flock.rgbToHex(r, g, b);
+      const result = flock.rgbToHex(`rgb(${r}, ${g}, ${b})`);
       return result.toLowerCase();
     } catch (error) {
       console.warn("Failed to parse color to hex; using default black:", error);

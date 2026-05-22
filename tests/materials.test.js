@@ -166,6 +166,33 @@ export function runMaterialsTests(flock) {
         expect(m.material.needDepthPrePass).to.be.false;
       });
     });
+
+    it("should handle CSS color names in getColorFromString", async function () {
+      const colorNames = ["red", "blue", "green", "yellow", "cyan", "magenta"];
+      const results = colorNames.map((name) => flock.getColorFromString(name));
+
+      results.forEach((result) => {
+        expect(result).to.be.a("string");
+        expect(result).to.match(/^#[0-9a-f]{6}$/i);
+      });
+
+      expect(flock.getColorFromString("red")).to.not.equal(
+        flock.getColorFromString("blue"),
+      );
+    });
+
+    it("should apply tint with CSS color names", async function () {
+      const id = "boxTintColorName";
+      await createBoxWithColorAndPosition(id);
+      boxIds.push(id);
+
+      await flock.tint(id, { color: "red" });
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(mesh.renderOverlay).to.equal(true);
+      expect(mesh.overlayAlpha).to.be.closeTo(0.5, 0.01);
+      expect(mesh.overlayColor).to.exist;
+    });
   });
 
   describe("changeColor method @materials", function () {
@@ -629,14 +656,13 @@ export function runMaterialsTests(flock) {
       boxIds.push("box1");
       boxIds.push("box2");
 
-      flock.whenModelReady("box1", () => {
-        flock.whenModelReady("box2", () => {
-          const materialsBefore = flock.scene.materials.length;
-          flock.subtractMeshes("subtracted", "box1", ["box2"]);
-          boxIds.push("subtracted");
-          flock.whenModelReady("subtracted", () => {
-            expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
-          });
+      const materialsBefore = flock.scene.materials.length;
+      await new Promise((resolve) => {
+        flock.subtractMeshes("subtracted", "box1", ["box2"]);
+        boxIds.push("subtracted");
+        flock.whenModelReady("subtracted", () => {
+          expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
+          resolve();
         });
       });
     });
@@ -658,14 +684,13 @@ export function runMaterialsTests(flock) {
       boxIds.push("box1");
       boxIds.push("box2");
 
-      flock.whenModelReady("box1", () => {
-        flock.whenModelReady("box2", () => {
-          const materialsBefore = flock.scene.materials.length;
-          flock.intersectMeshes("intersected", ["box1", "box2"]);
-          boxIds.push("intersected");
-          flock.whenModelReady("intersected", () => {
-            expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
-          });
+      const materialsBefore = flock.scene.materials.length;
+      await new Promise((resolve) => {
+        flock.intersectMeshes("intersected", ["box1", "box2"]);
+        boxIds.push("intersected");
+        flock.whenModelReady("intersected", () => {
+          expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
+          resolve();
         });
       });
     });
