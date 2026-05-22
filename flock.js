@@ -2550,6 +2550,8 @@ export const flock = {
     const getGroupRoot = (name) =>
       name.includes("__") ? name.split("__")[0] : name.split("_")[0];
 
+    groupName = getGroupRoot(groupName);
+
     if (flock.pendingTriggers.has(groupName)) {
       const triggers = flock.pendingTriggers.get(groupName);
       const remaining = [];
@@ -2565,19 +2567,13 @@ export const flock = {
         const targetMeshName = pendingMeshName ?? meshName;
 
         if (applyToGroup) {
-          // 🔁 Reapply trigger across all matching meshes
-          const matching = flock.scene.meshes.filter(
-            (m) => getGroupRoot(m.name) === groupName,
-          );
-          for (const m of matching) {
-            flock.onTrigger(m.name, {
-              trigger,
-              callback,
-              mode,
-              applyToGroup: false, // prevent recursion
-            });
-          }
-          // Keep group-applied triggers pending for future siblings.
+          // Register trigger only on the newly announced mesh; keep pending for future siblings.
+          flock.onTrigger(meshName, {
+            trigger,
+            callback,
+            mode,
+            applyToGroup: false,
+          });
           remaining.push(pending);
         } else {
           const guiControl =

@@ -723,7 +723,9 @@ export const flockPhysics = {
                 usePreciseIntersection: true,
               },
             },
-            async function () {
+            async function (evt) {
+              const evtMesh = evt?.additionalData ?? evt?.mesh;
+              if (evtMesh && evtMesh !== otherMesh) return;
               await callback(mesh.name, otherMesh.name);
             },
             new flock.BABYLON.PredicateCondition(
