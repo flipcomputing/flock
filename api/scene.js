@@ -601,13 +601,21 @@ export const flockScene = {
 
     meshesToDispose.reverse().forEach((currentMesh) => {
       if (!currentMesh.isDisposed()) {
-        if (currentMesh.physicsShape) {
-          currentMesh.physicsShape.dispose();
+        const md = currentMesh.metadata;
+        if (md?.uprightConstraint) {
+          try {
+            md.uprightConstraint.dispose();
+          } catch (e) {
+            console.warn("Error disposing constraint:", e);
+          }
+          md.uprightConstraint = null;
         }
-        if (mesh.physics.shape) {
-          mesh.physics.shape.dispose();
+        if (md?._uprightStabiliser) {
+          flock.scene.onAfterPhysicsObservable.remove(md._uprightStabiliser);
+          md._uprightStabiliser = null;
         }
         if (currentMesh.physics) {
+          currentMesh.physics.shape?.dispose(); 
           currentMesh.physics.dispose();
         }
         flock.scene.removeMesh(currentMesh);
