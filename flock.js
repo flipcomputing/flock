@@ -1543,20 +1543,61 @@ export const flock = {
   async disposeOldScene() {
     flock.flockNotReady = true;
 
-    if (flock.scene) {
-      try {
-        // Check if WebGL context is lost before disposal operations
-        const canvas = flock.engine?.getRenderingCanvas();
-        const gl = canvas?.getContext("webgl") || canvas?.getContext("webgl2");
-        if (gl?.isContextLost?.()) {
-          console.warn(
-            "WebGL context already lost, skipping some disposal operations",
-          );
-        }
+    if (flock.memoryDebug)
+    if(flock.hk)
+    {
+      const [result, stats] = flock.hk._hknp.HP_GetStatistics();
 
+      const [
+        numBodies,
+        numShapes,
+        numConstraints,
+        numDebugGeometries,
+        numWorlds,
+        numQueryCollectors,
+      ] = stats;
+
+      console.log("Havok bodies:", numBodies);
+      console.log("Havok shapes:", numShapes);
+      console.log("Havok constraints:", numConstraints);
+      console.log("Havok debug geometries:", numDebugGeometries);
+      console.log("Havok worlds:", numWorlds);
+      console.log("Havok query collectors:", numQueryCollectors);
+    }
+   
+    if (flock.scene) {
+     
+      try {
         // Stop all sounds and animations first
         flock.stopAllSounds();
         flock.engine?.stopRenderLoop();
+
+        if (flock.audioListenerObserver) {
+          flock.scene.onBeforeRenderObservable.remove(flock.audioListenerObserver);
+          flock.audioListenerObserver = null;
+        }
+
+        if (flock.ground?.metadata) {
+          const md = flock.ground.metadata;
+          try {
+            if (md.heightmapBody?._pluginData?.hpBodyId && flock.hk?.world) {
+              flock.hk._hknp.HP_World_RemoveBody(
+                flock.hk.world,
+                md.heightmapBody._pluginData.hpBodyId,
+              );
+            }
+          } catch (e) {
+            /* ignore */
+          }
+          try {
+            md.heightmapBody?.dispose();
+          } catch {}
+          try {
+            md.heightmapShape?.dispose();
+          } catch {}
+          md.heightmapBody = null;
+          md.heightmapShape = null;
+        }
 
         flock._cameraControlBindings = null;
         flock._actionMapOverrides = null;
@@ -1699,6 +1740,20 @@ export const flock = {
           }
         });
 
+        if (flock.scene.meshes) {
+          for (const mesh of flock.scene.meshes) {
+            const c = mesh?.metadata?.uprightConstraint;
+            if (c) {
+              try {
+                c.dispose();
+              } catch (e) {
+                console.warn("Error disposing constraint:", e);
+              }
+              mesh.metadata.uprightConstraint = null;
+            }
+          }
+        }
+
         // Dispose all meshes and their action managers
         const meshesToDispose = flock.scene.meshes
           ? [...flock.scene.meshes]
@@ -1723,6 +1778,9 @@ export const flock = {
           }
           if (mesh?.dispose && typeof mesh.dispose === "function") {
             try {
+              mesh.physics?.shape?.dispose();
+              mesh.physics?.dispose();
+
               mesh.dispose();
             } catch (error) {
               console.warn("Error disposing mesh:", error);
@@ -1804,17 +1862,21 @@ export const flock = {
         // Wait for async operations to complete
         await new Promise((resolve) => setTimeout(resolve, 100));
 
+        // Dispose physics engine and release WASM heap
+        try {
+          flock.hk?.dispose(); // Babylon's HavokPlugin wrapper
+        } catch (error) {
+          console.warn("Error disposing HavokPlugin:", error);
+        }
+        flock.hk = null;
+
         // Dispose of the scene
         flock.scene.dispose();
         flock.scene = null;
 
-        // Dispose physics engine and release WASM heap
-        flock.hk?.dispose();
-        flock.hk = null;
-
         // Dispose the Babylon.js engine
-        flock.engine?.dispose();
-        flock.engine = null;
+        //flock.engine?.dispose();
+        //flock.engine = null;
 
         // Close audio context
         if (flock.audioContext && flock.audioContext.state !== "closed") {
@@ -1864,6 +1926,10 @@ export const flock = {
       }
     } else {
       console.log("No scene to dispose");
+      if (flock.abortController) {
+        flock.abortController.abort();
+        flock.abortController = null;
+      }
     }
   },
   async initializeNewScene() {
