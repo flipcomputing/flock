@@ -396,6 +396,8 @@ export const flockScene = {
               flock.scene,
             );
             body.shape = new flock.BABYLON.PhysicsShapeMesh(gm, flock.scene);
+            gm.physics = body;
+            gm.physicsShape = body.shape;
             if (shouldScaleUVs) scaleGroundUVs(gm);
             applyMaterialToGround(gm, material);
           },
@@ -505,6 +507,12 @@ export const flockScene = {
       if (mesh.material && !mesh.material.metadata?.isManaged) {
         mesh.material.dispose(true, true);
       }
+      if (mesh.physicsShape) {
+        mesh.physicsShape.dispose();
+      }
+      if (mesh.physics) {
+        mesh.physics.dispose();
+      }
       mesh.dispose();
       flock.ground = null;
       return;
@@ -596,6 +604,9 @@ export const flockScene = {
 
     meshesToDispose.reverse().forEach((currentMesh) => {
       if (!currentMesh.isDisposed()) {
+        if (currentMesh.physicsShape) {
+          currentMesh.physicsShape.dispose();
+        }
         if (currentMesh.physics) {
           currentMesh.physics.dispose();
         }
