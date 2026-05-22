@@ -129,12 +129,17 @@ export function runBlocksTests() {
       });
 
       it("should rename numbered variables to next number on duplicate", function () {
-        const star1Variable = mockWorkspace.createVariable("star1", null);
-        mockVariableField.setValue(star1Variable.getId());
+        // Start with a base "star" variable
+        const starVariable = mockWorkspace.createVariable("star", null);
+        const existingBlock = {
+          id: "existing_block",
+          inputList: [{ fieldRow: [{ getValue: () => starVariable.getId() }] }],
+        };
+        workspaceBlocks = [existingBlock];
 
-        nextVariableIndexes.star = 2;
-
-        const changeEvent = {
+        // First duplication: star → star1
+        mockVariableField.setValue(starVariable.getId());
+        let changeEvent = {
           type: "create",
           blockId: "block123",
           ids: ["block123"],
@@ -149,7 +154,29 @@ export function runBlocksTests() {
           "ID_VAR",
         );
 
-        const newVariable = mockWorkspace.getVariableById(
+        let newVariable = mockWorkspace.getVariableById(
+          mockVariableField.getValue(),
+        );
+        expect(newVariable.name).to.equal("star1");
+
+        // Second duplication: star1 → star2
+        mockBlock.id = "block456";
+        changeEvent = {
+          type: "create",
+          blockId: "block456",
+          ids: ["block456"],
+          recordUndo: true,
+        };
+
+        handleBlockCreateEvent(
+          mockBlock,
+          changeEvent,
+          "star",
+          nextVariableIndexes,
+          "ID_VAR",
+        );
+
+        newVariable = mockWorkspace.getVariableById(
           mockVariableField.getValue(),
         );
         expect(newVariable.name).to.equal("star2");

@@ -1263,9 +1263,11 @@ export function initializeVariableIndexes() {
   const workspace = Blockly.getMainWorkspace();
 
   // Process each type of variable and use the lowest available suffix.
-  Object.keys(nextVariableIndexes).forEach(function (type) {
-    nextVariableIndexes[type] = lowestAvailableSuffix(workspace, type, "");
-  });
+  if (workspace) {
+    Object.keys(nextVariableIndexes).forEach(function (type) {
+      nextVariableIndexes[type] = lowestAvailableSuffix(workspace, type, "");
+    });
+  }
 
   // Optionally return the indexes if needed elsewhere
   return nextVariableIndexes;
@@ -1887,7 +1889,7 @@ export function handleBlockCreateEvent(
           variableField.setValue(newVariable.getId());
         }
       } else {
-        // Handle prefix-numbered variables without renaming existing selections.
+        // Handle prefix-numbered variables - rename to next available index when needed
         if (!nextVariableIndexes[variableNamePrefix]) {
           nextVariableIndexes[variableNamePrefix] = 1;
         }
@@ -1896,6 +1898,20 @@ export function handleBlockCreateEvent(
           variableNamePrefix,
         );
         if (currentSuffix) {
+          const nextIndex = nextVariableIndexes[variableNamePrefix];
+          // If the current suffix doesn't match the expected next index, rename it
+          if (currentSuffix !== nextIndex) {
+            const newVariableName = variableNamePrefix + nextIndex;
+            let newVariable = blockInstance.workspace
+              .getVariableMap()
+              .getVariable(newVariableName);
+            if (!newVariable) {
+              newVariable = blockInstance.workspace
+                .getVariableMap()
+                .createVariable(newVariableName, null);
+            }
+            variableField.setValue(newVariable.getId());
+          }
           nextVariableIndexes[variableNamePrefix] = Math.max(
             nextVariableIndexes[variableNamePrefix],
             currentSuffix + 1,
