@@ -13,8 +13,8 @@ export const flockMovement = {
 
     // --- Tunables ---
     let cap = model.metadata?.physicsCapsule;
+    if (!cap) return;
     if (
-      !cap ||
       typeof cap.radius !== "number" ||
       typeof cap.height !== "number"
     ) {

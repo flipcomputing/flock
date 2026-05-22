@@ -88,7 +88,6 @@ export function runMovementTests(flock) {
     it("should preserve existing Y velocity when called @slow", async function () {
       this.timeout(3000);
       const id = "boxMoveSidewaysPreserveY";
-      // Place on the ground so Y velocity is 0 and stable — avoids flakiness from gravity between measurements
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
       await flock.setPhysics(id, "DYNAMIC");
       boxIds.push(id);
@@ -96,10 +95,11 @@ export function runMovementTests(flock) {
       await new Promise((r) => setTimeout(r, 200));
 
       const mesh = flock.scene.getMeshByName(id);
+      const velBefore = mesh.physics.getLinearVelocity().y;
       flock.moveSideways(id, 5);
 
       const vel = mesh.physics.getLinearVelocity();
-      expect(vel.y).to.be.closeTo(0, 0.1);
+      expect(vel.y).to.be.closeTo(velBefore, 0.1);
     });
   });
 
