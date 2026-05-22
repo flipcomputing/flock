@@ -1169,6 +1169,15 @@ export default {
   physics_out_of_memory_banner_ui:
     "El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.", // human
   runtime_error_message: "Error: {mensaje}", // human
+  error_startup: "Flock no se pudo iniciar. Intenta recargar la página.", // human
+  error_project_crash:
+    "Tu proyecto tuvo un problema. Pulsa Detener, revisa tus bloques y pulsa Reproducir otra vez.", // human
+  error_webgl_lost:
+    "La vista 3D dejó de funcionar. Intenta recargar la página.", // human
+  error_physics_oom:
+    "Tu proyecto se quedó sin memoria. Recarga la página e intenta usar menos bloques.", // human
+  banner_reload: "Recargar", // human
+  banner_dismiss: "Cerrar", // human
   xr_mode_message: "¡Modo XR!", // human
   fly_camera_instructions: "ℹ️ Cámara en vuelo, usa las flechas y Page Up/Down", // human
   select_mesh_delete_prompt: "ℹ️ Haz clic en un objeto para eliminarlo.", // Google translate

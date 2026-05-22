@@ -84,6 +84,7 @@ import {
   setFlockReference as setFlockSensing,
 } from "./api/sensing";
 import { translate } from "./main/translation.js";
+import { handleError, dismissBanner } from "./ui/notifications.js";
 
 import {
   enableSceneDescription,
@@ -414,7 +415,6 @@ export const flock = {
     }
 
     flock.havokAbortHandled = true;
-    console.error(translate("physics_out_of_memory_log"), error);
 
     try {
       if (flock._renderLoop) {
@@ -436,30 +436,7 @@ export const flock = {
       );
     }
 
-    const doc = flock.document;
-    if (!doc?.body) return;
-
-    const warningId = "havok-oom-warning";
-    if (doc.getElementById(warningId)) return;
-
-    const banner = doc.createElement("div");
-    banner.id = warningId;
-    banner.textContent = translate("physics_out_of_memory_banner_ui");
-    banner.style.position = "fixed";
-    banner.style.top = "0";
-    banner.style.left = "0";
-    banner.style.right = "0";
-    banner.style.padding = "12px";
-    banner.style.background = "#3b0b0b";
-    banner.style.color = "#ffb3b3";
-    banner.style.fontSize = "16px";
-    banner.style.fontFamily = "'Asap', sans-serif";
-    banner.style.zIndex = "10000";
-    banner.style.textAlign = "center";
-    banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.4)";
-    banner.style.borderBottom = "2px solid #d33";
-
-    doc.body.prepend(banner);
+    handleError(error, { source: "physics-oom", fatal: true });
   },
   validateCode(code) {
     if (typeof code !== "string") {
@@ -896,15 +873,6 @@ export const flock = {
       const enhancedError = this.createEnhancedError?.(error, code) ?? error;
       console.error("Enhanced error details:", enhancedError);
 
-      this.printText?.({
-        text: translate("runtime_error_message").replace(
-          "{message}",
-          error.message,
-        ),
-        duration: 5,
-        color: "#ff0000",
-      });
-
       try {
         this.audioContext?.close?.();
         this.engine?.stopRenderLoop?.();
@@ -1270,7 +1238,11 @@ export const flock = {
         manifoldMeshInstance: manifoldWasm.Mesh,
       });
     } catch (error) {
-      console.error("Error initializing CSG2:", error);
+      // CSG2 powers only boolean mesh blocks; the rest of the app still works.
+      console.warn(
+        "CSG2 unavailable; mesh boolean blocks are disabled.",
+        error,
+      );
     }
 
     flock.canvas.addEventListener(
@@ -1535,6 +1507,13 @@ export const flock = {
       powerPreference: "default",
       deterministicLockstep: true,
       lockstepMaxSteps: 4,
+    });
+
+    flock.engine.onContextLostObservable.add(() => {
+      handleError(new Error("WebGL context lost"), {
+        source: "webgl-lost",
+        fatal: true,
+      });
     });
 
     flock.engine.enableOfflineSupport = false;
@@ -1956,9 +1935,9 @@ export const flock = {
     flock.havokAbortHandled = false;
     flock.disposed = false;
 
-    const existingOomBanner =
-      flock.document?.getElementById("havok-oom-warning");
-    existingOomBanner?.remove?.();
+    // Clear any error banner from a previous run now that we're starting fresh.
+    dismissBanner("physics-oom");
+    dismissBanner("project-run");
 
     // Create the new scene
     flock.scene = new flock.BABYLON.Scene(flock.engine);
@@ -2023,7 +2002,9 @@ export const flock = {
           flock.handlePhysicsOutOfMemory(error);
           return;
         }
-        throw error;
+        // Stop the loop so a crash doesn't re-fire every frame.
+        flock.engine?.stopRenderLoop(flock._renderLoop);
+        handleError(error, { source: "project-run", fatal: false });
       }
     };
 

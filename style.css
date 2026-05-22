@@ -54,6 +54,11 @@
   /* Shadow Colors */
   --color-shadow: rgba(0, 0, 0, 0.1);
   --color-shadow-medium: rgba(0, 0, 0, 0.2);
+
+  /* Error banner */
+  --color-error-bg: #b3261e;
+  --color-error-text: #ffffff;
+  --color-error-border: #7a1812;
 }
 
 /* Dark theme */
@@ -116,6 +121,11 @@
 
   /* Scroll buttons */
   --color-scroll-button-bg: rgba(0, 0, 0, 0.5);
+
+  /* Error banner */
+  --color-error-bg: #7a1812;
+  --color-error-text: #ffffff;
+  --color-error-border: #e0584f;
 }
 
 /* Dark high-contrast theme */
@@ -178,6 +188,11 @@
 
   /* Scroll buttons */
   --color-scroll-button-bg: rgba(0, 0, 0, 0.5);
+
+  /* Error banner */
+  --color-error-bg: #8b0000;
+  --color-error-text: #ffffff;
+  --color-error-border: #ff5252;
 }
 
 /* High‑contrast theme */
@@ -232,6 +247,11 @@
   /* Shadow Colors */
   --color-shadow: rgba(0, 0, 0, 0.1);
   --color-shadow-medium: rgba(0, 0, 0, 0.2);
+
+  /* Error banner */
+  --color-error-bg: #c20000;
+  --color-error-text: #ffffff;
+  --color-error-border: #ffffff;
 }
 
 /* Low-vision theme */
@@ -256,6 +276,11 @@
   --color-menu-hover: #2a2a2a;
   --color-focus-ring: #e0e0e0;
   --color-outline-focus: #e0e0e0;
+
+  /* Error banner */
+  --color-error-bg: #8b0000;
+  --color-error-text: #ffffff;
+  --color-error-border: #ffb4ab;
 }
 
 
@@ -1727,4 +1752,61 @@ kbd {
 
 #shortcuts-table {
   margin-bottom: 1.5em;
+}
+
+/* Error notification banner */
+.flock-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  font-family: "Asap", sans-serif;
+  font-size: 16px;
+  box-shadow: 0 2px 4px var(--color-shadow-medium);
+}
+
+.flock-banner--error {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  border-bottom: 2px solid var(--color-error-border);
+}
+
+.flock-banner__message {
+  flex: 1;
+}
+
+.flock-banner__action,
+.flock-banner__close {
+  flex: none;
+  font-family: inherit;
+  color: var(--color-error-text);
+  background: transparent;
+  border: 1px solid var(--color-error-text);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.flock-banner__action {
+  padding: 4px 12px;
+  font-size: 15px;
+}
+
+.flock-banner__close {
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.flock-banner__action:hover,
+.flock-banner__close:hover,
+.flock-banner__action:focus-visible,
+.flock-banner__close:focus-visible {
+  background: var(--color-error-text);
+  color: var(--color-error-bg);
 }

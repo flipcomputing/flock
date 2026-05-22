@@ -8,6 +8,10 @@ import "@babylonjs/inspector";
 import { flock } from "../flock.js";
 import { initializeVariableIndexes } from "../blocks/blocks";
 import { enableGizmos } from "../ui/gizmos.js";
+import {
+  handleError,
+  installGlobalErrorHandlers,
+} from "../ui/notifications.js";
 import { executeCode, stopCode } from "./execution.js";
 import "../ui/addmeshes.js";
 import "../ui/colourpicker.js";
@@ -1038,6 +1042,8 @@ function initializeApp() {
 }
 
 window.onload = async function () {
+  installGlobalErrorHandlers();
+
   const blocklyContainer = document.getElementById("blocklyDiv");
   if (!blocklyContainer) {
     const standaloneScript = document.getElementById("flock");
@@ -1063,9 +1069,10 @@ window.onload = async function () {
 
   createBlocklyWorkspace();
   if (!workspace) {
-    console.error(
-      "Blockly workspace failed to initialize; aborting editor setup.",
-    );
+    handleError(new Error("Blockly workspace failed to initialize"), {
+      source: "startup",
+      fatal: true,
+    });
     return;
   }
 
@@ -1085,10 +1092,14 @@ window.onload = async function () {
   }, 30000);
 
   (async () => {
-    await flock.initialize();
+    try {
+      await flock.initialize();
 
-    // Hide loading screen once Flock is fully initialized
-    setTimeout(hideLoadingScreen, 500);
+      // Hide loading screen once Flock is fully initialized
+      setTimeout(hideLoadingScreen, 500);
+    } catch (error) {
+      handleError(error, { source: "startup", fatal: true });
+    }
   })();
 
   //workspace.getToolbox().setVisible(false);
