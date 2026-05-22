@@ -51,6 +51,7 @@ const AVAILABLE_SUITES = [
     pattern: "@diagnostic",
   },
   { id: "physics", name: "Physics Tests (6 tests)", pattern: "@physics" },
+  { id: "memory", name: "Havok Memory Stability Tests", pattern: "@memory" },
   { id: "sound2", name: "Sound2 Tests (BPM and speech)", pattern: "@sound2" },
   { id: "camera", name: "Camera API Tests", pattern: "@camera" },
   { id: "control", name: "Control API Tests", pattern: "@control" },
@@ -479,14 +480,33 @@ async function startServer() {
 async function runTests(suiteId = "all") {
   console.log("🌐 Launching headless browser...");
 
-  browser = await chromium.launch({
+  const chromiumExecutablePath = process.env.PW_CHROMIUM_EXECUTABLE_PATH;
+  const launchOptions = {
     headless: false, // must be false to use --headless=old
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--headless=old", // old headless mode retains WebGL support (new headless shell drops it)
     ],
-  });
+  };
+
+  if (chromiumExecutablePath) {
+    launchOptions.executablePath = chromiumExecutablePath;
+    console.log(`🧭 Using Chromium from PW_CHROMIUM_EXECUTABLE_PATH: ${chromiumExecutablePath}`);
+  }
+
+  try {
+    browser = await chromium.launch(launchOptions);
+  } catch (error) {
+    if (String(error?.message || "").includes("Executable doesn't exist")) {
+      console.error("\n❌ Playwright Chromium executable was not found.");
+      console.error("   Try one of the following:");
+      console.error("   1) npx playwright install chromium");
+      console.error("   2) If CDN access is blocked, install Chromium via OS package manager and set:");
+      console.error("      PW_CHROMIUM_EXECUTABLE_PATH=/path/to/chromium npm run test:api <suite>");
+    }
+    throw error;
+  }
 
   const context = await browser.newContext({
     viewport: { width: 1280, height: 720 },

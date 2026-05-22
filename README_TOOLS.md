@@ -18,6 +18,21 @@ Shows which of your 108 API methods are documented and tested.
 
 ### Run Automated Tests
 
+### Playwright browser setup (for API test runner)
+
+If `npm run test:api ...` fails with a missing Chromium executable, install a Playwright browser:
+
+```bash
+npx playwright install chromium
+```
+
+If browser downloads are blocked in your environment, install Chromium separately and point the runner at that binary:
+
+```bash
+PW_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:api memory
+```
+
+
 ```bash
 npm run test:api @notslow    # Run all fast tests (100 tests)
 npm run test:api babylon     # Run specific test suite
