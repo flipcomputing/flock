@@ -1,3 +1,5 @@
+import { getBoundKeys, isKnownAction } from "../input/bindings.js";
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -373,16 +375,6 @@ export const flockSensing = {
       );
     }
   },
-  _defaultActionMap: {
-    FORWARD: ["W", "Z"],
-    BACKWARD: ["S"],
-    LEFT: ["A", "Q"],
-    RIGHT: ["D"],
-    BUTTON1: ["E", "1"],
-    BUTTON2: ["R", "2"],
-    BUTTON3: ["F", "3"],
-    BUTTON4: ["SPACE", " ", "4"],
-  },
   _getActionMap() {
     if (!this._actionMapOverrides) {
       this._actionMapOverrides = {};
@@ -390,14 +382,12 @@ export const flockSensing = {
     return this._actionMapOverrides;
   },
   setActionKey(action, key) {
-    if (this._defaultActionMap[action]) {
+    if (isKnownAction(action)) {
       this._getActionMap()[action] = [key];
     }
   },
   actionPressed(action) {
-    const overrides = this._actionMapOverrides;
-    const actionKeys =
-      (overrides && overrides[action]) || this._defaultActionMap[action];
+    const actionKeys = getBoundKeys(action, this._actionMapOverrides);
 
     if (!actionKeys) {
       return false;

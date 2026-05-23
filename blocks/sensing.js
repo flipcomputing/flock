@@ -16,6 +16,7 @@ import {
   getOption,
   getDropdownOption,
 } from "../main/translation.js";
+import { ACTIONS } from "../input/bindings.js";
 
 export function defineSensingBlocks() {
   Blockly.Blocks["key_pressed"] = {
@@ -59,16 +60,7 @@ export function defineSensingBlocks() {
           {
             type: "field_dropdown",
             name: "ACTION",
-            options: [
-              [getOption("ACTION_FORWARD"), "FORWARD"],
-              [getOption("ACTION_BACKWARD"), "BACKWARD"],
-              [getOption("ACTION_LEFT"), "LEFT"],
-              [getOption("ACTION_RIGHT"), "RIGHT"],
-              [getOption("ACTION_BUTTON1"), "BUTTON1"],
-              [getOption("ACTION_BUTTON2"), "BUTTON2"],
-              [getOption("ACTION_BUTTON3"), "BUTTON3"],
-              [getOption("ACTION_BUTTON4"), "BUTTON4"],
-            ],
+            options: ACTIONS.map((a) => [getOption(`ACTION_${a}`), a]),
           },
         ],
         output: "Boolean",
@@ -89,16 +81,7 @@ export function defineSensingBlocks() {
           {
             type: "field_dropdown",
             name: "ACTION",
-            options: [
-              [getOption("ACTION_FORWARD"), "FORWARD"],
-              [getOption("ACTION_BACKWARD"), "BACKWARD"],
-              [getOption("ACTION_LEFT"), "LEFT"],
-              [getOption("ACTION_RIGHT"), "RIGHT"],
-              [getOption("ACTION_BUTTON1"), "BUTTON1"],
-              [getOption("ACTION_BUTTON2"), "BUTTON2"],
-              [getOption("ACTION_BUTTON3"), "BUTTON3"],
-              [getOption("ACTION_BUTTON4"), "BUTTON4"],
-            ],
+            options: ACTIONS.map((a) => [getOption(`ACTION_${a}`), a]),
           },
           {
             type: "field_grid_dropdown",

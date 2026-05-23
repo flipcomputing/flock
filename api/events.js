@@ -1,3 +1,5 @@
+import { getBoundKeys } from "../input/bindings.js";
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -63,24 +65,13 @@ export const flockEvents = {
       console.warn("whenActionEvent: callback must be a function");
       return;
     }
-    const actionMap = {
-      FORWARD: ["w", "z"],
-      BACKWARD: ["s"],
-      LEFT: ["a", "q"],
-      RIGHT: ["d"],
-      BUTTON1: ["e", "1"],
-      BUTTON2: ["r", "2"],
-      BUTTON3: ["f", "3"],
-      BUTTON4: [" ", "4"],
-    };
-
-    const actionKeys = actionMap[action];
+    const actionKeys = getBoundKeys(action, flock._actionMapOverrides);
 
     if (!actionKeys?.length) {
       return;
     }
 
-    [...new Set(actionKeys.map((key) => key.toLowerCase()))].forEach((key) => {
+    [...new Set(actionKeys)].forEach((key) => {
       this.whenKeyEvent(key, callback, isReleased);
     });
 
