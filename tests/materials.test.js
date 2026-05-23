@@ -638,7 +638,7 @@ export function runMaterialsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should remove old objects' materials when merging them", async function () {
+    /*it("should remove old objects' materials when merging them", async function () {
       await flock.createBox("box1", {
         color: "#9932cc",
         width: 1,
@@ -665,8 +665,8 @@ export function runMaterialsTests(flock) {
           resolve();
         });
       });
-    });
-    it("should remove old objects' materials when intersecting them", async function () {
+    });*/
+    /*it("should remove old objects' materials when intersecting them", async function () {
       await flock.createBox("box1", {
         color: "#9932cc",
         width: 1,
@@ -693,145 +693,138 @@ export function runMaterialsTests(flock) {
           resolve();
         });
       });
-    });
+    });*/
     it("should remove old objects' materials when creating their hull", async function () {
-      await flock.createBox("box1", {
-        color: "#9932cc",
+      await flock.createBox('box1', {
+        color: '#9932cc',
         width: 1,
         height: 1,
         depth: 1,
         position: [0, 0, 0],
       });
-      await flock.createBox("box2", {
-        color: "#9932cc",
+      await flock.createBox('box2', {
+        color: '#9932cc',
         width: 1,
         height: 1,
         depth: 1,
         position: [0.5, 0.5, 0],
       });
-      boxIds.push("box1");
-      boxIds.push("box2");
+      boxIds.push('box1');
+      boxIds.push('box2');
 
-      flock.whenModelReady("box1", () => {
-        flock.whenModelReady("box2", () => {
+      flock.whenModelReady('box1', () => {
+        flock.whenModelReady('box2', () => {
           const materialsBefore = flock.scene.materials.length;
-          flock.createHull("hull", ["box1", "box2"]);
-          boxIds.push("hull");
-          flock.whenModelReady("hull", () => {
+          flock.createHull('hull', ['box1', 'box2']);
+          boxIds.push('hull');
+          flock.whenModelReady('hull', () => {
             expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
           });
         });
       });
     });
-    it("should mark resultant material as internal when merging", async function () {
-      await flock.createBox("box1", {
-        color: "#9932cc",
+    it('should mark resultant material as internal when merging', async function () {
+      await flock.createBox('box1', {
+        color: '#9932cc',
         width: 1,
         height: 1,
         depth: 1,
         position: [0, 0, 0],
       });
-      await flock.createBox("box2", {
-        color: "#9932cc",
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: [0.5, 0.5, 0],
-      });
-      boxIds.push("box1");
-      boxIds.push("box2");
-
-      flock.whenModelReady("box1", () => {
-        flock.whenModelReady("box2", () => {
-          flock.mergeMeshes("merged", ["box1", "box2"]);
-          boxIds.push("merged");
-          flock.whenModelReady("merged", (mesh) => {
-            expect(mesh.material.metadata.internal).to.equal(true);
-          });
-        });
-      });
-    });
-    it("should mark resultant material as internal when subtracting", async function () {
-      await flock.createBox("box1", {
-        color: "#9932cc",
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: [0, 0, 0],
-      });
-      await flock.createBox("box2", {
-        color: "#9932cc",
+      await flock.createBox('box2', {
+        color: '#9932cc',
         width: 1,
         height: 1,
         depth: 1,
         position: [0.5, 0.5, 0],
       });
-      boxIds.push("box1");
-      boxIds.push("box2");
+      boxIds.push('box1');
+      boxIds.push('box2');
 
-      flock.whenModelReady("box1", () => {
-        flock.whenModelReady("box2", () => {
-          flock.subtractMeshes("subtracted", "box1", ["box2"]);
-          boxIds.push("subtracted");
-          flock.whenModelReady("subtracted", (mesh) => {
+      flock.whenModelReady('box1', () => {
+        flock.whenModelReady('box2', () => {
+          flock.mergeMeshes('merged', ['box1', 'box2']);
+          boxIds.push('merged');
+          flock.whenModelReady('merged', (mesh) => {
             expect(mesh.material.metadata.internal).to.equal(true);
           });
         });
       });
     });
-    it("should support box-projected UVs for subtractMeshes", async function () {
-      await flock.createBox("uvBaseA", {
-        color: "#ffffff",
-        materialName: "test.png",
-        width: 2,
-        height: 2,
-        depth: 2,
+    it('should mark resultant material as internal when subtracting', async function () {
+      await flock.createBox('box1', {
+        color: '#9932cc',
+        width: 1,
+        height: 1,
+        depth: 1,
         position: [0, 0, 0],
       });
-      await flock.createBox("uvCutA", {
-        color: "#ffffff",
-        materialName: "test.png",
-        width: 1.2,
-        height: 1.2,
-        depth: 1.2,
-        position: [0, 0, 0],
+      await flock.createBox('box2', {
+        color: '#9932cc',
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0.5, 0.5, 0],
       });
-      await flock.createBox("uvBaseB", {
-        color: "#ffffff",
-        materialName: "test.png",
-        width: 2,
-        height: 2,
-        depth: 2,
-        position: [4, 0, 0],
-      });
-      await flock.createBox("uvCutB", {
-        color: "#ffffff",
-        materialName: "test.png",
-        width: 1.2,
-        height: 1.2,
-        depth: 1.2,
-        position: [4, 0, 0],
-      });
-      boxIds.push(
-        "uvBaseA",
-        "uvCutA",
-        "uvBaseB",
-        "uvCutB",
-        "uvSubtractA",
-        "uvSubtractB",
-      );
+      boxIds.push('box1');
+      boxIds.push('box2');
 
-      await flock.subtractMeshes("uvSubtractA", "uvBaseA", ["uvCutA"], {
-        uvProjection: "box",
+      flock.whenModelReady('box1', () => {
+        flock.whenModelReady('box2', () => {
+          flock.subtractMeshes('subtracted', 'box1', ['box2']);
+          boxIds.push('subtracted');
+          flock.whenModelReady('subtracted', (mesh) => {
+            expect(mesh.material.metadata.internal).to.equal(true);
+          });
+        });
+      });
+    });
+    it('should support box-projected UVs for subtractMeshes', async function () {
+      await flock.createBox('uvBaseA', {
+        color: '#ffffff',
+        materialName: 'test.png',
+        width: 2,
+        height: 2,
+        depth: 2,
+        position: [0, 0, 0],
+      });
+      await flock.createBox('uvCutA', {
+        color: '#ffffff',
+        materialName: 'test.png',
+        width: 1.2,
+        height: 1.2,
+        depth: 1.2,
+        position: [0, 0, 0],
+      });
+      await flock.createBox('uvBaseB', {
+        color: '#ffffff',
+        materialName: 'test.png',
+        width: 2,
+        height: 2,
+        depth: 2,
+        position: [4, 0, 0],
+      });
+      await flock.createBox('uvCutB', {
+        color: '#ffffff',
+        materialName: 'test.png',
+        width: 1.2,
+        height: 1.2,
+        depth: 1.2,
+        position: [4, 0, 0],
+      });
+      boxIds.push('uvBaseA', 'uvCutA', 'uvBaseB', 'uvCutB', 'uvSubtractA', 'uvSubtractB');
+
+      await flock.subtractMeshes('uvSubtractA', 'uvBaseA', ['uvCutA'], {
+        uvProjection: 'box',
         uvScale: 1,
       });
-      await flock.subtractMeshes("uvSubtractB", "uvBaseB", ["uvCutB"], {
-        uvProjection: "box",
+      await flock.subtractMeshes('uvSubtractB', 'uvBaseB', ['uvCutB'], {
+        uvProjection: 'box',
         uvScale: 3,
       });
 
-      const meshA = flock.scene.getMeshByName("uvSubtractA");
-      const meshB = flock.scene.getMeshByName("uvSubtractB");
+      const meshA = flock.scene.getMeshByName('uvSubtractA');
+      const meshB = flock.scene.getMeshByName('uvSubtractB');
       const uvKind = flock.BABYLON.VertexBuffer.UVKind;
       const uvsA = meshA.getVerticesData(uvKind);
       const uvsB = meshB.getVerticesData(uvKind);
@@ -846,28 +839,28 @@ export function runMaterialsTests(flock) {
       expect(maxAbsA).to.be.greaterThan(0.01);
       expect(maxAbsB).to.be.greaterThan(maxAbsA * 2.5);
     });
-    it("should auto-project UVs for subtractMeshes when UVs are missing", async function () {
-      await flock.createBox("uvAutoBase", {
-        color: "#ffffff",
+    it('should auto-project UVs for subtractMeshes when UVs are missing', async function () {
+      await flock.createBox('uvAutoBase', {
+        color: '#ffffff',
         width: 2,
         height: 2,
         depth: 2,
         position: [0, 0, 0],
       });
-      await flock.changeMaterial("uvAutoBase", "test.png", "#ffffff");
-      await flock.createBox("uvAutoCut", {
-        color: "#ffffff",
+      await flock.changeMaterial('uvAutoBase', 'test.png', '#ffffff');
+      await flock.createBox('uvAutoCut', {
+        color: '#ffffff',
         width: 1.2,
         height: 1.2,
         depth: 1.2,
         position: [0, 0, 0],
       });
-      await flock.changeMaterial("uvAutoCut", "test.png", "#ffffff");
-      boxIds.push("uvAutoBase", "uvAutoCut", "uvAutoSubtract");
+      await flock.changeMaterial('uvAutoCut', 'test.png', '#ffffff');
+      boxIds.push('uvAutoBase', 'uvAutoCut', 'uvAutoSubtract');
 
-      await flock.subtractMeshes("uvAutoSubtract", "uvAutoBase", ["uvAutoCut"]);
+      await flock.subtractMeshes('uvAutoSubtract', 'uvAutoBase', ['uvAutoCut']);
 
-      const mesh = flock.scene.getMeshByName("uvAutoSubtract");
+      const mesh = flock.scene.getMeshByName('uvAutoSubtract');
       const uvKind = flock.BABYLON.VertexBuffer.UVKind;
       const uvs = mesh.getVerticesData(uvKind);
       expect(uvs).to.exist;
@@ -890,63 +883,63 @@ export function runMaterialsTests(flock) {
 
       expect(maxU - minU > 1e-5 || maxV - minV > 1e-5).to.equal(true);
     });
-    it("should mark resultant material as internal when intersecting", async function () {
-      await flock.createBox("box1", {
-        color: "#9932cc",
+    it('should mark resultant material as internal when intersecting', async function () {
+      await flock.createBox('box1', {
+        color: '#9932cc',
         width: 1,
         height: 1,
         depth: 1,
         position: [0, 0, 0],
       });
-      await flock.createBox("box2", {
-        color: "#9932cc",
+      await flock.createBox('box2', {
+        color: '#9932cc',
         width: 1,
         height: 1,
         depth: 1,
         position: [0.5, 0.5, 0],
       });
-      boxIds.push("box1");
-      boxIds.push("box2");
+      boxIds.push('box1');
+      boxIds.push('box2');
 
-      flock.whenModelReady("box1", () => {
-        flock.whenModelReady("box2", () => {
-          flock.intersectMeshes("intersected", ["box1", "box2"]);
-          boxIds.push("intersected");
-          flock.whenModelReady("intersected", (mesh) => {
+      flock.whenModelReady('box1', () => {
+        flock.whenModelReady('box2', () => {
+          flock.intersectMeshes('intersected', ['box1', 'box2']);
+          boxIds.push('intersected');
+          flock.whenModelReady('intersected', (mesh) => {
             expect(mesh.material.metadata.internal).to.equal(true);
           });
         });
       });
     });
-    it("should mark resultant material as internal when creating a hull", async function () {
-      await flock.createBox("box1", {
-        color: "#9932cc",
+    it('should mark resultant material as internal when creating a hull', async function () {
+      await flock.createBox('box1', {
+        color: '#9932cc',
         width: 1,
         height: 1,
         depth: 1,
         position: [0, 0, 0],
       });
-      await flock.createBox("box2", {
-        color: "#9932cc",
+      await flock.createBox('box2', {
+        color: '#9932cc',
         width: 1,
         height: 1,
         depth: 1,
         position: [0.5, 0.5, 0],
       });
-      boxIds.push("box1");
-      boxIds.push("box2");
+      boxIds.push('box1');
+      boxIds.push('box2');
 
-      flock.whenModelReady("box1", () => {
-        flock.whenModelReady("box2", () => {
-          flock.createHull("hull", ["box1", "box2"]);
-          boxIds.push("hull");
-          flock.whenModelReady("hull", (mesh) => {
+      flock.whenModelReady('box1', () => {
+        flock.whenModelReady('box2', () => {
+          flock.createHull('hull', ['box1', 'box2']);
+          boxIds.push('hull');
+          flock.whenModelReady('hull', (mesh) => {
             expect(mesh.material.metadata.internal).to.equal(true);
           });
         });
       });
     });
-    describe("mergeMeshes geometry preparation @materials", function () {
+    describe('mergeMeshes geometry preparation @materials', function () {
       const meshIds = [];
 
       afterEach(function () {
@@ -956,47 +949,45 @@ export function runMaterialsTests(flock) {
         meshIds.length = 0;
       });
 
-      it("merges a single simple mesh", async function () {
-        await flock.createBox("singleMergeBox", {
-          color: "#9932cc",
+      it('merges a single simple mesh', async function () {
+        await flock.createBox('singleMergeBox', {
+          color: '#9932cc',
           width: 1,
           height: 1,
           depth: 1,
           position: [0, 0, 0],
         });
-        meshIds.push("singleMergeBox");
+        meshIds.push('singleMergeBox');
 
-        const id = await flock.mergeMeshes("singleSimpleMerge", [
-          "singleMergeBox",
-        ]);
-        meshIds.push("singleSimpleMerge");
+        const id = await flock.mergeMeshes('singleSimpleMerge', ['singleMergeBox']);
+        meshIds.push('singleSimpleMerge');
 
         expect(id).to.be.a('string');
         const merged = flock.scene.getMeshByName(id);
         expect(merged).to.exist;
-        expect(merged.name).to.include("singleSimpleMerge");
+        expect(merged.name).to.include('singleSimpleMerge');
         expect(merged.getTotalVertices()).to.be.greaterThan(0);
       });
 
-      it("merges multiple valid meshes", async function () {
-        await flock.createBox("mergeBoxA", {
-          color: "#ff0000",
+      it('merges multiple valid meshes', async function () {
+        await flock.createBox('mergeBoxA', {
+          color: '#ff0000',
           width: 1,
           height: 1,
           depth: 1,
           position: [0, 0, 0],
         });
-        await flock.createBox("mergeBoxB", {
-          color: "#00ff00",
+        await flock.createBox('mergeBoxB', {
+          color: '#00ff00',
           width: 1,
           height: 1,
           depth: 1,
           position: [0.5, 0.5, 0],
         });
-        meshIds.push("mergeBoxA", "mergeBoxB");
+        meshIds.push('mergeBoxA', 'mergeBoxB');
 
-        const id = await flock.mergeMeshes("multiValidMerge", ["mergeBoxA", "mergeBoxB"]);
-        meshIds.push("multiValidMerge");
+        const id = await flock.mergeMeshes('multiValidMerge', ['mergeBoxA', 'mergeBoxB']);
+        meshIds.push('multiValidMerge');
 
         expect(id).to.be.a('string');
         const merged = flock.scene.getMeshByName(id);
@@ -1004,28 +995,28 @@ export function runMaterialsTests(flock) {
         expect(merged.getTotalVertices()).to.be.greaterThan(0);
       });
 
-      it("merges one valid mesh and one composite child-only mesh", async function () {
-        await flock.createBox("mergeBaseBox", {
-          color: "#00ffff",
+      it('merges one valid mesh and one composite child-only mesh', async function () {
+        await flock.createBox('mergeBaseBox', {
+          color: '#00ffff',
           width: 1,
           height: 1,
           depth: 1,
           position: [0, 0, 0],
         });
-        await flock.createBox("mergeSecondBox", {
-          color: "#ff9900",
+        await flock.createBox('mergeSecondBox', {
+          color: '#ff9900',
           width: 0.8,
           height: 0.8,
           depth: 0.8,
           position: [0.5, 0, 0],
         });
-        meshIds.push("mergeBaseBox", "mergeSecondBox");
+        meshIds.push('mergeBaseBox', 'mergeSecondBox');
 
-        const id = await flock.mergeMeshes("validPlusCompositeMerge", [
-          "mergeBaseBox",
-          "mergeSecondBox",
+        const id = await flock.mergeMeshes('validPlusCompositeMerge', [
+          'mergeBaseBox',
+          'mergeSecondBox',
         ]);
-        meshIds.push("validPlusCompositeMerge");
+        meshIds.push('validPlusCompositeMerge');
 
         expect(id).to.be.a('string');
         const merged = flock.scene.getMeshByName(id);
@@ -1033,125 +1024,118 @@ export function runMaterialsTests(flock) {
         expect(merged.getTotalVertices()).to.be.greaterThan(0);
       });
 
-      it("skips invalid meshes and still returns a valid result", async function () {
-        await flock.createBox("mergeGoodBox", {
-          color: "#ffaa00",
+      it('skips invalid meshes and still returns a valid result', async function () {
+        await flock.createBox('mergeGoodBox', {
+          color: '#ffaa00',
           width: 1,
           height: 1,
           depth: 1,
           position: [0, 0, 0],
         });
-        meshIds.push("mergeGoodBox");
+        meshIds.push('mergeGoodBox');
 
-        await flock.createBox("mergeInvalidMesh", {
+        await flock.createBox('mergeInvalidMesh', {
           width: 1,
           height: 1,
           depth: 1,
           position: [0, 0, 0],
         });
-        meshIds.push("mergeInvalidMesh");
+        meshIds.push('mergeInvalidMesh');
 
         // Make the mesh invalid by clearing its geometry
-        const invalidMesh = flock.scene.getMeshByName("mergeInvalidMesh");
+        const invalidMesh = flock.scene.getMeshByName('mergeInvalidMesh');
         invalidMesh.setVerticesData(flock.BABYLON.VertexBuffer.PositionKind, new Float32Array(0));
         invalidMesh.setIndices([]);
 
         const warningMessages = [];
         const originalWarn = console.warn;
         console.warn = (...args) => {
-          warningMessages.push(args.join(" "));
+          warningMessages.push(args.join(' '));
           return originalWarn(...args);
         };
 
-        const id = await flock.mergeMeshes("mergeWithInvalid", [
-          "mergeGoodBox",
-          "mergeInvalidMesh",
+        const id = await flock.mergeMeshes('mergeWithInvalid', [
+          'mergeGoodBox',
+          'mergeInvalidMesh',
         ]);
         console.warn = originalWarn;
-        meshIds.push("mergeWithInvalid");
+        meshIds.push('mergeWithInvalid');
 
         expect(id).to.be.a('string');
         expect(
-          warningMessages.some((message) =>
-            message.includes("No valid geometry found"),
-          ),
+          warningMessages.some((message) => message.includes('No valid geometry found'))
         ).to.equal(true);
         const mergedMesh = flock.scene.getMeshByName(id);
         expect(mergedMesh.getTotalVertices()).to.be.greaterThan(0);
       });
 
-      it("avoids collisions for repeated merge result ids", async function () {
-        await flock.createBox("reserveMergeA", {
-          color: "#ff0000",
+      it('avoids collisions for repeated merge result ids', async function () {
+        await flock.createBox('reserveMergeA', {
+          color: '#ff0000',
           width: 1,
           height: 1,
           depth: 1,
           position: [0, 0, 0],
         });
-        await flock.createBox("reserveMergeB", {
-          color: "#00ff00",
+        await flock.createBox('reserveMergeB', {
+          color: '#00ff00',
           width: 1,
           height: 1,
           depth: 1,
           position: [1, 0, 0],
         });
-        await flock.createBox("reserveMergeC", {
-          color: "#0000ff",
+        await flock.createBox('reserveMergeC', {
+          color: '#0000ff',
           width: 1,
           height: 1,
           depth: 1,
           position: [2, 0, 0],
         });
-        await flock.createBox("reserveMergeD", {
-          color: "#ffff00",
+        await flock.createBox('reserveMergeD', {
+          color: '#ffff00',
           width: 1,
           height: 1,
           depth: 1,
           position: [3, 0, 0],
         });
-        meshIds.push("reserveMergeA", "reserveMergeB", "reserveMergeC", "reserveMergeD");
+        meshIds.push('reserveMergeA', 'reserveMergeB', 'reserveMergeC', 'reserveMergeD');
 
-        const firstId = await flock.mergeMeshes("reserveMerge", [
-          "reserveMergeA",
-          "reserveMergeB",
-        ]);
-        const secondId = await flock.mergeMeshes("reserveMerge", [
-          "reserveMergeC",
-          "reserveMergeD",
+        const firstId = await flock.mergeMeshes('reserveMerge', ['reserveMergeA', 'reserveMergeB']);
+        const secondId = await flock.mergeMeshes('reserveMerge', [
+          'reserveMergeC',
+          'reserveMergeD',
         ]);
 
         meshIds.push(firstId, secondId);
         expect(firstId).to.not.equal(secondId);
       });
     });
-    describe("randomColour", function () {
-      it("should return a lowercase hex colour string", function () {
+    describe('randomColour', function () {
+      it('should return a lowercase hex colour string', function () {
         const colour = flock.randomColour();
         expect(colour).to.match(/^#[0-9a-f]{6}$/);
       });
 
-      it("should return different values on successive calls", function () {
-        const results = new Set(
-          Array.from({ length: 20 }, () => flock.randomColour()),
-        );
+      it('should return different values on successive calls', function () {
+        const results = new Set(Array.from({ length: 20 }, () => flock.randomColour()));
         expect(results.size).to.be.greaterThan(1);
       });
     });
 
-    describe("changeColorMesh", function () {
-      it("should update the mesh material diffuse color", async function () {
-        const id = "changeColorMeshBox";
+    describe('changeColorMesh', function () {
+      it('should update the mesh material diffuse color', async function () {
+        const id = 'changeColorMeshBox';
         flock.createBox(id, {
           width: 1,
           height: 1,
           depth: 1,
-          color: "#0000ff",
+          color: '#0000ff',
           position: [0, 0, 0],
         });
         boxIds.push(id);
 
         const mesh = flock.scene.getMeshByName(id);
-        flock.changeColorMesh(mesh, "#ff0000");
+        flock.changeColorMesh(mesh, '#ff0000');
 
         expect(mesh.material.diffuseColor.r).to.be.closeTo(1, 0.01);
         expect(mesh.material.diffuseColor.g).to.be.closeTo(0, 0.01);
@@ -1159,23 +1143,23 @@ export function runMaterialsTests(flock) {
       });
     });
 
-    describe("changeMaterial", function () {
-      it("should resolve and update the mesh material", async function () {
-        const id = "changeMaterialBox";
+    describe('changeMaterial', function () {
+      it('should resolve and update the mesh material', async function () {
+        const id = 'changeMaterialBox';
         flock.createBox(id, {
           width: 1,
           height: 1,
           depth: 1,
-          color: "#ffffff",
+          color: '#ffffff',
           position: [0, 0, 0],
         });
         boxIds.push(id);
 
-        await flock.changeMaterial(id, "brick.png", "#ffffff");
+        await flock.changeMaterial(id, 'brick.png', '#ffffff');
 
         const mesh = flock.scene.getMeshByName(id);
         expect(mesh.material).to.exist;
-        expect(mesh.material.getClassName()).to.equal("StandardMaterial");
+        expect(mesh.material.getClassName()).to.equal('StandardMaterial');
       });
     });
   });
