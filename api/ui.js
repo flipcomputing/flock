@@ -344,15 +344,13 @@ export const flockUI = {
 
     const releaseKeys = () => {
       uniqueKeys.forEach((key) => {
-        flock.canvas.pressedButtons.delete(key);
-        flock.gridKeyReleaseObservable.notifyObservers(key);
+        flock._onScreenSource.release(key);
       });
     };
 
     button.onPointerDownObservable.add(() => {
       uniqueKeys.forEach((key) => {
-        flock.canvas.pressedButtons.add(key);
-        flock.gridKeyPressObservable.notifyObservers(key);
+        flock._onScreenSource.press(key);
       });
     });
 

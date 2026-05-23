@@ -87,6 +87,7 @@ import { translate } from "./main/translation.js";
 import { handleError, dismissBanner } from "./ui/notifications.js";
 import { InputManager } from "./input/inputManager.js";
 import { KeyboardSource } from "./input/keyboardSource.js";
+import { OnScreenSource } from "./input/onScreenSource.js";
 
 import {
   enableSceneDescription,
@@ -1227,6 +1228,10 @@ export const flock = {
     flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
     flock.canvas.pressedButtons = new Set();
     flock.inputManager = new InputManager();
+    flock._onScreenSource = new OnScreenSource(flock.inputManager, {
+      pressObservable: gridKeyPressObservable,
+      releaseObservable: gridKeyReleaseObservable,
+    });
     flock.canvas.pressedKeys = {
       get size() { return flock.inputManager.heldKeyCount(); },
       has(key) { return flock.inputManager.isKeyDown(key); },

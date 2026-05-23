@@ -1,8 +1,4 @@
-function normalise(key) {
-  if (key === " " || key === "Spacebar") return " ";
-  if (key.length === 1) return key.toLowerCase();
-  return key;
-}
+import { normaliseKey } from "./normaliseKey.js";
 
 export class KeyboardSource {
   #inputManager;
@@ -22,10 +18,10 @@ export class KeyboardSource {
     this.#onBlur = onBlur ?? null;
 
     this.#onKeyDown = (event) => {
-      this.#inputManager._setKey(normalise(event.key), true);
+      this.#inputManager._setKey(normaliseKey(event.key), true);
     };
     this.#onKeyUp = (event) => {
-      this.#inputManager._setKey(normalise(event.key), false);
+      this.#inputManager._setKey(normaliseKey(event.key), false);
     };
     this.#onTargetBlur = () => {
       this.#inputManager._clearAllKeys();

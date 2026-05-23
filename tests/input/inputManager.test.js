@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { InputManager } from "../../input/inputManager.js";
 
 export function runInputManagerTests() {
-  describe("InputManager @inputmanager", function () {
+  describe("InputManager @inputmanager @input", function () {
     let manager;
 
     beforeEach(function () {

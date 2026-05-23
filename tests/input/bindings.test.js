@@ -18,7 +18,7 @@ const EXPECTED_ACTIONS = [
 ];
 
 export function runBindingsTests() {
-  describe("input/bindings @bindings", function () {
+  describe("input/bindings @bindings @input", function () {
     describe("ACTIONS", function () {
       it("contains exactly the 8 expected names in expected order", function () {
         expect(ACTIONS).to.deep.equal(EXPECTED_ACTIONS);

@@ -11,7 +11,7 @@ function keyup(target, key) {
 }
 
 export function runKeyboardSourceTests() {
-  describe("KeyboardSource @keyboardsource", function () {
+  describe("KeyboardSource @keyboardsource @input", function () {
     let manager, target, source;
 
     beforeEach(function () {

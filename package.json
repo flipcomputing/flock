@@ -10,7 +10,7 @@
     "check:link-security": "node scripts/check-link-security.mjs",
     "test:api": "node scripts/run-api-tests.mjs",
     "test:api:watch": "node scripts/run-api-tests.mjs --watch",
-    "test:input": "node scripts/run-api-tests.mjs bindings",
+    "test:input": "node scripts/run-input-tests.mjs",
     "docs:coverage": "node scripts/api-coverage-report.mjs",
     "docs:matrix": "node scripts/test-coverage-matrix.mjs",
     "validate:api-docs": "node scripts/validate-api-docs.mjs",
