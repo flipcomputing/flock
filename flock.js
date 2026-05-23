@@ -85,6 +85,8 @@ import {
 } from "./api/sensing";
 import { translate } from "./main/translation.js";
 import { handleError, dismissBanner } from "./ui/notifications.js";
+import { InputManager } from "./input/inputManager.js";
+import { KeyboardSource } from "./input/keyboardSource.js";
 
 import {
   enableSceneDescription,
@@ -144,6 +146,7 @@ export const flock = {
   GUI: null,
   EXPORT: null,
   controlsTexture: null,
+  inputManager: null,
   canvas: {
     pressedKeys: null,
   },
@@ -1223,7 +1226,24 @@ export const flock = {
     flock.gridKeyPressObservable = gridKeyPressObservable;
     flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
     flock.canvas.pressedButtons = new Set();
-    flock.canvas.pressedKeys = new Set();
+    flock.inputManager = new InputManager();
+    flock.canvas.pressedKeys = {
+      get size() { return flock.inputManager.heldKeyCount(); },
+      has(key) { return flock.inputManager.isKeyDown(key); },
+      add(key) { flock.inputManager._setKey(key, true); return this; },
+      delete(key) { flock.inputManager._setKey(key, false); return this; },
+      clear() { flock.inputManager._clearAllKeys(); },
+      [Symbol.iterator]() { return flock.inputManager._keys(); },
+      values() { return flock.inputManager._keys(); },
+      keys() { return flock.inputManager._keys(); },
+      entries() {
+        const iter = flock.inputManager._keys();
+        return (function* () { for (const k of { [Symbol.iterator]: () => iter }) yield [k, k]; })();
+      },
+      forEach(cb, thisArg) {
+        for (const k of flock.inputManager._keys()) cb.call(thisArg, k, k, this);
+      },
+    };
     const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
     flock.displayScale = displayScale;
     flock.BABYLON.Database.IDBStorageEnabled = true;
@@ -1267,28 +1287,20 @@ export const flock = {
       { passive: false },
     );
 
+    // Legacy: currentKeyPressed kept for back-compat; flagged for removal.
     flock.canvas.addEventListener("keydown", function (event) {
       flock.canvas.currentKeyPressed = event.key;
-      flock.canvas.pressedKeys.add(event.key);
     });
 
-    flock.canvas.addEventListener("keyup", function (event) {
-      flock.canvas.pressedKeys.delete(event.key);
-    });
-
-    flock.canvas.addEventListener("blur", () => {
-      // Clear all pressed keys when window loses focus
-      flock.canvas.pressedKeys.clear();
-      flock.canvas.pressedButtons.clear();
-      flock._hardResetCameraControls(flock.scene?.activeCamera);
-    });
+    new KeyboardSource(flock.inputManager, {
+      target: flock.canvas,
+      onBlur: () => flock._hardResetCameraControls(flock.scene?.activeCamera),
+    }).start();
 
     // Hardening for rare pointer/input desync where camera keeps moving
     // after input ends or browser focus changes.
     window.addEventListener("blur", () => {
-      flock.canvas.pressedKeys.clear();
       flock.canvas.pressedButtons.clear();
-      flock._hardResetCameraControls(flock.scene?.activeCamera);
     });
 
     window.addEventListener("pointerup", () => {
