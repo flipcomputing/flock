@@ -4,52 +4,50 @@ export function runSensingTests(flock) {
   describe("Sensing API @sensing", function () {
     describe("keyPressed", function () {
       afterEach(function () {
-        flock.canvas.pressedKeys.clear();
+        flock.inputManager._clearAllKeys();
       });
 
       it("should return false for a specific key when nothing is pressed", function () {
-        flock.canvas.pressedKeys.clear();
+        flock.inputManager._clearAllKeys();
         expect(flock.keyPressed("W")).to.be.false;
       });
 
       it("should return true for NONE when no keys are pressed", function () {
-        flock.canvas.pressedKeys.clear();
+        flock.inputManager._clearAllKeys();
         expect(flock.keyPressed("NONE")).to.be.true;
       });
 
       it("should return false for NONE when a key is pressed", function () {
-        flock.canvas.pressedKeys.add("w");
+        flock.inputManager._setKey("w", true);
         expect(flock.keyPressed("NONE")).to.be.false;
       });
 
-      it("should return true for a key that is in pressedKeys", function () {
-        flock.canvas.pressedKeys.add("w");
+      it("should return true for a key that is pressed", function () {
+        flock.inputManager._setKey("w", true);
         expect(flock.keyPressed("W")).to.be.true;
       });
     });
 
     describe("setActionKey and actionPressed", function () {
       afterEach(function () {
-        flock.canvas.pressedKeys.clear();
-        if (flock._actionMapOverrides) {
-          delete flock._actionMapOverrides["FORWARD"];
-        }
+        flock.inputManager._clearAllKeys();
+        flock.inputManager.resetActionKeys();
       });
 
       it("actionPressed should return false for an action when no key is pressed", function () {
-        flock.canvas.pressedKeys.clear();
+        flock.inputManager._clearAllKeys();
         expect(flock.actionPressed("FORWARD")).to.be.false;
       });
 
       it("setActionKey should remap an action to a new key", function () {
-        flock.setActionKey("FORWARD", "X");
-        flock.canvas.pressedKeys.add("x");
+        flock.setActionKey("FORWARD", "x");
+        flock.inputManager._setKey("x", true);
         expect(flock.actionPressed("FORWARD")).to.be.true;
       });
 
       it("after remapping, the old default key should no longer trigger the action", function () {
-        flock.setActionKey("FORWARD", "X");
-        flock.canvas.pressedKeys.add("w");
+        flock.setActionKey("FORWARD", "x");
+        flock.inputManager._setKey("w", true);
         expect(flock.actionPressed("FORWARD")).to.be.false;
       });
     });

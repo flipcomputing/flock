@@ -3,11 +3,7 @@ import { expect } from "chai";
 export function runButtonControlsTests(flock) {
   describe("buttonControls function tests", function () {
     beforeEach(function () {
-      flock.canvas ??= {};
-      flock.canvas.pressedButtons ??= new Set();
       flock.displayScale = 1;
-      flock.gridKeyPressObservable ??= new flock.BABYLON.Observable();
-      flock.gridKeyReleaseObservable ??= new flock.BABYLON.Observable();
     });
 
     afterEach(function () {
@@ -15,7 +11,7 @@ export function runButtonControlsTests(flock) {
         flock.controlsTexture.dispose();
         flock.controlsTexture = null;
       }
-      flock.canvas.pressedButtons.clear();
+      flock.inputManager._clearAllKeys();
     });
 
     // buttonControls tests
@@ -103,39 +99,39 @@ export function runButtonControlsTests(flock) {
         expect(button.color).to.equal("red");
       });
 
-      it("should add key to pressedKeys on pointer down", function () {
+      it("should register key in inputManager on pointer down", function () {
         const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
         button.onPointerDownObservable.notifyObservers({});
-        expect(flock.canvas.pressedKeys.has("ArrowUp")).to.be.true;
+        expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.true;
       });
 
-      it("should remove key from pressedKeys on pointer up", function () {
+      it("should clear key from inputManager on pointer up", function () {
         const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
         button.onPointerDownObservable.notifyObservers({});
         button.onPointerUpObservable.notifyObservers({});
-        expect(flock.canvas.pressedKeys.has("ArrowUp")).to.be.false;
+        expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.false;
       });
 
-      it("should remove key from pressedKeys on pointer out", function () {
+      it("should clear key from inputManager on pointer out", function () {
         const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
         button.onPointerDownObservable.notifyObservers({});
         button.onPointerOutObservable.notifyObservers({});
-        expect(flock.canvas.pressedKeys.has("ArrowUp")).to.be.false;
+        expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.false;
       });
 
-      it("should add all keys when an array is provided", function () {
+      it("should register all keys in inputManager when an array is provided", function () {
         const button = flock.createSmallButton("△", ["w", "ArrowUp"], "#ffffff");
         button.onPointerDownObservable.notifyObservers({});
-        expect(flock.canvas.pressedKeys.has("w")).to.be.true;
-        expect(flock.canvas.pressedKeys.has("ArrowUp")).to.be.true;
+        expect(flock.inputManager.isKeyDown("w")).to.be.true;
+        expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.true;
       });
 
-      it("should remove all keys on release when an array is provided", function () {
+      it("should clear all keys from inputManager on release when an array is provided", function () {
         const button = flock.createSmallButton("△", ["w", "ArrowUp"], "#ffffff");
         button.onPointerDownObservable.notifyObservers({});
         button.onPointerUpObservable.notifyObservers({});
-        expect(flock.canvas.pressedKeys.has("w")).to.be.false;
-        expect(flock.canvas.pressedKeys.has("ArrowUp")).to.be.false;
+        expect(flock.inputManager.isKeyDown("w")).to.be.false;
+        expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.false;
       });
     });
 
@@ -158,7 +154,7 @@ export function runButtonControlsTests(flock) {
         );
       });
 
-      it("should create an up arrow button that maps ArrowUp", function () {
+      it("should create an up arrow button that registers ArrowUp in inputManager", function () {
         flock.controlsTexture =
           flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
             "TestControls",
@@ -171,7 +167,7 @@ export function runButtonControlsTests(flock) {
           .find((c) => c.textBlock?.text === "△");
         expect(upBtn).to.exist;
         upBtn.onPointerDownObservable.notifyObservers({});
-        expect(flock.canvas.pressedKeys.has("ArrowUp")).to.be.true;
+        expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.true;
       });
     });
 
@@ -194,7 +190,7 @@ export function runButtonControlsTests(flock) {
         );
       });
 
-      it("should create a ① button that maps the e key", function () {
+      it("should create a ① button that registers the e key in inputManager", function () {
         flock.controlsTexture =
           flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
             "TestControls",
@@ -207,7 +203,7 @@ export function runButtonControlsTests(flock) {
           .find((c) => c.textBlock?.text === "①");
         expect(btn1).to.exist;
         btn1.onPointerDownObservable.notifyObservers({});
-        expect(flock.canvas.pressedKeys.has("e")).to.be.true;
+        expect(flock.inputManager.isKeyDown("e")).to.be.true;
       });
     });
   });

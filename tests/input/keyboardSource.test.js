@@ -6,6 +6,10 @@ function keydown(target, key) {
   target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
 }
 
+function keydown_repeat(target, key) {
+  target.dispatchEvent(new KeyboardEvent("keydown", { key, repeat: true, bubbles: true }));
+}
+
 function keyup(target, key) {
   target.dispatchEvent(new KeyboardEvent("keyup", { key, bubbles: true }));
 }
@@ -105,6 +109,27 @@ export function runKeyboardSourceTests() {
         keydown(target, "w");
         window.dispatchEvent(new Event("blur"));
         expect(manager.heldKeyCount()).to.equal(0);
+      });
+    });
+
+    describe("key repeat", function () {
+      it("repeated keydown events do not increment refcount beyond 1", function () {
+        source.start();
+        keydown(target, "w");
+        keydown_repeat(target, "w");
+        keydown_repeat(target, "w");
+        keyup(target, "w");
+        expect(manager.isKeyDown("w")).to.be.false;
+      });
+
+      it("repeated keydown does not re-fire onKeyDownObservable", function () {
+        source.start();
+        const fired = [];
+        manager.onKeyDownObservable.add((k) => fired.push(k));
+        keydown(target, "w");
+        keydown_repeat(target, "w");
+        keydown_repeat(target, "w");
+        expect(fired).to.have.lengthOf(1);
       });
     });
 

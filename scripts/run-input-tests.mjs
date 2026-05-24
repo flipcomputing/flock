@@ -2,7 +2,11 @@
 if (!globalThis.window) globalThis.window = new EventTarget();
 if (!globalThis.KeyboardEvent) {
   globalThis.KeyboardEvent = class KeyboardEvent extends Event {
-    constructor(type, init = {}) { super(type, init); this.key = init.key ?? ""; }
+    constructor(type, init = {}) {
+      super(type, init);
+      this.key = init.key ?? "";
+      this.repeat = init.repeat ?? false;
+    }
   };
 }
 if (!globalThis.PointerEvent) {

@@ -294,8 +294,8 @@ export function runSceneTests(flock) {
         expect(flock.BABYLON).to.exist;
         expect(flock.canvas.id).to.equal("renderCanvas");
         expect(flock.abortController).to.be.instanceOf(AbortController);
-        expect(flock.gridKeyPressObservable).to.exist;
-        expect(flock.gridKeyReleaseObservable).to.exist;
+        expect(flock.inputManager).to.exist;
+        expect(flock._onScreenSource).to.exist;
       });
     });
 
