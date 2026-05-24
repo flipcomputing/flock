@@ -2,24 +2,16 @@ import { normaliseKey } from "./normaliseKey.js";
 
 export class OnScreenSource {
   #inputManager;
-  #pressObservable;
-  #releaseObservable;
 
-  constructor(inputManager, { pressObservable, releaseObservable }) {
+  constructor(inputManager) {
     this.#inputManager = inputManager;
-    this.#pressObservable = pressObservable;
-    this.#releaseObservable = releaseObservable;
   }
 
   press(key) {
-    const canonical = normaliseKey(key);
-    this.#inputManager._setKey(canonical, true);
-    this.#pressObservable.notifyObservers(canonical);
+    this.#inputManager._setKey(normaliseKey(key), true);
   }
 
   release(key) {
-    const canonical = normaliseKey(key);
-    this.#inputManager._setKey(canonical, false);
-    this.#releaseObservable.notifyObservers(canonical);
+    this.#inputManager._setKey(normaliseKey(key), false);
   }
 }

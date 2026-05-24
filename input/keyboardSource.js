@@ -18,6 +18,7 @@ export class KeyboardSource {
     this.#onBlur = onBlur ?? null;
 
     this.#onKeyDown = (event) => {
+      if (event.repeat) return;
       this.#inputManager._setKey(normaliseKey(event.key), true);
     };
     this.#onKeyUp = (event) => {

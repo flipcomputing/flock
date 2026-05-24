@@ -35,6 +35,7 @@ export class InputManager {
   // Entries are deleted when count reaches 0, so all entries have count > 0.
   #keys = new Map();
   #axes = new Map();
+  #actionOverrides = new Map();
 
   onKeyDownObservable = new SimpleObservable();
   onKeyUpObservable = new SimpleObservable();
@@ -63,8 +64,8 @@ export class InputManager {
   }
 
   _notifyActionDown(key) {
-    for (const action of (KEY_TO_ACTIONS.get(key) ?? [])) {
-      const wasAlreadyActive = (ACTION_KEYS.get(action) ?? []).some(
+    for (const action of this._getActionsForKey(key)) {
+      const wasAlreadyActive = this._getActionKeys(action).some(
         (k) => k !== key && (this.#keys.get(k) ?? 0) > 0,
       );
       if (!wasAlreadyActive) {
@@ -74,8 +75,8 @@ export class InputManager {
   }
 
   _notifyActionUp(key) {
-    for (const action of (KEY_TO_ACTIONS.get(key) ?? [])) {
-      const stillActive = (ACTION_KEYS.get(action) ?? []).some(
+    for (const action of this._getActionsForKey(key)) {
+      const stillActive = this._getActionKeys(action).some(
         (k) => (this.#keys.get(k) ?? 0) > 0,
       );
       if (!stillActive) {
@@ -93,9 +94,30 @@ export class InputManager {
   }
 
   isActionDown(action) {
-    const actionKeys = ACTION_KEYS.get(action);
-    if (!actionKeys) return false;
-    return actionKeys.some((k) => (this.#keys.get(k) ?? 0) > 0);
+    return this._getActionKeys(action).some((k) => (this.#keys.get(k) ?? 0) > 0);
+  }
+
+  setActionKey(action, key) {
+    this.#actionOverrides.set(action, [key]);
+  }
+
+  resetActionKeys() {
+    this.#actionOverrides.clear();
+  }
+
+  _getActionKeys(action) {
+    return this.#actionOverrides.get(action) ?? ACTION_KEYS.get(action) ?? [];
+  }
+
+  _getActionsForKey(key) {
+    const actions = new Set();
+    for (const action of (KEY_TO_ACTIONS.get(key) ?? [])) {
+      if (!this.#actionOverrides.has(action)) actions.add(action);
+    }
+    for (const [action, keys] of this.#actionOverrides) {
+      if (keys.includes(key)) actions.add(action);
+    }
+    return actions;
   }
 
   _setAxis(name, value) {

@@ -95,30 +95,12 @@ export const flockEvents = {
     const targetObs = isReleased
       ? flock.inputManager.onKeyUpObservable
       : flock.inputManager.onKeyDownObservable;
-
-    const mgrHandler = (k) => {
-      if (k === key) callback();
-    };
-    targetObs.add(mgrHandler);
-
-    // Register the callback for the grid input observable
-    const gridObservable = isReleased
-      ? flock.gridKeyReleaseObservable
-      : flock.gridKeyPressObservable;
-
-    const gridHandler = (inputKey) => {
-      if (inputKey === key) {
-        callback();
-      }
-    };
-    const gridObserver = gridObservable.add(gridHandler);
+    const handler = (k) => { if (k === key) callback(); };
+    targetObs.add(handler);
 
     signal?.addEventListener(
       "abort",
-      () => {
-        targetObs.remove(mgrHandler);
-        gridObservable?.remove(gridObserver);
-      },
+      () => targetObs.remove(handler),
       { once: true },
     );
   },

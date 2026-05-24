@@ -2,33 +2,19 @@ import { expect } from "chai";
 import { InputManager } from "../../input/inputManager.js";
 import { OnScreenSource } from "../../input/onScreenSource.js";
 
-class StubObservable {
-  calls = [];
-  notifyObservers(data) {
-    this.calls.push(data);
-  }
-}
-
 export function runOnScreenSourceTests() {
   describe("OnScreenSource @onscreensource @input", function () {
-    let manager, pressObservable, releaseObservable, source;
+    let manager, source;
 
     beforeEach(function () {
       manager = new InputManager();
-      pressObservable = new StubObservable();
-      releaseObservable = new StubObservable();
-      source = new OnScreenSource(manager, { pressObservable, releaseObservable });
+      source = new OnScreenSource(manager);
     });
 
     describe("press", function () {
       it("press('w') → manager.isKeyDown('w') true", function () {
         source.press("w");
         expect(manager.isKeyDown("w")).to.be.true;
-      });
-
-      it("press('w') → pressObservable fired once with 'w'", function () {
-        source.press("w");
-        expect(pressObservable.calls).to.deep.equal(["w"]);
       });
 
       it("press('w') → manager.onKeyDownObservable fired once", function () {
@@ -51,15 +37,13 @@ export function runOnScreenSourceTests() {
       it("press('Spacebar') → normalised to ' '", function () {
         source.press("Spacebar");
         expect(manager.isKeyDown(" ")).to.be.true;
-        expect(pressObservable.calls).to.deep.equal([" "]);
       });
 
-      it("repeated press('w') → pressObservable fires twice, onKeyDown fires once", function () {
+      it("repeated press('w') → onKeyDown fires once (refcounted)", function () {
         const keyDownFired = [];
         manager.onKeyDownObservable.add((k) => keyDownFired.push(k));
         source.press("w");
         source.press("w");
-        expect(pressObservable.calls).to.deep.equal(["w", "w"]);
         expect(keyDownFired).to.have.lengthOf(1);
       });
     });
@@ -71,23 +55,12 @@ export function runOnScreenSourceTests() {
         expect(manager.isKeyDown("w")).to.be.false;
       });
 
-      it("release('w') after press('w') → releaseObservable fires", function () {
-        source.press("w");
-        source.release("w");
-        expect(releaseObservable.calls).to.deep.equal(["w"]);
-      });
-
       it("release('w') after press('w') → manager.onKeyUpObservable fires", function () {
         const fired = [];
         manager.onKeyUpObservable.add((k) => fired.push(k));
         source.press("w");
         source.release("w");
         expect(fired).to.deep.equal(["w"]);
-      });
-
-      it("release('w') when not pressed → releaseObservable still fires (back-compat)", function () {
-        source.release("w");
-        expect(releaseObservable.calls).to.deep.equal(["w"]);
       });
 
       it("release('w') when not pressed → manager onKeyUp does not fire (idempotent)", function () {

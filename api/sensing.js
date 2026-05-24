@@ -1,5 +1,3 @@
-import { getBoundKeys, isKnownAction } from "../input/bindings.js";
-
 let flock;
 
 export function setFlockReference(ref) {
@@ -257,39 +255,15 @@ export const flockSensing = {
     return propertyValue;
   },
   keyPressed(key) {
-    const pressedKeys = flock.canvas.pressedKeys;
-
-    if (key === "ANY") {
-      return pressedKeys.size > 0;
-    } else if (key === "NONE") {
-      return pressedKeys.size === 0;
-    } else {
-      return (
-        pressedKeys.has(key) ||
-        pressedKeys.has(key.toLowerCase()) ||
-        pressedKeys.has(key.toUpperCase())
-      );
-    }
-  },
-  _getActionMap() {
-    if (!this._actionMapOverrides) {
-      this._actionMapOverrides = {};
-    }
-    return this._actionMapOverrides;
+    if (key === "ANY") return flock.inputManager.heldKeyCount() > 0;
+    if (key === "NONE") return flock.inputManager.heldKeyCount() === 0;
+    return flock.inputManager.isKeyDown(key);
   },
   setActionKey(action, key) {
-    if (isKnownAction(action)) {
-      this._getActionMap()[action] = [key];
-    }
+    flock.inputManager.setActionKey(action, key);
   },
   actionPressed(action) {
-    const actionKeys = getBoundKeys(action, this._actionMapOverrides);
-
-    if (!actionKeys) {
-      return false;
-    }
-
-    return actionKeys.some((key) => this.keyPressed(key));
+    return flock.inputManager.isActionDown(action);
   },
   getTime(unit) {
     const now = Date.now();

@@ -150,9 +150,7 @@ export const flock = {
   EXPORT: null,
   controlsTexture: null,
   inputManager: null,
-  canvas: {
-    pressedKeys: null,
-  },
+  canvas: null,
   abortController: null,
   _renderLoop: null,
   document: document,
@@ -1224,33 +1222,8 @@ export const flock = {
     flock.engineReady = false;
     flock.meshLoaders = new Map();
 
-    const gridKeyPressObservable = new flock.BABYLON.Observable();
-    const gridKeyReleaseObservable = new flock.BABYLON.Observable();
-    flock.gridKeyPressObservable = gridKeyPressObservable;
-    flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
     flock.inputManager = new InputManager();
-    flock._onScreenSource = new OnScreenSource(flock.inputManager, {
-      pressObservable: gridKeyPressObservable,
-      releaseObservable: gridKeyReleaseObservable,
-    });
-    flock.canvas.pressedKeys = {
-      get size() { return flock.inputManager.heldKeyCount(); },
-      has(key) { return flock.inputManager.isKeyDown(key); },
-      add(key) { flock.inputManager._setKey(key, true); return this; },
-      delete(key) { flock.inputManager._setKey(key, false); return this; },
-      clear() { flock.inputManager._clearAllKeys(); },
-      [Symbol.iterator]() { return flock.inputManager._keys(); },
-      values() { return flock.inputManager._keys(); },
-      keys() { return flock.inputManager._keys(); },
-      entries() {
-        const iter = flock.inputManager._keys();
-        return (function* () { for (const k of { [Symbol.iterator]: () => iter }) yield [k, k]; })();
-      },
-      forEach(cb, thisArg) {
-        for (const k of flock.inputManager._keys()) cb.call(thisArg, k, k, this);
-      },
-    };
-    flock.canvas.pressedButtons = flock.canvas.pressedKeys;
+    flock._onScreenSource = new OnScreenSource(flock.inputManager);
     const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
     flock.displayScale = displayScale;
     flock.BABYLON.Database.IDBStorageEnabled = true;
@@ -1293,11 +1266,6 @@ export const flock = {
       },
       { passive: false },
     );
-
-    // Legacy: currentKeyPressed kept for back-compat; flagged for removal.
-    flock.canvas.addEventListener("keydown", function (event) {
-      flock.canvas.currentKeyPressed = event.key;
-    });
 
     new KeyboardSource(flock.inputManager, {
       target: flock.canvas,
@@ -1458,7 +1426,7 @@ export const flock = {
         }
 
         flock._cameraControlBindings = null;
-        flock._actionMapOverrides = null;
+        flock.inputManager.resetActionKeys();
 
         if (flock._gamepadCameraObserver) {
           flock.scene.onBeforeRenderObservable.remove(
@@ -1555,10 +1523,6 @@ export const flock = {
           flock.stackPanel.dispose();
           flock.stackPanel = null;
         }
-
-        // Clear observables
-        flock.gridKeyPressObservable?.clear();
-        flock.gridKeyReleaseObservable?.clear();
 
         // Dispose sound tracks
         if (flock.scene.mainSoundTrack) {
