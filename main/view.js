@@ -570,6 +570,7 @@ export function toggleDesignMode() {
   }
 
   if (flock.scene.debugLayer.isVisible()) {
+    canvasArea.style.flexDirection = "";
     switchView("both");
     flock.scene.debugLayer.hide();
     flockLink.style.display = "block";
@@ -578,6 +579,7 @@ export function toggleDesignMode() {
     blocklyArea.style.display = "none";
     codeMode = "none";
     canvasArea.style.display = "";
+    canvasArea.style.flexDirection = "row";
     canvasArea.style.width = "0";
     gizmoButtons.style.display = "block";
     flockLink.style.display = "none";
