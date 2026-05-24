@@ -1,4 +1,5 @@
 import { DEFAULT_BINDINGS } from "./bindings.js";
+import { normaliseKey } from "./normaliseKey.js";
 
 // Reverse maps built from DEFAULT_BINDINGS (static — overrides not reflected here).
 const ACTION_KEYS = new Map(
@@ -98,7 +99,7 @@ export class InputManager {
   }
 
   setActionKey(action, key) {
-    this.#actionOverrides.set(action, [key]);
+    this.#actionOverrides.set(action, [normaliseKey(key)]);
   }
 
   resetActionKeys() {
@@ -128,7 +129,7 @@ export class InputManager {
     return this.#axes.get(name) ?? 0;
   }
 
-  // Clears held keys only — does not affect axes or gamepad state.
+  // Test-only utility: clears all held keys regardless of source.
   _clearAllKeys() {
     const held = [...this.#keys.keys()];
     const activeActions = new Set();

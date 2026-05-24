@@ -5,6 +5,7 @@ export class KeyboardSource {
   #target;
   #onBlur;
   #started = false;
+  #heldKeys = new Set();
 
   // Bound handlers kept so stop() can remove them.
   #onKeyDown;
@@ -19,19 +20,32 @@ export class KeyboardSource {
 
     this.#onKeyDown = (event) => {
       if (event.repeat) return;
-      this.#inputManager._setKey(normaliseKey(event.key), true);
+      const key = normaliseKey(event.key);
+      if (this.#heldKeys.has(key)) return;
+      this.#heldKeys.add(key);
+      this.#inputManager._setKey(key, true);
     };
     this.#onKeyUp = (event) => {
-      this.#inputManager._setKey(normaliseKey(event.key), false);
+      const key = normaliseKey(event.key);
+      if (!this.#heldKeys.has(key)) return;
+      this.#heldKeys.delete(key);
+      this.#inputManager._setKey(key, false);
     };
     this.#onTargetBlur = () => {
-      this.#inputManager._clearAllKeys();
+      this.#releaseAll();
       this.#onBlur?.();
     };
     this.#onWindowBlur = () => {
-      this.#inputManager._clearAllKeys();
+      this.#releaseAll();
       this.#onBlur?.();
     };
+  }
+
+  #releaseAll() {
+    for (const key of this.#heldKeys) {
+      this.#inputManager._setKey(key, false);
+    }
+    this.#heldKeys.clear();
   }
 
   start() {

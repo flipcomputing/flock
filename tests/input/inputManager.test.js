@@ -206,6 +206,20 @@ export function runInputManagerTests() {
       });
     });
 
+    describe("setActionKey normalisation", function () {
+      it("uppercase key is normalised: setActionKey('FORWARD', 'X') → isActionDown true when 'x' pressed", function () {
+        manager.setActionKey("FORWARD", "X");
+        manager._setKey("x", true);
+        expect(manager.isActionDown("FORWARD")).to.be.true;
+      });
+
+      it("'Spacebar' alias is normalised: setActionKey('BUTTON4', 'Spacebar') → isActionDown true when ' ' pressed", function () {
+        manager.setActionKey("BUTTON4", "Spacebar");
+        manager._setKey(" ", true);
+        expect(manager.isActionDown("BUTTON4")).to.be.true;
+      });
+    });
+
     describe("axes", function () {
       it("_setAxis / getAxis round-trip", function () {
         manager._setAxis("LOOK_X", 0.7);

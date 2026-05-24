@@ -110,6 +110,16 @@ export function runKeyboardSourceTests() {
         window.dispatchEvent(new Event("blur"));
         expect(manager.heldKeyCount()).to.equal(0);
       });
+
+      it("blur on target releases only keyboard-owned keys, leaving keys from other sources intact", function () {
+        source.start();
+        keydown(target, "w");
+        manager._setKey("e", true); // simulate another source (e.g. gamepad)
+        target.dispatchEvent(new Event("blur"));
+        expect(manager.isKeyDown("w")).to.be.false;
+        expect(manager.isKeyDown("e")).to.be.true;
+        manager._setKey("e", false); // cleanup
+      });
     });
 
     describe("key repeat", function () {

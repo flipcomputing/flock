@@ -1276,6 +1276,8 @@ export const flock = {
     // after input ends or browser focus changes.
     window.addEventListener("blur", () => {
       flock._gamepadSource?.releaseAllKeys();
+      // Babylon.js bug: camera drifts after window blur; force-reset to stop it.
+      flock._hardResetCameraControls(flock.scene?.activeCamera);
     });
 
     window.addEventListener("pointerup", () => {
