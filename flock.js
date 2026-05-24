@@ -1308,6 +1308,7 @@ export const flock = {
 
     const yawSpeed = 2.5;
     const pitchSpeed = 2.0;
+    const flySpeed = 3.0;
 
     if (flock._gamepadCameraObserver) {
       flock.scene.onBeforeRenderObservable.remove(flock._gamepadCameraObserver);
@@ -1320,8 +1321,16 @@ export const flock = {
         const rightY = flock.inputManager.getAxis("LOOK_Y");
         const shoulderTurn = flock.inputManager.getAxis("TURN");
         const yawInput = rightX + shoulderTurn;
+        const flyUp = flock.inputManager.isKeyDown("PageUp");
+        const flyDown = flock.inputManager.isKeyDown("PageDown");
 
-        if (!yawInput && !rightY) {
+        // Left stick analog; fall back to D-pad shim keys for discrete D-pad input.
+        const moveX = flock.inputManager.getAxis("MOVE_X") ||
+          (flock.inputManager.isKeyDown("d") ? 1 : flock.inputManager.isKeyDown("a") ? -1 : 0);
+        const moveY = flock.inputManager.getAxis("MOVE_Y") ||
+          (flock.inputManager.isKeyDown("s") ? 1 : flock.inputManager.isKeyDown("w") ? -1 : 0);
+
+        if (!yawInput && !rightY && !flyUp && !flyDown && !moveX && !moveY) {
           return;
         }
 
@@ -1360,6 +1369,16 @@ export const flock = {
             maxPitch,
             Math.max(minPitch, camera.rotation.x),
           );
+
+          if (flyUp) camera.position.y += flySpeed * deltaTime;
+          if (flyDown) camera.position.y -= flySpeed * deltaTime;
+
+          if (moveX || moveY) {
+            const forward = camera.getDirection(new flock.BABYLON.Vector3(0, 0, 1));
+            const right = camera.getDirection(new flock.BABYLON.Vector3(1, 0, 0));
+            camera.position.addInPlace(forward.scale(-moveY * flySpeed * deltaTime));
+            camera.position.addInPlace(right.scale(moveX * flySpeed * deltaTime));
+          }
         }
       },
     );

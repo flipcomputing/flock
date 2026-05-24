@@ -1,7 +1,7 @@
 const BUTTON_KEYS = {
   0: [" "],   // A / Cross         -> BUTTON4
-  1: ["e"],   // B / Circle        -> BUTTON1
-  2: ["f"],   // X / Square        -> BUTTON3
+  1: ["e", "PageUp"],   // B / Circle        -> BUTTON1 + fly up
+  2: ["f", "PageDown"], // X / Square        -> BUTTON3 + fly down
   3: ["r"],   // Y / Triangle      -> BUTTON2
   6: ["r"],   // Left trigger      -> BUTTON2
   7: ["r"],   // Right trigger     -> BUTTON2

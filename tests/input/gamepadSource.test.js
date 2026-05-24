@@ -87,6 +87,21 @@ export function runGamepadSourceTests() {
         expect(manager.isKeyDown("e")).to.be.true;
       });
 
+      it("button 1 pressed → isKeyDown('PageUp') true (fly-camera up)", function () {
+        makeSource(() => [makeGamepad({ buttons: [null, makeButton(true)] })]);
+        source.start();
+        scene.tick();
+        expect(manager.isKeyDown("PageUp")).to.be.true;
+      });
+
+      it("button 2 pressed → isKeyDown('f') true and isKeyDown('PageDown') true (fly-camera down)", function () {
+        makeSource(() => [makeGamepad({ buttons: [null, null, makeButton(true)] })]);
+        source.start();
+        scene.tick();
+        expect(manager.isKeyDown("f")).to.be.true;
+        expect(manager.isKeyDown("PageDown")).to.be.true;
+      });
+
       it("button 1 pressed → isActionDown('BUTTON1') true", function () {
         makeSource(() => [makeGamepad({ buttons: [null, makeButton(true)] })]);
         source.start();
