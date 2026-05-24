@@ -31,10 +31,27 @@ export class OnScreenSource {
   #inputManager;
   #pressedKeys = new Map(); // normalized key -> press count
   #target;
+  #paused = false;
 
   constructor(inputManager, { target } = {}) {
     this.#inputManager = inputManager;
     this.#target = target ?? (typeof document !== "undefined" ? document : null);
+  }
+
+  // Suspend InputManager updates while still dispatching DOM events (fly camera mode).
+  pause() {
+    if (this.#paused) return;
+    this.#paused = true;
+    for (const [key, count] of this.#pressedKeys) {
+      for (let i = 0; i < count; i++) this.#inputManager._setKey(key, false);
+    }
+  }
+
+  // Resume InputManager updates; releases any keys held during the paused period.
+  resume() {
+    if (!this.#paused) return;
+    this.#paused = false;
+    this.releaseAll();
   }
 
   #dispatchKey(type, normalizedKey) {
@@ -56,7 +73,7 @@ export class OnScreenSource {
     const normalized = normaliseKey(key);
     const count = this.#pressedKeys.get(normalized) ?? 0;
     this.#pressedKeys.set(normalized, count + 1);
-    this.#inputManager._setKey(normalized, true);
+    if (!this.#paused) this.#inputManager._setKey(normalized, true);
     if (count === 0) {
       this.#dispatchKey("keydown", normalized);
     }
@@ -72,7 +89,7 @@ export class OnScreenSource {
       } else {
         this.#pressedKeys.set(normalized, next);
       }
-      this.#inputManager._setKey(normalized, false);
+      if (!this.#paused) this.#inputManager._setKey(normalized, false);
       if (next === 0) {
         this.#dispatchKey("keyup", normalized);
       }

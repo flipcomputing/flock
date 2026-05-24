@@ -1878,6 +1878,8 @@ function handleCameraGizmo() {
 
   if (cameraMode === "play") {
     cameraMode = "fly";
+    flock._onScreenSource?.pause();
+    flock._gamepadSource?.setFlyMode(true);
     flock.printText({
       text: translate("fly_camera_instructions"),
       duration: 15,
@@ -1886,6 +1888,8 @@ function handleCameraGizmo() {
     cameraButton.classList.add("active");
   } else {
     cameraMode = "play";
+    flock._onScreenSource?.resume();
+    flock._gamepadSource?.setFlyMode(false);
     cameraButton.classList.remove("active");
   }
 

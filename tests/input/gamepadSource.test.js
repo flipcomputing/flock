@@ -94,6 +94,30 @@ export function runGamepadSourceTests() {
         expect(manager.isKeyDown("PageUp")).to.be.true;
       });
 
+      it("button 1 pressed → dispatches synthetic DOM keydown for PageUp", function () {
+        makeSource(() => [makeGamepad({ buttons: [null, makeButton(true)] })]);
+        source.start();
+        const events = canvas.dispatched.filter((e) => e.type === "keydown" && e.key === "PageUp");
+        expect(events).to.have.lengthOf(0);
+        scene.tick();
+        const after = canvas.dispatched.filter((e) => e.type === "keydown" && e.key === "PageUp");
+        expect(after).to.have.lengthOf(1);
+        expect(after[0].keyCode).to.equal(33);
+        expect(after[0].__flockSynthetic).to.be.true;
+      });
+
+      it("button 1 released → dispatches synthetic DOM keyup for PageUp", function () {
+        let pressed = true;
+        makeSource(() => [makeGamepad({ buttons: [null, makeButton(pressed)] })]);
+        source.start();
+        scene.tick();
+        pressed = false;
+        scene.tick();
+        const keyups = canvas.dispatched.filter((e) => e.type === "keyup" && e.key === "PageUp");
+        expect(keyups).to.have.lengthOf(1);
+        expect(keyups[0].__flockSynthetic).to.be.true;
+      });
+
       it("button 2 pressed → isKeyDown('f') true and isKeyDown('PageDown') true (fly-camera down)", function () {
         makeSource(() => [makeGamepad({ buttons: [null, null, makeButton(true)] })]);
         source.start();
@@ -294,6 +318,65 @@ export function runGamepadSourceTests() {
         source.stop();
         expect(manager.getAxis("LOOK_X")).to.equal(0);
         expect(manager.getAxis("TURN")).to.equal(0);
+      });
+    });
+
+    describe("setFlyMode (camera gizmo fly mode)", function () {
+      it("setFlyMode(true) immediately releases held movement keys", function () {
+        makeSource(() => [makeGamepad({ buttons: Array(13).fill(null).map((_, i) => (i === 12 ? makeButton(true) : null)) })]);
+        source.start();
+        scene.tick();
+        expect(manager.isKeyDown("w")).to.be.true;
+        source.setFlyMode(true);
+        expect(manager.isKeyDown("w")).to.be.false;
+      });
+
+      it("fly mode: movement shim keys are blocked (left stick forward)", function () {
+        makeSource(() => [makeGamepad({ axes: [0, -0.9, 0, 0] })]);
+        source.start();
+        source.setFlyMode(true);
+        scene.tick();
+        expect(manager.isKeyDown("w")).to.be.false;
+      });
+
+      it("fly mode: MOVE_Y axis is still set (camera observer can read it)", function () {
+        makeSource(() => [makeGamepad({ axes: [0, -0.9, 0, 0] })]);
+        source.start();
+        source.setFlyMode(true);
+        scene.tick();
+        expect(manager.getAxis("MOVE_Y")).to.be.lessThan(0);
+      });
+
+      it("fly mode: PageUp still goes to InputManager and dispatches DOM event; 'e' is blocked", function () {
+        makeSource(() => [makeGamepad({ buttons: [null, makeButton(true)] })]);
+        source.start();
+        source.setFlyMode(true);
+        scene.tick();
+        expect(manager.isKeyDown("PageUp")).to.be.true;
+        expect(manager.isKeyDown("e")).to.be.false;
+        const domEvents = canvas.dispatched.filter((e) => e.type === "keydown" && e.key === "PageUp");
+        expect(domEvents).to.have.lengthOf(1);
+      });
+
+      it("fly mode: D-pad does not set movement keys", function () {
+        const btns = Array(13).fill(null);
+        btns[12] = makeButton(true);
+        makeSource(() => [makeGamepad({ buttons: btns })]);
+        source.start();
+        source.setFlyMode(true);
+        scene.tick();
+        expect(manager.isKeyDown("w")).to.be.false;
+      });
+
+      it("setFlyMode(false) re-enables movement keys on next tick", function () {
+        makeSource(() => [makeGamepad({ axes: [0, -0.9, 0, 0] })]);
+        source.start();
+        source.setFlyMode(true);
+        scene.tick();
+        expect(manager.isKeyDown("w")).to.be.false;
+        source.setFlyMode(false);
+        scene.tick();
+        expect(manager.isKeyDown("w")).to.be.true;
       });
     });
 

@@ -260,5 +260,68 @@ export function runOnScreenSourceTests() {
         expect(manager.isKeyDown('w')).to.be.true;
       });
     });
+
+    describe("pause / resume (fly camera mode)", function () {
+      it("pause() releases held keys from InputManager", function () {
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.true;
+        source.pause();
+        expect(manager.isKeyDown('w')).to.be.false;
+      });
+
+      it("press while paused does not set key in InputManager", function () {
+        source.pause();
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.false;
+      });
+
+      it("press while paused still dispatches DOM keydown", function () {
+        const target = new EventTarget();
+        const paused = new OnScreenSource(manager, { target });
+        const events = [];
+        target.addEventListener('keydown', (e) => events.push(e));
+        paused.pause();
+        paused.press('w');
+        expect(events).to.have.lengthOf(1);
+        expect(events[0].key).to.equal('w');
+      });
+
+      it("release while paused does not call _setKey but dispatches DOM keyup", function () {
+        const target = new EventTarget();
+        const paused = new OnScreenSource(manager, { target });
+        paused.press('w');
+        paused.pause();
+        const keyups = [];
+        target.addEventListener('keyup', (e) => keyups.push(e));
+        paused.release('w');
+        expect(manager.isKeyDown('w')).to.be.false;
+        expect(keyups).to.have.lengthOf(1);
+      });
+
+      it("resume() clears keys pressed while paused and restores InputManager updates", function () {
+        source.pause();
+        source.press('w');
+        source.resume();
+        expect(manager.isKeyDown('w')).to.be.false;
+        source.press('a');
+        expect(manager.isKeyDown('a')).to.be.true;
+      });
+
+      it("pause() is idempotent", function () {
+        source.press('w');
+        source.pause();
+        source.pause();
+        expect(manager.isKeyDown('w')).to.be.false;
+        expect(manager.heldKeyCount()).to.equal(0);
+      });
+
+      it("resume() is idempotent", function () {
+        source.pause();
+        source.resume();
+        expect(() => source.resume()).to.not.throw();
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.true;
+      });
+    });
   });
 }

@@ -23,6 +23,8 @@ const TOUCHPAD_BUTTON = 17;
 const DEAD_ZONE = 0.2;
 const SHIM_THRESHOLD = 0.5;
 
+const FLY_MODE_ALLOWED_KEYS = new Set(["PageUp", "PageDown"]);
+
 export class GamepadSource {
   #inputManager;
   #scene;
@@ -35,6 +37,7 @@ export class GamepadSource {
   #lastTouchpadPressed = false;
   #lastPointerClientX = 0;
   #lastPointerClientY = 0;
+  #flyMode = false;
 
   constructor(
     inputManager,
@@ -95,6 +98,11 @@ export class GamepadSource {
     this.#heldKeys.clear();
   }
 
+  setFlyMode(enabled) {
+    this.#flyMode = !!enabled;
+    if (this.#flyMode) this.releaseAllKeys();
+  }
+
   #poll() {
     const gamepad = this.#getGamepads().find((g) => g);
 
@@ -124,15 +132,25 @@ export class GamepadSource {
       else if (value > SHIM_THRESHOLD) wantedKeys.add(axis.shimKeys.pos);
     }
 
+    // In fly-camera mode keep only camera-control keys; block everything else
+    // so player movement actions are not triggered.
+    if (this.#flyMode) {
+      for (const k of wantedKeys) {
+        if (!FLY_MODE_ALLOWED_KEYS.has(k)) wantedKeys.delete(k);
+      }
+    }
+
     // Diff against currently held keys.
     for (const key of wantedKeys) {
       if (!this.#heldKeys.has(key)) {
         this.#inputManager._setKey(key, true);
+        this.#dispatchDOMKey("keydown", key);
       }
     }
     for (const key of this.#heldKeys) {
       if (!wantedKeys.has(key)) {
         this.#inputManager._setKey(key, false);
+        this.#dispatchDOMKey("keyup", key);
       }
     }
     this.#heldKeys = new Set(wantedKeys);
@@ -162,6 +180,29 @@ export class GamepadSource {
       this.#fireTouchpadEvent("pointerup");
     }
     this.#lastTouchpadPressed = touchpadPressed;
+  }
+
+  // Dispatch a synthetic DOM KeyboardEvent for keys that Babylon camera plugins
+  // read directly (e.g. FreeCameraKeyboardMoveInput keysUpward/keysDownward).
+  // Only entries that have a meaningful keyCode are included; all others are no-ops.
+  #dispatchDOMKey(type, key) {
+    if (!this.#canvas) return;
+    const DOM_KEY_INFO = {
+      PageUp:   { code: "PageUp",   keyCode: 33 },
+      PageDown: { code: "PageDown", keyCode: 34 },
+    };
+    const info = DOM_KEY_INFO[key];
+    if (!info) return;
+    const event = new KeyboardEvent(type, {
+      key,
+      code: info.code,
+      keyCode: info.keyCode,
+      which: info.keyCode,
+      bubbles: true,
+      cancelable: true,
+    });
+    event.__flockSynthetic = true;
+    this.#canvas.dispatchEvent(event);
   }
 
   #fireTouchpadEvent(type) {
