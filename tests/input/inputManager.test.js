@@ -76,6 +76,15 @@ export function runInputManagerTests() {
         manager._clearAllKeys();
         expect(manager.heldKeyCount()).to.equal(0);
       });
+
+      it("fires onActionUpObservable for overridden bindings", function () {
+        manager.setActionKey("FORWARD", "x");
+        manager._setKey("x", true);
+        const fired = [];
+        manager.onActionUpObservable.add((a) => fired.push(a));
+        manager._clearAllKeys();
+        expect(fired).to.include("FORWARD");
+      });
     });
 
     describe("observables", function () {

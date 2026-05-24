@@ -133,7 +133,7 @@ export class InputManager {
     const held = [...this.#keys.keys()];
     const activeActions = new Set();
     for (const key of held) {
-      for (const action of (KEY_TO_ACTIONS.get(key) ?? [])) {
+      for (const action of this._getActionsForKey(key)) {
         activeActions.add(action);
       }
     }

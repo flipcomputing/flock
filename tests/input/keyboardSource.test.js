@@ -140,6 +140,16 @@ export function runKeyboardSourceTests() {
         keydown(target, "w");
         expect(manager.isKeyDown("w")).to.be.false;
       });
+
+      it("stop() before start() does not throw", function () {
+        expect(() => source.stop()).to.not.throw();
+      });
+
+      it("stop() twice does not throw", function () {
+        source.start();
+        source.stop();
+        expect(() => source.stop()).to.not.throw();
+      });
     });
 
     describe("idempotent start", function () {

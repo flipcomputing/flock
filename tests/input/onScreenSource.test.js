@@ -70,5 +70,59 @@ export function runOnScreenSourceTests() {
         expect(fired).to.have.lengthOf(0);
       });
     });
+
+    describe('releaseAll', function () {
+      it('releaseAll() clears all held keys', function () {
+        source.press('w');
+        source.press('a');
+        source.releaseAll();
+        expect(manager.heldKeyCount()).to.equal(0);
+      });
+
+      it('releaseAll() fires onKeyUpObservable for each held key', function () {
+        const fired = [];
+        manager.onKeyUpObservable.add((k) => fired.push(k));
+        source.press('w');
+        source.press('a');
+        source.releaseAll();
+        expect(fired).to.include('w');
+        expect(fired).to.include('a');
+      });
+
+      it('releaseAll() when nothing held does not throw', function () {
+        expect(() => source.releaseAll()).to.not.throw();
+      });
+
+      it("repeated press('w') then releaseAll() fires onKeyUpObservable once", function () {
+        const fired = [];
+        manager.onKeyUpObservable.add((k) => fired.push(k));
+        source.press('w');
+        source.press('w');
+        source.releaseAll();
+        expect(fired).to.deep.equal(['w']);
+        expect(manager.isKeyDown('w')).to.be.false;
+      });
+
+      it("multi-source: source.press('w') + source2.press('w') → source.releaseAll() leaves key down", function () {
+        const source2 = new OnScreenSource(manager);
+        source.press('w');
+        source2.press('w');
+        source.releaseAll();
+        expect(manager.isKeyDown('w')).to.be.true;
+      });
+
+      it("multi-source: both sources release 'w' → onKeyUpObservable fires only on final release", function () {
+        const source2 = new OnScreenSource(manager);
+        const fired = [];
+        manager.onKeyUpObservable.add((k) => fired.push(k));
+        source.press('w');
+        source2.press('w');
+        source.releaseAll();
+        expect(fired).to.have.lengthOf(0);
+        source2.releaseAll();
+        expect(fired).to.deep.equal(['w']);
+        expect(manager.isKeyDown('w')).to.be.false;
+      });
+    });
   });
 }

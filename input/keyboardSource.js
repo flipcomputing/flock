@@ -44,6 +44,7 @@ export class KeyboardSource {
   }
 
   stop() {
+    if (!this.#started) return;
     this.#started = false;
     this.#target.removeEventListener("keydown", this.#onKeyDown);
     this.#target.removeEventListener("keyup", this.#onKeyUp);
