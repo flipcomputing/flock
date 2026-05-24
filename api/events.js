@@ -92,17 +92,14 @@ export const flockEvents = {
     const signal = flock.abortController?.signal;
     if (signal?.aborted) return;
 
-    // Handle keyboard input
-    const eventType = isReleased
-      ? flock.BABYLON.KeyboardEventTypes.KEYUP
-      : flock.BABYLON.KeyboardEventTypes.KEYDOWN;
+    const targetObs = isReleased
+      ? flock.inputManager.onKeyUpObservable
+      : flock.inputManager.onKeyDownObservable;
 
-    const kbHandler = (kbInfo) => {
-      if (kbInfo.type === eventType && kbInfo.event.key.toLowerCase() === key) {
-        callback();
-      }
+    const mgrHandler = (k) => {
+      if (k === key) callback();
     };
-    const kbObserver = flock.scene.onKeyboardObservable.add(kbHandler);
+    targetObs.add(mgrHandler);
 
     // Register the callback for the grid input observable
     const gridObservable = isReleased
@@ -116,77 +113,11 @@ export const flockEvents = {
     };
     const gridObserver = gridObservable.add(gridHandler);
 
-    // XR controller support
-    let xrObserver = null;
-    const buttonStateObservers = [];
-    const motionControllerObservers = [];
-    if (flock.xrHelper?.input) {
-      const xrHandler = (controller) => {
-        const handedness = controller.inputSource.handedness;
-
-        const buttonMap =
-          handedness === "left"
-            ? { "y-button": "q", "x-button": "e" }
-            : handedness === "right"
-              ? { "b-button": "f", "a-button": " " }
-              : {};
-
-        const mcObserver = controller.onMotionControllerInitObservable.addOnce(
-          (motionController) => {
-            Object.entries(buttonMap).forEach(([buttonId, mappedKey]) => {
-              if (mappedKey !== key) return;
-              const component = motionController.getComponent(buttonId);
-              if (!component) return;
-
-              let lastPressedState = false;
-              const btnObserver = component.onButtonStateChangedObservable.add(
-                () => {
-                  const isPressed = component.pressed;
-                  if (motionController.getComponent(buttonId) !== component)
-                    return;
-                  if (isPressed === lastPressedState) return;
-                  const shouldFire = isReleased
-                    ? !isPressed && lastPressedState
-                    : isPressed && !lastPressedState;
-                  if (shouldFire) {
-                    callback(mappedKey, isReleased ? "released" : "pressed");
-                  }
-                  lastPressedState = isPressed;
-                },
-              );
-              buttonStateObservers.push({
-                observable: component.onButtonStateChangedObservable,
-                observer: btnObserver,
-              });
-            });
-          },
-        );
-        motionControllerObservers.push({
-          observable: controller.onMotionControllerInitObservable,
-          observer: mcObserver,
-        });
-      };
-      xrObserver =
-        flock.xrHelper.input.onControllerAddedObservable.add(xrHandler);
-    }
-
-    // Clean up all observers when this run is aborted
     signal?.addEventListener(
       "abort",
       () => {
-        flock.scene?.onKeyboardObservable?.remove(kbObserver);
+        targetObs.remove(mgrHandler);
         gridObservable?.remove(gridObserver);
-        if (xrObserver) {
-          flock.xrHelper?.input?.onControllerAddedObservable?.remove(
-            xrObserver,
-          );
-        }
-        for (const { observable, observer } of motionControllerObservers) {
-          observable?.remove(observer);
-        }
-        for (const { observable, observer } of buttonStateObservers) {
-          observable?.remove(observer);
-        }
       },
       { once: true },
     );

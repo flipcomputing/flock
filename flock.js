@@ -89,6 +89,7 @@ import { InputManager } from "./input/inputManager.js";
 import { KeyboardSource } from "./input/keyboardSource.js";
 import { OnScreenSource } from "./input/onScreenSource.js";
 import { GamepadSource } from "./input/gamepadSource.js";
+import { XRSource } from "./input/xrSource.js";
 
 import {
   enableSceneDescription,
@@ -2067,9 +2068,16 @@ export const flock = {
       }
     });
 
+    flock._xrSource = new XRSource(flock.inputManager, {
+      xrHelper: flock.xrHelper,
+      scene: flock.scene,
+    });
+    flock._xrSource.start();
+
     // Handle XR state changes
     flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
       if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
+        flock._xrSource?.start();
         flock.advancedTexture.removeControl(flock.stackPanel);
         flock.meshTexture.addControl(flock.stackPanel);
         flock.uiPlane.isVisible = true;
@@ -2082,6 +2090,7 @@ export const flock = {
 
         flock.advancedTexture.isVisible = false; // Hide fullscreen UI
       } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
+        flock._xrSource?.stop();
         flock.meshTexture.removeControl(flock.stackPanel);
         flock.advancedTexture.addControl(flock.stackPanel);
         flock.uiPlane.isVisible = false;

@@ -257,55 +257,17 @@ export const flockSensing = {
     return propertyValue;
   },
   keyPressed(key) {
-    // Gamepad input flows through the manager via GamepadSource.
     const pressedKeys = flock.canvas.pressedKeys;
 
-    const normalizedKey = key.toUpperCase();
-
-    // VR controller inputs (Step 6 refactor pending).
-    const vrPressed =
-      flock.xrHelper?.baseExperience?.input?.inputSources.some(
-        (inputSource) => {
-          if (inputSource.gamepad) {
-            const gamepad = inputSource.gamepad;
-
-            if (normalizedKey === "W" && gamepad.axes[1] < -0.5) return true;
-            if (normalizedKey === "S" && gamepad.axes[1] > 0.5) return true;
-            if (normalizedKey === "A" && gamepad.axes[0] < -0.5) return true;
-            if (normalizedKey === "D" && gamepad.axes[0] > 0.5) return true;
-
-            if (
-              (normalizedKey === "SPACE" || key === " ") &&
-              gamepad.buttons[0]?.pressed
-            )
-              return true;
-            if (normalizedKey === "E" && gamepad.buttons[1]?.pressed)
-              return true;
-            if (normalizedKey === "F" && gamepad.buttons[2]?.pressed)
-              return true;
-            if (normalizedKey === "R" && gamepad.buttons[3]?.pressed)
-              return true;
-
-            if (
-              normalizedKey === "ANY" &&
-              gamepad.buttons.some((button) => button.pressed)
-            )
-              return true;
-          }
-          return false;
-        },
-      ) ?? false;
-
     if (key === "ANY") {
-      return pressedKeys.size > 0 || vrPressed;
+      return pressedKeys.size > 0;
     } else if (key === "NONE") {
-      return pressedKeys.size === 0 && !vrPressed;
+      return pressedKeys.size === 0;
     } else {
       return (
         pressedKeys.has(key) ||
         pressedKeys.has(key.toLowerCase()) ||
-        pressedKeys.has(key.toUpperCase()) ||
-        vrPressed
+        pressedKeys.has(key.toUpperCase())
       );
     }
   },

@@ -3,6 +3,7 @@ import { runInputManagerTests } from "./inputManager.test.js";
 import { runKeyboardSourceTests } from "./keyboardSource.test.js";
 import { runOnScreenSourceTests } from "./onScreenSource.test.js";
 import { runGamepadSourceTests } from "./gamepadSource.test.js";
+import { runXRSourceTests } from "./xrSource.test.js";
 
 export function runInputTests() {
   runBindingsTests();
@@ -10,4 +11,5 @@ export function runInputTests() {
   runKeyboardSourceTests();
   runOnScreenSourceTests();
   runGamepadSourceTests();
+  runXRSourceTests();
 }
