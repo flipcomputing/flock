@@ -1461,6 +1461,10 @@ export const flock = {
 
         flock._cameraControlBindings = null;
         flock._onScreenSource?.releaseAll();
+        flock._gamepadSource?.stop();
+        flock._gamepadSource = null;
+        flock._xrSource?.stop();
+        flock._xrSource = null;
         flock.inputManager.resetActionKeys();
 
         if (flock._gamepadCameraObserver) {
@@ -1735,7 +1739,14 @@ export const flock = {
         //flock.engine?.dispose();
         //flock.engine = null;
 
-        // Close audio context
+        // Dispose Babylon audio engine, then close the underlying context
+        try {
+          flock.audioEngine?.dispose?.();
+        } catch (error) {
+          console.warn("Error disposing audioEngine:", error);
+        }
+        flock.audioEngine = null;
+
         if (flock.audioContext && flock.audioContext.state !== "closed") {
           try {
             await flock.audioContext.close();
