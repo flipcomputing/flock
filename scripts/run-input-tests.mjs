@@ -5,6 +5,9 @@ if (!globalThis.KeyboardEvent) {
     constructor(type, init = {}) {
       super(type, init);
       this.key = init.key ?? "";
+      this.code = init.code ?? "";
+      this.keyCode = init.keyCode ?? 0;
+      this.which = init.which ?? 0;
       this.repeat = init.repeat ?? false;
     }
   };

@@ -19,6 +19,7 @@ export class KeyboardSource {
     this.#onBlur = onBlur ?? null;
 
     this.#onKeyDown = (event) => {
+      if (event.__flockSynthetic) return;
       if (event.repeat) return;
       const key = normaliseKey(event.key);
       if (this.#heldKeys.has(key)) return;
@@ -26,6 +27,7 @@ export class KeyboardSource {
       this.#inputManager._setKey(key, true);
     };
     this.#onKeyUp = (event) => {
+      if (event.__flockSynthetic) return;
       const key = normaliseKey(event.key);
       if (!this.#heldKeys.has(key)) return;
       this.#heldKeys.delete(key);

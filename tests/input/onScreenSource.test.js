@@ -11,6 +11,132 @@ export function runOnScreenSourceTests() {
       source = new OnScreenSource(manager);
     });
 
+    describe("DOM bridge", function () {
+      let target, bridgeSource;
+
+      beforeEach(function () {
+        target = new EventTarget();
+        bridgeSource = new OnScreenSource(manager, { target });
+      });
+
+      it("press('w') dispatches keydown on target with key='w'", function () {
+        const events = [];
+        target.addEventListener("keydown", (e) => events.push(e));
+        bridgeSource.press("w");
+        expect(events).to.have.lengthOf(1);
+        expect(events[0].key).to.equal("w");
+      });
+
+      it("press('ArrowUp') dispatches keydown with key='ArrowUp', code='ArrowUp', keyCode=38", function () {
+        const events = [];
+        target.addEventListener("keydown", (e) => events.push(e));
+        bridgeSource.press("ArrowUp");
+        expect(events).to.have.lengthOf(1);
+        expect(events[0].key).to.equal("ArrowUp");
+        expect(events[0].code).to.equal("ArrowUp");
+        expect(events[0].keyCode).to.equal(38);
+      });
+
+      it("press('PageUp') dispatches keydown with key='PageUp', code='PageUp', keyCode=33", function () {
+        const events = [];
+        target.addEventListener("keydown", (e) => events.push(e));
+        bridgeSource.press("PageUp");
+        expect(events[0].key).to.equal("PageUp");
+        expect(events[0].code).to.equal("PageUp");
+        expect(events[0].keyCode).to.equal(33);
+      });
+
+      it("press('w') dispatches keydown with code='KeyW' and keyCode=87", function () {
+        const events = [];
+        target.addEventListener("keydown", (e) => events.push(e));
+        bridgeSource.press("w");
+        expect(events[0].code).to.equal("KeyW");
+        expect(events[0].keyCode).to.equal(87);
+      });
+
+      it("press('q') dispatches keydown with code='KeyQ' and keyCode=81 (AZERTY LEFT alias)", function () {
+        const events = [];
+        target.addEventListener("keydown", (e) => events.push(e));
+        bridgeSource.press("q");
+        expect(events[0].code).to.equal("KeyQ");
+        expect(events[0].keyCode).to.equal(81);
+      });
+
+      it("press('z') dispatches keydown with code='KeyZ' and keyCode=90 (AZERTY FORWARD alias)", function () {
+        const events = [];
+        target.addEventListener("keydown", (e) => events.push(e));
+        bridgeSource.press("z");
+        expect(events[0].code).to.equal("KeyZ");
+        expect(events[0].keyCode).to.equal(90);
+      });
+
+      it("dispatched keydown event is tagged __flockSynthetic=true", function () {
+        const events = [];
+        target.addEventListener("keydown", (e) => events.push(e));
+        bridgeSource.press("w");
+        expect(events[0].__flockSynthetic).to.be.true;
+      });
+
+      it("release dispatches keyup on target", function () {
+        const events = [];
+        target.addEventListener("keyup", (e) => events.push(e));
+        bridgeSource.press("w");
+        bridgeSource.release("w");
+        expect(events).to.have.lengthOf(1);
+        expect(events[0].key).to.equal("w");
+        expect(events[0].__flockSynthetic).to.be.true;
+      });
+
+      it("repeated press does not dispatch a second keydown (0→1 only)", function () {
+        const events = [];
+        target.addEventListener("keydown", (e) => events.push(e));
+        bridgeSource.press("w");
+        bridgeSource.press("w");
+        expect(events).to.have.lengthOf(1);
+      });
+
+      it("keyup is dispatched only on final release (refcount 2→1 fires no keyup)", function () {
+        const events = [];
+        target.addEventListener("keyup", (e) => events.push(e));
+        bridgeSource.press("w");
+        bridgeSource.press("w");
+        bridgeSource.release("w");
+        expect(events).to.have.lengthOf(0);
+        bridgeSource.release("w");
+        expect(events).to.have.lengthOf(1);
+      });
+
+      it("releaseAll dispatches keyup for each held key", function () {
+        const events = [];
+        target.addEventListener("keyup", (e) => events.push(e));
+        bridgeSource.press("w");
+        bridgeSource.press("ArrowUp");
+        bridgeSource.releaseAll();
+        const keys = events.map((e) => e.key);
+        expect(keys).to.include("w");
+        expect(keys).to.include("ArrowUp");
+      });
+
+      it("releaseAll dispatches keyup only once per key even when pressed twice", function () {
+        const events = [];
+        target.addEventListener("keyup", (e) => events.push(e));
+        bridgeSource.press("w");
+        bridgeSource.press("w");
+        bridgeSource.releaseAll();
+        expect(events.filter((e) => e.key === "w")).to.have.lengthOf(1);
+      });
+
+      it("refcount integrity: press △ keys then release △ leaves isKeyDown false and heldKeyCount 0", function () {
+        bridgeSource.press("w");
+        bridgeSource.press("ArrowUp");
+        bridgeSource.release("w");
+        bridgeSource.release("ArrowUp");
+        expect(manager.isKeyDown("w")).to.be.false;
+        expect(manager.isKeyDown("ArrowUp")).to.be.false;
+        expect(manager.heldKeyCount()).to.equal(0);
+      });
+    });
+
     describe("press", function () {
       it("press('w') → manager.isKeyDown('w') true", function () {
         source.press("w");
@@ -122,6 +248,16 @@ export function runOnScreenSourceTests() {
         source2.releaseAll();
         expect(fired).to.deep.equal(['w']);
         expect(manager.isKeyDown('w')).to.be.false;
+      });
+
+      it("press → releaseAll → press again fires onKeyDownObservable (scene-restart clean state)", function () {
+        const fired = [];
+        manager.onKeyDownObservable.add((k) => fired.push(k));
+        source.press('w');
+        source.releaseAll();
+        source.press('w');
+        expect(fired).to.deep.equal(['w', 'w']);
+        expect(manager.isKeyDown('w')).to.be.true;
       });
     });
   });

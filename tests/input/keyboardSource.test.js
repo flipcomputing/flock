@@ -172,5 +172,34 @@ export function runKeyboardSourceTests() {
         expect(fired).to.have.lengthOf(1);
       });
     });
+
+    describe("synthetic event filtering", function () {
+      it("keydown tagged __flockSynthetic is ignored — isKeyDown stays false", function () {
+        source.start();
+        const event = new KeyboardEvent("keydown", { key: "w", bubbles: true });
+        event.__flockSynthetic = true;
+        target.dispatchEvent(event);
+        expect(manager.isKeyDown("w")).to.be.false;
+      });
+
+      it("keyup tagged __flockSynthetic is ignored — does not release a physically-held key", function () {
+        source.start();
+        keydown(target, "w");
+        expect(manager.isKeyDown("w")).to.be.true;
+        const event = new KeyboardEvent("keyup", { key: "w", bubbles: true });
+        event.__flockSynthetic = true;
+        target.dispatchEvent(event);
+        expect(manager.isKeyDown("w")).to.be.true;
+      });
+
+      it("non-synthetic keydown still registers normally after a synthetic one", function () {
+        source.start();
+        const synthetic = new KeyboardEvent("keydown", { key: "w", bubbles: true });
+        synthetic.__flockSynthetic = true;
+        target.dispatchEvent(synthetic);
+        keydown(target, "w");
+        expect(manager.isKeyDown("w")).to.be.true;
+      });
+    });
   });
 }

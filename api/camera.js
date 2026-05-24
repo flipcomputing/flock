@@ -30,6 +30,8 @@ export const flockCamera = {
         if (existingCamera instanceof flock.BABYLON.ArcRotateCamera) {
           existingCamera.detachControl();
           existingCamera.dispose();
+        } else {
+          existingCamera?.detachControl();
         }
 
         let camera;
@@ -85,6 +87,7 @@ export const flockCamera = {
           // Original attachCamera2 behavior - position directly behind
           let savedCamera = flock.scene.activeCamera;
           flock.savedCamera = savedCamera;
+          savedCamera?.detachControl();
 
           camera = new flock.BABYLON.ArcRotateCamera(
             "camera",

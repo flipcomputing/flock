@@ -310,6 +310,7 @@ export const flock = {
 
     const reattach = () => {
       if (!flock.scene || flock.scene.activeCamera !== camera) return;
+      if (flock._canvasControlsEnabled === false) return;
       flock._resetCameraInputState(camera);
       camera.attachControl(flock.canvas, noPreventDefault);
       flock._cameraControlReattachTimer = null;
@@ -1223,7 +1224,7 @@ export const flock = {
     flock.meshLoaders = new Map();
 
     flock.inputManager = new InputManager();
-    flock._onScreenSource = new OnScreenSource(flock.inputManager);
+    flock._onScreenSource = new OnScreenSource(flock.inputManager, { target: flock.canvas });
     const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
     flock.displayScale = displayScale;
     flock.BABYLON.Database.IDBStorageEnabled = true;
@@ -1267,6 +1268,20 @@ export const flock = {
       { passive: false },
     );
 
+    // Block synthetic on-screen key events from reaching Babylon camera plugins
+    // when an ArcRotateCamera is active — physical arrow keys still work for
+    // keyboard accessibility; only __flockSynthetic events are stopped.
+    const _blockSyntheticForArcRotate = (e) => {
+      if (
+        e.__flockSynthetic &&
+        flock.scene?.activeCamera instanceof flock.BABYLON.ArcRotateCamera
+      ) {
+        e.stopImmediatePropagation();
+      }
+    };
+    flock.canvas.addEventListener("keydown", _blockSyntheticForArcRotate, true);
+    flock.canvas.addEventListener("keyup", _blockSyntheticForArcRotate, true);
+
     new KeyboardSource(flock.inputManager, {
       target: flock.canvas,
       onBlur: () => flock._hardResetCameraControls(flock.scene?.activeCamera),
@@ -1307,6 +1322,10 @@ export const flock = {
         const yawInput = rightX + shoulderTurn;
 
         if (!yawInput && !rightY) {
+          return;
+        }
+
+        if (flock._canvasControlsEnabled === false) {
           return;
         }
 
@@ -1428,6 +1447,7 @@ export const flock = {
         }
 
         flock._cameraControlBindings = null;
+        flock._onScreenSource?.releaseAll();
         flock.inputManager.resetActionKeys();
 
         if (flock._gamepadCameraObserver) {
@@ -1860,6 +1880,7 @@ export const flock = {
 
     // Abort controller for clean-up
     flock.abortController = new AbortController();
+    flock._canvasControlsEnabled = undefined;
 
     // Enable physics 
     if (!flock.havokInstance) {

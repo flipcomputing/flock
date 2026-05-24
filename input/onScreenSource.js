@@ -1,11 +1,55 @@
 import { normaliseKey } from "./normaliseKey.js";
 
+const KEY_CODE_MAP = {
+  "ArrowUp":    { code: "ArrowUp",    keyCode: 38 },
+  "ArrowDown":  { code: "ArrowDown",  keyCode: 40 },
+  "ArrowLeft":  { code: "ArrowLeft",  keyCode: 37 },
+  "ArrowRight": { code: "ArrowRight", keyCode: 39 },
+  "PageUp":     { code: "PageUp",     keyCode: 33 },
+  "PageDown":   { code: "PageDown",   keyCode: 34 },
+  " ":          { code: "Space",      keyCode: 32 },
+  "a":          { code: "KeyA",       keyCode: 65 },
+  "d":          { code: "KeyD",       keyCode: 68 },
+  "e":          { code: "KeyE",       keyCode: 69 },
+  "f":          { code: "KeyF",       keyCode: 70 },
+  "q":          { code: "KeyQ",       keyCode: 81 },
+  "r":          { code: "KeyR",       keyCode: 82 },
+  "s":          { code: "KeyS",       keyCode: 83 },
+  "w":          { code: "KeyW",       keyCode: 87 },
+  "z":          { code: "KeyZ",       keyCode: 90 },
+};
+
+function codeFor(key) {
+  return KEY_CODE_MAP[key]?.code ?? key;
+}
+
+function keyCodeFor(key) {
+  return KEY_CODE_MAP[key]?.keyCode ?? 0;
+}
+
 export class OnScreenSource {
   #inputManager;
-  #pressedKeys = new Map(); // key -> press count
+  #pressedKeys = new Map(); // normalized key -> press count
+  #target;
 
-  constructor(inputManager) {
+  constructor(inputManager, { target } = {}) {
     this.#inputManager = inputManager;
+    this.#target = target ?? (typeof document !== "undefined" ? document : null);
+  }
+
+  #dispatchKey(type, normalizedKey) {
+    const target = this.#target;
+    if (!target) return;
+    const event = new KeyboardEvent(type, {
+      key: normalizedKey,
+      code: codeFor(normalizedKey),
+      keyCode: keyCodeFor(normalizedKey),
+      which: keyCodeFor(normalizedKey),
+      bubbles: true,
+      cancelable: true,
+    });
+    event.__flockSynthetic = true;
+    target.dispatchEvent(event);
   }
 
   press(key) {
@@ -13,6 +57,9 @@ export class OnScreenSource {
     const count = this.#pressedKeys.get(normalized) ?? 0;
     this.#pressedKeys.set(normalized, count + 1);
     this.#inputManager._setKey(normalized, true);
+    if (count === 0) {
+      this.#dispatchKey("keydown", normalized);
+    }
   }
 
   release(key) {
@@ -26,6 +73,9 @@ export class OnScreenSource {
         this.#pressedKeys.set(normalized, next);
       }
       this.#inputManager._setKey(normalized, false);
+      if (next === 0) {
+        this.#dispatchKey("keyup", normalized);
+      }
     }
   }
 
@@ -36,6 +86,7 @@ export class OnScreenSource {
       for (let i = 0; i < count; i++) {
         this.#inputManager._setKey(key, false);
       }
+      this.#dispatchKey("keyup", key);
     }
     this.#pressedKeys.clear();
   }

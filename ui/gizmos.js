@@ -1890,11 +1890,13 @@ function handleCameraGizmo() {
   }
 
   const currentCamera = flock.scene.activeCamera;
+  currentCamera.detachControl();
 
   flock.scene.activeCamera = flock.savedCamera;
   flock.savedCamera = currentCamera;
   // Focus the canvas so you can use the camera controls
   const canvas = flock.scene.getEngine().getRenderingCanvas();
+  flock.scene.activeCamera.attachControl(canvas, false);
   canvas.focus();
 }
 
