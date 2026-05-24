@@ -1,4 +1,3 @@
-import { getBoundKeys } from "../input/bindings.js";
 
 let flock;
 
@@ -65,91 +64,22 @@ export const flockEvents = {
       console.warn("whenActionEvent: callback must be a function");
       return;
     }
-    const actionKeys = getBoundKeys(action, flock._actionMapOverrides);
+    const signal = flock.abortController?.signal;
+    if (signal?.aborted) return;
 
-    if (!actionKeys?.length) {
-      return;
-    }
+    const targetObs = isReleased
+      ? flock.inputManager.onActionUpObservable
+      : flock.inputManager.onActionDownObservable;
 
-    [...new Set(actionKeys)].forEach((key) => {
-      this.whenKeyEvent(key, callback, isReleased);
-    });
-
-    const getGamepadActiveState = () => {
-      if (!navigator.getGamepads) {
-        return false;
-      }
-
-      const gamepads = navigator.getGamepads() || [];
-
-      return Array.from(gamepads).some((gamepad) => {
-        if (!gamepad) {
-          return false;
-        }
-
-        const { axes = [], buttons = [] } = gamepad;
-
-        switch (action) {
-          case "FORWARD":
-            return axes[1] < -0.5 || buttons[12]?.pressed;
-          case "BACKWARD":
-            return axes[1] > 0.5 || buttons[13]?.pressed;
-          case "LEFT":
-            return axes[0] < -0.5 || buttons[14]?.pressed;
-          case "RIGHT":
-            return axes[0] > 0.5 || buttons[15]?.pressed;
-          case "BUTTON1":
-            return buttons[1]?.pressed;
-          case "BUTTON2":
-            return (
-              buttons[3]?.pressed || buttons[6]?.pressed || buttons[7]?.pressed
-            );
-          case "BUTTON3":
-            return buttons[2]?.pressed;
-          case "BUTTON4":
-            return buttons[0]?.pressed;
-          default:
-            return false;
-        }
-      });
+    const handler = (a) => {
+      if (a === action) callback();
     };
+    targetObs.add(handler);
 
-    let lastGamepadState = getGamepadActiveState();
-    let rafId;
-    const abortSignal = flock.abortController?.signal;
-
-    const monitorGamepad = () => {
-      if (abortSignal?.aborted) {
-        return;
-      }
-
-      const isActive = getGamepadActiveState();
-
-      const shouldTrigger = isReleased
-        ? !isActive && lastGamepadState
-        : isActive && !lastGamepadState;
-
-      if (shouldTrigger) {
-        callback();
-      }
-
-      lastGamepadState = isActive;
-      if (!abortSignal?.aborted) {
-        rafId = requestAnimationFrame(monitorGamepad);
-      }
-    };
-
-    if (abortSignal?.aborted) {
-      return;
-    }
-    rafId = requestAnimationFrame(monitorGamepad);
-
-    abortSignal?.addEventListener(
+    signal?.addEventListener(
       "abort",
       () => {
-        if (rafId != null) {
-          cancelAnimationFrame(rafId);
-        }
+        targetObs.remove(handler);
       },
       { once: true },
     );

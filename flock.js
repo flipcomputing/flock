@@ -88,6 +88,7 @@ import { handleError, dismissBanner } from "./ui/notifications.js";
 import { InputManager } from "./input/inputManager.js";
 import { KeyboardSource } from "./input/keyboardSource.js";
 import { OnScreenSource } from "./input/onScreenSource.js";
+import { GamepadSource } from "./input/gamepadSource.js";
 
 import {
   enableSceneDescription,
@@ -1226,7 +1227,6 @@ export const flock = {
     const gridKeyReleaseObservable = new flock.BABYLON.Observable();
     flock.gridKeyPressObservable = gridKeyPressObservable;
     flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
-    flock.canvas.pressedButtons = new Set();
     flock.inputManager = new InputManager();
     flock._onScreenSource = new OnScreenSource(flock.inputManager, {
       pressObservable: gridKeyPressObservable,
@@ -1249,6 +1249,7 @@ export const flock = {
         for (const k of flock.inputManager._keys()) cb.call(thisArg, k, k, this);
       },
     };
+    flock.canvas.pressedButtons = flock.canvas.pressedKeys;
     const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
     flock.displayScale = displayScale;
     flock.BABYLON.Database.IDBStorageEnabled = true;
@@ -1305,7 +1306,7 @@ export const flock = {
     // Hardening for rare pointer/input desync where camera keeps moving
     // after input ends or browser focus changes.
     window.addEventListener("blur", () => {
-      flock.canvas.pressedButtons.clear();
+      flock._gamepadSource?.releaseAllKeys();
     });
 
     window.addEventListener("pointerup", () => {
@@ -1319,7 +1320,6 @@ export const flock = {
       return;
     }
 
-    const deadZone = 0.2;
     const yawSpeed = 2.5;
     const pitchSpeed = 2.0;
 
@@ -1330,30 +1330,9 @@ export const flock = {
 
     flock._gamepadCameraObserver = flock.scene.onBeforeRenderObservable.add(
       () => {
-        if (!navigator.getGamepads) {
-          return;
-        }
-
-        const gamepads = navigator.getGamepads() || [];
-        const gamepad = gamepads.find((pad) => pad);
-
-        if (!gamepad) {
-          return;
-        }
-
-        const [, , rawRightX = 0, rawRightY = 0] = gamepad.axes || [];
-
-        const rightX = Math.abs(rawRightX) > deadZone ? rawRightX : 0;
-        const rightY = Math.abs(rawRightY) > deadZone ? rawRightY : 0;
-
-        const leftShoulder = gamepad.buttons?.[4];
-        const rightShoulder = gamepad.buttons?.[5];
-        const normalizeShoulder = (button) =>
-          Boolean(button?.pressed || button?.value > 0.5);
-        const shoulderTurn =
-          (normalizeShoulder(rightShoulder) ? 1 : 0) -
-          (normalizeShoulder(leftShoulder) ? 1 : 0);
-
+        const rightX = flock.inputManager.getAxis("LOOK_X");
+        const rightY = flock.inputManager.getAxis("LOOK_Y");
+        const shoulderTurn = flock.inputManager.getAxis("TURN");
         const yawInput = rightX + shoulderTurn;
 
         if (!yawInput && !rightY) {
@@ -1392,125 +1371,6 @@ export const flock = {
             Math.max(minPitch, camera.rotation.x),
           );
         }
-      },
-    );
-  },
-  setupGamepadButtonMapping() {
-    if (!flock.scene) {
-      return;
-    }
-
-    if (flock._gamepadButtonObserver) {
-      flock.scene.onBeforeRenderObservable.remove(flock._gamepadButtonObserver);
-      flock._gamepadButtonObserver = null;
-    }
-    if (flock._gamepadPointerMoveListener) {
-      flock.canvas.removeEventListener(
-        "pointermove",
-        flock._gamepadPointerMoveListener,
-      );
-      flock._gamepadPointerMoveListener = null;
-    }
-
-    const buttonToKeys = {
-      0: [" ", "SPACE"], // Bottom face button (A/Cross) -> Space
-      1: ["e", "E"], // Right face button (B/Circle) -> E
-      2: ["f", "F"], // Left face button (X/Square) -> F
-      3: ["r", "R"], // Top face button (Y/Triangle) -> R
-    };
-
-    const normalizeButtonState = (button) => {
-      if (!button) return false;
-      return Boolean(button.pressed || button.value > 0.5);
-    };
-
-    const trackedGamepadKeys = new Set();
-
-    // Track touchpad button (button 17 on PS4/PS5 controllers)
-    // state to detect press/release transitions.
-    let lastTouchpadPressed = false;
-
-    // Track last pointer position so the touchpad click fires at
-    // the current pointer location.
-    let lastPointerClientX =
-      flock.canvas.getBoundingClientRect().left +
-      flock.canvas.getBoundingClientRect().width / 2;
-    let lastPointerClientY =
-      flock.canvas.getBoundingClientRect().top +
-      flock.canvas.getBoundingClientRect().height / 2;
-
-    const onPointerMove = (e) => {
-      lastPointerClientX = e.clientX;
-      lastPointerClientY = e.clientY;
-    };
-    flock._gamepadPointerMoveListener = onPointerMove;
-    flock.canvas.addEventListener("pointermove", onPointerMove);
-
-    const fireTouchpadPointerEvent = (type) => {
-      flock.canvas.dispatchEvent(
-        new PointerEvent(type, {
-          bubbles: true,
-          cancelable: true,
-          pointerId: 1,
-          pointerType: "mouse",
-          clientX: lastPointerClientX,
-          clientY: lastPointerClientY,
-          button: 0,
-          buttons: type === "pointerdown" ? 1 : 0,
-        }),
-      );
-    };
-
-    flock._gamepadButtonObserver = flock.scene.onBeforeRenderObservable.add(
-      () => {
-        if (!navigator.getGamepads) {
-          return;
-        }
-
-        const pressedButtons = flock.canvas.pressedButtons;
-        const nextGamepadKeys = new Set();
-
-        const gamepads = navigator.getGamepads() || [];
-        const gamepad = gamepads.find((pad) => pad);
-
-        if (gamepad) {
-          Object.entries(buttonToKeys).forEach(([index, keys]) => {
-            const button = gamepad.buttons?.[Number(index)];
-            const isPressed = normalizeButtonState(button);
-
-            if (isPressed) {
-              keys.forEach((k) => nextGamepadKeys.add(k));
-            }
-          });
-
-          // Touchpad click (button 17 on PS4/PS5)
-          // dispatches a synthetic pointer event at
-          // the last pointer position so the existing
-          // Babylon.js pick-trigger pipeline fires naturally.
-          const touchpadButton = gamepad.buttons?.[17];
-          const touchpadPressed = normalizeButtonState(touchpadButton);
-          if (touchpadPressed && !lastTouchpadPressed) {
-            fireTouchpadPointerEvent("pointerdown");
-          } else if (!touchpadPressed && lastTouchpadPressed) {
-            fireTouchpadPointerEvent("pointerup");
-          }
-          lastTouchpadPressed = touchpadPressed;
-        }
-
-        // Remove only the keys that previously came from
-        // the gamepad but are no longer active.
-        trackedGamepadKeys.forEach((key) => {
-          if (!nextGamepadKeys.has(key)) {
-            pressedButtons.delete(key);
-          }
-        });
-
-        // Add the currently active gamepad keys without
-        // disturbing other input sources (e.g. touch).
-        nextGamepadKeys.forEach((key) => pressedButtons.add(key));
-
-        trackedGamepadKeys.clear();
-        nextGamepadKeys.forEach((key) => trackedGamepadKeys.add(key));
       },
     );
   },
@@ -2084,8 +1944,12 @@ export const flock = {
 
     // Start the render loop now that a camera exists
     flock.engine.runRenderLoop(flock._renderLoop);
+    flock._gamepadSource = new GamepadSource(flock.inputManager, {
+      scene: flock.scene,
+      canvas: flock.canvas,
+    });
+    flock._gamepadSource.start();
     flock.setupGamepadCameraControls();
-    flock.setupGamepadButtonMapping();
     // Set up lighting
     const hemisphericLight = new flock.BABYLON.HemisphericLight(
       "hemisphericLight",

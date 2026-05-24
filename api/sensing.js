@@ -257,121 +257,55 @@ export const flockSensing = {
     return propertyValue;
   },
   keyPressed(key) {
-    // Combine all input sources: keys, buttons, and controllers
+    // Gamepad input flows through the manager via GamepadSource.
     const pressedKeys = flock.canvas.pressedKeys;
-    const pressedButtons = flock.canvas.pressedButtons;
 
-    // Check VR controller inputs
     const normalizedKey = key.toUpperCase();
 
-    const vrPressed = flock.xrHelper?.baseExperience?.input?.inputSources.some(
-      (inputSource) => {
-        if (inputSource.gamepad) {
-          const gamepad = inputSource.gamepad;
+    // VR controller inputs (Step 6 refactor pending).
+    const vrPressed =
+      flock.xrHelper?.baseExperience?.input?.inputSources.some(
+        (inputSource) => {
+          if (inputSource.gamepad) {
+            const gamepad = inputSource.gamepad;
 
-          // Thumbstick movement
-          if (normalizedKey === "W" && gamepad.axes[1] < -0.5) return true; // Forward
-          if (normalizedKey === "S" && gamepad.axes[1] > 0.5) return true; // Backward
-          if (normalizedKey === "A" && gamepad.axes[0] < -0.5) return true; // Left
-          if (normalizedKey === "D" && gamepad.axes[0] > 0.5) return true; // Right
+            if (normalizedKey === "W" && gamepad.axes[1] < -0.5) return true;
+            if (normalizedKey === "S" && gamepad.axes[1] > 0.5) return true;
+            if (normalizedKey === "A" && gamepad.axes[0] < -0.5) return true;
+            if (normalizedKey === "D" && gamepad.axes[0] > 0.5) return true;
 
-          // Button mappings
-          if (
-            (normalizedKey === "SPACE" || key === " ") &&
-            gamepad.buttons[0]?.pressed
-          )
-            return true; // A button for jump
-          if (normalizedKey === "E" && gamepad.buttons[1]?.pressed) return true; // B button maps to E
-          if (normalizedKey === "F" && gamepad.buttons[2]?.pressed) return true; // X button maps to F
-          if (normalizedKey === "R" && gamepad.buttons[3]?.pressed) return true; // Y button maps to R
+            if (
+              (normalizedKey === "SPACE" || key === " ") &&
+              gamepad.buttons[0]?.pressed
+            )
+              return true;
+            if (normalizedKey === "E" && gamepad.buttons[1]?.pressed)
+              return true;
+            if (normalizedKey === "F" && gamepad.buttons[2]?.pressed)
+              return true;
+            if (normalizedKey === "R" && gamepad.buttons[3]?.pressed)
+              return true;
 
-          // General button check
-          if (
-            normalizedKey === "ANY" &&
-            gamepad.buttons.some((button) => button.pressed)
-          )
-            return true;
-        }
-        return false;
-      },
-    );
-
-    const gamepadPressed = (() => {
-      if (!navigator.getGamepads) {
-        return false;
-      }
-
-      const gamepads = navigator.getGamepads() || [];
-
-      return Array.from(gamepads).some((gamepad) => {
-        if (!gamepad) {
+            if (
+              normalizedKey === "ANY" &&
+              gamepad.buttons.some((button) => button.pressed)
+            )
+              return true;
+          }
           return false;
-        }
+        },
+      ) ?? false;
 
-        const { axes = [], buttons = [] } = gamepad;
-
-        switch (normalizedKey) {
-          case "W":
-            return axes[1] < -0.5 || buttons[12]?.pressed;
-          case "S":
-            return axes[1] > 0.5 || buttons[13]?.pressed;
-          case "A":
-            return axes[0] < -0.5 || buttons[14]?.pressed;
-          case "Q":
-            return (
-              axes[0] < -0.5 || buttons[14]?.pressed || buttons[1]?.pressed
-            );
-          case "D":
-            return axes[0] > 0.5 || buttons[15]?.pressed;
-          case "SPACE":
-            return buttons[0]?.pressed;
-          case "E":
-            return buttons[1]?.pressed;
-          case "F":
-            return buttons[2]?.pressed;
-          case "R":
-            return (
-              buttons[3]?.pressed || buttons[6]?.pressed || buttons[7]?.pressed
-            );
-          case "ANY":
-            return (
-              axes.some((axis) => Math.abs(axis) > 0.5) ||
-              buttons.some((button) => button?.pressed)
-            );
-          default:
-            return false;
-        }
-      });
-    })();
-
-    const normalizedButtonPressed =
-      pressedButtons.has(key) ||
-      pressedButtons.has(key.toLowerCase()) ||
-      pressedButtons.has(key.toUpperCase());
-
-    // Combine all sources
     if (key === "ANY") {
-      return (
-        pressedKeys.size > 0 ||
-        pressedButtons.size > 0 ||
-        vrPressed ||
-        gamepadPressed
-      );
+      return pressedKeys.size > 0 || vrPressed;
     } else if (key === "NONE") {
-      return (
-        pressedKeys.size === 0 &&
-        pressedButtons.size === 0 &&
-        !vrPressed &&
-        !gamepadPressed
-      );
+      return pressedKeys.size === 0 && !vrPressed;
     } else {
       return (
         pressedKeys.has(key) ||
         pressedKeys.has(key.toLowerCase()) ||
         pressedKeys.has(key.toUpperCase()) ||
-        normalizedButtonPressed ||
-        vrPressed ||
-        gamepadPressed
+        vrPressed
       );
     }
   },

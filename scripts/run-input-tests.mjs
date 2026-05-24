@@ -5,6 +5,19 @@ if (!globalThis.KeyboardEvent) {
     constructor(type, init = {}) { super(type, init); this.key = init.key ?? ""; }
   };
 }
+if (!globalThis.PointerEvent) {
+  globalThis.PointerEvent = class PointerEvent extends Event {
+    constructor(type, init = {}) {
+      super(type, { bubbles: init.bubbles, cancelable: init.cancelable });
+      this.pointerId = init.pointerId ?? 0;
+      this.pointerType = init.pointerType ?? "";
+      this.clientX = init.clientX ?? 0;
+      this.clientY = init.clientY ?? 0;
+      this.button = init.button ?? 0;
+      this.buttons = init.buttons ?? 0;
+    }
+  };
+}
 
 import Mocha from "mocha";
 import { runInputTests } from "../tests/input/index.test.js";

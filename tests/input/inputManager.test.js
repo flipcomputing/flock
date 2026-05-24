@@ -101,5 +101,117 @@ export function runInputManagerTests() {
         expect(fired).to.have.lengthOf(0);
       });
     });
+
+    describe("refcount semantics", function () {
+      it("two _setKey(w, true) then one _setKey(w, false) → still down, no onKeyUp", function () {
+        const fired = [];
+        manager.onKeyUpObservable.add((k) => fired.push(k));
+        manager._setKey("w", true);
+        manager._setKey("w", true);
+        manager._setKey("w", false);
+        expect(manager.isKeyDown("w")).to.be.true;
+        expect(fired).to.have.lengthOf(0);
+      });
+
+      it("two presses then two releases → up, onKeyUp fires once", function () {
+        const fired = [];
+        manager.onKeyUpObservable.add((k) => fired.push(k));
+        manager._setKey("w", true);
+        manager._setKey("w", true);
+        manager._setKey("w", false);
+        manager._setKey("w", false);
+        expect(manager.isKeyDown("w")).to.be.false;
+        expect(fired).to.have.lengthOf(1);
+      });
+
+      it("_setKey(w, false) when count is 0 → no-op, count stays 0", function () {
+        const fired = [];
+        manager.onKeyUpObservable.add((k) => fired.push(k));
+        manager._setKey("w", false);
+        expect(manager.isKeyDown("w")).to.be.false;
+        expect(fired).to.have.lengthOf(0);
+      });
+
+      it("onKeyDown fires only on 0→1 transition, not 1→2", function () {
+        const fired = [];
+        manager.onKeyDownObservable.add((k) => fired.push(k));
+        manager._setKey("w", true);
+        manager._setKey("w", true);
+        expect(fired).to.have.lengthOf(1);
+      });
+    });
+
+    describe("action observables", function () {
+      it("pressing 'w' fires onActionDownObservable with 'FORWARD'", function () {
+        const fired = [];
+        manager.onActionDownObservable.add((a) => fired.push(a));
+        manager._setKey("w", true);
+        expect(fired).to.include("FORWARD");
+      });
+
+      it("pressing 'e' fires onActionDownObservable with 'BUTTON1'", function () {
+        const fired = [];
+        manager.onActionDownObservable.add((a) => fired.push(a));
+        manager._setKey("e", true);
+        expect(fired).to.include("BUTTON1");
+      });
+
+      it("releasing 'w' fires onActionUpObservable with 'FORWARD'", function () {
+        const fired = [];
+        manager.onActionUpObservable.add((a) => fired.push(a));
+        manager._setKey("w", true);
+        manager._setKey("w", false);
+        expect(fired).to.include("FORWARD");
+      });
+
+      it("onActionDown fires only once when two keys for same action are pressed", function () {
+        const fired = [];
+        manager.onActionDownObservable.add((a) => fired.push(a));
+        manager._setKey("w", true);
+        manager._setKey("z", true);
+        expect(fired.filter((a) => a === "FORWARD")).to.have.lengthOf(1);
+      });
+
+      it("onActionUp fires only when last key for action is released", function () {
+        const fired = [];
+        manager.onActionUpObservable.add((a) => fired.push(a));
+        manager._setKey("w", true);
+        manager._setKey("z", true);
+        manager._setKey("w", false);
+        expect(fired.filter((a) => a === "FORWARD")).to.have.lengthOf(0);
+        manager._setKey("z", false);
+        expect(fired.filter((a) => a === "FORWARD")).to.have.lengthOf(1);
+      });
+
+      it("isActionDown returns true when a key for that action is held", function () {
+        manager._setKey("e", true);
+        expect(manager.isActionDown("BUTTON1")).to.be.true;
+      });
+
+      it("isActionDown returns false when no key for the action is held", function () {
+        expect(manager.isActionDown("BUTTON1")).to.be.false;
+      });
+
+      it("isActionDown returns false for unknown action", function () {
+        expect(manager.isActionDown("UNKNOWN")).to.be.false;
+      });
+    });
+
+    describe("axes", function () {
+      it("_setAxis / getAxis round-trip", function () {
+        manager._setAxis("LOOK_X", 0.7);
+        expect(manager.getAxis("LOOK_X")).to.equal(0.7);
+      });
+
+      it("getAxis returns 0 for unknown axis", function () {
+        expect(manager.getAxis("NOPE")).to.equal(0);
+      });
+
+      it("_setAxis overwrites previous value", function () {
+        manager._setAxis("LOOK_X", 0.5);
+        manager._setAxis("LOOK_X", 0);
+        expect(manager.getAxis("LOOK_X")).to.equal(0);
+      });
+    });
   });
 }

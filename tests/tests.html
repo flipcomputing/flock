@@ -401,6 +401,20 @@
           importFn: "runSensingTests",
           pattern: "@sensing",
         },
+        {
+          id: "input",
+          name: "Input Tests",
+          importPath: "./input/index.test.js",
+          importFn: "runInputTests",
+          pattern: "@input",
+        },
+        {
+          id: "gamepad",
+          name: "GamepadSource Tests",
+          importPath: "",
+          importFn: "",
+          pattern: "@gamepad",
+        },
       ];
 
       import * as flockmodule from "../flock.js";

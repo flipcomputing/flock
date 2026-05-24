@@ -103,39 +103,39 @@ export function runButtonControlsTests(flock) {
         expect(button.color).to.equal("red");
       });
 
-      it("should add key to pressedButtons on pointer down", function () {
+      it("should add key to pressedKeys on pointer down", function () {
         const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
         button.onPointerDownObservable.notifyObservers({});
-        expect(flock.canvas.pressedButtons.has("ArrowUp")).to.be.true;
+        expect(flock.canvas.pressedKeys.has("ArrowUp")).to.be.true;
       });
 
-      it("should remove key from pressedButtons on pointer up", function () {
+      it("should remove key from pressedKeys on pointer up", function () {
         const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
         button.onPointerDownObservable.notifyObservers({});
         button.onPointerUpObservable.notifyObservers({});
-        expect(flock.canvas.pressedButtons.has("ArrowUp")).to.be.false;
+        expect(flock.canvas.pressedKeys.has("ArrowUp")).to.be.false;
       });
 
-      it("should remove key from pressedButtons on pointer out", function () {
+      it("should remove key from pressedKeys on pointer out", function () {
         const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
         button.onPointerDownObservable.notifyObservers({});
         button.onPointerOutObservable.notifyObservers({});
-        expect(flock.canvas.pressedButtons.has("ArrowUp")).to.be.false;
+        expect(flock.canvas.pressedKeys.has("ArrowUp")).to.be.false;
       });
 
       it("should add all keys when an array is provided", function () {
         const button = flock.createSmallButton("△", ["w", "ArrowUp"], "#ffffff");
         button.onPointerDownObservable.notifyObservers({});
-        expect(flock.canvas.pressedButtons.has("w")).to.be.true;
-        expect(flock.canvas.pressedButtons.has("ArrowUp")).to.be.true;
+        expect(flock.canvas.pressedKeys.has("w")).to.be.true;
+        expect(flock.canvas.pressedKeys.has("ArrowUp")).to.be.true;
       });
 
       it("should remove all keys on release when an array is provided", function () {
         const button = flock.createSmallButton("△", ["w", "ArrowUp"], "#ffffff");
         button.onPointerDownObservable.notifyObservers({});
         button.onPointerUpObservable.notifyObservers({});
-        expect(flock.canvas.pressedButtons.has("w")).to.be.false;
-        expect(flock.canvas.pressedButtons.has("ArrowUp")).to.be.false;
+        expect(flock.canvas.pressedKeys.has("w")).to.be.false;
+        expect(flock.canvas.pressedKeys.has("ArrowUp")).to.be.false;
       });
     });
 
@@ -171,7 +171,7 @@ export function runButtonControlsTests(flock) {
           .find((c) => c.textBlock?.text === "△");
         expect(upBtn).to.exist;
         upBtn.onPointerDownObservable.notifyObservers({});
-        expect(flock.canvas.pressedButtons.has("ArrowUp")).to.be.true;
+        expect(flock.canvas.pressedKeys.has("ArrowUp")).to.be.true;
       });
     });
 
@@ -207,7 +207,7 @@ export function runButtonControlsTests(flock) {
           .find((c) => c.textBlock?.text === "①");
         expect(btn1).to.exist;
         btn1.onPointerDownObservable.notifyObservers({});
-        expect(flock.canvas.pressedButtons.has("e")).to.be.true;
+        expect(flock.canvas.pressedKeys.has("e")).to.be.true;
       });
     });
   });

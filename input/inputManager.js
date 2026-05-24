@@ -1,3 +1,18 @@
+import { DEFAULT_BINDINGS } from "./bindings.js";
+
+// Reverse maps built from DEFAULT_BINDINGS (static — overrides not reflected here).
+const ACTION_KEYS = new Map(
+  Object.entries(DEFAULT_BINDINGS).map(([action, keys]) => [action, keys]),
+);
+
+const KEY_TO_ACTIONS = new Map();
+for (const [action, keys] of ACTION_KEYS) {
+  for (const key of keys) {
+    if (!KEY_TO_ACTIONS.has(key)) KEY_TO_ACTIONS.set(key, []);
+    KEY_TO_ACTIONS.get(key).push(action);
+  }
+}
+
 class SimpleObservable {
   #listeners = [];
 
@@ -16,36 +31,97 @@ class SimpleObservable {
 }
 
 export class InputManager {
-  #keys = new Set();
+  // Refcount: key → number of active presses across all sources.
+  // Entries are deleted when count reaches 0, so all entries have count > 0.
+  #keys = new Map();
+  #axes = new Map();
 
   onKeyDownObservable = new SimpleObservable();
   onKeyUpObservable = new SimpleObservable();
+  onActionDownObservable = new SimpleObservable();
+  onActionUpObservable = new SimpleObservable();
 
   _setKey(key, pressed) {
+    const count = this.#keys.get(key) ?? 0;
     if (pressed) {
-      if (!this.#keys.has(key)) {
-        this.#keys.add(key);
+      this.#keys.set(key, count + 1);
+      if (count === 0) {
         this.onKeyDownObservable.notifyObservers(key);
+        this._notifyActionDown(key);
       }
     } else {
-      if (this.#keys.has(key)) {
+      if (count === 0) return;
+      const next = count - 1;
+      if (next === 0) {
         this.#keys.delete(key);
         this.onKeyUpObservable.notifyObservers(key);
+        this._notifyActionUp(key);
+      } else {
+        this.#keys.set(key, next);
+      }
+    }
+  }
+
+  _notifyActionDown(key) {
+    for (const action of (KEY_TO_ACTIONS.get(key) ?? [])) {
+      const wasAlreadyActive = (ACTION_KEYS.get(action) ?? []).some(
+        (k) => k !== key && (this.#keys.get(k) ?? 0) > 0,
+      );
+      if (!wasAlreadyActive) {
+        this.onActionDownObservable.notifyObservers(action);
+      }
+    }
+  }
+
+  _notifyActionUp(key) {
+    for (const action of (KEY_TO_ACTIONS.get(key) ?? [])) {
+      const stillActive = (ACTION_KEYS.get(action) ?? []).some(
+        (k) => (this.#keys.get(k) ?? 0) > 0,
+      );
+      if (!stillActive) {
+        this.onActionUpObservable.notifyObservers(action);
       }
     }
   }
 
   // Case-insensitive: stored keys are already canonical (lowercase single chars).
   isKeyDown(key) {
-    return this.#keys.has(key) || this.#keys.has(key.toLowerCase());
+    return (
+      (this.#keys.get(key) ?? 0) > 0 ||
+      (this.#keys.get(key.toLowerCase()) ?? 0) > 0
+    );
+  }
+
+  isActionDown(action) {
+    const actionKeys = ACTION_KEYS.get(action);
+    if (!actionKeys) return false;
+    return actionKeys.some((k) => (this.#keys.get(k) ?? 0) > 0);
+  }
+
+  _setAxis(name, value) {
+    this.#axes.set(name, value);
+  }
+
+  getAxis(name) {
+    return this.#axes.get(name) ?? 0;
   }
 
   // Clears held keys only — does not affect axes or gamepad state.
   _clearAllKeys() {
-    for (const key of this.#keys) {
-      this.onKeyUpObservable.notifyObservers(key);
+    const held = [...this.#keys.keys()];
+    const activeActions = new Set();
+    for (const key of held) {
+      for (const action of (KEY_TO_ACTIONS.get(key) ?? [])) {
+        activeActions.add(action);
+      }
     }
     this.#keys.clear();
+    for (const key of held) {
+      this.onKeyUpObservable.notifyObservers(key);
+    }
+    for (const action of activeActions) {
+      this.onActionUpObservable.notifyObservers(action);
+    }
   }
 
   heldKeyCount() {
@@ -53,6 +129,6 @@ export class InputManager {
   }
 
   _keys() {
-    return this.#keys[Symbol.iterator]();
+    return this.#keys.keys();
   }
 }
