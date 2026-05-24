@@ -43,7 +43,7 @@ export async function executeCode(options = {}) {
   const code = javascriptGenerator.workspaceToCode(workspace);
 
   try {
-    console.log(code);
+    //console.log(code);
     await flock.runCode(code, options);
   } catch (error) {
     isExecuting = false; // Reset the flag if there's an error
