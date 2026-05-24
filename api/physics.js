@@ -592,31 +592,39 @@ export const flockPhysics = {
 
           // XR case
           if (flock.xrHelper && flock.xrHelper.baseExperience) {
-            flock.xrHelper.baseExperience.onStateChangedObservable.add(
-              (state) => {
-                if (
-                  state === flock.BABYLON.WebXRState.IN_XR &&
-                  flock.xrHelper.baseExperience.sessionManager.sessionMode ===
-                    "immersive-ar"
-                ) {
-                  // Keep the Hit Test feature for positioning
-                  flock.xrHelper.baseExperience.featuresManager.enableFeature(
-                    flock.BABYLON.WebXRHitTest.Name,
-                    "latest",
-                    {
-                      onHitTestResultObservable: (results) => {
-                        if (results.length > 0) {
-                          const position =
-                            results[0].transformationMatrix.getTranslation();
-                          target.position.copyFrom(position);
-                          target.isVisible = true;
-                        }
+            const xrObs =
+              flock.xrHelper.baseExperience.onStateChangedObservable.add(
+                (state) => {
+                  if (
+                    state === flock.BABYLON.WebXRState.IN_XR &&
+                    flock.xrHelper.baseExperience.sessionManager
+                      .sessionMode === "immersive-ar"
+                  ) {
+                    flock.xrHelper.baseExperience.featuresManager.enableFeature(
+                      flock.BABYLON.WebXRHitTest.Name,
+                      "latest",
+                      {
+                        onHitTestResultObservable: (results) => {
+                          if (results.length > 0) {
+                            const position =
+                              results[0].transformationMatrix.getTranslation();
+                            target.position.copyFrom(position);
+                            target.isVisible = true;
+                          }
+                        },
                       },
-                    },
-                  );
-                  // We removed flock.scene.onPointerDown here because ActionManager handles it more safely!
-                }
-              },
+                    );
+                    // We removed flock.scene.onPointerDown here because ActionManager handles it more safely!
+                  }
+                },
+              );
+            flock.abortController?.signal?.addEventListener(
+              "abort",
+              () =>
+                flock.xrHelper?.baseExperience?.onStateChangedObservable?.remove(
+                  xrObs,
+                ),
+              { once: true },
             );
           }
         } else if (target instanceof flock.GUI.Button) {

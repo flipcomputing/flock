@@ -1221,8 +1221,6 @@ export const flock = {
     flock.ground = null;
     flock.sky = null;
     flock.engineReady = false;
-    flock.meshLoaders = new Map();
-
     flock.inputManager = new InputManager();
     flock._onScreenSource = new OnScreenSource(flock.inputManager, { target: flock.canvas });
     const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
@@ -1432,11 +1430,6 @@ export const flock = {
         flock.stopAllSounds();
         flock.engine?.stopRenderLoop();
 
-        if (flock.audioListenerObserver) {
-          flock.scene.onBeforeRenderObservable.remove(flock.audioListenerObserver);
-          flock.audioListenerObserver = null;
-        }
-
         if (flock.ground?.metadata) {
           const md = flock.ground.metadata;
           try {
@@ -1465,6 +1458,12 @@ export const flock = {
         flock._gamepadSource = null;
         flock._xrSource?.stop();
         flock._xrSource = null;
+        try {
+          flock.xrHelper?.dispose?.();
+        } catch (error) {
+          console.warn("Error disposing xrHelper:", error);
+        }
+        flock.xrHelper = null;
         flock.inputManager.resetActionKeys();
 
         if (flock._gamepadCameraObserver) {
@@ -1487,22 +1486,6 @@ export const flock = {
           flock.scene?.detachControl?.();
         } catch {
           /* ignore scene cleanup errors */
-        }
-
-        try {
-          const containers = Array.isArray(flock._assetContainers)
-            ? flock._assetContainers
-            : [];
-          for (const c of containers) {
-            try {
-              c?.dispose?.();
-            } catch {
-              /* ignore asset disposal errors */
-            }
-          }
-          flock._assetContainers = [];
-        } catch {
-          /* ignore asset container cleanup errors */
         }
 
         // Abort any ongoing operations
@@ -2117,14 +2100,7 @@ export const flock = {
       }
     });
   },
-  removeEventListeners() {
-    flock.scene.eventListeners?.forEach(({ event, handler }) => {
-      flock.document.removeEventListener(event, handler);
-    });
-
-    if (flock.scene && flock.scene.eventListeners)
-      flock.scene.eventListeners.length = 0; // Clear the array
-  },
+  removeEventListeners() {},
   async *modelReadyGenerator(
     meshId,
     maxAttempts = 100,
