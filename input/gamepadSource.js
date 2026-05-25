@@ -1,21 +1,21 @@
 const BUTTON_KEYS = {
-  0: [" "],   // A / Cross         -> BUTTON4
-  1: ["e", "PageUp"],   // B / Circle        -> BUTTON1 + fly up
-  2: ["f", "PageDown"], // X / Square        -> BUTTON3 + fly down
-  3: ["r"],   // Y / Triangle      -> BUTTON2
-  6: ["r"],   // Left trigger      -> BUTTON2
-  7: ["r"],   // Right trigger     -> BUTTON2
-  12: ["w"],  // D-pad up          -> FORWARD
-  13: ["s"],  // D-pad down        -> BACKWARD
-  14: ["a"],  // D-pad left        -> LEFT
-  15: ["d"],  // D-pad right       -> RIGHT
+  0: [' '], // A / Cross         -> BUTTON4
+  1: ['r'], // Y / Triangle      -> BUTTON2
+  2: ['f', 'PageDown'], // X / Square        -> BUTTON3 + fly down
+  3: ['e', 'PageUp'], // B / Circle        -> BUTTON1 + fly up
+  6: ['r'], // Left trigger      -> BUTTON2
+  7: ['r'], // Right trigger     -> BUTTON2
+  12: ['w'], // D-pad up          -> FORWARD
+  13: ['s'], // D-pad down        -> BACKWARD
+  14: ['a'], // D-pad left        -> LEFT
+  15: ['d'], // D-pad right       -> RIGHT
 };
 
 const AXES = {
-  0: { name: "MOVE_X", shimKeys: { neg: "a", pos: "d" } },
-  1: { name: "MOVE_Y", shimKeys: { neg: "w", pos: "s" } },
-  2: { name: "LOOK_X" },
-  3: { name: "LOOK_Y" },
+  0: { name: 'MOVE_X', shimKeys: { neg: 'a', pos: 'd' } },
+  1: { name: 'MOVE_Y', shimKeys: { neg: 'w', pos: 's' } },
+  2: { name: 'LOOK_X' },
+  3: { name: 'LOOK_Y' },
 };
 
 const SHOULDERS = { 4: -1, 5: +1 };
@@ -23,7 +23,7 @@ const TOUCHPAD_BUTTON = 17;
 const DEAD_ZONE = 0.2;
 const SHIM_THRESHOLD = 0.5;
 
-const FLY_MODE_ALLOWED_KEYS = new Set(["PageUp", "PageDown"]);
+const FLY_MODE_ALLOWED_KEYS = new Set(['PageUp', 'PageDown']);
 
 export class GamepadSource {
   #inputManager;
@@ -41,7 +41,7 @@ export class GamepadSource {
 
   constructor(
     inputManager,
-    { scene, canvas, getGamepads = () => navigator.getGamepads?.() ?? [] } = {},
+    { scene, canvas, getGamepads = () => navigator.getGamepads?.() ?? [] } = {}
   ) {
     this.#inputManager = inputManager;
     this.#scene = scene;
@@ -66,11 +66,9 @@ export class GamepadSource {
       this.#lastPointerClientX = e.clientX;
       this.#lastPointerClientY = e.clientY;
     };
-    this.#canvas.addEventListener("pointermove", this.#pointerMoveListener);
+    this.#canvas.addEventListener('pointermove', this.#pointerMoveListener);
 
-    this.#observer = this.#scene.onBeforeRenderObservable.add(() =>
-      this.#poll(),
-    );
+    this.#observer = this.#scene.onBeforeRenderObservable.add(() => this.#poll());
   }
 
   stop() {
@@ -80,13 +78,13 @@ export class GamepadSource {
     for (const { name } of Object.values(AXES)) {
       this.#inputManager._setAxis(name, 0);
     }
-    this.#inputManager._setAxis("TURN", 0);
+    this.#inputManager._setAxis('TURN', 0);
     if (this.#observer) {
       this.#scene.onBeforeRenderObservable.remove(this.#observer);
       this.#observer = null;
     }
     if (this.#pointerMoveListener) {
-      this.#canvas.removeEventListener("pointermove", this.#pointerMoveListener);
+      this.#canvas.removeEventListener('pointermove', this.#pointerMoveListener);
       this.#pointerMoveListener = null;
     }
   }
@@ -111,7 +109,7 @@ export class GamepadSource {
       for (const { name } of Object.values(AXES)) {
         this.#inputManager._setAxis(name, 0);
       }
-      this.#inputManager._setAxis("TURN", 0);
+      this.#inputManager._setAxis('TURN', 0);
       return;
     }
 
@@ -144,13 +142,13 @@ export class GamepadSource {
     for (const key of wantedKeys) {
       if (!this.#heldKeys.has(key)) {
         this.#inputManager._setKey(key, true);
-        this.#dispatchDOMKey("keydown", key);
+        this.#dispatchDOMKey('keydown', key);
       }
     }
     for (const key of this.#heldKeys) {
       if (!wantedKeys.has(key)) {
         this.#inputManager._setKey(key, false);
-        this.#dispatchDOMKey("keyup", key);
+        this.#dispatchDOMKey('keyup', key);
       }
     }
     this.#heldKeys = new Set(wantedKeys);
@@ -167,17 +165,15 @@ export class GamepadSource {
       const button = gamepad.buttons?.[Number(index)];
       if (button?.pressed || button?.value > 0.5) turn += delta;
     }
-    this.#inputManager._setAxis("TURN", turn);
+    this.#inputManager._setAxis('TURN', turn);
 
     // Touchpad (button 17 on PS4/PS5) → synthetic pointer events.
     const touchpadButton = gamepad.buttons?.[TOUCHPAD_BUTTON];
-    const touchpadPressed = Boolean(
-      touchpadButton?.pressed || touchpadButton?.value > 0.5,
-    );
+    const touchpadPressed = Boolean(touchpadButton?.pressed || touchpadButton?.value > 0.5);
     if (touchpadPressed && !this.#lastTouchpadPressed) {
-      this.#fireTouchpadEvent("pointerdown");
+      this.#fireTouchpadEvent('pointerdown');
     } else if (!touchpadPressed && this.#lastTouchpadPressed) {
-      this.#fireTouchpadEvent("pointerup");
+      this.#fireTouchpadEvent('pointerup');
     }
     this.#lastTouchpadPressed = touchpadPressed;
   }
@@ -188,8 +184,8 @@ export class GamepadSource {
   #dispatchDOMKey(type, key) {
     if (!this.#canvas) return;
     const DOM_KEY_INFO = {
-      PageUp:   { code: "PageUp",   keyCode: 33 },
-      PageDown: { code: "PageDown", keyCode: 34 },
+      PageUp: { code: 'PageUp', keyCode: 33 },
+      PageDown: { code: 'PageDown', keyCode: 34 },
     };
     const info = DOM_KEY_INFO[key];
     if (!info) return;
@@ -211,12 +207,12 @@ export class GamepadSource {
         bubbles: true,
         cancelable: true,
         pointerId: 1,
-        pointerType: "mouse",
+        pointerType: 'mouse',
         clientX: this.#lastPointerClientX,
         clientY: this.#lastPointerClientY,
         button: 0,
-        buttons: type === "pointerdown" ? 1 : 0,
-      }),
+        buttons: type === 'pointerdown' ? 1 : 0,
+      })
     );
   }
 }
