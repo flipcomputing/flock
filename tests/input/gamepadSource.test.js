@@ -80,11 +80,11 @@ export function runGamepadSourceTests() {
     });
 
     describe("button mapping", function () {
-      it("button 1 pressed → isKeyDown('e') true", function () {
+      it("button 1 pressed → isKeyDown('r') true", function () {
         makeSource(() => [makeGamepad({ buttons: [null, makeButton(true)] })]);
         source.start();
         scene.tick();
-        expect(manager.isKeyDown("e")).to.be.true;
+        expect(manager.isKeyDown("r")).to.be.true;
       });
 
       it("button 1 pressed → isKeyDown('PageUp') true (fly-camera up)", function () {
@@ -126,20 +126,20 @@ export function runGamepadSourceTests() {
         expect(manager.isKeyDown("PageDown")).to.be.true;
       });
 
-      it("button 1 pressed → isActionDown('BUTTON1') true", function () {
+      it("button 1 pressed → isActionDown('BUTTON2') true", function () {
         makeSource(() => [makeGamepad({ buttons: [null, makeButton(true)] })]);
         source.start();
         scene.tick();
-        expect(manager.isActionDown("BUTTON1")).to.be.true;
+        expect(manager.isActionDown("BUTTON2")).to.be.true;
       });
 
-      it("button 1 pressed → onActionDown fired once with 'BUTTON1'", function () {
+      it("button 1 pressed → onActionDown fired once with 'BUTTON2'", function () {
         const fired = [];
         manager.onActionDownObservable.add((a) => fired.push(a));
         makeSource(() => [makeGamepad({ buttons: [null, makeButton(true)] })]);
         source.start();
         scene.tick();
-        expect(fired.filter((a) => a === "BUTTON1")).to.have.lengthOf(1);
+        expect(fired.filter((a) => a === "BUTTON2")).to.have.lengthOf(1);
       });
 
       it("button 1 held over multiple ticks → no duplicate onKeyDown/onActionDown", function () {
@@ -152,11 +152,11 @@ export function runGamepadSourceTests() {
         scene.tick();
         scene.tick();
         scene.tick();
-        expect(keyDownFired.filter((k) => k === "e")).to.have.lengthOf(1);
-        expect(actionDownFired.filter((a) => a === "BUTTON1")).to.have.lengthOf(1);
+        expect(keyDownFired.filter((k) => k === "r")).to.have.lengthOf(1);
+        expect(actionDownFired.filter((a) => a === "BUTTON2")).to.have.lengthOf(1);
       });
 
-      it("button 1 released → onKeyUp('e') fires; isActionDown('BUTTON1') false", function () {
+      it("button 1 released → onKeyUp('r') fires; isActionDown('BUTTON2') false", function () {
         const keyUpFired = [];
         manager.onKeyUpObservable.add((k) => keyUpFired.push(k));
         let pressed = true;
@@ -165,8 +165,8 @@ export function runGamepadSourceTests() {
         scene.tick();
         pressed = false;
         scene.tick();
-        expect(keyUpFired).to.include("e");
-        expect(manager.isActionDown("BUTTON1")).to.be.false;
+        expect(keyUpFired).to.include("r");
+        expect(manager.isActionDown("BUTTON2")).to.be.false;
       });
 
       it("button 14 (D-pad left) → isKeyDown('a') true; isActionDown('LEFT') true; isKeyDown('q') false", function () {
@@ -189,12 +189,12 @@ export function runGamepadSourceTests() {
         expect(manager.isActionDown("FORWARD")).to.be.true;
       });
 
-      it("button 3 → isActionDown('BUTTON2') true", function () {
+      it("button 3 → isActionDown('BUTTON1') true", function () {
         const btns = [null, null, null, makeButton(true)];
         makeSource(() => [makeGamepad({ buttons: btns })]);
         source.start();
         scene.tick();
-        expect(manager.isActionDown("BUTTON2")).to.be.true;
+        expect(manager.isActionDown("BUTTON1")).to.be.true;
       });
 
       it("button 6 → isActionDown('BUTTON2') true", function () {
@@ -306,9 +306,9 @@ export function runGamepadSourceTests() {
         makeSource(() => [makeGamepad({ buttons: [null, makeButton(true)] })]);
         source.start();
         scene.tick();
-        expect(manager.isKeyDown("e")).to.be.true;
+        expect(manager.isKeyDown("r")).to.be.true;
         source.stop();
-        expect(manager.isKeyDown("e")).to.be.false;
+        expect(manager.isKeyDown("r")).to.be.false;
       });
 
       it("stop() zeros axes it owns", function () {
@@ -347,13 +347,13 @@ export function runGamepadSourceTests() {
         expect(manager.getAxis("MOVE_Y")).to.be.lessThan(0);
       });
 
-      it("fly mode: PageUp still goes to InputManager and dispatches DOM event; 'e' is blocked", function () {
+      it("fly mode: PageUp still goes to InputManager and dispatches DOM event; 'r' is blocked", function () {
         makeSource(() => [makeGamepad({ buttons: [null, makeButton(true)] })]);
         source.start();
         source.setFlyMode(true);
         scene.tick();
         expect(manager.isKeyDown("PageUp")).to.be.true;
-        expect(manager.isKeyDown("e")).to.be.false;
+        expect(manager.isKeyDown("r")).to.be.false;
         const domEvents = canvas.dispatched.filter((e) => e.type === "keydown" && e.key === "PageUp");
         expect(domEvents).to.have.lengthOf(1);
       });
