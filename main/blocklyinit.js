@@ -655,7 +655,7 @@ export function initializeWorkspace() {
     const blockCategoryMap = new Map();
     const walkToolbox = (node, categoryName, categoryColor) => {
       if (!node) return;
-      if (node.kind === 'block' && node.type) {
+      if (node.kind === 'block' && node.type && !blockCategoryMap.has(node.type)) {
         blockCategoryMap.set(node.type, { name: categoryName, color: categoryColor });
       }
       if (node.contents) {
@@ -717,7 +717,7 @@ export function initializeWorkspace() {
       lists_setIndex: 'Set item in list', // "Lists setIndex"
       lists_getSublist: 'Get part of list', // "Lists getSublist"
       lists_split: 'Split/join list', // "Lists split"
-      lists_sort: 'Sort list', // "Lists sort"
+      lists_sort: 'Sort list', // "Lists sort",
     };
 
     // Build overlay bar
@@ -763,10 +763,10 @@ export function initializeWorkspace() {
       }
 
       const q = query.toLowerCase();
-      const getLabel = (type) =>
-        (BLOCK_LABELS[type] || type.replace(/_/g, ' ')).toLowerCase();
+      const getLabel = (blockDef) =>
+        (BLOCK_LABELS[blockDef.type] || blockDef.type.replace(/_/g, ' ')).toLowerCase();
       const score = (blockDef) => {
-        const label = getLabel(blockDef.type);
+        const label = getLabel(blockDef);
         const type = blockDef.type.toLowerCase();
         if (label.startsWith(q)) return 0;
         if (label.includes(q)) return 1;
@@ -775,8 +775,15 @@ export function initializeWorkspace() {
       };
       matches.sort((a, b) => score(a) - score(b));
 
+      const seenTypes = new Set();
+      const filtered = matches.filter((blockDef) => {
+        if (seenTypes.has(blockDef.type)) return false;
+        seenTypes.add(blockDef.type);
+        return true;
+      });
+
       resultsPanel.innerHTML = '';
-      matches.slice(0, 60).forEach((blockDef) => {
+      filtered.slice(0, 60).forEach((blockDef) => {
         const type = blockDef.type;
         if (!type || !Blockly.Blocks[type]) return;
 
