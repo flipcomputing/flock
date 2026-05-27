@@ -260,7 +260,7 @@ export function setupInput() {
             nextElement.type === 'search'
           ) {
             announceToScreenReader(translate('search_toolbox_focused'));
-          } else if (nextElement.id === 'blocklyDiv') {
+          } else if (nextElement.getAttribute('aria-label') === 'Blocks workspace') {
             announceToScreenReader(translate('code_workspace_focused'));
           } else if (nextElement.tagName === 'BUTTON' || nextElement.tagName === 'LABEL') {
             const text =
