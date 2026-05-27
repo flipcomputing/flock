@@ -1,8 +1,8 @@
 const BUTTON_KEYS = {
   0: [' '], // A / Cross         -> BUTTON4
-  1: ['r'], // Y / Triangle      -> BUTTON2
+  1: ['r', 'PageUp'], // Y / Triangle      -> BUTTON2 + fly up
   2: ['f', 'PageDown'], // X / Square        -> BUTTON3 + fly down
-  3: ['e', 'PageUp'], // B / Circle        -> BUTTON1 + fly up
+  3: ['e'], // B / Circle        -> BUTTON1
   6: ['r'], // Left trigger      -> BUTTON2
   7: ['r'], // Right trigger     -> BUTTON2
   12: ['w'], // D-pad up          -> FORWARD
