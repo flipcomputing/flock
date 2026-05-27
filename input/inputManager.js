@@ -112,9 +112,11 @@ export class InputManager {
 
   _getActionsForKey(key) {
     const actions = new Set();
-    for (const action of (KEY_TO_ACTIONS.get(key) ?? [])) {
+    // Only include static bindings for actions without overrides.
+    for (const action of KEY_TO_ACTIONS.get(key) ?? []) {
       if (!this.#actionOverrides.has(action)) actions.add(action);
     }
+    // Add actions bound to this key via active overrides.
     for (const [action, keys] of this.#actionOverrides) {
       if (keys.includes(key)) actions.add(action);
     }

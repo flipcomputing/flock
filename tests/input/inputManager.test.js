@@ -218,6 +218,14 @@ export function runInputManagerTests() {
         manager._setKey(" ", true);
         expect(manager.isActionDown("BUTTON4")).to.be.true;
       });
+
+      it('ignores old static keys after an action override', function () {
+        manager.setActionKey('FORWARD', 'i');
+        const fired = [];
+        manager.onActionDownObservable.add((a) => fired.push(a));
+        manager._setKey('w', true);
+        expect(fired).to.not.include('FORWARD');
+      });
     });
 
     describe("axes", function () {
