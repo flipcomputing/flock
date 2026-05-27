@@ -85,6 +85,10 @@ import {
 } from "./api/sensing";
 import { translate } from "./main/translation.js";
 import { handleError, dismissBanner } from "./ui/notifications.js";
+import {
+  attachInteractIndicator,
+  detachInteractIndicator,
+} from "./ui/interactIndicator.js";
 import { InputManager } from "./input/inputManager.js";
 import { KeyboardSource } from "./input/keyboardSource.js";
 import { OnScreenSource } from "./input/onScreenSource.js";
@@ -1470,6 +1474,7 @@ export const flock = {
         }
         flock.xrHelper = null;
         flock.inputManager.resetActionKeys();
+        detachInteractIndicator();
 
         if (flock._gamepadCameraObserver) {
           flock.scene.onBeforeRenderObservable.remove(
@@ -2025,6 +2030,8 @@ export const flock = {
         flock.scene.activeCamera,
       );
     });
+
+    attachInteractIndicator(flock.scene);
 
     // Mark scene as ready
     flock.flockNotReady = false;
