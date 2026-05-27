@@ -737,14 +737,31 @@ export function initializeWorkspace() {
     const addBlockToCenter = (blockDef) => {
       if (!Blockly.Blocks[blockDef.type]) return;
       const metrics = workspace.getMetrics();
-      const cx = (metrics.viewWidth / 2 - workspace.scrollX) / workspace.scale;
-      const cy = (metrics.viewHeight / 2 - workspace.scrollY) / workspace.scale;
-      // Build serialization state from toolbox definition — same format,
-      // just strip toolbox-only fields and inject position
-      const state = { ...blockDef, x: cx, y: cy };
+
+      // Place below all existing top-level blocks
+      const topBlocks = workspace.getTopBlocks(false);
+      let placeY;
+      if (topBlocks.length === 0) {
+        placeY = -workspace.scrollY / workspace.scale + 50;
+      } else {
+        placeY = Math.max(...topBlocks.map((b) => {
+          const pos = b.getRelativeToSurfaceXY();
+          return pos.y + (b.height || 50);
+        })) + 30;
+      }
+      const placeX = (metrics.viewWidth / 2 - workspace.scrollX) / workspace.scale;
+
+      const state = { ...blockDef, x: placeX, y: placeY };
       delete state.kind;
       delete state.keyword;
       Blockly.serialization.blocks.append(state, workspace);
+
+      // Scroll so the new block is visible
+      const scale = workspace.scale;
+      workspace.scroll(
+        metrics.viewWidth / 2 - placeX * scale,
+        metrics.viewHeight * 0.4 - placeY * scale,
+      );
     };
 
     const updateResults = () => {
