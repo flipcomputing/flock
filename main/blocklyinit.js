@@ -762,6 +762,19 @@ export function initializeWorkspace() {
         return;
       }
 
+      const q = query.toLowerCase();
+      const getLabel = (type) =>
+        (BLOCK_LABELS[type] || type.replace(/_/g, ' ')).toLowerCase();
+      const score = (blockDef) => {
+        const label = getLabel(blockDef.type);
+        const type = blockDef.type.toLowerCase();
+        if (label.startsWith(q)) return 0;
+        if (label.includes(q)) return 1;
+        if (type.includes(q)) return 2;
+        return 3;
+      };
+      matches.sort((a, b) => score(a) - score(b));
+
       resultsPanel.innerHTML = '';
       matches.slice(0, 60).forEach((blockDef) => {
         const type = blockDef.type;
