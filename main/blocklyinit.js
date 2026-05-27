@@ -619,6 +619,8 @@ export function initializeWorkspace() {
     const searchInput = document.querySelector(".blocklyToolbox input[type='search']");
     if (!searchInput) return;
 
+    searchInput.setAttribute('autocomplete', 'one-time-code');
+
     const originalParent = searchInput.parentElement;
     const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
 
@@ -789,6 +791,7 @@ export function initializeWorkspace() {
     let blurTimeout = null;
 
     const openOverlay = () => {
+      toolboxInstance?.clearSelection?.();
       overlay.insertBefore(searchInput, cancelBtn);
       document.body.appendChild(overlay);
       document.body.appendChild(resultsPanel);
@@ -809,6 +812,7 @@ export function initializeWorkspace() {
         searchCategory.matchBlocks = searchCategory._mobileMatchBlocks;
         delete searchCategory._mobileMatchBlocks;
       }
+      toolboxInstance?.clearSelection?.();
       searchInput.value = '';
       originalParent.appendChild(searchInput);
       overlay.remove();
