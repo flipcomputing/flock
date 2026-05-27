@@ -880,6 +880,10 @@ button {
     bottom: calc(9px + max(8px, env(safe-area-inset-bottom, 0px)));
   }
 
+  #info-panel-tabs {
+    margin-bottom: calc(9px + max(8px, env(safe-area-inset-bottom, 0px)));
+  }
+
   #blocklyDiv {
     height: calc(
       100% - 59px - max(8px, env(safe-area-inset-bottom, 0px))
