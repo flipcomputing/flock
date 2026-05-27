@@ -1,19 +1,22 @@
-const BUTTON_KEYS = {
-  0: [' '], // A / Cross         -> BUTTON4
-  1: ['e', 'PageUp'], // Y / Triangle      -> BUTTON2 + fly up
-  2: ['f', 'PageDown'], // X / Square        -> BUTTON3 + fly down
-  3: ['r'], // B / Circle        -> BUTTON1
-  6: ['e'], // Left trigger      -> BUTTON2
-  7: ['e'], // Right trigger     -> BUTTON2
-  12: ['w'], // D-pad up          -> FORWARD
-  13: ['s'], // D-pad down        -> BACKWARD
-  14: ['a'], // D-pad left        -> LEFT
-  15: ['d'], // D-pad right       -> RIGHT
+// Button index → action name (keys resolved at poll time from InputManager so
+// runtime setActionKey overrides are respected) plus any fixed extra keys that
+// are not part of the action binding (e.g. PageUp/PageDown for Babylon camera).
+const BUTTON_ACTIONS = {
+  0:  { action: 'BUTTON4' },
+  1:  { action: 'BUTTON2' },
+  2:  { action: 'BUTTON3', extra: ['PageDown'] },
+  3:  { action: 'BUTTON1', extra: ['PageUp'] },
+  6:  { action: 'BUTTON2' },
+  7:  { action: 'BUTTON2' },
+  12: { action: 'FORWARD' },
+  13: { action: 'BACKWARD' },
+  14: { action: 'LEFT' },
+  15: { action: 'RIGHT' },
 };
 
 const AXES = {
-  0: { name: 'MOVE_X', shimKeys: { neg: 'a', pos: 'd' } },
-  1: { name: 'MOVE_Y', shimKeys: { neg: 'w', pos: 's' } },
+  0: { name: 'MOVE_X', negAction: 'LEFT',     posAction: 'RIGHT' },
+  1: { name: 'MOVE_Y', negAction: 'FORWARD',  posAction: 'BACKWARD' },
   2: { name: 'LOOK_X' },
   3: { name: 'LOOK_Y' },
 };
@@ -116,18 +119,22 @@ export class GamepadSource {
     // Build the set of keys the gamepad wants held this frame.
     const wantedKeys = new Set();
 
-    for (const [index, keys] of Object.entries(BUTTON_KEYS)) {
+    for (const [index, { action, extra }] of Object.entries(BUTTON_ACTIONS)) {
       const button = gamepad.buttons?.[Number(index)];
       if (button?.pressed || button?.value > 0.5) {
-        for (const k of keys) wantedKeys.add(k);
+        for (const k of this.#inputManager._getActionKeys(action)) wantedKeys.add(k);
+        if (extra) for (const k of extra) wantedKeys.add(k);
       }
     }
 
     for (const [axisIndex, axis] of Object.entries(AXES)) {
-      if (!axis.shimKeys) continue;
+      if (!axis.negAction) continue;
       const value = gamepad.axes?.[Number(axisIndex)] ?? 0;
-      if (value < -SHIM_THRESHOLD) wantedKeys.add(axis.shimKeys.neg);
-      else if (value > SHIM_THRESHOLD) wantedKeys.add(axis.shimKeys.pos);
+      if (value < -SHIM_THRESHOLD) {
+        for (const k of this.#inputManager._getActionKeys(axis.negAction)) wantedKeys.add(k);
+      } else if (value > SHIM_THRESHOLD) {
+        for (const k of this.#inputManager._getActionKeys(axis.posAction)) wantedKeys.add(k);
+      }
     }
 
     // In fly-camera mode keep only camera-control keys; block everything else

@@ -6,6 +6,7 @@ export class KeyboardSource {
   #onBlur;
   #started = false;
   #heldKeys = new Set();
+  #flyMode = false;
 
   // Bound handlers kept so stop() can remove them.
   #onKeyDown;
@@ -24,14 +25,14 @@ export class KeyboardSource {
       const key = normaliseKey(event.key);
       if (this.#heldKeys.has(key)) return;
       this.#heldKeys.add(key);
-      this.#inputManager._setKey(key, true);
+      if (!this.#flyMode) this.#inputManager._setKey(key, true);
     };
     this.#onKeyUp = (event) => {
       if (event.__flockSynthetic) return;
       const key = normaliseKey(event.key);
       if (!this.#heldKeys.has(key)) return;
       this.#heldKeys.delete(key);
-      this.#inputManager._setKey(key, false);
+      if (!this.#flyMode) this.#inputManager._setKey(key, false);
     };
     this.#onTargetBlur = () => {
       this.#releaseAll();
@@ -48,6 +49,26 @@ export class KeyboardSource {
       this.#inputManager._setKey(key, false);
     }
     this.#heldKeys.clear();
+  }
+
+  // Physical key state — always reflects the real keyboard, regardless of fly mode.
+  // Use this for internal engine reads (e.g. camera movement) so fly mode
+  // blocking of InputManager doesn't prevent the camera from moving.
+  isKeyDown(key) {
+    return this.#heldKeys.has(normaliseKey(key));
+  }
+
+  setFlyMode(enabled) {
+    if (!!enabled === this.#flyMode) return;
+    this.#flyMode = !!enabled;
+    if (this.#flyMode) {
+      // Release keys that were held before entering fly mode.
+      this.#releaseAll();
+    } else {
+      // Discard any keys tracked during fly mode — InputManager was never told
+      // about them, so no corresponding release is needed.
+      this.#heldKeys.clear();
+    }
   }
 
   start() {

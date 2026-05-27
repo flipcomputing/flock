@@ -1880,6 +1880,7 @@ function handleCameraGizmo() {
     cameraMode = "fly";
     flock._onScreenSource?.pause();
     flock._gamepadSource?.setFlyMode(true);
+    flock._keyboardSource?.setFlyMode(true);
     flock.printText({
       text: translate("fly_camera_instructions"),
       duration: 15,
@@ -1890,6 +1891,7 @@ function handleCameraGizmo() {
     cameraMode = "play";
     flock._onScreenSource?.resume();
     flock._gamepadSource?.setFlyMode(false);
+    flock._keyboardSource?.setFlyMode(false);
     cameraButton.classList.remove("active");
   }
 
@@ -2144,7 +2146,13 @@ export function setGizmoManager(value) {
 
 export function disposeGizmoManager() {
   exitGizmoState(); // Clear up gizmo state and event listeners
-  if (cameraMode === "fly") cameraMode = "play"; // Reset camera mode
+  if (cameraMode === "fly") {
+    cameraMode = "play";
+    flock._onScreenSource?.resume();
+    flock._gamepadSource?.setFlyMode(false);
+    flock._keyboardSource?.setFlyMode(false);
+    document.getElementById("cameraButton")?.classList.remove("active");
+  }
   if (gizmoManager) {
     gizmoManager.dispose();
     gizmoManager = null; // Clear the global reference for garbage collection
