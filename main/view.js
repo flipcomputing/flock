@@ -574,7 +574,7 @@ export function toggleDesignMode() {
     switchView("both");
     flock.scene.debugLayer.hide();
     flockLink.style.display = "block";
-    infoPanel.style.display = "block";
+    infoPanel.style.display = "flex";
   } else {
     blocklyArea.style.display = "none";
     codeMode = "none";
