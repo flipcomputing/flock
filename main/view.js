@@ -601,6 +601,27 @@ export function toggleDesignMode() {
   onResize("reset");
 }
 
+let _keyboardWasOpen = false;
+
+const scrollEditingBlockIntoView = () => {
+  if (!workspace) return;
+  const input = document.activeElement;
+  if (!input?.classList.contains("blocklyHtmlInput")) return;
+
+  const rect = input.getBoundingClientRect();
+  const visibleBottom = window.visualViewport.height;
+  const padding = 24;
+  const overlap = rect.bottom - visibleBottom;
+
+  if (overlap > 0) {
+    const origHideChaff = workspace.hideChaff.bind(workspace);
+    workspace.hideChaff = () => {};
+    workspace.scroll(workspace.scrollX, workspace.scrollY - (overlap + padding) / workspace.scale);
+    workspace.hideChaff = origHideChaff;
+    Blockly.WidgetDiv.repositionForWindowResize();
+  }
+};
+
 const adjustViewport = () => {
   const viewportHeight = window.visualViewport?.height || window.innerHeight;
   const vh = viewportHeight * 0.01;
@@ -613,12 +634,18 @@ const adjustViewport = () => {
     window.visualViewport &&
     window.innerHeight - window.visualViewport.height > 150;
   document.documentElement.classList.toggle("keyboard-open", keyboardOpen);
+
+  if (keyboardOpen && !_keyboardWasOpen) {
+    setTimeout(scrollEditingBlockIntoView, 300);
+  }
+  _keyboardWasOpen = keyboardOpen;
 };
 
 const _origWidgetCreate = Blockly.FieldNumber.prototype.widgetCreate_;
 Blockly.FieldNumber.prototype.widgetCreate_ = function () {
   const input = _origWidgetCreate.call(this);
   input.inputMode = "decimal";
+  input.autocomplete = "off";
   return input;
 };
 
