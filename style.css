@@ -1663,7 +1663,6 @@ kbd {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  border-top: 1px solid var(--color-border);
 }
 
 .info-tab-btn {
@@ -1682,18 +1681,26 @@ kbd {
   height: 50px;
   min-height: 50px;
   max-height: 50px;
-  padding: 0px 4px 2px 8px;
-  border-bottom: 1px solid var(--color-border);
+  padding: 2px 4px 0px 8px;
+  border-top: 1px solid var(--color-border);
   background-color: var(--color-bg);
   box-sizing: border-box;
 }
 
+#info-panel-tabs #flocklink {
+  order: 999;
+}
+
 
 #info-panel-body {
-  background-color: var(--color-bg);
+  background-color: inherit;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+}
+
+#info-panel:has(.info-tab-btn.active) #info-panel-body {
+  background-color: var(--color-bg);
 }
 
 .info-tab-panel {

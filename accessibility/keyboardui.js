@@ -607,6 +607,7 @@ const InfoPanel = {
     tab.btn.setAttribute("aria-selected", "true");
     tab.btn.classList.add("active");
     tab.panel.classList.remove("hidden");
+    tab.panel.focus();
   },
 
   deactivate(id) {
@@ -719,7 +720,6 @@ const ShortcutsPanel = {
     this.renderContent();
     this.previousFocus = document.activeElement;
     InfoPanel.activate("shortcuts");
-    this.panel.focus();
     document.getElementById("shortcutsBtn")?.classList.add("active");
   },
 

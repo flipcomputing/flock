@@ -113,20 +113,21 @@ export const ContextManager = {
     style.textContent = `
             #flock-context-debug {
                 position: fixed !important;
-                bottom: 30px !important;
-                left: 30px !important;
+                top: 0 !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
                 background: rgba(0, 0, 0, 0.85) !important;
                 color: #00ff00 !important;
-                padding: 10px 15px !important;
+                padding: 4px 12px !important;
                 font-family: 'Consolas', 'Monaco', monospace !important;
-                font-size: 14px !important;
+                font-size: 12px !important;
                 z-index: 999999 !important;
-                border: 2px solid #00ff00 !important;
-                border-radius: 6px !important;
+                border: 1px solid #00ff00 !important;
+                border-top: none !important;
+                border-radius: 0 0 6px 6px !important;
                 pointer-events: none !important;
-                display: block !important;
-                visibility: visible !important;
-                min-width: 200px !important;
+                width: 400px !important;
+                overflow: hidden !important;
             }
         `;
     document.head.appendChild(style);
@@ -134,8 +135,7 @@ export const ContextManager = {
     // 2. Create the Element
     const debugDiv = document.createElement("div");
     debugDiv.id = "flock-context-debug";
-    debugDiv.innerHTML = `CONTEXT: <span id="ctx-value">...</span><br>
-    INPUT: <span id="input-debug-value">...</span>`;
+    debugDiv.innerHTML = `CONTEXT: <span id="ctx-value">...</span><br>INPUT: <span id="input-debug-value">...</span>`;
     document.body.appendChild(debugDiv);
 
     // Update loop
