@@ -609,6 +609,17 @@ const adjustViewport = () => {
     "--app-height",
     `${viewportHeight}px`,
   );
+  const keyboardOpen =
+    window.visualViewport &&
+    window.innerHeight - window.visualViewport.height > 150;
+  document.documentElement.classList.toggle("keyboard-open", keyboardOpen);
+};
+
+const _origWidgetCreate = Blockly.FieldNumber.prototype.widgetCreate_;
+Blockly.FieldNumber.prototype.widgetCreate_ = function () {
+  const input = _origWidgetCreate.call(this);
+  input.inputMode = "decimal";
+  return input;
 };
 
 // Adjust viewport on page load and resize

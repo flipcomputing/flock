@@ -880,6 +880,14 @@ button {
     bottom: calc(9px + max(8px, env(safe-area-inset-bottom, 0px)));
   }
 
+  .keyboard-open #blocklyZoomControls {
+    display: none;
+  }
+
+  .keyboard-open #blocklyDiv {
+    height: 100% !important;
+  }
+
   #info-panel-tabs {
     margin-bottom: calc(9px + max(8px, env(safe-area-inset-bottom, 0px)));
   }
