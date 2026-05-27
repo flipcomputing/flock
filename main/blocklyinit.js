@@ -616,25 +616,21 @@ export function initializeWorkspace() {
 
   // Mobile: custom HTML search results panel (bypasses the SVG flyout entirely)
   requestAnimationFrame(() => {
-    const searchInput = document.querySelector(".blocklyToolbox input[type='search']");
+    let searchInput = document.querySelector(".blocklyToolbox input[type='search']");
     if (!searchInput) return;
 
-    searchInput.setAttribute('autocomplete', 'one-time-code');
-
-    const originalParent = searchInput.parentElement;
+    let originalParent = searchInput.parentElement;
     const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
 
     // Get the toolbox search category to reuse its trigram blockSearcher
-    const toolboxInstance = workspace.getToolbox();
-    const searchCategory = toolboxInstance
+    let searchCategory = workspace.getToolbox()
       ?.getToolboxItems?.()
       .find((item) => item.getId?.() === 'toolbox-search-input');
 
     // Resolve a categorystyle name to a hex color via the current theme
-    const theme = workspace.getTheme();
     const getCategoryColor = (categorystyle) => {
       if (!categorystyle) return null;
-      let themeColour = theme?.categoryStyles?.[categorystyle]?.colour;
+      let themeColour = workspace.getTheme()?.categoryStyles?.[categorystyle]?.colour;
       if (themeColour === undefined || themeColour === null) return null;
       // Resolve Blockly message references e.g. "%{BKY_LOOPS_HUE}"
       if (
@@ -653,31 +649,35 @@ export function initializeWorkspace() {
 
     // Build block type → { name, color } map from the toolbox definition
     const blockCategoryMap = new Map();
-    const walkToolbox = (node, categoryName, categoryColor) => {
-      if (!node) return;
-      if (node.kind === 'block' && node.type && !blockCategoryMap.has(node.type)) {
-        blockCategoryMap.set(node.type, { name: categoryName, color: categoryColor });
-      }
-      if (node.contents) {
-        let name = node.name || categoryName;
-        if (name?.startsWith('%{BKY_') && name.endsWith('}')) {
-          const key = name.slice(6, -1);
-          name =
-            Blockly.Msg?.[key] ||
-            key
-              .replace(/^CATEGORY_/, '')
-              .replace(/_/g, ' ')
-              .toLowerCase()
-              .replace(/^./, (c) => c.toUpperCase());
+    const buildCategoryMap = () => {
+      blockCategoryMap.clear();
+      const walk = (node, categoryName, categoryColor) => {
+        if (!node) return;
+        if (node.kind === 'block' && node.type && !blockCategoryMap.has(node.type)) {
+          blockCategoryMap.set(node.type, { name: categoryName, color: categoryColor });
         }
-        let color = categoryColor;
-        if (node.categorystyle) {
-          color = getCategoryColor(node.categorystyle) ?? categoryColor;
+        if (node.contents) {
+          let name = node.name || categoryName;
+          if (name?.startsWith('%{BKY_') && name.endsWith('}')) {
+            const key = name.slice(6, -1);
+            name =
+              Blockly.Msg?.[key] ||
+              key
+                .replace(/^CATEGORY_/, '')
+                .replace(/_/g, ' ')
+                .toLowerCase()
+                .replace(/^./, (c) => c.toUpperCase());
+          }
+          let color = categoryColor;
+          if (node.categorystyle) {
+            color = getCategoryColor(node.categorystyle) ?? categoryColor;
+          }
+          node.contents.forEach((child) => walk(child, name, color));
         }
-        node.contents.forEach((child) => walkToolbox(child, name, color));
-      }
+      };
+      walk(toolboxDef, '', null);
     };
-    walkToolbox(toolboxDef, '', null);
+    buildCategoryMap();
 
     // Human-readable label overrides for blocks whose type names are cryptic
     const BLOCK_LABELS = {
@@ -720,10 +720,9 @@ export function initializeWorkspace() {
       lists_sort: 'Sort list', // "Lists sort",
     };
 
-    // Override matchBlocks on the search category to sort and deduplicate results
-    if (searchCategory) {
-      const _origMatchBlocks = searchCategory.matchBlocks.bind(searchCategory);
-      searchCategory.matchBlocks = function () {
+    const applyMatchBlocksOverride = (sc) => {
+      if (!sc) return;
+      sc.matchBlocks = function () {
         const query = this.searchField?.value?.trim() || '';
         let items = query ? this.blockSearcher.blockTypesMatching(query) : [];
         if (items.length === 0) {
@@ -750,7 +749,8 @@ export function initializeWorkspace() {
         }
         this.parentToolbox_.refreshSelection();
       };
-    }
+    };
+    applyMatchBlocksOverride(searchCategory);
 
     // Build overlay bar
     const overlay = document.createElement('div');
@@ -860,7 +860,7 @@ export function initializeWorkspace() {
     let blurTimeout = null;
 
     const openOverlay = () => {
-      toolboxInstance?.clearSelection?.();
+      workspace.getToolbox()?.clearSelection?.();
       overlay.insertBefore(searchInput, cancelBtn);
       document.body.appendChild(overlay);
       document.body.appendChild(resultsPanel);
@@ -881,7 +881,7 @@ export function initializeWorkspace() {
         searchCategory.matchBlocks = searchCategory._mobileMatchBlocks;
         delete searchCategory._mobileMatchBlocks;
       }
-      toolboxInstance?.clearSelection?.();
+      workspace.getToolbox()?.clearSelection?.();
       searchInput.value = '';
       originalParent.appendChild(searchInput);
       overlay.remove();
@@ -889,21 +889,29 @@ export function initializeWorkspace() {
       resultsPanel.innerHTML = '';
     };
 
+    const attachInputListeners = (input) => {
+      input.setAttribute('autocomplete', 'one-time-code');
+      input.addEventListener('blur', () => {
+        if (!overlay.isConnected) return;
+        blurTimeout = setTimeout(() => {
+          if (overlay.isConnected) closeOverlay();
+        }, 150);
+      });
+      input.addEventListener('focus', () => {
+        clearTimeout(blurTimeout);
+        blurTimeout = null;
+        if (!overlay.isConnected && isMobile()) openOverlay();
+      });
+      input.addEventListener('input', () => {
+        if (overlay.isConnected) updateResults();
+      });
+      input.addEventListener('keyup', () => {
+        if (overlay.isConnected) updateResults();
+      });
+    };
+
     cancelBtn.addEventListener('mousedown', (e) => e.preventDefault());
     cancelBtn.addEventListener('click', closeOverlay);
-
-    searchInput.addEventListener('blur', () => {
-      if (!overlay.isConnected) return;
-      blurTimeout = setTimeout(() => {
-        if (overlay.isConnected) closeOverlay();
-      }, 150);
-    });
-
-    searchInput.addEventListener('focus', () => {
-      clearTimeout(blurTimeout);
-      blurTimeout = null;
-      if (!overlay.isConnected && isMobile()) openOverlay();
-    });
 
     // Scrolling the results panel should not trigger the blur-close timeout
     resultsPanel.addEventListener(
@@ -915,12 +923,26 @@ export function initializeWorkspace() {
       { passive: true }
     );
 
-    searchInput.addEventListener('input', () => {
-      if (overlay.isConnected) updateResults();
-    });
-    searchInput.addEventListener('keyup', () => {
-      if (overlay.isConnected) updateResults();
-    });
+    attachInputListeners(searchInput);
+
+    // Re-bind when the toolbox rebuilds (theme change, language change, etc.)
+    const toolboxEl = document.querySelector('.blocklyToolbox');
+    if (toolboxEl) {
+      new MutationObserver(() => {
+        if (searchInput.isConnected) return;
+        if (overlay.isConnected) closeOverlay();
+        const newInput = document.querySelector(".blocklyToolbox input[type='search']");
+        if (!newInput) return;
+        searchInput = newInput;
+        originalParent = newInput.parentElement;
+        searchCategory = workspace.getToolbox()
+          ?.getToolboxItems?.()
+          .find((item) => item.getId?.() === 'toolbox-search-input');
+        buildCategoryMap();
+        applyMatchBlocksOverride(searchCategory);
+        attachInputListeners(newInput);
+      }).observe(toolboxEl, { childList: true, subtree: true });
+    }
   });
 
   // Fade non-matching blocks during search
@@ -2096,8 +2118,7 @@ export function overrideSearchPlugin(workspace) {
       selectedItem?.toolboxItemDef ||
       selectedItem?.toolboxItemDef_;
     const isSelectedSearch =
-      selectedDef?.kind === 'search' || (category && selectedItem === category);
-    selectedDef?.kind?.toLowerCase?.() === 'search' || (category && selectedItem === category);
+      selectedDef?.kind?.toLowerCase?.() === 'search' || (category && selectedItem === category);
 
     return isSelectedSearch;
   };
