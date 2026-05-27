@@ -179,9 +179,23 @@ export function runInteractIndicatorTests(flock) {
     });
 
     it("BUTTON2 with no interactable does not call processTrigger", function () {
-      let called = false;
+      const mesh = makeMesh("_test_no_target", [0, 0, 0]);
+
+      // Frame fires with no interactables → _currentTarget stays null
+      fireFrame();
+
+      // Attach actionManager and spy after the frame, so the mesh was not the target
+      mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+      const triggered = [];
+      const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
+      mesh.actionManager.processTrigger = (trigger, evt) => {
+        triggered.push(trigger);
+        orig(trigger, evt);
+      };
+
       flock.inputManager._setKey("e", true);
-      expect(called).to.be.false;
+
+      expect(triggered).to.be.empty;
     });
 
     it("when_clicked handler on target mesh runs when BUTTON2 fires", function () {
