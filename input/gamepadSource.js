@@ -1,10 +1,10 @@
 const BUTTON_KEYS = {
   0: [' '], // A / Cross         -> BUTTON4
-  1: ['r', 'PageUp'], // Y / Triangle      -> BUTTON2 + fly up
+  1: ['e', 'PageUp'], // Y / Triangle      -> BUTTON2 + fly up
   2: ['f', 'PageDown'], // X / Square        -> BUTTON3 + fly down
-  3: ['e'], // B / Circle        -> BUTTON1
-  6: ['r'], // Left trigger      -> BUTTON2
-  7: ['r'], // Right trigger     -> BUTTON2
+  3: ['r'], // B / Circle        -> BUTTON1
+  6: ['e'], // Left trigger      -> BUTTON2
+  7: ['e'], // Right trigger     -> BUTTON2
   12: ['w'], // D-pad up          -> FORWARD
   13: ['s'], // D-pad down        -> BACKWARD
   14: ['a'], // D-pad left        -> LEFT

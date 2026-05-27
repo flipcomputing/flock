@@ -1,11 +1,11 @@
 const XR_BUTTON_KEYS = {
   left: {
-    "x-button": ["e"],   // BUTTON1
-    "y-button": ["r"],   // BUTTON2
+    "x-button": ["f"],   // BUTTON3
+    "y-button": ["e"],   // BUTTON2
   },
   right: {
     "a-button": [" "],   // BUTTON4
-    "b-button": ["f"],   // BUTTON3
+    "b-button": ["r"],   // BUTTON1
   },
 };
 

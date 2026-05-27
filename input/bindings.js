@@ -14,8 +14,8 @@ export const DEFAULT_BINDINGS = Object.freeze({
   BACKWARD: ["s"],
   LEFT: ["a", "q"],
   RIGHT: ["d"],
-  BUTTON1: ["e", "1"],
-  BUTTON2: ["r", "2"],
+  BUTTON1: ["r", "1"],
+  BUTTON2: ["e", "2"],
   BUTTON3: ["f", "3"],
   BUTTON4: [" ", "4"],
 });

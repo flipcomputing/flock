@@ -122,31 +122,31 @@ export function runXRSourceTests() {
     });
 
     describe("button mapping — left controller", function () {
-      it("left x-button pressed → isKeyDown('e') true; isActionDown('BUTTON1') true", function () {
+      it("left x-button pressed → isKeyDown('f') true; isActionDown('BUTTON3') true", function () {
         const controller = makeController("left");
         const mc = addController(controller);
         mc.components["x-button"].pressed = true;
         mc.components["x-button"].onButtonStateChangedObservable.notify();
-        expect(manager.isKeyDown("e")).to.be.true;
-        expect(manager.isActionDown("BUTTON1")).to.be.true;
+        expect(manager.isKeyDown("f")).to.be.true;
+        expect(manager.isActionDown("BUTTON3")).to.be.true;
       });
 
-      it("left x-button released → isKeyDown('e') false", function () {
+      it("left x-button released → isKeyDown('f') false", function () {
         const controller = makeController("left");
         const mc = addController(controller);
         mc.components["x-button"].pressed = true;
         mc.components["x-button"].onButtonStateChangedObservable.notify();
         mc.components["x-button"].pressed = false;
         mc.components["x-button"].onButtonStateChangedObservable.notify();
-        expect(manager.isKeyDown("e")).to.be.false;
+        expect(manager.isKeyDown("f")).to.be.false;
       });
 
-      it("left y-button pressed → isKeyDown('r') true; isActionDown('BUTTON2') true", function () {
+      it("left y-button pressed → isKeyDown('e') true; isActionDown('BUTTON2') true", function () {
         const controller = makeController("left");
         const mc = addController(controller);
         mc.components["y-button"].pressed = true;
         mc.components["y-button"].onButtonStateChangedObservable.notify();
-        expect(manager.isKeyDown("r")).to.be.true;
+        expect(manager.isKeyDown("e")).to.be.true;
         expect(manager.isActionDown("BUTTON2")).to.be.true;
       });
     });
@@ -161,13 +161,13 @@ export function runXRSourceTests() {
         expect(manager.isActionDown("BUTTON4")).to.be.true;
       });
 
-      it("right b-button pressed → isKeyDown('f') true; isActionDown('BUTTON3') true", function () {
+      it("right b-button pressed → isKeyDown('r') true; isActionDown('BUTTON1') true", function () {
         const controller = makeController("right");
         const mc = addController(controller);
         mc.components["b-button"].pressed = true;
         mc.components["b-button"].onButtonStateChangedObservable.notify();
-        expect(manager.isKeyDown("f")).to.be.true;
-        expect(manager.isActionDown("BUTTON3")).to.be.true;
+        expect(manager.isKeyDown("r")).to.be.true;
+        expect(manager.isActionDown("BUTTON1")).to.be.true;
       });
 
     });
@@ -218,9 +218,9 @@ export function runXRSourceTests() {
         const mc = addController(controller);
         mc.components["x-button"].pressed = true;
         mc.components["x-button"].onButtonStateChangedObservable.notify();
-        expect(manager.isKeyDown("e")).to.be.true;
+        expect(manager.isKeyDown("f")).to.be.true;
         removeController(controller);
-        expect(manager.isKeyDown("e")).to.be.false;
+        expect(manager.isKeyDown("f")).to.be.false;
       });
 
       it("removing right controller zeroes XR_MOVE_X and releases shim keys", function () {
@@ -241,7 +241,7 @@ export function runXRSourceTests() {
         // Fire button observable after removal — should not change manager state
         mc.components["x-button"].pressed = true;
         mc.components["x-button"].onButtonStateChangedObservable.notify();
-        expect(manager.isKeyDown("e")).to.be.false;
+        expect(manager.isKeyDown("f")).to.be.false;
       });
     });
 
@@ -251,9 +251,9 @@ export function runXRSourceTests() {
         const mc = addController(controller);
         mc.components["x-button"].pressed = true;
         mc.components["x-button"].onButtonStateChangedObservable.notify();
-        expect(manager.isKeyDown("e")).to.be.true;
+        expect(manager.isKeyDown("f")).to.be.true;
         source.stop();
-        expect(manager.isKeyDown("e")).to.be.false;
+        expect(manager.isKeyDown("f")).to.be.false;
       });
 
       it("stop() zeros XR axes", function () {
@@ -288,19 +288,19 @@ export function runXRSourceTests() {
     });
 
     describe("refcount: two sources holding the same key", function () {
-      it("keyboard holds 'e', controller releases 'e' → still down via refcount", function () {
-        manager._setKey("e", true); // keyboard contribution
+      it("keyboard holds 'f', controller releases 'f' → still down via refcount", function () {
+        manager._setKey("f", true); // keyboard contribution
         const controller = makeController("left");
         const mc = addController(controller);
         mc.components["x-button"].pressed = true;
         mc.components["x-button"].onButtonStateChangedObservable.notify();
-        // both keyboard and controller hold 'e' (count = 2)
+        // both keyboard and controller hold 'f' (count = 2)
         mc.components["x-button"].pressed = false;
         mc.components["x-button"].onButtonStateChangedObservable.notify();
         // controller released; keyboard still holds it (count = 1)
-        expect(manager.isKeyDown("e")).to.be.true;
-        manager._setKey("e", false);
-        expect(manager.isKeyDown("e")).to.be.false;
+        expect(manager.isKeyDown("f")).to.be.true;
+        manager._setKey("f", false);
+        expect(manager.isKeyDown("f")).to.be.false;
       });
     });
   });

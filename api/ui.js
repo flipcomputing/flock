@@ -1,3 +1,5 @@
+import { getBoundKeys } from "../input/bindings.js";
+
 let flock;
 //let fontFamily = "Asap";
 let fontFamily = "Atkinson Hyperlegible Next";
@@ -406,10 +408,10 @@ export const flockUI = {
 
     flock.controlsTexture.addControl(rightGrid);
 
-    const button1 = flock.createSmallButton("①", ["e", "PageUp"], color);
-    const button2 = flock.createSmallButton("②", "r", color);
-    const button3 = flock.createSmallButton("③", ["f", "PageDown"], color);
-    const button4 = flock.createSmallButton("④", " ", color);
+    const button1 = flock.createSmallButton("①", [...getBoundKeys("BUTTON1"), "PageUp"], color);
+    const button2 = flock.createSmallButton("②", getBoundKeys("BUTTON2"), color);
+    const button3 = flock.createSmallButton("③", [...getBoundKeys("BUTTON3"), "PageDown"], color);
+    const button4 = flock.createSmallButton("④", getBoundKeys("BUTTON4"), color);
 
     rightGrid.addControl(button1, 0, 0);
     rightGrid.addControl(button2, 0, 1);
