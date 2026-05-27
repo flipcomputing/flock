@@ -25,17 +25,19 @@ export function runInteractIndicatorTests(flock) {
         flock.scene,
       );
       mesh.position.copyFromFloats(...position);
+      mesh.computeWorldMatrix(true);
       testMeshes.push(mesh);
       return mesh;
     }
 
     beforeEach(function () {
       testMeshes = [];
-      attachInteractIndicator(flock.scene);
+      attachInteractIndicator(flock.scene, flock.inputManager);
     });
 
     afterEach(function () {
       detachInteractIndicator();
+      flock.inputManager._clearAllKeys();
       for (const mesh of testMeshes) {
         if (mesh.actionManager) mesh.actionManager.dispose();
         if (!mesh.isDisposed()) mesh.dispose();
@@ -135,11 +137,87 @@ export function runInteractIndicatorTests(flock) {
       const baseline = flock.scene.meshes.length;
 
       for (let i = 0; i < 3; i++) {
-        attachInteractIndicator(flock.scene);
+        attachInteractIndicator(flock.scene, flock.inputManager);
         detachInteractIndicator();
       }
 
       expect(flock.scene.meshes.length).to.equal(baseline);
+    });
+
+    it("BUTTON2 fires OnPickTrigger on the target mesh", function () {
+      const mesh = makeMesh("_test_btn2_pick", [0, 0, 0]);
+      mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+      const triggered = [];
+      const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
+      mesh.actionManager.processTrigger = (trigger, evt) => {
+        triggered.push(trigger);
+        orig(trigger, evt);
+      };
+
+      fireFrame();
+      flock.inputManager._setKey("e", true);
+
+      expect(triggered).to.include(flock.BABYLON.ActionManager.OnPickTrigger);
+    });
+
+    it("BUTTON2 fires OnLeftPickTrigger on the target mesh", function () {
+      const mesh = makeMesh("_test_btn2_leftpick", [0, 0, 0]);
+      mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+      const triggered = [];
+      const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
+      mesh.actionManager.processTrigger = (trigger, evt) => {
+        triggered.push(trigger);
+        orig(trigger, evt);
+      };
+
+      fireFrame();
+      flock.inputManager._setKey("e", true);
+
+      expect(triggered).to.include(flock.BABYLON.ActionManager.OnLeftPickTrigger);
+    });
+
+    it("BUTTON2 with no interactable does not call processTrigger", function () {
+      let called = false;
+      flock.inputManager._setKey("e", true);
+      expect(called).to.be.false;
+    });
+
+    it("when_clicked handler on target mesh runs when BUTTON2 fires", function () {
+      const mesh = makeMesh("_test_btn2_handler", [0, 0, 0]);
+      mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+      let clicked = 0;
+      mesh.actionManager.registerAction(
+        new flock.BABYLON.ExecuteCodeAction(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+          () => { clicked++; },
+        ),
+      );
+
+      fireFrame();
+      flock.inputManager._setKey("e", true);
+
+      expect(clicked).to.equal(1);
+    });
+
+    it("after detachInteractIndicator BUTTON2 does not trigger the mesh", function () {
+      const mesh = makeMesh("_test_btn2_detach", [0, 0, 0]);
+      mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+      const triggered = [];
+      const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
+      mesh.actionManager.processTrigger = (trigger, evt) => {
+        triggered.push(trigger);
+        orig(trigger, evt);
+      };
+
+      fireFrame();
+      detachInteractIndicator();
+      flock.inputManager._setKey("e", true);
+
+      expect(triggered).to.be.empty;
     });
   });
 }

@@ -5,6 +5,8 @@ import {
   Color3,
   Vector3,
   Mesh,
+  ActionManager,
+  ActionEvent,
 } from "@babylonjs/core";
 
 const ICON_MESH_NAME = "__flock_interact_indicator";
@@ -14,6 +16,9 @@ const TEX_SIZE = 128;
 let _icon = null;
 let _texture = null;
 let _observer = null;
+let _currentTarget = null;
+let _actionCallback = null;
+let _inputManager = null;
 
 // Resolved once the SVG image element is loaded — reused across attach cycles.
 let _imgPromise = null;
@@ -36,7 +41,7 @@ function _loadSvg() {
 // Kick off SVG loading at module init so it's ready by first attach.
 _loadSvg();
 
-export function attachInteractIndicator(scene) {
+export function attachInteractIndicator(scene, inputManager) {
   if (_icon) return;
 
   _icon = MeshBuilder.CreatePlane(ICON_MESH_NAME, { size: 1 }, scene);
@@ -72,6 +77,23 @@ export function attachInteractIndicator(scene) {
   });
 
   _observer = scene.onBeforeRenderObservable.add(() => _updateIndicator(scene));
+
+  if (inputManager) {
+    _inputManager = inputManager;
+    _actionCallback = (action) => {
+      if (action !== "BUTTON2" || !_currentTarget?.actionManager) return;
+      const target = _currentTarget;
+      target.actionManager.processTrigger(
+        ActionManager.OnPickTrigger,
+        ActionEvent.CreateNew(target),
+      );
+      target.actionManager.processTrigger(
+        ActionManager.OnLeftPickTrigger,
+        ActionEvent.CreateNew(target),
+      );
+    };
+    inputManager.onActionDownObservable.add(_actionCallback);
+  }
 }
 
 function _updateIndicator(scene) {
@@ -84,6 +106,7 @@ function _updateIndicator(scene) {
 
   if (interactables.length === 0) {
     _icon.isVisible = false;
+    _currentTarget = null;
     return;
   }
 
@@ -99,6 +122,7 @@ function _updateIndicator(scene) {
     }
   }
 
+  _currentTarget = closest;
   const meshPos = closest.getAbsolutePosition();
   const dist = closestDist;
 
@@ -114,6 +138,13 @@ function _updateIndicator(scene) {
 }
 
 export function detachInteractIndicator() {
+  if (_actionCallback && _inputManager) {
+    _inputManager.onActionDownObservable.remove(_actionCallback);
+    _actionCallback = null;
+    _inputManager = null;
+  }
+  _currentTarget = null;
+
   if (_observer) {
     const scene = _icon?.getScene?.();
     if (scene) scene.onBeforeRenderObservable.remove(_observer);

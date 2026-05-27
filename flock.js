@@ -2031,7 +2031,7 @@ export const flock = {
       );
     });
 
-    attachInteractIndicator(flock.scene);
+    attachInteractIndicator(flock.scene, flock.inputManager);
 
     // Mark scene as ready
     flock.flockNotReady = false;
