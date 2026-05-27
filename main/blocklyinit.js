@@ -1,8 +1,8 @@
-import * as Blockly from "blockly";
-import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
-import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
-import { initializeTheme } from "./themes.js";
-import { translate } from "./translation.js";
+import * as Blockly from 'blockly';
+import { WorkspaceSearch } from '@blockly/plugin-workspace-search';
+import * as BlockDynamicConnection from '@blockly/block-dynamic-connection';
+import { initializeTheme } from './themes.js';
+import { translate } from './translation.js';
 import {
   options,
   defineBlocks,
@@ -11,30 +11,30 @@ import {
   CustomZelosRenderer,
   initializeVariableIndexes,
   nextVariableIndexes,
-} from "../blocks/blocks";
-import { defineBaseBlocks } from "../blocks/base";
-import { defineShapeBlocks } from "../blocks/shapes";
-import { defineSceneBlocks } from "../blocks/scene.js";
-import { defineModelBlocks } from "../blocks/models.js";
-import { defineEffectsBlocks } from "../blocks/effects.js";
-import { defineCameraBlocks } from "../blocks/camera.js";
-import { defineXRBlocks } from "../blocks/xr.js";
-import { defineEventsBlocks } from "../blocks/events.js";
-import { definePhysicsBlocks } from "../blocks/physics.js";
-import { defineConnectBlocks } from "../blocks/connect.js";
-import { defineCombineBlocks } from "../blocks/combine.js";
-import { defineTransformBlocks } from "../blocks/transform.js";
-import { defineControlBlocks } from "../blocks/control.js";
-import { defineConditionBlocks } from "../blocks/condition.js";
-import { defineAnimateBlocks } from "../blocks/animate.js";
-import { defineSoundBlocks } from "../blocks/sound.js";
-import { defineMaterialsBlocks } from "../blocks/materials.js";
-import { defineColourBlocks } from "../blocks/colour.js";
-import { defineSensingBlocks } from "../blocks/sensing.js";
-import { defineTextBlocks } from "../blocks/text.js";
-import { defineGenerators } from "../generators/generators.js";
-import { registerCustomCommentIcon } from "./customCommentIcon.js";
-import { toolbox as toolboxDef } from "../toolbox.js";
+} from '../blocks/blocks';
+import { defineBaseBlocks } from '../blocks/base';
+import { defineShapeBlocks } from '../blocks/shapes';
+import { defineSceneBlocks } from '../blocks/scene.js';
+import { defineModelBlocks } from '../blocks/models.js';
+import { defineEffectsBlocks } from '../blocks/effects.js';
+import { defineCameraBlocks } from '../blocks/camera.js';
+import { defineXRBlocks } from '../blocks/xr.js';
+import { defineEventsBlocks } from '../blocks/events.js';
+import { definePhysicsBlocks } from '../blocks/physics.js';
+import { defineConnectBlocks } from '../blocks/connect.js';
+import { defineCombineBlocks } from '../blocks/combine.js';
+import { defineTransformBlocks } from '../blocks/transform.js';
+import { defineControlBlocks } from '../blocks/control.js';
+import { defineConditionBlocks } from '../blocks/condition.js';
+import { defineAnimateBlocks } from '../blocks/animate.js';
+import { defineSoundBlocks } from '../blocks/sound.js';
+import { defineMaterialsBlocks } from '../blocks/materials.js';
+import { defineColourBlocks } from '../blocks/colour.js';
+import { defineSensingBlocks } from '../blocks/sensing.js';
+import { defineTextBlocks } from '../blocks/text.js';
+import { defineGenerators } from '../generators/generators.js';
+import { registerCustomCommentIcon } from './customCommentIcon.js';
+import { toolbox as toolboxDef } from '../toolbox.js';
 
 let workspace = null;
 export { workspace };
@@ -45,10 +45,7 @@ function installWorkspaceJumpDebug(workspace) {
 
   let lastFieldEdit = null;
   workspace.addChangeListener((event) => {
-    if (
-      event?.type === Blockly.Events.BLOCK_CHANGE &&
-      event?.element === "field"
-    ) {
+    if (event?.type === Blockly.Events.BLOCK_CHANGE && event?.element === 'field') {
       lastFieldEdit = {
         timestamp: performance.now(),
       };
@@ -62,22 +59,21 @@ function installWorkspaceJumpDebug(workspace) {
       const requestedX = args[0];
       const stack =
         new Error().stack
-          ?.split("\n")
+          ?.split('\n')
           .slice(1, 7)
           .map((line) => line.trim()) || [];
       const msSinceFieldEdit = lastFieldEdit
         ? Math.round(performance.now() - lastFieldEdit.timestamp)
         : null;
       const fromFocusScroll = stack.some(
-        (line) =>
-          line.includes("scrollBoundsIntoView") || line.includes("onNodeFocus"),
+        (line) => line.includes('scrollBoundsIntoView') || line.includes('onNodeFocus')
       );
       const largeHorizontalJump =
-        typeof requestedX === "number" && Math.abs(requestedX - beforeX) > 100;
+        typeof requestedX === 'number' && Math.abs(requestedX - beforeX) > 100;
 
       if (
         fromFocusScroll &&
-        typeof msSinceFieldEdit === "number" &&
+        typeof msSinceFieldEdit === 'number' &&
         msSinceFieldEdit < 1500 &&
         largeHorizontalJump
       ) {
@@ -117,23 +113,16 @@ export function initializeBlocks() {
 Blockly.utils.colour.setHsvSaturation(0.3); // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
 Blockly.utils.colour.setHsvValue(0.85); // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
 
-const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
+const MODE = { IF: 'IF', ELSEIF: 'ELSEIF', ELSE: 'ELSE' };
 
 function initializeIfClauseConnectionChecker(workspace) {
   const connectionChecker = workspace.connectionChecker;
 
   // Store the original doTypeChecks method
-  const originalDoTypeChecks =
-    connectionChecker.doTypeChecks.bind(connectionChecker);
+  const originalDoTypeChecks = connectionChecker.doTypeChecks.bind(connectionChecker);
 
   function isRealBlock(block) {
-    return (
-      !!block &&
-      !(
-        typeof block.isInsertionMarker === "function" &&
-        block.isInsertionMarker()
-      )
-    );
+    return !!block && !(typeof block.isInsertionMarker === 'function' && block.isInsertionMarker());
   }
 
   function realTargetBlock(connection) {
@@ -169,7 +158,7 @@ function initializeIfClauseConnectionChecker(workspace) {
     const stack = getAllBlocksInStack(block);
     // Check if any block after the first one is an if_clause
     for (let i = 1; i < stack.length; i++) {
-      if (stack[i].type === "if_clause") {
+      if (stack[i].type === 'if_clause') {
         return true;
       }
     }
@@ -206,8 +195,8 @@ function initializeIfClauseConnectionChecker(workspace) {
     const blockB = b.getSourceBlock();
 
     // Check if either block is an if_clause
-    const aIsIfClause = blockA.type === "if_clause";
-    const bIsIfClause = blockB.type === "if_clause";
+    const aIsIfClause = blockA.type === 'if_clause';
+    const bIsIfClause = blockB.type === 'if_clause';
 
     if (!aIsIfClause && !bIsIfClause) {
       return true; // Neither is if_clause, allow
@@ -216,17 +205,11 @@ function initializeIfClauseConnectionChecker(workspace) {
     // Determine the type of connection
     let movingBlock, targetBlock, targetConnection;
 
-    if (
-      a.type === Blockly.PREVIOUS_STATEMENT &&
-      b.type === Blockly.NEXT_STATEMENT
-    ) {
+    if (a.type === Blockly.PREVIOUS_STATEMENT && b.type === Blockly.NEXT_STATEMENT) {
       movingBlock = blockA;
       targetBlock = blockB;
       targetConnection = b;
-    } else if (
-      a.type === Blockly.NEXT_STATEMENT &&
-      b.type === Blockly.PREVIOUS_STATEMENT
-    ) {
+    } else if (a.type === Blockly.NEXT_STATEMENT && b.type === Blockly.PREVIOUS_STATEMENT) {
       movingBlock = blockB;
       targetBlock = blockA;
       targetConnection = a;
@@ -240,8 +223,8 @@ function initializeIfClauseConnectionChecker(workspace) {
     if (isTargetStatementInput) {
       // This is connecting into a statement input (like DO)
       // ELSEIF and ELSE cannot go inside DO blocks
-      if (movingBlock.type === "if_clause") {
-        const movingMode = movingBlock.getFieldValue("MODE");
+      if (movingBlock.type === 'if_clause') {
+        const movingMode = movingBlock.getFieldValue('MODE');
         if (movingMode === MODE.ELSEIF || movingMode === MODE.ELSE) {
           return false;
         }
@@ -252,12 +235,12 @@ function initializeIfClauseConnectionChecker(workspace) {
 
     // This is a chain connection (previous connecting to next)
     const connectingToNext = targetConnection === targetBlock.nextConnection;
-    const movingIsIfClause = movingBlock.type === "if_clause";
-    const targetIsIfClause = targetBlock.type === "if_clause";
+    const movingIsIfClause = movingBlock.type === 'if_clause';
+    const targetIsIfClause = targetBlock.type === 'if_clause';
 
     // If moving block is if_clause, validate its rules
     if (movingIsIfClause) {
-      const movingMode = movingBlock.getFieldValue("MODE");
+      const movingMode = movingBlock.getFieldValue('MODE');
       const movingHasIfClauseBelow = hasIfClauseInStack(movingBlock);
 
       // IF blocks can connect anywhere (they start a new chain)
@@ -269,7 +252,7 @@ function initializeIfClauseConnectionChecker(workspace) {
         // Moving block is connecting AFTER target
 
         if (targetIsIfClause) {
-          const targetMode = targetBlock.getFieldValue("MODE");
+          const targetMode = targetBlock.getFieldValue('MODE');
 
           // Rule 1: Nothing can connect after ELSE.
           // During drag-and-drop reject to give visual feedback.
@@ -288,11 +271,7 @@ function initializeIfClauseConnectionChecker(workspace) {
           // When not dragging (e.g. a MODE field change), keep the connection
           // and let validateIfClausePositions disable the block in-place.
           const targetHasNext = realNext(targetBlock);
-          if (
-            targetHasNext &&
-            targetHasNext.type === "if_clause" &&
-            movingMode === MODE.ELSE
-          ) {
+          if (targetHasNext && targetHasNext.type === 'if_clause' && movingMode === MODE.ELSE) {
             if (workspace.isDragging()) return false;
           }
         } else {
@@ -315,11 +294,11 @@ function initializeIfClauseConnectionChecker(workspace) {
 
           // Rule 2: Cannot insert if target is part of a chain after ELSE
           let current = targetBlock;
-          while (current && current.type === "if_clause") {
+          while (current && current.type === 'if_clause') {
             const prev = realPrev(current);
-            if (!prev || prev.type !== "if_clause") break;
+            if (!prev || prev.type !== 'if_clause') break;
 
-            const prevMode = prev.getFieldValue("MODE");
+            const prevMode = prev.getFieldValue('MODE');
             if (prevMode === MODE.ELSE) {
               return false;
             }
@@ -337,14 +316,14 @@ function initializeIfClauseConnectionChecker(workspace) {
 
     // If target is if_clause but moving block is not, additional checks
     if (targetIsIfClause && !movingIsIfClause) {
-      const targetMode = targetBlock.getFieldValue("MODE");
+      const targetMode = targetBlock.getFieldValue('MODE');
 
       if (connectingToNext) {
         // Non-if_clause connecting after if_clause
         // Only allow if target is at the end of chain (no if_clause blocks after)
         const targetHasNext = realNext(targetBlock);
 
-        if (targetHasNext && targetHasNext.type === "if_clause") {
+        if (targetHasNext && targetHasNext.type === 'if_clause') {
           // Target has if_clause blocks after it, cannot insert non-if_clause
           return false;
         }
@@ -366,7 +345,7 @@ function initializeIfClauseConnectionChecker(workspace) {
 
   // Disable reason used to mark if_clause blocks that are structurally
   // connected but in an invalid position (e.g. ELSEIF after a regular block).
-  const INVALID_IF_CLAUSE_REASON = "INVALID_IF_CLAUSE_POSITION";
+  const INVALID_IF_CLAUSE_REASON = 'INVALID_IF_CLAUSE_POSITION';
 
   // Scan all if_clause blocks and disable/enable them based on whether their
   // predecessor is a valid if_clause.  Runs with events disabled so the
@@ -375,9 +354,9 @@ function initializeIfClauseConnectionChecker(workspace) {
     Blockly.Events.disable();
     try {
       for (const block of workspace.getAllBlocks(false)) {
-        if (block.type !== "if_clause") continue;
+        if (block.type !== 'if_clause') continue;
 
-        const mode = block.getFieldValue("MODE");
+        const mode = block.getFieldValue('MODE');
 
         // IF blocks can start a chain anywhere — always positionally valid.
         if (mode === MODE.IF) {
@@ -396,8 +375,7 @@ function initializeIfClauseConnectionChecker(workspace) {
         }
 
         const validPrev =
-          prevBlock.type === "if_clause" &&
-          prevBlock.getFieldValue("MODE") !== MODE.ELSE;
+          prevBlock.type === 'if_clause' && prevBlock.getFieldValue('MODE') !== MODE.ELSE;
 
         block.setDisabledReason(!validPrev, INVALID_IF_CLAUSE_REASON);
       }
@@ -416,8 +394,8 @@ function initializeIfClauseConnectionChecker(workspace) {
         event.type === Blockly.Events.BLOCK_CREATE ||
         event.type === Blockly.Events.BLOCK_DELETE ||
         (event.type === Blockly.Events.BLOCK_CHANGE &&
-          event.element === "field" &&
-          event.name === "MODE"))
+          event.element === 'field' &&
+          event.name === 'MODE'))
     ) {
       validateIfClausePositions();
     }
@@ -433,20 +411,20 @@ export function initializeWorkspace() {
   Blockly.utils.colour.setHsvValue(0.85);
 
   // Register variable category callback
-  workspace.registerToolboxCategoryCallback("VARIABLE", function (ws) {
+  workspace.registerToolboxCategoryCallback('VARIABLE', function (ws) {
     const xmlList = Blockly.Variables.flyoutCategory(ws);
 
     xmlList.forEach((xmlBlock) => {
-      if (xmlBlock.getAttribute("type") === "variables_set") {
-        const valueElement = document.createElement("value");
-        valueElement.setAttribute("name", "VALUE");
+      if (xmlBlock.getAttribute('type') === 'variables_set') {
+        const valueElement = document.createElement('value');
+        valueElement.setAttribute('name', 'VALUE');
 
-        const shadowElement = document.createElement("shadow");
-        shadowElement.setAttribute("type", "math_number");
+        const shadowElement = document.createElement('shadow');
+        shadowElement.setAttribute('type', 'math_number');
 
-        const fieldElement = document.createElement("field");
-        fieldElement.setAttribute("name", "NUM");
-        fieldElement.textContent = "0";
+        const fieldElement = document.createElement('field');
+        fieldElement.setAttribute('name', 'NUM');
+        fieldElement.textContent = '0';
 
         shadowElement.appendChild(fieldElement);
         valueElement.appendChild(shadowElement);
@@ -455,23 +433,23 @@ export function initializeWorkspace() {
     });
 
     const defaultBlock = xmlList.find(
-      (xmlBlock) => xmlBlock.getAttribute("type") === "variables_set",
+      (xmlBlock) => xmlBlock.getAttribute('type') === 'variables_set'
     );
     if (defaultBlock) {
       const xmlBlockText = defaultBlock.cloneNode(true);
 
-      const valueElements = xmlBlockText.getElementsByTagName("value");
+      const valueElements = xmlBlockText.getElementsByTagName('value');
       for (let i = 0; i < valueElements.length; i++) {
-        if (valueElements[i].getAttribute("name") === "VALUE") {
+        if (valueElements[i].getAttribute('name') === 'VALUE') {
           while (valueElements[i].firstChild) {
             valueElements[i].removeChild(valueElements[i].firstChild);
           }
-          const shadowText = document.createElement("shadow");
-          shadowText.setAttribute("type", "text");
+          const shadowText = document.createElement('shadow');
+          shadowText.setAttribute('type', 'text');
 
-          const fieldText = document.createElement("field");
-          fieldText.setAttribute("name", "TEXT");
-          fieldText.textContent = "";
+          const fieldText = document.createElement('field');
+          fieldText.setAttribute('name', 'TEXT');
+          fieldText.textContent = '';
           shadowText.appendChild(fieldText);
           valueElements[i].appendChild(shadowText);
           break;
@@ -486,7 +464,7 @@ export function initializeWorkspace() {
     return xmlList;
   });
 
-  workspace.registerToolboxCategoryCallback("LIST", function (ws) {
+  workspace.registerToolboxCategoryCallback('LIST', function (ws) {
     const xmlList = [];
     const variableMap = ws.getVariableMap();
     const getNextListName = () => {
@@ -502,17 +480,17 @@ export function initializeWorkspace() {
     };
 
     const createSetListBlock = (valueBuilder) => {
-      const block = document.createElement("block");
-      block.setAttribute("type", "variables_set");
+      const block = document.createElement('block');
+      block.setAttribute('type', 'variables_set');
 
-      const field = document.createElement("field");
-      field.setAttribute("name", "VAR");
-      field.setAttribute("variabletype", "");
+      const field = document.createElement('field');
+      field.setAttribute('name', 'VAR');
+      field.setAttribute('variabletype', '');
       field.textContent = getNextListName();
       block.appendChild(field);
 
-      const value = document.createElement("value");
-      value.setAttribute("name", "VALUE");
+      const value = document.createElement('value');
+      value.setAttribute('name', 'VALUE');
       value.appendChild(valueBuilder());
       block.appendChild(value);
 
@@ -520,27 +498,23 @@ export function initializeWorkspace() {
     };
 
     const createListShadow = (shadowType, values) => {
-      const shadow = document.createElement("shadow");
-      shadow.setAttribute("type", "lists_create_with");
-      shadow.setAttribute("inline", "true");
+      const shadow = document.createElement('shadow');
+      shadow.setAttribute('type', 'lists_create_with');
+      shadow.setAttribute('inline', 'true');
 
-      const mutation = document.createElement("mutation");
-      mutation.setAttribute("items", "2");
+      const mutation = document.createElement('mutation');
+      mutation.setAttribute('items', '2');
       shadow.appendChild(mutation);
 
       values.forEach((value, index) => {
-        const valueNode = document.createElement("value");
-        valueNode.setAttribute("name", `ADD${index}`);
-        const childShadow = document.createElement("shadow");
-        childShadow.setAttribute("type", shadowType);
-        const field = document.createElement("field");
+        const valueNode = document.createElement('value');
+        valueNode.setAttribute('name', `ADD${index}`);
+        const childShadow = document.createElement('shadow');
+        childShadow.setAttribute('type', shadowType);
+        const field = document.createElement('field');
         field.setAttribute(
-          "name",
-          shadowType === "math_number"
-            ? "NUM"
-            : shadowType === "colour"
-              ? "COLOR"
-              : "TEXT",
+          'name',
+          shadowType === 'math_number' ? 'NUM' : shadowType === 'colour' ? 'COLOR' : 'TEXT'
         );
         field.textContent = String(value);
         childShadow.appendChild(field);
@@ -553,47 +527,41 @@ export function initializeWorkspace() {
 
     xmlList.push(
       createSetListBlock(() => {
-        const shadow = document.createElement("shadow");
-        shadow.setAttribute("type", "lists_create_empty");
+        const shadow = document.createElement('shadow');
+        shadow.setAttribute('type', 'lists_create_empty');
         return shadow;
-      }),
+      })
     );
-    xmlList.push(
-      createSetListBlock(() => createListShadow("math_number", [1, 2])),
-    );
-    xmlList.push(createSetListBlock(() => createListShadow("text", ["", ""])));
-    xmlList.push(
-      createSetListBlock(() =>
-        createListShadow("colour", ["#ff0000", "#0000ff"]),
-      ),
-    );
+    xmlList.push(createSetListBlock(() => createListShadow('math_number', [1, 2])));
+    xmlList.push(createSetListBlock(() => createListShadow('text', ['', ''])));
+    xmlList.push(createSetListBlock(() => createListShadow('colour', ['#ff0000', '#0000ff'])));
 
-    const addItemBlock = document.createElement("block");
-    addItemBlock.setAttribute("type", "lists_add_item");
+    const addItemBlock = document.createElement('block');
+    addItemBlock.setAttribute('type', 'lists_add_item');
 
-    const toValue = document.createElement("value");
-    toValue.setAttribute("name", "TO");
-    const toShadow = document.createElement("shadow");
-    toShadow.setAttribute("type", "text");
-    const toField = document.createElement("field");
-    toField.setAttribute("name", "TEXT");
-    toField.textContent = "";
+    const toValue = document.createElement('value');
+    toValue.setAttribute('name', 'TO');
+    const toShadow = document.createElement('shadow');
+    toShadow.setAttribute('type', 'text');
+    const toField = document.createElement('field');
+    toField.setAttribute('name', 'TEXT');
+    toField.textContent = '';
     toShadow.appendChild(toField);
     toValue.appendChild(toShadow);
     addItemBlock.appendChild(toValue);
 
     xmlList.push(addItemBlock);
 
-    const deleteItemBlock = document.createElement("block");
-    deleteItemBlock.setAttribute("type", "lists_delete_nth");
+    const deleteItemBlock = document.createElement('block');
+    deleteItemBlock.setAttribute('type', 'lists_delete_nth');
 
-    const indexValue = document.createElement("value");
-    indexValue.setAttribute("name", "INDEX");
-    const indexShadow = document.createElement("shadow");
-    indexShadow.setAttribute("type", "math_number");
-    const indexField = document.createElement("field");
-    indexField.setAttribute("name", "NUM");
-    indexField.textContent = "1";
+    const indexValue = document.createElement('value');
+    indexValue.setAttribute('name', 'INDEX');
+    const indexShadow = document.createElement('shadow');
+    indexShadow.setAttribute('type', 'math_number');
+    const indexField = document.createElement('field');
+    indexField.setAttribute('name', 'NUM');
+    indexField.textContent = '1';
     indexShadow.appendChild(indexField);
     indexValue.appendChild(indexShadow);
     deleteItemBlock.appendChild(indexValue);
@@ -601,22 +569,22 @@ export function initializeWorkspace() {
     xmlList.push(deleteItemBlock);
 
     [
-      "lists_create_empty",
-      "lists_create_with",
-      "lists_repeat",
-      "lists_length",
-      "lists_isEmpty",
-      "lists_indexOf",
-      "lists_getIndex",
-      "lists_setIndex",
-      "lists_getSublist",
-      "lists_split",
-      "lists_sort",
+      'lists_create_empty',
+      'lists_create_with',
+      'lists_repeat',
+      'lists_length',
+      'lists_isEmpty',
+      'lists_indexOf',
+      'lists_getIndex',
+      'lists_setIndex',
+      'lists_getSublist',
+      'lists_split',
+      'lists_sort',
     ].forEach((type) => {
-      const block = document.createElement("block");
-      block.setAttribute("type", type);
-      if (type === "lists_create_with") {
-        block.setAttribute("inline", "true");
+      const block = document.createElement('block');
+      block.setAttribute('type', type);
+      if (type === 'lists_create_with') {
+        block.setAttribute('inline', 'true');
       }
       xmlList.push(block);
     });
@@ -631,15 +599,14 @@ export function initializeWorkspace() {
 
   // Initialize workspace search
   const workspaceSearch = new WorkspaceSearch(workspace);
-  const originalWorkspaceSearchKeydown =
-    workspaceSearch.onWorkspaceKeyDown?.bind(workspaceSearch);
+  const originalWorkspaceSearchKeydown = workspaceSearch.onWorkspaceKeyDown?.bind(workspaceSearch);
   if (originalWorkspaceSearchKeydown) {
     workspaceSearch.onWorkspaceKeyDown = (e) => {
       const activeElement = document.activeElement;
       const inToolboxContext = !!activeElement?.closest?.(
-        ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout",
+        '.blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout'
       );
-      if ((e.ctrlKey || e.metaKey) && e.key === "f" && inToolboxContext) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f' && inToolboxContext) {
         return;
       }
       originalWorkspaceSearchKeydown(e);
@@ -649,19 +616,17 @@ export function initializeWorkspace() {
 
   // Mobile: custom HTML search results panel (bypasses the SVG flyout entirely)
   requestAnimationFrame(() => {
-    const searchInput = document.querySelector(
-      ".blocklyToolbox input[type='search']",
-    );
+    const searchInput = document.querySelector(".blocklyToolbox input[type='search']");
     if (!searchInput) return;
 
     const originalParent = searchInput.parentElement;
-    const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
+    const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
 
     // Get the toolbox search category to reuse its trigram blockSearcher
     const toolboxInstance = workspace.getToolbox();
     const searchCategory = toolboxInstance
       ?.getToolboxItems?.()
-      .find((item) => item.getId?.() === "toolbox-search-input");
+      .find((item) => item.getId?.() === 'toolbox-search-input');
 
     // Resolve a categorystyle name to a hex color via the current theme
     const theme = workspace.getTheme();
@@ -671,15 +636,14 @@ export function initializeWorkspace() {
       if (themeColour === undefined || themeColour === null) return null;
       // Resolve Blockly message references e.g. "%{BKY_LOOPS_HUE}"
       if (
-        typeof themeColour === "string" &&
-        themeColour.startsWith("%{BKY_") &&
-        themeColour.endsWith("}")
+        typeof themeColour === 'string' &&
+        themeColour.startsWith('%{BKY_') &&
+        themeColour.endsWith('}')
       ) {
         const key = themeColour.slice(6, -1);
         themeColour = Blockly.Msg?.[key] ?? themeColour;
       }
-      if (typeof themeColour === "string" && themeColour.startsWith("#"))
-        return themeColour;
+      if (typeof themeColour === 'string' && themeColour.startsWith('#')) return themeColour;
       const hue = parseFloat(themeColour);
       if (isNaN(hue)) return null;
       return Blockly.utils.colour.hueToHex(hue);
@@ -689,18 +653,18 @@ export function initializeWorkspace() {
     const blockCategoryMap = new Map();
     const walkToolbox = (node, categoryName, categoryColor) => {
       if (!node) return;
-      if (node.kind === "block" && node.type) {
+      if (node.kind === 'block' && node.type) {
         blockCategoryMap.set(node.type, { name: categoryName, color: categoryColor });
       }
       if (node.contents) {
         let name = node.name || categoryName;
-        if (name?.startsWith("%{BKY_") && name.endsWith("}")) {
+        if (name?.startsWith('%{BKY_') && name.endsWith('}')) {
           const key = name.slice(6, -1);
           name =
             Blockly.Msg?.[key] ||
             key
-              .replace(/^CATEGORY_/, "")
-              .replace(/_/g, " ")
+              .replace(/^CATEGORY_/, '')
+              .replace(/_/g, ' ')
               .toLowerCase()
               .replace(/^./, (c) => c.toUpperCase());
         }
@@ -711,29 +675,68 @@ export function initializeWorkspace() {
         node.contents.forEach((child) => walkToolbox(child, name, color));
       }
     };
-    walkToolbox(toolboxDef, "", null);
+    walkToolbox(toolboxDef, '', null);
+
+    // Human-readable label overrides for blocks whose type names are cryptic
+    const BLOCK_LABELS = {
+      // Control
+      controls_repeat_ext: 'Repeat X times', // "Controls repeat ext"
+      controls_whileUntil: 'Repeat while / until', // "Controls whileUntil"
+      controls_for: 'For loop - counter', // "Controls for"
+      controls_forEach: 'For each item in list', // "Controls forEach"
+      controls_flow_statements: 'Break/continue', // "Controls flow statements"
+      // Condition
+      logic_compare: 'Compare', // "Logic compare"
+      logic_operation: 'And / Or', // "Logic operation"
+      logic_negate: 'Not', // "Logic negate"
+      logic_boolean: 'True / False', // "Logic boolean"
+      logic_null: 'Null', // "Logic null"
+      logic_ternary: 'Choose A or B', // "Logic ternary"
+      // Math
+      math_number: 'Number', // "Math number"
+      math_arithmetic: 'Arithmetic', // "Math arithmetic"
+      math_single: 'Math function', // "Math single"
+      math_trig: 'Trig function', // "Math trig"
+      math_constant: 'Math constant', // "Math constant"
+      math_number_property: 'Check if number is odd, even, positive, prime...', // "Math number property"
+      math_round: 'Round a number', // "Math round"
+      math_on_list: 'List sum/min/max/average...', // "Math on list"
+      math_modulo: 'Remainder', // "Math modulo"
+      math_constrain: 'Set min/max', // "Math constrain"
+      math_random_int: 'Random whole number', // "Math random int"
+      math_random_float: 'Random decimal', // "Math random float"
+      // Lists
+      lists_create_with: 'Create list', // "Lists create with"
+      lists_repeat: 'List of repeated items', // "Lists repeat"
+      lists_length: 'Length of list', // "Lists length"
+      lists_isEmpty: 'List empty?', // "Lists isEmpty"
+      lists_indexOf: 'Find item in list', // "Lists indexOf"
+      lists_getIndex: 'Get item from list', // "Lists getIndex"
+      lists_setIndex: 'Set item in list', // "Lists setIndex"
+      lists_getSublist: 'Get part of list', // "Lists getSublist"
+      lists_split: 'Split/join list', // "Lists split"
+      lists_sort: 'Sort list', // "Lists sort"
+    };
 
     // Build overlay bar
-    const overlay = document.createElement("div");
-    overlay.className = "mobile-search-overlay";
+    const overlay = document.createElement('div');
+    overlay.className = 'mobile-search-overlay';
 
-    const cancelBtn = document.createElement("button");
-    cancelBtn.type = "button";
-    cancelBtn.className = "mobile-search-cancel";
-    cancelBtn.textContent = "×";
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'mobile-search-cancel';
+    cancelBtn.textContent = '×';
     overlay.appendChild(cancelBtn);
 
     // Build results panel
-    const resultsPanel = document.createElement("div");
-    resultsPanel.className = "mobile-search-results";
+    const resultsPanel = document.createElement('div');
+    resultsPanel.className = 'mobile-search-results';
 
     const addBlockToCenter = (blockDef) => {
       if (!Blockly.Blocks[blockDef.type]) return;
       const metrics = workspace.getMetrics();
-      const cx =
-        (metrics.viewWidth / 2 - workspace.scrollX) / workspace.scale;
-      const cy =
-        (metrics.viewHeight / 2 - workspace.scrollY) / workspace.scale;
+      const cx = (metrics.viewWidth / 2 - workspace.scrollX) / workspace.scale;
+      const cy = (metrics.viewHeight / 2 - workspace.scrollY) / workspace.scale;
       // Build serialization state from toolbox definition — same format,
       // just strip toolbox-only fields and inject position
       const state = { ...blockDef, x: cx, y: cy };
@@ -750,32 +753,29 @@ export function initializeWorkspace() {
         return;
       }
 
-      const matches =
-        searchCategory?.blockSearcher?.blockTypesMatching(query) ?? [];
+      const matches = searchCategory?.blockSearcher?.blockTypesMatching(query) ?? [];
 
       if (matches.length === 0) {
-        resultsPanel.innerHTML =
-          '<div class="mobile-search-empty">No blocks found</div>';
+        resultsPanel.innerHTML = '<div class="mobile-search-empty">No blocks found</div>';
         return;
       }
 
-      resultsPanel.innerHTML = "";
+      resultsPanel.innerHTML = '';
       matches.slice(0, 60).forEach((blockDef) => {
         const type = blockDef.type;
         if (!type || !Blockly.Blocks[type]) return;
 
-        const label = type
-          .replace(/_/g, " ")
-          .replace(/^./, (c) => c.toUpperCase());
-        const { name: category, color } = blockCategoryMap.get(type) ?? { name: "", color: null };
+        const label =
+          BLOCK_LABELS[type] || type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
+        const { name: category, color } = blockCategoryMap.get(type) ?? { name: '', color: null };
 
-        const item = document.createElement("button");
-        item.type = "button";
-        item.className = "mobile-search-result-item";
-        const pillStyle = color ? ` style="background-color:${color}"` : "";
-        item.innerHTML = `<span class="mobile-search-result-name">${label}</span>${category ? `<span class="mobile-search-result-category"${pillStyle}>${category}</span>` : ""}`;
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'mobile-search-result-item';
+        const pillStyle = color ? ` style="background-color:${color}"` : '';
+        item.innerHTML = `<span class="mobile-search-result-name">${label}</span>${category ? `<span class="mobile-search-result-category"${pillStyle}>${category}</span>` : ''}`;
 
-        item.addEventListener("click", () => {
+        item.addEventListener('click', () => {
           if (overlay.isConnected) {
             addBlockToCenter(blockDef);
             closeOverlay();
@@ -809,24 +809,24 @@ export function initializeWorkspace() {
         searchCategory.matchBlocks = searchCategory._mobileMatchBlocks;
         delete searchCategory._mobileMatchBlocks;
       }
-      searchInput.value = "";
+      searchInput.value = '';
       originalParent.appendChild(searchInput);
       overlay.remove();
       resultsPanel.remove();
-      resultsPanel.innerHTML = "";
+      resultsPanel.innerHTML = '';
     };
 
-    cancelBtn.addEventListener("mousedown", (e) => e.preventDefault());
-    cancelBtn.addEventListener("click", closeOverlay);
+    cancelBtn.addEventListener('mousedown', (e) => e.preventDefault());
+    cancelBtn.addEventListener('click', closeOverlay);
 
-    searchInput.addEventListener("blur", () => {
+    searchInput.addEventListener('blur', () => {
       if (!overlay.isConnected) return;
       blurTimeout = setTimeout(() => {
         if (overlay.isConnected) closeOverlay();
       }, 150);
     });
 
-    searchInput.addEventListener("focus", () => {
+    searchInput.addEventListener('focus', () => {
       clearTimeout(blurTimeout);
       blurTimeout = null;
       if (!overlay.isConnected && isMobile()) openOverlay();
@@ -834,33 +834,33 @@ export function initializeWorkspace() {
 
     // Scrolling the results panel should not trigger the blur-close timeout
     resultsPanel.addEventListener(
-      "touchstart",
+      'touchstart',
       () => {
         clearTimeout(blurTimeout);
         blurTimeout = null;
       },
-      { passive: true },
+      { passive: true }
     );
 
-    searchInput.addEventListener("input", () => {
+    searchInput.addEventListener('input', () => {
       if (overlay.isConnected) updateResults();
     });
-    searchInput.addEventListener("keyup", () => {
+    searchInput.addEventListener('keyup', () => {
       if (overlay.isConnected) updateResults();
     });
   });
 
   // Fade non-matching blocks during search
-  const blocklyDiv = document.getElementById("blocklyDiv");
+  const blocklyDiv = document.getElementById('blocklyDiv');
   const originalOpen = workspaceSearch.open.bind(workspaceSearch);
   const originalClose = workspaceSearch.close.bind(workspaceSearch);
   workspaceSearch.open = function () {
     originalOpen();
-    blocklyDiv?.classList.add("blockly-search-active");
+    blocklyDiv?.classList.add('blockly-search-active');
   };
   workspaceSearch.close = function () {
     originalClose();
-    blocklyDiv?.classList.remove("blockly-search-active");
+    blocklyDiv?.classList.remove('blockly-search-active');
   };
 
   // Override highlight methods to work at block-group level so the plugin's
@@ -868,29 +868,27 @@ export function initializeWorkspace() {
   workspaceSearch.highlightSearchGroup = function (blocks) {
     const matchTopIds = new Set();
     blocks.forEach((block) => {
-      block.getSvgRoot()?.classList.add("ws-search-match");
+      block.getSvgRoot()?.classList.add('ws-search-match');
       let top = block;
       while (top.getSurroundParent()) top = top.getSurroundParent();
       matchTopIds.add(top.id);
     });
     workspace.getTopBlocks(false).forEach((block) => {
       if (!matchTopIds.has(block.id)) {
-        block.getSvgRoot()?.classList.add("ws-search-fade");
+        block.getSvgRoot()?.classList.add('ws-search-fade');
       }
     });
   };
   workspaceSearch.unhighlightSearchGroup = function (blocks) {
-    blocks.forEach((block) =>
-      block.getSvgRoot()?.classList.remove("ws-search-match"),
-    );
+    blocks.forEach((block) => block.getSvgRoot()?.classList.remove('ws-search-match'));
     workspace.getTopBlocks(false).forEach((block) => {
-      block.getSvgRoot()?.classList.remove("ws-search-fade");
+      block.getSvgRoot()?.classList.remove('ws-search-fade');
     });
   };
   workspaceSearch.highlightCurrentSelection = function (block) {
     const svg = block.getSvgRoot();
     if (svg) {
-      svg.classList.add("ws-search-current");
+      svg.classList.add('ws-search-current');
       let top = block;
       while (top.getSurroundParent()) top = top.getSurroundParent();
       const topSvg = top.getSvgRoot();
@@ -898,14 +896,14 @@ export function initializeWorkspace() {
     }
   };
   workspaceSearch.unhighlightCurrentSelection = function (block) {
-    block.getSvgRoot()?.classList.remove("ws-search-current");
+    block.getSvgRoot()?.classList.remove('ws-search-current');
   };
 
   // Override the workspace centering for workspace search as it jumps all over the place by default!
   const originalCenter = workspace.centerOnBlock.bind(workspace);
 
   workspace.centerOnBlock = function (blockId) {
-    if (workspaceSearch && workspaceSearch.htmlDiv.style.display !== "none") {
+    if (workspaceSearch && workspaceSearch.htmlDiv.style.display !== 'none') {
       const block = this.getBlockById(blockId);
       if (block) {
         const scale = this.scale;
@@ -916,7 +914,7 @@ export function initializeWorkspace() {
         if (searchTerm) {
           for (const input of block.inputList) {
             const match = input.fieldRow.some((f) =>
-              f.getText().toLowerCase().includes(searchTerm),
+              f.getText().toLowerCase().includes(searchTerm)
             );
             if (match) {
               const fieldGui = input.fieldRow[0]?.getSvgRoot();
@@ -946,8 +944,7 @@ export function initializeWorkspace() {
         // We ignore the specific row's internal X offset to keep it stable.
         let finalScrollX = this.scrollX;
         const isHorizontallyVisible =
-          currentBlockX >= leftMargin - buffer &&
-          currentBlockX + blockWidth <= viewportWidth;
+          currentBlockX >= leftMargin - buffer && currentBlockX + blockWidth <= viewportWidth;
 
         if (!isHorizontallyVisible) {
           finalScrollX = -blockXY.x * scale + leftMargin;
@@ -988,8 +985,8 @@ export function createBlocklyWorkspace() {
   // Register the custom renderer
   Blockly.registry.register(
     Blockly.registry.Type.RENDERER,
-    "custom_zelos_renderer",
-    CustomZelosRenderer,
+    'custom_zelos_renderer',
+    CustomZelosRenderer
   );
 
   registerCustomCommentIcon();
@@ -1021,8 +1018,8 @@ export function createBlocklyWorkspace() {
       for (const candidate of this.getToolboxItems()) {
         if (keepOpen.has(candidate)) continue;
         if (
-          typeof candidate.isExpanded !== "function" ||
-          typeof candidate.setExpanded !== "function"
+          typeof candidate.isExpanded !== 'function' ||
+          typeof candidate.setExpanded !== 'function'
         ) {
           continue;
         }
@@ -1034,17 +1031,14 @@ export function createBlocklyWorkspace() {
   }
 
   // Register it before inject
-  Blockly.registry.unregister(
-    Blockly.registry.Type.TOOLBOX,
-    Blockly.registry.DEFAULT,
-  );
+  Blockly.registry.unregister(Blockly.registry.Type.TOOLBOX, Blockly.registry.DEFAULT);
   Blockly.registry.register(
     Blockly.registry.Type.TOOLBOX,
     Blockly.registry.DEFAULT,
-    NavigationDeferringToolbox,
+    NavigationDeferringToolbox
   );
 
-  workspace = Blockly.inject("blocklyDiv", options);
+  workspace = Blockly.inject('blocklyDiv', options);
   installWorkspaceJumpDebug(workspace);
 
   let activeXyzBlock = null;
@@ -1053,25 +1047,22 @@ export function createBlocklyWorkspace() {
     if (event.type !== Blockly.Events.SELECTED) return;
 
     if (!event.newElementId) {
-      const widgetDiv = document.querySelector(".blocklyWidgetDiv");
+      const widgetDiv = document.querySelector('.blocklyWidgetDiv');
       if (widgetDiv?.childElementCount > 0) return;
-      activeXyzBlock?.getSvgRoot()?.removeAttribute("data-xyz-active");
+      activeXyzBlock?.getSvgRoot()?.removeAttribute('data-xyz-active');
       activeXyzBlock = null;
       return;
     }
 
     let block = workspace.getBlockById(event.newElementId);
-    while (
-      block &&
-      !block.inputList?.some((i) => ["X", "Y", "Z"].includes(i.name))
-    ) {
+    while (block && !block.inputList?.some((i) => ['X', 'Y', 'Z'].includes(i.name))) {
       block = block.getParent?.() ?? null;
     }
 
     if (block !== activeXyzBlock) {
-      activeXyzBlock?.getSvgRoot()?.removeAttribute("data-xyz-active");
+      activeXyzBlock?.getSvgRoot()?.removeAttribute('data-xyz-active');
       activeXyzBlock = block ?? null;
-      activeXyzBlock?.getSvgRoot()?.setAttribute("data-xyz-active", "");
+      activeXyzBlock?.getSvgRoot()?.setAttribute('data-xyz-active', '');
     }
   });
 
@@ -1085,65 +1076,54 @@ export function createBlocklyWorkspace() {
   (function wireToolboxKeyboardOverrides() {
     if (!toolbox) return;
     const host = workspace.getInjectionDiv?.() || document;
-    const toolboxDiv =
-      toolbox.HtmlDiv || document.querySelector(".blocklyToolboxDiv");
+    const toolboxDiv = toolbox.HtmlDiv || document.querySelector('.blocklyToolboxDiv');
     if (!toolboxDiv) return;
-    let categoryTypePrefix = "";
-    const TOOLBOX_OR_FLYOUT_SELECTOR =
-      ".blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout";
+    let categoryTypePrefix = '';
+    const TOOLBOX_OR_FLYOUT_SELECTOR = '.blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout';
 
     const resetCategoryTypePrefix = () => {
-      categoryTypePrefix = "";
+      categoryTypePrefix = '';
     };
     const stopEvent = (event) => {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
     };
-    const isInToolboxOrFlyout = (element) =>
-      !!element?.closest?.(TOOLBOX_OR_FLYOUT_SELECTOR);
+    const isInToolboxOrFlyout = (element) => !!element?.closest?.(TOOLBOX_OR_FLYOUT_SELECTOR);
     const isEditableTarget = (target) =>
       !!(
         target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable)
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
       );
 
     const isToolboxContext = (element) =>
-      !!element?.closest?.(".blocklyToolboxDiv, .blocklyToolbox");
+      !!element?.closest?.('.blocklyToolboxDiv, .blocklyToolbox');
     const isFlyoutContext = (element) =>
-      !!element?.closest?.(".blocklyFlyout, .blocklyFlyoutEntry");
+      !!element?.closest?.('.blocklyFlyout, .blocklyFlyoutEntry');
 
     const normalizeLabel = (label) =>
-      (label || "")
+      (label || '')
         .toLowerCase()
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "")
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
         .trim();
 
     const getMatchableCategories = () =>
       (toolbox.getToolboxItems?.() || []).filter((item) => {
-        const def =
-          item.getToolboxItemDef?.() ||
-          item.toolboxItemDef ||
-          item.toolboxItemDef_;
-        const kind = (def?.kind || "").toLowerCase();
-        return kind === "category";
+        const def = item.getToolboxItemDef?.() || item.toolboxItemDef || item.toolboxItemDef_;
+        const kind = (def?.kind || '').toLowerCase();
+        return kind === 'category';
       });
 
     const getParentCategory = (item) =>
-      item?.getParent?.() ||
-      item?.parentToolboxItem_ ||
-      item?.parentItem_ ||
-      item?.parent_;
+      item?.getParent?.() || item?.parentToolboxItem_ || item?.parentItem_ || item?.parent_;
 
     const expandCategoryBranch = (item) => {
       const seen = new Set();
       let current = item;
       while (current && !seen.has(current)) {
         seen.add(current);
-        if (typeof current.setExpanded === "function") {
+        if (typeof current.setExpanded === 'function') {
           current.setExpanded(true);
         }
         current = getParentCategory(current);
@@ -1156,8 +1136,7 @@ export function createBlocklyWorkspace() {
       if (!normalizedPrefix) return false;
 
       const match = getMatchableCategories().find((item) => {
-        const label =
-          item.getName?.() || item.getToolboxItemDef?.()?.name || "";
+        const label = item.getName?.() || item.getToolboxItemDef?.()?.name || '';
         return normalizeLabel(label).startsWith(normalizedPrefix);
       });
       if (!match) return false;
@@ -1177,26 +1156,22 @@ export function createBlocklyWorkspace() {
 
       focusManager?.focusTree?.(toolbox);
       const isSelectable =
-        typeof selectedItem.isSelectable === "function"
-          ? selectedItem.isSelectable()
-          : true;
+        typeof selectedItem.isSelectable === 'function' ? selectedItem.isSelectable() : true;
       if (isSelectable) {
         focusManager?.focusNode?.(selectedItem);
       } else {
         toolboxDiv.focus();
       }
-      const selectedClickTarget =
-        selectedItem.getClickTarget?.() || selectedItem.getDiv?.();
+      const selectedClickTarget = selectedItem.getClickTarget?.() || selectedItem.getDiv?.();
       selectedClickTarget?.scrollIntoView?.({
-        block: "nearest",
-        inline: "nearest",
+        block: 'nearest',
+        inline: 'nearest',
       });
       if (focusManager?.getFocusedTree?.() !== toolbox) {
         focusManager?.focusTree?.(toolbox);
       }
       if (isSelectable && focusManager?.getFocusedNode?.() !== selectedItem) {
-        const clickTarget =
-          selectedItem.getClickTarget?.() || selectedItem.getDiv?.();
+        const clickTarget = selectedItem.getClickTarget?.() || selectedItem.getDiv?.();
         clickTarget?.focus?.();
         focusManager?.focusTree?.(toolbox);
         focusManager?.focusNode?.(selectedItem);
@@ -1208,15 +1183,12 @@ export function createBlocklyWorkspace() {
     // Ctrl+F should focus the toolbox search when focus is in the toolbox
     const getSearchToolboxItem = () =>
       (toolbox.getToolboxItems?.() || []).find((item) => {
-        const def =
-          item.getToolboxItemDef?.() ||
-          item.toolboxItemDef ||
-          item.toolboxItemDef_;
-        const kind = (def?.kind || "").toLowerCase();
+        const def = item.getToolboxItemDef?.() || item.toolboxItemDef || item.toolboxItemDef_;
+        const kind = (def?.kind || '').toLowerCase();
         return (
-          kind === "search" ||
-          item.SEARCH_INPUT_ID === "toolbox-search-input" ||
-          item.searchField?.id === "toolbox-search-input"
+          kind === 'search' ||
+          item.SEARCH_INPUT_ID === 'toolbox-search-input' ||
+          item.searchField?.id === 'toolbox-search-input'
         );
       });
 
@@ -1225,13 +1197,11 @@ export function createBlocklyWorkspace() {
         const searchInput =
           searchItem?.searchField instanceof HTMLInputElement
             ? searchItem.searchField
-            : toolbox.HtmlDiv?.querySelector?.(
-                "input#toolbox-search-input, input[type='search']",
-              );
+            : toolbox.HtmlDiv?.querySelector?.("input#toolbox-search-input, input[type='search']");
 
         if (!(searchInput instanceof HTMLInputElement)) return null;
 
-        searchInput.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+        searchInput.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
         searchInput.focus();
         searchInput.select?.();
         return searchInput;
@@ -1244,7 +1214,7 @@ export function createBlocklyWorkspace() {
       toolbox.setSelectedItem?.(searchItem);
       const triggerMatchBlocks = (searchInput) => {
         if (!searchInput) return;
-        searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
         searchItem.matchBlocks?.();
       };
 
@@ -1264,34 +1234,30 @@ export function createBlocklyWorkspace() {
     };
 
     host.addEventListener(
-      "keydown",
+      'keydown',
       (e) => {
-        const isFindShortcut =
-          (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f";
+        const isFindShortcut = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f';
         if (!isFindShortcut) return;
 
         const activeElement = document.activeElement;
         const targetElement = e.target instanceof Element ? e.target : null;
         const inToolboxContext =
-          isInToolboxOrFlyout(targetElement) ||
-          isInToolboxOrFlyout(activeElement);
+          isInToolboxOrFlyout(targetElement) || isInToolboxOrFlyout(activeElement);
         if (!inToolboxContext) return;
 
         stopEvent(e);
         focusToolboxSearch();
       },
-      true,
+      true
     );
 
     host.addEventListener(
-      "focusin",
+      'focusin',
       (e) => {
         const target = e.target instanceof Element ? e.target : null;
         if (!target) return;
 
-        if (
-          target.matches?.("input[type='search'], input#toolbox-search-input")
-        ) {
+        if (target.matches?.("input[type='search'], input#toolbox-search-input")) {
           resetCategoryTypePrefix();
           return;
         }
@@ -1305,42 +1271,39 @@ export function createBlocklyWorkspace() {
           resetCategoryTypePrefix();
         }
       },
-      true,
+      true
     );
 
     host.addEventListener(
-      "focusout",
+      'focusout',
       (e) => {
-        const next =
-          e.relatedTarget instanceof Element ? e.relatedTarget : null;
+        const next = e.relatedTarget instanceof Element ? e.relatedTarget : null;
         if (!next || !isToolboxContext(next)) {
           resetCategoryTypePrefix();
         }
       },
-      true,
+      true
     );
 
     toolboxDiv.addEventListener(
-      "click",
+      'click',
       () => {
         resetCategoryTypePrefix();
       },
-      true,
+      true
     );
 
     toolboxDiv.addEventListener(
-      "keydown",
+      'keydown',
       (e) => {
         const target = e.target;
 
-        const isFindShortcut =
-          (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f";
+        const isFindShortcut = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f';
         if (isFindShortcut) {
           const targetElement = target instanceof Element ? target : null;
           const activeElement = document.activeElement;
           const inToolboxContext =
-            isInToolboxOrFlyout(targetElement) ||
-            isInToolboxOrFlyout(activeElement);
+            isInToolboxOrFlyout(targetElement) || isInToolboxOrFlyout(activeElement);
 
           if (inToolboxContext) {
             stopEvent(e);
@@ -1353,21 +1316,21 @@ export function createBlocklyWorkspace() {
           return;
         }
 
-        if (e.key === "Escape") {
+        if (e.key === 'Escape') {
           resetCategoryTypePrefix();
           return;
         }
 
         if (
-          e.key === "ArrowUp" ||
-          e.key === "ArrowDown" ||
-          e.key === "ArrowLeft" ||
-          e.key === "ArrowRight"
+          e.key === 'ArrowUp' ||
+          e.key === 'ArrowDown' ||
+          e.key === 'ArrowLeft' ||
+          e.key === 'ArrowRight'
         ) {
           resetCategoryTypePrefix();
         }
 
-        if (e.key === "Backspace") {
+        if (e.key === 'Backspace') {
           if (!categoryTypePrefix) return;
           categoryTypePrefix = categoryTypePrefix.slice(0, -1);
           if (!categoryTypePrefix) return;
@@ -1378,11 +1341,7 @@ export function createBlocklyWorkspace() {
         }
 
         const isPrintableKey =
-          e.key.length === 1 &&
-          e.key !== " " &&
-          !e.ctrlKey &&
-          !e.metaKey &&
-          !e.altKey;
+          e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.metaKey && !e.altKey;
         if (isPrintableKey) {
           stopEvent(e);
 
@@ -1402,7 +1361,7 @@ export function createBlocklyWorkspace() {
         const flyout = toolbox.getFlyout?.();
         const flyoutVisible = !!flyout && !!flyout.isVisible?.();
 
-        if (e.key === "ArrowRight" && flyoutVisible) {
+        if (e.key === 'ArrowRight' && flyoutVisible) {
           resetCategoryTypePrefix();
           stopEvent(e);
           const flyoutWorkspace = flyout.getWorkspace?.();
@@ -1412,19 +1371,16 @@ export function createBlocklyWorkspace() {
           return;
         }
 
-        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
           resetCategoryTypePrefix();
           const selectedItem = toolbox.getSelectedItem?.();
-          if (
-            selectedItem &&
-            typeof selectedItem.toggleExpanded === "function"
-          ) {
+          if (selectedItem && typeof selectedItem.toggleExpanded === 'function') {
             stopEvent(e);
             selectedItem.toggleExpanded();
           }
         }
       },
-      true,
+      true
     );
   })();
 
@@ -1437,13 +1393,13 @@ export function createBlocklyWorkspace() {
     }
 
     host.addEventListener(
-      "keydown",
+      'keydown',
       (e) => {
         const t = e.target;
-        if (!t || t.tagName !== "INPUT") return;
-        if (t.type !== "search") return;
+        if (!t || t.tagName !== 'INPUT') return;
+        if (t.type !== 'search') return;
 
-        if (e.key === "Enter") {
+        if (e.key === 'Enter') {
           const flyout = toolbox.getFlyout?.();
           const flyoutVisible = !!flyout && !!flyout.isVisible?.();
           const flyoutWorkspace = flyout?.getWorkspace?.();
@@ -1459,26 +1415,26 @@ export function createBlocklyWorkspace() {
           return;
         }
 
-        if (e.key !== "ArrowDown") return;
+        if (e.key !== 'ArrowDown') return;
 
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
 
         const toolboxDiv =
-          document.querySelector(".blocklyToolbox") ||
-          host.querySelector(".blocklyToolbox") ||
-          t.closest(".blocklyToolbox");
+          document.querySelector('.blocklyToolbox') ||
+          host.querySelector('.blocklyToolbox') ||
+          t.closest('.blocklyToolbox');
 
         if (toolboxDiv) {
           t.blur();
           toolboxDiv.focus();
 
           setTimeout(() => {
-            const arrowEvent = new KeyboardEvent("keydown", {
-              key: "ArrowDown",
+            const arrowEvent = new KeyboardEvent('keydown', {
+              key: 'ArrowDown',
               keyCode: 40,
-              code: "ArrowDown",
+              code: 'ArrowDown',
               bubbles: true,
               cancelable: true,
             });
@@ -1486,7 +1442,7 @@ export function createBlocklyWorkspace() {
           }, 10);
         }
       },
-      true,
+      true
     );
   })();
 
@@ -1522,11 +1478,11 @@ export function createBlocklyWorkspace() {
   const mainWs = Blockly.getMainWorkspace();
   let lastCM = { x: 0, y: 0 };
   (mainWs.getInjectionDiv() || document).addEventListener(
-    "contextmenu",
+    'contextmenu',
     (e) => {
       lastCM = { x: e.clientX, y: e.clientY };
     },
-    { capture: true },
+    { capture: true }
   );
 
   // Screen -> workspace coords
@@ -1538,23 +1494,23 @@ export function createBlocklyWorkspace() {
   // Add a context menu item that mirrors the keyboard-navigation "detach" (X) shortcut.
   (function registerDetachContextMenuItem() {
     const registry = Blockly.ContextMenuRegistry.registry;
-    const id = "detachBlockWithShortcut";
+    const id = 'detachBlockWithShortcut';
     if (registry.getItem && registry.getItem(id)) return;
 
     function renderShortcut(label, shortcut) {
-      const wrapper = document.createElement("span");
-      wrapper.style.display = "flex";
-      wrapper.style.alignItems = "center";
-      wrapper.style.justifyContent = "space-between";
-      wrapper.style.gap = "1.5em";
-      wrapper.style.width = "100%";
+      const wrapper = document.createElement('span');
+      wrapper.style.display = 'flex';
+      wrapper.style.alignItems = 'center';
+      wrapper.style.justifyContent = 'space-between';
+      wrapper.style.gap = '1.5em';
+      wrapper.style.width = '100%';
 
-      const labelEl = document.createElement("span");
+      const labelEl = document.createElement('span');
       labelEl.textContent = label;
 
-      const shortcutEl = document.createElement("span");
+      const shortcutEl = document.createElement('span');
       shortcutEl.textContent = shortcut;
-      shortcutEl.style.color = "var(--blockly-text-disabled, #aaa)";
+      shortcutEl.style.color = 'var(--blockly-text-disabled, #aaa)';
 
       wrapper.append(labelEl, shortcutEl);
       return wrapper;
@@ -1564,19 +1520,19 @@ export function createBlocklyWorkspace() {
       id,
       weight: 80,
       displayText: () => {
-        const text = translate("detach_block_option");
-        const label = text === "detach_block_option" ? "Detach" : text;
-        return renderShortcut(label, "X");
+        const text = translate('detach_block_option');
+        const label = text === 'detach_block_option' ? 'Detach' : text;
+        return renderShortcut(label, 'X');
       },
       preconditionFn: (scope) => {
         const block = scope.block;
-        if (!block || block.isInFlyout) return "hidden";
+        if (!block || block.isInFlyout) return 'hidden';
 
         const hasParent =
           !!block.getParent() ||
           !!block.previousConnection?.targetConnection ||
           !!block.outputConnection?.targetConnection;
-        return hasParent ? "enabled" : "disabled";
+        return hasParent ? 'enabled' : 'disabled';
       },
       callback: (scope) => {
         const block = scope.block;
@@ -1584,7 +1540,7 @@ export function createBlocklyWorkspace() {
 
         const healStack = !block.outputConnection?.isConnected();
         const prevGroup = Blockly.Events.getGroup();
-        Blockly.Events.setGroup("contextmenu_detach");
+        Blockly.Events.setGroup('contextmenu_detach');
         block.unplug(healStack);
         const cursor = block.workspace?.getCursor?.();
         if (cursor?.setCurNode) cursor.setCurNode(block);
@@ -1598,13 +1554,13 @@ export function createBlocklyWorkspace() {
   (function adjustBlockContextMenuWeights() {
     const registry = Blockly.ContextMenuRegistry.registry;
 
-    const duplicate = registry.getItem?.("blockDuplicate");
+    const duplicate = registry.getItem?.('blockDuplicate');
     if (duplicate) duplicate.weight = 9;
 
-    const detach = registry.getItem?.("detachBlockWithShortcut");
+    const detach = registry.getItem?.('detachBlockWithShortcut');
     if (detach) detach.weight = 10;
 
-    const deleteItem = registry.getItem?.("blockDelete");
+    const deleteItem = registry.getItem?.('blockDelete');
     if (deleteItem) deleteItem.weight = 20;
   })();
 
@@ -1618,7 +1574,7 @@ export function createBlocklyWorkspace() {
     let attempts = 0;
     const tryOverride = () => {
       const registry = Blockly.ContextMenuRegistry.registry;
-      const pasteItem = registry.getItem?.("blockPasteFromContextMenu");
+      const pasteItem = registry.getItem?.('blockPasteFromContextMenu');
       if (pasteItem) {
         pasteItem.callback = (scope) => {
           const data = Blockly.clipboard?.getLastCopiedData?.();
@@ -1663,8 +1619,8 @@ export function createBlocklyWorkspace() {
 
   function overrideContextMenuCopyItem() {
     const ids = [
-      "blockCopyToStorage", // Blockly core (common)
-      "blockCopyFromContextMenu", // possible variant
+      'blockCopyToStorage', // Blockly core (common)
+      'blockCopyFromContextMenu', // possible variant
     ];
 
     let item = null;
@@ -1702,55 +1658,55 @@ export function createBlocklyWorkspace() {
     const el = document.activeElement;
     if (!el) return false;
     const tag = el.tagName?.toLowerCase();
-    return tag === "input" || tag === "textarea" || !!el.isContentEditable;
+    return tag === 'input' || tag === 'textarea' || !!el.isContentEditable;
   }
 
   const host = mainWs.getInjectionDiv() || document;
   let __fcLastPointer = { x: 0, y: 0 };
-  let __fcLastPointerType = "mouse"; // 'mouse' | 'touch' | 'pen'
+  let __fcLastPointerType = 'mouse'; // 'mouse' | 'touch' | 'pen'
   let __fcMenuPoint = null;
-  let __fcMenuPointerType = "mouse";
+  let __fcMenuPointerType = 'mouse';
 
   host.addEventListener(
-    "pointerdown",
+    'pointerdown',
     (e) => {
       if (!e.isPrimary) return;
       __fcLastPointer = { x: e.clientX, y: e.clientY };
-      __fcLastPointerType = e.pointerType || "mouse";
+      __fcLastPointerType = e.pointerType || 'mouse';
     },
-    { capture: true },
+    { capture: true }
   );
 
   host.addEventListener(
-    "pointermove",
+    'pointermove',
     (e) => {
       if (!e.isPrimary) return;
       __fcLastPointer = { x: e.clientX, y: e.clientY };
       __fcLastPointerType = e.pointerType || __fcLastPointerType;
     },
-    { capture: true },
+    { capture: true }
   );
 
   // Capture the *actual* coordinates that opened the context menu (works for long-press)
   const __origShow = Blockly.ContextMenu.show;
   Blockly.ContextMenu.show = function (e, options, rtl) {
     __fcMenuPoint = { x: e.clientX, y: e.clientY };
-    __fcMenuPointerType = e.pointerType || __fcLastPointerType || "mouse";
+    __fcMenuPointerType = e.pointerType || __fcLastPointerType || 'mouse';
     return __origShow.call(Blockly.ContextMenu, e, options, rtl);
   };
   host.addEventListener(
-    "contextmenu",
+    'contextmenu',
     (e) => {
       lastCM = { x: e.clientX, y: e.clientY };
     },
-    { capture: true },
+    { capture: true }
   );
   host.addEventListener(
-    "mousemove",
+    'mousemove',
     (e) => {
       lastCM = { x: e.clientX, y: e.clientY };
     },
-    { capture: true },
+    { capture: true }
   );
 
   function pasteAsChildOrHere(targetBlock /* may be null */, ws, data) {
@@ -1789,8 +1745,7 @@ export function createBlocklyWorkspace() {
     }
     // 2b) top-level block: insert pb as first child in statement input,
     //     pushing existing children after pb
-    const isTopLevel =
-      !targetBlock.previousConnection && !targetBlock.nextConnection;
+    const isTopLevel = !targetBlock.previousConnection && !targetBlock.nextConnection;
     if (isTopLevel && pb.previousConnection) {
       for (const input of targetBlock.inputList) {
         if (
@@ -1845,10 +1800,10 @@ export function createBlocklyWorkspace() {
 
   // ---- Bind Ctrl/Cmd+V ----
   host.addEventListener(
-    "keydown",
+    'keydown',
     (e) => {
       if (!(e.ctrlKey || e.metaKey)) return;
-      if ((e.key || "").toLowerCase() !== "v") return;
+      if ((e.key || '').toLowerCase() !== 'v') return;
       if (isTypingInInput()) return;
 
       const data = Blockly.clipboard?.getLastCopiedData?.();
@@ -1862,7 +1817,7 @@ export function createBlocklyWorkspace() {
       e.stopPropagation();
       pasteAsChildOrHere(selected || null, mainWs, data);
     },
-    { capture: true },
+    { capture: true }
   );
 
   initializeTheme();
@@ -1881,27 +1836,23 @@ export function getWorkspace() {
 
 function setupAutoValueBehavior(workspace) {
   workspace.addChangeListener(function (event) {
-    if (
-      event.type === Blockly.Events.BLOCK_CHANGE ||
-      event.type === Blockly.Events.BLOCK_CREATE
-    ) {
+    if (event.type === Blockly.Events.BLOCK_CHANGE || event.type === Blockly.Events.BLOCK_CREATE) {
       var block = workspace.getBlockById(event.blockId);
-      if (block && block.type === "lists_create_with") {
+      if (block && block.type === 'lists_create_with') {
         var inputCount = 0;
-        while (block.getInput("ADD" + inputCount)) {
+        while (block.getInput('ADD' + inputCount)) {
           inputCount++;
         }
         if (inputCount >= 2) {
-          var previousInput = block.getInput("ADD" + (inputCount - 2));
-          var lastInput = block.getInput("ADD" + (inputCount - 1));
+          var previousInput = block.getInput('ADD' + (inputCount - 2));
+          var lastInput = block.getInput('ADD' + (inputCount - 1));
           if (
             previousInput &&
             previousInput.connection.targetConnection &&
             lastInput &&
             !lastInput.connection.targetConnection
           ) {
-            var sourceBlock =
-              previousInput.connection.targetConnection.sourceBlock_;
+            var sourceBlock = previousInput.connection.targetConnection.sourceBlock_;
 
             function deepCopyBlock(originalBlock) {
               var newBlock = workspace.newBlock(originalBlock.type);
@@ -1911,37 +1862,28 @@ function setupAutoValueBehavior(workspace) {
               }
 
               var fieldMap = {
-                math_number: "NUM",
-                text: "TEXT",
-                logic_boolean: "BOOL",
-                variables_get: "VAR",
+                math_number: 'NUM',
+                text: 'TEXT',
+                logic_boolean: 'BOOL',
+                variables_get: 'VAR',
               };
 
               if (fieldMap[originalBlock.type]) {
                 var fieldName = fieldMap[originalBlock.type];
-                newBlock.setFieldValue(
-                  originalBlock.getFieldValue(fieldName),
-                  fieldName,
-                );
+                newBlock.setFieldValue(originalBlock.getFieldValue(fieldName), fieldName);
               }
 
               for (var i = 0; i < originalBlock.inputList.length; i++) {
                 var originalInput = originalBlock.inputList[i];
                 var newInput = newBlock.getInput(originalInput.name);
 
-                if (
-                  originalInput.connection &&
-                  originalInput.connection.targetConnection
-                ) {
-                  var originalNestedBlock =
-                    originalInput.connection.targetConnection.sourceBlock_;
+                if (originalInput.connection && originalInput.connection.targetConnection) {
+                  var originalNestedBlock = originalInput.connection.targetConnection.sourceBlock_;
 
                   var newNestedBlock = deepCopyBlock(originalNestedBlock);
 
                   if (newInput && newNestedBlock.outputConnection) {
-                    newInput.connection.connect(
-                      newNestedBlock.outputConnection,
-                    );
+                    newInput.connection.connect(newNestedBlock.outputConnection);
                   }
                 }
               }
@@ -1966,14 +1908,14 @@ export function overrideSearchPlugin(workspace) {
     const toolboxBlocks = [];
     const seenTypes = new Set();
 
-    function collectBlocks(schema, categoryName = "") {
+    function collectBlocks(schema, categoryName = '') {
       if (!schema) {
         return;
       }
 
-      if ("contents" in schema) {
+      if ('contents' in schema) {
         const currentCategory = schema.name || categoryName;
-        if (currentCategory === "Snippets") {
+        if (currentCategory === 'Snippets') {
           return;
         }
 
@@ -1983,11 +1925,7 @@ export function overrideSearchPlugin(workspace) {
         return;
       }
 
-      if (
-        schema.kind?.toLowerCase() === "block" &&
-        schema.type &&
-        !seenTypes.has(schema.type)
-      ) {
+      if (schema.kind?.toLowerCase() === 'block' && schema.type && !seenTypes.has(schema.type)) {
         seenTypes.add(schema.type);
         toolboxBlocks.push({
           type: schema.type,
@@ -2005,13 +1943,10 @@ export function overrideSearchPlugin(workspace) {
     return toolboxBlocks;
   }
 
-  const SearchCategory = Blockly.registry.getClass(
-    Blockly.registry.Type.TOOLBOX_ITEM,
-    "search",
-  );
+  const SearchCategory = Blockly.registry.getClass(Blockly.registry.Type.TOOLBOX_ITEM, 'search');
 
   if (!SearchCategory) {
-    console.error("Search category not found in registry!");
+    console.error('Search category not found in registry!');
     return;
   }
 
@@ -2019,7 +1954,7 @@ export function overrideSearchPlugin(workspace) {
 
   SearchCategory.prototype.initBlockSearcher = function () {
     // Let the official plugin initialize its own behaviour first.
-    if (typeof originalInitBlockSearcher === "function") {
+    if (typeof originalInitBlockSearcher === 'function') {
       originalInitBlockSearcher.call(this);
     }
 
@@ -2047,7 +1982,7 @@ export function overrideSearchPlugin(workspace) {
         searchCategory.showMatchingBlocks(newIndex);
       };
 
-      if (typeof requestIdleCallback === "function") {
+      if (typeof requestIdleCallback === 'function') {
         requestIdleCallback(showAllBlocksAsync);
       } else {
         setTimeout(showAllBlocksAsync, 0);
@@ -2066,7 +2001,7 @@ export function overrideSearchPlugin(workspace) {
         }
       };
 
-      if (typeof requestIdleCallback === "function") {
+      if (typeof requestIdleCallback === 'function') {
         requestIdleCallback(scheduleBuild, {
           timeout: 1000,
         });
@@ -2088,9 +2023,8 @@ export function overrideSearchPlugin(workspace) {
       selectedItem?.toolboxItemDef ||
       selectedItem?.toolboxItemDef_;
     const isSelectedSearch =
-      selectedDef?.kind === "search" || (category && selectedItem === category);
-    selectedDef?.kind?.toLowerCase?.() === "search" ||
-      (category && selectedItem === category);
+      selectedDef?.kind === 'search' || (category && selectedItem === category);
+    selectedDef?.kind?.toLowerCase?.() === 'search' || (category && selectedItem === category);
 
     return isSelectedSearch;
   };
@@ -2098,17 +2032,16 @@ export function overrideSearchPlugin(workspace) {
   function getBlockMessage(blockType) {
     const definition = Blockly.Blocks?.[blockType];
     if (!definition) {
-      return "";
+      return '';
     }
 
     const message0 =
-      (typeof definition.message0 === "string" && definition.message0) ||
-      (typeof definition.json?.message0 === "string" &&
-        definition.json.message0) ||
-      "";
+      (typeof definition.message0 === 'string' && definition.message0) ||
+      (typeof definition.json?.message0 === 'string' && definition.json.message0) ||
+      '';
 
     if (!message0) {
-      return "";
+      return '';
     }
 
     const resolvedMessage = Blockly.utils.replaceMessageReferences(message0);
@@ -2129,16 +2062,11 @@ export function overrideSearchPlugin(workspace) {
       }
 
       Object.entries(fieldValues).forEach(([fieldName, value]) => {
-        if (
-          value === undefined ||
-          value === null ||
-          !block.getField(fieldName)
-        ) {
+        if (value === undefined || value === null || !block.getField(fieldName)) {
           return;
         }
 
-        const normalizedValue =
-          typeof value === "string" ? value : String(value);
+        const normalizedValue = typeof value === 'string' ? value : String(value);
         block.setFieldValue(normalizedValue, fieldName);
       });
     }
@@ -2160,9 +2088,9 @@ export function overrideSearchPlugin(workspace) {
             return;
           }
 
-          if (!fieldText && typeof field.getValue === "function") {
+          if (!fieldText && typeof field.getValue === 'function') {
             const fieldValue = field.getValue();
-            if (typeof fieldValue === "string" && fieldValue.trim()) {
+            if (typeof fieldValue === 'string' && fieldValue.trim()) {
               searchTerms.add(fieldValue);
               runDebugFields.push({
                 name: field.name,
@@ -2174,14 +2102,14 @@ export function overrideSearchPlugin(workspace) {
 
           if (field instanceof Blockly.FieldDropdown) {
             field.getOptions(true).forEach((option) => {
-              if (typeof option[0] === "string") {
+              if (typeof option[0] === 'string') {
                 searchTerms.add(option[0]);
                 runDebugFields.push({
                   name: field.name,
                   option: option[0],
                   kind: field.constructor?.name,
                 });
-              } else if ("alt" in option[0]) {
+              } else if ('alt' in option[0]) {
                 searchTerms.add(option[0].alt);
                 runDebugFields.push({
                   name: field.name,
@@ -2198,12 +2126,12 @@ export function overrideSearchPlugin(workspace) {
     try {
       toolboxBlocks.forEach((blockInfo) => {
         const type = blockInfo.type;
-        if (!type || type === "") {
+        if (!type || type === '') {
           return;
         }
 
         const searchTerms = new Set();
-        searchTerms.add(type.replaceAll("_", " "));
+        searchTerms.add(type.replaceAll('_', ' '));
 
         const runDebugFields = [];
 
@@ -2218,8 +2146,7 @@ export function overrideSearchPlugin(workspace) {
         }
         applyFieldValues(block, blockInfo.full?.fields);
 
-        const labelText =
-          typeof block.toString === "function" ? block.toString() : "";
+        const labelText = typeof block.toString === 'function' ? block.toString() : '';
 
         if (labelText && labelText.trim()) {
           searchTerms.add(labelText);
@@ -2252,7 +2179,7 @@ export function overrideSearchPlugin(workspace) {
 
         indexedBlocks.push({
           ...blockInfo,
-          text: Array.from(searchTerms).join(" ").toLowerCase(),
+          text: Array.from(searchTerms).join(' ').toLowerCase(),
         });
       });
     } finally {
@@ -2268,8 +2195,8 @@ export function overrideSearchPlugin(workspace) {
     ?.find(
       (item) =>
         item instanceof SearchCategory ||
-        item.getToolboxItemDef?.().kind === "search" ||
-        item.toolboxItemDef?.kind === "search",
+        item.getToolboxItemDef?.().kind === 'search' ||
+        item.toolboxItemDef?.kind === 'search'
     );
 
   if (searchToolboxItem?.initBlockSearcher) {
@@ -2279,10 +2206,7 @@ export function overrideSearchPlugin(workspace) {
   function debounce(fn, delayMs) {
     return function (...args) {
       clearTimeout(this.flockSearchMatchTimer);
-      this.flockSearchMatchTimer = setTimeout(
-        () => fn.apply(this, args),
-        delayMs,
-      );
+      this.flockSearchMatchTimer = setTimeout(() => fn.apply(this, args), delayMs);
     };
   }
 
@@ -2291,7 +2215,7 @@ export function overrideSearchPlugin(workspace) {
       this.hasInputStarted = true;
     }
 
-    const query = this.searchField?.value.toLowerCase().trim() || "";
+    const query = this.searchField?.value.toLowerCase().trim() || '';
 
     if (!query) {
       const showAllBlocksAsync = () => {
@@ -2312,26 +2236,23 @@ export function overrideSearchPlugin(workspace) {
       const requestType = this.flockSearchAllBlocksRequest?.type;
       const requestId = this.flockSearchAllBlocksRequest?.id;
       if (
-        requestType === "idle" &&
-        typeof cancelIdleCallback === "function" &&
-        typeof requestId === "number"
+        requestType === 'idle' &&
+        typeof cancelIdleCallback === 'function' &&
+        typeof requestId === 'number'
       ) {
         cancelIdleCallback(requestId);
-      } else if (requestType === "timeout" && typeof requestId === "number") {
+      } else if (requestType === 'timeout' && typeof requestId === 'number') {
         clearTimeout(requestId);
       }
 
-      if (
-        !Array.isArray(this.blockSearcher.indexedBlocks_) &&
-        this.blockSearcher.indexBlocks
-      ) {
-        if (typeof requestIdleCallback === "function") {
+      if (!Array.isArray(this.blockSearcher.indexedBlocks_) && this.blockSearcher.indexBlocks) {
+        if (typeof requestIdleCallback === 'function') {
           const idleId = requestIdleCallback(() => {
             this.blockSearcher.indexBlocks();
             showAllBlocksAsync();
           });
           this.flockSearchAllBlocksRequest = {
-            type: "idle",
+            type: 'idle',
             id: idleId,
           };
         } else {
@@ -2340,31 +2261,31 @@ export function overrideSearchPlugin(workspace) {
             showAllBlocksAsync();
           }, 0);
           this.flockSearchAllBlocksRequest = {
-            type: "timeout",
+            type: 'timeout',
             id: timeoutId,
           };
         }
-      } else if (typeof requestIdleCallback === "function") {
+      } else if (typeof requestIdleCallback === 'function') {
         const idleId = requestIdleCallback(showAllBlocksAsync);
         this.flockSearchAllBlocksRequest = {
-          type: "idle",
+          type: 'idle',
           id: idleId,
         };
       } else {
         const timeoutId = setTimeout(showAllBlocksAsync, 0);
         this.flockSearchAllBlocksRequest = {
-          type: "timeout",
+          type: 'timeout',
           id: timeoutId,
         };
       }
       return;
     }
 
-    if (this.flockSearchAllBlocksRequest?.type === "idle") {
-      if (typeof cancelIdleCallback === "function") {
+    if (this.flockSearchAllBlocksRequest?.type === 'idle') {
+      if (typeof cancelIdleCallback === 'function') {
         cancelIdleCallback(this.flockSearchAllBlocksRequest.id);
       }
-    } else if (this.flockSearchAllBlocksRequest?.type === "timeout") {
+    } else if (this.flockSearchAllBlocksRequest?.type === 'timeout') {
       clearTimeout(this.flockSearchAllBlocksRequest.id);
     }
 
@@ -2388,10 +2309,7 @@ export function overrideSearchPlugin(workspace) {
     this.showMatchingBlocks(matches);
   };
 
-  SearchCategory.prototype.matchBlocks = debounce(
-    SearchCategory.prototype.matchBlocks,
-    120,
-  );
+  SearchCategory.prototype.matchBlocks = debounce(SearchCategory.prototype.matchBlocks, 120);
 
   const xmlCache = new Map();
 
@@ -2404,25 +2322,23 @@ export function overrideSearchPlugin(workspace) {
   }
 
   function createXmlFromJson(blockJson, isShadow = false, isTopLevel = true) {
-    const blockXml = Blockly.utils.xml.createElement(
-      isShadow ? "shadow" : "block",
-    );
-    blockXml.setAttribute("type", blockJson.type);
+    const blockXml = Blockly.utils.xml.createElement(isShadow ? 'shadow' : 'block');
+    blockXml.setAttribute('type', blockJson.type);
 
-    if (isTopLevel && blockJson.type === "lists_create_with") {
-      blockXml.setAttribute("inline", "true");
+    if (isTopLevel && blockJson.type === 'lists_create_with') {
+      blockXml.setAttribute('inline', 'true');
     }
 
-    if (blockJson.type === "lists_create_with" && blockJson.extraState) {
-      const mutation = Blockly.utils.xml.createElement("mutation");
-      mutation.setAttribute("items", blockJson.extraState.itemCount);
+    if (blockJson.type === 'lists_create_with' && blockJson.extraState) {
+      const mutation = Blockly.utils.xml.createElement('mutation');
+      mutation.setAttribute('items', blockJson.extraState.itemCount);
       blockXml.appendChild(mutation);
     }
 
     if (blockJson.inputs) {
       Object.entries(blockJson.inputs).forEach(([name, input]) => {
-        const valueXml = Blockly.utils.xml.createElement("value");
-        valueXml.setAttribute("name", name);
+        const valueXml = Blockly.utils.xml.createElement('value');
+        valueXml.setAttribute('name', name);
 
         if (input.block) {
           const nestedXml = createXmlFromJson(input.block, false, false);
@@ -2440,8 +2356,8 @@ export function overrideSearchPlugin(workspace) {
 
     if (blockJson.fields) {
       Object.entries(blockJson.fields).forEach(([name, value]) => {
-        const fieldXml = Blockly.utils.xml.createElement("field");
-        fieldXml.setAttribute("name", name);
+        const fieldXml = Blockly.utils.xml.createElement('field');
+        fieldXml.setAttribute('name', name);
         fieldXml.textContent = value;
         blockXml.appendChild(fieldXml);
       });
@@ -2456,7 +2372,7 @@ export function overrideSearchPlugin(workspace) {
     }
     const flyout = this.workspace_.getToolbox().getFlyout();
     if (!flyout) {
-      console.error("Flyout not found!");
+      console.error('Flyout not found!');
       return;
     }
 
