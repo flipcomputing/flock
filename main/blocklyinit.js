@@ -34,6 +34,7 @@ import { defineSensingBlocks } from "../blocks/sensing.js";
 import { defineTextBlocks } from "../blocks/text.js";
 import { defineGenerators } from "../generators/generators.js";
 import { registerCustomCommentIcon } from "./customCommentIcon.js";
+import { toolbox as toolboxDef } from "../toolbox.js";
 
 let workspace = null;
 export { workspace };
@@ -645,6 +646,209 @@ export function initializeWorkspace() {
     };
   }
   workspaceSearch.init();
+
+  // Mobile: custom HTML search results panel (bypasses the SVG flyout entirely)
+  requestAnimationFrame(() => {
+    const searchInput = document.querySelector(
+      ".blocklyToolbox input[type='search']",
+    );
+    if (!searchInput) return;
+
+    const originalParent = searchInput.parentElement;
+    const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
+
+    // Get the toolbox search category to reuse its trigram blockSearcher
+    const toolboxInstance = workspace.getToolbox();
+    const searchCategory = toolboxInstance
+      ?.getToolboxItems?.()
+      .find((item) => item.getId?.() === "toolbox-search-input");
+
+    // Resolve a categorystyle name to a hex color via the current theme
+    const theme = workspace.getTheme();
+    const getCategoryColor = (categorystyle) => {
+      if (!categorystyle) return null;
+      let themeColour = theme?.categoryStyles?.[categorystyle]?.colour;
+      if (themeColour === undefined || themeColour === null) return null;
+      // Resolve Blockly message references e.g. "%{BKY_LOOPS_HUE}"
+      if (
+        typeof themeColour === "string" &&
+        themeColour.startsWith("%{BKY_") &&
+        themeColour.endsWith("}")
+      ) {
+        const key = themeColour.slice(6, -1);
+        themeColour = Blockly.Msg?.[key] ?? themeColour;
+      }
+      if (typeof themeColour === "string" && themeColour.startsWith("#"))
+        return themeColour;
+      const hue = parseFloat(themeColour);
+      if (isNaN(hue)) return null;
+      return Blockly.utils.colour.hueToHex(hue);
+    };
+
+    // Build block type → { name, color } map from the toolbox definition
+    const blockCategoryMap = new Map();
+    const walkToolbox = (node, categoryName, categoryColor) => {
+      if (!node) return;
+      if (node.kind === "block" && node.type) {
+        blockCategoryMap.set(node.type, { name: categoryName, color: categoryColor });
+      }
+      if (node.contents) {
+        let name = node.name || categoryName;
+        if (name?.startsWith("%{BKY_") && name.endsWith("}")) {
+          const key = name.slice(6, -1);
+          name =
+            Blockly.Msg?.[key] ||
+            key
+              .replace(/^CATEGORY_/, "")
+              .replace(/_/g, " ")
+              .toLowerCase()
+              .replace(/^./, (c) => c.toUpperCase());
+        }
+        let color = categoryColor;
+        if (node.categorystyle) {
+          color = getCategoryColor(node.categorystyle) ?? categoryColor;
+        }
+        node.contents.forEach((child) => walkToolbox(child, name, color));
+      }
+    };
+    walkToolbox(toolboxDef, "", null);
+
+    // Build overlay bar
+    const overlay = document.createElement("div");
+    overlay.className = "mobile-search-overlay";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.className = "mobile-search-cancel";
+    cancelBtn.textContent = "×";
+    overlay.appendChild(cancelBtn);
+
+    // Build results panel
+    const resultsPanel = document.createElement("div");
+    resultsPanel.className = "mobile-search-results";
+
+    const addBlockToCenter = (blockDef) => {
+      if (!Blockly.Blocks[blockDef.type]) return;
+      const metrics = workspace.getMetrics();
+      const cx =
+        (metrics.viewWidth / 2 - workspace.scrollX) / workspace.scale;
+      const cy =
+        (metrics.viewHeight / 2 - workspace.scrollY) / workspace.scale;
+      // Build serialization state from toolbox definition — same format,
+      // just strip toolbox-only fields and inject position
+      const state = { ...blockDef, x: cx, y: cy };
+      delete state.kind;
+      delete state.keyword;
+      Blockly.serialization.blocks.append(state, workspace);
+    };
+
+    const updateResults = () => {
+      const query = searchInput.value.trim();
+      if (!query || query.length < 3) {
+        resultsPanel.innerHTML =
+          '<div class="mobile-search-empty">Type 3 or more characters to search</div>';
+        return;
+      }
+
+      const matches =
+        searchCategory?.blockSearcher?.blockTypesMatching(query) ?? [];
+
+      if (matches.length === 0) {
+        resultsPanel.innerHTML =
+          '<div class="mobile-search-empty">No blocks found</div>';
+        return;
+      }
+
+      resultsPanel.innerHTML = "";
+      matches.slice(0, 60).forEach((blockDef) => {
+        const type = blockDef.type;
+        if (!type || !Blockly.Blocks[type]) return;
+
+        const label = type
+          .replace(/_/g, " ")
+          .replace(/^./, (c) => c.toUpperCase());
+        const { name: category, color } = blockCategoryMap.get(type) ?? { name: "", color: null };
+
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "mobile-search-result-item";
+        const pillStyle = color ? ` style="background-color:${color}"` : "";
+        item.innerHTML = `<span class="mobile-search-result-name">${label}</span>${category ? `<span class="mobile-search-result-category"${pillStyle}>${category}</span>` : ""}`;
+
+        item.addEventListener("click", () => {
+          if (overlay.isConnected) {
+            addBlockToCenter(blockDef);
+            closeOverlay();
+          }
+        });
+
+        resultsPanel.appendChild(item);
+      });
+    };
+
+    let blurTimeout = null;
+
+    const openOverlay = () => {
+      overlay.insertBefore(searchInput, cancelBtn);
+      document.body.appendChild(overlay);
+      document.body.appendChild(resultsPanel);
+      updateResults();
+      searchInput.focus();
+      // Suppress the flyout while mobile panel is open
+      if (searchCategory) {
+        searchCategory._mobileMatchBlocks = searchCategory.matchBlocks;
+        searchCategory.matchBlocks = () => {};
+      }
+    };
+
+    const closeOverlay = () => {
+      clearTimeout(blurTimeout);
+      blurTimeout = null;
+      // Restore flyout behaviour
+      if (searchCategory?._mobileMatchBlocks) {
+        searchCategory.matchBlocks = searchCategory._mobileMatchBlocks;
+        delete searchCategory._mobileMatchBlocks;
+      }
+      searchInput.value = "";
+      originalParent.appendChild(searchInput);
+      overlay.remove();
+      resultsPanel.remove();
+      resultsPanel.innerHTML = "";
+    };
+
+    cancelBtn.addEventListener("mousedown", (e) => e.preventDefault());
+    cancelBtn.addEventListener("click", closeOverlay);
+
+    searchInput.addEventListener("blur", () => {
+      if (!overlay.isConnected) return;
+      blurTimeout = setTimeout(() => {
+        if (overlay.isConnected) closeOverlay();
+      }, 150);
+    });
+
+    searchInput.addEventListener("focus", () => {
+      clearTimeout(blurTimeout);
+      blurTimeout = null;
+      if (!overlay.isConnected && isMobile()) openOverlay();
+    });
+
+    // Scrolling the results panel should not trigger the blur-close timeout
+    resultsPanel.addEventListener(
+      "touchstart",
+      () => {
+        clearTimeout(blurTimeout);
+        blurTimeout = null;
+      },
+      { passive: true },
+    );
+
+    searchInput.addEventListener("input", () => {
+      if (overlay.isConnected) updateResults();
+    });
+    searchInput.addEventListener("keyup", () => {
+      if (overlay.isConnected) updateResults();
+    });
+  });
 
   // Fade non-matching blocks during search
   const blocklyDiv = document.getElementById("blocklyDiv");
