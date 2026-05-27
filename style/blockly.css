@@ -817,6 +817,111 @@ body[data-theme="low-vision"]
     margin: 0;
     box-sizing: border-box;
   }
+
+  /* Expanded search overlay — appended to body so it escapes toolbox overflow/transforms */
+  .mobile-search-overlay::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    height: calc(var(--dynamic-offset, 65px) - 50px);
+    background: var(--color-bg);
+  }
+
+  .mobile-search-overlay {
+    position: fixed;
+    top: var(--dynamic-offset, 65px);
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--color-bg);
+    box-shadow: 0 2px 12px var(--color-shadow);
+  }
+
+  .mobile-search-overlay input[type="search"] {
+    flex: 1;
+    height: 40px;
+    font-size: 16px;
+    box-sizing: border-box;
+    width: auto !important;
+    min-width: 0;
+  }
+
+  .mobile-search-cancel {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--color-text-primary);
+    font-size: 36px;
+    line-height: 1;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  /* Custom HTML results panel — replaces the SVG flyout on mobile */
+  .mobile-search-results {
+    position: fixed;
+    top: calc(var(--dynamic-offset, 65px) + 56px);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: var(--color-bg);
+  }
+
+  .mobile-search-empty {
+    padding: 24px 16px;
+    color: var(--color-text);
+    opacity: 0.6;
+    font-size: 15px;
+    text-align: center;
+  }
+
+  .mobile-search-result-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border: none;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+    background: var(--color-bg);
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    min-height: 48px;
+    gap: 8px;
+    touch-action: manipulation;
+  }
+
+  .mobile-search-result-item:active {
+    background: rgba(128, 128, 128, 0.1);
+  }
+
+  .mobile-search-result-name {
+    font-size: 16px;
+    color: var(--color-text);
+    flex: 1;
+  }
+
+  .mobile-search-result-category {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    flex-shrink: 0;
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
 }
 
 /* Keyboard focus for image BUTTON fields only (e.g. plus/minus/toggle icons) */

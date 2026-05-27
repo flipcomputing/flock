@@ -356,15 +356,15 @@ class CustomColorPicker {
 
             <div class="rgb-inputs">
               <div class="rgb-input-group">
-                <input type="number" id="rgb-r" class="rgb-input" min="0" max="255" value="255" />
+                <input type="number" inputmode="numeric" id="rgb-r" class="rgb-input" min="0" max="255" value="255" />
                 <label for="rgb-r">R</label>
               </div>
               <div class="rgb-input-group">
-                <input type="number" id="rgb-g" class="rgb-input" min="0" max="255" value="0" />
+                <input type="number" inputmode="numeric" id="rgb-g" class="rgb-input" min="0" max="255" value="0" />
                 <label for="rgb-g">G</label>
               </div>
               <div class="rgb-input-group">
-                <input type="number" id="rgb-b" class="rgb-input" min="0" max="255" value="0" />
+                <input type="number" inputmode="numeric" id="rgb-b" class="rgb-input" min="0" max="255" value="0" />
                 <label for="rgb-b">B</label>
               </div>
             </div>
