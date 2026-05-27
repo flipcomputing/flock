@@ -720,6 +720,38 @@ export function initializeWorkspace() {
       lists_sort: 'Sort list', // "Lists sort",
     };
 
+    // Override matchBlocks on the search category to sort and deduplicate results
+    if (searchCategory) {
+      const _origMatchBlocks = searchCategory.matchBlocks.bind(searchCategory);
+      searchCategory.matchBlocks = function () {
+        const query = this.searchField?.value?.trim() || '';
+        let items = query ? this.blockSearcher.blockTypesMatching(query) : [];
+        if (items.length === 0) {
+          this.flyoutItems_ = [{ kind: 'label', text: query.length < 3 ? 'Type to search for blocks' : 'No matching blocks found' }];
+        } else {
+          const q = query.toLowerCase();
+          const scoreItem = (blockDef) => {
+            if (!blockDef.type) return 4;
+            const label = (BLOCK_LABELS[blockDef.type] || blockDef.type.replace(/_/g, ' ')).toLowerCase();
+            const type = blockDef.type.toLowerCase();
+            if (label.startsWith(q)) return 0;
+            if (label.includes(q)) return 1;
+            if (type.includes(q)) return 2;
+            return 3;
+          };
+          const seenTypes = new Set();
+          this.flyoutItems_ = items
+            .filter((b) => {
+              if (!b.type || seenTypes.has(b.type)) return false;
+              seenTypes.add(b.type);
+              return true;
+            })
+            .sort((a, b) => scoreItem(a) - scoreItem(b));
+        }
+        this.parentToolbox_.refreshSelection();
+      };
+    }
+
     // Build overlay bar
     const overlay = document.createElement('div');
     overlay.className = 'mobile-search-overlay';
