@@ -666,6 +666,7 @@ const ShortcutsPanel = {
     );
     const btn = document.getElementById("info-tab-btn-shortcuts");
     btn.setAttribute("aria-label", translate("shortcut_panel_title"));
+    btn.setAttribute("title", translate("shortcut_panel_title"));
     btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" d="M64 64C28.7 64 0 92.7 0 128L0 384c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64L64 64zM175.1 224l16 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16zm-72 32c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16l16 0c8.8 0 16 7.2 16 16l0 16zm128 0c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16l16 0c8.8 0 16 7.2 16 16l0 16zm128 0c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16l16 0c8.8 0 16 7.2 16 16l0 16zm72-32l16 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16zM80 336c0-8.8 7.2-16 16-16l288 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-288 0c-8.8 0-16-7.2-16-16l0-16zm336-16l16 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16z"/></svg></div>`;
     panel.innerHTML = `
         <div class="shortcuts-panel-header">
