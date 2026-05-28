@@ -851,6 +851,14 @@ export function initializeWorkspace() {
       overlay.classList.add('collapsing');
       overlay.addEventListener('animationend', () => {
         overlay.classList.remove('collapsing');
+        if (searchCategory?._mobileMatchBlocks) {
+          searchCategory.matchBlocks = searchCategory._mobileMatchBlocks;
+          delete searchCategory._mobileMatchBlocks;
+        }
+        if (resultsPanel.isConnected) {
+          resultsPanel.remove();
+          resultsPanel.innerHTML = '';
+        }
         originalParent.appendChild(searchInput);
         overlay.remove();
       }, { once: true });

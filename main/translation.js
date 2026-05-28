@@ -125,6 +125,14 @@ export async function setLanguage(language) {
   const workspace = Blockly.getMainWorkspace();
   if (workspace) {
     // Update toolbox first to get new category translations
+    const rebuildSearchIndex = () => {
+      if (workspace.flockSearchCategory?.blockSearcher?.indexBlocks) {
+        workspace.flockSearchIndexedBlocks = null;
+        workspace.flockBlockLabelMap = new Map();
+        workspace.flockSearchCategory.blockSearcher.indexBlocks();
+      }
+    };
+
     const toolboxElement = document.getElementById("toolbox");
     if (toolboxElement) {
       workspace.updateToolbox(toolboxElement);
@@ -132,6 +140,7 @@ export async function setLanguage(language) {
       // If no toolbox element, try importing the toolbox configuration
       import("../toolbox.js").then(({ toolbox }) => {
         workspace.updateToolbox(toolbox);
+        rebuildSearchIndex();
       });
     }
 
@@ -152,10 +161,8 @@ export async function setLanguage(language) {
       }
     }
 
-    if (workspace.flockSearchCategory?.blockSearcher?.indexBlocks) {
-      workspace.flockSearchIndexedBlocks = null;
-      workspace.flockBlockLabelMap = new Map();
-      workspace.flockSearchCategory.blockSearcher.indexBlocks();
+    if (toolboxElement) {
+      rebuildSearchIndex();
     }
   }
 }
