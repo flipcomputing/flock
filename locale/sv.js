@@ -1108,7 +1108,7 @@ export default {
   design_tool_label: "Designverktyg",
   focused_element_suffix: "{name} har fokus",
   search_toolbox_focused: "Verktygslådesökningen har fokus",
-  workspace_search_placeholder: "Hitta i ytan",
+  workspace_search_placeholder: "Sök i arbetsytan",
   code_workspace_focused: "Kodarbetsytan har fokus",
   interactive_element_label: "Interaktivt element",
   panel_resizer_focused:

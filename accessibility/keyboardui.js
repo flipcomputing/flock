@@ -129,11 +129,13 @@ const AreaManager = {
   activateArea(area) {
     this.toggle(false); // Close the menu
     const el = document.querySelector(area.selector);
-    const focusable = area.focusSelector
-      ? document.querySelector(area.focusSelector)
-      : (el?.querySelector(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        ) ?? el); // Focus the area itself if no suitable child
+    const childFocusable =
+      el?.querySelector(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      ) ?? el;
+    const focusable =
+      (area.focusSelector ? document.querySelector(area.focusSelector) : null) ??
+      childFocusable;
 
     focusable?.focus();
     if (area.selector === "#gizmoButtons") GizmoMenuManager.toggle(true);
