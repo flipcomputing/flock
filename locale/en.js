@@ -1124,6 +1124,9 @@ export default {
   focused_element_suffix: "{name} focused",
   search_toolbox_focused: "Search toolbox focused",
   workspace_search_placeholder: "Find in workspace",
+  toolbox_search_placeholder: "Search",
+  search_no_matching: "No matching blocks found",
+  search_type_3_chars: "Type 3 or more characters to search",
   code_workspace_focused: "Code workspace focused",
   interactive_element_label: "Interactive element",
   panel_resizer_focused:

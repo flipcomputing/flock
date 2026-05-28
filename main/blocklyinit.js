@@ -623,6 +623,7 @@ export function initializeWorkspace() {
   requestAnimationFrame(() => {
     let searchInput = document.querySelector(".blocklyToolbox input[type='search']");
     if (!searchInput) return;
+    searchInput.placeholder = translate('toolbox_search_placeholder');
 
     let originalParent = searchInput.parentElement;
     const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
@@ -696,7 +697,7 @@ export function initializeWorkspace() {
         const query = this.searchField?.value?.trim() || '';
         let items = query ? this.blockSearcher.blockTypesMatching(query) : [];
         if (items.length === 0) {
-          this.flyoutItems_ = [{ kind: 'label', text: query.length < 3 ? 'Type to search for blocks' : 'No matching blocks found' }];
+          this.flyoutItems_ = [{ kind: 'label', text: translate('search_no_matching') }];
         } else {
           const q = query.toLowerCase();
           const scoreItem = (blockDef) => {
@@ -770,14 +771,14 @@ export function initializeWorkspace() {
       const query = searchInput.value.trim();
       if (!query || query.length < 3) {
         resultsPanel.innerHTML =
-          '<div class="mobile-search-empty">Type 3 or more characters to search</div>';
+          `<div class="mobile-search-empty">${translate('search_type_3_chars')}</div>`;
         return;
       }
 
       const matches = searchCategory?.blockSearcher?.blockTypesMatching(query) ?? [];
 
       if (matches.length === 0) {
-        resultsPanel.innerHTML = '<div class="mobile-search-empty">No blocks found</div>';
+        resultsPanel.innerHTML = `<div class="mobile-search-empty">${translate('search_no_matching')}</div>`;
         return;
       }
 
@@ -937,6 +938,7 @@ export function initializeWorkspace() {
         if (overlay.isConnected) closeOverlay();
         const newInput = document.querySelector(".blocklyToolbox input[type='search']");
         if (!newInput) return;
+        newInput.placeholder = translate('toolbox_search_placeholder');
         searchInput = newInput;
         originalParent = newInput.parentElement;
         searchCategory = workspace.getToolbox()
