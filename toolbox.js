@@ -4914,9 +4914,10 @@ export const toolbox = {
 };
 
 const isMobileToolbox = () => window.matchMedia("(max-width: 768px)").matches;
+const isLightTheme = () => !document.body.dataset.theme;
 
 const subcategoryBg = (colour, level) =>
-  isMobileToolbox() && level > 0
+  isMobileToolbox() && level > 0 && isLightTheme()
     ? `color-mix(in srgb, ${colour} 60%, white)`
     : colour;
 
