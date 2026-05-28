@@ -1174,6 +1174,7 @@ export default {
   select_mesh_delete_prompt: "ℹ️ Click an object to delete it.",
   select_mesh_duplicate_prompt:
     "ℹ️ Select an object to duplicate, then click to place copies.",
+  place_object_prompt: "ℹ️ Click on a surface to place the object.",
   position_readout: "Position: {position}",
   eyedropper_not_supported_alert:
     "Color picker tool is not supported in this browser. Try using Chrome or Edge.",

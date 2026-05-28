@@ -1172,6 +1172,7 @@ export default {
   select_mesh_delete_prompt: "ℹ️ Clicca su un oggetto per eliminarlo.",
   select_mesh_duplicate_prompt:
     "ℹ️ Seleziona un oggetto da duplicare, quindi fai clic per posizionare le copie.",
+  place_object_prompt: "ℹ️ Fai clic su una superficie per posizionare l'oggetto.",
   position_readout: "Posizione: {position}",
   eyedropper_not_supported_alert:
     "Lo strumento contagocce non è supportato in questo browser. Prova a usare Chrome o Edge.",

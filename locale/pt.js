@@ -1163,6 +1163,7 @@ export default {
   select_mesh_delete_prompt: "ℹ️ Clique em um objeto para excluí-lo.",
   select_mesh_duplicate_prompt:
     "ℹ️ Selecione um objeto para duplicar, depois clique para posicionar as cópias.",
+  place_object_prompt: "ℹ️ Clique em uma superfície para posicionar o objeto.",
   position_readout: "Posição: {position}",
   eyedropper_not_supported_alert:
     "A ferramenta conta-gotas não é suportada neste navegador. Tente usar o Chrome ou Edge.",

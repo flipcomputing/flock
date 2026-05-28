@@ -1171,6 +1171,7 @@ export default {
   select_mesh_delete_prompt: "ℹ️ Kliknij obiekt, aby go usunąć.",
   select_mesh_duplicate_prompt:
     "ℹ️ Wybierz obiekt do powielenia, a następnie kliknij, aby umieścić kopie.",
+  place_object_prompt: "ℹ️ Kliknij na powierzchnię, aby umieścić obiekt.",
   position_readout: "Pozycja: {position}",
   eyedropper_not_supported_alert:
     "Narzędzie próbnika kolorów nie jest obsługiwane w tej przeglądarce. Spróbuj użyć Chrome lub Edge.",

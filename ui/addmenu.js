@@ -21,6 +21,7 @@ import {
   setDefaultCursor,
 } from "./canvas-utils.js";
 import { GizmoMenuManager } from "../accessibility/keyboardui.js";
+import { translate } from "../main/translation.js";
 
 const colorFields = {
   HAIR_COLOR: "#000000", // Hair: black
@@ -273,6 +274,11 @@ function selectCharacter(characterName) {
   }
 
   setCrosshairCursor();
+  flock.printText({
+    text: translate("place_object_prompt"),
+    duration: 30,
+    color: "black",
+  });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -325,6 +331,11 @@ function selectShape(shapeType) {
 
   // Also set up mouse click as fallback
   setCrosshairCursor();
+  flock.printText({
+    text: translate("place_object_prompt"),
+    duration: 30,
+    color: "black",
+  });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -398,6 +409,11 @@ function selectObjectWithCommand(objectName, menu, command) {
 
   // Mouse click fallback (capture=true)
   setCrosshairCursor();
+  flock.printText({
+    text: translate("place_object_prompt"),
+    duration: 30,
+    color: "black",
+  });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
