@@ -728,22 +728,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   }
 }
 
-@keyframes toolboxSlideDown {
-  from {
-    transform: translateY(-8px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 @media (max-width: 768px) {
-  .blocklyToolboxCategoryGroup {
-    animation: toolboxSlideDown 0.4s ease-out;
-  }
-
   /* Reset Blockly v13's injected container margins */
   .blocklyToolbox .blocklyToolboxCategoryContainer {
     margin: 0 !important;
