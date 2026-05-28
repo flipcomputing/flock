@@ -1249,6 +1249,7 @@ export default {
   shortcut_open_gizmos: "Gizmos",
   shortcut_select_gizmo: "Välj gizmo",
   shortcut_keyboard_cursor_gizmos: "Tangentbordskursor för gizmos",
+  shortcut_slow_cursor_gizmos: "Långsam markörrörelse",
   shortcut_lock_transform: "Lås transformering till axel",
   shortcut_transform_3d: "Transformera i 3D",
   shortcut_focus_camera: "Rikta kameran mot objekt",

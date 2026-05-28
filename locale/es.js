@@ -1282,6 +1282,7 @@ export default {
   shortcut_open_gizmos: "Gizmos",
   shortcut_select_gizmo: "Seleccionar gizmo",
   shortcut_keyboard_cursor_gizmos: "Cursor de teclado para gizmos",
+  shortcut_slow_cursor_gizmos: "Movimiento lento del cursor",
   shortcut_lock_transform: "Bloquear transformación en eje",
   shortcut_transform_3d: "Transformar en 3D",
   shortcut_focus_camera: "Enfocar cámara en objeto",

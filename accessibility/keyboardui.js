@@ -509,6 +509,11 @@ function getShortcuts() {
       category: translate("shortcut_category_gizmos"),
     },
     {
+      label: translate("shortcut_slow_cursor_gizmos"),
+      keys: `Shift + ↑ ↓ ← →`,
+      category: translate("shortcut_category_gizmos"),
+    },
+    {
       label: translate("shortcut_lock_transform"),
       keys: `X Y Z`,
       category: translate("shortcut_category_gizmos"),
