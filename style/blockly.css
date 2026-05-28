@@ -850,6 +850,9 @@ body[data-theme="low-vision"]
     box-sizing: border-box;
     width: auto !important;
     min-width: 0;
+    border: 1px solid #888;
+    border-radius: 4px;
+    outline: none;
   }
 
   .mobile-search-cancel {

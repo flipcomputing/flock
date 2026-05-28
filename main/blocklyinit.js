@@ -825,6 +825,7 @@ export function initializeWorkspace() {
     };
 
     let blurTimeout = null;
+    let suppressBlurClose = false;
 
     const openOverlay = () => {
       workspace.getToolbox()?.clearSelection?.();
@@ -858,10 +859,29 @@ export function initializeWorkspace() {
 
     const attachInputListeners = (input) => {
       input.setAttribute('autocomplete', 'one-time-code');
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          suppressBlurClose = true;
+          const query = input.value;
+          input.blur();
+          requestAnimationFrame(() => {
+            input.value = query;
+            updateResults();
+          });
+        }
+      });
       input.addEventListener('blur', () => {
         if (!overlay.isConnected) return;
+        if (suppressBlurClose) {
+          suppressBlurClose = false;
+          return;
+        }
         blurTimeout = setTimeout(() => {
-          if (overlay.isConnected) closeOverlay();
+          if (!overlay.isConnected) return;
+          const active = document.activeElement;
+          if (!active || active === document.body || overlay.contains(active)) return;
+          closeOverlay();
         }, 150);
       });
       input.addEventListener('focus', () => {
