@@ -613,7 +613,7 @@ export function initializeWorkspace() {
     };
   }
   workspaceSearch.init();
-  workspaceSearch.setSearchPlaceholder(translate("workspace_search_placeholder"));
+  workspaceSearch.setSearchPlaceholder(translate('workspace_search_placeholder'));
   window.flockWorkspaceSearch = workspaceSearch;
 
   // Shared label map populated by buildSearchIndex (overrideSearchPlugin), used by getBlockLabel
@@ -630,7 +630,8 @@ export function initializeWorkspace() {
     const isMobileResults = () => window.matchMedia('(max-width: 480px)').matches;
 
     // Get the toolbox search category to reuse its trigram blockSearcher
-    let searchCategory = workspace.getToolbox()
+    let searchCategory = workspace
+      .getToolbox()
       ?.getToolboxItems?.()
       .find((item) => item.getId?.() === 'toolbox-search-input');
 
@@ -688,7 +689,10 @@ export function initializeWorkspace() {
 
     const getBlockLabel = (blockDef) => {
       const type = blockDef.type;
-      return workspace.flockBlockLabelMap?.get(type) || type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
+      return (
+        workspace.flockBlockLabelMap?.get(type) ||
+        type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
+      );
     };
 
     const applyMatchBlocksOverride = (sc) => {
@@ -747,10 +751,13 @@ export function initializeWorkspace() {
       if (topBlocks.length === 0) {
         placeY = -workspace.scrollY / workspace.scale + 50;
       } else {
-        placeY = Math.max(...topBlocks.map((b) => {
-          const pos = b.getRelativeToSurfaceXY();
-          return pos.y + (b.height || 50);
-        })) + 30;
+        placeY =
+          Math.max(
+            ...topBlocks.map((b) => {
+              const pos = b.getRelativeToSurfaceXY();
+              return pos.y + (b.height || 50);
+            })
+          ) + 30;
       }
       const placeX = (metrics.viewWidth / 2 - workspace.scrollX) / workspace.scale;
 
@@ -763,7 +770,7 @@ export function initializeWorkspace() {
       const scale = workspace.scale;
       workspace.scroll(
         metrics.viewWidth / 2 - placeX * scale,
-        metrics.viewHeight * 0.4 - placeY * scale,
+        metrics.viewHeight * 0.4 - placeY * scale
       );
     };
 
@@ -849,19 +856,23 @@ export function initializeWorkspace() {
       blurTimeout = null;
       overlay.classList.remove('expanding');
       overlay.classList.add('collapsing');
-      overlay.addEventListener('animationend', () => {
-        overlay.classList.remove('collapsing');
-        if (searchCategory?._mobileMatchBlocks) {
-          searchCategory.matchBlocks = searchCategory._mobileMatchBlocks;
-          delete searchCategory._mobileMatchBlocks;
-        }
-        if (resultsPanel.isConnected) {
-          resultsPanel.remove();
-          resultsPanel.innerHTML = '';
-        }
-        originalParent.appendChild(searchInput);
-        overlay.remove();
-      }, { once: true });
+      overlay.addEventListener(
+        'animationend',
+        () => {
+          overlay.classList.remove('collapsing');
+          if (searchCategory?._mobileMatchBlocks) {
+            searchCategory.matchBlocks = searchCategory._mobileMatchBlocks;
+            delete searchCategory._mobileMatchBlocks;
+          }
+          if (resultsPanel.isConnected) {
+            resultsPanel.remove();
+            resultsPanel.innerHTML = '';
+          }
+          originalParent.appendChild(searchInput);
+          overlay.remove();
+        },
+        { once: true }
+      );
     };
 
     const closeOverlay = () => {
@@ -905,7 +916,10 @@ export function initializeWorkspace() {
           const active = document.activeElement;
           const blocklyDiv = document.getElementById('blocklyDiv');
           if (!active || active === document.body || overlay.contains(active)) return;
-          if (blocklyDiv?.contains(active)) { collapseOverlay(); return; }
+          if (blocklyDiv?.contains(active)) {
+            collapseOverlay();
+            return;
+          }
           closeOverlay();
         }, 150);
       });
@@ -948,7 +962,8 @@ export function initializeWorkspace() {
         newInput.placeholder = translate('toolbox_search_placeholder');
         searchInput = newInput;
         originalParent = newInput.parentElement;
-        searchCategory = workspace.getToolbox()
+        searchCategory = workspace
+          .getToolbox()
           ?.getToolboxItems?.()
           .find((item) => item.getId?.() === 'toolbox-search-input');
         buildCategoryMap();
@@ -1106,8 +1121,10 @@ export function createBlocklyWorkspace() {
     }
 
     setSelectedItem(item) {
+      if (item && item.isSelectable?.()) {
+        this.collapseUnrelatedCategories_(item);
+      }
       super.setSelectedItem(item);
-      this.collapseUnrelatedCategories_(this.getSelectedItem());
     }
 
     // Accordion behaviour: navigating to a category collapses every other
