@@ -5,9 +5,9 @@ name: Run mocha tests
 
 on:
   push:
-    branches: ["main", "testable"]
+    branches: ["testable"]
   pull_request:
-    branches: ["main", "testable"]
+    branches: ["testable"]
 
 jobs:
   build:
