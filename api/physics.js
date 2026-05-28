@@ -3,25 +3,17 @@ let flock;
 const getShapeTypeFromPhysics = (physics) => {
   if (!physics?.shape) return null;
   const shape = physics.shape;
-  if (
-    flock?.BABYLON?.PhysicsShapeCapsule &&
-    shape instanceof flock.BABYLON.PhysicsShapeCapsule
-  )
-    return "CAPSULE";
-  if (
-    flock?.BABYLON?.PhysicsShapeMesh &&
-    shape instanceof flock.BABYLON.PhysicsShapeMesh
-  )
-    return "MESH";
+  if (flock?.BABYLON?.PhysicsShapeCapsule && shape instanceof flock.BABYLON.PhysicsShapeCapsule)
+    return 'CAPSULE';
+  if (flock?.BABYLON?.PhysicsShapeMesh && shape instanceof flock.BABYLON.PhysicsShapeMesh)
+    return 'MESH';
   return null;
 };
 
 const capturePhysicsState = (targetMesh) => ({
   motionType: targetMesh.physics?.getMotionType?.(),
   disablePreStep: targetMesh.physics?.disablePreStep ?? false,
-  shapeType:
-    getShapeTypeFromPhysics(targetMesh.physics) ||
-    targetMesh.metadata?.physicsShapeType,
+  shapeType: getShapeTypeFromPhysics(targetMesh.physics) || targetMesh.metadata?.physicsShapeType,
 });
 
 const disposePhysics = (targetMesh) => {
@@ -32,31 +24,28 @@ const disposePhysics = (targetMesh) => {
   // Remove the body from the physics world
   try {
     if (body._pluginData?.hpBodyId) {
-      flock.hk._hknp.HP_World_RemoveBody(
-        flock.hk.world,
-        body._pluginData.hpBodyId,
-      );
+      flock.hk._hknp.HP_World_RemoveBody(flock.hk.world, body._pluginData.hpBodyId);
     }
   } catch (e) {
-    console.warn("[physics] RemoveBody warning:", e);
+    console.warn('[physics] RemoveBody warning:', e);
   }
 
   // Dispose of the shape explicitly
   try {
     body.shape?.dispose?.();
   } catch (error) {
-    console.warn("Suppressed non-critical error:", error);
+    console.warn('Suppressed non-critical error:', error);
   }
   try {
     body.dispose?.();
   } catch (error) {
-    console.warn("Suppressed non-critical error:", error);
+    console.warn('Suppressed non-critical error:', error);
   }
   targetMesh.physics = null;
 };
 
 const createPhysicsShape = (mesh, shapeType) => {
-  if (shapeType === "CAPSULE") {
+  if (shapeType === 'CAPSULE') {
     mesh.computeWorldMatrix(true);
     return flock.createCapsuleFromBoundingBox(mesh, flock.scene);
   }
@@ -67,33 +56,26 @@ const applyPhysicsShape = (
   targetMesh,
   shapeType,
   motionType = flock.BABYLON.PhysicsMotionType.STATIC,
-  disablePreStep = false,
+  disablePreStep = false
 ) => {
-  const normalizedShapeType = shapeType === "CAPSULE" ? "CAPSULE" : "MESH";
+  const normalizedShapeType = shapeType === 'CAPSULE' ? 'CAPSULE' : 'MESH';
   const physicsShape = createPhysicsShape(targetMesh, normalizedShapeType);
   if (!physicsShape) {
-    console.error(
-      "[physics] Failed to create",
-      normalizedShapeType,
-      "shape for",
-      targetMesh.name,
-    );
+    console.error('[physics] Failed to create', normalizedShapeType, 'shape for', targetMesh.name);
     return;
   }
 
   const physicsBody = new flock.BABYLON.PhysicsBody(
     targetMesh,
-    normalizedShapeType === "CAPSULE"
-      ? flock.BABYLON.PhysicsMotionType.DYNAMIC
-      : motionType,
+    normalizedShapeType === 'CAPSULE' ? flock.BABYLON.PhysicsMotionType.DYNAMIC : motionType,
     false,
-    flock.scene,
+    flock.scene
   );
   physicsBody.shape = physicsShape;
   physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
   physicsBody.disablePreStep = disablePreStep;
   targetMesh.physics = physicsBody;
-  if (normalizedShapeType === "CAPSULE") physicsBody.setMotionType(motionType);
+  if (normalizedShapeType === 'CAPSULE') physicsBody.setMotionType(motionType);
   targetMesh.metadata = targetMesh.metadata || {};
   targetMesh.metadata.physicsShapeType = normalizedShapeType;
   targetMesh.metadata.physicsCache = {
@@ -108,17 +90,8 @@ export function setFlockReference(ref) {
 }
 
 export const flockPhysics = {
-  createPhysicsBody(
-    mesh,
-    shape,
-    motionType = flock.BABYLON.PhysicsMotionType.STATIC,
-  ) {
-    const physicsBody = new flock.BABYLON.PhysicsBody(
-      mesh,
-      motionType,
-      false,
-      flock.scene,
-    );
+  createPhysicsBody(mesh, shape, motionType = flock.BABYLON.PhysicsMotionType.STATIC) {
+    const physicsBody = new flock.BABYLON.PhysicsBody(mesh, motionType, false, flock.scene);
     physicsBody.shape = shape;
     physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
     mesh.physics = physicsBody;
@@ -128,7 +101,7 @@ export const flockPhysics = {
       geometry,
       flock.BABYLON.PhysicsMotionType.STATIC,
       false,
-      flock.scene,
+      flock.scene
     );
     physicsBody.shape = physicsShape;
     physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
@@ -154,46 +127,45 @@ export const flockPhysics = {
     let newShape;
     let detectedShapeType;
     if (physicsShape instanceof flock.BABYLON.PhysicsShapeBox) {
-      detectedShapeType = "BOX";
+      detectedShapeType = 'BOX';
       newShape = new flock.BABYLON.PhysicsShapeBox(
         flock.BABYLON.Vector3.Zero(),
         new flock.BABYLON.Quaternion(0, 0, 0, 1),
         new flock.BABYLON.Vector3(width, height, depth),
-        flock.scene,
+        flock.scene
       );
     } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeSphere) {
-      detectedShapeType = "SPHERE";
+      detectedShapeType = 'SPHERE';
       newShape = new flock.BABYLON.PhysicsShapeSphere(
         flock.BABYLON.Vector3.Zero(),
         Math.max(width, height, depth) / 2,
-        flock.scene,
+        flock.scene
       );
     } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeCylinder) {
-      detectedShapeType = "CYLINDER";
+      detectedShapeType = 'CYLINDER';
       newShape = new flock.BABYLON.PhysicsShapeCylinder(
         new flock.BABYLON.Vector3(0, -height / 2, 0),
         new flock.BABYLON.Vector3(0, height / 2, 0),
         Math.max(width, depth) / 2,
-        flock.scene,
+        flock.scene
       );
     } else if (
       flock?.BABYLON?.PhysicsShapeCapsule &&
       physicsShape instanceof flock.BABYLON.PhysicsShapeCapsule
     ) {
-      detectedShapeType = "CAPSULE";
-      newShape = createPhysicsShape(mesh, "CAPSULE");
+      detectedShapeType = 'CAPSULE';
+      newShape = createPhysicsShape(mesh, 'CAPSULE');
       if (!newShape) return;
     } else if (
       flock?.BABYLON?.PhysicsShapeMesh &&
       physicsShape instanceof flock.BABYLON.PhysicsShapeMesh
     ) {
-      detectedShapeType = "MESH";
-      newShape = createPhysicsShape(mesh, "MESH");
+      detectedShapeType = 'MESH';
+      newShape = createPhysicsShape(mesh, 'MESH');
       if (!newShape) return;
     } else {
       detectedShapeType =
-        getShapeTypeFromPhysics(parent.physics) ||
-        parent.metadata?.physicsShapeType;
+        getShapeTypeFromPhysics(parent.physics) || parent.metadata?.physicsShapeType;
       if (!detectedShapeType) return;
       newShape = createPhysicsShape(mesh, detectedShapeType);
       if (!newShape) return;
@@ -201,23 +173,20 @@ export const flockPhysics = {
 
     disposePhysics(parent);
 
-    const isCapsule = detectedShapeType === "CAPSULE";
+    const isCapsule = detectedShapeType === 'CAPSULE';
     const physicsBody = new flock.BABYLON.PhysicsBody(
       parent,
       isCapsule
         ? flock.BABYLON.PhysicsMotionType.DYNAMIC
         : (motionType ?? flock.BABYLON.PhysicsMotionType.STATIC),
       false,
-      flock.scene,
+      flock.scene
     );
     physicsBody.shape = newShape;
     physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
     physicsBody.disablePreStep = disablePreStep ?? false;
     parent.physics = physicsBody;
-    if (isCapsule)
-      physicsBody.setMotionType(
-        motionType ?? flock.BABYLON.PhysicsMotionType.STATIC,
-      );
+    if (isCapsule) physicsBody.setMotionType(motionType ?? flock.BABYLON.PhysicsMotionType.STATIC);
     parent.metadata = parent.metadata || {};
     parent.metadata.physicsShapeType = detectedShapeType;
     parent.metadata.physicsCache = {
@@ -239,10 +208,10 @@ export const flockPhysics = {
     if (mesh) {
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(0, upForce, 0),
-        mesh.getAbsolutePosition(),
+        mesh.getAbsolutePosition()
       );
     } else {
-      console.log("Model not loaded (up):", meshName);
+      console.log('Model not loaded (up):', meshName);
     }
   },
   applyForce(meshName, { forceX = 0, forceY = 0, forceZ = 0 } = {}) {
@@ -250,55 +219,46 @@ export const flockPhysics = {
     if (mesh && mesh.physics) {
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(forceX, forceY, forceZ),
-        mesh.getAbsolutePosition(),
+        mesh.getAbsolutePosition()
       );
     } else {
-      console.error(
-        `Model '${meshName}' not loaded or missing physics (applyForce)`,
-      );
+      console.error(`Model '${meshName}' not loaded or missing physics (applyForce)`);
     }
   },
-  async setPhysics(meshName, physicsType) {
-    const mesh = await (typeof flock.ensureModelReadyPromise === "function"
-      ? flock.ensureModelReadyPromise(meshName)
-      : new Promise((resolve) => flock.whenModelReady(meshName, resolve)));
+  setPhysicsForMesh(mesh, physicsType) {
+    if (!mesh) return mesh;
 
-    if (flock.abortController?.signal?.aborted || !mesh) return mesh;
-
-    // Initialize metadata if it doesn't exist
     mesh.metadata = mesh.metadata || {};
     mesh.metadata.physicsType = physicsType;
 
-    if (!mesh.physics && physicsType !== "NONE") {
-      const { motionType, disablePreStep, shapeType } =
-        mesh.metadata.physicsCache || {};
-      const resolvedShapeType =
-        shapeType || mesh.metadata.physicsShapeType || "MESH";
+    if (!mesh.physics && physicsType !== 'NONE') {
+      const { motionType, disablePreStep, shapeType } = mesh.metadata.physicsCache || {};
+      const resolvedShapeType = shapeType || mesh.metadata.physicsShapeType || 'MESH';
       applyPhysicsShape(mesh, resolvedShapeType, motionType, disablePreStep);
     }
 
     if (!mesh.physics) return mesh;
 
     switch (physicsType) {
-      case "STATIC":
+      case 'STATIC':
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
         mesh.physics.disablePreStep = true;
         if (mesh.physics.body) mesh.physics.body.disableSync = false;
         break;
 
-      case "DYNAMIC":
+      case 'DYNAMIC':
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
         mesh.physics.disablePreStep = false;
         if (mesh.physics.body) mesh.physics.body.disableSync = false;
         break;
 
-      case "ANIMATED":
+      case 'ANIMATED':
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
         mesh.physics.disablePreStep = false;
         if (mesh.physics.body) mesh.physics.body.disableSync = false;
         break;
 
-      case "NONE":
+      case 'NONE':
         mesh.metadata.physicsCache = capturePhysicsState(mesh);
         disposePhysics(mesh);
         mesh.physics = null;
@@ -306,6 +266,15 @@ export const flockPhysics = {
     }
 
     return mesh;
+  },
+  async setPhysics(meshName, physicsType) {
+    const mesh = await (typeof flock.ensureModelReadyPromise === 'function'
+      ? flock.ensureModelReadyPromise(meshName)
+      : new Promise((resolve) => flock.whenModelReady(meshName, resolve)));
+
+    if (flock.abortController?.signal?.aborted || !mesh) return mesh;
+
+    return this.setPhysicsForMesh(mesh, physicsType);
   },
   setPhysicsShape(meshName, shapeType) {
     return new Promise((resolve) => {
@@ -320,20 +289,13 @@ export const flockPhysics = {
         // --- CAPSULE path (player collider) ---
         const applyCapsuleToRoot = (targetMesh) => {
           targetMesh.computeWorldMatrix(true);
-          const { motionType, disablePreStep } =
-            capturePhysicsState(targetMesh);
+          const { motionType, disablePreStep } = capturePhysicsState(targetMesh);
           disposePhysics(targetMesh);
 
           // IMPORTANT: use targetMesh (not outer mesh)
-          const physicsShape = flock.createCapsuleFromBoundingBox(
-            targetMesh,
-            flock.scene,
-          );
+          const physicsShape = flock.createCapsuleFromBoundingBox(targetMesh, flock.scene);
           if (!physicsShape) {
-            console.error(
-              "[setPhysicsShape] Failed to create capsule for",
-              targetMesh.name,
-            );
+            console.error('[setPhysicsShape] Failed to create capsule for', targetMesh.name);
             return;
           }
 
@@ -341,7 +303,7 @@ export const flockPhysics = {
             targetMesh,
             flock.BABYLON.PhysicsMotionType.DYNAMIC,
             false,
-            flock.scene,
+            flock.scene
           );
           physicsBody.shape = physicsShape;
           physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
@@ -352,17 +314,16 @@ export const flockPhysics = {
             physicsBody.setMotionType(motionType);
           }
 
-          targetMesh.metadata.physicsShapeType = "CAPSULE";
+          targetMesh.metadata.physicsShapeType = 'CAPSULE';
           targetMesh.metadata.physicsCache = {
             motionType: physicsBody.getMotionType?.(),
             disablePreStep: physicsBody.disablePreStep,
-            shapeType: "CAPSULE",
+            shapeType: 'CAPSULE',
           };
         };
 
         const applyMeshPhysicsShape = (targetMesh) => {
-          const { motionType, disablePreStep } =
-            capturePhysicsState(targetMesh);
+          const { motionType, disablePreStep } = capturePhysicsState(targetMesh);
 
           if (!targetMesh.material) {
             disposePhysics(targetMesh);
@@ -371,16 +332,13 @@ export const flockPhysics = {
 
           disposePhysics(targetMesh);
 
-          const physicsShape = new flock.BABYLON.PhysicsShapeMesh(
-            targetMesh,
-            flock.scene,
-          );
+          const physicsShape = new flock.BABYLON.PhysicsShapeMesh(targetMesh, flock.scene);
 
           const physicsBody = new flock.BABYLON.PhysicsBody(
             targetMesh,
             motionType ?? flock.BABYLON.PhysicsMotionType.STATIC,
             false,
-            flock.scene,
+            flock.scene
           );
           physicsBody.shape = physicsShape;
           physicsBody.setMassProperties({ mass: 1, restitution: 0.5 }); // unchanged
@@ -388,22 +346,22 @@ export const flockPhysics = {
 
           targetMesh.physics = physicsBody;
 
-          targetMesh.metadata.physicsShapeType = "MESH";
+          targetMesh.metadata.physicsShapeType = 'MESH';
           targetMesh.metadata.physicsCache = {
             motionType: physicsBody.getMotionType?.(),
             disablePreStep: physicsBody.disablePreStep,
-            shapeType: "MESH",
+            shapeType: 'MESH',
           };
         };
 
         // --- Dispatch by shape type ---
         switch (shapeType) {
-          case "CAPSULE":
+          case 'CAPSULE':
             // Only on root (player), no children
             applyCapsuleToRoot(mesh);
             break;
 
-          case "MESH":
+          case 'MESH':
             applyMeshPhysicsShape(mesh);
             if (mesh.getChildMeshes) {
               mesh.getChildMeshes().forEach((subMesh) => {
@@ -413,7 +371,7 @@ export const flockPhysics = {
             break;
 
           default:
-            console.error("Invalid shape type provided:", shapeType);
+            console.error('Invalid shape type provided:', shapeType);
             resolve();
             return;
         }
@@ -429,20 +387,14 @@ export const flockPhysics = {
     }
     return false;
   },
-  onTrigger(
-    meshName,
-    { trigger, callback, mode = "wait", applyToGroup = false },
-  ) {
-    const getGroupRoot = (name) =>
-      name.includes("__") ? name.split("__")[0] : name.split("_")[0];
+  onTrigger(meshName, { trigger, callback, mode = 'wait', applyToGroup = false }) {
+    const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
 
     const groupName = getGroupRoot(meshName);
     const getAllGuiControls = () => {
-      const root =
-        flock.scene?.UITexture?._rootContainer ??
-        flock.scene?.UITexture?.rootContainer;
+      const root = flock.scene?.UITexture?._rootContainer ?? flock.scene?.UITexture?.rootContainer;
       if (!root) return [];
-      if (typeof root.getDescendants === "function") {
+      if (typeof root.getDescendants === 'function') {
         return root.getDescendants(false);
       }
       const all = [];
@@ -459,8 +411,7 @@ export const flockPhysics = {
     };
 
     if (!flock.scene) {
-      if (!flock.pendingTriggers.has(groupName))
-        flock.pendingTriggers.set(groupName, []);
+      if (!flock.pendingTriggers.has(groupName)) flock.pendingTriggers.set(groupName, []);
       flock.pendingTriggers
         .get(groupName)
         .push({ meshName, trigger, callback, mode, applyToGroup });
@@ -471,12 +422,10 @@ export const flockPhysics = {
       let matchingButtons = [];
       if (flock.scene.UITexture) {
         matchingButtons = getAllGuiControls().filter(
-          (control) => control?.name && getGroupRoot(control.name) === groupName,
+          (control) => control?.name && getGroupRoot(control.name) === groupName
         );
       }
-      const matching = flock.scene.meshes.filter(
-        (m) => getGroupRoot(m.name) === groupName,
-      );
+      const matching = flock.scene.meshes.filter((m) => getGroupRoot(m.name) === groupName);
 
       if (matchingButtons.length > 0) {
         for (const btn of matchingButtons) {
@@ -498,8 +447,7 @@ export const flockPhysics = {
           });
         }
       }
-      if (!flock.pendingTriggers.has(groupName))
-        flock.pendingTriggers.set(groupName, []);
+      if (!flock.pendingTriggers.has(groupName)) flock.pendingTriggers.set(groupName, []);
       flock.pendingTriggers
         .get(groupName)
         .push({ meshName, trigger, callback, mode, applyToGroup });
@@ -512,13 +460,10 @@ export const flockPhysics = {
     }
 
     const tryNow =
-      flock.scene?.getMeshByName(meshName) ||
-      flock.modelReadyPromises.has(meshName) ||
-      guiButton;
+      flock.scene?.getMeshByName(meshName) || flock.modelReadyPromises.has(meshName) || guiButton;
 
     if (!tryNow) {
-      if (!flock.pendingTriggers.has(groupName))
-        flock.pendingTriggers.set(groupName, []);
+      if (!flock.pendingTriggers.has(groupName)) flock.pendingTriggers.set(groupName, []);
       flock.pendingTriggers
         .get(groupName)
         .push({ meshName, trigger, callback, mode, applyToGroup });
@@ -545,22 +490,21 @@ export const flockPhysics = {
 
           let actionSequence = new flock.BABYLON.ExecuteCodeAction(
             flock.BABYLON.ActionManager[trigger],
-            action,
+            action
           );
           for (let i = 1; i < callbacks.length; i++) {
             actionSequence = actionSequence.then(
               new flock.BABYLON.ExecuteCodeAction(
                 flock.BABYLON.ActionManager[trigger],
-                async () => await callbacks[i](),
-              ),
+                async () => await callbacks[i]()
+              )
             );
           }
           mesh.actionManager.registerAction(actionSequence);
         }
 
         function registerButtonAction(button, trigger, action) {
-          if (trigger === "OnPointerUpTrigger")
-            button.onPointerUpObservable.add(action);
+          if (trigger === 'OnPointerUpTrigger') button.onPointerUpObservable.add(action);
           else button.onPointerClickObservable.add(action);
         }
 
@@ -568,18 +512,18 @@ export const flockPhysics = {
           // 🛡️ THE ROOT CAUSE FIX: Identity Guard
           if (meshId !== target.name) return;
 
-          if (mode === "once" && hasExecuted) return;
-          if (mode === "wait" && isExecuting) return;
-          if (mode === "once") hasExecuted = true;
-          if (mode === "wait") isExecuting = true;
+          if (mode === 'once' && hasExecuted) return;
+          if (mode === 'wait' && isExecuting) return;
+          if (mode === 'once') hasExecuted = true;
+          if (mode === 'wait') isExecuting = true;
 
           try {
             await callbacks[currentIndex](meshId);
             currentIndex = (currentIndex + 1) % callbacks.length;
           } catch (e) {
-            console.error("Action execution failed:", e);
+            console.error('Action execution failed:', e);
           } finally {
-            if (mode === "wait") isExecuting = false;
+            if (mode === 'wait') isExecuting = false;
           }
         }
 
@@ -592,72 +536,52 @@ export const flockPhysics = {
 
           // XR case
           if (flock.xrHelper && flock.xrHelper.baseExperience) {
-            const xrObs =
-              flock.xrHelper.baseExperience.onStateChangedObservable.add(
-                (state) => {
-                  if (
-                    state === flock.BABYLON.WebXRState.IN_XR &&
-                    flock.xrHelper.baseExperience.sessionManager
-                      .sessionMode === "immersive-ar"
-                  ) {
-                    flock.xrHelper.baseExperience.featuresManager.enableFeature(
-                      flock.BABYLON.WebXRHitTest.Name,
-                      "latest",
-                      {
-                        onHitTestResultObservable: (results) => {
-                          if (results.length > 0) {
-                            const position =
-                              results[0].transformationMatrix.getTranslation();
-                            target.position.copyFrom(position);
-                            target.isVisible = true;
-                          }
-                        },
-                      },
-                    );
-                    // We removed flock.scene.onPointerDown here because ActionManager handles it more safely!
+            const xrObs = flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+              if (
+                state === flock.BABYLON.WebXRState.IN_XR &&
+                flock.xrHelper.baseExperience.sessionManager.sessionMode === 'immersive-ar'
+              ) {
+                flock.xrHelper.baseExperience.featuresManager.enableFeature(
+                  flock.BABYLON.WebXRHitTest.Name,
+                  'latest',
+                  {
+                    onHitTestResultObservable: (results) => {
+                      if (results.length > 0) {
+                        const position = results[0].transformationMatrix.getTranslation();
+                        target.position.copyFrom(position);
+                        target.isVisible = true;
+                      }
+                    },
                   }
-                },
-              );
+                );
+                // We removed flock.scene.onPointerDown here because ActionManager handles it more safely!
+              }
+            });
             flock.abortController?.signal?.addEventListener(
-              "abort",
-              () =>
-                flock.xrHelper?.baseExperience?.onStateChangedObservable?.remove(
-                  xrObs,
-                ),
-              { once: true },
+              'abort',
+              () => flock.xrHelper?.baseExperience?.onStateChangedObservable?.remove(xrObs),
+              { once: true }
             );
           }
         } else if (target instanceof flock.GUI.Button) {
-          registerButtonAction(
-            target,
-            trigger,
-            async () => await executeAction(target.name),
-          );
+          registerButtonAction(target, trigger, async () => await executeAction(target.name));
         }
         resolve();
       });
     });
   },
-  onIntersect(
-    meshName,
-    otherMeshName,
-    { trigger, callback, applyToGroupOther = false } = {},
-  ) {
-    const getGroupRoot = (name) =>
-      name.includes("__") ? name.split("__")[0] : name.split("_")[0];
+  onIntersect(meshName, otherMeshName, { trigger, callback, applyToGroupOther = false } = {}) {
+    const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
     const resolveCanonicalGroupName = (rawName) => {
       const scene = flock.scene;
       const exact = scene?.getMeshByName?.(rawName);
       if (exact?.name) return getGroupRoot(exact.name);
 
-      let normalized = rawName.includes("__") ? rawName.split("__")[0] : rawName;
-      normalized = normalized.replace(/[^a-zA-Z0-9._-]/g, "");
+      let normalized = rawName.includes('__') ? rawName.split('__')[0] : rawName;
+      normalized = normalized.replace(/[^a-zA-Z0-9._-]/g, '');
 
       if (normalized && normalized !== rawName) {
-        if (
-          scene?.getMeshByName?.(normalized) ||
-          flock.modelReadyPromises.has(normalized)
-        ) {
+        if (scene?.getMeshByName?.(normalized) || flock.modelReadyPromises.has(normalized)) {
           return getGroupRoot(normalized);
         }
       }
@@ -693,9 +617,7 @@ export const flockPhysics = {
       };
 
       if (flock.scene) {
-        const matching = flock.scene.meshes.filter(
-          (m) => getGroupRoot(m.name) === groupName,
-        );
+        const matching = flock.scene.meshes.filter((m) => getGroupRoot(m.name) === groupName);
         const matchingNames = [...new Set(matching.map((m) => m.name))];
         return Promise.all(matchingNames.map((name) => registerForOther(name)));
       }
@@ -706,14 +628,14 @@ export const flockPhysics = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
         if (!mesh) {
-          console.error("Model not loaded:", meshName);
+          console.error('Model not loaded:', meshName);
           resolve();
           return;
         }
 
         flock.whenModelReady(otherMeshName, async function (otherMesh) {
           if (!otherMesh) {
-            console.error("Model not loaded:", otherMeshName);
+            console.error('Model not loaded:', otherMeshName);
             resolve();
             return;
           }
@@ -736,10 +658,9 @@ export const flockPhysics = {
               if (evtMesh && evtMesh !== otherMesh) return;
               await callback(mesh.name, otherMesh.name);
             },
-            new flock.BABYLON.PredicateCondition(
-              flock.BABYLON.ActionManager,
-              () => otherMesh.isEnabled(),
-            ),
+            new flock.BABYLON.PredicateCondition(flock.BABYLON.ActionManager, () =>
+              otherMesh.isEnabled()
+            )
           );
 
           mesh.actionManager.registerAction(action);
@@ -752,25 +673,25 @@ export const flockPhysics = {
     meshName,
     otherMeshName,
     {
-      trigger = "OnIntersectionEnterTrigger",
+      trigger = 'OnIntersectionEnterTrigger',
       callback,
       usePhysics,
       debounce = 0,
-      mode = "either",
+      mode = 'either',
       separationFrames = 5,
-    } = {},
+    } = {}
   ) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async (mesh) => {
         if (!mesh) {
-          console.error("Model not loaded:", meshName);
+          console.error('Model not loaded:', meshName);
           resolve();
           return;
         }
 
         flock.whenModelReady(otherMeshName, async (otherMesh) => {
           if (!otherMesh) {
-            console.error("Model not loaded:", otherMeshName);
+            console.error('Model not loaded:', otherMeshName);
             resolve();
             return;
           }
@@ -781,11 +702,10 @@ export const flockPhysics = {
           // ---- config / mode resolution (back-compat) ----
           const bothHaveBodies = !!(mesh.physicsBody && otherMesh.physicsBody);
           let resolvedMode = mode;
-          if (mode !== "either") {
-            if (usePhysics === true) resolvedMode = "physics";
-            else if (usePhysics === false) resolvedMode = "intersection";
-            else if (mode === "auto")
-              resolvedMode = bothHaveBodies ? "physics" : "intersection";
+          if (mode !== 'either') {
+            if (usePhysics === true) resolvedMode = 'physics';
+            else if (usePhysics === false) resolvedMode = 'intersection';
+            else if (mode === 'auto') resolvedMode = bothHaveBodies ? 'physics' : 'intersection';
           }
 
           // ---- shared state (per pair) ----
@@ -800,7 +720,7 @@ export const flockPhysics = {
           const cleanups = [];
 
           const timeNow = () =>
-            typeof performance !== "undefined" ? performance.now() : Date.now();
+            typeof performance !== 'undefined' ? performance.now() : Date.now();
           const tryFireEnter = (_sourceTag) => {
             // If both systems shout on the same frame, only fire once
             if (scene.getFrameId() === state.lastFrameFired) return;
@@ -811,9 +731,7 @@ export const flockPhysics = {
               state.lastFireMs = now;
               state.lastFrameFired = scene.getFrameId();
               // Fire user callback
-              Promise.resolve(callback(mesh.name, otherMesh.name)).catch(
-                console.error,
-              );
+              Promise.resolve(callback(mesh.name, otherMesh.name)).catch(console.error);
             }
           };
 
@@ -825,8 +743,7 @@ export const flockPhysics = {
 
           // ---- PHYSICS LISTENER (Havok v2) ----
           const enablePhysicsPath =
-            (resolvedMode === "physics" || resolvedMode === "either") &&
-            bothHaveBodies;
+            (resolvedMode === 'physics' || resolvedMode === 'either') && bothHaveBodies;
           if (enablePhysicsPath) {
             try {
               // Enable collision callbacks (safe to enable on both)
@@ -838,7 +755,7 @@ export const flockPhysics = {
                 const other = evt.collidedAgainst?.transformNode;
                 if (other === otherMesh && otherMesh.isEnabled()) {
                   state.physicsFramesSinceHit = 0;
-                  tryFireEnter("physics");
+                  tryFireEnter('physics');
                 }
               });
               cleanups.push(() => observable.remove(physicsObserver));
@@ -855,22 +772,20 @@ export const flockPhysics = {
                   state.physicsFramesSinceHit = 0;
                 }
               });
-              cleanups.push(() =>
-                scene.onBeforeRenderObservable.remove(tickObserver),
-              );
+              cleanups.push(() => scene.onBeforeRenderObservable.remove(tickObserver));
             } catch (e) {
               console.warn(
-                "Physics collision subscription failed, falling back to intersections:",
-                e,
+                'Physics collision subscription failed, falling back to intersections:',
+                e
               );
             }
           }
 
           // ---- ACTION MANAGER INTERSECTION LISTENER ----
           const enableAMPath =
-            resolvedMode === "intersection" ||
-            resolvedMode === "either" ||
-            (!bothHaveBodies && resolvedMode === "auto");
+            resolvedMode === 'intersection' ||
+            resolvedMode === 'either' ||
+            (!bothHaveBodies && resolvedMode === 'auto');
           if (enableAMPath) {
             if (!mesh.actionManager) {
               mesh.actionManager = new B.ActionManager(scene);
@@ -889,12 +804,10 @@ export const flockPhysics = {
               () => {
                 if (otherMesh.isEnabled()) {
                   state.intersectingNow = true;
-                  tryFireEnter("am");
+                  tryFireEnter('am');
                 }
               },
-              new B.PredicateCondition(B.ActionManager, () =>
-                otherMesh.isEnabled(),
-              ),
+              new B.PredicateCondition(B.ActionManager, () => otherMesh.isEnabled())
             );
 
             const exitAction = new B.ExecuteCodeAction(
@@ -905,7 +818,7 @@ export const flockPhysics = {
               () => {
                 state.intersectingNow = false;
                 markExit();
-              },
+              }
             );
 
             const enterReg = mesh.actionManager.registerAction(enterAction);
@@ -914,22 +827,18 @@ export const flockPhysics = {
               try {
                 enterReg?.dispose();
               } catch (_) {
-                console.warn("Suppressed non-critical error:", _);
+                console.warn('Suppressed non-critical error:', _);
               }
               try {
                 exitReg?.dispose();
               } catch (_) {
-                console.warn("Suppressed non-critical error:", _);
+                console.warn('Suppressed non-critical error:', _);
               }
             });
 
             // If the caller asks for a specific trigger callback semantics (e.g. Exit),
             // also register their requested trigger to invoke the callback directly.
-            if (
-              trigger &&
-              B.ActionManager[trigger] &&
-              trigger !== "OnIntersectionEnterTrigger"
-            ) {
+            if (trigger && B.ActionManager[trigger] && trigger !== 'OnIntersectionEnterTrigger') {
               const specific = new B.ExecuteCodeAction(
                 {
                   trigger: B.ActionManager[trigger],
@@ -937,17 +846,15 @@ export const flockPhysics = {
                 },
                 () => {
                   if (otherMesh.isEnabled())
-                    Promise.resolve(callback(mesh.name, otherMesh.name)).catch(
-                      console.error,
-                    );
-                },
+                    Promise.resolve(callback(mesh.name, otherMesh.name)).catch(console.error);
+                }
               );
               const reg = mesh.actionManager.registerAction(specific);
               cleanups.push(() => {
                 try {
                   reg?.dispose();
                 } catch (_) {
-                  console.warn("Suppressed non-critical error:", _);
+                  console.warn('Suppressed non-critical error:', _);
                 }
               });
             }
@@ -963,7 +870,7 @@ export const flockPhysics = {
     if (mesh) {
       return flock.checkIfOnSurface(mesh);
     } else {
-      console.log("Model not loaded (isTouchingSurface):", meshName);
+      console.log('Model not loaded (isTouchingSurface):', meshName);
       return false;
     }
   },
@@ -976,14 +883,10 @@ export const flockPhysics = {
     const rayOrigin = new flock.BABYLON.Vector3(
       boundingInfo.boundingBox.centerWorld.x,
       minY + 0.01,
-      boundingInfo.boundingBox.centerWorld.z,
+      boundingInfo.boundingBox.centerWorld.z
     );
 
-    const ray = new flock.BABYLON.Ray(
-      rayOrigin,
-      new flock.BABYLON.Vector3(0, -1, 0),
-      0.2,
-    );
+    const ray = new flock.BABYLON.Ray(rayOrigin, new flock.BABYLON.Vector3(0, -1, 0), 0.2);
 
     let parentPickable = false;
     if (mesh.isPickable) {
@@ -1016,35 +919,32 @@ export const flockPhysics = {
   showPhysics(show = true) {
     const scene = flock?.scene;
     if (!scene) {
-      console.warn("Scene not ready yet");
+      console.warn('Scene not ready yet');
       return;
     }
 
     const engine = scene.getPhysicsEngine?.();
     if (!engine) {
-      console.warn("Physics engine not enabled on this scene.");
+      console.warn('Physics engine not enabled on this scene.');
       return;
     }
 
-    const PhysicsViewerClass =
-      flock.BABYLON?.Debug?.PhysicsViewer || flock.BABYLON?.PhysicsViewer;
+    const PhysicsViewerClass = flock.BABYLON?.Debug?.PhysicsViewer || flock.BABYLON?.PhysicsViewer;
 
     if (!PhysicsViewerClass) {
-      console.warn("PhysicsViewer not available on BABYLON namespace.");
+      console.warn('PhysicsViewer not available on BABYLON namespace.');
       return;
     }
 
     // If we have a viewer from an old scene/engine, tear it down.
-    const sceneChanged =
-      flock._physicsViewerScene && flock._physicsViewerScene !== scene;
-    const engineChanged =
-      flock._physicsViewerEngine && flock._physicsViewerEngine !== engine;
+    const sceneChanged = flock._physicsViewerScene && flock._physicsViewerScene !== scene;
+    const engineChanged = flock._physicsViewerEngine && flock._physicsViewerEngine !== engine;
 
     if (sceneChanged || engineChanged) {
       try {
         flock.physicsViewer?.dispose?.();
       } catch (_) {
-        console.warn("Suppressed non-critical error:", _);
+        console.warn('Suppressed non-critical error:', _);
       }
       flock.physicsViewer = null;
       flock._physicsViewerScene = null;
@@ -1065,7 +965,7 @@ export const flockPhysics = {
         try {
           flock.physicsViewer?.dispose?.();
         } catch (_) {
-          console.warn("Suppressed non-critical error:", _);
+          console.warn('Suppressed non-critical error:', _);
         }
         flock.physicsViewer = null;
         flock._physicsViewerScene = null;
@@ -1080,7 +980,7 @@ export const flockPhysics = {
       const bodies = [];
       const seen = new Set();
 
-      if (typeof engine.getBodies === "function") {
+      if (typeof engine.getBodies === 'function') {
         for (const body of engine.getBodies()) {
           if (body && !seen.has(body)) {
             seen.add(body);
@@ -1109,7 +1009,7 @@ export const flockPhysics = {
             flock.physicsViewer.showBody(body);
             flock._physicsBodiesShown.add(body);
           } catch (_) {
-            console.warn("Suppressed non-critical error:", _);
+            console.warn('Suppressed non-critical error:', _);
           }
         }
       }
@@ -1120,7 +1020,7 @@ export const flockPhysics = {
           try {
             flock.physicsViewer.hideBody(body);
           } catch (_) {
-            console.warn("Suppressed non-critical error:", _);
+            console.warn('Suppressed non-critical error:', _);
           }
           flock._physicsBodiesShown.delete(body);
         }
@@ -1132,7 +1032,7 @@ export const flockPhysics = {
       try {
         flock.physicsViewer?.dispose?.();
       } catch (_) {
-        console.warn("Suppressed non-critical error:", _);
+        console.warn('Suppressed non-critical error:', _);
       }
       flock.physicsViewer = null;
       flock._physicsViewerScene = null;

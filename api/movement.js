@@ -4,20 +4,26 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+function ensureDynamicForMovement(mesh) {
+  if (!mesh) return null;
+  if (mesh.metadata?.physicsType !== 'DYNAMIC') {
+    flock.setPhysicsForMesh(mesh, 'DYNAMIC');
+  }
+}
+
 export const flockMovement = {
   moveForward(modelName, speed) {
+    if (speed === 0) return;
     const model = flock.scene.getMeshByName(modelName);
-    if (!model || !model.physics || speed === 0) return;
-
+    if (!model) return;
+    ensureDynamicForMovement(model);
+    if (!model.physics) return;
     flock.ensureVerticalConstraint(model);
 
     // --- Tunables ---
     let cap = model.metadata?.physicsCapsule;
     if (!cap) return;
-    if (
-      typeof cap.radius !== "number" ||
-      typeof cap.height !== "number"
-    ) {
+    if (typeof cap.radius !== 'number' || typeof cap.height !== 'number') {
       model.computeWorldMatrix(true);
       const bb = model.getBoundingInfo().boundingBox;
       const localMin = bb.minimum;
@@ -29,7 +35,7 @@ export const flockMovement = {
       const localCenter = new flock.BABYLON.Vector3(
         (localMin.x + localMax.x) / 2,
         (localMin.y + localMax.y) / 2,
-        (localMin.z + localMax.z) / 2,
+        (localMin.z + localMax.z) / 2
       );
       const adjustedHeight = Math.max(0, height - 0.01);
       cap = { radius, height: adjustedHeight, localCenter };
@@ -38,10 +44,7 @@ export const flockMovement = {
     }
     const capsuleRadius = cap.radius;
 
-    const capsuleHeightBottomOffset = Math.max(
-      0.001,
-      cap.height * 0.5 - capsuleRadius,
-    );
+    const capsuleHeightBottomOffset = Math.max(0.001, cap.height * 0.5 - capsuleRadius);
 
     const maxSlopeAngleDeg = 45;
     const groundCheckDistance = 0.3;
@@ -73,30 +76,30 @@ export const flockMovement = {
       });
       c = model._moveForwardCache = {
         groundCastResult: new B.ShapeCastResult(),
-        groundHitResult:  new B.ShapeCastResult(),
-        stepLowResult:    new B.ShapeCastResult(),
+        groundHitResult: new B.ShapeCastResult(),
+        stepLowResult: new B.ShapeCastResult(),
         stepLowHitResult: new B.ShapeCastResult(),
-        stepHighResult:   new B.ShapeCastResult(),
-        stepHighHitResult:new B.ShapeCastResult(),
-        groundQuery:   makeQuery(),
-        stepLowQuery:  makeQuery(),
+        stepHighResult: new B.ShapeCastResult(),
+        stepHighHitResult: new B.ShapeCastResult(),
+        groundQuery: makeQuery(),
+        stepLowQuery: makeQuery(),
         stepHighQuery: makeQuery(),
-        forwardLocal:               B.Vector3.Forward(),
-        cameraForward:              new B.Vector3(),
-        horizontalForward:          new B.Vector3(),
-        desiredHorizontalVelocity:  new B.Vector3(),
-        currentVelocity:            new B.Vector3(),
-        currentHorizontalVelocity:  new B.Vector3(),
-        appliedHorizontalVelocity:  new B.Vector3(),
-        finalVelocity:              new B.Vector3(),
-        boostedVelocity:            new B.Vector3(),
-        facingDirection:            new B.Vector3(),
-        normalScratch:              new B.Vector3(),
-        angularVelocity:            new B.Vector3(),
-        deltaEuler:                 new B.Vector3(),
-        targetRotation:             new B.Quaternion(),
-        currentRotationConjugate:   new B.Quaternion(),
-        deltaRotation:              new B.Quaternion(),
+        forwardLocal: B.Vector3.Forward(),
+        cameraForward: new B.Vector3(),
+        horizontalForward: new B.Vector3(),
+        desiredHorizontalVelocity: new B.Vector3(),
+        currentVelocity: new B.Vector3(),
+        currentHorizontalVelocity: new B.Vector3(),
+        appliedHorizontalVelocity: new B.Vector3(),
+        finalVelocity: new B.Vector3(),
+        boostedVelocity: new B.Vector3(),
+        facingDirection: new B.Vector3(),
+        normalScratch: new B.Vector3(),
+        angularVelocity: new B.Vector3(),
+        deltaEuler: new B.Vector3(),
+        targetRotation: new B.Quaternion(),
+        currentRotationConjugate: new B.Quaternion(),
+        deltaRotation: new B.Quaternion(),
       };
     }
 
@@ -109,7 +112,7 @@ export const flockMovement = {
         new B.Vector3(lc.x, lc.y - capsuleHeightBottomOffset, lc.z),
         new B.Vector3(lc.x, lc.y + capsuleHeightBottomOffset, lc.z),
         capsuleRadius,
-        scene,
+        scene
       );
       model._groundQueryShapeKey = groundShapeKey;
     }
@@ -160,9 +163,7 @@ export const flockMovement = {
 
     // --- Coyote time window ---
     const nowMs =
-      typeof performance !== "undefined" && performance.now
-        ? performance.now()
-        : Date.now();
+      typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
     if (grounded) model._lastGroundedAt = nowMs;
     const withinCoyoteTime = model._lastGroundedAt
       ? nowMs - model._lastGroundedAt <= coyoteTimeMs
@@ -191,7 +192,7 @@ export const flockMovement = {
         model._stepProbeShape = new B.PhysicsShapeSphere(
           new B.Vector3(0, 0, 0),
           stepSphereRadius,
-          scene,
+          scene
         );
         model._stepProbeShapeRadius = stepSphereRadius;
       }
@@ -227,10 +228,7 @@ export const flockMovement = {
     }
 
     // --- Vertical: let gravity act; just clamp extremes ---
-    const clampedVertical = Math.min(
-      Math.max(cv.y, -maxVerticalVelocity),
-      maxVerticalVelocity,
-    );
+    const clampedVertical = Math.min(Math.max(cv.y, -maxVerticalVelocity), maxVerticalVelocity);
     c.finalVelocity.set(ahv.x, clampedVertical, ahv.z);
     model.physics.setLinearVelocity(c.finalVelocity);
 
@@ -240,7 +238,7 @@ export const flockMovement = {
       B.Quaternion.FromLookDirectionLHToRef(
         c.facingDirection,
         B.Vector3.UpReadOnly,
-        c.targetRotation,
+        c.targetRotation
       );
       if (model.rotationQuaternion) {
         c.currentRotationConjugate.copyFrom(model.rotationQuaternion);
@@ -258,7 +256,7 @@ export const flockMovement = {
       model.rotationQuaternion = B.Quaternion.RotationYawPitchRoll(
         model.rotation.y,
         model.rotation.x,
-        model.rotation.z,
+        model.rotation.z
       );
     }
     model.rotationQuaternion.x = 0;
@@ -268,8 +266,11 @@ export const flockMovement = {
     model.isGrounded = grounded;
   },
   moveSideways(modelName, speed) {
+    if (speed === 0) return;
     const model = flock.scene.getMeshByName(modelName);
-    if (!model || speed === 0) return;
+    if (!model) return;
+    ensureDynamicForMovement(model);
+    if (!model.physics) return;
 
     flock.ensureVerticalConstraint(model);
 
@@ -288,27 +289,19 @@ export const flockMovement = {
       new flock.BABYLON.Vector3(
         moveDirection.x,
         currentVelocity.y, // Keep Y velocity (no vertical movement)
-        moveDirection.z,
-      ),
+        moveDirection.z
+      )
     );
 
     // Rotate the model to face the direction of movement
     const facingDirection =
       sidewaysSpeed <= 0
-        ? new flock.BABYLON.Vector3(
-            -cameraRight.x,
-            0,
-            -cameraRight.z,
-          ).normalize() // Right
-        : new flock.BABYLON.Vector3(
-            cameraRight.x,
-            0,
-            cameraRight.z,
-          ).normalize(); // Left
+        ? new flock.BABYLON.Vector3(-cameraRight.x, 0, -cameraRight.z).normalize() // Right
+        : new flock.BABYLON.Vector3(cameraRight.x, 0, cameraRight.z).normalize(); // Left
 
     const targetRotation = flock.BABYLON.Quaternion.FromLookDirectionLH(
       facingDirection,
-      flock.BABYLON.Vector3.Up(),
+      flock.BABYLON.Vector3.Up()
     );
 
     const currentRotation = model.rotationQuaternion;
@@ -316,9 +309,7 @@ export const flockMovement = {
     const deltaEuler = deltaRotation.toEulerAngles();
 
     // Apply angular velocity to smoothly rotate the player
-    model.physics.setAngularVelocity(
-      new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0),
-    );
+    model.physics.setAngularVelocity(new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0));
 
     // Normalize the model's rotation to avoid drift
     model.rotationQuaternion.x = 0;
@@ -326,9 +317,13 @@ export const flockMovement = {
     model.rotationQuaternion.normalize();
   },
   strafe(modelName, speed) {
+    if (speed === 0) return;
     const model = flock.scene.getMeshByName(modelName);
-    if (!model || speed === 0) return;
+    if (!model) return;
+    ensureDynamicForMovement(model);
+    if (!model.physics) return;
 
+    flock.ensureVerticalConstraint(model);
     const sidewaysSpeed = -speed;
 
     // Get the camera's right direction vector (perpendicular to the forward direction)
@@ -342,11 +337,7 @@ export const flockMovement = {
 
     // Set linear velocity in the sideways direction (left or right)
     model.physics.setLinearVelocity(
-      new flock.BABYLON.Vector3(
-        moveDirection.x,
-        currentVelocity.y,
-        moveDirection.z,
-      ),
+      new flock.BABYLON.Vector3(moveDirection.x, currentVelocity.y, moveDirection.z)
     );
   },
   updateDynamicMeshPositions(scene, dynamicMeshes) {
@@ -363,7 +354,7 @@ export const flockMovement = {
           // override it by setting the vertical velocity to zero.
           if (currentVel.y > 0) {
             mesh.physics.setLinearVelocity(
-              new flock.BABYLON.Vector3(currentVel.x, 0, currentVel.z),
+              new flock.BABYLON.Vector3(currentVel.x, 0, currentVel.z)
             );
             /*console.log(
               "Collision callback: small penetration detected. Overriding upward velocity.",
@@ -379,11 +370,9 @@ export const flockMovement = {
             const downRay = new flock.BABYLON.Ray(
               rayOrigin,
               new flock.BABYLON.Vector3(0, -1, 0),
-              3,
+              3
             );
-            const hit = scene.pickWithRay(downRay, (m) =>
-              m.name.toLowerCase().includes("ground"),
-            );
+            const hit = scene.pickWithRay(downRay, (m) => m.name.toLowerCase().includes('ground'));
             if (hit && hit.pickedMesh) {
               const groundY = hit.pickedPoint.y;
               const capsuleBottomY = mesh.position.y - capsuleHalfHeight;
@@ -393,7 +382,7 @@ export const flockMovement = {
               const currentVel = mesh.physics.getLinearVelocity();
               if (Math.abs(gap) < 0.1 && currentVel.y > 0) {
                 mesh.physics.setLinearVelocity(
-                  new flock.BABYLON.Vector3(currentVel.x, 0, currentVel.z),
+                  new flock.BABYLON.Vector3(currentVel.x, 0, currentVel.z)
                 );
                 //console.log("After-render: resetting upward velocity");
               }
