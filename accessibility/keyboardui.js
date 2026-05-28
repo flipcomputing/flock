@@ -14,12 +14,13 @@ const AreaManager = {
     { selector: "#menuright", label: "2", name: "Top right menu" },
     { selector: "#renderCanvas", label: "3", name: "Canvas" },
     { selector: "#gizmoButtons", label: "4", name: "Gizmos" },
-    { selector: "#resizer", label: "5", pad: -3, name: "Resizer" },
-    { selector: ".blocklyToolbox", label: "6", name: "Toolbox" },
-    { selector: "svg.blocklySvg", label: "7", name: "Code editor" },
+    { selector: "#info-panel-tabs", label: "5", name: "Info panel tabs", focusSelector: "#info-tab-btn-shortcuts" },
+    { selector: "#resizer", label: "6", pad: -3, name: "Resizer" },
+    { selector: ".blocklyToolbox", label: "7", name: "Toolbox" },
+    { selector: "svg.blocklySvg", label: "8", name: "Code editor" },
     {
       selector: "#blocklyZoomControls",
-      label: "8",
+      label: "9",
       name: "Workspace controls",
       extend: { top: -8 },
     },
@@ -128,10 +129,11 @@ const AreaManager = {
   activateArea(area) {
     this.toggle(false); // Close the menu
     const el = document.querySelector(area.selector);
-    const focusable =
-      el?.querySelector(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      ) ?? el; // Focus the area itself if no suitable child
+    const focusable = area.focusSelector
+      ? document.querySelector(area.focusSelector)
+      : (el?.querySelector(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ) ?? el); // Focus the area itself if no suitable child
 
     focusable?.focus();
     if (area.selector === "#gizmoButtons") GizmoMenuManager.toggle(true);
