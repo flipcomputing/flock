@@ -1113,6 +1113,8 @@ export default {
   design_tool_label: "Designwerkzeug",
   focused_element_suffix: "{name} fokussiert",
   search_toolbox_focused: "Toolbox-Suche fokussiert",
+  toolbox_search_placeholder: "Suchen",
+  search_no_matching: "Keine passenden Blöcke gefunden",
   workspace_search_placeholder: "Im Bereich suchen",
   code_workspace_focused: "Code-Arbeitsbereich fokussiert",
   interactive_element_label: "Interaktives Element",

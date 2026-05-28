@@ -1127,6 +1127,8 @@ export default {
   design_tool_label: "Narzędzie projektowe",
   focused_element_suffix: "{name} w fokuse",
   search_toolbox_focused: "Skupiono wyszukiwanie w toolboxie",
+  toolbox_search_placeholder: "Szukaj",
+  search_no_matching: "Nie znaleziono pasujących bloków",
   workspace_search_placeholder: "Znajdź w obszarze",
   code_workspace_focused: "Skupiono przestrzeń kodu",
   interactive_element_label: "Element interaktywny",

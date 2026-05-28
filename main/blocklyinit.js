@@ -616,13 +616,18 @@ export function initializeWorkspace() {
   workspaceSearch.setSearchPlaceholder(translate("workspace_search_placeholder"));
   window.flockWorkspaceSearch = workspaceSearch;
 
+  // Shared label map populated by buildSearchIndex (overrideSearchPlugin), used by getBlockLabel
+  workspace.flockBlockLabelMap ??= new Map();
+
   // Mobile: custom HTML search results panel (bypasses the SVG flyout entirely)
   requestAnimationFrame(() => {
     let searchInput = document.querySelector(".blocklyToolbox input[type='search']");
     if (!searchInput) return;
+    searchInput.placeholder = translate('toolbox_search_placeholder');
 
     let originalParent = searchInput.parentElement;
     const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+    const isMobileResults = () => window.matchMedia('(max-width: 480px)').matches;
 
     // Get the toolbox search category to reuse its trigram blockSearcher
     let searchCategory = workspace.getToolbox()
@@ -681,45 +686,9 @@ export function initializeWorkspace() {
     };
     buildCategoryMap();
 
-    // Human-readable label overrides for blocks whose type names are cryptic
-    const BLOCK_LABELS = {
-      // Control
-      controls_repeat_ext: 'Repeat X times', // "Controls repeat ext"
-      controls_whileUntil: 'Repeat while / until', // "Controls whileUntil"
-      controls_for: 'For loop - counter', // "Controls for"
-      controls_forEach: 'For each item in list', // "Controls forEach"
-      controls_flow_statements: 'Break/continue', // "Controls flow statements"
-      // Condition
-      logic_compare: 'Compare', // "Logic compare"
-      logic_operation: 'And / Or', // "Logic operation"
-      logic_negate: 'Not', // "Logic negate"
-      logic_boolean: 'True / False', // "Logic boolean"
-      logic_null: 'Null', // "Logic null"
-      logic_ternary: 'Choose A or B', // "Logic ternary"
-      // Math
-      math_number: 'Number', // "Math number"
-      math_arithmetic: 'Arithmetic', // "Math arithmetic"
-      math_single: 'Math function', // "Math single"
-      math_trig: 'Trig function', // "Math trig"
-      math_constant: 'Math constant', // "Math constant"
-      math_number_property: 'Check if number is odd, even, positive, prime...', // "Math number property"
-      math_round: 'Round a number', // "Math round"
-      math_on_list: 'List sum/min/max/average...', // "Math on list"
-      math_modulo: 'Remainder', // "Math modulo"
-      math_constrain: 'Set min/max', // "Math constrain"
-      math_random_int: 'Random whole number', // "Math random int"
-      math_random_float: 'Random decimal', // "Math random float"
-      // Lists
-      lists_create_with: 'Create list', // "Lists create with"
-      lists_repeat: 'List of repeated items', // "Lists repeat"
-      lists_length: 'Length of list', // "Lists length"
-      lists_isEmpty: 'List empty?', // "Lists isEmpty"
-      lists_indexOf: 'Find item in list', // "Lists indexOf"
-      lists_getIndex: 'Get item from list', // "Lists getIndex"
-      lists_setIndex: 'Set item in list', // "Lists setIndex"
-      lists_getSublist: 'Get part of list', // "Lists getSublist"
-      lists_split: 'Split/join list', // "Lists split"
-      lists_sort: 'Sort list', // "Lists sort",
+    const getBlockLabel = (blockDef) => {
+      const type = blockDef.type;
+      return workspace.flockBlockLabelMap?.get(type) || type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
     };
 
     const applyMatchBlocksOverride = (sc) => {
@@ -728,12 +697,12 @@ export function initializeWorkspace() {
         const query = this.searchField?.value?.trim() || '';
         let items = query ? this.blockSearcher.blockTypesMatching(query) : [];
         if (items.length === 0) {
-          this.flyoutItems_ = [{ kind: 'label', text: query.length < 3 ? 'Type to search for blocks' : 'No matching blocks found' }];
+          this.flyoutItems_ = [{ kind: 'label', text: translate('search_no_matching') }];
         } else {
           const q = query.toLowerCase();
           const scoreItem = (blockDef) => {
             if (!blockDef.type) return 4;
-            const label = (BLOCK_LABELS[blockDef.type] || blockDef.type.replace(/_/g, ' ')).toLowerCase();
+            const label = getBlockLabel(blockDef).toLowerCase();
             const type = blockDef.type.toLowerCase();
             if (label.startsWith(q)) return 0;
             if (label.includes(q)) return 1;
@@ -800,22 +769,20 @@ export function initializeWorkspace() {
 
     const updateResults = () => {
       const query = searchInput.value.trim();
-      if (!query || query.length < 3) {
-        resultsPanel.innerHTML =
-          '<div class="mobile-search-empty">Type 3 or more characters to search</div>';
+      if (!query) {
+        resultsPanel.innerHTML = '';
         return;
       }
 
       const matches = searchCategory?.blockSearcher?.blockTypesMatching(query) ?? [];
 
       if (matches.length === 0) {
-        resultsPanel.innerHTML = '<div class="mobile-search-empty">No blocks found</div>';
+        resultsPanel.innerHTML = `<div class="mobile-search-empty">${translate('search_no_matching')}</div>`;
         return;
       }
 
       const q = query.toLowerCase();
-      const getLabel = (blockDef) =>
-        (BLOCK_LABELS[blockDef.type] || blockDef.type.replace(/_/g, ' ')).toLowerCase();
+      const getLabel = (blockDef) => getBlockLabel(blockDef).toLowerCase();
       const score = (blockDef) => {
         const label = getLabel(blockDef);
         const type = blockDef.type.toLowerCase();
@@ -838,8 +805,7 @@ export function initializeWorkspace() {
         const type = blockDef.type;
         if (!type || !Blockly.Blocks[type]) return;
 
-        const label =
-          BLOCK_LABELS[type] || type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
+        const label = getBlockLabel(blockDef);
         const { name: category, color } = blockCategoryMap.get(type) ?? { name: '', color: null };
 
         const item = document.createElement('button');
@@ -860,19 +826,42 @@ export function initializeWorkspace() {
     };
 
     let blurTimeout = null;
+    let suppressBlurClose = false;
 
     const openOverlay = () => {
-      workspace.getToolbox()?.clearSelection?.();
-      overlay.insertBefore(searchInput, cancelBtn);
+      if (!isMobileResults()) overlay.classList.add('expanding');
       document.body.appendChild(overlay);
-      document.body.appendChild(resultsPanel);
-      updateResults();
-      searchInput.focus();
-      // Suppress the flyout while mobile panel is open
-      if (searchCategory) {
-        searchCategory._mobileMatchBlocks = searchCategory.matchBlocks;
-        searchCategory.matchBlocks = () => {};
+      overlay.insertBefore(searchInput, cancelBtn);
+      if (isMobileResults()) {
+        workspace.getToolbox()?.clearSelection?.();
+        document.body.appendChild(resultsPanel);
+        updateResults();
+        if (searchCategory) {
+          searchCategory._mobileMatchBlocks = searchCategory.matchBlocks;
+          searchCategory.matchBlocks = () => {};
+        }
       }
+      searchInput.focus();
+    };
+
+    const collapseOverlay = () => {
+      clearTimeout(blurTimeout);
+      blurTimeout = null;
+      overlay.classList.remove('expanding');
+      overlay.classList.add('collapsing');
+      overlay.addEventListener('animationend', () => {
+        overlay.classList.remove('collapsing');
+        if (searchCategory?._mobileMatchBlocks) {
+          searchCategory.matchBlocks = searchCategory._mobileMatchBlocks;
+          delete searchCategory._mobileMatchBlocks;
+        }
+        if (resultsPanel.isConnected) {
+          resultsPanel.remove();
+          resultsPanel.innerHTML = '';
+        }
+        originalParent.appendChild(searchInput);
+        overlay.remove();
+      }, { once: true });
     };
 
     const closeOverlay = () => {
@@ -893,10 +882,31 @@ export function initializeWorkspace() {
 
     const attachInputListeners = (input) => {
       input.setAttribute('autocomplete', 'one-time-code');
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          suppressBlurClose = true;
+          const query = input.value;
+          input.blur();
+          requestAnimationFrame(() => {
+            input.value = query;
+            if (resultsPanel.isConnected) updateResults();
+          });
+        }
+      });
       input.addEventListener('blur', () => {
         if (!overlay.isConnected) return;
+        if (suppressBlurClose) {
+          suppressBlurClose = false;
+          return;
+        }
         blurTimeout = setTimeout(() => {
-          if (overlay.isConnected) closeOverlay();
+          if (!overlay.isConnected) return;
+          const active = document.activeElement;
+          const blocklyDiv = document.getElementById('blocklyDiv');
+          if (!active || active === document.body || overlay.contains(active)) return;
+          if (blocklyDiv?.contains(active)) { collapseOverlay(); return; }
+          closeOverlay();
         }, 150);
       });
       input.addEventListener('focus', () => {
@@ -905,10 +915,10 @@ export function initializeWorkspace() {
         if (!overlay.isConnected && isMobile()) openOverlay();
       });
       input.addEventListener('input', () => {
-        if (overlay.isConnected) updateResults();
+        if (resultsPanel.isConnected) updateResults();
       });
       input.addEventListener('keyup', () => {
-        if (overlay.isConnected) updateResults();
+        if (resultsPanel.isConnected) updateResults();
       });
     };
 
@@ -935,6 +945,7 @@ export function initializeWorkspace() {
         if (overlay.isConnected) closeOverlay();
         const newInput = document.querySelector(".blocklyToolbox input[type='search']");
         if (!newInput) return;
+        newInput.placeholder = translate('toolbox_search_placeholder');
         searchInput = newInput;
         originalParent = newInput.parentElement;
         searchCategory = workspace.getToolbox()
@@ -2144,6 +2155,27 @@ export function overrideSearchPlugin(workspace) {
     return translate(resolvedMessage);
   }
 
+  function buildBlockLabel(block) {
+    const parts = [];
+    for (const input of block.inputList) {
+      for (const field of input.fieldRow) {
+        const text = field.getText().trim();
+        if (!text || text === '*') continue;
+        if (field instanceof Blockly.FieldDropdown) {
+          parts.push(`[${text}]`);
+        } else if (!field.EDITABLE) {
+          parts.push(text);
+        } else {
+          parts.push(`(${text})`);
+        }
+      }
+      if (input.type === (Blockly.inputTypes?.VALUE ?? 1)) {
+        parts.push('( )');
+      }
+    }
+    return parts.join(' ').replace(/\s+/g, ' ').trim();
+  }
+
   function buildSearchIndex() {
     if (!Object.keys(nextVariableIndexes).length) {
       initializeVariableIndexes();
@@ -2242,16 +2274,15 @@ export function overrideSearchPlugin(workspace) {
         }
         applyFieldValues(block, blockInfo.full?.fields);
 
-        const labelText = typeof block.toString === 'function' ? block.toString() : '';
-
-        if (labelText && labelText.trim()) {
+        const labelText = typeof block.toString === 'function' ? block.toString().trim() : '';
+        if (labelText) {
           searchTerms.add(labelText);
         } else {
           const fallbackMessage = getBlockMessage(type);
-          if (fallbackMessage) {
-            searchTerms.add(fallbackMessage);
-          }
+          if (fallbackMessage) searchTerms.add(fallbackMessage);
         }
+
+        const blockLabel = buildBlockLabel(block) || getBlockMessage(type) || '';
 
         addBlockFieldTerms(block, searchTerms, runDebugFields);
 
@@ -2273,6 +2304,7 @@ export function overrideSearchPlugin(workspace) {
           });
         }
 
+        (workspace.flockBlockLabelMap ??= new Map()).set(type, blockLabel);
         indexedBlocks.push({
           ...blockInfo,
           text: Array.from(searchTerms).join(' ').toLowerCase(),

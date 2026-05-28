@@ -1133,7 +1133,9 @@ export default {
   design_tool_label: "Herramienta de diseño", // human
   focused_element_suffix: "{nombre} enfocado", // human
   search_toolbox_focused: "Búsqueda de la caja de herramientas enfocada", // human
+  toolbox_search_placeholder: "Buscar",
   workspace_search_placeholder: "Buscar en el espacio",
+  search_no_matching: "No se encontraron bloques",
   code_workspace_focused: "Espacio de trabajo de código enfocado", // human
   interactive_element_label: "Elemento interactivo", // human
   panel_resizer_focused:
