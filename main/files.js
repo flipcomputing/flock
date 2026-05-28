@@ -553,7 +553,7 @@ export async function exportCode(workspace) {
     let allModels = ws.getVariableMap().getAllVariables();
     for (const model of allModels) {
       if (!usedModels.find((element) => element.getId() === model.getId())) {
-        ws.deleteVariableById(model.getId());
+        ws.getVariableMap().deleteVariable(model);
       }
     }
 

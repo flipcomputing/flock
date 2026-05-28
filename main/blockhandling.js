@@ -189,17 +189,16 @@ export function initializeBlockHandling() {
   function pruneUnusedVariables() {
     const usedModels = Blockly.Variables.allUsedVarModels(workspace);
     const usedIds = new Set(usedModels.map((model) => model.getId()));
-    const allVariableIds = workspace
+    const unusedModels = workspace
       .getVariableMap()
       .getAllVariables()
-      .map((model) => model.getId());
-    const unusedVariableIds = allVariableIds.filter((id) => !usedIds.has(id));
-    if (!unusedVariableIds.length) return;
+      .filter((model) => !usedIds.has(model.getId()));
+    if (!unusedModels.length) return;
 
     Blockly.Events.setGroup(true);
     try {
-      for (const id of unusedVariableIds) {
-        workspace.deleteVariableById(id);
+      for (const model of unusedModels) {
+        workspace.getVariableMap().deleteVariable(model);
       }
     } finally {
       Blockly.Events.setGroup(false);

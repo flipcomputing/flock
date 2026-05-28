@@ -599,7 +599,7 @@ function getFieldVariableType(block, fieldName) {
     typeof field.getVariable === "function" ? field.getVariable() : null;
   if (model && typeof model.type === "string") return model.type || "";
   const varId = field.getValue && field.getValue();
-  const byId = varId ? block.workspace.getVariableById(varId) : null;
+  const byId = varId ? block.workspace.getVariableMap().getVariableById(varId) : null;
   return (byId && byId.type) || "";
 }
 
@@ -629,7 +629,7 @@ function deriveVariableNameParts(name, fallbackPrefix) {
 function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   // Pick the smallest available suffix, starting from the tracked counter.
   let n = nextVariableIndexes[prefix] || 1;
-  while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
+  while (workspace.getVariableMap().getVariable(`${prefix}${n}`, type)) n += 1;
 
   // Update the counter
   nextVariableIndexes[prefix] = Math.max(
@@ -640,7 +640,7 @@ function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   const newVarName = `${prefix}${n}`;
 
   // Make absolutely sure this variable doesn't exist
-  let existingVar = workspace.getVariable(newVarName, type);
+  let existingVar = workspace.getVariableMap().getVariable(newVarName, type);
   if (existingVar) {
     // This shouldn't happen, but if it does, increment and try again
     console.warn(`Variable ${newVarName} already exists, incrementing`);
@@ -756,7 +756,7 @@ function adoptIsolatedDefaultVarsTo(
       const vid = f.getValue && f.getValue();
       if (!vid || vid === toVarId) continue;
 
-      const model = workspace.getVariableById(vid);
+      const model = workspace.getVariableMap().getVariableById(vid);
       if (!model) continue;
 
       const typeOk = model.type === varType || !model.type || !varType;
@@ -775,7 +775,7 @@ function adoptIsolatedDefaultVarsTo(
       varCountMap.set(vid, remaining);
       if (remaining === 0) {
         try {
-          workspace.deleteVariableById(vid);
+          workspace.getVariableMap().deleteVariable(model);
         } catch (error) {
           console.warn("Failed to delete unreferenced variable by id:", error);
         }
@@ -789,7 +789,7 @@ function adoptIsolatedDefaultVarsTo(
 /** Find the LOWEST available numeric suffix for prefix+N (type-scoped). */
 function lowestAvailableSuffix(workspace, prefix, type) {
   let n = 1;
-  while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
+  while (workspace.getVariableMap().getVariable(`${prefix}${n}`, type)) n += 1;
   return n;
 }
 
@@ -851,7 +851,7 @@ export function ensureFreshVarOnDuplicate(
 
   const oldVarId = idField.getValue && idField.getValue();
   if (!oldVarId) return false;
-  const oldVarModel = ws.getVariableById(oldVarId);
+  const oldVarModel = ws.getVariableMap().getVariableById(oldVarId);
   const { prefix: duplicatePrefix, suffix: duplicateSuffix } =
     deriveVariableNameParts(oldVarModel?.name, variableNamePrefix);
 

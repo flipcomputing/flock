@@ -44,7 +44,7 @@
     "babylonjs": "^8.56.0",
     "babylonjs-gui": "^8.56.0",
     "babylonjs-serializers": "^8.56.0",
-    "blockly": "^13.0.0-beta.5",
+    "blockly": "^13.0.0-beta.7",
     "earcut": "^3.0.2",
     "manifold-3d": "^3.4.0",
     "opentype.js": "^1.3.4",
