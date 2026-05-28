@@ -626,6 +626,7 @@ export function initializeWorkspace() {
 
     let originalParent = searchInput.parentElement;
     const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+    const isMobileResults = () => window.matchMedia('(max-width: 480px)').matches;
 
     // Get the toolbox search category to reuse its trigram blockSearcher
     let searchCategory = workspace.getToolbox()
@@ -828,17 +829,31 @@ export function initializeWorkspace() {
     let suppressBlurClose = false;
 
     const openOverlay = () => {
-      workspace.getToolbox()?.clearSelection?.();
-      overlay.insertBefore(searchInput, cancelBtn);
+      if (!isMobileResults()) overlay.classList.add('expanding');
       document.body.appendChild(overlay);
-      document.body.appendChild(resultsPanel);
-      updateResults();
-      searchInput.focus();
-      // Suppress the flyout while mobile panel is open
-      if (searchCategory) {
-        searchCategory._mobileMatchBlocks = searchCategory.matchBlocks;
-        searchCategory.matchBlocks = () => {};
+      overlay.insertBefore(searchInput, cancelBtn);
+      if (isMobileResults()) {
+        workspace.getToolbox()?.clearSelection?.();
+        document.body.appendChild(resultsPanel);
+        updateResults();
+        if (searchCategory) {
+          searchCategory._mobileMatchBlocks = searchCategory.matchBlocks;
+          searchCategory.matchBlocks = () => {};
+        }
       }
+      searchInput.focus();
+    };
+
+    const collapseOverlay = () => {
+      clearTimeout(blurTimeout);
+      blurTimeout = null;
+      overlay.classList.remove('expanding');
+      overlay.classList.add('collapsing');
+      overlay.addEventListener('animationend', () => {
+        overlay.classList.remove('collapsing');
+        originalParent.appendChild(searchInput);
+        overlay.remove();
+      }, { once: true });
     };
 
     const closeOverlay = () => {
@@ -867,7 +882,7 @@ export function initializeWorkspace() {
           input.blur();
           requestAnimationFrame(() => {
             input.value = query;
-            updateResults();
+            if (resultsPanel.isConnected) updateResults();
           });
         }
       });
@@ -880,7 +895,9 @@ export function initializeWorkspace() {
         blurTimeout = setTimeout(() => {
           if (!overlay.isConnected) return;
           const active = document.activeElement;
+          const blocklyDiv = document.getElementById('blocklyDiv');
           if (!active || active === document.body || overlay.contains(active)) return;
+          if (blocklyDiv?.contains(active)) { collapseOverlay(); return; }
           closeOverlay();
         }, 150);
       });
@@ -890,10 +907,10 @@ export function initializeWorkspace() {
         if (!overlay.isConnected && isMobile()) openOverlay();
       });
       input.addEventListener('input', () => {
-        if (overlay.isConnected) updateResults();
+        if (resultsPanel.isConnected) updateResults();
       });
       input.addEventListener('keyup', () => {
-        if (overlay.isConnected) updateResults();
+        if (resultsPanel.isConnected) updateResults();
       });
     };
 

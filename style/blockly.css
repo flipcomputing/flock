@@ -927,6 +927,24 @@ body[data-theme="low-vision"]
   }
 }
 
+@keyframes mobile-search-expand {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes mobile-search-collapse {
+  from { transform: translateX(0);     opacity: 1; }
+  to   { transform: translateX(-100%); opacity: 0; }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .mobile-search-overlay.expanding {
+    animation: mobile-search-expand 0.2s ease-out forwards;
+  }
+  .mobile-search-overlay.collapsing {
+    animation: mobile-search-collapse 0.2s ease-in forwards;
+  }
+}
+
 /* Keyboard focus for image BUTTON fields only (e.g. plus/minus/toggle icons) */
 .blocklyKeyboardNavigation .blocklyActiveFocus.blocklyImageField {
   outline: 5px solid var(--block-outline-focus);
