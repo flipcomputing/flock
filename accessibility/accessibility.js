@@ -451,12 +451,15 @@ function getRepresentativePosition(root, fallbackMesh) {
   return null;
 }
 
-function getReferenceAnchor(scene) {
-  // Prefer a character/player/avatar in the world, fallback to camera
+// Minimum score required for a mesh to be identified as the player.
+// Proximity alone contributes at most 30; any explicit player signal adds at least 40.
+const MIN_PLAYER_SCORE = 40;
+
+export function getPlayerMesh(scene) {
   const camera = scene?.activeCamera;
   const cameraPos = camera?.globalPosition || camera?.position;
 
-  let bestCharacter = null;
+  let bestMesh = null;
   let bestScore = -Infinity;
 
   for (const mesh of scene?.meshes || []) {
@@ -469,12 +472,10 @@ function getReferenceAnchor(scene) {
     const label = getObjectLabel(root).toLowerCase();
     const md = root?.metadata || {};
 
-    // Never use environment meshes as the player/character anchor
     if (isEnvironmentObject(label)) continue;
 
     let score = 0;
 
-    // Strong explicit metadata first
     if (md.a11yAnchor === "player" || md.a11yRole === "player") score += 200;
     if (md.a11yRole === "character" || md.role === "character") score += 150;
     if (md.character === true) score += 120;
@@ -482,11 +483,10 @@ function getReferenceAnchor(scene) {
     if (md.player === true) score += 180;
     if (md.mainCharacter === true) score += 180;
 
-    // Name-based fallback only if explicit metadata is absent
     if (label.includes("player")) score += 80;
     if (label.includes("avatar")) score += 70;
     if (label.includes("character")) score += 60;
-    if (label.includes("bird")) score += 40;// starter world fallback
+    if (label.includes("bird")) score += 40; // starter world uses a bird as the player avatar
 
     const p = getRepresentativePosition(root, mesh);
     if (p && cameraPos) {
@@ -499,10 +499,18 @@ function getReferenceAnchor(scene) {
 
     if (score > bestScore) {
       bestScore = score;
-      bestCharacter = root;
+      bestMesh = root;
     }
   }
 
+  return bestScore >= MIN_PLAYER_SCORE ? bestMesh : null;
+}
+
+function getReferenceAnchor(scene) {
+  const camera = scene?.activeCamera;
+  const cameraPos = camera?.globalPosition || camera?.position;
+
+  const bestCharacter = getPlayerMesh(scene);
   const characterPos = bestCharacter
     ? getRepresentativePosition(bestCharacter, bestCharacter)
     : null;

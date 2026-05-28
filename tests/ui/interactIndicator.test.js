@@ -30,6 +30,19 @@ export function runInteractIndicatorTests(flock) {
       return mesh;
     }
 
+    // Moves camera to (0,0,-3) looking along +Z, returns a restore function.
+    function aimCameraAtOrigin() {
+      const cam = flock.scene.activeCamera;
+      const savedPos = cam.position.clone();
+      const savedRot = cam.rotation.clone();
+      cam.position.copyFromFloats(0, 0, -3);
+      cam.setTarget(new flock.BABYLON.Vector3(0, 0, 0));
+      return () => {
+        cam.position.copyFrom(savedPos);
+        cam.rotation.copyFrom(savedRot);
+      };
+    }
+
     beforeEach(function () {
       testMeshes = [];
       attachInteractIndicator(flock.scene, flock.inputManager);
@@ -38,6 +51,7 @@ export function runInteractIndicatorTests(flock) {
     afterEach(function () {
       detachInteractIndicator();
       flock.inputManager._clearAllKeys();
+      flock.inputManager.resetActionKeys();
       for (const mesh of testMeshes) {
         if (mesh.actionManager) mesh.actionManager.dispose();
         if (!mesh.isDisposed()) mesh.dispose();
@@ -48,82 +62,6 @@ export function runInteractIndicatorTests(flock) {
     it("icon is not visible when no meshes have an actionManager", function () {
       fireFrame();
       expect(getIcon().isVisible).to.be.false;
-    });
-
-    it("icon is visible and near the only interactable mesh", function () {
-      const mesh = makeMesh("_test_single", [0, 0, 0]);
-      mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
-
-      fireFrame();
-
-      const icon = getIcon();
-      expect(icon.isVisible).to.be.true;
-      const dist = flock.BABYLON.Vector3.Distance(
-        icon.position,
-        mesh.getAbsolutePosition(),
-      );
-      expect(dist).to.be.lessThan(2);
-    });
-
-    it("icon targets the mesh closest to the camera", function () {
-      // Default camera is at (0, 3, -10).
-      // close mesh dist ≈ 5.8, far mesh dist ≈ 20.2
-      const close = makeMesh("_test_close", [0, 0, -5]);
-      const far = makeMesh("_test_far", [0, 0, 10]);
-      close.actionManager = new flock.BABYLON.ActionManager(flock.scene);
-      far.actionManager = new flock.BABYLON.ActionManager(flock.scene);
-
-      fireFrame();
-
-      const icon = getIcon();
-      expect(icon.isVisible).to.be.true;
-      const distToClose = flock.BABYLON.Vector3.Distance(
-        icon.position,
-        close.getAbsolutePosition(),
-      );
-      const distToFar = flock.BABYLON.Vector3.Distance(
-        icon.position,
-        far.getAbsolutePosition(),
-      );
-      expect(distToClose).to.be.lessThan(distToFar);
-    });
-
-    it("icon switches to a closer mesh after camera moves", function () {
-      const BABYLON = flock.BABYLON;
-      // meshA near default camera, meshB far away
-      const meshA = makeMesh("_test_switchA", [0, 0, -5]);
-      const meshB = makeMesh("_test_switchB", [0, 0, 15]);
-      meshA.actionManager = new BABYLON.ActionManager(flock.scene);
-      meshB.actionManager = new BABYLON.ActionManager(flock.scene);
-
-      fireFrame();
-      const icon = getIcon();
-      const distABefore = BABYLON.Vector3.Distance(
-        icon.position,
-        meshA.getAbsolutePosition(),
-      );
-      const distBBefore = BABYLON.Vector3.Distance(
-        icon.position,
-        meshB.getAbsolutePosition(),
-      );
-      expect(distABefore).to.be.lessThan(distBBefore);
-
-      const savedCamPos = flock.scene.activeCamera.position.clone();
-      try {
-        flock.scene.activeCamera.position = new BABYLON.Vector3(0, 0, 14);
-        fireFrame();
-        const distAAfter = BABYLON.Vector3.Distance(
-          icon.position,
-          meshA.getAbsolutePosition(),
-        );
-        const distBAfter = BABYLON.Vector3.Distance(
-          icon.position,
-          meshB.getAbsolutePosition(),
-        );
-        expect(distBAfter).to.be.lessThan(distAAfter);
-      } finally {
-        flock.scene.activeCamera.position.copyFrom(savedCamPos);
-      }
     });
 
     it("icon mesh is removed from the scene after detach", function () {
@@ -142,40 +80,6 @@ export function runInteractIndicatorTests(flock) {
       }
 
       expect(flock.scene.meshes.length).to.equal(baseline);
-    });
-
-    it("BUTTON2 fires OnPickTrigger on the target mesh", function () {
-      const mesh = makeMesh("_test_btn2_pick", [0, 0, 0]);
-      mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
-
-      const triggered = [];
-      const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
-      mesh.actionManager.processTrigger = (trigger, evt) => {
-        triggered.push(trigger);
-        orig(trigger, evt);
-      };
-
-      fireFrame();
-      flock.inputManager._setKey("e", true);
-
-      expect(triggered).to.include(flock.BABYLON.ActionManager.OnPickTrigger);
-    });
-
-    it("BUTTON2 fires OnLeftPickTrigger on the target mesh", function () {
-      const mesh = makeMesh("_test_btn2_leftpick", [0, 0, 0]);
-      mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
-
-      const triggered = [];
-      const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
-      mesh.actionManager.processTrigger = (trigger, evt) => {
-        triggered.push(trigger);
-        orig(trigger, evt);
-      };
-
-      fireFrame();
-      flock.inputManager._setKey("e", true);
-
-      expect(triggered).to.include(flock.BABYLON.ActionManager.OnLeftPickTrigger);
     });
 
     it("BUTTON2 with no interactable does not call processTrigger", function () {
@@ -198,40 +102,276 @@ export function runInteractIndicatorTests(flock) {
       expect(triggered).to.be.empty;
     });
 
-    it("when_clicked handler on target mesh runs when BUTTON2 fires", function () {
-      const mesh = makeMesh("_test_btn2_handler", [0, 0, 0]);
-      mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+    // Tests that require the camera at (0,0,-3) aimed along +Z at the origin.
+    describe("with camera aimed along +Z", function () {
+      let restoreCamera;
 
-      let clicked = 0;
-      mesh.actionManager.registerAction(
-        new flock.BABYLON.ExecuteCodeAction(
-          flock.BABYLON.ActionManager.OnPickTrigger,
-          () => { clicked++; },
-        ),
-      );
+      beforeEach(function () {
+        restoreCamera = aimCameraAtOrigin();
+      });
 
-      fireFrame();
-      flock.inputManager._setKey("e", true);
+      afterEach(function () {
+        restoreCamera();
+      });
 
-      expect(clicked).to.equal(1);
-    });
+      it("icon is visible and near the only interactable mesh", function () {
+        const mesh = makeMesh("_test_single", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
 
-    it("after detachInteractIndicator BUTTON2 does not trigger the mesh", function () {
-      const mesh = makeMesh("_test_btn2_detach", [0, 0, 0]);
-      mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        fireFrame();
 
-      const triggered = [];
-      const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
-      mesh.actionManager.processTrigger = (trigger, evt) => {
-        triggered.push(trigger);
-        orig(trigger, evt);
-      };
+        const icon = getIcon();
+        expect(icon.isVisible).to.be.true;
+        const dist = flock.BABYLON.Vector3.Distance(
+          icon.position,
+          mesh.getAbsolutePosition(),
+        );
+        expect(dist).to.be.lessThan(2);
+      });
 
-      fireFrame();
-      detachInteractIndicator();
-      flock.inputManager._setKey("e", true);
+      it("ray hits an interactable: that mesh becomes the target", function () {
+        // Mesh at origin, camera at (0,0,-3) looking along +Z — ray hits mesh.
+        const mesh = makeMesh("_test_ray_hit", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
 
-      expect(triggered).to.be.empty;
+        fireFrame();
+
+        expect(getIcon().isVisible).to.be.true;
+        // Icon should be near the mesh, not some other location.
+        const dist = flock.BABYLON.Vector3.Distance(
+          getIcon().position,
+          mesh.getAbsolutePosition(),
+        );
+        expect(dist).to.be.lessThan(2);
+      });
+
+      it("ray hits nothing, fallback selects interactable within forward cone and range", function () {
+        // Mesh slightly off-center but within 10° of camera forward (+Z) and within 4 units.
+        // Camera at (0,0,-3): a mesh at (0.05, 0, 0) is off the ray but within a small angle.
+        // Angle ≈ atan(0.05/3) ≈ 0.95° — well inside 10°.
+        const mesh = makeMesh("_test_fallback", [0.05, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        fireFrame();
+
+        // Icon should be visible — fallback should have picked the mesh.
+        expect(getIcon().isVisible).to.be.true;
+        const dist = flock.BABYLON.Vector3.Distance(
+          getIcon().position,
+          mesh.getAbsolutePosition(),
+        );
+        expect(dist).to.be.lessThan(2);
+      });
+
+      it("ray hits nothing, no interactable in forward cone: target is null and icon hidden", function () {
+        // Mesh far to the side — beyond 45° of camera forward.
+        // Camera at (0,0,-3), mesh at (4, 0, 0). Angle from +Z ≈ atan(4/3) ≈ 53°.
+        const mesh = makeMesh("_test_wide", [4, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        fireFrame();
+
+        expect(getIcon().isVisible).to.be.false;
+      });
+
+      it("target outside 4-unit range from player: target is null and icon hidden", function () {
+        // Player at origin, interactable at (0,0,5): 5 units from player → out of range.
+        const player = makeMesh("_test_range_player", [0, 0, 0]);
+        player.metadata = { isPlayer: true };
+
+        const mesh = makeMesh("_test_far", [0, 0, 5]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        fireFrame();
+
+        expect(getIcon().isVisible).to.be.false;
+      });
+
+      it("player mesh with actionManager is never targeted", function () {
+        const player = makeMesh("_test_pawn", [0, 0, 0]);
+        player.metadata = { isPlayer: true };
+        player.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        // No other interactable — should have no target.
+        fireFrame();
+
+        expect(getIcon().isVisible).to.be.false;
+      });
+
+      it("descendant of player mesh with actionManager is never targeted", function () {
+        const player = makeMesh("_test_pawn2", [0, 0, 0]);
+        player.metadata = { isPlayer: true };
+
+        const child = makeMesh("_test_child", [0, 0, 0]);
+        child.parent = player;
+        child.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        fireFrame();
+
+        expect(getIcon().isVisible).to.be.false;
+      });
+
+      it("player mesh under aim ray does not block interactable behind it", function () {
+        // Player at (0,0,-1), interactable at (0,0,0). Both along +Z ray from (0,0,-3).
+        // Ray predicate excludes player → interactable is picked.
+        const player = makeMesh("_test_pawn3", [0, 0, -1]);
+        player.metadata = { isPlayer: true };
+
+        const interactable = makeMesh("_test_behind", [0, 0, 0]);
+        interactable.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        fireFrame();
+
+        expect(getIcon().isVisible).to.be.true;
+        const dist = flock.BABYLON.Vector3.Distance(
+          getIcon().position,
+          interactable.getAbsolutePosition(),
+        );
+        expect(dist).to.be.lessThan(2);
+      });
+
+      it("with a player mesh, range anchor is the player position", function () {
+        // Camera at (0,0,-3). Interactable at (0,0,5): 8 units from camera (out of range).
+        // Player at (0,0,4): 1 unit from interactable (in range).
+        // Without player: icon hidden. With player: icon visible.
+        const interactable = makeMesh("_test_range_i", [0, 0, 5]);
+        interactable.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        // First verify: no player → out of range, icon hidden.
+        fireFrame();
+        expect(getIcon().isVisible).to.be.false;
+
+        // Add player near the interactable.
+        const player = makeMesh("_test_range_p", [0, 0, 4]);
+        player.metadata = { isPlayer: true };
+
+        fireFrame();
+        // Interactable is 1 unit from player anchor → within 4-unit range → icon visible.
+        expect(getIcon().isVisible).to.be.true;
+      });
+
+      it("without a player mesh, any aimed-at interactable is shown regardless of distance", function () {
+        // No player: range filter does not apply. Mesh is in front but far from camera.
+        const mesh = makeMesh("_test_cam_anchor", [0, 0, 20]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        fireFrame();
+
+        expect(getIcon().isVisible).to.be.true;
+      });
+
+      it("BUTTON2 fires OnPickTrigger on the target mesh", function () {
+        const mesh = makeMesh("_test_btn2_pick", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        const triggered = [];
+        const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
+        mesh.actionManager.processTrigger = (trigger, evt) => {
+          triggered.push(trigger);
+          orig(trigger, evt);
+        };
+
+        fireFrame();
+        flock.inputManager._setKey("e", true);
+
+        expect(triggered).to.include(flock.BABYLON.ActionManager.OnPickTrigger);
+      });
+
+      it("BUTTON2 fires OnLeftPickTrigger on the target mesh", function () {
+        const mesh = makeMesh("_test_btn2_leftpick", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        const triggered = [];
+        const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
+        mesh.actionManager.processTrigger = (trigger, evt) => {
+          triggered.push(trigger);
+          orig(trigger, evt);
+        };
+
+        fireFrame();
+        flock.inputManager._setKey("e", true);
+
+        expect(triggered).to.include(flock.BABYLON.ActionManager.OnLeftPickTrigger);
+      });
+
+      it("when_clicked handler on target mesh runs when BUTTON2 fires", function () {
+        const mesh = makeMesh("_test_btn2_handler", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        let clicked = 0;
+        mesh.actionManager.registerAction(
+          new flock.BABYLON.ExecuteCodeAction(
+            flock.BABYLON.ActionManager.OnPickTrigger,
+            () => { clicked++; },
+          ),
+        );
+
+        fireFrame();
+        flock.inputManager._setKey("e", true);
+
+        expect(clicked).to.equal(1);
+      });
+
+      it("after detachInteractIndicator BUTTON2 does not trigger the mesh", function () {
+        const mesh = makeMesh("_test_btn2_detach", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        const triggered = [];
+        const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
+        mesh.actionManager.processTrigger = (trigger, evt) => {
+          triggered.push(trigger);
+          orig(trigger, evt);
+        };
+
+        fireFrame();
+        detachInteractIndicator();
+        flock.inputManager._setKey("e", true);
+
+        expect(triggered).to.be.empty;
+      });
+
+      it("after setActionKey on BUTTON2, icon is hidden and bound key does not invoke processTrigger", function () {
+        const mesh = makeMesh("_test_override", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        const triggered = [];
+        const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
+        mesh.actionManager.processTrigger = (trigger, evt) => {
+          triggered.push(trigger);
+          orig(trigger, evt);
+        };
+
+        flock.inputManager.setActionKey("BUTTON2", "q");
+
+        fireFrame();
+        expect(getIcon().isVisible).to.be.false;
+
+        flock.inputManager._setKey("q", true);
+        expect(triggered).to.be.empty;
+      });
+
+      it("after resetActionKeys, icon reappears and BUTTON2 fires the click", function () {
+        const mesh = makeMesh("_test_reset", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        const triggered = [];
+        const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
+        mesh.actionManager.processTrigger = (trigger, evt) => {
+          triggered.push(trigger);
+          orig(trigger, evt);
+        };
+
+        flock.inputManager.setActionKey("BUTTON2", "q");
+        fireFrame();
+        expect(getIcon().isVisible).to.be.false;
+
+        flock.inputManager.resetActionKeys();
+        fireFrame();
+        expect(getIcon().isVisible).to.be.true;
+
+        flock.inputManager._setKey("e", true);
+        expect(triggered).to.include(flock.BABYLON.ActionManager.OnPickTrigger);
+      });
     });
   });
 }

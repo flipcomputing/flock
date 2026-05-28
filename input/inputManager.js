@@ -106,6 +106,10 @@ export class InputManager {
     this.#actionOverrides.clear();
   }
 
+  hasActionOverride(action) {
+    return this.#actionOverrides.has(action);
+  }
+
   _getActionKeys(action) {
     return this.#actionOverrides.get(action) ?? ACTION_KEYS.get(action) ?? [];
   }

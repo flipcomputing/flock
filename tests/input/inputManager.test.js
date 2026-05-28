@@ -228,6 +228,23 @@ export function runInputManagerTests() {
       });
     });
 
+    describe("hasActionOverride", function () {
+      it("returns false initially", function () {
+        expect(manager.hasActionOverride("BUTTON2")).to.be.false;
+      });
+
+      it("returns true after setActionKey", function () {
+        manager.setActionKey("BUTTON2", "q");
+        expect(manager.hasActionOverride("BUTTON2")).to.be.true;
+      });
+
+      it("returns false after resetActionKeys", function () {
+        manager.setActionKey("BUTTON2", "q");
+        manager.resetActionKeys();
+        expect(manager.hasActionOverride("BUTTON2")).to.be.false;
+      });
+    });
+
     describe("axes", function () {
       it("_setAxis / getAxis round-trip", function () {
         manager._setAxis("LOOK_X", 0.7);
