@@ -7,6 +7,22 @@
       "x": 650.9486607142856,
       "y": 61.428571428571274,
       "text": "Open the comments to find instructions."
+    },
+    {
+      "height": 85.18524169921875,
+      "width": 343.28057861328125,
+      "id": "|wx1KclDG#jm`;9A,*SO",
+      "x": 421.1385672876378,
+      "y": 830.7044165475028,
+      "text": "The Flock bird has the animations: Idle, Walk, Wave, Fly. More coming soon!"
+    },
+    {
+      "height": 85.18524169921875,
+      "width": 343.28057861328125,
+      "id": "gC.4Jbs$j4?`dJ/{S2Hy",
+      "x": 570.7151576894234,
+      "y": 451.1806215558733,
+      "text": "The Flock bird has the animations: Idle, Walk, Wave, Fly. More coming soon!"
     }
   ],
   "blocks": {
@@ -59,6 +75,33 @@
                   "inputs": {
                     "MATERIAL": {
                       "shadow": {
+                        "type": "material",
+                        "id": "#:_FAEEOH~TCal%fB5Lz",
+                        "fields": {
+                          "TEXTURE_SET": "none.png"
+                        },
+                        "inputs": {
+                          "BASE_COLOR": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": ",[xAyg,QYE|Ubcaw*(KQ",
+                              "fields": {
+                                "COLOR": "#71bc78"
+                              }
+                            }
+                          },
+                          "ALPHA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "@$.TD)n~jRNMo07~T,-O",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "block": {
                         "type": "material",
                         "id": "#:_FAEEOH~TCal%fB5Lz",
                         "fields": {
@@ -282,7 +325,7 @@
         "type": "when_clicked",
         "id": "_wn!!0hZacLgTFS!^zPo",
         "x": 10,
-        "y": 670,
+        "y": 666,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -434,7 +477,7 @@
         "type": "start",
         "id": "28`@Ba/5n[J65c$rg7W!",
         "x": 10,
-        "y": 997,
+        "y": 988,
         "inputs": {
           "DO": {
             "block": {
@@ -449,7 +492,7 @@
                   "id": "%TM,T~2U34p49dy9pF|w",
                   "fields": {
                     "CONTROL": "BOTH",
-                    "ENABLED": false
+                    "ENABLED": "AUTO"
                   },
                   "inputs": {
                     "COLOR": {
