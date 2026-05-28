@@ -153,6 +153,8 @@ export async function setLanguage(language) {
     }
 
     if (workspace.flockSearchCategory?.blockSearcher?.indexBlocks) {
+      workspace.flockSearchIndexedBlocks = null;
+      workspace.flockBlockLabelMap = new Map();
       workspace.flockSearchCategory.blockSearcher.indexBlocks();
     }
   }
