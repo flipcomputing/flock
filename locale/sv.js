@@ -1250,11 +1250,18 @@ export default {
   shortcut_select_gizmo: "Välj gizmo",
   shortcut_keyboard_cursor_gizmos: "Tangentbordskursor för gizmos",
   shortcut_slow_cursor_gizmos: "Långsam markörrörelse",
+  shortcut_uniform_scale: "Enhetlig skala (alla axlar)",
   shortcut_lock_transform: "Lås transformering till axel",
   shortcut_transform_3d: "Transformera i 3D",
   shortcut_focus_camera: "Rikta kameran mot objekt",
   shortcut_quick_colour: "Snabb färganvändning i färgväljaren",
   shortcut_delete_object: "Ta bort objekt",
+
+  axis_x: "X-axel",
+  axis_y: "Y-axel",
+  axis_z: "Z-axel",
+  axis_free: "Fritt",
+  axis_all: "Enhetlig (alla axlar)",
 
   // Keyboard shortcuts panel — category names
   shortcut_category_main: "Allmänt",

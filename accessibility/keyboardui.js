@@ -519,6 +519,11 @@ function getShortcuts() {
       category: translate("shortcut_category_gizmos"),
     },
     {
+      label: translate("shortcut_uniform_scale"),
+      keys: `U`,
+      category: translate("shortcut_category_gizmos"),
+    },
+    {
       label: translate("shortcut_transform_3d"),
       keys: `↑ ↓ ← → PgUp PgDn`,
       category: translate("shortcut_category_gizmos"),

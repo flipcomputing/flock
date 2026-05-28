@@ -1319,11 +1319,18 @@ export default {
   shortcut_select_gizmo: "Select gizmo",
   shortcut_keyboard_cursor_gizmos: "Keyboard cursor for gizmos",
   shortcut_slow_cursor_gizmos: "Slow cursor movement",
+  shortcut_uniform_scale: "Uniform scale (all axes)",
   shortcut_lock_transform: "Lock transform to axis",
   shortcut_transform_3d: "Transform in 3D",
   shortcut_focus_camera: "Focus camera on object",
   shortcut_quick_colour: "Quick use colour in colour picker",
   shortcut_delete_object: "Delete object",
+
+  axis_x: "X axis",
+  axis_y: "Y axis",
+  axis_z: "Z axis",
+  axis_free: "Free",
+  axis_all: "Uniform (all axes)",
 
   // Keyboard shortcuts panel — category names
   shortcut_category_main: "Main",

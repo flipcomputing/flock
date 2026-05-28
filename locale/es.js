@@ -1283,11 +1283,18 @@ export default {
   shortcut_select_gizmo: "Seleccionar gizmo",
   shortcut_keyboard_cursor_gizmos: "Cursor de teclado para gizmos",
   shortcut_slow_cursor_gizmos: "Movimiento lento del cursor",
+  shortcut_uniform_scale: "Escala uniforme (todos los ejes)",
   shortcut_lock_transform: "Bloquear transformación en eje",
   shortcut_transform_3d: "Transformar en 3D",
   shortcut_focus_camera: "Enfocar cámara en objeto",
   shortcut_quick_colour: "Usar color rápido en el selector de color",
   shortcut_delete_object: "Eliminar objeto",
+
+  axis_x: "Eje X",
+  axis_y: "Eje Y",
+  axis_z: "Eje Z",
+  axis_free: "Libre",
+  axis_all: "Uniforme (todos los ejes)",
 
   // Keyboard shortcuts panel — category names
   shortcut_category_main: "General",
