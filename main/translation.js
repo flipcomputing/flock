@@ -113,6 +113,9 @@ export async function setLanguage(language) {
     window.flockColorPicker.refreshTranslations();
   }
 
+  // Update workspace search placeholder
+  window.flockWorkspaceSearch?.setSearchPlaceholder?.(translate("workspace_search_placeholder"));
+
   // Update shortcuts panel if open
   if (window.flockShortcutsPanel?.refreshTranslations) {
     window.flockShortcutsPanel.refreshTranslations();

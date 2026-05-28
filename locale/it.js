@@ -1128,6 +1128,7 @@ export default {
   design_tool_label: "Strumento di progettazione",
   focused_element_suffix: "{name} focalizzato",
   search_toolbox_focused: "Ricerca della toolbox focalizzata",
+  workspace_search_placeholder: "Trova nell'area",
   code_workspace_focused: "Area di lavoro del codice focalizzata",
   interactive_element_label: "Elemento interattivo",
   panel_resizer_focused:

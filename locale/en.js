@@ -1123,6 +1123,7 @@ export default {
   design_tool_label: "Design tool",
   focused_element_suffix: "{name} focused",
   search_toolbox_focused: "Search toolbox focused",
+  workspace_search_placeholder: "Find in workspace",
   code_workspace_focused: "Code workspace focused",
   interactive_element_label: "Interactive element",
   panel_resizer_focused:
