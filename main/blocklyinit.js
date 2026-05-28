@@ -613,6 +613,8 @@ export function initializeWorkspace() {
     };
   }
   workspaceSearch.init();
+  workspaceSearch.setSearchPlaceholder(translate("workspace_search_placeholder"));
+  window.flockWorkspaceSearch = workspaceSearch;
 
   // Mobile: custom HTML search results panel (bypasses the SVG flyout entirely)
   requestAnimationFrame(() => {

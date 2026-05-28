@@ -1128,6 +1128,7 @@ export default {
   design_tool_label: "Strumento di progettazione",
   focused_element_suffix: "{name} focalizzato",
   search_toolbox_focused: "Ricerca della toolbox focalizzata",
+  workspace_search_placeholder: "Trova nell'area",
   code_workspace_focused: "Area di lavoro del codice focalizzata",
   interactive_element_label: "Elemento interattivo",
   panel_resizer_focused:
@@ -1262,11 +1263,19 @@ export default {
   shortcut_open_gizmos: "Gizmos",
   shortcut_select_gizmo: "Seleziona gizmo",
   shortcut_keyboard_cursor_gizmos: "Cursore da tastiera per i gizmos",
+  shortcut_slow_cursor_gizmos: "Movimento cursore lento",
+  shortcut_uniform_scale: "Scala uniforme (tutti gli assi)",
   shortcut_lock_transform: "Blocca trasformazione sull'asse",
   shortcut_transform_3d: "Trasforma in 3D",
   shortcut_focus_camera: "Centra la telecamera sull'oggetto",
   shortcut_quick_colour: "Uso rapido del colore nel selettore colori",
   shortcut_delete_object: "Elimina oggetto",
+
+  axis_x: "Asse X",
+  axis_y: "Asse Y",
+  axis_z: "Asse Z",
+  axis_free: "Libero",
+  axis_all: "Uniforme (tutti gli assi)",
 
   // Keyboard shortcuts panel — category names
   shortcut_category_main: "Generale",

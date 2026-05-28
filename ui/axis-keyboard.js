@@ -1,5 +1,6 @@
 import { flock } from "../flock.js";
 import { InputManager } from "../main/inputmanager.js";
+import { translate } from "../main/translation.js";
 
 // A generic handler to be used for axis-constrained
 // keyboard movement in various tools (move, scale, etc)
@@ -26,14 +27,14 @@ export function createAxisKeyboardHandler({
     )
       return;
 
-    const step = event.shiftKey ? stepFast : stepNormal;
+    const step = event.shiftKey ? stepNormal : stepFast;
 
     switch (event.key) {
       case "x":
       case "X":
         axis = axis === "x" ? null : "x";
         flock.printText({
-          text: axis ? "X axis" : "Free",
+          text: axis ? translate("axis_x") : translate("axis_free"),
           duration: 10,
           color: "black",
         });
@@ -44,7 +45,7 @@ export function createAxisKeyboardHandler({
       case "Y":
         axis = axis === "y" ? null : "y";
         flock.printText({
-          text: axis ? "Y axis" : "Free",
+          text: axis ? translate("axis_y") : translate("axis_free"),
           duration: 10,
           color: "black",
         });
@@ -55,7 +56,18 @@ export function createAxisKeyboardHandler({
       case "Z":
         axis = axis === "z" ? null : "z";
         flock.printText({
-          text: axis ? "Z axis" : "Free",
+          text: axis ? translate("axis_z") : translate("axis_free"),
+          duration: 10,
+          color: "black",
+        });
+        event.preventDefault();
+        break;
+
+      case "u":
+      case "U":
+        axis = axis === "all" ? null : "all";
+        flock.printText({
+          text: axis ? translate("axis_all") : translate("axis_free"),
           duration: 10,
           color: "black",
         });
@@ -70,7 +82,9 @@ export function createAxisKeyboardHandler({
         event.stopPropagation();
         const sign =
           event.key === "ArrowRight" || event.key === "ArrowUp" ? 1 : -1;
-        if (axis) {
+        if (axis === "all") {
+          onMove(step * sign, step * sign, step * sign);
+        } else if (axis) {
           onMove(
             axis === "x" ? step * sign : 0,
             axis === "y" ? step * sign : 0,
@@ -88,13 +102,15 @@ export function createAxisKeyboardHandler({
       case "PageUp":
         event.preventDefault();
         event.stopPropagation();
-        if (!axis) onMove(0, step, 0);
+        if (axis === "all") onMove(step, step, step);
+        else if (!axis) onMove(0, step, 0);
         break;
 
       case "PageDown":
         event.preventDefault();
         event.stopPropagation();
-        if (!axis) onMove(0, -step, 0);
+        if (axis === "all") onMove(-step, -step, -step);
+        else if (!axis) onMove(0, -step, 0);
         break;
 
       case "Enter":
