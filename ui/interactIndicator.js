@@ -9,12 +9,13 @@ import {
   ActionEvent,
   Ray,
 } from "@babylonjs/core";
-import { getPlayerMesh } from "../accessibility/accessibility.js";
+
 
 const ICON_MESH_NAME = "__flock_interact_indicator";
 const ICON_SIZE_PX = 48;
 const TEX_SIZE = 128;
 const MAX_RANGE = 4;
+const MAX_RANGE_FREE_CAMERA = 12;
 const MAX_HALF_ANGLE = Math.PI / 4; // 45 degrees
 const _COS_MAX_HALF_ANGLE = Math.cos(MAX_HALF_ANGLE);
 
@@ -173,8 +174,9 @@ function _updateIndicator(scene) {
     return;
   }
 
-  // Refresh player mesh and camera directions (no allocation).
-  _playerMesh = getPlayerMesh(scene);
+  // The player is whichever mesh the camera is following — set explicitly by Flock,
+  // no heuristics. Null for free-camera scenes.
+  _playerMesh = camera.metadata?.following ?? null;
   camera.getDirectionToRef(_LOCAL_FORWARD, _cameraForward);
   camera.getDirectionToRef(_LOCAL_RIGHT, _cameraRight);
 
@@ -218,20 +220,43 @@ function _updateIndicator(scene) {
     }
   }
 
-  // Range filter only applies when a player mesh is present (anchor = player position).
-  // Without a player, any aimed-at interactable is reachable regardless of distance.
-  if (target && _playerMesh) {
-    const playerPos = _playerMesh.getAbsolutePosition();
-    _closestPointOnBBToRef(target, playerPos, _closestPt);
-    if (Vector3.Distance(playerPos, _closestPt) > MAX_RANGE) target = null;
+  // Range filter: drop the target if it's beyond range of the player (or camera).
+  if (target) {
+    const anchorPos = _playerMesh
+      ? _playerMesh.getAbsolutePosition()
+      : camera.position;
+    const range = _playerMesh ? MAX_RANGE : MAX_RANGE_FREE_CAMERA;
+    _closestPointOnBBToRef(target, anchorPos, _closestPt);
+    if (Vector3.Distance(anchorPos, _closestPt) > range) target = null;
   }
 
-  // Line-of-sight check — hide icon if a solid mesh occludes the path to the target.
-  if (target) {
-    _toMesh.copyFrom(target.getAbsolutePosition()).subtractInPlace(camera.position);
+  // Proximity fallback: pick the nearest interactable within range of the player
+  // (or camera in free-camera mode) when nothing is directly aimed at.
+  if (!target) {
+    const anchorPos = _playerMesh
+      ? _playerMesh.getAbsolutePosition()
+      : camera.position;
+    const range = _playerMesh ? MAX_RANGE : MAX_RANGE_FREE_CAMERA;
+    let bestDist = range;
+    for (const m of _candidates) {
+      _closestPointOnBBToRef(m, anchorPos, _closestPt);
+      const dist = Vector3.Distance(anchorPos, _closestPt);
+      if (dist < bestDist) {
+        bestDist = dist;
+        target = m;
+      }
+    }
+  }
+
+  // Line-of-sight check — only when a player exists, cast from the player's position.
+  // Skipped in free-camera mode: the camera IS the viewpoint, so any aimed-at
+  // interactable is reachable and the check would falsely block via floor/environment geometry.
+  if (target && _playerMesh) {
+    const playerPos = _playerMesh.getAbsolutePosition();
+    _toMesh.copyFrom(target.getAbsolutePosition()).subtractInPlace(playerPos);
     const losLen = _toMesh.length();
     if (losLen > 0) {
-      _losRay.origin.copyFrom(camera.position);
+      _losRay.origin.copyFrom(playerPos);
       _losRay.direction.copyFromFloats(
         _toMesh.x / losLen,
         _toMesh.y / losLen,

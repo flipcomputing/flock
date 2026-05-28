@@ -57,6 +57,9 @@ export function runInteractIndicatorTests(flock) {
         if (!mesh.isDisposed()) mesh.dispose();
       }
       testMeshes = [];
+      // Clear any camera following state set by tests.
+      const cam = flock.scene.activeCamera;
+      if (cam?.metadata) cam.metadata.following = null;
     });
 
     it("icon is not visible when no meshes have an actionManager", function () {
@@ -177,7 +180,7 @@ export function runInteractIndicatorTests(flock) {
       it("target outside 4-unit range from player: target is null and icon hidden", function () {
         // Player at origin, interactable at (0,0,5): 5 units from player → out of range.
         const player = makeMesh("_test_range_player", [0, 0, 0]);
-        player.metadata = { isPlayer: true };
+        flock.scene.activeCamera.metadata = { following: player };
 
         const mesh = makeMesh("_test_far", [0, 0, 5]);
         mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
@@ -189,7 +192,7 @@ export function runInteractIndicatorTests(flock) {
 
       it("player mesh with actionManager is never targeted", function () {
         const player = makeMesh("_test_pawn", [0, 0, 0]);
-        player.metadata = { isPlayer: true };
+        flock.scene.activeCamera.metadata = { following: player };
         player.actionManager = new flock.BABYLON.ActionManager(flock.scene);
 
         // No other interactable — should have no target.
@@ -200,7 +203,7 @@ export function runInteractIndicatorTests(flock) {
 
       it("descendant of player mesh with actionManager is never targeted", function () {
         const player = makeMesh("_test_pawn2", [0, 0, 0]);
-        player.metadata = { isPlayer: true };
+        flock.scene.activeCamera.metadata = { following: player };
 
         const child = makeMesh("_test_child", [0, 0, 0]);
         child.parent = player;
@@ -215,7 +218,7 @@ export function runInteractIndicatorTests(flock) {
         // Player at (0,0,-1), interactable at (0,0,0). Both along +Z ray from (0,0,-3).
         // Ray predicate excludes player → interactable is picked.
         const player = makeMesh("_test_pawn3", [0, 0, -1]);
-        player.metadata = { isPlayer: true };
+        flock.scene.activeCamera.metadata = { following: player };
 
         const interactable = makeMesh("_test_behind", [0, 0, 0]);
         interactable.actionManager = new flock.BABYLON.ActionManager(flock.scene);
@@ -243,7 +246,7 @@ export function runInteractIndicatorTests(flock) {
 
         // Add player near the interactable.
         const player = makeMesh("_test_range_p", [0, 0, 4]);
-        player.metadata = { isPlayer: true };
+        flock.scene.activeCamera.metadata = { following: player };
 
         fireFrame();
         // Interactable is 1 unit from player anchor → within 4-unit range → icon visible.
