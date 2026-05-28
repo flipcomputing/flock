@@ -1129,7 +1129,6 @@ export default {
   search_toolbox_focused: "Skupiono wyszukiwanie w toolboxie",
   toolbox_search_placeholder: "Szukaj",
   search_no_matching: "Nie znaleziono pasujących bloków",
-  search_type_3_chars: "Wpisz co najmniej 3 znaki, aby wyszukać",
   workspace_search_placeholder: "Znajdź w obszarze",
   code_workspace_focused: "Skupiono przestrzeń kodu",
   interactive_element_label: "Element interaktywny",

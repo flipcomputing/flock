@@ -1115,7 +1115,6 @@ export default {
   search_toolbox_focused: "Toolbox-Suche fokussiert",
   toolbox_search_placeholder: "Suchen",
   search_no_matching: "Keine passenden Blöcke gefunden",
-  search_type_3_chars: "Mindestens 3 Zeichen eingeben, um zu suchen",
   workspace_search_placeholder: "Im Bereich suchen",
   code_workspace_focused: "Code-Arbeitsbereich fokussiert",
   interactive_element_label: "Interaktives Element",

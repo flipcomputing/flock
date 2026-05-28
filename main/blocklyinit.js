@@ -769,9 +769,8 @@ export function initializeWorkspace() {
 
     const updateResults = () => {
       const query = searchInput.value.trim();
-      if (!query || query.length < 3) {
-        resultsPanel.innerHTML =
-          `<div class="mobile-search-empty">${translate('search_type_3_chars')}</div>`;
+      if (!query) {
+        resultsPanel.innerHTML = '';
         return;
       }
 
