@@ -735,9 +735,7 @@ const ShortcutsPanel = {
   },
 
   refreshTranslations() {
-    if (!this.panel.classList.contains("hidden")) {
-      this.renderContent();
-    }
+    this.renderContent();
   },
 
   hide() {
