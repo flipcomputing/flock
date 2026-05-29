@@ -101,6 +101,9 @@ export const flockMovement = {
         currentRotationConjugate: new B.Quaternion(),
         deltaRotation: new B.Quaternion(),
       };
+      c.groundQuery.ignoredBodies.push(model.physics);
+      c.stepLowQuery.ignoredBodies.push(model.physics);
+      c.stepHighQuery.ignoredBodies.push(model.physics);
     }
 
     // Ground query shape — cached, recreated only when dimensions change.
