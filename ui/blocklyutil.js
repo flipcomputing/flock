@@ -321,7 +321,7 @@ export function setBlockXYZ(block, x, y, z) {
     const input = block.getInput(inputName);
     const connectedBlock = input.connection.targetBlock();
 
-    if (connectedBlock) {
+    if (connectedBlock?.getField?.("NUM")) {
       connectedBlock.setFieldValue(String(value), "NUM");
     }
   };
@@ -444,7 +444,7 @@ export function setNumberInputs(block, valuesByInputName) {
     if (!Number.isFinite(n)) continue;
 
     const target = block.getInput(inputName)?.connection?.targetBlock?.();
-    if (!target?.setFieldValue) continue;
+    if (!target?.getField?.("NUM")) continue;
 
     target.setFieldValue(String(roundToOneDecimal(n)), "NUM");
   }
