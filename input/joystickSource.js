@@ -57,9 +57,9 @@ export class JoystickSource {
           return;
         }
         if (info.event.type === 'pointerdown') {
-          const center = this.#computeBaseCenter();
-          const dx = (info.event.clientX - center.x) / this.#baseRadius;
-          const dy = (info.event.clientY - center.y) / this.#baseRadius;
+          const { cx, cy, r } = this.#computeBaseLayout();
+          const dx = (info.event.clientX - cx) / r;
+          const dy = (info.event.clientY - cy) / r;
           if (Math.sqrt(dx * dx + dy * dy) <= 1) {
             info.skipOnPointerObservable = true;
           }
@@ -121,20 +121,22 @@ export class JoystickSource {
     this.#activePointerId = null;
   }
 
-  #computeBaseCenter() {
+  // Returns joystick base centre and radius in CSS/viewport pixels, which is
+  // the same space as event.clientX/Y and getBoundingClientRect().
+  // #baseRadius is stored in ADT device-pixel units (canvas.width space); the
+  // canvas.width/rect.width ratio converts it to CSS pixels.
+  #computeBaseLayout() {
     const rect = this.#canvas.getBoundingClientRect();
-    return {
-      x: rect.left + this.#baseRadius,
-      y: rect.bottom - this.#baseRadius,
-    };
+    const r = this.#baseRadius * (rect.width / this.#canvas.width);
+    return { cx: rect.left + r, cy: rect.bottom - r, r };
   }
 
   #handlePointerDown(event) {
     if (this.#activePointerId !== null) return;
 
-    const center = this.#computeBaseCenter();
-    const rawDx = (event.clientX - center.x) / this.#baseRadius;
-    const rawDy = (event.clientY - center.y) / this.#baseRadius;
+    const { cx, cy, r } = this.#computeBaseLayout();
+    const rawDx = (event.clientX - cx) / r;
+    const rawDy = (event.clientY - cy) / r;
     const mag = Math.sqrt(rawDx * rawDx + rawDy * rawDy);
 
     if (mag > 1) return;
@@ -162,9 +164,9 @@ export class JoystickSource {
   }
 
   #updateStick(clientX, clientY) {
-    const center = this.#computeBaseCenter();
-    let dx = (clientX - center.x) / this.#baseRadius;
-    let dy = (clientY - center.y) / this.#baseRadius;
+    const { cx, cy, r } = this.#computeBaseLayout();
+    let dx = (clientX - cx) / r;
+    let dy = (clientY - cy) / r;
 
     const mag = Math.sqrt(dx * dx + dy * dy);
     if (mag > 1) {

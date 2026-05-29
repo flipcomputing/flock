@@ -9,6 +9,8 @@ class StubCanvas {
   #listeners = new Map();
   clientWidth = 800;
   clientHeight = 600;
+  width = 800;   // same as clientWidth → DPR ratio = 1 in tests
+  height = 600;
 
   getBoundingClientRect() {
     return { left: 0, top: 0, right: 800, bottom: 600, width: 800, height: 600 };
