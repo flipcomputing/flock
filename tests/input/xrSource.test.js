@@ -60,10 +60,10 @@ function makeMotionController(handedness) {
   if (handedness === "left") {
     components["x-button"] = makeComponent();
     components["y-button"] = makeComponent();
+    components["xr-standard-thumbstick"] = makeComponent();
   } else if (handedness === "right") {
     components["a-button"] = makeComponent();
     components["b-button"] = makeComponent();
-    components["xr-standard-thumbstick"] = makeComponent();
   }
   return {
     components,
@@ -173,8 +173,8 @@ export function runXRSourceTests() {
     });
 
     describe("thumbstick axes and shim", function () {
-      it("right thumbstick x = -0.9 → getAxis('XR_MOVE_X') === -0.9; isKeyDown('a') true", function () {
-        const controller = makeController("right");
+      it("left thumbstick x = -0.9 → getAxis('XR_MOVE_X') === -0.9; isKeyDown('a') true", function () {
+        const controller = makeController("left");
         const mc = addController(controller);
         mc.components["xr-standard-thumbstick"].axes.x = -0.9;
         scene.tick();
@@ -182,8 +182,8 @@ export function runXRSourceTests() {
         expect(manager.isKeyDown("a")).to.be.true;
       });
 
-      it("right thumbstick x = -0.1 → getAxis('XR_MOVE_X') === 0 (dead-zone); isKeyDown('a') false", function () {
-        const controller = makeController("right");
+      it("left thumbstick x = -0.1 → getAxis('XR_MOVE_X') === 0 (dead-zone); isKeyDown('a') false", function () {
+        const controller = makeController("left");
         const mc = addController(controller);
         mc.components["xr-standard-thumbstick"].axes.x = -0.1;
         scene.tick();
@@ -191,8 +191,8 @@ export function runXRSourceTests() {
         expect(manager.isKeyDown("a")).to.be.false;
       });
 
-      it("right thumbstick y = 0.9 → isKeyDown('s') true; getAxis('XR_MOVE_Y') === 0.9", function () {
-        const controller = makeController("right");
+      it("left thumbstick y = 0.9 → isKeyDown('s') true; getAxis('XR_MOVE_Y') === 0.9", function () {
+        const controller = makeController("left");
         const mc = addController(controller);
         mc.components["xr-standard-thumbstick"].axes.y = 0.9;
         scene.tick();
@@ -201,7 +201,7 @@ export function runXRSourceTests() {
       });
 
       it("thumbstick shim: moving past threshold then releasing clears key", function () {
-        const controller = makeController("right");
+        const controller = makeController("left");
         const mc = addController(controller);
         mc.components["xr-standard-thumbstick"].axes.x = -0.9;
         scene.tick();
@@ -223,8 +223,8 @@ export function runXRSourceTests() {
         expect(manager.isKeyDown("f")).to.be.false;
       });
 
-      it("removing right controller zeroes XR_MOVE_X and releases shim keys", function () {
-        const controller = makeController("right");
+      it("removing left controller zeroes XR_MOVE_X and releases shim keys", function () {
+        const controller = makeController("left");
         const mc = addController(controller);
         mc.components["xr-standard-thumbstick"].axes.x = -0.9;
         scene.tick();
@@ -257,7 +257,7 @@ export function runXRSourceTests() {
       });
 
       it("stop() zeros XR axes", function () {
-        const controller = makeController("right");
+        const controller = makeController("left");
         const mc = addController(controller);
         mc.components["xr-standard-thumbstick"].axes.x = -0.9;
         scene.tick();
@@ -278,7 +278,7 @@ export function runXRSourceTests() {
         source.start();
         source.start();
         // Only one frame observer should be registered; tick produces no double-fires
-        const controller = makeController("right");
+        const controller = makeController("left");
         const mc = addController(controller);
         mc.components["xr-standard-thumbstick"].axes.x = -0.9;
         scene.tick();

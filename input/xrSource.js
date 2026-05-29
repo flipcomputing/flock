@@ -166,7 +166,7 @@ export class XRSource {
     }
     this.#releaseControllerKeys(state);
 
-    if (state.handedness === "right") {
+    if (state.handedness === "left") {
       for (const key of this.#thumbstickHeld) {
         this.#inputManager._setKey(key, false);
       }
@@ -184,7 +184,7 @@ export class XRSource {
   #pollThumbsticks() {
     let mc = null;
     for (const [, state] of this.#controllerState) {
-      if (state.handedness === "right" && state.motionController) {
+      if (state.handedness === "left" && state.motionController) {
         mc = state.motionController;
         break;
       }
