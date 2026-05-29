@@ -105,7 +105,7 @@ export const flockPhysics = {
     );
     physicsBody.shape = physicsShape;
     physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
-    physicsBody.disablePreStep = false;
+    physicsBody.disablePreStep = true;
 
     geometry.physics = physicsBody;
   },

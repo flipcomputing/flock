@@ -615,7 +615,9 @@ export const flockScene = {
           md._uprightStabiliser = null;
         }
         if (currentMesh.physics) {
-          currentMesh.physics.shape?.dispose(); 
+          if (!currentMesh.physics.shape?._isShared) {
+            currentMesh.physics.shape?.dispose();
+          }
           currentMesh.physics.dispose();
         }
         flock.scene.removeMesh(currentMesh);

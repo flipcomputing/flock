@@ -167,6 +167,7 @@ export const flock = {
   modelsBeingLoaded: {},
   geometryCache: {},
   materialCache: {},
+  physicsShapeCache: {},
   flockNotReady: true,
   lastFrameTime: 0,
   savedCamera: null,
@@ -1762,6 +1763,7 @@ export const flock = {
         flock.originalModelTransformations = {};
         flock.geometryCache = {};
         flock.materialCache = {};
+        flock.physicsShapeCache = {};
         flock.pendingTriggers = new Map();
         flock.pendingIntersections = new Map();
         flock._nameRegistry = new Map();
@@ -1812,6 +1814,7 @@ export const flock = {
     flock.modelsBeingLoaded = {};
     flock.originalModelTransformations = {};
     flock.geometryCache = {};
+    flock.physicsShapeCache = {};
     flock.pendingTriggers = new Map();
     flock.pendingIntersections = new Map();
     flock._nameRegistry = new Map();
