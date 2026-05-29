@@ -281,7 +281,8 @@ export function runJoystickSourceTests() {
         source.start();
         canvas.dispatchPointer('pointerdown', 1, BASE_CX, BASE_CY - Math.round(BASE_RADIUS * 0.7));
         expect(manager.isKeyDown("w")).to.be.true;
-        canvas.dispatchPointer('pointermove', 1, BASE_CX, BASE_CY - Math.round(BASE_RADIUS * 0.3));
+        // 0.25 is between dead zone (0.2) and shim threshold (0.3) — below threshold, w released
+        canvas.dispatchPointer('pointermove', 1, BASE_CX, BASE_CY - Math.round(BASE_RADIUS * 0.25));
         expect(manager.isKeyDown("w")).to.be.false;
         source.stop();
       });

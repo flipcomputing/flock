@@ -1,5 +1,5 @@
 const DEAD_ZONE = 0.2;
-const SHIM_THRESHOLD = 0.5;
+const SHIM_THRESHOLD = 0.3;
 
 export class JoystickSource {
   #inputManager;
@@ -8,6 +8,7 @@ export class JoystickSource {
   #baseEllipse;
   #thumbEllipse;
   #baseRadius;
+  #thumbRadius;
   #scene;
 
   #started = false;
@@ -27,13 +28,14 @@ export class JoystickSource {
   #boundPointerMove;
   #boundPointerUp;
 
-  constructor(inputManager, onScreenSource, { canvas, baseEllipse, thumbEllipse, baseRadius, scene } = {}) {
+  constructor(inputManager, onScreenSource, { canvas, baseEllipse, thumbEllipse, baseRadius, thumbRadius = 0, scene } = {}) {
     this.#inputManager = inputManager;
     this.#onScreenSource = onScreenSource;
     this.#canvas = canvas;
     this.#baseEllipse = baseEllipse;
     this.#thumbEllipse = thumbEllipse;
     this.#baseRadius = baseRadius;
+    this.#thumbRadius = thumbRadius;
     this.#scene = scene ?? null;
 
     this.#boundPointerDown = this.#handlePointerDown.bind(this);
@@ -250,7 +252,8 @@ export class JoystickSource {
 
   #updateThumb(dx, dy) {
     if (!this.#thumbEllipse) return;
-    this.#thumbEllipse.left = `${dx * this.#baseRadius}px`;
-    this.#thumbEllipse.top = `${dy * this.#baseRadius}px`;
+    const maxOffset = this.#baseRadius - this.#thumbRadius;
+    this.#thumbEllipse.left = `${dx * maxOffset}px`;
+    this.#thumbEllipse.top = `${dy * maxOffset}px`;
   }
 }

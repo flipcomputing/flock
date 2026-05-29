@@ -455,7 +455,7 @@ export const flockUI = {
     if (!flock.controlsTexture) return;
 
     const baseRadius = 55 * flock.displayScale;
-    const thumbRadius = 20 * flock.displayScale;
+    const thumbRadius = 30 * flock.displayScale;
 
     const base = new flock.GUI.Ellipse();
     base.width = `${baseRadius * 2}px`;
@@ -481,6 +481,7 @@ export const flockUI = {
       baseEllipse: base,
       thumbEllipse: thumb,
       baseRadius,
+      thumbRadius,
       scene: flock.scene,
     });
   },
