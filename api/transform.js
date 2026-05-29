@@ -39,11 +39,14 @@ function applyPositionWithCurrentBaseRule(
   if (useY && !isCamera && typeof mesh.getBoundingInfo === "function") {
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo?.();
-    const boundingInfo = mesh.getBoundingInfo();
-    const minWorldY = boundingInfo?.boundingBox?.minimumWorld?.y;
+    const bi = mesh.getBoundingInfo();
+    const localMinY = bi?.boundingBox?.minimum?.y;
+    const scaleY = mesh.scaling?.y ?? 1;
 
-    if (Number.isFinite(minWorldY)) {
-      const deltaY = nextY - minWorldY;
+    if (Number.isFinite(localMinY)) {
+      // Where the unrotated bottom currently sits in world space.
+      const unrotatedMinWorldY = mesh.position.y + localMinY * scaleY;
+      const deltaY = nextY - unrotatedMinWorldY;
       if (Math.abs(deltaY) > 1e-6) {
         mesh.position.y += deltaY;
       }
@@ -910,21 +913,20 @@ export const flockTransform = {
       });
     });
   },
-
   getBlockPositionFromMesh(mesh) {
     if (!mesh) return { x: 0, y: 0, z: 0 };
-
     mesh.computeWorldMatrix?.(true);
     mesh.refreshBoundingInfo?.();
 
-    const boundingInfo = mesh.getBoundingInfo?.();
-    const minY = boundingInfo?.boundingBox?.minimumWorld?.y;
+    const bi = mesh.getBoundingInfo?.();
+    const localMinY = bi?.boundingBox?.minimum?.y;     // unrotated, mesh-local
+    const scaleY    = mesh.scaling?.y ?? 1;
+    const posY      = mesh.position?.y ?? 0;
+    const baseRuleY = Number.isFinite(localMinY)
+      ? posY + localMinY * scaleY
+      : posY;
 
-    return {
-      x: mesh.position?.x ?? 0,
-      y: Number.isFinite(minY) ? minY : (mesh.position?.y ?? 0),
-      z: mesh.position?.z ?? 0,
-    };
+    return { x: mesh.position?.x ?? 0, y: baseRuleY, z: mesh.position?.z ?? 0 };
   },
   _getAnchor(mesh) {
     if (!mesh) return null;
