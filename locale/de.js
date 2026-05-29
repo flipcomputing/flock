@@ -266,6 +266,7 @@ export default {
   get_property: "Hole %1 von %2",
   canvas_controls: "Leinwandsteuerung %1",
   button_controls: "Buttonsteuerung %1 aktiviert %2 Farbe %3",
+  on_screen_controls: "Bildschirmsteuerung  Bewegung: %1  Aktionen: %2  aktiviert: %3  Farbe: %4", // ai
   microbit_input: "wenn micro:bit-Ereignis %1",
   ui_slider:
     "UI-Regler %1 von %2 bis %3 Standard %4 bei x: %5 y: %6\nFarbe: %7 Hintergrund: %8 %9",
@@ -700,6 +701,7 @@ export default {
     "Füge Bewegungssteuerung für Canvas hinzu oder entferne sie.\nSchlüsselwort: canvas",
   button_controls_tooltip:
     "Konfiguriere Tastensteuerung.\nSchlüsselwort: button",
+  on_screen_controls_tooltip: "Bildschirmsteuerung konfigurieren.\nSchlüsselwort: onscreen", // ai
   microbit_input_tooltip:
     "Führt Blöcke aus, wenn ein bestimmtes micro:bit-Ereignis ausgelöst wird.",
   ui_slider_tooltip:
@@ -904,6 +906,9 @@ export default {
   BOTH_option: "beides",
   ARROWS_option: "Pfeile",
   ACTIONS_option: "Aktionen",
+  JOYSTICK_option: "Joystick", // ai
+  YES_option: "ja", // ai
+  NO_option: "nein", // ai
   ACTION_FORWARD_option: "vorwärts",
   ACTION_BACKWARD_option: "rückwärts",
   ACTION_LEFT_option: "links",

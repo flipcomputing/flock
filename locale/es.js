@@ -261,6 +261,7 @@ export default {
   get_property: "obtener %1 de %2", // human
   canvas_controls: "controles de lienzo %1", // human
   button_controls: "controles de botón %1 habilitados %2 color %3", // human
+  on_screen_controls: "controles en pantalla  movimiento: %1  acciones: %2  habilitado: %3  color: %4", // ai
   microbit_input: "cuando evento micro:bit %1", // human
   ui_slider:
     "control deslizante UI %1 de %2 a %3 por defecto %4 en x: %5 y: %6\ncolor: %7 fondo: %8 %9", // human
@@ -564,6 +565,7 @@ export default {
     "Añade o elimina controles de movimiento en el lienzo.\nPalabra clave: lienzo", // human
   button_controls_tooltip:
     "Configura controles de botónes.\nPalabra clave: botón", // human
+  on_screen_controls_tooltip: "Configura los controles en pantalla.\nPalabra clave: onscreen", // ai
   microbit_input_tooltip:
     "Ejecuta los bloques dentro cuando se desencadena un evento micro:bit especificado.", // human
   ui_slider_tooltip:
@@ -877,6 +879,9 @@ export default {
   BOTH_option: "ambos", // human
   ARROWS_option: "flechas", // human
   ACTIONS_option: "acciones", // human
+  JOYSTICK_option: "joystick", // ai
+  YES_option: "sí", // ai
+  NO_option: "no", // ai
   ACTION_FORWARD_option: "adelante", // human
   ACTION_BACKWARD_option: "atrás", // human
   ACTION_LEFT_option: "izquierda", // human

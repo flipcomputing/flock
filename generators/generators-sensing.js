@@ -108,6 +108,15 @@ export function registerSensingGenerators(javascriptGenerator) {
     return `buttonControls("${control}", "${mode}", ${color});\n`;
   };
 
+  // On-screen controls
+  javascriptGenerator.forBlock["on_screen_controls"] = function (block) {
+    const color = getFieldValue(block, "COLOR", '"#ffffff"');
+    const movement = block.getFieldValue("MOVEMENT");
+    const actions = block.getFieldValue("ACTIONS");
+    const mode = block.getFieldValue("ENABLED");
+    return `onScreenControls("${movement}", "${actions}", "${mode}", ${color});\n`;
+  };
+
   // When micro:bit event occurs
   javascriptGenerator.forBlock["microbit_input"] = function (block) {
     const event = block.getFieldValue("EVENT");

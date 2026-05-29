@@ -1,4 +1,5 @@
 import { getBoundKeys } from "../input/bindings.js";
+import { JoystickSource } from "../input/joystickSource.js";
 
 let flock;
 //let fontFamily = "Asap";
@@ -449,6 +450,76 @@ export const flockUI = {
       flock.createArrowControls(color);
     if (control === "ACTIONS" || control === "BOTH")
       flock.createButtonControls(color);
+  },
+  createJoystickControls(color) {
+    if (!flock.controlsTexture) return;
+
+    const baseRadius = 55 * flock.displayScale;
+    const thumbRadius = 20 * flock.displayScale;
+
+    const base = new flock.GUI.Ellipse();
+    base.width = `${baseRadius * 2}px`;
+    base.height = `${baseRadius * 2}px`;
+    base.color = color;
+    base.thickness = 3 * flock.displayScale;
+    base.background = "transparent";
+    base.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    base.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+
+    const thumb = new flock.GUI.Ellipse();
+    thumb.width = `${thumbRadius * 2}px`;
+    thumb.height = `${thumbRadius * 2}px`;
+    thumb.color = color;
+    thumb.background = color;
+    thumb.thickness = 0;
+
+    base.addControl(thumb);
+    flock.controlsTexture.addControl(base);
+
+    return new JoystickSource(flock.inputManager, flock._onScreenSource, {
+      canvas: flock.canvas,
+      baseEllipse: base,
+      thumbEllipse: thumb,
+      baseRadius,
+    });
+  },
+  onScreenControls(movement = "ARROWS", actions = "YES", mode = "AUTO", color = "#ffffff") {
+    const isTouchDevice =
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0 ||
+      window.matchMedia("(pointer: coarse)").matches;
+
+    const shouldShow = mode === "ENABLED" || (mode === "AUTO" && isTouchDevice);
+
+    if (flock._joystickSource) {
+      flock._joystickSource.stop();
+      flock._joystickSource = null;
+    }
+
+    if (!shouldShow) {
+      if (flock.controlsTexture) {
+        flock.controlsTexture.dispose();
+        flock.controlsTexture = null;
+      }
+      return;
+    }
+
+    if (flock.controlsTexture) flock.controlsTexture.dispose();
+
+    flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+      "VirtualControls",
+      true,
+      flock.scene,
+    );
+
+    if (movement === "ARROWS") {
+      flock.createArrowControls(color);
+    } else if (movement === "JOYSTICK") {
+      flock._joystickSource = flock.createJoystickControls(color);
+      flock._joystickSource?.start();
+    }
+
+    if (actions === "YES") flock.createButtonControls(color);
   },
   canvasControls(setting) {
     flock._canvasControlsEnabled = !!setting;

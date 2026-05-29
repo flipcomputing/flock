@@ -262,6 +262,7 @@ export default {
   get_property: "get %1 of %2",
   canvas_controls: "canvas controls %1",
   button_controls: "button controls %1 enabled: %2 color: %3",
+  on_screen_controls: "on screen controls  movement: %1  actions: %2  enabled: %3  color: %4",
   microbit_input: "when micro:bit event %1",
   ui_slider:
     "ui slider %1 from %2 to %3 default %4 at x: %5 y: %6\ncolor: %7 background: %8 %9",
@@ -549,6 +550,7 @@ export default {
   canvas_controls_tooltip:
     "Add or remove canvas motion controls.\nKeyword: canvas",
   button_controls_tooltip: "Configure button controls.\nKeyword: button",
+  on_screen_controls_tooltip: "Configure on-screen controls.\nKeyword: onscreen",
   microbit_input_tooltip:
     "Executes the blocks inside when a specified micro:bit event is triggered.",
   ui_slider_tooltip:
@@ -861,6 +863,9 @@ export default {
   BOTH_option: "both",
   ARROWS_option: "arrows",
   ACTIONS_option: "actions",
+  JOYSTICK_option: "joystick",
+  YES_option: "yes",
+  NO_option: "no",
   ACTION_FORWARD_option: "forward",
   ACTION_BACKWARD_option: "backward",
   ACTION_LEFT_option: "left",

@@ -2377,8 +2377,8 @@ const toolboxSensing = {
     },
     {
       kind: "block",
-      type: "button_controls",
-      keyword: "button",
+      type: "on_screen_controls",
+      keyword: "onscreen",
       inputs: {
         COLOR: {
           shadow: {

@@ -264,6 +264,7 @@ export default {
   get_property: "ottieni %1 di %2",
   canvas_controls: "controlli canvas %1",
   button_controls: "controlli pulsante %1 abilitati %2 colore %3",
+  on_screen_controls: "controlli sullo schermo  movimento: %1  azioni: %2  abilitato: %3  colore: %4", // ai
   microbit_input: "quando evento micro:bit %1",
   ui_slider:
     "slider UI %1 da %2 a %3 predefinito %4 a x: %5 y: %6\ncolore: %7 sfondo: %8 %9",
@@ -563,6 +564,7 @@ export default {
     "Aggiunge o rimuove i controlli di movimento del canvas.\nParola chiave: canvas",
   button_controls_tooltip:
     "Configura i controlli dei pulsanti.\nParola chiave: button",
+  on_screen_controls_tooltip: "Configura i controlli sullo schermo.\nParola chiave: onscreen", // ai
   microbit_input_tooltip:
     "Esegue i blocchi quando si verifica un evento micro:bit specificato.",
   ui_slider_tooltip:
@@ -875,6 +877,9 @@ export default {
   BOTH_option: "entrambi",
   ARROWS_option: "frecce",
   ACTIONS_option: "azioni",
+  JOYSTICK_option: "joystick", // ai
+  YES_option: "sì", // ai
+  NO_option: "no", // ai
   ACTION_FORWARD_option: "avanti",
   ACTION_BACKWARD_option: "indietro",
   ACTION_LEFT_option: "sinistra",

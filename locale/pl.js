@@ -262,6 +262,7 @@ export default {
   get_property: "pobierz %1 z %2",
   canvas_controls: "kontrola płótna %1",
   button_controls: "kontrolki przycisku %1 włączone: %2 kolor: %3",
+  on_screen_controls: "kontrolki na ekranie  ruch: %1  akcje: %2  włączone: %3  kolor: %4", // ai
   microbit_input: "gdy zdarzenie micro:bit: %1",
   ui_slider:
     "suwak UI %1 od %2 do %3 domyślnie %4 w x: %5 y: %6\nkolor: %7 tło: %8 %9",
@@ -558,6 +559,7 @@ export default {
     "Dodaj lub usuń kontrolki ruchu na płótnie.\nSłowo kluczowe: canvas",
   button_controls_tooltip:
     "Skonfiguruj kontrolki przycisku %1, aktywność %2, kolor %3.\nSłowo kluczowe: button",
+  on_screen_controls_tooltip: "Skonfiguruj kontrolki na ekranie.\nSłowo kluczowe: onscreen", // ai
   microbit_input_tooltip:
     "Wykonaj bloki, gdy wyzwolone zostanie zdarzenie micro:bit %1.",
   ui_slider_tooltip:
@@ -871,6 +873,9 @@ export default {
   BOTH_option: "oba",
   ARROWS_option: "strzałki",
   ACTIONS_option: "akcje",
+  JOYSTICK_option: "joystick", // ai
+  YES_option: "tak", // ai
+  NO_option: "nie", // ai
   ACTION_FORWARD_option: "do przodu",
   ACTION_BACKWARD_option: "do tyłu",
   ACTION_LEFT_option: "w lewo",

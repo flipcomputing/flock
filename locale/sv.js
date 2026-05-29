@@ -259,6 +259,7 @@ export default {
   get_property: "hämta %1 från %2",
   canvas_controls: "canvas kontroller %1",
   button_controls: "knappkontroller %1 aktiverad %2 färg %3",
+  on_screen_controls: "skärmkontroller  rörelse: %1  åtgärder: %2  aktiverad: %3  färg: %4", // ai
   microbit_input: "när micro:bit händelse %1",
   ui_slider:
     "ui reglage %1 från %2 till %3 standard %4 vid x: %5 y: %6\nfärg: %7 bakgrund: %8 %9",
@@ -545,6 +546,7 @@ export default {
   canvas_controls_tooltip:
     "Lägg till eller ta bort rörelsekontroller på canvas.\nKeyword: canvas",
   button_controls_tooltip: "Konfigurera knappkontroller.\nKeyword: button",
+  on_screen_controls_tooltip: "Konfigurera skärmkontroller.\nKeyword: onscreen", // ai
   microbit_input_tooltip:
     "Kör blocken när ett specifikt micro:bit-event triggas.",
   ui_slider_tooltip:
@@ -858,6 +860,9 @@ export default {
   BOTH_option: "båda",
   ARROWS_option: "pilar",
   ACTIONS_option: "åtgärder",
+  JOYSTICK_option: "joystick", // ai
+  YES_option: "ja", // ai
+  NO_option: "nej", // ai
   ACTION_FORWARD_option: "framåt",
   ACTION_BACKWARD_option: "bakåt",
   ACTION_LEFT_option: "vänster",

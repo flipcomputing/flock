@@ -260,6 +260,7 @@ export default {
   get_property: "obter %1 de %2",
   canvas_controls: "controles de tela %1",
   button_controls: "controles de botão %1 ativado %2 cor %3",
+  on_screen_controls: "controles na tela  movimento: %1  ações: %2  ativado: %3  cor: %4", // ai
   microbit_input: "quando evento do micro:bit %1",
   ui_slider:
     "controle deslizante %1 de %2 até %3 padrão %4 em x: %5 y: %6\ncor: %7 fundo: %8 %9",
@@ -554,6 +555,7 @@ export default {
     "Adiciona ou remove controles de movimento por tela.\nPalavra-chave: canvas",
   button_controls_tooltip:
     "Configura controles por botão.\nPalavra-chave: botão",
+  on_screen_controls_tooltip: "Configura os controles na tela.\nPalavra-chave: onscreen", // ai
   microbit_input_tooltip:
     "Executa os blocos quando um evento do micro:bit for acionado.",
   ui_slider_tooltip:
@@ -869,6 +871,9 @@ export default {
   BOTH_option: "ambos",
   ARROWS_option: "setas",
   ACTIONS_option: "ações",
+  JOYSTICK_option: "joystick", // ai
+  YES_option: "sim", // ai
+  NO_option: "não", // ai
   ACTION_FORWARD_option: "frente",
   ACTION_BACKWARD_option: "trás",
   ACTION_LEFT_option: "esquerda",

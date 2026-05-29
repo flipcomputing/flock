@@ -260,6 +260,7 @@ export default {
   get_property: "obtenir %1 de %2",
   canvas_controls: "contrôles de la toile %1",
   button_controls: "contrôles du bouton %1 activé %2 couleur %3",
+  on_screen_controls: "contrôles à l'écran  mouvement: %1  actions: %2  activé: %3  couleur: %4", // ai
   microbit_input: "lors de l'événement micro:bit %1",
   ui_slider:
     "curseur UI %1 de %2 à %3 par défaut %4 à x: %5 y: %6\ncouleur: %7 fond: %8 %9",
@@ -561,6 +562,7 @@ export default {
     "Ajoute ou supprime les contrôles de mouvement de la toile.\nMot-clé: canvas",
   button_controls_tooltip:
     "Configure les contrôles par boutons.\nMot-clé: button",
+  on_screen_controls_tooltip: "Configure les contrôles à l'écran.\nMot-clé: onscreen", // ai
   microbit_input_tooltip:
     "Exécute les blocs à l’intérieur lorsqu’un événement micro:bit spécifié est déclenché.",
   ui_slider_tooltip:
@@ -874,6 +876,9 @@ export default {
   BOTH_option: "les deux",
   ARROWS_option: "flèches",
   ACTIONS_option: "actions",
+  JOYSTICK_option: "joystick", // ai
+  YES_option: "oui", // ai
+  NO_option: "non", // ai
   ACTION_FORWARD_option: "avant",
   ACTION_BACKWARD_option: "arrière",
   ACTION_LEFT_option: "gauche",

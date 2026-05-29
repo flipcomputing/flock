@@ -391,6 +391,54 @@ export function defineSensingBlocks() {
     },
   };
 
+  Blockly.Blocks["on_screen_controls"] = {
+    init: function () {
+      this.jsonInit({
+        type: "on_screen_controls",
+        message0: translate("on_screen_controls"),
+        args0: [
+          {
+            type: "field_dropdown",
+            name: "MOVEMENT",
+            options: [
+              getDropdownOption("ARROWS"),
+              getDropdownOption("JOYSTICK"),
+              getDropdownOption("NONE"),
+            ],
+          },
+          {
+            type: "field_dropdown",
+            name: "ACTIONS",
+            options: [
+              getDropdownOption("YES"),
+              getDropdownOption("NO"),
+            ],
+          },
+          {
+            type: "field_dropdown",
+            name: "ENABLED",
+            options: [
+              getDropdownOption("AUTO"),
+              getDropdownOption("ENABLED"),
+              getDropdownOption("DISABLED"),
+            ],
+          },
+          {
+            type: "input_value",
+            name: "COLOR",
+            check: "Colour",
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("on_screen_controls"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("sensing_blocks");
+    },
+  };
+
   Blockly.Blocks["microbit_input"] = {
     init: function () {
       this.jsonInit({

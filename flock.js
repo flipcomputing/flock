@@ -969,6 +969,8 @@ export const flock = {
       lightIntensity: this.lightIntensity?.bind(this),
       lightColor: this.lightColor?.bind(this),
       buttonControls: this.buttonControls?.bind(this),
+      onScreenControls: this.onScreenControls?.bind(this),
+      createJoystickControls: this.createJoystickControls?.bind(this),
       getCamera: this.getCamera?.bind(this),
       getMainLight: this.getMainLight?.bind(this),
       cameraControl: this.cameraControl?.bind(this),
@@ -1079,6 +1081,7 @@ export const flock = {
       "forever",
       "canvasControls",
       "buttonControls",
+      "onScreenControls",
       "setActionKey",
       "cameraControl",
       "attachCamera",
@@ -1463,6 +1466,8 @@ export const flock = {
 
         flock._cameraControlBindings = null;
         flock._onScreenSource?.releaseAll();
+        flock._joystickSource?.stop();
+        flock._joystickSource = null;
         flock._gamepadSource?.stop();
         flock._gamepadSource = null;
         flock._xrSource?.stop();
@@ -2004,7 +2009,7 @@ export const flock = {
     // Enable collisions
     flock.scene.collisionsEnabled = true;
 
-    flock.buttonControls("BOTH", "AUTO", "#ffffff");
+    flock.onScreenControls("ARROWS", "YES", "AUTO", "#ffffff");
 
     // Create the UI
     flock.advancedTexture =
