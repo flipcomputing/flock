@@ -36,6 +36,38 @@ import { defineGenerators } from '../generators/generators.js';
 import { registerCustomCommentIcon } from './customCommentIcon.js';
 import { toolbox as toolboxDef } from '../toolbox.js';
 
+// Blockly v13 moved variable methods off the workspace onto VariableMap/Variables.
+// @blockly/block-plus-minus still calls them as workspace methods, so shim them back.
+{
+  const proto = Blockly.Workspace.prototype;
+  if (!proto.getVariableUsesById)
+    proto.getVariableUsesById = function (id) {
+      return Blockly.Variables.getVariableUsesById(this, id);
+    };
+  if (!proto.getVariable)
+    proto.getVariable = function (name, opt_type) {
+      return this.getVariableMap().getVariable(name, opt_type);
+    };
+  if (!proto.getVariableById)
+    proto.getVariableById = function (id) {
+      return this.getVariableMap().getVariableById(id);
+    };
+  if (!proto.createVariable)
+    proto.createVariable = function (name, opt_type, opt_id) {
+      return this.getVariableMap().createVariable(name, opt_type, opt_id);
+    };
+  if (!proto.renameVariableById)
+    proto.renameVariableById = function (id, newName) {
+      const model = this.getVariableMap().getVariableById(id);
+      if (model) this.getVariableMap().renameVariable(model, newName);
+    };
+  if (!proto.deleteVariableById)
+    proto.deleteVariableById = function (id) {
+      const model = this.getVariableMap().getVariableById(id);
+      if (model) this.getVariableMap().deleteVariable(model);
+    };
+}
+
 let workspace = null;
 export { workspace };
 
