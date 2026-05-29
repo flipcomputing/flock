@@ -41,19 +41,20 @@ export class JoystickSource {
   start() {
     if (this.#started) return;
     this.#started = true;
-    this.#canvas.addEventListener('pointerdown', this.#boundPointerDown);
-    this.#canvas.addEventListener('pointermove', this.#boundPointerMove);
-    this.#canvas.addEventListener('pointerup', this.#boundPointerUp);
-    this.#canvas.addEventListener('pointercancel', this.#boundPointerUp);
+    // Capture phase so we run before Babylon's bubble-phase camera listeners
+    this.#canvas.addEventListener('pointerdown', this.#boundPointerDown, { capture: true });
+    this.#canvas.addEventListener('pointermove', this.#boundPointerMove, { capture: true });
+    this.#canvas.addEventListener('pointerup', this.#boundPointerUp, { capture: true });
+    this.#canvas.addEventListener('pointercancel', this.#boundPointerUp, { capture: true });
   }
 
   stop() {
     if (!this.#started) return;
     this.#started = false;
-    this.#canvas.removeEventListener('pointerdown', this.#boundPointerDown);
-    this.#canvas.removeEventListener('pointermove', this.#boundPointerMove);
-    this.#canvas.removeEventListener('pointerup', this.#boundPointerUp);
-    this.#canvas.removeEventListener('pointercancel', this.#boundPointerUp);
+    this.#canvas.removeEventListener('pointerdown', this.#boundPointerDown, { capture: true });
+    this.#canvas.removeEventListener('pointermove', this.#boundPointerMove, { capture: true });
+    this.#canvas.removeEventListener('pointerup', this.#boundPointerUp, { capture: true });
+    this.#canvas.removeEventListener('pointercancel', this.#boundPointerUp, { capture: true });
     this.releaseAll();
   }
 
@@ -107,17 +108,20 @@ export class JoystickSource {
 
     if (mag > 1) return;
 
+    event.stopPropagation();
     this.#activePointerId = event.pointerId;
     this.#updateStick(event.clientX, event.clientY);
   }
 
   #handlePointerMove(event) {
     if (event.pointerId !== this.#activePointerId) return;
+    event.stopPropagation();
     this.#updateStick(event.clientX, event.clientY);
   }
 
   #handlePointerUp(event) {
     if (event.pointerId !== this.#activePointerId) return;
+    event.stopPropagation();
     this.#activePointerId = null;
     this.#dx = 0;
     this.#dy = 0;

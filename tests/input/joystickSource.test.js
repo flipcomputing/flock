@@ -25,7 +25,7 @@ class StubCanvas {
   }
 
   dispatchPointer(type, pointerId, clientX, clientY) {
-    const e = { type, pointerId, clientX, clientY };
+    const e = { type, pointerId, clientX, clientY, stopPropagation() {} };
     for (const cb of this.#listeners.get(type) ?? []) cb(e);
   }
 }
