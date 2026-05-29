@@ -228,8 +228,8 @@ export function defineModelBlocks() {
           : configColors || defaultColour;
         const colorInput = this.getInput("COLOR");
         const colorField = colorInput.connection.targetBlock();
-        if (colorField) {
-          colorField.setFieldValue(colour, "COLOR"); // Update COLOR field
+        if (colorField?.getField?.("COLOR")) {
+          colorField.setFieldValue(colour, "COLOR");
         }
       };
 
