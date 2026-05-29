@@ -481,6 +481,7 @@ export const flockUI = {
       baseEllipse: base,
       thumbEllipse: thumb,
       baseRadius,
+      scene: flock.scene,
     });
   },
   onScreenControls(movement = "ARROWS", actions = "YES", mode = "AUTO", color = "#ffffff") {
