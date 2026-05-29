@@ -1757,6 +1757,14 @@ export function createBlocklyWorkspace() {
     if (deleteItem) deleteItem.weight = 20;
   })();
 
+  // Remove undo/redo from the workspace context menu — toolbar buttons cover this.
+  (function removeUndoRedoFromContextMenu() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    ['undoWorkspace', 'redoWorkspace'].forEach((id) => {
+      try { registry.unregister(id); } catch (_) {}
+    });
+  })();
+
   // Override the keyboard-navigation plugin's paste context menu item so it
   // uses the same smart pasteAsChildOrHere() logic as Ctrl+V.
   // The item is registered by @blockly/keyboard-navigation as 'blockPasteFromContextMenu'.
