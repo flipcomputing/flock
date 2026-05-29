@@ -1744,53 +1744,89 @@ export function createBlocklyWorkspace() {
   })();
 
   // Reorder block context menu items for better grouping.
+  // Cut/copy/paste are registered at weights 1/2/3; push everything else above that.
   (function adjustBlockContextMenuWeights() {
     const registry = Blockly.ContextMenuRegistry.registry;
 
-    const duplicate = registry.getItem?.('blockDuplicate');
-    if (duplicate) duplicate.weight = 9;
-
-    const detach = registry.getItem?.('detachBlockWithShortcut');
-    if (detach) detach.weight = 10;
-
-    const deleteItem = registry.getItem?.('blockDelete');
-    if (deleteItem) deleteItem.weight = 20;
+    const weights = {
+      blockDuplicate: 9,
+      detachBlockWithShortcut: 10,
+      blockComment: 11,
+      blockInline: 12,
+      blockCollapseExpand: 13,
+      blockDisable: 14,
+      blockHelp: 15,
+      blockDelete: 20,
+    };
+    for (const [id, weight] of Object.entries(weights)) {
+      const item = registry.getItem?.(id);
+      if (item) item.weight = weight;
+    }
   })();
 
   // Remove undo/redo from the workspace context menu — toolbar buttons cover this.
-  (function removeUndoRedoFromContextMenu() {
+  (function removeRedundantContextMenuItems() {
     const registry = Blockly.ContextMenuRegistry.registry;
     ['undoWorkspace', 'redoWorkspace'].forEach((id) => {
       try { registry.unregister(id); } catch (_) {}
     });
   })();
 
-  // Override the keyboard-navigation plugin's paste context menu item so it
-  // uses the same smart pasteAsChildOrHere() logic as Ctrl+V.
-  // The item is registered by @blockly/keyboard-navigation as 'blockPasteFromContextMenu'.
-  // We replace its callback after the plugin has had a chance to register it,
-  // using a bounded retry in case the plugin registers asynchronously.
-  (function overridePasteContextMenuItem() {
-    const MAX_ATTEMPTS = 8;
-    let attempts = 0;
-    const tryOverride = () => {
-      const registry = Blockly.ContextMenuRegistry.registry;
-      const pasteItem = registry.getItem?.('blockPasteFromContextMenu');
-      if (pasteItem) {
-        pasteItem.callback = (scope) => {
-          const data = Blockly.clipboard?.getLastCopiedData?.();
-          if (!data) return;
-          const ws = scope?.block?.workspace ?? scope?.workspace ?? mainWs;
-          if (!ws) return;
-          const selected = Blockly.common?.getSelected?.() || null;
-          if (selected && selected.isInFlyout) return;
-          pasteAsChildOrHere(selected || null, ws, data);
-        };
-        return;
-      }
-      if (++attempts < MAX_ATTEMPTS) setTimeout(tryOverride, 50);
-    };
-    setTimeout(tryOverride, 0);
+  // Register cut/copy/paste at the top of the block context menu (weights 1/2/3).
+  (function registerClipboardContextMenuItems() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const BLOCK = Blockly.ContextMenuRegistry.ScopeType.BLOCK;
+
+    const notInFlyout = (scope) => (scope.block?.isInFlyout ? 'hidden' : 'enabled');
+    const hasCopiedData = () => !!Blockly.clipboard?.getLastCopiedData?.();
+
+    registry.register({
+      id: 'blockCut',
+      weight: 1,
+      displayText: () => Blockly.Msg['CUT_SHORTCUT'] || 'Cut',
+      preconditionFn: notInFlyout,
+      callback: (scope) => {
+        const block = scope.block;
+        if (!block) return;
+        copyWithoutToast(block);
+        Blockly.Events.setGroup('contextmenu_cut');
+        block.dispose(true);
+        Blockly.Events.setGroup(false);
+      },
+      scopeType: BLOCK,
+    });
+
+    registry.register({
+      id: 'blockCopy',
+      weight: 2,
+      displayText: () => Blockly.Msg['COPY_SHORTCUT'] || 'Copy',
+      preconditionFn: notInFlyout,
+      callback: (scope) => {
+        const block = scope.block;
+        if (block) copyWithoutToast(block);
+      },
+      scopeType: BLOCK,
+    });
+
+    registry.register({
+      id: 'blockPaste',
+      weight: 3,
+      displayText: () => Blockly.Msg['PASTE_SHORTCUT'] || 'Paste',
+      preconditionFn: (scope) => {
+        if (scope.block?.isInFlyout) return 'hidden';
+        return hasCopiedData() ? 'enabled' : 'disabled';
+      },
+      callback: (scope) => {
+        const data = Blockly.clipboard?.getLastCopiedData?.();
+        if (!data) return;
+        const ws = scope?.block?.workspace ?? mainWs;
+        if (!ws) return;
+        const selected = Blockly.common?.getSelected?.() || null;
+        if (selected && selected.isInFlyout) return;
+        pasteAsChildOrHere(selected || null, ws, data);
+      },
+      scopeType: BLOCK,
+    });
   })();
 
   // ===== OVERRIDE CLIPBOARD METHODS =====
