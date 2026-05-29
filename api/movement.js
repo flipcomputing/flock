@@ -291,6 +291,9 @@ export const flockMovement = {
         deltaEuler: new B.Vector3(),
         angularVelocity: new B.Vector3(),
       };
+      model.onDisposeObservable.addOnce(() => {
+        model._moveSidewaysCache = null;
+      });
     }
 
     // Camera right direction — no alloc
@@ -351,6 +354,9 @@ export const flockMovement = {
         currentVelocity: new B.Vector3(),
         finalVelocity: new B.Vector3(),
       };
+      model.onDisposeObservable.addOnce(() => {
+        model._strafeCache = null;
+      });
     }
 
     // Camera right direction — same approach as moveSideways, no alloc
