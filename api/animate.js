@@ -343,6 +343,10 @@ export const flockAnimate = {
         mesh.metadata?.physicsType !== "NONE" &&
         mesh.physics._pluginData?.hpBodyId;
 
+      const originalMotionType = isPhysicsActive
+        ? mesh.physics.getMotionType()
+        : null;
+
       if (isPhysicsActive) {
         mesh.physics.disablePreStep = false;
         mesh.physics.setPrestepType(flock.BABYLON.PhysicsPrestepType.ACTION);
@@ -422,6 +426,9 @@ export const flockAnimate = {
             mesh.metadata._glideObserver = null;
           }
           if (!reverse && !loop) mesh.position = endPosition.clone();
+          if (isPhysicsActive && originalMotionType !== null && !loop && !reverse) {
+            mesh.physics.setMotionType(originalMotionType);
+          }
           resolve();
         });
       });
