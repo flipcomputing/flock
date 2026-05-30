@@ -12,7 +12,7 @@ import {
 
 
 const ICON_MESH_NAME = "__flock_interact_indicator";
-const ICON_SIZE_PX = 48;
+const ICON_SIZE_PX = 24;
 const TEX_SIZE = 128;
 const MAX_RANGE = 4;
 const MAX_RANGE_FREE_CAMERA = 12;
