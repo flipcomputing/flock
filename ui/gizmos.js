@@ -136,9 +136,16 @@ document.addEventListener("DOMContentLoaded", function () {
         pickMeshFromCanvas();
       },
       excludeFromClose: (target) => {
-        // Don't close picker when clicking on the 3D canvas — we handle it directly
+        // Don't close when clicking the 3D canvas — canvas clicks paint meshes directly
         const canvas = document.getElementById("renderCanvas");
-        return canvas && (canvas === target || canvas.contains(target));
+        if (canvas && (canvas === target || canvas.contains(target))) return true;
+        // Don't close when clicking a colour field in the Blockly workspace —
+        // the pointerdown listener in blocks.js sets this flag for colour-field hits only
+        if (colorPicker._colourFieldPointerDown) {
+          colorPicker._colourFieldPointerDown = false;
+          return true;
+        }
+        return false;
       },
       target: document.body,
     });
@@ -150,6 +157,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (renderCanvas) {
       renderCanvas.addEventListener("click", (event) => {
         if (!colorPicker?.isOpen) return;
+        if (colorPicker._confirmOverride) return; // opened for a Blockly field — ignore canvas click
         // Use picker's live colour (not yet confirmed via "Use")
         window.selectedColor = colorPicker.currentColor || window.selectedColor;
         const canvasRect = renderCanvas.getBoundingClientRect();

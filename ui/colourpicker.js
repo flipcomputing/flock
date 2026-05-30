@@ -1853,7 +1853,9 @@ class CustomColorPicker {
     };
   }
 
-  open(color = this.currentColor) {
+  open(color = this.currentColor, { onConfirm, onClose: closeOverride } = {}) {
+    this._confirmOverride = onConfirm ?? null;
+    this._closeOverride = closeOverride !== undefined ? closeOverride : undefined;
     exitGizmoState();
 
     // Show first so layout has real sizes
@@ -2076,6 +2078,9 @@ class CustomColorPicker {
   }
 
   close() {
+    this._confirmOverride = null;
+    this._closeOverride = undefined;
+    this._colourFieldPointerDown = false;
     this.container.style.display = "none";
     this.isOpen = false;
     document.body.classList.remove("color-picker-open");
@@ -2086,10 +2091,15 @@ class CustomColorPicker {
   }
 
   confirmColor() {
-    this.onColorChange(this.currentColor);
+    const onConfirm = this._confirmOverride ?? this.onColorChange;
+    onConfirm(this.currentColor);
+
+    const closeHandler =
+      this._closeOverride !== undefined ? this._closeOverride : this.onClose;
+
     this.close();
-    if (this.onClose) {
-      setTimeout(() => this.onClose(), 100);
+    if (closeHandler) {
+      setTimeout(() => closeHandler(), 100);
     }
   }
 }

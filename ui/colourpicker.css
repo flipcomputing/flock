@@ -4,6 +4,11 @@
   font-family: "Asap", sans-serif;
 }
 
+body.color-picker-open #blocklyDiv,
+body.color-picker-open #blocklyDiv * {
+  cursor: crosshair !important;
+}
+
 .color-picker-backdrop {
   display: none;
 }

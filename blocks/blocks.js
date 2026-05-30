@@ -36,6 +36,16 @@ const fieldColourPrototype = FieldColour.prototype;
 if (!fieldColourPrototype[flockFocusPatchKey]) {
   const originalShowEditor = fieldColourPrototype.showEditor_;
   fieldColourPrototype.showEditor_ = function (e) {
+    const picker = window.flockColorPicker;
+    const sourceBlock = this.getSourceBlock?.();
+
+    // Painting mode: picker already open — apply the current colour directly to the field
+    if (picker?.isOpen && sourceBlock && !sourceBlock.isInFlyout) {
+      this.setValue(picker.currentColor);
+      return;
+    }
+
+    // Fallback: Blockly's built-in grid dropdown with positioning/focus patches
     originalShowEditor.call(this, e);
 
     // v13.0.0-beta.5 + @blockly/field-colour@6.0.12: the colour grid dropdown
@@ -68,6 +78,37 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
       ?.focus();
   };
 }
+
+// When the colour picker is open, sniff pointerdown (fires before the picker's
+// capture-phase click handler) to check whether the pointer landed on a colour
+// field's SVG click target.  The result is stored as a flag on the picker so
+// that excludeFromClose can let the click through only for colour-field hits.
+document.addEventListener(
+  "pointerdown",
+  (e) => {
+    const picker = window.flockColorPicker;
+    if (!picker?.isOpen) return;
+
+    const blocklyDiv = document.getElementById("blocklyDiv");
+    if (!blocklyDiv?.contains(e.target)) return;
+
+    const workspace = Blockly.getMainWorkspace();
+    if (!workspace) return;
+
+    picker._colourFieldPointerDown = workspace.getAllBlocks(false).some(
+      (block) =>
+        !block.isInFlyout &&
+        block.inputList?.some((input) =>
+          input.fieldRow?.some((field) => {
+            if (!(field instanceof FieldColour)) return false;
+            const ct = field.clickTarget_ ?? field.fieldGroup_;
+            return ct && (ct === e.target || ct.contains(e.target));
+          }),
+        ),
+    );
+  },
+  true,
+);
 
 export let nextVariableIndexes = Object.create(null);
 
