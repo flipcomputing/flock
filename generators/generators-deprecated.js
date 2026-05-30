@@ -99,6 +99,15 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
       true,
     );
 
+    const callbackVar2Name = block.callbackVar2Id
+      ? javascriptGenerator.nameDB_.getName(
+          block.callbackVar2Id,
+          Blockly.Names.NameType.VARIABLE,
+          true,
+        )
+      : null;
+    const param2 = callbackVar2Name ?? otherModelName;
+
     const trigger = block.getFieldValue("TRIGGER");
     const doCode = javascriptGenerator.statementToCode(block, "DO");
 
@@ -108,7 +117,7 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
     ) {
       return `onIntersect(${modelName}, ${otherModelName}, {
           trigger: "${trigger}",
-          callback: async function(${modelName}, ${otherModelName}) {
+          callback: async function(${modelName}, ${param2}) {
         ${doCode}
           }
         });\n`;

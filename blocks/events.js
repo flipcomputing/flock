@@ -283,6 +283,7 @@ export function defineEventsBlocks() {
       this.setStyle("events_blocks");
       // Set default state to top-level block
       this.isInline = false;
+      this.callbackVar2Id = null;
       this.inputList[0].insertFieldAt(
         0,
         new Blockly.FieldImage(
@@ -311,14 +312,42 @@ export function defineEventsBlocks() {
         .setAlign(Blockly.inputs.Align.RIGHT)
         .appendField(toggleButton, TOGGLE_BUTTON_FIELD_NAME);
     },
+    onchange: function () {
+      if (!this.workspace || this.isInFlyout) return;
+
+      const modelVarId = this.getFieldValue("MODEL_VAR");
+      const otherModelVarId = this.getFieldValue("OTHER_MODEL_VAR");
+
+      if (!modelVarId || !otherModelVarId) return;
+
+      const modelVar = this.workspace.getVariableById(modelVarId);
+      const otherModelVar = this.workspace.getVariableById(otherModelVarId);
+
+      if (!modelVar || !otherModelVar) return;
+
+      if (modelVar.name === otherModelVar.name) {
+        const newVarName = `${modelVar.name}_2`;
+        let newVar = this.workspace.getVariable(newVarName);
+        if (!newVar) {
+          newVar = this.workspace.createVariable(newVarName);
+        }
+        this.callbackVar2Id = newVar.getId();
+      } else {
+        this.callbackVar2Id = null;
+      }
+    },
     mutationToDom: function () {
       const container = document.createElement("mutation");
       container.setAttribute("inline", this.isInline);
+      if (this.callbackVar2Id) {
+        container.setAttribute("callback_var_2", this.callbackVar2Id);
+      }
       return container;
     },
     domToMutation: function (xmlElement) {
       const isInline = xmlElement.getAttribute("inline") === "true";
       this.updateShape_(isInline);
+      this.callbackVar2Id = xmlElement.getAttribute("callback_var_2") || null;
     },
     updateShape_: function (isInline) {
       this.isInline = isInline;

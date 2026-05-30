@@ -664,6 +664,15 @@ export const flockPhysics = {
           );
 
           mesh.actionManager.registerAction(action);
+
+          const otherDisposeObserver = otherMesh.onDisposeObservable.addOnce(() => {
+            mesh.actionManager?.unregisterAction(action);
+          });
+
+          mesh.onDisposeObservable.addOnce(() => {
+            otherMesh.onDisposeObservable.remove(otherDisposeObserver);
+          });
+
           resolve();
         });
       });
