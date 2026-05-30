@@ -90,14 +90,16 @@ export function registerEventsGenerators(javascriptGenerator) {
       trigger === "OnIntersectionEnterTrigger" ||
       trigger === "OnIntersectionExitTrigger"
     ) {
-      const applyToGroupOtherLine = isTopLevel
-        ? ",\n            applyToGroupOther: true"
+      const groupLine = isTopLevel
+        ? block.callbackVar2Id
+          ? ",\n            applyToGroupSelf: true"
+          : ",\n            applyToGroupOther: true"
         : "";
       return `onIntersect(${modelName}, ${otherModelName}, {
             trigger: "${trigger}",
             callback: async function(${modelName}, ${param2}) {
           ${doCode}
-            }${applyToGroupOtherLine}
+            }${groupLine}
           });\n`;
     } else {
       console.error("Invalid trigger type for 'on_collision' block:", trigger);

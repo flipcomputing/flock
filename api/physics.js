@@ -570,7 +570,7 @@ export const flockPhysics = {
       });
     });
   },
-  onIntersect(meshName, otherMeshName, { trigger, callback, applyToGroupOther = false } = {}) {
+  onIntersect(meshName, otherMeshName, { trigger, callback, applyToGroupOther = false, applyToGroupSelf = false } = {}) {
     const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
     const resolveCanonicalGroupName = (rawName) => {
       const scene = flock.scene;
@@ -588,6 +588,46 @@ export const flockPhysics = {
 
       return getGroupRoot(rawName);
     };
+
+    if (applyToGroupSelf) {
+      const groupName = resolveCanonicalGroupName(meshName);
+
+      if (!flock.pendingSelfIntersections.has(groupName)) {
+        flock.pendingSelfIntersections.set(groupName, []);
+      }
+
+      const pendingEntry = {
+        trigger,
+        callback,
+        registeredPairs: new Set(),
+      };
+      flock.pendingSelfIntersections.get(groupName).push(pendingEntry);
+
+      if (flock.scene) {
+        const matching = flock.scene.meshes.filter((m) => getGroupRoot(m.name) === groupName);
+        const promises = [];
+        for (let i = 0; i < matching.length; i++) {
+          for (let j = i + 1; j < matching.length; j++) {
+            const meshA = matching[i].uniqueId < matching[j].uniqueId ? matching[i] : matching[j];
+            const meshB = meshA === matching[i] ? matching[j] : matching[i];
+            const pairKey = `${meshA.uniqueId}|${meshB.uniqueId}`;
+            if (!pendingEntry.registeredPairs.has(pairKey)) {
+              pendingEntry.registeredPairs.add(pairKey);
+              promises.push(
+                flock.onIntersect(meshA.name, meshB.name, {
+                  trigger,
+                  callback,
+                  applyToGroupOther: false,
+                }),
+              );
+            }
+          }
+        }
+        return Promise.all(promises);
+      }
+
+      return;
+    }
 
     if (applyToGroupOther) {
       const groupName = resolveCanonicalGroupName(otherMeshName);

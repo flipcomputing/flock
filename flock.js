@@ -1678,6 +1678,7 @@ export const flock = {
         flock.physicsShapeCache = {};
         flock.pendingTriggers = new Map();
         flock.pendingIntersections = new Map();
+        flock.pendingSelfIntersections = new Map();
         flock._nameRegistry = new Map();
         flock._animationFileCache = {};
         flock.ground = null;
@@ -1728,6 +1729,7 @@ export const flock = {
     flock.geometryCache = {};
     flock.pendingTriggers = new Map();
     flock.pendingIntersections = new Map();
+    flock.pendingSelfIntersections = new Map();
     flock._nameRegistry = new Map();
     flock.modelReadyPromises = new Map();
     flock._animationFileCache = {};
@@ -2428,6 +2430,30 @@ export const flock = {
             callback: pending.callback,
             applyToGroupOther: false,
           });
+        }
+      }
+    }
+
+    if (flock.pendingSelfIntersections.has(groupName)) {
+      const newMesh = flock.scene?.getMeshByName(meshName);
+      if (newMesh) {
+        for (const pending of flock.pendingSelfIntersections.get(groupName)) {
+          const existing = flock.scene.meshes.filter(
+            (m) => getGroupRoot(m.name) === groupName && m.name !== meshName,
+          );
+          for (const existingMesh of existing) {
+            const meshA = existingMesh.uniqueId < newMesh.uniqueId ? existingMesh : newMesh;
+            const meshB = meshA === existingMesh ? newMesh : existingMesh;
+            const pairKey = `${meshA.uniqueId}|${meshB.uniqueId}`;
+            if (!pending.registeredPairs.has(pairKey)) {
+              pending.registeredPairs.add(pairKey);
+              flock.onIntersect(meshA.name, meshB.name, {
+                trigger: pending.trigger,
+                callback: pending.callback,
+                applyToGroupOther: false,
+              });
+            }
+          }
         }
       }
     }
