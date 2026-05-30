@@ -42,6 +42,13 @@ const disposePhysics = (targetMesh) => {
     console.warn('Suppressed non-critical error:', error);
   }
   targetMesh.physics = null;
+  // BabylonJS may not clear its internal physicsBody reference on dispose;
+  // null it explicitly so mesh.clone() doesn't try to clone a shapeless body.
+  try {
+    targetMesh.physicsBody = null;
+  } catch (e) {
+    // ignore if setter throws
+  }
 };
 
 const createPhysicsShape = (mesh, shapeType) => {
