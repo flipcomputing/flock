@@ -1340,7 +1340,7 @@ export const flock = {
   async disposeOldScene() {
     flock.flockNotReady = true;
 
-    //if (flock.memoryDebug)
+    if (flock.memoryDebug)
       if (flock.hk) {
         const [result, stats] = flock.hk._hknp.HP_GetStatistics();
 
