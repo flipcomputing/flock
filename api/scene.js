@@ -363,8 +363,7 @@ export const flockScene = {
             body.shape = new flock.BABYLON.PhysicsShapeMesh(gm, flock.scene);
             gm.physics = body;
             gm.physicsShape = body.shape;
-            gizmoManager.attachToMesh(pickedMesh);
-            body.disablePreStep = true;
+            body.disablePreStep = false;
             if (shouldScaleUVs) scaleGroundUVs(gm);
             applyMaterialToGround(gm, material);
           },
