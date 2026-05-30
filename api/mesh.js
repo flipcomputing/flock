@@ -755,7 +755,20 @@ export const flockMesh = {
       flock.scene
     );
 
-    const boxShape = flock.createCapsuleFromBoundingBox(bb, flock.scene);
+    let boxShape;
+    if (modelName && flock.physicsShapeCache?.[modelName]) {
+      boxShape = flock.physicsShapeCache[modelName];
+    } else {
+      boxShape = flock.createCapsuleFromBoundingBox(bb, flock.scene);
+      if (modelName) {
+        boxShape._isShared = true;
+        flock.physicsShapeCache[modelName] = boxShape;
+      }
+    }
+
+    boxBody.shape = boxShape;
+    boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+    bb.physics = boxBody;
 
     boxBody.shape = boxShape;
     boxBody.setMassProperties({ mass: 1, restitution: 0.5 });

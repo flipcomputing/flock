@@ -2,99 +2,67 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
-import * as acorn from "acorn";
-import * as walk from "acorn-walk";
-import HavokPhysics from "@babylonjs/havok";
-import * as BABYLON from "@babylonjs/core";
-import * as BABYLON_GUI from "@babylonjs/gui";
-import * as BABYLON_LOADER from "@babylonjs/loaders";
-import { GradientMaterial } from "@babylonjs/materials";
-import * as BABYLON_EXPORT from "@babylonjs/serializers";
+import * as acorn from 'acorn';
+import * as walk from 'acorn-walk';
+import HavokPhysics from '@babylonjs/havok';
+import * as BABYLON from '@babylonjs/core';
+import * as BABYLON_GUI from '@babylonjs/gui';
+import * as BABYLON_LOADER from '@babylonjs/loaders';
+import { GradientMaterial } from '@babylonjs/materials';
+import * as BABYLON_EXPORT from '@babylonjs/serializers';
 
 // Point Babylon’s Draco loader at local folder for offline use
 BABYLON.DracoCompression.Configuration = {
   decoder: {
-    wasmUrl: "./draco/draco_wasm_wrapper_gltf.js",
-    wasmBinaryUrl: "./draco/draco_decoder_gltf.wasm",
-    fallbackUrl: "./draco/draco_decoder_gltf.js",
+    wasmUrl: './draco/draco_wasm_wrapper_gltf.js',
+    wasmBinaryUrl: './draco/draco_decoder_gltf.wasm',
+    fallbackUrl: './draco/draco_decoder_gltf.js',
   },
 };
-import earcut from "earcut";
-import "@fontsource/atkinson-hyperlegible-next";
-import "@fontsource/atkinson-hyperlegible-next/500.css";
-import "@fontsource/atkinson-hyperlegible-next/600.css";
+import earcut from 'earcut';
+import '@fontsource/atkinson-hyperlegible-next';
+import '@fontsource/atkinson-hyperlegible-next/500.css';
+import '@fontsource/atkinson-hyperlegible-next/600.css';
 
-import "@fontsource/asap";
-import "@fontsource/asap/500.css";
-import "@fontsource/asap/600.css";
-import { characterNames, getModelDisplayName } from "./config";
+import '@fontsource/asap';
+import '@fontsource/asap/500.css';
+import '@fontsource/asap/600.css';
+import { characterNames, getModelDisplayName } from './config';
 
-import { FlowGraphLog10Block } from "@babylonjs/core";
+import { FlowGraphLog10Block } from '@babylonjs/core';
 const optionalBabylonDeps = { earcut, FlowGraphLog10Block };
-const globalEarcutTarget =
-  typeof globalThis !== "undefined" ? globalThis : undefined;
+const globalEarcutTarget = typeof globalThis !== 'undefined' ? globalThis : undefined;
 if (globalEarcutTarget) {
   Object.assign(globalEarcutTarget, optionalBabylonDeps);
 }
-import { flockCSG, setFlockReference as setFlockCSG } from "./api/csg";
-import {
-  flockAnimate,
-  setFlockReference as setFlockAnimate,
-} from "./api/animate";
-import { flockSound, setFlockReference as setFlockSound } from "./api/sound";
-import { flockUI, setFlockReference as setFlockUI } from "./api/ui";
-import {
-  flockMovement,
-  setFlockReference as setFlockMovement,
-} from "./api/movement";
-import { flockModels, setFlockReference as setFlockModels } from "./api/models";
-import {
-  flockShapes,
-  getManifold,
-  setFlockReference as setFlockShapes,
-} from "./api/shapes";
-import {
-  flockTransform,
-  setFlockReference as setFlockTransform,
-} from "./api/transform";
-import {
-  flockMaterial,
-  setFlockReference as setFlockMaterial,
-} from "./api/material";
-import {
-  flockEffects,
-  setFlockReference as setFlockEffects,
-} from "./api/effects";
-import {
-  flockPhysics,
-  setFlockReference as setFlockPhysics,
-} from "./api/physics";
-import { flockXR, setFlockReference as setFlockXR } from "./api/xr";
-import {
-  flockControl,
-  setFlockReference as setFlockControl,
-} from "./api/control";
-import { flockScene, setFlockReference as setFlockScene } from "./api/scene";
-import { flockMesh, setFlockReference as setFlockMesh } from "./api/mesh";
-import { flockCamera, setFlockReference as setFlockCamera } from "./api/camera";
-import { flockEvents, setFlockReference as setFlockEvents } from "./api/events";
-import { flockMath, setFlockReference as setFlockMath } from "./api/math";
-import {
-  flockSensing,
-  setFlockReference as setFlockSensing,
-} from "./api/sensing";
-import { translate } from "./main/translation.js";
-import { handleError, dismissBanner } from "./ui/notifications.js";
-import {
-  attachInteractIndicator,
-  detachInteractIndicator,
-} from "./ui/interactIndicator.js";
-import { InputManager } from "./input/inputManager.js";
-import { KeyboardSource } from "./input/keyboardSource.js";
-import { OnScreenSource } from "./input/onScreenSource.js";
-import { GamepadSource } from "./input/gamepadSource.js";
-import { XRSource } from "./input/xrSource.js";
-import { getBoundKeys } from "./input/bindings.js";
+import { flockCSG, setFlockReference as setFlockCSG } from './api/csg';
+import { flockAnimate, setFlockReference as setFlockAnimate } from './api/animate';
+import { flockSound, setFlockReference as setFlockSound } from './api/sound';
+import { flockUI, setFlockReference as setFlockUI } from './api/ui';
+import { flockMovement, setFlockReference as setFlockMovement } from './api/movement';
+import { flockModels, setFlockReference as setFlockModels } from './api/models';
+import { flockShapes, getManifold, setFlockReference as setFlockShapes } from './api/shapes';
+import { flockTransform, setFlockReference as setFlockTransform } from './api/transform';
+import { flockMaterial, setFlockReference as setFlockMaterial } from './api/material';
+import { flockEffects, setFlockReference as setFlockEffects } from './api/effects';
+import { flockPhysics, setFlockReference as setFlockPhysics } from './api/physics';
+import { flockXR, setFlockReference as setFlockXR } from './api/xr';
+import { flockControl, setFlockReference as setFlockControl } from './api/control';
+import { flockScene, setFlockReference as setFlockScene } from './api/scene';
+import { flockMesh, setFlockReference as setFlockMesh } from './api/mesh';
+import { flockCamera, setFlockReference as setFlockCamera } from './api/camera';
+import { flockEvents, setFlockReference as setFlockEvents } from './api/events';
+import { flockMath, setFlockReference as setFlockMath } from './api/math';
+import { flockSensing, setFlockReference as setFlockSensing } from './api/sensing';
+import { translate } from './main/translation.js';
+import { handleError, dismissBanner } from './ui/notifications.js';
+import { attachInteractIndicator, detachInteractIndicator } from './ui/interactIndicator.js';
+import { InputManager } from './input/inputManager.js';
+import { KeyboardSource } from './input/keyboardSource.js';
+import { OnScreenSource } from './input/onScreenSource.js';
+import { GamepadSource } from './input/gamepadSource.js';
+import { XRSource } from './input/xrSource.js';
+import { getBoundKeys } from './input/bindings.js';
 
 import {
   enableSceneDescription,
@@ -102,7 +70,7 @@ import {
   recordObjectPromptText,
   recordObjectSayText,
   recordWorldInstructionText,
-} from "./accessibility/accessibility.js";
+} from './accessibility/accessibility.js';
 
 export const flock = {
   blockDebug: false,
@@ -121,10 +89,10 @@ export const flock = {
   havokAbortHandled: false,
   triggerHandlingDebug: false,
   soundDebug: false,
-  modelPath: "./models/",
-  soundPath: "./sounds/",
-  imagePath: "./images/",
-  texturePath: "./textures/",
+  modelPath: './models/',
+  soundPath: './sounds/',
+  imagePath: './images/',
+  texturePath: './textures/',
   // Keep optional Babylon dependencies referenced so bundlers include them.
   optionalBabylonDeps,
   engine: null,
@@ -167,6 +135,7 @@ export const flock = {
   modelsBeingLoaded: {},
   geometryCache: {},
   materialCache: {},
+  physicsShapeCache: {},
   flockNotReady: true,
   lastFrameTime: 0,
   savedCamera: null,
@@ -191,7 +160,7 @@ export const flock = {
   ...flockMath,
   // Enhanced error reporting with block context
   createEnhancedError(error, code) {
-    const lines = code.split("\n");
+    const lines = code.split('\n');
     const errorContext = {
       message: error.message,
       stack: error.stack,
@@ -210,20 +179,19 @@ export const flock = {
           .slice(start, end)
           .map((line, idx) => {
             const actualLine = start + idx;
-            const marker = actualLine === lineNum ? ">>> " : "    ";
+            const marker = actualLine === lineNum ? '>>> ' : '    ';
             return `${marker}${actualLine + 1}: ${line}`;
           })
-          .join("\n");
+          .join('\n');
       }
     }
 
     // Add common error suggestions
-    if (error.message.includes("is not defined")) {
+    if (error.message.includes('is not defined')) {
       errorContext.suggestion =
-        "Check if the variable or function name is spelled correctly and has been declared.";
-    } else if (error.message.includes("Cannot read property")) {
-      errorContext.suggestion =
-        "Check if the object exists before accessing its properties.";
+        'Check if the variable or function name is spelled correctly and has been declared.';
+    } else if (error.message.includes('Cannot read property')) {
+      errorContext.suggestion = 'Check if the object exists before accessing its properties.';
     }
 
     return errorContext;
@@ -234,9 +202,7 @@ export const flock = {
   _recycleOldestByKey(key) {
     if (!flock.meshRecyclingEnabled) return;
     if (!flock._modelInstances) flock._modelInstances = Object.create(null);
-    const current = Array.isArray(flock._modelInstances[key])
-      ? flock._modelInstances[key]
-      : [];
+    const current = Array.isArray(flock._modelInstances[key]) ? flock._modelInstances[key] : [];
     flock._modelInstances[key] = current.filter((name) => {
       const m = flock.scene?.getMeshByName(name);
       return m && !m.isDisposed();
@@ -251,24 +217,22 @@ export const flock = {
   },
   _registerInstance(key, meshName) {
     if (!flock._modelInstances) flock._modelInstances = Object.create(null);
-    const current = Array.isArray(flock._modelInstances[key])
-      ? flock._modelInstances[key]
-      : [];
+    const current = Array.isArray(flock._modelInstances[key]) ? flock._modelInstances[key] : [];
     flock._modelInstances[key] = current.concat(meshName);
   },
   maxMeshesReached() {
     if (!flock.meshLimitEnabled) return false;
     const scene = flock?.scene;
-    if (!scene || typeof flock.maxMeshes !== "number") return false;
+    if (!scene || typeof flock.maxMeshes !== 'number') return false;
 
     const meshCount = scene.meshes.length;
     const max = flock.maxMeshes;
 
     if (meshCount >= max) {
       flock.printText?.({
-        text: translate("max_mesh_limit_reached").replace("{max}", max),
+        text: translate('max_mesh_limit_reached').replace('{max}', max),
         duration: 30,
-        color: "#ff0000",
+        color: '#ff0000',
       });
 
       return true;
@@ -280,11 +244,11 @@ export const flock = {
     if (!camera) return;
 
     // ArcRotateCamera inertial offsets can keep rotating after input ends.
-    if ("inertialAlphaOffset" in camera) camera.inertialAlphaOffset = 0;
-    if ("inertialBetaOffset" in camera) camera.inertialBetaOffset = 0;
-    if ("inertialRadiusOffset" in camera) camera.inertialRadiusOffset = 0;
-    if ("inertialPanningX" in camera) camera.inertialPanningX = 0;
-    if ("inertialPanningY" in camera) camera.inertialPanningY = 0;
+    if ('inertialAlphaOffset' in camera) camera.inertialAlphaOffset = 0;
+    if ('inertialBetaOffset' in camera) camera.inertialBetaOffset = 0;
+    if ('inertialRadiusOffset' in camera) camera.inertialRadiusOffset = 0;
+    if ('inertialPanningX' in camera) camera.inertialPanningX = 0;
+    if ('inertialPanningY' in camera) camera.inertialPanningY = 0;
 
     // Free/Universal camera deltas can persist when pointer state desyncs.
     if (camera.cameraDirection?.set) {
@@ -299,11 +263,11 @@ export const flock = {
   },
   _hardResetCameraControls(
     camera = flock.scene?.activeCamera,
-    { reattachDelayMs = 0, noPreventDefault = true } = {},
+    { reattachDelayMs = 0, noPreventDefault = true } = {}
   ) {
     if (!camera || !flock.canvas) return;
-    if (typeof camera.detachControl !== "function") return;
-    if (typeof camera.attachControl !== "function") return;
+    if (typeof camera.detachControl !== 'function') return;
+    if (typeof camera.attachControl !== 'function') return;
 
     camera.detachControl(flock.canvas);
     flock._resetCameraInputState(camera);
@@ -343,7 +307,7 @@ export const flock = {
     const limit = performance.memory.jsHeapSizeLimit / 1024 / 1024;
 
     console.log(
-      `Memory: ${used.toFixed(1)}MB used / ${total.toFixed(1)}MB allocated / ${limit.toFixed(1)}MB limit`,
+      `Memory: ${used.toFixed(1)}MB used / ${total.toFixed(1)}MB allocated / ${limit.toFixed(1)}MB limit`
     );
 
     // Warn if approaching limits
@@ -352,12 +316,9 @@ export const flock = {
       console.warn(`High memory usage: ${usagePercent.toFixed(1)}% of limit`);
       // Show user warning in UI
       this.printText({
-        text: translate("high_memory_usage_warning").replace(
-          "{percent}",
-          usagePercent.toFixed(1),
-        ),
+        text: translate('high_memory_usage_warning').replace('{percent}', usagePercent.toFixed(1)),
         duration: 3,
-        color: "#ff9900",
+        color: '#ff9900',
       });
     }
 
@@ -372,11 +333,11 @@ export const flock = {
         textures: flock.scene.textures.length,
         animationGroups: flock.scene.animationGroups.length,
       };
-      console.log("Scene objects:", counts);
+      console.log('Scene objects:', counts);
     }
   },
   startMemoryMonitoring() {
-    console.log("Starting memory monitoring...");
+    console.log('Starting memory monitoring...');
     // Clear any existing monitoring
     if (flock.memoryMonitorInterval) {
       clearInterval(flock.memoryMonitorInterval);
@@ -402,7 +363,7 @@ export const flock = {
     }, 5000);
 
     // Clean up when aborted
-    signal?.addEventListener("abort", () => {
+    signal?.addEventListener('abort', () => {
       if (flock.memoryMonitorInterval) {
         clearInterval(flock.memoryMonitorInterval);
         flock.memoryMonitorInterval = null;
@@ -412,12 +373,8 @@ export const flock = {
   isPhysicsMemoryAbort(error) {
     const message = `${error?.message ?? error}`.toLowerCase();
     const isWasmRuntimeError =
-      typeof WebAssembly !== "undefined" &&
-      error instanceof WebAssembly.RuntimeError;
-    return (
-      message.includes("out of memory") ||
-      (isWasmRuntimeError && message.includes("abort"))
-    );
+      typeof WebAssembly !== 'undefined' && error instanceof WebAssembly.RuntimeError;
+    return message.includes('out of memory') || (isWasmRuntimeError && message.includes('abort'));
   },
   handlePhysicsOutOfMemory(error) {
     if (flock.havokAbortHandled) {
@@ -434,28 +391,25 @@ export const flock = {
       }
       flock.abortController?.abort();
     } catch (e) {
-      console.log("Failed to stop render loop during physics OOM handling:", e);
+      console.log('Failed to stop render loop during physics OOM handling:', e);
     }
 
     try {
       flock.hk?.dispose?.();
     } catch (e) {
-      console.log(
-        "Failed to dispose Havok instance during physics OOM handling:",
-        e,
-      );
+      console.log('Failed to dispose Havok instance during physics OOM handling:', e);
     }
 
-    handleError(error, { source: "physics-oom", fatal: true });
+    handleError(error, { source: 'physics-oom', fatal: true });
   },
   validateCode(code) {
-    if (typeof code !== "string") {
-      throw new Error("Code must be a string");
+    if (typeof code !== 'string') {
+      throw new Error('Code must be a string');
     }
 
     // Length check (reasonable)
     if (code.length > 100000) {
-      throw new Error("Code too long (max 100KB)");
+      throw new Error('Code too long (max 100KB)');
     }
 
     // Basic syntax check
@@ -468,13 +422,11 @@ export const flock = {
     // Optional: Warn about patterns (don't block)
     const warnings = [];
     if (/eval\s*\(/.test(code)) {
-      warnings.push(
-        "Warning: eval() detected - this won't work in the sandbox",
-      );
+      warnings.push("Warning: eval() detected - this won't work in the sandbox");
     }
 
     if (warnings.length > 0) {
-      console.warn(warnings.join("\n"));
+      console.warn(warnings.join('\n'));
     }
 
     return true;
@@ -483,105 +435,105 @@ export const flock = {
     // 1) Very broad identifier blocklist (names anywhere in user code)
     const REJECT_IDENTIFIERS = new Set([
       // dynamic code / reflection
-      "eval",
-      "Function",
-      "AsyncFunction",
-      "GeneratorFunction",
-      "Proxy",
-      "Reflect",
+      'eval',
+      'Function',
+      'AsyncFunction',
+      'GeneratorFunction',
+      'Proxy',
+      'Reflect',
       // frames & globals
-      "window",
-      "document",
-      "globalThis",
-      "self",
-      "parent",
-      "top",
-      "frames",
-      "frameElement",
+      'window',
+      'document',
+      'globalThis',
+      'self',
+      'parent',
+      'top',
+      'frames',
+      'frameElement',
       // navigation & env
-      "location",
-      "history",
-      "navigator",
-      "opener",
+      'location',
+      'history',
+      'navigator',
+      'opener',
       // network / ipc
-      "fetch",
-      "XMLHttpRequest",
-      "WebSocket",
-      "EventSource",
-      "postMessage",
-      "MessageChannel",
-      "MessagePort",
-      "BroadcastChannel",
+      'fetch',
+      'XMLHttpRequest',
+      'WebSocket',
+      'EventSource',
+      'postMessage',
+      'MessageChannel',
+      'MessagePort',
+      'BroadcastChannel',
       // workers & worklets
-      "Worker",
-      "SharedWorker",
-      "ServiceWorker",
-      "Worklet",
-      "importScripts",
+      'Worker',
+      'SharedWorker',
+      'ServiceWorker',
+      'Worklet',
+      'importScripts',
       // storage / persistence
-      "localStorage",
-      "sessionStorage",
-      "indexedDB",
-      "caches",
-      "cookieStore",
+      'localStorage',
+      'sessionStorage',
+      'indexedDB',
+      'caches',
+      'cookieStore',
       // file/blob/crypto
-      "Blob",
-      "File",
-      "FileReader",
-      "crypto",
+      'Blob',
+      'File',
+      'FileReader',
+      'crypto',
       // urls & media constructors
-      "URL",
-      "URLSearchParams",
-      "Image",
-      "Audio",
-      "RTCPeerConnection",
-      "MediaDevices",
-      "Notification",
+      'URL',
+      'URLSearchParams',
+      'Image',
+      'Audio',
+      'RTCPeerConnection',
+      'MediaDevices',
+      'Notification',
       // popups / UI
-      "open",
-      "alert",
-      "confirm",
-      "prompt",
-      "print",
-      "showModalDialog",
+      'open',
+      'alert',
+      'confirm',
+      'prompt',
+      'print',
+      'showModalDialog',
       // timers (we’ll also do special checks)
-      "setTimeout",
-      "setInterval",
-      "setImmediate",
-      "queueMicrotask",
+      'setTimeout',
+      'setInterval',
+      'setImmediate',
+      'queueMicrotask',
       // module-ish
-      "require",
+      'require',
     ]);
 
     // 2) Callees we never allow (even if shadowed)
     const REJECT_CALLEES = new Set([
-      "eval",
-      "Function",
-      "AsyncFunction",
-      "GeneratorFunction",
-      "setTimeout",
-      "setInterval",
-      "setImmediate",
-      "queueMicrotask",
-      "open",
-      "alert",
-      "confirm",
-      "prompt",
-      "print",
+      'eval',
+      'Function',
+      'AsyncFunction',
+      'GeneratorFunction',
+      'setTimeout',
+      'setInterval',
+      'setImmediate',
+      'queueMicrotask',
+      'open',
+      'alert',
+      'confirm',
+      'prompt',
+      'print',
     ]);
 
     // 3) Member/property names that are escape hatches
     const REJECT_PROPERTIES = new Set([
-      "constructor",
-      "__proto__",
-      "prototype",
-      "caller",
-      "callee",
-      "arguments",
+      'constructor',
+      '__proto__',
+      'prototype',
+      'caller',
+      'callee',
+      'arguments',
     ]);
     const ast = acorn.parse(src, {
-      ecmaVersion: "latest",
-      sourceType: "script",
+      ecmaVersion: 'latest',
+      sourceType: 'script',
       allowAwaitOutsideFunction: true,
       locations: false,
     });
@@ -589,26 +541,25 @@ export const flock = {
     walk.simple(ast, {
       // Syntax we never allow
       WithStatement() {
-        throw new Error("with() not allowed");
+        throw new Error('with() not allowed');
       },
       DebuggerStatement() {
-        throw new Error("debugger not allowed");
+        throw new Error('debugger not allowed');
       },
       ImportDeclaration() {
-        throw new Error("import declarations not allowed");
+        throw new Error('import declarations not allowed');
       },
       ExportNamedDeclaration() {
-        throw new Error("export not allowed");
+        throw new Error('export not allowed');
       },
       ExportDefaultDeclaration() {
-        throw new Error("export not allowed");
+        throw new Error('export not allowed');
       },
       ImportExpression() {
-        throw new Error("dynamic import() not allowed");
+        throw new Error('dynamic import() not allowed');
       },
       MetaProperty(n) {
-        if (n.meta?.name === "import")
-          throw new Error("import.meta not allowed");
+        if (n.meta?.name === 'import') throw new Error('import.meta not allowed');
       },
 
       // Any usage of these identifiers anywhere
@@ -623,7 +574,7 @@ export const flock = {
         // foo.bar
         if (
           !n.computed &&
-          n.property?.type === "Identifier" &&
+          n.property?.type === 'Identifier' &&
           REJECT_PROPERTIES.has(n.property.name)
         ) {
           throw new Error(`Access to '.${n.property.name}' is not allowed`);
@@ -631,8 +582,8 @@ export const flock = {
         // foo["constructor"]
         if (
           n.computed &&
-          n.property?.type === "Literal" &&
-          typeof n.property.value === "string" &&
+          n.property?.type === 'Literal' &&
+          typeof n.property.value === 'string' &&
           REJECT_PROPERTIES.has(n.property.value)
         ) {
           throw new Error(`Access to '["${n.property.value}"]' is not allowed`);
@@ -643,22 +594,22 @@ export const flock = {
       CallExpression(n) {
         const callee = n.callee;
         const name =
-          callee?.type === "Identifier"
+          callee?.type === 'Identifier'
             ? callee.name
-            : callee?.type === "MemberExpression" &&
+            : callee?.type === 'MemberExpression' &&
                 !callee.computed &&
-                callee.property?.type === "Identifier"
+                callee.property?.type === 'Identifier'
               ? callee.property.name
               : null;
 
         if (name && REJECT_CALLEES.has(name)) {
           // Special case: timers with string as first arg (string-eval)
           if (
-            (name === "setTimeout" || name === "setInterval") &&
-            n.arguments[0]?.type === "Literal" &&
-            typeof n.arguments[0].value === "string"
+            (name === 'setTimeout' || name === 'setInterval') &&
+            n.arguments[0]?.type === 'Literal' &&
+            typeof n.arguments[0].value === 'string'
           ) {
-            throw new Error("String-eval timers are not allowed");
+            throw new Error('String-eval timers are not allowed');
           }
           // Block all the listed callees regardless
           throw new Error(`Call to '${name}()' is not allowed`);
@@ -668,11 +619,8 @@ export const flock = {
       // new Function(), new Worker(), etc.
       NewExpression(n) {
         const callee = n.callee;
-        const name = callee?.type === "Identifier" ? callee.name : null;
-        if (
-          name &&
-          (REJECT_CALLEES.has(name) || REJECT_IDENTIFIERS.has(name))
-        ) {
+        const name = callee?.type === 'Identifier' ? callee.name : null;
+        if (name && (REJECT_CALLEES.has(name) || REJECT_IDENTIFIERS.has(name))) {
           throw new Error(`'new ${name}()' is not allowed`);
         }
       },
@@ -686,7 +634,7 @@ export const flock = {
       await flock.disposeOldScene();
 
       // --- remove any existing iframe ---
-      const oldIframe = document.getElementById("flock-iframe");
+      const oldIframe = document.getElementById('flock-iframe');
       if (oldIframe) {
         try {
           await oldIframe.contentWindow?.flock?.disposeOldScene?.();
@@ -699,7 +647,7 @@ export const flock = {
           /* ignore cleanup errors */
         }
         try {
-          oldIframe.src = "about:blank";
+          oldIframe.src = 'about:blank';
         } catch {
           /* ignore cleanup errors */
         }
@@ -712,17 +660,16 @@ export const flock = {
 
       // --- create fresh same-origin iframe ---
       const { win, doc } = await flock.replaceSandboxIframe({
-        id: "flock-iframe",
+        id: 'flock-iframe',
         sameOrigin: true,
       });
 
       // --- load SES text in parent and inject inline into iframe (CSP allows inline) ---
-      const sesResp = await fetch("vendor/ses/lockdown.umd.min.js");
-      if (!sesResp.ok)
-        throw new Error(`Failed to fetch SES: ${sesResp.status}`);
+      const sesResp = await fetch('vendor/ses/lockdown.umd.min.js');
+      if (!sesResp.ok) throw new Error(`Failed to fetch SES: ${sesResp.status}`);
       const sesText = await sesResp.text();
-      const sesScript = doc.createElement("script");
-      sesScript.type = "text/javascript";
+      const sesScript = doc.createElement('script');
+      sesScript.type = 'text/javascript';
       sesScript.text = sesText;
       doc.head.appendChild(sesScript);
 
@@ -757,10 +704,10 @@ export const flock = {
 
       for (const [key, value] of Object.entries(whitelist)) {
         const t = typeof value;
-        if (t === "function") {
+        if (t === 'function') {
           // Bind to null so we don't leak host `this`
           endowments[key] = value.bind(null);
-        } else if (value == null || (t !== "object" && t !== "symbol")) {
+        } else if (value == null || (t !== 'object' && t !== 'symbol')) {
           // primitives only
           endowments[key] = value;
         } else {
@@ -780,65 +727,65 @@ export const flock = {
       // --- shadow unsafe / unneeded globals ---
       const toUndefine = [
         // Host / DOM / cross-frame
-        "flock",
-        "window",
-        "self",
-        "globalThis",
-        "parent",
-        "top",
-        "frames",
-        "opener",
-        "frameElement",
-        "document",
+        'flock',
+        'window',
+        'self',
+        'globalThis',
+        'parent',
+        'top',
+        'frames',
+        'opener',
+        'frameElement',
+        'document',
 
         // SES meta
-        "lockdown",
-        "harden",
-        "Compartment",
+        'lockdown',
+        'harden',
+        'Compartment',
 
         // Legacy / GC / crypto
-        "escape",
-        "unescape",
-        "FinalizationRegistry",
-        "WeakRef",
-        "crypto",
+        'escape',
+        'unescape',
+        'FinalizationRegistry',
+        'WeakRef',
+        'crypto',
 
         // Dynamic code creation
-        "eval",
-        "Function",
-        "AsyncFunction",
-        "GeneratorFunction",
-        "AsyncGeneratorFunction",
+        'eval',
+        'Function',
+        'AsyncFunction',
+        'GeneratorFunction',
+        'AsyncGeneratorFunction',
 
         // Threads / native
-        "SharedArrayBuffer",
-        "Atomics",
-        "WebAssembly",
+        'SharedArrayBuffer',
+        'Atomics',
+        'WebAssembly',
 
         // Workers & messaging
-        "Worker",
-        "SharedWorker",
-        "MessageChannel",
-        "BroadcastChannel",
-        "queueMicrotask",
+        'Worker',
+        'SharedWorker',
+        'MessageChannel',
+        'BroadcastChannel',
+        'queueMicrotask',
 
         // Network / storage / env
-        "fetch",
-        "XMLHttpRequest",
-        "navigator",
-        "location",
-        "localStorage",
-        "sessionStorage",
-        "indexedDB",
-        "caches",
+        'fetch',
+        'XMLHttpRequest',
+        'navigator',
+        'location',
+        'localStorage',
+        'sessionStorage',
+        'indexedDB',
+        'caches',
 
         // UX
-        "Notification",
+        'Notification',
 
         //Events
-        "addEventListener",
-        "removeEventListener",
-        "dispatchEvent",
+        'addEventListener',
+        'removeEventListener',
+        'dispatchEvent',
       ];
 
       for (const k of toUndefine) endowments[k] = undefined;
@@ -858,7 +805,7 @@ export const flock = {
       const wrapped =
         '(async function () {\n"use strict";\n' +
         code +
-        "\n}).call(undefined)\n//# sourceURL=user-code.js";
+        '\n}).call(undefined)\n//# sourceURL=user-code.js';
 
       // Evaluate in SES Compartment
       const c = new win.Compartment(endowments);
@@ -868,27 +815,24 @@ export const flock = {
       await Promise.race([
         c.evaluate(wrapped),
         new Promise((_, rej) =>
-          hostSetTimeout(() => rej(new Error("User code timed out")), MAX_MS),
+          hostSetTimeout(() => rej(new Error('User code timed out')), MAX_MS)
         ),
       ]);
 
       if (focusCanvas === true) {
         // focus canvas if present
-        (
-          document.getElementById("renderCanvas") ||
-          doc.getElementById("renderCanvas")
-        )?.focus();
+        (document.getElementById('renderCanvas') || doc.getElementById('renderCanvas'))?.focus();
       }
     } catch (error) {
       const enhancedError = this.createEnhancedError?.(error, code) ?? error;
-      console.error("Enhanced error details:", enhancedError);
+      console.error('Enhanced error details:', enhancedError);
 
       try {
         this.audioContext?.close?.();
         this.engine?.stopRenderLoop?.();
         this.removeEventListeners?.();
       } catch (cleanupError) {
-        console.error("Error during cleanup:", cleanupError);
+        console.error('Error during cleanup:', cleanupError);
       }
 
       throw error;
@@ -896,18 +840,14 @@ export const flock = {
   },
   createWhitelist({ win, signal, guard } = {}) {
     // --- Bind realm-scoped primitives (fallback to parent if win missing) ---
-    const raf =
-      win?.requestAnimationFrame?.bind(win) ??
-      window.requestAnimationFrame.bind(window);
-    const caf =
-      win?.cancelAnimationFrame?.bind(win) ??
-      window.cancelAnimationFrame.bind(window);
+    const raf = win?.requestAnimationFrame?.bind(win) ?? window.requestAnimationFrame.bind(window);
+    const caf = win?.cancelAnimationFrame?.bind(win) ?? window.cancelAnimationFrame.bind(window);
 
     // RAF-based nextTick tied to the iframe realm
     const nextFrame = () =>
       new Promise((resolve, reject) => {
         if (signal?.aborted) {
-          return reject(new DOMException("Aborted", "AbortError"));
+          return reject(new DOMException('Aborted', 'AbortError'));
         }
         const id = raf(() => resolve());
         const onAbort = () => {
@@ -916,9 +856,9 @@ export const flock = {
           } catch {
             /* ignore animation cancel errors */
           }
-          reject(new DOMException("Aborted", "AbortError"));
+          reject(new DOMException('Aborted', 'AbortError'));
         };
-        signal?.addEventListener?.("abort", onAbort, {
+        signal?.addEventListener?.('abort', onAbort, {
           once: true,
         });
       });
@@ -1059,55 +999,55 @@ export const flock = {
 
     // Guard side-effecting APIs so stale runs no-op
     const SIDE_EFFECT_APIS = [
-      "printText",
-      "UIText",
-      "UIButton",
-      "UIInput",
-      "UISlider",
-      "say",
-      "highlight",
-      "glow",
-      "createParticleEffect",
-      "startParticleSystem",
-      "stopParticleSystem",
-      "resetParticleSystem",
-      "playSound",
-      "stopAllSounds",
-      "speak",
-      "broadcastEvent",
-      "onEvent",
-      "onTrigger",
-      "start",
-      "forever",
-      "canvasControls",
-      "buttonControls",
-      "onScreenControls",
-      "setActionKey",
-      "cameraControl",
-      "attachCamera",
-      "setSky",
-      "setFog",
-      "setCameraBackground",
-      "lightIntensity",
-      "lightColor",
-      "create3DText",
-      "createModel",
-      "createBox",
-      "createSphere",
-      "createCylinder",
-      "createCapsule",
-      "createPlane",
-      "mergeMeshes",
-      "subtractMeshes",
-      "intersectMeshes",
-      "createHull",
-      "describeMesh",
-      "dispose",
-      "clearEffects",
-      "stopAnimations",
+      'printText',
+      'UIText',
+      'UIButton',
+      'UIInput',
+      'UISlider',
+      'say',
+      'highlight',
+      'glow',
+      'createParticleEffect',
+      'startParticleSystem',
+      'stopParticleSystem',
+      'resetParticleSystem',
+      'playSound',
+      'stopAllSounds',
+      'speak',
+      'broadcastEvent',
+      'onEvent',
+      'onTrigger',
+      'start',
+      'forever',
+      'canvasControls',
+      'buttonControls',
+      'onScreenControls',
+      'setActionKey',
+      'cameraControl',
+      'attachCamera',
+      'setSky',
+      'setFog',
+      'setCameraBackground',
+      'lightIntensity',
+      'lightColor',
+      'create3DText',
+      'createModel',
+      'createBox',
+      'createSphere',
+      'createCylinder',
+      'createCapsule',
+      'createPlane',
+      'mergeMeshes',
+      'subtractMeshes',
+      'intersectMeshes',
+      'createHull',
+      'describeMesh',
+      'dispose',
+      'clearEffects',
+      'stopAnimations',
     ];
     for (const name of SIDE_EFFECT_APIS) {
-      if (typeof api[name] === "function") api[name] = guard(api[name]);
+      if (typeof api[name] === 'function') api[name] = guard(api[name]);
     }
 
     // Avoid hard errors if freezing fails in some environments
@@ -1117,11 +1057,7 @@ export const flock = {
       return api;
     }
   },
-  async replaceSandboxIframe({
-    id = "flock-iframe",
-    sameOrigin = true,
-    srcdocHtml,
-  } = {}) {
+  async replaceSandboxIframe({ id = 'flock-iframe', sameOrigin = true, srcdocHtml } = {}) {
     const old = document.getElementById(id);
 
     // --- 1) Hard teardown of the old iframe (if any) ---
@@ -1153,7 +1089,7 @@ export const flock = {
 
         // Navigate to a harmless page to break references, then remove
         try {
-          old.src = "about:blank";
+          old.src = 'about:blank';
         } catch {
           /* ignore teardown errors */
         }
@@ -1164,12 +1100,12 @@ export const flock = {
     }
 
     // --- 2) Create a brand-new iframe (fresh realm) ---
-    const iframe = document.createElement("iframe");
+    const iframe = document.createElement('iframe');
     iframe.id = id;
-    iframe.style.display = "none";
+    iframe.style.display = 'none';
 
     // Keep same-origin only if you need to touch iframe DOM/Canvas/WebGL from parent
-    iframe.sandbox = `allow-scripts${sameOrigin ? " allow-same-origin" : ""}`;
+    iframe.sandbox = `allow-scripts${sameOrigin ? ' allow-same-origin' : ''}`;
 
     // Prefer srcdoc so CSP is present before any script runs
     const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval'`;
@@ -1190,29 +1126,29 @@ export const flock = {
       };
       iframe.onerror = () => {
         iframe.onload = iframe.onerror = null;
-        reject(new Error("iframe failed to load"));
+        reject(new Error('iframe failed to load'));
       };
       // Use srcdoc when possible; fallback to about:blank + injected head if needed
       try {
         iframe.srcdoc = html;
       } catch {
-        iframe.src = "about:blank";
+        iframe.src = 'about:blank';
       }
     });
 
     // If we fell back to about:blank, inject CSP meta now (runs before user code anyway)
-    if (!("srcdoc" in document.createElement("iframe")) || !iframe.srcdoc) {
+    if (!('srcdoc' in document.createElement('iframe')) || !iframe.srcdoc) {
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (!doc.head) doc.documentElement.appendChild(doc.createElement("head"));
-      const meta = doc.createElement("meta");
-      meta.httpEquiv = "Content-Security-Policy";
+      if (!doc.head) doc.documentElement.appendChild(doc.createElement('head'));
+      const meta = doc.createElement('meta');
+      meta.httpEquiv = 'Content-Security-Policy';
       meta.content = csp;
       doc.head.appendChild(meta);
     }
 
     const win = iframe.contentWindow;
     const doc = iframe.contentDocument || win?.document;
-    if (!win || !doc) throw new Error("New iframe is unavailable");
+    if (!win || !doc) throw new Error('New iframe is unavailable');
 
     return { iframe, win, doc };
   },
@@ -1221,7 +1157,7 @@ export const flock = {
     flock.GUI = BABYLON_GUI;
     flock.EXPORT = BABYLON_EXPORT;
     flock.document = document;
-    flock.canvas = flock.document.getElementById("renderCanvas");
+    flock.canvas = flock.document.getElementById('renderCanvas');
     // Make canvas focusable for keyboard events
     flock.canvas.tabIndex = -1;
     //flock.canvas.setAttribute("aria-label", "Flock 3D world canvas");
@@ -1246,23 +1182,18 @@ export const flock = {
       });
     } catch (error) {
       // CSG2 powers only boolean mesh blocks; the rest of the app still works.
-      console.warn(
-        "CSG2 unavailable; mesh boolean blocks are disabled.",
-        error,
-      );
+      console.warn('CSG2 unavailable; mesh boolean blocks are disabled.', error);
     }
 
     flock.canvas.addEventListener(
-      "touchend",
+      'touchend',
       (event) => {
         if (event.touches.length === 0) {
           const input = flock.scene.activeCamera.inputs?.attached?.pointers;
           // Add null check for input itself
           if (
             input &&
-            (input._pointA !== null ||
-              input._pointB !== null ||
-              input._isMultiTouch === true)
+            (input._pointA !== null || input._pointB !== null || input._isMultiTouch === true)
           ) {
             flock._hardResetCameraControls(flock.scene.activeCamera, {
               reattachDelayMs: 100,
@@ -1271,7 +1202,7 @@ export const flock = {
           }
         }
       },
-      { passive: false },
+      { passive: false }
     );
 
     // Block synthetic on-screen key events from reaching Babylon camera plugins
@@ -1285,8 +1216,8 @@ export const flock = {
         e.stopImmediatePropagation();
       }
     };
-    flock.canvas.addEventListener("keydown", _blockSyntheticForArcRotate, true);
-    flock.canvas.addEventListener("keyup", _blockSyntheticForArcRotate, true);
+    flock.canvas.addEventListener('keydown', _blockSyntheticForArcRotate, true);
+    flock.canvas.addEventListener('keyup', _blockSyntheticForArcRotate, true);
 
     flock._keyboardSource = new KeyboardSource(flock.inputManager, {
       target: flock.canvas,
@@ -1296,13 +1227,13 @@ export const flock = {
 
     // Hardening for rare pointer/input desync where camera keeps moving
     // after input ends or browser focus changes.
-    window.addEventListener("blur", () => {
+    window.addEventListener('blur', () => {
       flock._gamepadSource?.releaseAllKeys();
       // Babylon.js bug: camera drifts after window blur; force-reset to stop it.
       flock._hardResetCameraControls(flock.scene?.activeCamera);
     });
 
-    window.addEventListener("pointerup", () => {
+    window.addEventListener('pointerup', () => {
       flock._hardResetCameraControls(flock.scene?.activeCamera);
     });
 
@@ -1322,70 +1253,67 @@ export const flock = {
       flock._gamepadCameraObserver = null;
     }
 
-    flock._gamepadCameraObserver = flock.scene.onBeforeRenderObservable.add(
-      () => {
-        const rightX = flock.inputManager.getAxis("LOOK_X");
-        const rightY = flock.inputManager.getAxis("LOOK_Y");
-        const shoulderTurn = flock.inputManager.getAxis("TURN");
-        const yawInput = rightX + shoulderTurn;
-        // Left stick analog; fall back to D-pad shim keys for discrete D-pad input.
-        // Read keyboard state directly from _keyboardSource so that fly mode
-        // (which blocks WASD from InputManager to prevent user code seeing them)
-        // still drives camera movement.
-        const kb = flock._keyboardSource;
-        const moveX = flock.inputManager.getAxis("MOVE_X") ||
-          (kb?.isKeyDown("d") ? 1 : kb?.isKeyDown("a") ? -1 : 0);
-        const moveY = flock.inputManager.getAxis("MOVE_Y") ||
-          (kb?.isKeyDown("s") ? 1 : kb?.isKeyDown("w") ? -1 : 0);
-        if (!yawInput && !rightY && !moveX && !moveY) {
-          return;
+    flock._gamepadCameraObserver = flock.scene.onBeforeRenderObservable.add(() => {
+      const rightX = flock.inputManager.getAxis('LOOK_X');
+      const rightY = flock.inputManager.getAxis('LOOK_Y');
+      const shoulderTurn = flock.inputManager.getAxis('TURN');
+      const yawInput = rightX + shoulderTurn;
+      // Left stick analog; fall back to D-pad shim keys for discrete D-pad input.
+      // Read keyboard state directly from _keyboardSource so that fly mode
+      // (which blocks WASD from InputManager to prevent user code seeing them)
+      // still drives camera movement.
+      const kb = flock._keyboardSource;
+      const moveX =
+        flock.inputManager.getAxis('MOVE_X') ||
+        (kb?.isKeyDown('d') ? 1 : kb?.isKeyDown('a') ? -1 : 0);
+      const moveY =
+        flock.inputManager.getAxis('MOVE_Y') ||
+        (kb?.isKeyDown('s') ? 1 : kb?.isKeyDown('w') ? -1 : 0);
+      if (!yawInput && !rightY && !moveX && !moveY) {
+        return;
+      }
+
+      if (flock._canvasControlsEnabled === false) {
+        return;
+      }
+
+      const camera = flock.scene.activeCamera;
+
+      if (!camera) {
+        return;
+      }
+
+      const deltaTime = (flock.engine?.getDeltaTime?.() ?? 16) / 1000;
+      const yawDelta = yawInput * yawSpeed * deltaTime;
+      const pitchDelta = rightY * pitchSpeed * deltaTime;
+
+      const cameraType = camera.getClassName?.();
+
+      if (cameraType === 'ArcRotateCamera') {
+        camera.alpha -= yawDelta;
+        camera.beta -= pitchDelta;
+
+        const lowerBeta = camera.lowerBetaLimit ?? 0.01;
+        const upperBeta = camera.upperBetaLimit ?? Math.PI - 0.01;
+
+        camera.beta = Math.min(upperBeta, Math.max(lowerBeta, camera.beta));
+      } else {
+        camera.rotation.y += yawDelta;
+        camera.rotation.x += pitchDelta;
+
+        const minPitch = -Math.PI / 2 + 0.01;
+        const maxPitch = Math.PI / 2 - 0.01;
+
+        camera.rotation.x = Math.min(maxPitch, Math.max(minPitch, camera.rotation.x));
+
+        if (moveX || moveY) {
+          const forward = camera.getDirection(new flock.BABYLON.Vector3(0, 0, 1));
+          const right = camera.getDirection(new flock.BABYLON.Vector3(1, 0, 0));
+          camera.position.addInPlace(forward.scale(-moveY * flySpeed * deltaTime));
+          camera.position.addInPlace(right.scale(moveX * flySpeed * deltaTime));
         }
-
-        if (flock._canvasControlsEnabled === false) {
-          return;
-        }
-
-        const camera = flock.scene.activeCamera;
-
-        if (!camera) {
-          return;
-        }
-
-        const deltaTime = (flock.engine?.getDeltaTime?.() ?? 16) / 1000;
-        const yawDelta = yawInput * yawSpeed * deltaTime;
-        const pitchDelta = rightY * pitchSpeed * deltaTime;
-
-        const cameraType = camera.getClassName?.();
-
-        if (cameraType === "ArcRotateCamera") {
-          camera.alpha -= yawDelta;
-          camera.beta -= pitchDelta;
-
-          const lowerBeta = camera.lowerBetaLimit ?? 0.01;
-          const upperBeta = camera.upperBetaLimit ?? Math.PI - 0.01;
-
-          camera.beta = Math.min(upperBeta, Math.max(lowerBeta, camera.beta));
-        } else {
-          camera.rotation.y += yawDelta;
-          camera.rotation.x += pitchDelta;
-
-          const minPitch = -Math.PI / 2 + 0.01;
-          const maxPitch = Math.PI / 2 - 0.01;
-
-          camera.rotation.x = Math.min(
-            maxPitch,
-            Math.max(minPitch, camera.rotation.x),
-          );
-
-          if (moveX || moveY) {
-            const forward = camera.getDirection(new flock.BABYLON.Vector3(0, 0, 1));
-            const right = camera.getDirection(new flock.BABYLON.Vector3(1, 0, 0));
-            camera.position.addInPlace(forward.scale(-moveY * flySpeed * deltaTime));
-            camera.position.addInPlace(right.scale(moveX * flySpeed * deltaTime));
-          }
-        }
-      },
-    );
+      }
+    });
   },
   createEngine() {
     flock.engine?.dispose();
@@ -1394,14 +1322,14 @@ export const flock = {
     flock.engine = new flock.BABYLON.Engine(flock.canvas, true, {
       preserveDrawingBuffer: true,
       stencil: true,
-      powerPreference: "default",
+      powerPreference: 'default',
       deterministicLockstep: true,
       lockstepMaxSteps: 4,
     });
 
     flock.engine.onContextLostObservable.add(() => {
-      handleError(new Error("WebGL context lost"), {
-        source: "webgl-lost",
+      handleError(new Error('WebGL context lost'), {
+        source: 'webgl-lost',
         fatal: true,
       });
     });
@@ -1412,31 +1340,33 @@ export const flock = {
   async disposeOldScene() {
     flock.flockNotReady = true;
 
-    if (flock.memoryDebug)
-    if(flock.hk)
-    {
-      const [result, stats] = flock.hk._hknp.HP_GetStatistics();
+    //if (flock.memoryDebug)
+      if (flock.hk) {
+        const [result, stats] = flock.hk._hknp.HP_GetStatistics();
 
-      const [
-        numBodies,
-        numShapes,
-        numConstraints,
-        numDebugGeometries,
-        numWorlds,
-        numQueryCollectors,
-      ] = stats;
+        const [
+          numBodies,
+          numShapes,
+          numConstraints,
+          numDebugGeometries,
+          numWorlds,
+          numQueryCollectors,
+        ] = stats;
 
-      console.log("Havok bodies:", numBodies);
-      console.log("Havok shapes:", numShapes);
-      console.log("Havok constraints:", numConstraints);
-      console.log("Havok debug geometries:", numDebugGeometries);
-      console.log("Havok worlds:", numWorlds);
-      console.log("Havok query collectors:", numQueryCollectors);
-      console.log("Havok heap memory:", (flock.havokInstance.HEAPU8.buffer.byteLength / (1024 * 1024)).toFixed(2), "MB");
-    }
-   
+        console.log('Havok bodies:', numBodies);
+        console.log('Havok shapes:', numShapes);
+        console.log('Havok constraints:', numConstraints);
+        console.log('Havok debug geometries:', numDebugGeometries);
+        console.log('Havok worlds:', numWorlds);
+        console.log('Havok query collectors:', numQueryCollectors);
+        console.log(
+          'Havok heap memory:',
+          (flock.havokInstance.HEAPU8.buffer.byteLength / (1024 * 1024)).toFixed(2),
+          'MB'
+        );
+      }
+
     if (flock.scene) {
-     
       try {
         // Stop all sounds and animations first
         flock.stopAllSounds();
@@ -1448,7 +1378,7 @@ export const flock = {
             if (md.heightmapBody?._pluginData?.hpBodyId && flock.hk?.world) {
               flock.hk._hknp.HP_World_RemoveBody(
                 flock.hk.world,
-                md.heightmapBody._pluginData.hpBodyId,
+                md.heightmapBody._pluginData.hpBodyId
               );
             }
           } catch (e) {
@@ -1475,23 +1405,19 @@ export const flock = {
         try {
           flock.xrHelper?.dispose?.();
         } catch (error) {
-          console.warn("Error disposing xrHelper:", error);
+          console.warn('Error disposing xrHelper:', error);
         }
         flock.xrHelper = null;
         flock.inputManager.resetActionKeys();
         detachInteractIndicator();
 
         if (flock._gamepadCameraObserver) {
-          flock.scene.onBeforeRenderObservable.remove(
-            flock._gamepadCameraObserver,
-          );
+          flock.scene.onBeforeRenderObservable.remove(flock._gamepadCameraObserver);
           flock._gamepadCameraObserver = null;
         }
 
         if (flock._gamepadButtonObserver) {
-          flock.scene.onBeforeRenderObservable.remove(
-            flock._gamepadButtonObserver,
-          );
+          flock.scene.onBeforeRenderObservable.remove(flock._gamepadButtonObserver);
           flock._gamepadButtonObserver = null;
         }
 
@@ -1518,7 +1444,7 @@ export const flock = {
               animatable.stop();
               animatable.dispose?.();
             } catch (error) {
-              console.warn("Error disposing animatable:", error);
+              console.warn('Error disposing animatable:', error);
             }
           });
         }
@@ -1531,7 +1457,7 @@ export const flock = {
                 group.stop();
                 group.dispose();
               } catch (error) {
-                console.warn("Error disposing animation group:", error);
+                console.warn('Error disposing animation group:', error);
               }
             }
           });
@@ -1586,15 +1512,13 @@ export const flock = {
         flock.mainLight = null;
 
         // Dispose particle systems first (before meshes they might be attached to)
-        const particleSystems = flock.scene.particleSystems
-          ? [...flock.scene.particleSystems]
-          : [];
+        const particleSystems = flock.scene.particleSystems ? [...flock.scene.particleSystems] : [];
         particleSystems.forEach((system) => {
           if (system?.dispose) {
             try {
               system.dispose();
             } catch (error) {
-              console.warn("Error disposing particle system:", error);
+              console.warn('Error disposing particle system:', error);
             }
           }
         });
@@ -1606,7 +1530,7 @@ export const flock = {
               try {
                 c.dispose();
               } catch (e) {
-                console.warn("Error disposing constraint:", e);
+                console.warn('Error disposing constraint:', e);
               }
               mesh.metadata.uprightConstraint = null;
             }
@@ -1614,63 +1538,54 @@ export const flock = {
         }
 
         // Dispose all meshes and their action managers
-        const meshesToDispose = flock.scene.meshes
-          ? [...flock.scene.meshes]
-          : [];
+        const meshesToDispose = flock.scene.meshes ? [...flock.scene.meshes] : [];
         meshesToDispose.forEach((mesh) => {
           if (mesh?.actionManager) {
             try {
               mesh.actionManager.dispose();
             } catch (error) {
-              console.warn("Error disposing action manager:", error);
+              console.warn('Error disposing action manager:', error);
             }
           }
-          if (
-            mesh?.material?.dispose &&
-            typeof mesh.material.dispose === "function"
-          ) {
+          if (mesh?.material?.dispose && typeof mesh.material.dispose === 'function') {
             try {
               mesh.material.dispose();
             } catch (error) {
-              console.warn("Error disposing mesh material:", error);
+              console.warn('Error disposing mesh material:', error);
             }
           }
-          if (mesh?.dispose && typeof mesh.dispose === "function") {
+          if (mesh?.dispose && typeof mesh.dispose === 'function') {
             try {
               mesh.physics?.shape?.dispose();
               mesh.physics?.dispose();
 
               mesh.dispose();
             } catch (error) {
-              console.warn("Error disposing mesh:", error);
+              console.warn('Error disposing mesh:', error);
             }
           }
         });
 
         // Dispose transform nodes
-        const transformNodes = flock.scene.transformNodes
-          ? [...flock.scene.transformNodes]
-          : [];
+        const transformNodes = flock.scene.transformNodes ? [...flock.scene.transformNodes] : [];
         transformNodes.forEach((node) => {
           if (node?.dispose) {
             try {
               node.dispose();
             } catch (error) {
-              console.warn("Error disposing transform node:", error);
+              console.warn('Error disposing transform node:', error);
             }
           }
         });
 
         // Dispose geometries (after meshes)
-        const geometries = flock.scene.geometries
-          ? [...flock.scene.geometries]
-          : [];
+        const geometries = flock.scene.geometries ? [...flock.scene.geometries] : [];
         geometries.forEach((geometry) => {
           if (geometry?.dispose) {
             try {
               geometry.dispose();
             } catch (error) {
-              console.warn("Error disposing geometry:", error);
+              console.warn('Error disposing geometry:', error);
             }
           }
         });
@@ -1684,25 +1599,23 @@ export const flock = {
         // Dispose textures
         const textures = flock.scene.textures ? [...flock.scene.textures] : [];
         textures.forEach((texture) => {
-          if (texture?.dispose && typeof texture.dispose === "function") {
+          if (texture?.dispose && typeof texture.dispose === 'function') {
             try {
               texture.dispose();
             } catch (error) {
-              console.warn("Error disposing texture:", error);
+              console.warn('Error disposing texture:', error);
             }
           }
         });
 
         // Dispose materials that weren't caught earlier
-        const materials = flock.scene.materials
-          ? [...flock.scene.materials]
-          : [];
+        const materials = flock.scene.materials ? [...flock.scene.materials] : [];
         materials.forEach((material) => {
-          if (material?.dispose && typeof material.dispose === "function") {
+          if (material?.dispose && typeof material.dispose === 'function') {
             try {
               material.dispose();
             } catch (error) {
-              console.warn("Error disposing material:", error);
+              console.warn('Error disposing material:', error);
             }
           }
         });
@@ -1725,7 +1638,7 @@ export const flock = {
         try {
           flock.hk?.dispose(); // Babylon's HavokPlugin wrapper
         } catch (error) {
-          console.warn("Error disposing HavokPlugin:", error);
+          console.warn('Error disposing HavokPlugin:', error);
         }
         flock.hk = null;
 
@@ -1741,15 +1654,15 @@ export const flock = {
         try {
           flock.audioEngine?.dispose?.();
         } catch (error) {
-          console.warn("Error disposing audioEngine:", error);
+          console.warn('Error disposing audioEngine:', error);
         }
         flock.audioEngine = null;
 
-        if (flock.audioContext && flock.audioContext.state !== "closed") {
+        if (flock.audioContext && flock.audioContext.state !== 'closed') {
           try {
             await flock.audioContext.close();
           } catch (error) {
-            console.warn("AudioContext was already closed or closing:", error);
+            console.warn('AudioContext was already closed or closing:', error);
           }
         }
         flock.audioContext = null;
@@ -1762,6 +1675,7 @@ export const flock = {
         flock.originalModelTransformations = {};
         flock.geometryCache = {};
         flock.materialCache = {};
+        flock.physicsShapeCache = {};
         flock.pendingTriggers = new Map();
         flock.pendingIntersections = new Map();
         flock._nameRegistry = new Map();
@@ -1773,25 +1687,25 @@ export const flock = {
         flock.abortController = null;
 
         // Force garbage collection in development (if available)
-        if (typeof window !== "undefined" && window.gc) {
+        if (typeof window !== 'undefined' && window.gc) {
           setTimeout(() => {
             try {
               window.gc();
-              console.log("Forced garbage collection");
+              console.log('Forced garbage collection');
             } catch {
               // Silently fail if gc is not available
             }
           }, 100);
         }
       } catch (error) {
-        console.error("Error during scene disposal:", error);
+        console.error('Error during scene disposal:', error);
         // Even if disposal fails, clear critical references
         flock.scene = null;
         flock.engine = null;
         flock.flockNotReady = true;
       }
     } else {
-      console.log("No scene to dispose");
+      console.log('No scene to dispose');
       if (flock.abortController) {
         flock.abortController.abort();
         flock.abortController = null;
@@ -1818,12 +1732,13 @@ export const flock = {
     flock.modelReadyPromises = new Map();
     flock._animationFileCache = {};
     flock.materialCache = {};
+    flock.physicsShapeCache = {};
     flock.havokAbortHandled = false;
     flock.disposed = false;
 
     // Clear any error banner from a previous run now that we're starting fresh.
-    dismissBanner("physics-oom");
-    dismissBanner("project-run");
+    dismissBanner('physics-oom');
+    dismissBanner('project-run');
 
     // Create the new scene
     flock.scene = new flock.BABYLON.Scene(flock.engine);
@@ -1833,15 +1748,14 @@ export const flock = {
     // Announce "say" and "printText" outputs so NVDA reads Blockly say blocks reliably.
     if (!flock._a11yTextWrapped) {
       // Wrap say(text, ...)
-      if (typeof flock.say === "function") {
+      if (typeof flock.say === 'function') {
         const originalSay = flock.say.bind(flock);
         flock.say = (...args) => {
           const result = originalSay(...args);
 
           const targetName = args?.[0];
           const options = args?.[1];
-          const text =
-            options && typeof options.text === "string" ? options.text : "";
+          const text = options && typeof options.text === 'string' ? options.text : '';
 
           if (text.trim()) {
             // Keep the first prompt text, e.g. "Click or tap me"
@@ -1856,18 +1770,18 @@ export const flock = {
       }
 
       // Wrap printText({ text: "..." })
-      if (typeof flock.printText === "function") {
+      if (typeof flock.printText === 'function') {
         const originalPrintText = flock.printText.bind(flock);
         flock.printText = (...args) => {
           const result = originalPrintText(...args);
 
           const payload = args?.[0];
           const text =
-            typeof payload === "string"
+            typeof payload === 'string'
               ? payload
-              : payload && typeof payload.text === "string"
+              : payload && typeof payload.text === 'string'
                 ? payload.text
-                : "";
+                : '';
 
           if (text && text.trim()) {
             recordWorldInstructionText(text);
@@ -1890,13 +1804,13 @@ export const flock = {
         }
         // Stop the loop so a crash doesn't re-fire every frame.
         flock.engine?.stopRenderLoop(flock._renderLoop);
-        handleError(error, { source: "project-run", fatal: false });
+        handleError(error, { source: 'project-run', fatal: false });
       }
     };
 
     // Apply and remember the app's default clear colour so it can be
     // restored if the user removes their sky/background blocks later.
-    const defaultClearColor = flock.BABYLON.Color3.FromHexString("#33334c");
+    const defaultClearColor = flock.BABYLON.Color3.FromHexString('#33334c');
     flock.scene.clearColor = defaultClearColor.clone?.() ?? defaultClearColor;
     flock.initialClearColor = defaultClearColor.clone?.() ?? defaultClearColor;
 
@@ -1904,7 +1818,7 @@ export const flock = {
     flock.abortController = new AbortController();
     flock._canvasControlsEnabled = undefined;
 
-    // Enable physics 
+    // Enable physics
     if (!flock.havokInstance) {
       flock.havokInstance = await HavokPhysics();
     }
@@ -1931,16 +1845,13 @@ export const flock = {
     setFlockSensing(flock);
 
     // Add highlight layer
-    flock.highlighter = new flock.BABYLON.HighlightLayer(
-      "highlighter",
-      flock.scene,
-    );
+    flock.highlighter = new flock.BABYLON.HighlightLayer('highlighter', flock.scene);
 
     // Set up a new camera
     const camera = new flock.BABYLON.FreeCamera(
-      "camera",
+      'camera',
       new flock.BABYLON.Vector3(0, 3, -10),
-      flock.scene,
+      flock.scene
     );
     flock.savedCamera = camera;
     camera.minZ = 0;
@@ -1961,10 +1872,9 @@ export const flock = {
     const toKeyCodes = (keys) => keys.map((k) => KEY_CODE[k]).filter(Boolean);
     const kbInput = camera.inputs?.attached?.keyboard;
     if (kbInput) {
-      kbInput.keysUpward = toKeyCodes([...getBoundKeys("BUTTON1"), "PageUp"]);
-      kbInput.keysDownward = toKeyCodes([...getBoundKeys("BUTTON3"), "PageDown"]);
+      kbInput.keysUpward = toKeyCodes([...getBoundKeys('BUTTON1'), 'PageUp']);
+      kbInput.keysDownward = toKeyCodes([...getBoundKeys('BUTTON3'), 'PageDown']);
     }
-
 
     // Start the render loop now that a camera exists
     flock.engine.runRenderLoop(flock._renderLoop);
@@ -1976,9 +1886,9 @@ export const flock = {
     flock.setupGamepadCameraControls();
     // Set up lighting
     const hemisphericLight = new flock.BABYLON.HemisphericLight(
-      "hemisphericLight",
+      'hemisphericLight',
       new flock.BABYLON.Vector3(0, 3, 0),
-      flock.scene,
+      flock.scene
     );
     hemisphericLight.intensity = 1.0;
     hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
@@ -2009,19 +1919,16 @@ export const flock = {
     // Enable collisions
     flock.scene.collisionsEnabled = true;
 
-    flock.onScreenControls("ARROWS", "YES", "AUTO", "#ffffff");
+    flock.onScreenControls('ARROWS', 'YES', 'AUTO', '#ffffff');
 
     // Create the UI
-    flock.advancedTexture =
-      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    flock.advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI('UI');
 
     // Stack panel for text
     flock.stackPanel = new flock.GUI.StackPanel();
-    flock.stackPanel.width = "100%"; // Fixed width for the panel
-    flock.stackPanel.horizontalAlignment =
-      flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align to the left
-    flock.stackPanel.verticalAlignment =
-      flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align to the top
+    flock.stackPanel.width = '100%'; // Fixed width for the panel
+    flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align to the left
+    flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align to the top
 
     flock.stackPanel.isVertical = true;
     flock.advancedTexture.addControl(flock.stackPanel);
@@ -2030,10 +1937,7 @@ export const flock = {
 
     flock.scene.onBeforeRenderObservable.add(() => {
       const context = flock.getAudioContext();
-      flock.updateListenerPositionAndOrientation(
-        context,
-        flock.scene.activeCamera,
-      );
+      flock.updateListenerPositionAndOrientation(context, flock.scene.activeCamera);
     });
 
     attachInteractIndicator(flock.scene, flock.inputManager);
@@ -2047,15 +1951,15 @@ export const flock = {
   async initializeXR(mode) {
     if (flock.xrHelper) return; // Avoid reinitializing
 
-    if (mode === "VR") {
+    if (mode === 'VR') {
       flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
-    } else if (mode === "AR") {
+    } else if (mode === 'AR') {
       flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
         uiOptions: {
-          sessionMode: "immersive-ar",
+          sessionMode: 'immersive-ar',
         },
       });
-    } else if (mode === "MAGIC_WINDOW") {
+    } else if (mode === 'MAGIC_WINDOW') {
       let camera = flock.scene.activeCamera;
       if (!camera.inputs.attached.deviceOrientation) {
         camera.inputs.addDeviceOrientation();
@@ -2063,27 +1967,18 @@ export const flock = {
     }
 
     // Create a UI plane for the wrist
-    flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane(
-      "uiPlane",
-      { size: 0.4 },
-      flock.scene,
-    ); // Smaller size for wrist UI
+    flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane('uiPlane', { size: 0.4 }, flock.scene); // Smaller size for wrist UI
     flock.uiPlane.isVisible = false; // Start hidden
 
-    const planeMaterial = new flock.BABYLON.StandardMaterial(
-      "uiPlaneMaterial",
-      flock.scene,
-    );
+    const planeMaterial = new flock.BABYLON.StandardMaterial('uiPlaneMaterial', flock.scene);
     planeMaterial.disableDepthWrite = true;
     flock.uiPlane.material = planeMaterial;
 
-    flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
-      flock.uiPlane,
-    );
+    flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(flock.uiPlane);
 
     // Ensure the UI plane follows the wrist (using a controller or camera offset)
     flock.xrHelper.input.onControllerAddedObservable.add((controller) => {
-      if (controller.inputSource.handedness === "left") {
+      if (controller.inputSource.handedness === 'left') {
         // Attach the UI plane to the left-hand controller
         flock.uiPlane.parent = controller.grip || controller.pointer;
 
@@ -2108,10 +2003,8 @@ export const flock = {
         flock.uiPlane.isVisible = true;
 
         // Update alignment for wrist UI
-        flock.stackPanel.horizontalAlignment =
-          flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-        flock.stackPanel.verticalAlignment =
-          flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+        flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
         flock.advancedTexture.isVisible = false; // Hide fullscreen UI
       } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
@@ -2121,38 +2014,31 @@ export const flock = {
         flock.uiPlane.isVisible = false;
 
         // Restore alignment for non-XR
-        flock.stackPanel.width = "100%";
-        flock.stackPanel.horizontalAlignment =
-          flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-        flock.stackPanel.verticalAlignment =
-          flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+        flock.stackPanel.width = '100%';
+        flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
         flock.advancedTexture.rootContainer.isVisible = true;
       }
     });
   },
   removeEventListeners() {},
-  async *modelReadyGenerator(
-    meshId,
-    maxAttempts = 100,
-    initialInterval = 100,
-    maxInterval = 2000,
-  ) {
+  async *modelReadyGenerator(meshId, maxAttempts = 100, initialInterval = 100, maxInterval = 2000) {
     let attempt = 1;
     let interval = initialInterval;
     const signal = flock.abortController?.signal;
 
     while (attempt <= maxAttempts) {
       if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
-        console.warn("Scene has been disposed or generator invalidated.");
+        console.warn('Scene has been disposed or generator invalidated.');
         return;
       }
 
       if (flock.scene) {
-        if (meshId === "__active_camera__") {
+        if (meshId === '__active_camera__') {
           yield flock.scene.activeCamera;
           return;
-        } else if (meshId === "__main_light__") {
+        } else if (meshId === '__main_light__') {
           yield flock.mainLight;
           return;
         } else {
@@ -2171,24 +2057,22 @@ export const flock = {
           // Reject the promise if the abort signal is triggered
           const onAbort = () => {
             clearTimeout(timeoutId);
-            reject(new Error("Wait aborted"));
+            reject(new Error('Wait aborted'));
           };
 
           if (signal) {
-            signal.addEventListener("abort", onAbort, {
+            signal.addEventListener('abort', onAbort, {
               once: true,
             });
 
             // Ensure the event listener is cleaned up after resolving
-            signal.addEventListener(
-              "abort",
-              () => signal.removeEventListener("abort", onAbort),
-              { once: true },
-            );
+            signal.addEventListener('abort', () => signal.removeEventListener('abort', onAbort), {
+              once: true,
+            });
           }
         });
       } catch (error) {
-        console.log("Timeout aborted:", error);
+        console.log('Timeout aborted:', error);
         // Properly exit if the wait was aborted to prevent further processing
         return;
       }
@@ -2197,9 +2081,7 @@ export const flock = {
       attempt++;
     }
 
-    console.warn(
-      `Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`,
-    );
+    console.warn(`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`);
 
     // Yield null to indicate the mesh was not found
     yield null;
@@ -2224,7 +2106,7 @@ export const flock = {
       try {
         // Await the callback so the readiness promise doesn't resolve
         // before user async work completes (premature resolution).
-        if (typeof callback === "function") await callback(val);
+        if (typeof callback === 'function') await callback(val);
         resolveP(val);
       } catch (error) {
         rejectP(error);
@@ -2235,12 +2117,11 @@ export const flock = {
     const locate = () => {
       const scene = flock.scene;
       if (!scene) return null;
-      if (id === "__active_camera__") return scene.activeCamera ?? null;
-      if (id === "__main_light__") return flock.mainLight ?? null;
+      if (id === '__active_camera__') return scene.activeCamera ?? null;
+      if (id === '__main_light__') return flock.mainLight ?? null;
 
       let t = scene.getMeshByName?.(id) ?? null;
-      if (!t && scene.UITexture)
-        t = scene.UITexture.getControlByName?.(id) ?? null;
+      if (!t && scene.UITexture) t = scene.UITexture.getControlByName?.(id) ?? null;
       if (!t && Array.isArray(scene.animationGroups))
         t = scene.animationGroups.find((g) => g.name === id) ?? null;
       if (!t && Array.isArray(scene.particleSystems))
@@ -2260,14 +2141,12 @@ export const flock = {
           // id is the pre-sanitization name (e.g. "dimnnd monkey") but
           // the actual mesh is named differently ("dimnndmonkey").
           const meshWithGeometry = locate() ?? resolvedMesh ?? null;
-          if (!flock.abortController?.signal?.aborted)
-            void settle(meshWithGeometry);
+          if (!flock.abortController?.signal?.aborted) void settle(meshWithGeometry);
         })
         .catch(() => {
           // On error, still try to return what we can find
           const meshWithGeometry = locate();
-          if (!flock.abortController?.signal?.aborted)
-            void settle(meshWithGeometry);
+          if (!flock.abortController?.signal?.aborted) void settle(meshWithGeometry);
         });
       return promise;
     }
@@ -2288,18 +2167,16 @@ export const flock = {
     // Instead: only redirect to the normalized id when the exact id is absent
     // but the normalized form IS present in modelReadyPromises or the scene.
     // This also handles the stale-alias case (after the 5s TTL cleanup).
-    if (id && !id.startsWith("__")) {
-      let norm = id.includes("__") ? id.split("__")[0] : id;
-      norm = norm.replace(/[^a-zA-Z0-9._-]/g, "");
+    if (id && !id.startsWith('__')) {
+      let norm = id.includes('__') ? id.split('__')[0] : id;
+      norm = norm.replace(/[^a-zA-Z0-9._-]/g, '');
       if (norm && norm !== id) {
         if (flock.modelReadyPromises.has(norm)) {
           const pendingPromise = flock.modelReadyPromises.get(norm);
           pendingPromise
             .then((resolvedMesh) => {
-              const meshWithGeometry =
-                flock.scene?.getMeshByName(norm) ?? resolvedMesh ?? null;
-              if (!flock.abortController?.signal?.aborted)
-                void settle(meshWithGeometry);
+              const meshWithGeometry = flock.scene?.getMeshByName(norm) ?? resolvedMesh ?? null;
+              if (!flock.abortController?.signal?.aborted) void settle(meshWithGeometry);
             })
             .catch(() => {
               if (!flock.abortController?.signal?.aborted) void settle(null);
@@ -2341,7 +2218,7 @@ export const flock = {
         };
 
         // active camera
-        if (id === "__active_camera__") {
+        if (id === '__active_camera__') {
           const camNow = scene.activeCamera;
           if (camNow) {
             finish(camNow);
@@ -2352,9 +2229,7 @@ export const flock = {
               if (scene.activeCamera) finish(scene.activeCamera);
             };
             scene.onActiveCameraChanged.add(cb);
-            disposers.push(() =>
-              scene.onActiveCameraChanged.removeCallback(cb),
-            );
+            disposers.push(() => scene.onActiveCameraChanged.removeCallback(cb));
           }
           if (scene.onDisposeObservable) {
             const h = scene.onDisposeObservable.add(() => finish(undefined));
@@ -2362,8 +2237,8 @@ export const flock = {
           }
           if (signal) {
             const onAbort = () => finish(undefined);
-            signal.addEventListener("abort", onAbort, { once: true });
-            disposers.push(() => signal.removeEventListener("abort", onAbort));
+            signal.addEventListener('abort', onAbort, { once: true });
+            disposers.push(() => signal.removeEventListener('abort', onAbort));
           }
           return;
         }
@@ -2418,9 +2293,7 @@ export const flock = {
           const h = scene.onNewParticleSystemAddedObservable.add((ps) => {
             if (!done && ps?.name === id) finish(ps);
           });
-          disposers.push(() =>
-            scene.onNewParticleSystemAddedObservable.remove(h),
-          );
+          disposers.push(() => scene.onNewParticleSystemAddedObservable.remove(h));
         }
 
         // GUI controls (attach when UITexture exists)
@@ -2447,8 +2320,8 @@ export const flock = {
         }
         if (signal) {
           const onAbort = () => finish(undefined);
-          signal.addEventListener("abort", onAbort, { once: true });
-          disposers.push(() => signal.removeEventListener("abort", onAbort));
+          signal.addEventListener('abort', onAbort, { once: true });
+          disposers.push(() => signal.removeEventListener('abort', onAbort));
         }
       };
 
@@ -2467,7 +2340,7 @@ export const flock = {
         rafId = requestAnimationFrame(check);
         if (signal) {
           const onAbort = () => cancelAnimationFrame(rafId);
-          signal.addEventListener("abort", onAbort, { once: true });
+          signal.addEventListener('abort', onAbort, { once: true });
         }
         return promise; // <— still return the promise
       }
@@ -2503,8 +2376,7 @@ export const flock = {
     return promise; // <— important: always return the promise
   },
   announceMeshReady(meshName, groupName) {
-    const getGroupRoot = (name) =>
-      name.includes("__") ? name.split("__")[0] : name.split("_")[0];
+    const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
 
     groupName = getGroupRoot(groupName);
 
@@ -2513,13 +2385,7 @@ export const flock = {
       const remaining = [];
 
       for (const pending of triggers) {
-        const {
-          meshName: pendingMeshName,
-          trigger,
-          callback,
-          mode,
-          applyToGroup,
-        } = pending;
+        const { meshName: pendingMeshName, trigger, callback, mode, applyToGroup } = pending;
         const targetMeshName = pendingMeshName ?? meshName;
 
         if (applyToGroup) {
@@ -2532,10 +2398,8 @@ export const flock = {
           });
           remaining.push(pending);
         } else {
-          const guiControl =
-            flock.scene?.UITexture?.getControlByName?.(targetMeshName) ?? null;
-          const targetExists =
-            flock.scene?.getMeshByName(targetMeshName) || guiControl;
+          const guiControl = flock.scene?.UITexture?.getControlByName?.(targetMeshName) ?? null;
+          const targetExists = flock.scene?.getMeshByName(targetMeshName) || guiControl;
 
           if (targetExists) {
             // ✅ Apply to the original target this pending registration was created for.
@@ -2557,10 +2421,7 @@ export const flock = {
     if (flock.pendingIntersections.has(groupName)) {
       const intersections = flock.pendingIntersections.get(groupName);
       for (const pending of intersections) {
-        if (
-          meshName !== pending.meshName &&
-          !pending.registeredOthers.has(meshName)
-        ) {
+        if (meshName !== pending.meshName && !pending.registeredOthers.has(meshName)) {
           pending.registeredOthers.add(meshName);
           flock.onIntersect(pending.meshName, meshName, {
             trigger: pending.trigger,
@@ -2573,8 +2434,7 @@ export const flock = {
   },
   /** Reserve a unique name. If desired is taken or pending, suffix it. */
   _reserveName(desired) {
-    const has = (n) =>
-      flock._nameRegistry.has(n) || !!flock.scene?.getMeshByName(n);
+    const has = (n) => flock._nameRegistry.has(n) || !!flock.scene?.getMeshByName(n);
     let name = desired;
     while (has(name)) {
       name = `${desired}_${flock.scene.getUniqueId()}`;
@@ -2599,9 +2459,7 @@ export const flock = {
 
   // Runtime helper
   describeMesh(meshName, text) {
-    const safeText = flock.sanitizeInlineText(
-      String(text ?? "").substring(0, 256),
-    );
+    const safeText = flock.sanitizeInlineText(String(text ?? '').substring(0, 256));
     if (!safeText) return;
 
     return flock.whenModelReady(meshName, (mesh) => {
@@ -2615,7 +2473,7 @@ export const flock = {
           m.metadata.displayName = safeText;
         }
       };
-      if (typeof root.getChildMeshes === "function") {
+      if (typeof root.getChildMeshes === 'function') {
         root.getChildMeshes(false).forEach(setOnChildren);
       }
     });
@@ -2623,16 +2481,16 @@ export const flock = {
 
   sanitizeInlineText(input) {
     return String(input)
-      .replace(/\r?\n/g, " ")
-      .replace(/\*\//g, "*∕")
-      .replace(/\/\//g, "∕∕")
-      .replace(/`/g, "ˋ");
+      .replace(/\r?\n/g, ' ')
+      .replace(/\*\//g, '*∕')
+      .replace(/\/\//g, '∕∕')
+      .replace(/`/g, 'ˋ');
   },
 
   download(filename, data, mimeType) {
     const blob = new Blob([data], { type: mimeType });
     const url = URL.createObjectURL(blob);
-    const a = flock.document.createElement("a");
+    const a = flock.document.createElement('a');
     a.href = url;
     a.download = filename;
     flock.document.body.appendChild(a);
@@ -2643,40 +2501,36 @@ export const flock = {
 };
 
 export function initializeFlock() {
-  const scriptElement = flock.document.getElementById("flock");
+  const scriptElement = flock.document.getElementById('flock');
   if (scriptElement) {
     flock
       .initialize()
       .then(() => {
-        flock.modelPath = "https://flipcomputing.github.io/flock/models/";
-        flock.soundPath = "https://flipcomputing.github.io/flock/sounds/";
-        flock.imagePath = "https://flipcomputing.github.io/flock/images/";
-        flock.texturePath = "https://flipcomputing.github.io/flock/textures/";
+        flock.modelPath = 'https://flipcomputing.github.io/flock/models/';
+        flock.soundPath = 'https://flipcomputing.github.io/flock/sounds/';
+        flock.imagePath = 'https://flipcomputing.github.io/flock/images/';
+        flock.texturePath = 'https://flipcomputing.github.io/flock/textures/';
         const userCode = scriptElement.textContent;
 
         flock.runCode(userCode);
       })
       .catch((error) => {
-        console.error("Error initializing flock:", error);
+        console.error('Error initializing flock:', error);
       });
   }
 }
 
 window.setBPM = flockSound.setBPM;
-window.updateListenerPositionAndOrientation =
-  flockSound.updateListenerPositionAndOrientation;
+window.updateListenerPositionAndOrientation = flockSound.updateListenerPositionAndOrientation;
 window.speak = flockSound.speak;
 
-document.addEventListener("DOMContentLoaded", () => {
-  const scriptElement = document.getElementById("flock");
+document.addEventListener('DOMContentLoaded', () => {
+  const scriptElement = document.getElementById('flock');
   if (scriptElement) {
-    console.log("Standalone Flock 🐦");
+    console.log('Standalone Flock 🐦');
     initializeFlock();
 
-    if (
-      window.hideLoadingScreen &&
-      typeof window.hideLoadingScreen === "function"
-    ) {
+    if (window.hideLoadingScreen && typeof window.hideLoadingScreen === 'function') {
       setTimeout(window.hideLoadingScreen, 1000);
     }
   }
