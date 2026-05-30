@@ -759,7 +759,7 @@ export const flockMesh = {
 
     boxBody.shape = boxShape;
     boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-    boxBody.disablePreStep = false;
+    boxBody.disablePreStep = true;
     bb.physics = boxBody;
 
     return bb;

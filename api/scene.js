@@ -17,7 +17,7 @@ export const flockScene = {
 
     // Convert object input to a material (handles texture + colors)
     if (
-      typeof input === "object" &&
+      typeof input === 'object' &&
       !(input instanceof flock.BABYLON.Material) &&
       !Array.isArray(input)
     ) {
@@ -34,22 +34,20 @@ export const flockScene = {
     }
 
     if (clear === true) {
-      const c3 = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
-      );
+      const c3 = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
       flock.scene.clearColor = c3;
       return;
     }
 
     const createSkySphere = () => {
       const s = flock.BABYLON.MeshBuilder.CreateSphere(
-        "sky",
+        'sky',
         {
           segments: 32,
           diameter: 1000,
           sideOrientation: flock.BABYLON.Mesh.BACKSIDE,
         },
-        flock.scene,
+        flock.scene
       );
       s.infiniteDistance = true;
       s.isPickable = false;
@@ -62,9 +60,8 @@ export const flockScene = {
       flock.sky = skySphere;
       if (flock.glowLayer) flock.glowLayer.addExcludedMesh(flock.sky);
 
-      const isShader = typeof color.setFloat === "function";
-      const tex =
-        color.diffuseTexture || color.albedoTexture || color.baseTexture;
+      const isShader = typeof color.setFloat === 'function';
+      const tex = color.diffuseTexture || color.albedoTexture || color.baseTexture;
 
       if (tex || isShader) {
         const scaleValue = 10;
@@ -76,8 +73,8 @@ export const flockScene = {
         }
 
         if (isShader) {
-          color.setFloat("uScale", scaleValue);
-          color.setFloat("vScale", verticalScale);
+          color.setFloat('uScale', scaleValue);
+          color.setFloat('vScale', verticalScale);
         }
       }
 
@@ -94,13 +91,9 @@ export const flockScene = {
       if (flock.glowLayer) flock.glowLayer.addExcludedMesh(flock.sky);
 
       if (color.length === 2) {
-        const mat = new flock.GradientMaterial("skyGradient", flock.scene);
-        mat.bottomColor = flock.BABYLON.Color3.FromHexString(
-          flock.getColorFromString(color[0]),
-        );
-        mat.topColor = flock.BABYLON.Color3.FromHexString(
-          flock.getColorFromString(color[1]),
-        );
+        const mat = new flock.GradientMaterial('skyGradient', flock.scene);
+        mat.bottomColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color[0]));
+        mat.topColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color[1]));
         mat.offset = 0.8;
         mat.smoothness = 0.5;
         mat.scale = 0.01;
@@ -108,15 +101,9 @@ export const flockScene = {
         mat.disableLighting = true;
         skySphere.material = mat;
       } else {
-        const mat = flock.createMultiColorGradientMaterial(
-          "skyGradient",
-          color,
-        );
+        const mat = flock.createMultiColorGradientMaterial('skyGradient', color);
         const { minimum, maximum } = skySphere.getBoundingInfo();
-        mat.setVector2(
-          "minMax",
-          new flock.BABYLON.Vector2(minimum.y, maximum.y),
-        );
+        mat.setVector2('minMax', new flock.BABYLON.Vector2(minimum.y, maximum.y));
         mat.backFaceCulling = false;
         mat.disableLighting = true;
         skySphere.material = mat;
@@ -124,18 +111,13 @@ export const flockScene = {
       return;
     }
 
-    if (typeof color === "string") {
-      const c3 = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
-      );
+    if (typeof color === 'string') {
+      const c3 = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
       const skySphere = createSkySphere();
       flock.sky = skySphere;
       if (flock.glowLayer) flock.glowLayer.addExcludedMesh(flock.sky);
 
-      const skyMat = new flock.BABYLON.StandardMaterial(
-        "skyMaterial",
-        flock.scene,
-      );
+      const skyMat = new flock.BABYLON.StandardMaterial('skyMaterial', flock.scene);
       skyMat.backFaceCulling = false;
       skyMat.disableLighting = false;
       skyMat.emissiveColor = c3.scale(0.3);
@@ -158,10 +140,10 @@ export const flockScene = {
     const horizontal = !!opts.horizontal; // false => vertical along V, true => along U
 
     const dt = new flock.BABYLON.DynamicTexture(
-      "groundGradientDT",
+      'groundGradientDT',
       { width: horizontal ? size : 1, height: horizontal ? 1 : size },
       flock.scene,
-      false,
+      false
     );
     const ctx = dt.getContext();
     const w = dt.getSize().width;
@@ -171,8 +153,7 @@ export const flockScene = {
     const grad = horizontal
       ? ctx.createLinearGradient(0, 0, w, 0)
       : ctx.createLinearGradient(0, 0, 0, h);
-    const normalizedColors =
-      colors.length === 1 ? [colors[0], colors[0]] : colors;
+    const normalizedColors = colors.length === 1 ? [colors[0], colors[0]] : colors;
     const n = normalizedColors.length;
     for (let i = 0; i < n; i++) {
       const stop = i / (n - 1);
@@ -207,19 +188,17 @@ export const flockScene = {
         Array.isArray(mat) && mat.length >= 2
           ? mat
           : mat &&
-              typeof mat === "object" &&
+              typeof mat === 'object' &&
               Array.isArray(mat.color) &&
               mat.color.length >= 2 &&
-              (mat.materialName === "none.png" || !mat.materialName)
+              (mat.materialName === 'none.png' || !mat.materialName)
             ? mat.color
             : null;
 
       if (colorList) {
         // Normalise UVs to 0–1 so the gradient texture fills the mesh
         // regardless of whether UVs were previously scaled for tiling.
-        const positions = mesh.getVerticesData(
-          flock.BABYLON.VertexBuffer.PositionKind,
-        );
+        const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
         if (positions) {
           const { minimum, maximum } = mesh.getBoundingInfo();
           const rangeX = maximum.x - minimum.x || 1;
@@ -233,31 +212,26 @@ export const flockScene = {
         }
 
         const oldMat = mesh.material;
-        const standardMat = new flock.BABYLON.StandardMaterial(
-          "mapGradientMat",
-          flock.scene,
-        );
+        const standardMat = new flock.BABYLON.StandardMaterial('mapGradientMat', flock.scene);
         const dt = flock.createLinearGradientTexture(colorList, {
           size: 1024,
           horizontal: false,
         });
         standardMat.diffuseTexture = dt;
-        if (mat && typeof mat === "object" && mat.alpha !== undefined) {
+        if (mat && typeof mat === 'object' && mat.alpha !== undefined) {
           const parsedAlpha = parseFloat(mat.alpha);
           if (Number.isFinite(parsedAlpha)) standardMat.alpha = parsedAlpha;
         }
         standardMat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
-        standardMat.diffuseTexture.wrapU =
-          flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
-        standardMat.diffuseTexture.wrapV =
-          flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+        standardMat.diffuseTexture.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+        standardMat.diffuseTexture.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         mesh.material = standardMat;
         // Clean up the displaced material, respecting the managed-material
         // lifecycle used by setMaterialWithCleanup for non-gradient materials.
         if (oldMat && oldMat !== standardMat) {
           if (oldMat.metadata?.isManaged) {
             const isStillInUse = flock.scene.meshes.some(
-              (m) => m !== mesh && !m.isDisposed() && m.material === oldMat,
+              (m) => m !== mesh && !m.isDisposed() && m.material === oldMat
             );
             if (!isStillInUse) {
               const cacheKey = oldMat.metadata.cacheKey;
@@ -266,7 +240,7 @@ export const flockScene = {
               }
               oldMat.dispose(false, true);
             }
-          } else if (oldMat.name === "mapGradientMat") {
+          } else if (oldMat.name === 'mapGradientMat') {
             oldMat.dispose(false, true);
           }
         }
@@ -275,16 +249,13 @@ export const flockScene = {
         // normalised for a gradient (switching back from gradient to texture).
         const needsTiling = !(mat instanceof flock.GradientMaterial);
         if (needsTiling) {
-          const positions = mesh.getVerticesData(
-            flock.BABYLON.VertexBuffer.PositionKind,
-          );
+          const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
           if (positions) {
             const { minimum } = mesh.getBoundingInfo();
             const uvs = new Float32Array((positions.length / 3) * 2);
             for (let i = 0, ui = 0; i < positions.length; i += 3, ui += 2) {
               uvs[ui] = (positions[i] - minimum.x) / mapTexturePhysicalSize;
-              uvs[ui + 1] =
-                (positions[i + 2] - minimum.z) / mapTexturePhysicalSize;
+              uvs[ui + 1] = (positions[i + 2] - minimum.z) / mapTexturePhysicalSize;
             }
             mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
           }
@@ -303,9 +274,7 @@ export const flockScene = {
     }
 
     const scaleGroundUVs = (mesh) => {
-      const positions = mesh.getVerticesData(
-        flock.BABYLON.VertexBuffer.PositionKind,
-      );
+      const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
       if (!positions) return;
       const { minimum } = mesh.getBoundingInfo();
       const uvs = new Float32Array((positions.length / 3) * 2);
@@ -318,35 +287,35 @@ export const flockScene = {
 
     const isMaterialColorList =
       material &&
-      typeof material === "object" &&
+      typeof material === 'object' &&
       !Array.isArray(material) &&
       Array.isArray(material.color) &&
       material.color.length >= 2 &&
-      (material.materialName === "none.png" || !material.materialName);
+      (material.materialName === 'none.png' || !material.materialName);
     const shouldScaleUVs =
       !(Array.isArray(material) && material.length >= 2) &&
       !isMaterialColorList &&
       !(material instanceof flock.GradientMaterial);
 
     let ground;
-    if (image === "NONE") {
+    if (image === 'NONE') {
       ground = flock.BABYLON.MeshBuilder.CreateGround(
-        "ground",
+        'ground',
         { width: 100, height: 100, subdivisions: 2 },
-        flock.scene,
+        flock.scene
       );
       ground.isPickable = true;
       ground.physics = new flock.BABYLON.PhysicsAggregate(
         ground,
         flock.BABYLON.PhysicsShapeType.BOX,
         { mass: 0, friction: 0.5 },
-        flock.scene,
+        flock.scene
       );
       ground.metadata = {
-        blockKey: "ground",
+        blockKey: 'ground',
         skipAutoTiling: true,
         textureTileSize: mapTexturePhysicalSize,
-        heightMapImage: "NONE",
+        heightMapImage: 'NONE',
       };
       ground.receiveShadows = true;
       if (shouldScaleUVs) scaleGroundUVs(ground);
@@ -354,7 +323,7 @@ export const flockScene = {
       flock.ground = ground;
     } else {
       ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
-        "ground",
+        'ground',
         flock.texturePath + image,
         {
           width: 100,
@@ -368,21 +337,17 @@ export const flockScene = {
               return;
             }
             gm.metadata = {
-              blockKey: "ground",
+              blockKey: 'ground',
               skipAutoTiling: true,
               textureTileSize: mapTexturePhysicalSize,
               heightMapImage: image,
             };
             gm.isPickable = true;
-            const vertexData = gm.getVerticesData(
-              flock.BABYLON.VertexBuffer.PositionKind,
-            );
+            const vertexData = gm.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
             let minDistance = Infinity;
             let closestY = 0;
             for (let i = 0; i < vertexData.length; i += 3) {
-              const dist = Math.sqrt(
-                vertexData[i] ** 2 + vertexData[i + 2] ** 2,
-              );
+              const dist = Math.sqrt(vertexData[i] ** 2 + vertexData[i + 2] ** 2);
               if (dist < minDistance) {
                 minDistance = dist;
                 closestY = vertexData[i + 1];
@@ -393,16 +358,18 @@ export const flockScene = {
               gm,
               flock.BABYLON.PhysicsMotionType.STATIC,
               false,
-              flock.scene,
+              flock.scene
             );
             body.shape = new flock.BABYLON.PhysicsShapeMesh(gm, flock.scene);
             gm.physics = body;
             gm.physicsShape = body.shape;
+            gizmoManager.attachToMesh(pickedMesh);
+            body.disablePreStep = true;
             if (shouldScaleUVs) scaleGroundUVs(gm);
             applyMaterialToGround(gm, material);
           },
         },
-        flock.scene,
+        flock.scene
       );
       flock.ground = ground;
     }
@@ -421,12 +388,8 @@ export const flockScene = {
 
     const hit = flock.scene.pickWithRay(ray, (mesh) => {
       if (mesh === groundMesh) return true;
-      const name = mesh?.name?.toLowerCase?.() ?? "";
-      return (
-        name === "ground" ||
-        name.includes("ground") ||
-        mesh?.metadata?.blockKey === "ground"
-      );
+      const name = mesh?.name?.toLowerCase?.() ?? '';
+      return name === 'ground' || name.includes('ground') || mesh?.metadata?.blockKey === 'ground';
     });
 
     if (hit?.pickedPoint) {
@@ -465,11 +428,11 @@ export const flockScene = {
             flock.hk._hknp.HP_World_AddBody(
               flock.hk.world,
               mesh.physics._pluginData.hpBodyId,
-              mesh.physics.startAsleep,
+              mesh.physics.startAsleep
             );
           }
         } else {
-          console.log("Model not loaded:", meshName);
+          console.log('Model not loaded:', meshName);
         }
         resolve();
       });
@@ -488,13 +451,10 @@ export const flockScene = {
         if (mesh) {
           mesh.setEnabled(false);
           if (mesh.physics && mesh.physics._pluginData) {
-            flock.hk._hknp.HP_World_RemoveBody(
-              flock.hk.world,
-              mesh.physics._pluginData.hpBodyId,
-            );
+            flock.hk._hknp.HP_World_RemoveBody(flock.hk.world, mesh.physics._pluginData.hpBodyId);
           }
         } else {
-          console.log("Mesh not loaded:", meshName);
+          console.log('Mesh not loaded:', meshName);
         }
         resolve();
       });
@@ -503,7 +463,7 @@ export const flockScene = {
   disposeMesh(mesh) {
     if (!mesh) return;
 
-    if (mesh.name === "ground") {
+    if (mesh.name === 'ground') {
       if (mesh.material && !mesh.material.metadata?.isManaged) {
         mesh.material.dispose(true, true);
       }
@@ -514,7 +474,7 @@ export const flockScene = {
       flock.ground = null;
       return;
     }
-    if (mesh.name === "sky") {
+    if (mesh.name === 'sky') {
       mesh.material?.dispose();
       mesh.dispose();
       flock.sky = null;
@@ -523,9 +483,7 @@ export const flockScene = {
 
     let meshesToDispose = [mesh];
 
-    const particleSystem = flock.scene.particleSystems.find(
-      (system) => system.name === mesh.name,
-    );
+    const particleSystem = flock.scene.particleSystems.find((system) => system.name === mesh.name);
 
     if (particleSystem) {
       particleSystem.dispose();
@@ -537,9 +495,7 @@ export const flockScene = {
     }
 
     flock.scene.animationGroups.slice().forEach((animationGroup) => {
-      const targets = animationGroup.targetedAnimations.map(
-        (anim) => anim.target,
-      );
+      const targets = animationGroup.targetedAnimations.map((anim) => anim.target);
 
       if (
         targets.some((target) => meshesToDispose.includes(target)) ||
@@ -572,10 +528,7 @@ export const flockScene = {
 
       if (material.metadata?.isManaged) {
         const isStillInUse = flock.scene.meshes.some(
-          (m) =>
-            !meshesToDispose.includes(m) &&
-            !m.isDisposed() &&
-            m.material === material,
+          (m) => !meshesToDispose.includes(m) && !m.isDisposed() && m.material === material
         );
 
         if (!isStillInUse) {
@@ -606,7 +559,7 @@ export const flockScene = {
           try {
             md.uprightConstraint.dispose();
           } catch (e) {
-            console.warn("Error disposing constraint:", e);
+            console.warn('Error disposing constraint:', e);
           }
           md.uprightConstraint = null;
         }
@@ -615,7 +568,7 @@ export const flockScene = {
           md._uprightStabiliser = null;
         }
         if (currentMesh.physics) {
-          currentMesh.physics.shape?.dispose(); 
+          currentMesh.physics.shape?.dispose();
           currentMesh.physics.dispose();
         }
         flock.scene.removeMesh(currentMesh);
@@ -638,23 +591,19 @@ export const flockScene = {
     });
   },
   cloneMesh({ sourceMeshName, cloneId, callback = null } = {}) {
-    if (
-      !sourceMeshName ||
-      typeof sourceMeshName !== "string" ||
-      sourceMeshName.length > 100
-    ) {
-      console.warn("cloneMesh: invalid sourceMeshName");
+    if (!sourceMeshName || typeof sourceMeshName !== 'string' || sourceMeshName.length > 100) {
+      console.warn('cloneMesh: invalid sourceMeshName');
       return null;
     }
-    if (!cloneId || typeof cloneId !== "string" || cloneId.length > 100) {
-      console.warn("cloneMesh: invalid cloneId");
+    if (!cloneId || typeof cloneId !== 'string' || cloneId.length > 100) {
+      console.warn('cloneMesh: invalid cloneId');
       return null;
     }
-    if (callback != null && typeof callback !== "function") {
-      console.warn("cloneMesh: callback must be a function");
+    if (callback != null && typeof callback !== 'function') {
+      console.warn('cloneMesh: callback must be a function');
       callback = null;
     }
-    if (flock.maxMeshesReached()) return "error_" + cloneId;
+    if (flock.maxMeshesReached()) return 'error_' + cloneId;
 
     const uniqueCloneId = flock._reserveName(cloneId);
 
@@ -672,9 +621,7 @@ export const flockScene = {
 
         const worldPosition = new flock.BABYLON.Vector3();
         const worldRotation = new flock.BABYLON.Quaternion();
-        sourceMesh
-          .getWorldMatrix()
-          .decompose(undefined, worldRotation, worldPosition);
+        sourceMesh.getWorldMatrix().decompose(undefined, worldRotation, worldPosition);
 
         clone.parent = null;
         clone.position.copyFrom(worldPosition);

@@ -1,6 +1,6 @@
-import earcut from "earcut";
-import Module from "manifold-3d";
-import opentype from "opentype.js";
+import earcut from 'earcut';
+import Module from 'manifold-3d';
+import opentype from 'opentype.js';
 
 let flock;
 let manifoldModule = null;
@@ -15,12 +15,12 @@ export async function getManifold() {
     try {
       // Load with explicit WASM location using the correct base path
       // Ensure base URL ends with a slash
-      let baseUrl = import.meta.env.BASE_URL || "/";
-      if (!baseUrl.endsWith("/")) baseUrl += "/";
+      let baseUrl = import.meta.env.BASE_URL || '/';
+      if (!baseUrl.endsWith('/')) baseUrl += '/';
 
       const wasm = await Module({
         locateFile: (file) => {
-          if (file.endsWith(".wasm")) {
+          if (file.endsWith('.wasm')) {
             // Use base URL for both dev and production (GitHub Pages)
             return `${baseUrl}wasm/manifold.wasm`;
           }
@@ -36,7 +36,7 @@ export async function getManifold() {
       manifoldModule = wasm;
       return wasm;
     } catch (e) {
-      console.error("[Manifold] Failed to initialize WASM:", e);
+      console.error('[Manifold] Failed to initialize WASM:', e);
       manifoldInitPromise = null; // Reset so it can be retried
       throw e;
     }
@@ -51,7 +51,7 @@ export function setFlockReference(ref) {
 
 // Validate a shape/mesh ID: must be a non-empty string, max 100 chars.
 function validateShapeId(id, fnName) {
-  if (!id || typeof id !== "string" || id.length > 100) {
+  if (!id || typeof id !== 'string' || id.length > 100) {
     console.warn(`${fnName}: invalid id`);
     return false;
   }
@@ -87,7 +87,7 @@ function convertPathToPolygons(path, curveSegments = 12) {
     const cmd = commands[i];
 
     switch (cmd.type) {
-      case "M": // Move to
+      case 'M': // Move to
         if (currentContour.length >= 3) {
           polygons.push(currentContour);
         }
@@ -98,32 +98,26 @@ function convertPathToPolygons(path, curveSegments = 12) {
         startY = cmd.y;
         break;
 
-      case "L": // Line to
+      case 'L': // Line to
         currentContour.push([cmd.x, -cmd.y]);
         lastX = cmd.x;
         lastY = cmd.y;
         break;
 
-      case "Q": // Quadratic bezier curve
+      case 'Q': // Quadratic bezier curve
         for (let t = 1; t <= curveSegments; t++) {
           const tNorm = t / curveSegments;
           const tInv = 1 - tNorm;
           // Quadratic bezier: P = (1-t)²P0 + 2(1-t)tP1 + t²P2
-          const x =
-            tInv * tInv * lastX +
-            2 * tInv * tNorm * cmd.x1 +
-            tNorm * tNorm * cmd.x;
-          const y =
-            tInv * tInv * lastY +
-            2 * tInv * tNorm * cmd.y1 +
-            tNorm * tNorm * cmd.y;
+          const x = tInv * tInv * lastX + 2 * tInv * tNorm * cmd.x1 + tNorm * tNorm * cmd.x;
+          const y = tInv * tInv * lastY + 2 * tInv * tNorm * cmd.y1 + tNorm * tNorm * cmd.y;
           currentContour.push([x, -y]);
         }
         lastX = cmd.x;
         lastY = cmd.y;
         break;
 
-      case "C": // Cubic bezier curve
+      case 'C': // Cubic bezier curve
         for (let t = 1; t <= curveSegments; t++) {
           const tNorm = t / curveSegments;
           const tInv = 1 - tNorm;
@@ -144,7 +138,7 @@ function convertPathToPolygons(path, curveSegments = 12) {
         lastY = cmd.y;
         break;
 
-      case "Z": // Close path
+      case 'Z': // Close path
         if (currentContour.length >= 3) {
           polygons.push(currentContour);
         }
@@ -175,7 +169,7 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
 
   // Load font - handle both URL and already-loaded font
   let font;
-  if (typeof fontUrl === "string") {
+  if (typeof fontUrl === 'string') {
     font = await opentype.load(fontUrl);
   } else {
     font = fontUrl;
@@ -189,7 +183,7 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
   const polygons = convertPathToPolygons(fontPath, curveSegments);
 
   if (polygons.length === 0) {
-    throw new Error("No valid polygons generated from text");
+    throw new Error('No valid polygons generated from text');
   }
 
   // Manifold CrossSection requires positive area (counter-clockwise winding) for outer contours
@@ -232,13 +226,10 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
     // normalization later is not affected by which glyphs happen to be in the string.
     // e.g. a lone "*" has a small bounding box but should be scaled the same as "H".
     const os2 = font.tables && font.tables.os2;
-    const capHeightFontUnits =
-      os2 && os2.sCapHeight > 0 ? os2.sCapHeight : font.ascender;
+    const capHeightFontUnits = os2 && os2.sCapHeight > 0 ? os2.sCapHeight : font.ascender;
     const rawReferenceHeight = (capHeightFontUnits / font.unitsPerEm) * size;
     const referenceHeight =
-      Number.isFinite(rawReferenceHeight) && rawReferenceHeight > 0
-        ? rawReferenceHeight
-        : null;
+      Number.isFinite(rawReferenceHeight) && rawReferenceHeight > 0 ? rawReferenceHeight : null;
 
     return { positions, indices, referenceHeight };
   } finally {
@@ -254,13 +245,13 @@ export const flockShapes = {
       width = 1,
       height = 1,
       depth = 1,
-      color = "#9932CC",
+      color = '#9932CC',
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
       callback = null,
-    } = {},
+    } = {}
   ) {
-    if (!validateShapeId(boxId, "createBox")) return null;
+    if (!validateShapeId(boxId, 'createBox')) return null;
     width = toDim(width, 1);
     height = toDim(height, 1);
     depth = toDim(depth, 1);
@@ -268,8 +259,8 @@ export const flockShapes = {
 
     let blockKey = boxId;
 
-    if (boxId.includes("__")) {
-      [boxId, blockKey] = boxId.split("__");
+    if (boxId.includes('__')) {
+      [boxId, blockKey] = boxId.split('__');
     }
 
     let groupName = boxId;
@@ -281,11 +272,7 @@ export const flockShapes = {
     const dimensions = { width, height, depth };
 
     // Retrieve cached VertexData or create it if this is the first instance
-    const vertexData = flock.getOrCreateGeometry(
-      "Box",
-      dimensions,
-      flock.scene,
-    );
+    const vertexData = flock.getOrCreateGeometry('Box', dimensions, flock.scene);
 
     // Create a new mesh and apply the cached VertexData
     const newBox = new flock.BABYLON.Mesh(boxId, flock.scene);
@@ -301,7 +288,7 @@ export const flockShapes = {
     newBox.scaling.set(1, 1, 1);
 
     // Initialise the mesh with position, color, and other properties
-    flock.initializeMesh(newBox, position, color, "Box", alpha);
+    flock.initializeMesh(newBox, position, color, 'Box', alpha);
 
     newBox.metadata = newBox.metadata || {};
     newBox.metadata.blockKey = blockKey;
@@ -311,7 +298,7 @@ export const flockShapes = {
       flock.BABYLON.Vector3.Zero(),
       new flock.BABYLON.Quaternion(0, 0, 0, 1),
       new flock.BABYLON.Vector3(width, height, depth),
-      flock.scene,
+      flock.scene
     );
     flock.applyPhysics(newBox, boxShape);
 
@@ -332,16 +319,16 @@ export const flockShapes = {
   createSphere(
     sphereId,
     {
-      color = "#9932CC",
+      color = '#9932CC',
       diameterX = 1,
       diameterY = 1,
       diameterZ = 1,
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
       callback = null,
-    } = {},
+    } = {}
   ) {
-    if (!validateShapeId(sphereId, "createSphere")) return null;
+    if (!validateShapeId(sphereId, 'createSphere')) return null;
     diameterX = toDim(diameterX, 1);
     diameterY = toDim(diameterY, 1);
     diameterZ = toDim(diameterZ, 1);
@@ -349,8 +336,8 @@ export const flockShapes = {
 
     let blockKey = sphereId;
 
-    if (sphereId.includes("__")) {
-      [sphereId, blockKey] = sphereId.split("__");
+    if (sphereId.includes('__')) {
+      [sphereId, blockKey] = sphereId.split('__');
     }
 
     let groupName = sphereId;
@@ -362,11 +349,7 @@ export const flockShapes = {
     const dimensions = { diameterX, diameterY, diameterZ };
 
     // Retrieve cached VertexData or create it if this is the first instance
-    const vertexData = flock.getOrCreateGeometry(
-      "Sphere",
-      dimensions,
-      flock.scene,
-    );
+    const vertexData = flock.getOrCreateGeometry('Sphere', dimensions, flock.scene);
 
     if (!vertexData) return;
 
@@ -381,7 +364,7 @@ export const flockShapes = {
     newSphere.scaling.set(1, 1, 1);
 
     // Initialise the mesh with position, color, and other properties
-    flock.initializeMesh(newSphere, position, color, "Sphere", alpha);
+    flock.initializeMesh(newSphere, position, color, 'Sphere', alpha);
 
     newSphere.metadata = newSphere.metadata || {};
     newSphere.metadata.blockKey = blockKey;
@@ -390,7 +373,7 @@ export const flockShapes = {
     const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
       flock.BABYLON.Vector3.Zero(),
       Math.max(diameterX, diameterY, diameterZ) / 2,
-      flock.scene,
+      flock.scene
     );
     flock.applyPhysics(newSphere, sphereShape);
 
@@ -419,9 +402,9 @@ export const flockShapes = {
       position,
       alpha = 1,
       callback = null,
-    } = {},
+    } = {}
   ) {
-    if (!validateShapeId(cylinderId, "createCylinder")) return null;
+    if (!validateShapeId(cylinderId, 'createCylinder')) return null;
     height = toDim(height, 1);
     diameterTop = toDim(diameterTop, 1);
     diameterBottom = toDim(diameterBottom, 1);
@@ -438,8 +421,8 @@ export const flockShapes = {
 
     let blockKey = cylinderId;
 
-    if (cylinderId.includes("__")) {
-      [cylinderId, blockKey] = cylinderId.split("__");
+    if (cylinderId.includes('__')) {
+      [cylinderId, blockKey] = cylinderId.split('__');
     }
 
     let groupName = cylinderId;
@@ -449,22 +432,13 @@ export const flockShapes = {
     flock._recycleOldestByKey(blockKey);
 
     // Get or create cached VertexData
-    const vertexData = flock.getOrCreateGeometry(
-      "Cylinder",
-      dimensions,
-      flock.scene,
-    );
+    const vertexData = flock.getOrCreateGeometry('Cylinder', dimensions, flock.scene);
 
     // Create a new mesh and apply the cached VertexData
     const newCylinder = new flock.BABYLON.Mesh(cylinderId, flock.scene);
     vertexData.applyToMesh(newCylinder);
 
-    flock.setSizeBasedCylinderUVs(
-      newCylinder,
-      height,
-      diameterTop,
-      diameterBottom,
-    ); // Adjust texturePhysicalSize as needed
+    flock.setSizeBasedCylinderUVs(newCylinder, height, diameterTop, diameterBottom); // Adjust texturePhysicalSize as needed
 
     newCylinder.bakeCurrentTransformIntoVertices();
 
@@ -472,7 +446,7 @@ export const flockShapes = {
     newCylinder.scaling.set(1, 1, 1);
 
     // Initialise the mesh with position, color, and other properties
-    flock.initializeMesh(newCylinder, position, color, "Cylinder", alpha);
+    flock.initializeMesh(newCylinder, position, color, 'Cylinder', alpha);
     // Initialise the mesh with position, color, and other properties
 
     newCylinder.metadata = newCylinder.metadata || {};
@@ -485,7 +459,7 @@ export const flockShapes = {
       startPoint,
       endPoint,
       diameterBottom / 2,
-      flock.scene,
+      flock.scene
     );
     flock.applyPhysics(newCylinder, cylinderShape);
 
@@ -503,11 +477,8 @@ export const flockShapes = {
 
     return newCylinder.name;
   },
-  createCapsule(
-    capsuleId,
-    { color, diameter, height, position, alpha = 1, callback = null } = {},
-  ) {
-    if (!validateShapeId(capsuleId, "createCapsule")) return null;
+  createCapsule(capsuleId, { color, diameter, height, position, alpha = 1, callback = null } = {}) {
+    if (!validateShapeId(capsuleId, 'createCapsule')) return null;
     diameter = toDim(diameter, 1);
     height = toDim(height, 2);
     alpha = toAlpha(alpha);
@@ -515,8 +486,8 @@ export const flockShapes = {
     let radius = diameter / 2;
     let blockKey = capsuleId;
 
-    if (capsuleId.includes("__")) {
-      [capsuleId, blockKey] = capsuleId.split("__");
+    if (capsuleId.includes('__')) {
+      [capsuleId, blockKey] = capsuleId.split('__');
     }
 
     let groupName = capsuleId;
@@ -534,11 +505,7 @@ export const flockShapes = {
     flock._recycleOldestByKey(blockKey);
 
     // Get or create cached VertexData
-    const vertexData = flock.getOrCreateGeometry(
-      "Capsule",
-      dimensions,
-      flock.scene,
-    );
+    const vertexData = flock.getOrCreateGeometry('Capsule', dimensions, flock.scene);
 
     // Create a new mesh and apply the cached VertexData
     const newCapsule = new flock.BABYLON.Mesh(capsuleId, flock.scene);
@@ -549,7 +516,7 @@ export const flockShapes = {
     newCapsule.scaling.set(1, 1, 1);
 
     // Initialise the mesh with position, color, and other properties
-    flock.initializeMesh(newCapsule, position, color, "Capsule", alpha);
+    flock.initializeMesh(newCapsule, position, color, 'Capsule', alpha);
 
     flock.setCapsuleUVs(newCapsule, radius, height, 1); // Adjust texturePhysicalSize as needed
 
@@ -566,12 +533,12 @@ export const flockShapes = {
     const segmentStart = new flock.BABYLON.Vector3(
       center.x,
       center.y - cylinderHeight / 2 + 0.1,
-      center.z,
+      center.z
     );
     const segmentEnd = new flock.BABYLON.Vector3(
       center.x,
       center.y + cylinderHeight / 2 + 0.1,
-      center.z,
+      center.z
     );
 
     // Create and apply the physics shape using the central reference
@@ -579,7 +546,7 @@ export const flockShapes = {
       segmentStart,
       segmentEnd,
       capsuleRadius,
-      flock.scene,
+      flock.scene
     );
     flock.applyPhysics(newCapsule, capsuleShape);
 
@@ -597,16 +564,13 @@ export const flockShapes = {
 
     return newCapsule.name;
   },
-  createPlane(
-    planeId,
-    { color, width, height, position = [0, 0, 0], callback = null } = {},
-  ) {
-    if (!validateShapeId(planeId, "createPlane")) return null;
+  createPlane(planeId, { color, width, height, position = [0, 0, 0], callback = null } = {}) {
+    if (!validateShapeId(planeId, 'createPlane')) return null;
     width = toDim(width, 1);
     height = toDim(height, 1);
     let blockKey = planeId;
-    if (planeId.includes("__")) {
-      [planeId, blockKey] = planeId.split("__");
+    if (planeId.includes('__')) {
+      [planeId, blockKey] = planeId.split('__');
     }
 
     let groupName = planeId;
@@ -622,11 +586,11 @@ export const flockShapes = {
         height,
         sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE,
       },
-      flock.scene,
+      flock.scene
     );
 
     newPlane.metadata = newPlane.metadata || {};
-    newPlane.metadata.shape = "plane";
+    newPlane.metadata.shape = 'plane';
     newPlane.metadata.blockKey = blockKey;
 
     flock.setBlockPositionOnMesh(newPlane, {
@@ -641,14 +605,15 @@ export const flockShapes = {
       newPlane,
       flock.BABYLON.PhysicsMotionType.STATIC,
       false,
-      flock.scene,
+      flock.scene
     );
 
+    planeBody.disablePreStep = true;
     const planeShape = new flock.BABYLON.PhysicsShapeBox(
       flock.BABYLON.Vector3.Zero(),
       new flock.BABYLON.Quaternion(0, 0, 0, 1),
       new flock.BABYLON.Vector3(width, height, 0.001),
-      flock.scene,
+      flock.scene
     );
 
     planeBody.shape = planeShape;
@@ -661,7 +626,7 @@ export const flockShapes = {
 
     flock.setMaterialWithCleanup(newPlane, {
       color: color,
-      materialName: "none.png",
+      materialName: 'none.png',
     });
 
     newPlane.metadata.blockKey = blockKey;
@@ -683,7 +648,7 @@ export const flockShapes = {
   create3DText({
     text,
     font,
-    color = "#FFFFFF",
+    color = '#FFFFFF',
     alpha = 1,
     size = 50,
     depth = 1.0,
@@ -692,13 +657,13 @@ export const flockShapes = {
     callback = null,
     useManifold = true,
   } = {}) {
-    if (!validateShapeId(modelId, "create3DText")) return null;
-    if (!text || typeof text !== "string") {
-      console.warn("create3DText: invalid text");
+    if (!validateShapeId(modelId, 'create3DText')) return null;
+    if (!text || typeof text !== 'string') {
+      console.warn('create3DText: invalid text');
       return null;
     }
-    if (!font || typeof font !== "string") {
-      console.warn("create3DText: invalid font");
+    if (!font || typeof font !== 'string') {
+      console.warn('create3DText: invalid font');
       return null;
     }
     size = toDim(size, 50);
@@ -707,8 +672,8 @@ export const flockShapes = {
 
     let blockKey = modelId;
     let meshId = modelId;
-    if (modelId.includes("__")) {
-      [meshId, blockKey] = modelId.split("__");
+    if (modelId.includes('__')) {
+      [meshId, blockKey] = modelId.split('__');
     }
 
     if (!flock._pendingMeshIds) flock._pendingMeshIds = new Set();
@@ -725,8 +690,8 @@ export const flockShapes = {
         if (useManifold) {
           try {
             let fontUrl = font;
-            if (font.endsWith(".json")) {
-              fontUrl = "fonts/FreeSansBold.ttf";
+            if (font.endsWith('.json')) {
+              fontUrl = 'fonts/FreeSansBold.ttf';
             }
 
             const scaledSize = size;
@@ -744,11 +709,7 @@ export const flockShapes = {
             vertexData.indices = meshData.indices;
 
             const normals = [];
-            flock.BABYLON.VertexData.ComputeNormals(
-              meshData.positions,
-              meshData.indices,
-              normals,
-            );
+            flock.BABYLON.VertexData.ComputeNormals(meshData.positions, meshData.indices, normals);
             vertexData.normals = normals;
 
             const positions = meshData.positions;
@@ -779,8 +740,8 @@ export const flockShapes = {
             mesh.flipFaces();
           } catch (manifoldError) {
             console.warn(
-              "[create3DText] Manifold approach failed, falling back to standard:",
-              manifoldError.message,
+              '[create3DText] Manifold approach failed, falling back to standard:',
+              manifoldError.message
             );
             useManifold = false;
           }
@@ -794,24 +755,19 @@ export const flockShapes = {
             fontData,
             { size, depth },
             flock.scene,
-            earcut,
+            earcut
           );
         }
 
-        if (!mesh) throw new Error("CreateText returned null");
+        if (!mesh) throw new Error('CreateText returned null');
 
         mesh.metadata = mesh.metadata || {};
         mesh.metadata.blockKey = blockKey;
         mesh.position.set(x, y, z);
 
-        const material = new flock.BABYLON.StandardMaterial(
-          "textMaterial_" + meshId,
-          flock.scene,
-        );
+        const material = new flock.BABYLON.StandardMaterial('textMaterial_' + meshId, flock.scene);
 
-        material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-          flock.getColorFromString(color),
-        );
+        material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
         material.backFaceCulling = false;
         material.emissiveColor = material.diffuseColor.scale(0.2);
         material.alpha = toAlpha(alpha);
