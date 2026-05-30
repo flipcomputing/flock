@@ -447,7 +447,7 @@ export function initializeWorkspace() {
     const xmlList = Blockly.Variables.flyoutCategory(ws);
 
     xmlList.forEach((xmlBlock) => {
-      if (xmlBlock.getAttribute('type') === 'variables_set') {
+      if (xmlBlock.getAttribute && xmlBlock.getAttribute('type') === 'variables_set') {
         const valueElement = document.createElement('value');
         valueElement.setAttribute('name', 'VALUE');
 
@@ -465,7 +465,7 @@ export function initializeWorkspace() {
     });
 
     const defaultBlock = xmlList.find(
-      (xmlBlock) => xmlBlock.getAttribute('type') === 'variables_set'
+      (xmlBlock) => xmlBlock.getAttribute && xmlBlock.getAttribute('type') === 'variables_set'
     );
     if (defaultBlock) {
       const xmlBlockText = defaultBlock.cloneNode(true);
@@ -1768,7 +1768,9 @@ export function createBlocklyWorkspace() {
   (function removeRedundantContextMenuItems() {
     const registry = Blockly.ContextMenuRegistry.registry;
     ['undoWorkspace', 'redoWorkspace'].forEach((id) => {
-      try { registry.unregister(id); } catch (_) {}
+      try {
+        registry.unregister(id);
+      } catch (_) {}
     });
   })();
 
