@@ -1721,13 +1721,17 @@ export const flock = {
         // Wait for async operations to complete
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // Dispose physics engine and release WASM heap
+        // Dispose physics engine and release WASM heap.
+        // Null havokInstance so the WASM ArrayBuffer is GC-eligible before
+        // the next HavokPhysics() call allocates a new one — avoids the
+        // double-heap peak that causes OOM on large projects.
         try {
           flock.hk?.dispose(); // Babylon's HavokPlugin wrapper
         } catch (error) {
           console.warn("Error disposing HavokPlugin:", error);
         }
         flock.hk = null;
+        flock.havokInstance = null;
 
         // Dispose of the scene
         flock.scene.dispose();
