@@ -26,6 +26,18 @@ const AreaManager = {
     },
   ],
 
+  get effectiveAreas() {
+    const reloadBtn = document.getElementById("reload-btn");
+    if (reloadBtn?.isConnected) {
+      return this.areas.map((a) =>
+        a.label === "9"
+          ? { selector: "#reload-btn", label: "9", name: "Reload" }
+          : a,
+      );
+    }
+    return this.areas;
+  },
+
   init() {
     this.createOverlay();
     this.setupListeners();
@@ -83,7 +95,7 @@ const AreaManager = {
     for (let i = 1; i <= 9; i++) {
       InputManager.on("OVERLAY", `Digit${i}`, (e) => {
         e.preventDefault();
-        const area = this.areas.find((a) => a.label === String(i));
+        const area = this.effectiveAreas.find((a) => a.label === String(i));
         if (area) this.activateArea(area);
       });
     }
@@ -113,7 +125,7 @@ const AreaManager = {
       const focused = document.activeElement;
       if (!focused?.classList.contains("area-number-badge")) return;
       e.preventDefault();
-      const area = this.areas.find((a) => a.label === focused.innerText);
+      const area = this.effectiveAreas.find((a) => a.label === focused.innerText);
       if (area) this.activateArea(area);
     });
 
@@ -145,7 +157,7 @@ const AreaManager = {
     const container = document.getElementById("area-menu-content");
     container.innerHTML = ""; // Clear old numbers
 
-    this.areas.forEach((area) => {
+    this.effectiveAreas.forEach((area) => {
       const el = document.querySelector(area.selector);
       if (el && (el.offsetWidth > 0 || el.getBoundingClientRect().width > 0)) {
         const rect = el.getBoundingClientRect();
