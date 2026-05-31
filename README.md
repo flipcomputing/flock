@@ -13,17 +13,25 @@ It enables educators, students, and families to build interactive 3D experiences
 
 ### What can you do with Flock XR?
 
-Flock XR has been designed as a bridge between Scratch and professional 3D tools, such as Babylon JS, UEFN, Unity and Godot. 
-
-- Build and explore interactive 3D environments  
+- Build and explore interactive 3D environments 
 - Create worlds using visual gizmos and block-based coding  
 - Teach coding, game design, and digital storytelling through hands-on projects  
-- Run engaging learning activities without installing software  
+- Run engaging learning activities without installing software
+- Use games engine concepts such as aniamtions, particle effects and physics. 
+
+Flock XR has been designed to start with younger children aged 7+, often using tablets. Then take them through upper primary, middle school and high school right through to professional 3D tools, such as Babylon JS, UEFN, Unity and Godot. 
+
+### Why 3D and XR?
+3D is engaging and age appropriate for young people and can lead to careers across a range of industries. Technology that originated in games is now used in many sectors. XR and spatial computing are changing how humans interact with technology, bridging the physical and digital worlds. 
+
+- Young people love 3D games and social platforms such as Minecraft, Roblox, Fortnite and more. Flock XR brings that knowledge into the classroom.
+- The real world is 3D. It turns out that some things are just easier when you don't have the complexity of having to map to 3D.
+- 3D is the basis for eXtended Reality and spatial computing, the metaverse and immersive tech which are growing dramatically across industries. 
 
 ### Who is it for?
 
+- Young people age 7-14+ (primary through secondary education, K-12)
 - Teachers and educators worldwide  
-- Students (primary through secondary education)  
 - Clubs, coding groups, and informal learning communities  
 - Parents and home educators supporting creative learning 
 
