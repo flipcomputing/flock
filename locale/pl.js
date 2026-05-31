@@ -1022,6 +1022,7 @@ export default {
   loading_ui: "Ładowanie Flock XR…",
   loading_success_ui: "Flock XR został pomyślnie załadowany",
   skip_to_workspace_ui: "Skip to workspace",
+  canvas_accessible_name_ui: "3D scene",
   loading_title_ui: "Ładowanie Flock XR",
   import_project_file_ui: "Importuj plik projektu",
 

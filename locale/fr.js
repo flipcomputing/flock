@@ -1207,6 +1207,7 @@ export default {
   dark_contrast_theme_ui: "Sombre",
   loading_success_ui: "Flock XR a été chargé avec succès",
   skip_to_workspace_ui: "Skip to workspace",
+  canvas_accessible_name_ui: "3D scene",
 
   // Attachment point options
   LeftHand_option: "Main gauche",
