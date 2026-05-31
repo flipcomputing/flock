@@ -172,7 +172,8 @@
     </style>
   </head>
 
-  <body class="loading">
+  <body class="loading" aria-busy="true">
+    <a class="skip-link" href="#blocklyDiv" data-i18n="skip_to_workspace">Skip to canvas</a>
     <script>
       (function () {
         if (!new URLSearchParams(window.location.search).has("touchDebug"))
@@ -250,12 +251,7 @@
     <div
       id="loadingScreen"
       class="loading-screen"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Loading Flock XR"
-      data-i18n="loading_title"
-      data-i18n-attrs="aria-label"
-      aria-describedby="loading-description"
+      aria-hidden="true"
     >
       <div class="loading-content">
         <img
@@ -270,16 +266,11 @@
           alt="Flock XR Logo"
           class="loading-logo"
         />
-        <div
-          class="loading-spinner"
-          role="img"
-          aria-label="Loading animation"
-        ></div>
+        <div class="loading-spinner"></div>
         <h2
           id="loading-description"
           data-i18n="loading"
           class="loading-text"
-          aria-live="polite"
         >
           Loading Flock XR...
         </h2>
@@ -287,7 +278,7 @@
     </div>
 
     <h1 class="sr-only">FlockXR</h1>
-    <label for="importFile" class="sr-only" data-i18n="import_project_file"
+    <label for="importFile" class="sr-only" aria-hidden="true" data-i18n="import_project_file"
       >Import project file</label
     >
     <input

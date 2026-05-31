@@ -1021,6 +1021,7 @@ export default {
   // HTML translations
   loading_ui: "Caricamento di Flock XR...",
   loading_success_ui: "Flock XR caricato con successo",
+  skip_to_workspace_ui: "Skip to workspace",
   loading_title_ui: "Caricamento di Flock XR",
   import_project_file_ui: "Importa file di progetto",
 
