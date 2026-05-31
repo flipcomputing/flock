@@ -2,7 +2,7 @@
 
 [Flock XR](https://flockxr.com/) is a free, open-source tool for creating and exploring 3D worlds in the browser, designed for education and accessible on low-cost devices.
 
-![3D animation of the three women who created Flock XR](images/flock-xr-animation.gif)
+![3D animation of the three women who created Flock XR](docs/images/flock-xr-animation.gif)
 
 It enables educators, students, and families to build interactive 3D experiences without downloads or logins, making it easy to use in classrooms, clubs, and at home.
 
