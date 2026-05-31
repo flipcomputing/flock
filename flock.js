@@ -1634,6 +1634,14 @@ export const flock = {
         // Wait for async operations to complete
         await new Promise((resolve) => setTimeout(resolve, 100));
 
+        // Dispose any shapes still in the cache (e.g. from models disposed mid-scene
+        // whose cache entry was never cleaned up). Must happen before hk.dispose().
+        for (const shape of Object.values(flock.physicsShapeCache)) {
+          if (!shape?._isDisposed) {
+            try { shape.dispose(); } catch (e) {}
+          }
+        }
+
         // Dispose physics engine and release WASM heap
         try {
           flock.hk?.dispose(); // Babylon's HavokPlugin wrapper

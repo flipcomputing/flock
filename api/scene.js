@@ -633,6 +633,12 @@ export const flockScene = {
         if (sourceMesh.physics) {
           const cloneBody = sourceMesh.physics.clone(clone);
           clone.physics = cloneBody;
+          // PhysicsBody.clone() shares the same shape object between source and clone.
+          // Mark it so disposePhysics won't destroy it when physics is removed from
+          // one of the meshes (which would corrupt the other's physics body).
+          if (sourceMesh.physics.shape) {
+            sourceMesh.physics.shape._isShared = true;
+          }
         }
 
         const setMetadata = (mesh) => {

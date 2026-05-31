@@ -30,9 +30,14 @@ const disposePhysics = (targetMesh) => {
     console.warn('[physics] RemoveBody warning:', e);
   }
 
-  // Dispose of the shape explicitly
+  // Dispose the shape only if it is not shared with another body.
+  // PhysicsBody.clone() shares the same shape JS object between source and clone,
+  // so disposing it here would also destroy the source's shape, leaving the source
+  // body with a dangling reference that crashes the next clone attempt.
   try {
-    body.shape?.dispose?.();
+    if (!body.shape?._isShared) {
+      body.shape?.dispose?.();
+    }
   } catch (error) {
     console.warn('Suppressed non-critical error:', error);
   }
@@ -41,6 +46,10 @@ const disposePhysics = (targetMesh) => {
   } catch (error) {
     console.warn('Suppressed non-critical error:', error);
   }
+  // body.dispose() sets transformNode.physicsBody = null, but only if no earlier
+  // step throws. Force-clear it so Babylon's clone path doesn't try to clone a
+  // disposed body with shape = null (which Havok rejects).
+  targetMesh.physicsBody = null;
   targetMesh.physics = null;
 };
 
