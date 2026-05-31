@@ -1277,6 +1277,31 @@ body.color-picker-open #renderCanvas {
   cursor: crosshair;
 }
 
+/* Pseudo-fullscreen fallback for browsers without element-level Fullscreen API
+   (notably iOS Safari on iPhone). Expand the canvas to cover the viewport and
+   float the toggle button on top so the user can exit. */
+body.pseudo-fullscreen #canvasArea {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  z-index: 9999 !important;
+}
+
+body.pseudo-fullscreen #renderCanvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+body.pseudo-fullscreen #fullscreenToggle {
+  position: fixed !important;
+  top: max(8px, env(safe-area-inset-top, 0px)) !important;
+  right: max(8px, env(safe-area-inset-right, 0px)) !important;
+  z-index: 10000 !important;
+}
+
 /* Drag-and-drop overlay */
 #drag-drop-overlay {
   display: none;

@@ -946,33 +946,53 @@ function initializeApp() {
 
   const fullscreenToggleEl = document.getElementById("fullscreenToggle");
   if (fullscreenToggleEl) {
+    const docEl = document.documentElement;
+    const hasFullscreenAPI =
+      docEl.requestFullscreen ||
+      docEl.webkitRequestFullscreen ||
+      docEl.mozRequestFullScreen ||
+      docEl.msRequestFullscreen;
+
+    const enterPseudoFullscreen = () => {
+      document.body.classList.add("pseudo-fullscreen");
+      // Nudge iOS Safari to hide its URL bar.
+      window.scrollTo(0, 0);
+      if (flock.engine) flock.engine.resize();
+    };
+    const exitPseudoFullscreen = () => {
+      document.body.classList.remove("pseudo-fullscreen");
+      if (flock.engine) flock.engine.resize();
+    };
+
     fullscreenToggleEl.addEventListener("click", function () {
-      if (!document.fullscreenElement) {
-        // Go fullscreen
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen();
-        } else if (document.documentElement.mozRequestFullScreen) {
-          /* Firefox */
-          document.documentElement.mozRequestFullScreen();
-        } else if (document.documentElement.webkitRequestFullscreen) {
-          /* Chrome, Safari & Opera */
-          document.documentElement.webkitRequestFullscreen();
-        } else if (document.documentElement.msRequestFullscreen) {
-          /* IE/Edge */
-          document.documentElement.msRequestFullscreen();
+      if (!hasFullscreenAPI) {
+        // iOS Safari on iPhone: no element-level Fullscreen API, fall back to CSS.
+        if (document.body.classList.contains("pseudo-fullscreen")) {
+          exitPseudoFullscreen();
+        } else {
+          enterPseudoFullscreen();
+        }
+        return;
+      }
+
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen();
+        } else if (docEl.mozRequestFullScreen) {
+          docEl.mozRequestFullScreen();
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+        } else if (docEl.msRequestFullscreen) {
+          docEl.msRequestFullscreen();
         }
       } else {
-        // Exit fullscreen
         if (document.exitFullscreen) {
           document.exitFullscreen();
         } else if (document.mozCancelFullScreen) {
-          /* Firefox */
           document.mozCancelFullScreen();
         } else if (document.webkitExitFullscreen) {
-          /* Chrome, Safari & Opera */
           document.webkitExitFullscreen();
         } else if (document.msExitFullscreen) {
-          /* IE/Edge */
           document.msExitFullscreen();
         }
       }
