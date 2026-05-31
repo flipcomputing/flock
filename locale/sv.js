@@ -1002,7 +1002,6 @@ export default {
   // HTML translations
   loading_ui: "Laddar Flock XR...",
   loading_success_ui: "Flock XR laddades framgångsrikt",
-  skip_to_workspace_ui: "Skip to workspace",
   canvas_accessible_name_ui: "3D scene",
   loading_title_ui: "Laddar Flock XR",
   import_project_file_ui: "Importera projektfil",
