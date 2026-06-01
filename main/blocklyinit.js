@@ -1250,15 +1250,33 @@ export function createBlocklyWorkspace() {
 
   // Manually create a navigation-deferring toolbox
   class NavigationDeferringToolbox extends Blockly.Toolbox {
+    #keyboardActive = false;
+    #onKeyDown = () => { this.#keyboardActive = true; };
+    #onPointerDown = () => { this.#keyboardActive = false; };
+
     onKeyDown_() {
       return false; // Defer to keyboard navigation plugin
     }
 
-    setSelectedItem(item) {
-      if (item && item.isSelectable?.()) {
-        this.collapseUnrelatedCategories_(item);
+    init(workspace) {
+      super.init(workspace);
+      // Track whether the last user interaction was keyboard or pointer so
+      // selectItem_ can limit accordion auto-collapse to keyboard navigation.
+      document.addEventListener('keydown', this.#onKeyDown, true);
+      document.addEventListener('pointerdown', this.#onPointerDown, true);
+    }
+
+    dispose() {
+      document.removeEventListener('keydown', this.#onKeyDown, true);
+      document.removeEventListener('pointerdown', this.#onPointerDown, true);
+      super.dispose();
+    }
+
+    selectItem_(oldItem, newItem) {
+      super.selectItem_(oldItem, newItem);
+      if (newItem && this.#keyboardActive) {
+        this.collapseUnrelatedCategories_(newItem);
       }
-      super.setSelectedItem(item);
     }
 
     // Accordion behaviour: navigating to a category collapses every other
