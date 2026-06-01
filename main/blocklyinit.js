@@ -1212,7 +1212,11 @@ export function createBlocklyWorkspace() {
         if (e.pointerType !== 'touch') return;
         const blockRoot = e.target.closest('.blocklyDraggable');
 
-        if (blockRoot && !blockRoot.classList.contains('blocklySelected')) {
+        if (
+          blockRoot &&
+          !blockRoot.classList.contains('blocklySelected') &&
+          !blockRoot.closest('.blocklyFlyout')
+        ) {
           e.stopPropagation();
           const blockId = blockRoot.getAttribute('data-id');
           if (blockId) {
@@ -1230,6 +1234,15 @@ export function createBlocklyWorkspace() {
       },
       true
     );
+
+    workspace.addChangeListener((e) => {
+      if (e.type === Blockly.Events.BLOCK_DRAG && !e.isStart) {
+        setTimeout(() => {
+          Blockly.common.getSelected()?.unselect();
+          selectedBlock = null;
+        }, 0);
+      }
+    });
   }
 
   installWorkspaceJumpDebug(workspace);
