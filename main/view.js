@@ -500,6 +500,7 @@ export function togglePlayMode() {
   const gizmoButtons = document.getElementById("gizmoButtons");
   const bottomBar = document.getElementById("bottomBar");
   const flockLink = document.getElementById("flocklink");
+  const infoPanel = document.getElementById("info-panel");
   const resizer = document.getElementById("resizer");
   if (!blocklyArea || !canvasArea || !gizmoButtons || !bottomBar || !flockLink) {
     return;
@@ -520,10 +521,12 @@ export function togglePlayMode() {
 
     showCanvasView();
     if (flock.scene) flock.scene.debugLayer.hide();
+    window.flockShortcutsPanel?.hide();
     blocklyArea.style.display = "none";
     gizmoButtons.style.display = "none";
     bottomBar.style.display = "none";
     flockLink.style.display = "none";
+    if (infoPanel) infoPanel.style.display = "none";
     if (resizer) resizer.style.display = "none";
     document.documentElement.style.setProperty("--dynamic-offset", "40px");
   } else {
@@ -533,6 +536,7 @@ export function togglePlayMode() {
     gizmoButtons.style.display = "block";
     bottomBar.style.display = "";
     flockLink.style.display = "block";
+    if (infoPanel) infoPanel.style.display = "";
     if (resizer) resizer.style.display = "block";
     document.documentElement.style.setProperty("--dynamic-offset", "65px");
 
