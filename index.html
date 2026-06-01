@@ -1435,13 +1435,10 @@
         </div>
       </main>
       <div id="bottomBar" role="toolbar" aria-label="View switching controls">
-        <button
-          id="switchViews"
-          aria-label="Switch between code and canvas views"
-          aria-describedby="switch-desc"
-        >
-          Code >>
-        </button>
+        <div id="viewToggle" role="group" aria-label="Switch between code and canvas views">
+          <button id="canvasToggleBtn" class="view-toggle-btn" aria-pressed="true">Canvas</button>
+          <button id="codeToggleBtn" class="view-toggle-btn" aria-pressed="false">Code</button>
+        </div>
         <div id="switch-desc" class="sr-only">
           Toggle between coding view and 3D scene view
         </div>
