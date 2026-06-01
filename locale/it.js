@@ -1174,6 +1174,7 @@ export default {
   physics_out_of_memory_banner_ui:
     "Il motore fisico ha esaurito la memoria. Prova a ridurre il numero di oggetti fisici o a ricaricare il progetto.", // AI-generated; needs validation
   runtime_error_message: "Errore: {message}",
+  error_audio: "L'audio non è disponibile su questo dispositivo. Il tuo progetto verrà eseguito senza audio.", // Google translate
   xr_mode_message: "Modalità XR!",
   fly_camera_instructions: "ℹ️ Telecamera volante, usa le frecce e Pag su/giù",
   select_mesh_delete_prompt: "ℹ️ Clicca su un oggetto per eliminarlo.",

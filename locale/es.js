@@ -1179,6 +1179,7 @@ export default {
   physics_out_of_memory_banner_ui:
     "El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.", // human
   runtime_error_message: "Error: {mensaje}", // human
+  error_audio: "El sonido no está disponible en este dispositivo. Tu proyecto se ejecutará sin audio.", // Google translate
   error_startup: "Flock no se pudo iniciar. Intenta recargar la página.", // human
   error_project_crash:
     "Tu proyecto tuvo un problema. Pulsa Detener, revisa tus bloques y pulsa Reproducir otra vez.", // human

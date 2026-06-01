@@ -1168,6 +1168,7 @@ export default {
   physics_out_of_memory_banner_ui:
     "Physics engine ran out of memory. Try reducing the number of physics objects or reloading your project.",
   runtime_error_message: "Error: {message}",
+  error_audio: "Sound is not available on this device. Your project will run without audio.",
   error_startup: "Flock couldn't start up. Try reloading the page.",
   error_project_crash:
     "Your project hit a problem. Press Stop, check your blocks, then press Play again.",

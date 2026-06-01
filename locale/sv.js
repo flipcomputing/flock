@@ -1154,6 +1154,7 @@ export default {
   physics_out_of_memory_banner_ui:
     "Fysikmotorn fick slut på minne. Försök minska antalet fysikobjekt eller ladda om projektet.", // AI-generated; needs validation
   runtime_error_message: "Fel: {message}",
+  error_audio: "Ljud är inte tillgängligt på den här enheten. Ditt projekt körs utan ljud.", // Google translate
   xr_mode_message: "XR-läge!",
   fly_camera_instructions:
     "ℹ️ Flygkamera, använd piltangenterna och Page Up/Down",

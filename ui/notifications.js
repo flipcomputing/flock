@@ -14,6 +14,7 @@ const MESSAGE_KEYS = {
   "project-run": "error_project_crash",
   "webgl-lost": "error_webgl_lost",
   "physics-oom": "error_physics_oom",
+  audio: "error_audio",
 };
 
 function getDocument() {

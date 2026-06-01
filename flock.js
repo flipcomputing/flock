@@ -2,6 +2,12 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
+// iOS Safari polyfill: Babylon's audio engine calls new AudioContext() directly,
+// but older iOS only exposes webkitAudioContext.
+if (typeof window !== 'undefined' && !window.AudioContext && window.webkitAudioContext) {
+  window.AudioContext = window.webkitAudioContext;
+}
+
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import HavokPhysics from '@babylonjs/havok';
@@ -55,7 +61,7 @@ import { flockEvents, setFlockReference as setFlockEvents } from './api/events';
 import { flockMath, setFlockReference as setFlockMath } from './api/math';
 import { flockSensing, setFlockReference as setFlockSensing } from './api/sensing';
 import { translate } from './main/translation.js';
-import { handleError, dismissBanner } from './ui/notifications.js';
+import { handleError, dismissBanner, showBanner } from './ui/notifications.js';
 import { attachInteractIndicator, detachInteractIndicator } from './ui/interactIndicator.js';
 import { InputManager } from './input/inputManager.js';
 import { KeyboardSource } from './input/keyboardSource.js';
@@ -1924,6 +1930,10 @@ export const flock = {
       flock.scene.onActiveCameraChanged.add(() => {
         audioEngine.listener.attach(flock.scene.activeCamera);
       });
+    }).catch((err) => {
+      console.warn('[flock] Audio engine unavailable:', err);
+      flock.audioEngine = null;
+      showBanner('audio', { message: translate('error_audio') });
     });
 
     // Enable collisions

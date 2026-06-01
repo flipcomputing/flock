@@ -9,6 +9,7 @@ export const flockSound = {
     meshName,
     { soundName, loop = false, volume = 1, playbackRate = 1 } = {},
   ) {
+    if (!flock.audioEngine) return;
     volume = Number.isFinite(Number(volume)) ? Math.max(0, Math.min(1, Number(volume))) : 1;
     playbackRate = Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0 ? Number(playbackRate) : 1;
     if (!soundName || typeof soundName !== "string") {
@@ -155,8 +156,13 @@ export const flockSound = {
   },
   getAudioContext() {
     if (!flock.audioContext) {
-      flock.audioContext = new (window.AudioContext ||
-        window.webkitAudioContext)();
+      const Ctor = window.AudioContext || window.webkitAudioContext;
+      if (!Ctor) return null;
+      try {
+        flock.audioContext = new Ctor();
+      } catch {
+        return null;
+      }
     }
     return flock.audioContext;
   },
