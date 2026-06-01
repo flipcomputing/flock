@@ -292,7 +292,8 @@ export { currentView, switchView, codeMode, showCodeView };
 
 const container = document.getElementById("maincontent");
 const bottomBar = document.getElementById("bottomBar");
-const switchViewsBtn = document.getElementById("switchViews");
+const canvasToggleBtn = document.getElementById("canvasToggleBtn");
+const codeToggleBtn = document.getElementById("codeToggleBtn");
 
 let savedView = "canvas";
 
@@ -302,17 +303,8 @@ function addButtonListener() {
   if (!isNarrowScreen()) {
     return;
   }
-  if (!switchViewsBtn) return;
-
-  switchViewsBtn.addEventListener("click", togglePanels);
-  switchViewsBtn.addEventListener(
-    "touchend",
-    (e) => {
-      e.preventDefault();
-      togglePanels();
-    },
-    { passive: false },
-  );
+  if (canvasToggleBtn) canvasToggleBtn.addEventListener("click", showCanvasView);
+  if (codeToggleBtn) codeToggleBtn.addEventListener("click", showCodeView);
 }
 
 // Alternative approach: Instead of CSS transforms, actually reposition elements in DOM
@@ -335,7 +327,8 @@ function showCodeView() {
     blocklyArea.style.width = "100%";
     blocklyArea.style.flex = "1 1 100%";
 
-    if (switchViewsBtn) switchViewsBtn.textContent = "<< Canvas";
+    if (canvasToggleBtn) canvasToggleBtn.setAttribute("aria-pressed", "false");
+    if (codeToggleBtn) codeToggleBtn.setAttribute("aria-pressed", "true");
 
     // Blockly resize after DOM changes
     requestAnimationFrame(() => {
@@ -369,7 +362,8 @@ export function showCanvasView() {
     canvasArea.style.width = "100%";
     canvasArea.style.flex = "1 1 100%";
 
-    if (switchViewsBtn) switchViewsBtn.textContent = "Code >>";
+    if (canvasToggleBtn) canvasToggleBtn.setAttribute("aria-pressed", "true");
+    if (codeToggleBtn) codeToggleBtn.setAttribute("aria-pressed", "false");
   }
 
   onResize();
@@ -479,10 +473,7 @@ function togglePanels() {
   if (!isNarrowScreen()) {
     return;
   }
-  if (!switchViewsBtn) return;
-
-  // Check button text instead of currentView to avoid state mismatch
-  if (switchViewsBtn.textContent === "Code >>") {
+  if (currentView === "canvas") {
     showCodeView();
   } else {
     showCanvasView();
