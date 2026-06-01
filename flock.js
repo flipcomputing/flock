@@ -2,6 +2,13 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
+// iOS Safari (and older WebKit) only expose webkitAudioContext. Babylon's
+// CreateAudioEngineAsync references the unprefixed global directly, so alias
+// it before any audio engine code runs.
+if (typeof window !== 'undefined' && !window.AudioContext && window.webkitAudioContext) {
+  window.AudioContext = window.webkitAudioContext;
+}
+
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import HavokPhysics from '@babylonjs/havok';
