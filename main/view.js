@@ -337,6 +337,8 @@ function showCodeView() {
 }
 
 export function showCanvasView() {
+  window.flockWorkspaceSearch?.close();
+
   const gizmoButtons = document.getElementById("gizmoButtons");
   const flockLink = document.getElementById("flocklink");
   if (!gizmoButtons || !flockLink) return;
