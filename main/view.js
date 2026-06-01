@@ -296,6 +296,7 @@ const canvasToggleBtn = document.getElementById("canvasToggleBtn");
 const codeToggleBtn = document.getElementById("codeToggleBtn");
 
 let savedView = "canvas";
+let savedShortcutsVisible = false;
 
 function addButtonListener() {
   if (canvasToggleBtn) canvasToggleBtn.addEventListener("click", showCanvasView);
@@ -523,6 +524,7 @@ export function togglePlayMode() {
 
     showCanvasView();
     if (flock.scene) flock.scene.debugLayer.hide();
+    savedShortcutsVisible = !(window.flockShortcutsPanel?.panel?.classList.contains("hidden") ?? true);
     window.flockShortcutsPanel?.hide();
     blocklyArea.style.display = "none";
     gizmoButtons.style.display = "none";
@@ -540,6 +542,10 @@ export function togglePlayMode() {
     flockLink.style.display = "block";
     if (infoPanel) infoPanel.style.display = "";
     if (resizer) resizer.style.display = "block";
+    if (savedShortcutsVisible) {
+      window.flockShortcutsPanel?.show();
+      savedShortcutsVisible = false;
+    }
     document.documentElement.style.setProperty("--dynamic-offset", "65px");
 
     // On narrow screens, restore the saved view
