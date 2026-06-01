@@ -884,6 +884,7 @@ button {
     color: var(--color-primary);
   }
 
+  /* Inherit colour from theme */
   [data-theme='dark'] #bottomBar,
   [data-theme='dark-contrast'] #bottomBar,
   [data-theme='contrast'] #bottomBar,
