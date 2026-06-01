@@ -113,8 +113,14 @@ export async function setLanguage(language) {
     window.flockColorPicker.refreshTranslations();
   }
 
-  // Update workspace search placeholder
+  // Update workspace search placeholder and toolbar button
   window.flockWorkspaceSearch?.setSearchPlaceholder?.(translate("workspace_search_placeholder"));
+  const wsSearchBtn = document.getElementById("workspaceSearchBtn");
+  if (wsSearchBtn) {
+    const label = translate("workspace_search_placeholder");
+    wsSearchBtn.setAttribute("aria-label", label);
+    wsSearchBtn.title = label;
+  }
 
   // Update shortcuts panel if open
   if (window.flockShortcutsPanel?.refreshTranslations) {

@@ -142,7 +142,7 @@ export function setupInput() {
         shortcutsPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
       }
 
-      ['#undoBtn', '#redoBtn', '#zoomOutBtn', '#zoomInBtn'].forEach((sel) =>
+      ['#workspaceSearchBtn', '#undoBtn', '#redoBtn', '#zoomOutBtn', '#zoomInBtn'].forEach((sel) =>
         pushUnique(document.querySelector(sel))
       );
 
