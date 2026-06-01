@@ -19,13 +19,10 @@
   --color-menu-item-text: var(--color-text);
   --color-dropdown-menu-bg: var(--color-bg);
   --color-dropdown-menu-hover: rgba(0, 0, 0, 0.05);
-  --color-dropdown-menu-border: var(
-    --color-dropdown-menu-border,
-    1px solid rgba(0, 0, 0, 0.1)
-  );
+  --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0, 0, 0, 0.1));
 }
 
-[data-theme="dark-contrast"] {
+[data-theme='dark-contrast'] {
   /* Core colours */
   --color-bg: black;
   --color-text: white;
@@ -41,13 +38,10 @@
   --color-menu-item-text: var(--color-text);
   --color-dropdown-menu-bg: var(--color-bg);
   --color-dropdown-menu-hover: rgba(0, 0, 0, 0.05);
-  --color-dropdown-menu-border: var(
-    --color-dropdown-menu-border,
-    1px solid rgba(0, 0, 0, 0.1)
-  );
+  --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0, 0, 0, 0.1));
 }
 
-[data-theme="low-vision"] {
+[data-theme='low-vision'] {
   --color-bg: #121212;
   --color-text: #f0f0f0;
   --color-text-label: #f0f0f0;
@@ -58,81 +52,73 @@
   --color-outline-focus: #e0e0e0;
 }
 
-[data-theme="low-vision"] {
+[data-theme='low-vision'] {
   --color-toolbox-focus: #fc3;
 }
 
-[data-theme="dark-contrast"] .blocklyInsertionMarker path {
+[data-theme='dark-contrast'] .blocklyInsertionMarker path {
   fill: grey !important;
 }
 
-[data-theme="low-vision"] .blocklyInsertionMarker path {
+[data-theme='low-vision'] .blocklyInsertionMarker path {
   fill: #e0e0e0 !important;
 }
 
-[data-theme="contrast"] .blocklyInsertionMarker path {
+[data-theme='contrast'] .blocklyInsertionMarker path {
   fill: grey !important;
 }
 
 /* Only target text inputs with cursor: text */
-.blocklyEditableText[style*="cursor: text"] > rect {
+.blocklyEditableText[style*='cursor: text'] > rect {
   fill: var(--color-bg) !important;
 }
 
-.blocklyEditableText[style*="cursor: text"] > text {
+.blocklyEditableText[style*='cursor: text'] > text {
   fill: var(--color-text-primary) !important;
 }
 
 /* Same as standard light theme */
-body[data-theme="dark"] .blocklyWidgetDiv input.blocklyHtmlInput {
+body[data-theme='dark'] .blocklyWidgetDiv input.blocklyHtmlInput {
   background-color: #ffffff !important;
   color: #000000 !important;
 }
 
 /* Same as standard light theme */
-body[data-theme="dark"]
-  .blocklyWidgetDiv
-  input.blocklyHtmlInput.blocklyInvalidInput {
+body[data-theme='dark'] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
   background: #ffaaaa !important;
   color: #575e75 !important;
 }
 
 /* Same as standard light theme */
-body[data-theme="dark-contrast"] .blocklyWidgetDiv input.blocklyHtmlInput {
+body[data-theme='dark-contrast'] .blocklyWidgetDiv input.blocklyHtmlInput {
   background-color: #ffffff !important;
   color: #000000 !important;
 }
 
 /* Same as standard light theme */
-body[data-theme="dark-contrast"]
-  .blocklyWidgetDiv
-  input.blocklyHtmlInput.blocklyInvalidInput {
+body[data-theme='dark-contrast'] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
   background: #ffaaaa !important;
   color: #575e75 !important;
 }
 
 /* Same as standard light theme */
-body[data-theme="contrast"] .blocklyWidgetDiv input.blocklyHtmlInput {
+body[data-theme='contrast'] .blocklyWidgetDiv input.blocklyHtmlInput {
   background-color: #ffffff !important;
   color: #000000 !important;
 }
 
-body[data-theme="low-vision"] .blocklyWidgetDiv input.blocklyHtmlInput {
+body[data-theme='low-vision'] .blocklyWidgetDiv input.blocklyHtmlInput {
   background-color: #ffffff !important;
   color: #000000 !important;
 }
 
 /* Same as standard light theme */
-body[data-theme="contrast"]
-  .blocklyWidgetDiv
-  input.blocklyHtmlInput.blocklyInvalidInput {
+body[data-theme='contrast'] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
   background: #ffaaaa !important;
   color: #575e75 !important;
 }
 
-body[data-theme="low-vision"]
-  .blocklyWidgetDiv
-  input.blocklyHtmlInput.blocklyInvalidInput {
+body[data-theme='low-vision'] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
   background: #ffaaaa !important;
   color: #575e75 !important;
 }
@@ -141,13 +127,13 @@ text.blocklyText.blocklyFieldText.blocklyDropdownText {
   fill: var(--color-dropdown-text) !important;
 }
 
-body[data-theme="dark"] {
+body[data-theme='dark'] {
   .blocklyWidgetDiv .blocklyMenuItemContent {
     color: black !important;
   }
 }
 
-body[data-theme="dark-contrast"] {
+body[data-theme='dark-contrast'] {
   .blocklyField text.blocklyText.blocklyFieldText {
     fill: black !important;
   }
@@ -198,27 +184,23 @@ textarea.blocklyCommentText::placeholder {
   fill: rgba(76, 76, 76, 0.5) !important;
 }
 
-[data-theme="dark"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+[data-theme='dark'] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
   fill: rgba(186, 186, 186, 0.5) !important;
 }
 
-[data-theme="dark-contrast"]
-  .blocklyMainWorkspaceScrollbar
-  .blocklyScrollbarHandle {
+[data-theme='dark-contrast'] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
   fill: rgba(205, 205, 205, 0.5) !important;
 }
 
-[data-theme="contrast"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+[data-theme='contrast'] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
   fill: rgba(255, 255, 255, 0.85) !important;
 }
 
-[data-theme="low-vision"]
-  .blocklyMainWorkspaceScrollbar
-  .blocklyScrollbarHandle {
+[data-theme='low-vision'] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
   fill: rgba(224, 224, 224, 0.85) !important;
 }
 
-body[data-theme="contrast"] {
+body[data-theme='contrast'] {
   .blocklyField text.blocklyText.blocklyFieldText {
     fill: black !important;
   }
@@ -241,7 +223,7 @@ body[data-theme="contrast"] {
   }
 }
 
-body[data-theme="low-vision"] {
+body[data-theme='low-vision'] {
   .blocklyField text.blocklyText.blocklyFieldText {
     fill: #f0f0f0 !important;
   }
@@ -277,14 +259,12 @@ body[data-theme="low-vision"] {
 }
 
 /* Non-current matches get a pale yellow background */
-#blocklyDiv.blockly-search-active
-  .ws-search-match:not(.ws-search-current)
-  > path.blocklyPath {
+#blocklyDiv.blockly-search-active .ws-search-match:not(.ws-search-current) > path.blocklyPath {
   fill: rgba(255, 242, 0, 0.3) !important;
 }
 
 /* Low-vision: replace fill with a dashed white stroke for better contrast */
-[data-theme="low-vision"]
+[data-theme='low-vision']
   #blocklyDiv.blockly-search-active
   .ws-search-match:not(.ws-search-current)
   > path.blocklyPath {
@@ -342,7 +322,7 @@ body[data-theme="low-vision"] {
   position: relative;
 }
 
-.blocklyTreeRowContentContainer input[type="search"] {
+.blocklyTreeRowContentContainer input[type='search'] {
   position: absolute;
   top: 0;
   left: 0;
@@ -356,7 +336,7 @@ body[data-theme="low-vision"] {
   z-index: 10;
 }
 
-.blocklyTreeRowContentContainer input[type="search"]:focus {
+.blocklyTreeRowContentContainer input[type='search']:focus {
   outline: 3px solid var(--color-outline-focus);
   outline-offset: 2px;
   background-color: var(--color-bg);
@@ -370,13 +350,8 @@ body[data-theme="low-vision"] {
 }
 
 /* Keyboard-focused toolbox category (Blockly 13 FocusManager active node) */
-.blocklyKeyboardNavigation
-  .blocklyToolbox
-  .blocklyActiveFocus
-  > .blocklyToolboxCategory,
-.blocklyKeyboardNavigation
-  .blocklyToolbox
-  .blocklyToolboxCategory.blocklyActiveFocus {
+.blocklyKeyboardNavigation .blocklyToolbox .blocklyActiveFocus > .blocklyToolboxCategory,
+.blocklyKeyboardNavigation .blocklyToolbox .blocklyToolboxCategory.blocklyActiveFocus {
   outline: none !important;
   box-shadow: inset 0 0 0 3px var(--color-toolbox-focus) !important;
   border-radius: 4px;
@@ -395,21 +370,21 @@ body[data-theme="low-vision"] {
   color: #4c4c4c !important;
 }
 
-[data-theme="dark"] .blocklyTrash,
+[data-theme='dark'] .blocklyTrash,
 .blocklyZoomIn > image,
 .blocklyZoomOut > image {
   opacity: 1 !important;
   color: #bababa !important;
 }
 
-[data-theme="dark-contrast"] .blocklyTrash,
+[data-theme='dark-contrast'] .blocklyTrash,
 .blocklyZoomIn > image,
 .blocklyZoomOut > image {
   opacity: 1 !important;
   color: #cdcdcd !important;
 }
 
-[data-theme="contrast"] .blocklyTrash,
+[data-theme='contrast'] .blocklyTrash,
 .blocklyZoomIn > image,
 .blocklyZoomOut > image {
   opacity: 1 !important;
@@ -438,7 +413,7 @@ body[data-theme="low-vision"] {
   fill: var(--color-dropdown-text) !important;
 }
 
-[data-theme="dark-contrast"] .blocklyText,
+[data-theme='dark-contrast'] .blocklyText,
 .blocklyDropdownField,
 .blocklyDropdownDiv,
 .blocklyDropdownContent,
@@ -449,8 +424,7 @@ body[data-theme="low-vision"] {
 }
 
 /* Menu item text in classic‑theme dropdowns */
-.custom_zelos_renderer-renderer.classic-theme.blocklyDropDownDiv
-  .goog-menuitem-content {
+.custom_zelos_renderer-renderer.classic-theme.blocklyDropDownDiv .goog-menuitem-content {
   color: var(--color-menu-item-text) !important;
 }
 
@@ -459,17 +433,17 @@ body[data-theme="low-vision"] {
   cursor: pointer !important;
 }
 
-[data-theme="dark"] .blockly-ws-search button,
-[data-theme="dark-contrast"] .blockly-ws-search button,
-[data-theme="low-vision"] .blockly-ws-search button,
-[data-theme="contrast"] .blockly-ws-search button {
+[data-theme='dark'] .blockly-ws-search button,
+[data-theme='dark-contrast'] .blockly-ws-search button,
+[data-theme='low-vision'] .blockly-ws-search button,
+[data-theme='contrast'] .blockly-ws-search button {
   filter: invert(1);
 }
 
-[data-theme="dark"] .blockly-ws-search button:focus,
-[data-theme="dark-contrast"] .blockly-ws-search button:focus,
-[data-theme="low-vision"] .blockly-ws-search button:focus,
-[data-theme="contrast"] .blockly-ws-search button:focus {
+[data-theme='dark'] .blockly-ws-search button:focus,
+[data-theme='dark-contrast'] .blockly-ws-search button:focus,
+[data-theme='low-vision'] .blockly-ws-search button:focus,
+[data-theme='contrast'] .blockly-ws-search button:focus {
   outline: 3px solid #0033cc; /* inverts to #ffcc33 (~#fc3) after filter: invert(1) */
   outline-offset: 2px;
 }
@@ -486,23 +460,23 @@ body[data-theme="low-vision"] {
   background-color: #ebebeb !important;
 }
 
-[data-theme="dark-contrast"] .blocklySvg {
+[data-theme='dark-contrast'] .blocklySvg {
   background-color: #090909 !important;
 }
 
-[data-theme="dark"] .blocklySvg {
+[data-theme='dark'] .blocklySvg {
   background-color: #2c2c2c !important;
 }
 
-[data-theme="contrast"] .blocklySvg {
+[data-theme='contrast'] .blocklySvg {
   background-color: #000000 !important;
 }
 
-[data-theme="low-vision"] .blocklySvg {
+[data-theme='low-vision'] .blocklySvg {
   background-color: #d8d8d8 !important;
 }
 
-[data-theme="low-vision"] .blocklyPath {
+[data-theme='low-vision'] .blocklyPath {
   stroke: #e0e0e0 !important;
   stroke-width: 2.5px !important;
 }
@@ -524,10 +498,7 @@ body[data-theme="low-vision"] {
   box-shadow: 0 0 0 4px #000 !important;
 }
 
-[data-theme="low-vision"]
-  .blocklyFieldColour
-  .blocklyFieldGrid
-  .blocklyFieldGridItem:focus {
+[data-theme='low-vision'] .blocklyFieldColour .blocklyFieldGrid .blocklyFieldGridItem:focus {
   box-shadow: 0 0 0 4px #fff !important;
 }
 
@@ -537,54 +508,54 @@ body[data-theme="low-vision"] {
 
 body .blocklyHtmlInput {
   font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+    'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
 }
 
 body .blocklyText {
   font-weight: 500 !important;
   font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+    'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
 }
 
 body .blocklyTreeLabel {
   font-weight: 500 !important;
   font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+    'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
 }
 
-body[data-theme="contrast"] .blocklyText {
+body[data-theme='contrast'] .blocklyText {
   font-weight: 600 !important;
   font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+    'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
 }
 
-body[data-theme="dark-contrast"] .blocklyText {
+body[data-theme='dark-contrast'] .blocklyText {
   font-weight: 600 !important;
   font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+    'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
 }
 
-body[data-theme="dark-contrast"] .blocklyTreeLabel {
+body[data-theme='dark-contrast'] .blocklyTreeLabel {
   font-weight: 500 !important;
   font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+    'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
 }
 
-body[data-theme="contrast"] .blocklyTreeLabel {
+body[data-theme='contrast'] .blocklyTreeLabel {
   font-weight: 500 !important;
   font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+    'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
 }
 
-body[data-theme="dark"] .blocklyText {
+body[data-theme='dark'] .blocklyText {
   font-weight: 500 !important;
   font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+    'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
 }
 
-body[data-theme="dark"] .blocklyTreeLabel {
+body[data-theme='dark'] .blocklyTreeLabel {
   font-family:
-    "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+    'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
 }
 
 .blocklyFlyoutBackground {
@@ -594,12 +565,12 @@ body[data-theme="dark"] .blocklyTreeLabel {
   fill-opacity: 0.8 !important;
 }
 
-[data-theme="low-vision"] .blocklyFlyout,
-[data-theme="low-vision"] .blocklyFlyoutBackground {
+[data-theme='low-vision'] .blocklyFlyout,
+[data-theme='low-vision'] .blocklyFlyoutBackground {
   opacity: 1 !important;
 }
 
-[data-theme="low-vision"] .blocklyFlyoutBackground {
+[data-theme='low-vision'] .blocklyFlyoutBackground {
   fill: #3a3a3a !important;
   fill-opacity: 1 !important;
 }
@@ -627,63 +598,57 @@ body[data-theme="dark"] .blocklyTreeLabel {
   outline: none !important;
 }
 
-[data-theme="contrast"] .blocklyText {
+[data-theme='contrast'] .blocklyText {
   fill: white !important;
 }
 
-[data-theme="dark-contrast"] .blocklyText {
+[data-theme='dark-contrast'] .blocklyText {
   fill: white !important;
 }
 
-[data-theme="low-vision"] .blocklyText,
-[data-theme="low-vision"] .blocklyTreeLabel {
+[data-theme='low-vision'] .blocklyText,
+[data-theme='low-vision'] .blocklyTreeLabel {
   fill: #f0f0f0 !important;
   color: #f0f0f0 !important;
 }
 
-body[data-theme="low-vision"] .blocklyField text.blocklyText.blocklyFieldText {
+body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText {
   fill: #000000 !important;
 }
 
-body[data-theme="low-vision"]
-  .blocklyField
-  text.blocklyText.blocklyFieldText.blocklyDropdownText,
-body[data-theme="low-vision"]
-  .blocklyField
-  text.blocklyText.blocklyFieldText.blocklyDropDownText {
+body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.blocklyDropdownText,
+body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.blocklyDropDownText {
   fill: #f0f0f0 !important;
 }
 
-[data-theme="low-vision"] .blocklyDropdownText,
-[data-theme="low-vision"] .blocklyDropDownText {
+[data-theme='low-vision'] .blocklyDropdownText,
+[data-theme='low-vision'] .blocklyDropDownText {
   fill: #f0f0f0 !important;
   color: #f0f0f0 !important;
 }
 
-[data-theme="low-vision"] .blocklyEditableText > rect,
-[data-theme="low-vision"]
-  .blocklyNonEditableText
-  > rect:not(.blocklyDropdownRect) {
+[data-theme='low-vision'] .blocklyEditableText > rect,
+[data-theme='low-vision'] .blocklyNonEditableText > rect:not(.blocklyDropdownRect) {
   fill: #ffffff !important;
   stroke: #cfcfcf !important;
   stroke-width: 1.5px !important;
 }
 
-[data-theme="low-vision"] .blocklyDropdownRect {
+[data-theme='low-vision'] .blocklyDropdownRect {
   fill: #1e1e1e !important;
   stroke: #cfcfcf !important;
   stroke-width: 1.5px !important;
 }
 
-[data-theme="low-vision"] .blocklyDropdownArrow,
-[data-theme="low-vision"] .blocklyDropdownArrow > path {
+[data-theme='low-vision'] .blocklyDropdownArrow,
+[data-theme='low-vision'] .blocklyDropdownArrow > path {
   fill: #cfcfcf !important;
   stroke: #cfcfcf !important;
 }
 
 /* === Blockly v12 desktop: center icon + label within the full row === */
 @media (min-width: 769px) {
-  .blocklyToolboxCategoryContainer[aria-level="2"] > .blocklyToolboxCategory {
+  .blocklyToolboxCategoryContainer[aria-level='2'] > .blocklyToolboxCategory {
     border-left: 8px solid transparent !important;
   }
 
@@ -692,15 +657,15 @@ body[data-theme="low-vision"]
     min-width: 130px;
   }
 
-  [data-theme="dark-contrast"] .blocklyToolbox {
+  [data-theme='dark-contrast'] .blocklyToolbox {
     background: #000000 !important;
   }
 
-  [data-theme="dark"] .blocklyToolbox {
+  [data-theme='dark'] .blocklyToolbox {
     background: #232323 !important;
   }
 
-  [data-theme="contrast"] .blocklyToolbox {
+  [data-theme='contrast'] .blocklyToolbox {
     background: #1f1f1f !important;
   }
 
@@ -747,7 +712,7 @@ body[data-theme="low-vision"]
     font-size: 14px;
   }
 
-  .blocklyToolbox .blocklyTreeRowContentContainer input[type="search"] {
+  .blocklyToolbox .blocklyTreeRowContentContainer input[type='search'] {
     display: block;
     height: 30px;
     margin: 0;
@@ -755,7 +720,7 @@ body[data-theme="low-vision"]
   }
 
   .blocklyToolbox
-    .blocklyToolboxCategory:has(input[type="search"])
+    .blocklyToolboxCategory:has(input[type='search'])
     > .blocklyTreeRowContentContainer {
     display: block !important;
     position: static !important;
@@ -764,20 +729,43 @@ body[data-theme="low-vision"]
 }
 
 @media (max-width: 768px) {
+  /* Reset Blockly v13's injected container margins */
+  .blocklyToolbox .blocklyToolboxCategoryContainer {
+    margin: 0 !important;
+  }
+
+  /* Suppress keyboard-nav box-shadow on mobile — it doubled with the selection indicator */
+  .blocklyKeyboardNavigation .blocklyToolbox .blocklyActiveFocus > .blocklyToolboxCategory,
+  .blocklyKeyboardNavigation .blocklyToolbox .blocklyToolboxCategory.blocklyActiveFocus {
+    box-shadow: none !important;
+  }
+
+  /* Selection indicator for mobile: left border on the v13 selected class */
+  .blocklyToolbox .blocklyToolboxSelected {
+    border-left: 4px solid var(--color-toolbox-focus) !important;
+  }
+
+  .blocklyToolbox {
+    min-width: 76px;
+  }
+
   /* NORMAL rows: stack icon over label; taps go to the row container */
   .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 44px; /* comfy tap target */
-    padding: 6px 4px;
+    height: auto !important; /* override Blockly v13's injected height: 22px */
+    min-height: 44px;
+    padding: 4px !important; /* !important overrides Blockly v13's inline paddingLeft per level */
+    margin-bottom: 0 !important;
+    border-bottom: 3px solid white;
   }
   .blocklyToolbox .blocklyToolboxCategory > .blocklyTreeRowContentContainer {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     pointer-events: none; /* <-- let taps hit the parent row */
     min-width: 0;
   }
@@ -785,8 +773,8 @@ body[data-theme="low-vision"]
   .blocklyToolbox .customToolboxIcon,
   .blocklyToolbox .blocklyToolboxCategoryIconClosed,
   .blocklyToolbox .blocklyToolboxCategoryIconOpen {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
     display: block;
   }
   .blocklyToolbox .blocklyToolboxCategoryLabel {
@@ -797,20 +785,20 @@ body[data-theme="low-vision"]
   }
 
   /* SEARCH row: make the input usable */
-  .blocklyToolbox .blocklyToolboxCategory:has(input[type="search"]) {
+  .blocklyToolbox .blocklyToolboxCategory:has(input[type='search']) {
     display: block;
-    min-height: 0;
+    min-height: 32px; /* must contain the absolutely-positioned 32px input */
     padding: 6px 8px;
     margin: 0 0 0 0;
   }
   .blocklyToolbox
-    .blocklyToolboxCategory:has(input[type="search"])
+    .blocklyToolboxCategory:has(input[type='search'])
     > .blocklyTreeRowContentContainer {
     display: block;
     position: static;
     /*pointer-events: auto;*/
   }
-  .blocklyToolbox .blocklyToolboxCategory input[type="search"] {
+  .blocklyToolbox .blocklyToolboxCategory input[type='search'] {
     display: block;
     width: 100%;
     height: 32px;
@@ -843,7 +831,7 @@ body[data-theme="low-vision"]
     box-shadow: 0 2px 12px var(--color-shadow);
   }
 
-  .mobile-search-overlay input[type="search"] {
+  .mobile-search-overlay input[type='search'] {
     flex: 1;
     height: 40px;
     font-size: 16px;
@@ -855,7 +843,7 @@ body[data-theme="low-vision"]
     outline: none;
   }
 
-  .mobile-search-overlay input[type="search"]:focus-visible {
+  .mobile-search-overlay input[type='search']:focus-visible {
     outline: 3px solid var(--color-outline-focus);
     outline-offset: 2px;
   }
@@ -933,12 +921,24 @@ body[data-theme="low-vision"]
 }
 
 @keyframes mobile-search-expand {
-  from { transform: translateX(-100%); opacity: 0; }
-  to   { transform: translateX(0);     opacity: 1; }
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 @keyframes mobile-search-collapse {
-  from { transform: translateX(0);     opacity: 1; }
-  to   { transform: translateX(-100%); opacity: 0; }
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
@@ -957,22 +957,14 @@ body[data-theme="low-vision"]
 }
 
 /* Keyboard focus for DROPDOWN fields */
-.blocklyKeyboardNavigation
-  .blocklyActiveFocus.blocklyDropdownField
-  .blocklyDropdownRect,
-.blocklyKeyboardNavigation
-  .blocklyActiveFocus.blocklyFieldDropdown
-  .blocklyDropdownRect,
-.blocklyKeyboardNavigation
-  .blocklyActiveFocus.blocklyEditableText
-  .blocklyDropdownRect {
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyDropdownField .blocklyDropdownRect,
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyFieldDropdown .blocklyDropdownRect,
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyEditableText .blocklyDropdownRect {
   stroke: var(--block-outline-focus) !important;
   stroke-width: 3px !important;
 }
 
-.blocklyKeyboardNavigation
-  .blocklyActiveFocus.blocklyImageField
-  image[style*="cursor: pointer"] {
+.blocklyKeyboardNavigation .blocklyActiveFocus.blocklyImageField image[style*='cursor: pointer'] {
   stroke: var(--block-outline-focus);
   stroke-width: 5px;
 }
@@ -984,23 +976,15 @@ body[data-theme="low-vision"]
 }
 
 /* Passive keyboard focus for DROPDOWN fields */
-.blocklyKeyboardNavigation
-  .blocklyPassiveFocus.blocklyDropdownField
-  .blocklyDropdownRect,
-.blocklyKeyboardNavigation
-  .blocklyPassiveFocus.blocklyFieldDropdown
-  .blocklyDropdownRect,
-.blocklyKeyboardNavigation
-  .blocklyPassiveFocus.blocklyEditableText
-  .blocklyDropdownRect {
+.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyDropdownField .blocklyDropdownRect,
+.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyFieldDropdown .blocklyDropdownRect,
+.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyEditableText .blocklyDropdownRect {
   stroke: var(--color-outline-focus) !important;
   stroke-width: 3px !important;
   stroke-dasharray: 4 2;
 }
 
-.blocklyKeyboardNavigation
-  .blocklyPassiveFocus.blocklyImageField
-  image[style*="cursor: pointer"] {
+.blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyImageField image[style*='cursor: pointer'] {
   stroke: var(--color-outline-focus);
   stroke-width: 5px;
   stroke-dasharray: 4 2; /* Blockly-style short dash */
@@ -1050,35 +1034,29 @@ body[data-theme="low-vision"]
 }
 
 /* NEEDS UPDATING PER THEME: dark theme comment icon color */
-[data-theme="dark"] .blocklyCommentIconPath {
+[data-theme='dark'] .blocklyCommentIconPath {
   fill: #ffff00;
   stroke: #555;
 }
 
-[data-theme="dark"]
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  .blocklyBubbleTail,
-[data-theme="dark"]
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  rect.blocklyDraggable {
+[data-theme='dark'] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
+[data-theme='dark'] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
   fill: #c9b85a !important;
   stroke: #a89940 !important;
   stroke-width: 2px !important;
 }
 
 /* NEEDS UPDATING PER THEME: dark-contrast theme comment icon color */
-[data-theme="dark-contrast"] .blocklyCommentIconPath {
+[data-theme='dark-contrast'] .blocklyCommentIconPath {
   fill: #ffff00;
   stroke: #333;
 }
 
-[data-theme="dark-contrast"]
+[data-theme='dark-contrast']
   .blocklyBubble.blocklyTextInputBubble
   .blocklyEmboss
   .blocklyBubbleTail,
-[data-theme="dark-contrast"]
+[data-theme='dark-contrast']
   .blocklyBubble.blocklyTextInputBubble
   .blocklyEmboss
   rect.blocklyDraggable {
@@ -1088,19 +1066,13 @@ body[data-theme="low-vision"]
 }
 
 /* NEEDS UPDATING PER THEME: contrast theme comment icon color */
-[data-theme="contrast"] .blocklyCommentIconPath {
+[data-theme='contrast'] .blocklyCommentIconPath {
   fill: #ffff00;
   stroke: #333;
 }
 
-[data-theme="contrast"]
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  .blocklyBubbleTail,
-[data-theme="contrast"]
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  rect.blocklyDraggable {
+[data-theme='contrast'] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
+[data-theme='contrast'] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
   fill: #c9b85a !important;
   stroke: #a89940 !important;
   stroke-width: 2px !important;
@@ -1115,20 +1087,20 @@ body[data-theme="low-vision"]
 }
 
 /* XYZ axis input outlines — survive theme changes via CSS */
-[data-xyz-active] > [data-axis="X"] .blocklyPath,
-[data-axis="X"].blocklySelected .blocklyPath {
+[data-xyz-active] > [data-axis='X'] .blocklyPath,
+[data-axis='X'].blocklySelected .blocklyPath {
   stroke: var(--axis-x-color) !important;
   stroke-width: 2px !important;
 }
 
-[data-xyz-active] > [data-axis="Y"] .blocklyPath,
-[data-axis="Y"].blocklySelected .blocklyPath {
+[data-xyz-active] > [data-axis='Y'] .blocklyPath,
+[data-axis='Y'].blocklySelected .blocklyPath {
   stroke: var(--axis-y-color) !important;
   stroke-width: 2px !important;
 }
 
-[data-xyz-active] > [data-axis="Z"] .blocklyPath,
-[data-axis="Z"].blocklySelected .blocklyPath {
+[data-xyz-active] > [data-axis='Z'] .blocklyPath,
+[data-axis='Z'].blocklySelected .blocklyPath {
   stroke: var(--axis-z-color) !important;
   stroke-width: 2px !important;
 }

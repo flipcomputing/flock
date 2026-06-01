@@ -4913,6 +4913,14 @@ export const toolbox = {
   ],
 };
 
+const isMobileToolbox = () => window.matchMedia("(max-width: 768px)").matches;
+const isLightTheme = () => document.body.dataset.theme === "light";
+
+const subcategoryBg = (colour, level) =>
+  isMobileToolbox() && level > 0 && isLightTheme()
+    ? `color-mix(in srgb, ${colour} 60%, white)`
+    : colour;
+
 class IconCategory extends Blockly.ToolboxCategory {
   constructor(categoryDef, toolbox, opt_parent) {
     super(categoryDef, toolbox, opt_parent);
@@ -4927,8 +4935,8 @@ class IconCategory extends Blockly.ToolboxCategory {
     const img = document.createElement("img");
     img.src = this.toolboxItemDef_.icon || "./default_icon.svg"; // Use a default icon if none provided
     img.alt = this.toolboxItemDef_.name + " icon";
-    img.width = "24"; // Adjust as needed
-    img.height = "24"; // Adjust as needed
+    img.width = "30";
+    img.height = "30";
     img.classList.add("customToolboxIcon");
     return img;
   }
@@ -4947,7 +4955,7 @@ class IconCategory extends Blockly.ToolboxCategory {
     if (tabColour) {
       this.rowDiv_.style.setProperty(
         "background-color",
-        tabColour,
+        subcategoryBg(tabColour, this.getLevel()),
         "important",
       );
     }
@@ -4962,11 +4970,11 @@ class IconCategory extends Blockly.ToolboxCategory {
     // Get the category color
     const categoryColour = this.colour_;
 
-    // Change background color when selected/deselected
-    if (!isSelected) {
+    // Always re-apply so Blockly's setSelected can't overwrite our tint
+    if (categoryColour) {
       this.rowDiv_.style.setProperty(
         "background-color",
-        categoryColour,
+        subcategoryBg(categoryColour, this.getLevel()),
         "important",
       );
     }
@@ -5021,8 +5029,8 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
     const img = document.createElement("img");
     img.src = this.originalIcon;
     img.alt = this.toolboxItemDef_.name + " icon";
-    img.width = "24";
-    img.height = "24";
+    img.width = "30";
+    img.height = "30";
     img.classList.add("customToolboxIcon");
     return img;
   }
@@ -5051,11 +5059,11 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
     // Get the category color
     const categoryColour = this.colour_;
 
-    // Change background color when selected/deselected
-    if (!isSelected) {
+    // Always re-apply so Blockly's setSelected can't overwrite our tint
+    if (categoryColour) {
       this.rowDiv_.style.setProperty(
         "background-color",
-        categoryColour,
+        subcategoryBg(categoryColour, this.getLevel()),
         "important",
       );
     }
@@ -5075,7 +5083,7 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
     if (tabColour) {
       this.rowDiv_.style.setProperty(
         "background-color",
-        tabColour,
+        subcategoryBg(tabColour, this.getLevel()),
         "important",
       );
     }
