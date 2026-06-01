@@ -74,6 +74,18 @@ export function setupInput() {
         shortcutsTabPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
       }
       pushUnique(document.querySelector('#info-panel-link'));
+
+      // View toggle in canvas mode — after the logo link, before the resizer
+      const bottomBar = document.getElementById('bottomBar');
+      const inNarrowMode = bottomBar && getComputedStyle(bottomBar).display !== 'none';
+      const codePanel = document.getElementById('codePanel');
+      const inCodeMode = inNarrowMode && codePanel && getComputedStyle(codePanel).display !== 'none';
+      if (inNarrowMode && !inCodeMode) {
+        ['#canvasToggleBtn', '#codeToggleBtn'].forEach((sel) =>
+          pushUnique(document.querySelector(sel))
+        );
+      }
+
       pushUnique(document.querySelector('#resizer'));
 
       // 5) Search inputs (toolbox flyout etc.)
@@ -112,7 +124,9 @@ export function setupInput() {
 
       // 6) Blockly MAIN WORKSPACE
       document
-        .querySelectorAll('.blockly-ws-search input, .blockly-ws-search button, .ws-search-mobile-bar input, .ws-search-mobile-bar button')
+        .querySelectorAll(
+          '.blockly-ws-search input, .blockly-ws-search button, .ws-search-mobile-bar input, .ws-search-mobile-bar button'
+        )
         .forEach(pushUnique);
       const blocklySvg = document.querySelector('svg.blocklySvg');
       const workspaceGroup = blocklySvg?.querySelector('g.blocklyWorkspace');
@@ -145,6 +159,13 @@ export function setupInput() {
       ['#workspaceSearchBtn', '#undoBtn', '#redoBtn', '#zoomOutBtn', '#zoomInBtn'].forEach((sel) =>
         pushUnique(document.querySelector(sel))
       );
+
+      // View toggle in code mode — right after zoomInBtn
+      if (inCodeMode) {
+        ['#canvasToggleBtn', '#codeToggleBtn'].forEach((sel) =>
+          pushUnique(document.querySelector(sel))
+        );
+      }
 
       // 7) Main UI controls (in natural order)
       [

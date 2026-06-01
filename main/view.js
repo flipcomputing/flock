@@ -297,12 +297,7 @@ const codeToggleBtn = document.getElementById("codeToggleBtn");
 
 let savedView = "canvas";
 
-// Function to add the button event listener (narrow screens only)
 function addButtonListener() {
-  // Only add button listener on narrow screens
-  if (!isNarrowScreen()) {
-    return;
-  }
   if (canvasToggleBtn) canvasToggleBtn.addEventListener("click", showCanvasView);
   if (codeToggleBtn) codeToggleBtn.addEventListener("click", showCodeView);
 }
@@ -371,9 +366,6 @@ export function showCanvasView() {
 
 // Updated swipe handling to work with DOM-based switching
 function addSwipeListeners() {
-  if (!isNarrowScreen()) {
-    return;
-  }
   if (!bottomBar) return;
 
   let startX = 0;
@@ -467,6 +459,27 @@ export function initializeUI() {
     }
   }
 }
+
+// Handle transitions between narrow and wide layouts on resize
+window.matchMedia("(max-width: 1024px)").addEventListener("change", (e) => {
+  const blocklyArea = document.getElementById("codePanel");
+  const canvasArea = document.getElementById("canvasArea");
+  if (!blocklyArea || !canvasArea) return;
+
+  if (e.matches) {
+    // Crossed into narrow: set up single-panel view
+    showCanvasView();
+  } else {
+    // Crossed into wide: restore both panels, clear inline styles set by mobile view
+    blocklyArea.style.display = "block";
+    blocklyArea.style.width = "";
+    blocklyArea.style.flex = "";
+    canvasArea.style.display = "";
+    canvasArea.style.width = "";
+    canvasArea.style.flex = "";
+    onResize();
+  }
+});
 
 // Modified toggle function to work with new approach
 function togglePanels() {

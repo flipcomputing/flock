@@ -857,6 +857,7 @@ button {
 
   #viewToggle {
     display: flex;
+    gap: 6px;
     background-color: var(--color-primary);
     border-radius: 999px;
     padding: 4px;
