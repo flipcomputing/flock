@@ -971,6 +971,11 @@ export function initializeWorkspace() {
     cancelBtn.addEventListener('mousedown', (e) => e.preventDefault());
     cancelBtn.addEventListener('click', closeOverlay);
 
+    // Close search overlay if screen resizes above tablet size
+    window.matchMedia('(max-width: 768px)').addEventListener('change', (e) => {
+      if (!e.matches && overlay.isConnected) closeOverlay();
+    });
+
     // Scrolling the results panel should not trigger the blur-close timeout
     resultsPanel.addEventListener(
       'touchstart',

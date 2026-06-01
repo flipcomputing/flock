@@ -848,6 +848,10 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     outline-offset: 2px;
   }
 
+  .mobile-search-overlay input[type='search']::-webkit-search-cancel-button {
+    display: none;
+  }
+
   .mobile-search-cancel {
     flex-shrink: 0;
     background: none;
