@@ -926,10 +926,6 @@ export function initializeWorkspace() {
 
     const attachInputListeners = (input) => {
       input.setAttribute('autocomplete', 'one-time-code');
-      let pointerDownOnSearch = false;
-      input.addEventListener('pointerdown', () => {
-        pointerDownOnSearch = true;
-      });
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -963,9 +959,7 @@ export function initializeWorkspace() {
       input.addEventListener('focus', () => {
         clearTimeout(blurTimeout);
         blurTimeout = null;
-        const fromDirectTap = pointerDownOnSearch;
-        pointerDownOnSearch = false;
-        if (!overlay.isConnected && isMobile() && fromDirectTap) openOverlay();
+        if (!overlay.isConnected && isMobile()) openOverlay();
       });
       input.addEventListener('input', () => {
         if (resultsPanel.isConnected) updateResults();
