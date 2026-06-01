@@ -1137,6 +1137,7 @@ export default {
   toolbox_search_placeholder: "Cerca",
   search_no_matching: "Nessun blocco trovato",
   workspace_search_placeholder: "Trova nell'area",
+  close: "Chiudi",
   code_workspace_focused: "Area di lavoro del codice focalizzata",
   interactive_element_label: "Elemento interattivo",
   panel_resizer_focused:

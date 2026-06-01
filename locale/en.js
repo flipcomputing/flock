@@ -1130,6 +1130,7 @@ export default {
   focused_element_suffix: "{name} focused",
   search_toolbox_focused: "Search toolbox focused",
   workspace_search_placeholder: "Find in workspace",
+  close: "Close",
   toolbox_search_placeholder: "Search",
   search_no_matching: "No matching blocks found",
   code_workspace_focused: "Code workspace focused",

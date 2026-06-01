@@ -112,7 +112,7 @@ export function setupInput() {
 
       // 6) Blockly MAIN WORKSPACE
       document
-        .querySelectorAll('.blockly-ws-search input, .blockly-ws-search button')
+        .querySelectorAll('.blockly-ws-search input, .blockly-ws-search button, .ws-search-mobile-bar input, .ws-search-mobile-bar button')
         .forEach(pushUnique);
       const blocklySvg = document.querySelector('svg.blocklySvg');
       const workspaceGroup = blocklySvg?.querySelector('g.blocklyWorkspace');
@@ -142,7 +142,7 @@ export function setupInput() {
         shortcutsPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
       }
 
-      ['#undoBtn', '#redoBtn', '#zoomOutBtn', '#zoomInBtn'].forEach((sel) =>
+      ['#workspaceSearchBtn', '#undoBtn', '#redoBtn', '#zoomOutBtn', '#zoomInBtn'].forEach((sel) =>
         pushUnique(document.querySelector(sel))
       );
 
@@ -196,7 +196,7 @@ export function setupInput() {
       const activeElement = document.activeElement;
 
       // Let workspace search handle tabs when focussed
-      if (activeElement?.closest?.('.blockly-ws-search')) {
+      if (activeElement?.closest?.('.blockly-ws-search, .ws-search-mobile-bar')) {
         return;
       }
 
