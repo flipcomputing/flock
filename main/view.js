@@ -531,7 +531,7 @@ export function togglePlayMode() {
     blocklyArea.style.display = "block";
     canvasArea.style.display = "";
     gizmoButtons.style.display = "block";
-    bottomBar.style.display = "block";
+    bottomBar.style.display = "";
     flockLink.style.display = "block";
     if (resizer) resizer.style.display = "block";
     document.documentElement.style.setProperty("--dynamic-offset", "65px");
