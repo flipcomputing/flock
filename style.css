@@ -503,7 +503,8 @@ button {
 }
 
 @media (min-width: 769px) {
-  #workspaceSearchBtn {
+  #workspaceSearchBtn,
+  #workspaceSearchBtn + .toolbar-divider {
     display: none;
   }
 }

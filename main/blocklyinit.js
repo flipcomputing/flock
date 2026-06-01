@@ -766,6 +766,7 @@ export function initializeWorkspace() {
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
     cancelBtn.className = 'mobile-search-cancel';
+    cancelBtn.setAttribute('aria-label', translate('close'));
     cancelBtn.textContent = '×';
     overlay.appendChild(cancelBtn);
 
@@ -1034,19 +1035,19 @@ export function initializeWorkspace() {
   const wsMobilePrev = document.createElement('button');
   wsMobilePrev.type = 'button';
   wsMobilePrev.className = 'ws-search-mobile-btn';
-  wsMobilePrev.setAttribute('aria-label', 'Previous match');
+  wsMobilePrev.setAttribute('aria-label', translate('shortcut_select_previous_result'));
   wsMobilePrev.textContent = '▲';
 
   const wsMobileNext = document.createElement('button');
   wsMobileNext.type = 'button';
   wsMobileNext.className = 'ws-search-mobile-btn';
-  wsMobileNext.setAttribute('aria-label', 'Next match');
+  wsMobileNext.setAttribute('aria-label', translate('shortcut_select_next_result'));
   wsMobileNext.textContent = '▼';
 
   const wsMobileClose = document.createElement('button');
   wsMobileClose.type = 'button';
   wsMobileClose.className = 'ws-search-mobile-btn ws-search-mobile-close';
-  wsMobileClose.setAttribute('aria-label', 'Close search');
+  wsMobileClose.setAttribute('aria-label', translate('close'));
   wsMobileClose.textContent = '×';
 
   wsMobileBar.append(wsMobileInput, wsMobileCount, wsMobilePrev, wsMobileNext, wsMobileClose);
