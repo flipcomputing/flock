@@ -821,6 +821,9 @@ function initializeApp() {
     zoomInBtn.addEventListener("click", () => workspace.zoomCenter(1));
   if (zoomOutBtn)
     zoomOutBtn.addEventListener("click", () => workspace.zoomCenter(-1));
+  const workspaceSearchBtn = document.getElementById("workspaceSearchBtn");
+  if (workspaceSearchBtn)
+    workspaceSearchBtn.addEventListener("click", () => window.flockWorkspaceSearch?.open());
   if (undoBtn) undoBtn.addEventListener("click", () => workspace.undo(false));
   if (redoBtn) redoBtn.addEventListener("click", () => workspace.undo(true));
   const shortcutsBtn = document.getElementById("shortcutsBtn");

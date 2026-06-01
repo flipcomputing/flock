@@ -766,6 +766,7 @@ export function initializeWorkspace() {
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
     cancelBtn.className = 'mobile-search-cancel';
+    cancelBtn.setAttribute('aria-label', translate('close'));
     cancelBtn.textContent = '×';
     overlay.appendChild(cancelBtn);
 
@@ -971,7 +972,7 @@ export function initializeWorkspace() {
     cancelBtn.addEventListener('mousedown', (e) => e.preventDefault());
     cancelBtn.addEventListener('click', closeOverlay);
 
-    // Close search overlay if screen resizes above tablet size
+    // Close search overlay if screen resizes above tablet size (768px)
     window.matchMedia('(max-width: 768px)').addEventListener('change', (e) => {
       if (!e.matches && overlay.isConnected) closeOverlay();
     });
@@ -1014,11 +1015,107 @@ export function initializeWorkspace() {
   const blocklyDiv = document.getElementById('blocklyDiv');
   const originalOpen = workspaceSearch.open.bind(workspaceSearch);
   const originalClose = workspaceSearch.close.bind(workspaceSearch);
+
+  // Mobile workspace search bar (≤480px): full-width fixed bar with prev/next
+  const isMobileWS = () => window.matchMedia('(max-width: 768px)').matches;
+
+  const wsMobileBar = document.createElement('div');
+  wsMobileBar.className = 'ws-search-mobile-bar';
+
+  const wsMobileInput = document.createElement('input');
+  wsMobileInput.type = 'text';
+  wsMobileInput.className = 'ws-search-mobile-input';
+  wsMobileInput.placeholder = translate('workspace_search_placeholder');
+  wsMobileInput.setAttribute('autocomplete', 'one-time-code');
+
+  const wsMobileCount = document.createElement('span');
+  wsMobileCount.className = 'ws-search-mobile-count';
+  wsMobileCount.setAttribute('aria-live', 'polite');
+
+  const wsMobilePrev = document.createElement('button');
+  wsMobilePrev.type = 'button';
+  wsMobilePrev.className = 'ws-search-mobile-btn';
+  wsMobilePrev.setAttribute('aria-label', translate('shortcut_select_previous_result'));
+  wsMobilePrev.textContent = '▲';
+
+  const wsMobileNext = document.createElement('button');
+  wsMobileNext.type = 'button';
+  wsMobileNext.className = 'ws-search-mobile-btn';
+  wsMobileNext.setAttribute('aria-label', translate('shortcut_select_next_result'));
+  wsMobileNext.textContent = '▼';
+
+  const wsMobileClose = document.createElement('button');
+  wsMobileClose.type = 'button';
+  wsMobileClose.className = 'ws-search-mobile-btn ws-search-mobile-close';
+  wsMobileClose.setAttribute('aria-label', translate('close'));
+  wsMobileClose.textContent = '×';
+
+  wsMobileBar.append(wsMobileInput, wsMobileCount, wsMobilePrev, wsMobileNext, wsMobileClose);
+
+  const updateWsMobileCount = () => {
+    const total = workspaceSearch.blocks?.length ?? 0;
+    const idx = workspaceSearch.currentBlockIndex ?? -1;
+    wsMobileCount.textContent = wsMobileInput.value.trim()
+      ? total === 0
+        ? '0'
+        : `${idx + 1}/${total}`
+      : '';
+  };
+
+  const originalSetCurrentBlock = workspaceSearch.setCurrentBlock?.bind(workspaceSearch);
+  if (originalSetCurrentBlock) {
+    workspaceSearch.setCurrentBlock = function (index) {
+      originalSetCurrentBlock(index);
+      if (wsMobileBar.isConnected) updateWsMobileCount();
+    };
+  }
+
+  const originalSearchAndHighlight = workspaceSearch.searchAndHighlight.bind(workspaceSearch);
+  workspaceSearch.searchAndHighlight = function (text, preserve) {
+    originalSearchAndHighlight(text, preserve);
+    if (wsMobileBar.isConnected) updateWsMobileCount();
+  };
+
+  wsMobileInput.addEventListener('input', () => {
+    workspaceSearch.searchAndHighlight(
+      wsMobileInput.value.trim(),
+      workspaceSearch.preserveSelected
+    );
+  });
+  wsMobileInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') workspaceSearch.close();
+    else if (e.key === 'Enter') e.shiftKey ? workspaceSearch.previous() : workspaceSearch.next();
+  });
+  wsMobilePrev.addEventListener('mousedown', (e) => e.preventDefault());
+  wsMobilePrev.addEventListener('click', () => workspaceSearch.previous());
+  wsMobileNext.addEventListener('mousedown', (e) => e.preventDefault());
+  wsMobileNext.addEventListener('click', () => workspaceSearch.next());
+  wsMobileClose.addEventListener('mousedown', (e) => e.preventDefault());
+  wsMobileClose.addEventListener('click', () => workspaceSearch.close());
+
+  window.matchMedia('(max-width: 768px)').addEventListener('change', (e) => {
+    if (!e.matches && wsMobileBar.isConnected) workspaceSearch.close();
+  });
+
   workspaceSearch.open = function () {
-    originalOpen();
+    if (isMobileWS()) {
+      document.body.appendChild(wsMobileBar);
+      wsMobileInput.value = workspaceSearch.searchText || '';
+      if (wsMobileInput.value) {
+        workspaceSearch.searchAndHighlight(wsMobileInput.value, workspaceSearch.preserveSelected);
+      }
+      updateWsMobileCount();
+      wsMobileInput.focus();
+    } else {
+      originalOpen();
+    }
     blocklyDiv?.classList.add('blockly-search-active');
   };
   workspaceSearch.close = function () {
+    if (wsMobileBar.isConnected) {
+      wsMobileInput.value = '';
+      wsMobileBar.remove();
+    }
     originalClose();
     blocklyDiv?.classList.remove('blockly-search-active');
   };
@@ -1789,6 +1886,21 @@ export function createBlocklyWorkspace() {
       try {
         registry.unregister(id);
       } catch (_) {}
+    });
+  })();
+
+  // Add "Find in workspace" to the workspace context menu.
+  (function registerWorkspaceSearchContextMenuItem() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const id = 'workspaceFindInWorkspace';
+    if (registry.getItem?.(id)) return;
+    registry.register({
+      id,
+      weight: 50,
+      displayText: () => translate('workspace_search_placeholder'),
+      preconditionFn: () => 'enabled',
+      callback: () => window.flockWorkspaceSearch?.open(),
+      scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
     });
   })();
 

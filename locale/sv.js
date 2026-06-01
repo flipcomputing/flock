@@ -1117,6 +1117,7 @@ export default {
   toolbox_search_placeholder: "Sök",
   search_no_matching: "Inga matchande block hittades",
   workspace_search_placeholder: "Sök i arbetsytan",
+  close: "Stäng",
   code_workspace_focused: "Kodarbetsytan har fokus",
   interactive_element_label: "Interaktivt element",
   panel_resizer_focused:

@@ -502,6 +502,13 @@ button {
   position: relative;
 }
 
+@media (min-width: 769px) {
+  #workspaceSearchBtn,
+  #workspaceSearchBtn + .toolbar-divider {
+    display: none;
+  }
+}
+
 #blocklyZoomControls {
   position: absolute;
   bottom: 0;
