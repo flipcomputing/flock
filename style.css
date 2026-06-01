@@ -884,6 +884,23 @@ button {
     color: var(--color-primary);
   }
 
+  [data-theme='dark'] #bottomBar,
+  [data-theme='dark-contrast'] #bottomBar,
+  [data-theme='contrast'] #bottomBar,
+  [data-theme='low-vision'] #bottomBar,
+  [data-theme='dark'] #viewToggle,
+  [data-theme='dark-contrast'] #viewToggle,
+  [data-theme='contrast'] #viewToggle,
+  [data-theme='low-vision'] #viewToggle {
+    background-color: var(--color-bg);
+  }
+
+  [data-theme='dark'] .view-toggle-btn[aria-pressed='true'],
+  [data-theme='dark-contrast'] .view-toggle-btn[aria-pressed='true'],
+  [data-theme='low-vision'] .view-toggle-btn[aria-pressed='true'] {
+    color: #000;
+  }
+
   #blocklyZoomControls {
     bottom: calc(35px + max(0px, env(safe-area-inset-bottom, 0px)));
   }
