@@ -971,7 +971,7 @@ export function initializeWorkspace() {
     cancelBtn.addEventListener('mousedown', (e) => e.preventDefault());
     cancelBtn.addEventListener('click', closeOverlay);
 
-    // Close search overlay if screen resizes above tablet size
+    // Close search overlay if screen resizes above tablet size (768px)
     window.matchMedia('(max-width: 768px)').addEventListener('change', (e) => {
       if (!e.matches && overlay.isConnected) closeOverlay();
     });
@@ -1076,7 +1076,10 @@ export function initializeWorkspace() {
   };
 
   wsMobileInput.addEventListener('input', () => {
-    workspaceSearch.searchAndHighlight(wsMobileInput.value.trim(), workspaceSearch.preserveSelected);
+    workspaceSearch.searchAndHighlight(
+      wsMobileInput.value.trim(),
+      workspaceSearch.preserveSelected
+    );
   });
   wsMobileInput.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') workspaceSearch.close();
