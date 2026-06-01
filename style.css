@@ -494,12 +494,6 @@ button {
   position: relative;
 }
 
-@media (min-width: 769px) {
-  #workspaceSearchBtn,
-  #workspaceSearchBtn + .toolbar-divider {
-    display: none;
-  }
-}
 
 #blocklyZoomControls {
   position: absolute;
@@ -919,7 +913,7 @@ button {
   }
 
   #blocklyDiv {
-    height: calc(100% - 59px - max(0px, env(safe-area-inset-bottom, 0px))) !important;
+    height: calc(100% - 85px - max(0px, env(safe-area-inset-bottom, 0px))) !important;
   }
 }
 

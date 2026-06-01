@@ -284,6 +284,11 @@ body[data-theme='low-vision'] {
   paint-order: stroke fill;
 }
 
+/* Suppress the Zelos selection glow path when the search outline is already showing */
+#blocklyDiv.blockly-search-active .ws-search-current > path.blocklyPathSelected {
+  display: none;
+}
+
 @media (min-width: 769px) {
   .blocklyTreeRow {
     flex-direction: row;

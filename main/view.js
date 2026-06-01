@@ -296,6 +296,7 @@ const canvasToggleBtn = document.getElementById("canvasToggleBtn");
 const codeToggleBtn = document.getElementById("codeToggleBtn");
 
 let savedView = "canvas";
+let savedShortcutsVisible = false;
 
 function addButtonListener() {
   if (canvasToggleBtn) canvasToggleBtn.addEventListener("click", showCanvasView);
@@ -337,6 +338,8 @@ function showCodeView() {
 }
 
 export function showCanvasView() {
+  window.flockWorkspaceSearch?.close();
+
   const gizmoButtons = document.getElementById("gizmoButtons");
   const flockLink = document.getElementById("flocklink");
   if (!gizmoButtons || !flockLink) return;
@@ -500,6 +503,7 @@ export function togglePlayMode() {
   const gizmoButtons = document.getElementById("gizmoButtons");
   const bottomBar = document.getElementById("bottomBar");
   const flockLink = document.getElementById("flocklink");
+  const infoPanel = document.getElementById("info-panel");
   const resizer = document.getElementById("resizer");
   if (!blocklyArea || !canvasArea || !gizmoButtons || !bottomBar || !flockLink) {
     return;
@@ -520,10 +524,13 @@ export function togglePlayMode() {
 
     showCanvasView();
     if (flock.scene) flock.scene.debugLayer.hide();
+    savedShortcutsVisible = !(window.flockShortcutsPanel?.panel?.classList.contains("hidden") ?? true);
+    window.flockShortcutsPanel?.hide();
     blocklyArea.style.display = "none";
     gizmoButtons.style.display = "none";
     bottomBar.style.display = "none";
     flockLink.style.display = "none";
+    if (infoPanel) infoPanel.style.display = "none";
     if (resizer) resizer.style.display = "none";
     document.documentElement.style.setProperty("--dynamic-offset", "40px");
   } else {
@@ -531,9 +538,14 @@ export function togglePlayMode() {
     blocklyArea.style.display = "block";
     canvasArea.style.display = "";
     gizmoButtons.style.display = "block";
-    bottomBar.style.display = "block";
+    bottomBar.style.display = "";
     flockLink.style.display = "block";
+    if (infoPanel) infoPanel.style.display = "";
     if (resizer) resizer.style.display = "block";
+    if (savedShortcutsVisible) {
+      window.flockShortcutsPanel?.show();
+      savedShortcutsVisible = false;
+    }
     document.documentElement.style.setProperty("--dynamic-offset", "65px");
 
     // On narrow screens, restore the saved view
