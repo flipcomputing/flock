@@ -954,6 +954,80 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   }
 }
 
+@media (max-width: 768px) {
+  .ws-search-mobile-bar::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    height: calc(var(--dynamic-offset, 65px) - 50px);
+    background: var(--color-bg);
+  }
+
+  .ws-search-mobile-bar {
+    position: fixed;
+    top: var(--dynamic-offset, 65px);
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    background: var(--color-bg);
+    box-shadow: 0 2px 12px var(--color-shadow);
+  }
+
+  .ws-search-mobile-input {
+    flex: 1;
+    height: 40px;
+    font-size: 16px;
+    box-sizing: border-box;
+    min-width: 0;
+    border: 1px solid #888;
+    border-radius: 4px;
+    outline: none;
+    padding: 0 8px;
+    color: var(--color-text);
+    background: var(--color-bg);
+  }
+
+  .ws-search-mobile-input:focus-visible {
+    outline: 3px solid var(--color-outline-focus);
+    outline-offset: 2px;
+  }
+
+  .ws-search-mobile-count {
+    font-size: 13px;
+    color: var(--color-text);
+    opacity: 0.7;
+    min-width: 36px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .ws-search-mobile-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--color-text-primary);
+    font-size: 18px;
+    line-height: 1;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .ws-search-mobile-close {
+    font-size: 30px;
+  }
+}
+
 /* Keyboard focus for image BUTTON fields only (e.g. plus/minus/toggle icons) */
 .blocklyKeyboardNavigation .blocklyActiveFocus.blocklyImageField {
   outline: 5px solid var(--block-outline-focus);
