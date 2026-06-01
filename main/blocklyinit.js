@@ -1792,6 +1792,21 @@ export function createBlocklyWorkspace() {
     });
   })();
 
+  // Add "Find in workspace" to the workspace context menu.
+  (function registerWorkspaceSearchContextMenuItem() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const id = 'workspaceFindInWorkspace';
+    if (registry.getItem?.(id)) return;
+    registry.register({
+      id,
+      weight: 50,
+      displayText: () => translate('workspace_search_placeholder'),
+      preconditionFn: () => 'enabled',
+      callback: () => window.flockWorkspaceSearch?.open(),
+      scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
+    });
+  })();
+
   // Register cut/copy/paste at the top of the block context menu (weights 1/2/3).
   (function registerClipboardContextMenuItems() {
     const registry = Blockly.ContextMenuRegistry.registry;
