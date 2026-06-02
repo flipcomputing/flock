@@ -496,6 +496,12 @@ body[data-theme='low-vision'] {
   color: var(--color-menu-item-text) !important;
 }
 
+/* Make blocklyFieldGridContainer the offsetParent for grid items so the
+   keyboard-scroll logic in GridItem.focus() targets the right element. */
+.blocklyFieldGridContainer {
+  position: relative;
+}
+
 /* Ensure key labels in field_grid_dropdown are readable on light dropdowns. */
 .blocklyFieldGrid .blocklyFieldGridItem {
   color: #000000 !important;
@@ -803,7 +809,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     > .blocklyTreeRowContentContainer {
     display: block;
     position: static;
-    /*pointer-events: auto;*/
+    pointer-events: auto !important;
   }
   .blocklyToolbox .blocklyToolboxCategory input[type='search'] {
     display: block;

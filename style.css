@@ -604,7 +604,7 @@ button {
 
 .gizmo-button {
   font-family: 'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif;
-  padding: 5px;
+  padding: 7px;
   font-size: 12px;
   cursor: pointer;
   border-radius: 5px;
@@ -613,6 +613,7 @@ button {
 }
 
 .gizmo-button svg {
+  display: block;
   filter: none; /* light mode: normal */
   width: 20px;
   height: 20px;
@@ -1412,14 +1413,19 @@ body.color-picker-open #renderCanvas {
   fill: var(--color-text-brand);
 }
 
-.menu-item[aria-haspopup='true']::after {
-  content: '▶';
-  color: var(--color-text-brand);
-  font-size: 14px;
+.menu-arrow {
+  display: flex;
+  align-items: center;
   margin-left: auto;
+  color: var(--color-text-brand);
 }
 
-[data-theme='contrast'] .menu-item[aria-haspopup='true']:hover::after {
+.menu-arrow svg {
+  width: 10px;
+  height: 10px;
+}
+
+[data-theme='contrast'] .menu-item[aria-haspopup='true']:hover .menu-arrow {
   color: black;
 }
 
@@ -1660,22 +1666,34 @@ body.color-picker-open #renderCanvas {
 }
 
 /* Styles for keyboard shortcuts panel */
-#shortcuts-table {
+#shortcuts-list {
   font-size: 1.2em;
-  width: 100%;
-  table-layout: fixed;
+  user-select: text;
 }
 
-#shortcuts-table td {
-  padding: 0.5em;
-  vertical-align: top;
-  line-height: 1.5em;
-}
-
-#shortcuts-table th {
+.shortcuts-category {
   text-align: left;
   padding-top: 1em;
   font-size: 1.2em;
+  font-weight: bold;
+  margin: 0;
+}
+
+.shortcuts-group {
+  margin: 0;
+  padding: 0;
+}
+
+.shortcuts-entry {
+  display: grid;
+  grid-template-columns: 33% 1fr;
+}
+
+.shortcuts-entry dt,
+.shortcuts-entry dd {
+  padding: 0.5em;
+  line-height: 1.5em;
+  margin: 0;
 }
 
 kbd {
@@ -1785,7 +1803,7 @@ kbd {
   border-radius: 2px;
 }
 
-#shortcuts-table {
+#shortcuts-list {
   margin-bottom: 1.5em;
 }
 

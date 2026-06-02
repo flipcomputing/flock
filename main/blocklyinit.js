@@ -881,7 +881,7 @@ export function initializeWorkspace() {
           searchCategory.matchBlocks = () => {};
         }
       }
-      searchInput.focus();
+      requestAnimationFrame(() => searchInput.focus());
     };
 
     const collapseOverlay = () => {
@@ -925,6 +925,15 @@ export function initializeWorkspace() {
     };
 
     const attachInputListeners = (input) => {
+      let openRequested = false;
+
+      const requestOpen = () => {
+        openRequested = true;
+        clearTimeout(blurTimeout);
+        blurTimeout = null;
+        if (!overlay.isConnected && isMobile()) openOverlay();
+      };
+
       input.setAttribute('autocomplete', 'one-time-code');
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
@@ -959,8 +968,27 @@ export function initializeWorkspace() {
       input.addEventListener('focus', () => {
         clearTimeout(blurTimeout);
         blurTimeout = null;
-        if (!overlay.isConnected && isMobile()) openOverlay();
+        if (!overlay.isConnected && isMobile() && openRequested) {
+          openRequested = false;
+          openOverlay();
+        } else {
+          openRequested = false;
+        }
       });
+      input.addEventListener('pointerdown', requestOpen);
+      input.addEventListener('mousedown', requestOpen);
+      input.addEventListener('touchstart', requestOpen, { passive: true });
+      input.addEventListener('click', requestOpen);
+
+      const searchRow = input
+        .closest('.blocklyToolboxCategory')
+        ?.querySelector(':scope > .blocklyTreeRowContentContainer');
+      if (searchRow) {
+        searchRow.addEventListener('pointerdown', requestOpen);
+        searchRow.addEventListener('touchstart', requestOpen, { passive: true });
+        searchRow.addEventListener('click', requestOpen);
+      }
+
       input.addEventListener('input', () => {
         if (resultsPanel.isConnected) updateResults();
       });
@@ -1251,8 +1279,12 @@ export function createBlocklyWorkspace() {
   // Manually create a navigation-deferring toolbox
   class NavigationDeferringToolbox extends Blockly.Toolbox {
     #keyboardActive = false;
-    #onKeyDown = () => { this.#keyboardActive = true; };
-    #onPointerDown = () => { this.#keyboardActive = false; };
+    #onKeyDown = () => {
+      this.#keyboardActive = true;
+    };
+    #onPointerDown = () => {
+      this.#keyboardActive = false;
+    };
 
     onKeyDown_() {
       return false; // Defer to keyboard navigation plugin
