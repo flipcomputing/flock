@@ -1921,7 +1921,7 @@ export const flock = {
 
     flock.audioEnginePromise.then((audioEngine) => {
       flock.audioEngine = audioEngine;
-      flock.globalStartTime = flock.getAudioContext().currentTime;
+      flock.globalStartTime = flock.getAudioContext()?.currentTime ?? 0;
       if (flock.scene.activeCamera) {
         audioEngine.listener.attach(flock.scene.activeCamera);
       }

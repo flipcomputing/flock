@@ -47,6 +47,12 @@
       });
     </script>
 
+    <script>
+      if (window.webkitAudioContext && !window.AudioContext) {
+        window.AudioContext = window.webkitAudioContext;
+      }
+    </script>
+
     <!-- Duplicate CSS to prevent flash of unstyled content on load, rest of styles in style.css -->
     <link rel="stylesheet" href="style.css" />
     <style>
