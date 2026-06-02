@@ -31,6 +31,7 @@ import {
   setDefaultCursor,
 } from "./canvas-utils.js";
 import { createAxisKeyboardHandler } from "./axis-keyboard.js";
+import { createGizmoMobileHud } from "./gizmo-mobile-hud.js";
 import { InputManager } from "../main/inputmanager.js";
 import { GizmoMenuManager } from "../accessibility/keyboardui.js";
 export let gizmoManager;
@@ -609,31 +610,30 @@ function startMoveKeyboardHandler(mesh) {
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
   setTimeout(() => {
-    stopAxisKeyboard = createAxisKeyboardHandler({
-      onMove: (dx, dy, dz) => {
-        mesh.position.x += dx;
-        mesh.position.y += dy;
-        mesh.position.z += dz;
-        mesh.computeWorldMatrix(true);
-        const block = meshMap[mesh?.metadata?.blockKey];
-        if (block) {
-          const pos = flock.getBlockPositionFromMesh(mesh);
-          setBlockXYZ(block, pos.x, pos.y, pos.z);
-        }
-      },
-      onConfirm: () => {
-        exitGizmoState();
-        document.getElementById("positionButton")?.focus();
-      },
-      onCancel: () => {
-        exitGizmoState();
-        // Deselect so you get [select mesh] for next tool
-        gizmoManager.attachToMesh(null);
-        document.getElementById("positionButton")?.focus();
-      },
-      stepNormal: DEFAULT_CURSOR,
-      stepFast: FAST_CURSOR,
-    });
+    const onMove = (dx, dy, dz) => {
+      mesh.position.x += dx;
+      mesh.position.y += dy;
+      mesh.position.z += dz;
+      mesh.computeWorldMatrix(true);
+      const block = meshMap[mesh?.metadata?.blockKey];
+      if (block) {
+        const pos = flock.getBlockPositionFromMesh(mesh);
+        setBlockXYZ(block, pos.x, pos.y, pos.z);
+      }
+    };
+    const onConfirm = () => {
+      exitGizmoState();
+      document.getElementById("positionButton")?.focus();
+    };
+    const onCancel = () => {
+      exitGizmoState();
+      // Deselect so you get [select mesh] for next tool
+      gizmoManager.attachToMesh(null);
+      document.getElementById("positionButton")?.focus();
+    };
+    const stopKeyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal: DEFAULT_CURSOR, stepFast: FAST_CURSOR });
+    const stopHud = createGizmoMobileHud({ onMove, stepNormal: DEFAULT_CURSOR, stepFast: FAST_CURSOR, mode: "arrows" });
+    stopAxisKeyboard = () => { stopKeyboard(); stopHud?.(); };
   }, 0);
 }
 
@@ -653,41 +653,40 @@ function startRotateKeyboardHandler(mesh) {
         highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
     }
 
-    stopAxisKeyboard = createAxisKeyboardHandler({
-      onMove: (dx, dy, dz) => {
-        if (!mesh.rotationQuaternion) {
-          mesh.rotationQuaternion = flock.BABYLON.Quaternion.FromEulerAngles(
-            mesh.rotation.x,
-            mesh.rotation.y,
-            mesh.rotation.z,
-          );
-        }
-        const delta = flock.BABYLON.Quaternion.RotationYawPitchRoll(dy, dx, dz);
-        mesh.rotationQuaternion.multiplyInPlace(delta).normalize();
-        if (mesh.physics) {
-          mesh.physics.disablePreStep = false;
-          mesh.physics.setTargetTransform(
-            mesh.absolutePosition,
-            mesh.rotationQuaternion,
-          );
-        }
-        if (rotateBlock) {
-          const rot = getMeshRotationInDegrees(mesh);
-          setBlockXYZ(rotateBlock, rot.x, rot.y, rot.z);
-        }
-      },
-      onConfirm: () => {
-        exitGizmoState();
-        document.getElementById("rotationButton")?.focus();
-      },
-      onCancel: () => {
-        exitGizmoState();
-        gizmoManager.attachToMesh(null);
-        document.getElementById("rotationButton")?.focus();
-      },
-      stepNormal: DEFAULT_ROTATION,
-      stepFast: FAST_ROTATION,
-    });
+    const onMove = (dx, dy, dz) => {
+      if (!mesh.rotationQuaternion) {
+        mesh.rotationQuaternion = flock.BABYLON.Quaternion.FromEulerAngles(
+          mesh.rotation.x,
+          mesh.rotation.y,
+          mesh.rotation.z,
+        );
+      }
+      const delta = flock.BABYLON.Quaternion.RotationYawPitchRoll(dy, dx, dz);
+      mesh.rotationQuaternion.multiplyInPlace(delta).normalize();
+      if (mesh.physics) {
+        mesh.physics.disablePreStep = false;
+        mesh.physics.setTargetTransform(
+          mesh.absolutePosition,
+          mesh.rotationQuaternion,
+        );
+      }
+      if (rotateBlock) {
+        const rot = getMeshRotationInDegrees(mesh);
+        setBlockXYZ(rotateBlock, rot.x, rot.y, rot.z);
+      }
+    };
+    const onConfirm = () => {
+      exitGizmoState();
+      document.getElementById("rotationButton")?.focus();
+    };
+    const onCancel = () => {
+      exitGizmoState();
+      gizmoManager.attachToMesh(null);
+      document.getElementById("rotationButton")?.focus();
+    };
+    const stopKeyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal: DEFAULT_ROTATION, stepFast: FAST_ROTATION });
+    const stopHud = createGizmoMobileHud({ onMove, stepNormal: DEFAULT_ROTATION, stepFast: FAST_ROTATION, mode: "slider" });
+    stopAxisKeyboard = () => { stopKeyboard(); stopHud?.(); };
   }, 0);
 }
 
@@ -710,26 +709,25 @@ function startScaleKeyboardHandler(mesh) {
       }
     }
 
-    stopAxisKeyboard = createAxisKeyboardHandler({
-      onMove: (dx, dy, dz) => {
-        mesh.scaling.x = Math.max(0.01, mesh.scaling.x + dx);
-        mesh.scaling.y = Math.max(0.01, mesh.scaling.y + dy);
-        mesh.scaling.z = Math.max(0.01, mesh.scaling.z + dz);
-        flock.updatePhysics(mesh);
-        updateScaleBlock(mesh);
-      },
-      onConfirm: () => {
-        exitGizmoState();
-        document.getElementById("scaleButton")?.focus();
-      },
-      onCancel: () => {
-        exitGizmoState();
-        gizmoManager.attachToMesh(null);
-        document.getElementById("scaleButton")?.focus();
-      },
-      stepNormal: DEFAULT_SCALE,
-      stepFast: FAST_SCALE,
-    });
+    const onMove = (dx, dy, dz) => {
+      mesh.scaling.x = Math.max(0.01, mesh.scaling.x + dx);
+      mesh.scaling.y = Math.max(0.01, mesh.scaling.y + dy);
+      mesh.scaling.z = Math.max(0.01, mesh.scaling.z + dz);
+      flock.updatePhysics(mesh);
+      updateScaleBlock(mesh);
+    };
+    const onConfirm = () => {
+      exitGizmoState();
+      document.getElementById("scaleButton")?.focus();
+    };
+    const onCancel = () => {
+      exitGizmoState();
+      gizmoManager.attachToMesh(null);
+      document.getElementById("scaleButton")?.focus();
+    };
+    const stopKeyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal: DEFAULT_SCALE, stepFast: FAST_SCALE });
+    const stopHud = createGizmoMobileHud({ onMove, stepNormal: DEFAULT_SCALE, stepFast: FAST_SCALE, mode: "arrows", showUniform: true, stepLabels: ["-", "+"] });
+    stopAxisKeyboard = () => { stopKeyboard(); stopHud?.(); };
   }, 0);
 }
 
