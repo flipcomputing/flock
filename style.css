@@ -1660,22 +1660,34 @@ body.color-picker-open #renderCanvas {
 }
 
 /* Styles for keyboard shortcuts panel */
-#shortcuts-table {
+#shortcuts-list {
   font-size: 1.2em;
-  width: 100%;
-  table-layout: fixed;
+  user-select: text;
 }
 
-#shortcuts-table td {
-  padding: 0.5em;
-  vertical-align: top;
-  line-height: 1.5em;
-}
-
-#shortcuts-table th {
+.shortcuts-category {
   text-align: left;
   padding-top: 1em;
   font-size: 1.2em;
+  font-weight: bold;
+  margin: 0;
+}
+
+.shortcuts-group {
+  margin: 0;
+  padding: 0;
+}
+
+.shortcuts-entry {
+  display: grid;
+  grid-template-columns: 33% 1fr;
+}
+
+.shortcuts-entry dt,
+.shortcuts-entry dd {
+  padding: 0.5em;
+  line-height: 1.5em;
+  margin: 0;
 }
 
 kbd {
@@ -1785,7 +1797,7 @@ kbd {
   border-radius: 2px;
 }
 
-#shortcuts-table {
+#shortcuts-list {
   margin-bottom: 1.5em;
 }
 
