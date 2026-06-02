@@ -710,9 +710,18 @@ function startScaleKeyboardHandler(mesh) {
     }
 
     const onMove = (dx, dy, dz) => {
+      mesh.computeWorldMatrix(true);
+      mesh.refreshBoundingInfo();
+      const bottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+
       mesh.scaling.x = Math.max(0.01, mesh.scaling.x + dx);
       mesh.scaling.y = Math.max(0.01, mesh.scaling.y + dy);
       mesh.scaling.z = Math.max(0.01, mesh.scaling.z + dz);
+
+      mesh.computeWorldMatrix(true);
+      mesh.refreshBoundingInfo();
+      mesh.position.y += bottomY - mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+
       flock.updatePhysics(mesh);
       updateScaleBlock(mesh);
     };
