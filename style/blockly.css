@@ -803,7 +803,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     > .blocklyTreeRowContentContainer {
     display: block;
     position: static;
-    /*pointer-events: auto;*/
+    pointer-events: auto !important;
   }
   .blocklyToolbox .blocklyToolboxCategory input[type='search'] {
     display: block;
