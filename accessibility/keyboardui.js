@@ -231,13 +231,13 @@ const GizmoMenuManager = {
     if (show) {
       this.renderBadges();
 
-      // Check if the Gizmo number shortcut overlay should exit
-      this._watcher = () => {
+      this._watchFocus = () => {
         const ctx = ContextManager.getCurrentContext();
         if (ctx !== "GIZMO" && ctx !== "NAVIGATION") this.toggle(false);
       };
-      document.addEventListener("focusin", this._watcher);
-      document.addEventListener("pointerdown", this._watcher, {
+      this._watchPointer = () => this.toggle(false);
+      document.addEventListener("focusin", this._watchFocus);
+      document.addEventListener("pointerdown", this._watchPointer, {
         capture: true,
       });
 
@@ -251,6 +251,13 @@ const GizmoMenuManager = {
           document.getElementById("showShapesButton");
         if (btn && !btn.disabled && btn.offsetParent !== null) btn.focus();
       }
+    } else {
+      document.removeEventListener("focusin", this._watchFocus);
+      document.removeEventListener("pointerdown", this._watchPointer, {
+        capture: true,
+      });
+      this._watchFocus = null;
+      this._watchPointer = null;
     }
     this.overlay.classList.toggle("hidden", !show);
   },
