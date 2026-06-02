@@ -604,7 +604,7 @@ button {
 
 .gizmo-button {
   font-family: 'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif;
-  padding: 5px;
+  padding: 7px;
   font-size: 12px;
   cursor: pointer;
   border-radius: 5px;
@@ -613,6 +613,7 @@ button {
 }
 
 .gizmo-button svg {
+  display: block;
   filter: none; /* light mode: normal */
   width: 20px;
   height: 20px;
