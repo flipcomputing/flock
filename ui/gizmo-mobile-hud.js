@@ -49,8 +49,11 @@ export function createGizmoMobileHud({
   // ── Layout ────────────────────────────────────────────────────────────────
   const GAP = 6 * s;
   const HALF = canvas.width / 2;
-  const BTN_H = 44 * s;
-  const TOTAL_H = BTN_H + 2 * GAP;
+  const BOTTOM_PADDING = 24 * s;
+  // Cap at the same size as the existing on-screen controls (70 * s),
+  // but shrink if there isn't room for all axis buttons in the right half.
+  const BTN_SIZE = Math.min(70 * s, (HALF - (numAxes + 1) * GAP) / numAxes);
+  const TOTAL_H = BTN_SIZE + 2 * GAP;
 
   // ── Transparent container ─────────────────────────────────────────────────
   const container = new flock.GUI.Rectangle("gizmoHudContainer");
@@ -60,25 +63,25 @@ export function createGizmoMobileHud({
   container.thickness = 0;
   container.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
   container.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+  container.top = `-${BOTTOM_PADDING}px`;
   container.isPointerBlocker = false;
   hudTexture.addControl(container);
 
   // ── Axis buttons (right half, single horizontal row) ──────────────────────
-  const BTN_W = (HALF - (numAxes + 1) * GAP) / numAxes;
-
   const axisButtons = {};
   AXIS_DEFS.forEach(({ key, label, color }, i) => {
     const btn = flock.GUI.Button.CreateSimpleButton(`gizmo-axis-${key}`, label);
-    btn.width = `${BTN_W}px`;
-    btn.height = `${BTN_H}px`;
-    btn.fontSize = `${24 * s}px`;
+    btn.width = `${BTN_SIZE}px`;
+    btn.height = `${BTN_SIZE}px`;
+    btn.fontSize = `${Math.min(40 * s, Math.floor(BTN_SIZE * 0.55))}px`;
     btn.fontFamily = fontFamily;
     btn.cornerRadius = 8 * s;
+    btn.color = "white";
     btn.thickness = 3 * s;
     btn.isPointerBlocker = true;
     btn.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     btn.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-    btn.left = `${HALF + GAP + i * (BTN_W + GAP)}px`;
+    btn.left = `${HALF + GAP + i * (BTN_SIZE + GAP)}px`;
     btn.top = `${GAP}px`;
     container.addControl(btn);
     axisButtons[key] = btn;
@@ -86,9 +89,7 @@ export function createGizmoMobileHud({
 
   function updateAxisButtons() {
     for (const { key, color } of AXIS_DEFS) {
-      const active = axis === key;
-      axisButtons[key].background = active ? color : "rgba(0,0,0,0.45)";
-      axisButtons[key].color = active ? "white" : color;
+      axisButtons[key].background = (axis === key || axis === "all") ? color : "transparent";
     }
   }
   updateAxisButtons();
@@ -111,19 +112,21 @@ export function createGizmoMobileHud({
   const cleanups = [];
 
   if (mode === "arrows") {
-    // ── Arrow buttons (◁ ▷) with tap-and-hold repeat ─────────────────────
-    const ARROW_W = HALF / 2 - GAP * 1.5;
+    // ── Arrow buttons (◁ ▷) — square, centred in left half ───────────────
+    const arrowTotalW = 2 * BTN_SIZE + 3 * GAP;
+    const arrowOffsetX = (HALF - arrowTotalW) / 2;
 
-    function makeArrowButton(label, sign, leftPos) {
+    function makeArrowButton(label, sign, idx) {
+      const leftPos = arrowOffsetX + GAP + idx * (BTN_SIZE + GAP);
       const btn = flock.GUI.Button.CreateSimpleButton(`gizmo-arrow-${sign}`, label);
-      btn.width = `${ARROW_W}px`;
-      btn.height = `${BTN_H}px`;
-      btn.fontSize = `${30 * s}px`;
+      btn.width = `${BTN_SIZE}px`;
+      btn.height = `${BTN_SIZE}px`;
+      btn.fontSize = `${Math.min(40 * s, Math.floor(BTN_SIZE * 0.55))}px`;
       btn.fontFamily = fontFamily;
       btn.cornerRadius = 8 * s;
-      btn.background = "rgba(0,0,0,0.45)";
-      btn.color = "rgba(255,255,255,0.9)";
-      btn.thickness = 0;
+      btn.background = "transparent";
+      btn.color = "white";
+      btn.thickness = 3 * s;
       btn.isPointerBlocker = true;
       btn.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
       btn.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
@@ -172,12 +175,12 @@ export function createGizmoMobileHud({
       cleanups.push(stopRepeat);
     }
 
-    makeArrowButton(stepLabels[0], -1, GAP);
-    makeArrowButton(stepLabels[1], +1, GAP + ARROW_W + GAP);
+    makeArrowButton(stepLabels[0], -1, 0);
+    makeArrowButton(stepLabels[1], +1, 1);
 
   } else {
     // ── Slider (delta-drag) ───────────────────────────────────────────────
-    const THUMB_R = Math.floor(BTN_H / 2) - 2 * s;
+    const THUMB_R = Math.floor(BTN_SIZE / 2) - 2 * s;
     const TRACK_H = 8 * s;
     const SLIDER_MARGIN = THUMB_R + GAP;
     const MAX_OFFSET_GUI = HALF / 2 - SLIDER_MARGIN;
