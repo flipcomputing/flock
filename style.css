@@ -1412,14 +1412,19 @@ body.color-picker-open #renderCanvas {
   fill: var(--color-text-brand);
 }
 
-.menu-item[aria-haspopup='true']::after {
-  content: '▶';
-  color: var(--color-text-brand);
-  font-size: 14px;
+.menu-arrow {
+  display: flex;
+  align-items: center;
   margin-left: auto;
+  color: var(--color-text-brand);
 }
 
-[data-theme='contrast'] .menu-item[aria-haspopup='true']:hover::after {
+.menu-arrow svg {
+  width: 10px;
+  height: 10px;
+}
+
+[data-theme='contrast'] .menu-item[aria-haspopup='true']:hover .menu-arrow {
   color: black;
 }
 
