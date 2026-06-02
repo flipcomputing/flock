@@ -231,6 +231,14 @@ const GizmoMenuManager = {
     if (show) {
       this.renderBadges();
 
+      if (this._watchFocus) {
+        document.removeEventListener("focusin", this._watchFocus);
+      }
+      if (this._watchPointer) {
+        document.removeEventListener("pointerdown", this._watchPointer, {
+          capture: true,
+        });
+      }
       this._watchFocus = () => {
         const ctx = ContextManager.getCurrentContext();
         if (ctx !== "GIZMO" && ctx !== "NAVIGATION") this.toggle(false);
