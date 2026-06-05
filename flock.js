@@ -77,6 +77,7 @@ import {
   recordObjectSayText,
   recordWorldInstructionText,
 } from './accessibility/accessibility.js';
+import { initUIAccessibility, clearUIControls } from './accessibility/uiA11y.js';
 
 export const flock = {
   blockDebug: false,
@@ -1166,6 +1167,7 @@ export const flock = {
     flock.canvas = flock.document.getElementById('renderCanvas');
     // Make canvas focusable for keyboard events
     flock.canvas.tabIndex = -1;
+    initUIAccessibility(flock.canvas);
     //flock.canvas.setAttribute("aria-label", "Flock 3D world canvas");
     flock.scene = null;
     flock.ground = null;
@@ -1760,6 +1762,7 @@ export const flock = {
     flock.scene = new flock.BABYLON.Scene(flock.engine);
 
     //Enable accessibility layer
+    clearUIControls();
     enableSceneDescription(flock.scene, flock.inputManager);
     // Announce "say" and "printText" outputs so NVDA reads Blockly say blocks reliably.
     if (!flock._a11yTextWrapped) {

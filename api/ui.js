@@ -1,5 +1,12 @@
 import { getBoundKeys } from "../input/bindings.js";
 import { JoystickSource } from "../input/joystickSource.js";
+import {
+  registerUIButton,
+  registerUISlider,
+  registerUIInput,
+  registerUIText,
+  unregisterUIControl,
+} from "../accessibility/uiA11y.js";
 
 let flock;
 //let fontFamily = "Asap";
@@ -68,12 +75,20 @@ export const flockUI = {
       Promise.resolve().then(() => textBlock._markAsDirty());
     }
 
+    registerUIText(textBlockId, textBlock.text, {
+      x: adjustedX,
+      y: adjustedY,
+      w: 200,
+      h: Math.max(linePx, px + 4),
+    });
+
     if (duration > 0) {
       setTimeout(() => {
         const ctl = flock.scene.UITexture.getControlByName(textBlockId);
         if (ctl) {
           ctl.dispose();
         }
+        unregisterUIControl(textBlockId);
       }, duration * 1000);
     }
 
@@ -146,6 +161,12 @@ export const flockUI = {
         : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
     flock.scene.UITexture.addControl(button);
+
+    registerUIButton(buttonId, text, button, {
+      x, y,
+      w: parseInt(size.width),
+      h: parseInt(size.height),
+    });
 
     return buttonId;
   },
@@ -237,6 +258,12 @@ export const flockUI = {
     flock.scene.UITexture.addControl(input);
     flock.scene.UITexture.addControl(button);
 
+    const submitX = x < 0 ? x - (parseInt(inputWidth) + spacing) : x + (parseInt(inputWidth) + spacing);
+    registerUIInput(inputId, submitId, input, button,
+      { x, y, w: parseInt(inputWidth), h: parseInt(inputHeight) },
+      { x: submitX, y, w: parseInt(buttonWidth), h: parseInt(inputHeight) },
+    );
+
     if (mode === "START") {
       return inputId;
     }
@@ -323,6 +350,12 @@ export const flockUI = {
     slider.zIndex = 1000;
 
     flock.scene.UITexture.addControl(slider);
+
+    registerUISlider(id, slider, {
+      x, y,
+      w: parseInt(resolvedSize.width),
+      h: parseInt(resolvedSize.height),
+    });
 
     return slider;
   },
