@@ -16,6 +16,9 @@ let announceSeq = 0;
 let lastAnnouncedText = "";
 let lastAnnouncedAt = 0;
 
+// Separate channel for say-block announcements so they don't cancel printText
+let sayAnnounceSeq = 0;
+
 // Helps avoid repeating the same click announcement too many times in a row
 let lastInteractionKey = "";
 let lastInteractionTime = 0;
@@ -71,6 +74,36 @@ export function createLiveRegion() {
     root.appendChild(region);
   }
   return region;
+}
+
+function createSayLiveRegion() {
+  let region = document.getElementById("flock-say-region");
+  if (!region) {
+    const root = createA11yRoot();
+    region = document.createElement("div");
+    region.id = "flock-say-region";
+    region.setAttribute("role", "status");
+    region.setAttribute("aria-live", "polite");
+    region.setAttribute("aria-atomic", "true");
+    root.appendChild(region);
+  }
+  return region;
+}
+
+export function announceObjectSay(text, options = {}) {
+  const resolved = resolveSpokenText(text);
+  const spoken = cleanSpokenAnnouncement(resolved);
+  if (!spoken) return;
+  if (speechMuted && !options.force) return;
+  if (introInProgress || Date.now() < suppressRuntimeTextUntil) return;
+
+  const region = createSayLiveRegion();
+  const mySeq = ++sayAnnounceSeq;
+  region.textContent = "";
+  setTimeout(() => {
+    if (mySeq !== sayAnnounceSeq) return;
+    region.textContent = spoken;
+  }, 20);
 }
 
 export function announce(message, options = {}) {
@@ -298,7 +331,7 @@ export function recordWorldInstructionText(text) {
   }
 }
 
-function getObjectLabel(mesh) {
+export function getObjectLabel(mesh) {
   const md = mesh?.metadata || {};
 
   const explicit = md.a11yLabel || md.label || md.displayName || md.name;
@@ -739,6 +772,7 @@ function getSceneObjects(scene, options = {}) {
     );
 
     const textLabels = collectNearbyTextForObject(scene, p, root);
+    const sayText = getCachedSayTextForMesh(root);
 
     const dedupeKey = `${label.toLowerCase()}|${Math.round(p.x)}|${Math.round(p.y)}|${Math.round(p.z)}`;
     const existing = byEntityName.get(dedupeKey);
@@ -752,6 +786,7 @@ function getSceneObjects(scene, options = {}) {
         interactive,
         interactionHint,
         textLabels,
+        sayText,
         horizontal,
         vertical,
         distanceLabel,
@@ -772,7 +807,9 @@ function objectToSentence(
   const where = [obj.horizontal, obj.vertical].filter(Boolean).join(" and ");
   let sentence = `${obj.label} is ${where || "nearby"}, ${obj.distanceLabel}.`;
 
-  if (includeText && obj.textLabels?.length) {
+  if (includeText && obj.sayText) {
+    sentence += ` ${obj.label} says: ${obj.sayText}.`;
+  } else if (includeText && obj.textLabels?.length) {
     sentence += ` Text: ${obj.textLabels.join(". ")}.`;
   }
 

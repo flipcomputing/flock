@@ -72,7 +72,10 @@ import { getBoundKeys } from './input/bindings.js';
 
 import {
   enableSceneDescription,
+  announce,
   announceSayText,
+  announceObjectSay,
+  getObjectLabel,
   recordObjectPromptText,
   recordObjectSayText,
   recordWorldInstructionText,
@@ -1775,13 +1778,20 @@ export const flock = {
           const targetName = args?.[0];
           const options = args?.[1];
           const text = options && typeof options.text === 'string' ? options.text : '';
+          const rawDuration = options?.duration;
+          const duration = isFinite(Number(rawDuration)) && Number(rawDuration) > 0 ? Number(rawDuration) : 0;
 
           if (text.trim()) {
-            // Keep the first prompt text, e.g. "Click or tap me"
-            recordObjectPromptText(targetName, text);
-
-            // Keep general say text too
-            recordObjectSayText(targetName, text);
+            if (duration > 0) {
+              // Transient say: announce immediately, e.g. "Cat says: Hello!"
+              const mesh = flock.scene?.getMeshByName(targetName);
+              const label = mesh ? getObjectLabel(mesh) : targetName;
+              announceObjectSay(`${label} says: ${text}`);
+            } else {
+              // Persistent say: store for Ctrl+J nearest-object reading
+              recordObjectPromptText(targetName, text);
+              recordObjectSayText(targetName, text);
+            }
           }
 
           return result;
