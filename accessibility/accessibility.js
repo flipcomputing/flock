@@ -341,7 +341,7 @@ function getHorizontalLabel(dot, cross) {
 
   let leftRight = "";
   if (Math.abs(cross) > 0.3) {
-    leftRight = cross > 0 ? "to your right" : "to your left";
+    leftRight = cross > 0 ? "to your left" : "to your right";
   }
 
   if (frontBack === "beside you" && leftRight) return leftRight;
@@ -437,6 +437,21 @@ function getInteractionHint(mesh) {
   );
 
 
+}
+
+function closestBoundingBoxDistance(mesh, point) {
+  try {
+    mesh.computeWorldMatrix?.(true);
+    const bb = mesh.getBoundingInfo?.()?.boundingBox;
+    if (!bb) return null;
+    const cx = Math.max(bb.minimumWorld.x, Math.min(point.x, bb.maximumWorld.x));
+    const cy = Math.max(bb.minimumWorld.y, Math.min(point.y, bb.maximumWorld.y));
+    const cz = Math.max(bb.minimumWorld.z, Math.min(point.z, bb.maximumWorld.z));
+    const dx = cx - point.x, dy = cy - point.y, dz = cz - point.z;
+    return Math.sqrt(dx * dx + dy * dy + dz * dz);
+  } catch (_) {
+    return null;
+  }
 }
 
 function getRepresentativePosition(root, fallbackMesh) {
@@ -647,14 +662,13 @@ function getSceneObjects(scene, options = {}) {
     const horizontal = getHorizontalLabel(dot, cross);
     const vertical = getVerticalLabel(dyCam);
 
-    // Distance wording is relative to the character/player anchor
-    let distFromAnchor = distFromCamera;
-    if (anchor?.position) {
-      const ax = p.x - anchor.position.x;
-      const ay = p.y - anchor.position.y;
-      const az = p.z - anchor.position.z;
-      distFromAnchor = Math.sqrt(ax * ax + ay * ay + az * az);
-    }
+    // Distance wording is relative to the character/player anchor, measured to
+    // the nearest surface of the bounding box so large objects read as close
+    // when you're standing next to them.
+    const anchorPos = anchor?.position;
+    const distFromAnchor = anchorPos
+      ? (closestBoundingBoxDistance(root, anchorPos) ?? distFromCamera)
+      : distFromCamera;
 
     const distanceLabel = getDistanceLabel(distFromAnchor);
 
@@ -947,6 +961,102 @@ export function describeNearestObject(scene) {
   })}`;
 }
 
+export function describeFacingObject(scene) {
+  if (!scene) return "No scene loaded.";
+  const camera = scene?.activeCamera;
+  if (!camera) return "No active camera is available.";
+
+  const cameraPos = camera.globalPosition || camera.position;
+  if (!cameraPos) return "No active camera is available.";
+
+  // Full 3D forward direction from the camera (where the player is looking).
+  let fwdX = 0, fwdY = 0, fwdZ = 1;
+  try {
+    const dir = camera.getForwardRay?.(1)?.direction;
+    if (dir && Number.isFinite(dir.x) && Number.isFinite(dir.y) && Number.isFinite(dir.z)) {
+      const len = Math.sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z) || 1;
+      fwdX = dir.x / len;
+      fwdY = dir.y / len;
+      fwdZ = dir.z / len;
+    }
+  } catch (_) { /* fall through to default forward */ }
+
+  const anchor = getReferenceAnchor(scene);
+
+  // Cast the ray from the player's position when available, not the camera's.
+  // The camera may be offset behind/above in third-person; the player is what moves forward.
+  const rayOrigin = (anchor?.kind === "character" && anchor.position) ? anchor.position : cameraPos;
+
+  // Tube test is XZ-only: the player moves on the ground plane, so vertical offset
+  // (e.g. a tall tree whose bounding-box centre is several metres up) is irrelevant.
+  const fwdXZLen = Math.sqrt(fwdX * fwdX + fwdZ * fwdZ) || 1;
+  const fwdXZ_x = fwdX / fwdXZLen;
+  const fwdXZ_z = fwdZ / fwdXZLen;
+
+  let bestRoot = null;
+  let bestLabel = null;
+  let bestForward = 0;
+  let bestRawDist = Infinity;
+  let bestSigned = 0;
+  let bestScore = Infinity;
+
+  const seen = new Set();
+
+  for (const mesh of scene.meshes || []) {
+    if (!mesh || !mesh.isVisible || !mesh.name) continue;
+    if (looksLikeInternalMeshName(mesh.name)) continue;
+
+    const root = getEntityRoot(mesh);
+    if (!root || !root.isVisible) continue;
+    if (anchor?.mesh && root === anchor.mesh) continue;
+
+    const p = getRepresentativePosition(root, mesh);
+    if (!p) continue;
+
+    const label = getObjectLabel(root);
+    if (isEnvironmentObject(label)) continue;
+
+    const dedupeKey = `${label.toLowerCase()}|${Math.round(p.x)}|${Math.round(p.y)}|${Math.round(p.z)}`;
+    if (seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
+
+    const dx = p.x - rayOrigin.x;
+    const dz = p.z - rayOrigin.z;
+    const distXZ = Math.sqrt(dx * dx + dz * dz);
+    if (distXZ < 0.2) continue;
+
+    const forward = fwdXZ_x * dx + fwdXZ_z * dz;
+    if (forward <= 0) continue;
+
+    // Signed lateral: positive = left, negative = right (Babylon left-handed convention)
+    const signed = fwdXZ_x * dz - fwdXZ_z * dx;
+
+    // Cone check: angle between camera forward and direction to object must be ≤ 45°
+    if (Math.abs(signed) > forward * Math.tan(Math.PI / 4)) continue;
+
+    const score = distXZ + Math.abs(signed);
+    if (score < bestScore) {
+      bestScore = score;
+      bestForward = forward;
+      bestRawDist = distXZ;
+      bestSigned = signed;
+      bestRoot = root;
+      bestLabel = label;
+    }
+  }
+
+  if (!bestLabel) return "Nothing ahead.";
+
+  const reportDist = anchor?.position
+    ? (closestBoundingBoxDistance(bestRoot, anchor.position) ?? bestRawDist)
+    : bestRawDist;
+
+  const dir = Math.abs(bestSigned) < 1.0 ? "Forward"
+            : bestSigned > 0 ? "Left"
+            : "Right";
+  return `${dir}: ${bestLabel}, ${getDistanceLabel(reportDist)}.`;
+}
+
 function describeInitialWorld(scene) {
   const charIntro = describeCharacterIntro(scene);
   const sceneIntro = describeScene(scene);
@@ -964,7 +1074,7 @@ export function getHelpText(scene) {
     : "Use keyboard controls to navigate and interact with objects. Canvas keyboard controls: Arrow keys or WASD to move camera, Mouse to look around, Space for actions, Tab to navigate to other interface elements.";
 
   const ctrlInstructions =
-    " Press Control plus I to hear a scene summary. Press Control plus J to hear the nearest object. Press Control plus H to repeat these instructions.";
+    " Press Control plus I to hear a scene summary. Press Control plus J to hear the nearest object. Press Control plus K to hear the object directly ahead. Press Control plus H to repeat these instructions.";
 
   return `${baseInstructions}${ctrlInstructions}`;
 }
@@ -1270,6 +1380,13 @@ export function enableSceneDescription(scene) {
         e.preventDefault();
         e.stopPropagation();
         announceHelp(currentScene);
+        return;
+      }
+
+      if (key === "k") {
+        e.preventDefault();
+        e.stopPropagation();
+        announce(describeFacingObject(currentScene), { noDedup: true });
       }
     },
     true
