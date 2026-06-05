@@ -4,6 +4,9 @@ import { getPlayerMesh } from "../../accessibility/accessibility.js";
 export function runGetPlayerMeshTests(flock) {
   describe("getPlayerMesh @accessibility @getplayermesh", function () {
     let testMeshes = [];
+    let originalLockedTarget;
+    let originalParent;
+    let originalFollowing;
 
     function makeMesh(name, metadata = {}) {
       const mesh = flock.BABYLON.MeshBuilder.CreateBox(
@@ -17,39 +20,89 @@ export function runGetPlayerMeshTests(flock) {
       return mesh;
     }
 
+    beforeEach(function () {
+      const camera = flock.scene.activeCamera;
+      originalLockedTarget = camera?.lockedTarget ?? undefined;
+      originalParent = camera?.parent ?? undefined;
+      originalFollowing = camera?.metadata?.following ?? undefined;
+    });
+
     afterEach(function () {
+      const camera = flock.scene.activeCamera;
+      if (camera) {
+        if (originalLockedTarget !== undefined) {
+          camera.lockedTarget = originalLockedTarget;
+        } else if ("lockedTarget" in camera) {
+          camera.lockedTarget = null;
+        }
+        camera.parent = originalParent ?? null;
+        if (camera.metadata) {
+          camera.metadata.following = originalFollowing ?? undefined;
+        }
+      }
+
       for (const mesh of testMeshes) {
         if (!mesh.isDisposed()) mesh.dispose();
       }
       testMeshes = [];
     });
 
-    it("returns the mesh tagged metadata.isPlayer === true", function () {
-      const player = makeMesh("_test_a11y_pawn", { isPlayer: true });
-      const result = getPlayerMesh(flock.scene);
-      expect(result).to.equal(player);
+    it("returns the mesh set as camera.lockedTarget", function () {
+      const camera = flock.scene.activeCamera;
+      const player = makeMesh("_test_a11y_locked");
+      camera.lockedTarget = player;
+      expect(getPlayerMesh(flock.scene)).to.equal(player);
     });
 
-    it("returns null when no candidate scores high enough", function () {
-      // A mesh with no player signals: only proximity can contribute (≤30), below threshold (40).
-      makeMesh("_test_a11y_block", {});
-      const result = getPlayerMesh(flock.scene);
-      expect(result).to.be.null;
+    it("returns the mesh set as camera.parent", function () {
+      const camera = flock.scene.activeCamera;
+      const player = makeMesh("_test_a11y_parent");
+      camera.parent = player;
+      expect(getPlayerMesh(flock.scene)).to.equal(player);
     });
 
-    it("getReferenceAnchor and getPlayerMesh agree: the highest-scoring player mesh is returned", function () {
-      // Place two meshes: one with isPlayer signal, one without.
-      // getPlayerMesh should return the tagged one; getReferenceAnchor (which now delegates
-      // to getPlayerMesh) will use the same mesh as its anchor.
-      const player = makeMesh("_test_a11y_agree_p", { isPlayer: true });
-      makeMesh("_test_a11y_agree_other", {});
-
-      // getPlayerMesh returns the player — confirming the shared scoring logic.
+    it("returns the mesh set in camera.metadata.following", function () {
+      const camera = flock.scene.activeCamera;
+      const player = makeMesh("_test_a11y_following");
+      camera.metadata = camera.metadata || {};
+      camera.metadata.following = player;
       expect(getPlayerMesh(flock.scene)).to.equal(player);
+    });
 
-      // Calling getPlayerMesh a second time with the same scene must return the same mesh
-      // (deterministic — no hidden state).
+    it("returns null when no camera attachment and no high-scoring mesh", function () {
+      const camera = flock.scene.activeCamera;
+      if ("lockedTarget" in camera) camera.lockedTarget = null;
+      camera.parent = null;
+      if (camera.metadata) camera.metadata.following = undefined;
+      makeMesh("_test_a11y_block", {}); // no player signals, scores below threshold
+      expect(getPlayerMesh(flock.scene)).to.be.null;
+    });
+
+    it("falls back to heuristic when camera has no attached mesh", function () {
+      const camera = flock.scene.activeCamera;
+      if ("lockedTarget" in camera) camera.lockedTarget = null;
+      camera.parent = null;
+      if (camera.metadata) camera.metadata.following = undefined;
+      const player = makeMesh("_test_a11y_heuristic", { isPlayer: true });
       expect(getPlayerMesh(flock.scene)).to.equal(player);
+    });
+
+    it("prefers camera attachment over heuristic match", function () {
+      const camera = flock.scene.activeCamera;
+      const attached = makeMesh("_test_a11y_attached");
+      const heuristic = makeMesh("_test_a11y_heuristic2", { isPlayer: true });
+      camera.lockedTarget = attached;
+      expect(getPlayerMesh(flock.scene)).to.equal(attached);
+    });
+
+    it("prefers lockedTarget over metadata.following", function () {
+      const camera = flock.scene.activeCamera;
+      const locked = makeMesh("_test_a11y_locked2");
+      const following = makeMesh("_test_a11y_following2");
+      camera.lockedTarget = locked;
+      camera.metadata = camera.metadata || {};
+      camera.metadata.following = following;
+      expect(getPlayerMesh(flock.scene)).to.equal(locked);
     });
   });
 }

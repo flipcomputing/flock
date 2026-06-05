@@ -9,6 +9,7 @@ let keyListenerAttached = false;
 let pointerObserverRef = null;
 let pointerObserverScene = null;
 
+
 // Message sequencing to stop stale/laggy announcements
 let announceSeq = 0;
 let lastAnnouncedText = "";
@@ -451,14 +452,31 @@ function getRepresentativePosition(root, fallbackMesh) {
   return null;
 }
 
-// Minimum score required for a mesh to be identified as the player.
-// Proximity alone contributes at most 30; any explicit player signal adds at least 40.
+// Minimum score required for a mesh to be identified as the player via heuristic.
 const MIN_PLAYER_SCORE = 40;
 
 export function getPlayerMesh(scene) {
   const camera = scene?.activeCamera;
-  const cameraPos = camera?.globalPosition || camera?.position;
+  if (!camera) return null;
 
+  // 1. Camera-attached mesh (highest priority)
+  const locked = camera.lockedTarget;
+  if (locked && typeof locked.name === "string" && !locked.isDisposed?.()) {
+    return locked;
+  }
+
+  const parent = camera.parent;
+  if (parent && typeof parent.name === "string" && !parent.isDisposed?.()) {
+    return parent;
+  }
+
+  const following = camera.metadata?.following;
+  if (following && typeof following.name === "string" && !following.isDisposed?.()) {
+    return following;
+  }
+
+  // 2. Heuristic: score visible meshes by player-like signals
+  const cameraPos = camera.globalPosition || camera.position;
   let bestMesh = null;
   let bestScore = -Infinity;
 
@@ -486,7 +504,7 @@ export function getPlayerMesh(scene) {
     if (label.includes("player")) score += 80;
     if (label.includes("avatar")) score += 70;
     if (label.includes("character")) score += 60;
-    if (label.includes("bird")) score += 40; // starter world uses a bird as the player avatar
+    if (label.includes("bird")) score += 40;
 
     const p = getRepresentativePosition(root, mesh);
     if (p && cameraPos) {
@@ -510,55 +528,12 @@ function getReferenceAnchor(scene) {
   const camera = scene?.activeCamera;
   const cameraPos = camera?.globalPosition || camera?.position;
 
-  const bestCharacter = getPlayerMesh(scene);
-  const characterPos = bestCharacter
-    ? getRepresentativePosition(bestCharacter, bestCharacter)
-    : null;
-
-  if (bestCharacter && characterPos) {
-    return {
-      kind: "character",
-      mesh: bestCharacter,
-      position: characterPos,
-    };
-  }
-
-  // Better fallback: nearest non-environment visible object to the camera
-  let fallbackMesh = null;
-  let fallbackPos = null;
-  let bestFallbackDistance = Infinity;
-
-  for (const mesh of scene?.meshes || []) {
-    if (!mesh || !mesh.isVisible || !mesh.name) continue;
-    if (looksLikeInternalMeshName(mesh.name)) continue;
-
-    const root = getEntityRoot(mesh);
-    if (!root || !root.isVisible) continue;
-
-    const label = getObjectLabel(root).toLowerCase();
-    if (isEnvironmentObject(label)) continue;
-
-    const p = getRepresentativePosition(root, mesh);
-    if (!p || !cameraPos) continue;
-
-    const dx = p.x - cameraPos.x;
-    const dy = p.y - cameraPos.y;
-    const dz = p.z - cameraPos.z;
-    const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-    if (d < bestFallbackDistance) {
-      bestFallbackDistance = d;
-      fallbackMesh = root;
-      fallbackPos = p;
+  const playerMesh = getPlayerMesh(scene);
+  if (playerMesh) {
+    const pos = getRepresentativePosition(playerMesh, playerMesh);
+    if (pos) {
+      return { kind: "character", mesh: playerMesh, position: pos };
     }
-  }
-
-  if (fallbackMesh && fallbackPos) {
-    return {
-      kind: "character",
-      mesh: fallbackMesh,
-      position: fallbackPos
-    };
   }
 
   return {
