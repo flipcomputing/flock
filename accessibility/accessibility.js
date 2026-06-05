@@ -454,6 +454,32 @@ function closestBoundingBoxDistance(mesh, point) {
   }
 }
 
+function isInsideBoundingBox(mesh, point) {
+  try {
+    mesh.computeWorldMatrix?.(true);
+    const bb = mesh.getBoundingInfo?.()?.boundingBox;
+    if (!bb) return false;
+    return point.x > bb.minimumWorld.x && point.x < bb.maximumWorld.x &&
+           point.y > bb.minimumWorld.y && point.y < bb.maximumWorld.y &&
+           point.z > bb.minimumWorld.z && point.z < bb.maximumWorld.z;
+  } catch (_) {
+    return false;
+  }
+}
+
+function isUnderfootOf(mesh, playerPos) {
+  try {
+    mesh.computeWorldMatrix?.(true);
+    const bb = mesh.getBoundingInfo?.()?.boundingBox;
+    if (!bb || bb.maximumWorld.y === bb.minimumWorld.y) return false;
+    const withinXZ = playerPos.x > bb.minimumWorld.x && playerPos.x < bb.maximumWorld.x &&
+                     playerPos.z > bb.minimumWorld.z && playerPos.z < bb.maximumWorld.z;
+    return withinXZ && Math.abs(playerPos.y - bb.maximumWorld.y) < 2.0;
+  } catch (_) {
+    return false;
+  }
+}
+
 function getRepresentativePosition(root, fallbackMesh) {
   const candidates = [root, fallbackMesh];
 
@@ -576,6 +602,16 @@ function getReferenceAnchor(scene) {
 
   const playerMesh = getPlayerMesh(scene);
   if (playerMesh) {
+    try {
+      playerMesh.computeWorldMatrix?.(true);
+      const bb = playerMesh.getBoundingInfo?.()?.boundingBox;
+      if (bb) {
+        // Use feet position (bottom of bounding box) so ground-level objects
+        // measure correctly — using the centre inflates distance to flat surfaces.
+        const pos = { x: bb.centerWorld.x, y: bb.minimumWorld.y, z: bb.centerWorld.z };
+        return { kind: "character", mesh: playerMesh, position: pos };
+      }
+    } catch (_) {}
     const pos = getRepresentativePosition(playerMesh, playerMesh);
     if (pos) {
       return { kind: "character", mesh: playerMesh, position: pos };
@@ -628,6 +664,21 @@ function getSceneObjects(scene, options = {}) {
   const fwd = getCameraForward(scene);
   const anchor = options.anchor || getReferenceAnchor(scene);
 
+  // Pre-pass: find entity roots the player is inside or standing on. Uses individual
+  // mesh bounding boxes (not root) since roots are often TransformNodes with no geometry.
+  const anchorPos = anchor?.position;
+  // Inside check uses camera (head level): standing on a flat garden puts your
+  // head above it, but being inside a hut puts your head inside it.
+  // Underfoot check uses feet (anchorPos) for the same reason.
+  const excludedRoots = new Set();
+  for (const mesh of scene.meshes || []) {
+    if (!mesh || !mesh.isVisible || !mesh.name) continue;
+    if (looksLikeInternalMeshName(mesh.name)) continue;
+    if (isInsideBoundingBox(mesh, cameraPos) || (anchorPos && isUnderfootOf(mesh, anchorPos))) {
+      excludedRoots.add(getEntityRoot(mesh));
+    }
+  }
+
   const byEntityName = new Map();
 
   for (const mesh of scene.meshes || []) {
@@ -636,6 +687,7 @@ function getSceneObjects(scene, options = {}) {
 
     const root = getEntityRoot(mesh);
     if (!root || !root.isVisible) continue;
+    if (excludedRoots.has(root)) continue;
 
     const p = getRepresentativePosition(root, mesh);
     if (!p) continue;
@@ -666,6 +718,10 @@ function getSceneObjects(scene, options = {}) {
     // the nearest surface of the bounding box so large objects read as close
     // when you're standing next to them.
     const anchorPos = anchor?.position;
+
+    // Skip objects the player is inside or standing on — they're acting as
+    // environment from the player's perspective, not things to navigate toward.
+
     const distFromAnchor = anchorPos
       ? (closestBoundingBoxDistance(root, anchorPos) ?? distFromCamera)
       : distFromCamera;
@@ -993,6 +1049,19 @@ export function describeFacingObject(scene) {
   const fwdXZ_x = fwdX / fwdXZLen;
   const fwdXZ_z = fwdZ / fwdXZLen;
 
+  // Build the set of entity roots whose bounding box contains the player.
+  // Objects inside a container the player is NOT in are occluded (e.g. items
+  // inside a hut when the player is standing outside behind it).
+  const playerContainers = new Set();
+  const underfootRoots = new Set();
+  for (const mesh of scene.meshes || []) {
+    if (!mesh.isVisible || !mesh.name || looksLikeInternalMeshName(mesh.name)) continue;
+    const root = getEntityRoot(mesh);
+    if (!root || !root.isVisible) continue;
+    if (isInsideBoundingBox(mesh, cameraPos)) playerContainers.add(root);
+    if (isUnderfootOf(mesh, rayOrigin)) underfootRoots.add(root);
+  }
+
   let bestRoot = null;
   let bestLabel = null;
   let bestForward = 0;
@@ -1009,12 +1078,27 @@ export function describeFacingObject(scene) {
     const root = getEntityRoot(mesh);
     if (!root || !root.isVisible) continue;
     if (anchor?.mesh && root === anchor.mesh) continue;
+    if (underfootRoots.has(root)) continue;
 
     const p = getRepresentativePosition(root, mesh);
     if (!p) continue;
 
     const label = getObjectLabel(root);
     if (isEnvironmentObject(label)) continue;
+
+    // Skip objects inside a container the player is not in (e.g. items in a hut
+    // when the player is outside — they're occluded by the container's walls).
+    let occluded = false;
+    for (const mesh2 of scene.meshes || []) {
+      if (!mesh2.isVisible || !mesh2.name || looksLikeInternalMeshName(mesh2.name)) continue;
+      const container = getEntityRoot(mesh2);
+      if (!container || container === root || playerContainers.has(container)) continue;
+      if (isInsideBoundingBox(container, p) && !isInsideBoundingBox(container, rayOrigin)) {
+        occluded = true;
+        break;
+      }
+    }
+    if (occluded) continue;
 
     const dedupeKey = `${label.toLowerCase()}|${Math.round(p.x)}|${Math.round(p.y)}|${Math.round(p.z)}`;
     if (seen.has(dedupeKey)) continue;
