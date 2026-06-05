@@ -30,6 +30,12 @@ let _currentTarget = null;
 let _actionCallback = null;
 let _inputManager = null;
 
+const _interactListeners = [];
+export const onInteractObservable = {
+  add(cb) { _interactListeners.push(cb); },
+  remove(cb) { const i = _interactListeners.indexOf(cb); if (i >= 0) _interactListeners.splice(i, 1); },
+};
+
 // Single Ray allocated on attach, reused across frames.
 let _ray = null;
 // Second Ray for line-of-sight occlusion check.
@@ -158,6 +164,7 @@ export function attachInteractIndicator(scene, inputManager) {
         ActionManager.OnLeftPickTrigger,
         ActionEvent.CreateNew(target),
       );
+      for (const cb of _interactListeners) cb(target);
     };
     inputManager.onActionDownObservable.add(_actionCallback);
   }

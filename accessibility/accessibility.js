@@ -1,5 +1,6 @@
 // flock/accessibility/accessibility.js
 import { translate } from "../main/translation.js";
+import { onInteractObservable } from "../ui/interactIndicator.js";
 
 let speechMuted = false;
 let currentScene = null;
@@ -18,6 +19,11 @@ let lastAnnouncedAt = 0;
 // Helps avoid repeating the same click announcement too many times in a row
 let lastInteractionKey = "";
 let lastInteractionTime = 0;
+
+// Two persistent assertive regions that alternate so each announce writes to whichever
+// was previously empty — guarantees the reader sees a genuine "" → text change every time.
+let _interactRegions = null;
+let _interactRegionIdx = 0;
 
 // Track whether initial intro has been announced for the current scene
 let lastIntroScene = null;
@@ -68,7 +74,7 @@ export function createLiveRegion() {
 }
 
 export function announce(message, options = {}) {
-  const { force = false } = options;
+  const { force = false, noDedup = false } = options;
   if (speechMuted && !force) return;
 
   const text = String(message ?? "").trim();
@@ -77,9 +83,32 @@ export function announce(message, options = {}) {
   const now = Date.now();
 
   // Tiny dedupe to prevent noisy repeats
-  if (text === lastAnnouncedText && now - lastAnnouncedAt < 2000) return;
+  if (!noDedup && text === lastAnnouncedText && now - lastAnnouncedAt < 2000) return;
   lastAnnouncedText = text;
   lastAnnouncedAt = now;
+
+  if (noDedup) {
+    // Alternate between two pre-registered assertive regions. Each press writes to the
+    // one that was previously empty, so the reader always sees a genuine "" → text change.
+    // Freshly-created assertive elements have a registration delay; pre-registered ones don't.
+    if (!_interactRegions) {
+      const root = createA11yRoot();
+      _interactRegions = [0, 1].map(() => {
+        const el = document.createElement("div");
+        el.setAttribute("aria-live", "assertive");
+        el.setAttribute("aria-atomic", "true");
+        el.style.cssText = "position:absolute;left:-9999px;top:0;width:1px;height:1px;overflow:hidden";
+        root.appendChild(el);
+        return el;
+      });
+    }
+    _interactRegionIdx = 1 - _interactRegionIdx;
+    const next = _interactRegions[_interactRegionIdx];
+    const prev = _interactRegions[1 - _interactRegionIdx];
+    prev.textContent = "";
+    setTimeout(() => { next.textContent = text; }, 0);
+    return;
+  }
 
   const region = createLiveRegion();
   const mySeq = ++announceSeq;
@@ -943,9 +972,10 @@ export function announceHelp(scene) {
   announce(getHelpText(scene));
 }
 
-function announceInteraction(mesh, actionWord = "interacted with") {
+function announceInteraction(mesh, actionWord = "interacted with", options = {}) {
   if (!mesh) return;
 
+  const { noDedup = false } = options;
   const root = getEntityRoot(mesh);
   const label = getObjectLabel(root);
   const hint = getInteractionHint(root);
@@ -957,6 +987,7 @@ function announceInteraction(mesh, actionWord = "interacted with") {
   const now = Date.now();
   const interactionKey = `${actionWord}:${label}:${hint}:${(textLabels || []).join("|")}`;
   if (
+    !noDedup &&
     interactionKey === lastInteractionKey &&
     now - lastInteractionTime < 400
   ) {
@@ -973,7 +1004,35 @@ function announceInteraction(mesh, actionWord = "interacted with") {
     msg += ` ${hint}`;
   }
 
-  announce(msg);
+  announce(msg, options);
+}
+
+function announceMeshAction(mesh, actionWord, options = {}) {
+  const root = getEntityRoot(mesh);
+  const pos = getRepresentativePosition(root, mesh);
+  const label = getObjectLabel(root);
+  const sayText = getCachedSayTextForMesh(root);
+  const promptText = getCachedPromptTextForMesh(root);
+  const textLabels = currentScene
+    ? collectNearbyTextForObject(currentScene, pos, root)
+    : [];
+
+  if (sayText) {
+    announce(`${label} says: ${sayText}`, options);
+    return;
+  }
+
+  if (promptText) {
+    announce(`${label}. ${promptText}`, options);
+    return;
+  }
+
+  if (textLabels.length) {
+    announce(`${label}. ${textLabels.join(". ")}`, options);
+    return;
+  }
+
+  announceInteraction(mesh, actionWord, options);
 }
 
 function attachPointerAnnouncements(scene) {
@@ -982,7 +1041,7 @@ function attachPointerAnnouncements(scene) {
   if (pointerObserverScene && pointerObserverRef) {
     try {
       pointerObserverScene.onPointerObservable.remove(pointerObserverRef);
-    } catch {}
+    } catch { /* observer already removed */ }
     pointerObserverRef = null;
     pointerObserverScene = null;
   }
@@ -1020,36 +1079,17 @@ function attachPointerAnnouncements(scene) {
 
       if (introInProgress || Date.now() < suppressPointerUntil) return;
 
-      const root = getEntityRoot(pickedMesh);
-      const pos = getRepresentativePosition(root, pickedMesh);
-      const label = getObjectLabel(root);
-      const sayText = getCachedSayTextForMesh(root);
-      const promptText = getCachedPromptTextForMesh(root);
-      const textLabels = currentScene
-        ? collectNearbyTextForObject(currentScene, pos, root)
-        : [];
-
-      if (sayText) {
-        announce(`${label} says: ${sayText}`);
-        return;
-      }
-
-      if (promptText) {
-        announce(`${label}. ${promptText}`);
-        return;
-      }
-
-      if (textLabels.length) {
-        announce(`${label}. ${textLabels.join(". ")}`);
-        return;
-      }
-
-      announceInteraction(pickedMesh, "selected");
+      announceMeshAction(pickedMesh, "selected");
     } catch {
       // fail silently
     }
   });
 }
+
+onInteractObservable.add((mesh) => {
+  if (introInProgress || Date.now() < suppressPointerUntil) return;
+  announceMeshAction(mesh, "interacted with", { noDedup: true });
+});
 
 export function recordObjectPromptText(targetName, text) {
   const key = String(targetName || "").trim().toLowerCase();
