@@ -78,6 +78,7 @@ import {
   getObjectLabel,
   recordObjectPromptText,
   recordObjectSayText,
+  setTransientSayText,
   recordWorldInstructionText,
 } from './accessibility/accessibility.js';
 import { initUIAccessibility, clearUIControls } from './accessibility/uiA11y.js';
@@ -1783,10 +1784,11 @@ export const flock = {
 
           if (text.trim()) {
             if (duration > 0) {
-              // Transient say: announce immediately, e.g. "Cat says: Hello!"
+              // Transient say: announce immediately and show in Ctrl+J while visible
               const mesh = flock.scene?.getMeshByName(targetName);
               const label = mesh ? getObjectLabel(mesh) : targetName;
               announceObjectSay(`${label} says: ${text}`);
+              setTransientSayText(targetName, text, duration);
             } else {
               // Persistent say: store for Ctrl+J nearest-object reading
               recordObjectPromptText(targetName, text);

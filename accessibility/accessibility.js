@@ -36,6 +36,8 @@ let suppressPointerUntil = 0;
 let suppressRuntimeTextUntil = 0;
 let objectSayTextCache = new Map();
 let objectPromptTextCache = new Map();
+let objectTransientSayCache = new Map();
+let objectTransientSayTimers = new Map();
 let hasSpokenInitialPageIntro = false;
 let worldInstructionTexts = [];
 
@@ -167,6 +169,8 @@ function looksLikeInternalMeshName(name) {
   return (
     !n ||
     n === "__root__" ||
+    n === "textplane" ||
+    n.startsWith("__flock_") ||
     n.includes("camera") ||
     n.includes("light") ||
     n.includes("highlighter") ||
@@ -609,7 +613,6 @@ export function getPlayerMesh(scene) {
     if (label.includes("player")) score += 80;
     if (label.includes("avatar")) score += 70;
     if (label.includes("character")) score += 60;
-    if (label.includes("bird")) score += 40;
 
     const p = getRepresentativePosition(root, mesh);
     if (p && cameraPos) {
@@ -933,17 +936,60 @@ export function recordObjectSayText(targetName, text) {
   objectSayTextCache.set(key, spoken);
 }
 
-function getCachedSayTextForMesh(mesh) {
-  if (!mesh) return "";
+export function setTransientSayText(targetName, text, duration) {
+  const key = String(targetName || "").trim().toLowerCase();
+  if (!key) return;
 
-  const candidates = [
+  if (objectTransientSayTimers.has(key)) {
+    clearTimeout(objectTransientSayTimers.get(key));
+    objectTransientSayTimers.delete(key);
+  }
+
+  if (!text) {
+    objectTransientSayCache.delete(key);
+    return;
+  }
+
+  const spoken = cleanSpokenAnnouncement(resolveSpokenText(text));
+  if (!spoken) return;
+
+  objectTransientSayCache.set(key, spoken);
+
+  const timerId = setTimeout(() => {
+    objectTransientSayCache.delete(key);
+    objectTransientSayTimers.delete(key);
+  }, duration * 1000);
+  objectTransientSayTimers.set(key, timerId);
+}
+
+function getSayMeshCandidates(mesh) {
+  return [
     mesh?.name,
     getEntityRoot(mesh)?.name,
     getObjectLabel(mesh),
-    getObjectLabel(getEntityRoot(mesh))
+    getObjectLabel(getEntityRoot(mesh)),
   ]
     .map((v) => String(v || "").trim().toLowerCase())
     .filter(Boolean);
+}
+
+function getTransientSayTextForMesh(mesh) {
+  if (!mesh) return "";
+  for (const key of getSayMeshCandidates(mesh)) {
+    const hit = objectTransientSayCache.get(key);
+    if (hit) return hit;
+  }
+  return "";
+}
+
+function getCachedSayTextForMesh(mesh) {
+  if (!mesh) return "";
+  const candidates = getSayMeshCandidates(mesh);
+
+  for (const key of candidates) {
+    const hit = objectTransientSayCache.get(key);
+    if (hit) return hit;
+  }
 
   for (const key of candidates) {
     const hit = objectSayTextCache.get(key);
@@ -1242,19 +1288,16 @@ function announceMeshAction(mesh, actionWord, options = {}) {
   const root = getEntityRoot(mesh);
   const pos = getRepresentativePosition(root, mesh);
   const label = getObjectLabel(root);
-  const sayText = getCachedSayTextForMesh(root);
-  const promptText = getCachedPromptTextForMesh(root);
+  // Only use currently-visible (transient) say text. Persistent say text
+  // is for Ctrl+J discovery; the say block announces its own text when it
+  // fires, so repeating the old text on interaction is confusing.
+  const transientSay = getTransientSayTextForMesh(root);
   const textLabels = currentScene
     ? collectNearbyTextForObject(currentScene, pos, root)
     : [];
 
-  if (sayText) {
-    announce(`${label} says: ${sayText}`, options);
-    return;
-  }
-
-  if (promptText) {
-    announce(`${label}. ${promptText}`, options);
+  if (transientSay) {
+    announce(`${label} says: ${transientSay}`, options);
     return;
   }
 
@@ -1465,6 +1508,9 @@ export function enableSceneDescription(scene, inputManager) {
   if (lastIntroScene !== scene) {
     objectSayTextCache = new Map();
     objectPromptTextCache = new Map();
+    objectTransientSayCache = new Map();
+    for (const id of objectTransientSayTimers.values()) clearTimeout(id);
+    objectTransientSayTimers = new Map();
   }
 
   attachPointerAnnouncements(scene);
