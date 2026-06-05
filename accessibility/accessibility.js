@@ -1326,7 +1326,7 @@ function scheduleInitialIntro(scene) {
   }
 }
 
-export function enableSceneDescription(scene) {
+export function enableSceneDescription(scene, inputManager) {
   currentScene = scene;
   resetWorldInstructionTexts();
   // Ensure live region exists early
@@ -1391,6 +1391,14 @@ export function enableSceneDescription(scene) {
     },
     true
   );
+
+  if (inputManager) {
+    inputManager.onActionDownObservable.add((action) => {
+      if (action === "A11Y_I") announce(describeScene(currentScene));
+      else if (action === "A11Y_J") announce(describeNearestObject(currentScene));
+      else if (action === "A11Y_K") announce(describeFacingObject(currentScene), { noDedup: true });
+    });
+  }
 }
 
 /**

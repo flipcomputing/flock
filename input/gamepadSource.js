@@ -8,6 +8,17 @@ const BUTTON_ACTIONS = {
   3:  { action: 'BUTTON1', extra: ['PageUp'] },
   6:  { action: 'BUTTON2' },
   7:  { action: 'BUTTON2' },
+};
+
+// D-pad (buttons 12-15): use accessibility actions when the gamepad has a left
+// stick (≥4 axes), otherwise fall back to movement for basic controllers.
+const DPAD_A11Y = {
+  12: { action: 'A11Y_I' },
+  14: { action: 'A11Y_J' },
+  13: { action: 'A11Y_K' },
+};
+
+const DPAD_MOVEMENT = {
   12: { action: 'FORWARD' },
   13: { action: 'BACKWARD' },
   14: { action: 'LEFT' },
@@ -119,7 +130,10 @@ export class GamepadSource {
     // Build the set of keys the gamepad wants held this frame.
     const wantedKeys = new Set();
 
-    for (const [index, { action, extra }] of Object.entries(BUTTON_ACTIONS)) {
+    const hasLeftStick = (gamepad.axes?.length ?? 0) >= 4;
+    const effectiveActions = { ...BUTTON_ACTIONS, ...(hasLeftStick ? DPAD_A11Y : DPAD_MOVEMENT) };
+
+    for (const [index, { action, extra }] of Object.entries(effectiveActions)) {
       const button = gamepad.buttons?.[Number(index)];
       if (button?.pressed || button?.value > 0.5) {
         for (const k of this.#inputManager._getActionKeys(action)) wantedKeys.add(k);

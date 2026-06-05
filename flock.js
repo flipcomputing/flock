@@ -1760,7 +1760,7 @@ export const flock = {
     flock.scene = new flock.BABYLON.Scene(flock.engine);
 
     //Enable accessibility layer
-    enableSceneDescription(flock.scene, flock.canvas);
+    enableSceneDescription(flock.scene, flock.inputManager);
     // Announce "say" and "printText" outputs so NVDA reads Blockly say blocks reliably.
     if (!flock._a11yTextWrapped) {
       // Wrap say(text, ...)
