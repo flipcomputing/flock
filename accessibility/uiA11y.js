@@ -2,9 +2,14 @@ let _canvas = null;
 const _twins = new Map(); // id → { elements: HTMLElement[], cleanup: () => void }
 // Off-screen position container — holds invisible but screen-reader-accessible elements
 let _srRoot = null;
+let _canvasTabHandler = null;
 
 export function initUIAccessibility(canvas) {
   if (_canvas === canvas && _srRoot) return;
+  if (_canvas && _canvasTabHandler) {
+    _canvas.removeEventListener('keydown', _canvasTabHandler);
+    _canvasTabHandler = null;
+  }
   _canvas = canvas;
   _srRoot = _createSrRoot();
   _installCanvasTabHandler(canvas);
@@ -33,13 +38,14 @@ function _createSrRoot() {
 
 // Tab from canvas moves into the first shadow control; Shift+Tab goes to the last
 function _installCanvasTabHandler(canvas) {
-  canvas.addEventListener('keydown', (e) => {
+  _canvasTabHandler = (e) => {
     if (e.key !== 'Tab' || e.ctrlKey || e.altKey || e.metaKey) return;
     const focusable = _getFocusableElements();
     if (!focusable.length) return;
     e.preventDefault();
     (e.shiftKey ? focusable[focusable.length - 1] : focusable[0]).focus();
-  });
+  };
+  canvas.addEventListener('keydown', _canvasTabHandler);
 }
 
 function _getFocusableElements() {
@@ -234,6 +240,12 @@ export function registerUIInput(inputId, submitId, babylonInput, babylonSubmit, 
     nextTarget?.focus();
   };
 
+  // Inject a one-time stylesheet so ::placeholder can pick up the reversed colours
+  const _styleId = `flock-input-ph-${inputId}`;
+  const _phStyle = document.createElement('style');
+  _phStyle.id = _styleId;
+  document.head.appendChild(_phStyle);
+
   const _applyStyle = (focused) => {
     const rect = _computeFixedRect(inputPosParams);
     if (!rect) return;
@@ -241,6 +253,9 @@ export function registerUIInput(inputId, submitId, babylonInput, babylonSubmit, 
     const fg   = babylonInput.color        || '#000000';
     const fs   = babylonInput.fontSize     || '16px';
     const border = focused ? '2px solid #005fcc' : '1px solid rgba(128,128,128,0.6)';
+    _phStyle.textContent =
+      `#${_styleId}-el::placeholder { color: ${fg}; opacity: 0.5; }`;
+    htmlInput.id = `${_styleId}-el`;
     htmlInput.style.cssText =
       `position:fixed;left:${rect.left}px;top:${rect.top}px;` +
       `width:${rect.width}px;height:${rect.height}px;` +
@@ -261,7 +276,7 @@ export function registerUIInput(inputId, submitId, babylonInput, babylonSubmit, 
     _applyStyle(false);
   });
 
-  htmlInput.addEventListener('keydown', (e) => {
+  const onInputKeydown = (e) => {
     if (e.ctrlKey || e.altKey || e.metaKey) return;
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -275,7 +290,8 @@ export function registerUIInput(inputId, submitId, babylonInput, babylonSubmit, 
         : (idx < focusable.length - 1 ? focusable[idx + 1] : _canvas)
       )?.focus();
     }
-  });
+  };
+  htmlInput.addEventListener('keydown', onInputKeydown);
 
   const submitBtn = document.createElement('button');
   submitBtn.setAttribute('data-flock-twin', submitId);
@@ -296,9 +312,11 @@ export function registerUIInput(inputId, submitId, babylonInput, babylonSubmit, 
   _twins.set(inputId, {
     elements: [htmlInput, submitBtn, submitIndicator],
     cleanup() {
+      htmlInput.removeEventListener('keydown', onInputKeydown);
       submitBtn.removeEventListener('click', submit);
       submitBtn.removeEventListener('keydown', _onTwinKeydown);
       submitIndicator.remove();
+      _phStyle.remove();
       try { babylonInput.onDisposeObservable.remove(disposeObs); } catch { /* already gone */ }
     },
   });

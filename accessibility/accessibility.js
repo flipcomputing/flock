@@ -1372,6 +1372,7 @@ function scheduleInitialIntro(scene) {
     }
 
     hasSpokenInitialPageIntro = true;
+    document.getElementById('renderCanvas')?.removeAttribute('aria-describedby');
 
     // Finish after the screen reader has had time to get through the intro
     setTimeout(() => {
@@ -1431,6 +1432,7 @@ export function enableSceneDescription(scene, inputManager) {
 
   attachPointerAnnouncements(scene);
   scheduleInitialIntro(scene);
+
 
   if (keyListenerAttached) return;
   keyListenerAttached = true;
