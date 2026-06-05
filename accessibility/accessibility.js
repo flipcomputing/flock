@@ -112,7 +112,9 @@ function looksLikeInternalMeshName(name) {
     n.includes("bounding") ||
     n.includes("debug") ||
     n.includes("hitbox") ||
-    n.includes("collider")
+    n.includes("collider") ||
+    n.includes("armature") ||
+    n.includes("mixamo")
   );
 }
 
