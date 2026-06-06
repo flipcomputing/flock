@@ -250,7 +250,7 @@ export const flockSound = {
     if (meshName === "__everywhere__") {
       const gain = context.createGain();
       gain.connect(context.destination);
-      return scheduleNotes(null, gain, null).then(() => gain.disconnect());
+      return scheduleNotes(null, gain, null).then(() => { try { gain.disconnect(); } catch (e) {} });
     }
 
     return new Promise((resolve) => {
