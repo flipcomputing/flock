@@ -16,6 +16,13 @@ export async function executeCode(options = {}) {
   // Set the flag to indicate the function is running
   isExecuting = true;
 
+  // Abort any still-running previous Compartment and stop its audio immediately.
+  // runCode also aborts, but only after initializeNewScene's async delays — without
+  // this early abort, the old Compartment can slip a playNotes call through during
+  // that gap and create a new audio context that races with the new run.
+  flock.abortController?.abort();
+  flock.stopAllSounds();
+
   // Utility function for delay
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -72,6 +79,7 @@ export async function executeCode(options = {}) {
 }
 
 export function stopCode() {
+  flock.abortController?.abort();
   flock.stopAllSounds();
 
   // Stop rendering

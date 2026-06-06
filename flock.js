@@ -883,14 +883,14 @@ export const flock = {
       initialize: this.initialize?.bind(this),
       createEngine: this.createEngine?.bind(this),
       playAnimation: this.playAnimation?.bind(this),
-      playSound: this.playSound?.bind(this),
+      playSound: guard(this.playSound?.bind(this)),
       stopAllSounds: this.stopAllSounds?.bind(this),
-      playNotes: this.playNotes?.bind(this),
-      playMusic: this.playMusic?.bind(this),
-      setBPM: this.setBPM?.bind(this),
-      setMusicSpeed: this.setMusicSpeed?.bind(this),
+      playNotes: guard(this.playNotes?.bind(this)),
+      playMusic: guard(this.playMusic?.bind(this)),
+      setBPM: guard(this.setBPM?.bind(this)),
+      setMusicSpeed: guard(this.setMusicSpeed?.bind(this)),
       createInstrument: this.createInstrument?.bind(this),
-      speak: this.speak?.bind(this),
+      speak: guard(this.speak?.bind(this)),
       switchAnimation: this.switchAnimation?.bind(this),
       highlight: this.highlight?.bind(this),
       glow: this.glow?.bind(this),
@@ -1688,6 +1688,7 @@ export const flock = {
           }
         }
         flock.audioContext = null;
+        flock._audioStopped = false;
 
         // Clear all references
         flock.events = {};

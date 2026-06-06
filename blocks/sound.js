@@ -235,29 +235,21 @@ export function defineSoundBlocks() {
       this.jsonInit({
         type: "rest",
         message0: translate("rest"),
-        args0: [
-          {
-            type: "input_value",
-            name: "DURATION",
-            check: "Number",
-          },
-        ],
         inputsInline: true,
-        output: "NoteEvent",
+        output: "Number",
         colour: categoryColours["Sound"],
         tooltip: getTooltip("rest"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("sound_blocks");
-      this.getInput("DURATION").setAriaLabelProvider("duration");
     },
   };
 
-  Blockly.Blocks["play_music"] = {
+  Blockly.Blocks["play_tune_notes"] = {
     init: function () {
       this.jsonInit({
-        type: "play_music",
-        message0: translate("play_music"),
+        type: "play_tune_notes",
+        message0: translate("play_tune_notes"),
         args0: [
           {
             type: "input_dummy",
@@ -278,7 +270,7 @@ export function defineSoundBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Sound"],
-        tooltip: getTooltip("play_music"),
+        tooltip: getTooltip("play_tune_notes"),
         extensions: ["dynamic_mesh_dropdown"],
       });
       this.setHelpUrl(getHelpUrlFor(this.type));

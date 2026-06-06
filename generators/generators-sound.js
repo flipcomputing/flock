@@ -111,21 +111,12 @@ export function registerSoundGenerators(javascriptGenerator) {
   };
 
   // Rest --------------------------------------------------------
-  javascriptGenerator.forBlock["rest"] = function (block) {
-    const duration =
-      javascriptGenerator.valueToCode(
-        block,
-        "DURATION",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0.5";
-    return [
-      `{ pitch: null, duration: ${duration} }`,
-      javascriptGenerator.ORDER_ATOMIC,
-    ];
+  javascriptGenerator.forBlock["rest"] = function () {
+    return ["null", javascriptGenerator.ORDER_ATOMIC];
   };
 
   // Play music --------------------------------------------------
-  javascriptGenerator.forBlock["play_music"] = function (block) {
+  javascriptGenerator.forBlock["play_tune_notes"] = function (block) {
     const meshNameField = block.getFieldValue("MESH_NAME");
     const meshName = `"${meshNameField}"`;
 

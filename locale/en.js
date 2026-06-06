@@ -288,8 +288,8 @@ export default {
     "play sound %1 %2 from %3 \nspeed: %4 volume: %5 mode: %6 async: %7",
   stop_all_sounds: "stop all sounds",
   note: "MIDI note %1 %2",
-  rest: "rest %1",
-  play_music: "play tune %1 instrument: %2\nnotes: %3",
+  rest: "rest",
+  play_tune_notes: "play notes %1 instrument: %2\nnotes: %3",
   set_music_speed: "set %1 music speed %2",
   midi_note: "MIDI note %1",
   play_notes:
@@ -583,9 +583,9 @@ export default {
   stop_all_sounds_tooltip:
     "Stop all sounds currently playing in the scene.\nKeyword:nosound",
   note_tooltip: "A musical note with a pitch (MIDI 0–127) and duration in beats.\nKeyword: note",
-  rest_tooltip: "A musical rest (silence) with a duration in beats.\nKeyword: rest",
-  play_music_tooltip:
-    "Play a sequence of notes and rests on an object using the specified instrument.\nKeyword: playmusic",
+  rest_tooltip: "A musical rest (silence). Use as the pitch in a note block.\nKeyword: rest",
+  play_tune_notes_tooltip:
+    "Play a sequence of notes and rests on an object using the specified instrument.\nKeyword: playtunenotes",
   set_music_speed_tooltip:
     "Set the music playback speed multiplier for an object.\nKeyword: musicspeed",
   midi_note_tooltip: "A MIDI note value between 0 and 127.",

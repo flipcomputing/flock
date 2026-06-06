@@ -3280,8 +3280,8 @@ const toolboxSound = {
     },
     {
       kind: "block",
-      type: "play_music",
-      keyword: "playmusic",
+      type: "play_tune_notes",
+      keyword: "playtunenotes",
       inputs: {
         NOTES: {
           block: {
@@ -3351,16 +3351,6 @@ const toolboxSound = {
       kind: "block",
       type: "rest",
       keyword: "rest",
-      inputs: {
-        DURATION: {
-          shadow: {
-            type: "math_number",
-            fields: {
-              NUM: 0.5,
-            },
-          },
-        },
-      },
     },
     {
       kind: "block",
