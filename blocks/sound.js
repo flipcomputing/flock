@@ -201,14 +201,152 @@ export function defineSoundBlocks() {
     },
   };
 
+  Blockly.Blocks["note"] = {
+    init: function () {
+      this.jsonInit({
+        type: "note",
+        message0: translate("note"),
+        args0: [
+          {
+            type: "input_value",
+            name: "PITCH",
+            check: "Number",
+          },
+          {
+            type: "input_value",
+            name: "DURATION",
+            check: "Number",
+          },
+        ],
+        inputsInline: true,
+        output: "NoteEvent",
+        colour: categoryColours["Sound"],
+        tooltip: getTooltip("note"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("sound_blocks");
+      this.getInput("PITCH").setAriaLabelProvider("pitch");
+      this.getInput("DURATION").setAriaLabelProvider("duration");
+    },
+  };
+
   Blockly.Blocks["rest"] = {
     init: function () {
       this.jsonInit({
         type: "rest",
         message0: translate("rest"),
-        output: "Null",
+        args0: [
+          {
+            type: "input_value",
+            name: "DURATION",
+            check: "Number",
+          },
+        ],
+        inputsInline: true,
+        output: "NoteEvent",
         colour: categoryColours["Sound"],
         tooltip: getTooltip("rest"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("sound_blocks");
+      this.getInput("DURATION").setAriaLabelProvider("duration");
+    },
+  };
+
+  Blockly.Blocks["play_music"] = {
+    init: function () {
+      this.jsonInit({
+        type: "play_music",
+        message0: translate("play_music"),
+        args0: [
+          {
+            type: "input_dummy",
+            name: "MESH_INPUT",
+          },
+          {
+            type: "input_value",
+            name: "INSTRUMENT",
+            check: "Instrument",
+          },
+          {
+            type: "input_value",
+            name: "NOTES",
+            check: "Array",
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Sound"],
+        tooltip: getTooltip("play_music"),
+        extensions: ["dynamic_mesh_dropdown"],
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("sound_blocks");
+
+      this.setOnChange(function (changeEvent) {
+        if (this.workspace?.isFlyout) return;
+        if (
+          changeEvent.type !== Blockly.Events.BLOCK_MOVE ||
+          changeEvent.oldParentId !== this.id ||
+          changeEvent.oldInputName !== "NOTES"
+        )
+          return;
+        if (this.getInputTargetBlock("NOTES")) return;
+
+        const ws = this.workspace;
+        const listBlock = Blockly.serialization.blocks.append(
+          {
+            type: "lists_create_with",
+            extraState: { itemCount: 1 },
+            inputs: {
+              ADD0: {
+                block: {
+                  type: "note",
+                  inputs: {
+                    PITCH: {
+                      shadow: { type: "math_number", fields: { NUM: 60 } },
+                    },
+                    DURATION: {
+                      shadow: { type: "math_number", fields: { NUM: 0.5 } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          ws,
+        );
+
+        const notesConn = this.getInput("NOTES")?.connection;
+        if (notesConn && listBlock?.outputConnection)
+          notesConn.connect(listBlock.outputConnection);
+      });
+    },
+  };
+
+  Blockly.Blocks["set_music_speed"] = {
+    init: function () {
+      this.jsonInit({
+        type: "set_music_speed",
+        message0: translate("set_music_speed"),
+        args0: [
+          {
+            type: "input_dummy",
+            name: "MESH_INPUT",
+          },
+          {
+            type: "input_value",
+            name: "SPEED",
+            check: "Number",
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Sound"],
+        tooltip: getTooltip("set_music_speed"),
+        extensions: ["dynamic_mesh_dropdown"],
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("sound_blocks");

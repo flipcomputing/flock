@@ -90,10 +90,75 @@ export function registerSoundGenerators(javascriptGenerator) {
     return [note, javascriptGenerator.ORDER_ATOMIC];
   };
 
+  // Note --------------------------------------------------------
+  javascriptGenerator.forBlock["note"] = function (block) {
+    const pitch =
+      javascriptGenerator.valueToCode(
+        block,
+        "PITCH",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "60";
+    const duration =
+      javascriptGenerator.valueToCode(
+        block,
+        "DURATION",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "0.5";
+    return [
+      `{ pitch: ${pitch}, duration: ${duration} }`,
+      javascriptGenerator.ORDER_ATOMIC,
+    ];
+  };
+
   // Rest --------------------------------------------------------
-  javascriptGenerator.forBlock["rest"] = function () {
-    // Rest is represented as null in sequences
-    return ["null", javascriptGenerator.ORDER_ATOMIC];
+  javascriptGenerator.forBlock["rest"] = function (block) {
+    const duration =
+      javascriptGenerator.valueToCode(
+        block,
+        "DURATION",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "0.5";
+    return [
+      `{ pitch: null, duration: ${duration} }`,
+      javascriptGenerator.ORDER_ATOMIC,
+    ];
+  };
+
+  // Play music --------------------------------------------------
+  javascriptGenerator.forBlock["play_music"] = function (block) {
+    const meshNameField = block.getFieldValue("MESH_NAME");
+    const meshName = `"${meshNameField}"`;
+
+    const notes =
+      javascriptGenerator.valueToCode(
+        block,
+        "NOTES",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "[]";
+
+    const instrument =
+      javascriptGenerator.valueToCode(
+        block,
+        "INSTRUMENT",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || 'createInstrument("sine")';
+
+    return `await playMusic(${meshName}, { notes: ${notes}, instrument: ${instrument} });\n`;
+  };
+
+  // Set music speed ---------------------------------------------
+  javascriptGenerator.forBlock["set_music_speed"] = function (block) {
+    const meshNameField = block.getFieldValue("MESH_NAME");
+    const meshName = `"${meshNameField}"`;
+
+    const speed =
+      javascriptGenerator.valueToCode(
+        block,
+        "SPEED",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "1.0";
+
+    return `setMusicSpeed(${meshName}, ${speed});\n`;
   };
 
   // Play notes --------------------------------------------------

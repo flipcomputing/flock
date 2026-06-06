@@ -166,7 +166,7 @@ export const flockSound = {
     }
     return flock.audioContext;
   },
-  playNotes(
+  async playNotes(
     meshName,
     {
       notes = [],
@@ -174,105 +174,120 @@ export const flockSound = {
       instrument = flock.createInstrument("square"),
     } = {},
   ) {
+    notes = notes.map((note) => (note === "_" ? null : note));
+    durations = durations.map(Number);
+
+    const getBPM = (obj) => obj?.metadata?.bpm || null;
+
+    let context = flock.audioContext;
+    if (!context || context.state === "closed") {
+      try {
+        flock.audioContext = new (window.AudioContext ||
+          window.webkitAudioContext)();
+        context = flock.audioContext;
+      } catch (error) {
+        console.error("Could not create audio context:", error);
+        return;
+      }
+    }
+    if (!context || context.state === "closed") {
+      console.log("Audio context is closed or not available.");
+      return;
+    }
+    if (context.state === "suspended") {
+      try {
+        await context.resume();
+      } catch (error) {
+        console.warn("Could not resume audio context:", error);
+        return;
+      }
+    }
+
+    const scheduleNotes = (mesh, outputNode, observer) => {
+      return new Promise((resolve) => {
+        let bpm =
+          getBPM(mesh) ||
+          getBPM(mesh?.parent) ||
+          getBPM(flock.scene) ||
+          60;
+        bpm = Number(bpm);
+        if (!isFinite(bpm) || bpm <= 0) bpm = 60;
+
+        let offsetTime = 0;
+        for (let i = 0; i < notes.length; i++) {
+          const note = notes[i];
+          let duration = Number(durations[i]);
+          if (!isFinite(duration) || duration <= 0) duration = 1;
+
+          if (note !== null) {
+            flock.playMidiNote(
+              context,
+              { metadata: { panner: outputNode } },
+              note,
+              duration,
+              bpm,
+              context.currentTime + offsetTime,
+              instrument,
+            );
+          }
+
+          offsetTime += flock.durationInSeconds(duration, bpm);
+        }
+
+        setTimeout(
+          () => {
+            if (observer) flock.scene.onBeforeRenderObservable.remove(observer);
+            resolve();
+          },
+          (offsetTime + 1) * 1000,
+        );
+      });
+    };
+
+    if (meshName === "__everywhere__") {
+      const gain = context.createGain();
+      gain.connect(context.destination);
+      return scheduleNotes(null, gain, null);
+    }
+
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
-        notes = notes.map((note) => (note === "_" ? null : note));
-        durations = durations.map(Number);
-
-        const getBPM = (obj) => obj?.metadata?.bpm || null;
-        const getBPMFromMeshOrScene = (mesh, scene) =>
-          getBPM(mesh) || getBPM(mesh?.parent) || getBPM(scene) || 60;
-        let bpm = getBPMFromMeshOrScene(mesh, flock.scene);
-        bpm = Number(bpm);
-        if (!isFinite(bpm) || bpm <= 0) bpm = 60; // default BPM
-
-        let context = flock.audioContext; // Ensure a global audio context
-        if (!context || context.state === "closed") {
-          try {
-            flock.audioContext = new (window.AudioContext ||
-              window.webkitAudioContext)();
-            context = flock.audioContext;
-            
-          } catch (error) {
-            console.error("Could not create audio context:", error);
-            resolve();
-            return;
-          }
-        }
-        if (!context || context.state === "closed") {
-          console.log("Audio context is closed or not available.");
+        if (!mesh?.position) {
+          console.error("Mesh does not have a position property:", mesh);
+          resolve();
           return;
         }
 
-        if (context.state === "suspended") {
-          try {
-            await context.resume();
-          } catch (error) {
-            console.warn("Could not resume audio context:", error);
-            return;
-          }
+        if (!mesh.metadata.panner) {
+          const panner = context.createPanner();
+          mesh.metadata.panner = panner;
+          panner.panningModel = "HRTF";
+          panner.distanceModel = "exponential";
+          panner.refDistance = 1.0;
+          panner.maxDistance = 15;
+          panner.rolloffFactor = 2;
+          panner.connect(context.destination);
         }
-        if (mesh && mesh.position) {
-          // Create the panner node only once if it doesn't exist
-          if (!mesh.metadata.panner) {
-            const panner = context.createPanner();
-            mesh.metadata.panner = panner;
 
-            // Configure the panner for aggressive spatial effects to match playSound behavior
-            panner.panningModel = "HRTF";
-            panner.distanceModel = "exponential"; // More aggressive than linear
-            panner.refDistance = 1.0;
-            panner.maxDistance = 15;
-            panner.rolloffFactor = 1;
-            panner.connect(context.destination);
+        const panner = mesh.metadata.panner;
+
+        const updatePositions = () => {
+          const { x, y, z } = mesh.position;
+          panner.positionX.value = x;
+          panner.positionY.value = y;
+          panner.positionZ.value = z;
+          if (flock.scene.activeCamera) {
+            flockSound.updateListenerPositionAndOrientation(
+              context,
+              flock.scene.activeCamera,
+            );
           }
+        };
+        updatePositions();
+        const observer = flock.scene.onBeforeRenderObservable.add(updatePositions);
 
-          const panner = mesh.metadata.panner; // Reuse the same panner node
-
-          // Continuously update the panner position while notes are playing
-          const observer = flock.scene.onBeforeRenderObservable.add(() => {
-            const { x, y, z } = mesh.position;
-            panner.positionX.value = -x;
-            panner.positionY.value = y;
-            panner.positionZ.value = z;
-          });
-
-          // Iterate over the notes and schedule playback
-          let offsetTime = 0;
-          for (let i = 0; i < notes.length; i++) {
-            const note = notes[i];
-            let duration = Number(durations[i]);
-            if (!isFinite(duration) || duration <= 0) {
-              duration = 1; // default to 1 beat if missing/invalid
-            }
-
-            if (note !== null) {
-              flock.playMidiNote(
-                context,
-                mesh,
-                note,
-                duration,
-                bpm,
-                context.currentTime + offsetTime, // Schedule the note
-                instrument,
-              );
-            }
-
-            offsetTime += flock.durationInSeconds(duration, bpm);
-          }
-
-          // Resolve the promise after the last note has played
-          setTimeout(
-            () => {
-              flock.scene.onBeforeRenderObservable.remove(observer);
-              resolve();
-            },
-            (offsetTime + 1) * 1000,
-          ); // Add a small buffer after the last note finishes
-        } else {
-          console.error("Mesh does not have a position property:", mesh);
-          resolve();
-        }
+        await scheduleNotes(mesh, panner, observer);
+        resolve();
       });
     });
   },
@@ -466,6 +481,63 @@ export const flockSound = {
         }
 
         mesh.metadata.bpm = bpm;
+        resolve();
+      });
+    });
+  },
+  async playMusic(meshName, { notes = [], instrument = null } = {}) {
+    const effectiveInstrument = instrument ?? flock.createInstrument("sine");
+    const pitches = notes.map((n) => n?.pitch ?? null);
+    const baseDurations = notes.map((n) => n?.duration ?? 0.5);
+
+    const getSpeed = (mesh) =>
+      Math.max(
+        0.01,
+        Number(
+          meshName === "__everywhere__"
+            ? flock.scene?.metadata?.musicSpeed
+            : mesh?.metadata?.musicSpeed,
+        ) || 1,
+      );
+
+    const playForMesh = async (mesh) => {
+      const speed = getSpeed(mesh);
+      const durations = baseDurations.map((d) => d / speed);
+      return flockSound.playNotes(meshName, {
+        notes: pitches,
+        durations,
+        instrument: effectiveInstrument,
+      });
+    };
+
+    if (meshName === "__everywhere__") {
+      return playForMesh(null);
+    }
+
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, async (mesh) => {
+        await playForMesh(mesh);
+        resolve();
+      });
+    });
+  },
+  setMusicSpeed(meshName, speed) {
+    const validSpeed = Math.max(0.01, Number(speed) || 1);
+
+    if (meshName === "__everywhere__") {
+      if (!flock.scene.metadata || typeof flock.scene.metadata !== "object") {
+        flock.scene.metadata = {};
+      }
+      flock.scene.metadata.musicSpeed = validSpeed;
+      return;
+    }
+
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, function (mesh) {
+        if (!mesh.metadata || typeof mesh.metadata !== "object") {
+          mesh.metadata = {};
+        }
+        mesh.metadata.musicSpeed = validSpeed;
         resolve();
       });
     });

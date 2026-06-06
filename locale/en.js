@@ -287,8 +287,11 @@ export default {
   play_sound:
     "play sound %1 %2 from %3 \nspeed: %4 volume: %5 mode: %6 async: %7",
   stop_all_sounds: "stop all sounds",
+  note: "MIDI note %1 %2",
+  rest: "rest %1",
+  play_music: "play tune %1 instrument: %2\nnotes: %3",
+  set_music_speed: "set %1 music speed %2",
   midi_note: "MIDI note %1",
-  rest: "rest",
   play_notes:
     "play notes on %1\nnotes: %2 durations: %3\ninstrument: %4 mode: %5",
   set_scene_bpm: "set scene BPM to %1",
@@ -579,8 +582,13 @@ export default {
     "Play the selected sound on an object with adjustable speed, volume, and mode.\nKeyword: sound",
   stop_all_sounds_tooltip:
     "Stop all sounds currently playing in the scene.\nKeyword:nosound",
+  note_tooltip: "A musical note with a pitch (MIDI 0–127) and duration in beats.\nKeyword: note",
+  rest_tooltip: "A musical rest (silence) with a duration in beats.\nKeyword: rest",
+  play_music_tooltip:
+    "Play a sequence of notes and rests on an object using the specified instrument.\nKeyword: playmusic",
+  set_music_speed_tooltip:
+    "Set the music playback speed multiplier for an object.\nKeyword: musicspeed",
   midi_note_tooltip: "A MIDI note value between 0 and 127.",
-  rest_tooltip: "A rest (silence) in a musical sequence.",
   play_notes_tooltip:
     "Play a sequence of MIDI notes and rests with corresponding durations, using object for panning. Can return immediately or after the notes have finished playing.",
   set_scene_bpm_tooltip: "Set the BPM for the entire scene",

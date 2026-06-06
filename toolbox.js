@@ -3265,14 +3265,14 @@ const toolboxSound = {
     },
     {
       kind: "block",
-      type: "midi_note",
-      keyword: "midinote",
+      type: "set_music_speed",
+      keyword: "musicspeed",
       inputs: {
-        NOTE: {
+        SPEED: {
           shadow: {
             type: "math_number",
             fields: {
-              NUM: 60,
+              NUM: 1,
             },
           },
         },
@@ -3280,29 +3280,31 @@ const toolboxSound = {
     },
     {
       kind: "block",
-      type: "rest",
-      keyword: "rest",
-    },
-    {
-      kind: "block",
-      type: "play_notes",
-      keyword: "playnotes",
-      inputsInline: true,
+      type: "play_music",
+      keyword: "playmusic",
       inputs: {
         NOTES: {
-          shadow: {
+          block: {
             type: "lists_create_with",
             extraState: { itemCount: 1 },
             inputs: {
               ADD0: {
-                shadow: {
-                  type: "midi_note",
+                block: {
+                  type: "note",
                   inputs: {
-                    NOTE: {
+                    PITCH: {
                       shadow: {
                         type: "math_number",
                         fields: {
                           NUM: 60,
+                        },
+                      },
+                    },
+                    DURATION: {
+                      shadow: {
+                        type: "math_number",
+                        fields: {
+                          NUM: 0.5,
                         },
                       },
                     },
@@ -3312,25 +3314,8 @@ const toolboxSound = {
             },
           },
         },
-        DURATIONS: {
-          shadow: {
-            type: "lists_create_with",
-            extraState: { itemCount: 1 },
-            inputs: {
-              ADD0: {
-                shadow: {
-                  type: "math_number",
-                  fields: {
-                    NUM: 1,
-                  },
-                },
-              },
-            },
-          },
-        },
         INSTRUMENT: {
           block: {
-            // Real block initially
             type: "instrument",
             fields: {
               INSTRUMENT_TYPE: "default",
@@ -3339,20 +3324,44 @@ const toolboxSound = {
         },
       },
     },
-    /*{
-                        kind: "block",
-                        type: "set_mesh_bpm",
-                        inputs: {
-                                BPM: {
-                                        shadow: {
-                                                type: "math_number",
-                                                fields: {
-                                                        NUM: 60,
-                                                },
-                                        },
-                                },
-                        },
-                },*/
+    {
+      kind: "block",
+      type: "note",
+      keyword: "note",
+      inputs: {
+        PITCH: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 60,
+            },
+          },
+        },
+        DURATION: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 0.5,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: "block",
+      type: "rest",
+      keyword: "rest",
+      inputs: {
+        DURATION: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 0.5,
+            },
+          },
+        },
+      },
+    },
     {
       kind: "block",
       type: "instrument",
