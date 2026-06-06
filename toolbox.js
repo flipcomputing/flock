@@ -3290,21 +3290,82 @@ const toolboxSound = {
             inputs: {
               ADD0: {
                 block: {
-                  type: "note",
+                  type: "lists_create_with",
+                  extraState: { itemCount: 4 },
+                  inline: true,
                   inputs: {
-                    PITCH: {
-                      shadow: {
-                        type: "math_number",
-                        fields: {
-                          NUM: 60,
+                    ADD0: {
+                      block: {
+                        type: "note",
+                        inputs: {
+                          PITCH: {
+                            shadow: {
+                              type: "math_number",
+                              fields: { NUM: 60 },
+                            },
+                          },
+                          DURATION: {
+                            shadow: {
+                              type: "math_number",
+                              fields: { NUM: 0.5 },
+                            },
+                          },
                         },
                       },
                     },
-                    DURATION: {
-                      shadow: {
-                        type: "math_number",
-                        fields: {
-                          NUM: 0.5,
+                    ADD1: {
+                      block: {
+                        type: "note",
+                        inputs: {
+                          PITCH: {
+                            shadow: {
+                              type: "math_number",
+                              fields: { NUM: 64 },
+                            },
+                          },
+                          DURATION: {
+                            shadow: {
+                              type: "math_number",
+                              fields: { NUM: 0.5 },
+                            },
+                          },
+                        },
+                      },
+                    },
+                    ADD2: {
+                      block: {
+                        type: "note",
+                        inputs: {
+                          PITCH: {
+                            shadow: {
+                              type: "math_number",
+                              fields: { NUM: 67 },
+                            },
+                          },
+                          DURATION: {
+                            shadow: {
+                              type: "math_number",
+                              fields: { NUM: 0.5 },
+                            },
+                          },
+                        },
+                      },
+                    },
+                    ADD3: {
+                      block: {
+                        type: "note",
+                        inputs: {
+                          PITCH: {
+                            block: {
+                              type: "rest",
+                            },
+                          },
+                          DURATION: {
+                            shadow: {
+                              type: "math_number",
+                              fields: { NUM: 0.5 },
+                            },
+                          },
                         },
                       },
                     },

@@ -278,8 +278,19 @@ export function defineSoundBlocks() {
 
       this.setOnChange(function (changeEvent) {
         if (this.workspace?.isFlyout) return;
+        if (changeEvent.type !== Blockly.Events.BLOCK_MOVE) return;
+
+        // When a bar (inner list) is connected to the outer tune list, make it inline.
+        const outerList = this.getInputTargetBlock("NOTES");
+        if (outerList && changeEvent.newParentId === outerList.id) {
+          const movedBlock = this.workspace.getBlockById(changeEvent.blockId);
+          if (movedBlock?.type === "lists_create_with") {
+            movedBlock.setInputsInline(true);
+          }
+        }
+
+        // Restore the default bar structure when NOTES is disconnected.
         if (
-          changeEvent.type !== Blockly.Events.BLOCK_MOVE ||
           changeEvent.oldParentId !== this.id ||
           changeEvent.oldInputName !== "NOTES"
         )
@@ -294,13 +305,22 @@ export function defineSoundBlocks() {
             inputs: {
               ADD0: {
                 block: {
-                  type: "note",
+                  type: "lists_create_with",
+                  extraState: { itemCount: 1 },
+                  inline: true,
                   inputs: {
-                    PITCH: {
-                      shadow: { type: "math_number", fields: { NUM: 60 } },
-                    },
-                    DURATION: {
-                      shadow: { type: "math_number", fields: { NUM: 0.5 } },
+                    ADD0: {
+                      block: {
+                        type: "note",
+                        inputs: {
+                          PITCH: {
+                            shadow: { type: "math_number", fields: { NUM: 60 } },
+                          },
+                          DURATION: {
+                            shadow: { type: "math_number", fields: { NUM: 0.5 } },
+                          },
+                        },
+                      },
                     },
                   },
                 },

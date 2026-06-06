@@ -298,7 +298,7 @@ export const flockSound = {
           }
           const panner = context.createPanner();
           mesh.metadata.panner = panner;
-          panner.panningModel = "HRTF";
+          panner.panningModel = "equalpower";
           panner.distanceModel = "linear";
           panner.refDistance = 1;
           panner.maxDistance = 20;
@@ -530,8 +530,12 @@ export const flockSound = {
   },
   async playMusic(meshName, { notes = [], instrument = null } = {}) {
     const effectiveInstrument = instrument ?? flock.createInstrument("sine");
-    const pitches = notes.map((n) => n?.pitch ?? null);
-    const baseDurations = notes.map((n) => n?.duration ?? 0.5);
+    const flatNotes =
+      notes.length > 0 && Array.isArray(notes[0])
+        ? notes.flat()
+        : notes;
+    const pitches = flatNotes.map((n) => n?.pitch ?? null);
+    const baseDurations = flatNotes.map((n) => n?.duration ?? 0.5);
 
     const getSpeed = (mesh) =>
       Math.max(
