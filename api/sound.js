@@ -250,7 +250,7 @@ export const flockSound = {
     if (meshName === "__everywhere__") {
       const gain = context.createGain();
       gain.connect(context.destination);
-      return scheduleNotes(null, gain, null);
+      return scheduleNotes(null, gain, null).then(() => gain.disconnect());
     }
 
     return new Promise((resolve) => {
@@ -261,7 +261,10 @@ export const flockSound = {
           return;
         }
 
-        if (!mesh.metadata.panner) {
+        if (!mesh.metadata.panner || mesh.metadata.panner.context !== context) {
+          if (mesh.metadata.panner) {
+            try { mesh.metadata.panner.disconnect(); } catch (e) {}
+          }
           const panner = context.createPanner();
           mesh.metadata.panner = panner;
           panner.panningModel = "HRTF";
@@ -348,9 +351,9 @@ export const flockSound = {
     }
 
     // Connect the oscillator to the gain node and panner
+    // (panner is already connected to destination by the caller)
     osc.connect(gainNode);
     gainNode.connect(panner);
-    panner.connect(context.destination);
 
     const gap = Math.min(0.05, (60 / bpm) * 0.05); // Slightly larger gap
 
@@ -397,6 +400,7 @@ export const flockSound = {
     };
 
     // Fallback clean-up in case osc.onended is not triggered
+    const cleanupDelay = Math.max(100, (stopTime - context.currentTime + 0.5) * 1000);
     setTimeout(
       () => {
         osc.disconnect();
@@ -404,7 +408,7 @@ export const flockSound = {
         if (lfo) lfo.disconnect();
         if (lfoGain) lfoGain.disconnect();
       },
-      (playTime + duration) * 1000,
+      cleanupDelay,
     );
   },
   midiToFrequency(note) {
