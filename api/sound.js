@@ -9,6 +9,9 @@ export const flockSound = {
     meshName,
     { soundName, loop = false, volume = 1, playbackRate = 1 } = {},
   ) {
+    if (!flock.audioEngine && flock.audioEnginePromise) {
+      await flock.audioEnginePromise.catch(() => {});
+    }
     if (!flock.audioEngine) return;
     volume = Number.isFinite(Number(volume)) ? Math.max(0, Math.min(1, Number(volume))) : 1;
     playbackRate = Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0 ? Number(playbackRate) : 1;
@@ -262,10 +265,10 @@ export const flockSound = {
           const panner = context.createPanner();
           mesh.metadata.panner = panner;
           panner.panningModel = "HRTF";
-          panner.distanceModel = "exponential";
-          panner.refDistance = 1.0;
-          panner.maxDistance = 15;
-          panner.rolloffFactor = 2;
+          panner.distanceModel = "linear";
+          panner.refDistance = 1;
+          panner.maxDistance = 10;
+          panner.rolloffFactor = 1;
           panner.connect(context.destination);
         }
 
