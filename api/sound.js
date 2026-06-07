@@ -4,147 +4,220 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+// --- Native Web Audio helpers for playSound ---
+
+const soundBufferCache = new Map(); // soundUrl → Promise<AudioBuffer>
+
+async function loadAudioBuffer(url, context) {
+  if (!soundBufferCache.has(url)) {
+    soundBufferCache.set(
+      url,
+      fetch(url)
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status} fetching ${url}`);
+          return r.arrayBuffer();
+        })
+        .then((ab) => context.decodeAudioData(ab))
+        .catch((err) => {
+          soundBufferCache.delete(url);
+          throw err;
+        }),
+    );
+  }
+  return soundBufferCache.get(url);
+}
+
+function playBufferEverywhere(context, buffer, soundName, { loop, volume, playbackRate }) {
+  const gainNode = context.createGain();
+  gainNode.gain.value = volume;
+  gainNode.connect(context.destination);
+
+  const source = context.createBufferSource();
+  source.buffer = buffer;
+  source.playbackRate.value = playbackRate;
+  source.loop = loop;
+  source.connect(gainNode);
+
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    try { source.stop(); } catch {}
+    try { gainNode.disconnect(); } catch {}
+    const idx = flock.globalSounds.indexOf(soundRef);
+    if (idx !== -1) flock.globalSounds.splice(idx, 1);
+  };
+
+  const soundRef = {
+    name: soundName,
+    stop() {
+      finish();
+    },
+  };
+
+  flock.globalSounds.push(soundRef);
+  source.start();
+
+  if (!loop) {
+    return new Promise((resolve) => {
+      source.onended = () => { finish(); resolve(); };
+    });
+  }
+  return soundRef;
+}
+
+function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, playbackRate }) {
+  if (!mesh.metadata || typeof mesh.metadata !== 'object') mesh.metadata = {};
+
+  const currentSound = mesh.metadata.currentSound;
+  if (currentSound) {
+    try { currentSound.stop(); } catch {}
+  }
+
+  const panner = context.createPanner();
+  panner.panningModel = 'equalpower';
+  panner.distanceModel = 'linear';
+  panner.refDistance = 1;
+  panner.maxDistance = 20;
+  panner.rolloffFactor = 1;
+  panner.connect(context.destination);
+
+  const gainNode = context.createGain();
+  gainNode.gain.value = volume;
+  gainNode.connect(panner);
+
+  const source = context.createBufferSource();
+  source.buffer = buffer;
+  source.playbackRate.value = playbackRate;
+  source.loop = loop;
+  source.connect(gainNode);
+
+  const updatePosition = () => {
+    if (!flock.scene || context.state === 'closed') { finish(); return; }
+    if (mesh.isDisposed?.()) { finish(); return; }
+    const { x, y, z } = mesh.position;
+    panner.positionX.value = x;
+    panner.positionY.value = y;
+    panner.positionZ.value = z;
+    if (flock.scene.activeCamera) {
+      flockSound.updateListenerPositionAndOrientation(context, flock.scene.activeCamera);
+    }
+  };
+  updatePosition();
+  const observer = flock.scene.onBeforeRenderObservable.add(updatePosition);
+
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    flock.scene?.onBeforeRenderObservable?.remove(observer);
+    try { source.stop(); } catch {}
+    try { source.disconnect(); } catch {}
+    try { gainNode.disconnect(); } catch {}
+    try { panner.disconnect(); } catch {}
+    if (mesh.metadata?.currentSound === soundRef) delete mesh.metadata.currentSound;
+    const idx = flock.globalSounds.indexOf(soundRef);
+    if (idx !== -1) flock.globalSounds.splice(idx, 1);
+  };
+
+  const soundRef = {
+    name: soundName,
+    _attachedMesh: mesh,
+    stop() {
+      finish();
+    },
+  };
+
+  mesh.metadata.currentSound = soundRef;
+  flock.globalSounds.push(soundRef);
+  source.start();
+
+  if (!loop) {
+    return new Promise((resolve) => {
+      source.onended = () => { finish(); resolve(); };
+    });
+  }
+  return soundRef;
+}
+
 export const flockSound = {
   async playSound(
     meshName,
     { soundName, loop = false, volume = 1, playbackRate = 1 } = {},
   ) {
-    if (!flock.audioEngine && flock.audioEnginePromise) {
-      await flock.audioEnginePromise.catch(() => {});
-    }
-    if (!flock.audioEngine) return;
     volume = Number.isFinite(Number(volume)) ? Math.max(0, Math.min(1, Number(volume))) : 1;
-    playbackRate = Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0 ? Number(playbackRate) : 1;
+    playbackRate =
+      Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0
+        ? Number(playbackRate)
+        : 1;
     if (!soundName || typeof soundName !== "string") {
       console.warn("playSound: invalid soundName");
       return;
     }
-    const soundUrl = flock.soundPath + soundName;
 
-    // Global (non-spatial) sound
-    if (meshName === "__everywhere__") {
-      const sound = await flock.BABYLON.CreateSoundAsync(soundName, soundUrl, {
-        spatialEnabled: false,
-        autoplay: false,
-        loop,
-        volume,
-        playbackRate,
-      });
-
-      sound.play();
-      flock.globalSounds.push(sound);
-
-      if (!loop) {
-        return new Promise((resolve) => {
-          sound.onEndedObservable.addOnce(() => {
-            const index = flock.globalSounds.indexOf(sound);
-            if (index !== -1) {
-              flock.globalSounds.splice(index, 1);
-            }
-            resolve();
-          });
-        });
+    let context = flock.audioContext;
+    if (!context || context.state === "closed") {
+      try {
+        flock.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        context = flock.audioContext;
+      } catch (err) {
+        console.error("Could not create audio context:", err);
+        return;
       }
-
-      return sound;
+    }
+    if (context.state === "suspended") {
+      try {
+        await context.resume();
+      } catch {
+        return;
+      }
     }
 
-    // Spatial sound for a mesh
+    const soundUrl = flock.soundPath + soundName;
+    let buffer;
+    try {
+      buffer = await loadAudioBuffer(soundUrl, context);
+    } catch (err) {
+      console.warn("playSound: failed to load audio:", soundUrl, err);
+      return;
+    }
+
+    if (context.state === "closed") return;
+
+    if (meshName === "__everywhere__") {
+      return playBufferEverywhere(context, buffer, soundName, { loop, volume, playbackRate });
+    }
+
     const mesh = flock.scene.getMeshByName(meshName);
     if (mesh && !mesh.isDisposed?.()) {
-      return await attachSoundToMesh(mesh);
+      return playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, playbackRate });
     }
 
-    // Mesh not ready yet — wait for it
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async (resolvedMesh) => {
-        const result = await attachSoundToMesh(resolvedMesh);
+        if (flock.audioContext !== context) { resolve(); return; }
+        const result = await playBufferOnMesh(
+          context,
+          resolvedMesh,
+          buffer,
+          soundName,
+          { loop, volume, playbackRate },
+        );
         resolve(result);
       });
     });
-
-    // Main sound logic for mesh-attached sounds
-    async function attachSoundToMesh(mesh) {
-      if (!mesh.metadata || typeof mesh.metadata !== "object") {
-        mesh.metadata = {};
-      }
-
-      const currentSound = mesh.metadata.currentSound;
-
-      if (currentSound) {
-        try {
-          currentSound.stop();
-        } catch (e) {
-          console.warn("Failed to stop sound:", e);
-        }
-
-        const index = flock.globalSounds.indexOf(currentSound);
-        if (index !== -1) {
-          flock.globalSounds.splice(index, 1);
-        }
-
-        if (mesh.metadata?.currentSound === currentSound) {
-          delete mesh.metadata.currentSound;
-        }
-      }
-
-      const sound = await flock.BABYLON.CreateSoundAsync(soundName, soundUrl, {
-        spatialEnabled: true,
-        spatialDistanceModel: "linear",
-        spatialMaxDistance: 20,
-        autoplay: false,
-        loop,
-        volume,
-        playbackRate,
-      });
-
-      if (sound.spatial && !mesh.isDisposed()) {
-        await sound.spatial.attach(mesh);
-      }
-
-      sound.play();
-
-      mesh.metadata.currentSound = sound;
-      sound._attachedMesh = mesh;
-
-      if (!flock.globalSounds.includes(sound)) {
-        flock.globalSounds.push(sound);
-      }
-
-      if (!loop) {
-        return new Promise((resolve) => {
-          sound.onEndedObservable.addOnce(() => {
-            if (mesh.metadata?.currentSound === sound) {
-              delete mesh.metadata.currentSound;
-            }
-            const index = flock.globalSounds.indexOf(sound);
-            if (index !== -1) {
-              flock.globalSounds.splice(index, 1);
-            }
-            resolve();
-          });
-        });
-      }
-
-      return sound;
-    }
   },
   stopAllSounds() {
     if (!flock?.globalSounds) return;
-    flock.globalSounds.forEach((sound) => {
+    const sounds = flock.globalSounds.slice();
+    flock.globalSounds = [];
+    for (const sound of sounds) {
       try {
-        const mesh = sound._attachedMesh;
-        if (mesh?.metadata?.currentSound === sound) {
-          delete mesh.metadata.currentSound;
-        }
-
         sound.stop();
       } catch (e) {
         console.warn("Error stopping sound:", sound.name, e);
       }
-    });
-
-    flock.globalSounds = [];
+    }
 
     // Immediately disconnect the __everywhere__ gain — context.close() is async and
     // a brief window exists where the old gain can still feed the destination.
@@ -309,7 +382,7 @@ export const flockSound = {
         const panner = mesh.metadata.panner;
 
         const updatePositions = () => {
-          if (!flock.scene || mesh.isDisposed?.()) return;
+          if (!flock.scene || context.state === 'closed' || mesh.isDisposed?.()) return;
           const { x, y, z } = mesh.position;
           panner.positionX.value = x;
           panner.positionY.value = y;
@@ -590,33 +663,22 @@ export const flockSound = {
     });
   },
   updateListenerPositionAndOrientation(context, camera) {
+    if (!context || !camera) return;
     const { x: cx, y: cy, z: cz } = camera.position;
     const forwardVector = camera.getForwardRay().direction;
 
     if (context.listener.positionX) {
-      // Update listener's position
-      context.listener.positionX.setValueAtTime(cx, context.currentTime);
-      context.listener.positionY.setValueAtTime(cy, context.currentTime);
-      context.listener.positionZ.setValueAtTime(cz, context.currentTime);
+      context.listener.positionX.value = cx;
+      context.listener.positionY.value = cy;
+      context.listener.positionZ.value = cz;
 
-      // Update listener's forward direction
-      context.listener.forwardX.setValueAtTime(
-        -forwardVector.x,
-        context.currentTime,
-      );
-      context.listener.forwardY.setValueAtTime(
-        forwardVector.y,
-        context.currentTime,
-      );
-      context.listener.forwardZ.setValueAtTime(
-        forwardVector.z,
-        context.currentTime,
-      );
+      context.listener.forwardX.value = -forwardVector.x;
+      context.listener.forwardY.value = forwardVector.y;
+      context.listener.forwardZ.value = forwardVector.z;
 
-      // Set the listener's up vector (typically pointing upwards in the Y direction)
-      context.listener.upX.setValueAtTime(0, context.currentTime);
-      context.listener.upY.setValueAtTime(1, context.currentTime);
-      context.listener.upZ.setValueAtTime(0, context.currentTime);
+      context.listener.upX.value = 0;
+      context.listener.upY.value = 1;
+      context.listener.upZ.value = 0;
     } else {
       // Firefox
       context.listener.setPosition(cx, cy, cz);
@@ -906,230 +968,48 @@ export const flockSound = {
     }
   },
 
-  async setupSpatialSpeech(utterance, meshName) {
-    if (flock.soundDebug)
-      console.log(
-        `[SPATIAL AUDIO DEBUG] Setting up spatial speech for mesh: ${meshName}`,
-      );
-
+  setupSpatialSpeech(utterance, meshName) {
+    // SpeechSynthesisUtterance audio can't be routed through Web Audio API,
+    // so spatial positioning is approximated by scaling utterance.volume with distance.
     const mesh = flock.scene.getMeshByName(meshName);
-    if (!mesh) {
-      if (flock.soundDebug)
-        console.warn(
-          `[SPATIAL AUDIO DEBUG] Mesh '${meshName}' not found for spatial speech`,
-        );
-      return null;
-    }
+    if (!mesh) return null;
 
-    if (flock.soundDebug)
-      console.log(
-        `[SPATIAL AUDIO DEBUG] Found mesh '${meshName}' at position:`,
+    const originalVolume = utterance.volume;
+
+    const updateVolume = () => {
+      if (!mesh || mesh.isDisposed?.() || !flock.scene.activeCamera) return;
+      const distance = flock.BABYLON.Vector3.Distance(
+        flock.scene.activeCamera.position,
         mesh.position,
       );
 
-    // Get or create audio context
-    const audioContext = flockSound.getAudioContext();
-    if (!audioContext || audioContext.state === "closed") {
-      if (flock.soundDebug)
-        console.warn("[SPATIAL AUDIO DEBUG] Audio context not available");
-      return null;
-    }
+      // Camera can't get closer than ~7 units; treat that as "full volume" range.
+      const adjustedDistance = Math.max(0, distance - 7);
+      const refDistance = 0.5;
+      const rolloffFactor = 1.5;
+      const maxDistance = 15;
 
-    if (audioContext.state === "suspended") {
-      await audioContext.resume();
-    }
-
-    // Create spatial audio nodes
-    const panner = audioContext.createPanner();
-    panner.panningModel = "HRTF";
-    panner.distanceModel = "exponential";
-    panner.refDistance = 1.0;
-    panner.maxDistance = 15;
-    panner.rolloffFactor = 2;
-
-    // Create stereo panner for enhanced left/right positioning
-    const stereoPanner = audioContext.createStereoPanner();
-
-    // Connect panner -> stereo panner -> destination
-    panner.connect(stereoPanner);
-    stereoPanner.connect(audioContext.destination);
-
-    // Set up position updating
-    const updateSpatialPosition = () => {
-      if (!mesh || mesh.isDisposed?.() || !flock.scene.activeCamera) {
-        return;
-      }
-
-      const camera = flock.scene.activeCamera;
-      const cameraPosition = camera.position;
-      const meshPosition = mesh.position;
-
-      // Update panner position (note: Babylon.js uses right-handed coordinates)
-      panner.positionX.setValueAtTime(
-        -meshPosition.x,
-        audioContext.currentTime,
-      );
-      panner.positionY.setValueAtTime(meshPosition.y, audioContext.currentTime);
-      panner.positionZ.setValueAtTime(meshPosition.z, audioContext.currentTime);
-
-      // Calculate stereo panning based on relative position
-      const cameraToMesh = meshPosition.subtract(cameraPosition);
-      const cameraRight = camera
-        .getForwardRay()
-        .direction.cross(flock.BABYLON.Vector3.Up())
-        .normalize();
-
-      // Project the relative position onto the camera's right vector for left/right positioning
-      const rightDot = flock.BABYLON.Vector3.Dot(
-        cameraToMesh.normalize(),
-        cameraRight,
-      );
-
-      // Convert to stereo pan value (-1 = full left, 1 = full right)
-      const panValue = Math.max(-1, Math.min(1, rightDot * 2)); // Amplify the effect
-      stereoPanner.pan.setValueAtTime(panValue, audioContext.currentTime);
-
-      // Update listener position and orientation
-      flockSound.updateListenerPositionAndOrientation(
-        audioContext,
-        flock.scene.activeCamera,
-      );
-
-      // Debug info (throttled)
-      if (flock.soundDebug && Math.random() < 0.01) {
-        // ~1% chance per frame
-        const distance = flock.BABYLON.Vector3.Distance(
-          cameraPosition,
-          meshPosition,
-        );
-        console.log(`[SPATIAL AUDIO DEBUG] Position update:`, {
-          meshPosition: {
-            x: meshPosition.x.toFixed(2),
-            y: meshPosition.y.toFixed(2),
-            z: meshPosition.z.toFixed(2),
-          },
-          cameraPosition: {
-            x: cameraPosition.x.toFixed(2),
-            y: cameraPosition.y.toFixed(2),
-            z: cameraPosition.z.toFixed(2),
-          },
-          distance: distance.toFixed(2),
-          panValue: panValue.toFixed(2),
-        });
-      }
-    };
-
-    // Start position updates
-    const renderObserver = flock.scene.onBeforeRenderObservable.add(
-      updateSpatialPosition,
-    );
-
-    // Initial position update
-    updateSpatialPosition();
-
-    // Try to use the more advanced approach with MediaStream
-    let spatialAudioSource = null;
-
-    // Fallback: Use the original utterance but with enhanced volume calculation
-    const originalVolume = utterance.volume;
-
-    const updateVolumeBasedOnDistance = () => {
-      if (!mesh || mesh.isDisposed?.() || !flock.scene.activeCamera) {
-        return;
-      }
-
-      const cameraPosition = flock.scene.activeCamera.position;
-      const meshPosition = mesh.position;
-      const distance = flock.BABYLON.Vector3.Distance(
-        cameraPosition,
-        meshPosition,
-      );
-
-      // Calculate volume based on exponential distance model
-      // Account for camera's minimum distance constraint (camera can't get closer than ~7-8 units)
-      const cameraMinDistance = 7; // Camera's minimum radius limit
-      const adjustedDistance = Math.max(0, distance - cameraMinDistance); // Effective distance for audio
-
-      const refDistance = 0.5; // Small reference distance for adjusted calculation
-      const rolloffFactor = 1.5; // Moderate rolloff
-      const maxDistance = 15; // Max effective distance
-
-      let volumeGain = 1;
-
-      // When within camera's minimum range, use full volume
+      let volumeGain;
       if (adjustedDistance <= refDistance) {
-        volumeGain = 1; // Full volume when effectively "close"
+        volumeGain = 1;
       } else if (adjustedDistance < maxDistance) {
-        // Gradual falloff after reference distance
-        volumeGain =
-          refDistance /
-          (refDistance + rolloffFactor * (adjustedDistance - refDistance));
-        // Ensure minimum audible volume even at distance
-        volumeGain = Math.max(0.15, volumeGain);
+        volumeGain = Math.max(
+          0.15,
+          refDistance / (refDistance + rolloffFactor * (adjustedDistance - refDistance)),
+        );
       } else {
-        volumeGain = 0.1; // Quiet but audible beyond max distance
+        volumeGain = 0.1;
       }
 
-      // Apply volume (note: this only works if speech hasn't started yet in most browsers)
-      const newVolume = Math.max(0, Math.min(1, originalVolume * volumeGain));
-      if (utterance.volume !== newVolume) {
-        utterance.volume = newVolume;
-      }
+      utterance.volume = Math.max(0, Math.min(1, originalVolume * volumeGain));
     };
 
-    // Set initial volume and log the result
-    updateVolumeBasedOnDistance();
-
-    if (flock.soundDebug)
-      console.log(`[SPATIAL AUDIO DEBUG] Initial spatial setup:`, {
-        originalVolume: originalVolume,
-        currentVolume: utterance.volume,
-        meshName: meshName,
-        meshPosition: mesh.position,
-      });
-
-    if (flock.soundDebug)
-      console.log(
-        `[SPATIAL AUDIO DEBUG] Spatial audio setup complete for '${meshName}'`,
-      );
+    updateVolume();
+    const renderObserver = flock.scene.onBeforeRenderObservable.add(updateVolume);
 
     return {
       cleanup: () => {
-        if (flock.soundDebug)
-          console.log("[SPATIAL AUDIO DEBUG] Cleaning up spatial speech");
-
-        // Remove render observer
-        if (renderObserver && flock.scene?.onBeforeRenderObservable) {
-          flock.scene.onBeforeRenderObservable.remove(renderObserver);
-        }
-
-        // Clean up audio nodes
-        if (spatialAudioSource) {
-          try {
-            spatialAudioSource.disconnect();
-          } catch (e) {
-            console.warn("Error disconnecting spatial audio source:", e);
-          }
-        }
-
-        if (stereoPanner) {
-          try {
-            stereoPanner.disconnect();
-          } catch (e) {
-            console.warn("Error disconnecting stereo panner:", e);
-          }
-        }
-
-        if (panner) {
-          try {
-            panner.disconnect();
-          } catch (e) {
-            console.warn("Error disconnecting panner:", e);
-          }
-        }
-
-        if (flock.soundDebug)
-          console.log("[SPATIAL AUDIO DEBUG] Spatial speech cleanup complete");
+        flock.scene?.onBeforeRenderObservable?.remove(renderObserver);
       },
     };
   },

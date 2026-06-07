@@ -1971,11 +1971,13 @@ export const flock = {
     flock.stackPanel.isVertical = true;
     flock.advancedTexture.addControl(flock.stackPanel);
 
-    // Observable for audio updates
-
+    // Keep the listener up to date while sounds are playing, but don't
+    // create a new AudioContext just because a frame rendered.
     flock.scene.onBeforeRenderObservable.add(() => {
-      const context = flock.getAudioContext();
-      flock.updateListenerPositionAndOrientation(context, flock.scene.activeCamera);
+      const context = flock.audioContext;
+      if (context && context.state !== 'closed' && flock.scene.activeCamera) {
+        flock.updateListenerPositionAndOrientation(context, flock.scene.activeCamera);
+      }
     });
 
     attachInteractIndicator(flock.scene, flock.inputManager);
