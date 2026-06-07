@@ -458,6 +458,28 @@ function propagateMesh(block, meshName) {
   }
 }
 
+function propagateInstrument(block, instrumentState) {
+  const state = Object.assign({}, instrumentState);
+  delete state.id;
+  delete state.shadow;
+  while (block) {
+    if (block.type === "play_tune_notes") {
+      const instrConn = block.getInput("INSTRUMENT")?.connection;
+      if (instrConn) {
+        const existing = instrConn.targetBlock();
+        if (existing && !existing.isShadow()) existing.dispose(false);
+        const newInstr = Blockly.serialization.blocks.append(state, block.workspace);
+        if (newInstr?.outputConnection) instrConn.connect(newInstr.outputConnection);
+      }
+    }
+    for (const input of block.inputList) {
+      const child = input.connection?.targetBlock();
+      if (child?.previousConnection) propagateInstrument(child, state);
+    }
+    block = block.getNextBlock();
+  }
+}
+
 function makeNumBlock(ws, value) {
   const b = ws.newBlock("math_number");
   b.setFieldValue(String(value), "NUM");
@@ -1149,20 +1171,51 @@ export function defineSoundBlocks() {
 
       this.setOnChange(function (ev) {
         if (this.workspace?.isFlyout) return;
-        if (ev.type !== Blockly.Events.BLOCK_CHANGE) return;
-        if (ev.blockId !== this.id) return;
 
-        if (!this.hasImported_) {
-          const value = this.getFieldValue("ABC_TEXT");
-          if (!value) return;
-          clearTimeout(this._abcTimer);
-          this._abcTimer = setTimeout(() => {
-            if (!this.isDisposed() && !this.hasImported_) this.importAbc(value);
-          }, 150);
-        } else if (ev.name === "MESH_NAME") {
-          const meshName = this.getFieldValue("MESH_NAME");
+        if (ev.type === Blockly.Events.BLOCK_CHANGE && ev.blockId === this.id) {
+          if (!this.hasImported_) {
+            const value = this.getFieldValue("ABC_TEXT");
+            if (!value) return;
+            clearTimeout(this._abcTimer);
+            this._abcTimer = setTimeout(() => {
+              if (!this.isDisposed() && !this.hasImported_) this.importAbc(value);
+            }, 150);
+          } else if (ev.name === "MESH_NAME") {
+            const meshName = this.getFieldValue("MESH_NAME");
+            const doStart = this.getInputTargetBlock("DO");
+            if (doStart && meshName) propagateMesh(doStart, meshName);
+          }
+        } else if (this.hasImported_ && ev.type === Blockly.Events.BLOCK_CHANGE) {
+          const instrTarget = this.getInput("INSTRUMENT")?.connection?.targetBlock();
+          if (instrTarget && ev.blockId === instrTarget.id) {
+            const doStart = this.getInputTargetBlock("DO");
+            if (doStart) {
+              const instrState = Blockly.serialization.blocks.save(instrTarget);
+              Blockly.Events.setGroup(true);
+              try {
+                propagateInstrument(doStart, instrState);
+              } finally {
+                Blockly.Events.setGroup(false);
+              }
+            }
+          }
+        } else if (
+          this.hasImported_ &&
+          ev.type === Blockly.Events.BLOCK_MOVE &&
+          ev.newParentId === this.id &&
+          ev.newInputName === "INSTRUMENT"
+        ) {
+          const instrBlock = this.getInput("INSTRUMENT")?.connection?.targetBlock();
           const doStart = this.getInputTargetBlock("DO");
-          if (doStart && meshName) propagateMesh(doStart, meshName);
+          if (instrBlock && doStart) {
+            const instrState = Blockly.serialization.blocks.save(instrBlock);
+            Blockly.Events.setGroup(true);
+            try {
+              propagateInstrument(doStart, instrState);
+            } finally {
+              Blockly.Events.setGroup(false);
+            }
+          }
         }
       });
     },
@@ -1201,6 +1254,15 @@ export function defineSoundBlocks() {
             "MESH_NAME",
           );
 
+        const instrInput = this.appendValueInput("INSTRUMENT")
+          .setCheck("Instrument")
+          .appendField("instrument ");
+        instrInput.connection.setShadowState({
+          type: "instrument",
+          fields: { INSTRUMENT_TYPE: "default" },
+        });
+
+        this.setInputsInline(true);
         this.appendStatementInput("DO");
 
         setTimeout(() => {

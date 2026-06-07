@@ -8,6 +8,19 @@ export function setFlockReference(ref) {
 
 const soundBufferCache = new Map(); // soundUrl → Promise<AudioBuffer>
 
+// Smoothing constants — one-pole lowpass applied per render frame.
+// α = 0.4 gives a ~33 ms time constant at 60 fps, enough to damp
+// rapid panning swings without perceptible spatial lag.
+const LISTENER_SMOOTH = 0.4;
+const PANNER_SMOOTH   = 0.4;
+
+// Smoothed listener state — shared across all sounds in the same context.
+// Stored at module level so every updateListenerPositionAndOrientation call
+// continues from the same running average rather than resetting each time.
+let _listenerCtx = null;
+let _slx = 0, _sly = 0, _slz = 0; // smoothed listener position
+let _sfx = 0, _sfy = 0, _sfz = 0; // smoothed listener forward
+
 async function loadAudioBuffer(url, context) {
   if (!soundBufferCache.has(url)) {
     soundBufferCache.set(
@@ -92,13 +105,19 @@ function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, play
   source.loop = loop;
   source.connect(gainNode);
 
+  // Smoothed panner position — initialised to the mesh's starting position.
+  let sx = mesh.position.x, sy = mesh.position.y, sz = mesh.position.z;
+
   const updatePosition = () => {
     if (!flock.scene || context.state === 'closed') { finish(); return; }
     if (mesh.isDisposed?.()) { finish(); return; }
     const { x, y, z } = mesh.position;
-    panner.positionX.value = x;
-    panner.positionY.value = y;
-    panner.positionZ.value = z;
+    sx += PANNER_SMOOTH * (x - sx);
+    sy += PANNER_SMOOTH * (y - sy);
+    sz += PANNER_SMOOTH * (z - sz);
+    panner.positionX.value = sx;
+    panner.positionY.value = sy;
+    panner.positionZ.value = sz;
     if (flock.scene.activeCamera) {
       flockSound.updateListenerPositionAndOrientation(context, flock.scene.activeCamera);
     }
@@ -665,31 +684,46 @@ export const flockSound = {
   updateListenerPositionAndOrientation(context, camera) {
     if (!context || !camera) return;
     const { x: cx, y: cy, z: cz } = camera.position;
-    const forwardVector = camera.getForwardRay().direction;
+    const fwd = camera.getForwardRay().direction;
+    const tfx = -fwd.x, tfy = fwd.y, tfz = fwd.z;
+
+    // Reset smooth state when the audio context changes (e.g. after stopAllSounds).
+    // Otherwise continue from the running average so position/orientation never jump.
+    if (context !== _listenerCtx) {
+      _listenerCtx = context;
+      _slx = cx;  _sly = cy;  _slz = cz;
+      _sfx = tfx; _sfy = tfy; _sfz = tfz;
+    } else {
+      _slx += LISTENER_SMOOTH * (cx  - _slx);
+      _sly += LISTENER_SMOOTH * (cy  - _sly);
+      _slz += LISTENER_SMOOTH * (cz  - _slz);
+      _sfx += LISTENER_SMOOTH * (tfx - _sfx);
+      _sfy += LISTENER_SMOOTH * (tfy - _sfy);
+      _sfz += LISTENER_SMOOTH * (tfz - _sfz);
+    }
+
+    // Normalise — linear interpolation between unit vectors doesn't preserve length.
+    const fLen = Math.sqrt(_sfx * _sfx + _sfy * _sfy + _sfz * _sfz);
+    const nfx = fLen > 1e-4 ? _sfx / fLen : 0;
+    const nfy = fLen > 1e-4 ? _sfy / fLen : 1;
+    const nfz = fLen > 1e-4 ? _sfz / fLen : 0;
 
     if (context.listener.positionX) {
-      context.listener.positionX.value = cx;
-      context.listener.positionY.value = cy;
-      context.listener.positionZ.value = cz;
+      context.listener.positionX.value = _slx;
+      context.listener.positionY.value = _sly;
+      context.listener.positionZ.value = _slz;
 
-      context.listener.forwardX.value = -forwardVector.x;
-      context.listener.forwardY.value = forwardVector.y;
-      context.listener.forwardZ.value = forwardVector.z;
+      context.listener.forwardX.value = nfx;
+      context.listener.forwardY.value = nfy;
+      context.listener.forwardZ.value = nfz;
 
       context.listener.upX.value = 0;
       context.listener.upY.value = 1;
       context.listener.upZ.value = 0;
     } else {
       // Firefox
-      context.listener.setPosition(cx, cy, cz);
-      context.listener.setOrientation(
-        -forwardVector.x,
-        forwardVector.y,
-        forwardVector.z,
-        0,
-        1,
-        0,
-      );
+      context.listener.setPosition(_slx, _sly, _slz);
+      context.listener.setOrientation(nfx, nfy, nfz, 0, 1, 0);
     }
   },
   async speak(
