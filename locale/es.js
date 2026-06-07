@@ -1183,6 +1183,7 @@ export default {
   error_startup: "Flock no se pudo iniciar. Intenta recargar la página.", // human
   error_project_crash:
     "Tu proyecto tuvo un problema. Pulsa Detener, revisa tus bloques y pulsa Reproducir otra vez.", // human
+  error_webgl_restoring: "Vista 3D pausada, restaurando…", // human
   error_webgl_lost:
     "La vista 3D dejó de funcionar. Intenta recargar la página.", // human
   error_physics_oom:

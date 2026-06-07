@@ -137,6 +137,9 @@ export const flock = {
   canvas: null,
   abortController: null,
   _renderLoop: null,
+  _contextLostAt: null,
+  _escalationTimer: null,
+  _webglVisibilityListenerAdded: false,
   document: document,
   disposed: null,
   events: {},
@@ -1329,6 +1332,18 @@ export const flock = {
       }
     });
   },
+  _scheduleContextEscalation() {
+    clearTimeout(flock._escalationTimer);
+    flock._escalationTimer = setTimeout(() => {
+      flock._escalationTimer = null;
+      if (flock.engine?.isContextLost?.()) {
+        handleError(new Error('WebGL context restore timeout'), {
+          source: 'webgl-lost',
+          fatal: true,
+        });
+      }
+    }, 8000);
+  },
   createEngine() {
     flock.engine?.dispose();
     flock.engine = null;
@@ -1341,12 +1356,43 @@ export const flock = {
       lockstepMaxSteps: 4,
     });
 
-    flock.engine.onContextLostObservable.add(() => {
-      handleError(new Error('WebGL context lost'), {
-        source: 'webgl-lost',
-        fatal: true,
-      });
+    // Call preventDefault() on the raw event so the browser is willing to restore.
+    flock.canvas.addEventListener('webglcontextlost', (event) => {
+      event.preventDefault();
     });
+
+    flock.engine.onContextLostObservable.add(() => {
+      flock._contextLostAt = Date.now();
+      showBanner('webgl-lost', {
+        message: translate('error_webgl_restoring'),
+      });
+      if (document.visibilityState === 'visible') {
+        flock._scheduleContextEscalation();
+      }
+    });
+
+    flock.engine.onContextRestoredObservable.add(() => {
+      clearTimeout(flock._escalationTimer);
+      flock._escalationTimer = null;
+      flock._contextLostAt = null;
+      dismissBanner('webgl-lost');
+      flock.engine.resize();
+      if (flock._renderLoop) {
+        flock.engine.runRenderLoop(flock._renderLoop);
+      }
+    });
+
+    if (!flock._webglVisibilityListenerAdded) {
+      flock._webglVisibilityListenerAdded = true;
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && flock._contextLostAt) {
+          flock.engine?.resize();
+          if (!flock._escalationTimer) {
+            flock._scheduleContextEscalation();
+          }
+        }
+      });
+    }
 
     flock.engine.enableOfflineSupport = false;
     flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
