@@ -896,6 +896,11 @@ export function ensureFreshVarOnDuplicate(
   const { prefix: duplicatePrefix, suffix: duplicateSuffix } =
     deriveVariableNameParts(oldVarModel?.name, variableNamePrefix);
 
+  // Duplicate/copy/duplicate-parent case?
+  const allBlocks = ws.getAllBlocks(false);
+  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS, allBlocks))
+    return false;
+
   if (Number.isInteger(duplicateSuffix)) {
     const nextFromSource = duplicateSuffix + 1;
     nextVariableIndexes[duplicatePrefix] = Math.max(
@@ -903,11 +908,6 @@ export function ensureFreshVarOnDuplicate(
       nextFromSource,
     );
   }
-
-  // Duplicate/copy/duplicate-parent case?
-  const allBlocks = ws.getAllBlocks(false);
-  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS, allBlocks))
-    return false;
 
   const varType = getFieldVariableType(block, fieldName, BlocklyNS);
   const group = changeEvent.group || `auto-split-${block.id}-${Date.now()}`;
@@ -1928,6 +1928,15 @@ export function handleBlockCreateEvent(
               .createVariable(newVariableName, null);
           }
           variableField.setValue(newVariable.getId());
+
+          // Advance the counter if the new name falls under this prefix's sequence.
+          const newSuffix = parseNumericSuffix(newVariableName, variableNamePrefix);
+          if (newSuffix !== null) {
+            nextVariableIndexes[variableNamePrefix] = Math.max(
+              nextVariableIndexes[variableNamePrefix] || 1,
+              newSuffix + 1,
+            );
+          }
         }
       } else {
         // Handle prefix-numbered variables - rename to next available index when needed
