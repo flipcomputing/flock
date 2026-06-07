@@ -289,6 +289,7 @@ export default {
   stop_all_sounds: "stop all sounds",
   note: "MIDI note %1 %2",
   rest: "rest",
+  play_tune: "play tune",
   play_tune_notes: "play notes %1 instrument: %2\nnotes: %3",
   set_music_speed: "set %1 music speed %2",
   midi_note: "MIDI note %1",
@@ -584,6 +585,7 @@ export default {
     "Stop all sounds currently playing in the scene.\nKeyword:nosound",
   note_tooltip: "A musical note with a pitch (MIDI 0–127) and duration in beats.\nKeyword: note",
   rest_tooltip: "A musical rest (silence). Use as the pitch in a note block.\nKeyword: rest",
+  play_tune_tooltip: "Import an ABC notation string to generate a tune with notes and repeats.\nKeyword: playtune",
   play_tune_notes_tooltip:
     "Play a sequence of notes and rests on an object using the specified instrument.\nKeyword: playtunenotes",
   set_music_speed_tooltip:

@@ -3415,6 +3415,11 @@ const toolboxSound = {
     },
     {
       kind: "block",
+      type: "play_tune",
+      keyword: "playtune",
+    },
+    {
+      kind: "block",
       type: "instrument",
       keyword: "instrument",
     },

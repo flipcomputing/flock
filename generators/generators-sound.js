@@ -185,6 +185,12 @@ export function registerSoundGenerators(javascriptGenerator) {
     }
   };
 
+  // Play tune (ABC import) --------------------------------------
+  javascriptGenerator.forBlock["play_tune"] = function (block) {
+    if (!block.getInput("DO")) return "";
+    return javascriptGenerator.statementToCode(block, "DO") || "";
+  };
+
   // Instrument -----------------------------------------------
   javascriptGenerator.forBlock["instrument"] = function (block) {
     const instrumentType = block.getFieldValue("INSTRUMENT_TYPE");
