@@ -110,11 +110,30 @@ Screen reader support builds on keyboard controls support for Blockly. Keyboard 
 
 ### Sound blocks
 
-Flock XR has a range of sound blocks including longer themes, sound effects and musical note blocks. We intend to improve these blocks and make them blocks fully accessible to screen reader users.
+Flock XR has a range of sound blocks including longer themes, sound effects, and musical note blocks. We intend to improve these blocks and make them fully accessible to screen reader users.
 
-Sounds can be played from everywhere in the scene or attached to an object to provide spatial audio. Spatial audio means that a sound comes from a particular position in 3D space and is heard relative to the player. 
+Sounds can be played from everywhere in the scene or attached to an object to provide spatial audio. Spatial audio means that a sound comes from a particular position in 3D space and is heard relative to the player.
 
-This feature can be used to add interest and orientation for users who are blind or visually impaired. 
+This feature can be used to add interest and orientation for users who are blind or visually impaired.
+
+#### Play notes block
+
+The **play notes** block plays a musical phrase directly from Blockly. It takes a list of bars, where each bar is a list of notes. Each note specifies a MIDI note number (60 = middle C) and a duration in beats. An instrument block is attached to control the sound (for example, piano, guitar, violin, or a default synthesised tone). The mesh the notes play from can be set to a named object in the scene or left as "everywhere" for non-spatial playback.
+
+This block gives precise programmatic control over melody and rhythm, and can be used to create musical compositions or sonification of data directly within a program.
+
+#### Play tune block — ABC notation import (prototype)
+
+The **play tune** block is an early prototype for importing music written in [ABC notation](https://abcnotation.com/), a compact plain-text format widely used for folk and traditional music. Paste or type ABC notation into the block's text field; when you leave the field the tune is automatically parsed and converted into a sequence of **play notes** blocks nested inside the play tune block.
+
+The imported tune can be:
+
+- Played **everywhere** in the scene (non-spatial, same volume regardless of position).
+- **Attached to a mesh** by selecting a named object from the dropdown. When attached, the tune plays from that object's position in 3D space — volume and direction change as the player moves closer or further away. This can be used to create sonic landmarks that help blind and visually impaired users orient themselves within a scene.
+
+An **instrument** can be set on the play tune block and is copied automatically to all the bars inside it. Individual bars can also have their own instrument if needed.
+
+This is a prototype that we would like to develop significantly — improving ABC parsing, adding support for chords and more notation features, refining the spatial audio model, and making the whole workflow more screen reader accessible. We welcome input from musicians and accessibility specialists.
 
 ### Say blocks and print blocks
 
@@ -136,7 +155,7 @@ This includes adding sonification to help users navigate, adding improved music 
 
 Flock XR enables young people to have creative expression. It can also be used to increase awareness of screen reader use so that young people can themselves create projects that are accessible to others. 
 
-Spatial computing is imcreasingly important in society and industry with some key capabilities that are relevant to users who are blind or visually impaired. Flock XR has the potential to offer virtual experiences that enable users to practice skills such as tech-supported 3D navigation. 
+Spatial computing is increasingly important in society and industry with some key capabilities that are relevant to users who are blind or visually impaired. Flock XR has the potential to offer virtual experiences that enable users to practice skills such as tech-supported 3D navigation. 
 
 ## Credits
 
