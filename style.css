@@ -2,7 +2,7 @@
 @import url('./ui/colourpicker.css');
 
 :root {
-  --app-height: 100vh;
+  --app-height: 100dvh;
   --dynamic-offset: 65px;
 
   /* Primary Brand Colors */
@@ -423,6 +423,19 @@ body {
   -webkit-tap-highlight-color: transparent;
   height: var(--app-height);
   width: 100vw;
+  background: var(--color-bg);
+}
+
+/* Purple strip behind the iOS status bar — only visible when there's a real inset (0 on desktop, no flash) */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top);
+  background: #511d91;
+  pointer-events: none;
 }
 
 body {
@@ -476,7 +489,7 @@ button {
 /* Layout Styles */
 #maincontent {
   width: 100vw;
-  height: calc(var(--app-height) - 50px);
+  height: calc(var(--app-height) - 50px - env(safe-area-inset-top));
   display: flex;
   margin: 0;
   gap: 0;
@@ -818,7 +831,7 @@ button {
 @media (max-width: 1024px) {
   #maincontent {
     width: 200vw;
-    height: calc(var(--app-height) - var(--dynamic-offset));
+    height: calc(var(--app-height) - var(--dynamic-offset) - env(safe-area-inset-top));
     overflow-x: auto;
   }
 
@@ -832,7 +845,7 @@ button {
   #canvasArea {
     flex-basis: 100vw;
     max-width: 100vw;
-    height: calc(var(--app-height) - var(--dynamic-offset));
+    height: calc(var(--app-height) - var(--dynamic-offset) - env(safe-area-inset-top));
     flex-grow: 1;
   }
 
@@ -1236,9 +1249,14 @@ details summary:focus,
   background-color: var(--color-button-bg-hover);
 }
 
+/* Embed mode — disable safe-area chrome (iframe parent handles it) */
 body.embed-mode {
   padding: 0;
   background: var(--color-bg);
+}
+
+body.embed-mode::before {
+  display: none;
 }
 
 body.embed-mode #maincontent {

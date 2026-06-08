@@ -639,6 +639,7 @@ const scrollEditingBlockIntoView = () => {
 };
 
 const adjustViewport = () => {
+  
   const viewportHeight = window.visualViewport?.height || window.innerHeight;
   const vh = viewportHeight * 0.01;
   document.documentElement.style.setProperty("--vh", `${vh}px`);
