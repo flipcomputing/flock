@@ -433,6 +433,9 @@ body {
     'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
   background: var(--color-bg);
   color: var(--color-text-primary);
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* Form Elements */
@@ -1231,6 +1234,11 @@ details summary:focus,
   outline: 3px solid var(--color-focus);
   outline-offset: -3px;
   background-color: var(--color-button-bg-hover);
+}
+
+body.embed-mode {
+  padding: 0;
+  background: var(--color-bg);
 }
 
 body.embed-mode #maincontent {
