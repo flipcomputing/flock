@@ -50,7 +50,7 @@ export const flockMovement = {
     const groundCheckDistance = 0.3;
     const coyoteTimeMs = 120;
     const airControlFactor = 0.0;
-    const airDragPerTick = 0.9;
+    const airDragPerSecond = Math.pow(0.9, 60);
     const stepHeight = 0.3;
     const stepProbeDistance = 0.6;
     const maxVerticalVelocity = 3.0;
@@ -173,6 +173,10 @@ export const flockMovement = {
       : false;
 
     // --- Horizontal control policy ---
+    const now = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+    const prev = model._lastMoveForwardMs !== undefined ? model._lastMoveForwardMs : now;
+    model._lastMoveForwardMs = now;
+
     model.physics.getLinearVelocityToRef(c.currentVelocity);
     const cv = c.currentVelocity;
     c.currentHorizontalVelocity.set(cv.x, 0, cv.z);
@@ -181,7 +185,10 @@ export const flockMovement = {
     if (grounded || withinCoyoteTime) {
       ahv.copyFrom(c.desiredHorizontalVelocity);
     } else {
-      c.currentHorizontalVelocity.scaleToRef(airDragPerTick, ahv);
+      const rawDt = (now - prev) / 1000;
+      const dtSeconds = Math.min(Math.max(rawDt, 1 / 240), 1 / 15);
+      const dragFactor = Math.pow(airDragPerSecond, dtSeconds);
+      c.currentHorizontalVelocity.scaleToRef(dragFactor, ahv);
       if (airControlFactor > 0) {
         c.desiredHorizontalVelocity.scaleAndAddToRef(airControlFactor, ahv);
       }
