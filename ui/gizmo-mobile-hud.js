@@ -1,15 +1,15 @@
-import { flock } from "../flock.js";
-import { translate } from "../main/translation.js";
+import { flock } from '../flock.js';
+import { translate } from '../main/translation.js';
 
-const fontFamily = "Atkinson Hyperlegible Next";
+const fontFamily = 'Atkinson Hyperlegible Next';
 
 export function createGizmoMobileHud({
   onMove,
   stepNormal,
   stepFast,
-  mode = "slider",
+  mode = 'slider',
   showUniform = false,
-  stepLabels = ["◁", "▷"],
+  stepLabels = ['◁', '▷'],
   onAxisChange = null,
   stepLabelsByAxis = null,
 }) {
@@ -23,19 +23,19 @@ export function createGizmoMobileHud({
   if (flock._joystickSource) flock._joystickSource.pause();
 
   const hudTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-    "GizmoHUD",
+    'GizmoHUD',
     true,
-    flock.scene,
+    flock.scene
   );
 
   // ── Axis state ────────────────────────────────────────────────────────────
-  let axis = "x";
+  let axis = 'x';
 
   const AXIS_DEFS = [
-    { key: "x", label: "X", color: "#0072B2" },
-    { key: "y", label: "Y", color: "#009E73" },
-    { key: "z", label: "Z", color: "#D55E00" },
-    ...(showUniform ? [{ key: "all", label: "*", color: "#aaaaaa" }] : []),
+    { key: 'x', label: 'X', color: '#0072B2' },
+    { key: 'y', label: 'Y', color: '#009E73' },
+    { key: 'z', label: 'Z', color: '#D55E00' },
+    ...(showUniform ? [{ key: 'all', label: '*', color: '#aaaaaa' }] : []),
   ];
   const numAxes = AXIS_DEFS.length;
 
@@ -49,10 +49,10 @@ export function createGizmoMobileHud({
   const TOTAL_H = BTN_SIZE + 2 * GAP;
 
   // ── Transparent container ─────────────────────────────────────────────────
-  const container = new flock.GUI.Rectangle("gizmoHudContainer");
+  const container = new flock.GUI.Rectangle('gizmoHudContainer');
   container.width = `${canvas.width}px`;
   container.height = `${TOTAL_H}px`;
-  container.background = "transparent";
+  container.background = 'transparent';
   container.thickness = 0;
   container.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
   container.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
@@ -69,7 +69,7 @@ export function createGizmoMobileHud({
     btn.fontSize = `${Math.min(40 * s, Math.floor(BTN_SIZE * 0.55))}px`;
     btn.fontFamily = fontFamily;
     btn.cornerRadius = 8 * s;
-    btn.color = "white";
+    btn.color = 'white';
     btn.thickness = 3 * s;
     btn.isPointerBlocker = true;
     btn.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
@@ -85,7 +85,7 @@ export function createGizmoMobileHud({
 
   function updateAxisButtons() {
     for (const { key, color } of AXIS_DEFS) {
-      const selected = axis === key || axis === "all";
+      const selected = axis === key || axis === 'all';
       axisButtons[key].background = color;
       axisButtons[key].thickness = selected ? 6 * s : 2 * s;
     }
@@ -103,9 +103,9 @@ export function createGizmoMobileHud({
       if (axis !== key) {
         axis = key;
         flock.printText({
-          text: translate(key === "all" ? "axis_all" : `axis_${key}`),
+          text: translate(key === 'all' ? 'axis_all' : `axis_${key}`),
           duration: 10,
-          color: "black",
+          color: 'black',
         });
         updateAxisButtons();
       }
@@ -115,7 +115,7 @@ export function createGizmoMobileHud({
   // ── Left half: slider or arrow buttons ───────────────────────────────────
   const cleanups = [];
 
-  if (mode === "arrows") {
+  if (mode === 'arrows') {
     // ── Arrow buttons (◁ ▷) — square, centred in left half ───────────────
     const arrowTotalW = 2 * BTN_SIZE + 3 * GAP;
     const arrowOffsetX = (HALF - arrowTotalW) / 2;
@@ -128,8 +128,8 @@ export function createGizmoMobileHud({
       btn.fontSize = `${Math.min(40 * s, Math.floor(BTN_SIZE * 0.55))}px`;
       btn.fontFamily = fontFamily;
       btn.cornerRadius = 8 * s;
-      btn.background = "transparent";
-      btn.color = "white";
+      btn.background = 'transparent';
+      btn.color = 'white';
       btn.thickness = 3 * s;
       btn.isPointerBlocker = true;
       btn.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
@@ -151,10 +151,10 @@ export function createGizmoMobileHud({
 
       function step() {
         const d = sign * currentStep();
-        if (axis === "all") onMove(d, d, d);
-        else if (axis === "x") onMove(d, 0, 0);
-        else if (axis === "y") onMove(0, d, 0);
-        else if (axis === "z") onMove(0, 0, d);
+        if (axis === 'all') onMove(d, d, d);
+        else if (axis === 'x') onMove(d, 0, 0);
+        else if (axis === 'y') onMove(0, d, 0);
+        else if (axis === 'z') onMove(0, 0, d);
       }
 
       function startRepeat() {
@@ -182,7 +182,7 @@ export function createGizmoMobileHud({
 
     arrowNegBtn = makeArrowButton(stepLabels[0], -1, 0);
     arrowPosBtn = makeArrowButton(stepLabels[1], +1, 1);
-
+    updateAxisButtons();
   } else {
     // ── Slider (delta-drag) ───────────────────────────────────────────────
     const THUMB_R = Math.floor(BTN_SIZE / 2) - 2 * s;
@@ -192,10 +192,10 @@ export function createGizmoMobileHud({
     const SPEED_FACTOR = stepFast / 10;
     const TRACK_CENTER_Y = TOTAL_H / 2;
 
-    const track = new flock.GUI.Rectangle("gizmoTrack");
+    const track = new flock.GUI.Rectangle('gizmoTrack');
     track.width = `${HALF - 2 * SLIDER_MARGIN}px`;
     track.height = `${TRACK_H}px`;
-    track.background = "rgba(255,255,255,0.3)";
+    track.background = 'rgba(255,255,255,0.3)';
     track.thickness = 0;
     track.cornerRadius = TRACK_H / 2;
     track.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
@@ -204,10 +204,10 @@ export function createGizmoMobileHud({
     track.top = `${TRACK_CENTER_Y - TRACK_H / 2}px`;
     container.addControl(track);
 
-    const centerMark = new flock.GUI.Rectangle("gizmoCenterMark");
+    const centerMark = new flock.GUI.Rectangle('gizmoCenterMark');
     centerMark.width = `${4 * s}px`;
     centerMark.height = `${TRACK_H + 10 * s}px`;
-    centerMark.background = "rgba(255,255,255,0.55)";
+    centerMark.background = 'rgba(255,255,255,0.55)';
     centerMark.thickness = 0;
     centerMark.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     centerMark.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
@@ -215,11 +215,11 @@ export function createGizmoMobileHud({
     centerMark.top = `${TRACK_CENTER_Y - (TRACK_H + 10 * s) / 2}px`;
     container.addControl(centerMark);
 
-    const thumb = new flock.GUI.Ellipse("gizmoThumb");
+    const thumb = new flock.GUI.Ellipse('gizmoThumb');
     thumb.width = `${THUMB_R * 2}px`;
     thumb.height = `${THUMB_R * 2}px`;
-    thumb.background = "rgba(255,255,255,0.85)";
-    thumb.color = "transparent";
+    thumb.background = 'rgba(255,255,255,0.85)';
+    thumb.color = 'transparent';
     thumb.thickness = 0;
     thumb.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     thumb.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
@@ -255,7 +255,7 @@ export function createGizmoMobileHud({
       const clampedCSS = Math.max(-b.maxOffsetCSS, Math.min(b.maxOffsetCSS, e.clientX - b.centerX));
       thumbOffsetGUI = clampedCSS / b.scale;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
-      thumb.background = "rgba(255,220,50,0.95)";
+      thumb.background = 'rgba(255,220,50,0.95)';
     }
 
     function onPointerMove(e) {
@@ -264,15 +264,15 @@ export function createGizmoMobileHud({
       lastClientX = e.clientX;
 
       const delta = deltaCSS * SPEED_FACTOR;
-      if (axis === "all") onMove(delta, delta, delta);
-      else if (axis === "x") onMove(delta, 0, 0);
-      else if (axis === "y") onMove(0, delta, 0);
-      else if (axis === "z") onMove(0, 0, delta);
+      if (axis === 'all') onMove(delta, delta, delta);
+      else if (axis === 'x') onMove(delta, 0, 0);
+      else if (axis === 'y') onMove(0, delta, 0);
+      else if (axis === 'z') onMove(0, 0, delta);
 
       const b = sliderBounds();
       thumbOffsetGUI = Math.max(
         -MAX_OFFSET_GUI,
-        Math.min(MAX_OFFSET_GUI, thumbOffsetGUI + deltaCSS / b.scale),
+        Math.min(MAX_OFFSET_GUI, thumbOffsetGUI + deltaCSS / b.scale)
       );
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
     }
@@ -280,13 +280,13 @@ export function createGizmoMobileHud({
     function onPointerUp(e) {
       if (e.pointerId !== activePointer) return;
       activePointer = null;
-      thumb.background = "rgba(255,255,255,0.85)";
+      thumb.background = 'rgba(255,255,255,0.85)';
     }
 
-    canvas.addEventListener("pointerdown", onPointerDown);
-    canvas.addEventListener("pointermove", onPointerMove);
-    canvas.addEventListener("pointerup", onPointerUp);
-    canvas.addEventListener("pointercancel", onPointerUp);
+    canvas.addEventListener('pointerdown', onPointerDown);
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointercancel', onPointerUp);
 
     // Block camera/scene for slider touches — including the initial pointerdown
     const prePointerObserver = flock.scene.onPrePointerObservable.add((info) => {
@@ -295,20 +295,24 @@ export function createGizmoMobileHud({
         info.skipOnPointerObservable = true;
         return;
       }
-      if (e.type === "pointerdown") {
+      if (e.type === 'pointerdown') {
         const b = sliderBounds();
-        if (e.clientY >= b.top && e.clientY <= b.bottom &&
-            e.clientX >= b.left && e.clientX <= b.right) {
+        if (
+          e.clientY >= b.top &&
+          e.clientY <= b.bottom &&
+          e.clientX >= b.left &&
+          e.clientX <= b.right
+        ) {
           info.skipOnPointerObservable = true;
         }
       }
     });
 
     cleanups.push(() => {
-      canvas.removeEventListener("pointerdown", onPointerDown);
-      canvas.removeEventListener("pointermove", onPointerMove);
-      canvas.removeEventListener("pointerup", onPointerUp);
-      canvas.removeEventListener("pointercancel", onPointerUp);
+      canvas.removeEventListener('pointerdown', onPointerDown);
+      canvas.removeEventListener('pointermove', onPointerMove);
+      canvas.removeEventListener('pointerup', onPointerUp);
+      canvas.removeEventListener('pointercancel', onPointerUp);
       flock.scene.onPrePointerObservable.remove(prePointerObserver);
     });
   }
