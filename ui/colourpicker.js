@@ -2087,7 +2087,7 @@ class CustomColorPicker {
     document.getElementById("colorPickerButton")?.classList.remove("active");
     document.removeEventListener("click", this.outsideClickHandler, true);
     window.removeEventListener("keydown", this.globalEscapeHandler, true);
-    KeyboardDispatcher.off("*", "KeyP");
+    KeyboardDispatcher.off("*", "KeyC");
   }
 
   confirmColor() {
