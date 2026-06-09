@@ -677,7 +677,11 @@ export const flockTransform = {
               : (oldMinWorld.z + oldMaxWorld.z) / 2
         );
 
-        mesh.scaling = new flock.BABYLON.Vector3(scaleX, scaleY, scaleZ);
+        mesh.scaling = new flock.BABYLON.Vector3(
+          Math.max(0.001, Math.abs(scaleX)),
+          Math.max(0.001, Math.abs(scaleY)),
+          Math.max(0.001, Math.abs(scaleZ))
+        );
 
         if (maintainTextureScale) {
           const allMeshes = [mesh, ...mesh.getChildMeshes()];

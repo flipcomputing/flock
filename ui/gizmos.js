@@ -780,6 +780,9 @@ function startScaleKeyboardHandler(mesh) {
     mesh.position.y += bottomY - mesh.getBoundingInfo().boundingBox.minimumWorld.y;
 
     flock.updatePhysics(mesh);
+    mesh.scaling.x = Math.max(0.01, mesh.scaling.x);
+    mesh.scaling.y = Math.max(0.01, mesh.scaling.y);
+    mesh.scaling.z = Math.max(0.01, mesh.scaling.z);
     updateScaleBlock(mesh);
   };
   const onConfirm = () => {
@@ -1059,6 +1062,9 @@ function updateScaleBlock(mesh, originalBottomY = null) {
   if (!block) return;
 
   flock.updatePhysics(mesh);
+  mesh.scaling.x = Math.max(0.01, mesh.scaling.x);
+  mesh.scaling.y = Math.max(0.01, mesh.scaling.y);
+  mesh.scaling.z = Math.max(0.01, mesh.scaling.z);
 
   try {
     const ensureFreshBounds = (m) => {
@@ -1074,9 +1080,9 @@ function updateScaleBlock(mesh, originalBottomY = null) {
     }
 
     const sizeLocal = bbox.extendSize.scale(2);
-    const w = sizeLocal.x * mesh.scaling.x;
-    const h = sizeLocal.y * mesh.scaling.y;
-    const d = sizeLocal.z * mesh.scaling.z;
+    const w = sizeLocal.x * Math.abs(mesh.scaling.x);
+    const h = sizeLocal.y * Math.abs(mesh.scaling.y);
+    const d = sizeLocal.z * Math.abs(mesh.scaling.z);
 
     switch (block.type) {
       case 'create_plane':
@@ -1459,6 +1465,10 @@ function handleScaleGizmo() {
 
   const scaleDrag = gizmoManager.gizmos.scaleGizmo.onDragObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
+
+    mesh.scaling.x = Math.max(0.01, mesh.scaling.x);
+    mesh.scaling.y = Math.max(0.01, mesh.scaling.y);
+    mesh.scaling.z = Math.max(0.01, mesh.scaling.z);
 
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
