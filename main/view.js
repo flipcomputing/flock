@@ -7,7 +7,7 @@ export const isNarrowScreen = () => {
 };
 
 const isMobile = () => {
-  return /Mobi|Android/i.test(navigator.userAgent);
+  return /Mobi|Android|iPad/i.test(navigator.userAgent);
 };
 
 export function onResize(mode) {

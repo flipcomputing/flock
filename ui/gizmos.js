@@ -118,7 +118,7 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
     canvas.removeEventListener("pointerdown", onCanvasPointer);
     flock.inputManager.onRawKeyDownObservable.remove(rawKeyObserver);
     if (stopHud) { onHudHide?.(); stopHud(); stopHud = null; }
-    stopKeyboard?.();
+    if (stopKeyboard) { stopKeyboard(); stopKeyboard = null; }
   };
 }
 

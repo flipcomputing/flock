@@ -230,6 +230,7 @@ export function createGizmoMobileHud({
     let thumbOffsetGUI = 0;
     let lastClientX = 0;
     let activePointer = null;
+    let activeScale = 1;
 
     function sliderBounds() {
       const rect = canvas.getBoundingClientRect();
@@ -251,6 +252,7 @@ export function createGizmoMobileHud({
       if (e.clientY < b.top || e.clientY > b.bottom) return;
       if (e.clientX < b.left || e.clientX > b.right) return;
       activePointer = e.pointerId;
+      activeScale = b.scale;
       lastClientX = e.clientX;
       const clampedCSS = Math.max(-b.maxOffsetCSS, Math.min(b.maxOffsetCSS, e.clientX - b.centerX));
       thumbOffsetGUI = clampedCSS / b.scale;
@@ -269,10 +271,9 @@ export function createGizmoMobileHud({
       else if (axis === 'y') onMove(0, delta, 0);
       else if (axis === 'z') onMove(0, 0, delta);
 
-      const b = sliderBounds();
       thumbOffsetGUI = Math.max(
         -MAX_OFFSET_GUI,
-        Math.min(MAX_OFFSET_GUI, thumbOffsetGUI + deltaCSS / b.scale)
+        Math.min(MAX_OFFSET_GUI, thumbOffsetGUI + deltaCSS / activeScale)
       );
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
     }
