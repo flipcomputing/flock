@@ -80,7 +80,9 @@ export function createGizmoMobileHud({
 
   function updateAxisButtons() {
     for (const { key, color } of AXIS_DEFS) {
-      axisButtons[key].background = (axis === key || axis === "all") ? color : "transparent";
+      const selected = axis === key || axis === "all";
+      axisButtons[key].background = color;
+      axisButtons[key].thickness = selected ? 6 * s : 2 * s;
     }
   }
   updateAxisButtons();
