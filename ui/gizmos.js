@@ -667,6 +667,8 @@ function startMoveKeyboardHandler(mesh) {
     stepFast: FAST_CURSOR,
     mode: 'arrows',
     stepLabelsByAxis: { x: ['◁', '▷'], y: ['▽', '△'], z: ['▽', '△'], all: ['◁', '▷'] },
+    onAxisChange: (axis) => highlightGizmoAxis(gizmoManager.gizmos?.positionGizmo, axis),
+    onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.positionGizmo, null),
   });
 }
 
@@ -741,19 +743,10 @@ function startRotateKeyboardHandler(mesh) {
         if (!g?.dragBehavior) return;
         g.dragBehavior.validateDrag = g.dragBehavior._savedValidateDrag ?? (() => true);
         delete g.dragBehavior._savedValidateDrag;
-        if (g._coloredMaterial) g._coloredMaterial.alpha = 1;
       });
+      highlightGizmoAxis(rg, null);
     },
-    onAxisChange: (axis) => {
-      const rg = gizmoManager.gizmos?.rotationGizmo;
-      if (!rg) return;
-      const map = { x: rg.xGizmo, y: rg.yGizmo, z: rg.zGizmo };
-      Object.entries(map).forEach(([key, g]) => {
-        if (g?._coloredMaterial) {
-          g._coloredMaterial.alpha = (axis === key || axis === 'all') ? 1 : 0.2;
-        }
-      });
-    },
+    onAxisChange: (axis) => highlightGizmoAxis(gizmoManager.gizmos?.rotationGizmo, axis),
   });
 }
 
@@ -808,6 +801,8 @@ function startScaleKeyboardHandler(mesh) {
     mode: 'arrows',
     showUniform: true,
     stepLabels: ['-', '+'],
+    onAxisChange: (axis) => highlightGizmoAxis(gizmoManager.gizmos?.scaleGizmo, axis),
+    onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.scaleGizmo, null),
   });
 }
 
@@ -1545,6 +1540,16 @@ function handleScaleGizmo() {
   });
 
   onExit(() => gizmoManager.gizmos.scaleGizmo.onDragEndObservable.remove(scaleDragEnd));
+}
+
+// Dim non-selected axis gizmo handles; pass axis=null to restore all to full opacity.
+function highlightGizmoAxis(gizmo, axis) {
+  const map = { x: gizmo?.xGizmo, y: gizmo?.yGizmo, z: gizmo?.zGizmo };
+  Object.entries(map).forEach(([key, g]) => {
+    if (g?._coloredMaterial) {
+      g._coloredMaterial.alpha = (!axis || axis === key || axis === 'all') ? 1 : 0.2;
+    }
+  });
 }
 
 // Rotation: Allow the user to rotate the mesh by dragging it
