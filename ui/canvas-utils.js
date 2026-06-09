@@ -120,6 +120,7 @@ export function startCanvasKeyboardMode(
 
 // Stop using keyboard mode on the canvas
 export function stopCanvasKeyboardMode() {
+  if (!keyboardCursorActive) return;
   keyboardCursorActive = false;
   keyboardCursorCallback = null;
   hitChecker = null;

@@ -139,7 +139,10 @@ export function createAxisKeyboardHandler({
 
   KeyboardDispatcher.pushMode(handler, "axis-keyboard");
 
+  let stopped = false;
   function stop() {
+    if (stopped) return;
+    stopped = true;
     axis = null;
     KeyboardDispatcher.popMode();
   }
