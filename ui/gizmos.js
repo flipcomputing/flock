@@ -80,7 +80,7 @@ const AXIS_SWITCH_KEYS = new Set([
   "x", "X", "y", "Y", "z", "Z", "u", "U",
 ]);
 
-function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast, mode, showUniform, stepLabels }) {
+function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast, mode, showUniform, stepLabels, onHudShow, onHudHide, onAxisChange }) {
   let stopHud = null;
   let stopKeyboard = null;
   const canvas = flock.canvas;
@@ -88,12 +88,16 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
   function switchToTouch() {
     if (stopKeyboard) { stopKeyboard(); stopKeyboard = null; }
     if (!stopHud) {
-      stopHud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels });
+      stopHud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange });
+      onHudShow?.();
     }
   }
 
   function switchToKeyboard() {
-    if (stopHud) { stopHud(); stopHud = null; }
+    if (stopHud) {
+      stopHud(); stopHud = null;
+      onHudHide?.();
+    }
     if (!stopKeyboard) {
       stopKeyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast });
     }
@@ -113,7 +117,7 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
   return function stop() {
     canvas.removeEventListener("pointerdown", onCanvasPointer);
     flock.inputManager.onRawKeyDownObservable.remove(rawKeyObserver);
-    stopHud?.();
+    if (stopHud) { onHudHide?.(); stopHud(); stopHud = null; }
     stopKeyboard?.();
   };
 }
@@ -716,6 +720,39 @@ function startRotateKeyboardHandler(mesh) {
     stepNormal: DEFAULT_ROTATION,
     stepFast: FAST_ROTATION,
     mode: 'slider',
+    onHudShow: () => {
+      const rg = gizmoManager.gizmos?.rotationGizmo;
+      if (!rg) return;
+      rg.updateGizmoRotationToMatchAttachedMesh = true;
+      // Override validateDrag to block rotation while keeping dragBehavior enabled
+      // (disabling it causes Babylon.js to permanently grey out the arcs)
+      [rg.xGizmo, rg.yGizmo, rg.zGizmo].forEach((g) => {
+        if (!g?.dragBehavior) return;
+        g.dragBehavior._savedValidateDrag = g.dragBehavior.validateDrag;
+        g.dragBehavior.validateDrag = () => false;
+      });
+    },
+    onHudHide: () => {
+      const rg = gizmoManager.gizmos?.rotationGizmo;
+      if (!rg) return;
+      rg.updateGizmoRotationToMatchAttachedMesh = false;
+      [rg.xGizmo, rg.yGizmo, rg.zGizmo].forEach((g) => {
+        if (!g?.dragBehavior) return;
+        g.dragBehavior.validateDrag = g.dragBehavior._savedValidateDrag ?? (() => true);
+        delete g.dragBehavior._savedValidateDrag;
+        if (g._coloredMaterial) g._coloredMaterial.alpha = 1;
+      });
+    },
+    onAxisChange: (axis) => {
+      const rg = gizmoManager.gizmos?.rotationGizmo;
+      if (!rg) return;
+      const map = { x: rg.xGizmo, y: rg.yGizmo, z: rg.zGizmo };
+      Object.entries(map).forEach(([key, g]) => {
+        if (g?._coloredMaterial) {
+          g._coloredMaterial.alpha = (axis === key || axis === 'all') ? 1 : 0.2;
+        }
+      });
+    },
   });
 }
 
@@ -2130,6 +2167,7 @@ export function configurePositionGizmo(
   if (pg.zGizmo?._coloredMaterial) pg.zGizmo._coloredMaterial.diffuseColor = zColor;
 
   pg.updateGizmoPositionToMatchAttachedMesh = updateToMatchAttachedMesh;
+  pg.updateGizmoRotationToMatchAttachedMesh = false;
 }
 
 export function configureRotationGizmo(
@@ -2139,7 +2177,7 @@ export function configureRotationGizmo(
     xColor = blueColor,
     yColor = greenColor,
     zColor = orangeColor,
-    updateToMatchAttachedMesh = true,
+    updateToMatchAttachedMesh = false,
   } = {}
 ) {
   if (!gizmoManager) return;

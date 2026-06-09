@@ -10,6 +10,7 @@ export function createGizmoMobileHud({
   mode = "slider",
   showUniform = false,
   stepLabels = ["◁", "▷"],
+  onAxisChange = null,
 }) {
   if (!flock.scene || !flock.canvas || !flock.GUI) return null;
 
@@ -84,6 +85,7 @@ export function createGizmoMobileHud({
       axisButtons[key].background = color;
       axisButtons[key].thickness = selected ? 6 * s : 2 * s;
     }
+    onAxisChange?.(axis);
   }
   updateAxisButtons();
 
