@@ -54,7 +54,7 @@ import {
   translate,
 } from "./translation.js";
 import { ShortcutsPanel } from "../accessibility/keyboardui.js";
-import { InputManager } from "./inputmanager.js";
+import { KeyboardDispatcher } from "./keyboardDispatcher.js";
 import { ContextManager } from "./context.js";
 
 function isEmbedModeEnabled() {
@@ -847,31 +847,31 @@ function initializeApp() {
   // Enable the file input after initialization
   fileInput.removeAttribute("disabled");
 
-  InputManager.on("*", "Mod+KeyO", (e) => {
+  KeyboardDispatcher.on("*", "Mod+KeyO", (e) => {
     e.preventDefault();
     openFile(workspace, executeCode);
   });
-  InputManager.on("*", "Mod+KeyS", (e) => {
+  KeyboardDispatcher.on("*", "Mod+KeyS", (e) => {
     e.preventDefault();
     exportCode(workspace);
   });
-  InputManager.on("*", "Mod+KeyP", (e) => {
+  KeyboardDispatcher.on("*", "Mod+KeyP", (e) => {
     e.preventDefault();
     document.getElementById("renderCanvas")?.focus({ preventScroll: true });
   });
-  InputManager.on("*", "Mod+Slash", (e) => {
+  KeyboardDispatcher.on("*", "Mod+Slash", (e) => {
     e.preventDefault();
     ShortcutsPanel.toggle();
   });
-  InputManager.on("*", "Mod+KeyM", (e) => {
+  KeyboardDispatcher.on("*", "Mod+KeyM", (e) => {
     e.preventDefault();
     if (menuButton) menuButton.focus();
   });
-  InputManager.on("*", "Mod+KeyE", (e) => {
+  KeyboardDispatcher.on("*", "Mod+KeyE", (e) => {
     e.preventDefault();
     Blockly.getFocusManager()?.focusTree?.(workspace);
   });
-  InputManager.on("*", "KeyT", (e) => {
+  KeyboardDispatcher.on("*", "KeyT", (e) => {
     const ctx = ContextManager.getCurrentContext();
     if (ctx === "TYPING") return;
     if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
@@ -1111,6 +1111,7 @@ window.onload = async function () {
   (async () => {
     try {
       await flock.initialize();
+      KeyboardDispatcher.connect(flock.inputManager);
 
       // Hide loading screen once Flock is fully initialized
       setTimeout(hideLoadingScreen, 500);

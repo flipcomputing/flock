@@ -1,4 +1,4 @@
-import { InputManager } from "../main/inputmanager.js";
+import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
 import { ContextManager } from "../main/context.js";
 import { translate } from "../main/translation.js";
 import { SHORTCUTS_HELP_URL } from "../config.js";
@@ -84,16 +84,16 @@ const AreaManager = {
   },
 
   setupListeners() {
-    InputManager.on("*", "Mod+KeyB", (e) => {
+    KeyboardDispatcher.on("*", "Mod+KeyB", (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.toggle(this.overlay.classList.contains("hidden"));
     });
 
-    InputManager.on("OVERLAY", "Escape", () => this.toggle(false));
+    KeyboardDispatcher.on("OVERLAY", "Escape", () => this.toggle(false));
 
     for (let i = 1; i <= 9; i++) {
-      InputManager.on("OVERLAY", `Digit${i}`, (e) => {
+      KeyboardDispatcher.on("OVERLAY", `Digit${i}`, (e) => {
         e.preventDefault();
         const area = this.effectiveAreas.find((a) => a.label === String(i));
         if (area) this.activateArea(area);
@@ -112,16 +112,16 @@ const AreaManager = {
       badges[nextIndex].focus();
     };
 
-    InputManager.on("OVERLAY", "Tab", (e) => {
+    KeyboardDispatcher.on("OVERLAY", "Tab", (e) => {
       e.preventDefault();
       cycleBadges(false);
     });
-    InputManager.on("OVERLAY", "Shift+Tab", (e) => {
+    KeyboardDispatcher.on("OVERLAY", "Shift+Tab", (e) => {
       e.preventDefault();
       cycleBadges(true);
     });
 
-    InputManager.on("OVERLAY", "Enter", (e) => {
+    KeyboardDispatcher.on("OVERLAY", "Enter", (e) => {
       const focused = document.activeElement;
       if (!focused?.classList.contains("area-number-badge")) return;
       e.preventDefault();
@@ -272,7 +272,7 @@ const GizmoMenuManager = {
 
   setupListeners() {
     // Toggle gizmo menu with Ctrl + G
-    InputManager.on("*", "Mod+KeyG", (e) => {
+    KeyboardDispatcher.on("*", "Mod+KeyG", (e) => {
       const ctx = ContextManager.getCurrentContext();
       if (ctx === "TYPING" || ctx === "OVERLAY") return;
       e.preventDefault();
@@ -282,7 +282,7 @@ const GizmoMenuManager = {
 
     // Activate gizmo buttons with number keys
     for (let i = 1; i <= 9; i++) {
-      InputManager.on("*", `Digit${i}`, () => {
+      KeyboardDispatcher.on("*", `Digit${i}`, () => {
         if (!this.isOpen()) return;
         const entry = this.buttons.find((b) => b.label === String(i));
         if (entry) this.activateButton(entry);

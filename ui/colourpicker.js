@@ -1,6 +1,6 @@
 import { translate } from "../main/translation.js";
 import { exitGizmoState } from "./gizmos.js";
-import { InputManager } from "../main/inputmanager.js";
+import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
 import { ContextManager } from "../main/context.js";
 
 const COLOR_PALETTES = {
@@ -1867,7 +1867,7 @@ class CustomColorPicker {
     document.getElementById("colorPickerButton")?.classList.add("active");
 
     // Add C shortcut to pick current colour
-    InputManager.on("*", "KeyC", (e) => {
+    KeyboardDispatcher.on("*", "KeyC", (e) => {
       if (ContextManager.getCurrentContext() === "TYPING") return;
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
       e.preventDefault();
@@ -2087,7 +2087,7 @@ class CustomColorPicker {
     document.getElementById("colorPickerButton")?.classList.remove("active");
     document.removeEventListener("click", this.outsideClickHandler, true);
     window.removeEventListener("keydown", this.globalEscapeHandler, true);
-    InputManager.off("*", "KeyP");
+    KeyboardDispatcher.off("*", "KeyC");
   }
 
   confirmColor() {

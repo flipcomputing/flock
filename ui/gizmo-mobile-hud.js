@@ -4,11 +4,7 @@ import { translate } from "../main/translation.js";
 const fontFamily = "Atkinson Hyperlegible Next";
 
 function isTouchDevice() {
-  return (
-    "ontouchstart" in window ||
-    navigator.maxTouchPoints > 0 ||
-    window.matchMedia("(pointer: coarse)").matches
-  );
+  return window.matchMedia("(pointer: coarse)").matches;
 }
 
 export function createGizmoMobileHud({

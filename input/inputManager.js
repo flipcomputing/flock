@@ -42,6 +42,7 @@ export class InputManager {
   onKeyUpObservable = new SimpleObservable();
   onActionDownObservable = new SimpleObservable();
   onActionUpObservable = new SimpleObservable();
+  onRawKeyDownObservable = new SimpleObservable();
 
   _setKey(key, pressed) {
     const count = this.#keys.get(key) ?? 0;
@@ -133,6 +134,10 @@ export class InputManager {
 
   getAxis(name) {
     return this.#axes.get(name) ?? 0;
+  }
+
+  _notifyRawKeyDown(event) {
+    this.onRawKeyDownObservable.notifyObservers(event);
   }
 
   // Test-only utility: clears all held keys regardless of source.

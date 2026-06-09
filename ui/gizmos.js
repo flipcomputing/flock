@@ -1,14 +1,14 @@
-import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap } from "../generators/generators.js";
-import { flock } from "../flock.js";
-import { translate } from "../main/translation.js";
+import * as Blockly from 'blockly';
+import { meshMap, meshBlockIdMap } from '../generators/generators.js';
+import { flock } from '../flock.js';
+import { translate } from '../main/translation.js';
 import {
   getBlockKeyFromBlock,
   getMeshFromBlockKey,
   getMeshFromBlock,
   getRootMesh,
   updateBlockColorAndHighlight,
-} from "./blockmesh.js";
+} from './blockmesh.js';
 import {
   highlightBlockById,
   getCanvasXAndCanvasYValues,
@@ -17,31 +17,27 @@ import {
   findParentWithBlockId,
   setNumberInputs,
   getNumberInput,
-} from "./blocklyutil.js";
-import {
-  getMeshRotationInDegrees,
-  roundVectorToFixed,
-  pickLeafFromRay,
-} from "./meshhelpers.js";
+} from './blocklyutil.js';
+import { getMeshRotationInDegrees, roundVectorToFixed, pickLeafFromRay } from './meshhelpers.js';
 import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
   getCanvasCircle,
   setCrosshairCursor,
   setDefaultCursor,
-} from "./canvas-utils.js";
-import { createAxisKeyboardHandler } from "./axis-keyboard.js";
-import { createGizmoMobileHud } from "./gizmo-mobile-hud.js";
-import { InputManager } from "../main/inputmanager.js";
-import { GizmoMenuManager } from "../accessibility/keyboardui.js";
+} from './canvas-utils.js';
+import { createAxisKeyboardHandler } from './axis-keyboard.js';
+import { createGizmoMobileHud } from './gizmo-mobile-hud.js';
+import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
+import { GizmoMenuManager } from '../accessibility/keyboardui.js';
 export let gizmoManager;
 
 // Enable debug messages
 const DEBUG = true;
 
-const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
-const greenColor = flock.BABYLON.Color3.FromHexString("#009E73"); // Colour for Y-axis
-const orangeColor = flock.BABYLON.Color3.FromHexString("#D55E00"); // Colour for Z-axis
+const blueColor = flock.BABYLON.Color3.FromHexString('#0072B2'); // Colour for X-axis
+const greenColor = flock.BABYLON.Color3.FromHexString('#009E73'); // Colour for Y-axis
+const orangeColor = flock.BABYLON.Color3.FromHexString('#D55E00'); // Colour for Z-axis
 
 const FAST_CURSOR = 1; // Step for moving KB cursor quickly
 const DEFAULT_CURSOR = 0.1; // Step for moving KB cursor slowly (default)
@@ -51,13 +47,13 @@ const FAST_SCALE = 0.5;
 const DEFAULT_SCALE = 0.05;
 
 const MODEL_BLOCK_TYPES = new Set([
-  "load_model",
-  "load_multi_object",
-  "load_object",
-  "load_character",
+  'load_model',
+  'load_multi_object',
+  'load_object',
+  'load_character',
 ]);
 
-window.selectedColor = "#ffffff"; // Default color
+window.selectedColor = '#ffffff'; // Default color
 let colorPicker = null;
 
 // 3D text scale gizmo axis tracking
@@ -65,7 +61,7 @@ let textScaleAxis = null;
 let textOrigScaleZ = 1;
 
 // Track state
-let cameraMode = "play";
+let cameraMode = 'play';
 let activePick = null; // [Select mesh?]
 let activeDuplicatePickHandler = null; // [Clone mesh?]
 let stopAxisKeyboard = null; // Axis keyboard active?
@@ -84,42 +80,40 @@ function registerBindings() {
     if (!e.ctrlKey && !e.altKey && !e.metaKey) fn(e);
   };
   // Focus on mesh with V or F key
-  InputManager.on("GIZMO", "KeyF", noMod(focusCameraOnMesh));
-  InputManager.on("GIZMO", "KeyV", noMod(viewMeshWithCamera));
+  KeyboardDispatcher.on('GIZMO', 'KeyF', noMod(focusCameraOnMesh));
+  KeyboardDispatcher.on('GIZMO', 'KeyV', noMod(viewMeshWithCamera));
   // Delete selected mesh with Del key
-  InputManager.on("GIZMO", "Delete", (e) => {
+  KeyboardDispatcher.on('GIZMO', 'Delete', (e) => {
     if (!gizmoManager?.attachedMesh) return;
-    if (Blockly.getMainWorkspace()?.getInjectionDiv()?.contains(e.target))
-      return;
+    if (Blockly.getMainWorkspace()?.getInjectionDiv()?.contains(e.target)) return;
     e.stopPropagation();
-    const blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
-      ?.blockKey;
+    const blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata?.blockKey;
     deleteBlockWithUndo(meshBlockIdMap[blockKey]);
   });
   // Exit gizmo with Tab key
-  InputManager.on("GIZMO", "Tab", (e) => {
+  KeyboardDispatcher.on('GIZMO', 'Tab', () => {
     exitGizmoState();
   });
   // Exit gizmo with Esc and unselect mesh
-  InputManager.on(
-    "GIZMO",
-    "Escape",
+  KeyboardDispatcher.on(
+    'GIZMO',
+    'Escape',
     noMod(() => {
       try {
-        const cameraButton = document.getElementById("cameraButton");
-        if (cameraButton?.classList.contains("active")) handleCameraGizmo();
+        const cameraButton = document.getElementById('cameraButton');
+        if (cameraButton?.classList.contains('active')) handleCameraGizmo();
         exitGizmoState();
         gizmoManager?.attachToMesh(null);
       } catch {
         disableGizmos?.();
       }
-      window.dispatchEvent(new CustomEvent("global:escape"));
-    }),
+      window.dispatchEvent(new CustomEvent('global:escape'));
+    })
   );
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  const colorButton = document.getElementById("colorPickerButton");
+document.addEventListener('DOMContentLoaded', function () {
+  const colorButton = document.getElementById('colorPickerButton');
 
   // Register input handlers for gizmo actions
   registerBindings();
@@ -133,12 +127,12 @@ document.addEventListener("DOMContentLoaded", function () {
       },
       onClose: () => {
         // Re-activate button: painting mode is still a gizmo action
-        document.getElementById("colorPickerButton")?.classList.add("active");
+        document.getElementById('colorPickerButton')?.classList.add('active');
         pickMeshFromCanvas();
       },
       excludeFromClose: (target) => {
         // Don't close when clicking the 3D canvas — canvas clicks paint meshes directly
-        const canvas = document.getElementById("renderCanvas");
+        const canvas = document.getElementById('renderCanvas');
         if (canvas && (canvas === target || canvas.contains(target))) return true;
         // Don't close when clicking a colour field in the Blockly workspace —
         // the pointerdown listener in blocks.js sets this flag for colour-field hits only
@@ -154,18 +148,15 @@ document.addEventListener("DOMContentLoaded", function () {
     window.flockColorPicker = colorPicker;
 
     // Direct painting: clicking/tapping the canvas while picker is open applies colour
-    const renderCanvas = document.getElementById("renderCanvas");
+    const renderCanvas = document.getElementById('renderCanvas');
     if (renderCanvas) {
-      renderCanvas.addEventListener("click", (event) => {
+      renderCanvas.addEventListener('click', (event) => {
         if (!colorPicker?.isOpen) return;
         if (colorPicker._confirmOverride) return; // opened for a Blockly field — ignore canvas click
         // Use picker's live colour (not yet confirmed via "Use")
         window.selectedColor = colorPicker.currentColor || window.selectedColor;
         const canvasRect = renderCanvas.getBoundingClientRect();
-        const [canvasX, canvasY] = getCanvasXAndCanvasYValues(
-          event,
-          canvasRect,
-        );
+        const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
         applyColorAtPosition(canvasX, canvasY);
       });
     }
@@ -173,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Attach click event to open custom color picker
   if (colorButton) {
-    colorButton.addEventListener("click", (event) => {
+    colorButton.addEventListener('click', (event) => {
       event.preventDefault();
       if (colorPicker) {
         GizmoMenuManager.toggle(false);
@@ -193,7 +184,7 @@ function pickMeshFromCanvas() {
 
     // Exit if outside canvas
     if (eventIsOutOfCanvasBounds(event, canvasRect)) {
-      window.removeEventListener("click", onPickMesh);
+      window.removeEventListener('click', onPickMesh);
       exitGizmoState();
       return;
     }
@@ -204,18 +195,18 @@ function pickMeshFromCanvas() {
 
   // Register cleanup so Escape during painting mode also tears down correctly
   onExit(() => {
-    window.removeEventListener("click", onPickMesh);
+    window.removeEventListener('click', onPickMesh);
     stopCanvasKeyboardMode();
-    document.body.style.cursor = "default";
-    if (flock.scene) flock.scene.defaultCursor = "";
+    document.body.style.cursor = 'default';
+    if (flock.scene) flock.scene.defaultCursor = '';
   });
 
   startCanvasKeyboardMode((x, y) => applyColorAtPosition(x, y));
-  document.body.style.cursor = "crosshair";
-  flock.scene.defaultCursor = "crosshair";
+  document.body.style.cursor = 'crosshair';
+  flock.scene.defaultCursor = 'crosshair';
 
   setTimeout(() => {
-    window.addEventListener("click", onPickMesh);
+    window.addEventListener('click', onPickMesh);
   }, 200);
 }
 
@@ -228,7 +219,7 @@ function applyColorAtPosition(canvasX, canvasY) {
     canvasX,
     canvasY,
     flock.BABYLON.Matrix.Identity(),
-    scene.activeCamera,
+    scene.activeCamera
   );
 
   const pickedMesh = pickLeafFromRay(pickRay, scene);
@@ -237,7 +228,7 @@ function applyColorAtPosition(canvasX, canvasY) {
     updateBlockColorAndHighlight(pickedMesh, window.selectedColor);
   } else {
     flock.setSky(window.selectedColor);
-    updateBlockColorAndHighlight(meshMap?.["sky"], window.selectedColor);
+    updateBlockColorAndHighlight(meshMap?.['sky'], window.selectedColor);
   }
 }
 
@@ -252,9 +243,7 @@ function hideBoundingBox(mesh) {
 }
 
 function resetChildMeshesOfAttachedMesh() {
-  gizmoManager?.attachedMesh
-    .getChildMeshes()
-    .forEach((child) => hideBoundingBox(child));
+  gizmoManager?.attachedMesh.getChildMeshes().forEach((child) => hideBoundingBox(child));
 }
 
 function resetAttachedMesh() {
@@ -272,7 +261,7 @@ function resetAttachedMeshIfMeshAttached() {
 function attachMeshForActiveTool(pickedMesh) {
   if (!gizmoManager) return null;
 
-  if (!pickedMesh || pickedMesh.name === "ground") {
+  if (!pickedMesh || pickedMesh.name === 'ground') {
     gizmoManager.attachToMesh(null);
     return null;
   }
@@ -312,7 +301,7 @@ function deleteBlockWithUndo(blockId) {
       // Store reference to parent block before deletion
       let shouldCheckStartBlock = false;
       let startBlock = null;
-      if (parentBlock && parentBlock.type === "start") {
+      if (parentBlock && parentBlock.type === 'start') {
         startBlock = parentBlock;
         shouldCheckStartBlock = true;
       }
@@ -332,10 +321,7 @@ function deleteBlockWithUndo(blockId) {
         });
 
         // Check if the start block still has a next block
-        if (
-          startBlock.nextConnection &&
-          startBlock.nextConnection.targetBlock()
-        ) {
+        if (startBlock.nextConnection && startBlock.nextConnection.targetBlock()) {
           remainingChildren++;
         }
 
@@ -357,10 +343,10 @@ function deleteBlockWithUndo(blockId) {
 
 function focusCameraOnMesh() {
   let mesh = gizmoManager.attachedMesh;
-  if (mesh && mesh.name === "ground") mesh = null;
+  if (mesh && mesh.name === 'ground') mesh = null;
   if (!mesh && window.currentBlock) {
     mesh = getMeshFromBlock(window.currentBlock);
-    if (mesh && mesh.name === "ground") mesh = null;
+    if (mesh && mesh.name === 'ground') mesh = null;
   }
   if (!mesh) return;
   applyMeshSelection(mesh);
@@ -380,13 +366,13 @@ function focusCameraOnMesh() {
   camera.position = new flock.BABYLON.Vector3(
     newTarget.x,
     currentYPosition,
-    newTarget.z - currentDistance,
+    newTarget.z - currentDistance
   );
   camera.setTarget(newTarget);
 }
 
 function applyMeshSelection(pickedMesh, pickedPoint) {
-  if (pickedMesh && pickedMesh.name !== "ground") {
+  if (pickedMesh && pickedMesh.name !== 'ground') {
     if (pickedMesh.parent) {
       pickedMesh = getRootMesh(pickedMesh.parent);
       pickedMesh.visibility = 0.001;
@@ -398,15 +384,12 @@ function applyMeshSelection(pickedMesh, pickedPoint) {
     return;
   }
 
-  if (pickedMesh && pickedMesh.name === "ground") {
+  if (pickedMesh && pickedMesh.name === 'ground') {
     const roundedPosition = roundVectorToFixed(pickedPoint, 2);
     flock.printText({
-      text: translate("position_readout").replace(
-        "{position}",
-        String(roundedPosition),
-      ),
+      text: translate('position_readout').replace('{position}', String(roundedPosition)),
       duration: 30,
-      color: "black",
+      color: 'black',
     });
   }
   if (gizmoManager.attachedMesh) {
@@ -417,11 +400,11 @@ function applyMeshSelection(pickedMesh, pickedPoint) {
 
 function viewMeshWithCamera() {
   let mesh = gizmoManager.attachedMesh;
-  if (mesh && mesh.name === "ground") mesh = null;
+  if (mesh && mesh.name === 'ground') mesh = null;
 
   if (!mesh && window.currentBlock) {
     mesh = getMeshFromBlock(window.currentBlock);
-    if (mesh && mesh.name === "ground") mesh = null;
+    if (mesh && mesh.name === 'ground') mesh = null;
   }
 
   const camera = flock.scene.activeCamera;
@@ -469,7 +452,7 @@ function viewMeshWithCamera() {
   function isBlockingMesh(hitMesh) {
     if (!hitMesh) return false;
     if (ignoreSet.has(hitMesh)) return false;
-    if (hitMesh.name === "ground") return false;
+    if (hitMesh.name === 'ground') return false;
     if (!hitMesh.isEnabled?.()) return false;
     if (!hitMesh.isVisible) return false;
     return hitMesh.isPickable !== false;
@@ -494,7 +477,7 @@ function viewMeshWithCamera() {
     const camPos = new BABYLON.Vector3(
       playerPos.x + testRadius * Math.cos(alpha) * Math.sin(testBeta),
       playerPos.y + testRadius * Math.cos(testBeta),
-      playerPos.z + testRadius * Math.sin(alpha) * Math.sin(testBeta),
+      playerPos.z + testRadius * Math.sin(alpha) * Math.sin(testBeta)
     );
 
     const direction = target.subtract(camPos);
@@ -502,9 +485,7 @@ function viewMeshWithCamera() {
     if (length < 0.001) return true;
 
     const ray = new BABYLON.Ray(camPos, direction.normalize(), length);
-    const hit = scene.pickWithRay(ray, (candidate) =>
-      isBlockingMesh(candidate),
-    );
+    const hit = scene.pickWithRay(ray, (candidate) => isBlockingMesh(candidate));
     return !hit?.hit;
   }
 
@@ -512,7 +493,7 @@ function viewMeshWithCamera() {
     const playerPos = new BABYLON.Vector3(
       target.x - Math.cos(angle) * playerDistance,
       playerY,
-      target.z - Math.sin(angle) * playerDistance,
+      target.z - Math.sin(angle) * playerDistance
     );
 
     const yaw = getYawToTarget(playerPos, target);
@@ -535,7 +516,7 @@ function viewMeshWithCamera() {
   const playerRotation = BABYLON.Quaternion.FromEulerAngles(
     0,
     chosenYaw + PLAYER_FORWARD_OFFSET,
-    0,
+    0
   );
 
   player.position.copyFrom(chosenPlayerPos);
@@ -546,7 +527,7 @@ function viewMeshWithCamera() {
   }
 
   // Keep camera following player, but place it behind the player.
-  if ("lockedTarget" in camera) {
+  if ('lockedTarget' in camera) {
     camera.lockedTarget = player;
   }
 
@@ -585,7 +566,7 @@ export function exitGizmoState() {
 
   // Properly clean up if duplicating
   if (activeDuplicatePickHandler) {
-    window.removeEventListener("click", activeDuplicatePickHandler);
+    window.removeEventListener('click', activeDuplicatePickHandler);
     activeDuplicatePickHandler = null;
   }
 
@@ -597,16 +578,14 @@ export function exitGizmoState() {
   runCleanups();
 
   // Remove active class from all buttons
-  document
-    .querySelectorAll(".gizmo-button")
-    .forEach((btn) => btn.classList.remove("active"));
+  document.querySelectorAll('.gizmo-button').forEach((btn) => btn.classList.remove('active'));
   disableGizmos();
-  document.body.style.cursor = "default";
+  document.body.style.cursor = 'default';
 }
 
 // Start the keyboard handler for moving a mesh
 function startMoveKeyboardHandler(mesh) {
-  document.body.style.cursor = "default";
+  document.body.style.cursor = 'default';
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
 
@@ -623,27 +602,41 @@ function startMoveKeyboardHandler(mesh) {
   };
   const onConfirm = () => {
     exitGizmoState();
-    document.getElementById("positionButton")?.focus();
+    document.getElementById('positionButton')?.focus();
   };
   const onCancel = () => {
     exitGizmoState();
     // Deselect so you get [select mesh] for next tool
     gizmoManager.attachToMesh(null);
-    document.getElementById("positionButton")?.focus();
+    document.getElementById('positionButton')?.focus();
   };
 
-  const stopHud = createGizmoMobileHud({ onMove, stepNormal: DEFAULT_CURSOR, stepFast: FAST_CURSOR, mode: "arrows" });
+  const stopHud = createGizmoMobileHud({
+    onMove,
+    stepNormal: DEFAULT_CURSOR,
+    stepFast: FAST_CURSOR,
+    mode: 'arrows',
+  });
   stopAxisKeyboard = () => stopHud?.();
 
   setTimeout(() => {
-    const stopKeyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal: DEFAULT_CURSOR, stepFast: FAST_CURSOR });
-    stopAxisKeyboard = () => { stopKeyboard(); stopHud?.(); };
+    const stopKeyboard = createAxisKeyboardHandler({
+      onMove,
+      onConfirm,
+      onCancel,
+      stepNormal: DEFAULT_CURSOR,
+      stepFast: FAST_CURSOR,
+    });
+    stopAxisKeyboard = () => {
+      stopKeyboard();
+      stopHud?.();
+    };
   }, 0);
 }
 
 // Rotate a mesh using the keyboard
 function startRotateKeyboardHandler(mesh) {
-  document.body.style.cursor = "default";
+  document.body.style.cursor = 'default';
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
 
@@ -653,8 +646,7 @@ function startRotateKeyboardHandler(mesh) {
   } else {
     const blockKey = mesh?.metadata?.blockKey;
     const creationBlock = blockKey ? meshMap[blockKey] : null;
-    if (creationBlock)
-      highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
+    if (creationBlock) highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
   }
 
   const onMove = (dx, dy, dz) => {
@@ -662,17 +654,14 @@ function startRotateKeyboardHandler(mesh) {
       mesh.rotationQuaternion = flock.BABYLON.Quaternion.FromEulerAngles(
         mesh.rotation.x,
         mesh.rotation.y,
-        mesh.rotation.z,
+        mesh.rotation.z
       );
     }
     const delta = flock.BABYLON.Quaternion.RotationYawPitchRoll(dy, dx, dz);
     mesh.rotationQuaternion.multiplyInPlace(delta).normalize();
     if (mesh.physics) {
       mesh.physics.disablePreStep = false;
-      mesh.physics.setTargetTransform(
-        mesh.absolutePosition,
-        mesh.rotationQuaternion,
-      );
+      mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
     }
     if (rotateBlock) {
       const rot = getMeshRotationInDegrees(mesh);
@@ -681,26 +670,40 @@ function startRotateKeyboardHandler(mesh) {
   };
   const onConfirm = () => {
     exitGizmoState();
-    document.getElementById("rotationButton")?.focus();
+    document.getElementById('rotationButton')?.focus();
   };
   const onCancel = () => {
     exitGizmoState();
     gizmoManager.attachToMesh(null);
-    document.getElementById("rotationButton")?.focus();
+    document.getElementById('rotationButton')?.focus();
   };
 
-  const stopHud = createGizmoMobileHud({ onMove, stepNormal: DEFAULT_ROTATION, stepFast: FAST_ROTATION, mode: "slider" });
+  const stopHud = createGizmoMobileHud({
+    onMove,
+    stepNormal: DEFAULT_ROTATION,
+    stepFast: FAST_ROTATION,
+    mode: 'slider',
+  });
   stopAxisKeyboard = () => stopHud?.();
 
   setTimeout(() => {
-    const stopKeyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal: DEFAULT_ROTATION, stepFast: FAST_ROTATION });
-    stopAxisKeyboard = () => { stopKeyboard(); stopHud?.(); };
+    const stopKeyboard = createAxisKeyboardHandler({
+      onMove,
+      onConfirm,
+      onCancel,
+      stepNormal: DEFAULT_ROTATION,
+      stepFast: FAST_ROTATION,
+    });
+    stopAxisKeyboard = () => {
+      stopKeyboard();
+      stopHud?.();
+    };
   }, 0);
 }
 
 // Scale a mesh using the keyboard
 function startScaleKeyboardHandler(mesh) {
-  document.body.style.cursor = "default";
+  document.body.style.cursor = 'default';
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
 
@@ -708,10 +711,7 @@ function startScaleKeyboardHandler(mesh) {
   if (creationBlock) {
     if (MODEL_BLOCK_TYPES.has(creationBlock.type)) {
       const existingResize = findExistingResizeBlock(mesh);
-      highlightBlockById(
-        Blockly.getMainWorkspace(),
-        existingResize ?? creationBlock,
-      );
+      highlightBlockById(Blockly.getMainWorkspace(), existingResize ?? creationBlock);
     } else {
       highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
     }
@@ -735,20 +735,36 @@ function startScaleKeyboardHandler(mesh) {
   };
   const onConfirm = () => {
     exitGizmoState();
-    document.getElementById("scaleButton")?.focus();
+    document.getElementById('scaleButton')?.focus();
   };
   const onCancel = () => {
     exitGizmoState();
     gizmoManager.attachToMesh(null);
-    document.getElementById("scaleButton")?.focus();
+    document.getElementById('scaleButton')?.focus();
   };
 
-  const stopHud = createGizmoMobileHud({ onMove, stepNormal: DEFAULT_SCALE, stepFast: FAST_SCALE, mode: "arrows", showUniform: true, stepLabels: ["-", "+"] });
+  const stopHud = createGizmoMobileHud({
+    onMove,
+    stepNormal: DEFAULT_SCALE,
+    stepFast: FAST_SCALE,
+    mode: 'arrows',
+    showUniform: true,
+    stepLabels: ['-', '+'],
+  });
   stopAxisKeyboard = () => stopHud?.();
 
   setTimeout(() => {
-    const stopKeyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal: DEFAULT_SCALE, stepFast: FAST_SCALE });
-    stopAxisKeyboard = () => { stopKeyboard(); stopHud?.(); };
+    const stopKeyboard = createAxisKeyboardHandler({
+      onMove,
+      onConfirm,
+      onCancel,
+      stepNormal: DEFAULT_SCALE,
+      stepFast: FAST_SCALE,
+    });
+    stopAxisKeyboard = () => {
+      stopKeyboard();
+      stopHud?.();
+    };
   }, 0);
 }
 
@@ -757,7 +773,7 @@ function setBlockAxisValue(block, inputName, value) {
   const input = block.getInput(inputName);
   const connected = input?.connection?.targetBlock();
   if (connected) {
-    connected.setFieldValue(String(Math.round(value * 10) / 10), "NUM");
+    connected.setFieldValue(String(Math.round(value * 10) / 10), 'NUM');
   }
 }
 
@@ -765,15 +781,12 @@ function setBlockAxisValue(block, inputName, value) {
 function findExistingRotateBlock(mesh) {
   const block = meshMap[mesh?.metadata?.blockKey];
   if (!block) return null;
-  const modelVariable = block.getFieldValue("ID_VAR");
-  const statementConnection = block.getInput("DO")?.connection;
+  const modelVariable = block.getFieldValue('ID_VAR');
+  const statementConnection = block.getInput('DO')?.connection;
   if (!statementConnection) return null;
   let current = statementConnection.targetBlock();
   while (current) {
-    if (
-      current.type === "rotate_to" &&
-      current.getFieldValue("MODEL") === modelVariable
-    ) {
+    if (current.type === 'rotate_to' && current.getFieldValue('MODEL') === modelVariable) {
       return current;
     }
     current = current.getNextBlock();
@@ -791,20 +804,20 @@ function findOrCreateRotateBlock(mesh) {
   Blockly.Events.setGroup(groupId);
 
   let addedDoSection = false;
-  if (!block.getInput("DO")) {
-    block.appendStatementInput("DO").setCheck(null).appendField("");
+  if (!block.getInput('DO')) {
+    block.appendStatementInput('DO').setCheck(null).appendField('');
     addedDoSection = true;
   }
 
   let rotateBlock = null;
-  const modelVariable = block.getFieldValue("ID_VAR");
-  const statementConnection = block.getInput("DO").connection;
+  const modelVariable = block.getFieldValue('ID_VAR');
+  const statementConnection = block.getInput('DO').connection;
   if (statementConnection?.targetBlock()) {
     let currentBlock = statementConnection.targetBlock();
     while (currentBlock) {
       if (
-        currentBlock.type === "rotate_to" &&
-        currentBlock.getFieldValue("MODEL") === modelVariable
+        currentBlock.type === 'rotate_to' &&
+        currentBlock.getFieldValue('MODEL') === modelVariable
       ) {
         rotateBlock = currentBlock;
         break;
@@ -814,14 +827,14 @@ function findOrCreateRotateBlock(mesh) {
   }
 
   if (!rotateBlock) {
-    rotateBlock = Blockly.getMainWorkspace().newBlock("rotate_to");
-    rotateBlock.setFieldValue(modelVariable, "MODEL");
+    rotateBlock = Blockly.getMainWorkspace().newBlock('rotate_to');
+    rotateBlock.setFieldValue(modelVariable, 'MODEL');
     rotateBlock.initSvg();
     rotateBlock.render();
-    ["X", "Y", "Z"].forEach((axis) => {
+    ['X', 'Y', 'Z'].forEach((axis) => {
       const input = rotateBlock.getInput(axis);
-      const shadow = Blockly.getMainWorkspace().newBlock("math_number");
-      shadow.setFieldValue("0", "NUM");
+      const shadow = Blockly.getMainWorkspace().newBlock('math_number');
+      shadow.setFieldValue('0', 'NUM');
       shadow.setShadow(true);
       shadow.initSvg();
       shadow.render();
@@ -836,7 +849,7 @@ function findOrCreateRotateBlock(mesh) {
       while (tail.getNextBlock()) tail = tail.getNextBlock();
       tail.nextConnection.connect(rotateBlock.previousConnection);
     } else {
-      block.getInput("DO").connection.connect(rotateBlock.previousConnection);
+      block.getInput('DO').connection.connect(rotateBlock.previousConnection);
     }
 
     gizmoCreatedBlocks.set(rotateBlock.id, {
@@ -861,16 +874,11 @@ function updateRotationBlock(mesh, axisFilter = null) {
 
   const currentRotation = getMeshRotationInDegrees(mesh);
   if (axisFilter) {
-    if (axisFilter.x) setBlockAxisValue(rotateBlock, "X", currentRotation.x);
-    if (axisFilter.y) setBlockAxisValue(rotateBlock, "Y", currentRotation.y);
-    if (axisFilter.z) setBlockAxisValue(rotateBlock, "Z", currentRotation.z);
+    if (axisFilter.x) setBlockAxisValue(rotateBlock, 'X', currentRotation.x);
+    if (axisFilter.y) setBlockAxisValue(rotateBlock, 'Y', currentRotation.y);
+    if (axisFilter.z) setBlockAxisValue(rotateBlock, 'Z', currentRotation.z);
   } else {
-    setBlockXYZ(
-      rotateBlock,
-      currentRotation.x,
-      currentRotation.y,
-      currentRotation.z,
-    );
+    setBlockXYZ(rotateBlock, currentRotation.x, currentRotation.y, currentRotation.z);
   }
   Blockly.Events.setGroup(null);
 }
@@ -916,12 +924,10 @@ function pickMeshFromScene(onPicked, persistent = false) {
         handlePicked(pick?.pickedMesh, pick?.pickedPoint);
       },
       false,
-      (x, y) =>
-        !!flock.scene.pick(x, y, (m) => m.isPickable && m.name !== "ground")
-          ?.hit,
+      (x, y) => !!flock.scene.pick(x, y, (m) => m.isPickable && m.name !== 'ground')?.hit
     );
-    document.body.style.cursor = "crosshair";
-    flock.scene.defaultCursor = "crosshair";
+    document.body.style.cursor = 'crosshair';
+    flock.scene.defaultCursor = 'crosshair';
   }, 0);
 }
 
@@ -929,13 +935,10 @@ function pickMeshFromScene(onPicked, persistent = false) {
 function findExistingResizeBlock(mesh) {
   const block = meshMap[mesh?.metadata?.blockKey];
   if (!block || !MODEL_BLOCK_TYPES.has(block.type)) return null;
-  const modelVariable = block.getFieldValue("ID_VAR");
-  const stmt = block.getInput("DO")?.connection?.targetBlock?.();
+  const modelVariable = block.getFieldValue('ID_VAR');
+  const stmt = block.getInput('DO')?.connection?.targetBlock?.();
   for (let cur = stmt; cur; cur = cur.getNextBlock?.()) {
-    if (
-      cur.type === "resize" &&
-      cur.getFieldValue?.("BLOCK_NAME") === modelVariable
-    ) {
+    if (cur.type === 'resize' && cur.getFieldValue?.('BLOCK_NAME') === modelVariable) {
       return cur;
     }
   }
@@ -952,27 +955,24 @@ function findOrCreateResizeBlock(mesh) {
   Blockly.Events.setGroup(groupId);
 
   let addedDoSection = false;
-  if (!block.getInput("DO")) {
-    block.appendStatementInput("DO").setCheck(null).appendField("");
+  if (!block.getInput('DO')) {
+    block.appendStatementInput('DO').setCheck(null).appendField('');
     addedDoSection = true;
   }
 
-  const modelVariable = block.getFieldValue("ID_VAR");
-  const stmt = block.getInput("DO")?.connection?.targetBlock?.();
+  const modelVariable = block.getFieldValue('ID_VAR');
+  const stmt = block.getInput('DO')?.connection?.targetBlock?.();
   let resizeBlock = null;
   for (let cur = stmt; cur; cur = cur.getNextBlock?.()) {
-    if (
-      cur.type === "resize" &&
-      cur.getFieldValue?.("BLOCK_NAME") === modelVariable
-    ) {
+    if (cur.type === 'resize' && cur.getFieldValue?.('BLOCK_NAME') === modelVariable) {
       resizeBlock = cur;
       break;
     }
   }
 
   if (!resizeBlock) {
-    resizeBlock = Blockly.getMainWorkspace().newBlock("resize");
-    resizeBlock.setFieldValue(modelVariable, "BLOCK_NAME");
+    resizeBlock = Blockly.getMainWorkspace().newBlock('resize');
+    resizeBlock.setFieldValue(modelVariable, 'BLOCK_NAME');
     resizeBlock.initSvg();
     resizeBlock.render();
 
@@ -981,12 +981,12 @@ function findOrCreateResizeBlock(mesh) {
     const initialSize = getScaledSize(mesh);
     const axisValues = { X: initialSize.x, Y: initialSize.y, Z: initialSize.z };
 
-    ["X", "Y", "Z"].forEach((axis) => {
+    ['X', 'Y', 'Z'].forEach((axis) => {
       const input = resizeBlock.getInput(axis);
-      const shadow = Blockly.getMainWorkspace().newBlock("math_number");
+      const shadow = Blockly.getMainWorkspace().newBlock('math_number');
       const value = axisValues[axis];
       const num = Number.isFinite(value) && value > 0 ? value : 1;
-      shadow.setFieldValue(String(Math.round(num * 10) / 10), "NUM");
+      shadow.setFieldValue(String(Math.round(num * 10) / 10), 'NUM');
       shadow.setShadow(true);
       shadow.initSvg();
       shadow.render();
@@ -995,13 +995,13 @@ function findOrCreateResizeBlock(mesh) {
 
     resizeBlock.render();
 
-    const doFirstBlock = block.getInput("DO").connection.targetBlock();
+    const doFirstBlock = block.getInput('DO').connection.targetBlock();
     if (doFirstBlock) {
       let tail = doFirstBlock;
       while (tail.getNextBlock()) tail = tail.getNextBlock();
       tail.nextConnection.connect(resizeBlock.previousConnection);
     } else {
-      block.getInput("DO").connection.connect(resizeBlock.previousConnection);
+      block.getInput('DO').connection.connect(resizeBlock.previousConnection);
     }
 
     gizmoCreatedBlocks.set(resizeBlock.id, {
@@ -1041,23 +1041,23 @@ function updateScaleBlock(mesh, originalBottomY = null) {
     const d = sizeLocal.z * mesh.scaling.z;
 
     switch (block.type) {
-      case "create_plane":
+      case 'create_plane':
         setNumberInputs(block, { WIDTH: w, HEIGHT: h });
         break;
 
-      case "create_box":
+      case 'create_box':
         setNumberInputs(block, { WIDTH: w, HEIGHT: h, DEPTH: d });
         break;
 
-      case "create_capsule":
+      case 'create_capsule':
         setNumberInputs(block, { HEIGHT: h, DIAMETER: w });
         break;
 
-      case "create_cylinder": {
+      case 'create_cylinder': {
         const newScaledDiameter = w;
 
-        const currentTop = getNumberInput(block, "DIAMETER_TOP");
-        const currentBottom = getNumberInput(block, "DIAMETER_BOTTOM");
+        const currentTop = getNumberInput(block, 'DIAMETER_TOP');
+        const currentBottom = getNumberInput(block, 'DIAMETER_BOTTOM');
 
         let newTop;
         let newBottom;
@@ -1088,7 +1088,7 @@ function updateScaleBlock(mesh, originalBottomY = null) {
         break;
       }
 
-      case "create_sphere":
+      case 'create_sphere':
         setNumberInputs(block, {
           DIAMETER_X: w,
           DIAMETER_Y: h,
@@ -1096,9 +1096,9 @@ function updateScaleBlock(mesh, originalBottomY = null) {
         });
         break;
 
-      case "create_3d_text": {
-        const currentSize = getNumberInput(block, "SIZE");
-        const currentDepth = getNumberInput(block, "DEPTH");
+      case 'create_3d_text': {
+        const currentSize = getNumberInput(block, 'SIZE');
+        const currentDepth = getNumberInput(block, 'DEPTH');
         setNumberInputs(block, {
           SIZE: currentSize * mesh.scaling.y,
           DEPTH: currentDepth * mesh.scaling.z,
@@ -1106,10 +1106,10 @@ function updateScaleBlock(mesh, originalBottomY = null) {
         break;
       }
 
-      case "load_model":
-      case "load_multi_object":
-      case "load_object":
-      case "load_character": {
+      case 'load_model':
+      case 'load_multi_object':
+      case 'load_object':
+      case 'load_character': {
         const resizeBlock = findOrCreateResizeBlock(mesh);
         if (!resizeBlock) break;
 
@@ -1126,7 +1126,7 @@ function updateScaleBlock(mesh, originalBottomY = null) {
       }
     }
   } catch (e) {
-    console.error("Error updating block values:", e);
+    console.error('Error updating block values:', e);
   }
 }
 
@@ -1134,14 +1134,13 @@ function startDuplicatePlacement() {
   let blockKey, blockId, canvas, onPickMesh;
   if (!gizmoManager.attachedMesh) {
     flock.printText({
-      text: translate("select_mesh_duplicate_prompt"),
+      text: translate('select_mesh_duplicate_prompt'),
       duration: 30,
-      color: "black",
+      color: 'black',
     });
     return;
   }
-  blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata
-    ?.blockKey;
+  blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata?.blockKey;
 
   // Make sure that if there is already a selected mesh
   // its bounding box is visible so the user knows what they are duplicating
@@ -1171,8 +1170,7 @@ function startDuplicatePlacement() {
 
       const newBlockKey = getBlockKeyFromBlock(newBlock);
       let nextSource =
-        (newBlockKey ? getMeshFromBlockKey(newBlockKey) : null) ||
-        getMeshFromBlock(newBlock);
+        (newBlockKey ? getMeshFromBlockKey(newBlockKey) : null) || getMeshFromBlock(newBlock);
 
       if (!nextSource && attempt < maxAttempts) {
         attempt += 1;
@@ -1205,7 +1203,7 @@ function startDuplicatePlacement() {
     const canvasRect = canvas.getBoundingClientRect();
 
     if (eventIsOutOfCanvasBounds(event, canvasRect)) {
-      window.removeEventListener("click", onPickMesh);
+      window.removeEventListener('click', onPickMesh);
       meshToClone.showBoundingBox = false;
       exitGizmoState();
       return;
@@ -1217,13 +1215,10 @@ function startDuplicatePlacement() {
       canvasX,
       canvasY,
       flock.BABYLON.Matrix.Identity(),
-      flock.scene.activeCamera,
+      flock.scene.activeCamera
     );
 
-    const pickResult = flock.scene.pickWithRay(
-      pickRay,
-      (mesh) => mesh.isPickable,
-    );
+    const pickResult = flock.scene.pickWithRay(pickRay, (mesh) => mesh.isPickable);
 
     if (pickResult.hit) {
       const pickedPosition = pickResult.pickedPoint;
@@ -1236,11 +1231,7 @@ function startDuplicatePlacement() {
         return;
       }
       // Otherwise carry on adding the new block
-      const newBlock = duplicateBlockAndInsert(
-        originalBlock,
-        workspace,
-        pickedPosition,
-      );
+      const newBlock = duplicateBlockAndInsert(originalBlock, workspace, pickedPosition);
       updateDuplicateChainSource(newBlock, workspace);
     }
   };
@@ -1251,7 +1242,7 @@ function startDuplicatePlacement() {
 
   // Use setTimeout to defer listener setup
   setTimeout(() => {
-    window.addEventListener("click", onPickMesh);
+    window.addEventListener('click', onPickMesh);
   }, 50);
 
   // Keyboard mode: use canvas circle to place the duplicate
@@ -1271,15 +1262,15 @@ function startDuplicatePlacement() {
           const newBlock = duplicateBlockAndInsert(
             originalBlock,
             workspace,
-            pickResult.pickedPoint,
+            pickResult.pickedPoint
           );
           updateDuplicateChainSource(newBlock, workspace);
         }
       },
       false,
-      (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit,
+      (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit
     );
-    flock.scene.defaultCursor = "crosshair";
+    flock.scene.defaultCursor = 'crosshair';
   }, 0);
 }
 
@@ -1318,19 +1309,17 @@ export function disableGizmos() {
 export function toggleGizmo(gizmoType) {
   // Is this gizmo already active? If so, toggle it off
   const button = document.getElementById(`${gizmoType}Button`);
-  if (button?.classList.contains("active")) {
-    if (gizmoType === "camera") handleCameraGizmo();
+  if (button?.classList.contains('active')) {
+    if (gizmoType === 'camera') handleCameraGizmo();
     exitGizmoState();
     return;
   }
 
   // No buttons should be highlighted
-  document
-    .querySelectorAll(".gizmo-button")
-    .forEach((btn) => btn.classList.remove("active"));
+  document.querySelectorAll('.gizmo-button').forEach((btn) => btn.classList.remove('active'));
 
   // If they abandoned a duplicate half way, remove listener
-  if (gizmoType === "duplicate" && activeDuplicatePickHandler) {
+  if (gizmoType === 'duplicate' && activeDuplicatePickHandler) {
     exitGizmoState();
     return;
   }
@@ -1338,29 +1327,29 @@ export function toggleGizmo(gizmoType) {
   exitGizmoState(); // Clean up any existing gizmo state
   resetAttachedMeshIfMeshAttached();
 
-  document.body.style.cursor = "default";
+  document.body.style.cursor = 'default';
 
   // Enable the selected gizmo
   switch (gizmoType) {
-    case "camera":
+    case 'camera':
       handleCameraGizmo();
       break;
-    case "delete":
+    case 'delete':
       handleDeleteGizmo();
       break;
-    case "duplicate":
+    case 'duplicate':
       handleDuplicateGizmo();
       break;
-    case "select":
+    case 'select':
       handleSelectGizmo();
       break;
-    case "position":
+    case 'position':
       handlePositionGizmo();
       break;
-    case "rotation":
+    case 'rotation':
       handleRotationGizmo();
       break;
-    case "scale":
+    case 'scale':
       handleScaleGizmo();
       break;
     /*
@@ -1371,7 +1360,7 @@ export function toggleGizmo(gizmoType) {
       handleBoundsGizmo();
       break;
     */
-    case "focus":
+    case 'focus':
       focusCameraOnMesh();
       break;
     default:
@@ -1385,32 +1374,26 @@ function handleScaleGizmo() {
   {
     const sg = gizmoManager.gizmos.scaleGizmo;
     if (!sg._textAxisObserversRegistered) {
-      sg.xGizmo.dragBehavior.onDragStartObservable.add(
-        () => (textScaleAxis = "x"),
-      );
-      sg.yGizmo.dragBehavior.onDragStartObservable.add(
-        () => (textScaleAxis = "y"),
-      );
-      sg.zGizmo.dragBehavior.onDragStartObservable.add(
-        () => (textScaleAxis = "z"),
-      );
+      sg.xGizmo.dragBehavior.onDragStartObservable.add(() => (textScaleAxis = 'x'));
+      sg.yGizmo.dragBehavior.onDragStartObservable.add(() => (textScaleAxis = 'y'));
+      sg.zGizmo.dragBehavior.onDragStartObservable.add(() => (textScaleAxis = 'z'));
       sg.uniformScaleGizmo.dragBehavior.onDragStartObservable.add(
-        () => (textScaleAxis = "uniform"),
+        () => (textScaleAxis = 'uniform')
       );
       sg._textAxisObserversRegistered = true;
     }
   }
 
   // Highlight scale button
-  const scaleButton = document.getElementById("scaleButton");
-  scaleButton.classList.add("active");
+  const scaleButton = document.getElementById('scaleButton');
+  scaleButton.classList.add('active');
 
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
     startScaleKeyboardHandler(mesh);
   } else {
     pickMeshFromScene((pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === "ground") {
+      if (!pickedMesh || pickedMesh.name === 'ground') {
         exitGizmoState();
         return;
       }
@@ -1446,25 +1429,23 @@ function handleScaleGizmo() {
     const deltaY = originalBottomY - newBottomY;
     mesh.position.y += deltaY;
 
-    const block = Blockly.getMainWorkspace().getBlockById(
-      mesh?.metadata?.blockKey,
-    );
+    const block = Blockly.getMainWorkspace().getBlockById(mesh?.metadata?.blockKey);
     if (gizmoManager.scaleGizmoEnabled) {
       switch (block?.type) {
-        case "create_capsule":
-        case "create_cylinder":
+        case 'create_capsule':
+        case 'create_cylinder':
           mesh.scaling.z = mesh.scaling.x;
           break;
-        case "create_3d_text":
-          if (textScaleAxis === "z") {
+        case 'create_3d_text':
+          if (textScaleAxis === 'z') {
             // Z handle: depth only — lock X and Y
             mesh.scaling.x = 1;
             mesh.scaling.y = 1;
-          } else if (textScaleAxis === "x" || textScaleAxis === "uniform") {
+          } else if (textScaleAxis === 'x' || textScaleAxis === 'uniform') {
             // X or uniform: size only — keep Y = X, lock Z
             mesh.scaling.y = mesh.scaling.x;
             mesh.scaling.z = textOrigScaleZ;
-          } else if (textScaleAxis === "y") {
+          } else if (textScaleAxis === 'y') {
             // Y handle: size only — keep X = Y, lock Z
             mesh.scaling.x = mesh.scaling.y;
             mesh.scaling.z = textOrigScaleZ;
@@ -1474,66 +1455,53 @@ function handleScaleGizmo() {
     }
   });
 
-  onExit(() =>
-    gizmoManager.gizmos.scaleGizmo.onDragObservable.remove(scaleDrag),
-  );
+  onExit(() => gizmoManager.gizmos.scaleGizmo.onDragObservable.remove(scaleDrag));
 
-  const scaleDragStart =
-    gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
-      const mesh = gizmoManager.attachedMesh;
-      flock.ensureUniqueGeometry(mesh);
-      mesh.computeWorldMatrix(true);
-      mesh.refreshBoundingInfo();
-      originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
-      textOrigScaleZ = mesh.scaling.z;
-      textScaleAxis = null;
+  const scaleDragStart = gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
+    const mesh = gizmoManager.attachedMesh;
+    flock.ensureUniqueGeometry(mesh);
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo();
+    originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+    textOrigScaleZ = mesh.scaling.z;
+    textScaleAxis = null;
 
-      const motionType = mesh.physics?.getMotionType();
-      mesh.savedMotionType = motionType;
+    const motionType = mesh.physics?.getMotionType();
+    mesh.savedMotionType = motionType;
 
-      if (
-        mesh.physics &&
-        mesh.physics.getMotionType() !==
-          flock.BABYLON.PhysicsMotionType.ANIMATED
-      ) {
-        mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-        mesh.physics.disablePreStep = false;
-      }
+    if (mesh.physics && mesh.physics.getMotionType() !== flock.BABYLON.PhysicsMotionType.ANIMATED) {
+      mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+      mesh.physics.disablePreStep = false;
+    }
 
-      const creationBlock = meshMap[mesh?.metadata?.blockKey];
-      if (creationBlock) {
-        if (MODEL_BLOCK_TYPES.has(creationBlock.type)) {
-          const resizeBlock = findOrCreateResizeBlock(mesh);
-          if (resizeBlock) {
-            highlightBlockById(Blockly.getMainWorkspace(), resizeBlock);
-          } else {
-            highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
-          }
+    const creationBlock = meshMap[mesh?.metadata?.blockKey];
+    if (creationBlock) {
+      if (MODEL_BLOCK_TYPES.has(creationBlock.type)) {
+        const resizeBlock = findOrCreateResizeBlock(mesh);
+        if (resizeBlock) {
+          highlightBlockById(Blockly.getMainWorkspace(), resizeBlock);
         } else {
           highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
         }
+      } else {
+        highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
       }
-    });
+    }
+  });
 
-  onExit(() =>
-    gizmoManager.gizmos.scaleGizmo.onDragStartObservable.remove(scaleDragStart),
-  );
+  onExit(() => gizmoManager.gizmos.scaleGizmo.onDragStartObservable.remove(scaleDragStart));
 
-  const scaleDragEnd = gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(
-    () => {
-      const mesh = gizmoManager.attachedMesh;
-      textScaleAxis = null;
+  const scaleDragEnd = gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
+    const mesh = gizmoManager.attachedMesh;
+    textScaleAxis = null;
 
-      if (mesh.savedMotionType != null) {
-        mesh.physics.setMotionType(mesh.savedMotionType);
-      }
-      updateScaleBlock(mesh, originalBottomY);
-    },
-  );
+    if (mesh.savedMotionType != null) {
+      mesh.physics.setMotionType(mesh.savedMotionType);
+    }
+    updateScaleBlock(mesh, originalBottomY);
+  });
 
-  onExit(() =>
-    gizmoManager.gizmos.scaleGizmo.onDragEndObservable.remove(scaleDragEnd),
-  );
+  onExit(() => gizmoManager.gizmos.scaleGizmo.onDragEndObservable.remove(scaleDragEnd));
 }
 
 // Rotation: Allow the user to rotate the mesh by dragging it
@@ -1541,15 +1509,15 @@ function handleRotationGizmo() {
   configureRotationGizmo(gizmoManager);
 
   // Show that rotation is active
-  const rotationButton = document.getElementById("rotationButton");
-  rotationButton.classList.add("active");
+  const rotationButton = document.getElementById('rotationButton');
+  rotationButton.classList.add('active');
 
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
     startRotateKeyboardHandler(mesh);
   } else {
     pickMeshFromScene((pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === "ground") {
+      if (!pickedMesh || pickedMesh.name === 'ground') {
         exitGizmoState();
         return;
       }
@@ -1579,9 +1547,9 @@ function handleRotationGizmo() {
   const rg = gizmoManager.gizmos.rotationGizmo;
   const axisDragObservers = [];
   [
-    { gizmo: rg?.xGizmo, axis: "x" },
-    { gizmo: rg?.yGizmo, axis: "y" },
-    { gizmo: rg?.zGizmo, axis: "z" },
+    { gizmo: rg?.xGizmo, axis: 'x' },
+    { gizmo: rg?.yGizmo, axis: 'y' },
+    { gizmo: rg?.zGizmo, axis: 'z' },
   ].forEach(({ gizmo, axis }) => {
     if (!gizmo?.dragBehavior) return;
     const obs = gizmo.dragBehavior.onDragStartObservable.add(() => {
@@ -1590,72 +1558,58 @@ function handleRotationGizmo() {
     axisDragObservers.push({ behavior: gizmo.dragBehavior, obs });
   });
   onExit(() => {
-    axisDragObservers.forEach(({ behavior, obs }) =>
-      behavior.onDragStartObservable.remove(obs),
-    );
+    axisDragObservers.forEach(({ behavior, obs }) => behavior.onDragStartObservable.remove(obs));
   });
 
-  const rotDragStart =
-    gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(() => {
-      let mesh = gizmoManager.attachedMesh;
-      if (!mesh) return;
+  const rotDragStart = gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(() => {
+    let mesh = gizmoManager.attachedMesh;
+    if (!mesh) return;
 
-      const rotateBlock = findOrCreateRotateBlock(mesh);
-      if (rotateBlock) {
-        highlightBlockById(Blockly.getMainWorkspace(), rotateBlock);
-      }
+    const rotateBlock = findOrCreateRotateBlock(mesh);
+    if (rotateBlock) {
+      highlightBlockById(Blockly.getMainWorkspace(), rotateBlock);
+    }
 
-      if (!mesh.physics) return;
+    if (!mesh.physics) return;
 
-      const motionType =
-        mesh.physics?.getMotionType?.() ??
-        flock.BABYLON.PhysicsMotionType.STATIC;
-      mesh.savedMotionType = motionType;
+    const motionType = mesh.physics?.getMotionType?.() ?? flock.BABYLON.PhysicsMotionType.STATIC;
+    mesh.savedMotionType = motionType;
 
-      if (
-        mesh.physics &&
-        mesh.physics.getMotionType?.() !==
-          flock.BABYLON.PhysicsMotionType.ANIMATED
-      ) {
-        mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-        mesh.physics.disablePreStep = false;
-      }
-    });
+    if (
+      mesh.physics &&
+      mesh.physics.getMotionType?.() !== flock.BABYLON.PhysicsMotionType.ANIMATED
+    ) {
+      mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+      mesh.physics.disablePreStep = false;
+    }
+  });
 
-  onExit(() =>
-    gizmoManager.gizmos.rotationGizmo.onDragStartObservable.remove(
-      rotDragStart,
-    ),
-  );
+  onExit(() => gizmoManager.gizmos.rotationGizmo.onDragStartObservable.remove(rotDragStart));
 
-  const rotDragEnd = gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(
-    function () {
-      let mesh = gizmoManager.attachedMesh;
-      while (mesh?.parent && !mesh.parent.physics) {
-        mesh = mesh.parent;
-      }
+  const rotDragEnd = gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(function () {
+    let mesh = gizmoManager.attachedMesh;
+    while (mesh?.parent && !mesh.parent.physics) {
+      mesh = mesh.parent;
+    }
 
-      // Is there any physics to restore?
-      if (mesh?.physics && mesh.savedMotionType != null) {
-        mesh.physics.setMotionType(mesh.savedMotionType);
-      }
+    // Is there any physics to restore?
+    if (mesh?.physics && mesh.savedMotionType != null) {
+      mesh.physics.setMotionType(mesh.savedMotionType);
+    }
 
-      // Only update the axis that was dragged; fall back to all axes if unknown
-      const axisFilter = draggedAxis
-        ? {
-            x: draggedAxis === "x",
-            y: draggedAxis === "y",
-            z: draggedAxis === "z",
-          }
-        : null;
-      draggedAxis = null;
-      updateRotationBlock(mesh, axisFilter);
-    },
-  );
+    // Only update the axis that was dragged; fall back to all axes if unknown
+    const axisFilter = draggedAxis
+      ? {
+          x: draggedAxis === 'x',
+          y: draggedAxis === 'y',
+          z: draggedAxis === 'z',
+        }
+      : null;
+    draggedAxis = null;
+    updateRotationBlock(mesh, axisFilter);
+  });
 
-  onExit(() =>
-    gizmoManager.gizmos.rotationGizmo.onDragEndObservable.remove(rotDragEnd),
-  );
+  onExit(() => gizmoManager.gizmos.rotationGizmo.onDragEndObservable.remove(rotDragEnd));
 }
 
 // Position: Allow the user to move the mesh by dragging it
@@ -1663,8 +1617,8 @@ function handlePositionGizmo() {
   configurePositionGizmo(gizmoManager);
 
   // Highlight the move button
-  const positionButton = document.getElementById("positionButton");
-  positionButton.classList.add("active");
+  const positionButton = document.getElementById('positionButton');
+  positionButton.classList.add('active');
 
   let keyboardAttachedMesh = null;
   const activatePositionKeyboardForMesh = (mesh) => {
@@ -1696,7 +1650,7 @@ function handlePositionGizmo() {
     activatePositionKeyboardForMesh(mesh);
   } else {
     pickMeshFromScene((pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === "ground") {
+      if (!pickedMesh || pickedMesh.name === 'ground') {
         exitGizmoState();
         return;
       }
@@ -1707,51 +1661,38 @@ function handlePositionGizmo() {
     });
   }
 
-  const posDragStart =
-    gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(() => {
-      const mesh = gizmoManager.attachedMesh;
-      if (!mesh) return;
+  const posDragStart = gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(() => {
+    const mesh = gizmoManager.attachedMesh;
+    if (!mesh) return;
 
-      const motionType = mesh.physics?.getMotionType?.();
-      mesh.savedMotionType = motionType;
+    const motionType = mesh.physics?.getMotionType?.();
+    mesh.savedMotionType = motionType;
 
-      if (
-        mesh.physics &&
-        motionType &&
-        motionType !== flock.BABYLON.PhysicsMotionType.ANIMATED
-      ) {
-        mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-        mesh.physics.disablePreStep = false;
-      }
-    });
+    if (mesh.physics && motionType && motionType !== flock.BABYLON.PhysicsMotionType.ANIMATED) {
+      mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+      mesh.physics.disablePreStep = false;
+    }
+  });
 
-  onExit(() =>
-    gizmoManager.gizmos.positionGizmo.onDragStartObservable.remove(
-      posDragStart,
-    ),
-  );
+  onExit(() => gizmoManager.gizmos.positionGizmo.onDragStartObservable.remove(posDragStart));
 
-  const posDragEnd = gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(
-    function () {
-      const mesh = gizmoManager.attachedMesh;
+  const posDragEnd = gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
+    const mesh = gizmoManager.attachedMesh;
 
-      if (mesh.savedMotionType != null && mesh.physics) {
-        mesh.physics.setMotionType(mesh.savedMotionType);
-      }
-      mesh.computeWorldMatrix(true);
+    if (mesh.savedMotionType != null && mesh.physics) {
+      mesh.physics.setMotionType(mesh.savedMotionType);
+    }
+    mesh.computeWorldMatrix(true);
 
-      const block = meshMap[mesh?.metadata?.blockKey];
+    const block = meshMap[mesh?.metadata?.blockKey];
 
-      if (block) {
-        const blockPosition = flock.getBlockPositionFromMesh(mesh);
-        setBlockXYZ(block, blockPosition.x, blockPosition.y, blockPosition.z);
-      }
-    },
-  );
+    if (block) {
+      const blockPosition = flock.getBlockPositionFromMesh(mesh);
+      setBlockXYZ(block, blockPosition.x, blockPosition.y, blockPosition.z);
+    }
+  });
 
-  onExit(() =>
-    gizmoManager.gizmos.positionGizmo.onDragEndObservable.remove(posDragEnd),
-  );
+  onExit(() => gizmoManager.gizmos.positionGizmo.onDragEndObservable.remove(posDragEnd));
 }
 
 // Bounds: Allow the user to move the mesh
@@ -1800,24 +1741,21 @@ function handleBoundsGizmo() {
 // Select: Allow the user to select a mesh by clicking on it
 function handleSelectGizmo() {
   gizmoManager.selectGizmoEnabled = true;
-  document.getElementById("selectButton")?.classList.add("active");
+  document.getElementById('selectButton')?.classList.add('active');
 
   function applySelection(pickedMesh, pickedPoint) {
-    if (pickedMesh && pickedMesh.name !== "ground") {
+    if (pickedMesh && pickedMesh.name !== 'ground') {
       const position = pickedMesh.getAbsolutePosition();
       const roundedPosition = roundVectorToFixed(position, 2);
       flock.printText({
-        text: translate("position_readout").replace(
-          "{position}",
-          String(roundedPosition),
-        ),
+        text: translate('position_readout').replace('{position}', String(roundedPosition)),
         duration: 30,
-        color: "black",
+        color: 'black',
       });
     }
     applyMeshSelection(pickedMesh, pickedPoint);
     setTimeout(() => {
-      if (!getCanvasCircle()) document.body.style.cursor = "crosshair";
+      if (!getCanvasCircle()) document.body.style.cursor = 'crosshair';
     }, 0);
   }
 
@@ -1829,18 +1767,18 @@ function handleSelectGizmo() {
 // and allow the user to place it by clicking on the canvas
 function handleDuplicateGizmo() {
   // Set button active state
-  const duplicateButton = document.getElementById("duplicateButton");
-  duplicateButton.classList.add("active");
+  const duplicateButton = document.getElementById('duplicateButton');
+  duplicateButton.classList.add('active');
 
   // Check if mesh already selected, if not prompt to select
   if (!gizmoManager.attachedMesh) {
     flock.printText({
-      text: translate("select_mesh_duplicate_prompt"),
+      text: translate('select_mesh_duplicate_prompt'),
       duration: 30,
-      color: "black",
+      color: 'black',
     });
     pickMeshFromScene((pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === "ground") {
+      if (!pickedMesh || pickedMesh.name === 'ground') {
         exitGizmoState();
         return;
       }
@@ -1857,14 +1795,12 @@ function handleDuplicateGizmo() {
 // Delete: Remove the selected mesh and its corresponding block
 function handleDeleteGizmo() {
   // Highlight the button
-  document.getElementById("deleteButton")?.classList.add("active");
+  document.getElementById('deleteButton')?.classList.add('active');
 
   function applyDelete(pickedMesh) {
-    if (!pickedMesh || pickedMesh.name === "ground") {
+    if (!pickedMesh || pickedMesh.name === 'ground') {
       setTimeout(() => {
-        if (
-          document.getElementById("deleteButton")?.classList.contains("active")
-        ) {
+        if (document.getElementById('deleteButton')?.classList.contains('active')) {
           pickMeshFromScene(applyDelete, false);
         }
       }, 0);
@@ -1874,9 +1810,7 @@ function handleDeleteGizmo() {
     const blockId = meshBlockIdMap[blockKey];
     deleteBlockWithUndo(blockId);
     setTimeout(() => {
-      if (
-        document.getElementById("deleteButton")?.classList.contains("active")
-      ) {
+      if (document.getElementById('deleteButton')?.classList.contains('active')) {
         pickMeshFromScene(applyDelete, false);
       }
     }, 0);
@@ -1890,9 +1824,9 @@ function handleDeleteGizmo() {
 
   // Explain how to delete
   flock.printText({
-    text: translate("select_mesh_delete_prompt"),
+    text: translate('select_mesh_delete_prompt'),
     duration: 30,
-    color: "black",
+    color: 'black',
   });
 
   pickMeshFromScene(applyDelete);
@@ -1900,25 +1834,25 @@ function handleDeleteGizmo() {
 
 // Camera: Toggle between play and fly camera modes
 function handleCameraGizmo() {
-  const cameraButton = document.getElementById("cameraButton");
+  const cameraButton = document.getElementById('cameraButton');
 
-  if (cameraMode === "play") {
-    cameraMode = "fly";
+  if (cameraMode === 'play') {
+    cameraMode = 'fly';
     flock._onScreenSource?.pause();
     flock._gamepadSource?.setFlyMode(true);
     flock._keyboardSource?.setFlyMode(true);
     flock.printText({
-      text: translate("fly_camera_instructions"),
+      text: translate('fly_camera_instructions'),
       duration: 15,
-      color: "white",
+      color: 'white',
     });
-    cameraButton.classList.add("active");
+    cameraButton.classList.add('active');
   } else {
-    cameraMode = "play";
+    cameraMode = 'play';
     flock._onScreenSource?.resume();
     flock._gamepadSource?.setFlyMode(false);
     flock._keyboardSource?.setFlyMode(false);
-    cameraButton.classList.remove("active");
+    cameraButton.classList.remove('active');
   }
 
   const currentCamera = flock.scene.activeCamera;
@@ -1963,7 +1897,7 @@ function addUndoHandler() {
         if (createdDoSection) {
           const parentBlock = workspace.getBlockById(parentId);
           if (parentBlock) {
-            const doInput = parentBlock.getInput("DO");
+            const doInput = parentBlock.getInput('DO');
 
             // Check if DO section is now empty or only contains blocks created after this one
             let shouldRemoveDoSection = true;
@@ -1986,7 +1920,7 @@ function addUndoHandler() {
 
             // Remove DO section if it should be removed
             if (shouldRemoveDoSection && doInput) {
-              parentBlock.removeInput("DO");
+              parentBlock.removeInput('DO');
             }
           }
         }
@@ -1999,35 +1933,23 @@ export function enableGizmos() {
   // Initialize undo handler for DO section cleanup
   addUndoHandler();
 
-  const positionButton = document.getElementById("positionButton");
-  const rotationButton = document.getElementById("rotationButton");
-  const scaleButton = document.getElementById("scaleButton");
-  const selectButton = document.getElementById("selectButton");
-  const duplicateButton = document.getElementById("duplicateButton");
-  const deleteButton = document.getElementById("deleteButton");
-  const cameraButton = document.getElementById("cameraButton");
-  const showShapesButton = document.getElementById("showShapesButton");
-  const colorPickerButton = document.getElementById("colorPickerButton");
-  const aboutButton = document.getElementById("logo");
+  const positionButton = document.getElementById('positionButton');
+  const rotationButton = document.getElementById('rotationButton');
+  const scaleButton = document.getElementById('scaleButton');
+  const selectButton = document.getElementById('selectButton');
+  const duplicateButton = document.getElementById('duplicateButton');
+  const deleteButton = document.getElementById('deleteButton');
+  const cameraButton = document.getElementById('cameraButton');
+  const showShapesButton = document.getElementById('showShapesButton');
+  const colorPickerButton = document.getElementById('colorPickerButton');
+  const aboutButton = document.getElementById('logo');
 
-  const scrollModelsLeftButton = document.getElementById(
-    "scrollModelsLeftButton",
-  );
-  const scrollModelsRightButton = document.getElementById(
-    "scrollModelsRightButton",
-  );
-  const scrollObjectsLeftButton = document.getElementById(
-    "scrollObjectsLeftButton",
-  );
-  const scrollObjectsRightButton = document.getElementById(
-    "scrollObjectsRightButton",
-  );
-  const scrollCharactersLeftButton = document.getElementById(
-    "scrollCharactersLeftButton",
-  );
-  const scrollCharactersRightButton = document.getElementById(
-    "scrollCharactersRightButton",
-  );
+  const scrollModelsLeftButton = document.getElementById('scrollModelsLeftButton');
+  const scrollModelsRightButton = document.getElementById('scrollModelsRightButton');
+  const scrollObjectsLeftButton = document.getElementById('scrollObjectsLeftButton');
+  const scrollObjectsRightButton = document.getElementById('scrollObjectsRightButton');
+  const scrollCharactersLeftButton = document.getElementById('scrollCharactersLeftButton');
+  const scrollCharactersRightButton = document.getElementById('scrollCharactersRightButton');
 
   // Enable the buttons
 
@@ -2067,38 +1989,26 @@ export function enableGizmos() {
     scrollCharactersRightButton,
   ];
   if (requiredButtons.some((button) => !button)) return;
-  buttons.forEach((button) => button?.removeAttribute("disabled"));
+  buttons.forEach((button) => button?.removeAttribute('disabled'));
 
   // Attach event listeners
-  positionButton.addEventListener("click", () => toggleGizmo("position"));
-  rotationButton.addEventListener("click", () => toggleGizmo("rotation"));
-  scaleButton.addEventListener("click", () => toggleGizmo("scale"));
-  selectButton.addEventListener("click", () => toggleGizmo("select"));
-  cameraButton.addEventListener("click", () => toggleGizmo("camera"));
-  duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
-  deleteButton.addEventListener("click", () => toggleGizmo("delete"));
-  showShapesButton.addEventListener("click", () => {
+  positionButton.addEventListener('click', () => toggleGizmo('position'));
+  rotationButton.addEventListener('click', () => toggleGizmo('rotation'));
+  scaleButton.addEventListener('click', () => toggleGizmo('scale'));
+  selectButton.addEventListener('click', () => toggleGizmo('select'));
+  cameraButton.addEventListener('click', () => toggleGizmo('camera'));
+  duplicateButton.addEventListener('click', () => toggleGizmo('duplicate'));
+  deleteButton.addEventListener('click', () => toggleGizmo('delete'));
+  showShapesButton.addEventListener('click', () => {
     exitGizmoState(); // Unhighlight other buttons
     window.showShapes();
   });
-  scrollModelsLeftButton.addEventListener("click", () =>
-    window.scrollModels(-1),
-  );
-  scrollModelsRightButton.addEventListener("click", () =>
-    window.scrollModels(1),
-  );
-  scrollObjectsLeftButton.addEventListener("click", () =>
-    window.scrollObjects(-1),
-  );
-  scrollObjectsRightButton.addEventListener("click", () =>
-    window.scrollObjects(1),
-  );
-  scrollCharactersLeftButton.addEventListener("click", () =>
-    window.scrollCharacters(-1),
-  );
-  scrollCharactersRightButton.addEventListener("click", () =>
-    window.scrollCharacters(1),
-  );
+  scrollModelsLeftButton.addEventListener('click', () => window.scrollModels(-1));
+  scrollModelsRightButton.addEventListener('click', () => window.scrollModels(1));
+  scrollObjectsLeftButton.addEventListener('click', () => window.scrollObjects(-1));
+  scrollObjectsRightButton.addEventListener('click', () => window.scrollObjects(1));
+  scrollCharactersLeftButton.addEventListener('click', () => window.scrollCharacters(-1));
+  scrollCharactersRightButton.addEventListener('click', () => window.scrollCharacters(1));
 }
 
 export function setGizmoManager(value) {
@@ -2110,16 +2020,14 @@ export function setGizmoManager(value) {
 
   const clearAttachedMeshDisposeObserver = () => {
     if (attachedMeshDisposeObserver && meshWithDisposeObserver) {
-      meshWithDisposeObserver.onDisposeObservable.remove(
-        attachedMeshDisposeObserver,
-      );
+      meshWithDisposeObserver.onDisposeObservable.remove(attachedMeshDisposeObserver);
     }
 
     attachedMeshDisposeObserver = null;
     meshWithDisposeObserver = null;
   };
   gizmoManager.attachToMesh = (mesh) => {
-    if (mesh && mesh.name === "ground") {
+    if (mesh && mesh.name === 'ground') {
       turnOffAllGizmos();
       mesh = null;
     }
@@ -2135,15 +2043,13 @@ export function setGizmoManager(value) {
     if (gizmoManager.attachedMesh) {
       resetAttachedMesh();
 
-      const block = Blockly.getMainWorkspace().getBlockById(
-        mesh?.metadata?.blockKey,
-      );
+      const block = Blockly.getMainWorkspace().getBlockById(mesh?.metadata?.blockKey);
 
       if (block && gizmoManager.scaleGizmoEnabled) {
         switch (block.type) {
-          case "create_plane":
-          case "create_capsule":
-          case "create_cylinder":
+          case 'create_plane':
+          case 'create_capsule':
+          case 'create_cylinder':
             gizmoManager.gizmos.scaleGizmo.zGizmo.isEnabled = false;
 
             break;
@@ -2172,12 +2078,12 @@ export function setGizmoManager(value) {
 
 export function disposeGizmoManager() {
   exitGizmoState(); // Clear up gizmo state and event listeners
-  if (cameraMode === "fly") {
-    cameraMode = "play";
+  if (cameraMode === 'fly') {
+    cameraMode = 'play';
     flock._onScreenSource?.resume();
     flock._gamepadSource?.setFlyMode(false);
     flock._keyboardSource?.setFlyMode(false);
-    document.getElementById("cameraButton")?.classList.remove("active");
+    document.getElementById('cameraButton')?.classList.remove('active');
   }
   if (gizmoManager) {
     gizmoManager.dispose();
@@ -2196,7 +2102,7 @@ export function configurePositionGizmo(
     yColor = greenColor,
     zColor = orangeColor,
     updateToMatchAttachedMesh = true,
-  } = {},
+  } = {}
 ) {
   if (!gizmoManager) return;
 
@@ -2214,12 +2120,9 @@ export function configurePositionGizmo(
     dragBehavior.smoothDrag = smoothDrag;
   });
 
-  if (pg.xGizmo?._coloredMaterial)
-    pg.xGizmo._coloredMaterial.diffuseColor = xColor;
-  if (pg.yGizmo?._coloredMaterial)
-    pg.yGizmo._coloredMaterial.diffuseColor = yColor;
-  if (pg.zGizmo?._coloredMaterial)
-    pg.zGizmo._coloredMaterial.diffuseColor = zColor;
+  if (pg.xGizmo?._coloredMaterial) pg.xGizmo._coloredMaterial.diffuseColor = xColor;
+  if (pg.yGizmo?._coloredMaterial) pg.yGizmo._coloredMaterial.diffuseColor = yColor;
+  if (pg.zGizmo?._coloredMaterial) pg.zGizmo._coloredMaterial.diffuseColor = zColor;
 
   pg.updateGizmoPositionToMatchAttachedMesh = updateToMatchAttachedMesh;
 }
@@ -2232,7 +2135,7 @@ export function configureRotationGizmo(
     yColor = greenColor,
     zColor = orangeColor,
     updateToMatchAttachedMesh = false,
-  } = {},
+  } = {}
 ) {
   if (!gizmoManager) return;
 
@@ -2241,12 +2144,9 @@ export function configureRotationGizmo(
   const rg = gizmoManager.gizmos?.rotationGizmo;
   if (!rg) return;
 
-  if (rg.xGizmo?._coloredMaterial)
-    rg.xGizmo._coloredMaterial.diffuseColor = xColor;
-  if (rg.yGizmo?._coloredMaterial)
-    rg.yGizmo._coloredMaterial.diffuseColor = yColor;
-  if (rg.zGizmo?._coloredMaterial)
-    rg.zGizmo._coloredMaterial.diffuseColor = zColor;
+  if (rg.xGizmo?._coloredMaterial) rg.xGizmo._coloredMaterial.diffuseColor = xColor;
+  if (rg.yGizmo?._coloredMaterial) rg.yGizmo._coloredMaterial.diffuseColor = yColor;
+  if (rg.zGizmo?._coloredMaterial) rg.zGizmo._coloredMaterial.diffuseColor = zColor;
 
   rg.updateGizmoRotationToMatchAttachedMesh = updateToMatchAttachedMesh;
 }
@@ -2261,7 +2161,7 @@ export function configureScaleGizmo(
     zColor = orangeColor,
     sensitivity = 4,
     uniformScaleRatio = 2.5,
-  } = {},
+  } = {}
 ) {
   if (!gizmoManager) return;
 
@@ -2272,12 +2172,9 @@ export function configureScaleGizmo(
 
   sg.PreserveScaling = preserveScaling;
 
-  if (sg.xGizmo?._coloredMaterial)
-    sg.xGizmo._coloredMaterial.diffuseColor = xColor;
-  if (sg.yGizmo?._coloredMaterial)
-    sg.yGizmo._coloredMaterial.diffuseColor = yColor;
-  if (sg.zGizmo?._coloredMaterial)
-    sg.zGizmo._coloredMaterial.diffuseColor = zColor;
+  if (sg.xGizmo?._coloredMaterial) sg.xGizmo._coloredMaterial.diffuseColor = xColor;
+  if (sg.yGizmo?._coloredMaterial) sg.yGizmo._coloredMaterial.diffuseColor = yColor;
+  if (sg.zGizmo?._coloredMaterial) sg.zGizmo._coloredMaterial.diffuseColor = zColor;
 
   sg.sensitivity = sensitivity;
 

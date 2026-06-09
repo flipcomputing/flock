@@ -13,11 +13,17 @@ export class KeyboardSource {
   #onKeyUp;
   #onTargetBlur;
   #onWindowBlur;
+  #onDocKeyDown;
 
   constructor(inputManager, { target, onBlur } = {}) {
     this.#inputManager = inputManager;
     this.#target = target;
     this.#onBlur = onBlur ?? null;
+
+    this.#onDocKeyDown = (event) => {
+      if (event.__flockSynthetic) return;
+      this.#inputManager._notifyRawKeyDown(event);
+    };
 
     this.#onKeyDown = (event) => {
       if (event.__flockSynthetic) return;
@@ -74,6 +80,7 @@ export class KeyboardSource {
   start() {
     if (this.#started) return;
     this.#started = true;
+    document.addEventListener("keydown", this.#onDocKeyDown, true);
     this.#target.addEventListener("keydown", this.#onKeyDown);
     this.#target.addEventListener("keyup", this.#onKeyUp);
     this.#target.addEventListener("blur", this.#onTargetBlur);
@@ -83,6 +90,7 @@ export class KeyboardSource {
   stop() {
     if (!this.#started) return;
     this.#started = false;
+    document.removeEventListener("keydown", this.#onDocKeyDown, true);
     this.#target.removeEventListener("keydown", this.#onKeyDown);
     this.#target.removeEventListener("keyup", this.#onKeyUp);
     this.#target.removeEventListener("blur", this.#onTargetBlur);

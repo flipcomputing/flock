@@ -1,5 +1,5 @@
 import { flock } from "../flock.js";
-import { InputManager } from "../main/inputmanager.js";
+import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
 import { translate } from "../main/translation.js";
 
 // A generic handler to be used for axis-constrained
@@ -137,11 +137,11 @@ export function createAxisKeyboardHandler({
     }
   }
 
-  InputManager.pushMode(handler, "axis-keyboard");
+  KeyboardDispatcher.pushMode(handler, "axis-keyboard");
 
   function stop() {
     axis = null;
-    InputManager.popMode();
+    KeyboardDispatcher.popMode();
   }
 
   return stop;
