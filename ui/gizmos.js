@@ -80,7 +80,7 @@ const AXIS_SWITCH_KEYS = new Set([
   "x", "X", "y", "Y", "z", "Z", "u", "U",
 ]);
 
-function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast, mode, showUniform, stepLabels, onHudShow, onHudHide, onAxisChange }) {
+function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast, mode, showUniform, stepLabels, onHudShow, onHudHide, onAxisChange, stepLabelsByAxis }) {
   let stopHud = null;
   let stopKeyboard = null;
   const canvas = flock.canvas;
@@ -88,7 +88,7 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
   function switchToTouch() {
     if (stopKeyboard) { stopKeyboard(); stopKeyboard = null; }
     if (!stopHud) {
-      stopHud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange });
+      stopHud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange, stepLabelsByAxis });
       onHudShow?.();
     }
   }
@@ -666,6 +666,7 @@ function startMoveKeyboardHandler(mesh) {
     stepNormal: DEFAULT_CURSOR,
     stepFast: FAST_CURSOR,
     mode: 'arrows',
+    stepLabelsByAxis: { x: ['◁', '▷'], y: ['▽', '△'], z: ['▽', '△'], all: ['◁', '▷'] },
   });
 }
 

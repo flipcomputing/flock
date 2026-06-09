@@ -11,6 +11,7 @@ export function createGizmoMobileHud({
   showUniform = false,
   stepLabels = ["◁", "▷"],
   onAxisChange = null,
+  stepLabelsByAxis = null,
 }) {
   if (!flock.scene || !flock.canvas || !flock.GUI) return null;
 
@@ -79,11 +80,19 @@ export function createGizmoMobileHud({
     axisButtons[key] = btn;
   });
 
+  let arrowNegBtn = null;
+  let arrowPosBtn = null;
+
   function updateAxisButtons() {
     for (const { key, color } of AXIS_DEFS) {
       const selected = axis === key || axis === "all";
       axisButtons[key].background = color;
       axisButtons[key].thickness = selected ? 6 * s : 2 * s;
+    }
+    if (stepLabelsByAxis && arrowNegBtn && arrowPosBtn) {
+      const labels = stepLabelsByAxis[axis] ?? stepLabels;
+      arrowNegBtn.textBlock.text = labels[0];
+      arrowPosBtn.textBlock.text = labels[1];
     }
     onAxisChange?.(axis);
   }
@@ -168,10 +177,11 @@ export function createGizmoMobileHud({
       btn.onPointerOutObservable.add(stopRepeat);
 
       cleanups.push(stopRepeat);
+      return btn;
     }
 
-    makeArrowButton(stepLabels[0], -1, 0);
-    makeArrowButton(stepLabels[1], +1, 1);
+    arrowNegBtn = makeArrowButton(stepLabels[0], -1, 0);
+    arrowPosBtn = makeArrowButton(stepLabels[1], +1, 1);
 
   } else {
     // ── Slider (delta-drag) ───────────────────────────────────────────────
