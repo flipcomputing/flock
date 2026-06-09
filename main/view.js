@@ -892,9 +892,6 @@ class PanelResizer {
       case 'ArrowRight':
         deltaX = step;
         break;
-      case 'Home':
-        this.resetPanels();
-        return;
       default:
         return;
     }
