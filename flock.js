@@ -1718,7 +1718,13 @@ export const flock = {
         //flock.engine?.dispose();
         //flock.engine = null;
 
-        // Dispose Babylon audio engine, then close the underlying context
+        // Dispose Babylon audio engine, then close the underlying context.
+        // Capture the context reference now — stopAllSounds() (called earlier) nulls
+        // flock.audioContext without closing it when Babylon owns it, so we must
+        // grab _audioContext directly before dispose clears the engine reference.
+        // Closing the context kills all scheduled oscillators from playMidiNote that
+        // are not tracked in globalSounds.
+        const audioContextToClose = flock.audioEngine?._audioContext ?? flock.audioContext;
         try {
           flock.audioEngine?.dispose?.();
         } catch (error) {
@@ -1726,9 +1732,9 @@ export const flock = {
         }
         flock.audioEngine = null;
 
-        if (flock.audioContext && flock.audioContext.state !== 'closed') {
+        if (audioContextToClose && audioContextToClose.state !== 'closed') {
           try {
-            await flock.audioContext.close();
+            await audioContextToClose.close();
           } catch (error) {
             console.warn('AudioContext was already closed or closing:', error);
           }
@@ -1985,7 +1991,11 @@ export const flock = {
 
     flock.audioEnginePromise.then((audioEngine) => {
       flock.audioEngine = audioEngine;
-      flock.globalStartTime = flock.getAudioContext()?.currentTime ?? 0;
+      // Share Babylon's AudioContext so sound.js never creates a second one on iOS.
+      // iOS allows only one running context per page; a second context causes
+      // "Failed to start the audio device" / InvalidStateError on resume().
+      flock.audioContext = audioEngine._audioContext ?? flock.audioContext;
+      flock.globalStartTime = flock.audioContext?.currentTime ?? 0;
       if (flock.scene.activeCamera) {
         audioEngine.listener.attach(flock.scene.activeCamera);
       }
@@ -2020,6 +2030,11 @@ export const flock = {
     // Keep the listener up to date while sounds are playing, but don't
     // create a new AudioContext just because a frame rendered.
     flock.scene.onBeforeRenderObservable.add(() => {
+      // When Babylon's audio engine is active it owns context.listener via
+      // listener.attach(camera) + listenerAutoUpdate:true. Setting .value on
+      // the same AudioParams would throw NotSupportedError (setValueAtTime
+      // overlapping setValueCurveAtTime). Skip our manual update in that case.
+      if (flock.audioEngine) return;
       const context = flock.audioContext;
       if (context && context.state !== 'closed' && flock.scene.activeCamera) {
         flock.updateListenerPositionAndOrientation(context, flock.scene.activeCamera);

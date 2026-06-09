@@ -118,7 +118,7 @@ function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, play
     panner.positionX.value = sx;
     panner.positionY.value = sy;
     panner.positionZ.value = sz;
-    if (flock.scene.activeCamera) {
+    if (!flock.audioEngine && flock.scene.activeCamera) {
       flockSound.updateListenerPositionAndOrientation(context, flock.scene.activeCamera);
     }
   };
@@ -159,6 +159,55 @@ function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, play
   return soundRef;
 }
 
+// Returns Babylon's AudioContext if available, otherwise reuses or lazily creates one.
+// Avoids the two-AudioContext problem on iOS where a second running context causes
+// "Failed to start the audio device" errors.
+function getOrCreateContext() {
+  const babylonCtx = flock.audioEngine?._audioContext;
+  if (babylonCtx) {
+    flock.audioContext = babylonCtx;
+    return babylonCtx;
+  }
+  if (flock.audioContext && flock.audioContext.state !== 'closed') {
+    return flock.audioContext;
+  }
+  try {
+    flock.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    return flock.audioContext;
+  } catch {
+    return null;
+  }
+}
+
+// iOS Safari will throw InvalidStateError/NotAllowedError when resume() is called
+// outside a user gesture. Defers the resume to the next pointer/touch event instead
+// of silently bailing, so audio works as soon as the user next taps the screen.
+async function safeResume(context) {
+  if (context.state !== 'suspended') return;
+  try {
+    await context.resume();
+  } catch (err) {
+    if (err.name !== 'InvalidStateError' && err.name !== 'NotAllowedError') throw err;
+    await new Promise((resolve) => {
+      let timer;
+      const cleanup = () => {
+        clearTimeout(timer);
+        document.removeEventListener('pointerdown', handler);
+        document.removeEventListener('touchstart', handler);
+      };
+      const handler = () => {
+        cleanup();
+        context.resume().catch(() => {}).finally(resolve);
+      };
+      document.addEventListener('pointerdown', handler);
+      document.addEventListener('touchstart', handler, { passive: true });
+      // Abandon after 10 s — prevents a permanent listener leak when programmatic
+      // audio fires but the user never gestures (e.g. background tab, navigation).
+      timer = setTimeout(() => { cleanup(); resolve(); }, 10000);
+    });
+  }
+}
+
 export const flockSound = {
   async playSound(
     meshName,
@@ -174,23 +223,10 @@ export const flockSound = {
       return;
     }
 
-    let context = flock.audioContext;
-    if (!context || context.state === "closed") {
-      try {
-        flock.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        context = flock.audioContext;
-      } catch (err) {
-        console.error("Could not create audio context:", err);
-        return;
-      }
-    }
-    if (context.state === "suspended") {
-      try {
-        await context.resume();
-      } catch {
-        return;
-      }
-    }
+    const context = getOrCreateContext();
+    if (!context) return;
+    await safeResume(context);
+    if (context.state === 'closed') return;
 
     const soundUrl = flock.soundPath + soundName;
     let buffer;
@@ -249,27 +285,24 @@ export const flockSound = {
     flock._audioStopped = true;
     const ctx = flock.audioContext;
     flock.audioContext = null;
+    // Release the module-level smoothing reference so the old context can be GC'd.
+    // updateListenerPositionAndOrientation is skipped when Babylon's engine is active,
+    // so _listenerCtx would otherwise hold the last closed context indefinitely.
+    _listenerCtx = null;
 
     if (!ctx || ctx.state === "closed") return;
 
-    ctx
-      .close()
-      .then(() => {})
-      .catch((error) => {
+    // Don't close Babylon's own context — it gets closed when audioEngine.dispose() runs.
+    // Closing it here would break Babylon's audio graph on the next scene load.
+    const isBabylonOwned = flock.audioEngine?._audioContext === ctx;
+    if (!isBabylonOwned) {
+      ctx.close().catch((error) => {
         console.error("Error closing audio context:", error);
       });
+    }
   },
   getAudioContext() {
-    if (!flock.audioContext) {
-      const Ctor = window.AudioContext || window.webkitAudioContext;
-      if (!Ctor) return null;
-      try {
-        flock.audioContext = new Ctor();
-      } catch {
-        return null;
-      }
-    }
-    return flock.audioContext;
+    return getOrCreateContext();
   },
   async playNotes(
     meshName,
@@ -285,29 +318,10 @@ export const flockSound = {
 
     const getBPM = (obj) => obj?.metadata?.bpm || null;
 
-    let context = flock.audioContext;
-    if (!context || context.state === "closed") {
-      try {
-        flock.audioContext = new (window.AudioContext ||
-          window.webkitAudioContext)();
-        context = flock.audioContext;
-      } catch (error) {
-        console.error("Could not create audio context:", error);
-        return;
-      }
-    }
-    if (!context || context.state === "closed") {
-      console.log("Audio context is closed or not available.");
-      return;
-    }
-    if (context.state === "suspended") {
-      try {
-        await context.resume();
-      } catch (error) {
-        console.warn("Could not resume audio context:", error);
-        return;
-      }
-    }
+    const context = getOrCreateContext();
+    if (!context || context.state === "closed") return;
+    await safeResume(context);
+    if (context.state === "closed") return;
     if (flock._audioStopped) return;
 
     const scheduleNotes = (mesh, outputNode, observer) => {
@@ -406,7 +420,7 @@ export const flockSound = {
           panner.positionX.value = x;
           panner.positionY.value = y;
           panner.positionZ.value = z;
-          if (flock.scene.activeCamera) {
+          if (!flock.audioEngine && flock.scene.activeCamera) {
             flockSound.updateListenerPositionAndOrientation(
               context,
               flock.scene.activeCamera,
@@ -519,25 +533,32 @@ export const flockSound = {
     osc.stop(oscStopTime);
     if (lfo) lfo.stop(oscStopTime);
 
-    // Clean up: disconnect nodes after the note ends
-    osc.onended = () => {
+    // osc.onended is the primary cleanup path; the setTimeout is a fallback in case
+    // the event never fires (e.g. context suspended). The guard ensures disconnect()
+    // is called exactly once — calling it twice throws in older Safari/WebKit.
+    // noteRef is registered in globalSounds so stopAllSounds() can reach these
+    // oscillators directly — previously context.close() was doing that job.
+    let cleanupDone = false;
+    let noteRef;
+    const doDisconnect = () => {
+      if (cleanupDone) return;
+      cleanupDone = true;
+      clearTimeout(cleanupTimer);
+      if (flock.globalSounds) {
+        const idx = flock.globalSounds.indexOf(noteRef);
+        if (idx !== -1) flock.globalSounds.splice(idx, 1);
+      }
       osc.disconnect();
       gainNode.disconnect();
       if (lfo) lfo.disconnect();
       if (lfoGain) lfoGain.disconnect();
     };
-
-    // Fallback clean-up in case osc.onended is not triggered
+    osc.onended = doDisconnect;
     const cleanupDelay = Math.max(100, (stopTime - context.currentTime + 0.5) * 1000);
-    setTimeout(
-      () => {
-        osc.disconnect();
-        gainNode.disconnect();
-        if (lfo) lfo.disconnect();
-        if (lfoGain) lfoGain.disconnect();
-      },
-      cleanupDelay,
-    );
+    const cleanupTimer = setTimeout(doDisconnect, cleanupDelay);
+
+    noteRef = { name: 'note', stop() { try { osc.stop(0); } catch { /* already stopped */ } doDisconnect(); } };
+    if (flock.globalSounds) flock.globalSounds.push(noteRef);
   },
   midiToFrequency(note) {
     const parsed = Number(note);
