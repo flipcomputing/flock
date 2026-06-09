@@ -991,6 +991,7 @@ button {
     transition: background-color 0.2s ease;
     display: none; /* Hidden by default for mobile */
     flex-shrink: 0;
+    touch-action: none;
   }
 
   .resizer:hover {
