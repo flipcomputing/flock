@@ -120,6 +120,9 @@ export const flockPhysics = {
   },
   updatePhysics(mesh, parent = null) {
     if (!parent) parent = mesh;
+    if (mesh.scaling.x < 0.01) mesh.scaling.x = Math.max(0.01, Math.abs(mesh.scaling.x));
+    if (mesh.scaling.y < 0.01) mesh.scaling.y = Math.max(0.01, Math.abs(mesh.scaling.y));
+    if (mesh.scaling.z < 0.01) mesh.scaling.z = Math.max(0.01, Math.abs(mesh.scaling.z));
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo(true);
     if (!parent.physics) return;

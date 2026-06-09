@@ -33,7 +33,7 @@ function applyPositionWithCurrentBaseRule(
 
   mesh.position.set(nextX, useY ? nextY : mesh.position.y, nextZ);
 
-  if (useY && !isCamera && typeof mesh.getBoundingInfo === "function") {
+  if (useY && !isCamera && typeof mesh.getBoundingInfo === 'function') {
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo?.();
     const bi = mesh.getBoundingInfo();
@@ -677,7 +677,11 @@ export const flockTransform = {
               : (oldMinWorld.z + oldMaxWorld.z) / 2
         );
 
-        mesh.scaling = new flock.BABYLON.Vector3(scaleX, scaleY, scaleZ);
+        mesh.scaling = new flock.BABYLON.Vector3(
+          Math.max(0.01, Math.abs(scaleX)),
+          Math.max(0.01, Math.abs(scaleY)),
+          Math.max(0.01, Math.abs(scaleZ))
+        );
 
         if (maintainTextureScale) {
           const allMeshes = [mesh, ...mesh.getChildMeshes()];
