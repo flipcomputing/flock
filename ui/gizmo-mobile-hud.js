@@ -3,10 +3,6 @@ import { translate } from "../main/translation.js";
 
 const fontFamily = "Atkinson Hyperlegible Next";
 
-function isTouchDevice() {
-  return window.matchMedia("(pointer: coarse)").matches;
-}
-
 export function createGizmoMobileHud({
   onMove,
   stepNormal,
@@ -15,7 +11,6 @@ export function createGizmoMobileHud({
   showUniform = false,
   stepLabels = ["◁", "▷"],
 }) {
-  if (!isTouchDevice()) return null;
   if (!flock.scene || !flock.canvas || !flock.GUI) return null;
 
   const s = flock.displayScale ?? 1;

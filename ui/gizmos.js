@@ -74,6 +74,50 @@ const cleanupFns = [];
 // Track DO sections and their associated blocks for cleanup
 const gizmoCreatedBlocks = new Map(); // blockId -> { parentId, createdDoSection, timestamp }
 
+const AXIS_SWITCH_KEYS = new Set([
+  "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
+  "PageUp", "PageDown",
+  "x", "X", "y", "Y", "z", "Z", "u", "U",
+]);
+
+function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast, mode, showUniform, stepLabels }) {
+  let stopHud = null;
+  let stopKeyboard = null;
+  const canvas = flock.canvas;
+
+  function switchToTouch() {
+    if (stopKeyboard) { stopKeyboard(); stopKeyboard = null; }
+    if (!stopHud) {
+      stopHud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels });
+    }
+  }
+
+  function switchToKeyboard() {
+    if (stopHud) { stopHud(); stopHud = null; }
+    if (!stopKeyboard) {
+      stopKeyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast });
+    }
+  }
+
+  function onCanvasPointer(e) {
+    if (e.pointerType === "touch") switchToTouch();
+  }
+
+  function onRawKey(e) {
+    if (AXIS_SWITCH_KEYS.has(e.key)) switchToKeyboard();
+  }
+
+  canvas.addEventListener("pointerdown", onCanvasPointer);
+  const rawKeyObserver = flock.inputManager.onRawKeyDownObservable.add(onRawKey);
+
+  return function stop() {
+    canvas.removeEventListener("pointerdown", onCanvasPointer);
+    flock.inputManager.onRawKeyDownObservable.remove(rawKeyObserver);
+    stopHud?.();
+    stopKeyboard?.();
+  };
+}
+
 // Register input handlers for gizmo actions
 function registerBindings() {
   const noMod = (fn) => (e) => {
@@ -611,27 +655,14 @@ function startMoveKeyboardHandler(mesh) {
     document.getElementById('positionButton')?.focus();
   };
 
-  const stopHud = createGizmoMobileHud({
+  stopAxisKeyboard = createAdaptiveInput({
     onMove,
+    onConfirm,
+    onCancel,
     stepNormal: DEFAULT_CURSOR,
     stepFast: FAST_CURSOR,
     mode: 'arrows',
   });
-  stopAxisKeyboard = () => stopHud?.();
-
-  setTimeout(() => {
-    const stopKeyboard = createAxisKeyboardHandler({
-      onMove,
-      onConfirm,
-      onCancel,
-      stepNormal: DEFAULT_CURSOR,
-      stepFast: FAST_CURSOR,
-    });
-    stopAxisKeyboard = () => {
-      stopKeyboard();
-      stopHud?.();
-    };
-  }, 0);
 }
 
 // Rotate a mesh using the keyboard
@@ -678,27 +709,14 @@ function startRotateKeyboardHandler(mesh) {
     document.getElementById('rotationButton')?.focus();
   };
 
-  const stopHud = createGizmoMobileHud({
+  stopAxisKeyboard = createAdaptiveInput({
     onMove,
+    onConfirm,
+    onCancel,
     stepNormal: DEFAULT_ROTATION,
     stepFast: FAST_ROTATION,
     mode: 'slider',
   });
-  stopAxisKeyboard = () => stopHud?.();
-
-  setTimeout(() => {
-    const stopKeyboard = createAxisKeyboardHandler({
-      onMove,
-      onConfirm,
-      onCancel,
-      stepNormal: DEFAULT_ROTATION,
-      stepFast: FAST_ROTATION,
-    });
-    stopAxisKeyboard = () => {
-      stopKeyboard();
-      stopHud?.();
-    };
-  }, 0);
 }
 
 // Scale a mesh using the keyboard
@@ -743,29 +761,16 @@ function startScaleKeyboardHandler(mesh) {
     document.getElementById('scaleButton')?.focus();
   };
 
-  const stopHud = createGizmoMobileHud({
+  stopAxisKeyboard = createAdaptiveInput({
     onMove,
+    onConfirm,
+    onCancel,
     stepNormal: DEFAULT_SCALE,
     stepFast: FAST_SCALE,
     mode: 'arrows',
     showUniform: true,
     stepLabels: ['-', '+'],
   });
-  stopAxisKeyboard = () => stopHud?.();
-
-  setTimeout(() => {
-    const stopKeyboard = createAxisKeyboardHandler({
-      onMove,
-      onConfirm,
-      onCancel,
-      stepNormal: DEFAULT_SCALE,
-      stepFast: FAST_SCALE,
-    });
-    stopAxisKeyboard = () => {
-      stopKeyboard();
-      stopHud?.();
-    };
-  }, 0);
 }
 
 // Set a single numeric axis input on a block (e.g. "X", "Y", or "Z")
@@ -2134,7 +2139,7 @@ export function configureRotationGizmo(
     xColor = blueColor,
     yColor = greenColor,
     zColor = orangeColor,
-    updateToMatchAttachedMesh = false,
+    updateToMatchAttachedMesh = true,
   } = {}
 ) {
   if (!gizmoManager) return;
