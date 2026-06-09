@@ -1,10 +1,5 @@
 import { ContextManager } from "./context.js";
 
-/**
- * Input Manager
- * Handles keyboard input events based on the current context.
- */
-
 // Work out what key combo was pressed (e.g. Ctrl+Shift+KeyA)
 function _keyCombo(event) {
   const mods = [
@@ -15,7 +10,7 @@ function _keyCombo(event) {
   return mods.length ? `${mods.join("+")}+${event.code}` : event.code;
 }
 
-const InputManager = {
+const KeyboardDispatcher = {
   _registry: {},
   _modeStack: [],
 
@@ -69,7 +64,8 @@ function _debugShow(code, label) {
   }, 2000);
 }
 
-// Handle keydown for all presses
-document.addEventListener("keydown", (e) => InputManager._dispatch(e), true);
+KeyboardDispatcher.connect = function (inputManager) {
+  inputManager.onRawKeyDownObservable.add((e) => KeyboardDispatcher._dispatch(e));
+};
 
-export { InputManager };
+export { KeyboardDispatcher };

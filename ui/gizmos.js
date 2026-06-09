@@ -32,7 +32,7 @@ import {
 } from "./canvas-utils.js";
 import { createAxisKeyboardHandler } from "./axis-keyboard.js";
 import { createGizmoMobileHud } from "./gizmo-mobile-hud.js";
-import { InputManager } from "../main/inputmanager.js";
+import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
 import { GizmoMenuManager } from "../accessibility/keyboardui.js";
 export let gizmoManager;
 
@@ -84,10 +84,10 @@ function registerBindings() {
     if (!e.ctrlKey && !e.altKey && !e.metaKey) fn(e);
   };
   // Focus on mesh with V or F key
-  InputManager.on("GIZMO", "KeyF", noMod(focusCameraOnMesh));
-  InputManager.on("GIZMO", "KeyV", noMod(viewMeshWithCamera));
+  KeyboardDispatcher.on("GIZMO", "KeyF", noMod(focusCameraOnMesh));
+  KeyboardDispatcher.on("GIZMO", "KeyV", noMod(viewMeshWithCamera));
   // Delete selected mesh with Del key
-  InputManager.on("GIZMO", "Delete", (e) => {
+  KeyboardDispatcher.on("GIZMO", "Delete", (e) => {
     if (!gizmoManager?.attachedMesh) return;
     if (Blockly.getMainWorkspace()?.getInjectionDiv()?.contains(e.target))
       return;
@@ -97,11 +97,11 @@ function registerBindings() {
     deleteBlockWithUndo(meshBlockIdMap[blockKey]);
   });
   // Exit gizmo with Tab key
-  InputManager.on("GIZMO", "Tab", (e) => {
+  KeyboardDispatcher.on("GIZMO", "Tab", (e) => {
     exitGizmoState();
   });
   // Exit gizmo with Esc and unselect mesh
-  InputManager.on(
+  KeyboardDispatcher.on(
     "GIZMO",
     "Escape",
     noMod(() => {
