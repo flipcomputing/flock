@@ -407,7 +407,8 @@ body:not(.loading) #flockeditor {
 }
 
 /* Global Styles */
-html > body {
+html,
+body {
   overflow: hidden;
   margin: 0;
   padding: 0;
@@ -426,7 +427,7 @@ html > body {
 }
 
 /* Purple strip behind the iOS status bar — only visible when there's a real inset (0 on desktop, no flash) */
-html > body::before {
+body::before {
   content: "";
   position: fixed;
   top: 0;
@@ -437,7 +438,7 @@ html > body::before {
   pointer-events: none;
 }
 
-html > body {
+body {
   display: flex;
   gap: 0;
   box-sizing: border-box;
@@ -1889,3 +1890,5 @@ kbd {
   background: var(--color-error-text);
   color: var(--color-error-bg);
 }
+
+
