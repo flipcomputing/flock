@@ -1132,10 +1132,12 @@ export default {
     "Resultados de búsqueda de la caja de herramientas.", // human
   context_delete_option: "Eliminar", // human
   context_delete_all_blocks_option: "Eliminar todos los bloques",
-  context_inline_inputs_option: "En línea",
-  context_external_inputs_option: "Apilado",
+  context_inline_inputs_option: "Entradas en línea",
+  context_external_inputs_option: "Apilar entradas",
   context_collapse_option: "Contraer",
   context_expand_option: "Expandir",
+  context_collapse_all_option: "Contraer todo",
+  context_expand_all_option: "Expandir todo",
   context_disable_option: "Deshabilitar",
   context_enable_option: "Habilitar",
   context_copy_option: "Copiar", // human

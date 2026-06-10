@@ -1929,13 +1929,59 @@ export function createBlocklyWorkspace() {
     }
   })();
 
-  // Remove undo/redo from the workspace context menu — toolbar buttons cover this.
+  // Remove undo/redo (toolbar buttons cover this) and clean up (flock does this automatically).
+  // Also remove the separate collapse/expand workspace items — replaced by a single toggle below.
   (function removeRedundantContextMenuItems() {
     const registry = Blockly.ContextMenuRegistry.registry;
-    ['undoWorkspace', 'redoWorkspace'].forEach((id) => {
+    ['undoWorkspace', 'redoWorkspace', 'cleanWorkspace',
+     'collapseWorkspace', 'expandWorkspace'].forEach((id) => {
       try {
         registry.unregister(id);
       } catch (_) {}
+    });
+  })();
+
+  // Replace separate "Collapse all" / "Expand all" workspace items with a single toggle.
+  (function registerCollapseExpandWorkspaceToggle() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const WORKSPACE = Blockly.ContextMenuRegistry.ScopeType.WORKSPACE;
+    if (registry.getItem?.('flockCollapseExpandWorkspace')) return;
+
+    const hasAnyExpanded = (ws) => {
+      for (const block of ws.getTopBlocks(false)) {
+        let b = block;
+        while (b) {
+          if (!b.isCollapsed()) return true;
+          b = b.getNextBlock();
+        }
+      }
+      return false;
+    };
+
+    registry.register({
+      id: 'flockCollapseExpandWorkspace',
+      weight: 4,
+      scopeType: WORKSPACE,
+      displayText: (scope) => hasAnyExpanded(scope.workspace)
+        ? translate('context_collapse_all_option')
+        : translate('context_expand_all_option'),
+      preconditionFn: (scope) => {
+        if (!scope.workspace?.options?.collapse) return 'hidden';
+        return scope.workspace.getTopBlocks(false).length ? 'enabled' : 'hidden';
+      },
+      callback: (scope) => {
+        const ws = scope.workspace;
+        const shouldCollapse = hasAnyExpanded(ws);
+        Blockly.Events.setGroup(true);
+        for (const block of ws.getTopBlocks(true)) {
+          let b = block;
+          while (b) {
+            b.setCollapsed(shouldCollapse);
+            b = b.getNextBlock();
+          }
+        }
+        Blockly.Events.setGroup(false);
+      },
     });
   })();
 
