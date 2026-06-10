@@ -30,6 +30,10 @@ const KeyboardDispatcher = {
     this._modeStack.pop();
   },
 
+  clearModes() {
+    this._modeStack.length = 0;
+  },
+
   _dispatch(event) {
     const context = ContextManager.getCurrentContext();
     if (this._modeStack.length > 0) {

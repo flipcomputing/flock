@@ -16,7 +16,7 @@ export function createAxisKeyboardHandler({
   function handler(event) {
     const t = event.target;
     // Don't capture keys when focus is in the code panel, top menu, or docs
-    if (t?.closest?.("#codePanel, header, #info-panel")) return;
+    if (t?.closest?.("#codePanel, header, #info-panel, #shapes-dropdown, .custom-color-picker")) return;
     // Don't interfere with text inputs
     const tag = (t?.tagName || "").toLowerCase();
     if (

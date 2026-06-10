@@ -22,6 +22,7 @@ import {
 } from "./canvas-utils.js";
 import { GizmoMenuManager } from "../accessibility/keyboardui.js";
 import { translate } from "../main/translation.js";
+import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
 
 const colorFields = {
   HAIR_COLOR: "#000000", // Hair: black
@@ -741,6 +742,7 @@ let currentFocusedElement = null;
 let keyboardNavigationActive = false;
 
 function setupKeyboardNavigation() {
+  KeyboardDispatcher.clearModes(); // flush any lingering gizmo keyboard modes (e.g. axis-keyboard)
   keyboardNavigationActive = true;
   currentFocusedElement = null;
 

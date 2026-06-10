@@ -108,6 +108,8 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
   }
 
   function onRawKey(e) {
+    if (e.cancelBubble) return;
+    if (e.target?.closest?.("#shapes-dropdown, .custom-color-picker")) return;
     if (AXIS_SWITCH_KEYS.has(e.key)) switchToKeyboard();
   }
 
@@ -215,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
     colorButton.addEventListener('click', (event) => {
       event.preventDefault();
       if (colorPicker) {
+        KeyboardDispatcher.clearModes();
         GizmoMenuManager.toggle(false);
         colorPicker.open(window.selectedColor);
       }
