@@ -63,6 +63,23 @@ export function appendWithUndo(spec, ws, groupId) {
   return block;
 }
 
+export function getLastHighlightedBlockId(workspace) {
+  return lastAddMenuHighlighted?.workspace === workspace
+    ? lastAddMenuHighlighted.blockId
+    : null;
+}
+
+export function restoreBlockFocus(workspace, blockId) {
+  if (!workspace || !blockId) return;
+  const block = workspace.getBlockById(blockId);
+  if (!block) return;
+
+  ensureAddMenuSelectionCleanup(workspace);
+  clearAddMenuHighlight(workspace, blockId);
+  trackBlockHighlight(workspace, blockId);
+  scrollToBlockTopParentLeft(workspace, blockId);
+}
+
 export function highlightBlockById(workspace, block) {
   if (!workspace || !block || block.workspace !== workspace) return;
 
