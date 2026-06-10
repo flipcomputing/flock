@@ -489,7 +489,7 @@ button {
 /* Layout Styles */
 #maincontent {
   width: 100vw;
-  height: calc(var(--app-height) - 50px - env(safe-area-inset-top));
+  height: calc(var(--app-height) - 50px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   display: flex;
   margin: 0;
   gap: 0;
