@@ -1118,6 +1118,7 @@ export default {
   toolbox_search_results_aria:
     "Resultados de pesquisa da caixa de ferramentas.",
   context_delete_option: "Excluir",
+  context_delete_all_blocks_option: "Excluir todos os blocos",
   context_copy_option: "Copiar",
   context_paste_option: "Colar",
   context_cut_option: "Cortar",

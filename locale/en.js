@@ -1131,6 +1131,7 @@ export default {
   focused_main_content: "Focused main content.",
   toolbox_search_results_aria: "Toolbox search results.",
   context_delete_option: "Delete",
+  context_delete_all_blocks_option: "Delete all blocks",
   context_copy_option: "Copy",
   context_paste_option: "Paste",
   context_cut_option: "Cut",

@@ -1131,6 +1131,7 @@ export default {
   toolbox_search_results_aria:
     "Resultados de búsqueda de la caja de herramientas.", // human
   context_delete_option: "Eliminar", // human
+  context_delete_all_blocks_option: "Eliminar todos los bloques",
   context_copy_option: "Copiar", // human
   context_paste_option: "Pegar", // human
   context_cut_option: "Cortar", // human

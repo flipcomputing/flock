@@ -1939,6 +1939,12 @@ export function createBlocklyWorkspace() {
     });
   })();
 
+  // Rename built-in workspace "Delete" item to the localized "Delete all blocks" label.
+  (function renameWorkspaceDeleteMenuItem() {
+    const item = Blockly.ContextMenuRegistry.registry.getItem?.('workspaceDelete');
+    if (item) item.displayText = () => translate('context_delete_all_blocks_option');
+  })();
+
   // Add "Find in workspace" to the workspace context menu.
   (function registerWorkspaceSearchContextMenuItem() {
     const registry = Blockly.ContextMenuRegistry.registry;

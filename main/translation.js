@@ -67,11 +67,9 @@ function applyContextMenuShortcutTranslations() {
   Blockly.Msg["PASTE_SHORTCUT"] = translate("context_paste_option");
   Blockly.Msg["CUT_SHORTCUT"] = translate("context_cut_option");
 
-  // Normalize the delete label to a single localized string without block
-  // counts.
-  const deleteLabel = translate("context_delete_option");
-  Blockly.Msg["DELETE_BLOCK"] = deleteLabel;
-  Blockly.Msg["DELETE_X_BLOCKS"] = deleteLabel;
+  // Normalize the delete label to a single localized string without block counts.
+  Blockly.Msg["DELETE_BLOCK"] = translate("context_delete_option");
+  Blockly.Msg["DELETE_X_BLOCKS"] = translate("context_delete_all_blocks_option");
 }
 
 export async function setLanguage(language) {
