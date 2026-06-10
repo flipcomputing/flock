@@ -1920,8 +1920,8 @@ export function createBlocklyWorkspace() {
       blockInline: 12,
       blockCollapseExpand: 13,
       blockDisable: 14,
-      blockHelp: 15,
       blockDelete: 20,
+      blockHelp: 999,
     };
     for (const [id, weight] of Object.entries(weights)) {
       const item = registry.getItem?.(id);
@@ -1929,14 +1929,66 @@ export function createBlocklyWorkspace() {
     }
   })();
 
-  // Remove undo/redo from the workspace context menu — toolbar buttons cover this.
+  // Remove undo/redo (toolbar buttons cover this) and clean up (flock does this automatically).
+  // Also remove the separate collapse/expand workspace items — replaced by a single toggle below.
   (function removeRedundantContextMenuItems() {
     const registry = Blockly.ContextMenuRegistry.registry;
-    ['undoWorkspace', 'redoWorkspace'].forEach((id) => {
+    ['undoWorkspace', 'redoWorkspace', 'cleanWorkspace',
+     'collapseWorkspace', 'expandWorkspace'].forEach((id) => {
       try {
         registry.unregister(id);
       } catch (_) {}
     });
+  })();
+
+  // Replace separate "Collapse all" / "Expand all" workspace items with a single toggle.
+  (function registerCollapseExpandWorkspaceToggle() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const WORKSPACE = Blockly.ContextMenuRegistry.ScopeType.WORKSPACE;
+    if (registry.getItem?.('flockCollapseExpandWorkspace')) return;
+
+    const hasAnyExpanded = (ws) => {
+      for (const block of ws.getTopBlocks(false)) {
+        let b = block;
+        while (b) {
+          if (!b.isCollapsed()) return true;
+          b = b.getNextBlock();
+        }
+      }
+      return false;
+    };
+
+    registry.register({
+      id: 'flockCollapseExpandWorkspace',
+      weight: 4,
+      scopeType: WORKSPACE,
+      displayText: (scope) => hasAnyExpanded(scope.workspace)
+        ? translate('context_collapse_all_option')
+        : translate('context_expand_all_option'),
+      preconditionFn: (scope) => {
+        if (!scope.workspace?.options?.collapse) return 'hidden';
+        return scope.workspace.getTopBlocks(false).length ? 'enabled' : 'hidden';
+      },
+      callback: (scope) => {
+        const ws = scope.workspace;
+        const shouldCollapse = hasAnyExpanded(ws);
+        Blockly.Events.setGroup(true);
+        for (const block of ws.getTopBlocks(true)) {
+          let b = block;
+          while (b) {
+            b.setCollapsed(shouldCollapse);
+            b = b.getNextBlock();
+          }
+        }
+        Blockly.Events.setGroup(false);
+      },
+    });
+  })();
+
+  // Rename built-in workspace "Delete" item to the localized "Delete all blocks" label.
+  (function renameWorkspaceDeleteMenuItem() {
+    const item = Blockly.ContextMenuRegistry.registry.getItem?.('workspaceDelete');
+    if (item) item.displayText = () => translate('context_delete_all_blocks_option');
   })();
 
   // Add "Find in workspace" to the workspace context menu.
@@ -2009,6 +2061,24 @@ export function createBlocklyWorkspace() {
       },
       scopeType: BLOCK,
     });
+  })();
+
+  // Add separators to the block context menu to group related items.
+  // Weights: clipboard(1-3) | 5 | block-ops(9-14) | 18 | delete(20) | 50 | export(100-200) | 500 | help(999)
+  (function registerBlockContextMenuSeparators() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const BLOCK = Blockly.ContextMenuRegistry.ScopeType.BLOCK;
+    const separators = [
+      { id: 'flock_sep_after_clipboard', weight: 5 },
+      { id: 'flock_sep_before_delete', weight: 18 },
+      { id: 'flock_sep_before_export', weight: 50 },
+      { id: 'flock_sep_before_help', weight: 500 },
+    ];
+    for (const { id, weight } of separators) {
+      if (!registry.getItem?.(id)) {
+        registry.register({ id, weight, separator: true, scopeType: BLOCK });
+      }
+    }
   })();
 
   // ===== OVERRIDE CLIPBOARD METHODS =====
