@@ -2,12 +2,6 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
-// iOS Safari polyfill: Babylon's audio engine calls new AudioContext() directly,
-// but older iOS only exposes webkitAudioContext.
-if (typeof window !== 'undefined' && !window.AudioContext && window.webkitAudioContext) {
-  window.AudioContext = window.webkitAudioContext;
-}
-
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import HavokPhysics from '@babylonjs/havok';
@@ -1681,6 +1675,8 @@ export const flock = {
         });
 
         // Clear all scene observables
+        flock.scene.onActiveCameraChanged?.remove(flock._audioListenerObserver);
+        flock._audioListenerObserver = null;
         flock.scene.onBeforeRenderObservable?.clear();
         flock.scene.onAfterRenderObservable?.clear();
         flock.scene.onBeforeAnimationsObservable?.clear();
@@ -1731,6 +1727,7 @@ export const flock = {
           console.warn('Error disposing audioEngine:', error);
         }
         flock.audioEngine = null;
+        flock.audioEnginePromise = null;
 
         if (audioContextToClose && audioContextToClose.state !== 'closed') {
           try {
@@ -1787,6 +1784,52 @@ export const flock = {
         flock.abortController = null;
       }
     }
+  },
+  ensureAudio() {
+    if (!flock.audioEnginePromise) {
+      // iOS Safari polyfill — must run before Babylon calls new AudioContext().
+      if (typeof window !== 'undefined' && !window.AudioContext && window.webkitAudioContext) {
+        window.AudioContext = window.webkitAudioContext;
+      }
+      try {
+        // Capture the promise reference so the .then() handler can detect if
+        // cleanup ran (set audioEnginePromise to null) or a new scene replaced
+        // it before this async init resolved — and dispose the stale engine.
+        let enginePromise;
+        enginePromise = flock.BABYLON.CreateAudioEngineAsync({
+          volume: 1,
+          listenerAutoUpdate: true,
+          listenerEnabled: true,
+          resumeOnInteraction: true,
+        }).then((audioEngine) => {
+          if (flock.audioEnginePromise !== enginePromise) {
+            try { audioEngine.dispose?.(); } catch { /* best-effort */ }
+            return;
+          }
+          flock.audioEngine = audioEngine;
+          flock.audioContext = audioEngine._audioContext ?? flock.audioContext;
+          flock.globalStartTime = flock.audioContext?.currentTime ?? 0;
+          if (flock.scene?.activeCamera) {
+            audioEngine.listener.attach(flock.scene.activeCamera);
+          }
+          flock._audioListenerObserver = flock.scene?.onActiveCameraChanged?.add(() => {
+            if (flock.scene?.activeCamera) {
+              audioEngine.listener.attach(flock.scene.activeCamera);
+            }
+          });
+        }).catch((err) => {
+          console.warn('[flock] Audio engine unavailable:', err);
+          flock.audioEngine = null;
+          showBanner('audio', { message: translate('error_audio') });
+        });
+        flock.audioEnginePromise = enginePromise;
+      } catch (err) {
+        console.warn('[flock] Audio engine unavailable:', err);
+        flock.audioEngine = null;
+        flock.audioEnginePromise = Promise.resolve();
+      }
+    }
+    return flock.audioEnginePromise;
   },
   async initializeNewScene() {
     // Wait a bit more to ensure all disposal operations are complete
@@ -1981,34 +2024,6 @@ export const flock = {
     hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5);
 
     flock.mainLight = hemisphericLight;
-
-    flock.audioEnginePromise = flock.BABYLON.CreateAudioEngineAsync({
-      volume: 1,
-      listenerAutoUpdate: true,
-      listenerEnabled: true,
-      resumeOnInteraction: true,
-    });
-
-    flock.audioEnginePromise.then((audioEngine) => {
-      flock.audioEngine = audioEngine;
-      // Share Babylon's AudioContext so sound.js never creates a second one on iOS.
-      // iOS allows only one running context per page; a second context causes
-      // "Failed to start the audio device" / InvalidStateError on resume().
-      flock.audioContext = audioEngine._audioContext ?? flock.audioContext;
-      flock.globalStartTime = flock.audioContext?.currentTime ?? 0;
-      if (flock.scene.activeCamera) {
-        audioEngine.listener.attach(flock.scene.activeCamera);
-      }
-
-      // Reattach listener if the active camera ever changes
-      flock.scene.onActiveCameraChanged.add(() => {
-        audioEngine.listener.attach(flock.scene.activeCamera);
-      });
-    }).catch((err) => {
-      console.warn('[flock] Audio engine unavailable:', err);
-      flock.audioEngine = null;
-      showBanner('audio', { message: translate('error_audio') });
-    });
 
     // Enable collisions
     flock.scene.collisionsEnabled = true;

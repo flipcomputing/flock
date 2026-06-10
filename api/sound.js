@@ -223,6 +223,7 @@ export const flockSound = {
       return;
     }
 
+    await flock.ensureAudio();
     const context = getOrCreateContext();
     if (!context) return;
     await safeResume(context);
@@ -264,6 +265,7 @@ export const flockSound = {
   },
   stopAllSounds() {
     if (!flock?.globalSounds) return;
+    soundBufferCache.clear();
     const sounds = flock.globalSounds.slice();
     flock.globalSounds = [];
     for (const sound of sounds) {
@@ -318,6 +320,7 @@ export const flockSound = {
 
     const getBPM = (obj) => obj?.metadata?.bpm || null;
 
+    await flock.ensureAudio();
     const context = getOrCreateContext();
     if (!context || context.state === "closed") return;
     await safeResume(context);
