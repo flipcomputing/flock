@@ -175,7 +175,7 @@ function handleKeydown(event) {
   ) {
     return;
   }
-  const moveDistance = event.shiftKey ? 10 : 2;
+  const moveDistance = event.shiftKey ? 2 : 10;
   switch (event.key) {
     case "ArrowRight":
     case "ArrowLeft":

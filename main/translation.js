@@ -394,19 +394,19 @@ export function initializeLanguageMenu() {
 
   // Show/hide language submenu
   languageMenuItem.addEventListener("mouseenter", () => {
-    languageSubmenu.classList.remove("hidden");
+    languageSubmenu.hidden = false;
   });
 
   languageMenuItem.addEventListener("mouseleave", () => {
     setTimeout(() => {
       if (!languageSubmenu.matches(":hover")) {
-        languageSubmenu.classList.add("hidden");
+        languageSubmenu.hidden = true;
       }
     }, 100);
   });
 
   languageSubmenu.addEventListener("mouseleave", () => {
-    languageSubmenu.classList.add("hidden");
+    languageSubmenu.hidden = true;
   });
 
   // Handle language selection
@@ -419,7 +419,7 @@ export function initializeLanguageMenu() {
       setLanguage(selectedLang);
 
       // Close menus
-      languageSubmenu.classList.add("hidden");
+      languageSubmenu.hidden = true;
       const menuDropdown = document.getElementById("menuDropdown");
       if (menuDropdown) {
         menuDropdown.classList.add("hidden");
