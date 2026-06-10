@@ -96,7 +96,7 @@ function ensureAddMenuSelectionCleanup(workspace) {
   workspace.__addMenuSelectionCleanupAttached = true;
 }
 
-function scrollToBlockTopParentLeft(workspace, blockId) {
+export function scrollToBlockTopParentLeft(workspace, blockId) {
   if (!workspace.isMovable()) {
     console.warn("Tried to move a non-movable workspace.");
     return;

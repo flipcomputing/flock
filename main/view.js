@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import { workspace } from './blocklyinit.js';
 import { flock } from '../flock.js';
+import { scrollToBlockTopParentLeft } from '../ui/blocklyutil.js';
 
 export const isNarrowScreen = () => {
   return window.innerWidth <= 1024;
@@ -9,6 +10,8 @@ export const isNarrowScreen = () => {
 const isMobile = () => {
   return /Mobi|Android|iPad/i.test(navigator.userAgent);
 };
+
+let pendingScrollBlockId = null;
 
 export function onResize(mode) {
   // First handle canvas and engine
@@ -29,6 +32,10 @@ export function onResize(mode) {
     if (workspace) {
       Blockly.svgResize(workspace);
       if (mode === 'reset') workspace.scroll(scrollX, scrollY);
+      if (mode === 'reset' && pendingScrollBlockId) {
+        scrollToBlockTopParentLeft(workspace, pendingScrollBlockId);
+        pendingScrollBlockId = null;
+      }
     }
   });
 }
@@ -320,12 +327,6 @@ function showCodeView() {
     if (canvasToggleBtn) canvasToggleBtn.setAttribute('aria-pressed', 'false');
     if (codeToggleBtn) codeToggleBtn.setAttribute('aria-pressed', 'true');
 
-    // Blockly resize after DOM changes
-    requestAnimationFrame(() => {
-      if (workspace) {
-        Blockly.svgResize(workspace);
-      }
-    });
   }
 
   onResize('reset');
@@ -343,6 +344,9 @@ export function showCanvasView() {
   currentView = 'canvas';
 
   if (isNarrowScreen()) {
+    // Save the current block before hiding the panel — currentBlock may be cleared on hide.
+    pendingScrollBlockId = window.currentBlock?.id || null;
+
     // Instead of CSS transform, change the layout directly
     const canvasArea = document.getElementById('canvasArea');
     const blocklyArea = document.getElementById('codePanel');
