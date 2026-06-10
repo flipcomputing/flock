@@ -117,6 +117,8 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
   canvas.addEventListener("pointerdown", onCanvasPointer);
   const rawKeyObserver = flock.inputManager.onRawKeyDownObservable.add(onRawKey);
 
+  if (navigator.maxTouchPoints > 0) switchToTouch();
+
   return function stop() {
     canvas.removeEventListener("pointerdown", onCanvasPointer);
     flock.inputManager.onRawKeyDownObservable.remove(rawKeyObserver);
