@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly';
 import { workspace } from './blocklyinit.js';
 import { flock } from '../flock.js';
-import { scrollToBlockTopParentLeft } from '../ui/blocklyutil.js';
+import { restoreBlockFocus, getLastHighlightedBlockId } from '../ui/blocklyutil.js';
 
 export const isNarrowScreen = () => {
   return window.innerWidth <= 1024;
@@ -33,8 +33,11 @@ export function onResize(mode) {
       Blockly.svgResize(workspace);
       if (mode === 'reset') workspace.scroll(scrollX, scrollY);
       if (mode === 'reset' && pendingScrollBlockId) {
-        scrollToBlockTopParentLeft(workspace, pendingScrollBlockId);
+        const blockId = pendingScrollBlockId;
         pendingScrollBlockId = null;
+        requestAnimationFrame(() => {
+          restoreBlockFocus(workspace, blockId);
+        });
       }
     }
   });
@@ -344,8 +347,10 @@ export function showCanvasView() {
   currentView = 'canvas';
 
   if (isNarrowScreen()) {
-    // Save the current block before hiding the panel — currentBlock may be cleared on hide.
-    pendingScrollBlockId = window.currentBlock?.id || null;
+    // Blockly.common.getSelected() is synchronous — reflects the click before the SELECTED
+    // event fires. window.currentBlock lags by one async event tick, so use getSelected() first.
+    const blockToRestore = Blockly.common.getSelected() ?? window.currentBlock;
+    pendingScrollBlockId = blockToRestore?.id || getLastHighlightedBlockId(workspace) || null;
 
     // Instead of CSS transform, change the layout directly
     const canvasArea = document.getElementById('canvasArea');
