@@ -1604,25 +1604,6 @@ function handleRotationGizmo() {
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(rotateObs));
 
-  // Track which axis ring is being dragged so only that axis is written to the block
-  let draggedAxis = null;
-  const rg = gizmoManager.gizmos.rotationGizmo;
-  const axisDragObservers = [];
-  [
-    { gizmo: rg?.xGizmo, axis: 'x' },
-    { gizmo: rg?.yGizmo, axis: 'y' },
-    { gizmo: rg?.zGizmo, axis: 'z' },
-  ].forEach(({ gizmo, axis }) => {
-    if (!gizmo?.dragBehavior) return;
-    const obs = gizmo.dragBehavior.onDragStartObservable.add(() => {
-      draggedAxis = axis;
-    });
-    axisDragObservers.push({ behavior: gizmo.dragBehavior, obs });
-  });
-  onExit(() => {
-    axisDragObservers.forEach(({ behavior, obs }) => behavior.onDragStartObservable.remove(obs));
-  });
-
   const rotDragStart = gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(() => {
     let mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
@@ -1656,16 +1637,7 @@ function handleRotationGizmo() {
       mesh.physics.setMotionType(mesh.savedMotionType);
     }
 
-    // Only update the axis that was dragged; fall back to all axes if unknown
-    const axisFilter = draggedAxis
-      ? {
-          x: draggedAxis === 'x',
-          y: draggedAxis === 'y',
-          z: draggedAxis === 'z',
-        }
-      : null;
-    draggedAxis = null;
-    updateRotationBlock(mesh, axisFilter);
+    updateRotationBlock(mesh);
   });
 
   onExit(() => gizmoManager.gizmos.rotationGizmo.onDragEndObservable.remove(rotDragEnd));
