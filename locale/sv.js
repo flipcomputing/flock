@@ -1107,6 +1107,8 @@ export default {
   toolbox_search_results_aria: "Verktygslådans sökresultat.",
   context_delete_option: "Radera",
   context_delete_all_blocks_option: "Radera alla block",
+  context_inline_inputs_option: "Inline",
+  context_external_inputs_option: "Staplade",
   context_copy_option: "Kopiera",
   context_paste_option: "Klistra in",
   context_cut_option: "Klipp ut",

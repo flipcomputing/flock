@@ -1119,6 +1119,8 @@ export default {
     "Resultados de pesquisa da caixa de ferramentas.",
   context_delete_option: "Excluir",
   context_delete_all_blocks_option: "Excluir todos os blocos",
+  context_inline_inputs_option: "Inline",
+  context_external_inputs_option: "Empilhado",
   context_copy_option: "Copiar",
   context_paste_option: "Colar",
   context_cut_option: "Cortar",

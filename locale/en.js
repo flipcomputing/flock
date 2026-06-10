@@ -1132,6 +1132,8 @@ export default {
   toolbox_search_results_aria: "Toolbox search results.",
   context_delete_option: "Delete",
   context_delete_all_blocks_option: "Delete all blocks",
+  context_inline_inputs_option: "Inline",
+  context_external_inputs_option: "Stacked",
   context_copy_option: "Copy",
   context_paste_option: "Paste",
   context_cut_option: "Cut",

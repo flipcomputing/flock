@@ -1126,6 +1126,8 @@ export default {
   toolbox_search_results_aria: "Résultats de recherche de la boîte à outils.",
   context_delete_option: "Supprimer",
   context_delete_all_blocks_option: "Supprimer tous les blocs",
+  context_inline_inputs_option: "Inline",
+  context_external_inputs_option: "Empilé",
   context_copy_option: "Copier",
   context_paste_option: "Coller",
   context_cut_option: "Couper",

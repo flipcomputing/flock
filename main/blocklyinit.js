@@ -1920,8 +1920,8 @@ export function createBlocklyWorkspace() {
       blockInline: 12,
       blockCollapseExpand: 13,
       blockDisable: 14,
-      blockHelp: 15,
       blockDelete: 20,
+      blockHelp: 25,
     };
     for (const [id, weight] of Object.entries(weights)) {
       const item = registry.getItem?.(id);
