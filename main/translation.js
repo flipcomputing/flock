@@ -73,6 +73,11 @@ function applyContextMenuShortcutTranslations() {
 
   Blockly.Msg["INLINE_INPUTS"] = translate("context_inline_inputs_option");
   Blockly.Msg["EXTERNAL_INPUTS"] = translate("context_external_inputs_option");
+
+  Blockly.Msg["COLLAPSE_BLOCK"] = translate("context_collapse_option");
+  Blockly.Msg["EXPAND_BLOCK"] = translate("context_expand_option");
+  Blockly.Msg["DISABLE_BLOCK"] = translate("context_disable_option");
+  Blockly.Msg["ENABLE_BLOCK"] = translate("context_enable_option");
 }
 
 export async function setLanguage(language) {

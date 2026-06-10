@@ -1921,7 +1921,7 @@ export function createBlocklyWorkspace() {
       blockCollapseExpand: 13,
       blockDisable: 14,
       blockDelete: 20,
-      blockHelp: 25,
+      blockHelp: 999,
     };
     for (const [id, weight] of Object.entries(weights)) {
       const item = registry.getItem?.(id);
@@ -2015,6 +2015,24 @@ export function createBlocklyWorkspace() {
       },
       scopeType: BLOCK,
     });
+  })();
+
+  // Add separators to the block context menu to group related items.
+  // Weights: clipboard(1-3) | 5 | block-ops(9-14) | 18 | delete(20) | 50 | export(100-200) | 500 | help(999)
+  (function registerBlockContextMenuSeparators() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const BLOCK = Blockly.ContextMenuRegistry.ScopeType.BLOCK;
+    const separators = [
+      { id: 'flock_sep_after_clipboard', weight: 5 },
+      { id: 'flock_sep_before_delete', weight: 18 },
+      { id: 'flock_sep_before_export', weight: 50 },
+      { id: 'flock_sep_before_help', weight: 500 },
+    ];
+    for (const { id, weight } of separators) {
+      if (!registry.getItem?.(id)) {
+        registry.register({ id, weight, separator: true, scopeType: BLOCK });
+      }
+    }
   })();
 
   // ===== OVERRIDE CLIPBOARD METHODS =====

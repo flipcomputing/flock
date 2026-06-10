@@ -1134,6 +1134,10 @@ export default {
   context_delete_all_blocks_option: "Eliminar todos los bloques",
   context_inline_inputs_option: "En línea",
   context_external_inputs_option: "Apilado",
+  context_collapse_option: "Contraer",
+  context_expand_option: "Expandir",
+  context_disable_option: "Deshabilitar",
+  context_enable_option: "Habilitar",
   context_copy_option: "Copiar", // human
   context_paste_option: "Pegar", // human
   context_cut_option: "Cortar", // human
