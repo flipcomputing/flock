@@ -1,5 +1,7 @@
 let flock;
 
+export const isBodyAlive = (body) => !!body?._pluginData?.hpBodyId;
+
 const getShapeTypeFromPhysics = (physics) => {
   if (!physics?.shape) return null;
   const shape = physics.shape;
@@ -10,11 +12,21 @@ const getShapeTypeFromPhysics = (physics) => {
   return null;
 };
 
-const capturePhysicsState = (targetMesh) => ({
-  motionType: targetMesh.physics?.getMotionType?.(),
-  disablePreStep: targetMesh.physics?.disablePreStep ?? false,
-  shapeType: getShapeTypeFromPhysics(targetMesh.physics) || targetMesh.metadata?.physicsShapeType,
-});
+const capturePhysicsState = (targetMesh) => {
+  const body = targetMesh.physics;
+  if (!body?._pluginData?.hpBodyId) {
+    return {
+      motionType: undefined,
+      disablePreStep: body?.disablePreStep ?? false,
+      shapeType: targetMesh.metadata?.physicsShapeType,
+    };
+  }
+  return {
+    motionType: body.getMotionType?.(),
+    disablePreStep: body.disablePreStep ?? false,
+    shapeType: getShapeTypeFromPhysics(body) || targetMesh.metadata?.physicsShapeType,
+  };
+};
 
 const disposePhysics = (targetMesh) => {
   if (!targetMesh.physics) return;
@@ -125,7 +137,7 @@ export const flockPhysics = {
     if (mesh.scaling.z < 0.01) mesh.scaling.z = Math.max(0.01, Math.abs(mesh.scaling.z));
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo(true);
-    if (!parent.physics) return;
+    if (!isBodyAlive(parent.physics)) return;
 
     const { motionType, disablePreStep } = capturePhysicsState(parent);
     const physicsShape = parent.physics.shape;
@@ -217,7 +229,7 @@ export const flockPhysics = {
   },
   up(meshName, upForce = 10) {
     const mesh = flock.scene.getMeshByName(meshName);
-    if (mesh) {
+    if (mesh && isBodyAlive(mesh.physics)) {
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(0, upForce, 0),
         mesh.getAbsolutePosition()
@@ -228,7 +240,7 @@ export const flockPhysics = {
   },
   applyForce(meshName, { forceX = 0, forceY = 0, forceZ = 0 } = {}) {
     const mesh = flock.scene.getMeshByName(meshName);
-    if (mesh && mesh.physics) {
+    if (mesh && isBodyAlive(mesh.physics)) {
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(forceX, forceY, forceZ),
         mesh.getAbsolutePosition()
@@ -249,7 +261,7 @@ export const flockPhysics = {
       applyPhysicsShape(mesh, resolvedShapeType, motionType, disablePreStep);
     }
 
-    if (!mesh.physics) return mesh;
+    if (!mesh.physics || (!isBodyAlive(mesh.physics) && physicsType !== 'NONE')) return mesh;
 
     switch (physicsType) {
       case 'STATIC':

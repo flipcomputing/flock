@@ -1,4 +1,5 @@
 import { blockNames, modelAnimationNames } from '../config.js';
+import { isBodyAlive } from './physics.js';
 
 let flock;
 
@@ -19,6 +20,7 @@ const updateCapsuleShapeForAnimation = (physicsMesh, animationName) => {
   if (
     !physicsMesh ||
     !physicsMesh.physics ||
+    !isBodyAlive(physicsMesh.physics) ||
     !physicsMesh.physics.shape ||
     !(
       flock?.BABYLON?.PhysicsShapeCapsule &&
@@ -357,7 +359,7 @@ export const flockAnimate = {
         mesh.computeWorldMatrix(true);
         children.forEach((c) => c.computeWorldMatrix(true));
 
-        if (isPhysicsActive) {
+        if (isPhysicsActive && isBodyAlive(mesh.physics)) {
           mesh.physics.setTargetTransform(
             mesh.absolutePosition,
             mesh.absoluteRotationQuaternion ||
@@ -386,7 +388,7 @@ export const flockAnimate = {
             mesh.metadata._glideObserver = null;
           }
           if (!reverse && !loop) mesh.position = endPosition.clone();
-          if (isPhysicsActive && originalMotionType !== null && !loop && !reverse) {
+          if (isPhysicsActive && originalMotionType !== null && !loop && !reverse && isBodyAlive(mesh.physics)) {
             mesh.physics.setMotionType(originalMotionType);
           }
           resolve();

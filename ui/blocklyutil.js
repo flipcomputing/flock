@@ -334,6 +334,7 @@ const roundToOneDecimal = (value) => Math.round(value * 10) / 10;
 export function setBlockXYZ(block, x, y, z) {
   const setInputValue = (inputName, value) => {
     const input = block.getInput(inputName);
+    if (!input?.connection) return;
     const connectedBlock = input.connection.targetBlock();
 
     if (connectedBlock?.getField?.("NUM")) {
