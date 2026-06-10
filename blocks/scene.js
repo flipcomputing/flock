@@ -216,9 +216,29 @@ export function promoteMaterialContainerFromShadow(mapBlock) {
   const mat = mapBlock.getInputTargetBlock("MATERIAL");
   if (!mat || mat.type !== "material") return;
 
-  if (mat.isShadow?.()) {
+  if (!mat.isShadow?.()) return;
+
+  // setShadow(false) alone doesn't re-initialise the field DOM, so the
+  // blocklyDropdownRect is never created and keyboard-focus styling is lost.
+  // Instead, dispose the shadow and recreate as a real block so the field
+  // initialises with isShadow()===false and gets its border rect.
+  const state = Blockly.serialization.blocks.save(mat);
+  if (!state) {
     mat.setShadow(false);
+    return;
   }
+  delete state.shadow;
+
+  const input = mapBlock.getInput("MATERIAL");
+  const conn = input?.connection;
+  if (!conn) return;
+
+  mat.dispose(false);
+
+  const clone = Blockly.serialization.blocks.append(state, ws);
+  if (!clone?.outputConnection) return;
+
+  clone.outputConnection.connect(conn);
 }
 
 export function respawnMaterialShadow(mapBlock) {
