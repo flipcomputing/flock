@@ -349,7 +349,10 @@ export function showCanvasView() {
   if (isNarrowScreen()) {
     // Blockly.common.getSelected() is synchronous — reflects the click before the SELECTED
     // event fires. window.currentBlock lags by one async event tick, so use getSelected() first.
-    const blockToRestore = Blockly.common.getSelected() ?? window.currentBlock;
+    // getSelected() may return non-Block selectables; verify via getBlockById before using .id.
+    const selected = Blockly.common.getSelected();
+    const selectedBlock = selected ? workspace.getBlockById(selected.id) : null;
+    const blockToRestore = selectedBlock ?? window.currentBlock;
     pendingScrollBlockId = blockToRestore?.id || getLastHighlightedBlockId(workspace) || null;
 
     // Instead of CSS transform, change the layout directly
