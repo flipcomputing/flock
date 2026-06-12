@@ -91,7 +91,7 @@ export const flock = {
   memoryMonitorInterval: 5000,
   materialsDebug: false,
   meshDebug: false,
-  performanceOverlay: true,
+  performanceOverlay: false,
   _performanceOverlayElement: null,
   _lastPerformanceOverlayUpdate: 0,
   debugMovement: true,
