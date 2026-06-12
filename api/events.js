@@ -73,8 +73,8 @@ export const flockEvents = {
 
     if (isReleased) {
       const upObs = flock.inputManager.onActionUpObservable;
-      upObs.add(handler);
-      signal?.addEventListener("abort", () => upObs.remove(handler), {
+      const observer = upObs.add(handler);
+      signal?.addEventListener("abort", () => upObs.remove(observer), {
         once: true,
       });
     } else {
@@ -82,13 +82,13 @@ export const flockEvents = {
       // while held, giving continuous behaviour for held keys.
       const downObs = flock.inputManager.onActionDownObservable;
       const repeatObs = flock.inputManager.onActionRepeatObservable;
-      downObs.add(handler);
-      repeatObs.add(handler);
+      const downObserver = downObs.add(handler);
+      const repeatObserver = repeatObs.add(handler);
       signal?.addEventListener(
         "abort",
         () => {
-          downObs.remove(handler);
-          repeatObs.remove(handler);
+          downObs.remove(downObserver);
+          repeatObs.remove(repeatObserver);
         },
         { once: true },
       );
@@ -106,8 +106,8 @@ export const flockEvents = {
 
     if (isReleased) {
       const upObs = flock.inputManager.onKeyUpObservable;
-      upObs.add(handler);
-      signal?.addEventListener("abort", () => upObs.remove(handler), {
+      const observer = upObs.add(handler);
+      signal?.addEventListener("abort", () => upObs.remove(observer), {
         once: true,
       });
     } else {
@@ -115,13 +115,13 @@ export const flockEvents = {
       // while held, giving continuous behaviour for held keys.
       const downObs = flock.inputManager.onKeyDownObservable;
       const repeatObs = flock.inputManager.onKeyRepeatObservable;
-      downObs.add(handler);
-      repeatObs.add(handler);
+      const downObserver = downObs.add(handler);
+      const repeatObserver = repeatObs.add(handler);
       signal?.addEventListener(
         "abort",
         () => {
-          downObs.remove(handler);
-          repeatObs.remove(handler);
+          downObs.remove(downObserver);
+          repeatObs.remove(repeatObserver);
         },
         { once: true },
       );

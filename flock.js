@@ -2013,6 +2013,7 @@ export const flock = {
       canvas: flock.canvas,
     });
     flock._gamepadSource.start();
+    flock._onScreenSource.start(flock.scene);
     flock.setupGamepadCameraControls();
     // Set up lighting
     const hemisphericLight = new flock.BABYLON.HemisphericLight(

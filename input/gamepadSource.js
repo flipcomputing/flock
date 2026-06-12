@@ -164,6 +164,9 @@ export class GamepadSource {
       if (!this.#heldKeys.has(key)) {
         this.#inputManager._setKey(key, true);
         this.#dispatchDOMKey('keydown', key);
+      } else {
+        // Key was already held; emit repeat tick for continuous "while held" behavior.
+        this.#inputManager._repeatKey(key);
       }
     }
     for (const key of this.#heldKeys) {

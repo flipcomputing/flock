@@ -19,11 +19,12 @@ class SimpleObservable {
 
   add(callback) {
     this.#listeners.push(callback);
-    return this;
+    // Return an observer object for reliable removal — matching Babylon.js pattern
+    return { _callback: callback };
   }
 
-  remove(callback) {
-    this.#listeners = this.#listeners.filter((l) => l !== callback);
+  remove(observer) {
+    this.#listeners = this.#listeners.filter((l) => l !== observer._callback);
   }
 
   notifyObservers(data) {
@@ -31,19 +32,24 @@ class SimpleObservable {
   }
 }
 
+// Rate limit for "while held" repeats: fire at most once per this interval (ms)
+const REPEAT_INTERVAL_MS = 100;
+
 export class InputManager {
   // Refcount: key → number of active presses across all sources.
   // Entries are deleted when count reaches 0, so all entries have count > 0.
   #keys = new Map();
   #axes = new Map();
   #actionOverrides = new Map();
+  #lastKeyRepeatTime = new Map();  // key → timestamp of last repeat
+  #lastActionRepeatTime = new Map();  // action → timestamp of last repeat
 
   onKeyDownObservable = new SimpleObservable();
   onKeyUpObservable = new SimpleObservable();
   onActionDownObservable = new SimpleObservable();
   onActionUpObservable = new SimpleObservable();
   onRawKeyDownObservable = new SimpleObservable();
-  // Fired on OS key auto-repeat while a key is held. Used by "while held"
+  // Fired on held keys/actions at a rate-limited interval. Used by "while held"
   // event blocks (when key/action pressed) to fire continuously. Deliberately
   // separate from the down observables so refcount, movement, a11y, and
   // interaction stay edge-only (they must not re-fire on every repeat tick).
@@ -63,6 +69,7 @@ export class InputManager {
       const next = count - 1;
       if (next === 0) {
         this.#keys.delete(key);
+        this.#lastKeyRepeatTime.delete(key);  // Clean up repeat timestamp
         this.onKeyUpObservable.notifyObservers(key);
         this._notifyActionUp(key);
       } else {
@@ -73,10 +80,20 @@ export class InputManager {
 
   // OS auto-repeat tick for a held key. Does not touch refcount/movement;
   // only emits the repeat signals consumed by "while held" event blocks.
+  // Rate-limited to prevent excessive firing on fast input sources (e.g. gamepad polling).
   _repeatKey(key) {
+    const now = Date.now();
+    const lastTime = this.#lastKeyRepeatTime.get(key) ?? 0;
+    if (now - lastTime < REPEAT_INTERVAL_MS) return;
+
+    this.#lastKeyRepeatTime.set(key, now);
     this.onKeyRepeatObservable.notifyObservers(key);
     for (const action of this._getActionsForKey(key)) {
-      this.onActionRepeatObservable.notifyObservers(action);
+      const lastActionTime = this.#lastActionRepeatTime.get(action) ?? 0;
+      if (now - lastActionTime >= REPEAT_INTERVAL_MS) {
+        this.#lastActionRepeatTime.set(action, now);
+        this.onActionRepeatObservable.notifyObservers(action);
+      }
     }
   }
 
@@ -97,6 +114,7 @@ export class InputManager {
         (k) => (this.#keys.get(k) ?? 0) > 0,
       );
       if (!stillActive) {
+        this.#lastActionRepeatTime.delete(action);  // Clean up repeat timestamp
         this.onActionUpObservable.notifyObservers(action);
       }
     }
@@ -165,6 +183,8 @@ export class InputManager {
       }
     }
     this.#keys.clear();
+    this.#lastKeyRepeatTime.clear();
+    this.#lastActionRepeatTime.clear();
     for (const key of held) {
       this.onKeyUpObservable.notifyObservers(key);
     }

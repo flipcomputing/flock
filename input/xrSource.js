@@ -32,6 +32,7 @@ export class XRSource {
   // inputSource → { mcObserver, mcObservable, btnObservers[], heldKeys, motionController, handedness }
   #controllerState = new Map();
   #thumbstickHeld = new Set();
+  #allHeldKeys = new Set();  // Union of all held keys across buttons and thumbsticks
 
   constructor(inputManager, { xrHelper, scene }) {
     this.#inputManager = inputManager;
@@ -53,9 +54,13 @@ export class XRSource {
         this.#onControllerRemoved(controller),
       );
 
-    this.#frameObserver = this.#scene.onBeforeRenderObservable.add(() =>
-      this.#pollThumbsticks(),
-    );
+    this.#frameObserver = this.#scene.onBeforeRenderObservable.add(() => {
+      this.#pollThumbsticks();
+      // Emit repeat ticks for all held keys (buttons and thumbstick shims)
+      for (const key of this.#allHeldKeys) {
+        this.#inputManager._repeatKey(key);
+      }
+    });
   }
 
   stop() {
@@ -90,6 +95,7 @@ export class XRSource {
       this.#inputManager._setKey(key, false);
     }
     this.#thumbstickHeld.clear();
+    this.#allHeldKeys.clear();
 
     for (const { axes } of Object.values(XR_AXES)) {
       for (const { name } of axes) {
@@ -139,8 +145,10 @@ export class XRSource {
                 this.#inputManager._setKey(key, isPressed);
                 if (isPressed) {
                   state.heldKeys.add(key);
+                  this.#allHeldKeys.add(key);
                 } else {
                   state.heldKeys.delete(key);
+                  this.#allHeldKeys.delete(key);
                 }
               }
             },
@@ -164,11 +172,15 @@ export class XRSource {
     if (state.mcObserver) {
       state.mcObservable?.remove(state.mcObserver);
     }
+    for (const key of state.heldKeys) {
+      this.#allHeldKeys.delete(key);
+    }
     this.#releaseControllerKeys(state);
 
     if (state.handedness === "left") {
       for (const key of this.#thumbstickHeld) {
         this.#inputManager._setKey(key, false);
+        this.#allHeldKeys.delete(key);
       }
       this.#thumbstickHeld.clear();
       for (const { axes } of Object.values(XR_AXES)) {
@@ -193,6 +205,7 @@ export class XRSource {
     if (!mc) {
       for (const key of this.#thumbstickHeld) {
         this.#inputManager._setKey(key, false);
+        this.#allHeldKeys.delete(key);
       }
       this.#thumbstickHeld.clear();
       for (const { axes } of Object.values(XR_AXES)) {
@@ -223,11 +236,13 @@ export class XRSource {
     for (const key of wantedShims) {
       if (!this.#thumbstickHeld.has(key)) {
         this.#inputManager._setKey(key, true);
+        this.#allHeldKeys.add(key);
       }
     }
     for (const key of this.#thumbstickHeld) {
       if (!wantedShims.has(key)) {
         this.#inputManager._setKey(key, false);
+        this.#allHeldKeys.delete(key);
       }
     }
     this.#thumbstickHeld = new Set(wantedShims);

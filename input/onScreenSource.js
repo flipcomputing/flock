@@ -32,10 +32,34 @@ export class OnScreenSource {
   #pressedKeys = new Map(); // normalized key -> press count
   #target;
   #paused = false;
+  #scene = null;
+  #repeatObserver = null;
 
-  constructor(inputManager, { target } = {}) {
+  constructor(inputManager, { target, scene } = {}) {
     this.#inputManager = inputManager;
     this.#target = target ?? (typeof document !== "undefined" ? document : null);
+    this.#scene = scene;
+  }
+
+  start(scene = null) {
+    // Emit repeat ticks for all held keys every render frame
+    if (this.#repeatObserver) return;
+    this.#scene = scene ?? this.#scene;
+    if (!this.#scene) return;
+    this.#repeatObserver = this.#scene.onBeforeRenderObservable.add(() => {
+      if (!this.#paused) {
+        for (const key of this.#pressedKeys.keys()) {
+          this.#inputManager._repeatKey(key);
+        }
+      }
+    });
+  }
+
+  stop() {
+    if (this.#repeatObserver && this.#scene) {
+      this.#scene.onBeforeRenderObservable.remove(this.#repeatObserver);
+      this.#repeatObserver = null;
+    }
   }
 
   // Suspend InputManager updates while still dispatching DOM events (fly camera mode).

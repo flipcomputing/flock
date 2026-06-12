@@ -384,15 +384,23 @@ export const flockUI = {
       });
     };
 
-    button.onPointerDownObservable.add(() => {
+    let isPointerTouch = false;
+
+    button.onPointerDownObservable.add((info) => {
+      isPointerTouch = info.pointerType === 'touch';
       uniqueKeys.forEach((key) => {
         flock._onScreenSource.press(key);
       });
     });
 
-    // Handle release on up OR when finger slides off
+    // Release on pointer up
     button.onPointerUpObservable.add(releaseKeys);
-    button.onPointerOutObservable.add(releaseKeys);
+    // For touch only: also release if finger slides out of button area
+    button.onPointerOutObservable.add(() => {
+      if (isPointerTouch) {
+        releaseKeys();
+      }
+    });
 
     return button;
   },
