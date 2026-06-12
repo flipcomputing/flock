@@ -1449,6 +1449,7 @@ export const flock = {
 
         flock._cameraControlBindings = null;
         flock._onScreenSource?.releaseAll();
+        flock._onScreenSource?.stop();
         flock._joystickSource?.stop();
         flock._joystickSource = null;
         flock._gamepadSource?.stop();

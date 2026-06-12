@@ -58,8 +58,8 @@ export class OnScreenSource {
   stop() {
     if (this.#repeatObserver && this.#scene) {
       this.#scene.onBeforeRenderObservable.remove(this.#repeatObserver);
-      this.#repeatObserver = null;
     }
+    this.#repeatObserver = null;
   }
 
   // Suspend InputManager updates while still dispatching DOM events (fly camera mode).
