@@ -2,6 +2,12 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
+// iOS Safari polyfill: Babylon's audio engine calls new AudioContext() directly,
+// but older iOS only exposes webkitAudioContext.
+if (typeof window !== 'undefined' && !window.AudioContext && window.webkitAudioContext) {
+  window.AudioContext = window.webkitAudioContext;
+}
+
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import HavokPhysics from '@babylonjs/havok';
@@ -85,7 +91,13 @@ export const flock = {
   memoryMonitorInterval: 5000,
   materialsDebug: false,
   meshDebug: false,
-  performanceOverlay: false,
+  performanceOverlay: true,
+  _performanceOverlayElement: null,
+  _lastPerformanceOverlayUpdate: 0,
+  debugMovement: true,
+  movementDebugOverlay: false,
+  _movementDebugOverlayElement: null,
+  _movementDebugOverlayObservers: null,
   maxMeshes: 5000,
   maxClonesPerSource: 500,
   meshLimitEnabled: false,
@@ -108,7 +120,6 @@ export const flock = {
   pendingTriggers: new Map(),
   pendingIntersections: new Map(),
   _nameRegistry: new Map(),
-  _liveNameCache: new Map(),
   _animationFileCache: {},
   getModelDisplayName,
   characterNames: characterNames,
@@ -378,6 +389,414 @@ export const flock = {
         flock.memoryMonitorInterval = null;
       }
     });
+  },
+  setupPerformanceOverlay() {
+    if (!flock.performanceOverlay) {
+      flock.disposePerformanceOverlay();
+      return;
+    }
+
+    if (flock._performanceOverlayElement) return;
+
+    const parent = document.getElementById('canvasArea') ?? document.body;
+    const overlay = document.createElement('div');
+
+    overlay.id = 'fpsOverlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.textContent = 'FPS --';
+
+    parent.appendChild(overlay);
+    flock._performanceOverlayElement = overlay;
+  },
+  updatePerformanceOverlay() {
+    if (!flock.performanceOverlay || !flock._performanceOverlayElement) return;
+
+    const now = performance.now();
+    if (now - flock._lastPerformanceOverlayUpdate < 250) return;
+
+    flock._lastPerformanceOverlayUpdate = now;
+
+    const fps = flock.engine?.getFps?.();
+    const meshCount = flock.scene?.meshes?.length ?? 0;
+
+    flock._performanceOverlayElement.textContent = `${Number.isFinite(fps) ? Math.round(fps) : '--'} FPS · ${meshCount} meshes`;
+  },
+
+  disposePerformanceOverlay() {
+    flock._performanceOverlayElement?.remove();
+    flock._performanceOverlayElement = null;
+    flock._lastPerformanceOverlayUpdate = 0;
+  },
+  getCameraAttachedMesh() {
+    const camera = flock.scene?.activeCamera;
+    const target = camera?.metadata?.following ?? camera?.lockedTarget;
+
+    return target instanceof flock.BABYLON.AbstractMesh ? target : null;
+  },
+
+  updateMovementDebug() {
+    if (!flock.movementDebugOverlay) {
+      flock._movementDebugOverlayElement?.remove();
+      flock._movementDebugOverlayElement = null;
+      flock._movementDebugOverlayState = null;
+      return;
+    }
+
+    if (!flock._movementDebugOverlayElement) {
+      const overlay = document.createElement('div');
+
+      overlay.id = 'movementDebugOverlay';
+      overlay.setAttribute('aria-hidden', 'true');
+
+      overlay.style.position = 'fixed';
+      overlay.style.top = '8px';
+      overlay.style.left = '8px';
+      overlay.style.zIndex = '2147483647';
+      overlay.style.pointerEvents = 'none';
+      overlay.style.whiteSpace = 'pre';
+      overlay.style.padding = '8px 10px';
+      overlay.style.borderRadius = '6px';
+      overlay.style.background = 'rgba(0, 0, 0, 0.82)';
+      overlay.style.color = '#fff';
+      overlay.style.font = '12px/1.35 monospace';
+      overlay.style.maxWidth = '92vw';
+
+      document.body.appendChild(overlay);
+      flock._movementDebugOverlayElement = overlay;
+    }
+
+    if (!flock._movementDebugOverlayState) {
+      flock._movementDebugOverlayState = {
+        renderFrames: 0,
+        lastReport: performance.now(),
+        lastPosition: null,
+        lastMesh: null,
+      };
+    }
+
+    const overlay = flock._movementDebugOverlayElement;
+    const state = flock._movementDebugOverlayState;
+
+    state.renderFrames += 1;
+
+    const now = performance.now();
+    const elapsedSeconds = (now - state.lastReport) / 1000;
+
+    if (elapsedSeconds < 0.25) return;
+
+    const camera = flock.scene?.activeCamera;
+    const mesh = flock.getCameraAttachedMesh();
+
+    if (mesh !== state.lastMesh) {
+      state.lastMesh = mesh;
+      state.lastPosition = mesh?.position?.clone?.() ?? null;
+    }
+
+    const velocity = new flock.BABYLON.Vector3();
+    let distancePerSecond = '--';
+
+    if (mesh) {
+      if (state.lastPosition && elapsedSeconds > 0) {
+        distancePerSecond = (
+          mesh.position.subtract(state.lastPosition).length() / elapsedSeconds
+        ).toFixed(2);
+      }
+
+      state.lastPosition = mesh.position.clone();
+
+      if (mesh.physics?.getLinearVelocityToRef) {
+        mesh.physics.getLinearVelocityToRef(velocity);
+      }
+    }
+
+    const renderPerSecond = Math.round(state.renderFrames / elapsedSeconds);
+    const fps = Math.round(flock.engine?.getFps?.() ?? 0);
+    const deltaMs = Math.round(flock.engine?.getDeltaTime?.() ?? 0);
+
+    overlay.textContent = [
+      'Movement debug',
+      `Target: ${mesh?.name ?? '--'}`,
+      `Camera: ${camera?.name ?? '--'}`,
+      `Camera type: ${camera?.getClassName?.() ?? '--'}`,
+      `FPS: ${fps}`,
+      `Delta: ${deltaMs}ms`,
+      `Render/s: ${renderPerSecond}`,
+      `Distance/s: ${distancePerSecond}`,
+      `Velocity: ${velocity.length().toFixed(2)}`,
+      `vx:${velocity.x.toFixed(2)} vy:${velocity.y.toFixed(2)} vz:${velocity.z.toFixed(2)}`,
+      `Position: ${
+        mesh
+          ? `${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)}`
+          : '--'
+      }`,
+      `Input F:${flock.inputManager?.isActionDown?.('FORWARD') ? 'Y' : 'N'} ` +
+        `B:${flock.inputManager?.isActionDown?.('BACKWARD') ? 'Y' : 'N'} ` +
+        `L:${flock.inputManager?.isActionDown?.('LEFT') ? 'Y' : 'N'} ` +
+        `R:${flock.inputManager?.isActionDown?.('RIGHT') ? 'Y' : 'N'}`,
+    ].join('\n');
+
+    state.renderFrames = 0;
+    state.lastReport = now;
+  },
+  setupMovementDebug() {
+    if (flock._movementDebugOverlayObservers) return;
+    if (!flock.scene) return;
+
+    const state = {
+      renderFrames: 0,
+      physicsSteps: 0,
+      lastReport: performance.now(),
+      lastPosition: null,
+      lastMesh: null,
+    };
+
+    const createOverlay = () => {
+      if (flock._movementDebugOverlayElement) {
+        return flock._movementDebugOverlayElement;
+      }
+
+      const overlay = document.createElement('div');
+
+      overlay.id = 'movementDebugOverlay';
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.textContent = 'Movement debug starting...';
+
+      // Inline styles while debugging so this cannot fail because CSS was missed.
+      overlay.style.position = 'fixed';
+      overlay.style.top = '8px';
+      overlay.style.left = '8px';
+      overlay.style.zIndex = '999999';
+      overlay.style.pointerEvents = 'none';
+      overlay.style.whiteSpace = 'pre';
+      overlay.style.padding = '8px 10px';
+      overlay.style.borderRadius = '6px';
+      overlay.style.background = 'rgba(0, 0, 0, 0.78)';
+      overlay.style.color = '#ffffff';
+      overlay.style.font = '12px/1.35 monospace';
+      overlay.style.maxWidth = '92vw';
+
+      document.body.appendChild(overlay);
+      flock._movementDebugOverlayElement = overlay;
+
+      return overlay;
+    };
+
+    const removeOverlay = () => {
+      flock._movementDebugOverlayElement?.remove();
+      flock._movementDebugOverlayElement = null;
+    };
+
+    const beforeStepObserver = flock.scene.onBeforeStepObservable.add(() => {
+      if (!flock.movementDebugOverlay) return;
+      state.physicsSteps += 1;
+    });
+
+    const beforeRenderObserver = flock.scene.onBeforeRenderObservable.add(() => {
+      if (!flock.movementDebugOverlay) {
+        removeOverlay();
+        return;
+      }
+
+      const overlay = createOverlay();
+
+      state.renderFrames += 1;
+
+      const now = performance.now();
+      const elapsedSeconds = (now - state.lastReport) / 1000;
+
+      if (elapsedSeconds < 0.25) return;
+
+      const mesh = flock.getCameraAttachedMesh();
+
+      if (mesh !== state.lastMesh) {
+        state.lastMesh = mesh;
+        state.lastPosition = mesh?.position?.clone?.() ?? null;
+      }
+
+      const velocity = new flock.BABYLON.Vector3();
+      let distancePerSecond = '--';
+
+      if (mesh) {
+        if (state.lastPosition && elapsedSeconds > 0) {
+          distancePerSecond = (
+            mesh.position.subtract(state.lastPosition).length() / elapsedSeconds
+          ).toFixed(2);
+        }
+
+        state.lastPosition = mesh.position.clone();
+
+        if (mesh.physics?.getLinearVelocityToRef) {
+          mesh.physics.getLinearVelocityToRef(velocity);
+        }
+      }
+
+      const renderPerSecond = Math.round(state.renderFrames / elapsedSeconds);
+      const physicsPerSecond = Math.round(state.physicsSteps / elapsedSeconds);
+      const fps = Math.round(flock.engine?.getFps?.() ?? 0);
+      const deltaMs = Math.round(flock.engine?.getDeltaTime?.() ?? 0);
+
+      overlay.textContent = [
+        `Movement debug`,
+        `Target: ${mesh?.name ?? '--'}`,
+        `FPS: ${fps}   Delta: ${deltaMs}ms`,
+        `Render/s: ${renderPerSecond}`,
+        `Physics/s: ${physicsPerSecond}`,
+        `Distance/s: ${distancePerSecond}`,
+        `Velocity: ${velocity.length().toFixed(2)}`,
+        `vx:${velocity.x.toFixed(2)} vy:${velocity.y.toFixed(2)} vz:${velocity.z.toFixed(2)}`,
+        `F:${flock.inputManager?.isActionDown?.('FORWARD') ? 'Y' : 'N'} ` +
+          `B:${flock.inputManager?.isActionDown?.('BACKWARD') ? 'Y' : 'N'} ` +
+          `L:${flock.inputManager?.isActionDown?.('LEFT') ? 'Y' : 'N'} ` +
+          `R:${flock.inputManager?.isActionDown?.('RIGHT') ? 'Y' : 'N'}`,
+      ].join('\n');
+
+      state.renderFrames = 0;
+      state.physicsSteps = 0;
+      state.lastReport = now;
+    });
+
+    const disposeObserver = flock.scene.onDisposeObservable.addOnce(() => {
+      flock.disposeMovementDebugOverlay();
+    });
+
+    flock._movementDebugOverlayObservers = {
+      beforeStepObserver,
+      beforeRenderObserver,
+      disposeObserver,
+    };
+  },
+
+  disposeMovementDebugOverlay() {
+    if (flock._movementDebugOverlayObservers && flock.scene) {
+      const { beforeStepObserver, beforeRenderObserver, disposeObserver } =
+        flock._movementDebugOverlayObservers;
+
+      flock.scene.onBeforeStepObservable.remove(beforeStepObserver);
+      flock.scene.onBeforeRenderObservable.remove(beforeRenderObserver);
+      flock.scene.onDisposeObservable.remove(disposeObserver);
+    }
+
+    flock._movementDebugOverlayObservers = null;
+    flock._movementDebugOverlayElement?.remove();
+    flock._movementDebugOverlayElement = null;
+  },
+  installCameraTargetMovementDebug() {
+    if (flock._movementDebugOverlayObservers) return;
+
+    const state = {
+      renderFrames: 0,
+      physicsSteps: 0,
+      lastReport: performance.now(),
+      lastPosition: null,
+      lastMesh: null,
+    };
+
+    const ensureOverlay = () => {
+      if (flock._movementDebugOverlayElement) return flock._movementDebugOverlayElement;
+
+      const parent = document.getElementById('canvasArea') ?? document.body;
+      const overlay = document.createElement('div');
+
+      overlay.id = 'movementDebugOverlay';
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.textContent = 'Movement debug waiting for camera target...';
+
+      parent.appendChild(overlay);
+      flock._movementDebugOverlayElement = overlay;
+
+      return overlay;
+    };
+
+    const beforeStepObserver = flock.scene.onBeforeStepObservable.add(() => {
+      if (!flock.movementDebugOverlay) return;
+      state.physicsSteps += 1;
+    });
+
+    const beforeRenderObserver = flock.scene.onBeforeRenderObservable.add(() => {
+      if (!flock.movementDebugOverlay) {
+        flock._movementDebugOverlayElement?.remove();
+        flock._movementDebugOverlayElement = null;
+        return;
+      }
+
+      state.renderFrames += 1;
+
+      const now = performance.now();
+      if (now - state.lastReport < 250) return;
+
+      const overlay = ensureOverlay();
+      const mesh = flock.getCameraAttachedMesh();
+
+      if (mesh !== state.lastMesh) {
+        state.lastMesh = mesh;
+        state.lastPosition = mesh?.position?.clone?.() ?? null;
+      }
+
+      const velocity = new flock.BABYLON.Vector3();
+      let distancePerSecond = '--';
+
+      if (mesh) {
+        const seconds = (now - state.lastReport) / 1000;
+
+        if (state.lastPosition && seconds > 0) {
+          distancePerSecond = (
+            mesh.position.subtract(state.lastPosition).length() / seconds
+          ).toFixed(2);
+        }
+
+        state.lastPosition = mesh.position.clone();
+
+        if (mesh.physics?.getLinearVelocityToRef) {
+          mesh.physics.getLinearVelocityToRef(velocity);
+        }
+      }
+
+      const fps = Math.round(flock.engine?.getFps?.() ?? 0);
+      const engineDeltaMs = Math.round(flock.engine?.getDeltaTime?.() ?? 0);
+      const velocityMagnitude = velocity.length().toFixed(2);
+
+      overlay.textContent = [
+        `Target: ${mesh?.name ?? '--'}`,
+        `FPS: ${fps}  Δ: ${engineDeltaMs}ms`,
+        `Render frames/s: ${state.renderFrames}`,
+        `Physics steps/s: ${state.physicsSteps}`,
+        `Distance/s: ${distancePerSecond}`,
+        `Velocity: ${velocityMagnitude}`,
+        `vx:${velocity.x.toFixed(2)} vy:${velocity.y.toFixed(2)} vz:${velocity.z.toFixed(2)}`,
+        `F:${flock.inputManager?.isActionDown?.('FORWARD') ? 'Y' : 'N'} ` +
+          `B:${flock.inputManager?.isActionDown?.('BACKWARD') ? 'Y' : 'N'} ` +
+          `L:${flock.inputManager?.isActionDown?.('LEFT') ? 'Y' : 'N'} ` +
+          `R:${flock.inputManager?.isActionDown?.('RIGHT') ? 'Y' : 'N'}`,
+      ].join('\n');
+
+      state.renderFrames = 0;
+      state.physicsSteps = 0;
+      state.lastReport = now;
+    });
+
+    const disposeObserver = flock.scene.onDisposeObservable.addOnce(() => {
+      flock.disposeCameraTargetMovementDebugOverlay();
+    });
+
+    flock._movementDebugOverlayObservers = {
+      beforeStepObserver,
+      beforeRenderObserver,
+      disposeObserver,
+    };
+  },
+  disposeCameraTargetMovementDebug() {
+    if (flock._movementDebugOverlayObservers && flock.scene) {
+      const { beforeStepObserver, beforeRenderObserver, disposeObserver } =
+        flock._movementDebugOverlayObservers;
+
+      flock.scene.onBeforeStepObservable.remove(beforeStepObserver);
+      flock.scene.onBeforeRenderObservable.remove(beforeRenderObserver);
+      flock.scene.onDisposeObservable.remove(disposeObserver);
+    }
+
+    flock._movementDebugOverlayObservers = null;
+    flock._movementDebugOverlayElement?.remove();
+    flock._movementDebugOverlayElement = null;
   },
   isPhysicsMemoryAbort(error) {
     const message = `${error?.message ?? error}`.toLowerCase();
@@ -1347,8 +1766,6 @@ export const flock = {
       preserveDrawingBuffer: true,
       stencil: true,
       powerPreference: 'default',
-      deterministicLockstep: true,
-      lockstepMaxSteps: 4,
     });
 
     // Call preventDefault() on the raw event so the browser is willing to restore.
@@ -1676,8 +2093,6 @@ export const flock = {
         });
 
         // Clear all scene observables
-        flock.scene.onActiveCameraChanged?.remove(flock._audioListenerObserver);
-        flock._audioListenerObserver = null;
         flock.scene.onBeforeRenderObservable?.clear();
         flock.scene.onAfterRenderObservable?.clear();
         flock.scene.onBeforeAnimationsObservable?.clear();
@@ -1695,7 +2110,9 @@ export const flock = {
         // whose cache entry was never cleaned up). Must happen before hk.dispose().
         for (const shape of Object.values(flock.physicsShapeCache)) {
           if (!shape?._isDisposed) {
-            try { shape.dispose(); } catch (e) {}
+            try {
+              shape.dispose();
+            } catch (e) {}
           }
         }
 
@@ -1728,7 +2145,6 @@ export const flock = {
           console.warn('Error disposing audioEngine:', error);
         }
         flock.audioEngine = null;
-        flock.audioEnginePromise = null;
 
         if (audioContextToClose && audioContextToClose.state !== 'closed') {
           try {
@@ -1753,7 +2169,6 @@ export const flock = {
         flock.pendingIntersections = new Map();
         flock.pendingSelfIntersections = new Map();
         flock._nameRegistry = new Map();
-        flock._liveNameCache = new Map();
         flock._animationFileCache = {};
         flock.ground = null;
         flock.sky = null;
@@ -1787,52 +2202,6 @@ export const flock = {
       }
     }
   },
-  ensureAudio() {
-    if (!flock.audioEnginePromise) {
-      // iOS Safari polyfill — must run before Babylon calls new AudioContext().
-      if (typeof window !== 'undefined' && !window.AudioContext && window.webkitAudioContext) {
-        window.AudioContext = window.webkitAudioContext;
-      }
-      try {
-        // Capture the promise reference so the .then() handler can detect if
-        // cleanup ran (set audioEnginePromise to null) or a new scene replaced
-        // it before this async init resolved — and dispose the stale engine.
-        let enginePromise;
-        enginePromise = flock.BABYLON.CreateAudioEngineAsync({
-          volume: 1,
-          listenerAutoUpdate: true,
-          listenerEnabled: true,
-          resumeOnInteraction: true,
-        }).then((audioEngine) => {
-          if (flock.audioEnginePromise !== enginePromise) {
-            try { audioEngine.dispose?.(); } catch { /* best-effort */ }
-            return;
-          }
-          flock.audioEngine = audioEngine;
-          flock.audioContext = audioEngine._audioContext ?? flock.audioContext;
-          flock.globalStartTime = flock.audioContext?.currentTime ?? 0;
-          if (flock.scene?.activeCamera) {
-            audioEngine.listener.attach(flock.scene.activeCamera);
-          }
-          flock._audioListenerObserver = flock.scene?.onActiveCameraChanged?.add(() => {
-            if (flock.scene?.activeCamera) {
-              audioEngine.listener.attach(flock.scene.activeCamera);
-            }
-          });
-        }).catch((err) => {
-          console.warn('[flock] Audio engine unavailable:', err);
-          flock.audioEngine = null;
-          showBanner('audio', { message: translate('error_audio') });
-        });
-        flock.audioEnginePromise = enginePromise;
-      } catch (err) {
-        console.warn('[flock] Audio engine unavailable:', err);
-        flock.audioEngine = null;
-        flock.audioEnginePromise = Promise.resolve();
-      }
-    }
-    return flock.audioEnginePromise;
-  },
   async initializeNewScene() {
     // Wait a bit more to ensure all disposal operations are complete
     await new Promise((resolve) => setTimeout(resolve, 200));
@@ -1851,7 +2220,6 @@ export const flock = {
     flock.pendingIntersections = new Map();
     flock.pendingSelfIntersections = new Map();
     flock._nameRegistry = new Map();
-    flock._liveNameCache = new Map();
     flock.modelReadyPromises = new Map();
     flock._animationFileCache = {};
     flock.materialCache = {};
@@ -1881,7 +2249,8 @@ export const flock = {
           const options = args?.[1];
           const text = options && typeof options.text === 'string' ? options.text : '';
           const rawDuration = options?.duration;
-          const duration = isFinite(Number(rawDuration)) && Number(rawDuration) > 0 ? Number(rawDuration) : 0;
+          const duration =
+            isFinite(Number(rawDuration)) && Number(rawDuration) > 0 ? Number(rawDuration) : 0;
 
           if (text.trim()) {
             if (duration > 0) {
@@ -1926,9 +2295,14 @@ export const flock = {
       flock._a11yTextWrapped = true;
     }
 
+    flock.installCameraTargetMovementDebug();
+    flock.setupMovementDebug();
+
     flock._renderLoop = () => {
       try {
         flock.scene.render();
+        flock.updatePerformanceOverlay();
+        flock.updateMovementDebug();
       } catch (error) {
         if (flock.isPhysicsMemoryAbort(error)) {
           flock.handlePhysicsOutOfMemory(error);
@@ -1939,7 +2313,6 @@ export const flock = {
         handleError(error, { source: 'project-run', fatal: false });
       }
     };
-
     // Apply and remember the app's default clear colour so it can be
     // restored if the user removes their sky/background blocks later.
     const defaultClearColor = flock.BABYLON.Color3.FromHexString('#33334c');
@@ -1956,6 +2329,8 @@ export const flock = {
     }
     flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
     flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), flock.hk);
+    // Consider if physics isn't predictable enough
+    //flock.scene.getPhysicsEngine()?.setSubTimeStep(1000 / 60);
     setFlockCSG(flock);
     setFlockAnimate(flock);
     setFlockSound(flock);
@@ -2009,6 +2384,7 @@ export const flock = {
     }
 
     // Start the render loop now that a camera exists
+    flock.setupPerformanceOverlay();
     flock.engine.runRenderLoop(flock._renderLoop);
     flock._gamepadSource = new GamepadSource(flock.inputManager, {
       scene: flock.scene,
@@ -2027,6 +2403,36 @@ export const flock = {
     hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5);
 
     flock.mainLight = hemisphericLight;
+
+    flock.audioEnginePromise = flock.BABYLON.CreateAudioEngineAsync({
+      volume: 1,
+      listenerAutoUpdate: true,
+      listenerEnabled: true,
+      resumeOnInteraction: true,
+    });
+
+    flock.audioEnginePromise
+      .then((audioEngine) => {
+        flock.audioEngine = audioEngine;
+        // Share Babylon's AudioContext so sound.js never creates a second one on iOS.
+        // iOS allows only one running context per page; a second context causes
+        // "Failed to start the audio device" / InvalidStateError on resume().
+        flock.audioContext = audioEngine._audioContext ?? flock.audioContext;
+        flock.globalStartTime = flock.audioContext?.currentTime ?? 0;
+        if (flock.scene.activeCamera) {
+          audioEngine.listener.attach(flock.scene.activeCamera);
+        }
+
+        // Reattach listener if the active camera ever changes
+        flock.scene.onActiveCameraChanged.add(() => {
+          audioEngine.listener.attach(flock.scene.activeCamera);
+        });
+      })
+      .catch((err) => {
+        console.warn('[flock] Audio engine unavailable:', err);
+        flock.audioEngine = null;
+        showBanner('audio', { message: translate('error_audio') });
+      });
 
     // Enable collisions
     flock.scene.collisionsEnabled = true;
@@ -2206,35 +2612,6 @@ export const flock = {
     yield null;
   },
   whenModelReady(id, callback) {
-    // --- Registry fast path ---
-    // Steady-state O(1): once a name has resolved to a live mesh it is
-    // cached in _liveNameCache (by announceMeshReady or a previous call
-    // here). A miss — or a stale entry whose mesh was disposed — falls
-    // through to the full lookup below, so worst case is the existing
-    // behaviour. Sentinel ids (__active_camera__/__main_light__) are never
-    // cached, so they take the normal path.
-    const cached = flock._liveNameCache.get(id);
-    if (cached) {
-      if (cached.isDisposed()) {
-        flock._liveNameCache.delete(id);
-      } else if (flock.abortController?.signal?.aborted) {
-        // Match the locate() hit path below: when aborted the callback is
-        // not run and the returned promise never settles.
-        return new Promise(() => {});
-      } else {
-        // Run the callback inline and resolve once it completes (awaiting
-        // async callbacks) — same contract as settle on the hit path.
-        try {
-          const result = typeof callback === 'function' ? callback(cached) : undefined;
-          return result && typeof result.then === 'function'
-            ? Promise.resolve(result).then(() => cached)
-            : Promise.resolve(cached);
-        } catch (error) {
-          return Promise.reject(error);
-        }
-      }
-    }
-
     // --- Promise that resolves when ready (or undefined on abort/dispose) ---
     let settled = false;
     let resolveP;
@@ -2252,10 +2629,6 @@ export const flock = {
       if (settled) return;
       settled = true;
       try {
-        // Cache the resolved target (meshes only) so subsequent lookups of
-        // this id — including pre-sanitization aliases — skip the scans
-        // below and take the registry fast path.
-        flock._registerLiveName(id, val);
         // Await the callback so the readiness promise doesn't resolve
         // before user async work completes (premature resolution).
         if (typeof callback === 'function') await callback(val);
@@ -2528,8 +2901,6 @@ export const flock = {
     return promise; // <— important: always return the promise
   },
   announceMeshReady(meshName, groupName) {
-    flock._registerLiveName(meshName, flock.scene?.getMeshByName(meshName));
-
     const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
 
     groupName = getGroupRoot(groupName);
@@ -2591,7 +2962,7 @@ export const flock = {
       if (newMesh) {
         for (const pending of flock.pendingSelfIntersections.get(groupName)) {
           const existing = flock.scene.meshes.filter(
-            (m) => getGroupRoot(m.name) === groupName && m.name !== meshName,
+            (m) => getGroupRoot(m.name) === groupName && m.name !== meshName
           );
           for (const existingMesh of existing) {
             const meshA = existingMesh.uniqueId < newMesh.uniqueId ? existingMesh : newMesh;
@@ -2633,25 +3004,6 @@ export const flock = {
   /** Release a reservation on failure/disposal. */
   _releaseName(name) {
     flock._nameRegistry.delete(name);
-  },
-
-  /**
-   * Cache a resolved name → live mesh so whenModelReady can skip per-call
-   * scene scans. Meshes only: other target types (GUI controls, animation
-   * groups, particle systems) keep using the fallback lookup. Entries are
-   * evicted when the mesh is disposed (via onDisposeObservable here, plus
-   * a lazy isDisposed check on read) and when a run starts or ends.
-   */
-  _registerLiveName(name, target) {
-    if (!name || !(target instanceof flock.BABYLON.AbstractMesh) || target.isDisposed()) return;
-    const cached = flock._liveNameCache.get(name);
-    if (cached === target) return; // Already registered with observer
-    flock._liveNameCache.set(name, target);
-    target.onDisposeObservable.addOnce(() => {
-      if (flock._liveNameCache.get(name) === target) {
-        flock._liveNameCache.delete(name);
-      }
-    });
   },
 
   // Runtime helper

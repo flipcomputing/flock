@@ -1891,4 +1891,18 @@ kbd {
   color: var(--color-error-bg);
 }
 
-
+#movementDebugOverlay {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 60;
+  pointer-events: none;
+  white-space: pre;
+  padding: 7px 9px;
+  border-radius: 5px;
+  background: rgb(0 0 0 / 75%);
+  color: #ffffff;
+  font: 12px/1.35 monospace;
+  letter-spacing: 0.01em;
+  max-width: min(92vw, 420px);
+}
