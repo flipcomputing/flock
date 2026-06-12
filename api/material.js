@@ -165,6 +165,11 @@ export const flockMaterial = {
         }
       };
     }
+    // The layer is kept for the lifetime of the scene and toggled with
+    // isEnabled rather than disposed/recreated: every GlowLayer burns
+    // render pass ids from a never-reused page-global counter, which makes
+    // each submesh's draw-wrapper array grow and slows every later run.
+    flock.glowLayer.isEnabled = true;
 
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
@@ -299,8 +304,7 @@ export const flockMaterial = {
               (m) => m !== targetMesh && m.metadata?.glow,
             );
             if (!anyGlowing) {
-              flock.glowLayer.dispose();
-              flock.glowLayer = null;
+              flock.glowLayer.isEnabled = false;
             }
           }
 

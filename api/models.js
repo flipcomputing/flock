@@ -222,6 +222,12 @@ export const flockModels = {
 
         // Announce readiness as soon as mesh is configured
         flock.announceMeshReady(meshName, groupName);
+        // Mirror the modelReadyPromises aliasing above: the pre-sanitization
+        // name must keep resolving after the 5s TTL cleanup. setupMesh names
+        // the bounding box wrapper, so look the target up by meshName.
+        if (originalBase !== meshName) {
+          flock._registerLiveName(originalBase, flock.scene?.getMeshByName(meshName));
+        }
         flock._markNameCreated(meshName);
         resolveReady(mesh);
         cleanupAbort();

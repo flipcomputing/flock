@@ -108,6 +108,7 @@ export const flock = {
   pendingTriggers: new Map(),
   pendingIntersections: new Map(),
   _nameRegistry: new Map(),
+  _liveNameCache: new Map(),
   _animationFileCache: {},
   getModelDisplayName,
   characterNames: characterNames,
@@ -1752,6 +1753,7 @@ export const flock = {
         flock.pendingIntersections = new Map();
         flock.pendingSelfIntersections = new Map();
         flock._nameRegistry = new Map();
+        flock._liveNameCache = new Map();
         flock._animationFileCache = {};
         flock.ground = null;
         flock.sky = null;
@@ -1849,6 +1851,7 @@ export const flock = {
     flock.pendingIntersections = new Map();
     flock.pendingSelfIntersections = new Map();
     flock._nameRegistry = new Map();
+    flock._liveNameCache = new Map();
     flock.modelReadyPromises = new Map();
     flock._animationFileCache = {};
     flock.materialCache = {};
@@ -2203,6 +2206,35 @@ export const flock = {
     yield null;
   },
   whenModelReady(id, callback) {
+    // --- Registry fast path ---
+    // Steady-state O(1): once a name has resolved to a live mesh it is
+    // cached in _liveNameCache (by announceMeshReady or a previous call
+    // here). A miss — or a stale entry whose mesh was disposed — falls
+    // through to the full lookup below, so worst case is the existing
+    // behaviour. Sentinel ids (__active_camera__/__main_light__) are never
+    // cached, so they take the normal path.
+    const cached = flock._liveNameCache.get(id);
+    if (cached) {
+      if (cached.isDisposed()) {
+        flock._liveNameCache.delete(id);
+      } else if (flock.abortController?.signal?.aborted) {
+        // Match the locate() hit path below: when aborted the callback is
+        // not run and the returned promise never settles.
+        return new Promise(() => {});
+      } else {
+        // Run the callback inline and resolve once it completes (awaiting
+        // async callbacks) — same contract as settle on the hit path.
+        try {
+          const result = typeof callback === 'function' ? callback(cached) : undefined;
+          return result && typeof result.then === 'function'
+            ? Promise.resolve(result).then(() => cached)
+            : Promise.resolve(cached);
+        } catch (error) {
+          return Promise.reject(error);
+        }
+      }
+    }
+
     // --- Promise that resolves when ready (or undefined on abort/dispose) ---
     let settled = false;
     let resolveP;
@@ -2220,6 +2252,10 @@ export const flock = {
       if (settled) return;
       settled = true;
       try {
+        // Cache the resolved target (meshes only) so subsequent lookups of
+        // this id — including pre-sanitization aliases — skip the scans
+        // below and take the registry fast path.
+        flock._registerLiveName(id, val);
         // Await the callback so the readiness promise doesn't resolve
         // before user async work completes (premature resolution).
         if (typeof callback === 'function') await callback(val);
@@ -2492,6 +2528,8 @@ export const flock = {
     return promise; // <— important: always return the promise
   },
   announceMeshReady(meshName, groupName) {
+    flock._registerLiveName(meshName, flock.scene?.getMeshByName(meshName));
+
     const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
 
     groupName = getGroupRoot(groupName);
@@ -2595,6 +2633,25 @@ export const flock = {
   /** Release a reservation on failure/disposal. */
   _releaseName(name) {
     flock._nameRegistry.delete(name);
+  },
+
+  /**
+   * Cache a resolved name → live mesh so whenModelReady can skip per-call
+   * scene scans. Meshes only: other target types (GUI controls, animation
+   * groups, particle systems) keep using the fallback lookup. Entries are
+   * evicted when the mesh is disposed (via onDisposeObservable here, plus
+   * a lazy isDisposed check on read) and when a run starts or ends.
+   */
+  _registerLiveName(name, target) {
+    if (!name || !(target instanceof flock.BABYLON.AbstractMesh) || target.isDisposed()) return;
+    const cached = flock._liveNameCache.get(name);
+    if (cached === target) return; // Already registered with observer
+    flock._liveNameCache.set(name, target);
+    target.onDisposeObservable.addOnce(() => {
+      if (flock._liveNameCache.get(name) === target) {
+        flock._liveNameCache.delete(name);
+      }
+    });
   },
 
   // Runtime helper

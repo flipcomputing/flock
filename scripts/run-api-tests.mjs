@@ -139,6 +139,16 @@ const AVAILABLE_SUITES = [
     name: "Sensing API Tests",
     pattern: "@sensing",
   },
+  {
+    id: "nameregistry",
+    name: "Name Registry Tests",
+    pattern: "@nameregistry",
+  },
+  {
+    id: "nameregistrybench",
+    name: "Name Registry Benchmark",
+    pattern: "@nameregistrybench",
+  },
 ];
 
 const args = process.argv.slice(2);
