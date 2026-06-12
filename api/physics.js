@@ -106,6 +106,25 @@ const applyPhysicsShape = (
   };
 };
 
+function waitForSceneTransformFlush(scene) {
+  if (!scene || scene.isDisposed) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    let resolved = false;
+
+    const finish = () => {
+      if (resolved) return;
+      resolved = true;
+      resolve();
+    };
+
+    scene.onAfterRenderObservable.addOnce(finish);
+
+    // Fallback so tests or unusual non-rendering contexts do not hang forever.
+    setTimeout(finish, 0);
+  });
+}
+
 export function setFlockReference(ref) {
   flock = ref;
 }
@@ -298,7 +317,17 @@ export const flockPhysics = {
 
     if (flock.abortController?.signal?.aborted || !mesh) return mesh;
 
-    return this.setPhysicsForMesh(mesh, physicsType);
+    mesh.computeWorldMatrix?.(true);
+    mesh.refreshBoundingInfo?.();
+
+    await waitForSceneTransformFlush(flock.scene);
+
+    if (flock.abortController?.signal?.aborted || mesh.isDisposed?.()) return mesh;
+
+    mesh.computeWorldMatrix?.(true);
+    mesh.refreshBoundingInfo?.();
+
+    return flock.setPhysicsForMesh(mesh, physicsType);
   },
   setPhysicsShape(meshName, shapeType) {
     return new Promise((resolve) => {
