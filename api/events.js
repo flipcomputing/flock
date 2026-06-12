@@ -67,22 +67,32 @@ export const flockEvents = {
     const signal = flock.abortController?.signal;
     if (signal?.aborted) return;
 
-    const targetObs = isReleased
-      ? flock.inputManager.onActionUpObservable
-      : flock.inputManager.onActionDownObservable;
-
     const handler = (a) => {
       if (a === action) callback();
     };
-    targetObs.add(handler);
 
-    signal?.addEventListener(
-      "abort",
-      () => {
-        targetObs.remove(handler);
-      },
-      { once: true },
-    );
+    if (isReleased) {
+      const upObs = flock.inputManager.onActionUpObservable;
+      upObs.add(handler);
+      signal?.addEventListener("abort", () => upObs.remove(handler), {
+        once: true,
+      });
+    } else {
+      // "pressed" fires on the down edge and again on each OS auto-repeat tick
+      // while held, giving continuous behaviour for held keys.
+      const downObs = flock.inputManager.onActionDownObservable;
+      const repeatObs = flock.inputManager.onActionRepeatObservable;
+      downObs.add(handler);
+      repeatObs.add(handler);
+      signal?.addEventListener(
+        "abort",
+        () => {
+          downObs.remove(handler);
+          repeatObs.remove(handler);
+        },
+        { once: true },
+      );
+    }
   },
   whenKeyEvent(key, callback, isReleased = false) {
     if (typeof callback !== "function") {
@@ -92,17 +102,30 @@ export const flockEvents = {
     const signal = flock.abortController?.signal;
     if (signal?.aborted) return;
 
-    const targetObs = isReleased
-      ? flock.inputManager.onKeyUpObservable
-      : flock.inputManager.onKeyDownObservable;
     const handler = (k) => { if (k === key) callback(); };
-    targetObs.add(handler);
 
-    signal?.addEventListener(
-      "abort",
-      () => targetObs.remove(handler),
-      { once: true },
-    );
+    if (isReleased) {
+      const upObs = flock.inputManager.onKeyUpObservable;
+      upObs.add(handler);
+      signal?.addEventListener("abort", () => upObs.remove(handler), {
+        once: true,
+      });
+    } else {
+      // "pressed" fires on the down edge and again on each OS auto-repeat tick
+      // while held, giving continuous behaviour for held keys.
+      const downObs = flock.inputManager.onKeyDownObservable;
+      const repeatObs = flock.inputManager.onKeyRepeatObservable;
+      downObs.add(handler);
+      repeatObs.add(handler);
+      signal?.addEventListener(
+        "abort",
+        () => {
+          downObs.remove(handler);
+          repeatObs.remove(handler);
+        },
+        { once: true },
+      );
+    }
   },
   start(action) {
     flock.scene.onBeforeRenderObservable.addOnce(action);

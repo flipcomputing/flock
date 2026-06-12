@@ -112,7 +112,7 @@ export function registerEventsGenerators(javascriptGenerator) {
     const event = block.getFieldValue("EVENT");
     const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
-    return `whenActionEvent("${action}", async () => {${statements_do}}, ${event === "ends"});\n`;
+    return `whenActionEvent("${action}", async () => {${statements_do}}, ${event === "released"});\n`;
   };
 
   // Broadcast event -------------------------------------------

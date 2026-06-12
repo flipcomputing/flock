@@ -242,11 +242,11 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
 
   javascriptGenerator.forBlock["when_key_event"] = function (block) {
     const key = block.getFieldValue("KEY");
-    const event = block.getFieldValue("EVENT"); // "starts" or "ends"
+    const event = block.getFieldValue("EVENT"); // "pressed" or "released"
     const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
-    // Pass "true" if event is "ends" for the whenKeyPressed helper function
-    return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "ends"});\n`;
+    // Pass "true" if event is "released" for the whenKeyEvent helper function
+    return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "released"});\n`;
   };
 
   javascriptGenerator.forBlock["change_material"] = function (block) {

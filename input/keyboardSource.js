@@ -27,8 +27,15 @@ export class KeyboardSource {
 
     this.#onKeyDown = (event) => {
       if (event.__flockSynthetic) return;
-      if (event.repeat) return;
       const key = normaliseKey(event.key);
+      if (event.repeat) {
+        // OS auto-repeat while held: drive "while held" event blocks via the
+        // repeat signal, but leave refcount/movement (the down edge) alone.
+        if (!this.#flyMode && this.#heldKeys.has(key)) {
+          this.#inputManager._repeatKey(key);
+        }
+        return;
+      }
       if (this.#heldKeys.has(key)) return;
       this.#heldKeys.add(key);
       if (!this.#flyMode) this.#inputManager._setKey(key, true);

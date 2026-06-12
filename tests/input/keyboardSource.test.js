@@ -141,6 +141,24 @@ export function runKeyboardSourceTests() {
         keydown_repeat(target, "w");
         expect(fired).to.have.lengthOf(1);
       });
+
+      it("OS auto-repeat fires onKeyRepeatObservable for each repeat tick", function () {
+        source.start();
+        const repeated = [];
+        manager.onKeyRepeatObservable.add((k) => repeated.push(k));
+        keydown(target, "w");
+        keydown_repeat(target, "w");
+        keydown_repeat(target, "w");
+        expect(repeated).to.eql(["w", "w"]);
+      });
+
+      it("does not fire onKeyRepeatObservable for a key that is not held", function () {
+        source.start();
+        const repeated = [];
+        manager.onKeyRepeatObservable.add((k) => repeated.push(k));
+        keydown_repeat(target, "w");
+        expect(repeated).to.have.lengthOf(0);
+      });
     });
 
     describe("stop", function () {

@@ -43,6 +43,12 @@ export class InputManager {
   onActionDownObservable = new SimpleObservable();
   onActionUpObservable = new SimpleObservable();
   onRawKeyDownObservable = new SimpleObservable();
+  // Fired on OS key auto-repeat while a key is held. Used by "while held"
+  // event blocks (when key/action pressed) to fire continuously. Deliberately
+  // separate from the down observables so refcount, movement, a11y, and
+  // interaction stay edge-only (they must not re-fire on every repeat tick).
+  onKeyRepeatObservable = new SimpleObservable();
+  onActionRepeatObservable = new SimpleObservable();
 
   _setKey(key, pressed) {
     const count = this.#keys.get(key) ?? 0;
@@ -62,6 +68,15 @@ export class InputManager {
       } else {
         this.#keys.set(key, next);
       }
+    }
+  }
+
+  // OS auto-repeat tick for a held key. Does not touch refcount/movement;
+  // only emits the repeat signals consumed by "while held" event blocks.
+  _repeatKey(key) {
+    this.onKeyRepeatObservable.notifyObservers(key);
+    for (const action of this._getActionsForKey(key)) {
+      this.onActionRepeatObservable.notifyObservers(action);
     }
   }
 
