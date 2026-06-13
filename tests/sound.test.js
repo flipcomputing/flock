@@ -7,9 +7,16 @@ export function runSoundTests(flock) {
     let boxId;
 
     beforeEach(() => {
-      // Create a box to attach spatial sound to
-      boxId = "soundBox";
-      flock.createBox(boxId, "#FF0000", 1, 1, 1, [0, 0, 0]);
+      // Create a box to attach spatial sound to. createBox returns the actual
+      // (possibly suffixed) id; later playSound calls must use that, not the
+      // requested name, since dispose does not free the reserved name.
+      boxId = flock.createBox("soundBox", {
+        color: "#FF0000",
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
     });
 
     afterEach(() => {
@@ -128,30 +135,38 @@ export function runSoundTests(flock) {
     it("should loop a sound at least once", async function () {
       this.timeout(10000);
 
-      const boxId = "soundBox";
-      flock.createBox(boxId, "#FF0000", 1, 1, 1, [0, 0, 0]);
+      const localBoxId = flock.createBox("soundBox", {
+        color: "#FF0000",
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
 
-      await flock.playSound(boxId, { soundName: "test.mp3", loop: true });
+      await flock.playSound(localBoxId, { soundName: "test.mp3", loop: true });
 
       let attempts = 0;
       while (
-        !flock.scene.getMeshByName(boxId)?.metadata?.currentSound &&
+        !flock.scene.getMeshByName(localBoxId)?.metadata?.currentSound &&
         attempts < 10
       ) {
         await new Promise((r) => setTimeout(r, 50));
         attempts++;
       }
 
-      const sound = flock.scene.getMeshByName(boxId)?.metadata?.currentSound;
+      const sound = flock.scene.getMeshByName(localBoxId)?.metadata?.currentSound;
       expect(sound).to.exist;
 
+      // After more than one play-through, the looping sound should still be the
+      // same attached sound (native Web Audio sounds expose no currentTime).
       await new Promise((resolve) => setTimeout(resolve, 2500));
 
-      expect(sound.currentTime).to.be.a("number");
-      expect(sound.currentTime).to.be.greaterThan(2);
+      expect(
+        flock.scene.getMeshByName(localBoxId)?.metadata?.currentSound,
+      ).to.equal(sound);
 
       flock.stopAllSounds();
-      flock.dispose(boxId);
+      flock.dispose(localBoxId);
     });
 
     it("should wait for sound to finish if using await", async function () {
@@ -190,9 +205,16 @@ export function runSoundTests(flock) {
     this.timeout(10000); // Allow time for async sound to start/stop
     let boxId;
     beforeEach(() => {
-      // Create a box to attach spatial sound to
-      boxId = "soundBox";
-      flock.createBox(boxId, "#FF0000", 1, 1, 1, [0, 0, 0]);
+      // Create a box to attach spatial sound to. createBox returns the actual
+      // (possibly suffixed) id; later playSound calls must use that, not the
+      // requested name, since dispose does not free the reserved name.
+      boxId = flock.createBox("soundBox", {
+        color: "#FF0000",
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
     });
     afterEach(() => {
       flock.stopAllSounds(); // Stop any sounds still playing

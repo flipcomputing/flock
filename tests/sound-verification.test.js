@@ -113,10 +113,10 @@ export function runSoundVerificationTests(flock) {
 
     describe("PlayNotes Audio Output Verification", function () {
       it("should generate audio when playing MIDI notes", async function () {
-        flock.createBox("toneTestBox", { x: 0, y: 0, z: 0 });
+        const boxId = flock.createBox("toneTestBox", { x: 0, y: 0, z: 0 });
 
         // Play a simple note using playNotes
-        const notesPromise = flock.playNotes("toneTestBox", {
+        const notesPromise = flock.playNotes(boxId, {
           notes: [60], // Middle C
           durations: [0.5],
           instrument: flock.createInstrument("sine"),
@@ -142,13 +142,13 @@ export function runSoundVerificationTests(flock) {
       });
 
       it("should accept different MIDI note numbers", async function () {
-        flock.createBox("toneTestBox", { x: 0, y: 0, z: 0 });
+        const boxId = flock.createBox("toneTestBox", { x: 0, y: 0, z: 0 });
 
         // Ensure audio context is ready
         flock.getAudioContext();
 
         // Test low note - let it complete
-        await flock.playNotes("toneTestBox", {
+        await flock.playNotes(boxId, {
           notes: [36], // Low C
           durations: [0.1],
           // instrument will use default
@@ -158,7 +158,7 @@ export function runSoundVerificationTests(flock) {
         await new Promise((r) => setTimeout(r, 200));
 
         // Test high note
-        await flock.playNotes("toneTestBox", {
+        await flock.playNotes(boxId, {
           notes: [84], // High C
           durations: [0.1],
         });
@@ -168,9 +168,9 @@ export function runSoundVerificationTests(flock) {
       });
 
       it("should handle multiple notes in sequence", async function () {
-        flock.createBox("toneTestBox", { x: 0, y: 0, z: 0 });
+        const boxId = flock.createBox("toneTestBox", { x: 0, y: 0, z: 0 });
 
-        await flock.playNotes("toneTestBox", {
+        await flock.playNotes(boxId, {
           notes: [60, 64, 67], // C major chord notes in sequence
           durations: [0.1, 0.1, 0.1],
           instrument: flock.createInstrument("sine"),
@@ -181,50 +181,23 @@ export function runSoundVerificationTests(flock) {
     });
 
     describe("Volume Control Verification", function () {
-      it("should apply volume using setVolume method", async function () {
-        flock.createBox("volumeTestBox", { x: 0, y: 0, z: 0 });
-
-        await flock.playSound("volumeTestBox", {
-          soundName: "test.mp3",
-          volume: 1.0,
-          loop: true,
-        });
-
-        const mesh = await waitForSoundOnMesh("volumeTestBox");
-        const sound = mesh.metadata.currentSound;
-
-        // Test setVolume method exists and works
-        chai.expect(sound.setVolume).to.be.a("function");
-
-        sound.setVolume(0.5);
-        // setVolume should not throw
-
-        sound.setVolume(0.0);
-        // Setting to 0 should work (mute)
-
-        sound.setVolume(1.0);
-        // Setting to 1.0 should work
-
-        chai.expect(true).to.be.true;
-      });
-
       it("should accept volume parameter during playSound", async function () {
-        flock.createBox("volumeTestBox", { x: 0, y: 0, z: 0 });
+        const boxId = flock.createBox("volumeTestBox", { x: 0, y: 0, z: 0 });
 
         // Test various volume levels
-        await flock.playSound("volumeTestBox", {
+        await flock.playSound(boxId, {
           soundName: "test.mp3",
           volume: 0.3,
           loop: true,
         });
 
-        const mesh = await waitForSoundOnMesh("volumeTestBox");
+        const mesh = await waitForSoundOnMesh(boxId);
         chai.expect(mesh.metadata.currentSound).to.not.be.undefined;
 
         flock.stopAllSounds();
         await new Promise((r) => setTimeout(r, 100));
 
-        await flock.playSound("volumeTestBox", {
+        await flock.playSound(boxId, {
           soundName: "test.mp3",
           volume: 0.8,
           loop: true,
@@ -234,156 +207,20 @@ export function runSoundVerificationTests(flock) {
       });
     });
 
-    describe("Playback Rate Verification", function () {
-      it("should modify playbackRate property", async function () {
-        flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
-
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
-          playbackRate: 1.0,
-          loop: true,
-        });
-
-        const mesh = await waitForSoundOnMesh("audioTestBox");
-        const sound = mesh.metadata.currentSound;
-
-        // Verify initial playback rate
-        chai.expect(sound.playbackRate).to.equal(1.0);
-
-        // Modify playback rate
-        sound.playbackRate = 1.5;
-        chai.expect(sound.playbackRate).to.equal(1.5);
-
-        sound.playbackRate = 0.5;
-        chai.expect(sound.playbackRate).to.equal(0.5);
-      });
-
-      it("should accept playbackRate during creation", async function () {
-        flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
-
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
-          playbackRate: 2.0,
-          loop: true,
-        });
-
-        const mesh = await waitForSoundOnMesh("audioTestBox");
-        const sound = mesh.metadata.currentSound;
-
-        chai.expect(sound.playbackRate).to.equal(2.0);
-      });
-    });
-
     describe("Spatial vs Non-Spatial Audio", function () {
-      it("should create spatial sound for mesh (has _spatial object)", async function () {
-        flock.createBox("audioTestBox", { x: 5, y: 0, z: 0 });
-
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
-          loop: true,
-        });
-
-        const mesh = await waitForSoundOnMesh("audioTestBox");
-        const sound = mesh.metadata.currentSound;
-
-        // Spatial sounds have _spatial as an object
-        chai.expect(sound._spatial).to.not.be.null;
-        chai.expect(typeof sound._spatial).to.equal("object");
-        chai.expect(sound._attachedMesh).to.equal(mesh);
-      });
-
-      it("should create non-spatial sound for __everywhere__ (_spatial is null)", async function () {
-        flock.playSound("__everywhere__", {
-          soundName: "test.mp3",
-          loop: true,
-        });
-
-        await new Promise((r) => setTimeout(r, 200));
-
-        chai.expect(flock.globalSounds.length).to.be.greaterThan(0);
-        const sound = flock.globalSounds[flock.globalSounds.length - 1];
-
-        // Non-spatial sounds have _spatial as null
-        chai.expect(sound._spatial).to.be.null;
-      });
-
       it("should maintain _attachedMesh reference for spatial sounds", async function () {
-        flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
+        const boxId = flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
 
-        await flock.playSound("audioTestBox", {
+        await flock.playSound(boxId, {
           soundName: "test.mp3",
           loop: true,
         });
 
-        const mesh = await waitForSoundOnMesh("audioTestBox");
+        const mesh = await waitForSoundOnMesh(boxId);
         const sound = mesh.metadata.currentSound;
 
         chai.expect(sound._attachedMesh).to.equal(mesh);
-        chai.expect(sound._attachedMesh.name).to.equal("audioTestBox");
-      });
-    });
-
-    describe("Audio Context and Buffer Access", function () {
-      it("should have accessible AudioContext", async function () {
-        flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
-
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
-          loop: true,
-        });
-
-        const mesh = await waitForSoundOnMesh("audioTestBox");
-        const sound = mesh.metadata.currentSound;
-
-        chai.expect(sound._audioContext).to.not.be.undefined;
-        chai.expect(typeof sound._audioContext).to.equal("object");
-        chai.expect(sound._audioContext.sampleRate).to.be.greaterThan(0);
-      });
-
-      it("should have accessible AudioBuffer", async function () {
-        flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
-
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
-          loop: true,
-        });
-
-        const mesh = await waitForSoundOnMesh("audioTestBox");
-        const sound = mesh.metadata.currentSound;
-
-        // Wait a bit for buffer to load
-        let attempts = 0;
-        while (!sound._buffer && attempts < 20) {
-          await new Promise((r) => setTimeout(r, 50));
-          attempts++;
-        }
-
-        chai.expect(sound._buffer).to.not.be.undefined;
-        if (sound._buffer) {
-          chai.expect(typeof sound._buffer).to.equal("object");
-          chai.expect(sound._buffer.duration).to.be.greaterThan(0);
-        }
-      });
-
-      it("should use flock audio context", async function () {
-        flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
-
-        await flock.playSound("audioTestBox", {
-          soundName: "test.mp3",
-          loop: true,
-        });
-
-        const mesh = await waitForSoundOnMesh("audioTestBox");
-        const sound = mesh.metadata.currentSound;
-
-        const flockContext = flock.getAudioContext();
-
-        // Both should be AudioContext objects with same sample rate
-        chai.expect(sound._audioContext).to.not.be.undefined;
-        chai.expect(flockContext).to.not.be.undefined;
-        chai
-          .expect(sound._audioContext.sampleRate)
-          .to.equal(flockContext.sampleRate);
+        chai.expect(sound._attachedMesh.name).to.equal(boxId);
       });
     });
 

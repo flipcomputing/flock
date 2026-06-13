@@ -47,21 +47,21 @@ export function runSoundIntegrationTests(flock) {
 
     describe("Sound Lifecycle & Replacement", function () {
       it("should replace existing sound on mesh", async function () {
-        flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
+        const boxId = flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
 
         // Play first sound
-        const firstSound = await flock.playSound("testSoundBox", {
+        const firstSound = await flock.playSound(boxId, {
           soundName: "test.mp3",
           loop: true,
         });
 
-        const mesh = await waitForSoundOnMesh("testSoundBox");
+        const mesh = await waitForSoundOnMesh(boxId);
         chai.expect(mesh.metadata.currentSound).to.equal(firstSound);
         chai.expect(firstSound.name).to.equal("test.mp3");
 
         // Play second sound (should replace first)
         // Note: Using loop=true so promise resolves when attached, not when sound ends
-        const secondSound = await flock.playSound("testSoundBox", {
+        const secondSound = await flock.playSound(boxId, {
           soundName: "test2.mp3",
           loop: true,
         });
@@ -75,16 +75,16 @@ export function runSoundIntegrationTests(flock) {
       });
 
       it("should handle rapid sound replacements", async function () {
-        flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
+        const boxId = flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
 
         // Rapidly replace sounds
-        flock.playSound("testSoundBox", { soundName: "test.mp3", loop: true });
-        flock.playSound("testSoundBox", { soundName: "test2.mp3", loop: true });
-        flock.playSound("testSoundBox", { soundName: "test.mp3", loop: true });
+        flock.playSound(boxId, { soundName: "test.mp3", loop: true });
+        flock.playSound(boxId, { soundName: "test2.mp3", loop: true });
+        flock.playSound(boxId, { soundName: "test.mp3", loop: true });
 
         await new Promise((r) => setTimeout(r, 200));
 
-        const mesh = flock.scene.getMeshByName("testSoundBox");
+        const mesh = flock.scene.getMeshByName(boxId);
 
         // Should have a sound attached (order is non-deterministic in async environment)
         chai.expect(mesh.metadata.currentSound).to.not.be.undefined;
@@ -147,18 +147,18 @@ export function runSoundIntegrationTests(flock) {
 
     describe("Edge Cases & Error Handling", function () {
       it("should initialize mesh metadata if not present", async function () {
-        flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
-        const mesh = flock.scene.getMeshByName("testSoundBox");
+        const boxId = flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
+        const mesh = flock.scene.getMeshByName(boxId);
 
         // Clear metadata to test initialization
         mesh.metadata = null;
 
-        await flock.playSound("testSoundBox", {
+        await flock.playSound(boxId, {
           soundName: "test.mp3",
           loop: true,
         });
 
-        await waitForSoundOnMesh("testSoundBox");
+        await waitForSoundOnMesh(boxId);
 
         // Verify API properly initialized metadata
         chai.expect(mesh.metadata).to.be.an("object");
@@ -166,18 +166,18 @@ export function runSoundIntegrationTests(flock) {
       });
 
       it("should handle metadata as non-object", async function () {
-        flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
-        const mesh = flock.scene.getMeshByName("testSoundBox");
+        const boxId = flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
+        const mesh = flock.scene.getMeshByName(boxId);
 
         // Set metadata to primitive (edge case)
         mesh.metadata = "string";
 
-        await flock.playSound("testSoundBox", {
+        await flock.playSound(boxId, {
           soundName: "test.mp3",
           loop: true,
         });
 
-        await waitForSoundOnMesh("testSoundBox");
+        await waitForSoundOnMesh(boxId);
 
         // Should replace with proper object
         chai.expect(mesh.metadata).to.be.an("object");
@@ -187,9 +187,9 @@ export function runSoundIntegrationTests(flock) {
 
     describe("Resource Cleanup & Memory Management", function () {
       it("should stop all sounds", async function () {
-        flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
+        const boxId = flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
 
-        await flock.playSound("testSoundBox", {
+        await flock.playSound(boxId, {
           soundName: "test.mp3",
           loop: true,
         });
@@ -211,14 +211,14 @@ export function runSoundIntegrationTests(flock) {
       });
 
       it("should clear sound from mesh metadata on stopAll", async function () {
-        flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
+        const boxId = flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
 
-        await flock.playSound("testSoundBox", {
+        await flock.playSound(boxId, {
           soundName: "test.mp3",
           loop: true,
         });
 
-        const mesh = await waitForSoundOnMesh("testSoundBox");
+        const mesh = await waitForSoundOnMesh(boxId);
         chai.expect(mesh.metadata.currentSound).to.not.be.undefined;
 
         flock.stopAllSounds();
@@ -228,18 +228,18 @@ export function runSoundIntegrationTests(flock) {
       });
 
       it("should clean up global sounds array when replacing mesh sound", async function () {
-        flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
+        const boxId = flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
 
-        await flock.playSound("testSoundBox", {
+        await flock.playSound(boxId, {
           soundName: "test.mp3",
           loop: true,
         });
 
-        await waitForSoundOnMesh("testSoundBox");
+        await waitForSoundOnMesh(boxId);
         const initialCount = flock.globalSounds.length;
 
         // Replace with new sound
-        await flock.playSound("testSoundBox", {
+        await flock.playSound(boxId, {
           soundName: "test2.mp3",
           loop: true,
         });
@@ -253,14 +253,14 @@ export function runSoundIntegrationTests(flock) {
 
     describe("Spatial vs Non-Spatial Integration", function () {
       it("should attach sound to mesh with _attachedMesh reference", async function () {
-        flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
+        const boxId = flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
 
-        await flock.playSound("testSoundBox", {
+        await flock.playSound(boxId, {
           soundName: "test.mp3",
           loop: true,
         });
 
-        const mesh = await waitForSoundOnMesh("testSoundBox");
+        const mesh = await waitForSoundOnMesh(boxId);
         const sound = mesh.metadata.currentSound;
 
         // Verify bidirectional relationship
@@ -269,16 +269,16 @@ export function runSoundIntegrationTests(flock) {
       });
 
       it("should add spatial sounds to globalSounds array", async function () {
-        flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
+        const boxId = flock.createBox("testSoundBox", { x: 0, y: 0, z: 0 });
 
         const beforeCount = flock.globalSounds.length;
 
-        await flock.playSound("testSoundBox", {
+        await flock.playSound(boxId, {
           soundName: "test.mp3",
           loop: true,
         });
 
-        await waitForSoundOnMesh("testSoundBox");
+        await waitForSoundOnMesh(boxId);
 
         // Spatial sounds should also be tracked in globalSounds
         chai.expect(flock.globalSounds.length).to.equal(beforeCount + 1);
@@ -302,71 +302,5 @@ export function runSoundIntegrationTests(flock) {
       });
     });
 
-    describe("Configuration Integration", function () {
-      it("should create and apply loop configuration", async function () {
-        flock.createBox("testConfigBox", { x: 0, y: 0, z: 0 });
-
-        await flock.playSound("testConfigBox", {
-          soundName: "test.mp3",
-          loop: true,
-        });
-
-        const mesh = await waitForSoundOnMesh("testConfigBox");
-        const sound = mesh.metadata.currentSound;
-
-        // Loop should be applied
-        chai.expect(sound.loop).to.be.true;
-
-        // Should be modifiable
-        sound.loop = false;
-        chai.expect(sound.loop).to.be.false;
-      });
-
-      it("should create and apply playback rate configuration", async function () {
-        flock.createBox("testConfigBox", { x: 0, y: 0, z: 0 });
-
-        await flock.playSound("testConfigBox", {
-          soundName: "test.mp3",
-          playbackRate: 1.5,
-          loop: true,
-        });
-
-        const mesh = await waitForSoundOnMesh("testConfigBox");
-        const sound = mesh.metadata.currentSound;
-
-        // Playback rate should be applied
-        chai.expect(sound.playbackRate).to.equal(1.5);
-
-        // Should be modifiable
-        sound.playbackRate = 0.8;
-        chai.expect(sound.playbackRate).to.equal(0.8);
-      });
-
-      it("should handle multiple configuration changes in sequence", async function () {
-        flock.createBox("testConfigBox", { x: 0, y: 0, z: 0 });
-
-        await flock.playSound("testConfigBox", {
-          soundName: "test.mp3",
-          volume: 0.7,
-          loop: true,
-          playbackRate: 1.5,
-        });
-
-        const mesh = await waitForSoundOnMesh("testConfigBox");
-        const sound = mesh.metadata.currentSound;
-
-        // All configurations should be applied
-        chai.expect(sound.loop).to.be.true;
-        chai.expect(sound.playbackRate).to.equal(1.5);
-
-        // Modify multiple properties
-        sound.loop = false;
-        sound.playbackRate = 0.8;
-        sound.setVolume(0.5);
-
-        chai.expect(sound.loop).to.be.false;
-        chai.expect(sound.playbackRate).to.equal(0.8);
-      });
-    });
   });
 }

@@ -40,16 +40,6 @@ const AVAILABLE_SUITES = [
     name: "Sound Verification Tests",
     pattern: "@sound-verification",
   },
-  {
-    id: "sound-investigation",
-    name: "Sound API Investigation",
-    pattern: "@investigation",
-  },
-  {
-    id: "sound-diagnostic",
-    name: "Sound Replacement Diagnostic",
-    pattern: "@diagnostic",
-  },
   { id: "physics", name: "Physics Tests (6 tests)", pattern: "@physics" },
   { id: "sound2", name: "Sound2 Tests (BPM and speech)", pattern: "@sound2" },
   { id: "camera", name: "Camera API Tests", pattern: "@camera" },

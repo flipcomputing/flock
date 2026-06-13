@@ -314,7 +314,11 @@ export const flockSound = {
       instrument = flock.createInstrument("square"),
     } = {},
   ) {
-    if (flock._audioStopped) return;
+    // A freshly-initiated playNotes means "play now", so clear any prior stop
+    // request. stopAllSounds sets _audioStopped to abort an in-flight sequence
+    // (caught by the post-setup check below and the per-note loop); it must not
+    // permanently disable future playback until a full scene dispose.
+    flock._audioStopped = false;
     notes = notes.map((note) => (note === "_" ? null : note));
     durations = durations.map(Number);
 
