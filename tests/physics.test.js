@@ -387,9 +387,12 @@ export function runPhysicsTests(flock) {
 
       await flock.applyForce(id, { forceX: 10, forceY: 5, forceZ: -3 });
 
-      // Allow time for physics engine to update
-      await new Promise((r) => setTimeout(r, 200));
-
+      // Read the velocity the impulse imparts immediately. Physics no longer
+      // runs in lockstep (Havok steps by the real frame delta for better
+      // mobile performance), so waiting wall-clock time before sampling makes
+      // the result nondeterministic: under load a single oversized step lets
+      // gravity and ground-contact resolution corrupt the x/z components.
+      // The impulse itself is what this test verifies, so sample it directly.
       const velocity = mesh.physics.getLinearVelocity();
       expect(velocity.x).to.be.greaterThan(0);
       expect(velocity.y).to.be.greaterThan(0);
