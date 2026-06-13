@@ -15,12 +15,16 @@ const EXPECTED_ACTIONS = [
   "BUTTON2",
   "BUTTON3",
   "BUTTON4",
+  "A11Y_I",
+  "A11Y_J",
+  "A11Y_K",
+  "A11Y_L",
 ];
 
 export function runBindingsTests() {
   describe("input/bindings @bindings @input", function () {
     describe("ACTIONS", function () {
-      it("contains exactly the 8 expected names in expected order", function () {
+      it("contains exactly the 12 expected names in expected order", function () {
         expect(ACTIONS).to.deep.equal(EXPECTED_ACTIONS);
       });
 
