@@ -1,6 +1,6 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
-import { getHelpUrlFor } from "./blocks.js";
+import { getHelpUrlFor, applyInputAriaLabels } from "./blocks.js";
 import { translate, getTooltip } from "../main/translation.js";
 
 export function defineControlBlocks() {
@@ -262,6 +262,10 @@ export function defineControlBlocks() {
       return newValue;
     }
 
+    getAriaTypeName() {
+      return "variable";
+    }
+
     setValue(value) {
       if (value === "__RENAME__") {
         setTimeout(() => {
@@ -474,6 +478,10 @@ export function defineControlBlocks() {
       this.appendStatementInput("DO");
 
       this.updateShape_(this.getFieldValue("MODE") ?? MODE.IF);
+
+      // COND's context is the MODE dropdown (not a label field), so it can't be
+      // auto-derived — give it an explicit ARIA label.
+      applyInputAriaLabels(this, { COND: "condition" });
 
       // Clear restore flag after Blockly has had a chance to reconnect blocks.
       setTimeout(() => {

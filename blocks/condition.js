@@ -66,7 +66,7 @@ export function defineConditionBlocks() {
                                 </svg>`),
         20,
         20,
-        "+",
+        "add branch",
         onClick,
       );
     },
@@ -81,7 +81,7 @@ export function defineConditionBlocks() {
                                 </svg>`),
         20,
         20,
-        "-",
+        "remove branch",
         onClick,
       );
     },

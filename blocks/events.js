@@ -25,6 +25,7 @@ import {
   getCurrentIconColor,
   BLOCK_ICON_FIELD_NAME,
   TOGGLE_BUTTON_FIELD_NAME,
+  DecorativeFieldImage,
 } from "./blockIcons.js";
 
 export function defineEventsBlocks() {
@@ -48,11 +49,11 @@ export function defineEventsBlocks() {
       this.setStyle("events_blocks");
       this.inputList[0].insertFieldAt(
         0,
-        new Blockly.FieldImage(
+        new DecorativeFieldImage(
           makeStartIcon(getCurrentIconColor()),
           18,
           18,
-          "*",
+          "",
           null,
         ),
         BLOCK_ICON_FIELD_NAME,
@@ -81,11 +82,11 @@ export function defineEventsBlocks() {
       this.isInline = false;
       this.inputList[0].insertFieldAt(
         0,
-        new Blockly.FieldImage(
+        new DecorativeFieldImage(
           makeRepeatIcon(getCurrentIconColor()),
           32,
           32,
-          "*",
+          "",
           null,
         ),
         BLOCK_ICON_FIELD_NAME,
@@ -173,11 +174,11 @@ export function defineEventsBlocks() {
       this.setNextStatement(false);
       this.inputList[0].insertFieldAt(
         0,
-        new Blockly.FieldImage(
+        new DecorativeFieldImage(
           makeClickIcon(getCurrentIconColor()),
           22,
           22,
-          "*",
+          "",
           null,
         ),
         BLOCK_ICON_FIELD_NAME,
@@ -188,7 +189,7 @@ export function defineEventsBlocks() {
         makeInlineIcon("white"),
         30,
         30,
-        "*",
+        "toggle inline blocks",
         () => {
           this.toggleDoBlock();
         },
@@ -286,11 +287,11 @@ export function defineEventsBlocks() {
       this.callbackVar2Id = null;
       this.inputList[0].insertFieldAt(
         0,
-        new Blockly.FieldImage(
+        new DecorativeFieldImage(
           makeCollisionIcon(getCurrentIconColor()),
           24,
           24,
-          "*",
+          "",
           null,
         ),
         BLOCK_ICON_FIELD_NAME,
@@ -301,7 +302,7 @@ export function defineEventsBlocks() {
         makeInlineIcon("white"),
         30,
         30,
-        "*",
+        "toggle inline blocks",
         () => {
           this.toggleDoBlock();
         },
@@ -463,11 +464,11 @@ export function defineEventsBlocks() {
       this.setStyle("events_blocks");
       this.inputList[0].insertFieldAt(
         0,
-        new Blockly.FieldImage(
+        new DecorativeFieldImage(
           makeKeyboardIcon(getCurrentIconColor()),
           36,
           36,
-          "*",
+          "",
           null,
         ),
         BLOCK_ICON_FIELD_NAME,
@@ -547,11 +548,11 @@ export function defineEventsBlocks() {
       this.setStyle("events_blocks");
       this.inputList[0].insertFieldAt(
         0,
-        new Blockly.FieldImage(
+        new DecorativeFieldImage(
           makePressIcon(getCurrentIconColor()),
           32,
           32,
-          "*",
+          "",
           null,
         ),
         BLOCK_ICON_FIELD_NAME,
@@ -686,11 +687,11 @@ export function defineEventsBlocks() {
       this.setStyle("events_blocks");
       this.inputList[0].insertFieldAt(
         0,
-        new Blockly.FieldImage(
+        new DecorativeFieldImage(
           makeOnEventIcon(getCurrentIconColor()),
           28,
           28,
-          "*",
+          "",
           null,
         ),
         BLOCK_ICON_FIELD_NAME,

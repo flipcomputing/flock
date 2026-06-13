@@ -11,6 +11,7 @@ import {
   CustomZelosRenderer,
   initializeVariableIndexes,
   nextVariableIndexes,
+  applyInputAriaLabels,
 } from '../blocks/blocks';
 import { defineBaseBlocks } from '../blocks/base';
 import { defineShapeBlocks } from '../blocks/shapes';
@@ -66,6 +67,87 @@ import { toolbox as toolboxDef } from '../toolbox.js';
       const model = this.getVariableMap().getVariableById(id);
       if (model) this.getVariableMap().deleteVariable(model);
     };
+}
+
+// After jsonInit builds a block's inputs, give its value/statement inputs ARIA
+// labels so screen readers announce each input's context on focus. A block can
+// supply an `ariaLabels` map (keyed by input name) in its definition to
+// override or suppress individual labels; the key is ignored by jsonInit.
+{
+  const originalJsonInit = Blockly.Block.prototype.jsonInit;
+  Blockly.Block.prototype.jsonInit = function (json) {
+    originalJsonInit.call(this, json);
+    applyInputAriaLabels(this, json && json.ariaLabels);
+  };
+}
+
+// A "simple reporter" (e.g. a number plugged into scale's X slot) announces
+// only its field's value, with no per-input context. We prepend the parent
+// input's ARIA label ("x") to the field's announced element so navigating onto
+// it reads "x, number: 0". This is done in recomputeAriaContext (which sets the
+// element's aria-label), NOT computeAriaLabel: the parent block composes its own
+// readout from each child's computeAriaLabel, so prefixing there would make the
+// block say the slot label twice (once as its field-row label, once via the
+// child). The element-only prefix keeps the block readout clean.
+{
+  // The slot label and whether to set one at all (sibling-disambiguation,
+  // overrides) are decided in applyInputAriaLabels; here we just surface
+  // whatever provider the parent input carries.
+  const parentSlotLabel = (field) => {
+    const block = field.getSourceBlock?.();
+    if (
+      !block ||
+      !block.isSimpleReporter?.() ||
+      block.getFullBlockField?.() !== field
+    ) {
+      return null;
+    }
+    const conn =
+      block.outputConnection?.targetConnection ??
+      block.previousConnection?.targetConnection;
+    return conn?.getParentInput?.()?.getAriaLabelText?.() ?? null;
+  };
+  // Several field types define their own recomputeAriaContext, each calling
+  // super: Field, FieldInput (base of FieldTextInput/FieldNumber; not exported,
+  // so reached via the prototype chain), FieldDropdown (→ FieldVariable) and
+  // FieldCheckbox. Wrap every prototype that owns the method; a per-instance
+  // re-entrancy guard ensures the slot is prepended once, to the final label.
+  const textInputProto = Blockly.FieldTextInput?.prototype;
+  const candidateProtos = [
+    Blockly.Field?.prototype,
+    textInputProto && Object.getPrototypeOf(textInputProto), // FieldInput
+    textInputProto,
+    Blockly.FieldDropdown?.prototype,
+    Blockly.FieldCheckbox?.prototype,
+  ];
+  const ariaProtos = [
+    ...new Set(
+      candidateProtos.filter(
+        (p) => p && Object.hasOwn(p, "recomputeAriaContext"),
+      ),
+    ),
+  ];
+  for (const proto of ariaProtos) {
+    const original = proto.recomputeAriaContext;
+    proto.recomputeAriaContext = function () {
+      if (this._ariaSlotInProgress) return original.call(this);
+      this._ariaSlotInProgress = true;
+      try {
+        const inTree = original.call(this);
+        const slot = parentSlotLabel(this);
+        if (inTree && slot) {
+          const el = this.getFocusableElement?.();
+          const current = el?.getAttribute?.("aria-label");
+          if (el && current) {
+            el.setAttribute("aria-label", `${slot}, ${current}`);
+          }
+        }
+        return inTree;
+      } finally {
+        this._ariaSlotInProgress = false;
+      }
+    };
+  }
 }
 
 let workspace = null;

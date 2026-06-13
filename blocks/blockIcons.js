@@ -1,6 +1,16 @@
 import * as Blockly from "blockly";
 import { toolbox as toolboxDefinition } from "../toolbox.js";
 
+// A purely decorative image field (block-type and category icons). The default
+// FieldImage contributes an "empty" placeholder to the block's ARIA label when
+// its alt is empty; returning an empty string makes the composer ignore it, so
+// the icon is silent to screen readers.
+export class DecorativeFieldImage extends Blockly.FieldImage {
+  computeAriaLabel() {
+    return "";
+  }
+}
+
 function buildSvgDataUri(svgContent) {
   return "data:image/svg+xml," + encodeURIComponent(svgContent);
 }
@@ -429,7 +439,7 @@ export function applyLowVisionCategoryIcons(workspace) {
     if (!block.getField(LOW_VISION_ICON_FIELD_NAME)) {
       firstInput.insertFieldAt(
         0,
-        new Blockly.FieldImage(iconPath, 18, 18, "*", null),
+        new DecorativeFieldImage(iconPath, 18, 18, "", null),
         LOW_VISION_ICON_FIELD_NAME,
       );
     }

@@ -172,13 +172,90 @@ export function getHelpUrlFor(_blockType) {
   return "https://hub.flockxr.com";
 }
 
+// Text of the static labels immediately preceding an input on its row (e.g.
+// "x:" for the X input of `scale %1 x: %2`). Only the contiguous trailing run of
+// label fields is used, so a leading block prefix or an editable field before
+// them (like the variable in `scale`) isn't pulled into the input's label.
+function inputFieldRowLabel(input) {
+  const fields = input.fieldRow || [];
+  const labels = [];
+  for (let i = fields.length - 1; i >= 0; i--) {
+    if (!(fields[i] instanceof Blockly.FieldLabel)) break;
+    labels.unshift(fields[i].getText ? fields[i].getText() : "");
+  }
+  const text = labels.join(" ").replace(/\s+/g, " ").trim();
+  // Strip surrounding punctuation/separators so "x:" reads as "x" and
+  // "| skin:" reads as "skin" (messages separate fields with "|").
+  return text.replace(/^[^\p{L}\p{N}]+/u, "").replace(/[^\p{L}\p{N}]+$/u, "");
+}
+
+// Derived field-row labels that add no useful per-input context: connectors and
+// prepositions, plus trailing units. The latter matters because a unit sits
+// after the input it describes, so "for %2 seconds %3" would otherwise label the
+// %3 input "seconds". Meaningful nouns (hair, skin, x, size, color) are kept.
+const SKIP_DERIVED_LABELS = new Set([
+  "for", "to", "on", "with", "at", "by", "from", "of", "in", "into", "and",
+  "or", "the", "a", "an",
+  "seconds", "second", "s", "ms", "milliseconds", "degrees", "degree", "deg",
+  "times", "ms.",
+]);
+
+// Gives value/statement inputs an ARIA label so screen readers announce the
+// input's context (e.g. "x", "hair") when navigating onto a reporter in that
+// slot. Blockly v13 derives this for the whole-block label but not for per-input
+// focus, where a custom provider is required. Labels default to the input's
+// localized field-row text (skipping connector/unit words); pass `overrides`
+// (keyed by input name) to set a custom label or suppress one with null/"".
+export function applyInputAriaLabels(block, overrides) {
+  if (!block || !Array.isArray(block.inputList)) return;
+  // The ESM bundle doesn't reliably expose the inputTypes enum, so fall back to
+  // its numeric values (VALUE = 1, STATEMENT = 3).
+  const inputTypes = Blockly.inputs?.inputTypes ?? {};
+  const VALUE = inputTypes.VALUE ?? 1;
+  const STATEMENT = inputTypes.STATEMENT ?? 3;
+  const isSlot = (i) => i.type === VALUE || i.type === STATEMENT;
+  // Auto-derived labels only help when there are sibling slots to disambiguate
+  // (e.g. x/y/z); a single slot is already conveyed by the block's own readout.
+  // Explicit overrides always apply regardless of slot count.
+  const multipleSlots = block.inputList.filter(isSlot).length >= 2;
+  for (const input of block.inputList) {
+    if (!isSlot(input)) continue;
+    let label;
+    if (overrides && Object.prototype.hasOwnProperty.call(overrides, input.name)) {
+      label = overrides[input.name];
+    } else if (multipleSlots) {
+      const derived = inputFieldRowLabel(input);
+      if (derived && !SKIP_DERIVED_LABELS.has(derived.toLowerCase())) {
+        label = derived;
+      }
+    }
+    if (label && typeof input.setAriaLabelProvider === "function") {
+      input.setAriaLabelProvider(label);
+    }
+  }
+}
+
+// A simple reporter's field announces only its own value; the parent-slot label
+// is injected by the recomputeAriaContext patch in blocklyinit.js, but the
+// field's ARIA is only refreshed on render/value-change, not when it's plugged
+// into a slot. Recompute affected fields so e.g. a number moved into scale's X
+// slot updates from "number" to "x, number". Called from a workspace listener.
+export function refreshReporterAriaLabels(block) {
+  if (!block || typeof block.getDescendants !== "function") return;
+  for (const descendant of block.getDescendants(false)) {
+    if (descendant.isSimpleReporter?.()) {
+      descendant.getFullBlockField?.()?.recomputeAriaContext?.();
+    }
+  }
+}
+
 // Shared utility to add the toggle button to a block
 export function addToggleButton(block) {
   const toggleButton = new Blockly.FieldImage(
     makeInlineIcon("white"),
     30,
     30,
-    "*",
+    "toggle inline blocks",
     () => {
       block.toggleDoBlock();
     },
@@ -1840,7 +1917,7 @@ export function addDoMutatorWithToggleBehavior(block) {
     "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
     30,
     30,
-    "*", // Width, Height, Alt text
+    "toggle do block", // Width, Height, Alt text
     block.toggleDoBlock.bind(block), // Bind the event handler to the block
   );
 

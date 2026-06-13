@@ -60,6 +60,9 @@ export function defineTextBlocks() {
             check: "Colour",
           },
         ],
+        // The message words ("print"/"for"/"seconds") don't read well as
+        // per-input labels, so label each input explicitly.
+        ariaLabels: { TEXT: "text", DURATION: "seconds", COLOR: "color" },
         inputsInline: true,
         previousStatement: null,
         nextStatement: null,

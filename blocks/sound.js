@@ -126,6 +126,10 @@ class FieldAbcInput extends Blockly.FieldTextInput {
       .find((l) => l.trim().startsWith("T:"));
     return titleLine ? titleLine.trim().slice(2).trim() : "ABC";
   }
+
+  getAriaTypeName() {
+    return "ABC notation";
+  }
 }
 
 // ---------------------------------------------------------------------------

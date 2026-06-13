@@ -1,7 +1,7 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
-import { blockHandlerRegistry } from "../blocks/blocks.js";
+import { blockHandlerRegistry, refreshReporterAriaLabels } from "../blocks/blocks.js";
 import { announceToScreenReader } from "./input.js";
 import { TOP_BLOCK_TYPES } from "../config.js";
 
@@ -97,6 +97,20 @@ function createKeywordBlockAtViewportCenter(blockType) {
 
 export function initializeBlockHandling() {
   observeBlocklyInputs();
+
+  // Refresh reporter fields' ARIA when their slot changes so a value block
+  // (e.g. a number in scale's X) announces its parent input ("x, number").
+  workspace.addChangeListener((event) => {
+    if (event.isUiEvent) return;
+    if (event.type === Blockly.Events.BLOCK_MOVE) {
+      const block = workspace.getBlockById(event.blockId);
+      if (block) refreshReporterAriaLabels(block);
+    } else if (event.type === Blockly.Events.FINISHED_LOADING) {
+      for (const top of workspace.getTopBlocks(false)) {
+        refreshReporterAriaLabels(top);
+      }
+    }
+  });
 
   workspace.addChangeListener(function (event) {
     if (
