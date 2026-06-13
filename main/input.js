@@ -369,7 +369,10 @@ export function setupInput() {
   initializeFocusManagement();
 }
 
-export function announceToScreenReader(message) {
+export function announceToScreenReader(message, { requireCanvasFocus = true } = {}) {
+  const canvas = document.getElementById('renderCanvas');
+  if (requireCanvasFocus && document.activeElement !== canvas) return;
+
   const announcer = document.getElementById('announcements');
   if (announcer) {
     announcer.textContent = message;
