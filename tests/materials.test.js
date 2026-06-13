@@ -553,6 +553,7 @@ export function runMaterialsTests(flock) {
     });
 
     it("should create a tree with two materials", async function () {
+      const materialsBefore = flock.scene.materials.length;
       const tree = flock.createObject({
         modelName: "tree.glb",
         modelId: "tree.glb__2",
@@ -572,10 +573,12 @@ export function runMaterialsTests(flock) {
         throw new Error(`Show/hide operation failed: ${error.message}`);
       }
 
-      expect(flock.scene.materials.length).to.equal(3);
+      // Two distinct colours → two new materials added to the scene.
+      expect(flock.scene.materials.length).to.equal(materialsBefore + 2);
     });
 
     it("should create a tree with one material", async function () {
+      const materialsBefore = flock.scene.materials.length;
       const tree = flock.createObject({
         modelName: "tree.glb",
         modelId: "tree.glb__1",
@@ -594,10 +597,12 @@ export function runMaterialsTests(flock) {
         throw new Error(`Show/hide operation failed: ${error.message}`);
       }
 
-      expect(flock.scene.materials.length).to.equal(2);
+      // Both parts share one colour → one new material added to the scene.
+      expect(flock.scene.materials.length).to.equal(materialsBefore + 1);
     });
 
     it("should create two trees with one shared color and have three materials", async function () {
+      const materialsBefore = flock.scene.materials.length;
       const tree1Id = flock.createObject({
         modelName: "tree.glb",
         modelId: "tree.glb__3",
@@ -620,7 +625,8 @@ export function runMaterialsTests(flock) {
       await flock.show(tree1Id);
       await flock.show(tree2Id);
 
-      expect(flock.scene.materials.length).to.equal(4);
+      // Three distinct colours across the two trees (green shared) → three new materials.
+      expect(flock.scene.materials.length).to.equal(materialsBefore + 3);
     });
   });
 
