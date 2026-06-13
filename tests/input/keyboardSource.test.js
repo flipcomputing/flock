@@ -146,9 +146,19 @@ export function runKeyboardSourceTests() {
         source.start();
         const repeated = [];
         manager.onKeyRepeatObservable.add((k) => repeated.push(k));
-        keydown(target, "w");
-        keydown_repeat(target, "w");
-        keydown_repeat(target, "w");
+        // _repeatKey is rate-limited (REPEAT_INTERVAL_MS), so stub the clock and
+        // advance past the window between ticks to exercise distinct repeats.
+        const realNow = Date.now;
+        let clock = realNow.call(Date);
+        Date.now = () => clock;
+        try {
+          keydown(target, "w");
+          keydown_repeat(target, "w");
+          clock += 200;
+          keydown_repeat(target, "w");
+        } finally {
+          Date.now = realNow;
+        }
         expect(repeated).to.eql(["w", "w"]);
       });
 

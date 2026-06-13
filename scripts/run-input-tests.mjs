@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 if (!globalThis.window) globalThis.window = new EventTarget();
+if (!globalThis.document) globalThis.document = new EventTarget();
 if (!globalThis.KeyboardEvent) {
   globalThis.KeyboardEvent = class KeyboardEvent extends Event {
     constructor(type, init = {}) {
