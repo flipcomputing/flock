@@ -139,9 +139,11 @@ export function runOnScreenControlsTests(flock) {
         expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.false;
       });
 
-      it("should clear key from inputManager on pointer out", function () {
+      it("should clear key from inputManager on pointer out for touch", function () {
         const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
-        button.onPointerDownObservable.notifyObservers({});
+        // Pointer-out only releases for touch (finger sliding off the button);
+        // mouse leaving keeps the key held. See createSmallButton.
+        button.onPointerDownObservable.notifyObservers({ pointerType: "touch" });
         button.onPointerOutObservable.notifyObservers({});
         expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.false;
       });
@@ -213,7 +215,7 @@ export function runOnScreenControlsTests(flock) {
         expect(flock.controlsTexture.getDescendants().length).to.be.greaterThan(0);
       });
 
-      it("should create a ① button that registers the e key in inputManager", function () {
+      it("should create a ② button that registers the e key in inputManager", function () {
         flock.controlsTexture =
           flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
             "TestControls",
@@ -221,11 +223,11 @@ export function runOnScreenControlsTests(flock) {
             flock.scene,
           );
         flock.createButtonControls("#ffffff");
-        const btn1 = flock.controlsTexture
+        const btn2 = flock.controlsTexture
           .getDescendants()
-          .find((c) => c.textBlock?.text === "①");
-        expect(btn1).to.exist;
-        btn1.onPointerDownObservable.notifyObservers({});
+          .find((c) => c.textBlock?.text === "②");
+        expect(btn2).to.exist;
+        btn2.onPointerDownObservable.notifyObservers({});
         expect(flock.inputManager.isKeyDown("e")).to.be.true;
       });
     });

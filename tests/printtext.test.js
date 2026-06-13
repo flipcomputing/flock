@@ -17,6 +17,11 @@ export function runPrintTextTests(flock) {
       // Null the panel first so the abort handler's guard skips removeControl
       flock.stackPanel = null;
       flock.abortController.abort();
+      // Re-arm a fresh controller so the aborted signal doesn't leak into
+      // later suites: whenModelReady() never settles once the shared
+      // abortController is aborted, which would hang every subsequent
+      // transform/movement test that awaits it.
+      flock.abortController = new AbortController();
       if (advancedTexture) {
         advancedTexture.dispose();
         advancedTexture = null;
