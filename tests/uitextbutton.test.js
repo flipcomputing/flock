@@ -37,7 +37,7 @@ export function runUITests(flock) {
         expect(textBlock).to.exist;
         expect(textBlock.text).to.equal("Hello, World!");
         expect(textBlock.color).to.equal("red");
-        expect(textBlock.fontSize).to.equal("24px");
+        expect(textBlock.fontSize).to.equal(`${24 * flock.displayScale}px`);
         expect(textBlock.left).to.equal("100px");
         expect(textBlock.top).to.equal("100px");
         expect(textBlock.isVisible).to.be.true;
@@ -67,7 +67,7 @@ export function runUITests(flock) {
 
         expect(textBlock.text).to.equal("Updated Text!");
         expect(textBlock.color).to.equal("blue");
-        expect(textBlock.fontSize).to.equal("30px");
+        expect(textBlock.fontSize).to.equal(`${30 * flock.displayScale}px`);
         expect(textBlock.left).to.equal("200px");
         expect(textBlock.top).to.equal("200px");
         expect(textBlock.isVisible).to.be.true;
@@ -154,7 +154,7 @@ export function runUITests(flock) {
         expect(textBlock).to.exist;
         expect(textBlock.text).to.equal(lastText);
         expect(textBlock.color).to.equal(lastColor);
-        expect(textBlock.fontSize).to.equal(`${lastFontSize}px`);
+        expect(textBlock.fontSize).to.equal(`${lastFontSize * flock.displayScale}px`);
         expect(textBlock.left).to.equal(`${lastX}px`);
         expect(textBlock.top).to.equal(`${lastY}px`);
         expect(textBlock.isVisible).to.be.true;
@@ -178,8 +178,9 @@ export function runUITests(flock) {
 
         expect(button).to.exist;
         expect(button.name).to.equal("myButton");
-        expect(button.width).to.equal("150px"); // MEDIUM size
-        expect(button.height).to.equal("50px"); // MEDIUM size
+        // MEDIUM size (150x50) scaled by displayScale
+        expect(button.width).to.equal(`${Math.round(150 * flock.displayScale)}px`);
+        expect(button.height).to.equal(`${Math.round(50 * flock.displayScale)}px`);
         expect(button.color).to.equal("black");
         expect(button.background).to.equal("yellow");
         expect(button.left).to.equal("100px");
@@ -380,7 +381,7 @@ export function runUITests(flock) {
         const input = flock.scene.UITexture.getControlByName("myInput");
         expect(input.color).to.equal("red");
         expect(input.background).to.equal("lightyellow");
-        expect(input.fontSize).to.equal("18px");
+        expect(input.fontSize).to.equal(`${Math.round(18 * flock.displayScale)}px`);
       });
 
       it("should use MEDIUM dimensions by default", async function () {
@@ -393,8 +394,9 @@ export function runUITests(flock) {
         });
 
         const input = flock.scene.UITexture.getControlByName("myInput");
-        expect(input.width).to.equal("300px");
-        expect(input.height).to.equal("50px");
+        // MEDIUM size (300x50) scaled by displayScale
+        expect(input.width).to.equal(`${Math.round(300 * flock.displayScale)}px`);
+        expect(input.height).to.equal(`${Math.round(50 * flock.displayScale)}px`);
       });
 
       it("should position the submit button to the right of the input", async function () {
@@ -407,8 +409,11 @@ export function runUITests(flock) {
         });
 
         const button = flock.scene.UITexture.getControlByName("submit_myInput");
-        // MEDIUM input width (300) + spacing (10) + x (100) = 410
-        expect(button.left).to.equal("410px");
+        // x (100) + scaled MEDIUM input width (300) + scaled spacing (10), each
+        // scaled by displayScale and rounded to match the UIInput layout maths.
+        const scaledInputWidth = Math.round(300 * flock.displayScale);
+        const scaledSpacing = Math.round(10 * flock.displayScale);
+        expect(button.left).to.equal(`${100 + scaledInputWidth + scaledSpacing}px`);
         expect(button.top).to.equal("100px");
       });
 
