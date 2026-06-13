@@ -21,27 +21,31 @@ export const flockUI = {
     if (!flock.scene || !flock.GUI) return;
 
     flock.scene.UITexture ??=
-      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, flock.scene, window.devicePixelRatio || 1);
+      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+        "UI",
+        true,
+        flock.scene,
+        window.devicePixelRatio || 1,
+      );
 
     const textBlockId =
       id ||
       `textBlock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    const maxWidth = flock.canvas.width;
-    const maxHeight = flock.canvas.height;
-    const adjustedX = x < 0 ? maxWidth + x : x;
-    const adjustedY = y < 0 ? maxHeight + y : y;
+    const resolvedX = Number(x || 0);
+    const resolvedY = Number(y || 0);
 
     let textBlock = flock.scene.UITexture.getControlByName(textBlockId);
 
-    if (!textBlock) {
+    if (!textBlock) {    
       textBlock = new flock.GUI.TextBlock(textBlockId);
       textBlock.name = textBlockId;
+      textBlock.resizeToFit = true;
+      textBlock.forceResizeWidth = true;
+      textBlock.paddingLeft = "0px";
+      textBlock.paddingRight = "0px";
       flock.scene.UITexture.addControl(textBlock);
 
-      textBlock.horizontalAlignment =
-        flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-      textBlock.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
       textBlock.textWrapping = false;
       textBlock.isPointerBlocker = false;
       textBlock.textHorizontalAlignment =
@@ -60,8 +64,21 @@ export const flockUI = {
     textBlock.lineHeight = `${linePx}px`;
     textBlock.height = `${Math.max(linePx, px + 4)}px`;
 
-    textBlock.left = adjustedX;
-    textBlock.top = adjustedY;
+    textBlock.left = `${resolvedX}px`;
+    textBlock.top = `${resolvedY}px`;
+
+    textBlock.horizontalAlignment =
+      resolvedX < 0
+        ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+        : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+
+    textBlock.verticalAlignment =
+      resolvedY < 0
+        ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
+        : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+    textBlock.textHorizontalAlignment =
+      flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 
     if (document.fonts && document.fonts.status !== "loaded") {
       textBlock.alpha = 0;
@@ -76,8 +93,8 @@ export const flockUI = {
     }
 
     registerUIText(textBlockId, textBlock.text, {
-      x: adjustedX,
-      y: adjustedY,
+      x: resolvedX,
+      y: resolvedY,
       w: 200,
       h: Math.max(linePx, px + 4),
     });
