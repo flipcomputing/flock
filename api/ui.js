@@ -21,14 +21,14 @@ export const flockUI = {
     if (!flock.scene || !flock.GUI) return;
 
     flock.scene.UITexture ??=
-      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, flock.scene, window.devicePixelRatio || 1);
 
     const textBlockId =
       id ||
       `textBlock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    const maxWidth = flock.scene.getEngine().getRenderWidth();
-    const maxHeight = flock.scene.getEngine().getRenderHeight();
+    const maxWidth = flock.canvas.width;
+    const maxHeight = flock.canvas.height;
     const adjustedX = x < 0 ? maxWidth + x : x;
     const adjustedY = y < 0 ? maxHeight + y : y;
 
@@ -54,7 +54,7 @@ export const flockUI = {
     textBlock.color = color || "white";
     textBlock.isVisible = true;
 
-    const px = Number(fontSize || 24);
+    const px = Number(fontSize || 24) * flock.displayScale;
     textBlock.fontSize = px;
     const linePx = Math.max(1, Math.round(px * 1.2));
     textBlock.lineHeight = `${linePx}px`;
@@ -109,7 +109,7 @@ export const flockUI = {
     }
 
     flock.scene.UITexture ??=
-      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, flock.scene, window.devicePixelRatio || 1);
 
     if (!buttonId || typeof buttonId !== "string") {
       throw new Error("buttonId must be a valid non-empty string.");
@@ -135,13 +135,17 @@ export const flockUI = {
     }
 
     const size = buttonSizes[width.toUpperCase()] || buttonSizes["SMALL"];
-    button.width = size.width;
-    button.height = size.height;
+    const scaledWidth = Math.round(parseInt(size.width) * flock.displayScale);
+    const scaledHeight = Math.round(parseInt(size.height) * flock.displayScale);
+    button.width = `${scaledWidth}px`;
+    button.height = `${scaledHeight}px`;
 
     if (button.textBlock) {
       button.textBlock.textWrapping = true;
       button.textBlock.resizeToFit = true;
-      button.textBlock.fontSize = textSize ? `${textSize}px` : "16px";
+      const parsedSize = parseInt(textSize) || 20;
+      const scaledSize = Math.round(parsedSize * flock.displayScale);
+      button.textBlock.fontSize = scaledSize;
     }
 
     button.color = textColor || "white";
@@ -185,7 +189,7 @@ export const flockUI = {
       throw new Error("flock.scene or flock.GUI is not initialized.");
     }
     flock.scene.UITexture ??=
-      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, flock.scene, window.devicePixelRatio || 1);
 
     const sanitize = (val, { maxLen = 500 } = {}) => {
       if (val == null) return "";
@@ -216,19 +220,19 @@ export const flockUI = {
     };
     const resolvedSize =
       sizeMap[(size || "").toUpperCase()] || sizeMap["MEDIUM"];
-    const inputWidth = resolvedSize.width;
-    const inputHeight = resolvedSize.height;
-    const buttonWidth = "50px";
-    const spacing = 10;
+    const scaledInputWidth = Math.round(parseInt(resolvedSize.width) * flock.displayScale);
+    const scaledInputHeight = Math.round(parseInt(resolvedSize.height) * flock.displayScale);
+    const buttonWidth = Math.round(50 * flock.displayScale);
+    const spacing = Math.round(10 * flock.displayScale);
 
     const input = new flock.GUI.InputText(inputId);
     input.placeholderText = sanitize(text);
-    input.width = inputWidth;
-    input.height = inputHeight;
+    input.width = `${scaledInputWidth}px`;
+    input.height = `${scaledInputHeight}px`;
     input.color = textColor || "black";
     input.background = backgroundColor || "white";
     input.focusedBackground = backgroundColor || "white";
-    input.fontSize = fontSize || 24;
+    input.fontSize = Math.round((fontSize || 24) * flock.displayScale);
     input.text = "";
 
     input.left = `${x}px`;
@@ -243,13 +247,13 @@ export const flockUI = {
         : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
     const button = flock.GUI.Button.CreateSimpleButton(submitId, "✓");
-    button.width = buttonWidth;
-    button.height = inputHeight;
+    button.width = `${buttonWidth}px`;
+    button.height = `${scaledInputHeight}px`;
     button.color = backgroundColor || "gray";
     button.background = textColor || "white";
-    button.fontSize = fontSize || 24;
+    button.fontSize = Math.round((fontSize || 24) * flock.displayScale);
 
-    const offset = parseInt(inputWidth) + spacing;
+    const offset = scaledInputWidth + spacing;
     button.left = x < 0 ? `${x - offset}px` : `${x + offset}px`;
     button.top = `${y}px`;
     button.horizontalAlignment = input.horizontalAlignment;
@@ -258,10 +262,10 @@ export const flockUI = {
     flock.scene.UITexture.addControl(input);
     flock.scene.UITexture.addControl(button);
 
-    const submitX = x < 0 ? x - (parseInt(inputWidth) + spacing) : x + (parseInt(inputWidth) + spacing);
+    const submitX = x < 0 ? x - (scaledInputWidth + spacing) : x + (scaledInputWidth + spacing);
     registerUIInput(inputId, submitId, input, button,
-      { x, y, w: parseInt(inputWidth), h: parseInt(inputHeight) },
-      { x: submitX, y, w: parseInt(buttonWidth), h: parseInt(inputHeight) },
+      { x, y, w: scaledInputWidth, h: scaledInputHeight },
+      { x: submitX, y, w: buttonWidth, h: scaledInputHeight },
     );
 
     if (mode === "START") {
@@ -805,7 +809,7 @@ export const flockUI = {
 
       const textBlock = new flock.GUI.TextBlock("textBlock", text);
       textBlock.color = color;
-      textBlock.fontSize = "20";
+      textBlock.fontSize = Math.round(20 * flock.displayScale);
       textBlock.fontFamily = fontFamily;
       textBlock.height = "25px";
       textBlock.paddingLeft = "10px";
