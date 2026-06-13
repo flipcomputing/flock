@@ -1188,6 +1188,12 @@ button {
   #projectName {
     display: none; /* hid the project name input box for mobile screens*/
   }
+  #openButton {
+    display: none; /* Hide open icon on mobile screens */
+  }
+  #exportCodeButton {
+    display: none; /* Hide save icon on mobile screens */
+  }
 }
 
 #info-panel-toggle {
