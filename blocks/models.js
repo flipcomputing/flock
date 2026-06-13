@@ -17,6 +17,7 @@ import {
   multiObjectNames,
   objectColours,
   modelNames,
+  getModelDisplayName,
 } from "../config.js";
 import { flock } from "../flock.js";
 import { translate, getTooltip } from "../main/translation.js";
@@ -46,7 +47,7 @@ export function defineModelBlocks() {
                   src: `${flock.imagePath}${baseName}.png`,
                   width: 50,
                   height: 50,
-                  alt: baseName,
+                  alt: getModelDisplayName(name),
                 },
                 name,
               ];
@@ -178,7 +179,7 @@ export function defineModelBlocks() {
                   src: `${flock.imagePath}${baseName}.png`,
                   width: 50,
                   height: 50,
-                  alt: baseName,
+                  alt: getModelDisplayName(name),
                 },
                 name,
               ];
@@ -285,7 +286,7 @@ export function defineModelBlocks() {
                   src: `${flock.imagePath}${baseName}.png`,
                   width: 50,
                   height: 50,
-                  alt: baseName,
+                  alt: getModelDisplayName(name),
                 },
                 name,
               ];
@@ -512,7 +513,7 @@ export function defineModelBlocks() {
                   src: `${flock.imagePath}${baseName}.png`,
                   width: 50,
                   height: 50,
-                  alt: baseName,
+                  alt: getModelDisplayName(name),
                 },
                 name,
               ];
