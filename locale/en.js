@@ -261,6 +261,7 @@ export default {
   mesh_exists: "%1 exists?",
   get_property: "get %1 of %2",
   canvas_controls: "canvas controls %1",
+  interact_indicator: "interact indicator %1",
   button_controls: "button controls %1 enabled: %2 color: %3",
   on_screen_controls: "on screen controls  movement: %1  actions: %2  enabled: %3  color: %4",
   microbit_input: "when micro:bit event %1",
@@ -553,6 +554,8 @@ export default {
     "Get the value of the selected property of an object.\nKeyword: get",
   canvas_controls_tooltip:
     "Add or remove canvas motion controls.\nKeyword: canvas",
+  interact_indicator_tooltip:
+    "Show or hide the interact indicator next to nearby objects.\nKeyword: indicator",
   button_controls_tooltip: "Configure button controls.\nKeyword: button",
   on_screen_controls_tooltip: "Configure on-screen controls.\nKeyword: onscreen",
   microbit_input_tooltip:

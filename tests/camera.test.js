@@ -90,5 +90,15 @@ export function runCameraTests(flock) {
         expect(() => flock.canvasControls(true)).to.not.throw();
       });
     });
+
+    describe("interactIndicator", function () {
+      it("should not throw when called with false", function () {
+        expect(() => flock.interactIndicator(false)).to.not.throw();
+      });
+
+      it("should not throw when called with true", function () {
+        expect(() => flock.interactIndicator(true)).to.not.throw();
+      });
+    });
   });
 }

@@ -23,6 +23,7 @@ const _COS_MAX_HALF_ANGLE = Math.cos(MAX_HALF_ANGLE);
 const _LOCAL_FORWARD = new Vector3(0, 0, 1);
 const _LOCAL_RIGHT = new Vector3(1, 0, 0);
 
+let _enabled = true;
 let _icon = null;
 let _texture = null;
 let _observer = null;
@@ -102,6 +103,9 @@ export function attachInteractIndicator(scene, inputManager) {
   // don't leak the old observer or wedge on the dangling _icon guard.
   if (_icon) detachInteractIndicator();
 
+  // Each scene starts with the indicator on; the sensing block toggles it.
+  _enabled = true;
+
   _icon = MeshBuilder.CreatePlane(ICON_MESH_NAME, { size: 1 }, scene);
   _icon.billboardMode = Mesh.BILLBOARDMODE_ALL;
   _icon.renderingGroupId = 1;
@@ -180,9 +184,27 @@ export function attachInteractIndicator(scene, inputManager) {
   }
 }
 
+// Toggle the interact indicator on or off. When disabled the icon is hidden,
+// per-frame targeting is skipped and BUTTON2 interaction is suppressed; the
+// observer stays attached so it can resume without re-allocating resources.
+export function setInteractIndicatorEnabled(enabled) {
+  _enabled = !!enabled;
+  if (!_enabled) {
+    _currentTarget = null;
+    if (_icon) _icon.isVisible = false;
+  }
+}
+
 function _updateIndicator(scene) {
   const camera = scene.activeCamera;
   if (!camera || !_icon) return;
+
+  // Disabled via the sensing block — keep the icon hidden and skip targeting.
+  if (!_enabled) {
+    _icon.isVisible = false;
+    _currentTarget = null;
+    return;
+  }
 
   // Suppress icon and click when BUTTON2 has been rebound.
   if (_inputManager?.hasActionOverride("BUTTON2")) {

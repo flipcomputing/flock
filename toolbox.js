@@ -2377,6 +2377,11 @@ const toolboxSensing = {
     },
     {
       kind: "block",
+      type: "interact_indicator",
+      keyword: "indicator",
+    },
+    {
+      kind: "block",
       type: "on_screen_controls",
       keyword: "onscreen",
       inputs: {

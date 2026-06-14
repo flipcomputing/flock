@@ -2,6 +2,7 @@ import { expect } from "chai";
 import {
   attachInteractIndicator,
   detachInteractIndicator,
+  setInteractIndicatorEnabled,
 } from "../../ui/interactIndicator.js";
 
 const ICON_MESH_NAME = "__flock_interact_indicator";
@@ -379,6 +380,65 @@ export function runInteractIndicatorTests(flock) {
 
         flock.inputManager._setKey("e", true);
         expect(triggered).to.include(flock.BABYLON.ActionManager.OnPickTrigger);
+      });
+
+      it("when disabled, the icon stays hidden for an aimed-at interactable", function () {
+        const mesh = makeMesh("_test_disabled", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        // Enabled by default → visible.
+        fireFrame();
+        expect(getIcon().isVisible).to.be.true;
+
+        // Disable → hidden immediately and stays hidden across frames.
+        setInteractIndicatorEnabled(false);
+        expect(getIcon().isVisible).to.be.false;
+        fireFrame();
+        expect(getIcon().isVisible).to.be.false;
+      });
+
+      it("re-enabling restores the icon for an aimed-at interactable", function () {
+        const mesh = makeMesh("_test_reenable", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        setInteractIndicatorEnabled(false);
+        fireFrame();
+        expect(getIcon().isVisible).to.be.false;
+
+        setInteractIndicatorEnabled(true);
+        fireFrame();
+        expect(getIcon().isVisible).to.be.true;
+      });
+
+      it("when disabled, BUTTON2 does not trigger the mesh", function () {
+        const mesh = makeMesh("_test_disabled_btn2", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        const triggered = [];
+        const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
+        mesh.actionManager.processTrigger = (trigger, evt) => {
+          triggered.push(trigger);
+          orig(trigger, evt);
+        };
+
+        setInteractIndicatorEnabled(false);
+        fireFrame();
+        flock.inputManager._setKey("e", true);
+
+        expect(triggered).to.be.empty;
+      });
+
+      it("attach resets the enabled state to on", function () {
+        setInteractIndicatorEnabled(false);
+        // Re-attach (as a fresh scene would) and confirm the indicator is back on.
+        detachInteractIndicator();
+        attachInteractIndicator(flock.scene, flock.inputManager);
+
+        const mesh = makeMesh("_test_attach_reset", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+
+        fireFrame();
+        expect(getIcon().isVisible).to.be.true;
       });
     });
   });

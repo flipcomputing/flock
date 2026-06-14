@@ -7,6 +7,7 @@ import {
   registerUIText,
   unregisterUIControl,
 } from "../accessibility/uiA11y.js";
+import { setInteractIndicatorEnabled } from "../ui/interactIndicator.js";
 
 let flock;
 //let fontFamily = "Asap";
@@ -592,6 +593,9 @@ export const flockUI = {
     } else {
       flock.scene.activeCamera.detachControl();
     }
+  },
+  interactIndicator(setting) {
+    setInteractIndicatorEnabled(!!setting);
   },
   say(meshName, options = {}) {
     let {

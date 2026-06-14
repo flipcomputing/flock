@@ -351,6 +351,28 @@ export function defineSensingBlocks() {
     },
   };
 
+  Blockly.Blocks["interact_indicator"] = {
+    init: function () {
+      this.jsonInit({
+        type: "interact_indicator",
+        message0: translate("interact_indicator"),
+        args0: [
+          {
+            type: "field_checkbox",
+            name: "ENABLED",
+            checked: true,
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("interact_indicator"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("sensing_blocks");
+    },
+  };
+
   Blockly.Blocks["button_controls"] = {
     init: function () {
       this.jsonInit({

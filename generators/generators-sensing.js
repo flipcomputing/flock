@@ -100,6 +100,12 @@ export function registerSensingGenerators(javascriptGenerator) {
     return `canvasControls(${controls});\n`;
   };
 
+  // Interact indicator
+  javascriptGenerator.forBlock["interact_indicator"] = function (block) {
+    const enabled = block.getFieldValue("ENABLED") == "TRUE";
+    return `interactIndicator(${enabled});\n`;
+  };
+
   // Button controls
   javascriptGenerator.forBlock["button_controls"] = function (block) {
     const color = getFieldValue(block, "COLOR", '"#ffffff"');

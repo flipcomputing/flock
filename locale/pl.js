@@ -261,6 +261,7 @@ export default {
   mesh_exists: "czy %1 istnieje?",
   get_property: "pobierz %1 z %2",
   canvas_controls: "kontrola płótna %1",
+  interact_indicator: "wskaźnik interakcji %1",
   button_controls: "kontrolki przycisku %1 włączone: %2 kolor: %3",
   on_screen_controls: "kontrolki na ekranie  ruch: %1  akcje: %2  włączone: %3  kolor: %4", // ai
   microbit_input: "gdy zdarzenie micro:bit: %1",
@@ -557,6 +558,8 @@ export default {
     "Pobierz wartość właściwości %1 z obiekty %2.\nSłowo kluczowe: get",
   canvas_controls_tooltip:
     "Dodaj lub usuń kontrolki ruchu na płótnie.\nSłowo kluczowe: canvas",
+  interact_indicator_tooltip:
+    "Pokaż lub ukryj wskaźnik interakcji obok pobliskich obiektów.\nSłowo kluczowe: indicator",
   button_controls_tooltip:
     "Skonfiguruj kontrolki przycisku %1, aktywność %2, kolor %3.\nSłowo kluczowe: button",
   on_screen_controls_tooltip: "Skonfiguruj kontrolki na ekranie.\nSłowo kluczowe: onscreen", // ai

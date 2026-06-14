@@ -258,6 +258,7 @@ export default {
   mesh_exists: "finns %1?",
   get_property: "hämta %1 från %2",
   canvas_controls: "canvas kontroller %1",
+  interact_indicator: "interaktionsindikator %1",
   button_controls: "knappkontroller %1 aktiverad %2 färg %3",
   on_screen_controls: "skärmkontroller  rörelse: %1  åtgärder: %2  aktiverad: %3  färg: %4", // ai
   microbit_input: "när micro:bit händelse %1",
@@ -545,6 +546,8 @@ export default {
     "Hämta värdet på den valda egenskapen för ett objekt.\nKeyword: get",
   canvas_controls_tooltip:
     "Lägg till eller ta bort rörelsekontroller på canvas.\nKeyword: canvas",
+  interact_indicator_tooltip:
+    "Visa eller dölj interaktionsindikatorn bredvid närliggande objekt.\nKeyword: indicator",
   button_controls_tooltip: "Konfigurera knappkontroller.\nKeyword: button",
   on_screen_controls_tooltip: "Konfigurera skärmkontroller.\nKeyword: onscreen", // ai
   microbit_input_tooltip:

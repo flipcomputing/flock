@@ -260,6 +260,7 @@ export default {
   mesh_exists: "%1 ¿existe?", // human
   get_property: "obtener %1 de %2", // human
   canvas_controls: "controles de lienzo %1", // human
+  interact_indicator: "indicador de interacción %1", // ai
   button_controls: "controles de botón %1 habilitados %2 color %3", // human
   on_screen_controls: "controles en pantalla  movimiento: %1  acciones: %2  habilitado: %3  color: %4", // ai
   microbit_input: "cuando evento micro:bit %1", // human
@@ -563,6 +564,8 @@ export default {
     "Obtiene el valor de la propiedad seleccionada de un objeto.\nPalabra clave: obtiene", // human
   canvas_controls_tooltip:
     "Añade o elimina controles de movimiento en el lienzo.\nPalabra clave: lienzo", // human
+  interact_indicator_tooltip:
+    "Muestra u oculta el indicador de interacción junto a los objetos cercanos.\nPalabra clave: indicator", // ai
   button_controls_tooltip:
     "Configura controles de botónes.\nPalabra clave: botón", // human
   on_screen_controls_tooltip: "Configura los controles en pantalla.\nPalabra clave: onscreen", // ai

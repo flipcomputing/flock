@@ -259,6 +259,7 @@ export default {
   mesh_exists: "o %1 existe?",
   get_property: "obter %1 de %2",
   canvas_controls: "controles de tela %1",
+  interact_indicator: "indicador de interação %1",
   button_controls: "controles de botão %1 ativado %2 cor %3",
   on_screen_controls: "controles na tela  movimento: %1  ações: %2  ativado: %3  cor: %4", // ai
   microbit_input: "quando evento do micro:bit %1",
@@ -553,6 +554,8 @@ export default {
     "Obtém o valor da propriedade selecionada de um objeto.\nPalavra-chave: obter",
   canvas_controls_tooltip:
     "Adiciona ou remove controles de movimento por tela.\nPalavra-chave: canvas",
+  interact_indicator_tooltip:
+    "Mostra ou oculta o indicador de interação ao lado de objetos próximos.\nPalavra-chave: indicator",
   button_controls_tooltip:
     "Configura controles por botão.\nPalavra-chave: botão",
   on_screen_controls_tooltip: "Configura os controles na tela.\nPalavra-chave: onscreen", // ai
