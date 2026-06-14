@@ -110,6 +110,7 @@ export const flock = {
   _nameRegistry: new Map(),
   _liveNameCache: new Map(),
   _animationFileCache: {},
+  _ambiguousLiveNames: new Set(),
   getModelDisplayName,
   characterNames: characterNames,
   alert: alert,
@@ -1694,7 +1695,9 @@ export const flock = {
         // whose cache entry was never cleaned up). Must happen before hk.dispose().
         for (const shape of Object.values(flock.physicsShapeCache)) {
           if (!shape?._isDisposed) {
-            try { shape.dispose(); } catch (e) {}
+            try {
+              shape.dispose();
+            } catch (e) {}
           }
         }
 
@@ -1753,6 +1756,7 @@ export const flock = {
         flock.pendingSelfIntersections = new Map();
         flock._nameRegistry = new Map();
         flock._liveNameCache = new Map();
+        flock._ambiguousLiveNames = new Set();
         flock._animationFileCache = {};
         flock.ground = null;
         flock.sky = null;
@@ -1802,27 +1806,33 @@ export const flock = {
           listenerAutoUpdate: true,
           listenerEnabled: true,
           resumeOnInteraction: true,
-        }).then((audioEngine) => {
-          if (flock.audioEnginePromise !== enginePromise) {
-            try { audioEngine.dispose?.(); } catch { /* best-effort */ }
-            return;
-          }
-          flock.audioEngine = audioEngine;
-          flock.audioContext = audioEngine._audioContext ?? flock.audioContext;
-          flock.globalStartTime = flock.audioContext?.currentTime ?? 0;
-          if (flock.scene?.activeCamera) {
-            audioEngine.listener.attach(flock.scene.activeCamera);
-          }
-          flock._audioListenerObserver = flock.scene?.onActiveCameraChanged?.add(() => {
+        })
+          .then((audioEngine) => {
+            if (flock.audioEnginePromise !== enginePromise) {
+              try {
+                audioEngine.dispose?.();
+              } catch {
+                /* best-effort */
+              }
+              return;
+            }
+            flock.audioEngine = audioEngine;
+            flock.audioContext = audioEngine._audioContext ?? flock.audioContext;
+            flock.globalStartTime = flock.audioContext?.currentTime ?? 0;
             if (flock.scene?.activeCamera) {
               audioEngine.listener.attach(flock.scene.activeCamera);
             }
+            flock._audioListenerObserver = flock.scene?.onActiveCameraChanged?.add(() => {
+              if (flock.scene?.activeCamera) {
+                audioEngine.listener.attach(flock.scene.activeCamera);
+              }
+            });
+          })
+          .catch((err) => {
+            console.warn('[flock] Audio engine unavailable:', err);
+            flock.audioEngine = null;
+            showBanner('audio', { message: translate('error_audio') });
           });
-        }).catch((err) => {
-          console.warn('[flock] Audio engine unavailable:', err);
-          flock.audioEngine = null;
-          showBanner('audio', { message: translate('error_audio') });
-        });
         flock.audioEnginePromise = enginePromise;
       } catch (err) {
         console.warn('[flock] Audio engine unavailable:', err);
@@ -1880,7 +1890,8 @@ export const flock = {
           const options = args?.[1];
           const text = options && typeof options.text === 'string' ? options.text : '';
           const rawDuration = options?.duration;
-          const duration = isFinite(Number(rawDuration)) && Number(rawDuration) > 0 ? Number(rawDuration) : 0;
+          const duration =
+            isFinite(Number(rawDuration)) && Number(rawDuration) > 0 ? Number(rawDuration) : 0;
 
           if (text.trim()) {
             if (duration > 0) {
@@ -2213,7 +2224,7 @@ export const flock = {
     // through to the full lookup below, so worst case is the existing
     // behaviour. Sentinel ids (__active_camera__/__main_light__) are never
     // cached, so they take the normal path.
-    const cached = flock._liveNameCache.get(id);
+    const cached = flock._ambiguousLiveNames?.has(id) ? null : flock._liveNameCache.get(id);
     if (cached) {
       if (cached.isDisposed()) {
         flock._liveNameCache.delete(id);
@@ -2591,7 +2602,7 @@ export const flock = {
       if (newMesh) {
         for (const pending of flock.pendingSelfIntersections.get(groupName)) {
           const existing = flock.scene.meshes.filter(
-            (m) => getGroupRoot(m.name) === groupName && m.name !== meshName,
+            (m) => getGroupRoot(m.name) === groupName && m.name !== meshName
           );
           for (const existingMesh of existing) {
             const meshA = existingMesh.uniqueId < newMesh.uniqueId ? existingMesh : newMesh;
@@ -2646,6 +2657,13 @@ export const flock = {
     if (!name || !(target instanceof flock.BABYLON.AbstractMesh) || target.isDisposed()) return;
     const cached = flock._liveNameCache.get(name);
     if (cached === target) return; // Already registered with observer
+    if (cached && !cached.isDisposed()) {
+      flock._liveNameCache.delete(name);
+      flock._ambiguousLiveNames ??= new Set();
+      flock._ambiguousLiveNames.add(name);
+      return;
+    }
+    if (flock._ambiguousLiveNames?.has(name)) return;
     flock._liveNameCache.set(name, target);
     target.onDisposeObservable.addOnce(() => {
       if (flock._liveNameCache.get(name) === target) {

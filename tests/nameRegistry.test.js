@@ -105,6 +105,27 @@ export function runNameRegistryTests(flock) {
       expect(flock._liveNameCache.get(id)).to.equal(missed);
     });
 
+    it('does not use a cached alias after the alias becomes ambiguous', function () {
+      const firstId = makeBox('registryAliasFirst');
+      const secondId = makeBox('registryAliasSecond');
+      const first = flock.scene.getMeshByName(firstId);
+      const second = flock.scene.getMeshByName(secondId);
+      const alias = 'registrySharedAlias';
+
+      flock._registerLiveName(alias, first);
+      expect(flock._liveNameCache.get(alias)).to.equal(first);
+
+      flock._registerLiveName(alias, second);
+      expect(flock._liveNameCache.has(alias)).to.be.false;
+      expect(flock._ambiguousLiveNames.has(alias)).to.be.true;
+
+      let resolved = null;
+      flock.whenModelReady(alias, (mesh) => {
+        resolved = mesh;
+      });
+      expect(resolved).to.not.equal(first);
+    });
+
     it('waits for async callbacks before resolving on the hit path', async function () {
       const id = makeBox('registryAsyncCb');
       expect(flock._liveNameCache.has(id)).to.be.true;
