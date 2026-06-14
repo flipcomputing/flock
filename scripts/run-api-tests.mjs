@@ -139,6 +139,11 @@ const AVAILABLE_SUITES = [
     name: "Name Registry Benchmark",
     pattern: "@nameregistrybench",
   },
+  {
+    id: "gizmos",
+    name: "Gizmo Tests",
+    pattern: "@gizmos",
+  },
 ];
 
 const args = process.argv.slice(2);
