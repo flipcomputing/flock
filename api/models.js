@@ -65,6 +65,12 @@ export const flockModels = {
     // resolve correctly even though the actual mesh name is "dimnndmonkey".
     const originalBase = desiredBase;
     desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
+    // The sanitized base, captured before _reserveName may append a collision
+    // suffix. The bare-base alias must only bridge a genuine sanitization
+    // difference (originalBase !== sanitizedBase); it must NOT be registered for
+    // pure duplicates where the names differ only by a collision suffix, which
+    // would otherwise alias the bare model name onto the wrong instance.
+    const sanitizedBase = desiredBase;
 
     if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
 
@@ -109,7 +115,10 @@ export const flockModels = {
     // Also register the pre-sanitization name (e.g. "dimnnd monkey" → "dimnndmonkey").
     // This lets event handlers declared before createCharacter (which still hold the
     // original variable value) resolve correctly via whenModelReady.
-    if (originalBase !== meshName) {
+    // Guard A: only when there is a genuine sanitization difference, never for a
+    // pure collision-suffix duplicate. Guard B: non-clobbering — the first writer
+    // keeps the friendly alias rather than last-writer-wins.
+    if (originalBase !== sanitizedBase && !flock.modelReadyPromises.has(originalBase)) {
       flock.modelReadyPromises.set(originalBase, readyPromise);
     }
 
@@ -122,7 +131,7 @@ export const flockModels = {
       }
       flock.modelReadyPromises.delete(meshName);
       if (
-        originalBase !== meshName &&
+        originalBase !== sanitizedBase &&
         flock.modelReadyPromises.get(originalBase) === readyPromise
       )
         flock.modelReadyPromises.delete(originalBase);
@@ -158,7 +167,7 @@ export const flockModels = {
             rejectReady(new Error("scene disposed"));
             flock.modelReadyPromises.delete(meshName);
             if (
-              originalBase !== meshName &&
+              originalBase !== sanitizedBase &&
               flock.modelReadyPromises.get(originalBase) === readyPromise
             ) {
               flock.modelReadyPromises.delete(originalBase);
@@ -225,8 +234,17 @@ export const flockModels = {
         // Mirror the modelReadyPromises aliasing above: the pre-sanitization
         // name must keep resolving after the 5s TTL cleanup. setupMesh names
         // the bounding box wrapper, so look the target up by meshName.
-        if (originalBase !== meshName) {
-          flock._registerLiveName(originalBase, flock.scene?.getMeshByName(meshName));
+        // Guard A: only for a genuine sanitization difference, never for a pure
+        // collision-suffix duplicate (which would alias the bare model name onto
+        // this instance even though another live mesh is genuinely named it).
+        // Guard B: non-clobbering — do not overwrite a live alias that still
+        // resolves to a different, non-disposed mesh.
+        if (originalBase !== sanitizedBase) {
+          const target = flock.scene?.getMeshByName(meshName);
+          const existing = flock._liveNameCache.get(originalBase);
+          if (!existing || existing.isDisposed?.() || existing === target) {
+            flock._registerLiveName(originalBase, target);
+          }
         }
         flock._markNameCreated(meshName);
         resolveReady(mesh);
@@ -243,7 +261,7 @@ export const flockModels = {
         flock._releaseName(meshName);
         flock.modelReadyPromises.delete(meshName);
         if (
-          originalBase !== meshName &&
+          originalBase !== sanitizedBase &&
           flock.modelReadyPromises.get(originalBase) === readyPromise
         )
           flock.modelReadyPromises.delete(originalBase);
@@ -254,7 +272,7 @@ export const flockModels = {
         setTimeout(() => {
           flock.modelReadyPromises.delete(meshName);
           if (
-            originalBase !== meshName &&
+            originalBase !== sanitizedBase &&
             flock.modelReadyPromises.get(originalBase) === readyPromise
           )
             flock.modelReadyPromises.delete(originalBase);

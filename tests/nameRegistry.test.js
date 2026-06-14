@@ -250,6 +250,68 @@ export function runNameRegistryTests(flock) {
         });
         expect(resolvedViaAlias).to.equal(mesh);
       });
+
+      it('keeps same-model duplicate characters independent (no stale bare-name alias)', async function () {
+        configureDraco(flock.BABYLON);
+
+        // Two "add character" blocks using the SAME model. The bare model base
+        // ("Liz3") needs no sanitization, so neither instance may register a
+        // bare-name alias — otherwise "Liz3" would point at the wrong instance.
+        const meshAId = flock.createCharacter({
+          modelName: 'Liz3.glb',
+          modelId: 'Liz3__dupBlockA',
+          position: { x: 0, y: 0, z: 0 },
+        });
+        const meshBId = flock.createCharacter({
+          modelName: 'Liz3.glb',
+          modelId: 'Liz3__dupBlockB',
+          position: { x: 0, y: 0, z: 0 },
+        });
+        createdIds.push(meshAId, meshBId);
+
+        // First instance keeps the bare name; second gets a collision suffix.
+        expect(meshAId).to.equal('Liz3');
+        expect(meshBId).to.not.equal(meshAId);
+        expect(meshBId.startsWith('Liz3_')).to.be.true;
+
+        await pumpAnimation(
+          flock,
+          Promise.all([waitForModel(flock, meshAId), waitForModel(flock, meshBId)])
+        );
+
+        const meshA = flock.scene.getMeshByName(meshAId);
+        const meshB = flock.scene.getMeshByName(meshBId);
+        expect(meshA).to.exist;
+        expect(meshB).to.exist;
+        expect(meshA).to.not.equal(meshB);
+        expect(meshA.name).to.not.equal(meshB.name);
+        expect(meshA.metadata.blockKey).to.equal('dupBlockA');
+        expect(meshB.metadata.blockKey).to.equal('dupBlockB');
+        expect(meshA.metadata.blockKey).to.not.equal(meshB.metadata.blockKey);
+
+        // The bare base name must NOT have been aliased onto either instance.
+        expect(flock._liveNameCache.has('Liz3')).to.be.true; // the real "Liz3" mesh
+        expect(flock._liveNameCache.get('Liz3')).to.equal(meshA);
+
+        // Moving character A (as the position gizmo does) must move ONLY meshA.
+        const meshBxBefore = meshB.position.x;
+        await flock.positionAt(meshAId, { x: 5, y: 0, z: 0 });
+        flock.scene.render();
+        expect(meshA.position.x).to.be.closeTo(5, 1e-3);
+        expect(meshB.position.x).to.equal(meshBxBefore);
+
+        // Each name resolves to its own mesh, after the move too.
+        let resolvedA = null;
+        let resolvedB = null;
+        flock.whenModelReady(meshAId, (m) => {
+          resolvedA = m;
+        });
+        flock.whenModelReady(meshBId, (m) => {
+          resolvedB = m;
+        });
+        expect(resolvedA).to.equal(meshA);
+        expect(resolvedB).to.equal(meshB);
+      });
     });
   });
 }
