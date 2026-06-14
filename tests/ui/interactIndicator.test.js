@@ -234,33 +234,38 @@ export function runInteractIndicatorTests(flock) {
       });
 
       it("with a player mesh, range anchor is the player position", function () {
-        // Camera at (0,0,-3). Interactable at (0,0,5): 8 units from camera (out of range).
-        // Player at (0,0,4): 1 unit from interactable (in range).
-        // Without player: icon hidden. With player: icon visible.
-        const interactable = makeMesh("_test_range_i", [0, 0, 5]);
+        // Camera at (0,0,-3). Interactable at (0,0,20): 23 units from camera,
+        // beyond the 12-unit free-camera cap. Player at (0,0,18): 2 units from
+        // the interactable, within the 4-unit player range.
+        // Without player: out of camera range → icon hidden.
+        // With player: within player range → icon visible (range anchors on the player).
+        const interactable = makeMesh("_test_range_i", [0, 0, 20]);
         interactable.actionManager = new flock.BABYLON.ActionManager(flock.scene);
 
-        // First verify: no player → out of range, icon hidden.
+        // First verify: no player → out of camera range, icon hidden.
         fireFrame();
         expect(getIcon().isVisible).to.be.false;
 
         // Add player near the interactable.
-        const player = makeMesh("_test_range_p", [0, 0, 4]);
+        const player = makeMesh("_test_range_p", [0, 0, 18]);
         flock.scene.activeCamera.metadata = { following: player };
 
         fireFrame();
-        // Interactable is 1 unit from player anchor → within 4-unit range → icon visible.
+        // Interactable is 2 units from player anchor → within 4-unit range → icon visible.
         expect(getIcon().isVisible).to.be.true;
       });
 
-      it("without a player mesh, any aimed-at interactable is shown regardless of distance", function () {
-        // No player: range filter does not apply. Mesh is in front but far from camera.
+      it("without a player mesh, an aimed-at interactable beyond the free-camera range is hidden", function () {
+        // No player: the range filter anchors at the camera with the 12-unit
+        // free-camera cap. A mesh aimed straight at but ~23 units away is out of
+        // range, so the icon stays hidden. (Within-range free-camera targeting
+        // is covered by the single-mesh tests above.)
         const mesh = makeMesh("_test_cam_anchor", [0, 0, 20]);
         mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
 
         fireFrame();
 
-        expect(getIcon().isVisible).to.be.true;
+        expect(getIcon().isVisible).to.be.false;
       });
 
       it("BUTTON2 fires OnPickTrigger on the target mesh", function () {

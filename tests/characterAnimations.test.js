@@ -72,6 +72,16 @@ export function runCharacterAnimationTests(flock) {
       flock.scene = new flock.BABYLON.Scene(flock.engine);
       flock.BABYLON.SceneLoader.ShowLoadingScreen = false;
 
+      // Disposing the engine above destroyed every mesh/geometry it owned,
+      // including the cached model templates. flock's real scene lifecycle
+      // clears these caches on teardown (see flock.js disposeOldScene /
+      // initializeNewScene); this suite bypasses that lifecycle, so reset the
+      // engine-bound caches by hand. Otherwise later suites clone disposed
+      // templates and get empty meshes (e.g. xr-export's single-model export).
+      flock.modelCache = {};
+      flock.modelsBeingLoaded = {};
+      flock._modelInstances = Object.create(null);
+
       new flock.BABYLON.FreeCamera(
         "testCamera",
         flock.BABYLON.Vector3.Zero(),
@@ -114,6 +124,14 @@ export function runCharacterAnimationTests(flock) {
     after(function () {
       animationMeshIds.forEach((id) => flock.dispose(id));
       animationMeshIds.length = 0;
+      // Belt-and-braces: the "repeated character ids" test creates a second
+      // character with the same modelId, so name reservation/recycling can
+      // leave a straggler the id-based dispose above misses. Sweep any mesh
+      // under the base name so the leftover character doesn't pollute later
+      // suites — e.g. getPlayerMesh's heuristic would score it as the player.
+      (flock.scene?.meshes ?? [])
+        .filter((m) => m?.name?.startsWith("liz3-test-character"))
+        .forEach((m) => m.dispose());
     });
 
     beforeEach(async function () {

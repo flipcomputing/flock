@@ -28,6 +28,7 @@ let _texture = null;
 let _observer = null;
 let _currentTarget = null;
 let _actionCallback = null;
+let _actionObserver = null;
 let _inputManager = null;
 
 const _interactListeners = [];
@@ -93,7 +94,13 @@ function _isDescendantOf(mesh, ancestor) {
 }
 
 export function attachInteractIndicator(scene, inputManager) {
-  if (_icon) return;
+  // Already attached with a live icon — nothing to do.
+  if (_icon && !_icon.isDisposed()) return;
+  // Stale singleton state: the icon mesh was disposed externally (e.g. a scene
+  // teardown that bypassed detachInteractIndicator) but the module still holds
+  // references and a registered observer. Reset fully before re-creating so we
+  // don't leak the old observer or wedge on the dangling _icon guard.
+  if (_icon) detachInteractIndicator();
 
   _icon = MeshBuilder.CreatePlane(ICON_MESH_NAME, { size: 1 }, scene);
   _icon.billboardMode = Mesh.BILLBOARDMODE_ALL;
@@ -166,7 +173,10 @@ export function attachInteractIndicator(scene, inputManager) {
       );
       for (const cb of _interactListeners) cb(target);
     };
-    inputManager.onActionDownObservable.add(_actionCallback);
+    // Keep the observer handle: SimpleObservable.remove() matches on the
+    // observer object returned by add(), not the raw callback. Passing the
+    // callback removes nothing and leaks a listener on every attach/detach.
+    _actionObserver = inputManager.onActionDownObservable.add(_actionCallback);
   }
 }
 
@@ -238,7 +248,9 @@ function _updateIndicator(scene) {
   }
 
   // Proximity fallback: pick the nearest interactable within range of the player
-  // (or camera in free-camera mode) when nothing is directly aimed at.
+  // (or camera in free-camera mode) when nothing is directly aimed at. Restricted
+  // to the forward cone so the indicator only ever flags what the viewer is
+  // facing — a nearby interactable off to the side or behind is not targeted.
   if (!target) {
     const anchorPos = _playerMesh
       ? _playerMesh.getAbsolutePosition()
@@ -246,6 +258,16 @@ function _updateIndicator(scene) {
     const range = _playerMesh ? MAX_RANGE : MAX_RANGE_FREE_CAMERA;
     let bestDist = range;
     for (const m of _candidates) {
+      // Cone check: closest bounding-box point must lie within the half-angle
+      // of camera forward (same aim test as the angle fallback above).
+      _closestPointOnBBToRef(m, camera.position, _closestPt);
+      _toMesh.copyFrom(_closestPt).subtractInPlace(camera.position);
+      const len = _toMesh.length();
+      if (len === 0) continue;
+      _toMesh.scaleInPlace(1 / len);
+      if (Vector3.Dot(_cameraForward, _toMesh) <= _COS_MAX_HALF_ANGLE) continue;
+
+      // Range check: nearest within range of the anchor (player or camera).
       _closestPointOnBBToRef(m, anchorPos, _closestPt);
       const dist = Vector3.Distance(anchorPos, _closestPt);
       if (dist < bestDist) {
@@ -319,8 +341,9 @@ function _updateIndicator(scene) {
 
 export function detachInteractIndicator() {
   if (_actionCallback && _inputManager) {
-    _inputManager.onActionDownObservable.remove(_actionCallback);
+    _inputManager.onActionDownObservable.remove(_actionObserver);
     _actionCallback = null;
+    _actionObserver = null;
     _inputManager = null;
   }
   _currentTarget = null;

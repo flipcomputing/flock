@@ -172,6 +172,33 @@ export function runShapesTests(flock) {
         expect(mesh).to.exist;
       });
 
+      it("should create a text mesh via the non-Manifold path with a .ttf font", async function () {
+        const id = flock.create3DText({
+          text: "Hi",
+          font: "/fonts/FreeSansBold.ttf",
+          color: "#ffffff",
+          size: 1,
+          depth: 0.2,
+          position: { x: 0, y: 0, z: 0 },
+          modelId: "fallbackText3D",
+          useManifold: false,
+        });
+        createdIds.push(id);
+
+        expect(id).to.be.a("string");
+
+        await new Promise((resolve, reject) => {
+          flock.whenModelReady(id, resolve);
+          setTimeout(
+            () => reject(new Error("create3DText timed out")),
+            25000,
+          );
+        });
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh).to.exist;
+      });
+
       it("should avoid collisions for concurrent text mesh allocations", async function () {
         const firstId = flock.create3DText({
           text: "Name",

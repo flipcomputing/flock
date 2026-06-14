@@ -322,9 +322,14 @@ async function startServer() {
     // Alternative if you need shell features (e.g. on Windows): pass the
     // command as a single string with `shell: true` and no args array, e.g.
     //   spawn("npm run dev", { cwd: ..., stdio: "pipe", shell: true, env: ... })
+    // `detached: true` puts npm and its child vite/esbuild processes in their
+    // own process group so cleanup() can kill the whole group. Without this,
+    // server.kill() only signals npm, leaving an orphaned vite holding port
+    // 5173 that the next run wrongly "reuses".
     server = spawn("npm", ["run", "dev"], {
       cwd: path.resolve(__dirname, ".."),
       stdio: "pipe",
+      detached: true,
       env: { ...process.env },
     });
 
@@ -1024,7 +1029,18 @@ async function runTests(suiteId = "all") {
 function cleanup() {
   if (server) {
     console.log("\n🛑 Stopping development server...");
-    server.kill();
+    // Kill the whole process group (npm + child vite/esbuild). server.kill()
+    // alone only signals npm and leaves vite orphaned on port 5173.
+    try {
+      if (server.pid) {
+        process.kill(-server.pid, "SIGTERM");
+      } else {
+        server.kill("SIGTERM");
+      }
+    } catch {
+      // Group may already be gone, or platform lacks process groups; fall back.
+      server.kill("SIGTERM");
+    }
   }
   if (browser) {
     browser.close().catch(() => {});

@@ -170,7 +170,9 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
   // Load font - handle both URL and already-loaded font
   let font;
   if (typeof fontUrl === 'string') {
-    font = await opentype.load(fontUrl);
+    // opentype.js v2 removed the async loader; fetch the buffer and parse it.
+    const fontBuffer = await (await fetch(fontUrl)).arrayBuffer();
+    font = opentype.parse(fontBuffer);
   } else {
     font = fontUrl;
   }
@@ -748,7 +750,12 @@ export const flockShapes = {
         }
 
         if (!useManifold) {
-          const fontData = await (await fetch(font)).json();
+          // MeshBuilder.CreateText needs a Babylon font JSON, not a raw .ttf.
+          // If a .ttf was supplied, fall back to the bundled JSON font.
+          const fontDataUrl = font.toLowerCase().endsWith('.ttf')
+            ? '/fonts/FreeSans_Bold.json'
+            : font;
+          const fontData = await (await fetch(fontDataUrl)).json();
           mesh = flock.BABYLON.MeshBuilder.CreateText(
             meshId,
             text,
