@@ -942,3 +942,142 @@ class PanelResizer {
 document.addEventListener('DOMContentLoaded', () => {
   new PanelResizer();
 });
+
+/* ---- iOS Chrome: fullscreen-rotation recovery ----
+   Rotating while already in fullscreen on iOS Chrome (CriOS) produces wrong
+   dimensions + top padding; entering fullscreen fresh in either orientation is
+   fine, and works perfectly on every other browser. So: only on iOS Chrome, when
+   the device rotates while in fullscreen, drop out and offer a one-tap return
+   (the tap is the user gesture requestFullscreen() requires). Tap-away / Cancel
+   dismisses and stays windowed. */
+(() => {
+  const isIOSChrome = () => /CriOS/.test(navigator.userAgent);
+  if (!isIOSChrome()) return;
+
+  const fsElement = () =>
+    document.fullscreenElement || document.webkitFullscreenElement || null;
+
+  const exitFs = () => {
+    if (document.exitFullscreen) return document.exitFullscreen();
+    if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+  };
+
+  const enterFs = () => {
+    const el = document.documentElement;
+    if (el.requestFullscreen) return el.requestFullscreen();
+    if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+  };
+
+  let overlay = null;
+
+  const dismiss = () => {
+    overlay?.remove();
+    overlay = null;
+  };
+
+  const showReturnPrompt = () => {
+    if (overlay) return;
+
+    overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+      position: 'fixed',
+      inset: '0',
+      zIndex: '2147483647',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 'env(safe-area-inset-top) 24px 24px',
+      background: 'rgba(0,0,0,0.6)',
+    });
+    // Tap-away on the backdrop cancels and stays windowed.
+    overlay.addEventListener('click', dismiss);
+
+    const card = document.createElement('div');
+    Object.assign(card.style, {
+      maxWidth: '320px',
+      width: '100%',
+      textAlign: 'center',
+      background: '#fff',
+      color: '#222',
+      borderRadius: '12px',
+      padding: '20px',
+      boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
+      font: '15px system-ui, sans-serif',
+    });
+    // Taps inside the card must not bubble to the backdrop (which cancels).
+    card.addEventListener('click', (e) => e.stopPropagation());
+
+    const msg = document.createElement('p');
+    msg.textContent = 'Screen rotated. Return to fullscreen?';
+    Object.assign(msg.style, { margin: '0 0 16px', lineHeight: '1.4' });
+
+    const returnBtn = document.createElement('button');
+    returnBtn.type = 'button';
+    returnBtn.textContent = 'Return to fullscreen';
+    Object.assign(returnBtn.style, {
+      display: 'block',
+      width: '100%',
+      padding: '12px',
+      marginBottom: '8px',
+      border: 'none',
+      borderRadius: '8px',
+      background: '#6a3fc0',
+      color: '#fff',
+      font: '600 15px system-ui, sans-serif',
+      cursor: 'pointer',
+    });
+    // This handler runs inside a user gesture, so requestFullscreen() is allowed.
+    returnBtn.addEventListener('click', async () => {
+      try {
+        await enterFs();
+      } catch (e) {
+        /* stay windowed; user still has the normal fullscreen button */
+      }
+      dismiss();
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = 'Cancel';
+    Object.assign(cancelBtn.style, {
+      display: 'block',
+      width: '100%',
+      padding: '10px',
+      border: 'none',
+      borderRadius: '8px',
+      background: 'transparent',
+      color: '#666',
+      font: '15px system-ui, sans-serif',
+      cursor: 'pointer',
+    });
+    cancelBtn.addEventListener('click', dismiss);
+
+    card.append(msg, returnBtn, cancelBtn);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+  };
+
+  let recovering = false;
+
+  window.addEventListener('orientationchange', async () => {
+    if (!fsElement()) return; // only when we're actually in fullscreen
+    recovering = true;
+    try {
+      await exitFs(); // allowed without a user gesture
+    } catch (e) {
+      /* ignore */
+    }
+    // Let the exit settle before prompting.
+    setTimeout(() => {
+      recovering = false;
+      showReturnPrompt();
+    }, 250);
+  });
+
+  // Fallback: if we end up out of fullscreen mid-rotation without a prompt.
+  const onFsChange = () => {
+    if (!fsElement() && recovering && !overlay) showReturnPrompt();
+  };
+  document.addEventListener('fullscreenchange', onFsChange);
+  document.addEventListener('webkitfullscreenchange', onFsChange);
+})();
