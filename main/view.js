@@ -329,7 +329,6 @@ function showCodeView() {
 
     if (canvasToggleBtn) canvasToggleBtn.setAttribute('aria-pressed', 'false');
     if (codeToggleBtn) codeToggleBtn.setAttribute('aria-pressed', 'true');
-
   }
 
   onResize('reset');
@@ -785,6 +784,7 @@ class PanelResizer {
   trackTouchPointer(e) {
     if (!this.enabled || !this.isTouchLikePointer(e) || e.isPrimary === false) return;
     if (!this.mainContent.contains(e.target)) return;
+    if (e.target.closest('#renderCanvas')) return;
 
     this.touchActivationPointerId = e.pointerId;
     this.touchActivationStartX = e.clientX;
