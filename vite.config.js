@@ -89,7 +89,7 @@ export default {
         description: "Create 3D apps with code blocks",
         theme_color: "#511d91",
         background_color: "#ffffff",
-        display: "fullscreen",
+        display: "standalone",
 
         // Keep start route simple and within scope
         start_url: BASE_URL,
