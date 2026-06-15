@@ -424,6 +424,7 @@ body {
   height: var(--app-height);
   width: 100vw;
   background: var(--color-bg);
+  overscroll-behavior: none;
 }
 
 /* Purple strip behind the iOS status bar — only visible when there's a real inset (0 on desktop, no flash) */

@@ -657,6 +657,9 @@ const adjustViewport = () => {
   if (keyboardOpen && !_keyboardWasOpen) {
     setTimeout(scrollEditingBlockIntoView, 300);
   }
+  if (!keyboardOpen && _keyboardWasOpen) {
+    window.scrollTo(0, 0);
+  }
   _keyboardWasOpen = keyboardOpen;
 };
 
@@ -954,8 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const isIOSChrome = () => /CriOS/.test(navigator.userAgent);
   if (!isIOSChrome()) return;
 
-  const fsElement = () =>
-    document.fullscreenElement || document.webkitFullscreenElement || null;
+  const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
 
   const exitFs = () => {
     if (document.exitFullscreen) return document.exitFullscreen();
