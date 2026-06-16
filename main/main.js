@@ -1021,12 +1021,27 @@ function initializeApp() {
   if (exampleSelect) exampleSelect.removeAttribute("disabled");
 
   if (fullscreenToggle) {
+    // iOS browsers (iPad/iPhone, Safari and Chrome) drop out of fullscreen as
+    // soon as a text field is focused and the keyboard appears, so hiding the
+    // button is better than offering one that breaks. Installed PWA / standalone
+    // is already fullscreen and is handled separately.
+    const isIOSBrowser = () => {
+      const isIOS =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.matchMedia("(display-mode: fullscreen)").matches ||
+        navigator.standalone === true;
+      return isIOS && !isStandalone;
+    };
+
     const fullscreenSupported =
       document.documentElement.requestFullscreen ||
       document.documentElement.mozRequestFullScreen ||
       document.documentElement.webkitRequestFullscreen ||
       document.documentElement.msRequestFullscreen;
-    if (fullscreenSupported) {
+    if (fullscreenSupported && !isIOSBrowser()) {
       fullscreenToggle.removeAttribute("disabled");
     } else {
       fullscreenToggle.style.display = "none";
