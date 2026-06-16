@@ -8,10 +8,9 @@ import {
   ActionManager,
   ActionEvent,
   Ray,
-} from "@babylonjs/core";
+} from '@babylonjs/core';
 
-
-const ICON_MESH_NAME = "__flock_interact_indicator";
+const ICON_MESH_NAME = '__flock_interact_indicator';
 const ICON_SIZE_PX = 24;
 const TEX_SIZE = 128;
 const MAX_RANGE = 4;
@@ -34,8 +33,13 @@ let _inputManager = null;
 
 const _interactListeners = [];
 export const onInteractObservable = {
-  add(cb) { _interactListeners.push(cb); },
-  remove(cb) { const i = _interactListeners.indexOf(cb); if (i >= 0) _interactListeners.splice(i, 1); },
+  add(cb) {
+    _interactListeners.push(cb);
+  },
+  remove(cb) {
+    const i = _interactListeners.indexOf(cb);
+    if (i >= 0) _interactListeners.splice(i, 1);
+  },
 };
 
 // Single Ray allocated on attach, reused across frames.
@@ -62,14 +66,14 @@ let _imgPromise = null;
 function _loadSvg() {
   if (_imgPromise) return _imgPromise;
   _imgPromise = new Promise((resolve) => {
-    if (typeof document === "undefined") {
+    if (typeof document === 'undefined') {
       resolve(null);
       return;
     }
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => resolve(null);
-    img.src = new URL("../assets/interaction-indicator.svg", import.meta.url).href;
+    img.src = new URL('../assets/interaction-indicator.svg', import.meta.url).href;
   });
   return _imgPromise;
 }
@@ -113,8 +117,8 @@ export function attachInteractIndicator(scene, inputManager) {
   _icon.checkCollisions = false;
   _icon.isVisible = false;
 
-  const mat = new StandardMaterial(ICON_MESH_NAME + "_mat", scene);
-  _texture = new DynamicTexture(ICON_MESH_NAME + "_tex", TEX_SIZE, scene, false);
+  const mat = new StandardMaterial(ICON_MESH_NAME + '_mat', scene);
+  _texture = new DynamicTexture(ICON_MESH_NAME + '_tex', TEX_SIZE, scene, false);
   _texture.hasAlpha = true;
 
   // Start with a transparent canvas so the plane is invisible until the SVG loads.
@@ -149,6 +153,7 @@ export function attachInteractIndicator(scene, inputManager) {
   _playerMesh = null;
   _predicate = (m) => {
     if (m === _icon || !m.actionManager) return false;
+    if (!m.isVisible || !m.isEnabled?.()) return false;
     if (_playerMesh && (m === _playerMesh || _isDescendantOf(m, _playerMesh))) return false;
     return true;
   };
@@ -163,17 +168,17 @@ export function attachInteractIndicator(scene, inputManager) {
   if (inputManager) {
     _inputManager = inputManager;
     _actionCallback = (action) => {
-      if (action !== "BUTTON2") return;
-      if (_inputManager?.hasActionOverride("BUTTON2")) return;
+      if (action !== 'BUTTON2') return;
+      if (_inputManager?.hasActionOverride('BUTTON2')) return;
       if (!_currentTarget?.actionManager) return;
       const target = _currentTarget;
       target.actionManager.processTrigger(
         ActionManager.OnPickTrigger,
-        ActionEvent.CreateNew(target),
+        ActionEvent.CreateNew(target)
       );
       target.actionManager.processTrigger(
         ActionManager.OnLeftPickTrigger,
-        ActionEvent.CreateNew(target),
+        ActionEvent.CreateNew(target)
       );
       for (const cb of _interactListeners) cb(target);
     };
@@ -207,7 +212,7 @@ function _updateIndicator(scene) {
   }
 
   // Suppress icon and click when BUTTON2 has been rebound.
-  if (_inputManager?.hasActionOverride("BUTTON2")) {
+  if (_inputManager?.hasActionOverride('BUTTON2')) {
     _icon.isVisible = false;
     _currentTarget = null;
     return;
@@ -261,9 +266,7 @@ function _updateIndicator(scene) {
 
   // Range filter: drop the target if it's beyond range of the player (or camera).
   if (target) {
-    const anchorPos = _playerMesh
-      ? _playerMesh.getAbsolutePosition()
-      : camera.position;
+    const anchorPos = _playerMesh ? _playerMesh.getAbsolutePosition() : camera.position;
     const range = _playerMesh ? MAX_RANGE : MAX_RANGE_FREE_CAMERA;
     _closestPointOnBBToRef(target, anchorPos, _closestPt);
     if (Vector3.Distance(anchorPos, _closestPt) > range) target = null;
@@ -274,9 +277,7 @@ function _updateIndicator(scene) {
   // to the forward cone so the indicator only ever flags what the viewer is
   // facing — a nearby interactable off to the side or behind is not targeted.
   if (!target) {
-    const anchorPos = _playerMesh
-      ? _playerMesh.getAbsolutePosition()
-      : camera.position;
+    const anchorPos = _playerMesh ? _playerMesh.getAbsolutePosition() : camera.position;
     const range = _playerMesh ? MAX_RANGE : MAX_RANGE_FREE_CAMERA;
     let bestDist = range;
     for (const m of _candidates) {
@@ -308,16 +309,15 @@ function _updateIndicator(scene) {
     const losLen = _toMesh.length();
     if (losLen > 0) {
       _losRay.origin.copyFrom(playerPos);
-      _losRay.direction.copyFromFloats(
-        _toMesh.x / losLen,
-        _toMesh.y / losLen,
-        _toMesh.z / losLen,
-      );
+      _losRay.direction.copyFromFloats(_toMesh.x / losLen, _toMesh.y / losLen, _toMesh.z / losLen);
       _losRay.length = losLen;
       const losHit = scene.pickWithRay(_losRay, _losPredicate);
-      if (losHit?.hit && losHit.pickedMesh &&
-          losHit.pickedMesh !== target &&
-          !_isDescendantOf(losHit.pickedMesh, target)) {
+      if (
+        losHit?.hit &&
+        losHit.pickedMesh &&
+        losHit.pickedMesh !== target &&
+        !_isDescendantOf(losHit.pickedMesh, target)
+      ) {
         target = null;
       }
     }
@@ -335,9 +335,8 @@ function _updateIndicator(scene) {
   const camPos = camera.position;
   const dist = Vector3.Distance(camPos, meshPos);
 
-  const dpr = typeof window !== "undefined" ? (window.devicePixelRatio || 1) : 1;
-  const worldSize =
-    (ICON_SIZE_PX * dpr * 2 * dist * Math.tan(camera.fov / 2)) / renderH;
+  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+  const worldSize = (ICON_SIZE_PX * dpr * 2 * dist * Math.tan(camera.fov / 2)) / renderH;
 
   // Offset icon toward camera slightly to prevent z-fighting.
   _toMesh.copyFrom(camPos).subtractInPlace(meshPos);
