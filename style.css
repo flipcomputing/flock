@@ -1913,3 +1913,7 @@ kbd {
   letter-spacing: 0.01em;
   max-width: min(92vw, 420px);
 }
+
+svg.blocklyTrashcanFlyout {
+  background: gray;
+}

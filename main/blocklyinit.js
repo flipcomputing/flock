@@ -95,16 +95,11 @@ import { toolbox as toolboxDef } from '../toolbox.js';
   // whatever provider the parent input carries.
   const parentSlotLabel = (field) => {
     const block = field.getSourceBlock?.();
-    if (
-      !block ||
-      !block.isSimpleReporter?.() ||
-      block.getFullBlockField?.() !== field
-    ) {
+    if (!block || !block.isSimpleReporter?.() || block.getFullBlockField?.() !== field) {
       return null;
     }
     const conn =
-      block.outputConnection?.targetConnection ??
-      block.previousConnection?.targetConnection;
+      block.outputConnection?.targetConnection ?? block.previousConnection?.targetConnection;
     return conn?.getParentInput?.()?.getAriaLabelText?.() ?? null;
   };
   // Several field types define their own recomputeAriaContext, each calling
@@ -121,11 +116,7 @@ import { toolbox as toolboxDef } from '../toolbox.js';
     Blockly.FieldCheckbox?.prototype,
   ];
   const ariaProtos = [
-    ...new Set(
-      candidateProtos.filter(
-        (p) => p && Object.hasOwn(p, "recomputeAriaContext"),
-      ),
-    ),
+    ...new Set(candidateProtos.filter((p) => p && Object.hasOwn(p, 'recomputeAriaContext'))),
   ];
   for (const proto of ariaProtos) {
     const original = proto.recomputeAriaContext;
@@ -137,9 +128,9 @@ import { toolbox as toolboxDef } from '../toolbox.js';
         const slot = parentSlotLabel(this);
         if (inTree && slot) {
           const el = this.getFocusableElement?.();
-          const current = el?.getAttribute?.("aria-label");
+          const current = el?.getAttribute?.('aria-label');
           if (el && current) {
-            el.setAttribute("aria-label", `${slot}, ${current}`);
+            el.setAttribute('aria-label', `${slot}, ${current}`);
           }
         }
         return inTree;
@@ -1366,10 +1357,12 @@ function installShadowNavigationPatch(ws) {
   const getPrimaryEditableField = (block) => {
     for (const input of block.inputList) {
       for (const field of input.fieldRow) {
-        if (field.canBeFocused?.() &&
-            field.isVisible?.() &&
-            (field.isClickable?.() || field.isCurrentlyEditable?.()) &&
-            field.getParentInput?.()?.isVisible?.()) {
+        if (
+          field.canBeFocused?.() &&
+          field.isVisible?.() &&
+          (field.isClickable?.() || field.isCurrentlyEditable?.()) &&
+          field.getParentInput?.()?.isVisible?.()
+        ) {
           return field;
         }
       }
@@ -1431,8 +1424,8 @@ function installShadowNavigationPatch(ws) {
     return null;
   };
 
-  const origIn   = nav.getInNode.bind(nav);
-  const origOut  = nav.getOutNode.bind(nav);
+  const origIn = nav.getInNode.bind(nav);
+  const origOut = nav.getOutNode.bind(nav);
   const origNext = nav.getNextNode.bind(nav);
   const origPrev = nav.getPreviousNode.bind(nav);
 
@@ -1619,6 +1612,93 @@ export function createBlocklyWorkspace() {
   );
 
   workspace = Blockly.inject('blocklyDiv', options);
+
+  // Stop trashcan flyout from covering the whole workspace on small screens when it has wide blocks in it
+  // The trashcan flyout is as wide as its widest deleted block, so a wide block
+  // can make it cover the whole workspace with nothing left to click to dismiss
+  // it. Cap its rendered width to the visible workspace minus a small gap.
+  // Blockly keeps the flyout right-aligned, so the right edge (and its vertical
+  // scrollbar) stay pinned to the workspace edge while the left edge can never
+  // cross the gap; wider blocks overflow to the right. Recomputed from live
+  // metrics on every position() call, so it tracks the panel resizer; the gap
+  // is capped to a fraction of the visible workspace so it stays sensible on
+  // narrow panels.
+  const trashcan = workspace.trashcan;
+  const trashcanFlyout = trashcan?.flyout;
+  if (trashcan && trashcanFlyout) {
+    const TRASHCAN_FLYOUT_LEFT_GAP = 48;
+    trashcanFlyout.getWidth = function () {
+      if (!this.isVisible()) return this.width_;
+      const viewWidth = this.targetWorkspace.getMetricsManager().getViewMetrics().width;
+      const gap = Math.min(TRASHCAN_FLYOUT_LEFT_GAP, Math.max(0, viewWidth * 0.25));
+      return Math.min(this.width_, viewWidth - gap);
+    };
+
+    // The flyout is a separate, higher z-index SVG that would otherwise hide the
+    // trashcan icon. While the flyout is open, lift the icon into an overlay SVG
+    // that shares the workspace's coordinate space, so it stays in place but
+    // The flyout is a separate, higher z-index SVG that would otherwise hide the
+    // trashcan icon. While the flyout is open, lift the icon into an overlay SVG
+    // that shares the workspace's coordinate space, so it stays in place but
+    // renders on top; clicking the lifted icon then closes the flyout.
+    const injectionDiv = workspace.getInjectionDiv();
+    let trashIcon = null;
+    try {
+      trashIcon = trashcan.getFocusableElement();
+    } catch {
+      trashIcon = null;
+    }
+    const iconHome = trashIcon?.parentNode;
+    if (injectionDiv && trashIcon && iconHome) {
+      const iconOverlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      iconOverlay.setAttribute('class', 'blocklyTrashcanIconOverlay');
+      Object.assign(iconOverlay.style, {
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        overflow: 'visible',
+        pointerEvents: 'none',
+        zIndex: '21',
+      });
+      injectionDiv.appendChild(iconOverlay);
+
+      // pointer-events is inherited, so the overlay's `none` (which lets clicks
+      // pass through its empty area to the flyout) would also disable the icon.
+      // Force the icon itself back to clickable so it can close the flyout.
+      trashIcon.style.pointerEvents = 'auto';
+
+      // Clicking the lifted icon closes the flyout. The icon's own pointerup
+      // still calls openFlyout(), so swallow that one reopen for a moment.
+      let suppressOpenUntil = 0;
+      const originalOpenFlyout = trashcan.openFlyout.bind(trashcan);
+      trashcan.openFlyout = function () {
+        if (Date.now() < suppressOpenUntil) return;
+        originalOpenFlyout();
+      };
+      trashIcon.addEventListener(
+        'pointerdown',
+        (e) => {
+          if (!trashcan.contentsIsOpen()) return;
+          e.preventDefault();
+          e.stopPropagation();
+          suppressOpenUntil = Date.now() + 400;
+          trashcan.closeFlyout();
+        },
+        true,
+      );
+
+      workspace.addChangeListener((e) => {
+        if (e.type !== Blockly.Events.TRASHCAN_OPEN) return;
+        if (e.isOpen) {
+          if (trashIcon.parentNode !== iconOverlay) iconOverlay.appendChild(trashIcon);
+        } else if (trashIcon.parentNode !== iconHome) {
+          iconHome.appendChild(trashIcon);
+        }
+      });
+    }
+  }
 
   if (navigator.maxTouchPoints > 0 && window.innerWidth < 768) {
     // Make it harder to accidentally drag blocks on mobile.
@@ -2204,8 +2284,13 @@ export function createBlocklyWorkspace() {
   // Also remove the separate collapse/expand workspace items — replaced by a single toggle below.
   (function removeRedundantContextMenuItems() {
     const registry = Blockly.ContextMenuRegistry.registry;
-    ['undoWorkspace', 'redoWorkspace', 'cleanWorkspace',
-     'collapseWorkspace', 'expandWorkspace'].forEach((id) => {
+    [
+      'undoWorkspace',
+      'redoWorkspace',
+      'cleanWorkspace',
+      'collapseWorkspace',
+      'expandWorkspace',
+    ].forEach((id) => {
       try {
         registry.unregister(id);
       } catch (_) {}
@@ -2233,9 +2318,10 @@ export function createBlocklyWorkspace() {
       id: 'flockCollapseExpandWorkspace',
       weight: 4,
       scopeType: WORKSPACE,
-      displayText: (scope) => hasAnyExpanded(scope.workspace)
-        ? translate('context_collapse_all_option')
-        : translate('context_expand_all_option'),
+      displayText: (scope) =>
+        hasAnyExpanded(scope.workspace)
+          ? translate('context_collapse_all_option')
+          : translate('context_expand_all_option'),
       preconditionFn: (scope) => {
         if (!scope.workspace?.options?.collapse) return 'hidden';
         return scope.workspace.getTopBlocks(false).length ? 'enabled' : 'hidden';
