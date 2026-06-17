@@ -108,6 +108,7 @@
   --color-dropdown-bg: #333333;
   --color-dropdown-hover: #555555;
 
+  --color-menu: var(--color-dropdown-bg);
   --color-menu-hover: var(--color-dropdown-hover);
   --color-menu-item-hover: #444444;
 
@@ -172,6 +173,7 @@
   --color-dropdown-bg: #333333;
   --color-dropdown-hover: #555555;
 
+  --color-menu: var(--color-dropdown-bg);
   --color-menu-hover: var(--color-dropdown-hover);
   --color-menu-item-hover: #444444;
 
@@ -220,8 +222,8 @@
   --color-text-loading: #511d91;
 
   /* Border Colors */
-  --color-border: #ddd;
-  --color-border-light: #eee;
+  --color-border: #ffffff;
+  --color-border-light: #cccccc;
 
   /* Loading Screen Colors */
   --color-loading-bg: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -233,9 +235,9 @@
   --color-focus-ring: #511d91;
 
   /* Menu Colors */
-  --color-menu-hover: #f0f0f0;
+  --color-menu: var(--color-bg);
+  --color-menu-hover: #333333;
   --color-menu-item: #ffffff;
-  --color-menu: #f9f9f9;
   --color-button-bg: #f0f0f0;
 
   /* Shadow Colors */
@@ -267,6 +269,7 @@
   --color-button-primary: #f0f0f0;
   --color-button-scroll: rgba(224, 224, 224, 0.5);
   --color-text-on-primary: #f0f0f0;
+  --color-menu: var(--color-bg-alt);
   --color-menu-hover: #2a2a2a;
   --color-focus-ring: #e0e0e0;
   --color-outline-focus: #e0e0e0;
@@ -1979,6 +1982,15 @@ svg.blocklyTrashcanFlyout {
   color: var(--color-text-on-primary, #fff);
 }
 
+[data-theme='dark'] .fc-confirm-btn--ok,
+[data-theme='dark-contrast'] .fc-confirm-btn--ok,
+[data-theme='low-vision'] .fc-confirm-btn--ok,
+[data-theme='contrast'] .fc-confirm-btn--ok,
+[data-theme='contrast'] .fc-confirm-btn--cancel,
+[data-theme='contrast'] .fc-block-toolbar-btn {
+  color: #1a1a1a;
+}
+
 /* ---- Tablet floating block toolbar ---- */
 .fc-block-toolbar {
   position: fixed;
@@ -2034,7 +2046,7 @@ svg.blocklyTrashcanFlyout {
   height: 44px;
   border: none;
   border-radius: 7px;
-  background: transparent;
+  background: var(--color-button-bg, #f0f0f0);
   color: var(--color-text-primary, #000);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -2042,7 +2054,7 @@ svg.blocklyTrashcanFlyout {
 }
 
 .fc-block-toolbar-btn:active {
-  background: var(--color-menu-hover, #f0f0f0);
+  background: var(--color-button-bg-hover, #d0d0d0);
 }
 
 
