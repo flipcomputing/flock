@@ -1403,7 +1403,7 @@ function installShadowNavigationPatch(ws) {
     !!node?.outputConnection &&
     !node.isShadow?.() &&
     !(typeof node.isSimpleReporter === 'function' && node.isSimpleReporter()) &&
-    getPrimaryEditableField(node) instanceof (Blockly.FieldTextInput ?? Object);
+    getPrimaryEditableField(node) != null;
 
   // If node is a skippable block (shadow or standalone), return its primary
   // field instead.
