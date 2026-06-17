@@ -1984,13 +1984,11 @@ svg.blocklyTrashcanFlyout {
   background: var(--color-menu-hover, #f0f0f0);
 }
 
-.fc-block-toolbar-btn[disabled] {
-  opacity: 0.3;
-}
 
 .fc-block-toolbar-btn--delete {
   color: #c0392b;
 }
+
 
 [data-theme='dark'] .fc-block-toolbar-btn--delete,
 [data-theme='dark-contrast'] .fc-block-toolbar-btn--delete {

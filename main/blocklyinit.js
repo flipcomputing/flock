@@ -2674,34 +2674,26 @@ export function createBlocklyWorkspace() {
     blockToolbar.setAttribute('role', 'toolbar');
     document.body.appendChild(blockToolbar);
 
-    const mkSvg = (paths) =>
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+    const mkFaSvg = (path, vw = '0 0 448 512') =>
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vw}" width="20" height="20" fill="currentColor">${path}</svg>`;
 
-    const copyBtn = document.createElement('button');
-    copyBtn.type = 'button';
-    copyBtn.className = 'fc-block-toolbar-btn';
-    copyBtn.setAttribute('aria-label', translate('COPY_SHORTCUT') || 'Copy');
-    copyBtn.innerHTML = mkSvg(
-      '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>'
-    );
-
-    const pasteBtn = document.createElement('button');
-    pasteBtn.type = 'button';
-    pasteBtn.className = 'fc-block-toolbar-btn';
-    pasteBtn.setAttribute('aria-label', translate('PASTE_SHORTCUT') || 'Paste');
-    pasteBtn.innerHTML = mkSvg(
-      '<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>'
+    const duplicateBtn = document.createElement('button');
+    duplicateBtn.type = 'button';
+    duplicateBtn.className = 'fc-block-toolbar-btn';
+    duplicateBtn.setAttribute('aria-label', translate('duplicate_button') || 'Duplicate');
+    duplicateBtn.innerHTML = mkFaSvg(
+      '<path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z"/>'
     );
 
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'fc-block-toolbar-btn fc-block-toolbar-btn--delete';
     deleteBtn.setAttribute('aria-label', 'Delete');
-    deleteBtn.innerHTML = mkSvg(
-      '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>'
+    deleteBtn.innerHTML = mkFaSvg(
+      '<path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>'
     );
 
-    blockToolbar.append(copyBtn, pasteBtn, deleteBtn);
+    blockToolbar.append(duplicateBtn, deleteBtn);
 
     let toolbarBlock = null;
     let toolbarShowTimer = null;
@@ -2717,7 +2709,6 @@ export function createBlocklyWorkspace() {
 
     function showBlockToolbar(block) {
       toolbarBlock = block;
-      pasteBtn.disabled = !Blockly.clipboard?.getLastCopiedData?.();
       positionBlockToolbar();
       blockToolbar.classList.add('visible');
     }
@@ -2756,24 +2747,18 @@ export function createBlocklyWorkspace() {
       }
     });
 
-    copyBtn.addEventListener('pointerdown', (e) => {
+    duplicateBtn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (!toolbarBlock) return;
-      copyWithoutToast(toolbarBlock);
-      pasteBtn.disabled = false;
-    });
-
-    pasteBtn.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (!toolbarBlock) return;
-      const data = Blockly.clipboard?.getLastCopiedData?.();
-      if (!data) return;
       const block = toolbarBlock;
-      const rect = block.getSvgRoot?.()?.getBoundingClientRect();
-      if (rect) lastCM = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-      pasteAsChildOrHere(block, workspace, data);
+      Blockly.Events.setGroup('toolbar_duplicate');
+      const json = Blockly.serialization.blocks.save(block, { includeShadows: true });
+      delete json.next;
+      const copy = Blockly.serialization.blocks.append(json, workspace);
+      const orig = block.getRelativeToSurfaceXY();
+      copy.moveTo(new Blockly.utils.Coordinate(orig.x + 30, orig.y + 30));
+      Blockly.Events.setGroup(false);
     });
 
     deleteBtn.addEventListener('pointerdown', (e) => {
@@ -2781,10 +2766,27 @@ export function createBlocklyWorkspace() {
       e.stopPropagation();
       if (!toolbarBlock) return;
       const block = toolbarBlock;
-      hideBlockToolbar();
-      Blockly.Events.setGroup('toolbar_delete');
-      block.dispose(true);
-      Blockly.Events.setGroup(false);
+      // Count only blocks that will actually be deleted: the block + its input
+      // descendants, but NOT the top-level next chain (which gets healed, not deleted).
+      const countDeleted = (b, followNext) => {
+        if (!b || b.isShadow()) return 0;
+        let n = 1;
+        for (const input of b.inputList) {
+          n += countDeleted(input.connection?.targetBlock(), true);
+        }
+        if (followNext) n += countDeleted(b.nextConnection?.targetBlock(), true);
+        return n;
+      };
+      const count = countDeleted(block, false);
+      if (count > 1) {
+        const msg = (Blockly.Msg['DELETE_ALL_BLOCKS'] || 'Delete all %1 blocks?').replace('%1', count);
+        Blockly.dialog.confirm(msg, (ok) => {
+          if (ok) { hideBlockToolbar(); block.checkAndDelete(); }
+        });
+      } else {
+        hideBlockToolbar();
+        block.checkAndDelete();
+      }
     });
   }
 
