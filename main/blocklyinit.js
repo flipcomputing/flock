@@ -1465,6 +1465,33 @@ function installShadowNavigationPatch(ws) {
     if (field) return skipBlock(origPrev(field.getSourceBlock()));
     return skipBlock(origPrev(node));
   };
+
+  // The built-in DISCONNECT shortcut (X key) checks that the focused node is
+  // a Block instance, which fails when focus is on a skippable block's field
+  // (because we skip the block stop). Register an additional shortcut for the
+  // same key that fires only when a skippable field is focused.
+  const shortcutRegistry = Blockly.ShortcutRegistry.registry;
+  shortcutRegistry.register({
+    name: 'disconnect_from_skippable_field',
+    allowCollision: true,
+    keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.X)],
+    preconditionFn: (workspace) => {
+      const field = getFocusedSkippableField();
+      if (!field) return false;
+      const block = field.getSourceBlock();
+      return !workspace.isDragging() && !workspace.isReadOnly() &&
+             !!block && !block.isShadow?.();
+    },
+    callback: (_workspace, event) => {
+      const field = getFocusedSkippableField();
+      if (!field) return false;
+      const block = field.getSourceBlock();
+      if (!block || block.isShadow?.()) return false;
+      const healStack = !(event instanceof KeyboardEvent && event.shiftKey);
+      block.unplug(healStack);
+      return true;
+    },
+  });
 }
 
 export function createBlocklyWorkspace() {
