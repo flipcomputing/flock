@@ -1966,9 +1966,8 @@ svg.blocklyTrashcanFlyout {
   touch-action: manipulation;
 }
 
-.fc-confirm-btn:focus,
 .fc-confirm-btn:focus-visible {
-  outline: none;
+  outline: 2px solid var(--color-focus-ring);
 }
 
 .fc-confirm-btn--cancel {
