@@ -182,7 +182,7 @@ node scripts/utils/test-analyzer.mjs
    **Example:**
 
    ```javascript
-   flock.methodName('value', options);
+   flock.methodName("value", options);
    ```
    ````
 
@@ -260,19 +260,19 @@ node scripts/utils/test-analyzer.mjs
 4. Follow existing test patterns:
 
    ```javascript
-   describe('Mesh operations @mesh', function () {
+   describe("Mesh operations @mesh", function () {
      let testMesh;
 
      beforeEach(function () {
-       testMesh = flock.createBox('testBox');
+       testMesh = flock.createBox("testBox");
      });
 
      afterEach(function () {
        flock.dispose(testMesh);
      });
 
-     it('should attach mesh to parent', function (done) {
-       const parent = flock.createBox('parent');
+     it("should attach mesh to parent", function (done) {
+       const parent = flock.createBox("parent");
        flock.attach(testMesh, parent);
 
        setTimeout(() => {

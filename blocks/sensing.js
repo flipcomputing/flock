@@ -1,5 +1,5 @@
-import * as Blockly from 'blockly';
-import { categoryColours } from '../toolbox.js';
+import * as Blockly from "blockly";
+import { categoryColours } from "../toolbox.js";
 import {
   getHelpUrlFor,
   addToggleButton,
@@ -9,493 +9,501 @@ import {
   handleBlockCreateEvent,
   updateShape,
   registerBlockHandler,
-} from './blocks.js';
-import { translate, getTooltip, getOption, getDropdownOption } from '../main/translation.js';
-import { ACTIONS } from '../input/bindings.js';
+} from "./blocks.js";
+import {
+  translate,
+  getTooltip,
+  getOption,
+  getDropdownOption,
+} from "../main/translation.js";
+import { ACTIONS } from "../input/bindings.js";
 
 export function defineSensingBlocks() {
-  Blockly.Blocks['key_pressed'] = {
+  Blockly.Blocks["key_pressed"] = {
     init: function () {
       this.jsonInit({
-        type: 'key_pressed',
-        message0: translate('key_pressed'),
+        type: "key_pressed",
+        message0: translate("key_pressed"),
         args0: [
           {
-            type: 'field_dropdown',
-            name: 'KEY',
+            type: "field_dropdown",
+            name: "KEY",
             options: [
-              getDropdownOption('ANY'),
-              getDropdownOption('NONE'),
-              getDropdownOption('w'),
-              getDropdownOption('a'),
-              getDropdownOption('s'),
-              getDropdownOption('d'),
-              [getOption('space_infinity'), ' '],
-              [getOption('q_icon'), 'q'],
-              [getOption('e_icon'), 'e'],
-              [getOption('f_icon'), 'f'],
+              getDropdownOption("ANY"),
+              getDropdownOption("NONE"),
+              getDropdownOption("w"),
+              getDropdownOption("a"),
+              getDropdownOption("s"),
+              getDropdownOption("d"),
+              [getOption("space_infinity"), " "],
+              [getOption("q_icon"), "q"],
+              [getOption("e_icon"), "e"],
+              [getOption("f_icon"), "f"],
             ],
           },
         ],
-        output: 'Boolean',
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('key_pressed'),
+        output: "Boolean",
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("key_pressed"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['action_pressed'] = {
+  Blockly.Blocks["action_pressed"] = {
     init: function () {
       this.jsonInit({
-        type: 'action_pressed',
-        message0: translate('action_pressed'),
+        type: "action_pressed",
+        message0: translate("action_pressed"),
         args0: [
           {
-            type: 'field_dropdown',
-            name: 'ACTION',
+            type: "field_dropdown",
+            name: "ACTION",
             options: ACTIONS.map((a) => [getOption(`ACTION_${a}`), a]),
           },
         ],
-        output: 'Boolean',
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('action_pressed'),
+        output: "Boolean",
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("action_pressed"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['set_action_key'] = {
+  Blockly.Blocks["set_action_key"] = {
     init: function () {
       this.jsonInit({
-        type: 'set_action_key',
-        message0: translate('set_action_key'),
+        type: "set_action_key",
+        message0: translate("set_action_key"),
         args0: [
           {
-            type: 'field_dropdown',
-            name: 'ACTION',
+            type: "field_dropdown",
+            name: "ACTION",
             options: ACTIONS.map((a) => [getOption(`ACTION_${a}`), a]),
           },
           {
-            type: 'field_grid_dropdown',
-            name: 'KEY',
+            type: "field_grid_dropdown",
+            name: "KEY",
             columns: 10,
             options: [
-              getDropdownOption('0'),
-              getDropdownOption('1'),
-              getDropdownOption('2'),
-              getDropdownOption('3'),
-              getDropdownOption('4'),
-              getDropdownOption('5'),
-              getDropdownOption('6'),
-              getDropdownOption('7'),
-              getDropdownOption('8'),
-              getDropdownOption('9'),
-              getDropdownOption('a'),
-              getDropdownOption('b'),
-              getDropdownOption('c'),
-              getDropdownOption('d'),
-              getDropdownOption('e'),
-              getDropdownOption('f'),
-              getDropdownOption('g'),
-              getDropdownOption('h'),
-              getDropdownOption('i'),
-              getDropdownOption('j'),
-              getDropdownOption('k'),
-              getDropdownOption('l'),
-              getDropdownOption('m'),
-              getDropdownOption('n'),
-              getDropdownOption('o'),
-              getDropdownOption('p'),
-              getDropdownOption('q'),
-              getDropdownOption('r'),
-              getDropdownOption('s'),
-              getDropdownOption('t'),
-              getDropdownOption('u'),
-              getDropdownOption('v'),
-              getDropdownOption('w'),
-              getDropdownOption('x'),
-              getDropdownOption('y'),
-              getDropdownOption('z'),
-              getDropdownOption(' '),
-              getDropdownOption(','),
-              getDropdownOption('.'),
-              getDropdownOption('/'),
-              getDropdownOption('ArrowLeft'),
-              getDropdownOption('ArrowUp'),
-              getDropdownOption('ArrowRight'),
-              getDropdownOption('ArrowDown'),
+              getDropdownOption("0"),
+              getDropdownOption("1"),
+              getDropdownOption("2"),
+              getDropdownOption("3"),
+              getDropdownOption("4"),
+              getDropdownOption("5"),
+              getDropdownOption("6"),
+              getDropdownOption("7"),
+              getDropdownOption("8"),
+              getDropdownOption("9"),
+              getDropdownOption("a"),
+              getDropdownOption("b"),
+              getDropdownOption("c"),
+              getDropdownOption("d"),
+              getDropdownOption("e"),
+              getDropdownOption("f"),
+              getDropdownOption("g"),
+              getDropdownOption("h"),
+              getDropdownOption("i"),
+              getDropdownOption("j"),
+              getDropdownOption("k"),
+              getDropdownOption("l"),
+              getDropdownOption("m"),
+              getDropdownOption("n"),
+              getDropdownOption("o"),
+              getDropdownOption("p"),
+              getDropdownOption("q"),
+              getDropdownOption("r"),
+              getDropdownOption("s"),
+              getDropdownOption("t"),
+              getDropdownOption("u"),
+              getDropdownOption("v"),
+              getDropdownOption("w"),
+              getDropdownOption("x"),
+              getDropdownOption("y"),
+              getDropdownOption("z"),
+              getDropdownOption(" "),
+              getDropdownOption(","),
+              getDropdownOption("."),
+              getDropdownOption("/"),
+              getDropdownOption("ArrowLeft"),
+              getDropdownOption("ArrowUp"),
+              getDropdownOption("ArrowRight"),
+              getDropdownOption("ArrowDown"),
             ],
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('set_action_key'),
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("set_action_key"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['meshes_touching'] = {
+  Blockly.Blocks["meshes_touching"] = {
     init: function () {
       this.jsonInit({
-        type: 'meshes_are_touching',
-        message0: translate('meshes_touching'),
+        type: "meshes_are_touching",
+        message0: translate("meshes_touching"),
         args0: [
           {
-            type: 'field_variable',
-            name: 'MESH1',
+            type: "field_variable",
+            name: "MESH1",
             variable: window.currentMesh,
           },
           {
-            type: 'field_variable',
-            name: 'MESH2',
-            variable: 'object2',
+            type: "field_variable",
+            name: "MESH2",
+            variable: "object2",
           },
         ],
-        output: 'Boolean',
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('meshes_touching'),
+        output: "Boolean",
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("meshes_touching"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['time'] = {
+  Blockly.Blocks["time"] = {
     init: function () {
       this.jsonInit({
-        type: 'time',
-        message0: translate('time'),
+        type: "time",
+        message0: translate("time"),
         args0: [
           {
-            type: 'field_dropdown',
-            name: 'UNIT',
+            type: "field_dropdown",
+            name: "UNIT",
             options: [
-              [getOption('seconds'), 'seconds'],
-              [getOption('milliseconds'), 'milliseconds'],
-              [getOption('minutes'), 'minutes'],
+              [getOption("seconds"), "seconds"],
+              [getOption("milliseconds"), "milliseconds"],
+              [getOption("minutes"), "minutes"],
             ],
           },
         ],
-        output: 'Number',
-        colour: categoryColours['Sensing'],
+        output: "Number",
+        colour: categoryColours["Sensing"],
         inputsInline: true,
-        tooltip: getTooltip('time'),
+        tooltip: getTooltip("time"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['ground_level'] = {
+  Blockly.Blocks["ground_level"] = {
     init: function () {
       this.jsonInit({
-        type: 'ground_level',
-        message0: translate('ground_level'),
-        output: 'Number',
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('ground_level'),
+        type: "ground_level",
+        message0: translate("ground_level"),
+        output: "Number",
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("ground_level"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['distance_to'] = {
+  Blockly.Blocks["distance_to"] = {
     init: function () {
       this.jsonInit({
-        type: 'distance_to',
-        message0: translate('distance_to'),
+        type: "distance_to",
+        message0: translate("distance_to"),
         args0: [
           {
-            type: 'field_variable',
-            name: 'MODEL1',
+            type: "field_variable",
+            name: "MODEL1",
             variable: window.currentMesh,
           },
           {
-            type: 'field_variable',
-            name: 'MODEL2',
-            variable: 'object2',
+            type: "field_variable",
+            name: "MODEL2",
+            variable: "object2",
           },
         ],
-        output: 'Number',
-        colour: categoryColours['Sensing'],
+        output: "Number",
+        colour: categoryColours["Sensing"],
         inputsInline: true,
-        tooltip: getTooltip('distance_to'),
+        tooltip: getTooltip("distance_to"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['touching_surface'] = {
+  Blockly.Blocks["touching_surface"] = {
     init: function () {
       this.jsonInit({
-        type: 'touching_surface',
-        message0: translate('touching_surface'),
+        type: "touching_surface",
+        message0: translate("touching_surface"),
         args0: [
           {
-            type: 'field_variable',
-            name: 'MODEL_VAR',
+            type: "field_variable",
+            name: "MODEL_VAR",
             variable: window.currentMesh,
           },
         ],
-        output: 'Boolean',
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('touching_surface'),
+        output: "Boolean",
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("touching_surface"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['mesh_exists'] = {
+  Blockly.Blocks["mesh_exists"] = {
     init: function () {
       this.jsonInit({
-        type: 'mesh_exists',
-        message0: translate('mesh_exists'),
+        type: "mesh_exists",
+        message0: translate("mesh_exists"),
         args0: [
           {
-            type: 'field_variable',
-            name: 'MODEL_VAR',
+            type: "field_variable",
+            name: "MODEL_VAR",
             variable: window.currentMesh,
           },
         ],
-        output: 'Boolean',
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('mesh_exists'),
+        output: "Boolean",
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("mesh_exists"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['get_property'] = {
+  Blockly.Blocks["get_property"] = {
     init: function () {
       this.jsonInit({
-        type: 'get_property',
-        message0: translate('get_property'),
+        type: "get_property",
+        message0: translate("get_property"),
         args0: [
           {
-            type: 'field_dropdown',
-            name: 'PROPERTY',
+            type: "field_dropdown",
+            name: "PROPERTY",
             options: [
-              getDropdownOption('POSITION_X'),
-              getDropdownOption('POSITION_Y'),
-              getDropdownOption('POSITION_Z'),
-              getDropdownOption('ROTATION_X'),
-              getDropdownOption('ROTATION_Y'),
-              getDropdownOption('ROTATION_Z'),
-              getDropdownOption('MIN_X'),
-              getDropdownOption('MAX_X'),
-              getDropdownOption('MIN_Y'),
-              getDropdownOption('MAX_Y'),
-              getDropdownOption('MIN_Z'),
-              getDropdownOption('MAX_Z'),
-              getDropdownOption('SCALE_X'),
-              getDropdownOption('SCALE_Y'),
-              getDropdownOption('SCALE_Z'),
-              getDropdownOption('SIZE_X'),
-              getDropdownOption('SIZE_Y'),
-              getDropdownOption('SIZE_Z'),
-              getDropdownOption('VISIBLE'),
-              getDropdownOption('ALPHA'),
-              getDropdownOption('COLOUR'),
-              getDropdownOption('DESCRIPTION'),
+              getDropdownOption("POSITION_X"),
+              getDropdownOption("POSITION_Y"),
+              getDropdownOption("POSITION_Z"),
+              getDropdownOption("ROTATION_X"),
+              getDropdownOption("ROTATION_Y"),
+              getDropdownOption("ROTATION_Z"),
+              getDropdownOption("MIN_X"),
+              getDropdownOption("MAX_X"),
+              getDropdownOption("MIN_Y"),
+              getDropdownOption("MAX_Y"),
+              getDropdownOption("MIN_Z"),
+              getDropdownOption("MAX_Z"),
+              getDropdownOption("SCALE_X"),
+              getDropdownOption("SCALE_Y"),
+              getDropdownOption("SCALE_Z"),
+              getDropdownOption("SIZE_X"),
+              getDropdownOption("SIZE_Y"),
+              getDropdownOption("SIZE_Z"),
+              getDropdownOption("VISIBLE"),
+              getDropdownOption("ALPHA"),
+              getDropdownOption("COLOUR"),
+              getDropdownOption("DESCRIPTION"),
             ],
           },
           {
-            type: 'field_variable',
-            name: 'MESH',
+            type: "field_variable",
+            name: "MESH",
             variable: window.currentMesh,
           },
         ],
         output: null,
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('get_property'),
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("get_property"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['canvas_controls'] = {
+  Blockly.Blocks["canvas_controls"] = {
     init: function () {
       this.jsonInit({
-        type: 'canvas_controls',
-        message0: translate('canvas_controls'),
+        type: "canvas_controls",
+        message0: translate("canvas_controls"),
         args0: [
           {
-            type: 'field_checkbox',
-            name: 'CONTROLS',
+            type: "field_checkbox",
+            name: "CONTROLS",
             checked: true,
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('canvas_controls'),
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("canvas_controls"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['interact_indicator'] = {
+  Blockly.Blocks["interact_indicator"] = {
     init: function () {
       this.jsonInit({
-        type: 'interact_indicator',
-        message0: translate('interact_indicator'),
+        type: "interact_indicator",
+        message0: translate("interact_indicator"),
         args0: [
           {
-            type: 'field_checkbox',
-            name: 'ENABLED',
+            type: "field_checkbox",
+            name: "ENABLED",
             checked: true,
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('interact_indicator'),
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("interact_indicator"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['button_controls'] = {
+  Blockly.Blocks["button_controls"] = {
     init: function () {
       this.jsonInit({
-        type: 'button_controls',
-        message0: translate('button_controls'),
+        type: "button_controls",
+        message0: translate("button_controls"),
         args0: [
           {
-            type: 'field_dropdown',
-            name: 'CONTROL',
+            type: "field_dropdown",
+            name: "CONTROL",
             options: [
-              getDropdownOption('BOTH'),
-              getDropdownOption('ARROWS'),
-              getDropdownOption('ACTIONS'),
+              getDropdownOption("BOTH"),
+              getDropdownOption("ARROWS"),
+              getDropdownOption("ACTIONS"),
             ],
           },
           {
-            type: 'field_dropdown',
-            name: 'ENABLED',
+            type: "field_dropdown",
+            name: "ENABLED",
             options: [
-              getDropdownOption('AUTO'),
-              getDropdownOption('ENABLED'),
-              getDropdownOption('DISABLED'),
+              getDropdownOption("AUTO"),
+              getDropdownOption("ENABLED"),
+              getDropdownOption("DISABLED"),
             ],
           },
           {
-            type: 'input_value',
-            name: 'COLOR',
-            check: 'Colour',
+            type: "input_value",
+            name: "COLOR",
+            check: "Colour",
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('button_controls'),
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("button_controls"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['on_screen_controls'] = {
+  Blockly.Blocks["on_screen_controls"] = {
     init: function () {
       this.jsonInit({
-        type: 'on_screen_controls',
-        message0: translate('on_screen_controls'),
+        type: "on_screen_controls",
+        message0: translate("on_screen_controls"),
         args0: [
           {
-            type: 'field_dropdown',
-            name: 'MOVEMENT',
+            type: "field_dropdown",
+            name: "MOVEMENT",
             options: [
-              getDropdownOption('ARROWS'),
-              getDropdownOption('JOYSTICK'),
-              getDropdownOption('NONE'),
+              getDropdownOption("ARROWS"),
+              getDropdownOption("JOYSTICK"),
+              getDropdownOption("NONE"),
             ],
           },
           {
-            type: 'field_dropdown',
-            name: 'ACTIONS',
-            options: [getDropdownOption('YES'), getDropdownOption('NO')],
-          },
-          {
-            type: 'field_dropdown',
-            name: 'ENABLED',
+            type: "field_dropdown",
+            name: "ACTIONS",
             options: [
-              getDropdownOption('AUTO'),
-              getDropdownOption('ENABLED'),
-              getDropdownOption('DISABLED'),
+              getDropdownOption("YES"),
+              getDropdownOption("NO"),
             ],
           },
           {
-            type: 'input_value',
-            name: 'COLOR',
-            check: 'Colour',
+            type: "field_dropdown",
+            name: "ENABLED",
+            options: [
+              getDropdownOption("AUTO"),
+              getDropdownOption("ENABLED"),
+              getDropdownOption("DISABLED"),
+            ],
+          },
+          {
+            type: "input_value",
+            name: "COLOR",
+            check: "Colour",
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('on_screen_controls'),
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("on_screen_controls"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
     },
   };
 
-  Blockly.Blocks['microbit_input'] = {
+  Blockly.Blocks["microbit_input"] = {
     init: function () {
       this.jsonInit({
-        type: 'microbit_input',
-        message0: translate('microbit_input'),
+        type: "microbit_input",
+        message0: translate("microbit_input"),
         args0: [
           {
-            type: 'field_dropdown',
-            name: 'EVENT',
+            type: "field_dropdown",
+            name: "EVENT",
             options: [
-              [getOption('pin_0'), '0'],
-              [getOption('pin_1'), '1'],
-              [getOption('pin_2'), '2'],
-              [getOption('pin_l'), 'l'],
-              [getOption('pin_j'), 'j'],
-              [getOption('pin_h'), 'h'],
-              [getOption('pin_k'), 'k'],
-              [getOption('pin_space'), ' '],
-              [getOption('pin_q'), 'q'],
-              [getOption('pin_r'), 'r'],
-              [getOption('pin_t'), 't'],
-              [getOption('pin_o'), 'o'],
-              [getOption('pin_p'), 'p'],
-              [getOption('pin_a'), 'a'],
-              [getOption('pin_d'), 'd'],
-              [getOption('pin_y'), 'y'],
-              [getOption('pin_g'), 'g'],
-              [getOption('pin_i'), 'i'],
+              [getOption("pin_0"), "0"],
+              [getOption("pin_1"), "1"],
+              [getOption("pin_2"), "2"],
+              [getOption("pin_l"), "l"],
+              [getOption("pin_j"), "j"],
+              [getOption("pin_h"), "h"],
+              [getOption("pin_k"), "k"],
+              [getOption("pin_space"), " "],
+              [getOption("pin_q"), "q"],
+              [getOption("pin_r"), "r"],
+              [getOption("pin_t"), "t"],
+              [getOption("pin_o"), "o"],
+              [getOption("pin_p"), "p"],
+              [getOption("pin_a"), "a"],
+              [getOption("pin_d"), "d"],
+              [getOption("pin_y"), "y"],
+              [getOption("pin_g"), "g"],
+              [getOption("pin_i"), "i"],
             ],
           },
         ],
-        message1: '%1',
+        message1: "%1",
         args1: [
           {
-            type: 'input_statement',
-            name: 'DO',
+            type: "input_statement",
+            name: "DO",
           },
         ],
-        colour: categoryColours['Sensing'],
-        tooltip: getTooltip('microbit_input'),
+        colour: categoryColours["Sensing"],
+        tooltip: getTooltip("microbit_input"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle("sensing_blocks");
 
       addToggleButton(this);
     },
@@ -512,81 +520,82 @@ export function defineSensingBlocks() {
       this.updateShape_(!this.isInline);
     },
   };
-  Blockly.Blocks['ui_slider'] = {
+  Blockly.Blocks["ui_slider"] = {
     init: function () {
-      const variableNamePrefix = 'slider';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableNamePrefix = "slider";
+      const nextVariableName =
+        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
       this.jsonInit({
-        type: 'ui_slider',
-        message0: translate('ui_slider'),
+        type: "ui_slider",
+        message0: translate("ui_slider"),
         args0: [
           {
-            type: 'field_variable',
-            name: 'SLIDER_VAR',
+            type: "field_variable",
+            name: "SLIDER_VAR",
             variable: nextVariableName,
           },
           {
-            type: 'input_value',
-            name: 'MIN',
-            check: 'Number',
+            type: "input_value",
+            name: "MIN",
+            check: "Number",
           },
           {
-            type: 'input_value',
-            name: 'MAX',
-            check: 'Number',
+            type: "input_value",
+            name: "MAX",
+            check: "Number",
           },
           {
-            type: 'input_value',
-            name: 'VALUE',
-            check: 'Number',
+            type: "input_value",
+            name: "VALUE",
+            check: "Number",
           },
           {
-            type: 'input_value',
-            name: 'X',
-            check: 'Number',
+            type: "input_value",
+            name: "X",
+            check: "Number",
           },
           {
-            type: 'input_value',
-            name: 'Y',
-            check: 'Number',
+            type: "input_value",
+            name: "Y",
+            check: "Number",
           },
           {
-            type: 'input_value',
-            name: 'COLOR',
-            check: 'Colour',
+            type: "input_value",
+            name: "COLOR",
+            check: "Colour",
           },
           {
-            type: 'input_value',
-            name: 'BACKGROUND',
-            check: 'Colour',
+            type: "input_value",
+            name: "BACKGROUND",
+            check: "Colour",
           },
           {
-            type: 'field_dropdown',
-            name: 'SIZE',
+            type: "field_dropdown",
+            name: "SIZE",
             options: [
-              getDropdownOption('SMALL'),
-              getDropdownOption('MEDIUM'),
-              getDropdownOption('LARGE'),
+              getDropdownOption("SMALL"),
+              getDropdownOption("MEDIUM"),
+              getDropdownOption("LARGE"),
             ],
           },
         ],
         inputsInline: true,
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours['Text'],
-        tooltip: getTooltip('ui_slider'),
+        colour: categoryColours["Text"],
+        tooltip: getTooltip("ui_slider"),
       });
 
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('text_blocks');
+      this.setStyle("text_blocks");
       registerBlockHandler(this, (changeEvent) =>
         handleBlockCreateEvent(
           this,
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
-          'SLIDER_VAR'
-        )
+          "SLIDER_VAR",
+        ),
       );
     },
   };

@@ -79,8 +79,7 @@ export function setupInput() {
       const bottomBar = document.getElementById('bottomBar');
       const inNarrowMode = bottomBar && getComputedStyle(bottomBar).display !== 'none';
       const codePanel = document.getElementById('codePanel');
-      const inCodeMode =
-        inNarrowMode && codePanel && getComputedStyle(codePanel).display !== 'none';
+      const inCodeMode = inNarrowMode && codePanel && getComputedStyle(codePanel).display !== 'none';
       if (inNarrowMode && !inCodeMode) {
         ['#canvasToggleBtn', '#codeToggleBtn'].forEach((sel) =>
           pushUnique(document.querySelector(sel))

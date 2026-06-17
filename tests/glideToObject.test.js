@@ -1,13 +1,13 @@
-import { expect } from 'chai';
+import { expect } from "chai";
 
 export function runGlideToObjectTests(flock) {
-  describe('glideToObject function tests @slow', function () {
+  describe("glideToObject function tests @slow", function () {
     let box1;
     let box2;
 
     beforeEach(function () {
-      box1 = flock.createBox('box1', {
-        color: '#996633',
+      box1 = flock.createBox("box1", {
+        color: "#996633",
         width: 1,
         height: 1,
         depth: 1,
@@ -23,11 +23,11 @@ export function runGlideToObjectTests(flock) {
       }
     });
 
-    it('should glide to another object with default offsets', async function () {
+    it("should glide to another object with default offsets", async function () {
       this.timeout(5000);
 
       const sourceId = box1; // assuming box1 is a name set in beforeEach
-      const targetId = 'box2';
+      const targetId = "box2";
 
       flock.createBox(targetId, {
         width: 2,
@@ -50,11 +50,11 @@ export function runGlideToObjectTests(flock) {
       expect(actual.z).to.be.closeTo(expected.z, EPS);
     });
 
-    it('should apply x/y/z offsets when gliding to another object', async function () {
+    it("should apply x/y/z offsets when gliding to another object", async function () {
       this.timeout(5000);
 
       const sourceId = box1; // assuming box1 is the name set in beforeEach
-      const targetId = 'box2';
+      const targetId = "box2";
 
       flock.createBox(targetId, {
         width: 1,
@@ -88,11 +88,11 @@ export function runGlideToObjectTests(flock) {
       expect(actual.z).to.be.closeTo(expected.z, EPS);
     });
 
-    it('should align pivots between different shapes using defaults', async function () {
+    it("should align pivots between different shapes using defaults", async function () {
       this.timeout(5000);
 
       const sourceId = box1; // created in beforeEach
-      const targetId = 'targetSphere';
+      const targetId = "targetSphere";
 
       flock.createSphere(targetId, {
         diameterX: 1.5,
@@ -115,7 +115,7 @@ export function runGlideToObjectTests(flock) {
       expect(movedAnchor.z).to.be.closeTo(targetAnchor.z, EPS);
     });
 
-    it('should respect custom pivot settings when gliding to another shape', async function () {
+    it("should respect custom pivot settings when gliding to another shape", async function () {
       this.timeout(7000);
 
       // Helper to wait for the next frame and ensure properties are updated
@@ -125,13 +125,13 @@ export function runGlideToObjectTests(flock) {
       }
 
       const sourceId = box1; // created in beforeEach
-      const targetId = 'targetCylinder';
+      const targetId = "targetCylinder";
 
       // Custom pivot for source box
       flock.setAnchor(sourceId, {
-        xPivot: 'MAX',
-        yPivot: 'MAX',
-        zPivot: 'CENTER',
+        xPivot: "MAX",
+        yPivot: "MAX",
+        zPivot: "CENTER",
       });
 
       // Create target cylinder
@@ -144,9 +144,9 @@ export function runGlideToObjectTests(flock) {
 
       // Custom pivot for target cylinder
       flock.setAnchor(targetId, {
-        xPivot: 'MIN',
-        yPivot: 'CENTER',
-        zPivot: 'MAX',
+        xPivot: "MIN",
+        yPivot: "CENTER",
+        zPivot: "MAX",
       });
 
       // Wait for physics impostors to update with new pivot info
@@ -166,12 +166,12 @@ export function runGlideToObjectTests(flock) {
       expect(movedAnchor.z).to.be.closeTo(targetAnchor.z, EPS);
     });
 
-    it('should treat offsets as local-space by default', async function () {
+    it("should treat offsets as local-space by default", async function () {
       this.timeout(7000);
 
       const BABYLON = flock.BABYLON;
       const sourceId = box1;
-      const targetId = 'rotatedTargetLocal';
+      const targetId = "rotatedTargetLocal";
 
       // Create a target and rotate it so local != world axes
       box2 = flock.createBox(targetId, {
@@ -195,8 +195,15 @@ export function runGlideToObjectTests(flock) {
       targetMesh.computeWorldMatrix(true);
 
       const targetAnchor = flock._getAnchor(targetMesh);
-      const localOffset = new BABYLON.Vector3(offsets.offsetX, offsets.offsetY, offsets.offsetZ);
-      const worldOffset = BABYLON.Vector3.TransformNormal(localOffset, targetMesh.getWorldMatrix());
+      const localOffset = new BABYLON.Vector3(
+        offsets.offsetX,
+        offsets.offsetY,
+        offsets.offsetZ,
+      );
+      const worldOffset = BABYLON.Vector3.TransformNormal(
+        localOffset,
+        targetMesh.getWorldMatrix(),
+      );
 
       const expected = {
         x: targetAnchor.x + worldOffset.x,
@@ -217,7 +224,7 @@ export function runGlideToObjectTests(flock) {
       this.timeout(7000);
 
       const sourceId = box1;
-      const targetId = 'rotatedTargetWorld';
+      const targetId = "rotatedTargetWorld";
 
       // Helper to wait for the next frame and ensure properties are updated
       async function tick() {
@@ -239,7 +246,7 @@ export function runGlideToObjectTests(flock) {
 
       await flock.glideToObject(sourceId, targetId, {
         ...offsets,
-        offsetSpace: 'world',
+        offsetSpace: "world",
         duration: 0.3,
       });
       await tick();

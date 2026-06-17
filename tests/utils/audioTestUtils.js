@@ -13,7 +13,12 @@
  * @param {number} sampleRate - Sample rate (default: 44100)
  * @returns {AudioBuffer} - Generated audio buffer
  */
-export function generateTestTone(audioContext, frequency, duration, sampleRate = 44100) {
+export function generateTestTone(
+  audioContext,
+  frequency,
+  duration,
+  sampleRate = 44100,
+) {
   const numSamples = duration * sampleRate;
   const audioBuffer = audioContext.createBuffer(1, numSamples, sampleRate);
   const channelData = audioBuffer.getChannelData(0);
@@ -62,11 +67,11 @@ export async function audioBufferToBlob(audioBuffer) {
       }
     };
 
-    writeString('RIFF');
+    writeString("RIFF");
     view.setUint32(pos, 36, true);
     pos += 4; // File size - 8
-    writeString('WAVE');
-    writeString('fmt ');
+    writeString("WAVE");
+    writeString("fmt ");
     view.setUint32(pos, 16, true);
     pos += 4;
     view.setUint16(pos, 1, true);
@@ -81,10 +86,10 @@ export async function audioBufferToBlob(audioBuffer) {
     pos += 2;
     view.setUint16(pos, 16, true);
     pos += 2;
-    writeString('data');
+    writeString("data");
     view.setUint32(pos, 0, true); // Zero data length
 
-    return new Blob([buffer], { type: 'audio/wav' });
+    return new Blob([buffer], { type: "audio/wav" });
   }
 
   const buffer = new ArrayBuffer(44 + length);
@@ -100,11 +105,11 @@ export async function audioBufferToBlob(audioBuffer) {
     }
   };
 
-  writeString('RIFF');
+  writeString("RIFF");
   view.setUint32(pos, 36 + length, true);
   pos += 4;
-  writeString('WAVE');
-  writeString('fmt ');
+  writeString("WAVE");
+  writeString("fmt ");
   view.setUint32(pos, 16, true);
   pos += 4; // fmt chunk size
   view.setUint16(pos, 1, true);
@@ -119,7 +124,7 @@ export async function audioBufferToBlob(audioBuffer) {
   pos += 2;
   view.setUint16(pos, 16, true);
   pos += 2;
-  writeString('data');
+  writeString("data");
   view.setUint32(pos, length, true);
   pos += 4;
 
@@ -137,7 +142,7 @@ export async function audioBufferToBlob(audioBuffer) {
     offset++;
   }
 
-  return new Blob([buffer], { type: 'audio/wav' });
+  return new Blob([buffer], { type: "audio/wav" });
 }
 
 /**
@@ -223,7 +228,7 @@ export function hasFrequency(
   targetFrequency,
   sampleRate,
   tolerance = 50,
-  threshold = -50
+  threshold = -50,
 ) {
   const binWidth = sampleRate / (2 * frequencyData.length);
   const targetBin = Math.floor(targetFrequency / binWidth);
@@ -267,7 +272,8 @@ export function detectClipping(audioBuffer, threshold = 0.99) {
     hasClipping: clippedCount > 0,
     clippedCount: clippedCount,
     totalSamples: totalSamples,
-    clippingPercentage: totalSamples > 0 ? (clippedCount / totalSamples) * 100 : 0,
+    clippingPercentage:
+      totalSamples > 0 ? (clippedCount / totalSamples) * 100 : 0,
   };
 }
 

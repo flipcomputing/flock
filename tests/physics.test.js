@@ -1,7 +1,7 @@
-import { expect } from 'chai';
+import { expect } from "chai";
 
 export function runPhysicsTests(flock) {
-  describe('onTrigger @physics', function () {
+  describe("onTrigger @physics", function () {
     const boxIds = [];
 
     beforeEach(async function () {
@@ -15,8 +15,8 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it('should call callback on trigger', async function () {
-      const boxId = 'boxTriggerTest';
+    it("should call callback on trigger", async function () {
+      const boxId = "boxTriggerTest";
       await flock.createBox(boxId, {
         width: 1,
         height: 1,
@@ -28,7 +28,7 @@ export function runPhysicsTests(flock) {
       let triggered = false;
 
       flock.onTrigger(boxId, {
-        trigger: 'OnPickTrigger',
+        trigger: "OnPickTrigger",
         callback: () => {
           triggered = true;
         },
@@ -37,13 +37,15 @@ export function runPhysicsTests(flock) {
       // Simulate trigger
       const mesh = flock.scene.getMeshByName(boxId);
       expect(mesh).to.exist;
-      mesh.actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+      mesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnPickTrigger,
+      );
 
       expect(triggered).to.be.true;
     });
 
     it("should only call callback once when mode is 'once'", async function () {
-      const boxId = 'boxTriggerOnce';
+      const boxId = "boxTriggerOnce";
       await flock.createBox(boxId, {
         width: 1,
         height: 1,
@@ -55,24 +57,28 @@ export function runPhysicsTests(flock) {
       let count = 0;
 
       flock.onTrigger(boxId, {
-        trigger: 'OnPickTrigger',
+        trigger: "OnPickTrigger",
         callback: () => {
           count++;
         },
-        mode: 'once',
+        mode: "once",
       });
 
       const mesh = flock.scene.getMeshByName(boxId);
       expect(mesh).to.exist;
 
-      mesh.actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
-      mesh.actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+      mesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnPickTrigger,
+      );
+      mesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnPickTrigger,
+      );
 
       expect(count).to.equal(1);
     });
   });
 
-  describe('onIntersect @physics', function () {
+  describe("onIntersect @physics", function () {
     const boxIds = [];
 
     beforeEach(async function () {
@@ -86,9 +92,9 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it('should call callback on intersection', async function () {
-      const box1 = 'boxIntersect1';
-      const box2 = 'boxIntersect2';
+    it("should call callback on intersection", async function () {
+      const box1 = "boxIntersect1";
+      const box2 = "boxIntersect2";
 
       await flock.createBox(box1, {
         width: 1,
@@ -107,7 +113,7 @@ export function runPhysicsTests(flock) {
       let intersected = false;
 
       await flock.onIntersect(box1, box2, {
-        trigger: 'OnIntersectionEnterTrigger',
+        trigger: "OnIntersectionEnterTrigger",
         callback: () => {
           intersected = true;
         },
@@ -118,17 +124,18 @@ export function runPhysicsTests(flock) {
       expect(mesh).to.exist;
       expect(otherMesh).to.exist;
 
-      mesh.actionManager.processTrigger(flock.BABYLON.ActionManager.OnIntersectionEnterTrigger, {
-        mesh: otherMesh,
-      });
+      mesh.actionManager.processTrigger(
+        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+        { mesh: otherMesh },
+      );
 
       expect(intersected).to.be.true;
     });
 
-    it('should register intersections for all matching right-hand group meshes', async function () {
-      const source = 'colliderSource_1';
-      const groupA = 'groupTarget_1';
-      const groupB = 'groupTarget_2';
+    it("should register intersections for all matching right-hand group meshes", async function () {
+      const source = "colliderSource_1";
+      const groupA = "groupTarget_1";
+      const groupB = "groupTarget_2";
 
       await flock.createBox(source, {
         width: 1,
@@ -152,7 +159,7 @@ export function runPhysicsTests(flock) {
 
       let count = 0;
       await flock.onIntersect(source, groupA, {
-        trigger: 'OnIntersectionEnterTrigger',
+        trigger: "OnIntersectionEnterTrigger",
         applyToGroupOther: true,
         callback: () => {
           count++;
@@ -168,19 +175,19 @@ export function runPhysicsTests(flock) {
 
       sourceMesh.actionManager.processTrigger(
         flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherA }
+        { mesh: otherA },
       );
       sourceMesh.actionManager.processTrigger(
         flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherB }
+        { mesh: otherB },
       );
 
       expect(count).to.equal(2);
     });
 
-    it('should skip self-pair when expanding right-hand collision group', async function () {
-      const source = 'selfPair_1';
-      const other = 'selfPair_2';
+    it("should skip self-pair when expanding right-hand collision group", async function () {
+      const source = "selfPair_1";
+      const other = "selfPair_2";
 
       await flock.createBox(source, {
         width: 1,
@@ -198,7 +205,7 @@ export function runPhysicsTests(flock) {
 
       let count = 0;
       await flock.onIntersect(source, source, {
-        trigger: 'OnIntersectionEnterTrigger',
+        trigger: "OnIntersectionEnterTrigger",
         applyToGroupOther: true,
         callback: () => {
           count++;
@@ -212,16 +219,16 @@ export function runPhysicsTests(flock) {
 
       sourceMesh.actionManager.processTrigger(
         flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherMesh }
+        { mesh: otherMesh },
       );
 
       expect(count).to.equal(1);
     });
 
-    it('should apply right-hand group intersections when targets are created later', async function () {
-      const source = 'lateSource_1';
-      const futureGroupSeed = 'lateTarget_1';
-      const futureGroupOther = 'lateTarget_2';
+    it("should apply right-hand group intersections when targets are created later", async function () {
+      const source = "lateSource_1";
+      const futureGroupSeed = "lateTarget_1";
+      const futureGroupOther = "lateTarget_2";
 
       await flock.createBox(source, {
         width: 1,
@@ -233,7 +240,7 @@ export function runPhysicsTests(flock) {
 
       let count = 0;
       await flock.onIntersect(source, futureGroupSeed, {
-        trigger: 'OnIntersectionEnterTrigger',
+        trigger: "OnIntersectionEnterTrigger",
         applyToGroupOther: true,
         callback: () => {
           count++;
@@ -263,21 +270,21 @@ export function runPhysicsTests(flock) {
 
       sourceMesh.actionManager.processTrigger(
         flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherA }
+        { mesh: otherA },
       );
       sourceMesh.actionManager.processTrigger(
         flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherB }
+        { mesh: otherB },
       );
 
       expect(count).to.equal(2);
     });
 
-    it('should canonicalize unsanitized RHS names for pending group registration', async function () {
-      const source = 'canonSource_1';
-      const unsanitizedAlias = 'canon target !@#';
-      const normalizedAlias = 'canontarget';
-      const createdTarget = 'canontarget_1';
+    it("should canonicalize unsanitized RHS names for pending group registration", async function () {
+      const source = "canonSource_1";
+      const unsanitizedAlias = "canon target !@#";
+      const normalizedAlias = "canontarget";
+      const createdTarget = "canontarget_1";
 
       await flock.createBox(source, {
         width: 1,
@@ -293,7 +300,7 @@ export function runPhysicsTests(flock) {
 
       let count = 0;
       await flock.onIntersect(source, unsanitizedAlias, {
-        trigger: 'OnIntersectionEnterTrigger',
+        trigger: "OnIntersectionEnterTrigger",
         applyToGroupOther: true,
         callback: () => {
           count++;
@@ -315,7 +322,7 @@ export function runPhysicsTests(flock) {
 
       sourceMesh.actionManager.processTrigger(
         flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: targetMesh }
+        { mesh: targetMesh },
       );
 
       expect(count).to.equal(1);
@@ -323,7 +330,7 @@ export function runPhysicsTests(flock) {
     });
   });
 
-  describe('applyForce method @physics', function () {
+  describe("applyForce method @physics", function () {
     const boxIds = [];
 
     beforeEach(async function () {
@@ -337,8 +344,8 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it('should apply force to a mesh with default values (no movement) @slow', async function () {
-      const id = 'boxApplyForceDefault';
+    it("should apply force to a mesh with default values (no movement) @slow", async function () {
+      const id = "boxApplyForceDefault";
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -363,15 +370,15 @@ export function runPhysicsTests(flock) {
       expect(finalVelocity.z).to.be.closeTo(initialVelocity.z, 0.01);
     });
 
-    it('should apply specific forces to a mesh', async function () {
-      const id = 'boxApplyForce';
+    it("should apply specific forces to a mesh", async function () {
+      const id = "boxApplyForce";
       await flock.createBox(id, {
         width: 1,
         height: 1,
         depth: 1,
         position: [0, 0, 0],
       });
-      await flock.setPhysics(id, 'DYNAMIC');
+      await flock.setPhysics(id, "DYNAMIC");
 
       boxIds.push(id);
 
@@ -392,8 +399,8 @@ export function runPhysicsTests(flock) {
       expect(velocity.z).to.be.lessThan(0);
     });
 
-    it('should handle missing physics gracefully', async function () {
-      const id = 'boxNoPhysics';
+    it("should handle missing physics gracefully", async function () {
+      const id = "boxNoPhysics";
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -424,7 +431,7 @@ export function runPhysicsTests(flock) {
     });
   });
 
-  describe('meshExists @physics', function () {
+  describe("meshExists @physics", function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -434,8 +441,8 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it('should return true for an existing mesh', async function () {
-      const id = 'boxMeshExists';
+    it("should return true for an existing mesh", async function () {
+      const id = "boxMeshExists";
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -447,12 +454,12 @@ export function runPhysicsTests(flock) {
       expect(flock.meshExists(id)).to.be.true;
     });
 
-    it('should return false for a non-existent mesh', function () {
-      expect(flock.meshExists('doesNotExist')).to.be.false;
+    it("should return false for a non-existent mesh", function () {
+      expect(flock.meshExists("doesNotExist")).to.be.false;
     });
   });
 
-  describe('checkMeshesTouching @physics', function () {
+  describe("checkMeshesTouching @physics", function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -462,9 +469,9 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it('should return true when two meshes overlap', async function () {
-      const id1 = 'boxTouching1';
-      const id2 = 'boxTouching2';
+    it("should return true when two meshes overlap", async function () {
+      const id1 = "boxTouching1";
+      const id2 = "boxTouching2";
       await flock.createBox(id1, {
         width: 1,
         height: 1,
@@ -482,9 +489,9 @@ export function runPhysicsTests(flock) {
       expect(flock.checkMeshesTouching(id1, id2)).to.be.true;
     });
 
-    it('should return false when meshes do not overlap', async function () {
-      const id1 = 'boxNotTouching1';
-      const id2 = 'boxNotTouching2';
+    it("should return false when meshes do not overlap", async function () {
+      const id1 = "boxNotTouching1";
+      const id2 = "boxNotTouching2";
       await flock.createBox(id1, {
         width: 1,
         height: 1,
@@ -503,7 +510,7 @@ export function runPhysicsTests(flock) {
     });
   });
 
-  describe('up method @physics', function () {
+  describe("up method @physics", function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -513,15 +520,15 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it('should apply upward impulse to a dynamic mesh @slow', async function () {
-      const id = 'boxUp';
+    it("should apply upward impulse to a dynamic mesh @slow", async function () {
+      const id = "boxUp";
       await flock.createBox(id, {
         width: 1,
         height: 1,
         depth: 1,
         position: [0, 0, 0],
       });
-      await flock.setPhysics(id, 'DYNAMIC');
+      await flock.setPhysics(id, "DYNAMIC");
       boxIds.push(id);
 
       const mesh = flock.scene.getMeshByName(id);
@@ -535,7 +542,7 @@ export function runPhysicsTests(flock) {
       expect(velocity.y).to.be.greaterThan(0);
     });
 
-    it('should log when mesh not found', function () {
+    it("should log when mesh not found", function () {
       let logged = false;
       const originalConsoleLog = console.log;
       console.log = (...args) => {
@@ -543,7 +550,7 @@ export function runPhysicsTests(flock) {
         originalConsoleLog(...args);
       };
 
-      flock.up('nonExistentMesh', 5);
+      flock.up("nonExistentMesh", 5);
 
       console.log = originalConsoleLog;
 
@@ -551,7 +558,7 @@ export function runPhysicsTests(flock) {
     });
   });
 
-  describe('setPhysics @physics', function () {
+  describe("setPhysics @physics", function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -561,8 +568,8 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it('should set motion type to STATIC', async function () {
-      const id = 'boxSetPhysicsStatic';
+    it("should set motion type to STATIC", async function () {
+      const id = "boxSetPhysicsStatic";
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -571,14 +578,16 @@ export function runPhysicsTests(flock) {
       });
       boxIds.push(id);
 
-      await flock.setPhysics(id, 'STATIC');
+      await flock.setPhysics(id, "STATIC");
 
       const mesh = flock.scene.getMeshByName(id);
-      expect(mesh.physics.getMotionType()).to.equal(flock.BABYLON.PhysicsMotionType.STATIC);
+      expect(mesh.physics.getMotionType()).to.equal(
+        flock.BABYLON.PhysicsMotionType.STATIC,
+      );
     });
 
-    it('should set motion type to DYNAMIC', async function () {
-      const id = 'boxSetPhysicsDynamic';
+    it("should set motion type to DYNAMIC", async function () {
+      const id = "boxSetPhysicsDynamic";
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -587,14 +596,16 @@ export function runPhysicsTests(flock) {
       });
       boxIds.push(id);
 
-      await flock.setPhysics(id, 'DYNAMIC');
+      await flock.setPhysics(id, "DYNAMIC");
 
       const mesh = flock.scene.getMeshByName(id);
-      expect(mesh.physics.getMotionType()).to.equal(flock.BABYLON.PhysicsMotionType.DYNAMIC);
+      expect(mesh.physics.getMotionType()).to.equal(
+        flock.BABYLON.PhysicsMotionType.DYNAMIC,
+      );
     });
 
-    it('should dispose physics body when set to NONE', async function () {
-      const id = 'boxSetPhysicsNone';
+    it("should dispose physics body when set to NONE", async function () {
+      const id = "boxSetPhysicsNone";
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -603,14 +614,14 @@ export function runPhysicsTests(flock) {
       });
       boxIds.push(id);
 
-      await flock.setPhysics(id, 'NONE');
+      await flock.setPhysics(id, "NONE");
 
       const mesh = flock.scene.getMeshByName(id);
       expect(mesh.physics).to.be.null;
     });
   });
 
-  describe('isTouchingSurface @physics', function () {
+  describe("isTouchingSurface @physics", function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -620,8 +631,8 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it('should return false when mesh is in the air', async function () {
-      const id = 'boxInAir';
+    it("should return false when mesh is in the air", async function () {
+      const id = "boxInAir";
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -633,7 +644,7 @@ export function runPhysicsTests(flock) {
       expect(flock.isTouchingSurface(id)).to.be.false;
     });
 
-    it('should return false and log when mesh does not exist', function () {
+    it("should return false and log when mesh does not exist", function () {
       let logged = false;
       const originalConsoleLog = console.log;
       console.log = (...args) => {
@@ -641,7 +652,7 @@ export function runPhysicsTests(flock) {
         originalConsoleLog(...args);
       };
 
-      const result = flock.isTouchingSurface('nonExistentMesh');
+      const result = flock.isTouchingSurface("nonExistentMesh");
 
       console.log = originalConsoleLog;
 
@@ -650,7 +661,7 @@ export function runPhysicsTests(flock) {
     });
   });
 
-  describe('setPhysicsShape @physics', function () {
+  describe("setPhysicsShape @physics", function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -664,8 +675,8 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it('should set physicsShapeType to CAPSULE on the mesh metadata', async function () {
-      const id = 'physicsShapeBox1';
+    it("should set physicsShapeType to CAPSULE on the mesh metadata", async function () {
+      const id = "physicsShapeBox1";
       flock.createBox(id, {
         width: 1,
         height: 2,
@@ -674,14 +685,14 @@ export function runPhysicsTests(flock) {
       });
       boxIds.push(id);
 
-      await flock.setPhysicsShape(id, 'CAPSULE');
+      await flock.setPhysicsShape(id, "CAPSULE");
 
       const mesh = flock.scene.getMeshByName(id);
-      expect(mesh.metadata.physicsShapeType).to.equal('CAPSULE');
+      expect(mesh.metadata.physicsShapeType).to.equal("CAPSULE");
     });
 
-    it('should set physicsShapeType to MESH on the mesh metadata', async function () {
-      const id = 'physicsShapeBox2';
+    it("should set physicsShapeType to MESH on the mesh metadata", async function () {
+      const id = "physicsShapeBox2";
       flock.createBox(id, {
         width: 1,
         height: 1,
@@ -690,19 +701,19 @@ export function runPhysicsTests(flock) {
       });
       boxIds.push(id);
 
-      await flock.setPhysicsShape(id, 'MESH');
+      await flock.setPhysicsShape(id, "MESH");
 
       const mesh = flock.scene.getMeshByName(id);
-      expect(mesh.metadata.physicsShapeType).to.equal('MESH');
+      expect(mesh.metadata.physicsShapeType).to.equal("MESH");
     });
   });
 
-  describe('showPhysics @physics', function () {
-    it('should not throw when called', function () {
+  describe("showPhysics @physics", function () {
+    it("should not throw when called", function () {
       expect(() => flock.showPhysics()).to.not.throw();
     });
 
-    it('should not throw when called with false', function () {
+    it("should not throw when called with false", function () {
       expect(() => flock.showPhysics(false)).to.not.throw();
     });
   });

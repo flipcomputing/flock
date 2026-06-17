@@ -211,16 +211,16 @@ createBox(boxId, options = {}) {
 
 ```javascript
 // tests/sound.test.js (auto-generated stub)
-import { expect } from 'chai';
+import { expect } from "chai";
 
 export function runSoundTests(flock) {
-  describe('Sound API Methods @sound', function () {
-    describe('playNotes function', function () {
-      it('should exist and be callable', function () {
-        expect(typeof flock.playNotes).to.equal('function');
+  describe("Sound API Methods @sound", function () {
+    describe("playNotes function", function () {
+      it("should exist and be callable", function () {
+        expect(typeof flock.playNotes).to.equal("function");
       });
 
-      it.skip('should play notes with valid parameters', function () {
+      it.skip("should play notes with valid parameters", function () {
         // TODO: Implement test
         // Example usage:
         // await flock.playNotes({
@@ -229,17 +229,17 @@ export function runSoundTests(flock) {
         // });
       });
 
-      it.skip('should handle invalid parameters gracefully', function () {
+      it.skip("should handle invalid parameters gracefully", function () {
         // TODO: Test error handling
       });
     });
 
-    describe('setBPM function', function () {
-      it('should exist and be callable', function () {
-        expect(typeof flock.setBPM).to.equal('function');
+    describe("setBPM function", function () {
+      it("should exist and be callable", function () {
+        expect(typeof flock.setBPM).to.equal("function");
       });
 
-      it.skip('should set beats per minute', function () {
+      it.skip("should set beats per minute", function () {
         // TODO: Implement test
       });
     });
@@ -277,7 +277,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install dependencies
         run: npm ci

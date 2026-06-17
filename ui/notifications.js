@@ -1,7 +1,7 @@
 // Error notification banners for Flock.
 // DOM-only: no dependency on the Babylon scene or the in-world text overlay,
 // so it works before a scene exists (startup, WebGL, CSG2 failures).
-import { translate } from '../main/translation.js';
+import { translate } from "../main/translation.js";
 
 // id -> banner element. The id makes calls idempotent: the same error
 // re-firing updates the existing banner instead of stacking duplicates.
@@ -10,15 +10,15 @@ const banners = new Map();
 // source -> friendly, translatable message key. Raw error detail never
 // reaches the user; it goes to console.error only.
 const MESSAGE_KEYS = {
-  startup: 'error_startup',
-  'project-run': 'error_project_crash',
-  'webgl-lost': 'error_webgl_lost',
-  'physics-oom': 'error_physics_oom',
-  audio: 'error_audio',
+  startup: "error_startup",
+  "project-run": "error_project_crash",
+  "webgl-lost": "error_webgl_lost",
+  "physics-oom": "error_physics_oom",
+  audio: "error_audio",
 };
 
 function getDocument() {
-  return (typeof document !== 'undefined' && document) || globalThis.document;
+  return (typeof document !== "undefined" && document) || globalThis.document;
 }
 
 export function dismissBanner(id) {
@@ -39,40 +39,40 @@ export function showBanner(id, { message, action } = {}) {
   const isNew = !banner || !banner.isConnected;
 
   if (isNew) {
-    banner = doc.createElement('div');
-    banner.className = 'flock-banner flock-banner--error';
-    banner.setAttribute('role', 'alert');
-    banner.setAttribute('aria-live', 'assertive');
+    banner = doc.createElement("div");
+    banner.className = "flock-banner flock-banner--error";
+    banner.setAttribute("role", "alert");
+    banner.setAttribute("aria-live", "assertive");
     banner.tabIndex = -1;
     banners.set(id, banner);
   }
 
   banner.replaceChildren();
 
-  const text = doc.createElement('span');
-  text.className = 'flock-banner__message';
+  const text = doc.createElement("span");
+  text.className = "flock-banner__message";
   text.textContent = message;
   banner.appendChild(text);
 
   if (action) {
-    const actionButton = doc.createElement('button');
-    actionButton.type = 'button';
-    actionButton.className = 'flock-banner__action';
+    const actionButton = doc.createElement("button");
+    actionButton.type = "button";
+    actionButton.className = "flock-banner__action";
     actionButton.textContent = action.label;
-    actionButton.addEventListener('click', action.onClick);
+    actionButton.addEventListener("click", action.onClick);
     banner.appendChild(actionButton);
   }
 
-  const closeButton = doc.createElement('button');
-  closeButton.type = 'button';
-  closeButton.className = 'flock-banner__close';
-  closeButton.setAttribute('aria-label', translate('banner_dismiss'));
-  closeButton.textContent = '×';
-  closeButton.addEventListener('click', () => dismissBanner(id));
+  const closeButton = doc.createElement("button");
+  closeButton.type = "button";
+  closeButton.className = "flock-banner__close";
+  closeButton.setAttribute("aria-label", translate("banner_dismiss"));
+  closeButton.textContent = "×";
+  closeButton.addEventListener("click", () => dismissBanner(id));
   banner.appendChild(closeButton);
 
   banner.onkeydown = (event) => {
-    if (event.key === 'Escape') {
+    if (event.key === "Escape") {
       dismissBanner(id);
     }
   };
@@ -88,14 +88,14 @@ export function showBanner(id, { message, action } = {}) {
 export function handleError(error, { source, fatal = false } = {}) {
   console.error(`[flock] ${source} error:`, error);
 
-  const id = source || 'project-run';
-  const messageKey = MESSAGE_KEYS[id] || MESSAGE_KEYS['project-run'];
+  const id = source || "project-run";
+  const messageKey = MESSAGE_KEYS[id] || MESSAGE_KEYS["project-run"];
 
   showBanner(id, {
     message: translate(messageKey),
     action: fatal
       ? {
-          label: translate('banner_reload'),
+          label: translate("banner_reload"),
           onClick: () => window.location.reload(),
         }
       : undefined,
@@ -107,12 +107,15 @@ export function handleError(error, { source, fatal = false } = {}) {
 // genuine physics out-of-memory crash, so it must never be suppressed here.
 export function isBenignAbort(error) {
   if (!error) return false;
-  if (typeof WebAssembly !== 'undefined' && error instanceof WebAssembly.RuntimeError) {
+  if (
+    typeof WebAssembly !== "undefined" &&
+    error instanceof WebAssembly.RuntimeError
+  ) {
     return false;
   }
-  if (error.name === 'AbortError') return true;
+  if (error.name === "AbortError") return true;
   const message = `${error.message ?? error}`.toLowerCase();
-  return message.includes('aborted') || message === 'abort';
+  return message.includes("aborted") || message === "abort";
 }
 
 let globalHandlersInstalled = false;
@@ -121,15 +124,15 @@ export function installGlobalErrorHandlers() {
   if (globalHandlersInstalled) return;
   globalHandlersInstalled = true;
 
-  window.addEventListener('error', (event) => {
+  window.addEventListener("error", (event) => {
     if (isBenignAbort(event.error)) return;
     handleError(event.error || new Error(event.message), {
-      source: 'project-run',
+      source: "project-run",
     });
   });
 
-  window.addEventListener('unhandledrejection', (event) => {
+  window.addEventListener("unhandledrejection", (event) => {
     if (isBenignAbort(event.reason)) return;
-    handleError(event.reason, { source: 'project-run' });
+    handleError(event.reason, { source: "project-run" });
   });
 }

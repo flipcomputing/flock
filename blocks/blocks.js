@@ -1,9 +1,9 @@
-import * as Blockly from 'blockly';
+import * as Blockly from "blockly";
 //import "@blockly/block-plus-minus";
-import * as BlockDynamicConnection from '@blockly/block-dynamic-connection';
-import { toolbox, categoryColours } from '../toolbox.js';
-import { translate, getTooltip } from '../main/translation.js';
-import { flock } from '../flock.js';
+import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
+import { toolbox, categoryColours } from "../toolbox.js";
+import { translate, getTooltip } from "../main/translation.js";
+import { flock } from "../flock.js";
 
 import {
   deleteMeshFromBlock,
@@ -12,18 +12,18 @@ import {
   getActiveSceneControllerBlockId,
   clearSkyMesh,
   setClearSkyToBlack,
-} from '../ui/blockmesh.js';
-import { FieldColour, registerFieldColour } from '@blockly/field-colour';
-import { createThemeConfig } from '../main/themes.js';
-import { makeInlineIcon, TOGGLE_BUTTON_FIELD_NAME } from './blockIcons.js';
+} from "../ui/blockmesh.js";
+import { FieldColour, registerFieldColour } from "@blockly/field-colour";
+import { createThemeConfig } from "../main/themes.js";
+import { makeInlineIcon, TOGGLE_BUTTON_FIELD_NAME } from "./blockIcons.js";
 
 registerFieldColour();
 
 const normaliseHexColour = (value) => {
-  if (typeof value !== 'string') return '';
+  if (typeof value !== "string") return "";
   let hex = value.trim().toLowerCase();
-  if (!hex) return '';
-  if (!hex.startsWith('#')) hex = `#${hex}`;
+  if (!hex) return "";
+  if (!hex.startsWith("#")) hex = `#${hex}`;
   if (/^#[\da-f]{3}$/.test(hex)) {
     hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
   }
@@ -31,7 +31,7 @@ const normaliseHexColour = (value) => {
 };
 
 // When using keyboard navigation, when the colour in a block isn't one of those in the grid this makes the editor start with the container selected so you can use arrow keys to navigate to the swatches.
-const flockFocusPatchKey = Symbol.for('flock.fieldColourFocusPatch');
+const flockFocusPatchKey = Symbol.for("flock.fieldColourFocusPatch");
 const fieldColourPrototype = FieldColour.prototype;
 if (!fieldColourPrototype[flockFocusPatchKey]) {
   const originalShowEditor = fieldColourPrototype.showEditor_;
@@ -55,7 +55,7 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
     // the field manually as a stopgap until upstream ships a v13 fix.
     const xy = this.getAbsoluteXY_();
     const size = this.getSize();
-    const dd = document.querySelector('.blocklyDropDownDiv');
+    const dd = document.querySelector(".blocklyDropDownDiv");
     const parent = dd?.parentElement;
     if (dd && parent && xy) {
       const parentRect = parent.getBoundingClientRect();
@@ -67,13 +67,15 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
     if (!currentValue) return;
 
     const hasMatchingSwatch = this.getOptions?.(false)?.some(
-      (option) => normaliseHexColour(option?.[1]) === currentValue
+      (option) => normaliseHexColour(option?.[1]) === currentValue,
     );
     if (hasMatchingSwatch) return;
     const openedWithKeyboard = e === undefined || e instanceof KeyboardEvent;
     if (!openedWithKeyboard) return;
 
-    Blockly.DropDownDiv.getContentDiv().querySelector('.blocklyFieldGrid')?.focus();
+    Blockly.DropDownDiv.getContentDiv()
+      .querySelector(".blocklyFieldGrid")
+      ?.focus();
   };
 }
 
@@ -82,12 +84,12 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
 // field's SVG click target.  The result is stored as a flag on the picker so
 // that excludeFromClose can let the click through only for colour-field hits.
 document.addEventListener(
-  'pointerdown',
+  "pointerdown",
   (e) => {
     const picker = window.flockColorPicker;
     if (!picker?.isOpen) return;
 
-    const blocklyDiv = document.getElementById('blocklyDiv');
+    const blocklyDiv = document.getElementById("blocklyDiv");
     if (!blocklyDiv?.contains(e.target)) return;
 
     const workspace = Blockly.getMainWorkspace();
@@ -101,11 +103,11 @@ document.addEventListener(
             if (!(field instanceof FieldColour)) return false;
             const ct = field.clickTarget_ ?? field.fieldGroup_;
             return ct && (ct === e.target || ct.contains(e.target));
-          })
-        )
+          }),
+        ),
     );
   },
-  true
+  true,
 );
 
 export let nextVariableIndexes = Object.create(null);
@@ -164,10 +166,10 @@ export function registerBlockHandler(block, handler) {
   blockHandlerRegistry.set(block.id, handler);
 }
 
-export const inlineIcon = makeInlineIcon('white');
+export const inlineIcon = makeInlineIcon("white");
 
 export function getHelpUrlFor(_blockType) {
-  return 'https://hub.flockxr.com';
+  return "https://hub.flockxr.com";
 }
 
 // Text of the static labels immediately preceding an input on its row (e.g.
@@ -179,12 +181,12 @@ function inputFieldRowLabel(input) {
   const labels = [];
   for (let i = fields.length - 1; i >= 0; i--) {
     if (!(fields[i] instanceof Blockly.FieldLabel)) break;
-    labels.unshift(fields[i].getText ? fields[i].getText() : '');
+    labels.unshift(fields[i].getText ? fields[i].getText() : "");
   }
-  const text = labels.join(' ').replace(/\s+/g, ' ').trim();
+  const text = labels.join(" ").replace(/\s+/g, " ").trim();
   // Strip surrounding punctuation/separators so "x:" reads as "x" and
   // "| skin:" reads as "skin" (messages separate fields with "|").
-  return text.replace(/^[^\p{L}\p{N}]+/u, '').replace(/[^\p{L}\p{N}]+$/u, '');
+  return text.replace(/^[^\p{L}\p{N}]+/u, "").replace(/[^\p{L}\p{N}]+$/u, "");
 }
 
 // Derived field-row labels that add no useful per-input context: connectors and
@@ -192,31 +194,10 @@ function inputFieldRowLabel(input) {
 // after the input it describes, so "for %2 seconds %3" would otherwise label the
 // %3 input "seconds". Meaningful nouns (hair, skin, x, size, color) are kept.
 const SKIP_DERIVED_LABELS = new Set([
-  'for',
-  'to',
-  'on',
-  'with',
-  'at',
-  'by',
-  'from',
-  'of',
-  'in',
-  'into',
-  'and',
-  'or',
-  'the',
-  'a',
-  'an',
-  'seconds',
-  'second',
-  's',
-  'ms',
-  'milliseconds',
-  'degrees',
-  'degree',
-  'deg',
-  'times',
-  'ms.',
+  "for", "to", "on", "with", "at", "by", "from", "of", "in", "into", "and",
+  "or", "the", "a", "an",
+  "seconds", "second", "s", "ms", "milliseconds", "degrees", "degree", "deg",
+  "times", "ms.",
 ]);
 
 // Gives value/statement inputs an ARIA label so screen readers announce the
@@ -248,7 +229,7 @@ export function applyInputAriaLabels(block, overrides) {
         label = derived;
       }
     }
-    if (label && typeof input.setAriaLabelProvider === 'function') {
+    if (label && typeof input.setAriaLabelProvider === "function") {
       input.setAriaLabelProvider(label);
     }
   }
@@ -260,7 +241,7 @@ export function applyInputAriaLabels(block, overrides) {
 // into a slot. Recompute affected fields so e.g. a number moved into scale's X
 // slot updates from "number" to "x, number". Called from a workspace listener.
 export function refreshReporterAriaLabels(block) {
-  if (!block || typeof block.getDescendants !== 'function') return;
+  if (!block || typeof block.getDescendants !== "function") return;
   for (const descendant of block.getDescendants(false)) {
     if (descendant.isSimpleReporter?.()) {
       descendant.getFullBlockField?.()?.recomputeAriaContext?.();
@@ -271,13 +252,13 @@ export function refreshReporterAriaLabels(block) {
 // Shared utility to add the toggle button to a block
 export function addToggleButton(block) {
   const toggleButton = new Blockly.FieldImage(
-    makeInlineIcon('white'),
+    makeInlineIcon("white"),
     30,
     30,
-    'toggle inline blocks',
+    "toggle inline blocks",
     () => {
       block.toggleDoBlock();
-    }
+    },
   );
 
   block
@@ -288,14 +269,14 @@ export function addToggleButton(block) {
 
 // Shared utility for the mutationToDom function
 export function mutationToDom(block) {
-  const container = document.createElement('mutation');
-  container.setAttribute('inline', block.isInline);
+  const container = document.createElement("mutation");
+  container.setAttribute("inline", block.isInline);
   return container;
 }
 
 // Shared utility for the domToMutation function
 export function domToMutation(block, xmlElement) {
-  const isInline = xmlElement.getAttribute('inline') === 'true';
+  const isInline = xmlElement.getAttribute("inline") === "true";
   block.updateShape_(isInline);
 }
 
@@ -316,12 +297,12 @@ export function handleBlockSelect(event) {
 
     if (
       block &&
-      block.type !== 'create_ground' &&
-      block.type !== 'create_map' &&
-      (block.type.startsWith('create_') || block.type.startsWith('load_'))
+      block.type !== "create_ground" &&
+      block.type !== "create_map" &&
+      (block.type.startsWith("create_") || block.type.startsWith("load_"))
     ) {
       // If the block is a create block, update the window.currentMesh variable
-      window.updateCurrentMeshName(block, 'ID_VAR');
+      window.updateCurrentMeshName(block, "ID_VAR");
     }
   }
 }
@@ -334,8 +315,8 @@ export function handleBlockDelete(event) {
       type: Blockly.Events.BLOCK_CHANGE,
       blockId: b.id,
       workspaceId: b.workspace?.id,
-      element: 'field',
-      name: '__restore__',
+      element: "field",
+      name: "__restore__",
       oldValue: null,
       newValue: null,
       recordUndo: false,
@@ -344,20 +325,29 @@ export function handleBlockDelete(event) {
     // Recursively delete meshes for qualifying blocks
     function deleteMeshesRecursively(blockJson) {
       // Check if block type matches the prefixes
-      if (blockJson.type.startsWith('load_') || blockJson.type.startsWith('create_')) {
+      if (
+        blockJson.type.startsWith("load_") ||
+        blockJson.type.startsWith("create_")
+      ) {
         deleteMeshFromBlock(blockJson.id);
-        if (blockJson.type === 'create_map') {
+        if (blockJson.type === "create_map") {
           const ws = Blockly.getMainWorkspace();
           const nextMapBlock = ws
             ?.getAllBlocks(false)
             .find(
               (b) =>
-                b.type === 'create_map' && b.id !== blockJson.id && b.isEnabled() && b.getParent()
+                b.type === "create_map" &&
+                b.id !== blockJson.id &&
+                b.isEnabled() &&
+                b.getParent(),
             );
           if (nextMapBlock)
-            updateOrCreateMeshFromBlock(nextMapBlock, makeRestoreEvent(nextMapBlock));
+            updateOrCreateMeshFromBlock(
+              nextMapBlock,
+              makeRestoreEvent(nextMapBlock),
+            );
         }
-      } else if (blockJson.type === 'set_background_color') {
+      } else if (blockJson.type === "set_background_color") {
         deleteMeshFromBlock(blockJson.id);
         if (activeControllerBlockId === blockJson.id) {
           clearSkyMesh();
@@ -366,16 +356,20 @@ export function handleBlockDelete(event) {
             ?.getAllBlocks(false)
             .find(
               (b) =>
-                (b.type === 'set_sky_color' || b.type === 'set_background_color') &&
+                (b.type === "set_sky_color" ||
+                  b.type === "set_background_color") &&
                 b.id !== blockJson.id &&
                 b.isEnabled() &&
-                b.getParent()
+                b.getParent(),
             );
           if (nextSkyBlock)
-            updateOrCreateMeshFromBlock(nextSkyBlock, makeRestoreEvent(nextSkyBlock));
+            updateOrCreateMeshFromBlock(
+              nextSkyBlock,
+              makeRestoreEvent(nextSkyBlock),
+            );
           else setClearSkyToBlack();
         }
-      } else if (blockJson.type === 'set_sky_color') {
+      } else if (blockJson.type === "set_sky_color") {
         if (activeControllerBlockId === blockJson.id) {
           clearSkyMesh();
           const ws = Blockly.getMainWorkspace();
@@ -383,13 +377,17 @@ export function handleBlockDelete(event) {
             ?.getAllBlocks(false)
             .find(
               (b) =>
-                (b.type === 'set_sky_color' || b.type === 'set_background_color') &&
+                (b.type === "set_sky_color" ||
+                  b.type === "set_background_color") &&
                 b.id !== blockJson.id &&
                 b.isEnabled() &&
-                b.getParent()
+                b.getParent(),
             );
           if (nextSkyBlock)
-            updateOrCreateMeshFromBlock(nextSkyBlock, makeRestoreEvent(nextSkyBlock));
+            updateOrCreateMeshFromBlock(
+              nextSkyBlock,
+              makeRestoreEvent(nextSkyBlock),
+            );
           else setClearSkyToBlack();
         }
       }
@@ -416,13 +414,21 @@ export function handleBlockDelete(event) {
 }
 
 export function handleMeshLifecycleChange(block, changeEvent) {
-  if (!block || block.disposed || !block.workspace || block.workspace.isFlyout) {
+  if (
+    !block ||
+    block.disposed ||
+    !block.workspace ||
+    block.workspace.isFlyout
+  ) {
     return false;
   }
 
   const mesh = getMeshFromBlock(block);
 
-  if (changeEvent.type === Blockly.Events.BLOCK_MOVE && changeEvent.blockId === block.id) {
+  if (
+    changeEvent.type === Blockly.Events.BLOCK_MOVE &&
+    changeEvent.blockId === block.id
+  ) {
     if (block.getParent() && !mesh) {
       updateOrCreateMeshFromBlock(block, changeEvent);
     }
@@ -432,9 +438,10 @@ export function handleMeshLifecycleChange(block, changeEvent) {
   if (
     changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
     changeEvent.blockId === block.id &&
-    changeEvent.element === 'disabled'
+    changeEvent.element === "disabled"
   ) {
-    const isDisabling = changeEvent.newValue === true || changeEvent.newValue === 'true';
+    const isDisabling =
+      changeEvent.newValue === true || changeEvent.newValue === "true";
 
     if (!isDisabling) {
       setTimeout(() => {
@@ -447,7 +454,8 @@ export function handleMeshLifecycleChange(block, changeEvent) {
     } else {
       deleteMeshFromBlock(block.id);
       if (
-        (block.type === 'set_background_color' || block.type === 'set_sky_color') &&
+        (block.type === "set_background_color" ||
+          block.type === "set_sky_color") &&
         getActiveSceneControllerBlockId() === block.id
       ) {
         clearSkyMesh();
@@ -457,7 +465,10 @@ export function handleMeshLifecycleChange(block, changeEvent) {
     return true;
   }
 
-  if (changeEvent.type === Blockly.Events.BLOCK_CREATE && block.workspace.getBlockById(block.id)) {
+  if (
+    changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+    block.workspace.getBlockById(block.id)
+  ) {
     const createdBlockIds = Array.isArray(changeEvent.ids)
       ? changeEvent.ids
       : [changeEvent.blockId];
@@ -484,7 +495,9 @@ export function isValueInputDescendantOf(containerBlock, changedBlock) {
     if (!parent) return false;
 
     const viaValueInput = (parent.inputList || []).some(
-      (inp) => inp?.type === Blockly.INPUT_VALUE && inp?.connection?.targetBlock?.() === child
+      (inp) =>
+        inp?.type === Blockly.INPUT_VALUE &&
+        inp?.connection?.targetBlock?.() === child,
     );
 
     if (!viaValueInput) return false;
@@ -495,7 +508,10 @@ export function isValueInputDescendantOf(containerBlock, changedBlock) {
 }
 
 export function handleFieldOrChildChange(containerBlock, changeEvent) {
-  if (changeEvent.type !== Blockly.Events.BLOCK_CHANGE || changeEvent.element !== 'field') {
+  if (
+    changeEvent.type !== Blockly.Events.BLOCK_CHANGE ||
+    changeEvent.element !== "field"
+  ) {
     return false;
   }
 
@@ -525,14 +541,19 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
 
   const ws = containerBlock.workspace;
   const changedBlocks =
-    changeEvent.type === Blockly.Events.BLOCK_CREATE && Array.isArray(changeEvent.ids)
+    changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+    Array.isArray(changeEvent.ids)
       ? changeEvent.ids.map((id) => ws.getBlockById(id)).filter(Boolean)
       : [ws.getBlockById(changeEvent.blockId)].filter(Boolean);
 
   for (const changed of changedBlocks) {
     const parent = findCreateBlock(changed);
 
-    if (changed && parent === containerBlock && isValueInputDescendantOf(containerBlock, changed)) {
+    if (
+      changed &&
+      parent === containerBlock &&
+      isValueInputDescendantOf(containerBlock, changed)
+    ) {
       if (!window.loadingCode) {
         updateOrCreateMeshFromBlock(containerBlock, changeEvent);
       }
@@ -544,23 +565,23 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
 }
 
 export function findCreateBlock(block) {
-  if (!block || typeof block.getParent !== 'function') {
+  if (!block || typeof block.getParent !== "function") {
     return null;
   }
 
   let parent = block;
 
   while (parent) {
-    if (parent.type === 'scale' || parent.type === 'rotate_to') {
+    if (parent.type === "scale" || parent.type === "rotate_to") {
       // Don't update parent if we're modifying a nested scale or rotate
       return null;
     }
 
     if (
-      parent.type.startsWith('create_') ||
-      parent.type.startsWith('load_') ||
-      parent.type === 'set_sky_color' ||
-      parent.type === 'set_background_color'
+      parent.type.startsWith("create_") ||
+      parent.type.startsWith("load_") ||
+      parent.type === "set_sky_color" ||
+      parent.type === "set_background_color"
     ) {
       return parent;
     }
@@ -575,7 +596,12 @@ export function findCreateBlock(block) {
 
 export function handleBlockChange(block, changeEvent, variableNamePrefix) {
   // Always run first to handle variable naming
-  handleBlockCreateEvent(block, changeEvent, variableNamePrefix, nextVariableIndexes);
+  handleBlockCreateEvent(
+    block,
+    changeEvent,
+    variableNamePrefix,
+    nextVariableIndexes,
+  );
 
   // Handle lifecycle events like enable/disable/move on the block directly.
   // Also handle BLOCK_CREATE events where this block is in the created ids
@@ -599,34 +625,45 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
       changeEvent.type === Blockly.Events.BLOCK_MOVE) &&
     changeEvent.workspaceId === ws.id
   ) {
-    if (flock.blockDebug) console.log('The changed block is', changeEvent.block);
-    if (flock.blockDebug) console.log('The changed block is', changeEvent.blockId);
+    if (flock.blockDebug)
+      console.log("The changed block is", changeEvent.block);
+    if (flock.blockDebug)
+      console.log("The changed block is", changeEvent.blockId);
     const changedBlock = ws.getBlockById(changeEvent.blockId);
 
     const createdBlocks =
-      changeEvent.type === Blockly.Events.BLOCK_CREATE && Array.isArray(changeEvent.ids)
+      changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+      Array.isArray(changeEvent.ids)
         ? changeEvent.ids.map((id) => ws.getBlockById(id)).filter(Boolean)
         : [changedBlock].filter(Boolean);
 
     if (!createdBlocks.length) {
-      if (flock.blockDebug) console.log('Changed block not found in workspace');
+      if (flock.blockDebug) console.log("Changed block not found in workspace");
       return;
     }
 
     const parents = createdBlocks.map((cb) => findCreateBlock(cb));
-    if (flock.blockDebug) console.log('The type of the changed block is', changedBlock.type);
+    if (flock.blockDebug)
+      console.log("The type of the changed block is", changedBlock.type);
     if (changedBlock.getParent()) {
       if (flock.blockDebug)
-        console.log('The ID of the parent of the changed block is', changedBlock.getParent().id);
+        console.log(
+          "The ID of the parent of the changed block is",
+          changedBlock.getParent().id,
+        );
       if (flock.blockDebug)
         console.log(
-          'The type of the parent of the changed block is',
-          changedBlock.getParent().type
+          "The type of the parent of the changed block is",
+          changedBlock.getParent().type,
         );
     }
-    if (flock.blockDebug) console.log('This block is', block.id);
-    if (flock.blockDebug) console.log('The type of this block is', block.type);
-    if (changedBlock && parents.includes(block) && isValueInputDescendantOf(block, changedBlock)) {
+    if (flock.blockDebug) console.log("This block is", block.id);
+    if (flock.blockDebug) console.log("The type of this block is", block.type);
+    if (
+      changedBlock &&
+      parents.includes(block) &&
+      isValueInputDescendantOf(block, changedBlock)
+    ) {
       // Only configuration inputs (value-input subtree) affect preview mesh; runtime statement blocks do not.
       const blockInWorkspace = ws.getBlockById(block.id);
       if (blockInWorkspace) {
@@ -639,7 +676,9 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
 const _pendingRetarget = new WeakMap(); // block -> { from, to, type, prefix } | undefined
 
 function getBlockly(opts) {
-  return (opts && opts.Blockly) || (typeof Blockly !== 'undefined' ? Blockly : null);
+  return (
+    (opts && opts.Blockly) || (typeof Blockly !== "undefined" ? Blockly : null)
+  );
 }
 
 function getVariableFieldsOnBlock(block, BlocklyNS) {
@@ -652,7 +691,13 @@ function getVariableFieldsOnBlock(block, BlocklyNS) {
   return out;
 }
 
-function isVariableUsedElsewhere(workspace, varId, excludingBlockId, BlocklyNS, allBlocks) {
+function isVariableUsedElsewhere(
+  workspace,
+  varId,
+  excludingBlockId,
+  BlocklyNS,
+  allBlocks,
+) {
   if (!varId) return false;
   const blocks = allBlocks ?? workspace.getAllBlocks(false);
   for (const b of blocks) {
@@ -667,12 +712,13 @@ function isVariableUsedElsewhere(workspace, varId, excludingBlockId, BlocklyNS, 
 
 function getFieldVariableType(block, fieldName) {
   const field = block.getField(fieldName);
-  if (!field) return '';
-  const model = typeof field.getVariable === 'function' ? field.getVariable() : null;
-  if (model && typeof model.type === 'string') return model.type || '';
+  if (!field) return "";
+  const model =
+    typeof field.getVariable === "function" ? field.getVariable() : null;
+  if (model && typeof model.type === "string") return model.type || "";
   const varId = field.getValue && field.getValue();
   const byId = varId ? block.workspace.getVariableMap().getVariableById(varId) : null;
-  return (byId && byId.type) || '';
+  return (byId && byId.type) || "";
 }
 
 function parseNumericSuffix(name, prefix) {
@@ -683,7 +729,7 @@ function parseNumericSuffix(name, prefix) {
 }
 
 function deriveVariableNameParts(name, fallbackPrefix) {
-  if (typeof name !== 'string' || !name.length) {
+  if (typeof name !== "string" || !name.length) {
     return { prefix: fallbackPrefix, suffix: null };
   }
   const numberMatch = name.match(/^(.*?)(\d+)$/);
@@ -704,7 +750,10 @@ function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   while (workspace.getVariableMap().getVariable(`${prefix}${n}`, type)) n += 1;
 
   // Update the counter
-  nextVariableIndexes[prefix] = Math.max(nextVariableIndexes[prefix] || 1, n + 1);
+  nextVariableIndexes[prefix] = Math.max(
+    nextVariableIndexes[prefix] || 1,
+    n + 1,
+  );
 
   const newVarName = `${prefix}${n}`;
 
@@ -720,7 +769,13 @@ function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   return workspace.getVariableMap().createVariable(`${prefix}${n}`, type);
 }
 
-function retargetDescendantsVariables(rootBlock, fromVarId, toVarId, BlocklyNS, createdIds = null) {
+function retargetDescendantsVariables(
+  rootBlock,
+  fromVarId,
+  toVarId,
+  BlocklyNS,
+  createdIds = null,
+) {
   if (!fromVarId || !toVarId || fromVarId === toVarId) return 0;
 
   // Get descendants but ONLY through input connections, not next/previous
@@ -780,7 +835,7 @@ function adoptIsolatedDefaultVarsTo(
   workspace,
   BlocklyNS,
   createdIds,
-  allBlocks
+  allBlocks,
 ) {
   const descendantIds = buildDescendantIdSet(rootBlock);
   let adopted = 0;
@@ -840,7 +895,7 @@ function adoptIsolatedDefaultVarsTo(
         try {
           workspace.getVariableMap().deleteVariable(model);
         } catch (error) {
-          console.warn('Failed to delete unreferenced variable by id:', error);
+          console.warn("Failed to delete unreferenced variable by id:", error);
         }
       }
     }
@@ -861,12 +916,12 @@ export function ensureFreshVarOnDuplicate(
   changeEvent,
   variableNamePrefix,
   nextVariableIndexes,
-  opts = {}
+  opts = {},
 ) {
   const BlocklyNS = getBlockly(opts);
   if (!BlocklyNS) return false;
 
-  const fieldName = opts.fieldName || 'ID_VAR';
+  const fieldName = opts.fieldName || "ID_VAR";
 
   // Finish any pending work (retarget, adopt, normalize) from earlier in the same dup group.
   const pending = _pendingRetarget.get(block);
@@ -876,7 +931,13 @@ export function ensureFreshVarOnDuplicate(
       BlocklyNS.Events.disable();
 
       // Only retarget blocks that were created in the same copy operation
-      retargetDescendantsVariables(block, pending.from, pending.to, BlocklyNS, pending.createdIds);
+      retargetDescendantsVariables(
+        block,
+        pending.from,
+        pending.to,
+        BlocklyNS,
+        pending.createdIds,
+      );
       adoptIsolatedDefaultVarsTo(
         block,
         pending.to,
@@ -884,10 +945,12 @@ export function ensureFreshVarOnDuplicate(
         pending.prefix,
         block.workspace,
         BlocklyNS,
-        pending.createdIds
+        pending.createdIds,
       );
 
-      if (!subtreeHasVarId(block, pending.from, BlocklyNS, pending.createdIds)) {
+      if (
+        !subtreeHasVarId(block, pending.from, BlocklyNS, pending.createdIds)
+      ) {
         _pendingRetarget.set(block, undefined);
       }
     } finally {
@@ -907,20 +970,19 @@ export function ensureFreshVarOnDuplicate(
   const oldVarId = idField.getValue && idField.getValue();
   if (!oldVarId) return false;
   const oldVarModel = ws.getVariableMap().getVariableById(oldVarId);
-  const { prefix: duplicatePrefix, suffix: duplicateSuffix } = deriveVariableNameParts(
-    oldVarModel?.name,
-    variableNamePrefix
-  );
+  const { prefix: duplicatePrefix, suffix: duplicateSuffix } =
+    deriveVariableNameParts(oldVarModel?.name, variableNamePrefix);
 
   // Duplicate/copy/duplicate-parent case?
   const allBlocks = ws.getAllBlocks(false);
-  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS, allBlocks)) return false;
+  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS, allBlocks))
+    return false;
 
   if (Number.isInteger(duplicateSuffix)) {
     const nextFromSource = duplicateSuffix + 1;
     nextVariableIndexes[duplicatePrefix] = Math.max(
       nextVariableIndexes[duplicatePrefix] || 1,
-      nextFromSource
+      nextFromSource,
     );
   }
 
@@ -935,16 +997,28 @@ export function ensureFreshVarOnDuplicate(
     BlocklyNS.Events.disable();
 
     // Mint a new var with the *lowest* available suffix now.
-    const newVarModel = createFreshVariable(ws, duplicatePrefix, varType, nextVariableIndexes);
+    const newVarModel = createFreshVariable(
+      ws,
+      duplicatePrefix,
+      varType,
+      nextVariableIndexes,
+    );
     const newVarId =
-      newVarModel.id || (typeof newVarModel.getId === 'function' ? newVarModel.getId() : null);
+      newVarModel.id ||
+      (typeof newVarModel.getId === "function" ? newVarModel.getId() : null);
     if (!newVarId) return false;
 
     // Point the creator at the fresh variable.
     idField.setValue(newVarId);
 
     // Pass 1: retarget descendants old -> new (ONLY blocks created in this event)
-    retargetDescendantsVariables(block, oldVarId, newVarId, BlocklyNS, createdIds);
+    retargetDescendantsVariables(
+      block,
+      oldVarId,
+      newVarId,
+      BlocklyNS,
+      createdIds,
+    );
 
     // Pass 2: adopt any isolated default-looking vars inside subtree to the new var
     adoptIsolatedDefaultVarsTo(
@@ -955,7 +1029,7 @@ export function ensureFreshVarOnDuplicate(
       ws,
       BlocklyNS,
       createdIds,
-      allBlocks
+      allBlocks,
     );
 
     // If more children will connect later, remember to finish on subsequent events.
@@ -1000,11 +1074,11 @@ export class CustomConstantProvider extends Blockly.zelos.ConstantProvider {
     this.NOTCH_OFFSET_LEFT = 2 * this.GRID_UNIT;
     this.NOTCH_HEIGHT = 2 * this.GRID_UNIT;
     this.FIELD_DROPDOWN_SVG_ARROW_DATAURI =
-      'data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMi43MSIgaGVpZ2h0PSI4Ljc5IiB2aWV3Qm94PSIwIDAgMTIuNzEgOC43OSI+PHRpdGxlPmRyb3Bkb3duLWFycm93PC90aXRsZT48ZyBvcGFjaXR5PSIwLjEiPjxwYXRoIGQ9Ik0xMi43MSwyLjQ0QTIuNDEsMi40MSwwLDAsMSwxMiw0LjE2TDguMDgsOC4wOGEyLjQ1LDIuNDUsMCwwLDEtMy40NSwwTDAuNzIsNC4xNkEyLjQyLDIuNDIsMCwwLDEsMCwyLjQ0LDIuNDgsMi40OCwwLDAsMSwuNzEuNzFDMSwwLjQ3LDEuNDMsMCw2LjM2LDBTMTEuNzUsMC40NiwxMiwuNzFBMi40NCwyLjQ0LDAsMCwxLDEyLjcxLDIuNDRaIiBmaWxsPSIjMjMxZjIwIi8+PC9nPjxwYXRoIGQ9Ik02LjM2LDcuNzlhMS40MywxLjQzLDAsMCwxLTEuNDItTDEuNDIsMy40NWExLjQ0LDEuNDQsMCwwLDEsMC0yYzAuNTYtLjU2LDkuMzEtMC41Niw5Ljg3LDBhMS40NCwxLjQ0LDAsMCwxLDAsMkw3LjM3LDcuMzdBMS40MywxLjQzLDAsMCwxLDYuMzYsNy43OVoiIGZpbGw9IiMwMDAiLz48L3N2Zz4=';
+      "data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMi43MSIgaGVpZ2h0PSI4Ljc5IiB2aWV3Qm94PSIwIDAgMTIuNzEgOC43OSI+PHRpdGxlPmRyb3Bkb3duLWFycm93PC90aXRsZT48ZyBvcGFjaXR5PSIwLjEiPjxwYXRoIGQ9Ik0xMi43MSwyLjQ0QTIuNDEsMi40MSwwLDAsMSwxMiw0LjE2TDguMDgsOC4wOGEyLjQ1LDIuNDUsMCwwLDEtMy40NSwwTDAuNzIsNC4xNkEyLjQyLDIuNDIsMCwwLDEsMCwyLjQ0LDIuNDgsMi40OCwwLDAsMSwuNzEuNzFDMSwwLjQ3LDEuNDMsMCw2LjM2LDBTMTEuNzUsMC40NiwxMiwuNzFBMi40NCwyLjQ0LDAsMCwxLDEyLjcxLDIuNDRaIiBmaWxsPSIjMjMxZjIwIi8+PC9nPjxwYXRoIGQ9Ik02LjM2LDcuNzlhMS40MywxLjQzLDAsMCwxLTEuNDItTDEuNDIsMy40NWExLjQ0LDEuNDQsMCwwLDEsMC0yYzAuNTYtLjU2LDkuMzEtMC41Niw5Ljg3LDBhMS40NCwxLjQ0LDAsMCwxLDAsMkw3LjM3LDcuMzdBMS40MywxLjQzLDAsMCwxLDYuMzYsNy43OVoiIGZpbGw9IiMwMDAiLz48L3N2Zz4=";
   }
 }
 
-const MODE = { IF: 'IF', ELSEIF: 'ELSEIF', ELSE: 'ELSE' };
+const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
 
 class CustomRenderInfo extends Blockly.zelos.RenderInfo {
   constructor(renderer, block) {
@@ -1017,8 +1091,8 @@ class CustomRenderInfo extends Blockly.zelos.RenderInfo {
     super.addElemSpacing_();
 
     // Add extra height to the top row for IF blocks only
-    if (this.block_.type === 'if_clause') {
-      const mode = this.block_.getFieldValue?.('MODE');
+    if (this.block_.type === "if_clause") {
+      const mode = this.block_.getFieldValue?.("MODE");
       if (mode === MODE.IF && this.rows.length > 0) {
         // Find the first row with fields or inputs (skip the top cap row)
         for (let i = 0; i < this.rows.length; i++) {
@@ -1028,7 +1102,7 @@ class CustomRenderInfo extends Blockly.zelos.RenderInfo {
           if (row.elements && row.elements.length > 0) {
             // Check if it's not just a top/bottom cap or connection row
             const hasContent = row.elements.some(
-              (el) => el.field || el.input || (el.type && el.type !== 0)
+              (el) => el.field || el.input || (el.type && el.type !== 0),
             );
 
             if (hasContent) {
@@ -1052,19 +1126,21 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
 
   drawTop_() {
     const b = this.block_;
-    if (b?.type !== 'if_clause') return super.drawTop_();
+    if (b?.type !== "if_clause") return super.drawTop_();
 
     // Never change shape for insertion markers.
     if (b.isInsertionMarker?.()) return super.drawTop_();
 
-    const mode = b.getFieldValue?.('MODE');
+    const mode = b.getFieldValue?.("MODE");
     const isClause = mode === MODE.ELSE || mode === MODE.ELSEIF;
 
     // Require an ACTUAL previous connection to a real if_clause block.
     const prevConn = b.previousConnection;
-    const prev = prevConn && prevConn.isConnected() ? prevConn.targetBlock() : null;
+    const prev =
+      prevConn && prevConn.isConnected() ? prevConn.targetBlock() : null;
 
-    const prevIsRealIfClause = prev && prev.type === 'if_clause' && !prev.isInsertionMarker?.();
+    const prevIsRealIfClause =
+      prev && prev.type === "if_clause" && !prev.isInsertionMarker?.();
 
     if (isClause && prevIsRealIfClause) {
       this.drawFlatTop_();
@@ -1076,12 +1152,12 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
 
   drawBottom_() {
     const b = this.block_;
-    if (b?.type !== 'if_clause') return super.drawBottom_();
+    if (b?.type !== "if_clause") return super.drawBottom_();
 
     // Never change shape for insertion markers.
     if (b.isInsertionMarker?.()) return super.drawBottom_();
 
-    const mode = b.getFieldValue?.('MODE');
+    const mode = b.getFieldValue?.("MODE");
 
     // Only clauses that can legally have something after them in the same chain.
     const canContinueChain = mode === MODE.IF || mode === MODE.ELSEIF;
@@ -1089,16 +1165,19 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
 
     // Require an ACTUAL next connection to a real if_clause block.
     const nextConn = b.nextConnection;
-    const next = nextConn && nextConn.isConnected() ? nextConn.targetBlock() : null;
+    const next =
+      nextConn && nextConn.isConnected() ? nextConn.targetBlock() : null;
 
-    const nextIsRealIfClause = next && next.type === 'if_clause' && !next.isInsertionMarker?.();
+    const nextIsRealIfClause =
+      next && next.type === "if_clause" && !next.isInsertionMarker?.();
 
     if (!nextIsRealIfClause) return super.drawBottom_();
 
     // Only flatten when the NEXT clause is a joined clause (else/else if),
     // not when it’s a new IF statement.
-    const nextMode = next.getFieldValue?.('MODE');
-    const nextIsJoinedClause = nextMode === MODE.ELSE || nextMode === MODE.ELSEIF;
+    const nextMode = next.getFieldValue?.("MODE");
+    const nextIsJoinedClause =
+      nextMode === MODE.ELSE || nextMode === MODE.ELSEIF;
 
     if (nextIsJoinedClause) {
       this.drawFlatBottom_();
@@ -1112,18 +1191,22 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
     const b = this.block_;
     const svgRoot = b.getSvgRoot?.();
     if (!svgRoot) return;
-    svgRoot.removeAttribute('data-axis');
+    svgRoot.removeAttribute("data-axis");
     if (!b.outputConnection?.isConnected()) return;
     const targetConn = b.outputConnection.targetConnection;
     if (!targetConn) return;
     const parentBlock = b.outputConnection.targetBlock();
     if (!parentBlock) return;
     const parentInput = (parentBlock.inputList || []).find(
-      (input) => input.connection === targetConn
+      (input) => input.connection === targetConn,
     );
     if (!parentInput) return;
-    if (parentInput.name === 'X' || parentInput.name === 'Y' || parentInput.name === 'Z') {
-      svgRoot.setAttribute('data-axis', parentInput.name);
+    if (
+      parentInput.name === "X" ||
+      parentInput.name === "Y" ||
+      parentInput.name === "Z"
+    ) {
+      svgRoot.setAttribute("data-axis", parentInput.name);
     }
   }
 
@@ -1132,54 +1215,61 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
     this.colorizeAxisInput_();
 
     const b = this.block_;
-    if (b?.type !== 'if_clause') return;
+    if (b?.type !== "if_clause") return;
 
     // Don’t paint seam covers on insertion markers / connection previews.
-    if (typeof b.isInsertionMarker === 'function' && b.isInsertionMarker()) return;
+    if (typeof b.isInsertionMarker === "function" && b.isInsertionMarker())
+      return;
 
     const svgRoot = b.getSvgRoot?.();
     if (!svgRoot) return;
 
     // Always remove any previous cover (so disabling can hide it).
-    const existing = svgRoot.querySelector?.(':scope > rect.ifclause-seam-cover');
+    const existing = svgRoot.querySelector?.(
+      ":scope > rect.ifclause-seam-cover",
+    );
     if (existing) existing.remove();
 
     // If the block is disabled, we’re done (no cover).
     // Use isEnabled (covers setDisabledReason etc), with a fallback to `disabled`.
-    const isDisabled = (typeof b.isEnabled === 'function' ? !b.isEnabled() : false) || !!b.disabled;
+    const isDisabled =
+      (typeof b.isEnabled === "function" ? !b.isEnabled() : false) ||
+      !!b.disabled;
     if (isDisabled) return;
 
     const prev = b.getPreviousBlock?.();
-    const prevIsIfClause = prev && prev.type === 'if_clause';
+    const prevIsIfClause = prev && prev.type === "if_clause";
 
-    const mode = b.getFieldValue?.('MODE');
+    const mode = b.getFieldValue?.("MODE");
     const isJoinedClause = mode === MODE.ELSE || mode === MODE.ELSEIF;
 
     if (!prevIsIfClause || !isJoinedClause) return;
 
     // Get the actual rendered fill from the block path (avoids black during previews).
     const pathObj = this.pathObject_;
-    const mainPath = pathObj?.svgPath_ || pathObj?.svgPath || pathObj?.path_ || null;
+    const mainPath =
+      pathObj?.svgPath_ || pathObj?.svgPath || pathObj?.path_ || null;
 
     const fill =
-      (mainPath?.getAttribute && mainPath.getAttribute('fill')) ||
+      (mainPath?.getAttribute && mainPath.getAttribute("fill")) ||
       mainPath?.style?.fill ||
-      (typeof b.getColour === 'function' ? b.getColour() : null);
+      (typeof b.getColour === "function" ? b.getColour() : null);
 
-    if (!fill || fill === 'none') return;
+    if (!fill || fill === "none") return;
 
     const coverPx = 16;
-    const strokePx = this.constants_?.OUTLINE_WIDTH ?? this.constants_?.STROKE_WIDTH ?? 1;
+    const strokePx =
+      this.constants_?.OUTLINE_WIDTH ?? this.constants_?.STROKE_WIDTH ?? 1;
 
-    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttribute('class', 'ifclause-seam-cover');
-    rect.setAttribute('x', '1');
-    rect.setAttribute('y', String(-strokePx * 2));
-    rect.setAttribute('width', String(coverPx));
-    rect.setAttribute('height', String(strokePx * 4));
-    rect.setAttribute('fill', fill);
-    rect.setAttribute('stroke', 'none');
-    rect.setAttribute('pointer-events', 'none');
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("class", "ifclause-seam-cover");
+    rect.setAttribute("x", "1");
+    rect.setAttribute("y", String(-strokePx * 2));
+    rect.setAttribute("width", String(coverPx));
+    rect.setAttribute("height", String(strokePx * 4));
+    rect.setAttribute("fill", fill);
+    rect.setAttribute("stroke", "none");
+    rect.setAttribute("pointer-events", "none");
 
     svgRoot.appendChild(rect);
   }
@@ -1204,8 +1294,8 @@ export class CustomZelosRenderer extends Blockly.zelos.Renderer {
 }
 
 function getBlocklyMediaPath() {
-  let baseUrl = import.meta.env.BASE_URL || '/';
-  if (!baseUrl.endsWith('/')) baseUrl += '/';
+  let baseUrl = import.meta.env.BASE_URL || "/";
+  if (!baseUrl.endsWith("/")) baseUrl += "/";
   return `${baseUrl}blockly/media/`;
 }
 
@@ -1213,10 +1303,10 @@ const mediaPath = getBlocklyMediaPath();
 
 export const options = {
   //theme: FlockTheme,
-  theme: createThemeConfig('light'),
+  theme: createThemeConfig("light"),
   //theme: "flockTheme",
   //renderer: "zelos",
-  renderer: 'custom_zelos_renderer',
+  renderer: "custom_zelos_renderer",
   media: mediaPath,
   modalInputs: false,
   zoom: {
@@ -1268,7 +1358,7 @@ export function initializeVariableIndexes() {
     plane: 1,
     wall: 1,
     text: 1,
-    '3dtext': 1,
+    "3dtext": 1,
     sound: 1,
     character: 1,
     object: 1,
@@ -1293,7 +1383,7 @@ export function initializeVariableIndexes() {
   // Process each type of variable and use the lowest available suffix.
   if (workspace) {
     Object.keys(nextVariableIndexes).forEach(function (type) {
-      nextVariableIndexes[type] = lowestAvailableSuffix(workspace, type, '');
+      nextVariableIndexes[type] = lowestAvailableSuffix(workspace, type, "");
     });
   }
 
@@ -1321,66 +1411,68 @@ export function defineBlocks() {
 
   window.updateCurrentMeshName = updateCurrentMeshName;
 
-  Blockly.Blocks['create_wall'] = {
+  Blockly.Blocks["create_wall"] = {
     init: function () {
-      const variableNamePrefix = 'wall';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "wall1";
+      const variableNamePrefix = "wall";
+      let nextVariableName =
+        variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "wall1";
       this.jsonInit({
-        type: 'create_wall',
-        message0: 'new wall %1 type %2 colour %3 \n start x %4 z %5 end x %6 z %7 y position %8',
+        type: "create_wall",
+        message0:
+          "new wall %1 type %2 colour %3 \n start x %4 z %5 end x %6 z %7 y position %8",
         args0: [
           {
-            type: 'field_variable',
-            name: 'ID_VAR',
+            type: "field_variable",
+            name: "ID_VAR",
             variable: nextVariableName,
           },
           {
-            type: 'field_dropdown',
-            name: 'WALL_TYPE',
+            type: "field_dropdown",
+            name: "WALL_TYPE",
             options: [
-              ['solid', 'SOLID_WALL'],
-              ['door', 'WALL_WITH_DOOR'],
-              ['window', 'WALL_WITH_WINDOW'],
-              ['floor/roof', 'FLOOR'],
+              ["solid", "SOLID_WALL"],
+              ["door", "WALL_WITH_DOOR"],
+              ["window", "WALL_WITH_WINDOW"],
+              ["floor/roof", "FLOOR"],
             ],
           },
           {
-            type: 'input_value',
-            name: 'COLOR',
-            check: 'Colour',
+            type: "input_value",
+            name: "COLOR",
+            check: "Colour",
           },
           {
-            type: 'input_value',
-            name: 'START_X',
-            check: 'Number',
+            type: "input_value",
+            name: "START_X",
+            check: "Number",
           },
           {
-            type: 'input_value',
-            name: 'START_Z',
-            check: 'Number',
+            type: "input_value",
+            name: "START_Z",
+            check: "Number",
           },
           {
-            type: 'input_value',
-            name: 'END_X',
-            check: 'Number',
+            type: "input_value",
+            name: "END_X",
+            check: "Number",
           },
           {
-            type: 'input_value',
-            name: 'END_Z',
-            check: 'Number',
+            type: "input_value",
+            name: "END_Z",
+            check: "Number",
           },
           {
-            type: 'input_value',
-            name: 'Y_POSITION',
-            check: 'Number',
+            type: "input_value",
+            name: "Y_POSITION",
+            check: "Number",
           },
         ],
         inputsInline: true,
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours['Scene'],
+        colour: categoryColours["Scene"],
         tooltip:
-          'Create a wall with the selected type and color between specified start and end positions.\nKeyword: wall',
+          "Create a wall with the selected type and color between specified start and end positions.\nKeyword: wall",
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       registerBlockHandler(this, (changeEvent) => {
@@ -1391,18 +1483,23 @@ export function defineBlocks() {
           const blockInWorkspace = this.workspace?.getBlockById(this.id); // Check if block is in the main workspace
 
           if (blockInWorkspace) {
-            window.updateCurrentMeshName(this, 'ID_VAR'); // Call the function to update window.currentMesh
+            window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
           }
         }
 
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
+        handleBlockCreateEvent(
+          this,
+          changeEvent,
+          variableNamePrefix,
+          nextVariableIndexes,
+        );
       });
     },
   };
 
-  Blockly.Extensions.register('dynamic_mesh_dropdown', function () {
+  Blockly.Extensions.register("dynamic_mesh_dropdown", function () {
     const dropdown = new Blockly.FieldDropdown(function () {
-      const options = [[translate('everywhere_option'), '__everywhere__']];
+      const options = [[translate("everywhere_option"), "__everywhere__"]];
       const workspace = this.sourceBlock_ && this.sourceBlock_.workspace;
       if (workspace) {
         const variables = workspace.getVariableMap().getAllVariables();
@@ -1414,180 +1511,180 @@ export function defineBlocks() {
     });
 
     // Attach the dropdown to the block
-    this.getInput('MESH_INPUT').appendField(dropdown, 'MESH_NAME');
+    this.getInput("MESH_INPUT").appendField(dropdown, "MESH_NAME");
   });
 
-  Blockly.Blocks['rotate_camera'] = {
+  Blockly.Blocks["rotate_camera"] = {
     init: function () {
       this.jsonInit({
-        type: 'rotate_camera',
-        message0: translate('rotate_camera'),
+        type: "rotate_camera",
+        message0: translate("rotate_camera"),
         args0: [
           {
-            type: 'input_value',
-            name: 'DEGREES',
-            check: 'Number',
+            type: "input_value",
+            name: "DEGREES",
+            check: "Number",
           },
         ],
         inputsInline: true,
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours['Transform'],
-        tooltip: getTooltip('rotate_camera'),
+        colour: categoryColours["Transform"],
+        tooltip: getTooltip("rotate_camera"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
-  Blockly.Blocks['up'] = {
+  Blockly.Blocks["up"] = {
     init: function () {
       this.jsonInit({
-        type: 'up',
-        message0: translate('up'),
+        type: "up",
+        message0: translate("up"),
         args0: [
           {
-            type: 'field_variable',
-            name: 'MODEL_VAR',
+            type: "field_variable",
+            name: "MODEL_VAR",
             variable: window.currentMesh,
           },
           {
-            type: 'input_value',
-            name: 'UP_FORCE',
-            check: 'Number',
+            type: "input_value",
+            name: "UP_FORCE",
+            check: "Number",
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours['Transform'],
-        tooltip: getTooltip('up'),
+        colour: categoryColours["Transform"],
+        tooltip: getTooltip("up"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
-  Blockly.Blocks['random_seeded_int'] = {
+  Blockly.Blocks["random_seeded_int"] = {
     init: function () {
       this.jsonInit({
-        type: 'random_seeded_int',
-        message0: translate('random_seeded_int'),
+        type: "random_seeded_int",
+        message0: translate("random_seeded_int"),
         args0: [
           {
-            type: 'input_value',
-            name: 'FROM',
-            check: 'Number',
-            align: 'RIGHT',
+            type: "input_value",
+            name: "FROM",
+            check: "Number",
+            align: "RIGHT",
           },
           {
-            type: 'input_value',
-            name: 'TO',
-            check: 'Number',
-            align: 'RIGHT',
+            type: "input_value",
+            name: "TO",
+            check: "Number",
+            align: "RIGHT",
           },
           {
-            type: 'input_value',
-            name: 'SEED',
-            check: 'Number',
-            align: 'RIGHT',
+            type: "input_value",
+            name: "SEED",
+            check: "Number",
+            align: "RIGHT",
           },
         ],
         inputsInline: true,
-        output: 'Number',
+        output: "Number",
         colour: 230,
-        tooltip: getTooltip('random_seeded_int'),
+        tooltip: getTooltip("random_seeded_int"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('math_blocks');
+      this.setStyle("math_blocks");
     },
   };
 
-  Blockly.Blocks['lists_add_item'] = {
+  Blockly.Blocks["lists_add_item"] = {
     init: function () {
       this.jsonInit({
-        type: 'lists_add_item',
-        message0: 'add %1 to %2',
+        type: "lists_add_item",
+        message0: "add %1 to %2",
         args0: [
           {
-            type: 'input_value',
-            name: 'TO',
+            type: "input_value",
+            name: "TO",
           },
           {
-            type: 'field_variable',
-            name: 'LIST',
-            variable: 'list1',
+            type: "field_variable",
+            name: "LIST",
+            variable: "list1",
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        tooltip: 'Add an item to the end of a list.',
+        tooltip: "Add an item to the end of a list.",
       });
-      this.setStyle('list_blocks');
+      this.setStyle("list_blocks");
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
-  Blockly.Blocks['lists_delete_nth'] = {
+  Blockly.Blocks["lists_delete_nth"] = {
     init: function () {
       this.jsonInit({
-        type: 'lists_delete_nth',
-        message0: 'delete %1 from %2',
+        type: "lists_delete_nth",
+        message0: "delete %1 from %2",
         args0: [
           {
-            type: 'input_value',
-            name: 'INDEX',
-            check: 'Number',
+            type: "input_value",
+            name: "INDEX",
+            check: "Number",
           },
           {
-            type: 'field_variable',
-            name: 'LIST',
-            variable: 'list1',
+            type: "field_variable",
+            name: "LIST",
+            variable: "list1",
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        tooltip: 'Delete item at index n from a list (0-based).',
+        tooltip: "Delete item at index n from a list (0-based).",
       });
-      this.setStyle('list_blocks');
+      this.setStyle("list_blocks");
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
-  Blockly.Blocks['to_number'] = {
+  Blockly.Blocks["to_number"] = {
     init: function () {
       this.jsonInit({
-        type: 'to_number',
-        message0: translate('to_number'),
+        type: "to_number",
+        message0: translate("to_number"),
         args0: [
           {
-            type: 'input_value',
-            name: 'STRING',
-            check: 'String',
+            type: "input_value",
+            name: "STRING",
+            check: "String",
           },
           {
-            type: 'field_dropdown',
-            name: 'TYPE',
+            type: "field_dropdown",
+            name: "TYPE",
             options: [
-              ['integer', 'INT'],
-              ['float', 'FLOAT'],
+              ["integer", "INT"],
+              ["float", "FLOAT"],
             ],
           },
         ],
         inputsInline: true,
-        output: 'Number',
+        output: "Number",
         colour: 230,
-        tooltip: getTooltip('to_number'),
+        tooltip: getTooltip("to_number"),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('math_blocks');
+      this.setStyle("math_blocks");
     },
   };
 
-  Blockly.Blocks['keyword_block'] = {
+  Blockly.Blocks["keyword_block"] = {
     init: function () {
       this.appendDummyInput().appendField(
-        new Blockly.FieldTextInput('type a keyword to add a block'),
-        'KEYWORD'
+        new Blockly.FieldTextInput("type a keyword to add a block"),
+        "KEYWORD",
       );
-      this.setTooltip('Type a keyword to change this block.');
+      this.setTooltip("Type a keyword to change this block.");
       this.setHelpUrl(getHelpUrlFor(this.type));
 
       this.setOnChange(function () {
@@ -1596,7 +1693,7 @@ export function defineBlocks() {
           return;
         }
         // Get the entered keyword.
-        const keyword = this.getFieldValue('KEYWORD').trim();
+        const keyword = this.getFieldValue("KEYWORD").trim();
         // Lookup the exact toolbox definition based on the keyword.
         const blockDefinition = findBlockDefinitionByKeyword(keyword);
         if (blockDefinition?.type) {
@@ -1614,7 +1711,10 @@ export function defineBlocks() {
           const pos = this.getRelativeToSurfaceXY();
           newBlock.moveBy(pos.x, pos.y);
 
-          if (this.previousConnection && this.previousConnection.isConnected()) {
+          if (
+            this.previousConnection &&
+            this.previousConnection.isConnected()
+          ) {
             const parentConnection = this.previousConnection.targetConnection;
             if (parentConnection) {
               parentConnection.disconnect();
@@ -1645,10 +1745,10 @@ export function defineBlocks() {
     },
   };
 
-  Blockly.Blocks['keyword'] = {
+  Blockly.Blocks["keyword"] = {
     init: function () {
       // Call the original keyword_block init method.
-      Blockly.Blocks['keyword_block'].init.call(this);
+      Blockly.Blocks["keyword_block"].init.call(this);
       // Add chaining connections.
       this.setPreviousStatement(true);
       this.setNextStatement(true);
@@ -1663,11 +1763,11 @@ export function defineBlocks() {
       }
       for (const item of contents) {
         // If this item is a block with the matching keyword, return its definition.
-        if (item.kind === 'block' && item.keyword === keyword) {
+        if (item.kind === "block" && item.keyword === keyword) {
           return item;
         }
         // If the item is a category with its own contents, search recursively.
-        if (item.kind === 'category' && Array.isArray(item.contents)) {
+        if (item.kind === "category" && Array.isArray(item.contents)) {
           const result = searchContents(item.contents);
           if (result !== null) {
             return result;
@@ -1688,7 +1788,10 @@ export function defineBlocks() {
       block.loadExtraState(definition.extraState);
     }
 
-    if (typeof definition.inline === 'boolean' && typeof block.setInputsInline === 'function') {
+    if (
+      typeof definition.inline === "boolean" &&
+      typeof block.setInputsInline === "function"
+    ) {
       block.setInputsInline(definition.inline);
     }
 
@@ -1698,37 +1801,37 @@ export function defineBlocks() {
         const field = block.getField?.(fieldName);
 
         if (
-          typeof fieldValue === 'string' ||
-          typeof fieldValue === 'number' ||
-          typeof fieldValue === 'boolean'
+          typeof fieldValue === "string" ||
+          typeof fieldValue === "number" ||
+          typeof fieldValue === "boolean"
         ) {
           block.setFieldValue(fieldValue, fieldName);
           continue;
         }
 
-        if (!fieldValue || typeof fieldValue !== 'object') {
+        if (!fieldValue || typeof fieldValue !== "object") {
           continue;
         }
 
         if (
-          typeof block.setVariableFieldValue === 'function' &&
-          typeof fieldValue.name === 'string'
+          typeof block.setVariableFieldValue === "function" &&
+          typeof fieldValue.name === "string"
         ) {
           block.setVariableFieldValue(fieldValue.name, fieldName);
           continue;
         }
 
-        if (typeof field?.loadState === 'function') {
+        if (typeof field?.loadState === "function") {
           field.loadState(fieldValue);
           continue;
         }
 
-        if (fieldValue.id && typeof block.setFieldValue === 'function') {
+        if (fieldValue.id && typeof block.setFieldValue === "function") {
           block.setFieldValue(fieldValue.id, fieldName);
           continue;
         }
 
-        if (fieldValue.name && typeof block.setFieldValue === 'function') {
+        if (fieldValue.name && typeof block.setFieldValue === "function") {
           block.setFieldValue(fieldValue.name, fieldName);
         }
       }
@@ -1775,7 +1878,8 @@ export function defineBlocks() {
     childBlock.render();
     applyBlockDefinition(childBlock, definition);
 
-    const childConnection = childBlock.outputConnection || childBlock.previousConnection;
+    const childConnection =
+      childBlock.outputConnection || childBlock.previousConnection;
     if (!childConnection) {
       childBlock.dispose();
       return;
@@ -1800,41 +1904,41 @@ export function defineBlocks() {
 export function addDoMutatorWithToggleBehavior(block) {
   // Custom function to toggle the "do" block mutation
   block.toggleDoBlock = function () {
-    const hasDo = this.getInput('DO') ? true : false;
+    const hasDo = this.getInput("DO") ? true : false;
     if (hasDo) {
-      this.removeInput('DO');
+      this.removeInput("DO");
     } else {
-      this.appendStatementInput('DO').setCheck(null).appendField('');
+      this.appendStatementInput("DO").setCheck(null).appendField("");
     }
   };
 
   // Add the toggle button to the block
   const toggleButton = new Blockly.FieldImage(
-    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==', // Custom icon
+    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
     30,
     30,
-    'toggle do block', // Width, Height, Alt text
-    block.toggleDoBlock.bind(block) // Bind the event handler to the block
+    "toggle do block", // Width, Height, Alt text
+    block.toggleDoBlock.bind(block), // Bind the event handler to the block
   );
 
   // Add the button to the block
   block
     .appendDummyInput()
     .setAlign(Blockly.inputs.Align.RIGHT)
-    .appendField(toggleButton, 'TOGGLE_BUTTON');
+    .appendField(toggleButton, "TOGGLE_BUTTON");
 
   // Save the mutation state
   block.mutationToDom = function () {
-    const container = document.createElement('mutation');
-    container.setAttribute('has_do', this.getInput('DO') ? 'true' : 'false');
+    const container = document.createElement("mutation");
+    container.setAttribute("has_do", this.getInput("DO") ? "true" : "false");
     return container;
   };
 
   // Restore the mutation state
   block.domToMutation = function (xmlElement) {
-    const hasDo = xmlElement.getAttribute('has_do') === 'true';
+    const hasDo = xmlElement.getAttribute("has_do") === "true";
     if (hasDo) {
-      this.appendStatementInput('DO').setCheck(null).appendField('');
+      this.appendStatementInput("DO").setCheck(null).appendField("");
     }
   };
 }
@@ -1844,7 +1948,7 @@ export function handleBlockCreateEvent(
   changeEvent,
   variableNamePrefix,
   nextVariableIndexes,
-  fieldName = 'ID_VAR' // Default field name to handle
+  fieldName = "ID_VAR", // Default field name to handle
 ) {
   if (window.loadingCode) return; // Don't rename variables during code loading
 
@@ -1854,8 +1958,8 @@ export function handleBlockCreateEvent(
     variableNamePrefix,
     nextVariableIndexes,
     {
-      fieldName: 'ID_VAR',
-    }
+      fieldName: "ID_VAR",
+    },
   );
   if (handledDuplicate) return;
   if (blockInstance.id !== changeEvent.blockId) return;
@@ -1873,11 +1977,13 @@ export function handleBlockCreateEvent(
     const variableField = blockInstance.getField(fieldName);
     if (variableField) {
       const variableId = variableField.getValue();
-      const variable = blockInstance.workspace.getVariableMap().getVariableById(variableId);
+      const variable = blockInstance.workspace
+        .getVariableMap()
+        .getVariableById(variableId);
 
       // Check if the variable name matches the pattern "prefixn"
       const variableNamePattern = new RegExp(`^${variableNamePrefix}\\d+$`);
-      const variableName = variable ? variable.name : '';
+      const variableName = variable ? variable.name : "";
 
       if (!variableNamePattern.test(variableName)) {
         // Handle custom variables
@@ -1887,10 +1993,12 @@ export function handleBlockCreateEvent(
           if (numberMatch) {
             newVariableName = numberMatch[1] + (parseInt(numberMatch[2]) + 1);
           } else {
-            newVariableName = variableName + '1';
+            newVariableName = variableName + "1";
           }
 
-          let newVariable = blockInstance.workspace.getVariableMap().getVariable(newVariableName);
+          let newVariable = blockInstance.workspace
+            .getVariableMap()
+            .getVariable(newVariableName);
           if (!newVariable) {
             newVariable = blockInstance.workspace
               .getVariableMap()
@@ -1903,7 +2011,7 @@ export function handleBlockCreateEvent(
           if (newSuffix !== null) {
             nextVariableIndexes[variableNamePrefix] = Math.max(
               nextVariableIndexes[variableNamePrefix] || 1,
-              newSuffix + 1
+              newSuffix + 1,
             );
           }
         }
@@ -1912,13 +2020,18 @@ export function handleBlockCreateEvent(
         if (!nextVariableIndexes[variableNamePrefix]) {
           nextVariableIndexes[variableNamePrefix] = 1;
         }
-        const currentSuffix = parseNumericSuffix(variableName, variableNamePrefix);
+        const currentSuffix = parseNumericSuffix(
+          variableName,
+          variableNamePrefix,
+        );
         if (currentSuffix) {
           const nextIndex = nextVariableIndexes[variableNamePrefix];
           // If the current suffix doesn't match the expected next index, rename it
           if (currentSuffix !== nextIndex) {
             const newVariableName = variableNamePrefix + nextIndex;
-            let newVariable = blockInstance.workspace.getVariableMap().getVariable(newVariableName);
+            let newVariable = blockInstance.workspace
+              .getVariableMap()
+              .getVariable(newVariableName);
             if (!newVariable) {
               newVariable = blockInstance.workspace
                 .getVariableMap()
@@ -1928,7 +2041,7 @@ export function handleBlockCreateEvent(
           }
           nextVariableIndexes[variableNamePrefix] = Math.max(
             nextVariableIndexes[variableNamePrefix],
-            currentSuffix + 1
+            currentSuffix + 1,
           );
         }
       }
@@ -1939,7 +2052,7 @@ export function handleBlockCreateEvent(
 // Extend the built-in Blockly procedures_defreturn block to add custom toggle functionality
 
 // Reference to the original init function of the procedures_defreturn block
-Blockly.Blocks['procedures_defreturn'].init = (function (originalInit) {
+Blockly.Blocks["procedures_defreturn"].init = (function (originalInit) {
   return function () {
     // Call the original initialization function to ensure the block retains its default behaviour
     originalInit.call(this);
@@ -1947,10 +2060,10 @@ Blockly.Blocks['procedures_defreturn'].init = (function (originalInit) {
     // Use the existing addToggleButton helper to add the button to the block
     addToggleButton(this);
   };
-})(Blockly.Blocks['procedures_defreturn'].init);
+})(Blockly.Blocks["procedures_defreturn"].init);
 
 // Create an extension that adds extra UI logic without modifying the core mutator methods
-Blockly.Extensions.register('custom_procedure_ui_extension', function () {
+Blockly.Extensions.register("custom_procedure_ui_extension", function () {
   this.toggleDoBlock = function () {
     const isInline = !this.isInline;
 
@@ -1963,23 +2076,28 @@ Blockly.Extensions.register('custom_procedure_ui_extension', function () {
     updateShape(this, isInline);
 
     // Optionally re-enable if previously disabled (for orphaned block UX)
-    if (this.hasDisabledReason && this.hasDisabledReason('ORPHANED_BLOCK')) {
-      this.setDisabledReason(false, 'ORPHANED_BLOCK');
+    if (this.hasDisabledReason && this.hasDisabledReason("ORPHANED_BLOCK")) {
+      this.setDisabledReason(false, "ORPHANED_BLOCK");
     }
 
     // Fire Blockly events so undo/redo and UI updates are tracked
-    Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
+    Blockly.Events.fire(
+      new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
+    );
     Blockly.Events.fire(new Blockly.Events.BlockMove(this));
   };
 });
 
 // Apply the extension to the built-in 'procedures_defreturn' block
-Blockly.Extensions.apply('custom_procedure_ui_extension', Blockly.Blocks['procedures_defreturn']);
+Blockly.Extensions.apply(
+  "custom_procedure_ui_extension",
+  Blockly.Blocks["procedures_defreturn"],
+);
 
 // Extend the built-in Blockly procedures_defnoreturn block to add custom toggle functionality
 
 // Reference to the original init function of the procedures_defnoreturn block
-Blockly.Blocks['procedures_defnoreturn'].init = (function (originalInit) {
+Blockly.Blocks["procedures_defnoreturn"].init = (function (originalInit) {
   return function () {
     // Call the original initialization function to ensure the block retains its default behaviour
     originalInit.call(this);
@@ -1987,15 +2105,18 @@ Blockly.Blocks['procedures_defnoreturn'].init = (function (originalInit) {
     // Use the existing addToggleButton helper to add the button to the block
     addToggleButton(this);
   };
-})(Blockly.Blocks['procedures_defnoreturn'].init);
+})(Blockly.Blocks["procedures_defnoreturn"].init);
 
 // Apply the extension to the built-in 'procedures_defnoreturn' block
-Blockly.Extensions.apply('custom_procedure_ui_extension', Blockly.Blocks['procedures_defnoreturn']);
+Blockly.Extensions.apply(
+  "custom_procedure_ui_extension",
+  Blockly.Blocks["procedures_defnoreturn"],
+);
 
 // Define unique IDs for each option
-Blockly.FieldVariable.ADD_VARIABLE_ID = 'ADD_VARIABLE_ID';
-Blockly.FieldVariable.RENAME_VARIABLE_ID = 'RENAME_VARIABLE_ID';
-Blockly.FieldVariable.DELETE_VARIABLE_ID = 'DELETE_VARIABLE_ID';
+Blockly.FieldVariable.ADD_VARIABLE_ID = "ADD_VARIABLE_ID";
+Blockly.FieldVariable.RENAME_VARIABLE_ID = "RENAME_VARIABLE_ID";
+Blockly.FieldVariable.DELETE_VARIABLE_ID = "DELETE_VARIABLE_ID";
 
 // Extend `getOptions` to include "New variable..." at the top of the dropdown
 const originalGetOptions = Blockly.FieldVariable.prototype.getOptions;
@@ -2004,7 +2125,10 @@ Blockly.FieldVariable.prototype.getOptions = function () {
   const options = originalGetOptions.call(this);
 
   // Add the "New variable..." option at the beginning
-  options.unshift([translate('new_variable_decision'), Blockly.FieldVariable.ADD_VARIABLE_ID]);
+  options.unshift([
+    translate("new_variable_decision"),
+    Blockly.FieldVariable.ADD_VARIABLE_ID,
+  ]);
 
   return options;
 };
@@ -2031,7 +2155,7 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
             this.forceRerender(); // Refresh the UI to show the new selection
           }
         }
-      }
+      },
     );
   } else {
     // Use the stored reference to avoid recursion
@@ -2040,7 +2164,7 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
 };
 
 (function () {
-  const dynamicIf = Blockly.Blocks['dynamic_if'];
+  const dynamicIf = Blockly.Blocks["dynamic_if"];
   if (!dynamicIf) return;
 
   const originalFinalize = dynamicIf.finalizeConnections;
@@ -2049,12 +2173,12 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
   dynamicIf.mutationToDom = function () {
     if (this._skipFinalizeInMutationToDom) {
       if (!this.elseifCount && !this.elseCount) return null;
-      const container = Blockly.utils.xml.createElement('mutation');
+      const container = Blockly.utils.xml.createElement("mutation");
       if (this.elseifCount) {
-        container.setAttribute('elseif', `${this.elseifCount}`);
+        container.setAttribute("elseif", `${this.elseifCount}`);
       }
       if (this.elseCount) {
-        container.setAttribute('else', '1');
+        container.setAttribute("else", "1");
       }
       return container;
     }
@@ -2084,10 +2208,16 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
 
     // Fire one synthetic mutation event to represent the entire rebuild.
     let mutationEvent;
-    if (typeof Blockly.Events.Mutation === 'function') {
+    if (typeof Blockly.Events.Mutation === "function") {
       mutationEvent = new Blockly.Events.Mutation(this, oldState, newState);
     } else {
-      mutationEvent = new Blockly.Events.BlockChange(this, 'mutation', '', oldState, newState);
+      mutationEvent = new Blockly.Events.BlockChange(
+        this,
+        "mutation",
+        "",
+        oldState,
+        newState,
+      );
     }
     Blockly.Events.fire(mutationEvent);
   };

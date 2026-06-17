@@ -29,7 +29,10 @@ const _meshBlockIdMap = Object.create(null);
 // ----------------------------------------------------
 
 export const meshMap = makeTrackedMap(_meshMap, blockKeyByBlock);
-export const meshBlockIdMap = makeTrackedMap(_meshBlockIdMap, blockKeyByBlockId);
+export const meshBlockIdMap = makeTrackedMap(
+  _meshBlockIdMap,
+  blockKeyByBlockId,
+);
 
 export function clearMeshMaps() {
   for (const key of Object.keys(_meshMap)) delete meshMap[key];
@@ -38,7 +41,7 @@ export function clearMeshMaps() {
 
 let uniqueIdCounter = 0;
 
-export function generateUniqueId(prefix = '') {
+export function generateUniqueId(prefix = "") {
   // Increment the counter for each call
   uniqueIdCounter++;
   // Return a string with the prefix and the counter value

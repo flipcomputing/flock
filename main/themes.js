@@ -1,4 +1,4 @@
-import * as Blockly from 'blockly';
+import * as Blockly from "blockly";
 import {
   updateAllBlockIcons,
   setCurrentIconColor,
@@ -6,7 +6,7 @@ import {
   clearLowVisionCategoryIcons,
   makeLowVisionCategoryIconDataUrl,
   preloadLowVisionCategoryIcons,
-} from '../blocks/blockIcons.js';
+} from "../blocks/blockIcons.js";
 
 export const categoryColours = {
   Events: 5,
@@ -17,110 +17,110 @@ export const categoryColours = {
   Sound: 25,
   Sensing: 180,
   Snippets: 200,
-  Control: '%{BKY_LOOPS_HUE}',
-  Logic: '%{BKY_LOGIC_HUE}',
-  Variables: '%{BKY_VARIABLES_HUE}',
-  Text: '%{BKY_TEXTS_HUE}',
-  Lists: '%{BKY_LISTS_HUE}',
-  Math: '%{BKY_MATH_HUE}',
-  Procedures: '%{BKY_PROCEDURES_HUE}',
+  Control: "%{BKY_LOOPS_HUE}",
+  Logic: "%{BKY_LOGIC_HUE}",
+  Variables: "%{BKY_VARIABLES_HUE}",
+  Text: "%{BKY_TEXTS_HUE}",
+  Lists: "%{BKY_LISTS_HUE}",
+  Math: "%{BKY_MATH_HUE}",
+  Procedures: "%{BKY_PROCEDURES_HUE}",
 };
 
 // Original AAA palette (Zishan Rahman)
 export const contrastCategoryColoursAAA = {
-  Events: '#734a4e',
-  Scene: '#0d5c00',
-  Transform: '#343ddb',
-  Animate: '#a71c4e',
-  Materials: '#7211b6',
-  Sound: '#ab0046',
-  Sensing: '#4e5a00',
-  Snippets: '#1c457f',
-  Control: '#970097',
-  Logic: '#0000ff',
-  Variables: '#002c2b',
-  Text: '#5545be',
-  Lists: '%{BKY_VARIABLES_HUE}',
-  Math: '#3f0000',
-  Procedures: '#8a24a5',
+  Events: "#734a4e",
+  Scene: "#0d5c00",
+  Transform: "#343ddb",
+  Animate: "#a71c4e",
+  Materials: "#7211b6",
+  Sound: "#ab0046",
+  Sensing: "#4e5a00",
+  Snippets: "#1c457f",
+  Control: "#970097",
+  Logic: "#0000ff",
+  Variables: "#002c2b",
+  Text: "#5545be",
+  Lists: "%{BKY_VARIABLES_HUE}",
+  Math: "#3f0000",
+  Procedures: "#8a24a5",
 };
 
 // Becky's AA palette (Rebecca Franks)
 export const contrastCategoryColoursAA = {
-  Events: '#913a34',
-  Scene: '#5e7b33',
-  Transform: '#77792e',
-  Animate: '#8b7234',
-  Materials: '#793298',
-  Sound: '#995f3a',
-  Sensing: '#2d787c',
-  Snippets: '#387091',
-  Control: '#308332',
-  Logic: '#0000ff',
-  Variables: '#963065',
-  Text: '#30826b',
-  Lists: '%{BKY_VARIABLES_HUE}',
-  Math: '#2e3987',
-  Procedures: '#83398f',
+  Events: "#913a34",
+  Scene: "#5e7b33",
+  Transform: "#77792e",
+  Animate: "#8b7234",
+  Materials: "#793298",
+  Sound: "#995f3a",
+  Sensing: "#2d787c",
+  Snippets: "#387091",
+  Control: "#308332",
+  Logic: "#0000ff",
+  Variables: "#963065",
+  Text: "#30826b",
+  Lists: "%{BKY_VARIABLES_HUE}",
+  Math: "#2e3987",
+  Procedures: "#83398f",
 };
 
 // Revised Becky's palette to also pass AAA tests (Rebecca Franks, Zishan Rahman)
 export const contrastCategoryColours = {
-  Events: '#913a34',
-  Scene: '#315f3a',
-  Transform: '#8b4700',
-  Animate: '#734a4e',
-  Materials: '#793298',
-  Sound: '#99303a',
-  Sensing: '#2d5896',
-  Snippets: '#385891',
-  Control: '#135f17',
-  Logic: '#18387b',
-  Variables: '#963065',
-  Text: '#5545be',
-  Lists: '%{BKY_VARIABLES_HUE}',
-  Math: '#2e3987',
-  Procedures: '#83398f',
+  Events: "#913a34",
+  Scene: "#315f3a",
+  Transform: "#8b4700",
+  Animate: "#734a4e",
+  Materials: "#793298",
+  Sound: "#99303a",
+  Sensing: "#2d5896",
+  Snippets: "#385891",
+  Control: "#135f17",
+  Logic: "#18387b",
+  Variables: "#963065",
+  Text: "#5545be",
+  Lists: "%{BKY_VARIABLES_HUE}",
+  Math: "#2e3987",
+  Procedures: "#83398f",
 };
 
-const LOW_VISION_THEME = 'low-vision';
+const LOW_VISION_THEME = "low-vision";
 let lowVisionIconListenerRegistered = false;
 const LOW_VISION_TOOLBOX_ACCENTS = {
-  'events.svg': 'events_blocks',
-  'scene.svg': 'scene_blocks',
-  'meshes.svg': 'scene_meshes_blocks',
-  'xr.svg': 'scene_xr_blocks',
-  'lights.svg': 'scene_lights_blocks',
-  'camera.svg': 'scene_camera_blocks',
-  'motion.svg': 'transform_blocks',
-  'physics.svg': 'transform_physics_blocks',
-  'connect.svg': 'transform_connect_blocks',
-  'combine.svg': 'transform_combine_blocks',
-  'animate.svg': 'animate_blocks',
-  'keyframe.svg': 'animate_keyframe_blocks',
-  'looks.svg': 'materials_blocks',
-  'sound.svg': 'sound_blocks',
-  'sensing.svg': 'sensing_blocks',
-  'snippets.svg': 'snippets_blocks',
-  'arrows.svg': 'snippets_arrows_blocks',
-  'control.svg': 'control_blocks',
-  'conditions.svg': 'logic_blocks',
-  'variables.svg': 'variable_blocks',
-  'data.svg': 'variable_blocks',
-  'text.svg': 'text_blocks',
-  'lists.svg': 'list_blocks',
-  'math.svg': 'math_blocks',
-  'functions.svg': 'procedure_blocks',
+  "events.svg": "events_blocks",
+  "scene.svg": "scene_blocks",
+  "meshes.svg": "scene_meshes_blocks",
+  "xr.svg": "scene_xr_blocks",
+  "lights.svg": "scene_lights_blocks",
+  "camera.svg": "scene_camera_blocks",
+  "motion.svg": "transform_blocks",
+  "physics.svg": "transform_physics_blocks",
+  "connect.svg": "transform_connect_blocks",
+  "combine.svg": "transform_combine_blocks",
+  "animate.svg": "animate_blocks",
+  "keyframe.svg": "animate_keyframe_blocks",
+  "looks.svg": "materials_blocks",
+  "sound.svg": "sound_blocks",
+  "sensing.svg": "sensing_blocks",
+  "snippets.svg": "snippets_blocks",
+  "arrows.svg": "snippets_arrows_blocks",
+  "control.svg": "control_blocks",
+  "conditions.svg": "logic_blocks",
+  "variables.svg": "variable_blocks",
+  "data.svg": "variable_blocks",
+  "text.svg": "text_blocks",
+  "lists.svg": "list_blocks",
+  "math.svg": "math_blocks",
+  "functions.svg": "procedure_blocks",
 };
 
 function getLowVisionToolboxStyleNameFromSrc(src) {
-  const lowerSrc = (src || '').toLowerCase();
-  if (!lowerSrc || lowerSrc.startsWith('data:')) return '';
+  const lowerSrc = (src || "").toLowerCase();
+  if (!lowerSrc || lowerSrc.startsWith("data:")) return "";
 
-  let directIconName = (lowerSrc.split('/').pop() || '').split('?')[0].split('#')[0];
+  let directIconName = (lowerSrc.split("/").pop() || "").split("?")[0].split("#")[0];
   try {
     const parsed = new URL(lowerSrc, window.location.href);
-    directIconName = (parsed.pathname.split('/').pop() || directIconName).toLowerCase();
+    directIconName = (parsed.pathname.split("/").pop() || directIconName).toLowerCase();
   } catch {
     // Keep fallback parsing above.
   }
@@ -130,7 +130,7 @@ function getLowVisionToolboxStyleNameFromSrc(src) {
   }
 
   for (const [iconName, styleName] of Object.entries(LOW_VISION_TOOLBOX_ACCENTS)) {
-    const stem = iconName.replace('.svg', '');
+    const stem = iconName.replace(".svg", "");
     if (
       lowerSrc.includes(`/${iconName}`) ||
       lowerSrc.includes(`/${stem}-`) ||
@@ -140,15 +140,16 @@ function getLowVisionToolboxStyleNameFromSrc(src) {
       return styleName;
     }
   }
-  return '';
+  return "";
 }
 
 function ensureLowVisionIconListener(workspace) {
   if (lowVisionIconListenerRegistered || !workspace) return;
   workspace.addChangeListener((event) => {
-    if (document.body.getAttribute('data-theme') === LOW_VISION_THEME) {
+    if (document.body.getAttribute("data-theme") === LOW_VISION_THEME) {
       const isToolboxCategorySwitch =
-        event?.type === Blockly.Events.TOOLBOX_ITEM_SELECT || event?.type === 'toolbox_item_select';
+        event?.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
+        event?.type === "toolbox_item_select";
       applyLowVisionDecorations(workspace, {
         hideFlyoutWhileApplying: isToolboxCategorySwitch,
         preload: false,
@@ -159,28 +160,29 @@ function ensureLowVisionIconListener(workspace) {
 }
 
 function applyLowVisionToolboxAccents() {
-  if (document.body.getAttribute('data-theme') !== LOW_VISION_THEME) return;
-  const rows = document.querySelectorAll('.blocklyToolboxCategory');
+  if (document.body.getAttribute("data-theme") !== LOW_VISION_THEME) return;
+  const rows = document.querySelectorAll(".blocklyToolboxCategory");
   for (const row of rows) {
-    const icons = row.querySelectorAll('img');
+    const icons = row.querySelectorAll("img");
     for (const icon of icons) {
-      const src = icon.dataset.lvOrigSrc || icon.getAttribute('src') || '';
-      const styleName = icon.dataset.lvStyleName || getLowVisionToolboxStyleNameFromSrc(src);
+      const src = icon.dataset.lvOrigSrc || icon.getAttribute("src") || "";
+      const styleName =
+        icon.dataset.lvStyleName || getLowVisionToolboxStyleNameFromSrc(src);
       if (!styleName) continue;
       if (!icon.dataset.lvOrigSrc) {
         icon.dataset.lvOrigSrc = src;
       }
       icon.dataset.lvStyleName = styleName;
-      icon.setAttribute('src', makeLowVisionCategoryIconDataUrl(styleName));
+      icon.setAttribute("src", makeLowVisionCategoryIconDataUrl(styleName));
     }
   }
 }
 
 function clearLowVisionToolboxAccents() {
-  const icons = document.querySelectorAll('.blocklyToolboxCategory img');
+  const icons = document.querySelectorAll(".blocklyToolboxCategory img");
   for (const icon of icons) {
     if (icon.dataset.lvOrigSrc) {
-      icon.setAttribute('src', icon.dataset.lvOrigSrc);
+      icon.setAttribute("src", icon.dataset.lvOrigSrc);
       delete icon.dataset.lvOrigSrc;
       delete icon.dataset.lvStyleName;
     }
@@ -191,18 +193,18 @@ function setLowVisionFlyoutLoadingVisibility(workspace, isLoading) {
   const flyoutWorkspace = workspace?.getFlyout?.()?.getWorkspace?.();
   const flyoutSvg = flyoutWorkspace?.getParentSvg?.();
   if (!flyoutSvg) return;
-  flyoutSvg.style.visibility = isLoading ? 'hidden' : '';
+  flyoutSvg.style.visibility = isLoading ? "hidden" : "";
 }
 
 function reflowLowVisionFlyout(workspace) {
   const flyout = workspace?.getFlyout?.();
-  if (!flyout || typeof flyout.reflow !== 'function') return;
+  if (!flyout || typeof flyout.reflow !== "function") return;
   flyout.reflow();
 }
 
 function applyLowVisionDecorations(
   workspace,
-  { hideFlyoutWhileApplying = false, preload = false } = {}
+  { hideFlyoutWhileApplying = false, preload = false } = {},
 ) {
   if (!workspace) return;
   if (hideFlyoutWhileApplying) {
@@ -232,57 +234,57 @@ function applyLowVisionDecorations(
 }
 
 function setLogos(themeName) {
-  const bird = document.getElementById('logo');
-  const inlineLogo = document.getElementById('flocklogo');
+  const bird = document.getElementById("logo");
+  const inlineLogo = document.getElementById("flocklogo");
   if (!bird || !inlineLogo) return;
   switch (themeName) {
-    case 'dark-contrast':
-    case 'low-vision':
-      inlineLogo.src = './images/inline-flock-xr-dark1.svg';
-      bird.src = './images/flock-bird-mascot-2colours-dark1.svg';
+    case "dark-contrast":
+    case "low-vision":
+      inlineLogo.src = "./images/inline-flock-xr-dark1.svg";
+      bird.src = "./images/flock-bird-mascot-2colours-dark1.svg";
       break;
 
-    case 'dark':
-      inlineLogo.src = './images/inline-flock-xr-dark2.svg';
-      bird.src = './images/flock-bird-mascot-2colours-dark2.svg';
+    case "dark":
+      inlineLogo.src = "./images/inline-flock-xr-dark2.svg";
+      bird.src = "./images/flock-bird-mascot-2colours-dark2.svg";
       break;
 
-    case 'contrast':
-      inlineLogo.src = './images/inline-flock-xr-white.svg';
-      bird.src = './images/flock-bird-mascot-2colours.svg';
+    case "contrast":
+      inlineLogo.src = "./images/inline-flock-xr-white.svg";
+      bird.src = "./images/flock-bird-mascot-2colours.svg";
       break;
 
     default:
-      inlineLogo.src = './images/inline-flock-xr.svg';
-      bird.src = './images/flock-bird-mascot.svg';
+      inlineLogo.src = "./images/inline-flock-xr.svg";
+      bird.src = "./images/flock-bird-mascot.svg";
       break;
   }
 }
 
 function setIconImage(htmlCollectionIcons, imageURL) {
   for (const icon of htmlCollectionIcons) {
-    for (const image of icon.getElementsByTagName('image')) {
-      image.setAttribute('xlink:href', imageURL);
+    for (const image of icon.getElementsByTagName("image")) {
+      image.setAttribute("xlink:href", imageURL);
     }
   }
 }
 
 function getBlocklyMediaPath() {
-  let baseUrl = import.meta.env.BASE_URL || '/';
-  if (!baseUrl.endsWith('/')) baseUrl += '/';
+  let baseUrl = import.meta.env.BASE_URL || "/";
+  if (!baseUrl.endsWith("/")) baseUrl += "/";
   return `${baseUrl}blockly/media/`;
 }
 
 function setBinAndZoomIcons(themeName) {
-  const binIcon = document.getElementsByClassName('blocklyTrash');
-  const zoomIcons = document.getElementsByClassName('blocklyZoom');
+  const binIcon = document.getElementsByClassName("blocklyTrash");
+  const zoomIcons = document.getElementsByClassName("blocklyZoom");
 
-  if (themeName === 'contrast') {
-    const iconsURL = './images/blocklywhitesprites.svg';
+  if (themeName === "contrast") {
+    const iconsURL = "./images/blocklywhitesprites.svg";
     setIconImage(binIcon, iconsURL);
     setIconImage(zoomIcons, iconsURL);
   } else {
-    const iconsURL = getBlocklyMediaPath() + 'sprites.svg';
+    const iconsURL = getBlocklyMediaPath() + "sprites.svg";
     setIconImage(binIcon, iconsURL);
     setIconImage(zoomIcons, iconsURL);
   }
@@ -290,20 +292,20 @@ function setBinAndZoomIcons(themeName) {
 
 export function getIconColorForTheme(themeName) {
   switch (themeName) {
-    case 'light':
-    case 'dark':
-      return 'black';
-    case 'contrast':
-    case 'dark-contrast':
-    case 'low-vision':
+    case "light":
+    case "dark":
+      return "black";
+    case "contrast":
+    case "dark-contrast":
+    case "low-vision":
     default:
-      return 'white';
+      return "white";
   }
 }
 
 // Function to call when switching themes
 function switchTheme(themeName) {
-  document.body.setAttribute('data-theme', themeName);
+  document.body.setAttribute("data-theme", themeName);
 
   const workspace = Blockly.getMainWorkspace();
 
@@ -334,7 +336,7 @@ function switchTheme(themeName) {
       themeConfig.name,
       themeConfig.blockStyles,
       themeConfig.categoryStyles,
-      themeConfig.componentStyles
+      themeConfig.componentStyles,
     );
     workspace.setTheme(blocklyTheme);
   }
@@ -356,13 +358,14 @@ function switchTheme(themeName) {
   }
 
   // Optional: Save theme preference
-  localStorage.setItem('blocklyTheme', themeName);
+  localStorage.setItem("blocklyTheme", themeName);
 }
 
 // Create theme configuration for all themes
 export function createThemeConfig(themeName) {
   const baseStyles = getThemeBaseStyles(themeName);
-  const listBlockStyle = themeName === LOW_VISION_THEME ? baseStyles.lists : baseStyles.variables;
+  const listBlockStyle =
+    themeName === LOW_VISION_THEME ? baseStyles.lists : baseStyles.variables;
 
   return {
     name: themeName,
@@ -442,11 +445,11 @@ function getThemeBaseStyles(themeName) {
       // For light theme, use consistent structure with colourPrimary
       events: {
         colourPrimary: categoryColours.Events || 20,
-        colourText: '#000000',
+        colourText: "#000000",
       },
       scene: {
         colourPrimary: categoryColours.Scene || 160,
-        colourText: '#000000',
+        colourText: "#000000",
       },
       transform: {
         colourPrimary: categoryColours.Transform || 210,
@@ -480,14 +483,14 @@ function getThemeBaseStyles(themeName) {
         colourPrimary: categoryColours.Procedures || 290,
       },
       components: {
-        workspaceBackgroundColour: '#f9f9f9',
-        toolboxBackgroundColour: '#fff',
-        toolboxForegroundColour: '#444',
-        flyoutBackgroundColour: '#f9f9f9',
-        flyoutForegroundColour: '#ccc',
+        workspaceBackgroundColour: "#f9f9f9",
+        toolboxBackgroundColour: "#fff",
+        toolboxForegroundColour: "#444",
+        flyoutBackgroundColour: "#f9f9f9",
+        flyoutForegroundColour: "#ccc",
         flyoutOpacity: 1,
-        scrollbarColour: '#797979',
-        insertionMarkerColour: '#000',
+        scrollbarColour: "#797979",
+        insertionMarkerColour: "#000",
         insertionMarkerOpacity: 0.3,
       },
     },
@@ -527,19 +530,19 @@ function getThemeBaseStyles(themeName) {
         colourPrimary: categoryColours.Procedures || 290,
       },
       components: {
-        workspaceBackgroundColour: '#1e1e1e',
-        toolboxBackgroundColour: '#333',
-        toolboxForegroundColour: '#fff',
-        flyoutBackgroundColour: '#252526',
-        flyoutForegroundColour: '#ccc',
+        workspaceBackgroundColour: "#1e1e1e",
+        toolboxBackgroundColour: "#333",
+        toolboxForegroundColour: "#fff",
+        flyoutBackgroundColour: "#252526",
+        flyoutForegroundColour: "#ccc",
         flyoutOpacity: 0.95,
-        scrollbarColour: '#797979',
-        insertionMarkerColour: '#fff',
+        scrollbarColour: "#797979",
+        insertionMarkerColour: "#fff",
         insertionMarkerOpacity: 0.3,
-        markerColour: '#fff',
-        cursorColour: '#d0d0d0',
-        fieldColour: '#1e1e1e',
-        fieldTextColour: '#000000',
+        markerColour: "#fff",
+        cursorColour: "#d0d0d0",
+        fieldColour: "#1e1e1e",
+        fieldTextColour: "#000000",
       },
     },
     contrast: {
@@ -560,20 +563,20 @@ function getThemeBaseStyles(themeName) {
       math: { colourPrimary: contrastCategoryColours.Math },
       procedures: { colourPrimary: contrastCategoryColours.Procedures },
       components: {
-        workspaceBackgroundColour: '#FFFFFF',
-        toolboxBackgroundColour: '#000000',
-        toolboxForegroundColour: '#FFFFFF',
-        flyoutBackgroundColour: '#F0F0F0',
-        flyoutForegroundColour: '#000000',
+        workspaceBackgroundColour: "#FFFFFF",
+        toolboxBackgroundColour: "#000000",
+        toolboxForegroundColour: "#FFFFFF",
+        flyoutBackgroundColour: "#F0F0F0",
+        flyoutForegroundColour: "#000000",
         flyoutOpacity: 1,
-        scrollbarColour: '#000000',
-        insertionMarkerColour: '#FF0000',
+        scrollbarColour: "#000000",
+        insertionMarkerColour: "#FF0000",
         insertionMarkerOpacity: 1,
-        markerColour: '#FF0000',
-        cursorColour: '#FF0000',
+        markerColour: "#FF0000",
+        cursorColour: "#FF0000",
       },
     },
-    'dark-contrast': {
+    "dark-contrast": {
       // High contrast dark theme now uses the same block colors as default light theme
       events: { colourPrimary: contrastCategoryColours.Events },
       scene: { colourPrimary: contrastCategoryColours.Scene },
@@ -591,109 +594,109 @@ function getThemeBaseStyles(themeName) {
       math: { colourPrimary: contrastCategoryColours.Math },
       procedures: { colourPrimary: contrastCategoryColours.Procedures },
       components: {
-        workspaceBackgroundColour: '#FFFFFF',
-        toolboxBackgroundColour: '#000000',
-        toolboxForegroundColour: '#FFFFFF',
-        flyoutBackgroundColour: '#F0F0F0',
-        flyoutForegroundColour: '#000000',
+        workspaceBackgroundColour: "#FFFFFF",
+        toolboxBackgroundColour: "#000000",
+        toolboxForegroundColour: "#FFFFFF",
+        flyoutBackgroundColour: "#F0F0F0",
+        flyoutForegroundColour: "#000000",
         flyoutOpacity: 1,
-        scrollbarColour: '#000000',
-        insertionMarkerColour: '#FF0000',
+        scrollbarColour: "#000000",
+        insertionMarkerColour: "#FF0000",
         insertionMarkerOpacity: 1,
-        markerColour: '#FF0000',
-        cursorColour: '#FF0000',
+        markerColour: "#FF0000",
+        cursorColour: "#FF0000",
       },
     },
-    'low-vision': {
+    "low-vision": {
       events: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       scene: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       transform: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       animate: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       materials: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       sound: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       sensing: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       snippets: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       control: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       logic: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       variables: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       text: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       lists: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       math: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       procedures: {
-        colourPrimary: '#1E1E1E',
-        colourSecondary: '#1E1E1E',
-        colourText: '#F0F0F0',
+        colourPrimary: "#1E1E1E",
+        colourSecondary: "#1E1E1E",
+        colourText: "#F0F0F0",
       },
       components: {
-        workspaceBackgroundColour: '#d8d8d8',
-        toolboxBackgroundColour: '#1E1E1E',
-        toolboxForegroundColour: '#F0F0F0',
-        flyoutBackgroundColour: '#3A3A3A',
-        flyoutForegroundColour: '#CFCFCF',
+        workspaceBackgroundColour: "#d8d8d8",
+        toolboxBackgroundColour: "#1E1E1E",
+        toolboxForegroundColour: "#F0F0F0",
+        flyoutBackgroundColour: "#3A3A3A",
+        flyoutForegroundColour: "#CFCFCF",
         flyoutOpacity: 1,
-        scrollbarColour: '#E0E0E0',
-        insertionMarkerColour: '#E0E0E0',
+        scrollbarColour: "#E0E0E0",
+        insertionMarkerColour: "#E0E0E0",
         insertionMarkerOpacity: 1,
-        markerColour: '#E0E0E0',
-        cursorColour: '#E0E0E0',
-        fieldColour: '#1E1E1E',
-        fieldTextColour: '#000000',
+        markerColour: "#E0E0E0",
+        cursorColour: "#E0E0E0",
+        fieldColour: "#1E1E1E",
+        fieldTextColour: "#000000",
       },
     },
   };
@@ -703,22 +706,22 @@ function getThemeBaseStyles(themeName) {
 
 // Update visual indicator of active theme
 function updateActiveTheme(themeName) {
-  const themeLinks = document.querySelectorAll('[data-theme-target]');
+  const themeLinks = document.querySelectorAll("[data-theme-target]");
   themeLinks.forEach((link) => {
-    link.classList.remove('active-theme');
+    link.classList.remove("active-theme");
     if (link.dataset.themeTarget === themeName) {
-      link.classList.add('active-theme');
+      link.classList.add("active-theme");
     }
   });
 }
 
 // Initialize theme on page load
 export function initializeTheme() {
-  const themeLinks = document.querySelectorAll('[data-theme-target]');
-  let currentTheme = 'light'; // Default to light
+  const themeLinks = document.querySelectorAll("[data-theme-target]");
+  let currentTheme = "light"; // Default to light
 
   themeLinks.forEach((link) => {
-    link.addEventListener('click', (e) => {
+    link.addEventListener("click", (e) => {
       e.preventDefault();
       const newTheme = link.dataset.themeTarget;
 
@@ -731,7 +734,7 @@ export function initializeTheme() {
   });
 
   // Load saved theme or default to light
-  const savedTheme = localStorage.getItem('blocklyTheme') || 'light';
+  const savedTheme = localStorage.getItem("blocklyTheme") || "light";
   switchTheme(savedTheme);
   updateActiveTheme(savedTheme);
   currentTheme = savedTheme;
@@ -740,7 +743,7 @@ export function initializeTheme() {
 // Register category styles with Blockly before workspace creation
 function registerCategoryStyles() {
   // Use light theme as default for initial registration
-  const lightStyles = getThemeBaseStyles('light');
+  const lightStyles = getThemeBaseStyles("light");
 
   const categoryStyles = {
     events_category: { colour: lightStyles.events.colourPrimary },
@@ -774,10 +777,10 @@ function registerCategoryStyles() {
   Object.entries(categoryStyles).forEach(([styleName, styleConfig]) => {
     try {
       // Just register directly without checking if it exists
-      Blockly.registry.register('categoryStyles', styleName, styleConfig);
+      Blockly.registry.register("categoryStyles", styleName, styleConfig);
     } catch (error) {
       // Only warn if it's not an "already exists" error
-      if (!error.message.includes('already registered')) {
+      if (!error.message.includes("already registered")) {
         console.warn(`Failed to register category style ${styleName}:`, error);
       }
     }

@@ -1,33 +1,33 @@
-import globals from 'globals';
-import pluginJs from '@eslint/js';
+import globals from "globals";
+import pluginJs from "@eslint/js";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {
     ignores: [
-      'node_modules/',
-      'dev-dist/',
-      'dist/',
-      'examples/',
-      '.local/',
-      '**/.local/',
-      'test-playwright.js',
-      'test-visual.js',
+      "node_modules/",
+      "dev-dist/",
+      "dist/",
+      "examples/",
+      ".local/",
+      "**/.local/",
+      "test-playwright.js",
+      "test-visual.js",
     ],
   },
   { languageOptions: { globals: globals.browser } },
   {
-    files: ['tests/**/*.test.js'],
+    files: ["tests/**/*.test.js"],
     languageOptions: {
       globals: {
         ...globals.chai,
         ...globals.mocha,
-        chai: 'readonly',
+        chai: "readonly",
       },
     },
   },
   {
-    files: ['scripts/**/*.mjs', 'scripts/**/*.js', '**/scripts/**/*.js'],
+    files: ["scripts/**/*.mjs", "scripts/**/*.js", "**/scripts/**/*.js"],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -36,12 +36,12 @@ export default [
   },
   {
     files: [
-      '*.config.js',
-      '*.config.mjs',
-      '*.config.cjs',
-      '**/*.config.js',
-      '**/*.config.mjs',
-      '**/*.config.cjs',
+      "*.config.js",
+      "*.config.mjs",
+      "*.config.cjs",
+      "**/*.config.js",
+      "**/*.config.mjs",
+      "**/*.config.cjs",
     ],
     languageOptions: {
       globals: {
@@ -50,9 +50,9 @@ export default [
     },
   },
   {
-    files: ['vite.config.js'],
+    files: ["vite.config.js"],
     languageOptions: {
-      sourceType: 'module',
+      sourceType: "module",
       globals: {
         ...globals.node,
       },
@@ -61,7 +61,7 @@ export default [
   pluginJs.configs.recommended,
   {
     rules: {
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      "no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
     },
   },
 ];

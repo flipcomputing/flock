@@ -4,13 +4,13 @@
 
 Flock XR has an intial prototype of built-in screen reader support, enabling users who rely on assistive technology to navigate 3D worlds, interact with objects, and build programs. The implementation uses standard ARIA live regions and works with major screen readers including Windows Narrator, NVDA, JAWS, and VoiceOver.
 
-This functionality is available in the [development version of Flock XR](https://flipcomputing.github.io/flock/) which is under active development. If you're interested in a more stable version for trying out the features then do get in touch.
+This functionality is available in the [development version of Flock XR](https://flipcomputing.github.io/flock/) which is under active development. If you're interested in a more stable version for trying out the features then do get in touch. 
 
-Flock XR also has initial screen reader support for creating project using Blockly blocks using Blockly v13. Additional work is ongoing to integrate this functionality into Flock XR so that creating projects is fully screen reader accessible.
+Flock XR also has initial screen reader support for creating project using Blockly blocks using Blockly v13. Additional work is ongoing to integrate this functionality into Flock XR so that creating projects is fully screen reader accessible. 
 
-Flock XR supports spatial audio so sounds can be attached to meshes in 3D space and the volume and direction changes based on the proximity of the player to the source.
+Flock XR supports spatial audio so sounds can be attached to meshes in 3D space and the volume and direction changes based on the proximity of the player to the source. 
 
-The 2D UI componentsthat can be used in Flock XR are accessible by using tab and then interacting. This can be used to build text-based programs that are screen reader accessible.
+The 2D UI componentsthat can be used in Flock XR are accessible by using tab and then interacting. This can be used to build text-based programs that are screen reader accessible. 
 
 Many more features are on our roadmap, subject to funding, making Flock XR a viable coding environment for blind and visually impaired learners.
 
@@ -92,7 +92,7 @@ The visual interact indicator appears when an interactable object is within appr
 
 ### 2D UI components
 
-Flock XR programs can include 2D UI components such as text input fields, sliders, and buttons.
+Flock XR programs can include 2D UI components such as text input fields, sliders, and buttons. 
 
 - **Tab** from the canvas to move focus into the UI controls.
 - **Shift+Tab** moves backwards, returning to the canvas at either end.
@@ -104,9 +104,9 @@ The tab order of UI controls reflects the order in which they are added.
 
 ## Creating projects with Blockly
 
-Blockly v13 is adding screen reader support for creating projects using a screen reader. Flock XR has partial support for this and we're hoping to add full support as soon as we can by fully integrating with Flock XR blockly blocks.
+Blockly v13 is adding screen reader support for creating projects using a screen reader. Flock XR has partial support for this and we're hoping to add full support as soon as we can by fully integrating with Flock XR blockly blocks. 
 
-Screen reader support builds on keyboard controls support for Blockly. Keyboard navigation is currently being added to the Flock XR UI and Blockly blocks.
+Screen reader support builds on keyboard controls support for Blockly. Keyboard navigation is currently being added to the Flock XR UI and Blockly blocks. 
 
 ### Sound blocks
 
@@ -143,27 +143,25 @@ Flock XR programs can display text to the player using **say** and **print** blo
 - **Say blocks with a duration** — text is live-announced immediately when the say block fires, and is also included in the nearest object description (Ctrl+J) for as long as it is displayed.
 - **Say with duration 0** (persistent say) — the text is not live-announced, but is stored as a permanent description for the object and becomes part of the nearest object description when you use Ctrl+J. This is useful for setting a standing description that players can discover when they approach.
 
-Flock XR also has speech blocks that can generate speech from text.
+Flock XR also has speech blocks that can generate speech from text. 
 
 ### Text projects
-
 The 2D controls mean that Flock XR can be used to build text-based programs — games and interactive stories that work through text output and input without relying on the 3D scene visually. Using print blocks, say blocks, and UI input blocks, it is possible to create projects that are usable by screen reader users.
 
 ## Future
+There's so much we can do in Flock XR to allow the creation and exploration of 3D spatial worlds using a screen reader. 
 
-There's so much we can do in Flock XR to allow the creation and exploration of 3D spatial worlds using a screen reader.
+This includes adding sonification to help users navigate, adding improved music composition and spatial audio support and adding haptic feedback through low cost games controllers. And probably lots of things we haven't thought of yet. 
 
-This includes adding sonification to help users navigate, adding improved music composition and spatial audio support and adding haptic feedback through low cost games controllers. And probably lots of things we haven't thought of yet.
+Flock XR enables young people to have creative expression. It can also be used to increase awareness of screen reader use so that young people can themselves create projects that are accessible to others. 
 
-Flock XR enables young people to have creative expression. It can also be used to increase awareness of screen reader use so that young people can themselves create projects that are accessible to others.
-
-Spatial computing is increasingly important in society and industry with some key capabilities that are relevant to users who are blind or visually impaired. Flock XR has the potential to offer virtual experiences that enable users to practice skills such as tech-supported 3D navigation.
+Spatial computing is increasingly important in society and industry with some key capabilities that are relevant to users who are blind or visually impaired. Flock XR has the potential to offer virtual experiences that enable users to practice skills such as tech-supported 3D navigation. 
 
 ## Credits
 
-Screen reader support for creating Blockly projects in Flock XR is possible through [Blockly's keyboard navigation and screen reader support](https://www.blockly.com/accessibility). Tracy (creator and maintainer of Flock XR played a key role in this work through the [micro:bit Educational Foundation](https://microbit.org/accessibility/microsoft-makecode/)), working closely with a youth panel.
+Screen reader support for creating Blockly projects in Flock XR is possible through [Blockly's keyboard navigation and screen reader support](https://www.blockly.com/accessibility). Tracy (creator and maintainer of Flock XR played a key role in this work through the [micro:bit Educational Foundation](https://microbit.org/accessibility/microsoft-makecode/)), working closely with a youth panel. 
 
-Support for adding keyboard controls support to Flock XR is ongoing and supported by [NLnet](https://nlnet.nl/project/FlockXR-a11y-mobile-UX/).
+Support for adding keyboard controls support to Flock XR is ongoing and supported by [NLnet](https://nlnet.nl/project/FlockXR-a11y-mobile-UX/). 
 
 The initial screen reader accessibility prototype for Flock XR was developed by **Esther Mbugua**, a final year Computer Science student at the University of Sheffield.
 
@@ -178,7 +176,7 @@ We continually use the [RNIB Gaming Devkit](https://github.com/RNIB-MediaAndCult
 
 Flock XR is open-source and accessibility work is ongoing. We are actively looking for sponsorship to continue developing screen reader support, improve the Blockly editor experience, and make Flock XR more widely accessible.
 
-We're really excited about what is possible here, but we're going to need support to complete this work to a high standard including working closely with users who have a deep understanding of how this capability needs to work.
+We're really excited about what is possible here, but we're going to need support to complete this work to a high standard including working closely with users who have a deep understanding of how this capability needs to work. 
 
 - [Sponsor Flock XR on GitHub Sponsors](https://github.com/sponsors/flipcomputing)
 - [Get in touch via flockxr.com](https://flipcomputing.com/contact/)

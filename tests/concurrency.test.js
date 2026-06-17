@@ -1,7 +1,7 @@
-import { expect } from 'chai';
+import { expect } from "chai";
 
 export function runConcurrencyTests(flock) {
-  describe('Concurrency and Stress Tests @slow', function () {
+  describe("Concurrency and Stress Tests @slow", function () {
     this.timeout(30000); // Extended timeout for stress tests
     const createdObjects = [];
 
@@ -21,21 +21,21 @@ export function runConcurrencyTests(flock) {
       createdObjects.length = 0;
     });
 
-    describe('Concurrent Object Creation', function () {
-      it('should handle single object creation', async function () {
-        const objectId = 'single_test_object';
+    describe("Concurrent Object Creation", function () {
+      it("should handle single object creation", async function () {
+        const objectId = "single_test_object";
         createdObjects.push(objectId);
 
         console.log(`Creating object with ID: ${objectId}`);
         const result = flock.createObject({
-          modelName: 'tree.glb',
+          modelName: "tree.glb",
           modelId: objectId,
-          color: ['#ff0000', '#00ff00'],
+          color: ["#ff0000", "#00ff00"],
           position: { x: 0, y: 0, z: 0 },
         });
 
         console.log(`createObject returned: ${result}`);
-        expect(result).to.be.a('string');
+        expect(result).to.be.a("string");
 
         // Wait for the model to actually load
         console.log(`Waiting for model to be ready...`);
@@ -44,40 +44,40 @@ export function runConcurrencyTests(flock) {
         // Now verify object exists
         console.log(`Looking for mesh with name: ${objectId}`);
         const mesh = flock.scene.getMeshByName(objectId);
-        console.log(`Found mesh:`, mesh ? mesh.name : 'null');
+        console.log(`Found mesh:`, mesh ? mesh.name : "null");
 
         // Debug: list all mesh names in scene
         console.log(
-          'All mesh names in scene:',
-          flock.scene.meshes.map((m) => m.name)
+          "All mesh names in scene:",
+          flock.scene.meshes.map((m) => m.name),
         );
 
         expect(mesh).to.exist;
       });
     });
 
-    describe('Concurrent Say Operations', function () {
-      it('should handle single say operation', async function () {
-        const objectId = 'single_say_test_object';
+    describe("Concurrent Say Operations", function () {
+      it("should handle single say operation", async function () {
+        const objectId = "single_say_test_object";
         createdObjects.push(objectId);
 
         console.log(`Creating object for say test with ID: ${objectId}`);
         const result = flock.createObject({
-          modelName: 'tree.glb',
+          modelName: "tree.glb",
           modelId: objectId,
-          color: ['#ff0000', '#00ff00'],
+          color: ["#ff0000", "#00ff00"],
           position: { x: 0, y: 0, z: 0 },
         });
 
         console.log(`createObject returned: ${result}`);
-        expect(result).to.be.a('string');
+        expect(result).to.be.a("string");
 
         // Use the public API - say() handles model readiness internally
         if (flock.say) {
           console.log(`Starting say operation on ${result}`);
           // Just call say directly - it will wait for the model to be ready internally
           await flock.say(result, {
-            text: 'Hello World',
+            text: "Hello World",
             duration: 1,
           });
           console.log(`Say operation completed`);
@@ -88,13 +88,13 @@ export function runConcurrencyTests(flock) {
         expect(true).to.be.true; // Test passes if no errors thrown
       });
 
-      it('should handle multiple simultaneous say operations', async function () {
+      it("should handle multiple simultaneous say operations", async function () {
         // Create several objects first
         const objectIds = [];
         for (let i = 0; i < 10; i++) {
           const objectId = `say_object_${i}`;
           const returnedId = flock.createObject({
-            modelName: 'tree.glb',
+            modelName: "tree.glb",
             modelId: objectId,
             position: { x: i, y: 0, z: 0 },
           });
@@ -126,10 +126,10 @@ export function runConcurrencyTests(flock) {
         expect(true).to.be.true; // Test passes if no errors thrown
       });
 
-      it('should handle rapid sequential say operations on same object', async function () {
-        const objectId = 'rapid_say_object';
+      it("should handle rapid sequential say operations on same object", async function () {
+        const objectId = "rapid_say_object";
         const returnedId = flock.createObject({
-          modelName: 'tree.glb',
+          modelName: "tree.glb",
           modelId: objectId,
           position: { x: 0, y: 0, z: 0 },
         });
@@ -153,8 +153,8 @@ export function runConcurrencyTests(flock) {
       });
     });
 
-    describe('Concurrent Mesh Operations', function () {
-      it('should handle concurrent position updates', async function () {
+    describe("Concurrent Mesh Operations", function () {
+      it("should handle concurrent position updates", async function () {
         this.timeout(40000); // Increase timeout for this specific test
         const objectIds = [];
 
@@ -163,12 +163,14 @@ export function runConcurrencyTests(flock) {
           // Reduced from 15 to 10 objects
           const objectId = `position_object_${i}`;
           const returnedId = flock.createObject({
-            modelName: 'tree.glb',
+            modelName: "tree.glb",
             modelId: objectId,
             position: { x: i, y: 0, z: 0 },
           });
 
-          console.log(`Created position object ${i}: ${objectId} -> ${returnedId}`);
+          console.log(
+            `Created position object ${i}: ${objectId} -> ${returnedId}`,
+          );
           // Use the returned ID, not the passed one
           objectIds.push(returnedId);
           createdObjects.push(returnedId);
@@ -181,7 +183,9 @@ export function runConcurrencyTests(flock) {
           const newX = Math.random() * 10 - 5; // Reduced range
           const newZ = Math.random() * 10 - 5;
 
-          console.log(`Starting move operation on ${objectId} to ${newX}, ${newZ}`);
+          console.log(
+            `Starting move operation on ${objectId} to ${newX}, ${newZ}`,
+          );
 
           if (flock.glideTo) {
             // Use glideTo as it's more reliable than moveTo - duration in seconds
@@ -198,18 +202,22 @@ export function runConcurrencyTests(flock) {
               z: newZ,
             });
           } else {
-            console.log(`No movement functions available, skipping ${objectId}`);
+            console.log(
+              `No movement functions available, skipping ${objectId}`,
+            );
             return Promise.resolve();
           }
         });
 
-        console.log(`Waiting for ${movePromises.length} movement operations to complete...`);
+        console.log(
+          `Waiting for ${movePromises.length} movement operations to complete...`,
+        );
         await Promise.all(movePromises);
         console.log(`All movement operations completed`);
         expect(true).to.be.true;
       });
 
-      it('should handle concurrent color changes', async function () {
+      it("should handle concurrent color changes", async function () {
         const objectIds = [];
 
         // Create objects
@@ -219,7 +227,7 @@ export function runConcurrencyTests(flock) {
           createdObjects.push(objectId);
 
           flock.createObject({
-            modelName: 'tree.glb',
+            modelName: "tree.glb",
             modelId: objectId,
             position: { x: i % 4, y: 0, z: Math.floor(i / 4) },
           });
@@ -241,7 +249,7 @@ export function runConcurrencyTests(flock) {
         expect(true).to.be.true;
       });
 
-      it('should handle concurrent scaling operations', async function () {
+      it("should handle concurrent scaling operations", async function () {
         const objectIds = [];
 
         // Create objects
@@ -251,7 +259,7 @@ export function runConcurrencyTests(flock) {
           createdObjects.push(objectId);
 
           flock.createObject({
-            modelName: 'tree.glb',
+            modelName: "tree.glb",
             modelId: objectId,
             position: { x: i * 2, y: 0, z: 0 },
           });
@@ -274,8 +282,8 @@ export function runConcurrencyTests(flock) {
       });
     });
 
-    describe('Concurrent Animation Operations', function () {
-      it('should handle concurrent animation starts', async function () {
+    describe("Concurrent Animation Operations", function () {
+      it("should handle concurrent animation starts", async function () {
         const objectIds = [];
 
         // Create objects
@@ -285,7 +293,7 @@ export function runConcurrencyTests(flock) {
           createdObjects.push(objectId);
 
           flock.createObject({
-            modelName: 'tree.glb',
+            modelName: "tree.glb",
             modelId: objectId,
             position: { x: i * 2, y: 0, z: 0 },
           });
@@ -310,7 +318,7 @@ export function runConcurrencyTests(flock) {
         expect(true).to.be.true;
       });
 
-      it('should handle concurrent glideTo operations', async function () {
+      it("should handle concurrent glideTo operations", async function () {
         const objectIds = [];
 
         // Create objects
@@ -320,7 +328,7 @@ export function runConcurrencyTests(flock) {
           createdObjects.push(objectId);
 
           flock.createObject({
-            modelName: 'tree.glb',
+            modelName: "tree.glb",
             modelId: objectId,
             position: { x: i, y: 0, z: 0 },
           });
@@ -343,8 +351,8 @@ export function runConcurrencyTests(flock) {
       });
     });
 
-    describe('Concurrent Show/Hide Operations', function () {
-      it('should handle rapid show/hide toggles across multiple objects', async function () {
+    describe("Concurrent Show/Hide Operations", function () {
+      it("should handle rapid show/hide toggles across multiple objects", async function () {
         const objectIds = [];
 
         // Create objects
@@ -354,7 +362,7 @@ export function runConcurrencyTests(flock) {
           createdObjects.push(objectId);
 
           flock.createObject({
-            modelName: 'tree.glb',
+            modelName: "tree.glb",
             modelId: objectId,
             position: { x: i % 5, y: 0, z: Math.floor(i / 5) },
           });
@@ -365,13 +373,17 @@ export function runConcurrencyTests(flock) {
         // Perform multiple rounds of concurrent show/hide
         for (let round = 0; round < 3; round++) {
           // Hide all objects concurrently
-          const hidePromises = objectIds.map((objectId) => flock.hide(objectId));
+          const hidePromises = objectIds.map((objectId) =>
+            flock.hide(objectId),
+          );
           await Promise.all(hidePromises);
 
           await flock.wait(0.3);
 
           // Show all objects concurrently
-          const showPromises = objectIds.map((objectId) => flock.show(objectId));
+          const showPromises = objectIds.map((objectId) =>
+            flock.show(objectId),
+          );
           await Promise.all(showPromises);
 
           await flock.wait(0.3);
@@ -381,8 +393,8 @@ export function runConcurrencyTests(flock) {
       });
     });
 
-    describe('Mixed Concurrent Operations', function () {
-      it('should handle mixed operations on different objects simultaneously', async function () {
+    describe("Mixed Concurrent Operations", function () {
+      it("should handle mixed operations on different objects simultaneously", async function () {
         const objectIds = [];
 
         // Create various objects
@@ -392,7 +404,7 @@ export function runConcurrencyTests(flock) {
           createdObjects.push(objectId);
 
           flock.createObject({
-            modelName: 'tree.glb',
+            modelName: "tree.glb",
             modelId: objectId,
             position: { x: i % 5, y: 0, z: Math.floor(i / 5) },
           });
@@ -421,7 +433,7 @@ export function runConcurrencyTests(flock) {
               return flock.changeColor
                 ? flock.changeColor(
                     objectId,
-                    `#${Math.floor(Math.random() * 16777215).toString(16)}`
+                    `#${Math.floor(Math.random() * 16777215).toString(16)}`,
                   ) || Promise.resolve()
                 : Promise.resolve();
 
@@ -437,7 +449,8 @@ export function runConcurrencyTests(flock) {
             case 3:
               // Scale
               return flock.scale
-                ? flock.scale(objectId, 0.5 + Math.random()) || Promise.resolve()
+                ? flock.scale(objectId, 0.5 + Math.random()) ||
+                    Promise.resolve()
                 : Promise.resolve();
 
             case 4:
@@ -446,14 +459,16 @@ export function runConcurrencyTests(flock) {
                 ? flock.say(objectId, `Object ${index}`, 2) || Promise.resolve()
                 : Promise.resolve();
 
-            case 5: // Hide then show - ensure all operations return promises
-            {
-              const hidePromise = flock.hide(objectId) || Promise.resolve();
-              const waitPromise = () => flock.wait(0.5);
-              const showPromise = () => flock.show(objectId) || Promise.resolve();
+            case 5:
+              // Hide then show - ensure all operations return promises
+              {
+                const hidePromise = flock.hide(objectId) || Promise.resolve();
+                const waitPromise = () => flock.wait(0.5);
+                const showPromise = () =>
+                  flock.show(objectId) || Promise.resolve();
 
-              return hidePromise.then(waitPromise).then(showPromise);
-            }
+                return hidePromise.then(waitPromise).then(showPromise);
+              }
 
             default:
               return Promise.resolve();
@@ -464,7 +479,7 @@ export function runConcurrencyTests(flock) {
         expect(true).to.be.true;
       });
 
-      it('should handle overlapping whenModelReady calls', async function () {
+      it("should handle overlapping whenModelReady calls", async function () {
         const objectIds = [];
 
         // Create objects and immediately start operations on them
@@ -477,7 +492,7 @@ export function runConcurrencyTests(flock) {
           // Create object
           const createPromise = Promise.resolve().then(() => {
             flock.createObject({
-              modelName: 'tree.glb',
+              modelName: "tree.glb",
               modelId: objectId,
               position: { x: i % 5, y: 0, z: Math.floor(i / 5) },
             });
@@ -486,7 +501,7 @@ export function runConcurrencyTests(flock) {
             const ops = [];
 
             if (flock.changeColor) {
-              ops.push(flock.changeColor(objectId, '#ff0000'));
+              ops.push(flock.changeColor(objectId, "#ff0000"));
             }
 
             if (flock.say) {
@@ -499,7 +514,7 @@ export function runConcurrencyTests(flock) {
                 y: 1,
                 z: Math.floor(i / 5),
                 duration: 1,
-              })
+              }),
             );
 
             if (flock.scale) {
@@ -517,8 +532,8 @@ export function runConcurrencyTests(flock) {
       });
     });
 
-    describe('Error Resilience Under Concurrency', function () {
-      it('should handle rapid creation and disposal', async function () {
+    describe("Error Resilience Under Concurrency", function () {
+      it("should handle rapid creation and disposal", async function () {
         const promises = [];
 
         for (let i = 0; i < 10; i++) {
@@ -527,7 +542,7 @@ export function runConcurrencyTests(flock) {
           const promise = Promise.resolve().then(async () => {
             // Create object
             flock.createObject({
-              modelName: 'tree.glb',
+              modelName: "tree.glb",
               modelId: objectId,
               position: { x: i, y: 0, z: 0 },
             });
@@ -537,7 +552,7 @@ export function runConcurrencyTests(flock) {
 
             // Try some operations
             if (flock.changeColor) {
-              await flock.changeColor(objectId, '#00ff00');
+              await flock.changeColor(objectId, "#00ff00");
             }
 
             // Dispose immediately
@@ -552,8 +567,8 @@ export function runConcurrencyTests(flock) {
       });
     });
 
-    describe('Performance Under Load', function () {
-      it('should maintain performance with many concurrent whenModelReady calls', async function () {
+    describe("Performance Under Load", function () {
+      it("should maintain performance with many concurrent whenModelReady calls", async function () {
         const startTime = Date.now();
         const promises = [];
 
@@ -563,7 +578,7 @@ export function runConcurrencyTests(flock) {
           createdObjects.push(objectId);
 
           flock.createObject({
-            modelName: 'tree.glb',
+            modelName: "tree.glb",
             modelId: objectId,
             position: { x: i % 6, y: 0, z: Math.floor(i / 6) },
           });
@@ -580,7 +595,7 @@ export function runConcurrencyTests(flock) {
                   // Simple operation
                   mesh.position.y = Math.random();
                 }
-              })
+              }),
             );
           }
         }

@@ -76,104 +76,54 @@ const cleanupFns = [];
 const gizmoCreatedBlocks = new Map(); // blockId -> { parentId, createdDoSection, timestamp }
 
 const AXIS_SWITCH_KEYS = new Set([
-  'ArrowLeft',
-  'ArrowRight',
-  'ArrowUp',
-  'ArrowDown',
-  'PageUp',
-  'PageDown',
-  'x',
-  'X',
-  'y',
-  'Y',
-  'z',
-  'Z',
-  'u',
-  'U',
+  "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
+  "PageUp", "PageDown",
+  "x", "X", "y", "Y", "z", "Z", "u", "U",
 ]);
 
-function createAdaptiveInput({
-  onMove,
-  onConfirm,
-  onCancel,
-  stepNormal,
-  stepFast,
-  mode,
-  showUniform,
-  stepLabels,
-  onHudShow,
-  onHudHide,
-  onAxisChange,
-  stepLabelsByAxis,
-}) {
+function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast, mode, showUniform, stepLabels, onHudShow, onHudHide, onAxisChange, stepLabelsByAxis }) {
   let stopHud = null;
   let stopKeyboard = null;
   const canvas = flock.canvas;
 
   function switchToTouch() {
-    if (stopKeyboard) {
-      stopKeyboard();
-      stopKeyboard = null;
-    }
+    if (stopKeyboard) { stopKeyboard(); stopKeyboard = null; }
     if (!stopHud) {
-      stopHud = createGizmoMobileHud({
-        onMove,
-        stepNormal,
-        stepFast,
-        mode,
-        showUniform,
-        stepLabels,
-        onAxisChange,
-        stepLabelsByAxis,
-      });
+      stopHud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange, stepLabelsByAxis });
       onHudShow?.();
     }
   }
 
   function switchToKeyboard() {
     if (stopHud) {
-      stopHud();
-      stopHud = null;
+      stopHud(); stopHud = null;
       onHudHide?.();
     }
     if (!stopKeyboard) {
-      stopKeyboard = createAxisKeyboardHandler({
-        onMove,
-        onConfirm,
-        onCancel,
-        stepNormal,
-        stepFast,
-      });
+      stopKeyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast });
     }
   }
 
   function onCanvasPointer(e) {
-    if (e.pointerType === 'touch') switchToTouch();
+    if (e.pointerType === "touch") switchToTouch();
   }
 
   function onRawKey(e) {
     if (e.cancelBubble) return;
-    if (e.target?.closest?.('#shapes-dropdown, .custom-color-picker')) return;
+    if (e.target?.closest?.("#shapes-dropdown, .custom-color-picker")) return;
     if (AXIS_SWITCH_KEYS.has(e.key)) switchToKeyboard();
   }
 
-  canvas.addEventListener('pointerdown', onCanvasPointer);
+  canvas.addEventListener("pointerdown", onCanvasPointer);
   const rawKeyObserver = flock.inputManager.onRawKeyDownObservable.add(onRawKey);
 
   if (navigator.maxTouchPoints > 0) switchToTouch();
 
   return function stop() {
-    canvas.removeEventListener('pointerdown', onCanvasPointer);
+    canvas.removeEventListener("pointerdown", onCanvasPointer);
     flock.inputManager.onRawKeyDownObservable.remove(rawKeyObserver);
-    if (stopHud) {
-      onHudHide?.();
-      stopHud();
-      stopHud = null;
-    }
-    if (stopKeyboard) {
-      stopKeyboard();
-      stopKeyboard = null;
-    }
+    if (stopHud) { onHudHide?.(); stopHud(); stopHud = null; }
+    if (stopKeyboard) { stopKeyboard(); stopKeyboard = null; }
   };
 }
 
@@ -1613,7 +1563,7 @@ function highlightGizmoAxis(gizmo, axis) {
   const map = { x: gizmo?.xGizmo, y: gizmo?.yGizmo, z: gizmo?.zGizmo };
   Object.entries(map).forEach(([key, g]) => {
     if (g?._coloredMaterial) {
-      g._coloredMaterial.alpha = !axis || axis === key || axis === 'all' ? 1 : 0.2;
+      g._coloredMaterial.alpha = (!axis || axis === key || axis === 'all') ? 1 : 0.2;
     }
   });
 }

@@ -1,7 +1,7 @@
-import { expect } from 'chai';
+import { expect } from "chai";
 
 export function runEventsTests(flock) {
-  describe('Events API @events', function () {
+  describe("Events API @events", function () {
     const meshIds = [];
 
     afterEach(function () {
@@ -21,147 +21,150 @@ export function runEventsTests(flock) {
     });
 
     // -------------------------------------------------------------------------
-    describe('isAllowedEventName', function () {
-      it('returns false for empty string', function () {
-        expect(flock.isAllowedEventName('')).to.be.false;
+    describe("isAllowedEventName", function () {
+      it("returns false for empty string", function () {
+        expect(flock.isAllowedEventName("")).to.be.false;
       });
 
-      it('returns false for non-string input', function () {
+      it("returns false for non-string input", function () {
         expect(flock.isAllowedEventName(null)).to.be.false;
         expect(flock.isAllowedEventName(42)).to.be.false;
       });
 
-      it('returns false for name longer than 30 characters', function () {
-        expect(flock.isAllowedEventName('a'.repeat(31))).to.be.false;
+      it("returns false for name longer than 30 characters", function () {
+        expect(flock.isAllowedEventName("a".repeat(31))).to.be.false;
       });
 
-      it('returns false for reserved prefixes', function () {
-        expect(flock.isAllowedEventName('onSomething')).to.be.false;
-        expect(flock.isAllowedEventName('systemEvent')).to.be.false;
-        expect(flock.isAllowedEventName('internalMsg')).to.be.false;
-        expect(flock.isAllowedEventName('babylonTick')).to.be.false;
-        expect(flock.isAllowedEventName('flockReady')).to.be.false;
-        expect(flock.isAllowedEventName('_hidden')).to.be.false;
+      it("returns false for reserved prefixes", function () {
+        expect(flock.isAllowedEventName("onSomething")).to.be.false;
+        expect(flock.isAllowedEventName("systemEvent")).to.be.false;
+        expect(flock.isAllowedEventName("internalMsg")).to.be.false;
+        expect(flock.isAllowedEventName("babylonTick")).to.be.false;
+        expect(flock.isAllowedEventName("flockReady")).to.be.false;
+        expect(flock.isAllowedEventName("_hidden")).to.be.false;
       });
 
-      it('returns false for disallowed characters', function () {
-        expect(flock.isAllowedEventName('hello!')).to.be.false;
-        expect(flock.isAllowedEventName('say@world')).to.be.false;
+      it("returns false for disallowed characters", function () {
+        expect(flock.isAllowedEventName("hello!")).to.be.false;
+        expect(flock.isAllowedEventName("say@world")).to.be.false;
       });
 
-      it('returns true for a valid plain name', function () {
-        expect(flock.isAllowedEventName('jump')).to.be.true;
-        expect(flock.isAllowedEventName('collect coin')).to.be.true;
+      it("returns true for a valid plain name", function () {
+        expect(flock.isAllowedEventName("jump")).to.be.true;
+        expect(flock.isAllowedEventName("collect coin")).to.be.true;
       });
 
-      it('returns true for a name with emoji', function () {
-        expect(flock.isAllowedEventName('🎉party')).to.be.true;
+      it("returns true for a name with emoji", function () {
+        expect(flock.isAllowedEventName("🎉party")).to.be.true;
       });
     });
 
     // -------------------------------------------------------------------------
-    describe('sanitizeEventName', function () {
-      it('removes disallowed characters', function () {
-        expect(flock.sanitizeEventName('hello!')).to.equal('hello');
-        expect(flock.sanitizeEventName('say@world')).to.equal('sayworld');
+    describe("sanitizeEventName", function () {
+      it("removes disallowed characters", function () {
+        expect(flock.sanitizeEventName("hello!")).to.equal("hello");
+        expect(flock.sanitizeEventName("say@world")).to.equal("sayworld");
       });
 
-      it('truncates to 50 characters', function () {
-        const long = 'a'.repeat(60);
+      it("truncates to 50 characters", function () {
+        const long = "a".repeat(60);
         expect(flock.sanitizeEventName(long)).to.have.lengthOf(50);
       });
 
-      it('returns empty string for non-string input', function () {
-        expect(flock.sanitizeEventName(null)).to.equal('');
-        expect(flock.sanitizeEventName(123)).to.equal('');
+      it("returns empty string for non-string input", function () {
+        expect(flock.sanitizeEventName(null)).to.equal("");
+        expect(flock.sanitizeEventName(123)).to.equal("");
       });
 
-      it('preserves emoji and spaces', function () {
-        expect(flock.sanitizeEventName('🎉 party time')).to.equal('🎉 party time');
+      it("preserves emoji and spaces", function () {
+        expect(flock.sanitizeEventName("🎉 party time")).to.equal(
+          "🎉 party time",
+        );
       });
     });
 
     // -------------------------------------------------------------------------
-    describe('onEvent and broadcastEvent', function () {
-      it('calls handler when matching event is broadcast', function () {
+    describe("onEvent and broadcastEvent", function () {
+      it("calls handler when matching event is broadcast", function () {
         let called = false;
-        flock.onEvent('pickup', () => {
+        flock.onEvent("pickup", () => {
           called = true;
         });
-        flock.broadcastEvent('pickup');
+        flock.broadcastEvent("pickup");
         expect(called).to.be.true;
       });
 
-      it('does not call handler when a different event is broadcast', function () {
+      it("does not call handler when a different event is broadcast", function () {
         let called = false;
-        flock.onEvent('pickup', () => {
+        flock.onEvent("pickup", () => {
           called = true;
         });
-        flock.broadcastEvent('drop');
+        flock.broadcastEvent("drop");
         expect(called).to.be.false;
       });
 
-      it('calls all handlers when multiple are registered for the same event', function () {
+      it("calls all handlers when multiple are registered for the same event", function () {
         // Simulates several meshes each independently listening to the same event
         let countA = 0;
         let countB = 0;
         let countC = 0;
-        flock.onEvent('collect', () => countA++);
-        flock.onEvent('collect', () => countB++);
-        flock.onEvent('collect', () => countC++);
-        flock.broadcastEvent('collect');
+        flock.onEvent("collect", () => countA++);
+        flock.onEvent("collect", () => countB++);
+        flock.onEvent("collect", () => countC++);
+        flock.broadcastEvent("collect");
         expect(countA).to.equal(1);
         expect(countB).to.equal(1);
         expect(countC).to.equal(1);
       });
 
-      it('calls handler with data passed to broadcastEvent', function () {
+      it("calls handler with data passed to broadcastEvent", function () {
         let received = null;
-        flock.onEvent('score', (data) => {
+        flock.onEvent("score", (data) => {
           received = data;
         });
-        flock.broadcastEvent('score', 42);
+        flock.broadcastEvent("score", 42);
         expect(received).to.equal(42);
       });
 
-      it('fires handler exactly once when once=true', function () {
+      it("fires handler exactly once when once=true", function () {
         let count = 0;
         flock.onEvent(
-          'ping',
+          "ping",
           () => {
             count++;
           },
-          true
+          true,
         );
-        flock.broadcastEvent('ping');
-        flock.broadcastEvent('ping');
-        flock.broadcastEvent('ping');
+        flock.broadcastEvent("ping");
+        flock.broadcastEvent("ping");
+        flock.broadcastEvent("ping");
         expect(count).to.equal(1);
       });
 
-      it('silently rejects broadcastEvent with reserved event name', function () {
+      it("silently rejects broadcastEvent with reserved event name", function () {
         let called = false;
         // Cannot register on reserved name, so just verify broadcast doesn't throw
-        expect(() => flock.broadcastEvent('onSomething')).to.not.throw();
+        expect(() => flock.broadcastEvent("onSomething")).to.not.throw();
         expect(called).to.be.false;
       });
 
-      it('warns and does not throw when handler is not a function', function () {
+      it("warns and does not throw when handler is not a function", function () {
         const warnings = [];
         const originalWarn = console.warn;
-        console.warn = (...args) => warnings.push(args.join(' '));
+        console.warn = (...args) => warnings.push(args.join(" "));
         try {
-          expect(() => flock.onEvent('jump', 'notAFunction')).to.not.throw();
+          expect(() => flock.onEvent("jump", "notAFunction")).to.not.throw();
         } finally {
           console.warn = originalWarn;
         }
-        expect(warnings.some((w) => w.includes('handler must be a function'))).to.be.true;
+        expect(warnings.some((w) => w.includes("handler must be a function"))).to
+          .be.true;
       });
     });
 
     // -------------------------------------------------------------------------
-    describe('start', function () {
-      it('calls action on the next render frame', async function () {
+    describe("start", function () {
+      it("calls action on the next render frame", async function () {
         let called = false;
         flock.start(() => {
           called = true;
@@ -172,10 +175,10 @@ export function runEventsTests(flock) {
     });
 
     // -------------------------------------------------------------------------
-    describe('forever @slow', function () {
+    describe("forever @slow", function () {
       this.timeout(10000);
 
-      it('calls action at least 3 times across render frames', async function () {
+      it("calls action at least 3 times across render frames", async function () {
         let count = 0;
         flock.forever(async () => {
           count++;
@@ -184,7 +187,7 @@ export function runEventsTests(flock) {
         expect(count).to.be.at.least(3);
       });
 
-      it('does not run action concurrently when action takes time', async function () {
+      it("does not run action concurrently when action takes time", async function () {
         let concurrent = false;
         let running = false;
         let count = 0;
@@ -204,102 +207,106 @@ export function runEventsTests(flock) {
     });
 
     // -------------------------------------------------------------------------
-    describe('whenKeyEvent', function () {
-      it('calls callback when matching KEYDOWN key fires', function () {
+    describe("whenKeyEvent", function () {
+      it("calls callback when matching KEYDOWN key fires", function () {
         let called = false;
-        flock.whenKeyEvent('x', () => {
+        flock.whenKeyEvent("x", () => {
           called = true;
         });
-        flock.inputManager.onKeyDownObservable.notifyObservers('x');
+        flock.inputManager.onKeyDownObservable.notifyObservers("x");
         expect(called).to.be.true;
       });
 
-      it('does not call callback for a different key', function () {
+      it("does not call callback for a different key", function () {
         let called = false;
-        flock.whenKeyEvent('x', () => {
+        flock.whenKeyEvent("x", () => {
           called = true;
         });
-        flock.inputManager.onKeyDownObservable.notifyObservers('z');
+        flock.inputManager.onKeyDownObservable.notifyObservers("z");
         expect(called).to.be.false;
       });
 
-      it('fires on KEYUP when isReleased=true, not on KEYDOWN', function () {
+      it("fires on KEYUP when isReleased=true, not on KEYDOWN", function () {
         let downCalled = false;
         let upCalled = false;
         flock.whenKeyEvent(
-          'm',
+          "m",
           () => {
             downCalled = true;
           },
-          false
+          false,
         );
         flock.whenKeyEvent(
-          'm',
+          "m",
           () => {
             upCalled = true;
           },
-          true
+          true,
         );
 
-        flock.inputManager.onKeyDownObservable.notifyObservers('m');
+        flock.inputManager.onKeyDownObservable.notifyObservers("m");
         expect(downCalled).to.be.true;
         expect(upCalled).to.be.false;
 
-        flock.inputManager.onKeyUpObservable.notifyObservers('m');
+        flock.inputManager.onKeyUpObservable.notifyObservers("m");
         expect(upCalled).to.be.true;
       });
 
-      it('warns and does not throw when callback is not a function', function () {
+      it("warns and does not throw when callback is not a function", function () {
         const warnings = [];
         const originalWarn = console.warn;
-        console.warn = (...args) => warnings.push(args.join(' '));
+        console.warn = (...args) => warnings.push(args.join(" "));
         try {
-          expect(() => flock.whenKeyEvent('k', 'notAFunction')).to.not.throw();
+          expect(() => flock.whenKeyEvent("k", "notAFunction")).to.not.throw();
         } finally {
           console.warn = originalWarn;
         }
-        expect(warnings.some((w) => w.includes('callback must be a function'))).to.be.true;
+        expect(warnings.some((w) => w.includes("callback must be a function")))
+          .to.be.true;
       });
     });
 
     // -------------------------------------------------------------------------
-    describe('whenActionEvent', function () {
+    describe("whenActionEvent", function () {
       afterEach(function () {
         flock.inputManager._clearAllKeys();
       });
 
       it("triggers callback when FORWARD action key 'w' is pressed", function () {
         let called = false;
-        flock.whenActionEvent('FORWARD', () => {
+        flock.whenActionEvent("FORWARD", () => {
           called = true;
         });
-        flock.inputManager._setKey('w', true);
+        flock.inputManager._setKey("w", true);
         expect(called).to.be.true;
       });
 
-      it('warns and does not throw when callback is not a function', function () {
+      it("warns and does not throw when callback is not a function", function () {
         const warnings = [];
         const originalWarn = console.warn;
-        console.warn = (...args) => warnings.push(args.join(' '));
+        console.warn = (...args) => warnings.push(args.join(" "));
         try {
-          expect(() => flock.whenActionEvent('FORWARD', 'notAFunction')).to.not.throw();
+          expect(() =>
+            flock.whenActionEvent("FORWARD", "notAFunction"),
+          ).to.not.throw();
         } finally {
           console.warn = originalWarn;
         }
-        expect(warnings.some((w) => w.includes('callback must be a function'))).to.be.true;
+        expect(warnings.some((w) => w.includes("callback must be a function")))
+          .to.be.true;
       });
     });
 
     // -------------------------------------------------------------------------
-    describe('onTrigger with applyToGroup @physics', function () {
+    describe("onTrigger with applyToGroup @physics", function () {
       // Note: createBox("name__N") strips the __N suffix, creating a mesh
       // named "name". For separate meshes that share a group root, use single
       // underscore: "evtbox_1" and "evtbox_2" both have group root "evtbox"
       // (via getGroupRoot which splits on "_" when "__" is absent).
 
-      it('registers trigger on all meshes sharing the same name prefix', async function () {
-        const id1 = 'evtbox_1';
-        const id2 = 'evtbox_2';
+      it("registers trigger on all meshes sharing the same name prefix", async function () {
+        const id1 = "evtbox_1";
+        const id2 = "evtbox_2";
         await flock.createBox(id1, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
         await flock.createBox(id2, { width: 1, height: 1, depth: 1, position: [2, 0, 0] });
         meshIds.push(id1, id2);
@@ -311,20 +318,24 @@ export function runEventsTests(flock) {
 
         let count = 0;
         flock.onTrigger(id1, {
-          trigger: 'OnPickTrigger',
+          trigger: "OnPickTrigger",
           callback: () => count++,
           applyToGroup: true,
         });
 
-        mesh1.actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
-        mesh2.actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+        mesh1.actionManager.processTrigger(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+        );
+        mesh2.actionManager.processTrigger(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+        );
 
         expect(count).to.equal(2);
       });
 
-      it('registers trigger only on named mesh when applyToGroup is false', async function () {
-        const id1 = 'solobox_1';
-        const id2 = 'solobox_2';
+      it("registers trigger only on named mesh when applyToGroup is false", async function () {
+        const id1 = "solobox_1";
+        const id2 = "solobox_2";
         await flock.createBox(id1, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
         await flock.createBox(id2, { width: 1, height: 1, depth: 1, position: [2, 0, 0] });
         meshIds.push(id1, id2);
@@ -336,24 +347,26 @@ export function runEventsTests(flock) {
 
         let count = 0;
         flock.onTrigger(id1, {
-          trigger: 'OnPickTrigger',
+          trigger: "OnPickTrigger",
           callback: () => count++,
           applyToGroup: false,
         });
 
         // Trigger the second mesh — should not fire since only id1 was registered
-        mesh2.actionManager?.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+        mesh2.actionManager?.processTrigger(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+        );
 
         expect(count).to.equal(0);
       });
 
-      it('replays pending non-group trigger on the original target mesh only', async function () {
-        const target = 'latepick_1';
-        const sibling = 'latepick_2';
+      it("replays pending non-group trigger on the original target mesh only", async function () {
+        const target = "latepick_1";
+        const sibling = "latepick_2";
 
         let count = 0;
         flock.onTrigger(target, {
-          trigger: 'OnPickTrigger',
+          trigger: "OnPickTrigger",
           callback: () => count++,
           applyToGroup: false,
         });
@@ -377,19 +390,23 @@ export function runEventsTests(flock) {
         expect(targetMesh).to.exist;
         expect(siblingMesh).to.exist;
 
-        siblingMesh.actionManager?.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
-        targetMesh.actionManager?.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+        siblingMesh.actionManager?.processTrigger(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+        );
+        targetMesh.actionManager?.processTrigger(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+        );
 
         expect(count).to.equal(1);
       });
 
-      it('replays pending group trigger across siblings when applyToGroup is true', async function () {
-        const first = 'lategroup_1';
-        const second = 'lategroup_2';
+      it("replays pending group trigger across siblings when applyToGroup is true", async function () {
+        const first = "lategroup_1";
+        const second = "lategroup_2";
 
         let count = 0;
         flock.onTrigger(first, {
-          trigger: 'OnPickTrigger',
+          trigger: "OnPickTrigger",
           callback: () => count++,
           applyToGroup: true,
         });
@@ -413,8 +430,12 @@ export function runEventsTests(flock) {
         expect(mesh1).to.exist;
         expect(mesh2).to.exist;
 
-        mesh1.actionManager?.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
-        mesh2.actionManager?.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+        mesh1.actionManager?.processTrigger(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+        );
+        mesh2.actionManager?.processTrigger(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+        );
 
         expect(count).to.equal(2);
       });

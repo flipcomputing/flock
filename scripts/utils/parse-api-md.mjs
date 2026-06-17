@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
 /**
  * Parse API.md and extract all documented method names
  * @returns {Set<string>} Set of method names documented in API.md
  */
 export function parseApiMd() {
-  const apiMdPath = path.resolve(process.cwd(), 'API.md');
+  const apiMdPath = path.resolve(process.cwd(), "API.md");
 
   if (!fs.existsSync(apiMdPath)) {
-    console.warn('⚠️  API.md not found');
+    console.warn("⚠️  API.md not found");
     return new Set();
   }
 
-  const content = fs.readFileSync(apiMdPath, 'utf-8');
-  const lines = content.split('\n');
+  const content = fs.readFileSync(apiMdPath, "utf-8");
+  const lines = content.split("\n");
 
   const documentedMethods = new Set();
 
@@ -50,22 +50,30 @@ export function getDocumentationStatus(methodName, jsdocMap, apiMdMethods) {
     hasApiMdDoc,
     hasAnyDoc: hasJSDoc || hasApiMdDoc,
     docType:
-      hasJSDoc && hasApiMdDoc ? 'both' : hasJSDoc ? 'jsdoc' : hasApiMdDoc ? 'api.md' : 'none',
+      hasJSDoc && hasApiMdDoc
+        ? "both"
+        : hasJSDoc
+          ? "jsdoc"
+          : hasApiMdDoc
+            ? "api.md"
+            : "none",
   };
 }
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  console.log('\n📖 Parsing API.md for documented methods...\n');
+  console.log("\n📖 Parsing API.md for documented methods...\n");
 
   const documentedMethods = parseApiMd();
 
-  console.log(`✅ Found ${documentedMethods.size} documented methods in API.md:\n`);
+  console.log(
+    `✅ Found ${documentedMethods.size} documented methods in API.md:\n`,
+  );
 
   const sorted = Array.from(documentedMethods).sort();
   sorted.forEach((method, index) => {
     console.log(`  ${(index + 1).toString().padStart(3)}. ${method}`);
   });
 
-  console.log('');
+  console.log("");
 }

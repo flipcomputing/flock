@@ -11,12 +11,12 @@ export const flockModels = {
     scale = 1,
     position = { x: 0, y: 0, z: 0 },
     colors = {
-      hair: '#000000',
-      skin: '#a15c33',
-      eyes: '#0000ff',
-      sleeves: '#ff0000',
-      shorts: '#00ff00',
-      tshirt: '#0000ff',
+      hair: "#000000",
+      skin: "#a15c33",
+      eyes: "#0000ff",
+      sleeves: "#ff0000",
+      shorts: "#00ff00",
+      tshirt: "#0000ff",
     },
     callback = () => {},
   }) {
@@ -29,42 +29,42 @@ export const flockModels = {
         container.skeletons = [];
         container.animationGroups = [];
       } catch (_) {
-        console.warn('Suppressed non-critical error:', _);
+        console.warn("Suppressed non-critical error:", _);
       }
     };
 
     // --- bail if there is no live scene (e.g. called during dispose) ---
     if (!flock.scene || flock.scene.isDisposed) {
-      console.warn('createCharacter: no active scene');
-      return 'error_no_scene';
+      console.warn("createCharacter: no active scene");
+      return "error_no_scene";
     }
 
     // --- validate ---
-    if (!modelName || typeof modelName !== 'string' || modelName.length > 100) {
-      console.warn('createCharacter: invalid modelName');
-      return 'error_' + flock.scene.getUniqueId();
+    if (!modelName || typeof modelName !== "string" || modelName.length > 100) {
+      console.warn("createCharacter: invalid modelName");
+      return "error_" + flock.scene.getUniqueId();
     }
-    if (!modelId || typeof modelId !== 'string' || modelId.length > 100) {
-      console.warn('createCharacter: invalid modelId');
-      return 'error_' + flock.scene.getUniqueId();
+    if (!modelId || typeof modelId !== "string" || modelId.length > 100) {
+      console.warn("createCharacter: invalid modelId");
+      return "error_" + flock.scene.getUniqueId();
     }
 
     // --- parse BEFORE sanitizing so blockKey remains RAW ---
     let desiredBase = modelId; // e.g. "player__j9#WY5..."
     let blockKey = null;
-    if (desiredBase.includes('__')) {
-      [desiredBase, blockKey] = desiredBase.split('__');
+    if (desiredBase.includes("__")) {
+      [desiredBase, blockKey] = desiredBase.split("__");
     }
     // If no "__" was provided, fall back to base as the key (keeps prior behavior safe)
     if (!blockKey) blockKey = desiredBase;
 
     // --- sanitize ONLY modelName + BASE (NOT the blockKey) ---
-    modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, '');
+    modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
     // Capture the original base name before sanitization so we can register it as
     // an alias in modelReadyPromises. This lets whenModelReady("dimnnd monkey", ...)
     // resolve correctly even though the actual mesh name is "dimnndmonkey".
     const originalBase = desiredBase;
-    desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, '');
+    desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
     // The sanitized base, captured before _reserveName may append a collision
     // suffix. The bare-base alias must only bridge a genuine sanitization
     // difference (originalBase !== sanitizedBase); it must NOT be registered for
@@ -72,7 +72,7 @@ export const flockModels = {
     // would otherwise alias the bare model name onto the wrong instance.
     const sanitizedBase = desiredBase;
 
-    if (flock.maxMeshesReached()) return 'error_' + flock.scene.getUniqueId();
+    if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
 
     flock._recycleOldestByKey(modelName);
 
@@ -82,17 +82,23 @@ export const flockModels = {
     const groupName = desiredBase; // group by base for onTrigger applyToGroup
 
     // position/scale clamps
-    const x = Number.isFinite(position?.x) ? Math.max(-1000, Math.min(1000, position.x)) : 0;
+    const x = Number.isFinite(position?.x)
+      ? Math.max(-1000, Math.min(1000, position.x))
+      : 0;
     const groundLevelSentinel = -999999;
-    const numericY = typeof position?.y === 'string' ? Number(position.y) : position?.y;
+    const numericY =
+      typeof position?.y === "string" ? Number(position.y) : position?.y;
     const y =
-      position?.y === '__ground__level__' || numericY === groundLevelSentinel
+      position?.y === "__ground__level__" || numericY === groundLevelSentinel
         ? position.y
         : Number.isFinite(position?.y)
           ? Math.max(-1000, Math.min(1000, position.y))
           : 0;
-    const z = Number.isFinite(position?.z) ? Math.max(-1000, Math.min(1000, position.z)) : 0;
-    if (!(typeof scale === 'number' && scale >= 0.01 && scale <= 100)) scale = 1;
+    const z = Number.isFinite(position?.z)
+      ? Math.max(-1000, Math.min(1000, position.z))
+      : 0;
+    if (!(typeof scale === "number" && scale >= 0.01 && scale <= 100))
+      scale = 1;
 
     // --- create readiness deferred (resolve OR reject) + abort hookup ---
     let resolveReady, rejectReady;
@@ -119,9 +125,9 @@ export const flockModels = {
     const signal = flock.abortController?.signal;
     const onAbort = () => {
       try {
-        rejectReady(new Error('aborted'));
+        rejectReady(new Error("aborted"));
       } catch (error) {
-        console.warn('Suppressed non-critical error:', error);
+        console.warn("Suppressed non-critical error:", error);
       }
       flock.modelReadyPromises.delete(meshName);
       if (
@@ -130,10 +136,10 @@ export const flockModels = {
       )
         flock.modelReadyPromises.delete(originalBase);
       flock._releaseName?.(meshName);
-      signal?.removeEventListener('abort', onAbort);
+      signal?.removeEventListener("abort", onAbort);
     };
-    signal?.addEventListener('abort', onAbort, { once: true });
-    const cleanupAbort = () => signal?.removeEventListener('abort', onAbort);
+    signal?.addEventListener("abort", onAbort, { once: true });
+    const cleanupAbort = () => signal?.removeEventListener("abort", onAbort);
 
     // --- single load path ---
     flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
@@ -142,7 +148,7 @@ export const flockModels = {
       flock.scene,
       null,
       null,
-      { signal: flock.abortController?.signal }
+      { signal: flock.abortController?.signal },
     )
       .then((container) => {
         // The scene was disposed / the load was aborted while this
@@ -155,10 +161,10 @@ export const flockModels = {
           try {
             container?.dispose?.();
           } catch (_) {
-            console.warn('Suppressed non-critical error:', _);
+            console.warn("Suppressed non-critical error:", _);
           }
           if (!signal?.aborted) {
-            rejectReady(new Error('scene disposed'));
+            rejectReady(new Error("scene disposed"));
             flock.modelReadyPromises.delete(meshName);
             if (
               originalBase !== sanitizedBase &&
@@ -175,7 +181,16 @@ export const flockModels = {
         container.addAllToScene();
 
         const mesh = container.meshes[0];
-        const bb = flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z);
+        const bb = flock.setupMesh(
+          mesh,
+          modelName,
+          meshName,
+          blockKey,
+          scale,
+          x,
+          y,
+          z,
+        );
 
         // materials & colors
         flock.ensureStandardMaterial(mesh);
@@ -194,8 +209,8 @@ export const flockModels = {
         mesh.setEnabled(false);
 
         // Preload animations (non-blocking for readiness)
-        const animationPromises = ['Walk', 'Jump', 'Idle'].map((name) =>
-          flock.switchToAnimation(flock.scene, bb, name, false, false, false)
+        const animationPromises = ["Walk", "Jump", "Idle"].map((name) =>
+          flock.switchToAnimation(flock.scene, bb, name, false, false, false),
         );
 
         // After anims, run optional callback (await if it returns a promise), then show
@@ -204,9 +219,9 @@ export const flockModels = {
             if (callback) {
               try {
                 const result = callback();
-                if (result && typeof result.then === 'function') await result;
+                if (result && typeof result.then === "function") await result;
               } catch (err) {
-                console.error('Callback error:', err);
+                console.error("Callback error:", err);
               }
             }
           })
@@ -241,7 +256,7 @@ export const flockModels = {
         releaseContainer(container);
       })
       .catch((error) => {
-        console.log('❌ Error loading character:', error);
+        console.log("❌ Error loading character:", error);
         rejectReady(error);
         flock._releaseName(meshName);
         flock.modelReadyPromises.delete(meshName);
@@ -284,7 +299,7 @@ export const flockModels = {
         container.skeletons = [];
         container.animationGroups = [];
       } catch (_) {
-        console.warn('Suppressed non-critical error:', _);
+        console.warn("Suppressed non-critical error:", _);
       }
     };
 
@@ -301,10 +316,10 @@ export const flockModels = {
         m.metadata.originalNodeName = m.metadata.originalNodeName || m.name;
         m.metadata.isTemplate = true;
         m.metadata.templateTag = tag;
-        if ('isPickable' in m) m.isPickable = false;
-        if (typeof m.setEnabled === 'function') m.setEnabled(false);
-        if ('isVisible' in m) m.isVisible = false;
-        if ('visibility' in m) m.visibility = 0;
+        if ("isPickable" in m) m.isPickable = false;
+        if (typeof m.setEnabled === "function") m.setEnabled(false);
+        if ("isVisible" in m) m.isVisible = false;
+        if ("visibility" in m) m.visibility = 0;
       });
     };
 
@@ -314,10 +329,10 @@ export const flockModels = {
         if (m.metadata?.isTemplate) {
           m.metadata = { ...m.metadata, isTemplate: false };
         }
-        if ('isPickable' in m) m.isPickable = true;
-        if (typeof m.setEnabled === 'function') m.setEnabled(true);
-        if ('isVisible' in m) m.isVisible = true;
-        if ('visibility' in m) m.visibility = 1;
+        if ("isPickable" in m) m.isPickable = true;
+        if (typeof m.setEnabled === "function") m.setEnabled(true);
+        if ("isVisible" in m) m.isVisible = true;
+        if ("visibility" in m) m.visibility = 1;
       });
     };
 
@@ -338,7 +353,7 @@ export const flockModels = {
         position.x,
         position.y,
         position.z,
-        color
+        color,
       );
       applyMaterialToHierarchy(mesh, color);
       mesh.computeWorldMatrix(true);
@@ -351,20 +366,22 @@ export const flockModels = {
 
     try {
       if (!flock.scene || flock.scene.isDisposed) {
-        console.warn('createObject: no active scene');
-        return 'error_no_scene';
+        console.warn("createObject: no active scene");
+        return "error_no_scene";
       }
-      if (flock.maxMeshesReached()) return 'error_' + flock.scene.getUniqueId();
+      if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
 
-      let [desiredBase, bKey] = modelId.includes('__') ? modelId.split('__') : [modelId, modelId];
-      modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, '');
-      desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, '');
+      let [desiredBase, bKey] = modelId.includes("__")
+        ? modelId.split("__")
+        : [modelId, modelId];
+      modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
+      desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
 
       const meshName = flock._reserveName(desiredBase);
       const groupName = desiredBase;
 
       if (applyColor && !color) {
-        color = flock.objectColours?.[modelName] || ['#FFFFFF', '#FFFFFF'];
+        color = flock.objectColours?.[modelName] || ["#FFFFFF", "#FFFFFF"];
       }
 
       let resolveReady;
@@ -375,7 +392,9 @@ export const flockModels = {
 
       if (flock.modelCache[modelName]) {
         flock._recycleOldestByKey(modelName);
-        const mesh = flock.modelCache[modelName].clone(flock.modelCache[modelName].name);
+        const mesh = flock.modelCache[modelName].clone(
+          flock.modelCache[modelName].name,
+        );
         flock._registerInstance(modelName, meshName);
         finalizeMesh(mesh, meshName, groupName, bKey);
         resolveReady(mesh);
@@ -386,7 +405,9 @@ export const flockModels = {
         flock.modelsBeingLoaded[modelName].then(() => {
           if (!flock.scene || flock.scene.isDisposed) return;
           flock._recycleOldestByKey(modelName);
-          const mesh = flock.modelCache[modelName].clone(flock.modelCache[modelName].name);
+          const mesh = flock.modelCache[modelName].clone(
+            flock.modelCache[modelName].name,
+          );
           flock._registerInstance(modelName, meshName);
           finalizeMesh(mesh, meshName, groupName, bKey);
           resolveReady(mesh);
@@ -397,7 +418,7 @@ export const flockModels = {
       const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
         flock.modelPath,
         modelName,
-        flock.scene
+        flock.scene,
       );
       flock.modelsBeingLoaded[modelName] = loadPromise;
 
@@ -409,7 +430,7 @@ export const flockModels = {
           try {
             container?.dispose?.();
           } catch (_) {
-            console.warn('Suppressed non-critical error:', _);
+            console.warn("Suppressed non-critical error:", _);
           }
           delete flock.modelsBeingLoaded[modelName];
           return;
@@ -454,11 +475,17 @@ export const flockModels = {
 
       return meshName;
     } catch (error) {
-      console.warn('createObject failed; returning error id:', error);
-      return 'error_' + flock.scene.getUniqueId();
+      console.warn("createObject failed; returning error id:", error);
+      return "error_" + flock.scene.getUniqueId();
     }
   },
-  createModel({ modelName, modelId, scale = 1, position = { x: 0, y: 0, z: 0 }, callback = null }) {
+  createModel({
+    modelName,
+    modelId,
+    scale = 1,
+    position = { x: 0, y: 0, z: 0 },
+    callback = null,
+  }) {
     return flock.createObject({
       modelName,
       modelId,
@@ -480,7 +507,7 @@ export const flockModels = {
       container.skeletons = [];
       container.animationGroups = [];
     } catch (error) {
-      console.warn('releaseContainer cleanup failed:', error);
+      console.warn("releaseContainer cleanup failed:", error);
     }
   },
 };

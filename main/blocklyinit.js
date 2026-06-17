@@ -1432,28 +1432,28 @@ function installShadowNavigationPatch(ws) {
   // Right-arrow: if the target is a skippable block, land on its field instead
   // of the redundant block stop. From a skippable field, pass the field
   // explicitly so the traversal bubbles up to the next inline sibling.
-  nav.getInNode = function (node) {
+  nav.getInNode = function(node) {
     const field = getFocusedSkippableField();
     return skipBlock(field ? origIn(field) : origIn(node));
   };
 
   // Left-arrow: from a skippable block's field, go to the block's parent
   // (skip the block itself in both the shadow and standalone cases).
-  nav.getOutNode = function (node) {
+  nav.getOutNode = function(node) {
     const field = getFocusedSkippableField();
     if (field) return skipBlock(origOut(field.getSourceBlock()));
     return origOut(node);
   };
 
   // Down-arrow: navigate as if standing on the skippable block itself.
-  nav.getNextNode = function (node) {
+  nav.getNextNode = function(node) {
     const field = getFocusedSkippableField();
     if (field) return skipBlock(origNext(field.getSourceBlock()));
     return skipBlock(origNext(node));
   };
 
   // Up-arrow: same idea.
-  nav.getPreviousNode = function (node) {
+  nav.getPreviousNode = function(node) {
     const field = getFocusedSkippableField();
     if (field) return skipBlock(origPrev(field.getSourceBlock()));
     return skipBlock(origPrev(node));
@@ -1484,9 +1484,8 @@ function installShadowNavigationPatch(ws) {
       keyCodes: [shortcutRegistry.createSerializedKey(keyCode)],
       preconditionFn: (workspace) => {
         const block = skippableFieldBlock();
-        return (
-          !!block && !workspace.isDragging() && !workspace.isReadOnly() && canRun(workspace, block)
-        );
+        return !!block && !workspace.isDragging() && !workspace.isReadOnly() &&
+               canRun(workspace, block);
       },
       callback: (workspace, event) => {
         const block = skippableFieldBlock();
@@ -1502,7 +1501,7 @@ function installShadowNavigationPatch(ws) {
     (_ws, event, block) => {
       block.unplug(!(event instanceof KeyboardEvent && event.shiftKey));
       return true;
-    }
+    },
   );
 
   registerSkippableFieldShortcut(
@@ -1514,7 +1513,7 @@ function installShadowNavigationPatch(ws) {
       if (!copyData) return false;
       Blockly.clipboard.paste(copyData, ws);
       return true;
-    }
+    },
   );
 
   // Delete key is safe to bind here — Del doesn't conflict with text editing
@@ -1527,7 +1526,7 @@ function installShadowNavigationPatch(ws) {
       event.preventDefault();
       block.checkAndDelete();
       return true;
-    }
+    },
   );
 }
 
@@ -1687,7 +1686,7 @@ export function createBlocklyWorkspace() {
           suppressOpenUntil = Date.now() + 400;
           trashcan.closeFlyout();
         },
-        true
+        true,
       );
 
       workspace.addChangeListener((e) => {
@@ -2692,26 +2691,19 @@ export function createBlocklyWorkspace() {
       cancelBtn.type = 'button';
       cancelBtn.className = 'fc-confirm-btn fc-confirm-btn--cancel';
       cancelBtn.setAttribute('aria-label', translate('cancel') || 'Cancel');
-      cancelBtn.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="24" height="24" fill="currentColor"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>';
+      cancelBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="24" height="24" fill="currentColor"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>';
 
       const okBtn = document.createElement('button');
       okBtn.type = 'button';
       okBtn.className = 'fc-confirm-btn fc-confirm-btn--ok';
       okBtn.setAttribute('aria-label', Blockly.Msg['DIALOG_OK'] || 'OK');
-      okBtn.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="24" height="24" fill="currentColor"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>';
+      okBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="24" height="24" fill="currentColor"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>';
 
-      const close = (result) => {
-        overlay.remove();
-        callback(result);
-      };
+      const close = (result) => { overlay.remove(); callback(result); };
 
       cancelBtn.addEventListener('pointerdown', () => close(false));
       okBtn.addEventListener('pointerdown', () => close(true));
-      overlay.addEventListener('pointerdown', (e) => {
-        if (e.target === overlay) close(false);
-      });
+      overlay.addEventListener('pointerdown', (e) => { if (e.target === overlay) close(false); });
 
       btnRow.append(cancelBtn, okBtn);
       dialog.append(msg, btnRow);
@@ -2866,7 +2858,7 @@ export function createBlocklyWorkspace() {
         block.setCommentText(null);
       } else {
         block.setCommentText('');
-        const icon = block.getIcons?.().find((i) => typeof i.setBubbleVisible === 'function');
+        const icon = block.getIcons?.().find(i => typeof i.setBubbleVisible === 'function');
         icon?.setBubbleVisible(true);
       }
       hideBlockToolbar();
@@ -2890,10 +2882,7 @@ export function createBlocklyWorkspace() {
       };
       const count = countDeleted(block, false);
       if (count > 1) {
-        const msg = (Blockly.Msg['DELETE_ALL_BLOCKS'] || 'Delete all %1 blocks?').replace(
-          '%1',
-          count
-        );
+        const msg = (Blockly.Msg['DELETE_ALL_BLOCKS'] || 'Delete all %1 blocks?').replace('%1', count);
         Blockly.dialog.confirm(msg, (ok) => {
           if (!ok) return;
           hideBlockToolbar();

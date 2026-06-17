@@ -5,8 +5,8 @@ if (!globalThis.KeyboardEvent) {
   globalThis.KeyboardEvent = class KeyboardEvent extends Event {
     constructor(type, init = {}) {
       super(type, init);
-      this.key = init.key ?? '';
-      this.code = init.code ?? '';
+      this.key = init.key ?? "";
+      this.code = init.code ?? "";
       this.keyCode = init.keyCode ?? 0;
       this.which = init.which ?? 0;
       this.repeat = init.repeat ?? false;
@@ -18,7 +18,7 @@ if (!globalThis.PointerEvent) {
     constructor(type, init = {}) {
       super(type, { bubbles: init.bubbles, cancelable: init.cancelable });
       this.pointerId = init.pointerId ?? 0;
-      this.pointerType = init.pointerType ?? '';
+      this.pointerType = init.pointerType ?? "";
       this.clientX = init.clientX ?? 0;
       this.clientY = init.clientY ?? 0;
       this.button = init.button ?? 0;
@@ -27,16 +27,16 @@ if (!globalThis.PointerEvent) {
   };
 }
 
-import Mocha from 'mocha';
-import { runInputTests } from '../tests/input/index.test.js';
+import Mocha from "mocha";
+import { runInputTests } from "../tests/input/index.test.js";
 
-const mocha = new Mocha({ reporter: 'spec' });
+const mocha = new Mocha({ reporter: "spec" });
 
 // Register all input tests
-mocha.suite.emit('pre-require', globalThis, null, mocha);
+mocha.suite.emit("pre-require", globalThis, null, mocha);
 runInputTests();
-mocha.suite.emit('require', null, null, mocha);
-mocha.suite.emit('post-require', globalThis, null, mocha);
+mocha.suite.emit("require", null, null, mocha);
+mocha.suite.emit("post-require", globalThis, null, mocha);
 
 mocha.run((failures) => {
   process.exitCode = failures ? 1 : 0;

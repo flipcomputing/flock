@@ -1,13 +1,13 @@
 export function runTests(flock, expect) {
-  describe('Flock API Tests', function () {
-    it('should set the sky color', function (done) {
-      flock.setSky('#6495ed');
+  describe("Flock API Tests", function () {
+    it("should set the sky color", function (done) {
+      flock.setSky("#6495ed");
       done();
     });
 
-    it('should create a box and check its position', function (done) {
-      const box1 = flock.createBox('box__1', {
-        color: '#996633',
+    it("should create a box and check its position", function (done) {
+      const box1 = flock.createBox("box__1", {
+        color: "#996633",
         width: 4,
         height: 0.5,
         depth: 4,
@@ -22,9 +22,9 @@ export function runTests(flock, expect) {
       done();
     });
 
-    it('should check if the box is created with the right size', function (done) {
-      const box1 = flock.createBox('box__1', {
-        color: '#996633',
+    it("should check if the box is created with the right size", function (done) {
+      const box1 = flock.createBox("box__1", {
+        color: "#996633",
         width: 4,
         height: 0.5,
         depth: 4,

@@ -1,4 +1,4 @@
-import { runGetPlayerMeshTests } from './getPlayerMesh.test.js';
+import { runGetPlayerMeshTests } from "./getPlayerMesh.test.js";
 
 export function runAccessibilityTests(flock) {
   runGetPlayerMeshTests(flock);

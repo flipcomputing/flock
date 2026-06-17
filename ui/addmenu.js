@@ -1,31 +1,36 @@
-import * as Blockly from 'blockly';
-import { flock } from '../flock.js';
-import { multiObjectNames, objectNames, characterNames, objectColours } from '../config.js';
+import * as Blockly from "blockly";
+import { flock } from "../flock.js";
+import {
+  multiObjectNames,
+  objectNames,
+  characterNames,
+  objectColours,
+} from "../config.js";
 import {
   highlightBlockById,
   setPositionValues,
   getCanvasXAndCanvasYValues,
   createBlockForObject,
   createBlockForCharacter,
-} from './blocklyutil.js';
-import { roundPositionValue } from './blocklyshadowutil.js';
+} from "./blocklyutil.js";
+import { roundPositionValue } from "./blocklyshadowutil.js";
 import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
   setCrosshairCursor,
   setDefaultCursor,
-} from './canvas-utils.js';
-import { GizmoMenuManager } from '../accessibility/keyboardui.js';
-import { translate } from '../main/translation.js';
-import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
+} from "./canvas-utils.js";
+import { GizmoMenuManager } from "../accessibility/keyboardui.js";
+import { translate } from "../main/translation.js";
+import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
 
 const colorFields = {
-  HAIR_COLOR: '#000000', // Hair: black
-  SKIN_COLOR: '#A15C33', // Skin: custom skin tone
-  EYES_COLOR: '#000000', // Eyes: black
-  SLEEVES_COLOR: '#fpo008B8B', // Sleeves: dark cyan
-  SHORTS_COLOR: '#00008B', // Shorts: dark blue
-  TSHIRT_COLOR: '#FF8F60', // T-Shirt: light orange
+  HAIR_COLOR: "#000000", // Hair: black
+  SKIN_COLOR: "#A15C33", // Skin: custom skin tone
+  EYES_COLOR: "#000000", // Eyes: black
+  SLEEVES_COLOR: "#fpo008B8B", // Sleeves: dark cyan
+  SHORTS_COLOR: "#00008B", // Shorts: dark blue
+  TSHIRT_COLOR: "#FF8F60", // T-Shirt: light orange
 };
 
 export function createBlockWithShadows(shapeType, position, colour) {
@@ -45,10 +50,10 @@ export function createBlockWithShadows(shapeType, position, colour) {
   };
 
   let allInputs;
-  if (shapeType === 'set_sky_color') {
+  if (shapeType === "set_sky_color") {
     allInputs = [...spec.inputs];
   } else {
-    allInputs = [...spec.inputs, 'X', 'Y', 'Z'];
+    allInputs = [...spec.inputs, "X", "Y", "Z"];
   }
 
   const data = { type: shapeType, inputs: {} };
@@ -101,7 +106,7 @@ function makeShadowSpec(type, fields) {
 const __CREATE_SPEC = {
   create_box: {
     defaults: ({ c }) => ({ COLOR: c, WIDTH: 1, HEIGHT: 1, DEPTH: 1 }),
-    inputs: ['COLOR', 'WIDTH', 'HEIGHT', 'DEPTH'],
+    inputs: ["COLOR", "WIDTH", "HEIGHT", "DEPTH"],
   },
   create_sphere: {
     defaults: ({ c }) => ({
@@ -110,7 +115,7 @@ const __CREATE_SPEC = {
       DIAMETER_Y: 1,
       DIAMETER_Z: 1,
     }),
-    inputs: ['COLOR', 'DIAMETER_X', 'DIAMETER_Y', 'DIAMETER_Z'],
+    inputs: ["COLOR", "DIAMETER_X", "DIAMETER_Y", "DIAMETER_Z"],
   },
   create_cylinder: {
     defaults: ({ c }) => ({
@@ -120,26 +125,32 @@ const __CREATE_SPEC = {
       DIAMETER_BOTTOM: 1,
       TESSELLATIONS: 24,
     }),
-    inputs: ['COLOR', 'HEIGHT', 'DIAMETER_TOP', 'DIAMETER_BOTTOM', 'TESSELLATIONS'],
+    inputs: [
+      "COLOR",
+      "HEIGHT",
+      "DIAMETER_TOP",
+      "DIAMETER_BOTTOM",
+      "TESSELLATIONS",
+    ],
   },
   create_capsule: {
     defaults: ({ c }) => ({ COLOR: c, DIAMETER: 1, HEIGHT: 2 }),
-    inputs: ['COLOR', 'DIAMETER', 'HEIGHT'],
+    inputs: ["COLOR", "DIAMETER", "HEIGHT"],
   },
   create_plane: {
     defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 2 }),
-    inputs: ['COLOR', 'WIDTH', 'HEIGHT'],
+    inputs: ["COLOR", "WIDTH", "HEIGHT"],
   },
   set_sky_color: {
     defaults: ({ c }) => ({ COLOR: c }),
-    inputs: ['COLOR'],
+    inputs: ["COLOR"],
   },
 };
 
 function __metaFor(name) {
-  return name === 'COLOR'
-    ? { type: 'colour', field: 'COLOR' }
-    : { type: 'math_number', field: 'NUM' };
+  return name === "COLOR"
+    ? { type: "colour", field: "COLOR" }
+    : { type: "math_number", field: "NUM" };
 }
 
 function addShapeToWorkspace(shapeType, position) {
@@ -155,7 +166,11 @@ function addShapeToWorkspace(shapeType, position) {
 
   try {
     Blockly.Events.setGroup(groupId);
-    const block = createBlockWithShadows(shapeType, position, flock.randomColour());
+    const block = createBlockWithShadows(
+      shapeType,
+      position,
+      flock.randomColour(),
+    );
     if (!block) {
       console.error(`Failed to create block of type: ${shapeType}`);
       return null;
@@ -164,10 +179,10 @@ function addShapeToWorkspace(shapeType, position) {
     try {
       setPositionValues(block, position, shapeType);
     } catch (e) {
-      console.error('Error setting position values:', e);
+      console.error("Error setting position values:", e);
     }
 
-    const startSpec = { type: 'start' };
+    const startSpec = { type: "start" };
     let startBlock;
     try {
       startBlock = Blockly.serialization.blocks.append(startSpec, workspace, {
@@ -183,24 +198,24 @@ function addShapeToWorkspace(shapeType, position) {
     startBlock?.initSvg?.();
     startBlock?.render?.();
 
-    const connection = startBlock?.getInput('DO')?.connection;
+    const connection = startBlock?.getInput("DO")?.connection;
     if (connection && block.previousConnection) {
       try {
         connection.connect(block.previousConnection);
       } catch (e) {
-        console.error('Error connecting to start block:', e);
+        console.error("Error connecting to start block:", e);
       }
     }
 
     try {
       highlightBlockById(workspace, block);
     } catch (e) {
-      console.error('Error highlighting block:', e);
+      console.error("Error highlighting block:", e);
     }
 
     return block;
   } catch (error) {
-    console.error('Error in addShapeToWorkspace:', error);
+    console.error("Error in addShapeToWorkspace:", error);
     return null;
   } finally {
     if (startTempGroup) Blockly.Events.setGroup(false);
@@ -210,12 +225,13 @@ function addShapeToWorkspace(shapeType, position) {
 }
 
 function selectCharacter(characterName) {
-  const dd = document.getElementById('shapes-dropdown');
-  if (dd) dd.style.display = 'none';
+  const dd = document.getElementById("shapes-dropdown");
+  if (dd) dd.style.display = "none";
   removeKeyboardNavigation();
 
   const workspace = Blockly.getMainWorkspace();
-  const canvas = flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
+  const canvas =
+    flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
 
   function cleanup() {
     cleanupPlacementMode();
@@ -246,7 +262,7 @@ function selectCharacter(characterName) {
       pickedPosition,
       colorFields,
       setPositionValues,
-      highlightBlockById
+      highlightBlockById,
     );
 
     cleanup();
@@ -255,14 +271,14 @@ function selectCharacter(characterName) {
   try {
     startPlacementKeyboardMode();
   } catch (error) {
-    console.warn('Unable to start keyboard placement mode.', error);
+    console.warn("Unable to start keyboard placement mode.", error);
   }
 
   setCrosshairCursor();
   flock.printText({
-    text: translate('place_object_prompt'),
+    text: translate("place_object_prompt"),
     duration: 30,
-    color: 'black',
+    color: "black",
   });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
@@ -271,8 +287,8 @@ function selectCharacter(characterName) {
 }
 
 function selectShape(shapeType) {
-  const dropdown = document.getElementById('shapes-dropdown');
-  if (dropdown) dropdown.style.display = 'none';
+  const dropdown = document.getElementById("shapes-dropdown");
+  if (dropdown) dropdown.style.display = "none";
   removeKeyboardNavigation();
   detachActivePickHandler();
 
@@ -297,10 +313,13 @@ function selectShape(shapeType) {
       canvasX,
       canvasY,
       flock.BABYLON.Matrix.Identity(),
-      flock.scene.activeCamera
+      flock.scene.activeCamera,
     );
 
-    const pickResult = flock.scene.pickWithRay(pickRay, (mesh) => mesh.isPickable);
+    const pickResult = flock.scene.pickWithRay(
+      pickRay,
+      (mesh) => mesh.isPickable,
+    );
     if (pickResult && pickResult.hit) {
       addShapeToWorkspace(shapeType, pickResult.pickedPoint);
     }
@@ -314,9 +333,9 @@ function selectShape(shapeType) {
   // Also set up mouse click as fallback
   setCrosshairCursor();
   flock.printText({
-    text: translate('place_object_prompt'),
+    text: translate("place_object_prompt"),
     duration: 30,
-    color: 'black',
+    color: "black",
   });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
@@ -325,17 +344,17 @@ function selectShape(shapeType) {
 }
 
 function selectObject(objectName) {
-  selectObjectWithCommand(objectName, 'shapes-dropdown', 'load_object');
+  selectObjectWithCommand(objectName, "shapes-dropdown", "load_object");
 }
 
 function selectMultiObject(objectName) {
-  selectObjectWithCommand(objectName, 'shapes-dropdown', 'load_multi_object');
+  selectObjectWithCommand(objectName, "shapes-dropdown", "load_multi_object");
 }
 
 function selectObjectWithCommand(objectName, menu, command) {
   // Hide menu
   const menuEl = document.getElementById(menu);
-  if (menuEl) menuEl.style.display = 'none';
+  if (menuEl) menuEl.style.display = "none";
   removeKeyboardNavigation();
 
   const workspace = Blockly.getMainWorkspace();
@@ -363,7 +382,7 @@ function selectObjectWithCommand(objectName, menu, command) {
       x,
       y,
       flock.BABYLON.Matrix.Identity(),
-      flock.scene.activeCamera
+      flock.scene.activeCamera,
     );
     const pick = flock.scene.pickWithRay(pickRay, (m) => m.isPickable);
     if (!pick?.hit) return cleanup();
@@ -377,7 +396,7 @@ function selectObjectWithCommand(objectName, menu, command) {
       pickedPosition,
       objectColours,
       setPositionValues,
-      highlightBlockById
+      highlightBlockById,
     );
 
     cleanup();
@@ -386,15 +405,15 @@ function selectObjectWithCommand(objectName, menu, command) {
   try {
     startPlacementKeyboardMode();
   } catch (error) {
-    console.warn('Unable to start keyboard placement mode.', error);
+    console.warn("Unable to start keyboard placement mode.", error);
   }
 
   // Mouse click fallback (capture=true)
   setCrosshairCursor();
   flock.printText({
-    text: translate('place_object_prompt'),
+    text: translate("place_object_prompt"),
     duration: 30,
-    color: 'black',
+    color: "black",
   });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
@@ -404,19 +423,19 @@ function selectObjectWithCommand(objectName, menu, command) {
 
 // Function to load characters into the menu
 function loadCharacterImages() {
-  const characterRow = document.getElementById('character-row');
+  const characterRow = document.getElementById("character-row");
   characterRow.replaceChildren();
   // Clear existing characters
 
   characterNames.forEach((name) => {
-    const baseName = name.replace(/\.[^/.]+$/, ''); // Remove extension
+    const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
 
-    const img = document.createElement('img');
+    const img = document.createElement("img");
     img.src = `./images/${baseName}.png`;
     img.alt = baseName;
-    img.addEventListener('click', () => selectCharacter(name));
+    img.addEventListener("click", () => selectCharacter(name));
 
-    const li = document.createElement('li');
+    const li = document.createElement("li");
     li.appendChild(img);
 
     characterRow.appendChild(li);
@@ -424,30 +443,30 @@ function loadCharacterImages() {
 }
 
 function getAllNavigableItems() {
-  const dropdown = document.getElementById('shapes-dropdown');
+  const dropdown = document.getElementById("shapes-dropdown");
   if (!dropdown) return [];
 
   // Get all clickable items from all rows
   const items = [];
 
-  const shapeRow = dropdown.querySelector('#shape-row');
+  const shapeRow = dropdown.querySelector("#shape-row");
   if (shapeRow) {
-    items.push(...Array.from(shapeRow.querySelectorAll('li')));
+    items.push(...Array.from(shapeRow.querySelectorAll("li")));
   }
 
-  const objectRow = dropdown.querySelector('#object-row');
+  const objectRow = dropdown.querySelector("#object-row");
   if (objectRow) {
-    items.push(...Array.from(objectRow.querySelectorAll('li')));
+    items.push(...Array.from(objectRow.querySelectorAll("li")));
   }
 
-  const modelRow = dropdown.querySelector('#model-row');
+  const modelRow = dropdown.querySelector("#model-row");
   if (modelRow) {
-    items.push(...Array.from(modelRow.querySelectorAll('li')));
+    items.push(...Array.from(modelRow.querySelectorAll("li")));
   }
 
-  const characterRow = dropdown.querySelector('#character-row');
+  const characterRow = dropdown.querySelector("#character-row");
   if (characterRow) {
-    items.push(...Array.from(characterRow.querySelectorAll('li')));
+    items.push(...Array.from(characterRow.querySelectorAll("li")));
   }
 
   return items;
@@ -455,17 +474,17 @@ function getAllNavigableItems() {
 
 function focusItem(item) {
   if (currentFocusedElement) {
-    currentFocusedElement.classList.remove('keyboard-focused');
-    currentFocusedElement.setAttribute('tabindex', '-1');
+    currentFocusedElement.classList.remove("keyboard-focused");
+    currentFocusedElement.setAttribute("tabindex", "-1");
   }
 
   currentFocusedElement = item;
-  item.classList.add('keyboard-focused');
-  item.setAttribute('tabindex', '0');
+  item.classList.add("keyboard-focused");
+  item.setAttribute("tabindex", "0");
   item.focus();
 
   // Scroll item into view if needed
-  item.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  item.scrollIntoView({ block: "nearest", inline: "nearest" });
 }
 
 function navigateHorizontal(allItems, currentIndex, direction) {
@@ -487,17 +506,21 @@ function navigateHorizontal(allItems, currentIndex, direction) {
   if (rowItems.length <= 1) return; // No other items in this row
 
   // Sort row items by X position
-  rowItems.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+  rowItems.sort(
+    (a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left,
+  );
 
   const currentRowIndex = rowItems.indexOf(currentItem);
   let nextRowIndex;
 
   if (direction > 0) {
     // Moving right
-    nextRowIndex = currentRowIndex < rowItems.length - 1 ? currentRowIndex + 1 : 0;
+    nextRowIndex =
+      currentRowIndex < rowItems.length - 1 ? currentRowIndex + 1 : 0;
   } else {
     // Moving left
-    nextRowIndex = currentRowIndex > 0 ? currentRowIndex - 1 : rowItems.length - 1;
+    nextRowIndex =
+      currentRowIndex > 0 ? currentRowIndex - 1 : rowItems.length - 1;
   }
 
   focusItem(rowItems[nextRowIndex]);
@@ -527,7 +550,9 @@ function navigateVertical(allItems, currentIndex, direction) {
   });
 
   // Sort rows by Y position
-  const sortedRows = Array.from(itemsByRow.entries()).sort(([y1], [y2]) => y1 - y2);
+  const sortedRows = Array.from(itemsByRow.entries()).sort(
+    ([y1], [y2]) => y1 - y2,
+  );
 
   // Find current row index
   const currentRowIndex = sortedRows.findIndex(([y]) => y === currentY);
@@ -537,10 +562,12 @@ function navigateVertical(allItems, currentIndex, direction) {
   let targetRowIndex;
   if (direction > 0) {
     // Moving down
-    targetRowIndex = currentRowIndex < sortedRows.length - 1 ? currentRowIndex + 1 : 0;
+    targetRowIndex =
+      currentRowIndex < sortedRows.length - 1 ? currentRowIndex + 1 : 0;
   } else {
     // Moving up
-    targetRowIndex = currentRowIndex > 0 ? currentRowIndex - 1 : sortedRows.length - 1;
+    targetRowIndex =
+      currentRowIndex > 0 ? currentRowIndex - 1 : sortedRows.length - 1;
   }
 
   const targetRowItems = sortedRows[targetRowIndex][1];
@@ -550,11 +577,13 @@ function navigateVertical(allItems, currentIndex, direction) {
   let closestDistance = Math.abs(
     closestItem.getBoundingClientRect().left +
       closestItem.getBoundingClientRect().width / 2 -
-      currentX
+      currentX,
   );
 
   targetRowItems.forEach((item) => {
-    const itemX = item.getBoundingClientRect().left + item.getBoundingClientRect().width / 2;
+    const itemX =
+      item.getBoundingClientRect().left +
+      item.getBoundingClientRect().width / 2;
     const distance = Math.abs(itemX - currentX);
     if (distance < closestDistance) {
       closestDistance = distance;
@@ -574,45 +603,45 @@ function scrollRowWithWrap(row, direction, step = 68) {
 
   // Wrap when next move would go out of bounds
   if (direction > 0 && next >= max - 1) {
-    row.scrollTo({ left: 0, behavior: 'smooth' });
+    row.scrollTo({ left: 0, behavior: "smooth" });
     return;
   }
   if (direction < 0 && next <= 1) {
-    row.scrollTo({ left: max, behavior: 'smooth' });
+    row.scrollTo({ left: max, behavior: "smooth" });
     return;
   }
 
-  row.scrollTo({ left: next, behavior: 'smooth' });
+  row.scrollTo({ left: next, behavior: "smooth" });
 }
 
 function scrollModels(direction) {
-  scrollRowWithWrap(document.getElementById('model-row'), direction, 68);
+  scrollRowWithWrap(document.getElementById("model-row"), direction, 68);
 }
 function scrollObjects(direction) {
-  scrollRowWithWrap(document.getElementById('object-row'), direction, 68);
+  scrollRowWithWrap(document.getElementById("object-row"), direction, 68);
 }
 function scrollCharacters(direction) {
-  scrollRowWithWrap(document.getElementById('character-row'), direction, 68);
+  scrollRowWithWrap(document.getElementById("character-row"), direction, 68);
 }
 
 // Shared function to load images into the menu
 function loadImages(rowId, namesArray, selectCallback) {
   const row = document.getElementById(rowId);
-
+ 
   row.replaceChildren(); // Clear existing items
 
   namesArray.forEach((name) => {
-    const baseName = name.replace(/\.[^/.]+$/, ''); // Remove extension
+    const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
 
-    const img = document.createElement('img');
+    const img = document.createElement("img");
     img.src = `./images/${baseName}.png`;
     img.alt = baseName;
-    img.addEventListener('click', () => {
+    img.addEventListener("click", () => {
       // Use a global function or bind properly if needed
       window[selectCallback](name);
     });
 
-    const li = document.createElement('li');
+    const li = document.createElement("li");
     li.appendChild(img);
 
     row.appendChild(li);
@@ -620,11 +649,11 @@ function loadImages(rowId, namesArray, selectCallback) {
 }
 
 function loadMultiImages() {
-  loadImages('model-row', multiObjectNames, 'selectMultiObject');
+  loadImages("model-row", multiObjectNames, "selectMultiObject");
 }
 
 function loadObjectImages() {
-  loadImages('object-row', objectNames, 'selectObject');
+  loadImages("object-row", objectNames, "selectObject");
 }
 
 if (!window.flock) window.flock = {};
@@ -633,21 +662,28 @@ flock.activePickHandlerCapture = false;
 
 function detachActivePickHandler() {
   if (flock.activePickHandler) {
-    window.removeEventListener('click', flock.activePickHandler, flock.activePickHandlerCapture);
+    window.removeEventListener(
+      "click",
+      flock.activePickHandler,
+      flock.activePickHandlerCapture,
+    );
     flock.activePickHandler = null;
   }
   flock.activePickHandlerCapture = false;
 }
 
-function registerActivePickHandler(handler, { capture = false, delay = 0 } = {}) {
+function registerActivePickHandler(
+  handler,
+  { capture = false, delay = 0 } = {},
+) {
   detachActivePickHandler();
-  document.getElementById('showShapesButton')?.classList.add('active');
+  document.getElementById("showShapesButton")?.classList.add("active");
   flock.activePickHandler = handler;
   flock.activePickHandlerCapture = capture;
 
   setTimeout(() => {
     if (flock.activePickHandler === handler) {
-      window.addEventListener('click', handler, flock.activePickHandlerCapture);
+      window.addEventListener("click", handler, flock.activePickHandlerCapture);
     }
   }, delay);
 }
@@ -656,21 +692,21 @@ function cleanupPlacementMode() {
   detachActivePickHandler();
   stopCanvasKeyboardMode();
   setDefaultCursor();
-  document.getElementById('showShapesButton')?.classList.remove('active');
+  document.getElementById("showShapesButton")?.classList.remove("active");
 }
 
 function showShapes() {
   cancelPlacement(); // Always remove all placement modes when menu is opened/closed
 
-  const dropdown = document.getElementById('shapes-dropdown');
+  const dropdown = document.getElementById("shapes-dropdown");
   if (!dropdown) return;
-  const isVisible = dropdown.style.display !== 'none';
+  const isVisible = dropdown.style.display !== "none";
 
   if (isVisible) {
-    dropdown.style.display = 'none';
+    dropdown.style.display = "none";
     removeKeyboardNavigation();
   } else {
-    dropdown.style.display = 'block';
+    dropdown.style.display = "block";
     loadObjectImages();
     loadMultiImages();
     loadCharacterImages();
@@ -679,16 +715,17 @@ function showShapes() {
 }
 
 // Close the shapes menu if the user clicks outside of it
-document.addEventListener('click', function (event) {
-  const dropdown = document.getElementById('shapes-dropdown');
+document.addEventListener("click", function (event) {
+  const dropdown = document.getElementById("shapes-dropdown");
   if (!dropdown) return;
 
   const isClickInside = dropdown.contains(event.target);
-  const showShapesButton = document.getElementById('showShapesButton');
-  const isClickOnToggle = showShapesButton && showShapesButton.contains(event.target);
+  const showShapesButton = document.getElementById("showShapesButton");
+  const isClickOnToggle =
+    showShapesButton && showShapesButton.contains(event.target);
 
   if (!isClickInside && !isClickOnToggle) {
-    dropdown.style.display = 'none';
+    dropdown.style.display = "none";
     removeKeyboardNavigation();
     cancelPlacement(); // Clean up any pending placements
   }
@@ -709,12 +746,12 @@ function setupKeyboardNavigation() {
   keyboardNavigationActive = true;
   currentFocusedElement = null;
 
-  document.addEventListener('keydown', handleShapeMenuKeydown);
+  document.addEventListener("keydown", handleShapeMenuKeydown);
 
   const allItems = getAllNavigableItems();
   allItems.forEach((item, index) => {
-    item.setAttribute('tabindex', index === 0 ? '0' : '-1');
-    item.classList.add('keyboard-navigable');
+    item.setAttribute("tabindex", index === 0 ? "0" : "-1");
+    item.classList.add("keyboard-navigable");
   });
 
   if (allItems.length > 0) {
@@ -726,12 +763,12 @@ function removeKeyboardNavigation() {
   keyboardNavigationActive = false;
   currentFocusedElement = null;
 
-  document.removeEventListener('keydown', handleShapeMenuKeydown);
+  document.removeEventListener("keydown", handleShapeMenuKeydown);
 
   const allItems = getAllNavigableItems();
   allItems.forEach((item) => {
-    item.removeAttribute('tabindex');
-    item.classList.remove('keyboard-navigable', 'keyboard-focused');
+    item.removeAttribute("tabindex");
+    item.classList.remove("keyboard-navigable", "keyboard-focused");
   });
 }
 
@@ -742,65 +779,67 @@ function handleShapeMenuKeydown(event) {
   const allItems = getAllNavigableItems();
   if (allItems.length === 0) return;
 
-  const currentIndex = currentFocusedElement ? allItems.indexOf(currentFocusedElement) : -1;
+  const currentIndex = currentFocusedElement
+    ? allItems.indexOf(currentFocusedElement)
+    : -1;
 
   switch (event.key) {
-    case 'ArrowRight':
+    case "ArrowRight":
       event.preventDefault();
       navigateHorizontal(allItems, currentIndex, 1);
       break;
-    case 'ArrowLeft':
+    case "ArrowLeft":
       event.preventDefault();
       navigateHorizontal(allItems, currentIndex, -1);
       break;
-    case 'ArrowDown':
+    case "ArrowDown":
       event.preventDefault();
       navigateVertical(allItems, currentIndex, 1);
       break;
-    case 'ArrowUp':
+    case "ArrowUp":
       event.preventDefault();
       navigateVertical(allItems, currentIndex, -1);
       break;
-    case 'Enter':
-    case ' ':
+    case "Enter":
+    case " ":
       event.preventDefault();
       if (currentFocusedElement) {
-        const img = currentFocusedElement.querySelector('img');
+        const img = currentFocusedElement.querySelector("img");
         if (img) {
           const altText = img.alt;
           const parentRow = currentFocusedElement.closest(
-            '#shape-row, #object-row, #model-row, #character-row'
+            "#shape-row, #object-row, #model-row, #character-row",
           );
           if (parentRow) {
             const rowId = parentRow.id;
-            if (rowId === 'shape-row') {
+            if (rowId === "shape-row") {
               const shapeTypeMap = {
-                box: 'create_box',
-                sphere: 'create_sphere',
-                cylinder: 'create_cylinder',
-                capsule: 'create_capsule',
-                plane: 'create_plane',
+                box: "create_box",
+                sphere: "create_sphere",
+                cylinder: "create_cylinder",
+                capsule: "create_capsule",
+                plane: "create_plane",
               };
               const shapeType = shapeTypeMap[altText.toLowerCase()];
               if (shapeType) selectShape(shapeType);
-            } else if (rowId === 'object-row') {
-              selectObject(altText + '.glb');
-            } else if (rowId === 'model-row') {
-              selectMultiObject(altText + '.glb');
-            } else if (rowId === 'character-row') {
-              selectCharacter(altText + '.glb');
+            } else if (rowId === "object-row") {
+              selectObject(altText + ".glb");
+            } else if (rowId === "model-row") {
+              selectMultiObject(altText + ".glb");
+            } else if (rowId === "character-row") {
+              selectCharacter(altText + ".glb");
             }
           }
         }
       }
       break;
-    case 'Escape': {
+    case "Escape": {
       event.preventDefault();
-      const dropdown = document.getElementById('shapes-dropdown');
-      if (dropdown) dropdown.style.display = 'none';
+      const dropdown = document.getElementById("shapes-dropdown");
+      if (dropdown) dropdown.style.display = "none";
       removeKeyboardNavigation();
       cancelPlacement();
-      const shapesButton = document.getElementById('showShapesButton');
+      const shapesButton = document.getElementById("showShapesButton");
       if (shapesButton) shapesButton.focus();
       break;
     }
@@ -811,7 +850,8 @@ function startPlacementKeyboardMode() {
   const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
   if (!flock.scene || !canvas) return;
   GizmoMenuManager.toggle(true);
-  const isValidHit = (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit;
+  const isValidHit = (x, y) =>
+    !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit;
 
   startCanvasKeyboardMode(
     (x, y) => {
@@ -824,7 +864,7 @@ function startPlacementKeyboardMode() {
       cancelPlacement();
     },
     keyboardNavigationActive,
-    isValidHit
+    isValidHit,
   );
 }
 

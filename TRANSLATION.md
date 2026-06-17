@@ -21,8 +21,8 @@ Follow these steps to wire a new locale into the app:
 2. **Import the locale in the translation module**
    - In `main/translation.js`, add the Blockly pack import (if it exists) and the custom locale import:
      ```javascript
-     import * as xx from 'blockly/msg/xx';
-     import xxLocale from '../locale/xx.js';
+     import * as xx from "blockly/msg/xx";
+     import xxLocale from "../locale/xx.js";
      ```
    - Add the locale to the `translations` map (e.g., `xx: xxLocale,`).
    - Extend `applySavedLanguageTranslations` and `setLanguage` with a branch that applies the Blockly pack for the new language (mirroring the existing languages).
@@ -59,10 +59,10 @@ When you introduce new UI text in the codebase, wire it to the translation syste
    - **JavaScript** (manual assignment):
 
      ```javascript
-     import { translate } from '../main/translation.js';
+     import { translate } from "../main/translation.js";
 
-     const snackbar = document.querySelector('#snackbar');
-     snackbar.textContent = translate('snackbar_saved_ui');
+     const snackbar = document.querySelector("#snackbar");
+     snackbar.textContent = translate("snackbar_saved_ui");
      ```
 
      Add `snackbar_saved_ui: "Saved",` to `locale/en.js` and provide translations for the same key.

@@ -1,5 +1,5 @@
-import { flock } from '../flock.js';
-import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
+import { flock } from "../flock.js";
+import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
 
 // Create yellow circle for canvas position indicator
 // One circle selector can be active on the canvas at once
@@ -31,8 +31,8 @@ export function createCanvasCircle() {
   if (canvasCircle) return;
 
   // Create the visual indicator circle
-  canvasCircle = document.createElement('div');
-  canvasCircle.className = 'canvas-selector-circle'; // Set style
+  canvasCircle = document.createElement("div");
+  canvasCircle.className = "canvas-selector-circle"; // Set style
   canvasCircle.tabIndex = -1;
   document.body.appendChild(canvasCircle);
 
@@ -52,7 +52,7 @@ export function createCanvasCircle() {
 function updateCanvasCircleHitState() {
   if (!canvasCircle || !hitChecker) return;
   const valid = hitChecker(canvasCirclePosition.x, canvasCirclePosition.y);
-  canvasCircle.classList.toggle('canvas-selector-circle--no-hit', !valid);
+  canvasCircle.classList.toggle("canvas-selector-circle--no-hit", !valid);
 }
 
 // Update the circle position and constrain it to the canvas
@@ -63,12 +63,18 @@ export function updateCanvasCirclePosition() {
   const canvasBounds = canvas.getBoundingClientRect();
 
   // Constrain position to canvas bounds
-  canvasCirclePosition.x = Math.max(10, Math.min(canvasBounds.width - 10, canvasCirclePosition.x));
-  canvasCirclePosition.y = Math.max(10, Math.min(canvasBounds.height - 10, canvasCirclePosition.y));
+  canvasCirclePosition.x = Math.max(
+    10,
+    Math.min(canvasBounds.width - 10, canvasCirclePosition.x),
+  );
+  canvasCirclePosition.y = Math.max(
+    10,
+    Math.min(canvasBounds.height - 10, canvasCirclePosition.y),
+  );
 
   // Position relative to canvas
-  canvasCircle.style.left = canvasBounds.left + canvasCirclePosition.x + 'px';
-  canvasCircle.style.top = canvasBounds.top + canvasCirclePosition.y + 'px';
+  canvasCircle.style.left = canvasBounds.left + canvasCirclePosition.x + "px";
+  canvasCircle.style.top = canvasBounds.top + canvasCirclePosition.y + "px";
   updateCanvasCircleHitState();
 }
 
@@ -92,11 +98,11 @@ export function clickCanvasCircle(callback) {
 export function startCanvasKeyboardMode(
   callback,
   showCircleImmediately = false,
-  isValidPosition = null
+  isValidPosition = null,
 ) {
   stopCanvasKeyboardMode(); // Ensure any existing mode is cleared
-  KeyboardDispatcher.pushMode(handleKeydown, 'canvas-cursor');
-  document.addEventListener('keyup', handleKeyup);
+  KeyboardDispatcher.pushMode(handleKeydown, "canvas-cursor");
+  document.addEventListener("keyup", handleKeyup);
   previouslyFocusedElement = document.activeElement; // Save current focus
   keyboardCursorActive = true;
   keyboardCursorCallback = callback;
@@ -106,9 +112,9 @@ export function startCanvasKeyboardMode(
     createCanvasCircle();
 
     canvasCircle.focus({ preventScroll: true }); // Focus the circle
-    document.body.style.cursor = 'none'; // Hide cursor when circle is active
+    document.body.style.cursor = "none"; // Hide cursor when circle is active
   } else {
-    document.body.style.cursor = 'default';
+    document.body.style.cursor = "default";
   }
 }
 
@@ -119,20 +125,20 @@ export function stopCanvasKeyboardMode() {
   keyboardCursorCallback = null;
   hitChecker = null;
   KeyboardDispatcher.popMode();
-  document.removeEventListener('keyup', handleKeyup);
+  document.removeEventListener("keyup", handleKeyup);
   heldKeys.clear();
   destroyCanvasCircle();
   // Reinstate mouse cursor when exiting keyboard mode
   const canvas = flock.scene?.getEngine?.()?.getRenderingCanvas?.();
-  if (canvas) canvas.style.cursor = '';
-  document.body.style.cursor = 'default';
+  if (canvas) canvas.style.cursor = "";
+  document.body.style.cursor = "default";
   // Reinstate focus to prior element but only if focus
   // is currently on the body or nothing (i.e. not on another element)
   const currentActive = document.activeElement;
   const focusIsOnNothing =
     !currentActive ||
     currentActive === document.body ||
-    currentActive.tagName?.toLowerCase() === 'canvas';
+    currentActive.tagName?.toLowerCase() === "canvas";
   if (focusIsOnNothing) {
     previouslyFocusedElement?.focus({ preventScroll: true });
   }
@@ -146,73 +152,78 @@ function ensureCircle() {
     canvasCircle.focus({ preventScroll: true }); // Focus the circle
     // Remove cursor otherwise you get both which is confusing
     const canvas = flock.scene.getEngine().getRenderingCanvas();
-    canvas.style.cursor = 'none';
-    document.body.style.cursor = 'none';
+    canvas.style.cursor = "none";
+    document.body.style.cursor = "none";
   }
 }
 
 // Deal with key down events for canvas keyboard mode
 function handleKeydown(event) {
   if (!keyboardCursorActive) return;
-  if (event.target?.closest?.('#info-panel')) return;
+  if (event.target?.closest?.("#info-panel")) return;
 
   // If a button was focused and they pressed enter/space, don't
   // move the circle, interact with the button
-  const tag = (event.target?.tagName || '').toLowerCase();
+  const tag = (event.target?.tagName || "").toLowerCase();
   if (
-    (tag === 'button' ||
-      tag === 'input' ||
-      tag === 'textarea' ||
-      tag === 'select' ||
+    (tag === "button" ||
+      tag === "input" ||
+      tag === "textarea" ||
+      tag === "select" ||
       event.target?.isContentEditable) &&
-    (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar')
+    (event.key === "Enter" || event.key === " " || event.key === "Spacebar")
   ) {
     return;
   }
   const moveDistance = event.shiftKey ? 2 : 10;
   switch (event.key) {
-    case 'ArrowRight':
-    case 'ArrowLeft':
-    case 'ArrowDown':
-    case 'ArrowUp':
+    case "ArrowRight":
+    case "ArrowLeft":
+    case "ArrowDown":
+    case "ArrowUp":
       event.preventDefault();
       event.stopPropagation();
       heldKeys.add(event.key);
       ensureCircle();
       // Calculate where to move
       const dx =
-        (heldKeys.has('ArrowRight') ? moveDistance : 0) -
-        (heldKeys.has('ArrowLeft') ? moveDistance : 0);
+        (heldKeys.has("ArrowRight") ? moveDistance : 0) -
+        (heldKeys.has("ArrowLeft") ? moveDistance : 0);
       const dy =
-        (heldKeys.has('ArrowDown') ? moveDistance : 0) -
-        (heldKeys.has('ArrowUp') ? moveDistance : 0);
+        (heldKeys.has("ArrowDown") ? moveDistance : 0) -
+        (heldKeys.has("ArrowUp") ? moveDistance : 0);
       moveCanvasCircle(dx, dy);
       break;
 
     // Tab is assumed to restart keyboard nav mode
-    case 'Tab':
+    case "Tab":
       event.preventDefault(); // don't actually tab!
       event.stopPropagation();
       stopCanvasKeyboardMode();
       break;
 
-    case 'Enter':
-    case ' ':
-    case 'Spacebar':
-    case 'Space':
+    case "Enter":
+    case " ":
+    case "Spacebar":
+    case "Space":
       event.preventDefault();
       event.stopPropagation();
       ensureCircle(); // It must exist to click it
       // If there's a hitChecker and it returns false
       // show invalid press animation instead of clicking
-      if (hitChecker && !hitChecker(canvasCirclePosition.x, canvasCirclePosition.y)) {
-        canvasCircle.classList.add('canvas-selector-circle--invalid-press');
+      if (
+        hitChecker &&
+        !hitChecker(canvasCirclePosition.x, canvasCirclePosition.y)
+      ) {
+        canvasCircle.classList.add("canvas-selector-circle--invalid-press");
         canvasCircle.addEventListener(
-          'animationend',
+          "animationend",
           () => {
-            canvasCircle.classList.remove('canvas-selector-circle--invalid-press');
+            canvasCircle.classList.remove(
+              "canvas-selector-circle--invalid-press",
+            );
           },
-          { once: true }
+          { once: true },
         );
       } else {
         // The location was valid, do the click
@@ -220,7 +231,7 @@ function handleKeydown(event) {
       }
       break;
 
-    case 'Escape':
+    case "Escape":
       event.preventDefault();
       stopCanvasKeyboardMode();
       break;
@@ -237,17 +248,18 @@ function handleKeyup(event) {
 
 // Set cursor to crosshair
 export function setCrosshairCursor() {
-  const canvas = flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
-  document.body.style.cursor = 'crosshair';
-  canvas.style.cursor = 'crosshair';
-  flock.scene.defaultCursor = 'crosshair';
+  const canvas =
+    flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
+  document.body.style.cursor = "crosshair";
+  canvas.style.cursor = "crosshair";
+  flock.scene.defaultCursor = "crosshair";
 }
 
 // Restore default cursor
 export function setDefaultCursor() {
-  document.body.style.cursor = 'default';
+  document.body.style.cursor = "default";
   if (flock.scene) {
-    flock.scene.hoverCursor = 'pointer'; // Babylon.js default
-    flock.scene.defaultCursor = ''; // Babylon.js default (inherits from body)
+    flock.scene.hoverCursor = "pointer"; // Babylon.js default
+    flock.scene.defaultCursor = ""; // Babylon.js default (inherits from body)
   }
 }

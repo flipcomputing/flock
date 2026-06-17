@@ -1,4 +1,4 @@
-import { normaliseKey } from './normaliseKey.js';
+import { normaliseKey } from "./normaliseKey.js";
 
 export class KeyboardSource {
   #inputManager;
@@ -87,20 +87,20 @@ export class KeyboardSource {
   start() {
     if (this.#started) return;
     this.#started = true;
-    document.addEventListener('keydown', this.#onDocKeyDown, true);
-    this.#target.addEventListener('keydown', this.#onKeyDown);
-    this.#target.addEventListener('keyup', this.#onKeyUp);
-    this.#target.addEventListener('blur', this.#onTargetBlur);
-    window.addEventListener('blur', this.#onWindowBlur);
+    document.addEventListener("keydown", this.#onDocKeyDown, true);
+    this.#target.addEventListener("keydown", this.#onKeyDown);
+    this.#target.addEventListener("keyup", this.#onKeyUp);
+    this.#target.addEventListener("blur", this.#onTargetBlur);
+    window.addEventListener("blur", this.#onWindowBlur);
   }
 
   stop() {
     if (!this.#started) return;
     this.#started = false;
-    document.removeEventListener('keydown', this.#onDocKeyDown, true);
-    this.#target.removeEventListener('keydown', this.#onKeyDown);
-    this.#target.removeEventListener('keyup', this.#onKeyUp);
-    this.#target.removeEventListener('blur', this.#onTargetBlur);
-    window.removeEventListener('blur', this.#onWindowBlur);
+    document.removeEventListener("keydown", this.#onDocKeyDown, true);
+    this.#target.removeEventListener("keydown", this.#onKeyDown);
+    this.#target.removeEventListener("keyup", this.#onKeyUp);
+    this.#target.removeEventListener("blur", this.#onTargetBlur);
+    window.removeEventListener("blur", this.#onWindowBlur);
   }
 }

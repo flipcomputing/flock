@@ -1,38 +1,40 @@
-import * as Blockly from 'blockly';
-import { javascriptGenerator } from 'blockly/javascript';
-import '@blockly/block-plus-minus';
-import { clearMeshMaps } from './mesh-state.js';
+import * as Blockly from "blockly";
+import { javascriptGenerator } from "blockly/javascript";
+import "@blockly/block-plus-minus";
+import { clearMeshMaps } from "./mesh-state.js";
 
 // Import the generator registration functions for different categories of blocks
-import { registerSceneGenerators } from './generators-scene.js';
-import { registerEventsGenerators } from './generators-events.js';
-import { registerTransformGenerators } from './generators-transform.js';
-import { registerAnimateGenerators } from './generators-animate.js';
-import { registerControlGenerators } from './generators-control.js';
-import { registerConditionGenerators } from './generators-condition.js';
-import { registerSensingGenerators } from './generators-sensing.js';
-import { registerTextGenerators } from './generators-text.js';
-import { registerMaterialGenerators } from './generators-material.js';
-import { registerSoundGenerators } from './generators-sound.js';
-import { registerDataGenerators } from './generators-data.js';
-import { registerMathGenerators } from './generators-math.js';
-import { registerFunctionsGenerators } from './generators-functions.js';
+import { registerSceneGenerators } from "./generators-scene.js";
+import { registerEventsGenerators } from "./generators-events.js";
+import { registerTransformGenerators } from "./generators-transform.js";
+import { registerAnimateGenerators } from "./generators-animate.js";
+import { registerControlGenerators } from "./generators-control.js";
+import { registerConditionGenerators } from "./generators-condition.js";
+import { registerSensingGenerators } from "./generators-sensing.js";
+import { registerTextGenerators } from "./generators-text.js";
+import { registerMaterialGenerators } from "./generators-material.js";
+import { registerSoundGenerators } from "./generators-sound.js";
+import { registerDataGenerators } from "./generators-data.js";
+import { registerMathGenerators } from "./generators-math.js";
+import { registerFunctionsGenerators } from "./generators-functions.js";
 // import { registerDeprecatedGenerators } from "./generators-deprecated.js";
 
 // Used outside of this file
-export * from './mesh-state.js';
+export * from "./mesh-state.js";
 
 // Set up all generators from external files
 export function defineGenerators() {
   // Allow Flock users to use "name" as a variable name
-  const reservedWordsWithoutName = javascriptGenerator.RESERVED_WORDS_.split(',')
+  const reservedWordsWithoutName = javascriptGenerator.RESERVED_WORDS_.split(
+    ",",
+  )
     .map((word) => word.trim())
-    .filter((word) => word && word !== 'name')
-    .join(',');
+    .filter((word) => word && word !== "name")
+    .join(",");
 
   // Force re-initialization of animation generators
-  delete javascriptGenerator.forBlock['play_animation'];
-  delete javascriptGenerator.forBlock['switch_animation'];
+  delete javascriptGenerator.forBlock["play_animation"];
+  delete javascriptGenerator.forBlock["switch_animation"];
 
   // Register generators for each category of blocks
   registerSceneGenerators(javascriptGenerator);
@@ -72,8 +74,8 @@ export function defineGenerators() {
       defvars.push(
         javascriptGenerator.nameDB_.getName(
           devVarList[i],
-          Blockly.Names.NameType.DEVELOPER_VARIABLE
-        )
+          Blockly.Names.NameType.DEVELOPER_VARIABLE,
+        ),
       );
     }
 
@@ -83,7 +85,7 @@ export function defineGenerators() {
       const variableModel = variables[i];
       const generatedName = javascriptGenerator.nameDB_.getName(
         variableModel.getId(),
-        Blockly.Names.NameType.VARIABLE
+        Blockly.Names.NameType.VARIABLE,
       );
       defvars.push(generatedName);
       userVariableDefaults.set(generatedName, variableModel.name);
@@ -92,11 +94,13 @@ export function defineGenerators() {
     // Declare all of the variables.
     if (defvars.length) {
       let defvarsmesh = defvars.map(function (name) {
-        const initialValue = userVariableDefaults.has(name) ? userVariableDefaults.get(name) : name;
+        const initialValue = userVariableDefaults.has(name)
+          ? userVariableDefaults.get(name)
+          : name;
         return `let ${name} = ${JSON.stringify(initialValue)};`;
       });
-      javascriptGenerator.definitions_['variables'] =
-        `// Made with Flock XR\n` + defvarsmesh.join(' ') + '\n';
+      javascriptGenerator.definitions_["variables"] =
+        `// Made with Flock XR\n` + defvarsmesh.join(" ") + "\n";
     }
 
     javascriptGenerator.isInitialized = true;

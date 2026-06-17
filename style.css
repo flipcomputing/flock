@@ -432,7 +432,7 @@ body {
 
 /* Purple strip behind the iOS status bar — only visible when there's a real inset (0 on desktop, no flash) */
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
@@ -513,6 +513,7 @@ button {
 #codePanel {
   position: relative;
 }
+
 
 #blocklyZoomControls {
   position: absolute;
@@ -2056,6 +2057,7 @@ svg.blocklyTrashcanFlyout {
   background: var(--color-button-bg-hover, #d0d0d0);
 }
 
+
 .fc-block-toolbar-btn[disabled] {
   opacity: 0.3;
 }
@@ -2063,6 +2065,7 @@ svg.blocklyTrashcanFlyout {
 .fc-block-toolbar-btn--delete {
   color: #c0392b;
 }
+
 
 [data-theme='dark'] .fc-block-toolbar-btn--delete,
 [data-theme='dark-contrast'] .fc-block-toolbar-btn--delete {

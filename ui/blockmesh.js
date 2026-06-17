@@ -1,15 +1,15 @@
-import * as Blockly from 'blockly';
+import * as Blockly from "blockly";
 import {
   meshMap,
   meshBlockIdMap,
   blockKeyByBlock,
   blockKeyByBlockId,
-} from '../generators/generators.js';
-import { flock } from '../flock.js';
-import { objectColours } from '../config.js';
-import { createMeshOnCanvas } from './addmeshes.js';
-import { highlightBlockById } from './blocklyutil.js';
-import { createBlockWithShadows } from './addmenu.js';
+} from "../generators/generators.js";
+import { flock } from "../flock.js";
+import { objectColours } from "../config.js";
+import { createMeshOnCanvas } from "./addmeshes.js";
+import { highlightBlockById } from "./blocklyutil.js";
+import { createBlockWithShadows } from "./addmenu.js";
 
 const colorFields = {
   HAIR_COLOR: true,
@@ -81,7 +81,7 @@ function isMainWorkspaceEvent(changeEvent, block) {
 
   if (!ws) {
     if (flock.meshDebug)
-      console.log('[isMainWorkspaceEvent] false: block has no workspace', {
+      console.log("[isMainWorkspaceEvent] false: block has no workspace", {
         blockId: block?.id,
         eventType: changeEvent?.type,
         eventWorkspaceId: changeEvent?.workspaceId,
@@ -91,31 +91,37 @@ function isMainWorkspaceEvent(changeEvent, block) {
 
   if (ws.isFlyout) {
     if (flock.meshDebug)
-      console.log('[isMainWorkspaceEvent] false: block is in flyout workspace', {
-        blockId: block?.id,
-        eventType: changeEvent?.type,
-        eventWorkspaceId: changeEvent?.workspaceId,
-        blockWorkspaceId: ws.id,
-        mainWorkspaceId: mainWs?.id,
-      });
+      console.log(
+        "[isMainWorkspaceEvent] false: block is in flyout workspace",
+        {
+          blockId: block?.id,
+          eventType: changeEvent?.type,
+          eventWorkspaceId: changeEvent?.workspaceId,
+          blockWorkspaceId: ws.id,
+          mainWorkspaceId: mainWs?.id,
+        },
+      );
     return false;
   }
 
   if (ws !== mainWs) {
     if (flock.meshDebug)
-      console.log('[isMainWorkspaceEvent] false: block is in a non-main, non-flyout workspace', {
-        blockId: block?.id,
-        eventType: changeEvent?.type,
-        eventWorkspaceId: changeEvent?.workspaceId,
-        blockWorkspaceId: ws.id,
-        mainWorkspaceId: mainWs?.id,
-      });
+      console.log(
+        "[isMainWorkspaceEvent] false: block is in a non-main, non-flyout workspace",
+        {
+          blockId: block?.id,
+          eventType: changeEvent?.type,
+          eventWorkspaceId: changeEvent?.workspaceId,
+          blockWorkspaceId: ws.id,
+          mainWorkspaceId: mainWs?.id,
+        },
+      );
     return false;
   }
 
   if (changeEvent?.workspaceId && changeEvent.workspaceId !== ws.id) {
     if (flock.meshDebug)
-      console.log('[isMainWorkspaceEvent] false: event workspaceId mismatch', {
+      console.log("[isMainWorkspaceEvent] false: event workspaceId mismatch", {
         blockId: block?.id,
         eventType: changeEvent?.type,
         eventWorkspaceId: changeEvent.workspaceId,
@@ -140,8 +146,8 @@ export function deleteMeshFromBlock(blockId) {
 
   if (!blockKey) {
     const block = Blockly.getMainWorkspace().getBlockById(blockId);
-    if (block && block.type === 'create_map') {
-      const mesh = flock?.scene?.getMeshByName('ground');
+    if (block && block.type === "create_map") {
+      const mesh = flock?.scene?.getMeshByName("ground");
       if (mesh) {
         flock.disposeMesh(mesh);
         return;
@@ -151,7 +157,7 @@ export function deleteMeshFromBlock(blockId) {
 
   const meshes = getMeshesFromBlockKey(blockKey);
   meshes.forEach((mesh) => {
-    if (!mesh || mesh.name === '__root__') return;
+    if (!mesh || mesh.name === "__root__") return;
     flock.disposeMesh(mesh);
   });
 
@@ -187,11 +193,11 @@ export function getMeshesFromBlockKey(blockKey) {
 export function getMeshFromBlock(block) {
   if (!block) return null;
 
-  if (block.type === 'create_map') {
-    return flock?.scene?.getMeshByName('ground');
+  if (block.type === "create_map") {
+    return flock?.scene?.getMeshByName("ground");
   }
 
-  if (block.type === 'rotate_to' || block.type === 'resize') {
+  if (block.type === "rotate_to" || block.type === "resize") {
     let container = null;
     let node = block;
 
@@ -201,15 +207,25 @@ export function getMeshFromBlock(block) {
 
       // Find the top of the stack within this parent
       let top = node;
-      while (top.getPrevious && top.getPrevious() && top.getPrevious().getParent() === parent) {
+      while (
+        top.getPrevious &&
+        top.getPrevious() &&
+        top.getPrevious().getParent() === parent
+      ) {
         top = top.getPrevious();
       }
 
-      const input = parent.getInputWithBlock ? parent.getInputWithBlock(top) : null;
+      const input = parent.getInputWithBlock
+        ? parent.getInputWithBlock(top)
+        : null;
 
       // If this parent has a DO-style statement input containing our stack,
       // treat that parent as the owning block.
-      if (input && input.type === Blockly.NEXT_STATEMENT && input.name === 'DO') {
+      if (
+        input &&
+        input.type === Blockly.NEXT_STATEMENT &&
+        input.name === "DO"
+      ) {
         container = parent;
         break;
       }
@@ -232,12 +248,12 @@ export function getMeshFromBlock(block) {
 export function getMeshesFromBlock(block) {
   if (!block) return [];
 
-  if (block.type === 'create_map') {
-    const mesh = flock?.scene?.getMeshByName('ground');
+  if (block.type === "create_map") {
+    const mesh = flock?.scene?.getMeshByName("ground");
     return mesh ? [mesh] : [];
   }
 
-  if (block.type === 'rotate_to' || block.type === 'resize') {
+  if (block.type === "rotate_to" || block.type === "resize") {
     let container = null;
     let node = block;
 
@@ -247,15 +263,25 @@ export function getMeshesFromBlock(block) {
 
       // Find the top of the stack within this parent
       let top = node;
-      while (top.getPrevious && top.getPrevious() && top.getPrevious().getParent() === parent) {
+      while (
+        top.getPrevious &&
+        top.getPrevious() &&
+        top.getPrevious().getParent() === parent
+      ) {
         top = top.getPrevious();
       }
 
-      const input = parent.getInputWithBlock ? parent.getInputWithBlock(top) : null;
+      const input = parent.getInputWithBlock
+        ? parent.getInputWithBlock(top)
+        : null;
 
       // If this parent has a DO-style statement input containing our stack,
       // treat that parent as the owning block.
-      if (input && input.type === Blockly.NEXT_STATEMENT && input.name === 'DO') {
+      if (
+        input &&
+        input.type === Blockly.NEXT_STATEMENT &&
+        input.name === "DO"
+      ) {
         container = parent;
         break;
       }
@@ -278,52 +304,60 @@ export function getMeshesFromBlock(block) {
 // Safe field getter. Returns null when field is missing or name is invalid.
 function getBlockValue(block, fieldName) {
   if (!block) return null;
-  if (typeof fieldName !== 'string' || !fieldName) return null;
+  if (typeof fieldName !== "string" || !fieldName) return null;
   const fld = block.getField(fieldName);
   return fld ? fld.getValue() : null;
 }
 
 // Safe colour reader: supports single colour, lists, and random_colour via API.
 export function readColourValue(block) {
-  if (!block) return { value: null, kind: 'none' };
+  if (!block) return { value: null, kind: "none" };
 
   const randomColour = () =>
-    typeof flock?.randomColour === 'function' ? flock.randomColour() : '#71BC78';
+    typeof flock?.randomColour === "function"
+      ? flock.randomColour()
+      : "#71BC78";
 
-  if (block.type === 'lists_create_with') {
+  if (block.type === "lists_create_with") {
     const list = [];
     for (const input of block.inputList) {
       const tb = input.connection?.targetBlock();
       if (!tb) continue;
 
-      if (tb.type === 'random_colour') {
+      if (tb.type === "random_colour") {
         const c = randomColour();
         list.push(c);
         continue;
       }
 
-      const c = safeGetFieldValue(tb, 'COLOR') ?? safeGetFieldValue(tb, 'COLOUR') ?? null;
+      const c =
+        safeGetFieldValue(tb, "COLOR") ??
+        safeGetFieldValue(tb, "COLOUR") ??
+        null;
 
       if (c) list.push(c);
     }
-    return { value: list, kind: 'list' };
+    return { value: list, kind: "list" };
   }
 
-  if (block.type === 'random_colour') {
+  if (block.type === "random_colour") {
     const c = randomColour();
-    return { value: c, kind: 'single' };
+    return { value: c, kind: "single" };
   }
 
-  const single = safeGetFieldValue(block, 'COLOR') ?? safeGetFieldValue(block, 'COLOUR') ?? null;
+  const single =
+    safeGetFieldValue(block, "COLOR") ??
+    safeGetFieldValue(block, "COLOUR") ??
+    null;
 
-  return { value: single, kind: single ? 'single' : 'none' };
+  return { value: single, kind: single ? "single" : "none" };
 }
 
 // Numeric from an input's NUM field, with fallback.
 function readNumberInput(parent, inputName, fallback = 1) {
   const b = parent?.getInputTargetBlock?.(inputName);
-  const v = b?.getField?.('NUM')?.getValue?.();
-  const n = typeof v === 'string' ? parseFloat(v) : v;
+  const v = b?.getField?.("NUM")?.getValue?.();
+  const n = typeof v === "string" ? parseFloat(v) : v;
   return Number.isFinite(n) ? n : fallback;
 }
 
@@ -334,29 +368,32 @@ function readColourFromInputOrShadow(parent, inputName) {
 
   const shadowDom = parent?.getInput?.(inputName)?.connection?.getShadowDom?.();
 
-  if (!shadowDom?.querySelector) return { value: null, kind: 'none' };
+  if (!shadowDom?.querySelector) return { value: null, kind: "none" };
 
   const shadowField =
     shadowDom.querySelector('field[name="COLOUR"]') ||
     shadowDom.querySelector('field[name="COLOR"]');
 
-  const shadowValue = shadowField?.textContent || shadowField?.innerText || null;
-  return shadowValue ? { value: shadowValue, kind: 'shadow' } : { value: null, kind: 'none' };
+  const shadowValue =
+    shadowField?.textContent || shadowField?.innerText || null;
+  return shadowValue
+    ? { value: shadowValue, kind: "shadow" }
+    : { value: null, kind: "none" };
 }
 
 // Extract texture set, base colour (single or list), and alpha.
 export function extractMaterialInfo(materialBlock) {
-  if (!materialBlock) return { textureSet: 'NONE', baseColor: null, alpha: 1 };
+  if (!materialBlock) return { textureSet: "NONE", baseColor: null, alpha: 1 };
 
   const textureSet =
-    getBlockValue(materialBlock, 'TEXTURE_SET') ??
-    getBlockValue(materialBlock, 'TEXTURE') ??
-    'NONE';
+    getBlockValue(materialBlock, "TEXTURE_SET") ??
+    getBlockValue(materialBlock, "TEXTURE") ??
+    "NONE";
 
-  const read = readColourFromInputOrShadow(materialBlock, 'BASE_COLOR');
+  const read = readColourFromInputOrShadow(materialBlock, "BASE_COLOR");
   const baseColor = read.value ?? null;
 
-  const alpha = readNumberInput(materialBlock, 'ALPHA', 1);
+  const alpha = readNumberInput(materialBlock, "ALPHA", 1);
 
   return { textureSet, baseColor, alpha };
 }
@@ -379,7 +416,7 @@ function applyBackgroundColorFromBlock(block) {
   }
 
   setActiveSceneControllerBlockId(block);
-  const read = readColourFromInputOrShadow(block, 'COLOR');
+  const read = readColourFromInputOrShadow(block, "COLOR");
   flock.setSky(read.value, { clear: true });
 }
 
@@ -399,13 +436,15 @@ export function clearSkyMesh({ preserveClearColor = true } = {}) {
     flock.scene.clearColor = clearColor;
   }
 
-  delete meshMap['sky'];
+  delete meshMap["sky"];
 }
 
 export function setClearSkyToBlack() {
-  if (flock.meshDebug) console.log('*** Setting clear sky to black');
+  if (flock.meshDebug) console.log("*** Setting clear sky to black");
   const fallbackColor =
-    flock.initialClearColor?.toHexString?.() ?? flock.initialClearColor ?? '#000000';
+    flock.initialClearColor?.toHexString?.() ??
+    flock.initialClearColor ??
+    "#000000";
 
   setActiveSceneControllerBlockId(null);
   flock.setSky(fallbackColor, { clear: true });
@@ -414,14 +453,18 @@ export function setClearSkyToBlack() {
 // Add this function before updateMeshFromBlock
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
   const sceneControllerTypes = [
-    'set_sky_color',
-    'set_background_color',
-    'create_ground',
-    'create_map',
+    "set_sky_color",
+    "set_background_color",
+    "create_ground",
+    "create_map",
   ];
 
   if (flock.meshDebug)
-    console.log('Update or create mesh from block', block.type, changeEvent.type);
+    console.log(
+      "Update or create mesh from block",
+      block.type,
+      changeEvent.type,
+    );
 
   if (!isMainWorkspaceEvent(changeEvent, block)) {
     return;
@@ -430,11 +473,13 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   const meshes = getMeshesFromBlock(block);
   const isConnectedToEnabledChain = isBlockConnectedToEnabledChain(block);
   if (flock.meshDebug) console.log(meshes);
-  const wasDisabled = changeEvent?.oldValue === true || changeEvent?.oldValue === 'true';
-  const nowEnabled = changeEvent?.newValue === false || changeEvent?.newValue === 'false';
+  const wasDisabled =
+    changeEvent?.oldValue === true || changeEvent?.oldValue === "true";
+  const nowEnabled =
+    changeEvent?.newValue === false || changeEvent?.newValue === "false";
   const isEnabledEvent =
     changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
-    changeEvent.element === 'disabled' &&
+    changeEvent.element === "disabled" &&
     wasDisabled &&
     nowEnabled;
   const isImmediateEnabledCreate =
@@ -452,7 +497,8 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     }
     return;
   }
-  if ((window.loadingCode && !changeEvent?.recordUndo) || block.disposed) return;
+  if ((window.loadingCode && !changeEvent?.recordUndo) || block.disposed)
+    return;
   const alreadyCreatingMesh = meshMap[block.id] !== undefined;
   if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate || isConnectedMove)) {
     if (sceneControllerTypes.includes(block.type)) {
@@ -464,17 +510,18 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   }
   if (flock.meshDebug) {
     console.log(
-      'Should update?',
+      "Should update?",
       changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
         changeEvent?.type === Blockly.Events.BLOCK_CREATE ||
-        changeEvent?.type === Blockly.Events.BLOCK_MOVE
+        changeEvent?.type === Blockly.Events.BLOCK_MOVE,
     );
   }
   if (
     (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
       changeEvent?.type === Blockly.Events.BLOCK_CREATE ||
       changeEvent?.type === Blockly.Events.BLOCK_MOVE) &&
-    (meshes.length || sceneControllerTypes.includes(block.type))
+    (meshes.length ||
+      sceneControllerTypes.includes(block.type))
   ) {
     updateMeshFromBlock(meshes, block, changeEvent);
   }
@@ -529,16 +576,16 @@ function updateSkyFromBlock(block) {
 
   setActiveSceneControllerBlockId(block);
 
-  const colorInput = block.getInputTargetBlock('COLOR');
+  const colorInput = block.getInputTargetBlock("COLOR");
   if (!colorInput) return;
 
-  if (colorInput && colorInput.type === 'material') {
+  if (colorInput && colorInput.type === "material") {
     const { textureSet, baseColor, alpha } = extractMaterialInfo(colorInput);
-    let read = readColourFromInputOrShadow(colorInput, 'BASE_COLOR');
+    let read = readColourFromInputOrShadow(colorInput, "BASE_COLOR");
 
     const colorValue = read.value ?? baseColor;
 
-    if (textureSet && textureSet !== 'NONE') {
+    if (textureSet && textureSet !== "NONE") {
       flock.setSky({
         color: colorValue,
         materialName: textureSet,
@@ -551,7 +598,7 @@ function updateSkyFromBlock(block) {
     return;
   }
 
-  const read = readColourFromInputOrShadow(block, 'COLOR');
+  const read = readColourFromInputOrShadow(block, "COLOR");
   flock.setSky(read.value);
 }
 
@@ -566,11 +613,19 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
     };
 
     // 1) If this change came from the child plugged into SCALE, use its old/new
-    const inp = blk.getInput && blk.getInput('SCALE');
+    const inp = blk.getInput && blk.getInput("SCALE");
     const child =
-      inp && inp.connection && inp.connection.targetBlock && inp.connection.targetBlock();
+      inp &&
+      inp.connection &&
+      inp.connection.targetBlock &&
+      inp.connection.targetBlock();
 
-    if (child && ev && ev.type === Blockly.Events.CHANGE && ev.blockId === child.id) {
+    if (
+      child &&
+      ev &&
+      ev.type === Blockly.Events.CHANGE &&
+      ev.blockId === child.id
+    ) {
       // ev.element likely "field", ev.name likely "NUM"
       return {
         oldScale: num(ev.oldValue),
@@ -579,7 +634,12 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
     }
 
     // 2) If the change came from an inline field on the parent, use that
-    if (ev && ev.type === Blockly.Events.CHANGE && ev.blockId === blk.id && ev.name === 'SCALE') {
+    if (
+      ev &&
+      ev.type === Blockly.Events.CHANGE &&
+      ev.blockId === blk.id &&
+      ev.name === "SCALE"
+    ) {
       return {
         oldScale: num(ev.oldValue),
         newScale: num(ev.newValue),
@@ -588,12 +648,14 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
 
     // 3) Fallback: read current value block (post-change)
     const readCurrent = () => {
-      if (child && typeof child.getFieldValue === 'function') {
-        const v = num(child.getFieldValue('NUM'));
+      if (child && typeof child.getFieldValue === "function") {
+        const v = num(child.getFieldValue("NUM"));
         if (v != null) return v;
       }
       // inline field fallback
-      const v2 = num(blk.getField && blk.getField('SCALE') && blk.getFieldValue('SCALE'));
+      const v2 = num(
+        blk.getField && blk.getField("SCALE") && blk.getFieldValue("SCALE"),
+      );
       return v2 != null ? v2 : 1;
     };
 
@@ -627,11 +689,15 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
 
   const getNumInput = (blk, name, def = 0) => {
     const inp = blk.getInput && blk.getInput(name);
-    const tgt = inp && inp.connection && inp.connection.targetBlock && inp.connection.targetBlock();
-    const v = tgt ? Number(tgt.getFieldValue('NUM')) : def;
+    const tgt =
+      inp &&
+      inp.connection &&
+      inp.connection.targetBlock &&
+      inp.connection.targetBlock();
+    const v = tgt ? Number(tgt.getFieldValue("NUM")) : def;
     return Number.isFinite(v) ? v : def;
   };
-  const baseY = getNumInput(block, 'Y', 0);
+  const baseY = getNumInput(block, "Y", 0);
   mesh.position.y = baseY + ext.y;
 
   mesh.computeWorldMatrix(true);
@@ -641,7 +707,7 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
   //flock.adjustMaterialTilingForHierarchy(mesh);
 
   if (flock.meshDebug) {
-    console.log('[SCALE change]', {
+    console.log("[SCALE change]", {
       oldScale,
       newScale,
       unit: mesh.metadata.__unitScale,
@@ -650,11 +716,20 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
   }
 }
 
-function handleMaterialOrColorChange(mesh, block, changed, color, materialInfo) {
+function handleMaterialOrColorChange(
+  mesh,
+  block,
+  changed,
+  color,
+  materialInfo,
+) {
   if (
-    !(['COLOR', 'COLORS', 'BASE_COLOR', 'ALPHA'].includes(changed) || changed.startsWith?.('ADD'))
+    !(
+      ["COLOR", "COLORS", "BASE_COLOR", "ALPHA"].includes(changed) ||
+      changed.startsWith?.("ADD")
+    )
   ) {
-    if (flock.meshDebug) console.log('Returning');
+    if (flock.meshDebug) console.log("Returning");
     return mesh;
   }
 
@@ -664,7 +739,7 @@ function handleMaterialOrColorChange(mesh, block, changed, color, materialInfo) 
     let current = m;
     while (current) {
       if (current.metadata?._attachedTargetName) {
-        flock.setPhysics(current.name, 'NONE');
+        flock.setPhysics(current.name, "NONE");
         return current;
       }
       current = current.parent;
@@ -679,14 +754,16 @@ function handleMaterialOrColorChange(mesh, block, changed, color, materialInfo) 
   let rawColor = materialInfo?.colors || materialInfo?.baseColor || color;
 
   if (!rawColor) {
-    const firstMat = root.getDescendants(false).find((m) => m.material)?.material;
-    rawColor = firstMat?.diffuseColor?.toHexString() || '#ffffff';
+    const firstMat = root
+      .getDescendants(false)
+      .find((m) => m.material)?.material;
+    rawColor = firstMat?.diffuseColor?.toHexString() || "#ffffff";
   }
 
   const textureSet = materialInfo?.textureSet;
 
   let input;
-  if (textureSet && textureSet !== 'NONE') {
+  if (textureSet && textureSet !== "NONE") {
     input = {
       color: rawColor,
       alpha,
@@ -706,13 +783,13 @@ function handleMaterialOrColorChange(mesh, block, changed, color, materialInfo) 
 }
 
 function updateGroundFromBlock(_mesh, _block, _changeEvent) {
-  if (flock.meshDebug) console.log('Use map block instead of ground');
+  if (flock.meshDebug) console.log("Use map block instead of ground");
 }
 
 function updateMapFromBlock(mesh, block, changeEvent) {
   // Don't steal ground ownership from another block while the current owner still exists.
   // This prevents a second map block from taking over and causing its deletion to remove the ground.
-  const currentOwnerId = meshBlockIdMap['ground'];
+  const currentOwnerId = meshBlockIdMap["ground"];
   if (currentOwnerId && currentOwnerId !== block.id) {
     const ownerBlock = Blockly.getMainWorkspace()?.getBlockById(currentOwnerId);
     if (ownerBlock && !ownerBlock.disposed) {
@@ -720,30 +797,33 @@ function updateMapFromBlock(mesh, block, changeEvent) {
     }
   }
 
-  meshMap['ground'] = block;
-  meshBlockIdMap['ground'] = block.id;
+  meshMap["ground"] = block;
+  meshBlockIdMap["ground"] = block.id;
 
-  const mapName = block.getFieldValue('MAP_NAME');
-  const materialBlock = block.getInputTargetBlock('MATERIAL');
+  const mapName = block.getFieldValue("MAP_NAME");
+  const materialBlock = block.getInputTargetBlock("MATERIAL");
 
   if (!materialBlock) return;
 
   // A raw colour/list block may be connected directly to MATERIAL (not via a
   // material block), so dispatch on block type and pass the raw value straight
   // to createMap to match the generated-JS code path.
-  const isMaterialBlock = materialBlock.type === 'material';
+  const isMaterialBlock = materialBlock.type === "material";
   let read, mapArg;
   if (isMaterialBlock) {
     const { textureSet, alpha } = extractMaterialInfo(materialBlock);
-    read = readColourFromInputOrShadow(materialBlock, 'BASE_COLOR');
-    const materialName = !textureSet || textureSet === 'NONE' ? 'none.png' : textureSet;
+    read = readColourFromInputOrShadow(materialBlock, "BASE_COLOR");
+    const materialName =
+      !textureSet || textureSet === "NONE" ? "none.png" : textureSet;
     mapArg = { color: read.value, materialName, alpha };
   } else {
     read = readColourValue(materialBlock);
     mapArg = read.value;
   }
 
-  const colorIsEmpty = read.value == null || (Array.isArray(read.value) && read.value.length === 0);
+  const colorIsEmpty =
+    read.value == null ||
+    (Array.isArray(read.value) && read.value.length === 0);
   if (colorIsEmpty) {
     // Retry once — mutator operations briefly leave the colour list empty.
     // If still empty after the retry, bail silently to avoid an infinite loop.
@@ -764,66 +844,73 @@ function resolveColorAndMaterialForBlock(block) {
   let color;
   let materialInfo = null;
 
-  if (!['load_object', 'load_multi_object', 'load_character', 'create_map'].includes(block.type)) {
-    const colorInput = block.getInputTargetBlock('COLOR');
+  if (
+    ![
+      "load_object",
+      "load_multi_object",
+      "load_character",
+      "create_map",
+    ].includes(block.type)
+  ) {
+    const colorInput = block.getInputTargetBlock("COLOR");
 
     // Check if it's a material block
-    if (colorInput && colorInput.type === 'material') {
+    if (colorInput && colorInput.type === "material") {
       materialInfo = extractMaterialInfo(colorInput);
-      const read = readColourFromInputOrShadow(colorInput, 'BASE_COLOR');
+      const read = readColourFromInputOrShadow(colorInput, "BASE_COLOR");
 
       if (flock.meshDebug) {
-        console.log('Material block detected:');
-        console.log('  Texture:', materialInfo.textureSet);
-        console.log('  Base color from material:', materialInfo.baseColor);
-        console.log('  Color from input:', read.value);
-        console.log('  Alpha:', materialInfo.alpha);
+        console.log("Material block detected:");
+        console.log("  Texture:", materialInfo.textureSet);
+        console.log("  Base color from material:", materialInfo.baseColor);
+        console.log("  Color from input:", read.value);
+        console.log("  Alpha:", materialInfo.alpha);
       }
 
       color = read.value ?? materialInfo.baseColor;
     } else {
       // Simple color block
-      const read = readColourFromInputOrShadow(block, 'COLOR');
+      const read = readColourFromInputOrShadow(block, "COLOR");
       color = read.value;
 
       if (flock.meshDebug) {
-        console.log('Simple color block detected:', color);
+        console.log("Simple color block detected:", color);
       }
     }
-  } else if (block.type === 'load_object' || block.type === 'load_character') {
+  } else if (block.type === "load_object" || block.type === "load_character") {
     // Handle load_object and load_character color input
-    const colorInput = block.getInputTargetBlock('COLOR');
+    const colorInput = block.getInputTargetBlock("COLOR");
 
     if (flock.meshDebug) {
-      console.log('Processing load_object/load_character color input');
-      console.log('  Color input type:', colorInput?.type);
+      console.log("Processing load_object/load_character color input");
+      console.log("  Color input type:", colorInput?.type);
     }
 
     // Check if it's a material block
-    if (colorInput && colorInput.type === 'material') {
+    if (colorInput && colorInput.type === "material") {
       materialInfo = extractMaterialInfo(colorInput);
-      const read = readColourFromInputOrShadow(colorInput, 'BASE_COLOR');
+      const read = readColourFromInputOrShadow(colorInput, "BASE_COLOR");
 
       if (flock.meshDebug) {
-        console.log('Material block detected for load_object:');
-        console.log('  Texture:', materialInfo.textureSet);
-        console.log('  Base color from material:', materialInfo.baseColor);
-        console.log('  Color from input:', read.value);
-        console.log('  Alpha:', materialInfo.alpha);
+        console.log("Material block detected for load_object:");
+        console.log("  Texture:", materialInfo.textureSet);
+        console.log("  Base color from material:", materialInfo.baseColor);
+        console.log("  Color from input:", read.value);
+        console.log("  Alpha:", materialInfo.alpha);
       }
 
       color = read.value ?? materialInfo.baseColor;
     } else {
       // Simple color block
-      const read = readColourFromInputOrShadow(block, 'COLOR');
+      const read = readColourFromInputOrShadow(block, "COLOR");
       color = read.value;
 
       if (flock.meshDebug) {
-        console.log('Simple color for load_object:', color);
+        console.log("Simple color for load_object:", color);
       }
     }
-  } else if (block.type === 'load_multi_object') {
-    const colorsBlock = block.getInput('COLORS').connection.targetBlock();
+  } else if (block.type === "load_multi_object") {
+    const colorsBlock = block.getInput("COLORS").connection.targetBlock();
     const read = readColourValue(colorsBlock);
     color = read.value;
   }
@@ -844,52 +931,76 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
   const applyPrimitiveUVTiling = (shapeType, dims) => {
     const TILE_SIZE = 4;
     switch (shapeType) {
-      case 'Box':
-        flock.setSizeBasedBoxUVs(mesh, dims.width, dims.height, dims.depth, TILE_SIZE);
+      case "Box":
+        flock.setSizeBasedBoxUVs(
+          mesh,
+          dims.width,
+          dims.height,
+          dims.depth,
+          TILE_SIZE,
+        );
         break;
-      case 'Sphere':
+      case "Sphere":
         flock.setSphereUVs(mesh, dims.diameter, TILE_SIZE);
         break;
-      case 'Cylinder':
+      case "Cylinder":
         flock.setSizeBasedCylinderUVs(
           mesh,
           dims.height,
           dims.diameterTop,
           dims.diameterBottom,
-          TILE_SIZE
+          TILE_SIZE,
         );
         break;
-      case 'Capsule':
+      case "Capsule":
         flock.setCapsuleUVs(mesh, dims.radius, dims.height, TILE_SIZE);
         break;
-      case 'Plane':
+      case "Plane":
         flock.setSizeBasedPlaneUVs(mesh, dims.width, dims.height, TILE_SIZE);
         break;
     }
   };
 
   switch (block.type) {
-    case 'create_box': {
-      if (['WIDTH', 'HEIGHT', 'DEPTH'].includes(changed)) {
-        const width = block.getInput('WIDTH').connection.targetBlock().getFieldValue('NUM');
-        const height = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
-        const depth = block.getInput('DEPTH').connection.targetBlock().getFieldValue('NUM');
+    case "create_box": {
+      if (["WIDTH", "HEIGHT", "DEPTH"].includes(changed)) {
+        const width = block
+          .getInput("WIDTH")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        const height = block
+          .getInput("HEIGHT")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        const depth = block
+          .getInput("DEPTH")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
 
         setAbsoluteSize(mesh, width, height, depth);
-        applyPrimitiveUVTiling('Box', { width, height, depth });
+        applyPrimitiveUVTiling("Box", { width, height, depth });
         repositionPrimitiveFromBlock();
       }
       break;
     }
 
-    case 'create_sphere': {
-      if (['DIAMETER_X', 'DIAMETER_Y', 'DIAMETER_Z'].includes(changed)) {
-        const dx = block.getInput('DIAMETER_X').connection.targetBlock().getFieldValue('NUM');
-        const dy = block.getInput('DIAMETER_Y').connection.targetBlock().getFieldValue('NUM');
-        const dz = block.getInput('DIAMETER_Z').connection.targetBlock().getFieldValue('NUM');
+    case "create_sphere": {
+      if (["DIAMETER_X", "DIAMETER_Y", "DIAMETER_Z"].includes(changed)) {
+        const dx = block
+          .getInput("DIAMETER_X")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        const dy = block
+          .getInput("DIAMETER_Y")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        const dz = block
+          .getInput("DIAMETER_Z")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
 
         setAbsoluteSize(mesh, dx, dy, dz);
-        applyPrimitiveUVTiling('Sphere', {
+        applyPrimitiveUVTiling("Sphere", {
           diameter: Math.max(dx, dy, dz),
         });
         repositionPrimitiveFromBlock();
@@ -897,59 +1008,87 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
       break;
     }
 
-    case 'create_cylinder': {
-      if (['HEIGHT', 'DIAMETER_TOP', 'DIAMETER_BOTTOM', 'TESSELLATIONS'].includes(changed)) {
-        const h = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
-        const dt = block.getInput('DIAMETER_TOP').connection.targetBlock().getFieldValue('NUM');
-        const db = block.getInput('DIAMETER_BOTTOM').connection.targetBlock().getFieldValue('NUM');
-        const s = block.getInput('TESSELLATIONS').connection.targetBlock().getFieldValue('NUM');
+    case "create_cylinder": {
+      if (
+        ["HEIGHT", "DIAMETER_TOP", "DIAMETER_BOTTOM", "TESSELLATIONS"].includes(
+          changed,
+        )
+      ) {
+        const h = block
+          .getInput("HEIGHT")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        const dt = block
+          .getInput("DIAMETER_TOP")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        const db = block
+          .getInput("DIAMETER_BOTTOM")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        const s = block
+          .getInput("TESSELLATIONS")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
 
         updateCylinderGeometry(mesh, dt, db, h, s);
-        applyPrimitiveUVTiling('Cylinder', {
+        applyPrimitiveUVTiling("Cylinder", {
           height: h,
           diameterTop: dt,
           diameterBottom: db,
         });
 
         // only reposition when actual dimensions change, not tessellation
-        if (['HEIGHT', 'DIAMETER_TOP', 'DIAMETER_BOTTOM'].includes(changed)) {
+        if (["HEIGHT", "DIAMETER_TOP", "DIAMETER_BOTTOM"].includes(changed)) {
           repositionPrimitiveFromBlock();
         }
       }
       break;
     }
 
-    case 'create_capsule': {
-      if (['HEIGHT', 'DIAMETER'].includes(changed)) {
-        const d = block.getInput('DIAMETER').connection.targetBlock().getFieldValue('NUM');
-        const h = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
+    case "create_capsule": {
+      if (["HEIGHT", "DIAMETER"].includes(changed)) {
+        const d = block
+          .getInput("DIAMETER")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        const h = block
+          .getInput("HEIGHT")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
 
         setAbsoluteSize(mesh, d, h, d);
-        applyPrimitiveUVTiling('Capsule', { radius: d / 2, height: h });
+        applyPrimitiveUVTiling("Capsule", { radius: d / 2, height: h });
         repositionPrimitiveFromBlock();
       }
       break;
     }
 
-    case 'create_plane': {
-      if (['HEIGHT', 'WIDTH'].includes(changed)) {
-        const w = block.getInput('WIDTH').connection.targetBlock().getFieldValue('NUM');
-        const h = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
+    case "create_plane": {
+      if (["HEIGHT", "WIDTH"].includes(changed)) {
+        const w = block
+          .getInput("WIDTH")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        const h = block
+          .getInput("HEIGHT")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
 
         setAbsoluteSize(mesh, w, h, 0);
-        applyPrimitiveUVTiling('Plane', { width: w, height: h });
+        applyPrimitiveUVTiling("Plane", { width: w, height: h });
         repositionPrimitiveFromBlock();
       }
       break;
     }
 
-    case 'create_3d_text': {
-      if (['SIZE', 'DEPTH'].includes(changed)) {
+    case "create_3d_text": {
+      if (["SIZE", "DEPTH"].includes(changed)) {
         const newSize = parseFloat(
-          block.getInput('SIZE').connection.targetBlock().getFieldValue('NUM')
+          block.getInput("SIZE").connection.targetBlock().getFieldValue("NUM"),
         );
         const newDepth = parseFloat(
-          block.getInput('DEPTH').connection.targetBlock().getFieldValue('NUM')
+          block.getInput("DEPTH").connection.targetBlock().getFieldValue("NUM"),
         );
 
         mesh.computeWorldMatrix(true);
@@ -970,22 +1109,42 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
 function handleLoadBlockChange(meshes, block, changed, changeEvent) {
   // All load_* blocks: replace model when MODELS changes
   if (
-    ['load_object', 'load_multi_object', 'load_character'].includes(block.type) &&
-    changed === 'MODELS'
+    ["load_object", "load_multi_object", "load_character"].includes(
+      block.type,
+    ) &&
+    changed === "MODELS"
   ) {
     meshes.forEach((mesh) => replaceMeshModel(mesh, block, changeEvent));
     return true; // caller should return early
   }
 
   // Extra handling for load_character colour fields
-  if (block.type === 'load_character' && changed in colorFields) {
+  if (block.type === "load_character" && changed in colorFields) {
     const colors = {
-      hair: block.getInput('HAIR_COLOR').connection.targetBlock().getFieldValue('COLOR'),
-      skin: block.getInput('SKIN_COLOR').connection.targetBlock().getFieldValue('COLOR'),
-      eyes: block.getInput('EYES_COLOR').connection.targetBlock().getFieldValue('COLOR'),
-      tshirt: block.getInput('TSHIRT_COLOR').connection.targetBlock().getFieldValue('COLOR'),
-      shorts: block.getInput('SHORTS_COLOR').connection.targetBlock().getFieldValue('COLOR'),
-      sleeves: block.getInput('SLEEVES_COLOR').connection.targetBlock().getFieldValue('COLOR'),
+      hair: block
+        .getInput("HAIR_COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR"),
+      skin: block
+        .getInput("SKIN_COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR"),
+      eyes: block
+        .getInput("EYES_COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR"),
+      tshirt: block
+        .getInput("TSHIRT_COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR"),
+      shorts: block
+        .getInput("SHORTS_COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR"),
+      sleeves: block
+        .getInput("SLEEVES_COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR"),
     };
 
     meshes.forEach((mesh) => {
@@ -1003,37 +1162,48 @@ function getXYZFromBlock(block) {
   const getNum = (inputName) => {
     const input = block.getInput(inputName);
     const targetBlock = input?.connection?.targetBlock();
-    return targetBlock?.getFieldValue('NUM');
+    return targetBlock?.getFieldValue("NUM");
   };
 
   return {
-    x: getNum('X'),
-    y: getNum('Y'),
-    z: getNum('Z'),
+    x: getNum("X"),
+    y: getNum("Y"),
+    z: getNum("Z"),
   };
 }
 
 export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   if (flock.meshDebug) {
-    console.log('=== UPDATE MESH FROM BLOCK ===');
-    console.log('Block type:', block.type);
-    console.log('Block ID:', block.id);
-    console.log('Change event type:', changeEvent.type);
-    console.log('Change event details:', changeEvent);
+    console.log("=== UPDATE MESH FROM BLOCK ===");
+    console.log("Block type:", block.type);
+    console.log("Block ID:", block.id);
+    console.log("Change event type:", changeEvent.type);
+    console.log("Change event details:", changeEvent);
   }
 
-  const meshes = Array.isArray(meshesOrMesh) ? meshesOrMesh : meshesOrMesh ? [meshesOrMesh] : [];
+  const meshes = Array.isArray(meshesOrMesh)
+    ? meshesOrMesh
+    : meshesOrMesh
+      ? [meshesOrMesh]
+      : [];
 
   if (
     meshes.length === 0 &&
-    !['set_sky_color', 'set_background_color', 'create_ground', 'create_map'].includes(block.type)
+    ![
+      "set_sky_color",
+      "set_background_color",
+      "create_ground",
+      "create_map",
+    ].includes(block.type)
   ) {
-    if (flock.meshDebug) console.log('No mesh and not a special block type, returning');
+    if (flock.meshDebug)
+      console.log("No mesh and not a special block type, returning");
     return;
   }
 
-  if (block.type === 'change_color') {
-    if (flock.meshDebug) console.log('Skipping live update for change_color block');
+  if (block.type === "change_color") {
+    if (flock.meshDebug)
+      console.log("Skipping live update for change_color block");
     return;
   }
 
@@ -1045,8 +1215,9 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
 
   let cursor = changedBlock;
   while (cursor) {
-    if (cursor.type === 'change_color') {
-      if (flock.meshDebug) console.log('Skipping live update for change_color subtree');
+    if (cursor.type === "change_color") {
+      if (flock.meshDebug)
+        console.log("Skipping live update for change_color subtree");
       return;
     }
     cursor = cursor.getParent?.();
@@ -1055,22 +1226,24 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   let changed;
 
   if (flock.meshDebug) {
-    console.log('Changed block:', changedBlock?.type);
-    console.log('Parent block:', parent?.type);
+    console.log("Changed block:", changedBlock?.type);
+    console.log("Parent block:", parent?.type);
   }
 
   if (
     changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
-    changeEvent.element === 'field' &&
+    changeEvent.element === "field" &&
     changeEvent.blockId === block.id
   ) {
     if (
-      ['load_object', 'load_multi_object', 'load_character'].includes(block.type) &&
-      changeEvent.name === 'MODELS'
+      ["load_object", "load_multi_object", "load_character"].includes(
+        block.type,
+      ) &&
+      changeEvent.name === "MODELS"
     ) {
-      changed = 'MODELS';
-    } else if (block.type === 'create_map' && changeEvent.name === 'MAP_NAME') {
-      changed = 'MAP_NAME';
+      changed = "MODELS";
+    } else if (block.type === "create_map" && changeEvent.name === "MAP_NAME") {
+      changed = "MAP_NAME";
     }
   }
 
@@ -1091,7 +1264,7 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
 
   // Special handling for material blocks - check if change is in material subtree
   if (!changed) {
-    const colorInput = block.getInputTargetBlock('COLOR');
+    const colorInput = block.getInputTargetBlock("COLOR");
     if (colorInput) {
       // Check if the changed block is the color input or in its subtree
       const isMaterialChange =
@@ -1101,34 +1274,37 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
         isBlockIdDescendantOf(colorInput, changeEvent.oldParentId);
 
       if (isMaterialChange) {
-        changed = 'COLOR';
-        if (flock.meshDebug) console.log('Material change detected in COLOR input subtree');
+        changed = "COLOR";
+        if (flock.meshDebug)
+          console.log("Material change detected in COLOR input subtree");
       }
     }
   }
 
-  if (!changed && block.type === 'create_map') {
-    const m = block.getInputTargetBlock('MATERIAL');
+  if (!changed && block.type === "create_map") {
+    const m = block.getInputTargetBlock("MATERIAL");
     if (m) {
       const touched =
         isBlockIdDescendantOf(m, changeEvent.blockId) ||
         isBlockIdDescendantOf(m, changeEvent.newParentId) ||
         isBlockIdDescendantOf(m, changeEvent.oldParentId) ||
-        (changeEvent.type === Blockly.Events.BLOCK_CHANGE && changeEvent.blockId === m.id);
-      if (touched) changed = 'MATERIAL';
+        (changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+          changeEvent.blockId === m.id);
+      if (touched) changed = "MATERIAL";
     }
   }
 
   if (!changed) {
     if (
-      block.type === 'set_sky_color' ||
-      block.type === 'set_background_color' ||
-      block.type === 'create_ground' ||
-      block.type === 'create_map'
+      block.type === "set_sky_color" ||
+      block.type === "set_background_color" ||
+      block.type === "create_ground" ||
+      block.type === "create_map"
     ) {
-      changed = 'COLOR';
+      changed = "COLOR";
     } else {
-      if (flock.meshDebug) console.log('No relevant change detected, returning');
+      if (flock.meshDebug)
+        console.log("No relevant change detected, returning");
       return;
     }
   }
@@ -1136,10 +1312,10 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   if (flock.meshDebug) console.log(`Processing change type: ${changed}`);
 
   if (
-    (block.type === 'load_object' ||
-      block.type === 'load_multi_object' ||
-      block.type === 'load_character') &&
-    changed === 'MODELS' &&
+    (block.type === "load_object" ||
+      block.type === "load_multi_object" ||
+      block.type === "load_character") &&
+    changed === "MODELS" &&
     meshes.length === 0
   ) {
     meshes.push(...getMeshesFromBlock(block));
@@ -1147,22 +1323,22 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
 
   //if (meshes.length && mesh.physics) mesh.physics.disablePreStep = true;
 
-  if (block.type === 'set_sky_color') {
+  if (block.type === "set_sky_color") {
     updateSkyFromBlock(block);
     return;
   }
 
-  if (block.type === 'set_background_color') {
+  if (block.type === "set_background_color") {
     applyBackgroundColorFromBlock(block);
     return;
   }
 
-  if (block.type === 'create_ground') {
+  if (block.type === "create_ground") {
     updateGroundFromBlock(null, block, changeEvent);
     return;
   }
 
-  if (block.type === 'create_map') {
+  if (block.type === "create_map") {
     updateMapFromBlock(null, block, changeEvent);
     return;
   }
@@ -1172,8 +1348,10 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
 
   ({ color, materialInfo } = resolveColorAndMaterialForBlock(block));
 
-  if (block.type.startsWith('load_') && changed === 'SCALE') {
-    meshes.forEach((mesh) => updateLoadBlockScaleFromEvent(mesh, block, changeEvent));
+  if (block.type.startsWith("load_") && changed === "SCALE") {
+    meshes.forEach((mesh) =>
+      updateLoadBlockScaleFromEvent(mesh, block, changeEvent),
+    );
   }
 
   // Handle load_* blocks (models and character colours)
@@ -1189,51 +1367,54 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     handleMaterialOrColorChange(mesh, block, changed, color, materialInfo);
   });
 
-  if (['X', 'Y', 'Z'].includes(changed)) {
+  if (["X", "Y", "Z"].includes(changed)) {
     const isFieldChange =
-      changeEvent.type === Blockly.Events.BLOCK_CHANGE && changeEvent.element === 'field';
+      changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+      changeEvent.element === "field";
 
     // Decide which block actually owns the X/Y/Z inputs:
     // - rotate_to / resize child (nested inside DO)
     // - otherwise the root block itself
     const contextBlock =
-      parent && (parent.type === 'rotate_to' || parent.type === 'resize') ? parent : block;
+      parent && (parent.type === "rotate_to" || parent.type === "resize")
+        ? parent
+        : block;
 
     // --- rotate_to: allow gizmo / non-field events ---
-    if (contextBlock.type === 'rotate_to') {
+    if (contextBlock.type === "rotate_to") {
       const rotation = getXYZFromBlock(contextBlock);
       meshes.forEach((mesh) => flock.rotateTo(mesh.name, rotation));
       return;
     }
 
     // --- resize: also allow gizmo / non-field events ---
-    if (contextBlock.type === 'resize') {
+    if (contextBlock.type === "resize") {
       const dims = getXYZFromBlock(contextBlock);
       const resizeOptions = {
         width: dims.x ?? null,
         height: dims.y ?? null,
         depth: dims.z ?? null,
-        xOrigin: contextBlock.getFieldValue('X_ORIGIN') || 'CENTRE',
-        yOrigin: contextBlock.getFieldValue('Y_ORIGIN') || 'BASE',
-        zOrigin: contextBlock.getFieldValue('Z_ORIGIN') || 'CENTRE',
+        xOrigin: contextBlock.getFieldValue("X_ORIGIN") || "CENTRE",
+        yOrigin: contextBlock.getFieldValue("Y_ORIGIN") || "BASE",
+        zOrigin: contextBlock.getFieldValue("Z_ORIGIN") || "CENTRE",
       };
 
       if (flock.meshDebug) {
         console.log(
-          'Resize',
+          "Resize",
           resizeOptions,
-          'on mesh',
+          "on mesh",
           meshes[0]?.name,
-          'from block',
+          "from block",
           block.type,
-          'event type',
-          changeEvent.type
+          "event type",
+          changeEvent.type,
         );
       }
 
       meshes.forEach((mesh) => {
         flock.resize(mesh.name, resizeOptions);
-        if (flock.meshDebug) console.log('After resize', mesh);
+        if (flock.meshDebug) console.log("After resize", mesh);
       });
       return;
     }
@@ -1242,10 +1423,10 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     if (!isFieldChange) {
       if (flock.meshDebug) {
         console.log(
-          'Ignoring X/Y/Z change for non-field event on',
+          "Ignoring X/Y/Z change for non-field event on",
           block.type,
-          'event type:',
-          changeEvent.type
+          "event type:",
+          changeEvent.type,
         );
       }
       return;
@@ -1255,24 +1436,26 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     if (parent && parent.id !== block.id) {
       if (flock.meshDebug) {
         console.log(
-          'X/Y/Z change is on a nested block; skipping positionAt for',
-          'root:',
+          "X/Y/Z change is on a nested block; skipping positionAt for",
+          "root:",
           block.type,
-          'parent:',
-          parent.type
+          "parent:",
+          parent.type,
         );
       }
       return;
     }
 
     const position = getXYZFromBlock(block);
-    if (flock.meshDebug) console.log('Position', position, block.type);
-    meshes.forEach((mesh) => flock.positionAt(mesh.name, { ...position, useY: true }));
+    if (flock.meshDebug) console.log("Position", position, block.type);
+    meshes.forEach((mesh) =>
+      flock.positionAt(mesh.name, { ...position, useY: true }),
+    );
   }
 
   meshes.forEach((mesh) => flock.updatePhysics(mesh));
 
-  if (flock.meshDebug) console.log('=== UPDATE COMPLETE ===');
+  if (flock.meshDebug) console.log("=== UPDATE COMPLETE ===");
 }
 
 function moveMeshToOrigin(mesh) {
@@ -1291,7 +1474,11 @@ function setAbsoluteSize(mesh, width, height, depth) {
   const currentScale = new flock.BABYLON.Vector3();
   const currentRotationQuaternion = new flock.BABYLON.Quaternion();
   const currentPosition = new flock.BABYLON.Vector3();
-  worldMatrix.decompose(currentScale, currentRotationQuaternion, currentPosition);
+  worldMatrix.decompose(
+    currentScale,
+    currentRotationQuaternion,
+    currentPosition,
+  );
 
   // Temporarily move mesh to origin
   mesh = moveMeshToOrigin(mesh);
@@ -1322,15 +1509,15 @@ function setAbsoluteSize(mesh, width, height, depth) {
 
     // Create the new physics shape based on the type
     switch (shapeType) {
-      case 'Box':
+      case "Box":
         newShape = new flock.BABYLON.PhysicsShapeBox(
           flock.BABYLON.Vector3.Zero(),
           new flock.BABYLON.Quaternion(0, 0, 0, 1),
           new flock.BABYLON.Vector3(width, height, depth),
-          mesh.getScene()
+          mesh.getScene(),
         );
         break;
-      case 'Cylinder':
+      case "Cylinder":
         diameterBottom = Math.min(width, depth);
         startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
         endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
@@ -1338,21 +1525,21 @@ function setAbsoluteSize(mesh, width, height, depth) {
           startPoint,
           endPoint,
           diameterBottom / 2,
-          mesh.getScene()
+          mesh.getScene(),
         );
         break;
-      case 'Sphere':
+      case "Sphere":
         newShape = new flock.BABYLON.PhysicsShapeSphere(
           flock.BABYLON.Vector3.Zero(),
           Math.max(width, depth, height) / 2,
-          mesh.getScene()
+          mesh.getScene(),
         );
         break;
-      case 'Capsule':
+      case "Capsule":
         newShape = flock.createCapsuleFromBoundingBox(mesh, mesh.getScene());
         break;
       default:
-        console.log('Unknown or unsupported physics shape type: ' + shapeType);
+        console.log("Unknown or unsupported physics shape type: " + shapeType);
         break;
     }
 
@@ -1366,13 +1553,23 @@ function setAbsoluteSize(mesh, width, height, depth) {
   }
 }
 
-function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height, sides) {
+function updateCylinderGeometry(
+  mesh,
+  diameterTop,
+  diameterBottom,
+  height,
+  sides,
+) {
   // Store the current world matrix and decompose it
   const worldMatrix = mesh.computeWorldMatrix(true);
   const currentScale = new flock.BABYLON.Vector3();
   const currentRotationQuaternion = new flock.BABYLON.Quaternion();
   const currentPosition = new flock.BABYLON.Vector3();
-  worldMatrix.decompose(currentScale, currentRotationQuaternion, currentPosition);
+  worldMatrix.decompose(
+    currentScale,
+    currentRotationQuaternion,
+    currentPosition,
+  );
 
   // If the mesh has geometry, dispose of it before updating
   if (mesh.geometry) {
@@ -1385,7 +1582,7 @@ function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height, sides
 
   // Create a temporary mesh with the provided dimensions (already in world space)
   const tempMesh = flock.BABYLON.MeshBuilder.CreateCylinder(
-    '',
+    "",
     {
       height: height,
       diameterTop: diameterTop,
@@ -1393,7 +1590,7 @@ function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height, sides
       tessellation: sides,
       updatable: true,
     },
-    mesh.getScene()
+    mesh.getScene(),
   );
 
   // Extract vertex data from the temporary mesh
@@ -1401,11 +1598,11 @@ function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height, sides
 
   // Create new geometry for the mesh
   const newGeometry = new flock.BABYLON.Geometry(
-    mesh.name + '_geometry',
+    mesh.name + "_geometry",
     mesh.getScene(),
     vertexData,
     true,
-    mesh
+    mesh,
   );
 
   // Apply the new geometry to the mesh
@@ -1429,15 +1626,15 @@ function replaceMeshModel(currentMesh, block) {
 
   const animationInfo = flock._getCurrentAnimationInfo(currentMesh);
 
-  const modelName = block.getFieldValue('MODELS');
+  const modelName = block.getFieldValue("MODELS");
   if (!modelName) return;
 
   const wasEnabled =
-    typeof currentMesh.isEnabled === 'function'
+    typeof currentMesh.isEnabled === "function"
       ? currentMesh.isEnabled()
       : (currentMesh.isVisible ?? true);
   const setMeshEnabled = (enabled) => {
-    if (typeof currentMesh.setEnabled === 'function') {
+    if (typeof currentMesh.setEnabled === "function") {
       currentMesh.setEnabled(enabled);
     } else {
       currentMesh.isVisible = enabled;
@@ -1464,19 +1661,22 @@ function replaceMeshModel(currentMesh, block) {
 
   function isRenderableMesh(n) {
     const cls = n?.getClassName?.();
-    return cls === 'Mesh' || cls === 'InstancedMesh';
+    return cls === "Mesh" || cls === "InstancedMesh";
   }
 
   function firstRenderable(node) {
     const nodes = walkNodes(node);
     for (const n of nodes) {
-      if (isRenderableMesh(n) && n.name !== '__root__') return n;
+      if (isRenderableMesh(n) && n.name !== "__root__") return n;
     }
     return null;
   }
 
   const warnSuppressed = (operation, error) => {
-    console.warn(`[replaceMeshModel] Suppressed non-critical error in ${operation}:`, error);
+    console.warn(
+      `[replaceMeshModel] Suppressed non-critical error in ${operation}:`,
+      error,
+    );
   };
 
   function disposeTree(node) {
@@ -1486,12 +1686,12 @@ function replaceMeshModel(currentMesh, block) {
     try {
       node.setParent?.(null);
     } catch (error) {
-      warnSuppressed('disposeTree:setParent', error);
+      warnSuppressed("disposeTree:setParent", error);
     }
     try {
       node.dispose?.();
     } catch (error) {
-      warnSuppressed('disposeTree:dispose', error);
+      warnSuppressed("disposeTree:dispose", error);
     }
   }
 
@@ -1499,7 +1699,7 @@ function replaceMeshModel(currentMesh, block) {
     try {
       node.physics?.dispose?.();
     } catch (error) {
-      warnSuppressed('disposePhysics:physics.dispose', error);
+      warnSuppressed("disposePhysics:physics.dispose", error);
     }
   }
 
@@ -1532,13 +1732,13 @@ function replaceMeshModel(currentMesh, block) {
 
     // Convert to hex and pad with zeros if needed
     const hex =
-      '#' +
+      "#" +
       [r, g, b]
         .map((x) => {
           const hex = x.toString(16);
-          return hex.length === 1 ? '0' + hex : hex;
+          return hex.length === 1 ? "0" + hex : hex;
         })
-        .join('');
+        .join("");
 
     return hex;
   }
@@ -1558,12 +1758,12 @@ function replaceMeshModel(currentMesh, block) {
 
     function visit(part) {
       let mat = part.material;
-      if (!mat && part.getClassName?.() === 'InstancedMesh') {
+      if (!mat && part.getClassName?.() === "InstancedMesh") {
         mat = part.sourceMesh?.material || null;
       }
       if (mat && !materialToIndex.has(mat)) {
         const mCls = mat.getClassName?.();
-        if (mCls === 'MultiMaterial') {
+        if (mCls === "MultiMaterial") {
           const subs = mat.subMaterials || [];
           const subMeshes = part.subMeshes || [];
           let chosen = null;
@@ -1579,7 +1779,9 @@ function replaceMeshModel(currentMesh, block) {
         }
         materialToIndex.set(mat, colors.length - 1);
       }
-      const kids = part.getChildMeshes?.().sort((a, b) => a.name.localeCompare(b.name)) || [];
+      const kids =
+        part.getChildMeshes?.().sort((a, b) => a.name.localeCompare(b.name)) ||
+        [];
       for (const k of kids) visit(k);
     }
 
@@ -1600,7 +1802,7 @@ function replaceMeshModel(currentMesh, block) {
           const y = n.getBoundingInfo().boundingBox.minimumWorld.y;
           if (y < minY) minY = y;
         } catch (error) {
-          warnSuppressed('worldBaseYOfRenderables:boundingInfo', error);
+          warnSuppressed("worldBaseYOfRenderables:boundingInfo", error);
         }
       }
     }
@@ -1608,18 +1810,18 @@ function replaceMeshModel(currentMesh, block) {
   }
 
   const NAME_TO_PART = {
-    hair: 'hair',
-    skin: 'skin',
-    eyes: 'eyes',
-    shorts: 'shorts',
-    tshirt: 'tshirt',
-    't-shirt': 'tshirt',
-    tee: 'tshirt',
-    sleeves: 'sleeves',
-    sleeve: 'sleeves',
-    detail: 'sleeves',
+    hair: "hair",
+    skin: "skin",
+    eyes: "eyes",
+    shorts: "shorts",
+    tshirt: "tshirt",
+    "t-shirt": "tshirt",
+    tee: "tshirt",
+    sleeves: "sleeves",
+    sleeve: "sleeves",
+    detail: "sleeves",
   };
-  const partFromName = (name = '') => {
+  const partFromName = (name = "") => {
     const s = name.toLowerCase();
     for (const key of Object.keys(NAME_TO_PART)) {
       if (s === key || s.includes(key)) return NAME_TO_PART[key];
@@ -1631,12 +1833,12 @@ function replaceMeshModel(currentMesh, block) {
     const found = {};
     const nodes = walkNodes(root);
     for (const n of nodes) {
-      if (!isRenderableMesh(n) || n.name === '__root__') continue;
+      if (!isRenderableMesh(n) || n.name === "__root__") continue;
       const mat = n.material;
       if (!mat) continue;
 
       const cls = mat.getClassName?.();
-      if (cls === 'MultiMaterial') {
+      if (cls === "MultiMaterial") {
         const subMats = mat.subMaterials || [];
         const subMeshes = n.subMeshes || [];
         for (let i = 0; i < subMeshes.length; i++) {
@@ -1665,13 +1867,17 @@ function replaceMeshModel(currentMesh, block) {
   }
 
   // ---------- capture original children and debug ----------
-  const originalDirectChildren = (currentMesh.getChildren ? currentMesh.getChildren() : []).slice();
-  const oldFirstChild = originalDirectChildren.length ? originalDirectChildren[0] : null;
+  const originalDirectChildren = (
+    currentMesh.getChildren ? currentMesh.getChildren() : []
+  ).slice();
+  const oldFirstChild = originalDirectChildren.length
+    ? originalDirectChildren[0]
+    : null;
   const oldChildScale = oldFirstChild?.scaling?.clone?.() || null;
 
   // ---------- create temp new mesh ----------
   const tempId = `${modelName}__temp__${Date.now()}`;
-  const isCharacter = block.type === 'load_character';
+  const isCharacter = block.type === "load_character";
   let createArgs;
 
   if (isCharacter) {
@@ -1710,16 +1916,18 @@ function replaceMeshModel(currentMesh, block) {
           }
         }
         const blockColors = (() => {
-          if (block.type === 'load_multi_object') {
-            const colorsInput = block.getInput('COLORS');
+          if (block.type === "load_multi_object") {
+            const colorsInput = block.getInput("COLORS");
             const listBlock = colorsInput?.connection?.targetBlock?.();
-            if (listBlock?.type === 'lists_create_with') {
+            if (listBlock?.type === "lists_create_with") {
               const collected = [];
               for (const input of listBlock.inputList || []) {
-                if (!input?.name?.startsWith('ADD')) continue;
+                if (!input?.name?.startsWith("ADD")) continue;
                 const target = input.connection?.targetBlock?.();
                 const hex =
-                  target?.getFieldValue?.('COLOR') || target?.getFieldValue?.('COLOUR') || null;
+                  target?.getFieldValue?.("COLOR") ||
+                  target?.getFieldValue?.("COLOUR") ||
+                  null;
                 if (hex) collected.push(hex);
               }
               return collected;
@@ -1728,7 +1936,8 @@ function replaceMeshModel(currentMesh, block) {
           return null;
         })();
 
-        nonCharacterColors = blockColors && blockColors.length ? blockColors : cols;
+        nonCharacterColors =
+          blockColors && blockColors.length ? blockColors : cols;
       }
 
       // Measure old base (world) before removing originals
@@ -1741,7 +1950,7 @@ function replaceMeshModel(currentMesh, block) {
       try {
         newChild.setParent?.(null, true);
       } catch (error) {
-        warnSuppressed('detachNewChild:setParent', error);
+        warnSuppressed("detachNewChild:setParent", error);
       }
 
       // Collect bone-attached objects from the target's metadata list.
@@ -1771,15 +1980,15 @@ function replaceMeshModel(currentMesh, block) {
       const skipped = [];
       for (const child of originalDirectChildren) {
         if (!child || child.isDisposed?.()) {
-          skipped.push({ name: child?.name, reason: 'already disposed' });
+          skipped.push({ name: child?.name, reason: "already disposed" });
           continue;
         }
         if (child === currentMesh) {
-          skipped.push({ name: child.name, reason: 'is parent' });
+          skipped.push({ name: child.name, reason: "is parent" });
           continue;
         }
         if (child.parent !== currentMesh) {
-          skipped.push({ name: child.name, reason: 'no longer direct child' });
+          skipped.push({ name: child.name, reason: "no longer direct child" });
           continue;
         }
         stripPhysicsTree(child);
@@ -1804,13 +2013,13 @@ function replaceMeshModel(currentMesh, block) {
         try {
           newChild.scaling.copyFrom(oldChildScale);
         } catch (error) {
-          warnSuppressed('applyOldScale:copyFrom', error);
+          warnSuppressed("applyOldScale:copyFrom", error);
         }
         try {
           newChild.computeWorldMatrix(true);
           newChild.refreshBoundingInfo?.();
         } catch (error) {
-          warnSuppressed('applyOldScale:refreshBounds', error);
+          warnSuppressed("applyOldScale:refreshBounds", error);
         }
       }
 
@@ -1819,14 +2028,17 @@ function replaceMeshModel(currentMesh, block) {
         try {
           newChild.computeWorldMatrix(true);
           newChild.refreshBoundingInfo?.();
-          const newBaseY = newChild.getBoundingInfo().boundingBox.minimumWorld.y;
+          const newBaseY =
+            newChild.getBoundingInfo().boundingBox.minimumWorld.y;
           if (isFinite(newBaseY)) {
             const dy = oldBaseY - newBaseY;
             const abs = newChild.getAbsolutePosition();
-            newChild.setAbsolutePosition(new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z));
+            newChild.setAbsolutePosition(
+              new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
+            );
           }
         } catch (error) {
-          warnSuppressed('baseAlignmentPrimary:setAbsolutePosition', error);
+          warnSuppressed("baseAlignmentPrimary:setAbsolutePosition", error);
         }
       }
 
@@ -1835,42 +2047,53 @@ function replaceMeshModel(currentMesh, block) {
         try {
           newChild.computeWorldMatrix(true);
           newChild.refreshBoundingInfo?.();
-          const newBaseY = newChild.getBoundingInfo().boundingBox.minimumWorld.y;
+          const newBaseY =
+            newChild.getBoundingInfo().boundingBox.minimumWorld.y;
           if (isFinite(newBaseY)) {
             const dy = oldBaseY - newBaseY;
             const abs = newChild.getAbsolutePosition();
-            newChild.setAbsolutePosition(new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z));
+            newChild.setAbsolutePosition(
+              new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
+            );
           }
         } catch (error) {
-          warnSuppressed('baseAlignmentSecondary:setAbsolutePosition', error);
+          warnSuppressed("baseAlignmentSecondary:setAbsolutePosition", error);
         }
       }
 
       // Apply material/colour from the block, then fall back to saved colours
-      const { color: blockColor, materialInfo } = resolveColorAndMaterialForBlock(block);
+      const { color: blockColor, materialInfo } =
+        resolveColorAndMaterialForBlock(block);
 
       if (materialInfo || blockColor) {
         try {
-          handleMaterialOrColorChange(newChild, block, 'COLOR', blockColor, materialInfo);
+          handleMaterialOrColorChange(
+            newChild,
+            block,
+            "COLOR",
+            blockColor,
+            materialInfo,
+          );
         } catch (e) {
-          console.warn('handleMaterialOrColorChange failed', e);
+          console.warn("handleMaterialOrColorChange failed", e);
         }
       }
 
       if (isCharacter) {
-        const palette = (currentMesh.metadata && currentMesh.metadata.colors) || null;
+        const palette =
+          (currentMesh.metadata && currentMesh.metadata.colors) || null;
         if (palette && Object.keys(palette).length) {
           try {
             flock.applyColorsToCharacter(currentMesh, palette);
           } catch (error) {
-            warnSuppressed('applyCharacterColors', error);
+            warnSuppressed("applyCharacterColors", error);
           }
         }
       } else if (nonCharacterColors && nonCharacterColors.length) {
         try {
           //flock.changeColorMesh(newChild, nonCharacterColors);
         } catch (e) {
-          console.warn('changeColorMesh failed', e);
+          console.warn("changeColorMesh failed", e);
         }
       }
 
@@ -1879,12 +2102,12 @@ function replaceMeshModel(currentMesh, block) {
         try {
           loadedMesh.setParent?.(null);
         } catch (error) {
-          warnSuppressed('disposeLoadedMesh:setParent', error);
+          warnSuppressed("disposeLoadedMesh:setParent", error);
         }
         try {
           loadedMesh.dispose?.();
         } catch (error) {
-          warnSuppressed('disposeLoadedMesh:dispose', error);
+          warnSuppressed("disposeLoadedMesh:dispose", error);
         }
       }
 
@@ -1912,13 +2135,14 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     }
   };
 
-  const getUltimateParent = (m) => (m?.parent ? getUltimateParent(m.parent) : m);
+  const getUltimateParent = (m) =>
+    m?.parent ? getUltimateParent(m.parent) : m;
 
   const getAttachedAwareRoot = (m) => {
     let current = m;
     while (current) {
       if (current.metadata?._attachedTargetName) {
-        flock.setPhysics(current.name, 'NONE');
+        flock.setPhysics(current.name, "NONE");
         return current;
       }
       current = current.parent;
@@ -1928,22 +2152,22 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
 
   const setColorOnTargetOrField = (targetBlock, parentBlock, colorHex) => {
     if (targetBlock) {
-      if (targetBlock.getField?.('COLOR')) {
-        targetBlock.setFieldValue(colorHex, 'COLOR');
+      if (targetBlock.getField?.("COLOR")) {
+        targetBlock.setFieldValue(colorHex, "COLOR");
         return true;
       }
-      if (targetBlock.getField?.('COLOUR')) {
-        targetBlock.setFieldValue(colorHex, 'COLOUR');
+      if (targetBlock.getField?.("COLOUR")) {
+        targetBlock.setFieldValue(colorHex, "COLOUR");
         return true;
       }
     }
     if (parentBlock) {
-      if (parentBlock.getField?.('COLOR')) {
-        parentBlock.setFieldValue(colorHex, 'COLOR');
+      if (parentBlock.getField?.("COLOR")) {
+        parentBlock.setFieldValue(colorHex, "COLOR");
         return true;
       }
-      if (parentBlock.getField?.('COLOUR')) {
-        parentBlock.setFieldValue(colorHex, 'COLOUR');
+      if (parentBlock.getField?.("COLOUR")) {
+        parentBlock.setFieldValue(colorHex, "COLOUR");
         return true;
       }
     }
@@ -1960,12 +2184,13 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       const shadowDom = input.connection.getShadowDom?.();
       if (shadowDom) {
         const shadowBlock = Blockly.Xml.domToBlock(shadowDom, ws);
-        if (shadowBlock?.outputConnection) input.connection.connect(shadowBlock.outputConnection);
+        if (shadowBlock?.outputConnection)
+          input.connection.connect(shadowBlock.outputConnection);
         tgt = input.connection.targetBlock?.();
       }
       // or create a new colour picker shadow
       if (!tgt) {
-        const picker = ws.newBlock('colour_picker');
+        const picker = ws.newBlock("colour_picker");
         picker.setShadow(true);
         picker.initSvg();
         picker.render();
@@ -1976,13 +2201,14 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     return tgt || null;
   };
 
-  const isColorishName = (name) => /(?:^|_)(MAP_)?COL(?:OU)?R$/i.test(name || '');
+  const isColorishName = (name) =>
+    /(?:^|_)(MAP_)?COL(?:OU)?R$/i.test(name || "");
 
   const findNestedColorTarget = (rootBlock, visited = new Set()) => {
     if (!rootBlock || visited.has(rootBlock.id)) return null;
     visited.add(rootBlock.id);
 
-    if (rootBlock.getField?.('COLOR') || rootBlock.getField?.('COLOUR')) {
+    if (rootBlock.getField?.("COLOR") || rootBlock.getField?.("COLOUR")) {
       return { input: null, targetBlock: rootBlock, ownerBlock: rootBlock };
     }
 
@@ -2004,51 +2230,57 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   };
 
   const materialToFieldMap = {
-    Hair: 'HAIR_COLOR',
-    Skin: 'SKIN_COLOR',
-    Eyes: 'EYES_COLOR',
-    Sleeves: 'SLEEVES_COLOR',
-    Detail: 'SLEEVES_COLOR',
-    Shorts: 'SHORTS_COLOR',
-    TShirt: 'TSHIRT_COLOR',
+    Hair: "HAIR_COLOR",
+    Skin: "SKIN_COLOR",
+    Eyes: "EYES_COLOR",
+    Sleeves: "SLEEVES_COLOR",
+    Detail: "SLEEVES_COLOR",
+    Shorts: "SHORTS_COLOR",
+    TShirt: "TSHIRT_COLOR",
   };
 
   // ---------- main ----------
   let block = null;
 
   // Special case: background/sky fallback
-  if (!mesh || mesh.type === 'set_sky_color') {
+  if (!mesh || mesh.type === "set_sky_color") {
     const ws = Blockly.getMainWorkspace();
     const wsBlocks = ws?.getAllBlocks(false) ?? [];
     const backgroundBlock =
-      wsBlocks.find((b) => b.type === 'set_background_color' && b.isEnabled()) ??
-      wsBlocks.find((b) => b.type === 'set_background_color');
+      wsBlocks.find(
+        (b) => b.type === "set_background_color" && b.isEnabled(),
+      ) ?? wsBlocks.find((b) => b.type === "set_background_color");
     const skyBlock =
-      wsBlocks.find((b) => b.type === 'set_sky_color' && b.isEnabled()) ??
-      wsBlocks.find((b) => b.type === 'set_sky_color');
+      wsBlocks.find((b) => b.type === "set_sky_color" && b.isEnabled()) ??
+      wsBlocks.find((b) => b.type === "set_sky_color");
 
-    block = backgroundBlock || skyBlock || meshMap?.['sky'];
+    block = backgroundBlock || skyBlock || meshMap?.["sky"];
 
     if (!block) {
       // Create sky block
-      block = createBlockWithShadows('set_sky_color', null, selectedColor);
-      meshMap['sky'] = block;
+      block = createBlockWithShadows("set_sky_color", null, selectedColor);
+      meshMap["sky"] = block;
       // Create start block
-      const startBlock = Blockly.getMainWorkspace().newBlock('start');
+      const startBlock = Blockly.getMainWorkspace().newBlock("start");
       startBlock.initSvg();
       startBlock.render();
       // Wrap sky block around start block
-      const connection = startBlock.getInput('DO').connection;
-      if (connection && block.previousConnection) connection.connect(block.previousConnection);
+      const connection = startBlock.getInput("DO").connection;
+      if (connection && block.previousConnection)
+        connection.connect(block.previousConnection);
     }
 
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
       if (!found) {
-        console.warn('[color] No color target found on background/sky block');
+        console.warn("[color] No color target found on background/sky block");
         return;
       }
-      setColorOnTargetOrField(found.targetBlock, found.ownerBlock, selectedColor);
+      setColorOnTargetOrField(
+        found.targetBlock,
+        found.ownerBlock,
+        selectedColor,
+      );
       block.initSvg?.();
       highlightBlockById(Blockly.getMainWorkspace(), block);
     });
@@ -2066,7 +2298,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       meshMap[blockKey] = fallbackBlock;
       meshBlockIdMap[blockKey] = fallbackBlock.id;
     } else {
-      console.warn('[color] Block not found for mesh', {
+      console.warn("[color] Block not found for mesh", {
         mesh: mesh?.name,
         blockKey,
         root: root?.name,
@@ -2076,7 +2308,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   }
 
   if (!meshMap?.[blockKey]) {
-    console.warn('[color] Block not found for mesh', {
+    console.warn("[color] Block not found for mesh", {
       mesh: mesh?.name,
       blockKey,
       root: root?.name,
@@ -2085,14 +2317,19 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   }
   block = meshMap[blockKey];
 
-  const materialName = mesh?.material?.name?.replace(/_clone$/, '');
+  const materialName = mesh?.material?.name?.replace(/_clone$/, "");
   const colorIndex = mesh?.metadata?.materialIndex;
 
-  if (materialName && Object.prototype.hasOwnProperty.call(materialToFieldMap, materialName)) {
+  if (
+    materialName &&
+    Object.prototype.hasOwnProperty.call(materialToFieldMap, materialName)
+  ) {
     const fieldName = materialToFieldMap[materialName];
     const input = block.getInput(fieldName);
     if (!input) {
-      console.warn(`[color] Character field input '${fieldName}' not found on '${block.type}'`);
+      console.warn(
+        `[color] Character field input '${fieldName}' not found on '${block.type}'`,
+      );
       return;
     }
     withUndoGroup(() => {
@@ -2104,7 +2341,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     return;
   }
 
-  if (block.type === 'load_multi_object') {
+  if (block.type === "load_multi_object") {
     withUndoGroup(() => {
       block.updateColorAtIndex?.(selectedColor, colorIndex);
       block.initSvg?.();
@@ -2116,15 +2353,19 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   const found = findNestedColorTarget(block);
   if (!found) {
     console.warn(
-      `[color] No nested color target found under block '${block.type}' for mesh '${mesh.name}'`
+      `[color] No nested color target found under block '${block.type}' for mesh '${mesh.name}'`,
     );
     return;
   }
 
-  const isDefaultPurple = selectedColor?.toLowerCase?.() === '#9932cc';
+  const isDefaultPurple = selectedColor?.toLowerCase?.() === "#9932cc";
   let finalColor = selectedColor;
-  if (block.type === 'load_object' && isDefaultPurple && typeof objectColours === 'object') {
-    finalColor = objectColours[block.getFieldValue?.('MODELS')] || '#FFD700';
+  if (
+    block.type === "load_object" &&
+    isDefaultPurple &&
+    typeof objectColours === "object"
+  ) {
+    finalColor = objectColours[block.getFieldValue?.("MODELS")] || "#FFD700";
   }
 
   withUndoGroup(() => {

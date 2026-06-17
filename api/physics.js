@@ -623,11 +623,7 @@ export const flockPhysics = {
       });
     });
   },
-  onIntersect(
-    meshName,
-    otherMeshName,
-    { trigger, callback, applyToGroupOther = false, applyToGroupSelf = false } = {}
-  ) {
+  onIntersect(meshName, otherMeshName, { trigger, callback, applyToGroupOther = false, applyToGroupSelf = false } = {}) {
     const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
     const resolveCanonicalGroupName = (rawName) => {
       const scene = flock.scene;
@@ -675,7 +671,7 @@ export const flockPhysics = {
                   trigger,
                   callback,
                   applyToGroupOther: false,
-                })
+                }),
               );
             }
           }

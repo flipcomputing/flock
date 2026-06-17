@@ -1,6 +1,6 @@
 // flock/accessibility/accessibility.js
-import { translate } from '../main/translation.js';
-import { onInteractObservable } from '../ui/interactIndicator.js';
+import { translate } from "../main/translation.js";
+import { onInteractObservable } from "../ui/interactIndicator.js";
 
 let speechMuted = false;
 let currentScene = null;
@@ -10,16 +10,17 @@ let keyListenerAttached = false;
 let pointerObserverRef = null;
 let pointerObserverScene = null;
 
+
 // Message sequencing to stop stale/laggy announcements
 let announceSeq = 0;
-let lastAnnouncedText = '';
+let lastAnnouncedText = "";
 let lastAnnouncedAt = 0;
 
 // Separate channel for say-block announcements so they don't cancel printText
 let sayAnnounceSeq = 0;
 
 // Helps avoid repeating the same click announcement too many times in a row
-let lastInteractionKey = '';
+let lastInteractionKey = "";
 let lastInteractionTime = 0;
 
 // Two persistent assertive regions that alternate so each announce writes to whichever
@@ -30,7 +31,7 @@ let _interactRegionIdx = 0;
 // Track whether initial intro has been announced for the current scene
 let lastIntroScene = null;
 let introInProgress = false;
-let queuedIntroSayText = '';
+let queuedIntroSayText = "";
 let suppressPointerUntil = 0;
 let suppressRuntimeTextUntil = 0;
 let objectSayTextCache = new Map();
@@ -41,18 +42,18 @@ let hasSpokenInitialPageIntro = false;
 let worldInstructionTexts = [];
 
 function createA11yRoot() {
-  let root = document.getElementById('flock-a11y-root');
+  let root = document.getElementById("flock-a11y-root");
   if (!root) {
-    root = document.createElement('div');
-    root.id = 'flock-a11y-root';
+    root = document.createElement("div");
+    root.id = "flock-a11y-root";
 
     // Visually hidden but readable by screen readers
-    root.style.position = 'absolute';
-    root.style.left = '-9999px';
-    root.style.top = '0';
-    root.style.width = '1px';
-    root.style.height = '1px';
-    root.style.overflow = 'hidden';
+    root.style.position = "absolute";
+    root.style.left = "-9999px";
+    root.style.top = "0";
+    root.style.width = "1px";
+    root.style.height = "1px";
+    root.style.overflow = "hidden";
 
     document.body.appendChild(root);
   }
@@ -60,17 +61,17 @@ function createA11yRoot() {
 }
 
 export function createLiveRegion() {
-  let region = document.getElementById('flock-live-region');
+  let region = document.getElementById("flock-live-region");
   if (!region) {
     const root = createA11yRoot();
 
-    region = document.createElement('div');
-    region.id = 'flock-live-region';
+    region = document.createElement("div");
+    region.id = "flock-live-region";
 
     // Status (not log) avoids a backlog of old messages
-    region.setAttribute('role', 'status');
-    region.setAttribute('aria-live', 'polite');
-    region.setAttribute('aria-atomic', 'true');
+    region.setAttribute("role", "status");
+    region.setAttribute("aria-live", "polite");
+    region.setAttribute("aria-atomic", "true");
 
     root.appendChild(region);
   }
@@ -78,14 +79,14 @@ export function createLiveRegion() {
 }
 
 function createSayLiveRegion() {
-  let region = document.getElementById('flock-say-region');
+  let region = document.getElementById("flock-say-region");
   if (!region) {
     const root = createA11yRoot();
-    region = document.createElement('div');
-    region.id = 'flock-say-region';
-    region.setAttribute('role', 'status');
-    region.setAttribute('aria-live', 'polite');
-    region.setAttribute('aria-atomic', 'true');
+    region = document.createElement("div");
+    region.id = "flock-say-region";
+    region.setAttribute("role", "status");
+    region.setAttribute("aria-live", "polite");
+    region.setAttribute("aria-atomic", "true");
     root.appendChild(region);
   }
   return region;
@@ -100,7 +101,7 @@ export function announceObjectSay(text, options = {}) {
 
   const region = createSayLiveRegion();
   const mySeq = ++sayAnnounceSeq;
-  region.textContent = '';
+  region.textContent = "";
   setTimeout(() => {
     if (mySeq !== sayAnnounceSeq) return;
     region.textContent = spoken;
@@ -111,7 +112,7 @@ export function announce(message, options = {}) {
   const { force = false, noDedup = false } = options;
   if (speechMuted && !force) return;
 
-  const text = String(message ?? '').trim();
+  const text = String(message ?? "").trim();
   if (!text) return;
 
   const now = Date.now();
@@ -128,11 +129,10 @@ export function announce(message, options = {}) {
     if (!_interactRegions) {
       const root = createA11yRoot();
       _interactRegions = [0, 1].map(() => {
-        const el = document.createElement('div');
-        el.setAttribute('aria-live', 'assertive');
-        el.setAttribute('aria-atomic', 'true');
-        el.style.cssText =
-          'position:absolute;left:-9999px;top:0;width:1px;height:1px;overflow:hidden';
+        const el = document.createElement("div");
+        el.setAttribute("aria-live", "assertive");
+        el.setAttribute("aria-atomic", "true");
+        el.style.cssText = "position:absolute;left:-9999px;top:0;width:1px;height:1px;overflow:hidden";
         root.appendChild(el);
         return el;
       });
@@ -140,17 +140,15 @@ export function announce(message, options = {}) {
     _interactRegionIdx = 1 - _interactRegionIdx;
     const next = _interactRegions[_interactRegionIdx];
     const prev = _interactRegions[1 - _interactRegionIdx];
-    prev.textContent = '';
-    setTimeout(() => {
-      next.textContent = text;
-    }, 0);
+    prev.textContent = "";
+    setTimeout(() => { next.textContent = text; }, 0);
     return;
   }
 
   const region = createLiveRegion();
   const mySeq = ++announceSeq;
 
-  region.textContent = '';
+  region.textContent = "";
 
   setTimeout(() => {
     if (mySeq !== announceSeq) return;
@@ -159,36 +157,41 @@ export function announce(message, options = {}) {
 }
 
 function normaliseName(name) {
-  return String(name || 'object')
-    .replace(/[_-]/g, ' ')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/\s+/g, ' ')
+  return String(name || "object")
+    .replace(/[_-]/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function looksLikeInternalMeshName(name) {
-  const n = String(name || '').toLowerCase();
+  const n = String(name || "").toLowerCase();
   return (
     !n ||
-    n === '__root__' ||
-    n === 'textplane' ||
-    n.startsWith('__flock_') ||
-    n.includes('camera') ||
-    n.includes('light') ||
-    n.includes('highlighter') ||
-    n.includes('gizmo') ||
-    n.includes('bounding') ||
-    n.includes('debug') ||
-    n.includes('hitbox') ||
-    n.includes('collider') ||
-    n.includes('armature') ||
-    n.includes('mixamo')
+    n === "__root__" ||
+    n === "textplane" ||
+    n.startsWith("__flock_") ||
+    n.includes("camera") ||
+    n.includes("light") ||
+    n.includes("highlighter") ||
+    n.includes("gizmo") ||
+    n.includes("bounding") ||
+    n.includes("debug") ||
+    n.includes("hitbox") ||
+    n.includes("collider") ||
+    n.includes("armature") ||
+    n.includes("mixamo")
   );
 }
 
 function looksLikeTextName(name) {
-  const n = String(name || '').toLowerCase();
-  return n.includes('text') || n.includes('label') || n.includes('caption') || n.includes('title');
+  const n = String(name || "").toLowerCase();
+  return (
+    n.includes("text") ||
+    n.includes("label") ||
+    n.includes("caption") ||
+    n.includes("title")
+  );
 }
 
 function getEntityRoot(mesh) {
@@ -196,7 +199,7 @@ function getEntityRoot(mesh) {
   let lastValid = mesh;
 
   while (node) {
-    const n = node.name || '';
+    const n = node.name || "";
     if (!looksLikeInternalMeshName(n)) {
       lastValid = node;
     }
@@ -223,23 +226,23 @@ function getMetadataText(mesh) {
       md.description;
     if (text && String(text).trim()) return resolveSpokenText(text);
   }
-  return '';
+  return "";
 }
 
 function cleanSpokenAnnouncement(text) {
-  let s = String(text || '');
+  let s = String(text || "");
 
   // Remove variation selectors
-  s = s.replace(/[\uFE0E\uFE0F]/g, '');
+  s = s.replace(/[\uFE0E\uFE0F]/g, "");
 
   // Remove Fitzpatrick skin tone modifiers
-  s = s.replace(/[\u{1F3FB}-\u{1F3FF}]/gu, '');
+  s = s.replace(/[\u{1F3FB}-\u{1F3FF}]/gu, "");
 
   // Remove most emoji / pictographs
-  s = s.replace(/[\p{Extended_Pictographic}]/gu, '');
+  s = s.replace(/[\p{Extended_Pictographic}]/gu, "");
 
   // Collapse extra spacing left behind
-  s = s.replace(/\s+/g, ' ').trim();
+  s = s.replace(/\s+/g, " ").trim();
 
   return s;
 }
@@ -247,35 +250,40 @@ function cleanSpokenAnnouncement(text) {
 function resolveSpokenText(value) {
   // Unwrap common object shapes
   let rawValue = value;
-  if (rawValue && typeof rawValue === 'object') {
+  if (rawValue && typeof rawValue === "object") {
     rawValue =
-      rawValue.key ?? rawValue.id ?? rawValue.name ?? rawValue.label ?? rawValue.value ?? '';
+      rawValue.key ??
+      rawValue.id ??
+      rawValue.name ??
+      rawValue.label ??
+      rawValue.value ??
+      "";
   }
 
-  const raw = String(rawValue ?? '').trim();
-  if (!raw) return '';
+  const raw = String(rawValue ?? "").trim();
+  if (!raw) return "";
 
   const original = raw;
   const lower = raw.toLowerCase();
   const underscored = lower
-    .replace(/[\s-]+/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_+|_+$/g, '');
+    .replace(/[\s-]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
 
-  const stripped = underscored.replace(/^(key|id|name|label)[:=]\s*/i, '');
+  const stripped = underscored.replace(/^(key|id|name|label)[:=]\s*/i, "");
 
   const candidates = [original, lower, underscored, stripped].filter(
     (v, i, arr) => v && arr.indexOf(v) === i
   );
 
   const looksKeyLike = (s) =>
-    s.startsWith('model_display_') ||
-    s.endsWith('_ui') ||
-    s.endsWith('_aria') ||
-    s.endsWith('_tooltip') ||
-    s.includes('_option') ||
-    s.includes('_message') ||
-    s.includes('_label') ||
+    s.startsWith("model_display_") ||
+    s.endsWith("_ui") ||
+    s.endsWith("_aria") ||
+    s.endsWith("_tooltip") ||
+    s.includes("_option") ||
+    s.includes("_message") ||
+    s.includes("_label") ||
     /^[a-z0-9]+(_[a-z0-9]+){1,}$/.test(s);
 
   for (const c of candidates) {
@@ -289,8 +297,8 @@ function resolveSpokenText(value) {
   // If it still looks like a key, humanise it
   if (looksKeyLike(stripped)) {
     const human = stripped
-      .replace(/^model_display_/, '')
-      .replace(/_/g, ' ')
+      .replace(/^model_display_/, "")
+      .replace(/_/g, " ")
       .trim();
     if (human) return human;
   }
@@ -310,9 +318,9 @@ export function recordWorldInstructionText(text) {
 
   // Skip generic startup chatter
   if (
-    lower.includes('flock xr loaded successfully') ||
-    lower.includes('flock world successfully loaded') ||
-    lower.includes('loading flock xr')
+    lower.includes("flock xr loaded successfully") ||
+    lower.includes("flock world successfully loaded") ||
+    lower.includes("loading flock xr")
   ) {
     return;
   }
@@ -337,41 +345,43 @@ export function getObjectLabel(mesh) {
   const root = getEntityRoot(mesh);
   const rootMd = root?.metadata || {};
 
-  const rootExplicit = rootMd.a11yLabel || rootMd.label || rootMd.displayName || rootMd.name;
+  const rootExplicit =
+    rootMd.a11yLabel || rootMd.label || rootMd.displayName || rootMd.name;
 
   if (rootExplicit) return resolveSpokenText(rootExplicit);
 
-  const rootName = normaliseName(root?.name || '');
+  const rootName = normaliseName(root?.name || "");
   if (rootName && !/^mesh\b/i.test(rootName) && !/^node\b/i.test(rootName)) {
     return rootName;
   }
 
-  return normaliseName(mesh?.name || 'object');
+  return normaliseName(mesh?.name || "object");
 }
 
 function getDistanceLabel(distance) {
-  if (distance < 1.5) return 'very close';
-  if (distance < 4) return 'nearby';
-  if (distance < 8) return 'a short distance away';
-  if (distance < 15) return 'further away';
-  return 'far away';
+  if (distance < 1.5) return "very close";
+  if (distance < 4) return "nearby";
+  if (distance < 8) return "a short distance away";
+  if (distance < 15) return "further away";
+  return "far away";
 }
 
 function getVerticalLabel(dy) {
-  if (dy > 1.5) return 'above you';
-  if (dy < -1.5) return 'below you';
-  return '';
+  if (dy > 1.5) return "above you";
+  if (dy < -1.5) return "below you";
+  return "";
 }
 
 function getHorizontalLabel(dot, cross) {
-  const frontBack = dot > 0.45 ? 'in front of you' : dot < -0.45 ? 'behind you' : 'beside you';
+  const frontBack =
+    dot > 0.45 ? "in front of you" : dot < -0.45 ? "behind you" : "beside you";
 
-  let leftRight = '';
+  let leftRight = "";
   if (Math.abs(cross) > 0.3) {
-    leftRight = cross > 0 ? 'to your left' : 'to your right';
+    leftRight = cross > 0 ? "to your left" : "to your right";
   }
 
-  if (frontBack === 'beside you' && leftRight) return leftRight;
+  if (frontBack === "beside you" && leftRight) return leftRight;
   if (leftRight) return `${frontBack}, ${leftRight}`;
   return frontBack;
 }
@@ -387,7 +397,7 @@ function getCameraForward(scene) {
       return { x: dir.x / len, z: dir.z / len };
     }
   } catch (error) {
-    console.warn('Suppressed non-critical error:', error);
+    console.warn("Suppressed non-critical error:", error);
   }
 
   try {
@@ -400,40 +410,40 @@ function getCameraForward(scene) {
       return { x: x / len, z: z / len };
     }
   } catch (error) {
-    console.warn('Suppressed non-critical error:', error);
+    console.warn("Suppressed non-critical error:", error);
   }
 
   return { x: 0, z: 1 };
 }
 
 function isEnvironmentObject(label) {
-  const n = String(label || '').toLowerCase();
+  const n = String(label || "").toLowerCase();
   return (
-    n.includes('sky') ||
-    n.includes('ground') ||
-    n.includes('floor') ||
-    n.includes('terrain') ||
-    n.includes('land') ||
-    n.includes('grass') ||
-    n.includes('road') ||
-    n.includes('path')
+    n.includes("sky") ||
+    n.includes("ground") ||
+    n.includes("floor") ||
+    n.includes("terrain") ||
+    n.includes("land") ||
+    n.includes("grass") ||
+    n.includes("road") ||
+    n.includes("path")
   );
 }
 
 function isSkyLike(label) {
-  const n = String(label || '').toLowerCase();
-  return n.includes('sky') || n.includes('cloud');
+  const n = String(label || "").toLowerCase();
+  return n.includes("sky") || n.includes("cloud");
 }
 
 function isGroundLike(label) {
-  const n = String(label || '').toLowerCase();
+  const n = String(label || "").toLowerCase();
   return (
-    n.includes('ground') ||
-    n.includes('floor') ||
-    n.includes('terrain') ||
-    n.includes('grass') ||
-    n.includes('road') ||
-    n.includes('path')
+    n.includes("ground") ||
+    n.includes("floor") ||
+    n.includes("terrain") ||
+    n.includes("grass") ||
+    n.includes("road") ||
+    n.includes("path")
   );
 }
 
@@ -459,8 +469,11 @@ function getInteractionHint(mesh) {
   }
 
   const interactive = candidates.some(
-    (m) => m?.actionManager || m?.metadata?.interactive || m?.metadata?.clickable
+    (m) =>
+      m?.actionManager || m?.metadata?.interactive || m?.metadata?.clickable,
   );
+
+
 }
 
 function closestBoundingBoxDistance(mesh, point) {
@@ -471,9 +484,7 @@ function closestBoundingBoxDistance(mesh, point) {
     const cx = Math.max(bb.minimumWorld.x, Math.min(point.x, bb.maximumWorld.x));
     const cy = Math.max(bb.minimumWorld.y, Math.min(point.y, bb.maximumWorld.y));
     const cz = Math.max(bb.minimumWorld.z, Math.min(point.z, bb.maximumWorld.z));
-    const dx = cx - point.x,
-      dy = cy - point.y,
-      dz = cz - point.z;
+    const dx = cx - point.x, dy = cy - point.y, dz = cz - point.z;
     return Math.sqrt(dx * dx + dy * dy + dz * dz);
   } catch (_) {
     return null;
@@ -485,14 +496,9 @@ function isInsideBoundingBox(mesh, point) {
     mesh.computeWorldMatrix?.(true);
     const bb = mesh.getBoundingInfo?.()?.boundingBox;
     if (!bb) return false;
-    return (
-      point.x > bb.minimumWorld.x &&
-      point.x < bb.maximumWorld.x &&
-      point.y > bb.minimumWorld.y &&
-      point.y < bb.maximumWorld.y &&
-      point.z > bb.minimumWorld.z &&
-      point.z < bb.maximumWorld.z
-    );
+    return point.x > bb.minimumWorld.x && point.x < bb.maximumWorld.x &&
+           point.y > bb.minimumWorld.y && point.y < bb.maximumWorld.y &&
+           point.z > bb.minimumWorld.z && point.z < bb.maximumWorld.z;
   } catch (_) {
     return false;
   }
@@ -503,11 +509,8 @@ function isUnderfootOf(mesh, playerPos) {
     mesh.computeWorldMatrix?.(true);
     const bb = mesh.getBoundingInfo?.()?.boundingBox;
     if (!bb || bb.maximumWorld.y === bb.minimumWorld.y) return false;
-    const withinXZ =
-      playerPos.x > bb.minimumWorld.x &&
-      playerPos.x < bb.maximumWorld.x &&
-      playerPos.z > bb.minimumWorld.z &&
-      playerPos.z < bb.maximumWorld.z;
+    const withinXZ = playerPos.x > bb.minimumWorld.x && playerPos.x < bb.maximumWorld.x &&
+                     playerPos.z > bb.minimumWorld.z && playerPos.z < bb.maximumWorld.z;
     return withinXZ && Math.abs(playerPos.y - bb.maximumWorld.y) < 2.0;
   } catch (_) {
     return false;
@@ -523,7 +526,7 @@ function getRepresentativePosition(root, fallbackMesh) {
     try {
       node.computeWorldMatrix?.(true);
     } catch (error) {
-      console.warn('Suppressed non-critical error:', error);
+      console.warn("Suppressed non-critical error:", error);
     }
 
     try {
@@ -537,16 +540,21 @@ function getRepresentativePosition(root, fallbackMesh) {
         return center;
       }
     } catch (error) {
-      console.warn('Suppressed non-critical error:', error);
+      console.warn("Suppressed non-critical error:", error);
     }
 
     try {
       const p = node.getAbsolutePosition?.() ?? node.position;
-      if (p && Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.z)) {
+      if (
+        p &&
+        Number.isFinite(p.x) &&
+        Number.isFinite(p.y) &&
+        Number.isFinite(p.z)
+      ) {
         return p;
       }
     } catch (error) {
-      console.warn('Suppressed non-critical error:', error);
+      console.warn("Suppressed non-critical error:", error);
     }
   }
 
@@ -562,17 +570,17 @@ export function getPlayerMesh(scene) {
 
   // 1. Camera-attached mesh (highest priority)
   const locked = camera.lockedTarget;
-  if (locked && typeof locked.name === 'string' && !locked.isDisposed?.()) {
+  if (locked && typeof locked.name === "string" && !locked.isDisposed?.()) {
     return locked;
   }
 
   const parent = camera.parent;
-  if (parent && typeof parent.name === 'string' && !parent.isDisposed?.()) {
+  if (parent && typeof parent.name === "string" && !parent.isDisposed?.()) {
     return parent;
   }
 
   const following = camera.metadata?.following;
-  if (following && typeof following.name === 'string' && !following.isDisposed?.()) {
+  if (following && typeof following.name === "string" && !following.isDisposed?.()) {
     return following;
   }
 
@@ -595,16 +603,16 @@ export function getPlayerMesh(scene) {
 
     let score = 0;
 
-    if (md.a11yAnchor === 'player' || md.a11yRole === 'player') score += 200;
-    if (md.a11yRole === 'character' || md.role === 'character') score += 150;
+    if (md.a11yAnchor === "player" || md.a11yRole === "player") score += 200;
+    if (md.a11yRole === "character" || md.role === "character") score += 150;
     if (md.character === true) score += 120;
     if (md.isPlayer === true) score += 200;
     if (md.player === true) score += 180;
     if (md.mainCharacter === true) score += 180;
 
-    if (label.includes('player')) score += 80;
-    if (label.includes('avatar')) score += 70;
-    if (label.includes('character')) score += 60;
+    if (label.includes("player")) score += 80;
+    if (label.includes("avatar")) score += 70;
+    if (label.includes("character")) score += 60;
 
     const p = getRepresentativePosition(root, mesh);
     if (p && cameraPos) {
@@ -637,17 +645,17 @@ function getReferenceAnchor(scene) {
         // Use feet position (bottom of bounding box) so ground-level objects
         // measure correctly — using the centre inflates distance to flat surfaces.
         const pos = { x: bb.centerWorld.x, y: bb.minimumWorld.y, z: bb.centerWorld.z };
-        return { kind: 'character', mesh: playerMesh, position: pos };
+        return { kind: "character", mesh: playerMesh, position: pos };
       }
     } catch (_) {}
     const pos = getRepresentativePosition(playerMesh, playerMesh);
     if (pos) {
-      return { kind: 'character', mesh: playerMesh, position: pos };
+      return { kind: "character", mesh: playerMesh, position: pos };
     }
   }
 
   return {
-    kind: 'camera',
+    kind: "camera",
     mesh: camera || null,
     position: cameraPos || { x: 0, y: 0, z: 0 },
   };
@@ -727,7 +735,9 @@ function getSceneObjects(scene, options = {}) {
     const dxCam = p.x - cameraPos.x;
     const dyCam = p.y - cameraPos.y;
     const dzCam = p.z - cameraPos.z;
-    const distFromCamera = Math.sqrt(dxCam * dxCam + dyCam * dyCam + dzCam * dzCam);
+    const distFromCamera = Math.sqrt(
+      dxCam * dxCam + dyCam * dyCam + dzCam * dzCam,
+    );
     if (distFromCamera < 0.2) continue;
 
     const lenXZ = Math.sqrt(dxCam * dxCam + dzCam * dzCam) || 1;
@@ -761,7 +771,7 @@ function getSceneObjects(scene, options = {}) {
       mesh.actionManager ||
       root?.metadata?.interactive ||
       root?.metadata?.clickable ||
-      interactionHint
+      interactionHint,
     );
 
     const textLabels = collectNearbyTextForObject(scene, p, root);
@@ -793,18 +803,21 @@ function getSceneObjects(scene, options = {}) {
   return Array.from(byEntityName.values());
 }
 
-function objectToSentence(obj, { includeActionHint = false, includeText = false } = {}) {
-  const where = [obj.horizontal, obj.vertical].filter(Boolean).join(' and ');
-  let sentence = `${obj.label} is ${where || 'nearby'}, ${obj.distanceLabel}.`;
+function objectToSentence(
+  obj,
+  { includeActionHint = false, includeText = false } = {},
+) {
+  const where = [obj.horizontal, obj.vertical].filter(Boolean).join(" and ");
+  let sentence = `${obj.label} is ${where || "nearby"}, ${obj.distanceLabel}.`;
 
   if (includeText && obj.sayText) {
     sentence += ` ${obj.label} says: ${obj.sayText}.`;
   } else if (includeText && obj.textLabels?.length) {
-    sentence += ` Text: ${obj.textLabels.join('. ')}.`;
+    sentence += ` Text: ${obj.textLabels.join(". ")}.`;
   }
 
   if (includeActionHint && obj.interactive) {
-    const hint = obj.interactionHint || 'You can interact with this.';
+    const hint = obj.interactionHint || "You can interact with this.";
     sentence += ` ${hint}`;
   }
 
@@ -812,22 +825,22 @@ function objectToSentence(obj, { includeActionHint = false, includeText = false 
 }
 
 function enrichEnvironmentLabel(obj) {
-  const raw = String(obj?.label || '').trim();
+  const raw = String(obj?.label || "").trim();
   const label = raw.toLowerCase();
 
   // Hide vague or unhelpful labels
-  if (!label) return '';
+  if (!label) return "";
   if (
-    label === 'environment' ||
-    label === 'scene' ||
-    label === 'object' ||
-    label === 'mesh' ||
-    label === 'ground' ||
-    label === 'floor' ||
-    label === 'terrain' ||
-    label === 'sky'
+    label === "environment" ||
+    label === "scene" ||
+    label === "object" ||
+    label === "mesh" ||
+    label === "ground" ||
+    label === "floor" ||
+    label === "terrain" ||
+    label === "sky"
   ) {
-    return '';
+    return "";
   }
 
   // Make some common labels sound nicer
@@ -838,13 +851,13 @@ function enrichEnvironmentLabel(obj) {
 }
 
 function buildEnvironmentSummary(objects, anchor = null, scene = null) {
-  if (!objects?.length) return '';
+  if (!objects?.length) return "";
 
-  const normalise = (s) => String(s || '').trim();
+  const normalise = (s) => String(s || "").trim();
   const lower = (s) => normalise(s).toLowerCase();
 
   // Exclude the main character label from the environment glimpse
-  const anchorLabel = anchor?.mesh ? lower(getObjectLabel(anchor.mesh)) : '';
+  const anchorLabel = anchor?.mesh ? lower(getObjectLabel(anchor.mesh)) : "";
 
   // Group objects by spoken label
   const counts = new Map();
@@ -858,12 +871,12 @@ function buildEnvironmentSummary(objects, anchor = null, scene = null) {
 
     if (labelLower === anchorLabel) continue;
 
-    if (obj.isGroundLike || ['ground', 'floor', 'terrain', 'grass'].includes(labelLower)) {
+    if (obj.isGroundLike || ["ground", "floor", "terrain", "grass"].includes(labelLower)) {
       hasGround = true;
       continue;
     }
 
-    if (obj.isSkyLike || labelLower.includes('sky')) {
+    if (obj.isSkyLike || labelLower.includes("sky")) {
       hasSky = true;
       continue;
     }
@@ -877,10 +890,11 @@ function buildEnvironmentSummary(objects, anchor = null, scene = null) {
   }
 
   // Sort repeated scene elements by count, then label
-  const grouped = Array.from(counts.entries()).sort((a, b) => {
-    if (b[1] !== a[1]) return b[1] - a[1];
-    return a[0].localeCompare(b[0]);
-  });
+  const grouped = Array.from(counts.entries())
+    .sort((a, b) => {
+      if (b[1] !== a[1]) return b[1] - a[1];
+      return a[0].localeCompare(b[0]);
+    });
 
   const parts = [];
 
@@ -889,20 +903,20 @@ function buildEnvironmentSummary(objects, anchor = null, scene = null) {
     if (count === 1) {
       parts.push(`${label}`);
     } else {
-      parts.push(`${count} ${label}${count === 1 ? '' : 's'}`);
+      parts.push(`${count} ${label}${count === 1 ? "" : "s"}`);
     }
   }
 
   if (hasGround) {
-    parts.push('ground');
+    parts.push("ground");
   }
 
   if (hasSky) {
-    parts.push('sky');
+    parts.push("sky");
   }
 
   const chosen = parts.slice(0, 6);
-  if (!chosen.length) return '';
+  if (!chosen.length) return "";
 
   if (chosen.length === 1) {
     return `The scene includes ${chosen[0]}.`;
@@ -912,22 +926,18 @@ function buildEnvironmentSummary(objects, anchor = null, scene = null) {
     return `The scene includes ${chosen[0]} and ${chosen[1]}.`;
   }
 
-  return `The scene includes ${chosen.slice(0, -1).join(', ')}, and ${chosen[chosen.length - 1]}.`;
+  return `The scene includes ${chosen.slice(0, -1).join(", ")}, and ${chosen[chosen.length - 1]}.`;
 }
 
 export function recordObjectSayText(targetName, text) {
-  const key = String(targetName || '')
-    .trim()
-    .toLowerCase();
+  const key = String(targetName || "").trim().toLowerCase();
   const spoken = cleanSpokenAnnouncement(resolveSpokenText(text));
   if (!key || !spoken) return;
   objectSayTextCache.set(key, spoken);
 }
 
 export function setTransientSayText(targetName, text, duration) {
-  const key = String(targetName || '')
-    .trim()
-    .toLowerCase();
+  const key = String(targetName || "").trim().toLowerCase();
   if (!key) return;
 
   if (objectTransientSayTimers.has(key)) {
@@ -959,25 +969,21 @@ function getSayMeshCandidates(mesh) {
     getObjectLabel(mesh),
     getObjectLabel(getEntityRoot(mesh)),
   ]
-    .map((v) =>
-      String(v || '')
-        .trim()
-        .toLowerCase()
-    )
+    .map((v) => String(v || "").trim().toLowerCase())
     .filter(Boolean);
 }
 
 function getTransientSayTextForMesh(mesh) {
-  if (!mesh) return '';
+  if (!mesh) return "";
   for (const key of getSayMeshCandidates(mesh)) {
     const hit = objectTransientSayCache.get(key);
     if (hit) return hit;
   }
-  return '';
+  return "";
 }
 
 function getCachedSayTextForMesh(mesh) {
-  if (!mesh) return '';
+  if (!mesh) return "";
   const candidates = getSayMeshCandidates(mesh);
 
   for (const key of candidates) {
@@ -990,21 +996,23 @@ function getCachedSayTextForMesh(mesh) {
     if (hit) return hit;
   }
 
-  return '';
+  return "";
 }
 
 function describeCharacterIntro(scene) {
   const anchor = getReferenceAnchor(scene);
 
-  if (!anchor?.mesh || anchor.kind !== 'character') {
-    return '';
+  if (!anchor?.mesh || anchor.kind !== "character") {
+    return "";
   }
 
   const label = getObjectLabel(anchor.mesh);
   const promptText = getCachedPromptTextForMesh(anchor.mesh);
-  const hint = cleanSpokenAnnouncement(resolveSpokenText(getInteractionHint(anchor.mesh)));
+  const hint = cleanSpokenAnnouncement(
+    resolveSpokenText(getInteractionHint(anchor.mesh))
+  );
 
-  let msg = '';
+  let msg = "";
 
   if (promptText) {
     msg += ` You can interact with ${label}. ${label} says: ${promptText}.`;
@@ -1016,17 +1024,15 @@ function describeCharacterIntro(scene) {
 }
 
 export function describeScene(scene) {
-  if (!scene) return 'No scene loaded.';
-  if (!scene.activeCamera) return 'No active camera is available.';
+  if (!scene) return "No scene loaded.";
+  if (!scene.activeCamera) return "No active camera is available.";
 
   const anchor = getReferenceAnchor(scene);
   const objects = getSceneObjects(scene, { anchor });
 
   const labelCounts = new Map();
   for (const o of objects) {
-    const key = String(o.label || '')
-      .trim()
-      .toLowerCase();
+    const key = String(o.label || "").trim().toLowerCase();
     if (!key) continue;
     labelCounts.set(key, (labelCounts.get(key) || 0) + 1);
   }
@@ -1039,17 +1045,15 @@ export function describeScene(scene) {
   }
 
   if (objects.length === 0) {
-    if (parts.length) return parts.join(' ');
-    return 'I cannot detect any objects around you yet.';
+    if (parts.length) return parts.join(" ");
+    return "I cannot detect any objects around you yet.";
   }
 
   const environmentSummary = buildEnvironmentSummary(objects, anchor, scene);
 
   const mainObjects = objects
     .filter((o) => {
-      const key = String(o.label || '')
-        .trim()
-        .toLowerCase();
+      const key = String(o.label || "").trim().toLowerCase();
       const repeatedScenery = (labelCounts.get(key) || 0) >= 4;
       return !o.isEnvironment && !repeatedScenery;
     })
@@ -1062,21 +1066,23 @@ export function describeScene(scene) {
   }
 
   if (mainObjects.length > 0) {
-    parts.push(top.map((o) => objectToSentence(o, { includeText: true })).join(' '));
+    parts.push(
+      top.map((o) => objectToSentence(o, { includeText: true })).join(" "),
+    );
   } else {
-    parts.push('I can detect the environment, but no nearby main objects.');
+    parts.push("I can detect the environment, but no nearby main objects.");
   }
 
   if (worldInstructionTexts.length) {
-    parts.push(`Instructions: ${worldInstructionTexts.join('. ')}.`);
+    parts.push(`Instructions: ${worldInstructionTexts.join(". ")}.`);
   }
 
-  return parts.join(' ');
+  return parts.join(" ");
 }
 
 export function describeNearestObject(scene) {
-  if (!scene) return 'No scene loaded.';
-  if (!scene.activeCamera) return 'No active camera is available.';
+  if (!scene) return "No scene loaded.";
+  if (!scene.activeCamera) return "No active camera is available.";
 
   const anchor = getReferenceAnchor(scene);
   const objects = getSceneObjects(scene, { anchor })
@@ -1084,7 +1090,7 @@ export function describeNearestObject(scene) {
     .sort((a, b) => a.distFromAnchor - b.distFromAnchor);
 
   if (objects.length === 0) {
-    return 'I cannot detect any nearby objects.';
+    return "I cannot detect any nearby objects.";
   }
 
   const nearest = objects[0];
@@ -1095,17 +1101,15 @@ export function describeNearestObject(scene) {
 }
 
 export function describeFacingObject(scene) {
-  if (!scene) return 'No scene loaded.';
+  if (!scene) return "No scene loaded.";
   const camera = scene?.activeCamera;
-  if (!camera) return 'No active camera is available.';
+  if (!camera) return "No active camera is available.";
 
   const cameraPos = camera.globalPosition || camera.position;
-  if (!cameraPos) return 'No active camera is available.';
+  if (!cameraPos) return "No active camera is available.";
 
   // Full 3D forward direction from the camera (where the player is looking).
-  let fwdX = 0,
-    fwdY = 0,
-    fwdZ = 1;
+  let fwdX = 0, fwdY = 0, fwdZ = 1;
   try {
     const dir = camera.getForwardRay?.(1)?.direction;
     if (dir && Number.isFinite(dir.x) && Number.isFinite(dir.y) && Number.isFinite(dir.z)) {
@@ -1114,15 +1118,13 @@ export function describeFacingObject(scene) {
       fwdY = dir.y / len;
       fwdZ = dir.z / len;
     }
-  } catch (_) {
-    /* fall through to default forward */
-  }
+  } catch (_) { /* fall through to default forward */ }
 
   const anchor = getReferenceAnchor(scene);
 
   // Cast the ray from the player's position when available, not the camera's.
   // The camera may be offset behind/above in third-person; the player is what moves forward.
-  const rayOrigin = anchor?.kind === 'character' && anchor.position ? anchor.position : cameraPos;
+  const rayOrigin = (anchor?.kind === "character" && anchor.position) ? anchor.position : cameraPos;
 
   // Tube test is XZ-only: the player moves on the ground plane, so vertical offset
   // (e.g. a tall tree whose bounding-box centre is several metres up) is irrelevant.
@@ -1210,13 +1212,15 @@ export function describeFacingObject(scene) {
     }
   }
 
-  if (!bestLabel) return 'Nothing ahead.';
+  if (!bestLabel) return "Nothing ahead.";
 
   const reportDist = anchor?.position
     ? (closestBoundingBoxDistance(bestRoot, anchor.position) ?? bestRawDist)
     : bestRawDist;
 
-  const dir = Math.abs(bestSigned) < 1.0 ? 'Forward' : bestSigned > 0 ? 'Left' : 'Right';
+  const dir = Math.abs(bestSigned) < 1.0 ? "Forward"
+            : bestSigned > 0 ? "Left"
+            : "Right";
   return `${dir}: ${bestLabel}, ${getDistanceLabel(reportDist)}.`;
 }
 
@@ -1225,18 +1229,19 @@ function describeInitialWorld(scene) {
   const sceneIntro = describeScene(scene);
 
   if (charIntro && sceneIntro) return `${charIntro} ${sceneIntro}`;
-  return charIntro || sceneIntro || 'World loaded.';
+  return charIntro || sceneIntro || "World loaded.";
 }
 
 export function getHelpText(scene) {
-  const custom = scene?.metadata?.a11yInstructions || scene?.metadata?.instructions;
+  const custom =
+    scene?.metadata?.a11yInstructions || scene?.metadata?.instructions;
 
   const baseInstructions = custom
     ? String(custom).trim()
-    : 'Use keyboard controls to navigate and interact with objects. Canvas keyboard controls: Arrow keys or WASD to move camera, Mouse to look around, Space for actions, Tab to navigate to other interface elements.';
+    : "Use keyboard controls to navigate and interact with objects. Canvas keyboard controls: Arrow keys or WASD to move camera, Mouse to look around, Space for actions, Tab to navigate to other interface elements.";
 
   const ctrlInstructions =
-    ' Press Control plus I to hear a scene summary. Press Control plus J to hear the nearest object. Press Control plus K to hear the object directly ahead. Press Control plus H to repeat these instructions.';
+    " Press Control plus I to hear a scene summary. Press Control plus J to hear the nearest object. Press Control plus K to hear the object directly ahead. Press Control plus H to repeat these instructions.";
 
   return `${baseInstructions}${ctrlInstructions}`;
 }
@@ -1244,7 +1249,7 @@ export function announceHelp(scene) {
   announce(getHelpText(scene));
 }
 
-function announceInteraction(mesh, actionWord = 'interacted with', options = {}) {
+function announceInteraction(mesh, actionWord = "interacted with", options = {}) {
   if (!mesh) return;
 
   const { noDedup = false } = options;
@@ -1252,11 +1257,17 @@ function announceInteraction(mesh, actionWord = 'interacted with', options = {})
   const label = getObjectLabel(root);
   const hint = getInteractionHint(root);
   const pos = getRepresentativePosition(root, mesh);
-  const textLabels = currentScene ? collectNearbyTextForObject(currentScene, pos, root) : [];
+  const textLabels = currentScene
+    ? collectNearbyTextForObject(currentScene, pos, root)
+    : [];
 
   const now = Date.now();
-  const interactionKey = `${actionWord}:${label}:${hint}:${(textLabels || []).join('|')}`;
-  if (!noDedup && interactionKey === lastInteractionKey && now - lastInteractionTime < 400) {
+  const interactionKey = `${actionWord}:${label}:${hint}:${(textLabels || []).join("|")}`;
+  if (
+    !noDedup &&
+    interactionKey === lastInteractionKey &&
+    now - lastInteractionTime < 400
+  ) {
     return;
   }
   lastInteractionKey = interactionKey;
@@ -1264,7 +1275,7 @@ function announceInteraction(mesh, actionWord = 'interacted with', options = {})
 
   let msg = `You ${actionWord} ${label}.`;
   if (textLabels.length) {
-    msg += ` Text: ${textLabels.join('. ')}.`;
+    msg += ` Text: ${textLabels.join(". ")}.`;
   }
   if (hint) {
     msg += ` ${hint}`;
@@ -1281,7 +1292,9 @@ function announceMeshAction(mesh, actionWord, options = {}) {
   // is for Ctrl+J discovery; the say block announces its own text when it
   // fires, so repeating the old text on interaction is confusing.
   const transientSay = getTransientSayTextForMesh(root);
-  const textLabels = currentScene ? collectNearbyTextForObject(currentScene, pos, root) : [];
+  const textLabels = currentScene
+    ? collectNearbyTextForObject(currentScene, pos, root)
+    : [];
 
   if (transientSay) {
     announce(`${label} says: ${transientSay}`, options);
@@ -1289,7 +1302,7 @@ function announceMeshAction(mesh, actionWord, options = {}) {
   }
 
   if (textLabels.length) {
-    announce(`${label}. ${textLabels.join('. ')}`, options);
+    announce(`${label}. ${textLabels.join(". ")}`, options);
     return;
   }
 
@@ -1302,14 +1315,14 @@ function attachPointerAnnouncements(scene) {
   if (pointerObserverScene && pointerObserverRef) {
     try {
       pointerObserverScene.onPointerObservable.remove(pointerObserverRef);
-    } catch {
-      /* observer already removed */
-    }
+    } catch { /* observer already removed */ }
     pointerObserverRef = null;
     pointerObserverScene = null;
   }
 
-  const PointerTypes = window.BABYLON?.PointerEventTypes || globalThis.BABYLON?.PointerEventTypes;
+  const PointerTypes =
+    window.BABYLON?.PointerEventTypes ||
+    globalThis.BABYLON?.PointerEventTypes;
 
   pointerObserverScene = scene;
 
@@ -1324,21 +1337,23 @@ function attachPointerAnnouncements(scene) {
 
       if (!pickedMesh) return;
 
-      const isBabylonPick = PointerTypes ? type === PointerTypes.POINTERPICK : true;
+      const isBabylonPick = PointerTypes
+        ? type === PointerTypes.POINTERPICK
+        : true;
 
       // Require a real primary click / tap, not hover or passive movement
       const isPrimaryMouseClick =
         !evt ||
-        evt.pointerType === 'touch' ||
-        evt.type === 'click' ||
-        evt.type === 'pointerup' ||
-        evt.type === 'mouseup';
+        evt.pointerType === "touch" ||
+        evt.type === "click" ||
+        evt.type === "pointerup" ||
+        evt.type === "mouseup";
 
       if (!isBabylonPick || !isPrimaryMouseClick) return;
 
       if (introInProgress || Date.now() < suppressPointerUntil) return;
 
-      announceMeshAction(pickedMesh, 'selected');
+      announceMeshAction(pickedMesh, "selected");
     } catch {
       // fail silently
     }
@@ -1347,13 +1362,11 @@ function attachPointerAnnouncements(scene) {
 
 onInteractObservable.add((mesh) => {
   if (introInProgress || Date.now() < suppressPointerUntil) return;
-  announceMeshAction(mesh, 'interacted with', { noDedup: true });
+  announceMeshAction(mesh, "interacted with", { noDedup: true });
 });
 
 export function recordObjectPromptText(targetName, text) {
-  const key = String(targetName || '')
-    .trim()
-    .toLowerCase();
+  const key = String(targetName || "").trim().toLowerCase();
   const spoken = cleanSpokenAnnouncement(resolveSpokenText(text));
 
   if (!key || !spoken) return;
@@ -1365,19 +1378,15 @@ export function recordObjectPromptText(targetName, text) {
 }
 
 function getCachedPromptTextForMesh(mesh) {
-  if (!mesh) return '';
+  if (!mesh) return "";
 
   const candidates = [
     mesh?.name,
     getEntityRoot(mesh)?.name,
     getObjectLabel(mesh),
-    getObjectLabel(getEntityRoot(mesh)),
+    getObjectLabel(getEntityRoot(mesh))
   ]
-    .map((v) =>
-      String(v || '')
-        .trim()
-        .toLowerCase()
-    )
+    .map((v) => String(v || "").trim().toLowerCase())
     .filter(Boolean);
 
   for (const key of candidates) {
@@ -1385,7 +1394,7 @@ function getCachedPromptTextForMesh(mesh) {
     if (hit) return hit;
   }
 
-  return '';
+  return "";
 }
 
 export function announceSayText(text, options = {}) {
@@ -1396,8 +1405,8 @@ export function announceSayText(text, options = {}) {
 
   const lower = spoken.toLowerCase();
   if (
-    lower.includes('flock xr loaded successfully') ||
-    lower.includes('flock world successfully loaded')
+    lower.includes("flock xr loaded successfully") ||
+    lower.includes("flock world successfully loaded")
   ) {
     return;
   }
@@ -1455,10 +1464,10 @@ function scheduleInitialIntro(scene) {
   const waitUntilReady = (tries = 0) => {
     if (scene !== currentScene) return;
 
-    const loadingScreen = document.getElementById('loadingScreen');
+    const loadingScreen = document.getElementById("loadingScreen");
     const stillLoading =
-      document.body.classList.contains('loading') ||
-      (loadingScreen && !loadingScreen.classList.contains('fade-out'));
+      document.body.classList.contains("loading") ||
+      (loadingScreen && !loadingScreen.classList.contains("fade-out"));
 
     if (stillLoading && tries < 40) {
       setTimeout(() => waitUntilReady(tries + 1), 250);
@@ -1475,10 +1484,10 @@ function scheduleInitialIntro(scene) {
     });
   };
 
-  if (document.readyState === 'complete') {
+  if (document.readyState === "complete") {
     waitUntilReady();
   } else {
-    window.addEventListener('load', () => waitUntilReady(), { once: true });
+    window.addEventListener("load", () => waitUntilReady(), { once: true });
   }
 }
 
@@ -1489,9 +1498,9 @@ export function enableSceneDescription(scene, inputManager) {
   createLiveRegion();
 
   // Reset per-world state
-  lastInteractionKey = '';
+  lastInteractionKey = "";
   lastInteractionTime = 0;
-  lastAnnouncedText = '';
+  lastAnnouncedText = "";
   lastAnnouncedAt = 0;
   announceSeq += 1;
 
@@ -1507,42 +1516,43 @@ export function enableSceneDescription(scene, inputManager) {
   attachPointerAnnouncements(scene);
   scheduleInitialIntro(scene);
 
+
   if (keyListenerAttached) return;
   keyListenerAttached = true;
 
   document.addEventListener(
-    'keydown',
+    "keydown",
     (e) => {
-      const tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
-      if (tag === 'input' || tag === 'textarea' || e.target?.isContentEditable) return;
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable) return;
 
       if (!e.ctrlKey || e.altKey || e.metaKey) return;
       if (!e.key) return;
 
       const key = e.key.toLowerCase();
 
-      if (key === 'i') {
+      if (key === "i") {
         e.preventDefault();
         e.stopPropagation();
         announce(describeScene(currentScene));
         return;
       }
 
-      if (key === 'j') {
+      if (key === "j") {
         e.preventDefault();
         e.stopPropagation();
         announce(describeNearestObject(currentScene));
         return;
       }
 
-      if (key === 'h') {
+      if (key === "h") {
         e.preventDefault();
         e.stopPropagation();
         announceHelp(currentScene);
         return;
       }
 
-      if (key === 'k') {
+      if (key === "k") {
         e.preventDefault();
         e.stopPropagation();
         announce(describeFacingObject(currentScene), { noDedup: true });
@@ -1553,9 +1563,9 @@ export function enableSceneDescription(scene, inputManager) {
 
   if (inputManager) {
     inputManager.onActionDownObservable.add((action) => {
-      if (action === 'A11Y_I') announce(describeScene(currentScene));
-      else if (action === 'A11Y_J') announce(describeNearestObject(currentScene));
-      else if (action === 'A11Y_K') announce(describeFacingObject(currentScene), { noDedup: true });
+      if (action === "A11Y_I") announce(describeScene(currentScene));
+      else if (action === "A11Y_J") announce(describeNearestObject(currentScene));
+      else if (action === "A11Y_K") announce(describeFacingObject(currentScene), { noDedup: true });
     });
   }
 }
@@ -1564,6 +1574,6 @@ export function enableSceneDescription(scene, inputManager) {
  * Helper for Flock code to call directly on custom events
  * (e.g., collisions, scripted triggers, button clicks).
  */
-export function announceSceneEvent(mesh, verb = 'interacted with') {
+export function announceSceneEvent(mesh, verb = "interacted with") {
   announceInteraction(mesh, verb);
 }

@@ -1,17 +1,17 @@
-import { expect } from 'chai';
+import { expect } from "chai";
 
 function getAnimationDurationInSeconds(animationGroup) {
   const targetedAnimation = animationGroup?.targetedAnimations?.[0];
   const fps = targetedAnimation?.animation?.framePerSecond;
-  if (!fps || typeof animationGroup.to !== 'number') {
+  if (!fps || typeof animationGroup.to !== "number") {
     return null;
   }
   return (animationGroup.to - animationGroup.from) / fps;
 }
 
 function configureDraco(BABYLON) {
-  const base = import.meta?.env?.BASE_URL ?? '/';
-  const root = base.endsWith('/') ? base : `${base}/`;
+  const base = import.meta?.env?.BASE_URL ?? "/";
+  const root = base.endsWith("/") ? base : `${base}/`;
 
   BABYLON.DracoCompression.DefaultNumWorkers = 0;
   BABYLON.DracoCompression.Configuration = {
@@ -44,7 +44,7 @@ async function pumpAnimation(flock, promise, match = null) {
       while (!found && Date.now() < timeout) {
         flock.scene.render();
         found = flock.scene.animationGroups.some((ag) =>
-          ag.name.toLowerCase().includes(match.toLowerCase())
+          ag.name.toLowerCase().includes(match.toLowerCase()),
         );
         if (!found) await new Promise((r) => setTimeout(r, 10));
       }
@@ -59,10 +59,10 @@ async function pumpAnimation(flock, promise, match = null) {
 }
 
 export function runCharacterAnimationTests(flock) {
-  describe('Character Animation API', function () {
+  describe("Character Animation API", function () {
     this.timeout(30000);
 
-    const characterModel = 'Liz3.glb';
+    const characterModel = "Liz3.glb";
     const animationMeshIds = [];
 
     before(async function () {
@@ -82,10 +82,14 @@ export function runCharacterAnimationTests(flock) {
       flock.modelsBeingLoaded = {};
       flock._modelInstances = Object.create(null);
 
-      new flock.BABYLON.FreeCamera('testCamera', flock.BABYLON.Vector3.Zero(), flock.scene);
+      new flock.BABYLON.FreeCamera(
+        "testCamera",
+        flock.BABYLON.Vector3.Zero(),
+        flock.scene,
+      );
 
       const baseMock = {
-        name: 'MockPhysics',
+        name: "MockPhysics",
         getPluginVersion: () => 2,
         isInitialized: () => true,
         _checkIsReady: () => true,
@@ -101,12 +105,15 @@ export function runCharacterAnimationTests(flock) {
         get: (target, prop) => (prop in target ? target[prop] : () => {}),
       });
 
-      flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), physicsMock);
+      flock.scene.enablePhysics(
+        new flock.BABYLON.Vector3(0, -9.81, 0),
+        physicsMock,
+      );
       configureDraco(flock.BABYLON);
 
       const meshId = flock.createCharacter({
         modelName: characterModel,
-        modelId: 'liz3-test-character',
+        modelId: "liz3-test-character",
         position: { x: 0, y: 0, z: 0 },
       });
       animationMeshIds.push(meshId);
@@ -123,7 +130,7 @@ export function runCharacterAnimationTests(flock) {
       // under the base name so the leftover character doesn't pollute later
       // suites — e.g. getPlayerMesh's heuristic would score it as the player.
       (flock.scene?.meshes ?? [])
-        .filter((m) => m?.name?.startsWith('liz3-test-character'))
+        .filter((m) => m?.name?.startsWith("liz3-test-character"))
         .forEach((m) => m.dispose());
     });
 
@@ -132,54 +139,55 @@ export function runCharacterAnimationTests(flock) {
       await pumpAnimation(
         flock,
         flock.switchAnimation(currentMeshId, {
-          animationName: 'Idle',
+          animationName: "Idle",
           loop: true,
           restart: true,
         }),
-        'Idle'
+        "Idle",
       );
     });
 
-    it('uses the Liz3 model from the main app for animation tests', async function () {
+    it("uses the Liz3 model from the main app for animation tests", async function () {
       const mesh = flock.scene.getMeshByName(animationMeshIds[0]);
       expect(mesh).to.exist;
       expect(mesh.metadata?.modelName).to.equal(characterModel);
     });
 
-    it('should avoid collisions for repeated character ids', function () {
+    it("should avoid collisions for repeated character ids", function () {
       const secondId = flock.createCharacter({
         modelName: characterModel,
-        modelId: 'liz3-test-character',
+        modelId: "liz3-test-character",
         position: { x: 2, y: 0, z: 0 },
       });
       animationMeshIds.push(secondId);
       expect(secondId).to.not.equal(animationMeshIds[0]);
     });
 
-    it('switchAnimation sets the current animation and starts playing it', async function () {
+    it("switchAnimation sets the current animation and starts playing it", async function () {
       const meshId = animationMeshIds[0];
       const mesh = flock.scene.getMeshByName(meshId);
 
       const walkPromise = flock.switchAnimation(meshId, {
-        animationName: 'Walk',
+        animationName: "Walk",
         loop: true,
         restart: true,
       });
 
       // Pass "Walk" to pump to ensure we wait for the group to exist
-      await pumpAnimation(flock, walkPromise, 'Walk');
+      await pumpAnimation(flock, walkPromise, "Walk");
 
       const walkGroup = flock.scene.animationGroups.find((ag) =>
-        ag.name.toLowerCase().includes('walk')
+        ag.name.toLowerCase().includes("walk"),
       );
-      expect(walkGroup, 'Walk animation group should be in the scene').to.exist;
+      expect(walkGroup, "Walk animation group should be in the scene").to.exist;
 
       const info = flock._getCurrentAnimationInfo(mesh);
-      expect(info, 'Animation info should be active on the mesh').to.not.be.null;
-      expect(info.name).to.equal('Walk');
+      expect(info, "Animation info should be active on the mesh").to.not.be
+        .null;
+      expect(info.name).to.equal("Walk");
     });
 
-    it('plays a non-looping animation and resolves near its duration', async function () {
+    it("plays a non-looping animation and resolves near its duration", async function () {
       const meshId = animationMeshIds[0];
       const root = flock.scene.getMeshByName(meshId);
 
@@ -187,75 +195,75 @@ export function runCharacterAnimationTests(flock) {
       await pumpAnimation(
         flock,
         flock.playAnimation(meshId, {
-          animationName: 'Jump',
+          animationName: "Jump",
           loop: false,
           restart: true,
         }),
-        'Jump'
+        "Jump",
       );
 
       const jumpGroup = flock.scene.animationGroups.find((ag) =>
-        ag.name.toLowerCase().includes('jump')
+        ag.name.toLowerCase().includes("jump"),
       );
-      expect(jumpGroup, 'Jump group should be present').to.exist;
+      expect(jumpGroup, "Jump group should be present").to.exist;
 
       const expectedDuration = getAnimationDurationInSeconds(jumpGroup);
       const realTimeElapsed = (Date.now() - start) / 1000;
       expect(expectedDuration).to.not.be.null;
-      expect(expectedDuration).to.be.a('number');
+      expect(expectedDuration).to.be.a("number");
       expect(expectedDuration).to.be.greaterThan(0);
       expect(realTimeElapsed).to.be.greaterThan(0);
 
       const info = flock._getCurrentAnimationInfo(root);
-      expect(info?.name).to.equal('Jump');
+      expect(info?.name).to.equal("Jump");
       expect(jumpGroup.isPlaying).to.equal(false);
     });
 
-    it('supports switching then playing a timed animation', async function () {
+    it("supports switching then playing a timed animation", async function () {
       const meshId = animationMeshIds[0];
       const root = flock.scene.getMeshByName(meshId);
 
       await pumpAnimation(
         flock,
         flock.switchAnimation(meshId, {
-          animationName: 'Walk',
+          animationName: "Walk",
           loop: true,
           restart: true,
         }),
-        'Walk'
+        "Walk",
       );
       await pumpAnimation(
         flock,
         flock.playAnimation(meshId, {
-          animationName: 'Jump',
+          animationName: "Jump",
           loop: false,
           restart: true,
         }),
-        'Jump'
+        "Jump",
       );
 
       const jumpGroup = flock.scene.animationGroups.find((ag) =>
-        ag.name.toLowerCase().includes('jump')
+        ag.name.toLowerCase().includes("jump"),
       );
       const info = flock._getCurrentAnimationInfo(root);
 
-      expect(info?.name).to.equal('Jump');
+      expect(info?.name).to.equal("Jump");
       expect(jumpGroup.isPlaying).to.equal(false);
     });
 
-    it('keeps mesh POSITION_Y on the anchor/base during physics glide and animation switches', async function () {
+    it("keeps mesh POSITION_Y on the anchor/base during physics glide and animation switches", async function () {
       const meshId = animationMeshIds[0];
 
-      await flock.setPhysics(meshId, 'DYNAMIC');
+      await flock.setPhysics(meshId, "DYNAMIC");
 
       await pumpAnimation(
         flock,
         flock.switchAnimation(meshId, {
-          animationName: 'Walk',
+          animationName: "Walk",
           loop: true,
           restart: true,
         }),
-        'Walk'
+        "Walk",
       );
 
       await pumpAnimation(
@@ -265,10 +273,10 @@ export function runCharacterAnimationTests(flock) {
           y: 0,
           z: 1,
           duration: 0.2,
-        })
+        }),
       );
 
-      expect(flock.getProperty(meshId, 'POSITION_Y')).to.equal(0);
+      expect(flock.getProperty(meshId, "POSITION_Y")).to.equal(0);
     });
   });
 }

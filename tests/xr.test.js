@@ -1,18 +1,18 @@
-import { expect } from 'chai';
+import { expect } from "chai";
 
 export function runXRTests(flock) {
-  describe('XR API @xr', function () {
-    describe('setCameraBackground', function () {
+  describe("XR API @xr", function () {
+    describe("setCameraBackground", function () {
       it("should not throw when called with 'user'", function () {
-        expect(() => flock.setCameraBackground('user')).to.not.throw();
+        expect(() => flock.setCameraBackground("user")).to.not.throw();
       });
 
       it("should not throw when called with 'environment'", function () {
-        expect(() => flock.setCameraBackground('environment')).to.not.throw();
+        expect(() => flock.setCameraBackground("environment")).to.not.throw();
       });
     });
 
-    describe('setXRMode', function () {
+    describe("setXRMode", function () {
       let originalInitializeXR;
       let originalPrintText;
 
@@ -31,12 +31,12 @@ export function runXRTests(flock) {
         delete window.translate;
       });
 
-      it('should not throw for VR mode', async function () {
-        await flock.setXRMode('VR');
+      it("should not throw for VR mode", async function () {
+        await flock.setXRMode("VR");
       });
 
-      it('should not throw for AR mode', async function () {
-        await flock.setXRMode('AR');
+      it("should not throw for AR mode", async function () {
+        await flock.setXRMode("AR");
       });
     });
   });
