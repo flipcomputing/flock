@@ -1917,3 +1917,82 @@ kbd {
 svg.blocklyTrashcanFlyout {
   background: gray;
 }
+
+/* ---- Tablet floating block toolbar ---- */
+.fc-block-toolbar {
+  position: fixed;
+  display: flex;
+  gap: 2px;
+  background: var(--color-menu, #f9f9f9);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 10px;
+  padding: 5px;
+  box-shadow: 0 3px 12px var(--color-shadow-medium, rgba(0, 0, 0, 0.2));
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, calc(-100% - 10px));
+  transition: opacity 0.12s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.fc-block-toolbar::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: var(--color-border, #ddd);
+  border-bottom: 0;
+}
+
+.fc-block-toolbar::before {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--color-menu, #f9f9f9);
+  border-bottom: 0;
+  z-index: 1;
+}
+
+.fc-block-toolbar.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fc-block-toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-primary, #000);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.fc-block-toolbar-btn:active {
+  background: var(--color-menu-hover, #f0f0f0);
+}
+
+.fc-block-toolbar-btn[disabled] {
+  opacity: 0.3;
+}
+
+.fc-block-toolbar-btn--delete {
+  color: #c0392b;
+}
+
+[data-theme='dark'] .fc-block-toolbar-btn--delete,
+[data-theme='dark-contrast'] .fc-block-toolbar-btn--delete {
+  color: #e57373;
+}

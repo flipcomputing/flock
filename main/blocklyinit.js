@@ -2667,6 +2667,127 @@ export function createBlocklyWorkspace() {
     { capture: true }
   );
 
+  // ---- Tablet floating block toolbar ----
+  if (navigator.maxTouchPoints > 0) {
+    const blockToolbar = document.createElement('div');
+    blockToolbar.className = 'fc-block-toolbar';
+    blockToolbar.setAttribute('role', 'toolbar');
+    document.body.appendChild(blockToolbar);
+
+    const mkSvg = (paths) =>
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'fc-block-toolbar-btn';
+    copyBtn.setAttribute('aria-label', translate('COPY_SHORTCUT') || 'Copy');
+    copyBtn.innerHTML = mkSvg(
+      '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>'
+    );
+
+    const pasteBtn = document.createElement('button');
+    pasteBtn.type = 'button';
+    pasteBtn.className = 'fc-block-toolbar-btn';
+    pasteBtn.setAttribute('aria-label', translate('PASTE_SHORTCUT') || 'Paste');
+    pasteBtn.innerHTML = mkSvg(
+      '<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>'
+    );
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'fc-block-toolbar-btn fc-block-toolbar-btn--delete';
+    deleteBtn.setAttribute('aria-label', 'Delete');
+    deleteBtn.innerHTML = mkSvg(
+      '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>'
+    );
+
+    blockToolbar.append(copyBtn, pasteBtn, deleteBtn);
+
+    let toolbarBlock = null;
+    let toolbarShowTimer = null;
+
+    function positionBlockToolbar() {
+      if (!toolbarBlock) return;
+      const svgRoot = toolbarBlock.getSvgRoot?.();
+      if (!svgRoot) return;
+      const rect = svgRoot.getBoundingClientRect();
+      blockToolbar.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
+      blockToolbar.style.top = `${Math.round(rect.top)}px`;
+    }
+
+    function showBlockToolbar(block) {
+      toolbarBlock = block;
+      pasteBtn.disabled = !Blockly.clipboard?.getLastCopiedData?.();
+      positionBlockToolbar();
+      blockToolbar.classList.add('visible');
+    }
+
+    function hideBlockToolbar() {
+      clearTimeout(toolbarShowTimer);
+      toolbarShowTimer = null;
+      toolbarBlock = null;
+      blockToolbar.classList.remove('visible');
+    }
+
+    const isToolbarBlock = (block) =>
+      block && !block.isInFlyout && !block.isShadow() && !block.outputConnection;
+
+    workspace.addChangeListener((e) => {
+      if (e.type === Blockly.Events.SELECTED) {
+        clearTimeout(toolbarShowTimer);
+        toolbarShowTimer = null;
+        if (e.newElementId) {
+          const block = workspace.getBlockById(e.newElementId);
+          if (isToolbarBlock(block)) {
+            toolbarShowTimer = setTimeout(() => showBlockToolbar(block), 400);
+          } else {
+            hideBlockToolbar();
+          }
+        } else {
+          hideBlockToolbar();
+        }
+      } else if (
+        (e.type === Blockly.Events.BLOCK_MOVE || e.type === Blockly.Events.VIEWPORT_CHANGE) &&
+        toolbarBlock
+      ) {
+        positionBlockToolbar();
+      } else if (e.type === Blockly.Events.BLOCK_DRAG && e.isStart) {
+        hideBlockToolbar();
+      }
+    });
+
+    copyBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!toolbarBlock) return;
+      copyWithoutToast(toolbarBlock);
+      pasteBtn.disabled = false;
+    });
+
+    pasteBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!toolbarBlock) return;
+      const data = Blockly.clipboard?.getLastCopiedData?.();
+      if (!data) return;
+      const block = toolbarBlock;
+      const rect = block.getSvgRoot?.()?.getBoundingClientRect();
+      if (rect) lastCM = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      pasteAsChildOrHere(block, workspace, data);
+    });
+
+    deleteBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!toolbarBlock) return;
+      const block = toolbarBlock;
+      hideBlockToolbar();
+      Blockly.Events.setGroup('toolbar_delete');
+      block.dispose(true);
+      Blockly.Events.setGroup(false);
+    });
+  }
+
   initializeTheme();
 
   // Register comment options for workspace comments
