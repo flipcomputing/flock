@@ -18,7 +18,7 @@ async function installFetchRecorder(page) {
 }
 
 async function waitForWorkspace(page) {
-  await page.waitForSelector("#exampleSelect", {
+  await page.waitForSelector("#exampleButton", {
     state: "visible",
     timeout: 20000,
   });
@@ -48,15 +48,15 @@ test.describe("Example project loading uses relative bundled asset paths", () =>
       { timeout: 20000 },
     );
 
-    const projectMenu = page.locator("#exampleSelect");
-
-    await projectMenu.selectOption("examples/new.flock");
+    // The demo picker is now a tile modal; examples load through the global
+    // loadExample(file) entry point that each tile invokes.
+    await page.evaluate(() => window.loadExample("examples/new.flock"));
     await page.waitForFunction(
       () => (window.__fetchCalls || []).includes("examples/new.flock"),
       { timeout: 20000 },
     );
 
-    await projectMenu.selectOption("examples/snow_globe.flock");
+    await page.evaluate(() => window.loadExample("examples/snow_globe.flock"));
     await page.waitForFunction(
       () => (window.__fetchCalls || []).includes("examples/snow_globe.flock"),
       { timeout: 20000 },

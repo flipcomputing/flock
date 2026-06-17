@@ -1083,6 +1083,14 @@ export default {
   export_code_button_ui:
     "Guardar este proyecto en un archivo en tu computadora.", // human
   example_select_ui: "Elige un proyecto de ejemplo para cargar", // human
+  demo_heading_ui: "Demos", // ai
+  close_demos_ui: "Cerrar demos", // ai
+  examples_cat_start_ui: "Inicio", // ai
+  examples_cat_games_ui: "Juegos", // ai
+  examples_cat_physics_ui: "Física", // ai
+  examples_cat_worlds_ui: "Mundos", // ai
+  examples_cat_create_ui: "Creativo", // ai
+  examples_cat_xr_ui: "XR", // ai
 
   toggle_design_ui: "Diseña tu proyecto", // human
   toggle_play_ui: "Usa tu proyecto", // human

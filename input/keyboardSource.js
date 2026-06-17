@@ -22,6 +22,10 @@ export class KeyboardSource {
 
     this.#onDocKeyDown = (event) => {
       if (event.__flockSynthetic) return;
+      // Don't feed scene/input events to the running project while the user is
+      // interacting with an open modal dialog (e.g. navigating the demo picker
+      // with arrow keys) — the focused control, not the scene, owns the key.
+      if (event.target?.closest?.(".modal:not(.hidden)")) return;
       this.#inputManager._notifyRawKeyDown(event);
     };
 

@@ -1061,6 +1061,14 @@ export default {
   open_file_input_label_ui: "Välj projektfil att öppna",
   export_code_button_ui: "Spara detta projekt till en fil på din dator.",
   example_select_ui: "Välj ett exempelprojekt att ladda",
+  demo_heading_ui: "Demos", // ai
+  close_demos_ui: "Stäng demos", // ai
+  examples_cat_start_ui: "Start", // ai
+  examples_cat_games_ui: "Spel", // ai
+  examples_cat_physics_ui: "Fysik", // ai
+  examples_cat_worlds_ui: "Världar", // ai
+  examples_cat_create_ui: "Kreativt", // ai
+  examples_cat_xr_ui: "XR", // ai
 
   toggle_design_ui: "Designa ditt projekt",
   toggle_play_ui: "Använd ditt projekt",

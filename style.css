@@ -281,18 +281,18 @@
   color: var(--color-text-primary);
 }
 
-[data-theme='contrast'] #exampleSelect {
+[data-theme='contrast'] #exampleButton {
   color: white !important;
   background-color: var(--color-bg) !important;
   border-style: solid;
   border-width: 1px;
 }
 
-[data-theme='dark'] #exampleSelect {
+[data-theme='dark'] #exampleButton {
   background-color: var(--color-bg) !important;
 }
 
-[data-theme='dark-contrast'] #exampleSelect {
+[data-theme='dark-contrast'] #exampleButton {
   background-color: var(--color-bg) !important;
 }
 
@@ -467,9 +467,27 @@ button {
   color: var(--color-text-primary);
 }
 
-/* Font size for examples menu */
-#exampleSelect {
+/* Demo picker trigger button — styled to read as a clickable dropdown. */
+#exampleButton {
   font-size: 14px;
+  border: 1px solid var(--color-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  /* Size to the label (varies by language) and keep it on one line with the
+     caret, rather than clipping or wrapping. */
+  width: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* The caret is an in-DOM span (aria-hidden), so it renders on every browser
+   and stays silent to screen readers without relying on the newer CSS
+   content alt-text syntax. */
+.example-caret {
+  font-size: 0.9em;
+  line-height: 1;
 }
 
 /* Canvas Styles */
@@ -600,7 +618,7 @@ button {
   touch-action: manipulation;
 }
 
-#exampleSelect {
+#exampleButton {
   background-color: var(--color-button-bg);
 }
 
@@ -1152,6 +1170,150 @@ button {
   width: 90%;
   max-height: 80%;
   overflow-y: auto;
+}
+
+/* Demo / example picker: a dropdown panel of tiles anchored under the Demo
+   button. The backdrop stays full-screen (for click-outside) but transparent,
+   so the panel reads as a popover rather than a centred modal. */
+#exampleModal {
+  background-color: transparent;
+}
+
+.example-modal-content {
+  position: fixed;
+  /* top / left / max-width are set by JS (openExampleModal) relative to the
+     Demo button and the scrollbar-free content width. */
+  margin: 0;
+  /* border-box so the width/max-width include the padding + border (there is no
+     global box-sizing reset in this project), otherwise the panel is ~50px
+     wider than the calc and overflows. */
+  box-sizing: border-box;
+  width: min(560px, calc(100vw - 16px));
+  max-width: none;
+  max-height: 70vh;
+  overflow-x: hidden;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 8px 24px var(--color-shadow-medium);
+}
+
+.example-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin-top: 1em;
+  /* Single row, horizontally swipeable on touch / narrow screens. */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+  /* The horizontal scroll container also clips vertically, so pad enough for
+     the tabs' focus ring (3px outline + 2px offset) on every side. */
+  padding: 6px 6px 10px;
+}
+
+.example-tabs::-webkit-scrollbar {
+  height: 6px;
+}
+
+.example-tab {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  scroll-snap-align: start;
+  padding: 6px 14px;
+  font-size: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 15px;
+  cursor: pointer;
+  background-color: var(--color-button-bg);
+  color: var(--color-text-primary);
+  touch-action: manipulation;
+}
+
+.example-tab:hover {
+  background-color: var(--color-button-bg-hover);
+}
+
+.example-tab[aria-selected="true"] {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-weight: 600;
+}
+
+/* In dark themes --color-primary is a mid-grey, leaving the selected tab too
+   low-contrast against its light text. Invert it instead for a clear, legible
+   "selected" state. */
+[data-theme='dark'] .example-tab[aria-selected='true'],
+[data-theme='dark-contrast'] .example-tab[aria-selected='true'] {
+  background-color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-bg);
+}
+
+.example-tab:focus,
+.example-tab:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.example-grid {
+  list-style: none;
+  margin: 1em 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  /* min(120px, 100%) keeps a column from ever being wider than the panel, so
+     the grid can't overflow on very narrow windows. */
+  grid-template-columns: repeat(auto-fill, minmax(min(120px, 100%), 1fr));
+}
+
+.example-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  text-align: center;
+  width: 100%;
+  min-height: 84px;
+  padding: 4px;
+  font-size: 14px;
+  line-height: 1.3;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  cursor: pointer;
+  background-color: var(--color-bg-glass-light);
+  color: var(--color-text-primary);
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.example-tile-emoji {
+  flex: none;
+}
+
+.example-tile:hover {
+  background-color: var(--color-bg-glass-hover);
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px var(--color-shadow-medium);
+}
+
+.example-tile:focus,
+.example-tile:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+@media (max-width: 600px) {
+  .example-modal-content {
+    padding: 0.75em;
+  }
+
+  .example-tile {
+    min-height: 72px;
+    font-size: 13px;
+  }
 }
 
 /* Always skip the top margin for h2s in modals */

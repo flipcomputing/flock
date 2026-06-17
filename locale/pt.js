@@ -1072,6 +1072,14 @@ export default {
   open_file_input_label_ui: "Selecione o arquivo de projeto para abrir",
   export_code_button_ui: "Guardar este projeto num ficheiro no teu computador.",
   example_select_ui: "Escolher um projeto de exemplo para carregar",
+  demo_heading_ui: "Demos", // ai
+  close_demos_ui: "Fechar demos", // ai
+  examples_cat_start_ui: "Início", // ai
+  examples_cat_games_ui: "Jogos", // ai
+  examples_cat_physics_ui: "Física", // ai
+  examples_cat_worlds_ui: "Mundos", // ai
+  examples_cat_create_ui: "Criativo", // ai
+  examples_cat_xr_ui: "XR", // ai
 
   toggle_design_ui: "Desenha o teu projeto",
   toggle_play_ui: "Utiliza o teu projeto",

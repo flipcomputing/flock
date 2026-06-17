@@ -27,11 +27,11 @@ import {
   autoSaveToFile,
   setupFileInput,
   setupDragAndDrop,
-  loadExampleWrapper,
   newProject,
   openFile,
   updateSaveButtonState,
 } from './files.js';
+import { initExampleGallery } from './examples.js';
 import { onResize, toggleDesignMode, togglePlayMode, initializeUI, switchView } from './view.js';
 import { hideLoadingScreen } from './loading.js';
 //import "./debug.js";
@@ -970,13 +970,13 @@ function initializeApp() {
   enableGizmos();
   // Enable gizmo buttons
 
-  const exampleSelect = document.getElementById('exampleSelect');
+  const exampleButton = document.getElementById('exampleButton');
 
   const fullscreenToggle = document.getElementById('fullscreenToggle');
 
   //toolboxControl.removeAttribute("disabled");
   runCodeButton.removeAttribute('disabled');
-  if (exampleSelect) exampleSelect.removeAttribute('disabled');
+  if (exampleButton) exampleButton.removeAttribute('disabled');
 
   if (fullscreenToggle) {
     // iOS browsers (iPad/iPhone, Safari and Chrome) drop out of fullscreen as
@@ -1012,14 +1012,7 @@ function initializeApp() {
                 toggleToolbox();
         });*/
 
-  if (exampleSelect) {
-    exampleSelect.addEventListener('change', loadExampleWrapper);
-    exampleSelect.addEventListener('keydown', (e) => {
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-      }
-    });
-  }
+  initExampleGallery();
 
   // Make setLanguage available globally for the menu
   window.setLanguage = async (lang) => await setLanguage(lang);

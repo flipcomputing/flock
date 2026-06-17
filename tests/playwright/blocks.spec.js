@@ -9,8 +9,8 @@ test.describe("Create Blockly project and open Events flyout", () => {
     // ✅ Load page and wait for DOM readiness instead of networkidle
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    // ✅ Wait until the project select dropdown is visible
-    await page.waitForSelector("#exampleSelect", {
+    // ✅ Wait until the demo picker button is visible
+    await page.waitForSelector("#exampleButton", {
       state: "visible",
       timeout: 20000,
     });
@@ -24,18 +24,13 @@ test.describe("Create Blockly project and open Events flyout", () => {
       { timeout: 20000 },
     );
 
-    // Step 1: Start a new project
-    const projectMenu = page.locator("#exampleSelect");
-    await expect(projectMenu).toBeVisible();
-    await expect(projectMenu).toBeEnabled();
+    // Step 1: Start a new project (the demo picker is now a tile modal; the
+    // canonical "new project" action is exposed globally).
+    const exampleButton = page.locator("#exampleButton");
+    await expect(exampleButton).toBeVisible();
+    await expect(exampleButton).toBeEnabled();
 
-    const newOption = await page.locator("#new");
-    const newValue = await newOption.getAttribute("value");
-    if (newValue) {
-      await projectMenu.selectOption(newValue);
-    } else {
-      throw new Error("Could not find value for #new");
-    }
+    await page.evaluate(() => window.newProject());
 
     // Step 2: Wait for Blockly ready & empty workspace
     await page.waitForFunction(() => {

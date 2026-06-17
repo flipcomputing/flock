@@ -1079,6 +1079,14 @@ export default {
   export_code_button_ui:
     "Enregistrer ce projet dans un fichier sur votre ordinateur.",
   example_select_ui: "Choisir un projet exemple à charger",
+  demo_heading_ui: "Démos", // ai
+  close_demos_ui: "Fermer les démos", // ai
+  examples_cat_start_ui: "Démarrer", // ai
+  examples_cat_games_ui: "Jeux", // ai
+  examples_cat_physics_ui: "Physique", // ai
+  examples_cat_worlds_ui: "Mondes", // ai
+  examples_cat_create_ui: "Créatif", // ai
+  examples_cat_xr_ui: "XR", // ai
 
   toggle_design_ui: "Concevez votre projet",
   toggle_play_ui: "Utilisez votre projet",

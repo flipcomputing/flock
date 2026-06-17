@@ -320,6 +320,10 @@ export function applyTranslations() {
       el.setAttribute("placeholder", translation);
     }
   });
+
+  // Let dynamically-built content (e.g. the demo tiles) re-localise itself
+  // after every language change / initial pass.
+  document.dispatchEvent(new CustomEvent("translationsapplied"));
 }
 document.addEventListener("DOMContentLoaded", () => applyTranslations());
 
