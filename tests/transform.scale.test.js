@@ -1,9 +1,9 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 export function runScaleTests(flock) {
-  describe("Scale function tests @scale", function () {
+  describe('Scale function tests @scale', function () {
     const testBoxIds = [];
-    const testColors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"];
+    const testColors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00'];
 
     // Set up the scene before each test
     beforeEach(async function () {
@@ -13,10 +13,8 @@ export function runScaleTests(flock) {
     // Clean up after each test
     afterEach(function () {
       testBoxIds.forEach((boxId) => {
-        if (typeof boxId !== "string") {
-          throw new Error(
-            `Invalid ID: Expected a string, but got ${typeof boxId}`,
-          );
+        if (typeof boxId !== 'string') {
+          throw new Error(`Invalid ID: Expected a string, but got ${typeof boxId}`);
         }
         console.log(`Cleaning up box with ID: ${boxId}`);
         flock.dispose(boxId);
@@ -24,8 +22,8 @@ export function runScaleTests(flock) {
       testBoxIds.length = 0;
     });
 
-    it("should scale uniformly when all scale factors are equal", async function () {
-      const boxId = flock.createBox("test-box-uniform", {
+    it('should scale uniformly when all scale factors are equal', async function () {
+      const boxId = flock.createBox('test-box-uniform', {
         color: testColors[0],
         width: 2,
         height: 2,
@@ -42,8 +40,8 @@ export function runScaleTests(flock) {
       expect(mesh.scaling.z).to.equal(2);
     });
 
-    it("should scale non-uniformly with different factors", async function () {
-      const boxId = flock.createBox("test-box-nonuniform", {
+    it('should scale non-uniformly with different factors', async function () {
+      const boxId = flock.createBox('test-box-nonuniform', {
         color: testColors[1],
         width: 1,
         height: 1,
@@ -60,8 +58,8 @@ export function runScaleTests(flock) {
       expect(mesh.scaling.z).to.equal(0.5);
     });
 
-    it("should maintain position with different origin points", async function () {
-      const boxId = flock.createBox("test-box-origins", {
+    it('should maintain position with different origin points', async function () {
+      const boxId = flock.createBox('test-box-origins', {
         color: testColors[2],
         width: 2,
         height: 2,
@@ -73,7 +71,7 @@ export function runScaleTests(flock) {
       const originalBounds = flock.scene.getMeshByID(boxId).getBoundingInfo();
       const originalBottom = originalBounds.boundingBox.minimumWorld.y;
 
-      await flock.scale(boxId, { x: 2, y: 2, z: 2, yOrigin: "BASE" });
+      await flock.scale(boxId, { x: 2, y: 2, z: 2, yOrigin: 'BASE' });
 
       const newBounds = flock.scene.getMeshByID(boxId).getBoundingInfo();
       const newBottom = newBounds.boundingBox.minimumWorld.y;
@@ -81,8 +79,8 @@ export function runScaleTests(flock) {
       expect(Math.abs(newBottom - originalBottom)).to.be.lessThan(0.001);
     });
 
-    it("should handle zero scaling gracefully", async function () {
-      const boxId = flock.createBox("test-box-zero", {
+    it('should handle zero scaling gracefully', async function () {
+      const boxId = flock.createBox('test-box-zero', {
         color: testColors[3],
         width: 1,
         height: 1,
@@ -97,8 +95,8 @@ export function runScaleTests(flock) {
       expect(mesh.scaling.y).to.equal(0);
     });
 
-    it("should use default values when parameters are omitted", async function () {
-      const boxId = flock.createBox("test-box-defaults", {
+    it('should use default values when parameters are omitted', async function () {
+      const boxId = flock.createBox('test-box-defaults', {
         color: testColors[0],
         width: 1,
         height: 1,
@@ -116,9 +114,9 @@ export function runScaleTests(flock) {
     });
   });
 
-  describe("Resize function tests @scale", function () {
+  describe('Resize function tests @scale', function () {
     const testBoxIds = [];
-    const testColors = ["#FF6600", "#66FF00", "#0066FF", "#FF0066"];
+    const testColors = ['#FF6600', '#66FF00', '#0066FF', '#FF0066'];
 
     // Set up the scene before each test
     beforeEach(async function () {
@@ -128,10 +126,8 @@ export function runScaleTests(flock) {
     // Clean up after each test
     afterEach(function () {
       testBoxIds.forEach((boxId) => {
-        if (typeof boxId !== "string") {
-          throw new Error(
-            `Invalid ID: Expected a string, but got ${typeof boxId}`,
-          );
+        if (typeof boxId !== 'string') {
+          throw new Error(`Invalid ID: Expected a string, but got ${typeof boxId}`);
         }
         console.log(`Cleaning up box with ID: ${boxId}`);
         flock.dispose(boxId);
@@ -139,8 +135,8 @@ export function runScaleTests(flock) {
       testBoxIds.length = 0;
     });
 
-    it("should resize to exact dimensions", async function () {
-      const boxId = flock.createBox("test-box-exact", {
+    it('should resize to exact dimensions', async function () {
+      const boxId = flock.createBox('test-box-exact', {
         color: testColors[0],
         width: 2,
         height: 3,
@@ -152,20 +148,17 @@ export function runScaleTests(flock) {
       await flock.resize(boxId, { width: 10, height: 5, depth: 8 });
 
       const bounds = flock.scene.getMeshByID(boxId).getBoundingInfo();
-      const actualWidth =
-        bounds.boundingBox.maximumWorld.x - bounds.boundingBox.minimumWorld.x;
-      const actualHeight =
-        bounds.boundingBox.maximumWorld.y - bounds.boundingBox.minimumWorld.y;
-      const actualDepth =
-        bounds.boundingBox.maximumWorld.z - bounds.boundingBox.minimumWorld.z;
+      const actualWidth = bounds.boundingBox.maximumWorld.x - bounds.boundingBox.minimumWorld.x;
+      const actualHeight = bounds.boundingBox.maximumWorld.y - bounds.boundingBox.minimumWorld.y;
+      const actualDepth = bounds.boundingBox.maximumWorld.z - bounds.boundingBox.minimumWorld.z;
 
       expect(Math.abs(actualWidth - 10)).to.be.lessThan(0.001);
       expect(Math.abs(actualHeight - 5)).to.be.lessThan(0.001);
       expect(Math.abs(actualDepth - 8)).to.be.lessThan(0.001);
     });
 
-    it("should maintain anchor points with different origins", async function () {
-      const boxId = flock.createBox("test-box-anchor", {
+    it('should maintain anchor points with different origins', async function () {
+      const boxId = flock.createBox('test-box-anchor', {
         color: testColors[1],
         width: 4,
         height: 2,
@@ -174,21 +167,21 @@ export function runScaleTests(flock) {
       });
       testBoxIds.push(boxId);
 
-      const originalBase = flock.getProperty(boxId, "MIN_Y");
+      const originalBase = flock.getProperty(boxId, 'MIN_Y');
 
       await flock.resize(boxId, {
         width: 4,
         height: 6,
         depth: 3,
-        yOrigin: "BASE",
+        yOrigin: 'BASE',
       });
-      const newBase = flock.getProperty(boxId, "MIN_Y");
+      const newBase = flock.getProperty(boxId, 'MIN_Y');
 
       expect(Math.abs(newBase - originalBase)).to.be.lessThan(0.001);
     });
 
-    it("should handle partial resizing (null dimensions)", async function () {
-      const boxId = flock.createBox("test-box-partial", {
+    it('should handle partial resizing (null dimensions)', async function () {
+      const boxId = flock.createBox('test-box-partial', {
         color: testColors[2],
         width: 3,
         height: 4,
@@ -199,25 +192,20 @@ export function runScaleTests(flock) {
 
       const originalBounds = flock.scene.getMeshByID(boxId).getBoundingInfo();
       const originalHeight =
-        originalBounds.boundingBox.maximumWorld.y -
-        originalBounds.boundingBox.minimumWorld.y;
+        originalBounds.boundingBox.maximumWorld.y - originalBounds.boundingBox.minimumWorld.y;
 
       await flock.resize(boxId, { width: 6 }); // Only resize width
 
       const newBounds = flock.scene.getMeshByID(boxId).getBoundingInfo();
-      const newWidth =
-        newBounds.boundingBox.maximumWorld.x -
-        newBounds.boundingBox.minimumWorld.x;
-      const newHeight =
-        newBounds.boundingBox.maximumWorld.y -
-        newBounds.boundingBox.minimumWorld.y;
+      const newWidth = newBounds.boundingBox.maximumWorld.x - newBounds.boundingBox.minimumWorld.x;
+      const newHeight = newBounds.boundingBox.maximumWorld.y - newBounds.boundingBox.minimumWorld.y;
 
       expect(Math.abs(newWidth - 6)).to.be.lessThan(0.001);
       expect(Math.abs(newHeight - originalHeight)).to.be.lessThan(0.001); // Should remain unchanged
     });
 
-    it("should preserve original dimensions for future resizing", async function () {
-      const boxId = flock.createBox("test-box-preserve", {
+    it('should preserve original dimensions for future resizing', async function () {
+      const boxId = flock.createBox('test-box-preserve', {
         color: testColors[3],
         width: 2,
         height: 3,
@@ -233,20 +221,17 @@ export function runScaleTests(flock) {
       await flock.resize(boxId, { width: 2, height: 3, depth: 4 });
 
       const bounds = flock.scene.getMeshByID(boxId).getBoundingInfo();
-      const actualWidth =
-        bounds.boundingBox.maximumWorld.x - bounds.boundingBox.minimumWorld.x;
-      const actualHeight =
-        bounds.boundingBox.maximumWorld.y - bounds.boundingBox.minimumWorld.y;
-      const actualDepth =
-        bounds.boundingBox.maximumWorld.z - bounds.boundingBox.minimumWorld.z;
+      const actualWidth = bounds.boundingBox.maximumWorld.x - bounds.boundingBox.minimumWorld.x;
+      const actualHeight = bounds.boundingBox.maximumWorld.y - bounds.boundingBox.minimumWorld.y;
+      const actualDepth = bounds.boundingBox.maximumWorld.z - bounds.boundingBox.minimumWorld.z;
 
       expect(Math.abs(actualWidth - 2)).to.be.lessThan(0.001);
       expect(Math.abs(actualHeight - 3)).to.be.lessThan(0.001);
       expect(Math.abs(actualDepth - 4)).to.be.lessThan(0.001);
     });
 
-    it("should handle very small and very large dimensions", async function () {
-      const boxId = flock.createBox("test-box-extreme", {
+    it('should handle very small and very large dimensions', async function () {
+      const boxId = flock.createBox('test-box-extreme', {
         color: testColors[0],
         width: 1,
         height: 1,
@@ -262,8 +247,7 @@ export function runScaleTests(flock) {
         depth: 0.001,
       });
       let bounds = flock.scene.getMeshByID(boxId).getBoundingInfo();
-      let actualWidth =
-        bounds.boundingBox.maximumWorld.x - bounds.boundingBox.minimumWorld.x;
+      let actualWidth = bounds.boundingBox.maximumWorld.x - bounds.boundingBox.minimumWorld.x;
       expect(Math.abs(actualWidth - 0.001)).to.be.lessThan(0.0001);
 
       // Test very large
@@ -273,16 +257,15 @@ export function runScaleTests(flock) {
         depth: 1000,
       });
       bounds = flock.scene.getMeshByID(boxId).getBoundingInfo();
-      actualWidth =
-        bounds.boundingBox.maximumWorld.x - bounds.boundingBox.minimumWorld.x;
+      actualWidth = bounds.boundingBox.maximumWorld.x - bounds.boundingBox.minimumWorld.x;
       expect(Math.abs(actualWidth - 1000)).to.be.lessThan(0.1);
     });
   });
 
-  describe("setAnchor function tests @scale", function () {
+  describe('setAnchor function tests @scale', function () {
     const testBoxIds = [];
-    const testColors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"];
-    const pivotPositions = ["MIN", "CENTER", "MAX"];
+    const testColors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00'];
+    const pivotPositions = ['MIN', 'CENTER', 'MAX'];
 
     // Set up the scene before each test
     beforeEach(async function () {
@@ -292,10 +275,8 @@ export function runScaleTests(flock) {
     // Clean up after each test
     afterEach(function () {
       testBoxIds.forEach((boxId) => {
-        if (typeof boxId !== "string") {
-          throw new Error(
-            `Invalid ID: Expected a string, but got ${typeof boxId}`,
-          );
+        if (typeof boxId !== 'string') {
+          throw new Error(`Invalid ID: Expected a string, but got ${typeof boxId}`);
         }
         console.log(`Cleaning up box with ID: ${boxId}`);
         flock.dispose(boxId);
@@ -303,8 +284,8 @@ export function runScaleTests(flock) {
       testBoxIds.length = 0;
     });
 
-    it("should default to CENTER on X/Z and MIN (BASE) on Y", async function () {
-      const boxId = flock.createBox("test-box-default-pivot", {
+    it('should default to CENTER on X/Z and MIN (BASE) on Y', async function () {
+      const boxId = flock.createBox('test-box-default-pivot', {
         color: testColors[0],
         width: 2,
         height: 2,
@@ -316,13 +297,13 @@ export function runScaleTests(flock) {
       await flock.setAnchor(boxId);
       const mesh = flock.scene.getMeshByID(boxId);
 
-      expect(mesh.metadata.pivotSettings.x).to.equal("CENTER");
-      expect(mesh.metadata.pivotSettings.y).to.equal("MIN"); // <-- fixed
-      expect(mesh.metadata.pivotSettings.z).to.equal("CENTER");
+      expect(mesh.metadata.pivotSettings.x).to.equal('CENTER');
+      expect(mesh.metadata.pivotSettings.y).to.equal('MIN'); // <-- fixed
+      expect(mesh.metadata.pivotSettings.z).to.equal('CENTER');
     });
 
-    it("should set pivot point with string values", async function () {
-      const boxId = flock.createBox("test-box-string-pivot", {
+    it('should set pivot point with string values', async function () {
+      const boxId = flock.createBox('test-box-string-pivot', {
         color: testColors[1],
         width: 2,
         height: 2,
@@ -332,19 +313,19 @@ export function runScaleTests(flock) {
       testBoxIds.push(boxId);
 
       await flock.setAnchor(boxId, {
-        xPivot: "MIN",
-        yPivot: "MAX",
-        zPivot: "CENTER",
+        xPivot: 'MIN',
+        yPivot: 'MAX',
+        zPivot: 'CENTER',
       });
 
       const mesh = flock.scene.getMeshByID(boxId);
-      expect(mesh.metadata.pivotSettings.x).to.equal("MIN");
-      expect(mesh.metadata.pivotSettings.y).to.equal("MAX");
-      expect(mesh.metadata.pivotSettings.z).to.equal("CENTER");
+      expect(mesh.metadata.pivotSettings.x).to.equal('MIN');
+      expect(mesh.metadata.pivotSettings.y).to.equal('MAX');
+      expect(mesh.metadata.pivotSettings.z).to.equal('CENTER');
     });
 
-    it("should set pivot point with numeric values", async function () {
-      const boxId = flock.createBox("test-box-numeric-pivot", {
+    it('should set pivot point with numeric values', async function () {
+      const boxId = flock.createBox('test-box-numeric-pivot', {
         color: testColors[2],
         width: 2,
         height: 2,
@@ -365,8 +346,8 @@ export function runScaleTests(flock) {
       expect(mesh.metadata.pivotSettings.z).to.equal(2.0);
     });
 
-    it("should set pivot point with mixed string and numeric values", async function () {
-      const boxId = flock.createBox("test-box-mixed-pivot", {
+    it('should set pivot point with mixed string and numeric values', async function () {
+      const boxId = flock.createBox('test-box-mixed-pivot', {
         color: testColors[3],
         width: 2,
         height: 2,
@@ -376,19 +357,19 @@ export function runScaleTests(flock) {
       testBoxIds.push(boxId);
 
       await flock.setAnchor(boxId, {
-        xPivot: "MIN",
+        xPivot: 'MIN',
         yPivot: 1.0,
-        zPivot: "MAX",
+        zPivot: 'MAX',
       });
 
       const mesh = flock.scene.getMeshByID(boxId);
-      expect(mesh.metadata.pivotSettings.x).to.equal("MIN");
+      expect(mesh.metadata.pivotSettings.x).to.equal('MIN');
       expect(mesh.metadata.pivotSettings.y).to.equal(1.0);
-      expect(mesh.metadata.pivotSettings.z).to.equal("MAX");
+      expect(mesh.metadata.pivotSettings.z).to.equal('MAX');
     });
 
-    it("should set partial pivot point parameters", async function () {
-      const boxId = flock.createBox("test-box-partial-pivot", {
+    it('should set partial pivot point parameters', async function () {
+      const boxId = flock.createBox('test-box-partial-pivot', {
         color: testColors[0],
         width: 2,
         height: 2,
@@ -397,16 +378,16 @@ export function runScaleTests(flock) {
       });
       testBoxIds.push(boxId);
 
-      await flock.setAnchor(boxId, { xPivot: "MIN" });
+      await flock.setAnchor(boxId, { xPivot: 'MIN' });
 
       const mesh = flock.scene.getMeshByID(boxId);
-      expect(mesh.metadata.pivotSettings.x).to.equal("MIN");
-      expect(mesh.metadata.pivotSettings.y).to.equal("MIN"); // <- was CENTER
-      expect(mesh.metadata.pivotSettings.z).to.equal("CENTER");
+      expect(mesh.metadata.pivotSettings.x).to.equal('MIN');
+      expect(mesh.metadata.pivotSettings.y).to.equal('MIN'); // <- was CENTER
+      expect(mesh.metadata.pivotSettings.z).to.equal('CENTER');
     });
 
-    it("should handle invalid string values by defaulting to CENTER", async function () {
-      const boxId = flock.createBox("test-box-invalid-pivot", {
+    it('should handle invalid string values by defaulting to CENTER', async function () {
+      const boxId = flock.createBox('test-box-invalid-pivot', {
         color: testColors[1],
         width: 2,
         height: 2,
@@ -416,19 +397,19 @@ export function runScaleTests(flock) {
       testBoxIds.push(boxId);
 
       await flock.setAnchor(boxId, {
-        xPivot: "INVALID_VALUE",
-        yPivot: "ANOTHER_INVALID",
-        zPivot: "CENTER",
+        xPivot: 'INVALID_VALUE',
+        yPivot: 'ANOTHER_INVALID',
+        zPivot: 'CENTER',
       });
 
       const mesh = flock.scene.getMeshByID(boxId);
-      expect(mesh.metadata.pivotSettings.x).to.equal("INVALID_VALUE");
-      expect(mesh.metadata.pivotSettings.y).to.equal("ANOTHER_INVALID");
-      expect(mesh.metadata.pivotSettings.z).to.equal("CENTER");
+      expect(mesh.metadata.pivotSettings.x).to.equal('INVALID_VALUE');
+      expect(mesh.metadata.pivotSettings.y).to.equal('ANOTHER_INVALID');
+      expect(mesh.metadata.pivotSettings.z).to.equal('CENTER');
     });
 
-    it("should apply pivot point to child meshes", async function () {
-      const boxId = flock.createBox("test-box-with-children", {
+    it('should apply pivot point to child meshes', async function () {
+      const boxId = flock.createBox('test-box-with-children', {
         color: testColors[2],
         width: 2,
         height: 2,
@@ -439,9 +420,9 @@ export function runScaleTests(flock) {
 
       // Assuming there's a way to add child meshes or they exist
       await flock.setAnchor(boxId, {
-        xPivot: "MIN",
-        yPivot: "MIN",
-        zPivot: "MIN",
+        xPivot: 'MIN',
+        yPivot: 'MIN',
+        zPivot: 'MIN',
       });
 
       const mesh = flock.scene.getMeshByID(boxId);
@@ -481,8 +462,8 @@ export function runScaleTests(flock) {
       });
     });
 
-    it("should preserve existing metadata when setting pivot", async function () {
-      const boxId = flock.createBox("test-box-preserve-metadata", {
+    it('should preserve existing metadata when setting pivot', async function () {
+      const boxId = flock.createBox('test-box-preserve-metadata', {
         color: testColors[3],
         width: 2,
         height: 2,
@@ -493,12 +474,12 @@ export function runScaleTests(flock) {
 
       const mesh = flock.scene.getMeshByID(boxId);
       mesh.metadata = mesh.metadata || {};
-      mesh.metadata.customProperty = "test-value";
+      mesh.metadata.customProperty = 'test-value';
 
-      await flock.setAnchor(boxId, { xPivot: "MAX" });
+      await flock.setAnchor(boxId, { xPivot: 'MAX' });
 
-      expect(mesh.metadata.customProperty).to.equal("test-value");
-      expect(mesh.metadata.pivotSettings.x).to.equal("MAX");
+      expect(mesh.metadata.customProperty).to.equal('test-value');
+      expect(mesh.metadata.pivotSettings.x).to.equal('MAX');
     });
   });
 }

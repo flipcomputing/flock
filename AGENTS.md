@@ -14,6 +14,7 @@
 - Review code for unnecessary complexity
 
 ## Style
+
 - Match the existing style
 - Comments should be infrequent
 - Comments should be genuinely noteworthy
@@ -27,4 +28,3 @@
 - If user verification is needed, describe the test to be carried out and request confirmation
 - Don't introduce security issues
 - Don't introduce changes that would break offline PWA behaviour
-

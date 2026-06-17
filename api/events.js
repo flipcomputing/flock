@@ -1,4 +1,3 @@
-
 let flock;
 
 export function setFlockReference(ref) {
@@ -11,15 +10,13 @@ export const flockEvents = {
   */
 
   onEvent(eventName, handler, once = false) {
-    if (typeof handler !== "function") {
-      console.warn("onEvent: handler must be a function");
+    if (typeof handler !== 'function') {
+      console.warn('onEvent: handler must be a function');
       return;
     }
     eventName = flock.sanitizeEventName(eventName);
     if (!flock.isAllowedEventName(eventName)) {
-      console.warn(
-        `Event name ${eventName} is reserved and cannot be broadcasted.`,
-      );
+      console.warn(`Event name ${eventName} is reserved and cannot be broadcasted.`);
       return;
     }
     const signal = flock.abortController?.signal;
@@ -40,19 +37,17 @@ export const flockEvents = {
     }
 
     signal?.addEventListener(
-      "abort",
+      'abort',
       () => {
         flock.events[eventName]?.remove(observer);
       },
-      { once: true },
+      { once: true }
     );
   },
   broadcastEvent(eventName, data) {
     eventName = flock.sanitizeEventName(eventName);
     if (!flock.isAllowedEventName(eventName)) {
-      console.warn(
-        `Event name ${eventName} is reserved and cannot be broadcasted.`,
-      );
+      console.warn(`Event name ${eventName} is reserved and cannot be broadcasted.`);
       return;
     }
     if (flock.events && flock.events[eventName]) {
@@ -60,8 +55,8 @@ export const flockEvents = {
     }
   },
   whenActionEvent(action, callback, isReleased = false) {
-    if (typeof callback !== "function") {
-      console.warn("whenActionEvent: callback must be a function");
+    if (typeof callback !== 'function') {
+      console.warn('whenActionEvent: callback must be a function');
       return;
     }
     const signal = flock.abortController?.signal;
@@ -74,7 +69,7 @@ export const flockEvents = {
     if (isReleased) {
       const upObs = flock.inputManager.onActionUpObservable;
       const observer = upObs.add(handler);
-      signal?.addEventListener("abort", () => upObs.remove(observer), {
+      signal?.addEventListener('abort', () => upObs.remove(observer), {
         once: true,
       });
     } else {
@@ -85,29 +80,31 @@ export const flockEvents = {
       const downObserver = downObs.add(handler);
       const repeatObserver = repeatObs.add(handler);
       signal?.addEventListener(
-        "abort",
+        'abort',
         () => {
           downObs.remove(downObserver);
           repeatObs.remove(repeatObserver);
         },
-        { once: true },
+        { once: true }
       );
     }
   },
   whenKeyEvent(key, callback, isReleased = false) {
-    if (typeof callback !== "function") {
-      console.warn("whenKeyEvent: callback must be a function");
+    if (typeof callback !== 'function') {
+      console.warn('whenKeyEvent: callback must be a function');
       return;
     }
     const signal = flock.abortController?.signal;
     if (signal?.aborted) return;
 
-    const handler = (k) => { if (k === key) callback(); };
+    const handler = (k) => {
+      if (k === key) callback();
+    };
 
     if (isReleased) {
       const upObs = flock.inputManager.onKeyUpObservable;
       const observer = upObs.add(handler);
-      signal?.addEventListener("abort", () => upObs.remove(observer), {
+      signal?.addEventListener('abort', () => upObs.remove(observer), {
         once: true,
       });
     } else {
@@ -118,12 +115,12 @@ export const flockEvents = {
       const downObserver = downObs.add(handler);
       const repeatObserver = repeatObs.add(handler);
       signal?.addEventListener(
-        "abort",
+        'abort',
         () => {
           downObs.remove(downObserver);
           repeatObs.remove(repeatObserver);
         },
-        { once: true },
+        { once: true }
       );
     }
   },
@@ -137,7 +134,7 @@ export const flockEvents = {
     // Function to run the action
     const runAction = async () => {
       if (isDisposed) {
-        console.log("Scene is disposed. Exiting action.");
+        console.log('Scene is disposed. Exiting action.');
         return; // Exit if the scene is disposed
       }
 
@@ -153,7 +150,7 @@ export const flockEvents = {
         }
         await action();
       } catch (error) {
-        console.log("Error while running action:", error);
+        console.log('Error while running action:', error);
       } finally {
         isActionRunning = false;
         if (!isDisposed) {
@@ -175,7 +172,7 @@ export const flockEvents = {
     flock.scene.onDisposeObservable.addOnce(disposeHandler);
   },
   isAllowedEventName(eventName) {
-    if (!eventName || typeof eventName !== "string") {
+    if (!eventName || typeof eventName !== 'string') {
       return false;
     }
 
@@ -184,14 +181,7 @@ export const flockEvents = {
     }
 
     const lower = eventName.toLowerCase();
-    const reservedPrefixes = [
-      "_",
-      "on",
-      "system",
-      "internal",
-      "babylon",
-      "flock",
-    ];
+    const reservedPrefixes = ['_', 'on', 'system', 'internal', 'babylon', 'flock'];
     if (reservedPrefixes.some((prefix) => lower.startsWith(prefix))) {
       return false;
     }
@@ -204,15 +194,12 @@ export const flockEvents = {
     return true;
   },
   sanitizeEventName(eventName) {
-    if (typeof eventName !== "string") {
-      return "";
+    if (typeof eventName !== 'string') {
+      return '';
     }
     // Remove disallowed characters (symbols, control chars), allow emoji, spaces, letters, numbers
     // This allows everything except common punctuation and control characters
-    const clean = eventName.replace(
-      /[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/g,
-      "",
-    );
+    const clean = eventName.replace(/[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/g, '');
     return clean.substring(0, 50);
   },
 };

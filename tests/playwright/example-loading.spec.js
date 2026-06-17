@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
 
 async function installFetchRecorder(page) {
   await page.addInitScript(() => {
@@ -6,7 +6,7 @@ async function installFetchRecorder(page) {
     window.__fetchCalls = [];
     window.fetch = (input, init) => {
       const value =
-        typeof input === "string"
+        typeof input === 'string'
           ? input
           : input instanceof URL
             ? input.href
@@ -18,8 +18,8 @@ async function installFetchRecorder(page) {
 }
 
 async function waitForWorkspace(page) {
-  await page.waitForSelector("#exampleSelect", {
-    state: "visible",
+  await page.waitForSelector('#exampleSelect', {
+    state: 'visible',
     timeout: 20000,
   });
   await page.waitForFunction(
@@ -27,7 +27,7 @@ async function waitForWorkspace(page) {
       const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
       return !!ws;
     },
-    { timeout: 20000 },
+    { timeout: 20000 }
   );
 }
 
@@ -35,64 +35,61 @@ async function fetchCalls(page) {
   return page.evaluate(() => [...(window.__fetchCalls || [])]);
 }
 
-test.describe("Example project loading uses relative bundled asset paths", () => {
-  test("startup, new, dropdown, and execution fallback all fetch relative example paths", async ({
+test.describe('Example project loading uses relative bundled asset paths', () => {
+  test('startup, new, dropdown, and execution fallback all fetch relative example paths', async ({
     page,
   }) => {
     await installFetchRecorder(page);
-    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await waitForWorkspace(page);
 
     await page.waitForFunction(
-      () => (window.__fetchCalls || []).includes("examples/starter.flock"),
-      { timeout: 20000 },
+      () => (window.__fetchCalls || []).includes('examples/starter.flock'),
+      { timeout: 20000 }
     );
 
-    const projectMenu = page.locator("#exampleSelect");
+    const projectMenu = page.locator('#exampleSelect');
 
-    await projectMenu.selectOption("examples/new.flock");
-    await page.waitForFunction(
-      () => (window.__fetchCalls || []).includes("examples/new.flock"),
-      { timeout: 20000 },
-    );
+    await projectMenu.selectOption('examples/new.flock');
+    await page.waitForFunction(() => (window.__fetchCalls || []).includes('examples/new.flock'), {
+      timeout: 20000,
+    });
 
-    await projectMenu.selectOption("examples/snow_globe.flock");
+    await projectMenu.selectOption('examples/snow_globe.flock');
     await page.waitForFunction(
-      () => (window.__fetchCalls || []).includes("examples/snow_globe.flock"),
-      { timeout: 20000 },
+      () => (window.__fetchCalls || []).includes('examples/snow_globe.flock'),
+      { timeout: 20000 }
     );
 
     await page.evaluate(async () => {
-      const mod = await import("/flock.js");
+      const mod = await import('/flock.js');
       mod.flock.engineReady = true;
       const originalRunCode = mod.flock.runCode.bind(mod.flock);
       let failedOnce = false;
       mod.flock.runCode = async (...args) => {
         if (!failedOnce) {
           failedOnce = true;
-          throw new Error("Intentional test execution failure");
+          throw new Error('Intentional test execution failure');
         }
         return originalRunCode(...args);
       };
     });
 
-    await page.locator("#runCodeButton").click();
+    await page.locator('#runCodeButton').click();
     await page.waitForFunction(
       () =>
-        (window.__fetchCalls || []).filter(
-          (call) => call === "examples/starter.flock",
-        ).length >= 2,
-      { timeout: 20000 },
+        (window.__fetchCalls || []).filter((call) => call === 'examples/starter.flock').length >= 2,
+      { timeout: 20000 }
     );
 
     const calls = await fetchCalls(page);
-    const exampleCalls = calls.filter((call) => call.startsWith("examples/"));
+    const exampleCalls = calls.filter((call) => call.startsWith('examples/'));
     expect(exampleCalls).toEqual(
       expect.arrayContaining([
-        "examples/starter.flock",
-        "examples/new.flock",
-        "examples/snow_globe.flock",
-      ]),
+        'examples/starter.flock',
+        'examples/new.flock',
+        'examples/snow_globe.flock',
+      ])
     );
     expect(exampleCalls.every((call) => !/^https?:\/\//.test(call))).toBe(true);
   });

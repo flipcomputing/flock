@@ -1,9 +1,9 @@
-import { flock } from "../flock.js";
-import { currentView, isNarrowScreen, showCanvasView } from "./view.js";
-import { handleError } from "../ui/notifications.js";
-import { setGizmoManager, disposeGizmoManager } from "../ui/gizmos.js";
-import { javascriptGenerator } from "blockly/javascript";
-import { workspace } from "./blocklyinit.js";
+import { flock } from '../flock.js';
+import { currentView, isNarrowScreen, showCanvasView } from './view.js';
+import { handleError } from '../ui/notifications.js';
+import { setGizmoManager, disposeGizmoManager } from '../ui/gizmos.js';
+import { javascriptGenerator } from 'blockly/javascript';
+import { workspace } from './blocklyinit.js';
 
 let isExecuting = false;
 
@@ -34,7 +34,7 @@ export async function executeCode(options = {}) {
   //console.log("Engine ready");
 
   // If on a narrow screen and currently showing code, switch to canvas
-  if (isNarrowScreen() && currentView === "code") {
+  if (isNarrowScreen() && currentView === 'code') {
     showCanvasView();
   }
 
@@ -54,7 +54,7 @@ export async function executeCode(options = {}) {
     await flock.runCode(code, options);
   } catch (error) {
     isExecuting = false; // Reset the flag if there's an error
-    handleError(error, { source: "project-run", fatal: false });
+    handleError(error, { source: 'project-run', fatal: false });
     return; // Exit after handling the error
   }
 
@@ -67,7 +67,7 @@ export async function executeCode(options = {}) {
         enablePopup: false,
       });
     } catch (error) {
-      console.error("Error showing debug layer:", error);
+      console.error('Error showing debug layer:', error);
     }
   }
 
@@ -90,7 +90,7 @@ export function stopCode() {
   flock.removeEventListeners();
 
   // If on a narrow screen and currently showing code, switch to canvas
-  if (isNarrowScreen() && currentView === "code") {
+  if (isNarrowScreen() && currentView === 'code') {
     showCanvasView();
   }
 

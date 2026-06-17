@@ -1,11 +1,11 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 function toFixedNumber(value) {
   return parseFloat(value.toFixed(2));
 }
 
 export function runGetPropertyTests(flock) {
-  describe("Sensing getProperty API @property", function () {
+  describe('Sensing getProperty API @property', function () {
     this.timeout(10000);
 
     const createdIds = [];
@@ -25,20 +25,20 @@ export function runGetPropertyTests(flock) {
       flock.BABYLON.SceneLoader.ShowLoadingScreen = false;
 
       flock.mainLight = new flock.BABYLON.HemisphericLight(
-        "mainLight",
+        'mainLight',
         new flock.BABYLON.Vector3(0, 1, 0),
-        flock.scene,
+        flock.scene
       );
 
       flock.scene.activeCamera = new flock.BABYLON.FreeCamera(
-        "activeCamera",
+        'activeCamera',
         new flock.BABYLON.Vector3(0, 0, 0),
-        flock.scene,
+        flock.scene
       );
 
       const physicsMock = new Proxy(
         {
-          name: "MockPhysics",
+          name: 'MockPhysics',
           getPluginVersion: () => 2,
           isInitialized: () => true,
           _checkIsReady: () => true,
@@ -49,12 +49,9 @@ export function runGetPropertyTests(flock) {
           getMotionType: () => 1,
           dispose: () => {},
         },
-        { get: (target, prop) => (prop in target ? target[prop] : () => {}) },
+        { get: (target, prop) => (prop in target ? target[prop] : () => {}) }
       );
-      flock.scene.enablePhysics(
-        new flock.BABYLON.Vector3(0, -9.81, 0),
-        physicsMock,
-      );
+      flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), physicsMock);
     });
 
     afterEach(function () {
@@ -74,13 +71,13 @@ export function runGetPropertyTests(flock) {
       }
     });
 
-    it("returns null for missing meshes", function () {
-      const result = flock.getProperty("missing-mesh", "POSITION_X");
+    it('returns null for missing meshes', function () {
+      const result = flock.getProperty('missing-mesh', 'POSITION_X');
       expect(result).to.be.null;
     });
 
-    it("reads position values from mesh anchor/base coordinates", function () {
-      const meshId = flock.createBox("getProperty-position", {
+    it('reads position values from mesh anchor/base coordinates', function () {
+      const meshId = flock.createBox('getProperty-position', {
         width: 2,
         height: 4,
         depth: 6,
@@ -91,19 +88,13 @@ export function runGetPropertyTests(flock) {
       const mesh = flock.scene.getMeshByName(meshId);
       const position = flock._getAnchor(mesh);
 
-      expect(flock.getProperty(meshId, "POSITION_X")).to.equal(
-        toFixedNumber(position.x),
-      );
-      expect(flock.getProperty(meshId, "POSITION_Y")).to.equal(
-        toFixedNumber(position.y),
-      );
-      expect(flock.getProperty(meshId, "POSITION_Z")).to.equal(
-        toFixedNumber(position.z),
-      );
+      expect(flock.getProperty(meshId, 'POSITION_X')).to.equal(toFixedNumber(position.x));
+      expect(flock.getProperty(meshId, 'POSITION_Y')).to.equal(toFixedNumber(position.y));
+      expect(flock.getProperty(meshId, 'POSITION_Z')).to.equal(toFixedNumber(position.z));
     });
 
-    it("falls back to getBlockPositionFromMesh when anchor data is unavailable", function () {
-      const meshId = flock.createBox("getProperty-position-fallback", {
+    it('falls back to getBlockPositionFromMesh when anchor data is unavailable', function () {
+      const meshId = flock.createBox('getProperty-position-fallback', {
         width: 2,
         height: 4,
         depth: 2,
@@ -117,22 +108,16 @@ export function runGetPropertyTests(flock) {
 
       flock._getAnchor = () => null;
       try {
-        expect(flock.getProperty(meshId, "POSITION_X")).to.equal(
-          toFixedNumber(expected.x),
-        );
-        expect(flock.getProperty(meshId, "POSITION_Y")).to.equal(
-          toFixedNumber(expected.y),
-        );
-        expect(flock.getProperty(meshId, "POSITION_Z")).to.equal(
-          toFixedNumber(expected.z),
-        );
+        expect(flock.getProperty(meshId, 'POSITION_X')).to.equal(toFixedNumber(expected.x));
+        expect(flock.getProperty(meshId, 'POSITION_Y')).to.equal(toFixedNumber(expected.y));
+        expect(flock.getProperty(meshId, 'POSITION_Z')).to.equal(toFixedNumber(expected.z));
       } finally {
         flock._getAnchor = originalGetAnchor;
       }
     });
 
-    it("returns rotation in degrees from quaternions", function () {
-      const meshId = flock.createBox("getProperty-rotation", {
+    it('returns rotation in degrees from quaternions', function () {
+      const meshId = flock.createBox('getProperty-rotation', {
         width: 1,
         height: 1,
         depth: 1,
@@ -150,24 +135,24 @@ export function runGetPropertyTests(flock) {
       mesh.rotationQuaternion = flock.BABYLON.Quaternion.FromEulerAngles(
         flock.BABYLON.Tools.ToRadians(desiredRotation.x),
         flock.BABYLON.Tools.ToRadians(desiredRotation.y),
-        flock.BABYLON.Tools.ToRadians(desiredRotation.z),
+        flock.BABYLON.Tools.ToRadians(desiredRotation.z)
       );
 
       const rotation = mesh.rotationQuaternion.toEulerAngles();
 
-      expect(flock.getProperty(meshId, "ROTATION_X")).to.equal(
-        toFixedNumber(flock.BABYLON.Tools.ToDegrees(rotation.x)),
+      expect(flock.getProperty(meshId, 'ROTATION_X')).to.equal(
+        toFixedNumber(flock.BABYLON.Tools.ToDegrees(rotation.x))
       );
-      expect(flock.getProperty(meshId, "ROTATION_Y")).to.equal(
-        toFixedNumber(flock.BABYLON.Tools.ToDegrees(rotation.y)),
+      expect(flock.getProperty(meshId, 'ROTATION_Y')).to.equal(
+        toFixedNumber(flock.BABYLON.Tools.ToDegrees(rotation.y))
       );
-      expect(flock.getProperty(meshId, "ROTATION_Z")).to.equal(
-        toFixedNumber(flock.BABYLON.Tools.ToDegrees(rotation.z)),
+      expect(flock.getProperty(meshId, 'ROTATION_Z')).to.equal(
+        toFixedNumber(flock.BABYLON.Tools.ToDegrees(rotation.z))
       );
     });
 
-    it("reports scale and bounding box size", function () {
-      const meshId = flock.createBox("getProperty-scale", {
+    it('reports scale and bounding box size', function () {
+      const meshId = flock.createBox('getProperty-scale', {
         width: 2,
         height: 4,
         depth: 6,
@@ -185,28 +170,16 @@ export function runGetPropertyTests(flock) {
       const sizeY = boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
       const sizeZ = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
 
-      expect(flock.getProperty(meshId, "SCALE_X")).to.equal(
-        toFixedNumber(mesh.scaling.x),
-      );
-      expect(flock.getProperty(meshId, "SCALE_Y")).to.equal(
-        toFixedNumber(mesh.scaling.y),
-      );
-      expect(flock.getProperty(meshId, "SCALE_Z")).to.equal(
-        toFixedNumber(mesh.scaling.z),
-      );
-      expect(flock.getProperty(meshId, "SIZE_X")).to.equal(
-        toFixedNumber(sizeX),
-      );
-      expect(flock.getProperty(meshId, "SIZE_Y")).to.equal(
-        toFixedNumber(sizeY),
-      );
-      expect(flock.getProperty(meshId, "SIZE_Z")).to.equal(
-        toFixedNumber(sizeZ),
-      );
+      expect(flock.getProperty(meshId, 'SCALE_X')).to.equal(toFixedNumber(mesh.scaling.x));
+      expect(flock.getProperty(meshId, 'SCALE_Y')).to.equal(toFixedNumber(mesh.scaling.y));
+      expect(flock.getProperty(meshId, 'SCALE_Z')).to.equal(toFixedNumber(mesh.scaling.z));
+      expect(flock.getProperty(meshId, 'SIZE_X')).to.equal(toFixedNumber(sizeX));
+      expect(flock.getProperty(meshId, 'SIZE_Y')).to.equal(toFixedNumber(sizeY));
+      expect(flock.getProperty(meshId, 'SIZE_Z')).to.equal(toFixedNumber(sizeZ));
     });
 
-    it("uses world coordinates for min and max bounds", function () {
-      const meshId = flock.createBox("getProperty-bounds", {
+    it('uses world coordinates for min and max bounds', function () {
+      const meshId = flock.createBox('getProperty-bounds', {
         width: 2,
         height: 2,
         depth: 2,
@@ -220,38 +193,38 @@ export function runGetPropertyTests(flock) {
 
       const { boundingBox } = mesh.getBoundingInfo();
 
-      expect(flock.getProperty(meshId, "MIN_X")).to.be.closeTo(
+      expect(flock.getProperty(meshId, 'MIN_X')).to.be.closeTo(
         toFixedNumber(boundingBox.minimumWorld.x),
-        0.01,
+        0.01
       );
-      expect(flock.getProperty(meshId, "MAX_X")).to.be.closeTo(
+      expect(flock.getProperty(meshId, 'MAX_X')).to.be.closeTo(
         toFixedNumber(boundingBox.maximumWorld.x),
-        0.01,
+        0.01
       );
-      expect(flock.getProperty(meshId, "MIN_Z")).to.be.closeTo(
+      expect(flock.getProperty(meshId, 'MIN_Z')).to.be.closeTo(
         toFixedNumber(boundingBox.minimumWorld.z),
-        0.01,
+        0.01
       );
-      expect(flock.getProperty(meshId, "MAX_Z")).to.be.closeTo(
+      expect(flock.getProperty(meshId, 'MAX_Z')).to.be.closeTo(
         toFixedNumber(boundingBox.maximumWorld.z),
-        0.01,
+        0.01
       );
     });
 
-    it("reads material alpha and colour", async function () {
-      const meshId = flock.createBox("getProperty-material", {
+    it('reads material alpha and colour', async function () {
+      const meshId = flock.createBox('getProperty-material', {
         width: 1,
         height: 1,
         depth: 1,
         position: [0, 0, 0],
-        color: "#123456",
+        color: '#123456',
       });
       createdIds.push(meshId);
 
       await flock.setAlpha(meshId, { value: 0.25 });
 
-      expect(flock.getProperty(meshId, "ALPHA")).to.equal(0.25);
-      expect(flock.getProperty(meshId, "COLOUR")).to.equal("#123456");
+      expect(flock.getProperty(meshId, 'ALPHA')).to.equal(0.25);
+      expect(flock.getProperty(meshId, 'COLOUR')).to.equal('#123456');
     });
 
     // Helper to wait for the next frame and ensure properties are updated
@@ -260,33 +233,33 @@ export function runGetPropertyTests(flock) {
       flock.scene.render();
     }
 
-    it("reads the VISIBLE property after hide and show", async function () {
-      const meshId = flock.createBox("getProperty-visible", {
+    it('reads the VISIBLE property after hide and show', async function () {
+      const meshId = flock.createBox('getProperty-visible', {
         width: 1,
         height: 1,
         depth: 1,
         position: [0, 0, 0],
-        color: "#123456",
+        color: '#123456',
       });
       createdIds.push(meshId);
 
       // Should be visible by default
       await tick();
-      expect(flock.getProperty(meshId, "VISIBLE")).to.be.true;
+      expect(flock.getProperty(meshId, 'VISIBLE')).to.be.true;
 
       // Test hide()
       await flock.hide(meshId);
       await tick();
-      expect(flock.getProperty(meshId, "VISIBLE")).to.be.false;
+      expect(flock.getProperty(meshId, 'VISIBLE')).to.be.false;
 
       // Test show()
       await flock.show(meshId);
       await tick();
-      expect(flock.getProperty(meshId, "VISIBLE")).to.be.true;
+      expect(flock.getProperty(meshId, 'VISIBLE')).to.be.true;
     });
 
-    it("returns null for DESCRIPTION when not set", function () {
-      const meshId = flock.createBox("getProperty-description-unset", {
+    it('returns null for DESCRIPTION when not set', function () {
+      const meshId = flock.createBox('getProperty-description-unset', {
         width: 1,
         height: 1,
         depth: 1,
@@ -294,11 +267,11 @@ export function runGetPropertyTests(flock) {
       });
       createdIds.push(meshId);
 
-      expect(flock.getProperty(meshId, "DESCRIPTION")).to.be.null;
+      expect(flock.getProperty(meshId, 'DESCRIPTION')).to.be.null;
     });
 
-    it("reads DESCRIPTION set by describeMesh", async function () {
-      const meshId = flock.createBox("getProperty-description", {
+    it('reads DESCRIPTION set by describeMesh', async function () {
+      const meshId = flock.createBox('getProperty-description', {
         width: 1,
         height: 1,
         depth: 1,
@@ -306,14 +279,14 @@ export function runGetPropertyTests(flock) {
       });
       createdIds.push(meshId);
 
-      await flock.describeMesh(meshId, "a red cube");
+      await flock.describeMesh(meshId, 'a red cube');
       await tick();
 
-      expect(flock.getProperty(meshId, "DESCRIPTION")).to.equal("a red cube");
+      expect(flock.getProperty(meshId, 'DESCRIPTION')).to.equal('a red cube');
     });
 
-    it("reads updated DESCRIPTION after describeMesh is called again", async function () {
-      const meshId = flock.createBox("getProperty-description-update", {
+    it('reads updated DESCRIPTION after describeMesh is called again', async function () {
+      const meshId = flock.createBox('getProperty-description-update', {
         width: 1,
         height: 1,
         depth: 1,
@@ -321,17 +294,13 @@ export function runGetPropertyTests(flock) {
       });
       createdIds.push(meshId);
 
-      await flock.describeMesh(meshId, "first description");
+      await flock.describeMesh(meshId, 'first description');
       await tick();
-      expect(flock.getProperty(meshId, "DESCRIPTION")).to.equal(
-        "first description",
-      );
+      expect(flock.getProperty(meshId, 'DESCRIPTION')).to.equal('first description');
 
-      await flock.describeMesh(meshId, "updated description");
+      await flock.describeMesh(meshId, 'updated description');
       await tick();
-      expect(flock.getProperty(meshId, "DESCRIPTION")).to.equal(
-        "updated description",
-      );
+      expect(flock.getProperty(meshId, 'DESCRIPTION')).to.equal('updated description');
     });
   });
 }

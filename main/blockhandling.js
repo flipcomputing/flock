@@ -1,16 +1,16 @@
-import * as Blockly from "blockly";
-import { workspace } from "./blocklyinit.js";
-import { translate } from "./translation.js";
-import { blockHandlerRegistry, refreshReporterAriaLabels } from "../blocks/blocks.js";
-import { announceToScreenReader } from "./input.js";
-import { TOP_BLOCK_TYPES } from "../config.js";
+import * as Blockly from 'blockly';
+import { workspace } from './blocklyinit.js';
+import { translate } from './translation.js';
+import { blockHandlerRegistry, refreshReporterAriaLabels } from '../blocks/blocks.js';
+import { announceToScreenReader } from './input.js';
+import { TOP_BLOCK_TYPES } from '../config.js';
 
 function asBlocklyBlock(candidate) {
-  if (!candidate || typeof candidate !== "object") {
+  if (!candidate || typeof candidate !== 'object') {
     return null;
   }
 
-  return typeof candidate.getNextBlock === "function" ? candidate : null;
+  return typeof candidate.getNextBlock === 'function' ? candidate : null;
 }
 
 function getSelectedBlockFromFocusedNode(node) {
@@ -23,7 +23,7 @@ function getSelectedBlockFromFocusedNode(node) {
     return direct;
   }
 
-  if (typeof node.getSourceBlock === "function") {
+  if (typeof node.getSourceBlock === 'function') {
     return asBlocklyBlock(node.getSourceBlock());
   }
 
@@ -37,16 +37,11 @@ function getSelectedBlockForKeywordShortcut() {
   }
 
   const focusedNode = Blockly.getFocusManager?.()?.getFocusedNode?.();
-  return (
-    getSelectedBlockFromFocusedNode(focusedNode) ||
-    asBlocklyBlock(window.currentBlock)
-  );
+  return getSelectedBlockFromFocusedNode(focusedNode) || asBlocklyBlock(window.currentBlock);
 }
 
 function getViewportCenterCoordinates(activeWorkspace) {
-  const { left, top, width, height } = activeWorkspace
-    .getMetricsManager()
-    .getViewMetrics(true);
+  const { left, top, width, height } = activeWorkspace.getMetricsManager().getViewMetrics(true);
 
   return new Blockly.utils.Coordinate(left + width / 2, top + height / 2);
 }
@@ -65,20 +60,19 @@ function focusBlocklyBlock(block) {
   getBlocklyFocusManager()?.focusNode?.(block);
   block.select?.();
 
-  const focusableElement =
-    block.getFocusableElement?.() || block.getSvgRoot?.();
+  const focusableElement = block.getFocusableElement?.() || block.getSvgRoot?.();
   focusableElement?.focus?.({ preventScroll: true });
 }
 
 function focusKeywordField(block) {
   focusBlocklyBlock(block);
 
-  const textInputField = block.getField("KEYWORD");
+  const textInputField = block.getField('KEYWORD');
   if (textInputField) {
     textInputField.showEditor_();
 
     requestAnimationFrame(() => {
-      const htmlInput = document.querySelector(".blocklyHtmlInput");
+      const htmlInput = document.querySelector('.blocklyHtmlInput');
       htmlInput?.focus?.({ preventScroll: true });
       htmlInput?.select?.();
     });
@@ -120,7 +114,7 @@ export function initializeBlockHandling() {
       const toolbox = workspace.getToolbox();
       const selectedItem = toolbox.getSelectedItem();
 
-      if (selectedItem && selectedItem.getName() === "Snippets") {
+      if (selectedItem && selectedItem.getName() === 'Snippets') {
         window.loadingCode = true;
       } else {
         window.loadingCode = false;
@@ -139,9 +133,7 @@ export function initializeBlockHandling() {
     try {
       const topBlocks = (workspace.getTopBlocks(false) || [])
         .filter((b) => !!b && !b.isInFlyout && !b.isShadow?.())
-        .sort(
-          (a, b) => a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
-        );
+        .sort((a, b) => a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y);
 
       for (const block of topBlocks) {
         if (!blockTypesToCleanUp.includes(block.type)) continue;
@@ -154,7 +146,7 @@ export function initializeBlockHandling() {
           const h = block.getHeightWidth?.().height || 40;
           cursorY += h + spacing;
         } catch (error) {
-          console.warn("Suppressed non-critical error:", error);
+          console.warn('Suppressed non-critical error:', error);
         }
       }
 
@@ -193,7 +185,7 @@ export function initializeBlockHandling() {
           }
         }
       } catch (error) {
-        console.warn("Suppressed non-critical error:", error);
+        console.warn('Suppressed non-critical error:', error);
       }
     } finally {
       Blockly.Events.setGroup(false);
@@ -236,8 +228,7 @@ export function initializeBlockHandling() {
   workspace.addChangeListener((event) => {
     if (event.type === Blockly.Events.BLOCK_DRAG) {
       if (event.isStart) {
-        __dragSessionGroup =
-          event.group || `drag-${Date.now()}-${Math.random()}`;
+        __dragSessionGroup = event.group || `drag-${Date.now()}-${Math.random()}`;
         if (__dragSessionTimer) {
           clearTimeout(__dragSessionTimer);
           __dragSessionTimer = null;
@@ -255,50 +246,50 @@ export function initializeBlockHandling() {
       event.group = __dragSessionGroup;
     }
   });
-  
+
   workspace.addChangeListener(Blockly.Events.disableOrphans);
 
   let cleanupTimeout = null;
 
   // Global keyboard shortcuts
-  document.addEventListener("keydown", function (event) {
+  document.addEventListener('keydown', function (event) {
     // Skip to main content (Alt+M)
-    if (event.altKey && event.key.toLowerCase() === "m") {
+    if (event.altKey && event.key.toLowerCase() === 'm') {
       event.preventDefault();
-      const mainContent = document.getElementById("maincontent");
+      const mainContent = document.getElementById('maincontent');
       if (mainContent) {
         mainContent.focus();
-        announceToScreenReader(translate("focused_main_content"));
+        announceToScreenReader(translate('focused_main_content'));
       }
       return;
     }
 
     // Close modal with Escape
-    if (event.key === "Escape") {
-      const openModals = document.querySelectorAll(".modal:not(.hidden)");
+    if (event.key === 'Escape') {
+      const openModals = document.querySelectorAll('.modal:not(.hidden)');
       openModals.forEach((modal) => {
-        modal.classList.add("hidden");
-        modal.setAttribute("aria-hidden", "true");
-        modal.removeAttribute("aria-modal");
+        modal.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        modal.removeAttribute('aria-modal');
       });
       return;
     }
 
-    if ((event.ctrlKey || event.metaKey) && event.key === ".") {
+    if ((event.ctrlKey || event.metaKey) && event.key === '.') {
       event.preventDefault();
 
-      createKeywordBlockAtViewportCenter("keyword_block");
+      createKeywordBlockAtViewportCenter('keyword_block');
     }
   });
 
   // Handle Enter key for adding new blocks
-  document.addEventListener("keydown", function (event) {
-    if ((event.ctrlKey || event.metaKey) && event.key === "]") {
+  document.addEventListener('keydown', function (event) {
+    if ((event.ctrlKey || event.metaKey) && event.key === ']') {
       const selectedBlock = getSelectedBlockForKeywordShortcut();
       event.preventDefault();
 
       if (!selectedBlock) {
-        createKeywordBlockAtViewportCenter("keyword");
+        createKeywordBlockAtViewportCenter('keyword');
         return;
       }
 
@@ -309,7 +300,7 @@ export function initializeBlockHandling() {
       }
 
       // Create a new keyword block
-      const keywordBlock = workspace.newBlock("keyword");
+      const keywordBlock = workspace.newBlock('keyword');
       window.currentBlock = keywordBlock;
       keywordBlock.initSvg();
       keywordBlock.render();
@@ -321,9 +312,7 @@ export function initializeBlockHandling() {
       }
       selectedBlock.nextConnection.connect(keywordBlock.previousConnection);
       if (currentNextBlock && keywordBlock.nextConnection) {
-        keywordBlock.nextConnection.connect(
-          currentNextBlock.previousConnection,
-        );
+        keywordBlock.nextConnection.connect(currentNextBlock.previousConnection);
       }
 
       // Update our tracking variable to the new block
@@ -339,9 +328,7 @@ export function initializeBlockHandling() {
   workspace.addChangeListener((event) => {
     // Track the currently selected block.
     if (event.type === Blockly.Events.SELECTED) {
-      window.currentBlock = event.newElementId
-        ? workspace.getBlockById(event.newElementId)
-        : null;
+      window.currentBlock = event.newElementId ? workspace.getBlockById(event.newElementId) : null;
     }
 
     // Workaround for Blockly not checking for orphans on key
@@ -417,10 +404,7 @@ export function initializeBlockHandling() {
     }
 
     // Immediate cleanup when a top-level block is collapsed/expanded.
-    if (
-      event.type === Blockly.Events.BLOCK_CHANGE &&
-      event.element === "collapsed"
-    ) {
+    if (event.type === Blockly.Events.BLOCK_CHANGE && event.element === 'collapsed') {
       const block = workspace.getBlockById(event.blockId);
       if (block && !block.getParent()) {
         layoutTopLevelBlocks();
@@ -428,10 +412,7 @@ export function initializeBlockHandling() {
     }
 
     // Purge deleted blocks from the registry, then dispatch to handlers.
-    if (
-      event.type === Blockly.Events.BLOCK_DELETE &&
-      Array.isArray(event.ids)
-    ) {
+    if (event.type === Blockly.Events.BLOCK_DELETE && Array.isArray(event.ids)) {
       for (const id of event.ids) {
         if (!workspace.getBlockById(id)) {
           blockHandlerRegistry.delete(id);
@@ -455,20 +436,20 @@ function enforceMinimumFontSize(input) {
 
   // Set font size immediately if it's less than 16px
   if (currentFontSize < 16) {
-    input.style.fontSize = "16px";
+    input.style.fontSize = '16px';
     input.offsetHeight; // Force reflow to apply the font size change
   }
 
   // Delay focus to prevent zoom
   input.addEventListener(
-    "focus",
+    'focus',
     (event) => {
       event.preventDefault(); // Prevent the default focus action
       setTimeout(() => {
         input.focus(); // Focus the input after a short delay
       }, 50); // Adjust the delay as needed (50ms is usually enough)
     },
-    { once: true },
+    { once: true }
   ); // Add the event listener once for each input
 }
 
@@ -476,13 +457,10 @@ function enforceMinimumFontSize(input) {
 function observeBlocklyInputs() {
   const observer = new MutationObserver((mutationsList) => {
     mutationsList.forEach((mutation) => {
-      if (mutation.type === "childList") {
+      if (mutation.type === 'childList') {
         mutation.addedNodes.forEach((node) => {
           // Check if the added node is an INPUT element with the blocklyHtmlInput class
-          if (
-            node.nodeType === Node.ELEMENT_NODE &&
-            node.classList.contains("blocklyHtmlInput")
-          ) {
+          if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('blocklyHtmlInput')) {
             enforceMinimumFontSize(node); // Set font size and delay focus
           }
         });
@@ -492,8 +470,8 @@ function observeBlocklyInputs() {
 
   // Observe only the Blockly container to avoid scanning the entire document
   const blocklyContainer =
-    workspace?.getParentSvg()?.closest("#blocklyDiv") ??
-    document.getElementById("blocklyDiv") ??
+    workspace?.getParentSvg()?.closest('#blocklyDiv') ??
+    document.getElementById('blocklyDiv') ??
     document.body;
   observer.observe(blocklyContainer, { childList: true, subtree: true });
 }

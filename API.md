@@ -43,8 +43,8 @@ Plays an animation on a specified mesh.
 **Example:**
 
 ```javascript
-await playAnimation("character1", {
-  animationName: "walk",
+await playAnimation('character1', {
+  animationName: 'walk',
   loop: true,
 });
 ```
@@ -64,8 +64,8 @@ Switches to a different animation on a mesh.
 **Example:**
 
 ```javascript
-await switchAnimation("character1", {
-  animationName: "run",
+await switchAnimation('character1', {
+  animationName: 'run',
 });
 ```
 
@@ -86,12 +86,12 @@ Animates a property using keyframes.
 **Example:**
 
 ```javascript
-await animateKeyFrames("box1", {
+await animateKeyFrames('box1', {
   keyframes: [
-    { duration: 0, value: "#FF0000" },
-    { duration: 2, value: "#00FF00" },
+    { duration: 0, value: '#FF0000' },
+    { duration: 2, value: '#00FF00' },
   ],
-  property: "color",
+  property: 'color',
   loop: true,
 });
 ```
@@ -113,12 +113,12 @@ Smoothly moves a mesh to a new position.
 **Example:**
 
 ```javascript
-await glideTo("player", {
+await glideTo('player', {
   x: 5,
   y: 0,
   z: 3,
   duration: 2,
-  easing: "SineEase",
+  easing: 'SineEase',
 });
 ```
 
@@ -139,7 +139,7 @@ Rotates a mesh with animation.
 **Example:**
 
 ```javascript
-await rotateAnim("box1", {
+await rotateAnim('box1', {
   x: 90,
   y: 180,
   z: 0,
@@ -199,14 +199,14 @@ Creates a character model in the scene.
 
 ```javascript
 const player = createCharacter({
-  modelName: "Character2.glb",
-  modelId: "player_unique_id",
+  modelName: 'Character2.glb',
+  modelId: 'player_unique_id',
   scale: 1,
   position: { x: 0, y: 0, z: 0 },
   colors: {
-    hair: "#ffcc00",
-    skin: "#f0d5b1",
-    eyes: "#33cc00",
+    hair: '#ffcc00',
+    skin: '#f0d5b1',
+    eyes: '#33cc00',
   },
 });
 ```
@@ -235,7 +235,7 @@ Creates a box geometry.
 **Example:**
 
 ```javascript
-const box1 = createBox("myBox", "#ff0000", 2, 2, 2, [0, 1, 0]);
+const box1 = createBox('myBox', '#ff0000', 2, 2, 2, [0, 1, 0]);
 ```
 
 #### `createSphere(name, options)`
@@ -268,7 +268,7 @@ Sets the transparency of a mesh.
 **Example:**
 
 ```javascript
-await setAlpha("box1", 0.75);
+await setAlpha('box1', 0.75);
 ```
 
 #### `changeColor(meshName, color)`
@@ -337,7 +337,7 @@ Applies physics properties to a mesh.
 **Example:**
 
 ```javascript
-await setPhysics("player", "DYNAMIC");
+await setPhysics('player', 'DYNAMIC');
 ```
 
 #### `applyForce(meshName, force)`
@@ -358,7 +358,7 @@ Creates a ground plane.
 **Example:**
 
 ```javascript
-createGround("#ffffff", "ground");
+createGround('#ffffff', 'ground');
 ```
 
 #### `setSky(color)`
@@ -372,7 +372,7 @@ Sets the skybox/environment color.
 **Example:**
 
 ```javascript
-setSky("#ffffff");
+setSky('#ffffff');
 ```
 
 #### `lightIntensity(intensity)`
@@ -395,8 +395,8 @@ Adds fog to the scene for atmospheric effects.
 
 ```javascript
 setFog({
-  fogColorHex: "#ffffff",
-  fogMode: "LINEAR",
+  fogColorHex: '#ffffff',
+  fogMode: 'LINEAR',
   fogDensity: 0.1,
   fogStart: 50,
   fogEnd: 100,
@@ -431,7 +431,7 @@ Attaches the camera to follow a specific mesh.
 **Example:**
 
 ```javascript
-await attachCamera("player", 7);
+await attachCamera('player', 7);
 ```
 
 ### UI
@@ -449,7 +449,7 @@ Displays text in the UI.
 **Example:**
 
 ```javascript
-printText("🌈 Hello", 30, "#000080");
+printText('🌈 Hello', 30, '#000080');
 ```
 
 #### `buttonControls(type, enabled, color)`
@@ -465,7 +465,7 @@ Creates button controls for user interaction.
 **Example:**
 
 ```javascript
-buttonControls("ARROWS", true, "#cc33cc");
+buttonControls('ARROWS', true, '#cc33cc');
 ```
 
 #### `say(meshName, text, duration)`
@@ -527,7 +527,7 @@ Checks if a specific key is currently pressed.
 **Example:**
 
 ```javascript
-if (keyPressed("w")) {
+if (keyPressed('w')) {
   // Move forward
 }
 ```
@@ -543,7 +543,7 @@ Checks if a movement or action input is active across keyboard, touch, or XR con
 **Example:**
 
 ```javascript
-if (actionPressed("FORWARD")) {
+if (actionPressed('FORWARD')) {
   // Move forward regardless of whether the player is using W, Z, touch, or XR input
 }
 ```
@@ -561,7 +561,7 @@ Run a callback when the chosen action is pressed or released across keyboard, to
 **Example:**
 
 ```javascript
-whenActionEvent("BUTTON1", async () => {
+whenActionEvent('BUTTON1', async () => {
   // Respond to the action button, regardless of whether it came from E, touch, or XR
 });
 ```
@@ -589,11 +589,11 @@ Runs a function in an infinite loop.
 
 ```javascript
 forever(async () => {
-  if (keyPressed("w")) {
-    moveForward("player", 3);
-    await switchAnimation("player", { animationName: "Walk" });
+  if (keyPressed('w')) {
+    moveForward('player', 3);
+    await switchAnimation('player', { animationName: 'Walk' });
   } else {
-    await switchAnimation("player", { animationName: "Idle" });
+    await switchAnimation('player', { animationName: 'Idle' });
   }
 });
 ```
@@ -617,19 +617,19 @@ For a complete working example, see [example.html](example.html) in the reposito
 ### Basic Scene Setup
 
 ```javascript
-setSky("#ffffff");
-createGround("#ffffff", "ground");
-printText("🌈 Hello", 30, "#000080");
-buttonControls("ARROWS", true, "#cc33cc");
+setSky('#ffffff');
+createGround('#ffffff', 'ground');
+printText('🌈 Hello', 30, '#000080');
+buttonControls('ARROWS', true, '#cc33cc');
 
 const player = createCharacter({
-  modelName: "Character2.glb",
-  modelId: "player_unique_id",
+  modelName: 'Character2.glb',
+  modelId: 'player_unique_id',
   scale: 1,
   position: { x: 0, y: 0, z: 0 },
 });
 
-await setPhysics(player, "DYNAMIC");
+await setPhysics(player, 'DYNAMIC');
 await attachCamera(player, 7);
 ```
 
@@ -637,14 +637,14 @@ await attachCamera(player, 7);
 
 ```javascript
 forever(async () => {
-  if (keyPressed("w")) {
-    moveForward("player", 3);
-    await switchAnimation("player", { animationName: "Walk" });
-  } else if (keyPressed("s")) {
-    moveForward("player", -3);
-    await switchAnimation("player", { animationName: "Walk" });
+  if (keyPressed('w')) {
+    moveForward('player', 3);
+    await switchAnimation('player', { animationName: 'Walk' });
+  } else if (keyPressed('s')) {
+    moveForward('player', -3);
+    await switchAnimation('player', { animationName: 'Walk' });
   } else {
-    await switchAnimation("player", { animationName: "Idle" });
+    await switchAnimation('player', { animationName: 'Idle' });
   }
 });
 ```
@@ -653,23 +653,23 @@ forever(async () => {
 
 ```javascript
 // Keyframe animation
-await animateKeyFrames("box1", {
+await animateKeyFrames('box1', {
   keyframes: [
-    { duration: 0, value: "#FF0000" },
-    { duration: 2, value: "#00FF00" },
-    { duration: 4, value: "#0000FF" },
+    { duration: 0, value: '#FF0000' },
+    { duration: 2, value: '#00FF00' },
+    { duration: 4, value: '#0000FF' },
   ],
-  property: "color",
+  property: 'color',
   loop: true,
 });
 
 // Smooth movement
-await glideTo("player", {
+await glideTo('player', {
   x: 10,
   y: 0,
   z: 5,
   duration: 3,
-  easing: "SineEase",
+  easing: 'SineEase',
 });
 ```
 

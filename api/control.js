@@ -17,7 +17,7 @@ export const flockControl = {
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         if (flock.abortController?.signal) {
-          flock.abortController.signal.removeEventListener("abort", onAbort);
+          flock.abortController.signal.removeEventListener('abort', onAbort);
         }
         resolve();
       }, ms);
@@ -25,18 +25,18 @@ export const flockControl = {
       const onAbort = () => {
         clearTimeout(timeoutId); // Clear the timeout if aborted
         if (flock.abortController?.signal) {
-          flock.abortController.signal.removeEventListener("abort", onAbort);
+          flock.abortController.signal.removeEventListener('abort', onAbort);
         }
         // Instead of throwing an error, resolve gracefully here
-        reject(new Error("Wait aborted"));
+        reject(new Error('Wait aborted'));
       };
 
       if (flock.abortController?.signal) {
-        flock.abortController.signal.addEventListener("abort", onAbort);
+        flock.abortController.signal.addEventListener('abort', onAbort);
       }
     }).catch((error) => {
       // Check if the error is the expected "Wait aborted" error and handle it
-      if (error.message === "Wait aborted") {
+      if (error.message === 'Wait aborted') {
         return;
       }
       // If it's another error, rethrow it
@@ -48,7 +48,7 @@ export const flockControl = {
     loopBody,
     chunkSize = 100,
     timing = { lastFrameTime: performance.now() },
-    state = {},
+    state = {}
   ) {
     if (state.stopExecution) return; // Check if we should stop further iterations
     if (flock.abortController?.signal?.aborted) return;
@@ -67,8 +67,8 @@ export const flockControl = {
     }
   },
   waitUntil(conditionFunc) {
-    if (typeof conditionFunc !== "function") {
-      console.warn("waitUntil: conditionFunc must be a function");
+    if (typeof conditionFunc !== 'function') {
+      console.warn('waitUntil: conditionFunc must be a function');
       return Promise.resolve();
     }
     const signal = flock.abortController?.signal;
@@ -97,12 +97,12 @@ export const flockControl = {
       const observer = flock.scene.onBeforeRenderObservable.add(checkCondition);
 
       signal?.addEventListener(
-        "abort",
+        'abort',
         () => {
           flock.scene?.onBeforeRenderObservable?.remove(observer);
           resolve();
         },
-        { once: true },
+        { once: true }
       );
     });
   },

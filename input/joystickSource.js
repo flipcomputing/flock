@@ -28,7 +28,11 @@ export class JoystickSource {
   #boundPointerMove;
   #boundPointerUp;
 
-  constructor(inputManager, onScreenSource, { canvas, baseEllipse, thumbEllipse, baseRadius, thumbRadius = 0, scene } = {}) {
+  constructor(
+    inputManager,
+    onScreenSource,
+    { canvas, baseEllipse, thumbEllipse, baseRadius, thumbRadius = 0, scene } = {}
+  ) {
     this.#inputManager = inputManager;
     this.#onScreenSource = onScreenSource;
     this.#canvas = canvas;
@@ -238,10 +242,22 @@ export class JoystickSource {
   }
 
   #releaseShimKeys() {
-    if (this.#heldForward) { this.#onScreenSource.release('w'); this.#heldForward = false; }
-    if (this.#heldBackward) { this.#onScreenSource.release('s'); this.#heldBackward = false; }
-    if (this.#heldLeft) { this.#onScreenSource.release('a'); this.#heldLeft = false; }
-    if (this.#heldRight) { this.#onScreenSource.release('d'); this.#heldRight = false; }
+    if (this.#heldForward) {
+      this.#onScreenSource.release('w');
+      this.#heldForward = false;
+    }
+    if (this.#heldBackward) {
+      this.#onScreenSource.release('s');
+      this.#heldBackward = false;
+    }
+    if (this.#heldLeft) {
+      this.#onScreenSource.release('a');
+      this.#heldLeft = false;
+    }
+    if (this.#heldRight) {
+      this.#onScreenSource.release('d');
+      this.#heldRight = false;
+    }
   }
 
   #resetThumb() {

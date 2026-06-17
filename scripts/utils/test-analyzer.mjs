@@ -1,6 +1,6 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,16 +10,14 @@ const __dirname = path.dirname(__filename);
  * @returns {Map<string, Array<string>>} Map of method name to test files
  */
 export function analyzeTestCoverage() {
-  const testsDir = path.resolve(__dirname, "../../tests");
-  const testFiles = fs
-    .readdirSync(testsDir)
-    .filter((f) => f.endsWith(".test.js"));
+  const testsDir = path.resolve(__dirname, '../../tests');
+  const testFiles = fs.readdirSync(testsDir).filter((f) => f.endsWith('.test.js'));
 
   const methodTestMap = new Map();
 
   for (const file of testFiles) {
     const filePath = path.join(testsDir, file);
-    const content = fs.readFileSync(filePath, "utf-8");
+    const content = fs.readFileSync(filePath, 'utf-8');
 
     // Find method calls like: flock.methodName(
     const methodCallPattern = /flock\.(\w+)\s*\(/g;
@@ -46,16 +44,14 @@ export function analyzeTestCoverage() {
  * @returns {Array<Object>} Array of test suite definitions
  */
 export function getTestSuites() {
-  const testsHtmlPath = path.resolve(__dirname, "../../tests/tests.html");
-  const content = fs.readFileSync(testsHtmlPath, "utf-8");
+  const testsHtmlPath = path.resolve(__dirname, '../../tests/tests.html');
+  const content = fs.readFileSync(testsHtmlPath, 'utf-8');
 
   // Extract testSuiteDefinitions array
-  const arrayMatch = content.match(
-    /const testSuiteDefinitions = \[([\s\S]*?)\];/,
-  );
+  const arrayMatch = content.match(/const testSuiteDefinitions = \[([\s\S]*?)\];/);
 
   if (!arrayMatch) {
-    console.warn("Could not find testSuiteDefinitions in tests.html");
+    console.warn('Could not find testSuiteDefinitions in tests.html');
     return [];
   }
 
@@ -84,7 +80,7 @@ export function getTestSuites() {
  * @returns {Object} Test count statistics
  */
 export function countTestsInFile(testFilePath) {
-  const content = fs.readFileSync(testFilePath, "utf-8");
+  const content = fs.readFileSync(testFilePath, 'utf-8');
 
   // Count describe blocks
   const describeMatches = content.match(/describe\(/g);
@@ -111,10 +107,8 @@ export function countTestsInFile(testFilePath) {
  * @returns {Object} Statistics about all tests
  */
 export function getTestStatistics() {
-  const testsDir = path.resolve(__dirname, "../../tests");
-  const testFiles = fs
-    .readdirSync(testsDir)
-    .filter((f) => f.endsWith(".test.js"));
+  const testsDir = path.resolve(__dirname, '../../tests');
+  const testFiles = fs.readdirSync(testsDir).filter((f) => f.endsWith('.test.js'));
 
   let totalTests = 0;
   let totalSkipped = 0;
@@ -154,13 +148,13 @@ export function findUntestedMethods(allMethods, testCoverage) {
 
 // If run directly, output test analysis
 if (import.meta.url === `file://${process.argv[1]}`) {
-  console.log("Test Coverage Analysis");
-  console.log("======================\n");
+  console.log('Test Coverage Analysis');
+  console.log('======================\n');
 
   const coverage = analyzeTestCoverage();
   console.log(`Methods tested: ${coverage.size}`);
 
-  console.log("\nMethods with most test coverage:");
+  console.log('\nMethods with most test coverage:');
   const sorted = Array.from(coverage.entries())
     .sort((a, b) => b[1].length - a[1].length)
     .slice(0, 10);
@@ -169,7 +163,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(`  ${method}: ${files.length} test file(s)`);
   });
 
-  console.log("\nTest Statistics:");
+  console.log('\nTest Statistics:');
   const stats = getTestStatistics();
   console.log(`  Total test files: ${stats.totalFiles}`);
   console.log(`  Total tests: ${stats.totalTests}`);
@@ -177,7 +171,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(`  Skipped tests: ${stats.totalSkipped}`);
   console.log(`  Describe blocks: ${stats.totalDescribes}`);
 
-  console.log("\nTest Suites:");
+  console.log('\nTest Suites:');
   const suites = getTestSuites();
   console.log(`  Found ${suites.length} test suite definitions`);
   suites.slice(0, 5).forEach((suite) => {

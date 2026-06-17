@@ -1,4 +1,4 @@
-import * as Blockly from "blockly";
+import * as Blockly from 'blockly';
 import {
   addNumberShadow,
   addXYZShadows,
@@ -6,7 +6,7 @@ import {
   buildColorsListShadowSpec,
   addPositionShadows,
   addColourShadow,
-} from "./blocklyshadowutil.js";
+} from './blocklyshadowutil.js';
 let lastAddMenuHighlighted = null;
 
 function trackBlockHighlight(workspace, blockId) {
@@ -17,17 +17,17 @@ function trackBlockHighlight(workspace, blockId) {
 }
 
 function ensurePassiveFocusWrapper(workspace) {
-    if (!workspace || workspace.__addMenuPassiveFocusWrapped) return;
-    const orig = workspace.getRestoredFocusableNode?.bind(workspace);
-    if (!orig) return;
-    workspace.getRestoredFocusableNode = (prevTree, prevNode) => {
-      if (lastAddMenuHighlighted?.workspace === workspace) {
-        const block = workspace.getBlockById(lastAddMenuHighlighted.blockId);
-        if (block) return block;
-      }
-      return orig(prevTree, prevNode);
-    };
-    workspace.__addMenuPassiveFocusWrapped = true;
+  if (!workspace || workspace.__addMenuPassiveFocusWrapped) return;
+  const orig = workspace.getRestoredFocusableNode?.bind(workspace);
+  if (!orig) return;
+  workspace.getRestoredFocusableNode = (prevTree, prevNode) => {
+    if (lastAddMenuHighlighted?.workspace === workspace) {
+      const block = workspace.getBlockById(lastAddMenuHighlighted.blockId);
+      if (block) return block;
+    }
+    return orig(prevTree, prevNode);
+  };
+  workspace.__addMenuPassiveFocusWrapped = true;
 }
 
 function clearAddMenuHighlight(workspace, newSelectedId) {
@@ -64,9 +64,7 @@ export function appendWithUndo(spec, ws, groupId) {
 }
 
 export function getLastHighlightedBlockId(workspace) {
-  return lastAddMenuHighlighted?.workspace === workspace
-    ? lastAddMenuHighlighted.blockId
-    : null;
+  return lastAddMenuHighlighted?.workspace === workspace ? lastAddMenuHighlighted.blockId : null;
 }
 
 export function restoreBlockFocus(workspace, blockId) {
@@ -84,7 +82,7 @@ export function highlightBlockById(workspace, block) {
   if (!workspace || !block || block.workspace !== workspace) return;
 
   // Select and scroll only when the code view is visible
-  if (window.codeMode === "both") {
+  if (window.codeMode === 'both') {
     ensureAddMenuSelectionCleanup(workspace);
 
     clearAddMenuHighlight(workspace, block.id);
@@ -102,7 +100,7 @@ function ensureAddMenuSelectionCleanup(workspace) {
   const listener = (event) => {
     const isSelectEvent =
       event.type === Blockly.Events.SELECTED ||
-      (event.type === Blockly.Events.UI && event.element === "selected");
+      (event.type === Blockly.Events.UI && event.element === 'selected');
 
     if (isSelectEvent) {
       clearAddMenuHighlight(workspace, event.newElementId);
@@ -115,7 +113,7 @@ function ensureAddMenuSelectionCleanup(workspace) {
 
 export function scrollToBlockTopParentLeft(workspace, blockId) {
   if (!workspace.isMovable()) {
-    console.warn("Tried to move a non-movable workspace.");
+    console.warn('Tried to move a non-movable workspace.');
     return;
   }
 
@@ -170,9 +168,8 @@ export function setPositionValues(block, position, blockType) {
         let targetBlock = input.connection.targetBlock();
         if (!targetBlock) {
           // Create a shadow block if none exists
-          const shadowBlock =
-            Blockly.getMainWorkspace().newBlock("math_number");
-          shadowBlock.setFieldValue(String(roundedValue), "NUM");
+          const shadowBlock = Blockly.getMainWorkspace().newBlock('math_number');
+          shadowBlock.setFieldValue(String(roundedValue), 'NUM');
           shadowBlock.setShadow(true);
           shadowBlock.setMovable(false);
           shadowBlock.setDeletable(false);
@@ -181,15 +178,15 @@ export function setPositionValues(block, position, blockType) {
           input.connection.connect(shadowBlock.outputConnection);
         } else {
           // Set the value if a block is already connected
-          targetBlock.setFieldValue(String(roundedValue), "NUM");
+          targetBlock.setFieldValue(String(roundedValue), 'NUM');
         }
       }
 
-      setOrCreatePositionInput("X", position.x);
-      setOrCreatePositionInput("Y", position.y);
-      setOrCreatePositionInput("Z", position.z);
+      setOrCreatePositionInput('X', position.x);
+      setOrCreatePositionInput('Y', position.y);
+      setOrCreatePositionInput('Z', position.z);
     } catch (e) {
-      console.warn("Could not set position values for block:", blockType, e);
+      console.warn('Could not set position values for block:', blockType, e);
     }
   }
 }
@@ -205,7 +202,7 @@ export function createBlockForObject(
   pickedPosition,
   objectColours,
   setPositionValues,
-  highlightBlockById,
+  highlightBlockById
 ) {
   const prevGroup = Blockly.Events.getGroup();
   const startTempGroup = !prevGroup;
@@ -221,26 +218,24 @@ export function createBlockForObject(
     const spec = { type: command, fields: {}, inputs: {} };
 
     if (
-      command === "load_object" ||
-      command === "load_multi_object" ||
-      command === "load_model" ||
-      command === "load_character"
+      command === 'load_object' ||
+      command === 'load_multi_object' ||
+      command === 'load_model' ||
+      command === 'load_character'
     ) {
       spec.fields.MODELS = objectName;
     }
 
     addXYZShadows(spec, pickedPosition);
-    addNumberShadow(spec, "SCALE", 1);
+    addNumberShadow(spec, 'SCALE', 1);
 
-    if (command === "load_object") {
+    if (command === 'load_object') {
       const configColors = objectColours?.[objectName];
-      const color = Array.isArray(configColors)
-        ? configColors[0]
-        : configColors || "#FFD700";
-      addColourShadowSpec(spec, "COLOR", color, "colour");
+      const color = Array.isArray(configColors) ? configColors[0] : configColors || '#FFD700';
+      addColourShadowSpec(spec, 'COLOR', color, 'colour');
     }
 
-    if (command === "load_multi_object") {
+    if (command === 'load_multi_object') {
       spec.inputs.COLORS = {
         shadow: buildColorsListShadowSpec(objectName),
       };
@@ -251,23 +246,23 @@ export function createBlockForObject(
     try {
       setPositionValues?.(block, pickedPosition, command);
     } catch (error) {
-      console.warn("setPositionValues failed for object block:", error);
+      console.warn('setPositionValues failed for object block:', error);
     }
 
-    const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
-    const conn = startBlock?.getInput("DO")?.connection;
+    const startBlock = appendWithUndo({ type: 'start' }, workspace, groupId);
+    const conn = startBlock?.getInput('DO')?.connection;
     if (conn && block?.previousConnection) {
       try {
         conn.connect(block.previousConnection);
       } catch (e) {
-        console.error("connect error:", e);
+        console.error('connect error:', e);
       }
     }
 
     try {
       highlightBlockById?.(workspace, block);
     } catch (error) {
-      console.warn("highlightBlockById failed for object block:", error);
+      console.warn('highlightBlockById failed for object block:', error);
     }
   } finally {
     if (startTempGroup) Blockly.Events.setGroup(false);
@@ -286,7 +281,7 @@ export function createBlockForCharacter(
   pickedPosition,
   colorFields,
   setPositionValues,
-  highlightBlockById,
+  highlightBlockById
 ) {
   const prevGroup = Blockly.Events.getGroup();
   const startTempGroup = !prevGroup;
@@ -300,18 +295,17 @@ export function createBlockForCharacter(
     Blockly.Events.setGroup(groupId);
 
     const spec = {
-      type: "load_character",
+      type: 'load_character',
       fields: { MODELS: characterName },
       inputs: {},
     };
 
     addPositionShadows(spec, pickedPosition);
-    addNumberShadow(spec, "SCALE", 1);
+    addNumberShadow(spec, 'SCALE', 1);
 
-    if (typeof colorFields === "object" && colorFields) {
+    if (typeof colorFields === 'object' && colorFields) {
       for (const [inputName, hex] of Object.entries(colorFields)) {
-        const shadowType =
-          inputName === "SKIN_COLOR" ? "skin_colour" : "colour";
+        const shadowType = inputName === 'SKIN_COLOR' ? 'skin_colour' : 'colour';
         addColourShadow(spec, inputName, shadowType, hex);
       }
     }
@@ -319,13 +313,13 @@ export function createBlockForCharacter(
     const charBlock = appendWithUndo(spec, workspace, groupId);
 
     try {
-      setPositionValues?.(charBlock, pickedPosition, "load_character");
+      setPositionValues?.(charBlock, pickedPosition, 'load_character');
     } catch (error) {
-      console.warn("setPositionValues failed for character block:", error);
+      console.warn('setPositionValues failed for character block:', error);
     }
 
-    const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
-    const conn = startBlock?.getInput("DO")?.connection;
+    const startBlock = appendWithUndo({ type: 'start' }, workspace, groupId);
+    const conn = startBlock?.getInput('DO')?.connection;
     if (conn && charBlock?.previousConnection) {
       try {
         conn.connect(charBlock.previousConnection);
@@ -337,7 +331,7 @@ export function createBlockForCharacter(
     try {
       highlightBlockById?.(workspace, charBlock);
     } catch (error) {
-      console.warn("highlightBlockById failed for character block:", error);
+      console.warn('highlightBlockById failed for character block:', error);
     }
   } finally {
     if (startTempGroup) Blockly.Events.setGroup(false);
@@ -354,26 +348,22 @@ export function setBlockXYZ(block, x, y, z) {
     if (!input?.connection) return;
     const connectedBlock = input.connection.targetBlock();
 
-    if (connectedBlock?.getField?.("NUM")) {
-      connectedBlock.setFieldValue(String(value), "NUM");
+    if (connectedBlock?.getField?.('NUM')) {
+      connectedBlock.setFieldValue(String(value), 'NUM');
     }
   };
 
-  setInputValue("X", roundToOneDecimal(x));
-  setInputValue("Y", roundToOneDecimal(y));
-  setInputValue("Z", roundToOneDecimal(z));
+  setInputValue('X', roundToOneDecimal(x));
+  setInputValue('Y', roundToOneDecimal(y));
+  setInputValue('Z', roundToOneDecimal(z));
 }
 
-export function duplicateBlockAndInsert(
-  originalBlock,
-  workspace,
-  pickedPosition,
-) {
+export function duplicateBlockAndInsert(originalBlock, workspace, pickedPosition) {
   if (!originalBlock) {
     return null;
   }
 
-  Blockly.Events.setGroup("duplicate");
+  Blockly.Events.setGroup('duplicate');
 
   const blockJson = Blockly.serialization.blocks.save(originalBlock, {
     includeShadows: true,
@@ -383,10 +373,7 @@ export function duplicateBlockAndInsert(
     delete blockJson.next;
   }
 
-  const duplicateBlock = Blockly.serialization.blocks.append(
-    blockJson,
-    workspace,
-  );
+  const duplicateBlock = Blockly.serialization.blocks.append(blockJson, workspace);
 
   setPositionValues(duplicateBlock, pickedPosition, duplicateBlock.type);
 
@@ -400,36 +387,28 @@ export function duplicateBlockAndInsert(
 
   // Trigger update of mesh from block values
   queueMicrotask(() => {
-    Blockly.Events.setGroup("duplicate");
+    Blockly.Events.setGroup('duplicate');
 
     const descendants = duplicateBlock.getDescendants(false);
 
     for (const b of descendants) {
-      const transformChildTypes = ["rotate_to", "resize"];
+      const transformChildTypes = ['rotate_to', 'resize'];
       if (!transformChildTypes.includes(b.type)) continue;
 
       for (const input of b.inputList ?? []) {
         const numBlock = input.connection?.targetBlock?.();
         if (!numBlock) continue;
 
-        if (typeof numBlock.getFieldValue !== "function") continue;
-        const current = numBlock.getFieldValue("NUM");
+        if (typeof numBlock.getFieldValue !== 'function') continue;
+        const current = numBlock.getFieldValue('NUM');
         if (current === null || current === undefined) continue;
 
         const currNum = Number(current);
-        const oldValue = Number.isFinite(currNum)
-          ? String(currNum - 1e-6)
-          : "__refresh_old__";
+        const oldValue = Number.isFinite(currNum) ? String(currNum - 1e-6) : '__refresh_old__';
         const newValue = String(current);
 
         Blockly.Events.fire(
-          new Blockly.Events.BlockChange(
-            numBlock,
-            "field",
-            "NUM",
-            oldValue,
-            newValue,
-          ),
+          new Blockly.Events.BlockChange(numBlock, 'field', 'NUM', oldValue, newValue)
         );
       }
     }
@@ -477,8 +456,8 @@ export function setNumberInputs(block, valuesByInputName) {
     if (!Number.isFinite(n)) continue;
 
     const target = block.getInput(inputName)?.connection?.targetBlock?.();
-    if (!target?.getField?.("NUM")) continue;
-    target.setFieldValue(String(roundToOneDecimal(n)), "NUM");
+    if (!target?.getField?.('NUM')) continue;
+    target.setFieldValue(String(roundToOneDecimal(n)), 'NUM');
   }
 }
 
@@ -486,6 +465,6 @@ export function getNumberInput(block, inputName) {
   const target = block?.getInput(inputName)?.connection?.targetBlock?.();
   if (!target?.getFieldValue) return NaN;
 
-  const n = Number(target.getFieldValue("NUM"));
+  const n = Number(target.getFieldValue('NUM'));
   return Number.isFinite(n) ? n : NaN;
 }

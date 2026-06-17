@@ -1,9 +1,9 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 export function runMaterialsTests(flock) {
-  describe("Effects methods @materials", function () {
+  describe('Effects methods @materials', function () {
     const boxIds = [];
-    const colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"];
+    const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00'];
     const alphas = [0.1, 0.5, 0.9];
 
     // Utility: Create a box with random color and position
@@ -12,7 +12,7 @@ export function runMaterialsTests(flock) {
       const position = new flock.BABYLON.Vector3(
         Math.random() * 10,
         Math.random() * 10,
-        Math.random() * 10,
+        Math.random() * 10
       );
 
       await flock.createBox(id, {
@@ -37,8 +37,8 @@ export function runMaterialsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should apply tint to a mesh", async function () {
-      const { id, color } = await createBoxWithColorAndPosition("boxTint");
+    it('should apply tint to a mesh', async function () {
+      const { id, color } = await createBoxWithColorAndPosition('boxTint');
       boxIds.push(id);
 
       await flock.tint(id, { color });
@@ -48,13 +48,13 @@ export function runMaterialsTests(flock) {
       expect(mesh.overlayAlpha).to.be.closeTo(0.5, 0.01);
       expect(
         mesh.overlayColor.equals(
-          flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color)),
-        ),
+          flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color))
+        )
       ).to.be.true;
     });
 
-    it("should apply glow to a mesh", async function () {
-      const { id, color } = await createBoxWithColorAndPosition("boxGlow");
+    it('should apply glow to a mesh', async function () {
+      const { id, color } = await createBoxWithColorAndPosition('boxGlow');
       boxIds.push(id);
 
       await flock.glow(id, { color });
@@ -62,18 +62,15 @@ export function runMaterialsTests(flock) {
       const mesh = flock.scene.getMeshByName(id);
       expect(mesh.metadata.glow).to.be.true;
 
-      const expectedColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
-      );
+      const expectedColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
       const actualColor = mesh.material?.emissiveColor;
 
       expect(actualColor).to.exist;
       expect(actualColor.equals(expectedColor)).to.be.true;
     });
 
-    it("should apply glow after alpha", async function () {
-      const { id, color } =
-        await createBoxWithColorAndPosition("boxGlowAfterAlpha");
+    it('should apply glow after alpha', async function () {
+      const { id, color } = await createBoxWithColorAndPosition('boxGlowAfterAlpha');
       boxIds.push(id);
 
       await flock.setAlpha(id, { value: 0.5 });
@@ -82,9 +79,7 @@ export function runMaterialsTests(flock) {
       const mesh = flock.scene.getMeshByName(id);
       expect(mesh.metadata.glow).to.be.true;
 
-      const expectedColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
-      );
+      const expectedColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
       const actualColor = mesh.material?.emissiveColor;
 
       expect(actualColor).to.exist;
@@ -92,8 +87,8 @@ export function runMaterialsTests(flock) {
       expect(mesh.material.alpha).to.be.closeTo(0.5, 0.01);
     });
 
-    it("should apply highlight to a mesh", async function () {
-      const { id, color } = await createBoxWithColorAndPosition("boxHighlight");
+    it('should apply highlight to a mesh', async function () {
+      const { id, color } = await createBoxWithColorAndPosition('boxHighlight');
       boxIds.push(id);
 
       await flock.highlight(id, { color });
@@ -103,8 +98,8 @@ export function runMaterialsTests(flock) {
       expect(flock.highlighter.hasMesh(mesh)).to.be.true;
     });
 
-    it("should set alpha value for a mesh and its children", async function () {
-      const { id } = await createBoxWithColorAndPosition("boxAlpha");
+    it('should set alpha value for a mesh and its children', async function () {
+      const { id } = await createBoxWithColorAndPosition('boxAlpha');
       boxIds.push(id);
       const alpha = alphas[Math.floor(Math.random() * alphas.length)];
 
@@ -115,14 +110,12 @@ export function runMaterialsTests(flock) {
 
       allMeshes.forEach((m) => {
         expect(m.material.alpha).to.be.closeTo(alpha, 0.01);
-        expect(m.material.transparencyMode).to.equal(
-          flock.BABYLON.Material.MATERIAL_ALPHABLEND,
-        );
+        expect(m.material.transparencyMode).to.equal(flock.BABYLON.Material.MATERIAL_ALPHABLEND);
       });
     });
 
-    it("should restore opaque rendering when setAlpha is called with 1", async function () {
-      const { id } = await createBoxWithColorAndPosition("boxAlphaOpaque");
+    it('should restore opaque rendering when setAlpha is called with 1', async function () {
+      const { id } = await createBoxWithColorAndPosition('boxAlphaOpaque');
       boxIds.push(id);
 
       await flock.setAlpha(id, { value: 0.5 });
@@ -138,8 +131,8 @@ export function runMaterialsTests(flock) {
       });
     });
 
-    it("should clear effects from a mesh", async function () {
-      const { id, color } = await createBoxWithColorAndPosition("boxClear");
+    it('should clear effects from a mesh', async function () {
+      const { id, color } = await createBoxWithColorAndPosition('boxClear');
       boxIds.push(id);
 
       // Apply effects first
@@ -156,8 +149,7 @@ export function runMaterialsTests(flock) {
 
       allMeshes.forEach((m) => {
         expect(m.renderOverlay).to.equal(false);
-        expect(m.material.emissiveColor.equals(flock.BABYLON.Color3.Black())).to
-          .be.true;
+        expect(m.material.emissiveColor.equals(flock.BABYLON.Color3.Black())).to.be.true;
         if (flock.glowLayer) {
           expect(m.metadata.glow).to.be.false;
         }
@@ -167,26 +159,24 @@ export function runMaterialsTests(flock) {
       });
     });
 
-    it("should handle CSS color names in getColorFromString", async function () {
-      const colorNames = ["red", "blue", "green", "yellow", "cyan", "magenta"];
+    it('should handle CSS color names in getColorFromString', async function () {
+      const colorNames = ['red', 'blue', 'green', 'yellow', 'cyan', 'magenta'];
       const results = colorNames.map((name) => flock.getColorFromString(name));
 
       results.forEach((result) => {
-        expect(result).to.be.a("string");
+        expect(result).to.be.a('string');
         expect(result).to.match(/^#[0-9a-f]{6}$/i);
       });
 
-      expect(flock.getColorFromString("red")).to.not.equal(
-        flock.getColorFromString("blue"),
-      );
+      expect(flock.getColorFromString('red')).to.not.equal(flock.getColorFromString('blue'));
     });
 
-    it("should apply tint with CSS color names", async function () {
-      const id = "boxTintColorName";
+    it('should apply tint with CSS color names', async function () {
+      const id = 'boxTintColorName';
       await createBoxWithColorAndPosition(id);
       boxIds.push(id);
 
-      await flock.tint(id, { color: "red" });
+      await flock.tint(id, { color: 'red' });
 
       const mesh = flock.scene.getMeshByName(id);
       expect(mesh.renderOverlay).to.equal(true);
@@ -195,16 +185,16 @@ export function runMaterialsTests(flock) {
     });
   });
 
-  describe("changeColor method @materials", function () {
+  describe('changeColor method @materials', function () {
     const boxIds = [];
-    const colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"];
+    const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00'];
 
     // Utility: Create a box with a random position
     async function createBoxWithRandomPosition(id) {
       const position = new flock.BABYLON.Vector3(
         Math.random() * 10,
         Math.random() * 10,
-        Math.random() * 10,
+        Math.random() * 10
       );
 
       await flock.createBox(id, {
@@ -228,8 +218,8 @@ export function runMaterialsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should apply a single color to a mesh", async function () {
-      const id = "boxChangeColorSingle";
+    it('should apply a single color to a mesh', async function () {
+      const id = 'boxChangeColorSingle';
       await createBoxWithRandomPosition(id);
       boxIds.push(id);
 
@@ -242,27 +232,22 @@ export function runMaterialsTests(flock) {
       const material = mesh.material;
       expect(material).to.exist;
 
-      const expectedColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
-      );
+      const expectedColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
 
       const actualColor = material.diffuseColor ?? material.albedoColor;
 
       expect(actualColor).to.exist;
-      ["r", "g", "b"].forEach((component) => {
-        expect(actualColor[component]).to.be.closeTo(
-          expectedColor[component],
-          0.01,
-        );
+      ['r', 'g', 'b'].forEach((component) => {
+        expect(actualColor[component]).to.be.closeTo(expectedColor[component], 0.01);
       });
     });
 
-    it("should apply multiple colors to different parts of a mesh", async function () {
-      const id = "boxChangeColorMultiple";
+    it('should apply multiple colors to different parts of a mesh', async function () {
+      const id = 'boxChangeColorMultiple';
       await createBoxWithRandomPosition(id);
       boxIds.push(id);
 
-      const colorList = ["#FF0000", "#00FF00", "#0000FF"];
+      const colorList = ['#FF0000', '#00FF00', '#0000FF'];
       await flock.changeColor(id, { color: colorList });
 
       const mesh = flock.scene.getMeshByName(id);
@@ -272,26 +257,22 @@ export function runMaterialsTests(flock) {
       allMeshes.forEach((part) => {
         expect(part.material).to.exist;
 
-        const partColor =
-          part.material.diffuseColor ?? part.material.albedoColor;
+        const partColor = part.material.diffuseColor ?? part.material.albedoColor;
         expect(partColor).to.exist;
         expect(part.metadata).to.exist;
-        expect(part.metadata.materialIndex).to.be.within(
-          0,
-          colorList.length - 1,
-        );
+        expect(part.metadata.materialIndex).to.be.within(0, colorList.length - 1);
       });
     });
   });
 
-  describe("createMaterial method @materials", function () {
+  describe('createMaterial method @materials', function () {
     const boxIds = [];
 
     async function createTestBox(id) {
       const position = new flock.BABYLON.Vector3(
         Math.random() * 10,
         Math.random() * 10,
-        Math.random() * 10,
+        Math.random() * 10
       );
 
       await flock.createBox(id, {
@@ -315,15 +296,15 @@ export function runMaterialsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should create a standard material with color and alpha", async function () {
-      const id = "boxCreateMaterialColor";
+    it('should create a standard material with color and alpha', async function () {
+      const id = 'boxCreateMaterialColor';
       await createTestBox(id);
       boxIds.push(id);
 
-      const color = "#FF00FF";
+      const color = '#FF00FF';
       const material = flock.createMaterial({
         color,
-        materialName: "testMaterial",
+        materialName: 'testMaterial',
         alpha: 0.5,
       });
 
@@ -331,74 +312,74 @@ export function runMaterialsTests(flock) {
       expect(material.diffuseColor).to.exist;
       expect(
         material.diffuseColor.equals(
-          flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color)),
-        ),
+          flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color))
+        )
       ).to.be.true;
       expect(material.alpha).to.be.closeTo(0.5, 0.01);
       material.dispose();
     });
 
-    it("should create a material with a texture", async function () {
-      const id = "boxCreateMaterialTexture";
+    it('should create a material with a texture', async function () {
+      const id = 'boxCreateMaterialTexture';
       await createTestBox(id);
       boxIds.push(id);
 
       const material = flock.createMaterial({
-        color: "#FFFFFF",
-        materialName: "test.png",
+        color: '#FFFFFF',
+        materialName: 'test.png',
         alpha: 1,
       });
 
       expect(material).to.exist;
       expect(material.diffuseTexture).to.exist;
-      expect(material.diffuseTexture.name).to.include("test.png");
+      expect(material.diffuseTexture.name).to.include('test.png');
       material.dispose();
     });
 
-    it("should create a gradient material when color is an array", async function () {
-      const id = "boxCreateMaterialGradient";
+    it('should create a gradient material when color is an array', async function () {
+      const id = 'boxCreateMaterialGradient';
       await createTestBox(id);
       boxIds.push(id);
 
-      const gradientColors = ["#FF0000", "#00FF00"];
+      const gradientColors = ['#FF0000', '#00FF00'];
       const material = flock.createMaterial({
         color: gradientColors,
-        materialName: "none.png",
+        materialName: 'none.png',
         alpha: 1,
       });
 
       expect(material).to.exist;
-      expect(material.getClassName()).to.equal("GradientMaterial");
+      expect(material.getClassName()).to.equal('GradientMaterial');
       expect(material.bottomColor).to.exist;
       expect(material.topColor).to.exist;
       material.dispose();
     });
 
-    it("should create a multi-color gradient shader material for 3+ colors", async function () {
-      const id = "boxCreateMaterialMultiGradient";
+    it('should create a multi-color gradient shader material for 3+ colors', async function () {
+      const id = 'boxCreateMaterialMultiGradient';
       await createTestBox(id);
       boxIds.push(id);
 
-      const gradientColors = ["#ff5733", "#fdfd96", "#9932cc", "#339999"];
+      const gradientColors = ['#ff5733', '#fdfd96', '#9932cc', '#339999'];
       const material = flock.createMaterial({
         color: gradientColors,
-        materialName: "none.png",
+        materialName: 'none.png',
         alpha: 1,
       });
 
       expect(material).to.exist;
-      expect(material.getClassName()).to.equal("ShaderMaterial");
+      expect(material.getClassName()).to.equal('ShaderMaterial');
       material.dispose();
     });
 
-    it("should apply multi-color gradient to a box without error", async function () {
+    it('should apply multi-color gradient to a box without error', async function () {
       const palette = {
-        color: ["#ff5733", "#fdfd96", "#9932cc", "#339999"],
-        materialName: "none.png",
+        color: ['#ff5733', '#fdfd96', '#9932cc', '#339999'],
+        materialName: 'none.png',
         alpha: 1,
       };
 
-      const id1 = "boxMultiGradient1";
+      const id1 = 'boxMultiGradient1';
       await flock.createBox(id1, {
         color: palette,
         width: 2,
@@ -408,7 +389,7 @@ export function runMaterialsTests(flock) {
       });
       boxIds.push(id1);
 
-      const id2 = "boxMultiGradient2";
+      const id2 = 'boxMultiGradient2';
       await flock.createBox(id2, {
         color: palette,
         width: 2,
@@ -431,9 +412,9 @@ export function runMaterialsTests(flock) {
       const target2 = getTarget(id2);
 
       expect(target1.material).to.exist;
-      expect(target1.material.getClassName()).to.equal("ShaderMaterial");
+      expect(target1.material.getClassName()).to.equal('ShaderMaterial');
       expect(target2.material).to.exist;
-      expect(target2.material.getClassName()).to.equal("ShaderMaterial");
+      expect(target2.material.getClassName()).to.equal('ShaderMaterial');
 
       // Shared cached material uses onBindObservable to supply per-mesh minMax at
       // render time, so both meshes correctly reference the same material instance.
@@ -441,7 +422,7 @@ export function runMaterialsTests(flock) {
     });
   });
 
-  describe("setting a material scenarios @materials", function () {
+  describe('setting a material scenarios @materials', function () {
     this.timeout(5000);
     const boxIds = [];
 
@@ -449,7 +430,7 @@ export function runMaterialsTests(flock) {
       const position = new flock.BABYLON.Vector3(
         Math.random() * 10,
         Math.random() * 10,
-        Math.random() * 10,
+        Math.random() * 10
       );
 
       await flock.createBox(id, {
@@ -464,9 +445,9 @@ export function runMaterialsTests(flock) {
 
     async function createTestTree(id) {
       await flock.createObject({
-        modelName: "tree.glb",
+        modelName: 'tree.glb',
         modelId: id,
-        color: ["#66cdaa", "#cd853f"],
+        color: ['#66cdaa', '#cd853f'],
         scale: 1,
         position: { x: 0, y: 0, z: 0 },
       });
@@ -482,24 +463,24 @@ export function runMaterialsTests(flock) {
       });
     });
 
-    it("should create one new material for a box", async function () {
-      const id = "boxCreateOneNewMaterial";
+    it('should create one new material for a box', async function () {
+      const id = 'boxCreateOneNewMaterial';
       await createTestBox(id);
       boxIds.push(id);
 
       const materialsBefore = flock.scene.materials.length;
 
       await flock.setMaterial(id, {
-        color: "#FF00FF",
-        materialName: "testMaterial",
+        color: '#FF00FF',
+        materialName: 'testMaterial',
         alpha: 0.5,
       });
 
       expect(flock.scene.materials.length).to.equal(materialsBefore);
     });
 
-    it("should delete the old material for a box", async function () {
-      const id = "boxDeleteOldMaterial";
+    it('should delete the old material for a box', async function () {
+      const id = 'boxDeleteOldMaterial';
       await createTestBox(id);
       boxIds.push(id);
 
@@ -508,8 +489,8 @@ export function runMaterialsTests(flock) {
       const oldMatCacheKey = oldMat.metadata.cacheKey;
 
       const newMaterialDesc = {
-        color: "#FF00FF",
-        materialName: "testMaterial",
+        color: '#FF00FF',
+        materialName: 'testMaterial',
         alpha: 0.5,
       };
       await flock.setMaterial(id, newMaterialDesc);
@@ -519,24 +500,24 @@ export function runMaterialsTests(flock) {
       expect(flock.materialCache[oldMatCacheKey]).to.be.undefined;
     });
 
-    it("should create two new materials for a tree", async function () {
-      const id = "treeCreateNewMaterials";
+    it('should create two new materials for a tree', async function () {
+      const id = 'treeCreateNewMaterials';
       await createTestTree(id);
       boxIds.push(id);
 
       const materialsBefore = flock.scene.materials.length;
 
       await flock.setMaterial(id, [
-        { color: "#00ffff", materialName: "leaves.png" },
-        { color: "#ff6600", materialName: "marble.png" },
+        { color: '#00ffff', materialName: 'leaves.png' },
+        { color: '#ff6600', materialName: 'marble.png' },
       ]);
 
       // The number of materials should remain the same, as the old ones are replaced.
       expect(flock.scene.materials.length).to.equal(materialsBefore);
     });
 
-    it("should delete the old materials for a tree", async function () {
-      const id = "treeDeleteOldMaterials";
+    it('should delete the old materials for a tree', async function () {
+      const id = 'treeDeleteOldMaterials';
       await createTestTree(id);
       boxIds.push(id);
       await flock.whenModelReady(id);
@@ -544,28 +525,28 @@ export function runMaterialsTests(flock) {
       const materialsBefore = flock.scene.materials.length;
 
       const newMaterials = [
-        { color: "#00ffff", materialName: "leaves.png", alpha: 1 },
-        { color: "#ff6600", materialName: "marble.png", alpha: 1 },
+        { color: '#00ffff', materialName: 'leaves.png', alpha: 1 },
+        { color: '#ff6600', materialName: 'marble.png', alpha: 1 },
       ];
       await flock.setMaterial(id, newMaterials);
 
       expect(flock.scene.materials.length).to.equal(materialsBefore); // The 2 old are replaced by 2 new
     });
 
-    it("should create a tree with two materials", async function () {
+    it('should create a tree with two materials', async function () {
       const materialsBefore = flock.scene.materials.length;
       const tree = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__2",
-        color: ["#66cdaa", "#cd853f"],
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__2',
+        color: ['#66cdaa', '#cd853f'],
         scale: 1,
         position: { x: -4, y: 0, z: 10.8 },
       });
 
       boxIds.push(tree);
 
-      console.log("Created tree with id", tree);
-      expect(tree).to.be.a("string");
+      console.log('Created tree with id', tree);
+      expect(tree).to.be.a('string');
 
       try {
         await flock.show(tree);
@@ -577,19 +558,19 @@ export function runMaterialsTests(flock) {
       expect(flock.scene.materials.length).to.equal(materialsBefore + 2);
     });
 
-    it("should create a tree with one material", async function () {
+    it('should create a tree with one material', async function () {
       const materialsBefore = flock.scene.materials.length;
       const tree = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__1",
-        color: ["#66cdaa", "#66cdaa"],
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__1',
+        color: ['#66cdaa', '#66cdaa'],
         scale: 1,
         position: { x: -4, y: 0, z: 10.8 },
       });
 
       boxIds.push(tree);
-      console.log("Created tree with id", tree);
-      expect(tree).to.be.a("string");
+      console.log('Created tree with id', tree);
+      expect(tree).to.be.a('string');
 
       try {
         await flock.show(tree);
@@ -601,21 +582,21 @@ export function runMaterialsTests(flock) {
       expect(flock.scene.materials.length).to.equal(materialsBefore + 1);
     });
 
-    it("should create two trees with one shared color and have three materials", async function () {
+    it('should create two trees with one shared color and have three materials', async function () {
       const materialsBefore = flock.scene.materials.length;
       const tree1Id = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__3",
-        color: ["#66cdaa", "#cd853f"], // green, brown
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__3',
+        color: ['#66cdaa', '#cd853f'], // green, brown
         scale: 1,
         position: { x: 0, y: 0, z: 0 },
       });
       boxIds.push(tree1Id);
 
       const tree2Id = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__4",
-        color: ["#66cdaa", "#ffc0cb"], // green, pink
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__4',
+        color: ['#66cdaa', '#ffc0cb'], // green, pink
         scale: 1,
         position: { x: 5, y: 0, z: 0 },
       });
@@ -630,7 +611,7 @@ export function runMaterialsTests(flock) {
     });
   });
 
-  describe("combine blocks dispose of old materials @materials", function () {
+  describe('combine blocks dispose of old materials @materials', function () {
     const boxIds = [];
 
     beforeEach(async function () {
@@ -1170,7 +1151,7 @@ export function runMaterialsTests(flock) {
     });
   });
 
-  describe("gradient material preservation @materials", function () {
+  describe('gradient material preservation @materials', function () {
     const boxIds = [];
 
     beforeEach(async function () {
@@ -1187,7 +1168,7 @@ export function runMaterialsTests(flock) {
         width: 1,
         height: 2,
         depth: 1,
-        color: { color: colors, materialName: "none.png", alpha: 1 },
+        color: { color: colors, materialName: 'none.png', alpha: 1 },
         position: [0, 0, 0],
       });
     }
@@ -1200,69 +1181,69 @@ export function runMaterialsTests(flock) {
       return children.length ? children[0] : mesh;
     }
 
-    it("should preserve 2-colour gradient after glow", async function () {
-      const id = "gradGlow2";
-      await createGradientBox(id, ["#ff0000", "#0000ff"]);
+    it('should preserve 2-colour gradient after glow', async function () {
+      const id = 'gradGlow2';
+      await createGradientBox(id, ['#ff0000', '#0000ff']);
       boxIds.push(id);
 
       await flock.glow(id);
 
       const target = getTarget(id);
-      expect(target.material.getClassName()).to.equal("GradientMaterial");
-      expect(target.metadata.glowColor).to.equal("#ff0000");
+      expect(target.material.getClassName()).to.equal('GradientMaterial');
+      expect(target.metadata.glowColor).to.equal('#ff0000');
     });
 
-    it("should preserve 3+ colour gradient after glow", async function () {
-      const id = "gradGlow3";
-      await createGradientBox(id, ["#ff0000", "#00ff00", "#0000ff"]);
+    it('should preserve 3+ colour gradient after glow', async function () {
+      const id = 'gradGlow3';
+      await createGradientBox(id, ['#ff0000', '#00ff00', '#0000ff']);
       boxIds.push(id);
 
       await flock.glow(id);
 
       const target = getTarget(id);
-      expect(target.material.getClassName()).to.equal("ShaderMaterial");
-      expect(target.metadata.glowColor).to.equal("#ff0000");
+      expect(target.material.getClassName()).to.equal('ShaderMaterial');
+      expect(target.metadata.glowColor).to.equal('#ff0000');
     });
 
-    it("should preserve 2-colour gradient after clearEffects", async function () {
-      const id = "gradClear2";
-      await createGradientBox(id, ["#ff0000", "#0000ff"]);
+    it('should preserve 2-colour gradient after clearEffects', async function () {
+      const id = 'gradClear2';
+      await createGradientBox(id, ['#ff0000', '#0000ff']);
       boxIds.push(id);
 
       await flock.glow(id);
       await flock.clearEffects(id);
 
       const target = getTarget(id);
-      expect(target.material.getClassName()).to.equal("GradientMaterial");
+      expect(target.material.getClassName()).to.equal('GradientMaterial');
       expect(target.metadata.glowColor).to.be.undefined;
     });
 
-    it("should preserve 3+ colour gradient after clearEffects", async function () {
-      const id = "gradClear3";
-      await createGradientBox(id, ["#ff0000", "#00ff00", "#0000ff"]);
+    it('should preserve 3+ colour gradient after clearEffects', async function () {
+      const id = 'gradClear3';
+      await createGradientBox(id, ['#ff0000', '#00ff00', '#0000ff']);
       boxIds.push(id);
 
       await flock.glow(id);
       await flock.clearEffects(id);
 
       const target = getTarget(id);
-      expect(target.material.getClassName()).to.equal("ShaderMaterial");
+      expect(target.material.getClassName()).to.equal('ShaderMaterial');
     });
 
-    it("should preserve 3+ colour gradient after setAlpha", async function () {
-      const id = "gradAlpha3";
-      await createGradientBox(id, ["#ff0000", "#00ff00", "#0000ff"]);
+    it('should preserve 3+ colour gradient after setAlpha', async function () {
+      const id = 'gradAlpha3';
+      await createGradientBox(id, ['#ff0000', '#00ff00', '#0000ff']);
       boxIds.push(id);
 
       await flock.setAlpha(id, { value: 0.5 });
 
       const target = getTarget(id);
-      expect(target.material.getClassName()).to.equal("ShaderMaterial");
+      expect(target.material.getClassName()).to.equal('ShaderMaterial');
       expect(target.material.alpha).to.be.closeTo(0.5, 0.01);
     });
 
-    it("should hit cache when applying the same material twice via applyMaterialToHierarchy", async function () {
-      const id = "gradCacheHit";
+    it('should hit cache when applying the same material twice via applyMaterialToHierarchy', async function () {
+      const id = 'gradCacheHit';
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -1272,7 +1253,7 @@ export function runMaterialsTests(flock) {
       boxIds.push(id);
 
       const mesh = flock.scene.getMeshByName(id);
-      const descriptor = { color: "#aa00ff", materialName: "none.png", alpha: 1 };
+      const descriptor = { color: '#aa00ff', materialName: 'none.png', alpha: 1 };
 
       flock.applyMaterialToHierarchy(mesh, descriptor);
       const matAfterFirst = mesh.material;

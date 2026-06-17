@@ -173,7 +173,8 @@ export const flockMovement = {
       : false;
 
     // --- Horizontal control policy ---
-    const now = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+    const now =
+      typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
     const prev = model._lastMoveForwardMs !== undefined ? model._lastMoveForwardMs : now;
     model._lastMoveForwardMs = now;
 

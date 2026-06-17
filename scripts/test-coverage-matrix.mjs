@@ -26,11 +26,11 @@ const projectRoot = path.resolve(__dirname, '..');
  */
 function getGitLastModified(filePath) {
   try {
-    const result = execFileSync(
-      'git',
-      ['log', '-1', '--format=%cI', '--', filePath],
-      { cwd: projectRoot, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
-    ).trim();
+    const result = execFileSync('git', ['log', '-1', '--format=%cI', '--', filePath], {
+      cwd: projectRoot,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
     return result || null;
   } catch {
     return null;
@@ -111,21 +111,27 @@ function getStalenessIndicator(commitsBehind) {
  * Main function to generate the test coverage matrix
  */
 function generateTestCoverageMatrix() {
-  console.log('\n╔════════════════════════════════════════════════════════════════════════════════╗');
+  console.log(
+    '\n╔════════════════════════════════════════════════════════════════════════════════╗'
+  );
   console.log('║                    API File to Test File Coverage Matrix                       ║');
-  console.log('╚════════════════════════════════════════════════════════════════════════════════╝\n');
+  console.log(
+    '╚════════════════════════════════════════════════════════════════════════════════╝\n'
+  );
 
   const apiDir = path.join(projectRoot, 'api');
   const testsDir = path.join(projectRoot, 'tests');
 
   // Get all API files
-  const apiFiles = fs.readdirSync(apiDir)
-    .filter(f => f.endsWith('.js'))
+  const apiFiles = fs
+    .readdirSync(apiDir)
+    .filter((f) => f.endsWith('.js'))
     .sort();
 
   // Get all test files
-  const testFiles = fs.readdirSync(testsDir)
-    .filter(f => f.endsWith('.test.js'))
+  const testFiles = fs
+    .readdirSync(testsDir)
+    .filter((f) => f.endsWith('.test.js'))
     .sort();
 
   // Build the matrix data
@@ -163,7 +169,7 @@ function generateTestCoverageMatrix() {
         testFileDetails.push({
           name: testFile,
           tests: stats.tests,
-          lastModified: testModDate
+          lastModified: testModDate,
         });
       }
 
@@ -187,7 +193,7 @@ function generateTestCoverageMatrix() {
       testCount,
       testLastModified,
       commitsBehind,
-      hasTests: matchingTests.length > 0
+      hasTests: matchingTests.length > 0,
     });
   }
 
@@ -197,16 +203,26 @@ function generateTestCoverageMatrix() {
   console.log('└─────────────────────────────────────────┘\n');
 
   console.log(`  Total API Files:         ${apiFiles.length}`);
-  console.log(`  Files with Tests:        ${filesWithTests} (${apiFiles.length ? Math.round(filesWithTests / apiFiles.length * 100) : 0}%)`);
-  console.log(`  Files without Tests:     ${filesWithNoTests} (${apiFiles.length ? Math.round(filesWithNoTests / apiFiles.length * 100) : 0}%)`);
+  console.log(
+    `  Files with Tests:        ${filesWithTests} (${apiFiles.length ? Math.round((filesWithTests / apiFiles.length) * 100) : 0}%)`
+  );
+  console.log(
+    `  Files without Tests:     ${filesWithNoTests} (${apiFiles.length ? Math.round((filesWithNoTests / apiFiles.length) * 100) : 0}%)`
+  );
   console.log(`  Files with Stale Tests:  ${filesWithStaleTests}`);
   console.log(`  Total Test Cases:        ${totalTests}`);
   console.log('');
 
   // Print the matrix table
-  console.log('┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐');
-  console.log('│                                        API File to Test Mapping                                            │');
-  console.log('└─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘\n');
+  console.log(
+    '┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐'
+  );
+  console.log(
+    '│                                        API File to Test Mapping                                            │'
+  );
+  console.log(
+    '└─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘\n'
+  );
 
   // Table header
   const header = [
@@ -216,7 +232,7 @@ function generateTestCoverageMatrix() {
     'Tests'.padStart(5),
     'Test Modified'.padEnd(12),
     'Stale'.padStart(5),
-    'Status'
+    'Status',
   ].join(' │ ');
 
   console.log('  ' + header);
@@ -224,17 +240,21 @@ function generateTestCoverageMatrix() {
 
   // Table rows
   for (const row of matrixData) {
-    const testFileStr = row.testFiles.length > 0
-      ? row.testFiles.map(t => t.name).join(', ').substring(0, 36)
-      : '(none)';
+    const testFileStr =
+      row.testFiles.length > 0
+        ? row.testFiles
+            .map((t) => t.name)
+            .join(', ')
+            .substring(0, 36)
+        : '(none)';
 
     const stalenessStr = row.hasTests
-      ? (row.commitsBehind > 0 ? row.commitsBehind.toString() : '0')
+      ? row.commitsBehind > 0
+        ? row.commitsBehind.toString()
+        : '0'
       : '-';
 
-    const statusIndicator = row.hasTests
-      ? getStalenessIndicator(row.commitsBehind)
-      : '❌';
+    const statusIndicator = row.hasTests ? getStalenessIndicator(row.commitsBehind) : '❌';
 
     const rowStr = [
       row.apiFile.padEnd(16),
@@ -243,7 +263,7 @@ function generateTestCoverageMatrix() {
       row.testCount.toString().padStart(5),
       (row.testLastModified || '-').padEnd(12),
       stalenessStr.padStart(5),
-      statusIndicator
+      statusIndicator,
     ].join(' │ ');
 
     console.log('  ' + rowStr);
@@ -262,7 +282,7 @@ function generateTestCoverageMatrix() {
 
   // Print files needing attention
   const staleFiles = matrixData
-    .filter(r => r.hasTests && r.commitsBehind > 0)
+    .filter((r) => r.hasTests && r.commitsBehind > 0)
     .sort((a, b) => b.commitsBehind - a.commitsBehind);
 
   if (staleFiles.length > 0) {
@@ -271,13 +291,15 @@ function generateTestCoverageMatrix() {
     console.log('└─────────────────────────────────────────┘\n');
 
     for (const file of staleFiles) {
-      console.log(`  ${getStalenessIndicator(file.commitsBehind)} ${file.apiFile.padEnd(16)} - ${file.commitsBehind} commit(s) since tests updated`);
+      console.log(
+        `  ${getStalenessIndicator(file.commitsBehind)} ${file.apiFile.padEnd(16)} - ${file.commitsBehind} commit(s) since tests updated`
+      );
     }
     console.log('');
   }
 
   // Print files without tests
-  const noTestFiles = matrixData.filter(r => !r.hasTests);
+  const noTestFiles = matrixData.filter((r) => !r.hasTests);
   if (noTestFiles.length > 0) {
     console.log('┌─────────────────────────────────────────┐');
     console.log('│       Files Without Direct Tests        │');
@@ -300,7 +322,7 @@ function generateTestCoverageMatrix() {
     filesWithTests,
     filesWithNoTests,
     filesWithStaleTests,
-    totalTests
+    totalTests,
   });
 
   const reportPath = path.join(reportsDir, 'test-coverage-matrix.md');
@@ -308,7 +330,7 @@ function generateTestCoverageMatrix() {
   console.log(`📄 Detailed report saved to: ${reportPath}\n`);
 
   // Return exit code based on coverage
-  const coveragePercent = Math.round(filesWithTests / apiFiles.length * 100);
+  const coveragePercent = Math.round((filesWithTests / apiFiles.length) * 100);
   if (coveragePercent < 50) {
     console.log(`⚠️  Warning: Only ${coveragePercent}% of API files have direct tests\n`);
   }
@@ -328,27 +350,24 @@ function generateMarkdownReport(matrixData, stats) {
 
   md += '## Summary\n\n';
   md += `- **Total API Files:** ${stats.totalApiFiles}\n`;
-  md += `- **Files with Tests:** ${stats.filesWithTests} (${stats.totalApiFiles ? Math.round(stats.filesWithTests / stats.totalApiFiles * 100) : 0}%)\n`;
+  md += `- **Files with Tests:** ${stats.filesWithTests} (${stats.totalApiFiles ? Math.round((stats.filesWithTests / stats.totalApiFiles) * 100) : 0}%)\n`;
   md += `- **Files without Tests:** ${stats.filesWithNoTests}\n`;
   md += `- **Files with Stale Tests:** ${stats.filesWithStaleTests}\n`;
   md += `- **Total Test Cases:** ${stats.totalTests}\n\n`;
 
   md += '## Coverage Matrix\n\n';
-  md += '| API File | Last Modified | Test File(s) | Tests | Test Modified | Commits Behind | Status |\n';
-  md += '|----------|---------------|--------------|------:|---------------|---------------:|--------|\n';
+  md +=
+    '| API File | Last Modified | Test File(s) | Tests | Test Modified | Commits Behind | Status |\n';
+  md +=
+    '|----------|---------------|--------------|------:|---------------|---------------:|--------|\n';
 
   for (const row of matrixData) {
-    const testFileStr = row.testFiles.length > 0
-      ? row.testFiles.map(t => `\`${t.name}\``).join(', ')
-      : '(none)';
+    const testFileStr =
+      row.testFiles.length > 0 ? row.testFiles.map((t) => `\`${t.name}\``).join(', ') : '(none)';
 
-    const stalenessStr = row.hasTests
-      ? row.commitsBehind.toString()
-      : '-';
+    const stalenessStr = row.hasTests ? row.commitsBehind.toString() : '-';
 
-    const statusIndicator = row.hasTests
-      ? getStalenessIndicator(row.commitsBehind)
-      : '❌';
+    const statusIndicator = row.hasTests ? getStalenessIndicator(row.commitsBehind) : '❌';
 
     md += `| ${row.apiFile} | ${row.apiLastModified || '-'} | ${testFileStr} | ${row.testCount} | ${row.testLastModified || '-'} | ${stalenessStr} | ${statusIndicator} |\n`;
   }
@@ -362,7 +381,7 @@ function generateMarkdownReport(matrixData, stats) {
 
   // Files needing attention
   const staleFiles = matrixData
-    .filter(r => r.hasTests && r.commitsBehind > 0)
+    .filter((r) => r.hasTests && r.commitsBehind > 0)
     .sort((a, b) => b.commitsBehind - a.commitsBehind);
 
   if (staleFiles.length > 0) {
@@ -376,7 +395,7 @@ function generateMarkdownReport(matrixData, stats) {
   }
 
   // Files without tests
-  const noTestFiles = matrixData.filter(r => !r.hasTests);
+  const noTestFiles = matrixData.filter((r) => !r.hasTests);
   if (noTestFiles.length > 0) {
     md += '## Files Without Direct Tests\n\n';
     md += 'These API files do not have dedicated test files:\n\n';

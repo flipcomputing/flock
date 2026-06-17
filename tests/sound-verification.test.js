@@ -12,10 +12,10 @@ import {
   hasFrequency,
   isSilent,
   calculateRMS,
-} from "./utils/audioTestUtils.js";
+} from './utils/audioTestUtils.js';
 
 export function runSoundVerificationTests(flock) {
-  describe("Sound Verification Tests @sound @slow @sound-verification", function () {
+  describe('Sound Verification Tests @sound @slow @sound-verification', function () {
     this.timeout(15000);
 
     async function waitForSoundOnMesh(meshName, maxAttempts = 10) {
@@ -31,7 +31,7 @@ export function runSoundVerificationTests(flock) {
     beforeEach(async function () {
       flock.stopAllSounds();
 
-      const testMeshes = ["audioTestBox", "toneTestBox", "volumeTestBox"];
+      const testMeshes = ['audioTestBox', 'toneTestBox', 'volumeTestBox'];
       testMeshes.forEach((meshName) => {
         const mesh = flock.scene.getMeshByName(meshName);
         if (mesh) {
@@ -44,42 +44,34 @@ export function runSoundVerificationTests(flock) {
       flock.stopAllSounds();
     });
 
-    describe("Audio Test Utilities Verification", function () {
-      it("should have audioTestUtils available", function () {
-        chai.expect(generateTestTone).to.be.a("function");
-        chai.expect(findDominantFrequency).to.be.a("function");
-        chai.expect(hasFrequency).to.be.a("function");
-        chai.expect(isSilent).to.be.a("function");
-        chai.expect(calculateRMS).to.be.a("function");
+    describe('Audio Test Utilities Verification', function () {
+      it('should have audioTestUtils available', function () {
+        chai.expect(generateTestTone).to.be.a('function');
+        chai.expect(findDominantFrequency).to.be.a('function');
+        chai.expect(hasFrequency).to.be.a('function');
+        chai.expect(isSilent).to.be.a('function');
+        chai.expect(calculateRMS).to.be.a('function');
       });
 
-      it("should generate test tone with known frequency", async function () {
+      it('should generate test tone with known frequency', async function () {
         const audioContext = flock.getAudioContext();
         const testFrequency = 440; // A4 note
         const duration = 0.5;
 
-        const audioBuffer = generateTestTone(
-          audioContext,
-          testFrequency,
-          duration,
-        );
+        const audioBuffer = generateTestTone(audioContext, testFrequency, duration);
 
         chai.expect(audioBuffer.duration).to.be.closeTo(0.5, 0.1);
         chai.expect(audioBuffer.sampleRate).to.be.greaterThan(0);
         chai.expect(audioBuffer.numberOfChannels).to.be.greaterThan(0);
       });
 
-      it("should detect dominant frequency in generated tone", async function () {
+      it('should detect dominant frequency in generated tone', async function () {
         // Ensure fresh audio context
         const audioContext = new AudioContext();
         const testFrequency = 440;
         const duration = 0.2;
 
-        const audioBuffer = generateTestTone(
-          audioContext,
-          testFrequency,
-          duration,
-        );
+        const audioBuffer = generateTestTone(audioContext, testFrequency, duration);
 
         const source = audioContext.createBufferSource();
         source.buffer = audioBuffer;
@@ -96,10 +88,7 @@ export function runSoundVerificationTests(flock) {
         const frequencyData = new Float32Array(analyser.frequencyBinCount);
         analyser.getFloatFrequencyData(frequencyData);
 
-        const dominantFreq = findDominantFrequency(
-          frequencyData,
-          audioContext.sampleRate,
-        );
+        const dominantFreq = findDominantFrequency(frequencyData, audioContext.sampleRate);
 
         source.stop();
         await audioContext.close();
@@ -111,15 +100,15 @@ export function runSoundVerificationTests(flock) {
       });
     });
 
-    describe("PlayNotes Audio Output Verification", function () {
-      it("should generate audio when playing MIDI notes", async function () {
-        const boxId = flock.createBox("toneTestBox", { x: 0, y: 0, z: 0 });
+    describe('PlayNotes Audio Output Verification', function () {
+      it('should generate audio when playing MIDI notes', async function () {
+        const boxId = flock.createBox('toneTestBox', { x: 0, y: 0, z: 0 });
 
         // Play a simple note using playNotes
         const notesPromise = flock.playNotes(boxId, {
           notes: [60], // Middle C
           durations: [0.5],
-          instrument: flock.createInstrument("sine"),
+          instrument: flock.createInstrument('sine'),
         });
 
         // Don't await yet, let it start playing
@@ -138,11 +127,11 @@ export function runSoundVerificationTests(flock) {
 
         // For now, just verify the promise completes
         // (actual audio capture from playNotes would require more complex routing)
-        chai.expect(notesPromise).to.be.a("promise");
+        chai.expect(notesPromise).to.be.a('promise');
       });
 
-      it("should accept different MIDI note numbers", async function () {
-        const boxId = flock.createBox("toneTestBox", { x: 0, y: 0, z: 0 });
+      it('should accept different MIDI note numbers', async function () {
+        const boxId = flock.createBox('toneTestBox', { x: 0, y: 0, z: 0 });
 
         // Ensure audio context is ready
         flock.getAudioContext();
@@ -167,26 +156,26 @@ export function runSoundVerificationTests(flock) {
         chai.expect(true).to.be.true;
       });
 
-      it("should handle multiple notes in sequence", async function () {
-        const boxId = flock.createBox("toneTestBox", { x: 0, y: 0, z: 0 });
+      it('should handle multiple notes in sequence', async function () {
+        const boxId = flock.createBox('toneTestBox', { x: 0, y: 0, z: 0 });
 
         await flock.playNotes(boxId, {
           notes: [60, 64, 67], // C major chord notes in sequence
           durations: [0.1, 0.1, 0.1],
-          instrument: flock.createInstrument("sine"),
+          instrument: flock.createInstrument('sine'),
         });
 
         chai.expect(true).to.be.true;
       });
     });
 
-    describe("Volume Control Verification", function () {
-      it("should accept volume parameter during playSound", async function () {
-        const boxId = flock.createBox("volumeTestBox", { x: 0, y: 0, z: 0 });
+    describe('Volume Control Verification', function () {
+      it('should accept volume parameter during playSound', async function () {
+        const boxId = flock.createBox('volumeTestBox', { x: 0, y: 0, z: 0 });
 
         // Test various volume levels
         await flock.playSound(boxId, {
-          soundName: "test.mp3",
+          soundName: 'test.mp3',
           volume: 0.3,
           loop: true,
         });
@@ -198,7 +187,7 @@ export function runSoundVerificationTests(flock) {
         await new Promise((r) => setTimeout(r, 100));
 
         await flock.playSound(boxId, {
-          soundName: "test.mp3",
+          soundName: 'test.mp3',
           volume: 0.8,
           loop: true,
         });
@@ -207,12 +196,12 @@ export function runSoundVerificationTests(flock) {
       });
     });
 
-    describe("Spatial vs Non-Spatial Audio", function () {
-      it("should maintain _attachedMesh reference for spatial sounds", async function () {
-        const boxId = flock.createBox("audioTestBox", { x: 0, y: 0, z: 0 });
+    describe('Spatial vs Non-Spatial Audio', function () {
+      it('should maintain _attachedMesh reference for spatial sounds', async function () {
+        const boxId = flock.createBox('audioTestBox', { x: 0, y: 0, z: 0 });
 
         await flock.playSound(boxId, {
-          soundName: "test.mp3",
+          soundName: 'test.mp3',
           loop: true,
         });
 
@@ -224,28 +213,28 @@ export function runSoundVerificationTests(flock) {
       });
     });
 
-    describe("MIDI to Frequency Conversion", function () {
-      it("should convert MIDI note 60 to ~261.63 Hz (Middle C)", function () {
+    describe('MIDI to Frequency Conversion', function () {
+      it('should convert MIDI note 60 to ~261.63 Hz (Middle C)', function () {
         const freq = flock.midiToFrequency(60);
         chai.expect(freq).to.be.closeTo(261.63, 0.1);
       });
 
-      it("should convert MIDI note 69 to 440 Hz (A4)", function () {
+      it('should convert MIDI note 69 to 440 Hz (A4)', function () {
         const freq = flock.midiToFrequency(69);
         chai.expect(freq).to.equal(440);
       });
 
-      it("should handle low MIDI notes", function () {
+      it('should handle low MIDI notes', function () {
         const freq = flock.midiToFrequency(21); // A0
         chai.expect(freq).to.be.closeTo(27.5, 0.1);
       });
 
-      it("should handle high MIDI notes", function () {
+      it('should handle high MIDI notes', function () {
         const freq = flock.midiToFrequency(108); // C8
         chai.expect(freq).to.be.closeTo(4186.01, 0.1);
       });
 
-      it("should follow exponential relationship (octaves double frequency)", function () {
+      it('should follow exponential relationship (octaves double frequency)', function () {
         const c4 = flock.midiToFrequency(60);
         const c5 = flock.midiToFrequency(72);
         const c6 = flock.midiToFrequency(84);
@@ -255,25 +244,25 @@ export function runSoundVerificationTests(flock) {
       });
     });
 
-    describe("Instrument Creation", function () {
-      it("should create sine wave instrument", function () {
+    describe('Instrument Creation', function () {
+      it('should create sine wave instrument', function () {
         // Create a fresh audio context if current one is closed
-        if (!flock.audioContext || flock.audioContext.state === "closed") {
+        if (!flock.audioContext || flock.audioContext.state === 'closed') {
           flock.audioContext = new AudioContext();
         }
 
-        const instrument = flock.createInstrument("sine");
+        const instrument = flock.createInstrument('sine');
         chai.expect(instrument).to.not.be.undefined;
-        chai.expect(instrument.type).to.equal("sine");
+        chai.expect(instrument.type).to.equal('sine');
       });
 
-      it("should create different waveform types", function () {
+      it('should create different waveform types', function () {
         // Create a fresh audio context if current one is closed
-        if (!flock.audioContext || flock.audioContext.state === "closed") {
+        if (!flock.audioContext || flock.audioContext.state === 'closed') {
           flock.audioContext = new AudioContext();
         }
 
-        const types = ["sine", "square", "sawtooth", "triangle"];
+        const types = ['sine', 'square', 'sawtooth', 'triangle'];
 
         types.forEach((type) => {
           const instrument = flock.createInstrument(type);
@@ -282,13 +271,13 @@ export function runSoundVerificationTests(flock) {
         });
       });
 
-      it("should create instrument with ADSR envelope parameters", function () {
+      it('should create instrument with ADSR envelope parameters', function () {
         // Create a fresh audio context if current one is closed
-        if (!flock.audioContext || flock.audioContext.state === "closed") {
+        if (!flock.audioContext || flock.audioContext.state === 'closed') {
           flock.audioContext = new AudioContext();
         }
 
-        const instrument = flock.createInstrument("sine", {
+        const instrument = flock.createInstrument('sine', {
           attack: 0.1,
           decay: 0.2,
           sustain: 0.7,
@@ -296,7 +285,7 @@ export function runSoundVerificationTests(flock) {
         });
 
         chai.expect(instrument).to.not.be.undefined;
-        chai.expect(instrument.type).to.equal("sine");
+        chai.expect(instrument.type).to.equal('sine');
         chai.expect(instrument.attack).to.equal(0.1);
         chai.expect(instrument.decay).to.equal(0.2);
         chai.expect(instrument.sustain).to.equal(0.7);

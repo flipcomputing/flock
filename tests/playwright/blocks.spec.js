@@ -1,17 +1,17 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
 
-test.describe("Create Blockly project and open Events flyout", () => {
-  test("starts new project and opens Events category", async ({ page }) => {
-    page.on("console", (msg) => {
+test.describe('Create Blockly project and open Events flyout', () => {
+  test('starts new project and opens Events category', async ({ page }) => {
+    page.on('console', (msg) => {
       console.log(`📥 [console.${msg.type()}]`, msg.text());
     });
 
     // ✅ Load page and wait for DOM readiness instead of networkidle
-    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     // ✅ Wait until the project select dropdown is visible
-    await page.waitForSelector("#exampleSelect", {
-      state: "visible",
+    await page.waitForSelector('#exampleSelect', {
+      state: 'visible',
       timeout: 20000,
     });
 
@@ -21,47 +21,41 @@ test.describe("Create Blockly project and open Events flyout", () => {
         const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
         return !!ws;
       },
-      { timeout: 20000 },
+      { timeout: 20000 }
     );
 
     // Step 1: Start a new project
-    const projectMenu = page.locator("#exampleSelect");
+    const projectMenu = page.locator('#exampleSelect');
     await expect(projectMenu).toBeVisible();
     await expect(projectMenu).toBeEnabled();
 
-    const newOption = await page.locator("#new");
-    const newValue = await newOption.getAttribute("value");
+    const newOption = await page.locator('#new');
+    const newValue = await newOption.getAttribute('value');
     if (newValue) {
       await projectMenu.selectOption(newValue);
     } else {
-      throw new Error("Could not find value for #new");
+      throw new Error('Could not find value for #new');
     }
 
     // Step 2: Wait for Blockly ready & empty workspace
     await page.waitForFunction(() => {
       const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
       if (!ws) return false;
-      return (
-        (ws.getToolbox?.() || ws.getFlyout?.()) &&
-        ws.getAllBlocks?.().length === 0
-      );
+      return (ws.getToolbox?.() || ws.getFlyout?.()) && ws.getAllBlocks?.().length === 0;
     });
 
     // Helper to open a category via Blockly API (robust against UI/DOM changes)
     async function openCategoryByName(namePart) {
       const result = await page.evaluate((namePart) => {
         const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
-        if (!ws) return { ok: false, reason: "no workspace" };
+        if (!ws) return { ok: false, reason: 'no workspace' };
         const tb = ws.getToolbox?.();
-        if (!tb) return { ok: false, reason: "no toolbox" };
+        if (!tb) return { ok: false, reason: 'no toolbox' };
 
         const items = tb.getToolboxItems?.() || [];
         const wanted =
-          items.find((i) =>
-            (i.getName?.() || "")
-              .toLowerCase()
-              .includes(namePart.toLowerCase()),
-          ) || null;
+          items.find((i) => (i.getName?.() || '').toLowerCase().includes(namePart.toLowerCase())) ||
+          null;
 
         const names = items.map((i) => i.getName?.()).filter(Boolean);
 
@@ -83,9 +77,9 @@ test.describe("Create Blockly project and open Events flyout", () => {
 
       if (!result.ok) {
         throw new Error(
-          `Could not open "${namePart}" category (${result.reason || "unknown"}). Available: ${
-            result.names?.join(", ") || "(none)"
-          }`,
+          `Could not open "${namePart}" category (${result.reason || 'unknown'}). Available: ${
+            result.names?.join(', ') || '(none)'
+          }`
         );
       }
     }
@@ -97,24 +91,24 @@ test.describe("Create Blockly project and open Events flyout", () => {
         const tb = ws?.getToolbox?.();
         return !!(tb && (tb.getToolboxItems?.()?.length ?? 0) > 0);
       },
-      { timeout: 20000 },
+      { timeout: 20000 }
     );
-    await openCategoryByName("events");
+    await openCategoryByName('events');
 
     // Step 4: Create a `start` block programmatically
     const createdStart = await page.evaluate(() => {
       const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
       if (!ws) return false;
-      let start = ws.getAllBlocks().find((b) => b.type === "start");
+      let start = ws.getAllBlocks().find((b) => b.type === 'start');
       if (!start) {
-        start = ws.newBlock("start");
+        start = ws.newBlock('start');
         start.initSvg?.();
         start.render?.();
         start.moveBy(80, 80);
       }
       return !!start;
     });
-    if (!createdStart) throw new Error("Failed to create start block");
+    if (!createdStart) throw new Error('Failed to create start block');
 
     // Wait until workspace reflects the single block (start)
     await page.waitForFunction(() => {
@@ -123,38 +117,38 @@ test.describe("Create Blockly project and open Events flyout", () => {
     });
 
     // Step 5: Open “Scene” category
-    await openCategoryByName("scene");
+    await openCategoryByName('scene');
 
     // Step 6: Create a `set_sky_color` block programmatically
     const createdSky = await page.evaluate(() => {
       const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
       if (!ws) return false;
-      let sky = ws.getAllBlocks().find((b) => b.type === "set_sky_color");
+      let sky = ws.getAllBlocks().find((b) => b.type === 'set_sky_color');
       if (!sky) {
-        sky = ws.newBlock("set_sky_color");
+        sky = ws.newBlock('set_sky_color');
         sky.initSvg?.();
         sky.render?.();
         sky.moveBy(80, 160);
       }
       return !!sky;
     });
-    if (!createdSky) throw new Error("Failed to create set_sky_color block");
+    if (!createdSky) throw new Error('Failed to create set_sky_color block');
 
     // Step 7: Connect sky under start programmatically
     const connected = await page.evaluate(() => {
       const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
-      if (!ws) return { ok: false, msg: "no workspace" };
+      if (!ws) return { ok: false, msg: 'no workspace' };
 
       const blocks = ws.getAllBlocks();
-      const start = blocks.find((b) => b.type === "start");
-      const sky = blocks.find((b) => b.type === "set_sky_color");
-      if (!start || !sky) return { ok: false, msg: "missing blocks" };
+      const start = blocks.find((b) => b.type === 'start');
+      const sky = blocks.find((b) => b.type === 'set_sky_color');
+      if (!start || !sky) return { ok: false, msg: 'missing blocks' };
 
       const inputConn = (start.inputList || []).find(
-        (i) => i.name === "DO" && i.connection,
+        (i) => i.name === 'DO' && i.connection
       )?.connection;
       const skyPrev = sky.previousConnection;
-      if (!inputConn || !skyPrev) return { ok: false, msg: "no connections" };
+      if (!inputConn || !skyPrev) return { ok: false, msg: 'no connections' };
 
       if (!inputConn.isConnected() && !skyPrev.isConnected()) {
         inputConn.connect(skyPrev);
@@ -168,9 +162,7 @@ test.describe("Create Blockly project and open Events flyout", () => {
     });
 
     if (!connected.ok) {
-      throw new Error(
-        `Failed to connect blocks: ${connected.msg || "unknown"}`,
-      );
+      throw new Error(`Failed to connect blocks: ${connected.msg || 'unknown'}`);
     }
 
     // Step 8: Ensure at least the 2 required blocks exist (start + sky)
@@ -180,19 +172,17 @@ test.describe("Create Blockly project and open Events flyout", () => {
     });
 
     // Run the code
-    await page.locator("#runCodeButton").click();
+    await page.locator('#runCodeButton').click();
     await page.waitForTimeout(1000);
 
     // Verify canvas renders and matches baseline
-    const renderCanvas = page.locator("#renderCanvas");
+    const renderCanvas = page.locator('#renderCanvas');
     await expect(renderCanvas).toBeVisible();
-    await expect(renderCanvas).toHaveScreenshot("canvas-baseline.png");
+    await expect(renderCanvas).toHaveScreenshot('canvas-baseline.png');
   });
 
-  test("supports persistent toolbox category prefix typing without timeout", async ({
-    page,
-  }) => {
-    await page.goto("/", { waitUntil: "domcontentloaded" });
+  test('supports persistent toolbox category prefix typing without timeout', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     await page.waitForFunction(
       () => {
@@ -200,7 +190,7 @@ test.describe("Create Blockly project and open Events flyout", () => {
         const tb = ws?.getToolbox?.();
         return !!(ws && tb && (tb.getToolboxItems?.()?.length ?? 0) > 0);
       },
-      { timeout: 20000 },
+      { timeout: 20000 }
     );
 
     const selectedAfterTyping = await page.evaluate(async () => {
@@ -209,22 +199,21 @@ test.describe("Create Blockly project and open Events flyout", () => {
       if (!ws || !tb) return null;
 
       const toolboxDiv =
-        tb.HtmlDiv ||
-        document.querySelector(".blocklyToolboxDiv, .blocklyToolbox");
+        tb.HtmlDiv || document.querySelector('.blocklyToolboxDiv, .blocklyToolbox');
       if (!(toolboxDiv instanceof HTMLElement)) return null;
 
       const keydown = (key, extra = {}) => {
         toolboxDiv.dispatchEvent(
-          new KeyboardEvent("keydown", {
+          new KeyboardEvent('keydown', {
             key,
             code: key.length === 1 ? `Key${key.toUpperCase()}` : key,
             bubbles: true,
             cancelable: true,
             ...extra,
-          }),
+          })
         );
       };
-      const selectedName = () => tb.getSelectedItem?.()?.getName?.() || "";
+      const selectedName = () => tb.getSelectedItem?.()?.getName?.() || '';
       const waitFor = async (predicate, timeoutMs = 2000) => {
         const start = performance.now();
         while (performance.now() - start < timeoutMs) {
@@ -237,44 +226,38 @@ test.describe("Create Blockly project and open Events flyout", () => {
       window.Blockly?.getFocusManager?.()?.focusTree?.(tb);
       toolboxDiv.focus();
 
-      keydown("c");
-      keydown("o");
-      keydown("n");
-      await waitFor(
-        () => selectedName().toLowerCase().startsWith("con"),
-        2000,
-      );
-      keydown("d");
+      keydown('c');
+      keydown('o');
+      keydown('n');
+      await waitFor(() => selectedName().toLowerCase().startsWith('con'), 2000);
+      keydown('d');
       const condition = selectedName().toLowerCase();
 
-      keydown("Escape");
-      keydown("c");
-      keydown("o");
-      keydown("n");
+      keydown('Escape');
+      keydown('c');
+      keydown('o');
+      keydown('n');
       const connect = selectedName().toLowerCase();
       const focusedTree = window.Blockly?.getFocusManager?.()?.getFocusedTree?.();
       const toolboxStillFocused = focusedTree === tb;
       const activeInToolbox = !!document.activeElement?.closest?.(
-        ".blocklyToolboxDiv, .blocklyToolbox",
+        '.blocklyToolboxDiv, .blocklyToolbox'
       );
 
       const selectedItem = tb.getSelectedItem?.();
       const selectedExpanded =
-        typeof selectedItem?.isExpanded === "function"
-          ? selectedItem.isExpanded()
-          : null;
+        typeof selectedItem?.isExpanded === 'function' ? selectedItem.isExpanded() : null;
       const parent =
         selectedItem?.getParent?.() ||
         selectedItem?.parentToolboxItem_ ||
         selectedItem?.parentItem_ ||
         selectedItem?.parent_;
-      const parentExpanded =
-        typeof parent?.isExpanded === "function" ? parent.isExpanded() : null;
+      const parentExpanded = typeof parent?.isExpanded === 'function' ? parent.isExpanded() : null;
 
-      keydown("Escape");
-      keydown("s");
-      keydown("t");
-      keydown("r");
+      keydown('Escape');
+      keydown('s');
+      keydown('t');
+      keydown('r');
       const strings = selectedName().toLowerCase();
 
       const stringsItem = tb.getSelectedItem?.();
@@ -284,27 +267,24 @@ test.describe("Create Blockly project and open Events flyout", () => {
         stringsItem?.parentItem_ ||
         stringsItem?.parent_;
       const stringsParentExpanded =
-        typeof stringsParent?.isExpanded === "function"
-          ? stringsParent.isExpanded()
-          : null;
+        typeof stringsParent?.isExpanded === 'function' ? stringsParent.isExpanded() : null;
 
-      keydown("Escape");
-      keydown("s");
-      keydown("c");
-      keydown("e");
+      keydown('Escape');
+      keydown('s');
+      keydown('c');
+      keydown('e');
       const scene = selectedName().toLowerCase();
 
-      keydown("f", { ctrlKey: true });
+      keydown('f', { ctrlKey: true });
       await waitFor(() => {
         const active = document.activeElement;
-        return active instanceof HTMLInputElement && active.type === "search";
+        return active instanceof HTMLInputElement && active.type === 'search';
       }, 2000);
       const focused = document.activeElement;
-      const searchFocused =
-        focused instanceof HTMLInputElement && focused.type === "search";
+      const searchFocused = focused instanceof HTMLInputElement && focused.type === 'search';
 
       toolboxDiv.focus();
-      keydown("c");
+      keydown('c');
       const control = selectedName().toLowerCase();
 
       return {
@@ -324,13 +304,13 @@ test.describe("Create Blockly project and open Events flyout", () => {
 
     expect(selectedAfterTyping).not.toBeNull();
     expect(selectedAfterTyping.searchFocused).toBe(true);
-    expect(selectedAfterTyping.condition).toContain("condition");
-    expect(selectedAfterTyping.connect).toContain("connect");
+    expect(selectedAfterTyping.condition).toContain('condition');
+    expect(selectedAfterTyping.connect).toContain('connect');
     expect(selectedAfterTyping.toolboxStillFocused).toBe(true);
     expect(selectedAfterTyping.activeInToolbox).toBe(true);
-    expect(selectedAfterTyping.strings).toContain("string");
-    expect(selectedAfterTyping.scene).toContain("scene");
-    expect(selectedAfterTyping.control).toContain("control");
+    expect(selectedAfterTyping.strings).toContain('string');
+    expect(selectedAfterTyping.scene).toContain('scene');
+    expect(selectedAfterTyping.control).toContain('control');
     expect(selectedAfterTyping.selectedExpanded).toBe(true);
     expect(selectedAfterTyping.parentExpanded).toBe(true);
     expect(selectedAfterTyping.stringsParentExpanded).toBe(true);

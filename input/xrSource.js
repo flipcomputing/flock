@@ -1,19 +1,19 @@
 const XR_BUTTON_KEYS = {
   left: {
-    "x-button": ["f"],   // BUTTON3
-    "y-button": ["e"],   // BUTTON2
+    'x-button': ['f'], // BUTTON3
+    'y-button': ['e'], // BUTTON2
   },
   right: {
-    "a-button": [" "],   // BUTTON4
-    "b-button": ["r"],   // BUTTON1
+    'a-button': [' '], // BUTTON4
+    'b-button': ['r'], // BUTTON1
   },
 };
 
 const XR_AXES = {
   thumbstick: {
     axes: [
-      { axisIndex: 0, name: "XR_MOVE_X", shimKeys: { neg: "a", pos: "d" } },
-      { axisIndex: 1, name: "XR_MOVE_Y", shimKeys: { neg: "w", pos: "s" } },
+      { axisIndex: 0, name: 'XR_MOVE_X', shimKeys: { neg: 'a', pos: 'd' } },
+      { axisIndex: 1, name: 'XR_MOVE_Y', shimKeys: { neg: 'w', pos: 's' } },
     ],
   },
 };
@@ -32,7 +32,7 @@ export class XRSource {
   // inputSource → { mcObserver, mcObservable, btnObservers[], heldKeys, motionController, handedness }
   #controllerState = new Map();
   #thumbstickHeld = new Set();
-  #allHeldKeys = new Set();  // Union of all held keys across buttons and thumbsticks
+  #allHeldKeys = new Set(); // Union of all held keys across buttons and thumbsticks
 
   constructor(inputManager, { xrHelper, scene }) {
     this.#inputManager = inputManager;
@@ -44,15 +44,13 @@ export class XRSource {
     if (this.#started) return;
     this.#started = true;
 
-    this.#controllerAddedObserver =
-      this.#xrHelper.input.onControllerAddedObservable.add((controller) =>
-        this.#onControllerAdded(controller),
-      );
+    this.#controllerAddedObserver = this.#xrHelper.input.onControllerAddedObservable.add(
+      (controller) => this.#onControllerAdded(controller)
+    );
 
-    this.#controllerRemovedObserver =
-      this.#xrHelper.input.onControllerRemovedObservable.add((controller) =>
-        this.#onControllerRemoved(controller),
-      );
+    this.#controllerRemovedObserver = this.#xrHelper.input.onControllerRemovedObservable.add(
+      (controller) => this.#onControllerRemoved(controller)
+    );
 
     this.#frameObserver = this.#scene.onBeforeRenderObservable.add(() => {
       this.#pollThumbsticks();
@@ -67,14 +65,10 @@ export class XRSource {
     if (!this.#started) return;
     this.#started = false;
 
-    this.#xrHelper.input.onControllerAddedObservable.remove(
-      this.#controllerAddedObserver,
-    );
+    this.#xrHelper.input.onControllerAddedObservable.remove(this.#controllerAddedObserver);
     this.#controllerAddedObserver = null;
 
-    this.#xrHelper.input.onControllerRemovedObservable.remove(
-      this.#controllerRemovedObserver,
-    );
+    this.#xrHelper.input.onControllerRemovedObservable.remove(this.#controllerRemovedObserver);
     this.#controllerRemovedObserver = null;
 
     this.#scene.onBeforeRenderObservable.remove(this.#frameObserver);
@@ -126,40 +120,36 @@ export class XRSource {
     };
     this.#controllerState.set(controller.inputSource, state);
 
-    state.mcObserver = controller.onMotionControllerInitObservable.addOnce(
-      (motionController) => {
-        state.motionController = motionController;
-        state.mcObserver = null;
+    state.mcObserver = controller.onMotionControllerInitObservable.addOnce((motionController) => {
+      state.motionController = motionController;
+      state.mcObserver = null;
 
-        for (const [componentId, keys] of Object.entries(buttonMap)) {
-          const component = motionController.getComponent(componentId);
-          if (!component) continue;
+      for (const [componentId, keys] of Object.entries(buttonMap)) {
+        const component = motionController.getComponent(componentId);
+        if (!component) continue;
 
-          let lastPressedState = false;
-          const btnObserver = component.onButtonStateChangedObservable.add(
-            () => {
-              const isPressed = component.pressed;
-              if (isPressed === lastPressedState) return;
-              lastPressedState = isPressed;
-              for (const key of keys) {
-                this.#inputManager._setKey(key, isPressed);
-                if (isPressed) {
-                  state.heldKeys.add(key);
-                  this.#allHeldKeys.add(key);
-                } else {
-                  state.heldKeys.delete(key);
-                  this.#allHeldKeys.delete(key);
-                }
-              }
-            },
-          );
-          state.btnObservers.push({
-            observable: component.onButtonStateChangedObservable,
-            observer: btnObserver,
-          });
-        }
-      },
-    );
+        let lastPressedState = false;
+        const btnObserver = component.onButtonStateChangedObservable.add(() => {
+          const isPressed = component.pressed;
+          if (isPressed === lastPressedState) return;
+          lastPressedState = isPressed;
+          for (const key of keys) {
+            this.#inputManager._setKey(key, isPressed);
+            if (isPressed) {
+              state.heldKeys.add(key);
+              this.#allHeldKeys.add(key);
+            } else {
+              state.heldKeys.delete(key);
+              this.#allHeldKeys.delete(key);
+            }
+          }
+        });
+        state.btnObservers.push({
+          observable: component.onButtonStateChangedObservable,
+          observer: btnObserver,
+        });
+      }
+    });
   }
 
   #onControllerRemoved(controller) {
@@ -177,7 +167,7 @@ export class XRSource {
     }
     this.#releaseControllerKeys(state);
 
-    if (state.handedness === "left") {
+    if (state.handedness === 'left') {
       for (const key of this.#thumbstickHeld) {
         this.#inputManager._setKey(key, false);
         this.#allHeldKeys.delete(key);
@@ -196,7 +186,7 @@ export class XRSource {
   #pollThumbsticks() {
     let mc = null;
     for (const [, state] of this.#controllerState) {
-      if (state.handedness === "left" && state.motionController) {
+      if (state.handedness === 'left' && state.motionController) {
         mc = state.motionController;
         break;
       }
@@ -216,7 +206,7 @@ export class XRSource {
       return;
     }
 
-    const thumbstick = mc.getComponent("xr-standard-thumbstick");
+    const thumbstick = mc.getComponent('xr-standard-thumbstick');
     if (!thumbstick) return;
 
     const rawValues = [thumbstick.axes?.x ?? 0, thumbstick.axes?.y ?? 0];

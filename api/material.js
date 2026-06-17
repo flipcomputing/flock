@@ -13,50 +13,46 @@ export const flockMaterial = {
     const targets = [mesh, ...(mesh.getDescendants?.() || [])];
     targets.forEach((m) => {
       const mat =
-        m.material ||
-        (m.getClassName?.() === "InstancedMesh"
-          ? m.sourceMesh?.material
-          : null);
+        m.material || (m.getClassName?.() === 'InstancedMesh' ? m.sourceMesh?.material : null);
       flock.adjustMaterialTilingToMesh(m, mat, unitsPerTile);
     });
   },
   randomColour() {
-    const letters = "0123456789ABCDEF";
-    let colour = "#";
+    const letters = '0123456789ABCDEF';
+    let colour = '#';
     for (let i = 0; i < 6; i++) {
       colour += letters[Math.floor(Math.random() * 16)];
     }
-    if (flock.materialsDebug)
-      console.log(`  Generated the random colour ${colour}`);
+    if (flock.materialsDebug) console.log(`  Generated the random colour ${colour}`);
     return colour.toLowerCase();
   },
   rgbToHex(rgb) {
     const matches = rgb.match(/\d+/g);
     if (!matches || matches.length < 3) {
-      return "#000000"; // fallback to black for invalid input
+      return '#000000'; // fallback to black for invalid input
     }
     const result = matches.slice(0, 3).map(function (x) {
       const num = parseInt(x);
-      if (isNaN(num)) return "00";
+      if (isNaN(num)) return '00';
       const hex = Math.max(0, Math.min(255, num)).toString(16);
-      return hex.length === 1 ? "0" + hex : hex;
+      return hex.length === 1 ? '0' + hex : hex;
     });
-    return "#" + result.join("");
+    return '#' + result.join('');
   },
   hexToRgba(hex, alpha) {
-    hex = hex.replace(/^#/, "");
+    hex = hex.replace(/^#/, '');
     let r = parseInt(hex.substring(0, 2), 16);
     let g = parseInt(hex.substring(2, 4), 16);
     let b = parseInt(hex.substring(4, 6), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   },
   getColorFromString(colourString) {
-    if (typeof colourString !== "string") {
-      return "#000000";
+    if (typeof colourString !== 'string') {
+      return '#000000';
     }
 
     if (!colourString) {
-      return "#000000";
+      return '#000000';
     }
 
     if (/^([0-9A-F]{3}|[0-9A-F]{6})$/i.test(colourString)) {
@@ -68,7 +64,7 @@ export const flockMaterial = {
     }
 
     try {
-      const colorDiv = flock.document.createElement("div");
+      const colorDiv = flock.document.createElement('div');
       colorDiv.style.color = colourString;
       flock.document.body.appendChild(colorDiv);
       const computedColor = getComputedStyle(colorDiv).color;
@@ -77,7 +73,7 @@ export const flockMaterial = {
       // Parse the rgb(r, g, b) string and convert to individual numbers
       const matches = computedColor.match(/\d+/g);
       if (!matches || matches.length < 3) {
-        return "#000000";
+        return '#000000';
       }
       const r = parseInt(matches[0]);
       const g = parseInt(matches[1]);
@@ -85,22 +81,19 @@ export const flockMaterial = {
       const result = flock.rgbToHex(`rgb(${r}, ${g}, ${b})`);
       return result.toLowerCase();
     } catch (error) {
-      console.warn("Failed to parse color to hex; using default black:", error);
-      return "#000000";
+      console.warn('Failed to parse color to hex; using default black:', error);
+      return '#000000';
     }
   },
 
   tint(meshName, { color } = {}) {
-    if (flock.materialsDebug)
-      console.log(`Changing tint of ${meshName} by ${color}`);
+    if (flock.materialsDebug) console.log(`Changing tint of ${meshName} by ${color}`);
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         if (mesh.material) {
           mesh.renderOverlay = true;
           mesh.overlayAlpha = 0.5;
-          mesh.overlayColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(color),
-          );
+          mesh.overlayColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
         }
 
         mesh.getChildMeshes().forEach(function (childMesh) {
@@ -108,25 +101,22 @@ export const flockMaterial = {
             childMesh.renderOverlay = true;
             childMesh.overlayAlpha = 0.5;
             childMesh.overlayColor = flock.BABYLON.Color3.FromHexString(
-              flock.getColorFromString(flock.getColorFromString(color)),
+              flock.getColorFromString(flock.getColorFromString(color))
             );
           }
         });
-        mesh.metadata?.clones?.forEach((cloneName) =>
-          flock.tint(cloneName, { color: color }),
-        );
+        mesh.metadata?.clones?.forEach((cloneName) => flock.tint(cloneName, { color: color }));
         resolve();
       });
     });
   },
   highlight(meshName, { color } = {}) {
-    if (flock.materialsDebug)
-      console.log(`Highlighting ${meshName} with ${color}`);
+    if (flock.materialsDebug) console.log(`Highlighting ${meshName} with ${color}`);
     const applyHighlight = (mesh) => {
       if (mesh.material) {
         flock.highlighter.addMesh(
           mesh,
-          flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color)),
+          flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color))
         );
       }
     };
@@ -135,9 +125,7 @@ export const flockMaterial = {
       flock.whenModelReady(meshName, (mesh) => {
         applyHighlight(mesh);
         mesh.getChildMeshes().forEach(applyHighlight);
-        mesh.metadata?.clones?.forEach((cloneName) =>
-          flock.highlight(cloneName, { color: color }),
-        );
+        mesh.metadata?.clones?.forEach((cloneName) => flock.highlight(cloneName, { color: color }));
         resolve();
       });
     });
@@ -145,17 +133,12 @@ export const flockMaterial = {
   glow(meshName, { color } = {}) {
     if (flock.materialsDebug) console.log(`Making ${meshName} glow`);
     if (!flock.glowLayer) {
-      flock.glowLayer = new flock.BABYLON.GlowLayer("glowLayer", flock.scene);
+      flock.glowLayer = new flock.BABYLON.GlowLayer('glowLayer', flock.scene);
       flock.glowLayer.intensity = 0.5;
       if (flock.sky) {
         flock.glowLayer.addExcludedMesh(flock.sky);
       }
-      flock.glowLayer.customEmissiveColorSelector = (
-        mesh,
-        _subMesh,
-        _material,
-        result,
-      ) => {
+      flock.glowLayer.customEmissiveColorSelector = (mesh, _subMesh, _material, result) => {
         const glowColor = mesh.metadata?.glowColor;
         if (glowColor) {
           const c = flock.BABYLON.Color3.FromHexString(glowColor);
@@ -175,9 +158,7 @@ export const flockMaterial = {
       flock.whenModelReady(meshName, (mesh) => {
         flock.glowMesh(mesh, color);
         mesh.metadata?.clones?.forEach((_cloneName) =>
-          flock.whenModelReady((cloneMesh) =>
-            flock.glowMesh(cloneMesh, { color: color }),
-          ),
+          flock.whenModelReady((cloneMesh) => flock.glowMesh(cloneMesh, { color: color }))
         );
         resolve();
       });
@@ -188,32 +169,30 @@ export const flockMaterial = {
     if (!mat) return null;
 
     if (mat.metadata?.cacheKey) {
-      const parts = mat.metadata.cacheKey.split("_");
+      const parts = mat.metadata.cacheKey.split('_');
       const lastPart = parts[parts.length - 1];
-      const hasGlowPart = lastPart === "glow" || lastPart === "noglow";
+      const hasGlowPart = lastPart === 'glow' || lastPart === 'noglow';
       const colorPart = parts[1];
-      const color = colorPart.includes("-")
-        ? colorPart.split("-")
-        : colorPart;
+      const color = colorPart.includes('-') ? colorPart.split('-') : colorPart;
       const parsedAlpha = parseFloat(parts[2]);
       return {
         color,
         materialName:
           mat.metadata.texName ||
-          parts.slice(3, hasGlowPart ? -1 : parts.length).join("_") ||
-          "none.png",
+          parts.slice(3, hasGlowPart ? -1 : parts.length).join('_') ||
+          'none.png',
         alpha: Number.isFinite(parsedAlpha) ? parsedAlpha : (mat.alpha ?? 1),
-        glow: hasGlowPart ? lastPart === "glow" : (mesh.metadata?.glow ?? false),
+        glow: hasGlowPart ? lastPart === 'glow' : (mesh.metadata?.glow ?? false),
       };
     }
 
     const matColor = mat.diffuseColor || mat.albedoColor;
     const textureName =
-      mat.diffuseTexture?.name?.split("/").pop() ||
-      mat.albedoTexture?.name?.split("/").pop() ||
-      "none.png";
+      mat.diffuseTexture?.name?.split('/').pop() ||
+      mat.albedoTexture?.name?.split('/').pop() ||
+      'none.png';
     return {
-      color: matColor ? "#" + matColor.toHexString().slice(1) : "#ffffff",
+      color: matColor ? '#' + matColor.toHexString().slice(1) : '#ffffff',
       materialName: textureName,
       alpha: mat.alpha ?? 1,
       glow: mesh.metadata?.glow ?? false,
@@ -232,7 +211,7 @@ export const flockMaterial = {
           ? flock.getColorFromString(baseColor[0])
           : baseColor
             ? flock.getColorFromString(baseColor)
-            : "#ffffff";
+            : '#ffffff';
 
       if (params) {
         const materialParams = {
@@ -256,7 +235,7 @@ export const flockMaterial = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         const allMeshes = [mesh, ...mesh.getDescendants()].filter(
-          (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0,
+          (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0
         );
 
         allMeshes.forEach((nextMesh) => {
@@ -280,8 +259,7 @@ export const flockMaterial = {
   clearEffects(meshName) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
-        if (flock.materialsDebug)
-          console.log(`Clear effects from ${meshName}:`);
+        if (flock.materialsDebug) console.log(`Clear effects from ${meshName}:`);
         const removeEffects = (targetMesh) => {
           if (targetMesh.material) {
             const params = flock.getMaterialParamsFromMesh(targetMesh);
@@ -300,9 +278,7 @@ export const flockMaterial = {
           delete targetMesh.metadata.glowColor;
 
           if (flock.glowLayer) {
-            const anyGlowing = flock.scene.meshes.some(
-              (m) => m !== targetMesh && m.metadata?.glow,
-            );
+            const anyGlowing = flock.scene.meshes.some((m) => m !== targetMesh && m.metadata?.glow);
             if (!anyGlowing) {
               flock.glowLayer.isEnabled = false;
             }
@@ -314,9 +290,7 @@ export const flockMaterial = {
 
         removeEffects(mesh);
         mesh.getChildMeshes().forEach(removeEffects);
-        mesh?.metadata?.clones?.forEach((cloneName) =>
-          flock.clearEffects(cloneName),
-        );
+        mesh?.metadata?.clones?.forEach((cloneName) => flock.clearEffects(cloneName));
         resolve();
       });
     });
@@ -351,9 +325,7 @@ export const flockMaterial = {
         if (!materialMapping.has(currentMesh.material)) {
           // Clone the material and store it in the mapping
           if (flock.materialsDebug)
-            console.log(
-              ` Cloning material, ${currentMesh.material}, of ${currentMesh.name}`,
-            );
+            console.log(` Cloning material, ${currentMesh.material}, of ${currentMesh.name}`);
           const clonedMaterial = cloneMaterial(currentMesh.material);
           materialMapping.set(currentMesh.material, clonedMaterial);
         }
@@ -371,7 +343,7 @@ export const flockMaterial = {
     // Default material to use as the replacement base
     const defaultMaterial =
       flock.scene.defaultMaterial ||
-      new flock.BABYLON.StandardMaterial("defaultMaterial", flock.scene);
+      new flock.BABYLON.StandardMaterial('defaultMaterial', flock.scene);
     defaultMaterial.backFaceCulling = false;
 
     // Helper function to copy color properties from PBR to Standard material
@@ -412,7 +384,7 @@ export const flockMaterial = {
 
     const replaceIfPBRMaterial = (targetMesh) => {
       const material = targetMesh.material;
-      if (material && material.getClassName() === "PBRMaterial") {
+      if (material && material.getClassName() === 'PBRMaterial') {
         if (!replacedMaterialsMap.has(material)) {
           // Replace with a cloned default material, preserving the name
           const originalName = material.name;
@@ -420,9 +392,9 @@ export const flockMaterial = {
 
           // Check if this is a target material and copy colors
           const materialNameLower = originalName.toLowerCase();
-          const targetMaterials = ["black", "white", "mouth", "nose"];
+          const targetMaterials = ['black', 'white', 'mouth', 'nose'];
           const isTargetMaterial = targetMaterials.some((target) =>
-            materialNameLower.includes(target),
+            materialNameLower.includes(target)
           );
 
           if (isTargetMaterial) {
@@ -437,17 +409,16 @@ export const flockMaterial = {
 
         // Only override alpha if this isn't a target material
         const materialNameLower = targetMesh.material.name.toLowerCase();
-        const targetMaterials = ["black", "white", "mouth", "nose"];
+        const targetMaterials = ['black', 'white', 'mouth', 'nose'];
         const isTargetMaterial = targetMaterials.some((target) =>
-          materialNameLower.includes(target),
+          materialNameLower.includes(target)
         );
 
         if (!isTargetMaterial) {
           targetMesh.material.alpha = 1;
         }
 
-        targetMesh.material.transparencyMode =
-          flock.BABYLON.Material.MATERIAL_OPAQUE;
+        targetMesh.material.transparencyMode = flock.BABYLON.Material.MATERIAL_OPAQUE;
         // targetMesh.material.alphaMode = undefined;
         //targetMesh.material.reflectionTexture = null;
         targetMesh.material.needDepthPrePass = false;
@@ -462,7 +433,7 @@ export const flockMaterial = {
     // (the cached template may still hold references to the same material objects)
     replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
       const stillInUse = flock.scene.meshes.some(
-        (m) => !m.isDisposed() && m.material === oldMaterial,
+        (m) => !m.isDisposed() && m.material === oldMaterial
       );
       if (!stillInUse) oldMaterial.dispose();
     });
@@ -470,11 +441,10 @@ export const flockMaterial = {
   changeColor(meshName, { color } = {}) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
-        if (flock.materialsDebug)
-          console.log(`Change colour of ${meshName} to ${color}:`);
+        if (flock.materialsDebug) console.log(`Change colour of ${meshName} to ${color}:`);
         if (!mesh) {
           flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(color),
+            flock.getColorFromString(color)
           );
           resolve();
           return;
@@ -487,27 +457,25 @@ export const flockMaterial = {
   },
   changeColorMesh(mesh, color) {
     if (!mesh) {
-      flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
-      );
+      flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
       return;
     }
 
     const CHARACTER_PART_ALIASES = {
-      hair: "hair",
-      skin: "skin",
-      eyes: "eyes",
-      shorts: "shorts",
-      tshirt: "tshirt",
-      "t-shirt": "tshirt",
-      tee: "tshirt",
-      sleeves: "sleeves",
-      sleeve: "sleeves",
-      detail: "sleeves",
-      shoes: "sleeves",
+      hair: 'hair',
+      skin: 'skin',
+      eyes: 'eyes',
+      shorts: 'shorts',
+      tshirt: 'tshirt',
+      't-shirt': 'tshirt',
+      tee: 'tshirt',
+      sleeves: 'sleeves',
+      sleeve: 'sleeves',
+      detail: 'sleeves',
+      shoes: 'sleeves',
     };
 
-    const canonicalizePartName = (name = "") => {
+    const canonicalizePartName = (name = '') => {
       const s = String(name).toLowerCase();
       for (const key of Object.keys(CHARACTER_PART_ALIASES)) {
         if (s === key || s.includes(key)) return CHARACTER_PART_ALIASES[key];
@@ -547,8 +515,7 @@ export const flockMaterial = {
     };
 
     const isCharacterLike = isCharacterMesh(mesh) || isCharacterLikeMesh(mesh);
-    const isTextPlaneMesh = (part) =>
-      part?.name === "textPlane" || part?.metadata?.isTextPlane;
+    const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
 
     if (isCharacterLike) {
       const root = getRootMesh(mesh);
@@ -563,9 +530,9 @@ export const flockMaterial = {
 
     const normalizeColorInput = (input) => {
       if (Array.isArray(input)) return input;
-      if (typeof input === "string") {
+      if (typeof input === 'string') {
         const trimmed = input.trim();
-        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
           try {
             return JSON.parse(trimmed.replace(/'/g, '"'));
           } catch {
@@ -577,13 +544,10 @@ export const flockMaterial = {
     };
 
     const normalizedColor = normalizeColorInput(color);
-    const colors = Array.isArray(normalizedColor)
-      ? normalizedColor
-      : [normalizedColor];
+    const colors = Array.isArray(normalizedColor) ? normalizedColor : [normalizedColor];
     let colorIndex = 0;
 
-    if (flock.materialsDebug)
-      console.log(` Changing the colour of ${mesh.name} to ${colors}`);
+    if (flock.materialsDebug) console.log(` Changing the colour of ${mesh.name} to ${colors}`);
 
     // Map to keep track of materials and their assigned colours and indices
     const materialToColorMap = new Map();
@@ -688,12 +652,12 @@ export const flockMaterial = {
     }
 
     try {
-      if (mesh.metadata.shapeType === "Cylinder") {
+      if (mesh.metadata.shapeType === 'Cylinder') {
         mesh.forceSharedVertices();
         mesh.convertToFlatShadedMesh();
       }
     } catch (e) {
-      console.log("Error converting mesh to flat shaded:", e);
+      console.log('Error converting mesh to flat shaded:', e);
     }
 
     if (mesh.metadata?.glow) {
@@ -702,20 +666,20 @@ export const flockMaterial = {
   },
   applyColorToMaterial(part, materialName, color) {
     const CHARACTER_PART_ALIASES = {
-      hair: "hair",
-      skin: "skin",
-      eyes: "eyes",
-      shorts: "shorts",
-      tshirt: "tshirt",
-      "t-shirt": "tshirt",
-      tee: "tshirt",
-      sleeves: "sleeves",
-      sleeve: "sleeves",
-      detail: "sleeves",
-      shoes: "sleeves",
+      hair: 'hair',
+      skin: 'skin',
+      eyes: 'eyes',
+      shorts: 'shorts',
+      tshirt: 'tshirt',
+      't-shirt': 'tshirt',
+      tee: 'tshirt',
+      sleeves: 'sleeves',
+      sleeve: 'sleeves',
+      detail: 'sleeves',
+      shoes: 'sleeves',
     };
 
-    const canonicalizePartName = (name = "") => {
+    const canonicalizePartName = (name = '') => {
       const s = String(name).toLowerCase();
       for (const key of Object.keys(CHARACTER_PART_ALIASES)) {
         if (s === key || s.includes(key)) return CHARACTER_PART_ALIASES[key];
@@ -737,10 +701,10 @@ export const flockMaterial = {
 
     if (part.material && targetPart && partName === targetPart) {
       part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
+        flock.getColorFromString(color)
       );
       part.material.albedoColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
+        flock.getColorFromString(color)
       );
       part.metadata = part.metadata || {};
       part.metadata.materialPartName = targetPart;
@@ -773,46 +737,35 @@ export const flockMaterial = {
       const parts = [root, ...root.getChildMeshes()];
       parts.forEach((part) => {
         if (!part) return;
-        const rawName =
-          part.metadata?.materialPartName || part.material?.name || part.name;
-        const lower = String(rawName || "").toLowerCase();
-        if (lower.includes("hair")) seedPartMetadata(part, "hair");
-        else if (lower.includes("skin")) seedPartMetadata(part, "skin");
-        else if (lower.includes("eyes")) seedPartMetadata(part, "eyes");
-        else if (lower.includes("shorts")) seedPartMetadata(part, "shorts");
+        const rawName = part.metadata?.materialPartName || part.material?.name || part.name;
+        const lower = String(rawName || '').toLowerCase();
+        if (lower.includes('hair')) seedPartMetadata(part, 'hair');
+        else if (lower.includes('skin')) seedPartMetadata(part, 'skin');
+        else if (lower.includes('eyes')) seedPartMetadata(part, 'eyes');
+        else if (lower.includes('shorts')) seedPartMetadata(part, 'shorts');
+        else if (lower.includes('tshirt') || lower.includes('t-shirt') || lower.includes('tee'))
+          seedPartMetadata(part, 'tshirt');
         else if (
-          lower.includes("tshirt") ||
-          lower.includes("t-shirt") ||
-          lower.includes("tee")
+          lower.includes('sleeves') ||
+          lower.includes('sleeve') ||
+          lower.includes('detail') ||
+          lower.includes('shoes')
         )
-          seedPartMetadata(part, "tshirt");
-        else if (
-          lower.includes("sleeves") ||
-          lower.includes("sleeve") ||
-          lower.includes("detail") ||
-          lower.includes("shoes")
-        )
-          seedPartMetadata(part, "sleeves");
+          seedPartMetadata(part, 'sleeves');
       });
     };
 
     ensurePartMetadata(mesh);
 
-    if (hairColor != null) flock.applyColorToMaterial(mesh, "Hair", hairColor);
-    if (skinColor != null) flock.applyColorToMaterial(mesh, "Skin", skinColor);
-    if (eyesColor != null) flock.applyColorToMaterial(mesh, "Eyes", eyesColor);
-    if (sleevesColor != null)
-      flock.applyColorToMaterial(mesh, "Detail", sleevesColor);
-    if (shortsColor != null)
-      flock.applyColorToMaterial(mesh, "Shorts", shortsColor);
-    if (tshirtColor != null)
-      flock.applyColorToMaterial(mesh, "TShirt", tshirtColor);
-    if (tshirtColor != null)
-      flock.applyColorToMaterial(mesh, "Tshirt", tshirtColor);
-    if (sleevesColor != null)
-      flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
-    if (sleevesColor != null)
-      flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
+    if (hairColor != null) flock.applyColorToMaterial(mesh, 'Hair', hairColor);
+    if (skinColor != null) flock.applyColorToMaterial(mesh, 'Skin', skinColor);
+    if (eyesColor != null) flock.applyColorToMaterial(mesh, 'Eyes', eyesColor);
+    if (sleevesColor != null) flock.applyColorToMaterial(mesh, 'Detail', sleevesColor);
+    if (shortsColor != null) flock.applyColorToMaterial(mesh, 'Shorts', shortsColor);
+    if (tshirtColor != null) flock.applyColorToMaterial(mesh, 'TShirt', tshirtColor);
+    if (tshirtColor != null) flock.applyColorToMaterial(mesh, 'Tshirt', tshirtColor);
+    if (sleevesColor != null) flock.applyColorToMaterial(mesh, 'Sleeves', sleevesColor);
+    if (sleevesColor != null) flock.applyColorToMaterial(mesh, 'Shoes', sleevesColor);
   },
   changeMaterial(meshName, materialName, color) {
     return new Promise((resolve) => {
@@ -836,15 +789,11 @@ export const flockMaterial = {
       : null;
   },
   changeMaterialMesh(mesh, materialName, texturePath, color, alpha = 1) {
-    if (flock.materialsDebug)
-      console.log("Change material", materialName, color);
+    if (flock.materialsDebug) console.log('Change material', materialName, color);
     flock.ensureUniqueMaterial(mesh);
 
     // Create a new material
-    const material = new flock.BABYLON.StandardMaterial(
-      materialName,
-      flock.scene,
-    );
+    const material = new flock.BABYLON.StandardMaterial(materialName, flock.scene);
 
     // Load the texture if provided
     if (texturePath) {
@@ -862,13 +811,10 @@ export const flockMaterial = {
     material.alpha = alpha;
     material.backFaceCulling = false;
 
-    const isTextPlaneMesh = (part) =>
-      part?.name === "textPlane" || part?.metadata?.isTextPlane;
+    const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
 
     // Assign the material to the mesh and its descendants
-    const allMeshes = [mesh]
-      .concat(mesh.getDescendants())
-      .filter((part) => !isTextPlaneMesh(part));
+    const allMeshes = [mesh].concat(mesh.getDescendants()).filter((part) => !isTextPlaneMesh(part));
     allMeshes.forEach((part) => {
       part.material = material;
       flock.adjustMaterialTilingToMesh(part, material);
@@ -915,12 +861,8 @@ export const flockMaterial = {
     // Normalize single-element array to plain value
     if (Array.isArray(color) && color.length === 1) color = color[0];
     if (Array.isArray(color) && color.length >= 2) {
-      const normalizedColors = color.map((c) =>
-        flock.getColorFromString(c).toLowerCase(),
-      );
-      const allColorsIdentical = normalizedColors.every(
-        (c) => c === normalizedColors[0],
-      );
+      const normalizedColors = color.map((c) => flock.getColorFromString(c).toLowerCase());
+      const allColorsIdentical = normalizedColors.every((c) => c === normalizedColors[0]);
       if (allColorsIdentical) {
         color = normalizedColors[0];
       }
@@ -928,14 +870,14 @@ export const flockMaterial = {
 
     if (Array.isArray(color) && color.length >= 2) {
       // Use gradient for Flat material
-      if (materialName === "none.png") {
+      if (materialName === 'none.png') {
         if (color.length === 2) {
           material = new flock.GradientMaterial(materialName, flock.scene);
           material.bottomColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(color[0]),
+            flock.getColorFromString(color[0])
           );
           material.topColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(color[1]),
+            flock.getColorFromString(color[1])
           );
           material.offset = 0.5;
           material.smoothness = 0.5;
@@ -947,11 +889,7 @@ export const flockMaterial = {
         }
       } else {
         // Use shader-based color replacement for patterned materials
-        material = flock.createColorReplaceShaderMaterial(
-          materialName,
-          texturePath,
-          color,
-        );
+        material = flock.createColorReplaceShaderMaterial(materialName, texturePath, color);
         material.backFaceCulling = false;
       }
     } else {
@@ -981,29 +919,26 @@ export const flockMaterial = {
 
     // Update alpha for shader materials
     if (material.setFloat && alpha !== undefined) {
-      material.setFloat("alpha", alpha);
+      material.setFloat('alpha', alpha);
     }
 
     // Apply glow properties if enabled
     if (glow && material.emissiveColor !== undefined) {
       const emissiveColor = color
         ? flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(Array.isArray(color) ? color[0] : color),
+            flock.getColorFromString(Array.isArray(color) ? color[0] : color)
           )
         : flock.BABYLON.Color3.White();
       material.emissiveColor = emissiveColor;
       material.emissiveIntensity = 1.0;
     }
 
-    if (flock.materialsDebug)
-      console.log(`Created the material: ${material.name}`);
+    if (flock.materialsDebug) console.log(`Created the material: ${material.name}`);
     return material;
   },
   createMultiColorGradientMaterial(name, colors) {
-    if (
-      !flock.BABYLON.Effect.ShadersStore["multiColorGradientFogVertexShader"]
-    ) {
-      flock.BABYLON.Effect.ShadersStore["multiColorGradientFogVertexShader"] = `
+    if (!flock.BABYLON.Effect.ShadersStore['multiColorGradientFogVertexShader']) {
+      flock.BABYLON.Effect.ShadersStore['multiColorGradientFogVertexShader'] = `
         precision highp float;
         attribute vec3 position;
         uniform mat4 worldViewProjection;
@@ -1022,12 +957,8 @@ export const flockMaterial = {
         }
       `;
     }
-    if (
-      !flock.BABYLON.Effect.ShadersStore["multiColorGradientFogFragmentShader"]
-    ) {
-      flock.BABYLON.Effect.ShadersStore[
-        "multiColorGradientFogFragmentShader"
-      ] = `
+    if (!flock.BABYLON.Effect.ShadersStore['multiColorGradientFogFragmentShader']) {
+      flock.BABYLON.Effect.ShadersStore['multiColorGradientFogFragmentShader'] = `
         precision highp float;
         varying float vGradient;
         varying vec3 vFogPosition;
@@ -1081,26 +1012,26 @@ export const flockMaterial = {
       name,
       flock.scene,
       {
-        vertex: "multiColorGradientFog",
-        fragment: "multiColorGradientFog",
+        vertex: 'multiColorGradientFog',
+        fragment: 'multiColorGradientFog',
       },
       {
-        attributes: ["position"],
+        attributes: ['position'],
         uniforms: [
-          "worldViewProjection",
-          "world",
-          "view",
-          "colorCount",
-          "colors",
-          "alpha",
-          "minMax",
-          "fogColor",
-          "fogDensity",
-          "fogStart",
-          "fogEnd",
-          "fogMode",
+          'worldViewProjection',
+          'world',
+          'view',
+          'colorCount',
+          'colors',
+          'alpha',
+          'minMax',
+          'fogColor',
+          'fogDensity',
+          'fogStart',
+          'fogEnd',
+          'fogMode',
         ],
-      },
+      }
     );
 
     // Convert colors to Color3 array (max 16, matching shader array size)
@@ -1114,14 +1045,14 @@ export const flockMaterial = {
       .flat();
 
     if (flock.materialsDebug) {
-      console.log("Color count:", colors.length);
-      console.log("Color array:", color3Array);
+      console.log('Color count:', colors.length);
+      console.log('Color array:', color3Array);
     }
 
-    shaderMaterial.setInt("colorCount", Math.min(colors.length, 16));
-    shaderMaterial.setArray3("colors", color3Array);
-    shaderMaterial.setFloat("alpha", 1.0);
-    shaderMaterial.setVector2("minMax", new flock.BABYLON.Vector2(-1, 1));
+    shaderMaterial.setInt('colorCount', Math.min(colors.length, 16));
+    shaderMaterial.setArray3('colors', color3Array);
+    shaderMaterial.setFloat('alpha', 1.0);
+    shaderMaterial.setVector2('minMax', new flock.BABYLON.Vector2(-1, 1));
 
     flock.registerFogAwareShaderMaterial(shaderMaterial);
     flock.updateFogUniformsForShaderMaterial(shaderMaterial);
@@ -1138,23 +1069,16 @@ export const flockMaterial = {
     });
   },
   updateFogUniformsForShaderMaterial(material) {
-    if (!material?.setVector3 || !material?.setFloat || !material?.setInt)
-      return;
+    if (!material?.setVector3 || !material?.setFloat || !material?.setInt) return;
 
     const scene = flock.scene;
     const fogColor = scene?.fogColor || flock.BABYLON.Color3.Black();
 
-    material.setVector3(
-      "fogColor",
-      new flock.BABYLON.Vector3(fogColor.r, fogColor.g, fogColor.b),
-    );
-    material.setFloat("fogDensity", scene?.fogDensity ?? 0);
-    material.setFloat("fogStart", scene?.fogStart ?? 0);
-    material.setFloat("fogEnd", scene?.fogEnd ?? 0);
-    material.setInt(
-      "fogMode",
-      scene?.fogMode ?? flock.BABYLON.Scene.FOGMODE_NONE,
-    );
+    material.setVector3('fogColor', new flock.BABYLON.Vector3(fogColor.r, fogColor.g, fogColor.b));
+    material.setFloat('fogDensity', scene?.fogDensity ?? 0);
+    material.setFloat('fogStart', scene?.fogStart ?? 0);
+    material.setFloat('fogEnd', scene?.fogEnd ?? 0);
+    material.setInt('fogMode', scene?.fogMode ?? flock.BABYLON.Scene.FOGMODE_NONE);
   },
   updateFogAwareShaderMaterials() {
     if (!flock._fogAwareShaderMaterials) return;
@@ -1254,52 +1178,50 @@ export const flockMaterial = {
 
     // Create shader material
     const shaderMaterial = new flock.BABYLON.ShaderMaterial(
-      materialName + "_shader",
+      materialName + '_shader',
       flock.scene,
       {
-        vertex: "colorReplace",
-        fragment: "colorReplace",
+        vertex: 'colorReplace',
+        fragment: 'colorReplace',
       },
       {
-        attributes: ["position", "uv"],
+        attributes: ['position', 'uv'],
         uniforms: [
-          "worldViewProjection",
-          "world",
-          "view",
-          "textureSampler",
-          "lightColor",
-          "greyTintColor",
-          "darkColor",
-          "colorCount",
-          "alpha",
-          "uScale",
-          "vScale",
-          "fogColor",
-          "fogDensity",
-          "fogStart",
-          "fogEnd",
-          "fogMode",
+          'worldViewProjection',
+          'world',
+          'view',
+          'textureSampler',
+          'lightColor',
+          'greyTintColor',
+          'darkColor',
+          'colorCount',
+          'alpha',
+          'uScale',
+          'vScale',
+          'fogColor',
+          'fogDensity',
+          'fogStart',
+          'fogEnd',
+          'fogMode',
         ],
         needAlphaBlending: false,
-      },
+      }
     );
 
     // Register shaders
-    flock.BABYLON.Effect.ShadersStore["colorReplaceVertexShader"] =
-      vertexShader;
-    flock.BABYLON.Effect.ShadersStore["colorReplaceFragmentShader"] =
-      fragmentShader;
+    flock.BABYLON.Effect.ShadersStore['colorReplaceVertexShader'] = vertexShader;
+    flock.BABYLON.Effect.ShadersStore['colorReplaceFragmentShader'] = fragmentShader;
 
     // Set texture
     if (texturePath) {
       const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
       texture.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
       texture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-      shaderMaterial.setTexture("textureSampler", texture);
+      shaderMaterial.setTexture('textureSampler', texture);
       // Apply tiling through shader uniforms (shader materials don't automatically use texture matrix)
       // Use scale of 1 to match single-color material behavior
-      shaderMaterial.setFloat("uScale", 1);
-      shaderMaterial.setFloat("vScale", 1);
+      shaderMaterial.setFloat('uScale', 1);
+      shaderMaterial.setFloat('vScale', 1);
     }
 
     // Convert colors and set uniforms
@@ -1307,21 +1229,13 @@ export const flockMaterial = {
     const colorGrey = flock.hexToRgb(flock.getColorFromString(colors[1])); // tints greys
 
     shaderMaterial.setVector3(
-      "lightColor",
-      new flock.BABYLON.Vector3(
-        colorLight.r / 255.0,
-        colorLight.g / 255.0,
-        colorLight.b / 255.0,
-      ),
+      'lightColor',
+      new flock.BABYLON.Vector3(colorLight.r / 255.0, colorLight.g / 255.0, colorLight.b / 255.0)
     );
 
     shaderMaterial.setVector3(
-      "greyTintColor",
-      new flock.BABYLON.Vector3(
-        colorGrey.r / 255.0,
-        colorGrey.g / 255.0,
-        colorGrey.b / 255.0,
-      ),
+      'greyTintColor',
+      new flock.BABYLON.Vector3(colorGrey.r / 255.0, colorGrey.g / 255.0, colorGrey.b / 255.0)
     );
 
     const colorDark =
@@ -1329,16 +1243,12 @@ export const flockMaterial = {
         ? flock.hexToRgb(flock.getColorFromString(colors[2]))
         : { r: 0, g: 0, b: 0 };
     shaderMaterial.setVector3(
-      "darkColor",
-      new flock.BABYLON.Vector3(
-        colorDark.r / 255.0,
-        colorDark.g / 255.0,
-        colorDark.b / 255.0,
-      ),
+      'darkColor',
+      new flock.BABYLON.Vector3(colorDark.r / 255.0, colorDark.g / 255.0, colorDark.b / 255.0)
     );
-    shaderMaterial.setInt("colorCount", colors.length);
+    shaderMaterial.setInt('colorCount', colors.length);
 
-    shaderMaterial.setFloat("alpha", 1.0);
+    shaderMaterial.setFloat('alpha', 1.0);
     flock.registerFogAwareShaderMaterial(shaderMaterial);
     flock.updateFogUniformsForShaderMaterial(shaderMaterial);
     shaderMaterial.onBindObservable?.add(() => {
@@ -1427,28 +1337,26 @@ export const flockMaterial = {
     `;
 
     // Register shaders once
-    if (!flock.BABYLON.Effect.ShadersStore["multiGradientVertexShader"]) {
-      flock.BABYLON.Effect.ShadersStore["multiGradientVertexShader"] =
-        vertexShader;
+    if (!flock.BABYLON.Effect.ShadersStore['multiGradientVertexShader']) {
+      flock.BABYLON.Effect.ShadersStore['multiGradientVertexShader'] = vertexShader;
     }
-    if (!flock.BABYLON.Effect.ShadersStore["multiGradientFragmentShader"]) {
-      flock.BABYLON.Effect.ShadersStore["multiGradientFragmentShader"] =
-        fragmentShader;
+    if (!flock.BABYLON.Effect.ShadersStore['multiGradientFragmentShader']) {
+      flock.BABYLON.Effect.ShadersStore['multiGradientFragmentShader'] = fragmentShader;
     }
 
     // Create shader material
     const shaderMaterial = new flock.BABYLON.ShaderMaterial(
-      materialName + "_multiGradient",
+      materialName + '_multiGradient',
       flock.scene,
       {
-        vertex: "multiGradient",
-        fragment: "multiGradient",
+        vertex: 'multiGradient',
+        fragment: 'multiGradient',
       },
       {
-        attributes: ["position", "uv"],
-        uniforms: ["worldViewProjection", "color", "colorCount", "alpha"],
+        attributes: ['position', 'uv'],
+        uniforms: ['worldViewProjection', 'color', 'colorCount', 'alpha'],
         needAlphaBlending: false,
-      },
+      }
     );
 
     // Clamp to max 6 colors
@@ -1456,18 +1364,16 @@ export const flockMaterial = {
     const count = clampedColors.length;
 
     for (let i = 0; i < 6; i++) {
-      const hex = flock.getColorFromString(
-        clampedColors[i] || clampedColors[count - 1],
-      );
+      const hex = flock.getColorFromString(clampedColors[i] || clampedColors[count - 1]);
       const rgb = flock.hexToRgb(hex);
       shaderMaterial.setVector3(
         `color[${i}]`,
-        new flock.BABYLON.Vector3(rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0),
+        new flock.BABYLON.Vector3(rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0)
       );
     }
 
-    shaderMaterial.setInt("colorCount", count);
-    shaderMaterial.setFloat("alpha", 1.0);
+    shaderMaterial.setInt('colorCount', count);
+    shaderMaterial.setFloat('alpha', 1.0);
 
     return shaderMaterial;
   },
@@ -1486,7 +1392,7 @@ export const flockMaterial = {
     if (oldMat && oldMat.metadata && oldMat.metadata.isManaged) {
       const cacheKey = oldMat.metadata.cacheKey;
       const isStillInUse = flock.scene.meshes.some(
-        (m) => m !== mesh && !m.isDisposed() && m.material === oldMat,
+        (m) => m !== mesh && !m.isDisposed() && m.material === oldMat
       );
 
       if (!isStillInUse) {
@@ -1499,52 +1405,46 @@ export const flockMaterial = {
   },
   getOrCreateMaterial(colorInput, alpha = 1) {
     const isObject =
-      typeof colorInput === "object" &&
-      colorInput !== null &&
-      !Array.isArray(colorInput);
+      typeof colorInput === 'object' && colorInput !== null && !Array.isArray(colorInput);
 
-    let rawColor = "#ffffff";
-    let texName = "none.png";
+    let rawColor = '#ffffff';
+    let texName = 'none.png';
     let finalAlpha = alpha;
     let finalGlow = false;
 
     if (isObject) {
       const inner = colorInput.color || colorInput.baseColor;
-      const isInnerObject =
-        typeof inner === "object" && inner !== null && !Array.isArray(inner);
+      const isInnerObject = typeof inner === 'object' && inner !== null && !Array.isArray(inner);
 
       if (isInnerObject) {
-        rawColor = inner.color || inner.baseColor || "#ffffff";
+        rawColor = inner.color || inner.baseColor || '#ffffff';
         texName =
           inner.materialName ||
           inner.textureSet ||
           colorInput.materialName ||
           colorInput.textureSet ||
-          "none.png";
+          'none.png';
         finalAlpha =
           inner.alpha !== undefined
             ? inner.alpha
             : colorInput.alpha !== undefined
               ? colorInput.alpha
               : alpha;
-        finalGlow =
-          inner.glow !== undefined ? inner.glow : (colorInput.glow ?? false);
+        finalGlow = inner.glow !== undefined ? inner.glow : (colorInput.glow ?? false);
       } else {
-        rawColor = inner || "#ffffff";
-        texName =
-          colorInput.materialName || colorInput.textureSet || "none.png";
+        rawColor = inner || '#ffffff';
+        texName = colorInput.materialName || colorInput.textureSet || 'none.png';
         finalAlpha = colorInput.alpha !== undefined ? colorInput.alpha : alpha;
         finalGlow = colorInput.glow ?? false;
       }
     } else {
-      rawColor = colorInput || "#ffffff";
+      rawColor = colorInput || '#ffffff';
     }
 
-    const colorKey = Array.isArray(rawColor) ? rawColor.join("-") : rawColor;
+    const colorKey = Array.isArray(rawColor) ? rawColor.join('-') : rawColor;
     const alphaKey = parseFloat(finalAlpha).toFixed(2);
-    const glowKey = finalGlow ? "glow" : "noglow";
-    const cacheKey =
-      `mat_${colorKey}_${alphaKey}_${texName}_${glowKey}`.toLowerCase();
+    const glowKey = finalGlow ? 'glow' : 'noglow';
+    const cacheKey = `mat_${colorKey}_${alphaKey}_${texName}_${glowKey}`.toLowerCase();
 
     if (!flock.materialCache) flock.materialCache = {};
     if (flock.materialCache[cacheKey]) return flock.materialCache[cacheKey];
@@ -1578,28 +1478,23 @@ export const flockMaterial = {
     const applyColor = opts.applyColor ?? true;
     if (!applyColor || !rootMesh || !colorInput) return rootMesh;
 
-    const isTextPlaneMesh = (part) =>
-      part?.name === "textPlane" || part?.metadata?.isTextPlane;
+    const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
 
     const geometryMeshes = rootMesh
       .getDescendants(false)
       .filter(
-        (n) =>
-          n instanceof flock.BABYLON.Mesh &&
-          n.getTotalVertices() > 0 &&
-          !isTextPlaneMesh(n),
+        (n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0 && !isTextPlaneMesh(n)
       )
       .sort((a, b) =>
         a.name.localeCompare(b.name, undefined, {
           numeric: true,
-          sensitivity: "base",
-        }),
+          sensitivity: 'base',
+        })
       );
 
     const targets = geometryMeshes.length ? geometryMeshes : [rootMesh];
 
-    const isMaterialDescriptor = (v) =>
-      typeof v === "object" && v !== null && !Array.isArray(v);
+    const isMaterialDescriptor = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
 
     const getRawColor = (v) => {
       const raw = isMaterialDescriptor(v) ? v.color || v.baseColor : v;
@@ -1609,27 +1504,21 @@ export const flockMaterial = {
     };
 
     const getTexName = (v) =>
-      isMaterialDescriptor(v)
-        ? v.materialName || v.textureSet || "NONE"
-        : "NONE";
+      isMaterialDescriptor(v) ? v.materialName || v.textureSet || 'NONE' : 'NONE';
 
     const getAlpha = (v) =>
-      isMaterialDescriptor(v)
-        ? (v.alpha ?? opts.alpha ?? 1)
-        : (opts.alpha ?? 1);
+      isMaterialDescriptor(v) ? (v.alpha ?? opts.alpha ?? 1) : (opts.alpha ?? 1);
 
     const makeTargetCacheKey = (v) => {
       const rawColor = getRawColor(v);
       const colorKey = Array.isArray(rawColor)
-        ? rawColor.join("-")
-        : flock.getColorFromString(rawColor) || "#ffffff";
+        ? rawColor.join('-')
+        : flock.getColorFromString(rawColor) || '#ffffff';
       const texName = String(getTexName(v));
       const alphaKey = parseFloat(getAlpha(v)).toFixed(2);
       const glow =
-        typeof v === "object" && v !== null && !Array.isArray(v)
-          ? (v.glow ?? false)
-          : false;
-      const glowKey = glow ? "glow" : "noglow";
+        typeof v === 'object' && v !== null && !Array.isArray(v) ? (v.glow ?? false) : false;
+      const glowKey = glow ? 'glow' : 'noglow';
 
       return `mat_${colorKey}_${alphaKey}_${texName}_${glowKey}`.toLowerCase();
     };
@@ -1640,8 +1529,7 @@ export const flockMaterial = {
       m.metadata = m.metadata || {};
 
       if (index !== undefined) m.metadata.materialIndex = index;
-      else if (m.metadata.materialIndex !== undefined)
-        delete m.metadata.materialIndex;
+      else if (m.metadata.materialIndex !== undefined) delete m.metadata.materialIndex;
 
       const targetCacheKey = makeTargetCacheKey(v);
       if (m.material?.metadata?.cacheKey === targetCacheKey) return;
@@ -1657,15 +1545,10 @@ export const flockMaterial = {
           !m.material.metadata._minMaxObserver
         ) {
           const mat = m.material;
-          mat.metadata._minMaxObserver = mat.onBindObservable.add(
-            (boundMesh) => {
-              const bb = boundMesh.getBoundingInfo().boundingBox;
-              mat.setVector2(
-                "minMax",
-                new flock.BABYLON.Vector2(bb.minimum.y, bb.maximum.y),
-              );
-            },
-          );
+          mat.metadata._minMaxObserver = mat.onBindObservable.add((boundMesh) => {
+            const bb = boundMesh.getBoundingInfo().boundingBox;
+            mat.setVector2('minMax', new flock.BABYLON.Vector2(bb.minimum.y, bb.maximum.y));
+          });
         }
       }
     };

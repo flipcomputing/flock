@@ -14,7 +14,7 @@ export const flockCamera = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
         if (!mesh) {
-          console.log("Model not loaded:", meshName);
+          console.log('Model not loaded:', meshName);
           resolve();
           return;
         }
@@ -42,17 +42,17 @@ export const flockCamera = {
           const forward = new flock.BABYLON.Vector3(
             Math.sin(mesh.rotation.y),
             0,
-            Math.cos(mesh.rotation.y),
+            Math.cos(mesh.rotation.y)
           );
 
           // STEP 1: Place camera IN FRONT of character (facing them)
           camera = new flock.BABYLON.ArcRotateCamera(
-            "camera",
+            'camera',
             Math.PI / 2,
             Math.PI,
             radius,
             mesh.position.add(forward.scale(3)), // in front
-            flock.scene,
+            flock.scene
           );
 
           camera.lockedTarget = mesh;
@@ -67,7 +67,7 @@ export const flockCamera = {
           camera.angularSensibilityX = 2000;
           camera.angularSensibilityY = 2000;
           camera.panningSensibility = 0;
-          camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
+          camera.inputs.removeByType('ArcRotateCameraMouseWheelInput');
 
           camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
           camera.inputs.attached.pointers.multiTouchPanning = false;
@@ -90,12 +90,12 @@ export const flockCamera = {
           savedCamera?.detachControl();
 
           camera = new flock.BABYLON.ArcRotateCamera(
-            "camera",
+            'camera',
             Math.PI / 2,
             Math.PI,
             radius,
             mesh.position,
-            flock.scene,
+            flock.scene
           );
 
           camera.checkCollisions = true;
@@ -106,7 +106,7 @@ export const flockCamera = {
           camera.angularSensibilityX = 2000;
           camera.angularSensibilityY = 2000;
           camera.panningSensibility = 0;
-          camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
+          camera.inputs.removeByType('ArcRotateCameraMouseWheelInput');
 
           camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
           camera.inputs.attached.pointers.multiTouchPanning = false;
@@ -136,43 +136,37 @@ export const flockCamera = {
 
     // --- find or create a reusable constraint box (anchor) ---
     let constraintBox =
-      (flock._constraintBox &&
-        !flock._constraintBox.isDisposed() &&
-        flock._constraintBox) ||
+      (flock._constraintBox && !flock._constraintBox.isDisposed() && flock._constraintBox) ||
       (scene.meshes || []).find(
         (m) =>
-          m &&
-          typeof m.name === "string" &&
-          m.name.startsWith("Constraint_") &&
-          !m.isDisposed(),
+          m && typeof m.name === 'string' && m.name.startsWith('Constraint_') && !m.isDisposed()
       );
 
     if (!constraintBox) {
       // create a new hidden static box
       constraintBox = flock.BABYLON.MeshBuilder.CreateBox(
-        "Constraint",
+        'Constraint',
         { height: 1, width: 1, depth: 1 },
-        scene,
+        scene
       );
       constraintBox.metadata = constraintBox.metadata || {};
       constraintBox.metadata.blockKey = constraintBox.name;
-      constraintBox.name = constraintBox.name + "_" + constraintBox.uniqueId;
+      constraintBox.name = constraintBox.name + '_' + constraintBox.uniqueId;
       constraintBox.isVisible = false;
       constraintBox.material =
-        constraintBox.material ||
-        new flock.BABYLON.StandardMaterial("staticMaterial", scene);
+        constraintBox.material || new flock.BABYLON.StandardMaterial('staticMaterial', scene);
 
       const body = new flock.BABYLON.PhysicsBody(
         constraintBox,
         flock.BABYLON.PhysicsMotionType.STATIC,
         false,
-        scene,
+        scene
       );
       const shape = new flock.BABYLON.PhysicsShapeBox(
         flock.BABYLON.Vector3.Zero(),
         new flock.BABYLON.Quaternion(0, 0, 0, 1),
         flock.BABYLON.Vector3.One(),
-        scene,
+        scene
       );
       body.shape = shape;
       body.setMassProperties({ mass: 1, restitution: 0.5 });
@@ -187,13 +181,13 @@ export const flockCamera = {
           constraintBox,
           flock.BABYLON.PhysicsMotionType.STATIC,
           false,
-          scene,
+          scene
         );
         const shape = new flock.BABYLON.PhysicsShapeBox(
           flock.BABYLON.Vector3.Zero(),
           new flock.BABYLON.Quaternion(0, 0, 0, 1),
           flock.BABYLON.Vector3.One(),
-          scene,
+          scene
         );
         body.shape = shape;
         body.setMassProperties({ mass: 1, restitution: 0.5 });
@@ -203,7 +197,7 @@ export const flockCamera = {
           flock.BABYLON.Vector3.Zero(),
           new flock.BABYLON.Quaternion(0, 0, 0, 1),
           flock.BABYLON.Vector3.One(),
-          scene,
+          scene
         );
       }
     }
@@ -223,7 +217,7 @@ export const flockCamera = {
       constraintBox.physics.disablePreStep = false;
       constraintBox.physics.setTargetTransform(
         constraintBox.position,
-        constraintBox.rotationQuaternion,
+        constraintBox.rotationQuaternion
       );
     }
 
@@ -247,7 +241,7 @@ export const flockCamera = {
           maxLimit: 0,
         },
       ],
-      scene,
+      scene
     );
 
     try {
@@ -255,37 +249,27 @@ export const flockCamera = {
       mesh.metadata.constraint = true;
       mesh.metadata.uprightConstraint = constraint;
     } catch (e) {
-      console.warn("[ensureVerticalConstraint] addConstraint failed:", e);
+      console.warn('[ensureVerticalConstraint] addConstraint failed:', e);
     }
 
     // --- stabiliser: add only once per mesh to avoid stacking effects after swaps ---
     if (!mesh.metadata._uprightStabiliser) {
-      mesh.metadata._uprightStabiliser = scene.onAfterPhysicsObservable.add(
-        () => {
-          if (
-            !mesh ||
-            mesh.isDisposed() ||
-            !mesh.physics ||
-            !mesh.physics._pluginData
-          )
-            return;
-          try {
-            // preserve Y motion; zero X/Z linear velocity
-            const v = mesh.physics.getLinearVelocity();
-            mesh.physics.setLinearVelocity(
-              new flock.BABYLON.Vector3(0, v.y, 0),
-            );
+      mesh.metadata._uprightStabiliser = scene.onAfterPhysicsObservable.add(() => {
+        if (!mesh || mesh.isDisposed() || !mesh.physics || !mesh.physics._pluginData) return;
+        try {
+          // preserve Y motion; zero X/Z linear velocity
+          const v = mesh.physics.getLinearVelocity();
+          mesh.physics.setLinearVelocity(new flock.BABYLON.Vector3(0, v.y, 0));
 
-            mesh.physics.setAngularVelocity(new flock.BABYLON.Vector3(0, 0, 0));
-          } catch (err) {
-            console.warn("Physics body became invalid:", err);
-          }
-        },
-      );
+          mesh.physics.setAngularVelocity(new flock.BABYLON.Vector3(0, 0, 0));
+        } catch (err) {
+          console.warn('Physics body became invalid:', err);
+        }
+      });
     }
   },
   getCamera() {
-    return "__active_camera__";
+    return '__active_camera__';
   },
   _normalizeKeyCode(inputKey) {
     const keyMap = {
@@ -293,17 +277,17 @@ export const flockCamera = {
       ArrowUp: 38,
       ArrowRight: 39,
       ArrowDown: 40,
-      " ": 32,
-      ",": 188,
-      ".": 190,
-      "/": 191,
+      ' ': 32,
+      ',': 188,
+      '.': 190,
+      '/': 191,
     };
 
-    if (typeof inputKey === "number") {
+    if (typeof inputKey === 'number') {
       return inputKey;
     }
 
-    if (typeof inputKey !== "string") {
+    if (typeof inputKey !== 'string') {
       return null;
     }
 
@@ -328,47 +312,47 @@ export const flockCamera = {
   _applyCameraBinding(camera, normalizedKey, action) {
     if (camera.keysRotateLeft) {
       switch (action) {
-        case "moveUp":
+        case 'moveUp':
           camera.keysUp = [normalizedKey];
           break;
-        case "moveDown":
+        case 'moveDown':
           camera.keysDown = [normalizedKey];
           break;
-        case "moveLeft":
+        case 'moveLeft':
           camera.keysLeft = [normalizedKey];
           break;
-        case "moveRight":
+        case 'moveRight':
           camera.keysRight = [normalizedKey];
           break;
-        case "rotateUp":
+        case 'rotateUp':
           camera.keysRotateUp = [normalizedKey];
           break;
-        case "rotateDown":
+        case 'rotateDown':
           camera.keysRotateDown = [normalizedKey];
           break;
-        case "rotateLeft":
+        case 'rotateLeft':
           camera.keysRotateLeft = [normalizedKey];
           break;
-        case "rotateRight":
+        case 'rotateRight':
           camera.keysRotateRight = [normalizedKey];
           break;
       }
     } else {
       switch (action) {
-        case "rotateLeft":
-        case "moveLeft":
+        case 'rotateLeft':
+        case 'moveLeft':
           camera.keysLeft = [normalizedKey];
           break;
-        case "rotateRight":
-        case "moveRight":
+        case 'rotateRight':
+        case 'moveRight':
           camera.keysRight = [normalizedKey];
           break;
-        case "moveUp":
-        case "rotateUp":
+        case 'moveUp':
+        case 'rotateUp':
           camera.keysUp = [normalizedKey];
           break;
-        case "moveDown":
-        case "rotateDown":
+        case 'moveDown':
+        case 'rotateDown':
           camera.keysDown = [normalizedKey];
           break;
       }
@@ -383,22 +367,20 @@ export const flockCamera = {
   cameraControl(key, action) {
     const normalizedKey = this._normalizeKeyCode(key);
     if (normalizedKey == null) {
-      console.warn("Unsupported camera control key:", key);
+      console.warn('Unsupported camera control key:', key);
       return;
     }
 
     if (!flock._cameraControlBindings) {
       flock._cameraControlBindings = [];
     }
-    flock._cameraControlBindings = flock._cameraControlBindings.filter(
-      (b) => b.action !== action,
-    );
+    flock._cameraControlBindings = flock._cameraControlBindings.filter((b) => b.action !== action);
     flock._cameraControlBindings.push({ normalizedKey, action });
 
     if (flock.scene.activeCamera) {
       this._applyCameraBinding(flock.scene.activeCamera, normalizedKey, action);
     } else {
-      console.error("No active camera found in the scene.");
+      console.error('No active camera found in the scene.');
     }
   },
 };

@@ -2,12 +2,12 @@
 // runtime setActionKey overrides are respected) plus any fixed extra keys that
 // are not part of the action binding (e.g. PageUp/PageDown for Babylon camera).
 const BUTTON_ACTIONS = {
-  0:  { action: 'BUTTON4' },
-  1:  { action: 'BUTTON2' },
-  2:  { action: 'BUTTON3', extra: ['PageDown'] },
-  3:  { action: 'BUTTON1', extra: ['PageUp'] },
-  6:  { action: 'BUTTON2' },
-  7:  { action: 'BUTTON2' },
+  0: { action: 'BUTTON4' },
+  1: { action: 'BUTTON2' },
+  2: { action: 'BUTTON3', extra: ['PageDown'] },
+  3: { action: 'BUTTON1', extra: ['PageUp'] },
+  6: { action: 'BUTTON2' },
+  7: { action: 'BUTTON2' },
 };
 
 // D-pad (buttons 12-15): use accessibility actions when the gamepad has a left
@@ -26,8 +26,8 @@ const DPAD_MOVEMENT = {
 };
 
 const AXES = {
-  0: { name: 'MOVE_X', negAction: 'LEFT',     posAction: 'RIGHT' },
-  1: { name: 'MOVE_Y', negAction: 'FORWARD',  posAction: 'BACKWARD' },
+  0: { name: 'MOVE_X', negAction: 'LEFT', posAction: 'RIGHT' },
+  1: { name: 'MOVE_Y', negAction: 'FORWARD', posAction: 'BACKWARD' },
   2: { name: 'LOOK_X' },
   3: { name: 'LOOK_Y' },
 };

@@ -1,8 +1,8 @@
-import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
-import { ContextManager } from "../main/context.js";
-import { translate } from "../main/translation.js";
-import { SHORTCUTS_HELP_URL } from "../config.js";
-import { stopCanvasKeyboardMode } from "../ui/canvas-utils.js";
+import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
+import { ContextManager } from '../main/context.js';
+import { translate } from '../main/translation.js';
+import { SHORTCUTS_HELP_URL } from '../config.js';
+import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 
 // Area menu accessed with Ctrl + B to quickly skip to
 // different areas on the interface
@@ -10,29 +10,32 @@ import { stopCanvasKeyboardMode } from "../ui/canvas-utils.js";
 const AreaManager = {
   overlay: null,
   areas: [
-    { selector: "#menuleft", label: "1", name: "Top left menu" },
-    { selector: "#menuright", label: "2", name: "Top right menu" },
-    { selector: "#renderCanvas", label: "3", name: "Canvas" },
-    { selector: "#gizmoButtons", label: "4", name: "Gizmos" },
-    { selector: "#info-panel-tabs", label: "5", name: "Info panel tabs", focusSelector: "#info-tab-btn-shortcuts" },
-    { selector: "#resizer", label: "6", pad: -3, name: "Resizer" },
-    { selector: ".blocklyToolbox", label: "7", name: "Toolbox" },
-    { selector: "svg.blocklySvg", label: "8", name: "Code editor" },
+    { selector: '#menuleft', label: '1', name: 'Top left menu' },
+    { selector: '#menuright', label: '2', name: 'Top right menu' },
+    { selector: '#renderCanvas', label: '3', name: 'Canvas' },
+    { selector: '#gizmoButtons', label: '4', name: 'Gizmos' },
     {
-      selector: "#blocklyZoomControls",
-      label: "9",
-      name: "Workspace controls",
+      selector: '#info-panel-tabs',
+      label: '5',
+      name: 'Info panel tabs',
+      focusSelector: '#info-tab-btn-shortcuts',
+    },
+    { selector: '#resizer', label: '6', pad: -3, name: 'Resizer' },
+    { selector: '.blocklyToolbox', label: '7', name: 'Toolbox' },
+    { selector: 'svg.blocklySvg', label: '8', name: 'Code editor' },
+    {
+      selector: '#blocklyZoomControls',
+      label: '9',
+      name: 'Workspace controls',
       extend: { top: -8 },
     },
   ],
 
   get effectiveAreas() {
-    const reloadBtn = document.getElementById("reload-btn");
+    const reloadBtn = document.getElementById('reload-btn');
     if (reloadBtn?.isConnected) {
       return this.areas.map((a) =>
-        a.label === "9"
-          ? { selector: "#reload-btn", label: "9", name: "Reload" }
-          : a,
+        a.label === '9' ? { selector: '#reload-btn', label: '9', name: 'Reload' } : a
       );
     }
     return this.areas;
@@ -45,12 +48,12 @@ const AreaManager = {
 
   createOverlay() {
     // Create the element dynamically so you don't have to edit index.html
-    const div = document.createElement("div");
-    div.id = "area-menu-overlay";
-    div.classList.add("hidden");
-    div.setAttribute("role", "dialog");
-    div.setAttribute("aria-modal", "true");
-    div.setAttribute("aria-label", "Area navigation menu");
+    const div = document.createElement('div');
+    div.id = 'area-menu-overlay';
+    div.classList.add('hidden');
+    div.setAttribute('role', 'dialog');
+    div.setAttribute('aria-modal', 'true');
+    div.setAttribute('aria-label', 'Area navigation menu');
     div.tabIndex = -1;
     div.innerHTML = `<div id="area-menu-content"> </div>`;
     document.body.appendChild(div);
@@ -64,36 +67,32 @@ const AreaManager = {
         GizmoMenuManager.toggle(false); // Close gizmo menu if open
         this.renderHighlights();
         this._previousInertStates = new Map();
-        document
-          .querySelectorAll("body > *:not(#area-menu-overlay)")
-          .forEach((el) => {
-            this._previousInertStates.set(el, el.inert);
-            el.inert = true;
-          });
+        document.querySelectorAll('body > *:not(#area-menu-overlay)').forEach((el) => {
+          this._previousInertStates.set(el, el.inert);
+          el.inert = true;
+        });
         this.previousFocus = document.activeElement;
         setTimeout(() => this.overlay.focus(), 0);
       } else {
-        this._previousInertStates?.forEach(
-          (wasInert, el) => (el.inert = wasInert),
-        );
+        this._previousInertStates?.forEach((wasInert, el) => (el.inert = wasInert));
         this._previousInertStates = null;
         this.previousFocus?.focus();
       }
-      this.overlay.classList.toggle("hidden", !show);
+      this.overlay.classList.toggle('hidden', !show);
     }
   },
 
   setupListeners() {
-    KeyboardDispatcher.on("*", "Mod+KeyB", (e) => {
+    KeyboardDispatcher.on('*', 'Mod+KeyB', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.toggle(this.overlay.classList.contains("hidden"));
+      this.toggle(this.overlay.classList.contains('hidden'));
     });
 
-    KeyboardDispatcher.on("OVERLAY", "Escape", () => this.toggle(false));
+    KeyboardDispatcher.on('OVERLAY', 'Escape', () => this.toggle(false));
 
     for (let i = 1; i <= 9; i++) {
-      KeyboardDispatcher.on("OVERLAY", `Digit${i}`, (e) => {
+      KeyboardDispatcher.on('OVERLAY', `Digit${i}`, (e) => {
         e.preventDefault();
         const area = this.effectiveAreas.find((a) => a.label === String(i));
         if (area) this.activateArea(area);
@@ -101,7 +100,7 @@ const AreaManager = {
     }
 
     const cycleBadges = (reverse) => {
-      const badges = [...this.overlay.querySelectorAll(".area-number-badge")];
+      const badges = [...this.overlay.querySelectorAll('.area-number-badge')];
       if (badges.length === 0) return;
       const currentIndex = badges.indexOf(document.activeElement);
       const nextIndex = reverse
@@ -112,26 +111,26 @@ const AreaManager = {
       badges[nextIndex].focus();
     };
 
-    KeyboardDispatcher.on("OVERLAY", "Tab", (e) => {
+    KeyboardDispatcher.on('OVERLAY', 'Tab', (e) => {
       e.preventDefault();
       cycleBadges(false);
     });
-    KeyboardDispatcher.on("OVERLAY", "Shift+Tab", (e) => {
+    KeyboardDispatcher.on('OVERLAY', 'Shift+Tab', (e) => {
       e.preventDefault();
       cycleBadges(true);
     });
 
-    KeyboardDispatcher.on("OVERLAY", "Enter", (e) => {
+    KeyboardDispatcher.on('OVERLAY', 'Enter', (e) => {
       const focused = document.activeElement;
-      if (!focused?.classList.contains("area-number-badge")) return;
+      if (!focused?.classList.contains('area-number-badge')) return;
       e.preventDefault();
       const area = this.effectiveAreas.find((a) => a.label === focused.innerText);
       if (area) this.activateArea(area);
     });
 
     // Re-render if the browser window gets resized
-    window.addEventListener("resize", () => {
-      if (!this.overlay.classList.contains("hidden")) {
+    window.addEventListener('resize', () => {
+      if (!this.overlay.classList.contains('hidden')) {
         requestAnimationFrame(() => this.renderHighlights());
       }
     });
@@ -143,29 +142,28 @@ const AreaManager = {
     const el = document.querySelector(area.selector);
     const childFocusable =
       el?.querySelector(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       ) ?? el;
     const focusable =
-      (area.focusSelector ? document.querySelector(area.focusSelector) : null) ??
-      childFocusable;
+      (area.focusSelector ? document.querySelector(area.focusSelector) : null) ?? childFocusable;
 
     focusable?.focus();
-    if (area.selector === "#gizmoButtons") GizmoMenuManager.toggle(true);
+    if (area.selector === '#gizmoButtons') GizmoMenuManager.toggle(true);
   },
 
   renderHighlights() {
-    const container = document.getElementById("area-menu-content");
-    container.innerHTML = ""; // Clear old numbers
+    const container = document.getElementById('area-menu-content');
+    container.innerHTML = ''; // Clear old numbers
 
     this.effectiveAreas.forEach((area) => {
       const el = document.querySelector(area.selector);
       if (el && (el.offsetWidth > 0 || el.getBoundingClientRect().width > 0)) {
         const rect = el.getBoundingClientRect();
 
-        const badge = document.createElement("div");
-        badge.className = "area-number-badge";
-        badge.setAttribute("role", "button");
-        badge.setAttribute("aria-label", `${area.label}: ${area.name}`);
+        const badge = document.createElement('div');
+        badge.className = 'area-number-badge';
+        badge.setAttribute('role', 'button');
+        badge.setAttribute('aria-label', `${area.label}: ${area.name}`);
         badge.tabIndex = 0; // Make badges focusable
         badge.innerText = area.label;
 
@@ -175,14 +173,14 @@ const AreaManager = {
 
         container.appendChild(badge);
 
-        const highlight = document.createElement("div");
+        const highlight = document.createElement('div');
         const pad = area.pad ?? 1;
         const ext = area.extend ?? {};
         const eTop = ext.top ?? 0;
         const eBottom = ext.bottom ?? 0;
         const eLeft = ext.left ?? 0;
         const eRight = ext.right ?? 0;
-        highlight.className = "area-outline";
+        highlight.className = 'area-outline';
         highlight.style.top = `${rect.top - pad - eTop}px`;
         highlight.style.left = `${rect.left - pad - eLeft}px`;
         highlight.style.width = `${rect.width + pad * 2 + eLeft + eRight}px`;
@@ -197,15 +195,15 @@ const AreaManager = {
 const GizmoMenuManager = {
   overlay: null,
   buttons: [
-    { id: "showShapesButton", label: "1" },
-    { id: "colorPickerButton", label: "2" },
-    { id: "positionButton", label: "3" },
-    { id: "rotationButton", label: "4" },
-    { id: "scaleButton", label: "5" },
-    { id: "selectButton", label: "6" },
-    { id: "duplicateButton", label: "7" },
-    { id: "deleteButton", label: "8" },
-    { id: "cameraButton", label: "9" },
+    { id: 'showShapesButton', label: '1' },
+    { id: 'colorPickerButton', label: '2' },
+    { id: 'positionButton', label: '3' },
+    { id: 'rotationButton', label: '4' },
+    { id: 'scaleButton', label: '5' },
+    { id: 'selectButton', label: '6' },
+    { id: 'duplicateButton', label: '7' },
+    { id: 'deleteButton', label: '8' },
+    { id: 'cameraButton', label: '9' },
   ],
 
   init() {
@@ -214,16 +212,16 @@ const GizmoMenuManager = {
   },
 
   createOverlay() {
-    const div = document.createElement("div");
-    div.id = "gizmo-menu-overlay";
-    div.className = "hidden";
+    const div = document.createElement('div');
+    div.id = 'gizmo-menu-overlay';
+    div.className = 'hidden';
     div.innerHTML = `<div id="gizmo-menu-content"></div>`;
     document.body.appendChild(div);
     this.overlay = div;
   },
 
   isOpen() {
-    return !this.overlay.classList.contains("hidden");
+    return !this.overlay.classList.contains('hidden');
   },
 
   toggle(show) {
@@ -232,49 +230,49 @@ const GizmoMenuManager = {
       this.renderBadges();
 
       if (this._watchFocus) {
-        document.removeEventListener("focusin", this._watchFocus);
+        document.removeEventListener('focusin', this._watchFocus);
       }
       if (this._watchPointer) {
-        document.removeEventListener("pointerdown", this._watchPointer, {
+        document.removeEventListener('pointerdown', this._watchPointer, {
           capture: true,
         });
       }
       this._watchFocus = () => {
         const ctx = ContextManager.getCurrentContext();
-        if (ctx !== "GIZMO" && ctx !== "NAVIGATION") this.toggle(false);
+        if (ctx !== 'GIZMO' && ctx !== 'NAVIGATION') this.toggle(false);
       };
       this._watchPointer = () => this.toggle(false);
-      document.addEventListener("focusin", this._watchFocus);
-      document.addEventListener("pointerdown", this._watchPointer, {
+      document.addEventListener('focusin', this._watchFocus);
+      document.addEventListener('pointerdown', this._watchPointer, {
         capture: true,
       });
 
       // Focus 1st button if nothing in gizmos is already focused,
       // but if another gizmo is active, leave focus there
-      const alreadyFocused = document.activeElement?.closest("#gizmoButtons");
+      const alreadyFocused = document.activeElement?.closest('#gizmoButtons');
 
       if (!alreadyFocused) {
         const btn =
-          document.querySelector(".gizmo-button.active") ||
-          document.getElementById("showShapesButton");
+          document.querySelector('.gizmo-button.active') ||
+          document.getElementById('showShapesButton');
         if (btn && !btn.disabled && btn.offsetParent !== null) btn.focus();
       }
     } else {
-      document.removeEventListener("focusin", this._watchFocus);
-      document.removeEventListener("pointerdown", this._watchPointer, {
+      document.removeEventListener('focusin', this._watchFocus);
+      document.removeEventListener('pointerdown', this._watchPointer, {
         capture: true,
       });
       this._watchFocus = null;
       this._watchPointer = null;
     }
-    this.overlay.classList.toggle("hidden", !show);
+    this.overlay.classList.toggle('hidden', !show);
   },
 
   setupListeners() {
     // Toggle gizmo menu with Ctrl + G
-    KeyboardDispatcher.on("*", "Mod+KeyG", (e) => {
+    KeyboardDispatcher.on('*', 'Mod+KeyG', (e) => {
       const ctx = ContextManager.getCurrentContext();
-      if (ctx === "TYPING" || ctx === "OVERLAY") return;
+      if (ctx === 'TYPING' || ctx === 'OVERLAY') return;
       e.preventDefault();
       e.stopPropagation();
       this.toggle(true);
@@ -282,7 +280,7 @@ const GizmoMenuManager = {
 
     // Activate gizmo buttons with number keys
     for (let i = 1; i <= 9; i++) {
-      KeyboardDispatcher.on("*", `Digit${i}`, () => {
+      KeyboardDispatcher.on('*', `Digit${i}`, () => {
         if (!this.isOpen()) return;
         const entry = this.buttons.find((b) => b.label === String(i));
         if (entry) this.activateButton(entry);
@@ -290,8 +288,8 @@ const GizmoMenuManager = {
     }
 
     // Move the gizmo buttons if the window is resized
-    const gizmoButtons = document.getElementById("gizmoButtons");
-    const resizer = document.getElementById("resizer");
+    const gizmoButtons = document.getElementById('gizmoButtons');
+    const resizer = document.getElementById('resizer');
     if (gizmoButtons) {
       new ResizeObserver(() => {
         if (this.isOpen()) this.renderBadges();
@@ -299,10 +297,10 @@ const GizmoMenuManager = {
     }
     if (resizer) {
       new MutationObserver(() => {
-        if (!resizer.classList.contains("resizing") && this.isOpen()) {
+        if (!resizer.classList.contains('resizing') && this.isOpen()) {
           this.renderBadges();
         }
-      }).observe(resizer, { attributes: true, attributeFilter: ["class"] });
+      }).observe(resizer, { attributes: true, attributeFilter: ['class'] });
     }
   },
 
@@ -314,14 +312,14 @@ const GizmoMenuManager = {
   },
 
   renderBadges() {
-    const container = document.getElementById("gizmo-menu-content");
-    container.innerHTML = "";
+    const container = document.getElementById('gizmo-menu-content');
+    container.innerHTML = '';
     this.buttons.forEach((entry) => {
       const el = document.getElementById(entry.id);
       if (!el || el.offsetParent === null) return;
       const rect = el.getBoundingClientRect();
-      const badge = document.createElement("div");
-      badge.className = "gizmo-key-badge";
+      const badge = document.createElement('div');
+      badge.className = 'gizmo-key-badge';
       badge.innerText = entry.label;
       badge.style.top = `${rect.top + rect.height + 8}px`;
       badge.style.left = `${rect.left + rect.width / 2}px`;
@@ -334,245 +332,243 @@ const GizmoMenuManager = {
 
 // Check their platform (Mac or not Mac) to show the correct modifier key
 function isMac() {
-  return (navigator.userAgentData?.platform ?? navigator.platform)
-    .toUpperCase()
-    .includes("MAC");
+  return (navigator.userAgentData?.platform ?? navigator.platform).toUpperCase().includes('MAC');
 }
 
 // List of shortcuts to show in the panel, with categories for grouping
 function getShortcuts() {
-  const mod = isMac() ? "⌘" : "Ctrl";
+  const mod = isMac() ? '⌘' : 'Ctrl';
   return [
     {
-      label: translate("shortcut_show_hide_help"),
+      label: translate('shortcut_show_hide_help'),
       keys: `${mod} + /`,
-      category: translate("shortcut_category_main"),
+      category: translate('shortcut_category_main'),
     },
     {
-      label: translate("shortcut_move_between_areas"),
+      label: translate('shortcut_move_between_areas'),
       keys: `Tab / Shift + Tab`,
-      category: translate("shortcut_category_main"),
+      category: translate('shortcut_category_main'),
     },
     {
-      label: translate("shortcut_confirm"),
+      label: translate('shortcut_confirm'),
       keys: `Enter`,
-      category: translate("shortcut_category_main"),
+      category: translate('shortcut_category_main'),
     },
     {
-      label: translate("shortcut_exit"),
+      label: translate('shortcut_exit'),
       keys: `Esc`,
-      category: translate("shortcut_category_main"),
+      category: translate('shortcut_category_main'),
     },
     {
-      label: translate("shortcut_play"),
+      label: translate('shortcut_play'),
       keys: `${mod} + P`,
-      category: translate("shortcut_category_main"),
+      category: translate('shortcut_category_main'),
     },
     {
-      label: translate("shortcut_undo"),
+      label: translate('shortcut_undo'),
       keys: `${mod} + Z`,
-      category: translate("shortcut_category_main"),
+      category: translate('shortcut_category_main'),
     },
     {
-      label: translate("shortcut_redo"),
+      label: translate('shortcut_redo'),
       keys: `${mod} + Shift + Z`,
-      category: translate("shortcut_category_main"),
+      category: translate('shortcut_category_main'),
     },
     {
-      label: translate("shortcut_browser_nav"),
+      label: translate('shortcut_browser_nav'),
       keys: `${mod} + L`,
-      category: translate("shortcut_category_main"),
+      category: translate('shortcut_category_main'),
     },
 
     {
-      label: translate("shortcut_main_menu"),
+      label: translate('shortcut_main_menu'),
       keys: `${mod} + M`,
-      category: translate("shortcut_category_menu"),
+      category: translate('shortcut_category_menu'),
     },
     {
-      label: translate("shortcut_open_file"),
+      label: translate('shortcut_open_file'),
       keys: `${mod} + O`,
-      category: translate("shortcut_category_menu"),
+      category: translate('shortcut_category_menu'),
     },
     {
-      label: translate("shortcut_save_export"),
+      label: translate('shortcut_save_export'),
       keys: `${mod} + S`,
-      category: translate("shortcut_category_menu"),
+      category: translate('shortcut_category_menu'),
     },
 
     {
-      label: translate("shortcut_open_close_area_menu"),
+      label: translate('shortcut_open_close_area_menu'),
       keys: `${mod} + B`,
-      category: translate("shortcut_category_area_menu"),
+      category: translate('shortcut_category_area_menu'),
     },
     {
-      label: translate("shortcut_toggle_area"),
+      label: translate('shortcut_toggle_area'),
       keys: `Tab`,
-      category: translate("shortcut_category_area_menu"),
+      category: translate('shortcut_category_area_menu'),
     },
     {
-      label: translate("shortcut_select_area"),
+      label: translate('shortcut_select_area'),
       keys: `1-9 / Enter`,
-      category: translate("shortcut_category_area_menu"),
+      category: translate('shortcut_category_area_menu'),
     },
 
     {
-      label: translate("shortcut_toolbox"),
+      label: translate('shortcut_toolbox'),
       keys: `T`,
-      category: translate("shortcut_category_toolbox"),
+      category: translate('shortcut_category_toolbox'),
     },
     {
-      label: translate("shortcut_toolbox_typing"),
-      keys: `"${translate("shortcut_toolbox_typing_hint")}"`,
-      category: translate("shortcut_category_toolbox"),
+      label: translate('shortcut_toolbox_typing'),
+      keys: `"${translate('shortcut_toolbox_typing_hint')}"`,
+      category: translate('shortcut_category_toolbox'),
     },
     {
-      label: translate("shortcut_nav_toolbox_blocks"),
+      label: translate('shortcut_nav_toolbox_blocks'),
       keys: `↑ ↓ ← →`,
-      category: translate("shortcut_category_toolbox"),
+      category: translate('shortcut_category_toolbox'),
     },
     {
-      label: translate("shortcut_add_block"),
+      label: translate('shortcut_add_block'),
       keys: `Enter`,
-      category: translate("shortcut_category_toolbox"),
+      category: translate('shortcut_category_toolbox'),
     },
 
     {
-      label: translate("shortcut_code_editor"),
+      label: translate('shortcut_code_editor'),
       keys: `${mod} + E`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_select_workspace"),
+      label: translate('shortcut_select_workspace'),
       keys: `W`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_move_through_blocks"),
+      label: translate('shortcut_move_through_blocks'),
       keys: `↑ ↓`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_move_in_out_blocks"),
+      label: translate('shortcut_move_in_out_blocks'),
       keys: `← →`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
 
     {
-      label: translate("shortcut_next_block_stack"),
+      label: translate('shortcut_next_block_stack'),
       keys: `N`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_prev_block_stack"),
+      label: translate('shortcut_prev_block_stack'),
       keys: `B`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_add_block_by_name"),
+      label: translate('shortcut_add_block_by_name'),
       keys: `${mod} + ]`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_context_menu"),
+      label: translate('shortcut_context_menu'),
       keys: `${mod} + Enter`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_duplicate_block"),
+      label: translate('shortcut_duplicate_block'),
       keys: `D`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_detach_block"),
+      label: translate('shortcut_detach_block'),
       keys: `X`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_start_move_block"),
+      label: translate('shortcut_start_move_block'),
       keys: `M`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_move_arrows"),
+      label: translate('shortcut_move_arrows'),
       keys: `↑ ↓`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_move_anywhere"),
+      label: translate('shortcut_move_anywhere'),
       keys: `${mod} + ↑ ↓ ← →`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_search_block"),
+      label: translate('shortcut_search_block'),
       keys: `${mod} + F`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_select_next_result"),
+      label: translate('shortcut_select_next_result'),
       keys: `Enter`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_select_previous_result"),
+      label: translate('shortcut_select_previous_result'),
       keys: `Shift + Enter`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
     {
-      label: translate("shortcut_focus_result"),
+      label: translate('shortcut_focus_result'),
       keys: `Esc`,
-      category: translate("shortcut_category_editor"),
+      category: translate('shortcut_category_editor'),
     },
 
     {
-      label: translate("shortcut_open_gizmos"),
+      label: translate('shortcut_open_gizmos'),
       keys: `${mod} + G`,
-      category: translate("shortcut_category_gizmos"),
+      category: translate('shortcut_category_gizmos'),
     },
     {
-      label: translate("shortcut_select_gizmo"),
+      label: translate('shortcut_select_gizmo'),
       keys: `1-9`,
-      category: translate("shortcut_category_gizmos"),
+      category: translate('shortcut_category_gizmos'),
     },
     {
-      label: translate("shortcut_keyboard_cursor_gizmos"),
+      label: translate('shortcut_keyboard_cursor_gizmos'),
       keys: `↑ ↓ ← →`,
-      category: translate("shortcut_category_gizmos"),
+      category: translate('shortcut_category_gizmos'),
     },
     {
-      label: translate("shortcut_slow_cursor_gizmos"),
+      label: translate('shortcut_slow_cursor_gizmos'),
       keys: `Shift + ↑ ↓ ← →`,
-      category: translate("shortcut_category_gizmos"),
+      category: translate('shortcut_category_gizmos'),
     },
     {
-      label: translate("shortcut_lock_transform"),
+      label: translate('shortcut_lock_transform'),
       keys: `X Y Z`,
-      category: translate("shortcut_category_gizmos"),
+      category: translate('shortcut_category_gizmos'),
     },
     {
-      label: translate("shortcut_uniform_scale"),
+      label: translate('shortcut_uniform_scale'),
       keys: `U`,
-      category: translate("shortcut_category_gizmos"),
+      category: translate('shortcut_category_gizmos'),
     },
     {
-      label: translate("shortcut_transform_3d"),
+      label: translate('shortcut_transform_3d'),
       keys: `↑ ↓ ← → PgUp PgDn`,
-      category: translate("shortcut_category_gizmos"),
+      category: translate('shortcut_category_gizmos'),
     },
     {
-      label: translate("shortcut_focus_camera"),
+      label: translate('shortcut_focus_camera'),
       keys: `F`,
-      category: translate("shortcut_category_gizmos"),
+      category: translate('shortcut_category_gizmos'),
     },
     {
-      label: translate("shortcut_quick_colour"),
+      label: translate('shortcut_quick_colour'),
       keys: `C`,
-      category: translate("shortcut_category_gizmos"),
+      category: translate('shortcut_category_gizmos'),
     },
     {
-      label: translate("shortcut_delete_object"),
+      label: translate('shortcut_delete_object'),
       keys: `Del`,
-      category: translate("shortcut_category_gizmos"),
+      category: translate('shortcut_category_gizmos'),
     },
   ];
 }
@@ -586,16 +582,16 @@ function formatKeys(keys) {
   return keys
     .split(/( \+ | \/ )/)
     .map((part) =>
-      part === " + "
+      part === ' + '
         ? part
-        : part === " / "
+        : part === ' / '
           ? `<span aria-label="or"> / </span>`
           : part
-              .split(" ")
+              .split(' ')
               .map((k) => `<kbd>${k}</kbd>`)
-              .join(" "),
+              .join(' ')
     )
-    .join("");
+    .join('');
 }
 
 const InfoPanel = {
@@ -603,31 +599,31 @@ const InfoPanel = {
   _activeId: null,
 
   init() {
-    this._el = document.getElementById("info-panel");
-    this._tablist = document.getElementById("info-panel-tabs");
-    this._body = document.getElementById("info-panel-body");
+    this._el = document.getElementById('info-panel');
+    this._tablist = document.getElementById('info-panel-tabs');
+    this._body = document.getElementById('info-panel-body');
   },
 
   register(id, label) {
-    const btn = document.createElement("button");
+    const btn = document.createElement('button');
     btn.id = `info-tab-btn-${id}`;
-    btn.className = "info-tab-btn bigbutton";
-    btn.setAttribute("role", "tab");
-    btn.setAttribute("aria-selected", "false");
-    btn.setAttribute("aria-controls", `info-tab-panel-${id}`);
+    btn.className = 'info-tab-btn bigbutton';
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-selected', 'false');
+    btn.setAttribute('aria-controls', `info-tab-panel-${id}`);
     btn.textContent = label;
-    btn.addEventListener("click", () => this.toggle(id));
+    btn.addEventListener('click', () => this.toggle(id));
     this._tablist.appendChild(btn);
-    const divider = document.createElement("div");
-    divider.className = "toolbar-divider";
-    divider.setAttribute("aria-hidden", "true");
+    const divider = document.createElement('div');
+    divider.className = 'toolbar-divider';
+    divider.setAttribute('aria-hidden', 'true');
     this._tablist.appendChild(divider);
 
-    const panel = document.createElement("div");
+    const panel = document.createElement('div');
     panel.id = `info-tab-panel-${id}`;
-    panel.className = "info-tab-panel hidden";
-    panel.setAttribute("role", "tabpanel");
-    panel.setAttribute("aria-labelledby", `info-tab-btn-${id}`);
+    panel.className = 'info-tab-panel hidden';
+    panel.setAttribute('role', 'tabpanel');
+    panel.setAttribute('aria-labelledby', `info-tab-btn-${id}`);
     panel.tabIndex = 0;
     this._body.appendChild(panel);
 
@@ -638,47 +634,44 @@ const InfoPanel = {
   activate(id) {
     if (this._activeId && this._activeId !== id) {
       const cur = this._tabs.get(this._activeId);
-      cur.btn.setAttribute("aria-selected", "false");
-      cur.btn.classList.remove("active");
-      cur.panel.classList.add("hidden");
+      cur.btn.setAttribute('aria-selected', 'false');
+      cur.btn.classList.remove('active');
+      cur.panel.classList.add('hidden');
     }
     const tab = this._tabs.get(id);
     if (!tab) return;
     this._activeId = id;
-    tab.btn.setAttribute("aria-selected", "true");
-    tab.btn.classList.add("active");
-    tab.panel.classList.remove("hidden");
+    tab.btn.setAttribute('aria-selected', 'true');
+    tab.btn.classList.add('active');
+    tab.panel.classList.remove('hidden');
     tab.panel.focus();
   },
 
   deactivate(id) {
     const tab = this._tabs.get(id);
     if (!tab) return;
-    tab.btn.setAttribute("aria-selected", "false");
-    tab.btn.classList.remove("active");
-    tab.panel.classList.add("hidden");
+    tab.btn.setAttribute('aria-selected', 'false');
+    tab.btn.classList.remove('active');
+    tab.panel.classList.add('hidden');
     if (this._activeId === id) this._activeId = null;
   },
 
   toggle(id) {
     const tab = this._tabs.get(id);
     if (!tab) return;
-    tab.panel.classList.contains("hidden")
-      ? this.activate(id)
-      : this.deactivate(id);
+    tab.panel.classList.contains('hidden') ? this.activate(id) : this.deactivate(id);
   },
 };
 
 const SHORTCUTS_FONT_SIZES = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8];
-const SHORTCUTS_FONT_SIZE_KEY = "flock-shortcuts-font-size";
+const SHORTCUTS_FONT_SIZE_KEY = 'flock-shortcuts-font-size';
 const SHORTCUTS_FONT_SIZE_DEFAULT = 1.2;
 
 const ShortcutsPanel = {
   panel: null,
   previousFocus: null,
   fontSize:
-    parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) ||
-    SHORTCUTS_FONT_SIZE_DEFAULT,
+    parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
 
   init() {
     this.createPanel();
@@ -693,21 +686,16 @@ const ShortcutsPanel = {
     if (next === this.fontSize) return;
     this.fontSize = next;
     localStorage.setItem(SHORTCUTS_FONT_SIZE_KEY, next);
-    this.panel.querySelector("#shortcuts-list").style.fontSize = next + "em";
-    this.panel.querySelector(".shortcuts-decrease-btn").disabled =
-      next === sizes[0];
-    this.panel.querySelector(".shortcuts-increase-btn").disabled =
-      next === sizes[sizes.length - 1];
+    this.panel.querySelector('#shortcuts-list').style.fontSize = next + 'em';
+    this.panel.querySelector('.shortcuts-decrease-btn').disabled = next === sizes[0];
+    this.panel.querySelector('.shortcuts-increase-btn').disabled = next === sizes[sizes.length - 1];
   },
 
   createPanel() {
-    const panel = InfoPanel.register(
-      "shortcuts",
-      translate("shortcut_panel_title"),
-    );
-    const btn = document.getElementById("info-tab-btn-shortcuts");
-    btn.setAttribute("aria-label", translate("shortcut_panel_title"));
-    btn.setAttribute("title", translate("shortcut_panel_title"));
+    const panel = InfoPanel.register('shortcuts', translate('shortcut_panel_title'));
+    const btn = document.getElementById('info-tab-btn-shortcuts');
+    btn.setAttribute('aria-label', translate('shortcut_panel_title'));
+    btn.setAttribute('title', translate('shortcut_panel_title'));
     btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" d="M64 64C28.7 64 0 92.7 0 128L0 384c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64L64 64zM175.1 224l16 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16zm-72 32c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16l16 0c8.8 0 16 7.2 16 16l0 16zm128 0c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16l16 0c8.8 0 16 7.2 16 16l0 16zm128 0c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16l16 0c8.8 0 16 7.2 16 16l0 16zm72-32l16 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16zM80 336c0-8.8 7.2-16 16-16l288 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-288 0c-8.8 0-16-7.2-16-16l0-16zm336-16l16 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16z"/></svg></div>`;
     panel.innerHTML = `
         <div class="shortcuts-panel-header">
@@ -715,35 +703,33 @@ const ShortcutsPanel = {
           <div class="shortcuts-panel-controls">
             <button class="bigbutton shortcuts-decrease-btn" aria-label="Decrease text size" title="Decrease text size"><span aria-hidden="true">A</span></button>
             <button class="bigbutton shortcuts-increase-btn" aria-label="Increase text size" title="Increase text size"><span aria-hidden="true">A</span></button>
-            <a href="${SHORTCUTS_HELP_URL}" target="_blank" rel="noopener noreferrer" class="help-link-button" aria-label="${translate("shortcut_panel_help_link")}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg></a>
+            <a href="${SHORTCUTS_HELP_URL}" target="_blank" rel="noopener noreferrer" class="help-link-button" aria-label="${translate('shortcut_panel_help_link')}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg></a>
           </div>
         </div>
         <div id="shortcuts-list"></div>
       `;
     this.panel = panel;
     const sizes = SHORTCUTS_FONT_SIZES;
-    const decreaseBtn = panel.querySelector(".shortcuts-decrease-btn");
-    const increaseBtn = panel.querySelector(".shortcuts-increase-btn");
+    const decreaseBtn = panel.querySelector('.shortcuts-decrease-btn');
+    const increaseBtn = panel.querySelector('.shortcuts-increase-btn');
     decreaseBtn.disabled = this.fontSize === sizes[0];
     increaseBtn.disabled = this.fontSize === sizes[sizes.length - 1];
-    decreaseBtn.addEventListener("click", () => this.adjustFontSize(-1));
-    increaseBtn.addEventListener("click", () => this.adjustFontSize(1));
-    panel.querySelector("#shortcuts-list").style.fontSize =
-      this.fontSize + "em";
+    decreaseBtn.addEventListener('click', () => this.adjustFontSize(-1));
+    increaseBtn.addEventListener('click', () => this.adjustFontSize(1));
+    panel.querySelector('#shortcuts-list').style.fontSize = this.fontSize + 'em';
     this.renderContent();
   },
 
   renderContent() {
     document
-      .getElementById("info-tab-btn-shortcuts")
-      .setAttribute("aria-label", translate("shortcut_panel_title"));
-    this.panel.querySelector("#shortcuts-panel-title").textContent = translate(
-      "shortcut_panel_title",
-    );
+      .getElementById('info-tab-btn-shortcuts')
+      .setAttribute('aria-label', translate('shortcut_panel_title'));
+    this.panel.querySelector('#shortcuts-panel-title').textContent =
+      translate('shortcut_panel_title');
     this.panel
-      .querySelector(".help-link-button")
-      .setAttribute("aria-label", translate("shortcut_panel_help_link"));
-    const container = this.panel.querySelector("#shortcuts-list");
+      .querySelector('.help-link-button')
+      .setAttribute('aria-label', translate('shortcut_panel_help_link'));
+    const container = this.panel.querySelector('#shortcuts-list');
     const groups = getShortcuts().reduce((acc, s) => {
       (acc[s.category] ??= []).push(s);
       return acc;
@@ -753,18 +739,18 @@ const ShortcutsPanel = {
         ([cat, items]) => `
       <h3 class="shortcuts-category">${cat}</h3>
       <dl class="shortcuts-group">
-        ${items.map(({ label, keys }) => `<div class="shortcuts-entry"><dt>${label}</dt><dd>${formatKeys(keys)}</dd></div>`).join("")}
+        ${items.map(({ label, keys }) => `<div class="shortcuts-entry"><dt>${label}</dt><dd>${formatKeys(keys)}</dd></div>`).join('')}
       </dl>
-    `,
+    `
       )
-      .join("");
+      .join('');
   },
 
   show() {
     this.renderContent();
     this.previousFocus = document.activeElement;
-    InfoPanel.activate("shortcuts");
-    document.getElementById("shortcutsBtn")?.classList.add("active");
+    InfoPanel.activate('shortcuts');
+    document.getElementById('shortcutsBtn')?.classList.add('active');
   },
 
   refreshTranslations() {
@@ -774,30 +760,30 @@ const ShortcutsPanel = {
   hide() {
     this.previousFocus?.focus();
     this.previousFocus = null;
-    InfoPanel.deactivate("shortcuts");
-    document.getElementById("shortcutsBtn")?.classList.remove("active");
+    InfoPanel.deactivate('shortcuts');
+    document.getElementById('shortcutsBtn')?.classList.remove('active');
   },
 
   toggle() {
-    this.panel.classList.contains("hidden") ? this.show() : this.hide();
+    this.panel.classList.contains('hidden') ? this.show() : this.hide();
   },
 
   setupListeners() {
-    this.panel.addEventListener("keydown", (e) => {
-      const scroller = document.getElementById("info-panel-body");
-      if (e.key === "ArrowUp") {
+    this.panel.addEventListener('keydown', (e) => {
+      const scroller = document.getElementById('info-panel-body');
+      if (e.key === 'ArrowUp') {
         e.preventDefault();
-        scroller?.scrollBy({ top: -100, behavior: "instant" });
+        scroller?.scrollBy({ top: -100, behavior: 'instant' });
       }
-      if (e.key === "ArrowDown") {
+      if (e.key === 'ArrowDown') {
         e.preventDefault();
-        scroller?.scrollBy({ top: 100, behavior: "instant" });
+        scroller?.scrollBy({ top: 100, behavior: 'instant' });
       }
-      if (e.key === "Escape") {
+      if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
         this.hide();
-        document.getElementById("info-tab-btn-shortcuts")?.focus();
+        document.getElementById('info-tab-btn-shortcuts')?.focus();
       }
     });
   },
@@ -806,7 +792,7 @@ const ShortcutsPanel = {
 // Start it up
 AreaManager.init();
 GizmoMenuManager.init();
-if (document.getElementById("info-panel-tabs")) {
+if (document.getElementById('info-panel-tabs')) {
   InfoPanel.init();
   ShortcutsPanel.init();
 }

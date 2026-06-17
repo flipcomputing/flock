@@ -388,7 +388,13 @@ export const flockAnimate = {
             mesh.metadata._glideObserver = null;
           }
           if (!reverse && !loop) mesh.position = endPosition.clone();
-          if (isPhysicsActive && originalMotionType !== null && !loop && !reverse && isBodyAlive(mesh.physics)) {
+          if (
+            isPhysicsActive &&
+            originalMotionType !== null &&
+            !loop &&
+            !reverse &&
+            isBodyAlive(mesh.physics)
+          ) {
             mesh.physics.setMotionType(originalMotionType);
           }
           resolve();
