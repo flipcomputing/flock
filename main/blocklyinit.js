@@ -1507,7 +1507,7 @@ function installShadowNavigationPatch(ws) {
   registerSkippableFieldShortcut(
     'duplicate_from_skippable_field',
     Blockly.utils.KeyCodes.D,
-    (ws, block) => !ws.isFlyout && !!block.isDuplicatable?.(),
+    (ws, block) => !ws.isFlyout && !block.isShadow?.() && !!block.isDuplicatable?.(),
     (ws, _event, block) => {
       const copyData = block.toCopyData?.();
       if (!copyData) return false;
