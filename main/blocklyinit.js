@@ -1470,10 +1470,10 @@ function installShadowNavigationPatch(ws) {
   // a Block instance, which fails when focus is on a skippable block's field
   // (because we skip the block stop). Register an additional shortcut for the
   // same key that fires only when a skippable field is focused.
-  // The built-in DISCONNECT (X) and DUPLICATE (D) shortcuts check that the
-  // focused node is a Block instance, which fails when focus is on a skippable
-  // block's field. Register additional shortcuts for the same keys that fire
-  // only when a skippable field is focused.
+  // The built-in DISCONNECT (X), DUPLICATE (D), and DELETE shortcuts check
+  // that the focused node is a Block instance, which fails when focus is on a
+  // skippable block's field. Register additional shortcuts for the same keys
+  // that fire only when a skippable field is focused.
   const shortcutRegistry = Blockly.ShortcutRegistry.registry;
 
   const skippableFieldBlock = () => {
@@ -1481,62 +1481,60 @@ function installShadowNavigationPatch(ws) {
     return field ? field.getSourceBlock() : null;
   };
 
-  shortcutRegistry.register({
-    name: 'disconnect_from_skippable_field',
-    allowCollision: true,
-    keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.X)],
-    preconditionFn: (workspace) => {
-      const block = skippableFieldBlock();
-      return !workspace.isDragging() && !workspace.isReadOnly() &&
-             !!block && !block.isShadow?.();
-    },
-    callback: (_workspace, event) => {
-      const block = skippableFieldBlock();
-      if (!block || block.isShadow?.()) return false;
-      const healStack = !(event instanceof KeyboardEvent && event.shiftKey);
-      block.unplug(healStack);
+  // Registers a shortcut that fires only when a skippable field is focused.
+  // canRun(workspace, block) → extra conditions beyond the common workspace checks.
+  // run(workspace, event, block) → performs the action, returns true on success.
+  const registerSkippableFieldShortcut = (name, keyCode, canRun, run) => {
+    shortcutRegistry.register({
+      name,
+      allowCollision: true,
+      keyCodes: [shortcutRegistry.createSerializedKey(keyCode)],
+      preconditionFn: (workspace) => {
+        const block = skippableFieldBlock();
+        return !!block && !workspace.isDragging() && !workspace.isReadOnly() &&
+               canRun(workspace, block);
+      },
+      callback: (workspace, event) => {
+        const block = skippableFieldBlock();
+        return !!block && run(workspace, event, block);
+      },
+    });
+  };
+
+  registerSkippableFieldShortcut(
+    'disconnect_from_skippable_field',
+    Blockly.utils.KeyCodes.X,
+    (_ws, block) => !block.isShadow?.(),
+    (_ws, event, block) => {
+      block.unplug(!(event instanceof KeyboardEvent && event.shiftKey));
       return true;
     },
-  });
+  );
 
-  shortcutRegistry.register({
-    name: 'duplicate_from_skippable_field',
-    allowCollision: true,
-    keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.D)],
-    preconditionFn: (workspace) => {
-      const block = skippableFieldBlock();
-      return !workspace.isDragging() && !workspace.isReadOnly() && !workspace.isFlyout &&
-             !!block && block.isDuplicatable?.();
-    },
-    callback: (workspace) => {
-      const block = skippableFieldBlock();
-      if (!block || !block.isDuplicatable?.()) return false;
+  registerSkippableFieldShortcut(
+    'duplicate_from_skippable_field',
+    Blockly.utils.KeyCodes.D,
+    (ws, block) => !ws.isFlyout && !!block.isDuplicatable?.(),
+    (ws, _event, block) => {
       const copyData = block.toCopyData?.();
       if (!copyData) return false;
-      Blockly.clipboard.paste(copyData, workspace);
+      Blockly.clipboard.paste(copyData, ws);
       return true;
     },
-  });
+  );
 
   // Delete key is safe to bind here — Del doesn't conflict with text editing
   // (users use Backspace for that). Backspace is intentionally excluded.
-  shortcutRegistry.register({
-    name: 'delete_from_skippable_field',
-    allowCollision: true,
-    keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.DELETE)],
-    preconditionFn: (workspace) => {
-      const block = skippableFieldBlock();
-      return !workspace.isDragging() && !workspace.isReadOnly() &&
-             !!block && !block.isShadow?.() && block.isDeletable?.();
-    },
-    callback: (_workspace, event) => {
+  registerSkippableFieldShortcut(
+    'delete_from_skippable_field',
+    Blockly.utils.KeyCodes.DELETE,
+    (_ws, block) => !block.isShadow?.() && !!block.isDeletable?.(),
+    (_ws, event, block) => {
       event.preventDefault();
-      const block = skippableFieldBlock();
-      if (!block || block.isShadow?.() || !block.isDeletable?.()) return false;
       block.checkAndDelete();
       return true;
     },
-  });
+  );
 }
 
 export function createBlocklyWorkspace() {
