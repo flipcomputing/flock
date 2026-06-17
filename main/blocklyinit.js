@@ -2747,7 +2747,21 @@ export function createBlocklyWorkspace() {
       '0 0 640 512'
     );
 
-    blockToolbar.append(duplicateBtn, detachBtn, deleteBtn);
+    const commentBtn = document.createElement('button');
+    commentBtn.type = 'button';
+    commentBtn.className = 'fc-block-toolbar-btn';
+    commentBtn.setAttribute('aria-label', 'Add comment');
+    const commentAddSvg = mkFaSvg(
+      '<path d="M256 448c141.4 0 256-93.1 256-208S397.4 32 256 32S0 125.1 0 240c0 49.6 21.4 95 57 130.7C44.5 421.1 2.7 466 2.2 466.5c-2.2 2.4-2.8 5.7-1.5 8.7S4.8 480 8 480c66.3 0 116-31.8 140.6-51.4C169.2 433.6 212.3 448 256 448z"/>',
+      '0 0 512 512'
+    );
+    const commentDeleteSvg = mkFaSvg(
+      '<path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L512.9 376.7C552.2 340.2 576 292.3 576 240C576 125.1 461.4 32 320 32c-67.7 0-129.3 21.4-175.1 56.3L38.8 5.1zm385.2 425L82.9 161.3C70.7 185.6 64 212.2 64 240c0 45.1 17.7 86.8 47.7 120.9c-1.9 24.5-11.4 46.3-21.4 62.9c-5.5 9.2-11.1 16.6-15.2 21.6c-2.1 2.5-3.7 4.4-4.9 5.7c-.6 .6-1 1.1-1.3 1.4l-.3 .3c0 0 0 0 0 0c0 0 0 0 0 0s0 0 0 0s0 0 0 0c-4.6 4.6-5.9 11.4-3.4 17.4c2.5 6 8.3 9.9 14.8 9.9c28.7 0 57.6-8.9 81.6-19.3c22.9-10 42.4-21.9 54.3-30.6c31.8 11.5 67 17.9 104.1 17.9c37 0 72.3-6.4 104.1-17.9z"/>',
+      '0 0 640 512'
+    );
+    commentBtn.innerHTML = commentAddSvg;
+
+    blockToolbar.append(duplicateBtn, detachBtn, commentBtn, deleteBtn);
 
     let toolbarBlock = null;
     let toolbarShowTimer = null;
@@ -2769,6 +2783,9 @@ export function createBlocklyWorkspace() {
     function showBlockToolbar(block) {
       toolbarBlock = block;
       detachBtn.disabled = !isDetachable(block);
+      const hasComment = block.getCommentText() !== null;
+      commentBtn.setAttribute('aria-label', hasComment ? 'Delete comment' : 'Add comment');
+      commentBtn.innerHTML = hasComment ? commentDeleteSvg : commentAddSvg;
       positionBlockToolbar();
       blockToolbar.classList.add('visible');
     }
@@ -2830,6 +2847,21 @@ export function createBlocklyWorkspace() {
       Blockly.Events.setGroup('toolbar_detach');
       block.unplug(healStack);
       Blockly.Events.setGroup(false);
+    });
+
+    commentBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!toolbarBlock) return;
+      const block = toolbarBlock;
+      if (block.getCommentText() !== null) {
+        block.setCommentText(null);
+      } else {
+        block.setCommentText('');
+        const icon = block.getIcons?.().find(i => typeof i.setBubbleVisible === 'function');
+        icon?.setBubbleVisible(true);
+      }
+      hideBlockToolbar();
     });
 
     deleteBtn.addEventListener('pointerdown', (e) => {
