@@ -1312,4 +1312,5 @@ export default {
   KEYBOARD_NAV_UNCONSTRAINED_MOVE_HINT: "Segure %1 e use as teclas de seta para mover livremente, depois %2 para aceitar", // machine
   KEYBOARD_NAV_COPIED_HINT: "Copiado. Pressione %1 para colar.", // machine
   KEYBOARD_NAV_CUT_HINT: "Recortado. Pressione %1 para colar.", // machine
+  DELETE_UNDO_HINT: "Use o botão desfazer para restaurar os blocos excluídos.", // machine
 };

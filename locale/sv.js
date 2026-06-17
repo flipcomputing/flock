@@ -1302,4 +1302,5 @@ export default {
   KEYBOARD_NAV_UNCONSTRAINED_MOVE_HINT: "Håll inne %1 och använd piltangenterna för att flytta fritt, sedan %2 för att acceptera", // machine
   KEYBOARD_NAV_COPIED_HINT: "Kopierat. Tryck %1 för att klistra in.", // machine
   KEYBOARD_NAV_CUT_HINT: "Klippt ut. Tryck %1 för att klistra in.", // machine
+  DELETE_UNDO_HINT: "Använd ångra-knappen för att återställa borttagna block.", // machine
 };

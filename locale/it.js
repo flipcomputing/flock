@@ -1315,4 +1315,5 @@ export default {
   KEYBOARD_NAV_UNCONSTRAINED_MOVE_HINT: "Tieni premuto %1 e usa i tasti freccia per spostarti liberamente, poi %2 per accettare", // machine
   KEYBOARD_NAV_COPIED_HINT: "Copiato. Premi %1 per incollare.", // machine
   KEYBOARD_NAV_CUT_HINT: "Tagliato. Premi %1 per incollare.", // machine
+  DELETE_UNDO_HINT: "Usa il pulsante Annulla per ripristinare i blocchi eliminati.", // machine
 };

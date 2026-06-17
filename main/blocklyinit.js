@@ -2852,7 +2852,15 @@ export function createBlocklyWorkspace() {
       if (count > 1) {
         const msg = (Blockly.Msg['DELETE_ALL_BLOCKS'] || 'Delete all %1 blocks?').replace('%1', count);
         Blockly.dialog.confirm(msg, (ok) => {
-          if (ok) { hideBlockToolbar(); block.checkAndDelete(); }
+          if (!ok) return;
+          hideBlockToolbar();
+          block.checkAndDelete();
+          Blockly.Toast.show(workspace, {
+            message: translate('DELETE_UNDO_HINT'),
+            id: 'delete-undo-tip',
+            oncePerSession: true,
+            duration: 8,
+          });
         });
       } else {
         hideBlockToolbar();

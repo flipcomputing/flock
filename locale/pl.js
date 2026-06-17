@@ -1320,4 +1320,5 @@ export default {
   KEYBOARD_NAV_UNCONSTRAINED_MOVE_HINT: "Przytrzymaj %1 i użyj klawiszy strzałek do swobodnego przesuwania, następnie %2 aby zaakceptować", // machine
   KEYBOARD_NAV_COPIED_HINT: "Skopiowano. Naciśnij %1, aby wkleić.", // machine
   KEYBOARD_NAV_CUT_HINT: "Wycięto. Naciśnij %1, aby wkleić.", // machine
+  DELETE_UNDO_HINT: "Użyj przycisku Cofnij, aby przywrócić usunięte bloki.", // machine
 };

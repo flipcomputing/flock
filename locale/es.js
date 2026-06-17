@@ -1336,4 +1336,5 @@ export default {
   KEYBOARD_NAV_UNCONSTRAINED_MOVE_HINT: "Mantén %1 y usa las teclas de flecha para mover libremente, luego %2 para aceptar", // machine
   KEYBOARD_NAV_COPIED_HINT: "Copiado. Presiona %1 para pegar.", // machine
   KEYBOARD_NAV_CUT_HINT: "Cortado. Presiona %1 para pegar.", // machine
+  DELETE_UNDO_HINT: "Usa el botón deshacer para restaurar los bloques eliminados.", // machine
 };

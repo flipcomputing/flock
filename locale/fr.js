@@ -1325,4 +1325,5 @@ export default {
   KEYBOARD_NAV_UNCONSTRAINED_MOVE_HINT: "Maintenez %1 et utilisez les touches fléchées pour vous déplacer librement, puis %2 pour accepter", // machine
   KEYBOARD_NAV_COPIED_HINT: "Copié. Appuyez sur %1 pour coller.", // machine
   KEYBOARD_NAV_CUT_HINT: "Coupé. Appuyez sur %1 pour coller.", // machine
+  DELETE_UNDO_HINT: "Utilisez le bouton Annuler pour restaurer les blocs supprimés.", // machine
 };
