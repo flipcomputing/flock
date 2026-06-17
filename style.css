@@ -1985,6 +1985,10 @@ svg.blocklyTrashcanFlyout {
 }
 
 
+.fc-block-toolbar-btn[disabled] {
+  opacity: 0.3;
+}
+
 .fc-block-toolbar-btn--delete {
   color: #c0392b;
 }
