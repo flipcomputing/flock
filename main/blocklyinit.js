@@ -2336,12 +2336,13 @@ export function createBlocklyWorkspace() {
   })();
 
   // Add separators to the block context menu to group related items.
-  // Weights: clipboard(1-3) | 5 | block-ops(9-14) | 18 | delete(20) | 50 | export(100-200) | 500 | help(999)
+  // Weights: clipboard(1-3) | 5 | block-ops(9-10) | 10.5 | comment(11-14) | 18 | delete(20) | 50 | export(100-200) | 500 | help(999)
   (function registerBlockContextMenuSeparators() {
     const registry = Blockly.ContextMenuRegistry.registry;
     const BLOCK = Blockly.ContextMenuRegistry.ScopeType.BLOCK;
     const separators = [
       { id: 'flock_sep_after_clipboard', weight: 5 },
+      { id: 'flock_sep_before_comment', weight: 10.5 },
       { id: 'flock_sep_before_delete', weight: 18 },
       { id: 'flock_sep_before_export', weight: 50 },
       { id: 'flock_sep_before_help', weight: 500 },
