@@ -152,7 +152,7 @@ export default {
   glide_to_axis: 'scivola %1 %2 %3 in %4 secondi\n%5 ritorna? %6 ripeti? %7 %8',
   rotate_anim: 'ruota %1 a x %2 y %3 z %4 in %5 ms\n%6 inverti? %7 ripeti? %8  %9',
   rotate_anim_seconds: 'ruota %1 a x %2 y %3 z %4 in %5 secondi\n%6 inverti? %7 ripeti? %8  %9',
-  rotate_to_object: 'rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8',
+  rotate_to_object: 'ruota %1 %2 %3 in %4 secondi\n%5 inverti? %6 ripeti? %7 %8',
   animate_property: 'anima %1 %2 a %3 in %4 ms inverti? %5 ripeti? %6 %7',
   colour_keyframe: 'a %1 colore: %2',
   number_keyframe: 'a: %1 valore: %2',
@@ -970,7 +970,7 @@ export default {
   // HTML translations
   loading_ui: 'Caricamento di Flock XR...',
   loading_success_ui: 'Flock XR caricato con successo',
-  canvas_accessible_name_ui: '3D scene',
+  canvas_accessible_name_ui: 'Scena 3D',
   loading_title_ui: 'Caricamento di Flock XR',
   import_project_file_ui: 'Importa file di progetto',
 
