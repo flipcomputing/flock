@@ -2847,8 +2847,21 @@ export function createBlocklyWorkspace() {
       const svgRoot = toolbarBlock.getSvgRoot?.();
       if (!svgRoot) return;
       const rect = svgRoot.getBoundingClientRect();
-      blockToolbar.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
+      const blockCenterX = Math.round(rect.left + rect.width / 2);
+      blockToolbar.style.left = `${blockCenterX}px`;
       blockToolbar.style.top = `${Math.round(rect.top)}px`;
+      blockToolbar.style.removeProperty('--caret-shift');
+
+      // Clamp to viewport; shift caret opposite so it still points at the block
+      const margin = 8;
+      const tbRect = blockToolbar.getBoundingClientRect();
+      let adj = 0;
+      if (tbRect.left < margin) adj = margin - tbRect.left;
+      else if (tbRect.right > window.innerWidth - margin) adj = window.innerWidth - margin - tbRect.right;
+      if (adj !== 0) {
+        blockToolbar.style.left = `${blockCenterX + adj}px`;
+        blockToolbar.style.setProperty('--caret-shift', `${-adj}px`);
+      }
     }
 
     function showBlockToolbar(block) {

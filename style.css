@@ -2174,7 +2174,7 @@ svg.blocklyTrashcanFlyout {
   content: '';
   position: absolute;
   bottom: -7px;
-  left: 50%;
+  left: calc(50% + var(--caret-shift, 0px));
   transform: translateX(-50%);
   border: 7px solid transparent;
   border-top-color: var(--color-border, #ddd);
@@ -2185,7 +2185,7 @@ svg.blocklyTrashcanFlyout {
   content: '';
   position: absolute;
   bottom: -5px;
-  left: 50%;
+  left: calc(50% + var(--caret-shift, 0px));
   transform: translateX(-50%);
   border: 5px solid transparent;
   border-top-color: var(--color-menu, #f9f9f9);
