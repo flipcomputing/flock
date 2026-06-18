@@ -35,6 +35,7 @@ import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineTextBlocks } from '../blocks/text.js';
 import { defineGenerators } from '../generators/generators.js';
 import { registerCustomCommentIcon } from './customCommentIcon.js';
+import { getMeshFromBlock } from '../ui/blockmesh.js';
 import { toolbox as toolboxDef } from '../toolbox.js';
 
 // Blockly v13 moved variable methods off the workspace onto VariableMap/Variables.
@@ -2260,6 +2261,58 @@ export function createBlocklyWorkspace() {
     });
   })();
 
+  // Add a context menu item to focus the canvas camera on a block's mesh.
+  (function registerViewInCanvasContextMenuItem() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const id = 'viewBlockInCanvas';
+    if (registry.getItem && registry.getItem(id)) return;
+
+    function renderShortcut(label, shortcut) {
+      const wrapper = document.createElement('span');
+      wrapper.style.cssText =
+        'display:flex;align-items:center;justify-content:space-between;gap:1.5em;width:100%';
+      const labelEl = document.createElement('span');
+      labelEl.textContent = label;
+      const shortcutEl = document.createElement('span');
+      shortcutEl.textContent = shortcut;
+      shortcutEl.style.color = 'var(--blockly-text-disabled, #aaa)';
+      wrapper.append(labelEl, shortcutEl);
+      return wrapper;
+    }
+
+    registry.register({
+      id,
+      weight: 8,
+      displayText: () => {
+        const text = translate('view_in_canvas_option');
+        const label = text === 'view_in_canvas_option' ? 'View in canvas' : text;
+        return renderShortcut(label, 'V');
+      },
+      preconditionFn: (scope) => {
+        const block = scope.block;
+        if (!block || block.isInFlyout) return 'hidden';
+        try {
+          const mesh = getMeshFromBlock(block);
+          return mesh && mesh.name !== 'ground' ? 'enabled' : 'hidden';
+        } catch {
+          return 'hidden';
+        }
+      },
+      callback: (scope) => {
+        const block = scope.block;
+        if (!block) return;
+        Promise.all([import('./view.js'), import('../ui/gizmos.js')]).then(
+          ([{ showCanvasView }, { viewMeshWithCamera }]) => {
+            showCanvasView();
+            window.currentBlock = block;
+            viewMeshWithCamera(block);
+          }
+        );
+      },
+      scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+    });
+  })();
+
   // Reorder block context menu items for better grouping.
   // Cut/copy/paste are registered at weights 1/2/3; push everything else above that.
   (function adjustBlockContextMenuWeights() {
@@ -2268,10 +2321,11 @@ export function createBlocklyWorkspace() {
     const weights = {
       blockDuplicate: 9,
       detachBlockWithShortcut: 10,
-      blockComment: 11,
-      blockInline: 12,
-      blockCollapseExpand: 13,
-      blockDisable: 14,
+      viewBlockInCanvas: 10.5,
+      blockComment: 12,
+      blockInline: 13,
+      blockCollapseExpand: 14,
+      blockDisable: 15,
       blockDelete: 20,
       blockHelp: 999,
     };
@@ -2769,7 +2823,16 @@ export function createBlocklyWorkspace() {
     );
     commentBtn.innerHTML = commentAddSvg;
 
-    blockToolbar.append(duplicateBtn, detachBtn, commentBtn, deleteBtn);
+    const viewBtn = document.createElement('button');
+    viewBtn.type = 'button';
+    viewBtn.className = 'fc-block-toolbar-btn';
+    viewBtn.setAttribute('aria-label', 'View in canvas');
+    viewBtn.innerHTML = mkFaSvg(
+      '<path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"/>',
+      '0 0 576 512'
+    );
+
+    blockToolbar.append(duplicateBtn, detachBtn, commentBtn, viewBtn, deleteBtn);
 
     let toolbarBlock = null;
     let toolbarShowTimer = null;
@@ -2784,16 +2847,36 @@ export function createBlocklyWorkspace() {
       const svgRoot = toolbarBlock.getSvgRoot?.();
       if (!svgRoot) return;
       const rect = svgRoot.getBoundingClientRect();
-      blockToolbar.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
+      const blockCenterX = Math.round(rect.left + rect.width / 2);
+      blockToolbar.style.left = `${blockCenterX}px`;
       blockToolbar.style.top = `${Math.round(rect.top)}px`;
+      blockToolbar.style.removeProperty('--caret-shift');
+
+      // Clamp to viewport; shift caret opposite so it still points at the block
+      const margin = 8;
+      const tbRect = blockToolbar.getBoundingClientRect();
+      let adj = 0;
+      if (tbRect.left < margin) adj = margin - tbRect.left;
+      else if (tbRect.right > window.innerWidth - margin) adj = window.innerWidth - margin - tbRect.right;
+      if (adj !== 0) {
+        blockToolbar.style.left = `${blockCenterX + adj}px`;
+        blockToolbar.style.setProperty('--caret-shift', `${-adj}px`);
+      }
     }
 
     function showBlockToolbar(block) {
       toolbarBlock = block;
-      detachBtn.disabled = !isDetachable(block);
+      detachBtn.style.display = isDetachable(block) ? '' : 'none';
       const hasComment = block.getCommentText() !== null;
       commentBtn.setAttribute('aria-label', hasComment ? 'Delete comment' : 'Add comment');
       commentBtn.innerHTML = hasComment ? commentDeleteSvg : commentAddSvg;
+      let mesh = null;
+      try {
+        mesh = getMeshFromBlock(block);
+      } catch {
+        /* scene not ready */
+      }
+      viewBtn.style.display = (!mesh || mesh.name === 'ground') ? 'none' : '';
       positionBlockToolbar();
       blockToolbar.classList.add('visible');
     }
@@ -2806,7 +2889,7 @@ export function createBlocklyWorkspace() {
     }
 
     const isToolbarBlock = (block) =>
-      block && !block.isInFlyout && !block.isShadow() && !block.outputConnection;
+      block && !block.isInFlyout && !block.isShadow();
 
     workspace.addChangeListener((e) => {
       if (e.type === Blockly.Events.SELECTED) {
@@ -2870,6 +2953,21 @@ export function createBlocklyWorkspace() {
         icon?.setBubbleVisible(true);
       }
       hideBlockToolbar();
+    });
+
+    viewBtn.addEventListener('pointerdown', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!toolbarBlock || viewBtn.style.display === 'none') return;
+      const block = toolbarBlock;
+      hideBlockToolbar();
+      const [{ showCanvasView }, { viewMeshWithCamera }] = await Promise.all([
+        import('./view.js'),
+        import('../ui/gizmos.js'),
+      ]);
+      showCanvasView();
+      window.currentBlock = block;
+      viewMeshWithCamera(block);
     });
 
     deleteBtn.addEventListener('pointerdown', (e) => {

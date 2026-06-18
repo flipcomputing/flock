@@ -134,7 +134,7 @@ function registerBindings() {
   };
   // Focus on mesh with V or F key
   KeyboardDispatcher.on('GIZMO', 'KeyF', noMod(focusCameraOnMesh));
-  KeyboardDispatcher.on('GIZMO', 'KeyV', noMod(viewMeshWithCamera));
+  KeyboardDispatcher.on('GIZMO', 'KeyV', noMod(() => viewMeshWithCamera()));
   // Delete selected mesh with Del key
   KeyboardDispatcher.on('GIZMO', 'Delete', (e) => {
     if (!gizmoManager?.attachedMesh) return;
@@ -395,8 +395,8 @@ function deleteBlockWithUndo(blockId) {
   }
 }
 
-function focusCameraOnMesh() {
-  let mesh = gizmoManager.attachedMesh;
+function focusCameraOnMesh(overrideMesh) {
+  let mesh = overrideMesh ?? gizmoManager.attachedMesh;
   if (mesh && mesh.name === 'ground') mesh = null;
   if (!mesh && window.currentBlock) {
     mesh = getMeshFromBlock(window.currentBlock);
@@ -452,19 +452,24 @@ function applyMeshSelection(pickedMesh, pickedPoint) {
   }
 }
 
-function viewMeshWithCamera() {
-  let mesh = gizmoManager.attachedMesh;
-  if (mesh && mesh.name === 'ground') mesh = null;
-
-  if (!mesh && window.currentBlock) {
-    mesh = getMeshFromBlock(window.currentBlock);
-    if (mesh && mesh.name === 'ground') mesh = null;
+export function viewMeshWithCamera(block) {
+  let mesh;
+  if (block) {
+    mesh = getMeshFromBlock(block);
+    if (mesh?.name === 'ground') mesh = null;
+  } else {
+    mesh = gizmoManager.attachedMesh;
+    if (mesh?.name === 'ground') mesh = null;
+    if (!mesh && window.currentBlock) {
+      mesh = getMeshFromBlock(window.currentBlock);
+      if (mesh?.name === 'ground') mesh = null;
+    }
   }
 
   const camera = flock.scene.activeCamera;
 
   if (!camera?.metadata?.following) {
-    if (mesh) focusCameraOnMesh();
+    if (mesh) focusCameraOnMesh(mesh);
     return;
   }
 
