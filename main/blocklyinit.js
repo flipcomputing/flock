@@ -2866,7 +2866,7 @@ export function createBlocklyWorkspace() {
 
     function showBlockToolbar(block) {
       toolbarBlock = block;
-      detachBtn.disabled = !isDetachable(block);
+      detachBtn.style.display = isDetachable(block) ? '' : 'none';
       const hasComment = block.getCommentText() !== null;
       commentBtn.setAttribute('aria-label', hasComment ? 'Delete comment' : 'Add comment');
       commentBtn.innerHTML = hasComment ? commentDeleteSvg : commentAddSvg;
