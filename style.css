@@ -108,6 +108,7 @@
   --color-dropdown-bg: #333333;
   --color-dropdown-hover: #555555;
 
+  --color-menu: var(--color-dropdown-bg);
   --color-menu-hover: var(--color-dropdown-hover);
   --color-menu-item-hover: #444444;
 
@@ -172,6 +173,7 @@
   --color-dropdown-bg: #333333;
   --color-dropdown-hover: #555555;
 
+  --color-menu: var(--color-dropdown-bg);
   --color-menu-hover: var(--color-dropdown-hover);
   --color-menu-item-hover: #444444;
 
@@ -220,8 +222,8 @@
   --color-text-loading: #511d91;
 
   /* Border Colors */
-  --color-border: #ddd;
-  --color-border-light: #eee;
+  --color-border: #ffffff;
+  --color-border-light: #cccccc;
 
   /* Loading Screen Colors */
   --color-loading-bg: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -233,9 +235,9 @@
   --color-focus-ring: #511d91;
 
   /* Menu Colors */
-  --color-menu-hover: #f0f0f0;
+  --color-menu: var(--color-bg);
+  --color-menu-hover: #333333;
   --color-menu-item: #ffffff;
-  --color-menu: #f9f9f9;
   --color-button-bg: #f0f0f0;
 
   /* Shadow Colors */
@@ -267,6 +269,7 @@
   --color-button-primary: #f0f0f0;
   --color-button-scroll: rgba(224, 224, 224, 0.5);
   --color-text-on-primary: #f0f0f0;
+  --color-menu: var(--color-bg-alt);
   --color-menu-hover: #2a2a2a;
   --color-focus-ring: #e0e0e0;
   --color-outline-focus: #e0e0e0;
@@ -429,7 +432,7 @@ body {
 
 /* Purple strip behind the iOS status bar — only visible when there's a real inset (0 on desktop, no flash) */
 body::before {
-  content: "";
+  content: '';
   position: fixed;
   top: 0;
   left: 0;
@@ -528,7 +531,6 @@ button {
 #codePanel {
   position: relative;
 }
-
 
 #blocklyZoomControls {
   position: absolute;
@@ -2078,4 +2080,152 @@ kbd {
 
 svg.blocklyTrashcanFlyout {
   background: gray;
+}
+
+/* ---- Touch confirm dialog ---- */
+.fc-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg-overlay, rgba(0, 0, 0, 0.4));
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fc-confirm-dialog {
+  background: var(--color-menu, #f9f9f9);
+  border-radius: 16px;
+  padding: 24px 20px 16px;
+  max-width: min(340px, 90vw);
+  width: 100%;
+  box-shadow: 0 8px 32px var(--color-shadow-medium, rgba(0, 0, 0, 0.3));
+}
+
+.fc-confirm-message {
+  margin: 0 0 20px;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--color-text-primary, #000);
+  text-align: center;
+}
+
+.fc-confirm-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.fc-confirm-btn {
+  flex: 1;
+  min-height: 64px;
+  border: none;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.fc-confirm-btn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+}
+
+.fc-confirm-btn--cancel {
+  background: var(--color-button-bg, #e0e0e0);
+  color: var(--color-text-primary, #000);
+}
+
+.fc-confirm-btn--ok {
+  background: var(--color-button-primary, #004d4d);
+  color: var(--color-text-on-primary, #fff);
+}
+
+[data-theme='dark'] .fc-confirm-btn--ok,
+[data-theme='dark-contrast'] .fc-confirm-btn--ok,
+[data-theme='low-vision'] .fc-confirm-btn--ok,
+[data-theme='contrast'] .fc-confirm-btn--ok,
+[data-theme='contrast'] .fc-confirm-btn--cancel,
+[data-theme='contrast'] .fc-block-toolbar-btn {
+  color: #1a1a1a;
+}
+
+/* ---- Tablet floating block toolbar ---- */
+.fc-block-toolbar {
+  position: fixed;
+  display: flex;
+  gap: 2px;
+  background: var(--color-menu, #f9f9f9);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 10px;
+  padding: 5px;
+  box-shadow: 0 3px 12px var(--color-shadow-medium, rgba(0, 0, 0, 0.2));
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, calc(-100% - 10px));
+  transition: opacity 0.12s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.fc-block-toolbar::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: var(--color-border, #ddd);
+  border-bottom: 0;
+}
+
+.fc-block-toolbar::before {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--color-menu, #f9f9f9);
+  border-bottom: 0;
+  z-index: 1;
+}
+
+.fc-block-toolbar.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fc-block-toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 7px;
+  background: var(--color-button-bg, #f0f0f0);
+  color: var(--color-text-primary, #000);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.fc-block-toolbar-btn:active {
+  background: var(--color-button-bg-hover, #d0d0d0);
+}
+
+.fc-block-toolbar-btn[disabled] {
+  opacity: 0.3;
+}
+
+.fc-block-toolbar-btn--delete {
+  color: #c0392b;
+}
+
+[data-theme='dark'] .fc-block-toolbar-btn--delete,
+[data-theme='dark-contrast'] .fc-block-toolbar-btn--delete {
+  color: #e57373;
 }

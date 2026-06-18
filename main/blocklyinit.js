@@ -1432,28 +1432,28 @@ function installShadowNavigationPatch(ws) {
   // Right-arrow: if the target is a skippable block, land on its field instead
   // of the redundant block stop. From a skippable field, pass the field
   // explicitly so the traversal bubbles up to the next inline sibling.
-  nav.getInNode = function(node) {
+  nav.getInNode = function (node) {
     const field = getFocusedSkippableField();
     return skipBlock(field ? origIn(field) : origIn(node));
   };
 
   // Left-arrow: from a skippable block's field, go to the block's parent
   // (skip the block itself in both the shadow and standalone cases).
-  nav.getOutNode = function(node) {
+  nav.getOutNode = function (node) {
     const field = getFocusedSkippableField();
     if (field) return skipBlock(origOut(field.getSourceBlock()));
     return origOut(node);
   };
 
   // Down-arrow: navigate as if standing on the skippable block itself.
-  nav.getNextNode = function(node) {
+  nav.getNextNode = function (node) {
     const field = getFocusedSkippableField();
     if (field) return skipBlock(origNext(field.getSourceBlock()));
     return skipBlock(origNext(node));
   };
 
   // Up-arrow: same idea.
-  nav.getPreviousNode = function(node) {
+  nav.getPreviousNode = function (node) {
     const field = getFocusedSkippableField();
     if (field) return skipBlock(origPrev(field.getSourceBlock()));
     return skipBlock(origPrev(node));
@@ -1484,8 +1484,9 @@ function installShadowNavigationPatch(ws) {
       keyCodes: [shortcutRegistry.createSerializedKey(keyCode)],
       preconditionFn: (workspace) => {
         const block = skippableFieldBlock();
-        return !!block && !workspace.isDragging() && !workspace.isReadOnly() &&
-               canRun(workspace, block);
+        return (
+          !!block && !workspace.isDragging() && !workspace.isReadOnly() && canRun(workspace, block)
+        );
       },
       callback: (workspace, event) => {
         const block = skippableFieldBlock();
@@ -1501,7 +1502,7 @@ function installShadowNavigationPatch(ws) {
     (_ws, event, block) => {
       block.unplug(!(event instanceof KeyboardEvent && event.shiftKey));
       return true;
-    },
+    }
   );
 
   registerSkippableFieldShortcut(
@@ -1513,7 +1514,7 @@ function installShadowNavigationPatch(ws) {
       if (!copyData) return false;
       Blockly.clipboard.paste(copyData, ws);
       return true;
-    },
+    }
   );
 
   // Delete key is safe to bind here — Del doesn't conflict with text editing
@@ -1526,7 +1527,7 @@ function installShadowNavigationPatch(ws) {
       event.preventDefault();
       block.checkAndDelete();
       return true;
-    },
+    }
   );
 }
 
@@ -1686,7 +1687,7 @@ export function createBlocklyWorkspace() {
           suppressOpenUntil = Date.now() + 400;
           trashcan.closeFlyout();
         },
-        true,
+        true
       );
 
       workspace.addChangeListener((e) => {
@@ -2666,6 +2667,250 @@ export function createBlocklyWorkspace() {
     },
     { capture: true }
   );
+
+  // ---- Touch-friendly confirm dialog ----
+  if (navigator.maxTouchPoints > 0) {
+    Blockly.dialog.setConfirm((message, callback) => {
+      const overlay = document.createElement('div');
+      overlay.className = 'fc-confirm-overlay';
+
+      const dialog = document.createElement('div');
+      dialog.className = 'fc-confirm-dialog';
+      dialog.setAttribute('role', 'alertdialog');
+      dialog.setAttribute('aria-modal', 'true');
+
+      const msg = document.createElement('p');
+      msg.className = 'fc-confirm-message';
+      msg.textContent = message;
+
+      const btnRow = document.createElement('div');
+      btnRow.className = 'fc-confirm-buttons';
+
+      // Icons: Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com
+      // License: https://fontawesome.com/license/free  Copyright 2025 Fonticons, Inc.
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'fc-confirm-btn fc-confirm-btn--cancel';
+      cancelBtn.setAttribute('aria-label', translate('cancel') || 'Cancel');
+      cancelBtn.innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="24" height="24" fill="currentColor"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>';
+
+      const okBtn = document.createElement('button');
+      okBtn.type = 'button';
+      okBtn.className = 'fc-confirm-btn fc-confirm-btn--ok';
+      okBtn.setAttribute('aria-label', Blockly.Msg['DIALOG_OK'] || 'OK');
+      okBtn.innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="24" height="24" fill="currentColor"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>';
+
+      const close = (result) => {
+        overlay.remove();
+        callback(result);
+      };
+
+      cancelBtn.addEventListener('pointerdown', () => close(false));
+      okBtn.addEventListener('pointerdown', () => close(true));
+      overlay.addEventListener('pointerdown', (e) => {
+        if (e.target === overlay) close(false);
+      });
+
+      btnRow.append(cancelBtn, okBtn);
+      dialog.append(msg, btnRow);
+      overlay.append(dialog);
+      document.body.appendChild(overlay);
+    });
+  }
+
+  // ---- Tablet floating block toolbar ----
+  if (navigator.maxTouchPoints > 0) {
+    const blockToolbar = document.createElement('div');
+    blockToolbar.className = 'fc-block-toolbar';
+    blockToolbar.setAttribute('role', 'toolbar');
+    document.body.appendChild(blockToolbar);
+
+    const mkFaSvg = (path, vw = '0 0 448 512') =>
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vw}" width="20" height="20" fill="currentColor">${path}</svg>`;
+
+    const duplicateBtn = document.createElement('button');
+    duplicateBtn.type = 'button';
+    duplicateBtn.className = 'fc-block-toolbar-btn';
+    duplicateBtn.setAttribute('aria-label', translate('duplicate_button') || 'Duplicate');
+    duplicateBtn.innerHTML = mkFaSvg(
+      '<path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z"/>'
+    );
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'fc-block-toolbar-btn fc-block-toolbar-btn--delete';
+    deleteBtn.setAttribute('aria-label', 'Delete');
+    deleteBtn.innerHTML = mkFaSvg(
+      '<path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>'
+    );
+
+    const detachBtn = document.createElement('button');
+    detachBtn.type = 'button';
+    detachBtn.className = 'fc-block-toolbar-btn';
+    detachBtn.setAttribute('aria-label', translate('detach_block_option') || 'Detach');
+    detachBtn.innerHTML = mkFaSvg(
+      '<path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L489.3 358.2l90.5-90.5c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114l-96 96-31.9-25C430.9 239.6 420.1 175.1 377 132c-52.2-52.3-134.5-56.2-191.3-11.7L38.8 5.1zM239 162c30.1-14.9 67.7-9.9 92.8 15.3c20 20 27.5 48.3 21.7 74.5L239 162zM406.6 416.4L220.9 270c-2.1 39.8 12.2 80.1 42.2 110c38.9 38.9 94.4 51 143.6 36.3zm-290-228.5L60.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C74 372 74 321 105.5 289.5l61.8-61.8-50.6-39.9z"/>',
+      '0 0 640 512'
+    );
+
+    const commentBtn = document.createElement('button');
+    commentBtn.type = 'button';
+    commentBtn.className = 'fc-block-toolbar-btn';
+    commentBtn.setAttribute('aria-label', 'Add comment');
+    const commentAddSvg = mkFaSvg(
+      '<path d="M256 448c141.4 0 256-93.1 256-208S397.4 32 256 32S0 125.1 0 240c0 49.6 21.4 95 57 130.7C44.5 421.1 2.7 466 2.2 466.5c-2.2 2.4-2.8 5.7-1.5 8.7S4.8 480 8 480c66.3 0 116-31.8 140.6-51.4C169.2 433.6 212.3 448 256 448z"/>',
+      '0 0 512 512'
+    );
+    const commentDeleteSvg = mkFaSvg(
+      '<path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L512.9 376.7C552.2 340.2 576 292.3 576 240C576 125.1 461.4 32 320 32c-67.7 0-129.3 21.4-175.1 56.3L38.8 5.1zm385.2 425L82.9 161.3C70.7 185.6 64 212.2 64 240c0 45.1 17.7 86.8 47.7 120.9c-1.9 24.5-11.4 46.3-21.4 62.9c-5.5 9.2-11.1 16.6-15.2 21.6c-2.1 2.5-3.7 4.4-4.9 5.7c-.6 .6-1 1.1-1.3 1.4l-.3 .3c0 0 0 0 0 0c0 0 0 0 0 0s0 0 0 0s0 0 0 0c-4.6 4.6-5.9 11.4-3.4 17.4c2.5 6 8.3 9.9 14.8 9.9c28.7 0 57.6-8.9 81.6-19.3c22.9-10 42.4-21.9 54.3-30.6c31.8 11.5 67 17.9 104.1 17.9c37 0 72.3-6.4 104.1-17.9z"/>',
+      '0 0 640 512'
+    );
+    commentBtn.innerHTML = commentAddSvg;
+
+    blockToolbar.append(duplicateBtn, detachBtn, commentBtn, deleteBtn);
+
+    let toolbarBlock = null;
+    let toolbarShowTimer = null;
+
+    const isDetachable = (block) =>
+      !!block?.getParent() ||
+      !!block?.previousConnection?.targetConnection ||
+      !!block?.outputConnection?.targetConnection;
+
+    function positionBlockToolbar() {
+      if (!toolbarBlock) return;
+      const svgRoot = toolbarBlock.getSvgRoot?.();
+      if (!svgRoot) return;
+      const rect = svgRoot.getBoundingClientRect();
+      blockToolbar.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
+      blockToolbar.style.top = `${Math.round(rect.top)}px`;
+    }
+
+    function showBlockToolbar(block) {
+      toolbarBlock = block;
+      detachBtn.disabled = !isDetachable(block);
+      const hasComment = block.getCommentText() !== null;
+      commentBtn.setAttribute('aria-label', hasComment ? 'Delete comment' : 'Add comment');
+      commentBtn.innerHTML = hasComment ? commentDeleteSvg : commentAddSvg;
+      positionBlockToolbar();
+      blockToolbar.classList.add('visible');
+    }
+
+    function hideBlockToolbar() {
+      clearTimeout(toolbarShowTimer);
+      toolbarShowTimer = null;
+      toolbarBlock = null;
+      blockToolbar.classList.remove('visible');
+    }
+
+    const isToolbarBlock = (block) =>
+      block && !block.isInFlyout && !block.isShadow() && !block.outputConnection;
+
+    workspace.addChangeListener((e) => {
+      if (e.type === Blockly.Events.SELECTED) {
+        clearTimeout(toolbarShowTimer);
+        toolbarShowTimer = null;
+        if (e.newElementId) {
+          const block = workspace.getBlockById(e.newElementId);
+          if (isToolbarBlock(block)) {
+            toolbarShowTimer = setTimeout(() => showBlockToolbar(block), 400);
+          } else {
+            hideBlockToolbar();
+          }
+        } else {
+          hideBlockToolbar();
+        }
+      } else if (
+        (e.type === Blockly.Events.BLOCK_MOVE || e.type === Blockly.Events.VIEWPORT_CHANGE) &&
+        toolbarBlock
+      ) {
+        positionBlockToolbar();
+      } else if (e.type === Blockly.Events.BLOCK_DRAG && e.isStart) {
+        hideBlockToolbar();
+      }
+    });
+
+    duplicateBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!toolbarBlock) return;
+      const block = toolbarBlock;
+      Blockly.Events.setGroup('toolbar_duplicate');
+      const json = Blockly.serialization.blocks.save(block, { includeShadows: true });
+      delete json.next;
+      const copy = Blockly.serialization.blocks.append(json, workspace);
+      const orig = block.getRelativeToSurfaceXY();
+      copy.moveTo(new Blockly.utils.Coordinate(orig.x + 30, orig.y + 30));
+      Blockly.Events.setGroup(false);
+    });
+
+    detachBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!toolbarBlock || !isDetachable(toolbarBlock)) return;
+      const block = toolbarBlock;
+      const healStack = !block.outputConnection?.isConnected();
+      Blockly.Events.setGroup('toolbar_detach');
+      block.unplug(healStack);
+      Blockly.Events.setGroup(false);
+    });
+
+    commentBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!toolbarBlock) return;
+      const block = toolbarBlock;
+      if (block.getCommentText() !== null) {
+        block.setCommentText(null);
+      } else {
+        block.setCommentText('');
+        const icon = block.getIcons?.().find((i) => typeof i.setBubbleVisible === 'function');
+        icon?.setBubbleVisible(true);
+      }
+      hideBlockToolbar();
+    });
+
+    deleteBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!toolbarBlock) return;
+      const block = toolbarBlock;
+      // Count only blocks that will actually be deleted: the block + its input
+      // descendants, but NOT the top-level next chain (which gets healed, not deleted).
+      const countDeleted = (b, followNext) => {
+        if (!b || b.isShadow()) return 0;
+        let n = 1;
+        for (const input of b.inputList) {
+          n += countDeleted(input.connection?.targetBlock(), true);
+        }
+        if (followNext) n += countDeleted(b.nextConnection?.targetBlock(), true);
+        return n;
+      };
+      const count = countDeleted(block, false);
+      if (count > 1) {
+        const msg = (Blockly.Msg['DELETE_ALL_BLOCKS'] || 'Delete all %1 blocks?').replace(
+          '%1',
+          count
+        );
+        Blockly.dialog.confirm(msg, (ok) => {
+          if (!ok) return;
+          hideBlockToolbar();
+          block.checkAndDelete();
+          Blockly.Toast.show(workspace, {
+            message: translate('DELETE_UNDO_HINT'),
+            id: 'delete-undo-tip',
+            oncePerSession: true,
+            duration: 8,
+          });
+        });
+      } else {
+        hideBlockToolbar();
+        block.checkAndDelete();
+      }
+    });
+  }
 
   initializeTheme();
 

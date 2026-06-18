@@ -1169,6 +1169,12 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   stroke-width: 2px !important;
 }
 
+@media (pointer: coarse) {
+  .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
+    stroke-width: 16px !important;
+  }
+}
+
 /* Keep block comment editor constrained to its bubble */
 .blocklyCommentForeignObject > body.blocklyMinimalBody,
 .blocklyCommentForeignObject textarea.blocklyCommentText {
