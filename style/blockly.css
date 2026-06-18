@@ -56,18 +56,6 @@
   --color-toolbox-focus: #fc3;
 }
 
-[data-theme='dark-contrast'] .blocklyInsertionMarker path {
-  fill: grey !important;
-}
-
-[data-theme='low-vision'] .blocklyInsertionMarker path {
-  fill: #e0e0e0 !important;
-}
-
-[data-theme='contrast'] .blocklyInsertionMarker path {
-  fill: grey !important;
-}
-
 /* Only target text inputs with cursor: text */
 .blocklyEditableText[style*='cursor: text'] > rect {
   fill: var(--color-bg) !important;
@@ -494,6 +482,16 @@ body[data-theme='low-vision'] {
 .blocklyDropDownDiv .blocklyMenuItemContent,
 .blocklyWidgetDiv .blocklyMenuItemContent {
   color: var(--color-menu-item-text) !important;
+}
+
+/* Disabled menu items (e.g. Paste with an empty clipboard). Blockly's default
+   greying targets .blocklyMenuItemDisabled, but the !important colour rule above
+   keeps the content at full strength — so grey the content explicitly here. */
+.blocklyDropDownDiv .blocklyMenuItemDisabled .goog-menuitem-content,
+.blocklyWidgetDiv .blocklyMenuItemDisabled .goog-menuitem-content,
+.blocklyDropDownDiv .blocklyMenuItemDisabled .blocklyMenuItemContent,
+.blocklyWidgetDiv .blocklyMenuItemDisabled .blocklyMenuItemContent {
+  opacity: 0.45 !important;
 }
 
 /* Make blocklyFieldGridContainer the offsetParent for grid items so the
