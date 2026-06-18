@@ -2876,7 +2876,7 @@ export function createBlocklyWorkspace() {
     }
 
     const isToolbarBlock = (block) =>
-      block && !block.isInFlyout && !block.isShadow() && !block.outputConnection;
+      block && !block.isInFlyout && !block.isShadow();
 
     workspace.addChangeListener((e) => {
       if (e.type === Blockly.Events.SELECTED) {
