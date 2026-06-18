@@ -2862,7 +2862,7 @@ export function createBlocklyWorkspace() {
       } catch {
         /* scene not ready */
       }
-      viewBtn.disabled = !mesh || mesh.name === 'ground';
+      viewBtn.style.display = (!mesh || mesh.name === 'ground') ? 'none' : '';
       positionBlockToolbar();
       blockToolbar.classList.add('visible');
     }
@@ -2944,7 +2944,7 @@ export function createBlocklyWorkspace() {
     viewBtn.addEventListener('pointerdown', async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (!toolbarBlock || viewBtn.disabled) return;
+      if (!toolbarBlock || viewBtn.style.display === 'none') return;
       const block = toolbarBlock;
       hideBlockToolbar();
       showCanvasView();
