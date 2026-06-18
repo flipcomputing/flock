@@ -74,9 +74,11 @@ export function restoreBlockFocus(workspace, blockId) {
   const block = workspace.getBlockById(blockId);
   if (!block) return;
 
-  ensureAddMenuSelectionCleanup(workspace);
-  clearAddMenuHighlight(workspace, blockId);
-  trackBlockHighlight(workspace, blockId);
+  // On a view switch (canvas -> code) just bring the block back into view.
+  // Deliberately do NOT select or focus it: re-selecting armed the persistent
+  // getRestoredFocusableNode override, which hijacked focus on the next tap
+  // (first tap showed no toolbar) and left a stale selection ring on the old
+  // block. Leaving nothing selected means the next tap selects cleanly.
   scrollToBlockTopParentLeft(workspace, blockId);
 }
 
