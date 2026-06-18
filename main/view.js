@@ -337,7 +337,7 @@ export function showCanvasView() {
   const gizmoButtons = document.getElementById('gizmoButtons');
   const flockLink = document.getElementById('flocklink');
   if (!gizmoButtons || !flockLink) return;
-  gizmoButtons.style.display = 'block';
+  gizmoButtons.style.display = 'flex';
   flockLink.style.display = 'block';
 
   currentView = 'canvas';
@@ -541,7 +541,7 @@ export function togglePlayMode() {
     if (flock.scene) flock.scene.debugLayer.hide();
     blocklyArea.style.display = 'block';
     canvasArea.style.display = '';
-    gizmoButtons.style.display = 'block';
+    gizmoButtons.style.display = 'flex';
     bottomBar.style.display = '';
     flockLink.style.display = 'block';
     if (infoPanel) infoPanel.style.display = '';
@@ -601,7 +601,7 @@ export function toggleDesignMode() {
     canvasArea.style.display = '';
     canvasArea.style.flexDirection = 'row';
     canvasArea.style.width = '0';
-    gizmoButtons.style.display = 'block';
+    gizmoButtons.style.display = 'flex';
     flockLink.style.display = 'none';
     infoPanel.style.display = 'none';
     if (resizer) resizer.style.display = 'none';
@@ -718,6 +718,10 @@ class PanelResizer {
     this.startX = 0;
     this.startCanvasWidth = 0;
     this.startCodeWidth = 0;
+    // Floor for either panel; the canvas side is additionally clamped to the
+    // gizmo toolbar's natural width so its buttons never wrap onto a second row.
+    this.minPanelFloor = 300;
+    this.minCanvasWidth = this.minPanelFloor;
     this.touchActivationPointerId = null;
     this.touchActivationStartX = 0;
     this.touchActivationStartY = 0;
@@ -773,6 +777,9 @@ class PanelResizer {
 
     this.startCanvasWidth = canvasRect.width;
     this.startCodeWidth = codeRect.width;
+
+    // Cache the gizmo-based minimum once per drag (button set is stable mid-drag).
+    this.minCanvasWidth = this.getMinCanvasWidth();
 
     // Add visual feedback
     document.body.style.cursor = 'col-resize';
@@ -857,13 +864,11 @@ class PanelResizer {
 
     const mainRect = this.mainContent.getBoundingClientRect();
 
-    const minPanelWidth = 300;
-
     const newCanvasWidth = this.startCanvasWidth + deltaX;
     const newCodeWidth = this.startCodeWidth - deltaX;
 
-    // Ensure minimum widths
-    if (newCanvasWidth >= minPanelWidth && newCodeWidth >= minPanelWidth) {
+    // Ensure minimum widths (canvas side must keep the gizmo row on one line)
+    if (newCanvasWidth >= this.minCanvasWidth && newCodeWidth >= this.minPanelFloor) {
       const totalWidth = mainRect.width;
       const canvasFlexBasis = (newCanvasWidth / totalWidth) * 100;
       const codeFlexBasis = (newCodeWidth / totalWidth) * 100;
@@ -911,14 +916,14 @@ class PanelResizer {
     // Get current widths
     const currentCanvasWidth = this.canvasArea.offsetWidth;
     const currentCodeWidth = this.codePanel.offsetWidth;
-    const minPanelWidth = 300;
+    const minCanvasWidth = this.getMinCanvasWidth();
 
     // Calculate new widths
     const newCanvasWidth = currentCanvasWidth + deltaX;
     const newCodeWidth = currentCodeWidth - deltaX;
 
     // Check minimum width constraint
-    if (newCanvasWidth < minPanelWidth || newCodeWidth < minPanelWidth) {
+    if (newCanvasWidth < minCanvasWidth || newCodeWidth < this.minPanelFloor) {
       e.preventDefault();
       return; // Just return without changing anything
     }
@@ -931,6 +936,38 @@ class PanelResizer {
     this.triggerContentResize();
 
     e.preventDefault();
+  }
+
+  // Smallest canvas-panel width that still fits the gizmo toolbar on one line.
+  // Sums the toolbar's direct children (plus gaps and horizontal padding) so the
+  // result is the single-line row width regardless of current wrapping. Reading
+  // each child's own width avoids counting the absolutely-positioned shape-menu
+  // dropdown nested inside #shape-menu, which would otherwise inflate the min.
+  getMinCanvasWidth() {
+    const gizmo = document.getElementById('gizmoButtons');
+    if (!gizmo) return this.minPanelFloor;
+
+    const style = window.getComputedStyle(gizmo);
+    const gap = parseFloat(style.columnGap || style.gap) || 0;
+    const paddingX =
+      (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+
+    let total = paddingX;
+    let visibleChildren = 0;
+    for (const child of gizmo.children) {
+      const childStyle = window.getComputedStyle(child);
+      if (childStyle.display === 'none') continue;
+      // getBoundingClientRect excludes margins, so add them explicitly.
+      total +=
+        child.getBoundingClientRect().width +
+        (parseFloat(childStyle.marginLeft) || 0) +
+        (parseFloat(childStyle.marginRight) || 0);
+      visibleChildren += 1;
+    }
+    if (visibleChildren > 1) total += gap * (visibleChildren - 1);
+
+    // +1 guards against sub-pixel rounding tipping the last icon onto a new row.
+    return Math.max(this.minPanelFloor, Math.ceil(total) + 1);
   }
 
   triggerContentResize() {
