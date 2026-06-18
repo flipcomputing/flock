@@ -974,88 +974,99 @@ export default {
   Climb_rope_option: 'Trepar la cuerda', // human
 
   // HTML translations
-  loading_ui: 'Cargando Flock XR...', // human
-  loading_success_ui: 'Flock XR se cargó correctamente', // human
-  canvas_accessible_name_ui: '3D scene',
-  loading_title_ui: 'Cargando Flock XR', // human
-  import_project_file_ui: 'Importar archivo de proyecto', // human
+  loading_ui: "Cargando Flock XR...", // human
+  loading_success_ui: "Flock XR se cargó correctamente", // human
+  canvas_accessible_name_ui: "3D scene",
+  loading_title_ui: "Cargando Flock XR", // human
+  import_project_file_ui: "Importar archivo de proyecto", // human
 
-  demo_ui: 'Demostración', // human
-  new_ui: 'Nuevo', // human
-  starter_ui: '👋🏽 Inicial', // human
-  controller_starter_ui: '🎮 Inicial con Controlador', // human
-  snow_globe_ui: '❄️ Globo de Nieve', // human
-  forest_base_ui: '🌲 Base en el Bosque', // human
-  character_animation_ui: '🎥 Animación de Personaje', // human
-  cube_art_ui: '🎨 Arte Cubo', // human
-  physics_fun_ui: '👆🏾 Diversión Física', // human
-  collect_the_gems_ui: '💎 Recoger las Gemas', // human
-  water_map_ui: '💧 Mapa de Agua', // human
-  skittles_ui: '🎳 Bolos', // human
-  beetle_ui: '🎲 Escarabajo', // human
-  roominator_ui: '🛋️ Habitación', // human
-  ball_pit_ui: '🟠 Piscina de Pelotas', // human
-  ur_enough_ui: '💗 ¡Eres Suficiente!', // human
-  tallest_buildings_ui: '📊 Edificios Más Altos', // human
-  candy_dash_ui: '🎃 Carrera de Dulces', // human
-  flockenspiel_ui: '🎵 Flockenspiel', // human
-  pendant_ui: '📿 Colgante imprimible en 3D', // human
-  tent_lights_ui: '⛺ Carpa de Festival', // human
-  my_place_ui: '🏠 Mi Lugar', // human
-  microbit_monkey_ui: '🐵 Mono micro:bit', // human
-  tree_jump_ui: '🌳 Salto de árbol', // human
-  shape_push_ui: '🔶 Empujar forma', // human
-  alien_planet_ui: '👽 Planeta alienígena', // human
-  boat_trip_ui: '⛵ Viaje en barco', // human
-  character_designer_ui: '👚 Diseñador de personajes', // human
-  sit_down_ui: '🪑 Siéntate', // human
+  demo_ui: "Demostración", // human
+  new_ui: "Nuevo", // human
+  starter_ui: "👋🏽 Inicial", // human
+  controller_starter_ui: "🎮 Inicial con Controlador", // human
+  snow_globe_ui: "❄️ Globo de Nieve", // human
+  forest_base_ui: "🌲 Base en el Bosque", // human
+  character_animation_ui: "🎥 Animación de Personaje", // human
+  cube_art_ui: "🎨 Arte Cubo", // human
+  physics_fun_ui: "👆🏾 Diversión Física", // human
+  collect_the_gems_ui: "💎 Recoger las Gemas", // human
+  water_map_ui: "💧 Mapa de Agua", // human
+  skittles_ui: "🎳 Bolos", // human
+  beetle_ui: "🎲 Escarabajo", // human
+  roominator_ui: "🛋️ Habitación", // human
+  ball_pit_ui: "🟠 Piscina de Pelotas", // human
+  ur_enough_ui: "💗 ¡Eres Suficiente!", // human
+  tallest_buildings_ui: "📊 Edificios Más Altos", // human
+  candy_dash_ui: "🎃 Carrera de Dulces", // human
+  flockenspiel_ui: "🎵 Flockenspiel", // human
+  pendant_ui: "📿 Colgante imprimible en 3D", // human
+  tent_lights_ui: "⛺ Carpa de Festival", // human
+  my_place_ui: "🏠 Mi Lugar", // human
+  microbit_monkey_ui: "🐵 Mono micro:bit", // human
+  tree_jump_ui: "🌳 Salto de árbol", // human
+  shape_push_ui: "🔶 Empujar forma", // human
+  alien_planet_ui: "👽 Planeta alienígena", // human
+  boat_trip_ui: "⛵ Viaje en barco", // human
+  character_designer_ui: "👚 Diseñador de personajes", // human
+  sit_down_ui: "🪑 Siéntate", // human
 
-  main_menu_ui: 'Menú Principal', // human
-  menu_button_sr_label_ui: 'Menú', // human
-  project_submenu_ui: 'Proyecto', // human
-  project_new_ui: 'Nuevo', // human
-  project_open_ui: 'Abrir', // human
-  project_save_ui: 'Guardar', // human
-  language_submenu_ui: 'Idioma', // human
-  about_submenu_ui: 'Sobre nosotros', // human
-  hub_submenu_ui: 'Centro', // human
+  main_menu_ui: "Menú Principal", // human
+  menu_button_sr_label_ui: "Menú", // human
+  project_submenu_ui: "Proyecto", // human
+  project_new_ui: "Nuevo", // human
+  project_open_ui: "Abrir", // human
+  project_save_ui: "Guardar", // human
+  language_submenu_ui: "Idioma", // human
+  about_submenu_ui: "Sobre nosotros", // human
+  hub_submenu_ui: "Centro", // human
 
-  theme_submenu_ui: 'Tema', // human
-  light_theme_ui: 'Claro', // human
-  dark_theme_ui: 'Oscuro', // human
-  contrast_theme_ui: 'Contraste', // human
-  low_vision_theme_ui: 'Baja visión',
+  theme_submenu_ui: "Tema", // human
+  light_theme_ui: "Claro", // human
+  dark_theme_ui: "Oscuro", // human
+  contrast_theme_ui: "Contraste", // human
+  low_vision_theme_ui: "Baja visión",
 
-  run_code_button_ui: 'Ejecutar tu código', // human
-  stop_code_button_ui: 'Detener tu código', // human
-  open_button_ui: 'Abrir un proyecto desde un archivo en tu computadora', // human
-  open_file_input_label_ui: 'Selecciona el archivo de proyecto para abrir', // human
-  export_code_button_ui: 'Guardar este proyecto en un archivo en tu computadora.', // human
-  example_select_ui: 'Elige un proyecto de ejemplo para cargar', // human
+  run_code_button_ui: "Ejecutar tu código", // human
+  stop_code_button_ui: "Detener tu código", // human
+  open_button_ui: "Abrir un proyecto desde un archivo en tu computadora", // human
+  open_file_input_label_ui: "Selecciona el archivo de proyecto para abrir", // human
+  export_code_button_ui:
+    "Guardar este proyecto en un archivo en tu computadora.", // human
+  example_select_ui: "Elige un proyecto de ejemplo para cargar", // human
+  demo_heading_ui: "Demos", // ai
+  close_demos_ui: "Cerrar demos", // ai
+  examples_cat_start_ui: "Inicio", // ai
+  examples_cat_games_ui: "Juegos", // ai
+  examples_cat_physics_ui: "Física", // ai
+  examples_cat_worlds_ui: "Mundos", // ai
+  examples_cat_create_ui: "Creativo", // ai
+  examples_cat_xr_ui: "XR", // ai
 
-  toggle_design_ui: 'Diseña tu proyecto', // human
-  toggle_play_ui: 'Usa tu proyecto', // human
-  fullscreen_toggle_ui: 'Cambiar entre vista de pantalla completa y vista normal.', // human
+  toggle_design_ui: "Diseña tu proyecto", // human
+  toggle_play_ui: "Usa tu proyecto", // human
+  fullscreen_toggle_ui:
+    "Cambiar entre vista de pantalla completa y vista normal.", // human
 
-  show_shapes_button_ui: 'añadir formas y modelos', // human
-  color_picker_button_ui: 'Escoge color del objeto', // human
-  position_button_ui: 'Posicionar objeto', // human
-  rotation_button_ui: 'Rotar objeto', // human
-  scale_button_ui: 'Escalar tamaño de objeto', // human
-  select_button_ui: 'Seleccionar objeto', // human
-  duplicate_button_ui: 'Duplicar objeto seleccionado', // human
-  delete_button_ui: 'Eliminar objeto seleccionado', // human
-  camera_button_ui: 'Controles de cámara', // human
+  show_shapes_button_ui: "añadir formas y modelos", // human
+  color_picker_button_ui: "Escoge color del objeto", // human
+  position_button_ui: "Posicionar objeto", // human
+  rotation_button_ui: "Rotar objeto", // human
+  scale_button_ui: "Escalar tamaño de objeto", // human
+  select_button_ui: "Seleccionar objeto", // human
+  duplicate_button_ui: "Duplicar objeto seleccionado", // human
+  delete_button_ui: "Eliminar objeto seleccionado", // human
+  camera_button_ui: "Controles de cámara", // human
 
-  info_panel_link_ui: 'Visitar pagina web de Flock XR (se abre en una pestaña nueva)', // human
+  info_panel_link_ui:
+    "Visitar pagina web de Flock XR (se abre en una pestaña nueva)", // human
 
-  project_name_ui: 'Nombre del proyecto', // human
+  project_name_ui: "Nombre del proyecto", // human
 
-  about_heading_ui: 'Sobre Flock XR', // human
-  about_description_intro_ui: 'Flock XR es un ', // human
-  about_description_prototype_ui: 'prototipo', // human
-  about_description_made_by_ui: ' hecho por ', // human
-  about_description_company_ui: 'Flip Computing', // human
+  about_heading_ui: "Sobre Flock XR", // human
+  about_description_intro_ui: "Flock XR es un ", // human
+  about_description_prototype_ui: "prototipo", // human
+  about_description_made_by_ui: " hecho por ", // human
+  about_description_company_ui: "Flip Computing", // human
   about_description_disclaimer_ui:
     ' Estamos buscando mojoras, asi que Flock esta siempre cambiando. Si tienes sugerencias o puedes ayudarnos con el desarollo de flock, por favor contactanos.', // human
   about_run_intro_ui:

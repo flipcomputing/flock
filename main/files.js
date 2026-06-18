@@ -1027,37 +1027,31 @@ export async function openFile(workspace, executeCallback) {
   }
 }
 
-// Function to load example projects
-export function loadExample(workspace, executeCallback) {
+// Function to load example projects. `file` is the .flock path and `name` is
+// the (already localised) display name used for the project name field.
+export function loadExample(file, name, executeCallback = window.executeCode) {
+  if (!file) return;
+
   window.loadingCode = true;
 
-  const exampleSelect = document.getElementById("exampleSelect");
-  const exampleFile = exampleSelect.value;
   const projectNameElement = document.getElementById("projectName");
-
-  if (exampleFile) {
-    const selectedOption =
-      exampleSelect.options[exampleSelect.selectedIndex].text;
-    projectNameElement.value = selectedOption;
-
-    fetchProjectJson(exampleFile)
-      .then((json) => {
-        console.log("Loading:", selectedOption);
-        clearFileHandle();
-        loadWorkspaceAndExecute(json, workspace, executeCallback);
-      })
-      .catch((error) => {
-        console.error("Error loading example:", error);
-      });
+  if (projectNameElement && name) {
+    projectNameElement.value = name;
   }
 
-  exampleSelect.value = "";
+  fetchProjectJson(file)
+    .then((json) => {
+      console.log("Loading:", name || file);
+      clearFileHandle();
+      loadWorkspaceAndExecute(json, workspace, executeCallback);
+    })
+    .catch((error) => {
+      console.error("Error loading example:", error);
+      // Clear the loading flag so a failed load doesn't wedge later actions.
+      window.loadingCode = false;
+    });
 }
-
-export function loadExampleWrapper() {
-  loadExample(workspace, window.executeCode);
-}
-window.loadExample = loadExampleWrapper;
+window.loadExample = loadExample;
 
 export function newProject() {
   // Set project name

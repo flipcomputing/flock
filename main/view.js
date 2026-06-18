@@ -278,11 +278,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // document.body.style.zoom = dpr;  // This adjusts the zoom based on DPR
   }
 
-  // Additional adjustments for mobile UI in fullscreen mode
-  const examples = document.getElementById('exampleSelect');
-  if (examples) {
-    examples.style.width = '70px';
-  }
+  // The Demo button sizes to its label (which varies by language, e.g. the
+  // Spanish "Demostración"), so it isn't forced to a fixed width here.
   const projectName = document.getElementById('projectName');
   if (projectName) {
     //projectName.style.minWidth = "5px";

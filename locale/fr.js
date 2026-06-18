@@ -997,33 +997,42 @@ export default {
   sit_down_ui: '🪑 Assieds-toi',
 
   main_menu_ui: "Ouvrir le menu pour plus d'options",
-  menu_button_sr_label_ui: 'Menu',
-  project_submenu_ui: 'Projet',
-  project_new_ui: 'Nouveau',
-  project_open_ui: 'Ouvrir',
-  project_save_ui: 'Enregistrer',
-  language_submenu_ui: 'Langue',
-  about_submenu_ui: 'À propos',
-  hub_submenu_ui: 'Hub',
+  menu_button_sr_label_ui: "Menu",
+  project_submenu_ui: "Projet",
+  project_new_ui: "Nouveau",
+  project_open_ui: "Ouvrir",
+  project_save_ui: "Enregistrer",
+  language_submenu_ui: "Langue",
+  about_submenu_ui: "À propos",
+  hub_submenu_ui: "Hub",
 
-  theme_submenu_ui: 'Thème',
-  light_theme_ui: 'Clair',
-  dark_theme_ui: 'Sombre',
-  contrast_theme_ui: 'Contraste',
-  low_vision_theme_ui: 'Basse vision',
+  theme_submenu_ui: "Thème",
+  light_theme_ui: "Clair",
+  dark_theme_ui: "Sombre",
+  contrast_theme_ui: "Contraste",
+  low_vision_theme_ui: "Basse vision",
 
-  run_code_button_ui: 'Exécuter votre code',
-  stop_code_button_ui: 'Arrêter votre code',
-  open_button_ui: 'Ouvrir un projet depuis un fichier sur votre ordinateur',
-  open_file_input_label_ui: 'Sélectionnez le fichier projet à ouvrir',
-  export_code_button_ui: 'Enregistrer ce projet dans un fichier sur votre ordinateur.',
-  example_select_ui: 'Choisir un projet exemple à charger',
+  run_code_button_ui: "Exécuter votre code",
+  stop_code_button_ui: "Arrêter votre code",
+  open_button_ui: "Ouvrir un projet depuis un fichier sur votre ordinateur",
+  open_file_input_label_ui: "Sélectionnez le fichier projet à ouvrir",
+  export_code_button_ui:
+    "Enregistrer ce projet dans un fichier sur votre ordinateur.",
+  example_select_ui: "Choisir un projet exemple à charger",
+  demo_heading_ui: "Démos", // ai
+  close_demos_ui: "Fermer les démos", // ai
+  examples_cat_start_ui: "Démarrer", // ai
+  examples_cat_games_ui: "Jeux", // ai
+  examples_cat_physics_ui: "Physique", // ai
+  examples_cat_worlds_ui: "Mondes", // ai
+  examples_cat_create_ui: "Créatif", // ai
+  examples_cat_xr_ui: "XR", // ai
 
-  toggle_design_ui: 'Concevez votre projet',
-  toggle_play_ui: 'Utilisez votre projet',
-  fullscreen_toggle_ui: 'Basculer entre les vues plein écran et normale.',
+  toggle_design_ui: "Concevez votre projet",
+  toggle_play_ui: "Utilisez votre projet",
+  fullscreen_toggle_ui: "Basculer entre les vues plein écran et normale.",
 
-  show_shapes_button_ui: 'Ajouter des formes et des modèles',
+  show_shapes_button_ui: "Ajouter des formes et des modèles",
   color_picker_button_ui: "Changer la couleur de l'objet",
   position_button_ui: "Positionner l'objet",
   rotation_button_ui: "Faire pivoter l'objet",
