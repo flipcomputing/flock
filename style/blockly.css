@@ -496,6 +496,16 @@ body[data-theme='low-vision'] {
   color: var(--color-menu-item-text) !important;
 }
 
+/* Disabled menu items (e.g. Paste with an empty clipboard). Blockly's default
+   greying targets .blocklyMenuItemDisabled, but the !important colour rule above
+   keeps the content at full strength — so grey the content explicitly here. */
+.blocklyDropDownDiv .blocklyMenuItemDisabled .goog-menuitem-content,
+.blocklyWidgetDiv .blocklyMenuItemDisabled .goog-menuitem-content,
+.blocklyDropDownDiv .blocklyMenuItemDisabled .blocklyMenuItemContent,
+.blocklyWidgetDiv .blocklyMenuItemDisabled .blocklyMenuItemContent {
+  opacity: 0.45 !important;
+}
+
 /* Make blocklyFieldGridContainer the offsetParent for grid items so the
    keyboard-scroll logic in GridItem.focus() targets the right element. */
 .blocklyFieldGridContainer {

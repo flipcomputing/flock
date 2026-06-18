@@ -2422,6 +2422,7 @@ export function createBlocklyWorkspace() {
   (function registerClipboardContextMenuItems() {
     const registry = Blockly.ContextMenuRegistry.registry;
     const BLOCK = Blockly.ContextMenuRegistry.ScopeType.BLOCK;
+    const WORKSPACE = Blockly.ContextMenuRegistry.ScopeType.WORKSPACE;
 
     const notInFlyout = (scope) => (scope.block?.isInFlyout ? 'hidden' : 'enabled');
     const hasCopiedData = () => !!Blockly.clipboard?.getLastCopiedData?.();
@@ -2473,6 +2474,30 @@ export function createBlocklyWorkspace() {
       },
       scopeType: BLOCK,
     });
+
+    registry.register({
+      id: 'workspacePaste',
+      weight: 3,
+      displayText: () => Blockly.Msg['PASTE_SHORTCUT'] || 'Paste',
+      preconditionFn: () => (hasCopiedData() ? 'enabled' : 'disabled'),
+      callback: (scope) => {
+        const data = Blockly.clipboard?.getLastCopiedData?.();
+        if (!data) return;
+        const ws = scope?.workspace ?? mainWs;
+        if (!ws) return;
+        pasteAsChildOrHere(null, ws, data);
+      },
+      scopeType: WORKSPACE,
+    });
+
+    if (!registry.getItem?.('flock_ws_sep_after_paste')) {
+      registry.register({
+        id: 'flock_ws_sep_after_paste',
+        weight: 3.5,
+        separator: true,
+        scopeType: WORKSPACE,
+      });
+    }
   })();
 
   // Add separators to the block context menu to group related items.
@@ -2857,7 +2882,8 @@ export function createBlocklyWorkspace() {
       const tbRect = blockToolbar.getBoundingClientRect();
       let adj = 0;
       if (tbRect.left < margin) adj = margin - tbRect.left;
-      else if (tbRect.right > window.innerWidth - margin) adj = window.innerWidth - margin - tbRect.right;
+      else if (tbRect.right > window.innerWidth - margin)
+        adj = window.innerWidth - margin - tbRect.right;
       if (adj !== 0) {
         blockToolbar.style.left = `${blockCenterX + adj}px`;
         blockToolbar.style.setProperty('--caret-shift', `${-adj}px`);
@@ -2876,7 +2902,7 @@ export function createBlocklyWorkspace() {
       } catch {
         /* scene not ready */
       }
-      viewBtn.style.display = (!mesh || mesh.name === 'ground') ? 'none' : '';
+      viewBtn.style.display = !mesh || mesh.name === 'ground' ? 'none' : '';
       positionBlockToolbar();
       blockToolbar.classList.add('visible');
     }
@@ -2888,8 +2914,7 @@ export function createBlocklyWorkspace() {
       blockToolbar.classList.remove('visible');
     }
 
-    const isToolbarBlock = (block) =>
-      block && !block.isInFlyout && !block.isShadow();
+    const isToolbarBlock = (block) => block && !block.isInFlyout && !block.isShadow();
 
     workspace.addChangeListener((e) => {
       if (e.type === Blockly.Events.SELECTED) {
