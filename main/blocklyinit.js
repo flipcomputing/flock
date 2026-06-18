@@ -2262,6 +2262,56 @@ export function createBlocklyWorkspace() {
     });
   })();
 
+  // Add a context menu item to focus the canvas camera on a block's mesh.
+  (function registerViewInCanvasContextMenuItem() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const id = 'viewBlockInCanvas';
+    if (registry.getItem && registry.getItem(id)) return;
+
+    function renderShortcut(label, shortcut) {
+      const wrapper = document.createElement('span');
+      wrapper.style.cssText =
+        'display:flex;align-items:center;justify-content:space-between;gap:1.5em;width:100%';
+      const labelEl = document.createElement('span');
+      labelEl.textContent = label;
+      const shortcutEl = document.createElement('span');
+      shortcutEl.textContent = shortcut;
+      shortcutEl.style.color = 'var(--blockly-text-disabled, #aaa)';
+      wrapper.append(labelEl, shortcutEl);
+      return wrapper;
+    }
+
+    registry.register({
+      id,
+      weight: 8,
+      displayText: () => {
+        const text = translate('view_in_canvas_option');
+        const label = text === 'view_in_canvas_option' ? 'View in canvas' : text;
+        return renderShortcut(label, 'V');
+      },
+      preconditionFn: (scope) => {
+        const block = scope.block;
+        if (!block || block.isInFlyout) return 'hidden';
+        try {
+          const mesh = getMeshFromBlock(block);
+          return mesh && mesh.name !== 'ground' ? 'enabled' : 'hidden';
+        } catch {
+          return 'hidden';
+        }
+      },
+      callback: (scope) => {
+        const block = scope.block;
+        if (!block) return;
+        showCanvasView();
+        import('../ui/gizmos.js').then(({ viewMeshWithCamera }) => {
+          window.currentBlock = block;
+          viewMeshWithCamera(block);
+        });
+      },
+      scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+    });
+  })();
+
   // Reorder block context menu items for better grouping.
   // Cut/copy/paste are registered at weights 1/2/3; push everything else above that.
   (function adjustBlockContextMenuWeights() {
@@ -2270,10 +2320,11 @@ export function createBlocklyWorkspace() {
     const weights = {
       blockDuplicate: 9,
       detachBlockWithShortcut: 10,
-      blockComment: 11,
-      blockInline: 12,
-      blockCollapseExpand: 13,
-      blockDisable: 14,
+      viewBlockInCanvas: 10.5,
+      blockComment: 12,
+      blockInline: 13,
+      blockCollapseExpand: 14,
+      blockDisable: 15,
       blockDelete: 20,
       blockHelp: 999,
     };
@@ -2806,7 +2857,11 @@ export function createBlocklyWorkspace() {
       commentBtn.setAttribute('aria-label', hasComment ? 'Delete comment' : 'Add comment');
       commentBtn.innerHTML = hasComment ? commentDeleteSvg : commentAddSvg;
       let mesh = null;
-      try { mesh = getMeshFromBlock(block); } catch { /* scene not ready */ }
+      try {
+        mesh = getMeshFromBlock(block);
+      } catch {
+        /* scene not ready */
+      }
       viewBtn.disabled = !mesh || mesh.name === 'ground';
       positionBlockToolbar();
       blockToolbar.classList.add('visible');

@@ -134,7 +134,7 @@ function registerBindings() {
   };
   // Focus on mesh with V or F key
   KeyboardDispatcher.on('GIZMO', 'KeyF', noMod(focusCameraOnMesh));
-  KeyboardDispatcher.on('GIZMO', 'KeyV', noMod(viewMeshWithCamera));
+  KeyboardDispatcher.on('GIZMO', 'KeyV', noMod(() => viewMeshWithCamera()));
   // Delete selected mesh with Del key
   KeyboardDispatcher.on('GIZMO', 'Delete', (e) => {
     if (!gizmoManager?.attachedMesh) return;
