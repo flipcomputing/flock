@@ -36,7 +36,6 @@ import { defineTextBlocks } from '../blocks/text.js';
 import { defineGenerators } from '../generators/generators.js';
 import { registerCustomCommentIcon } from './customCommentIcon.js';
 import { getMeshFromBlock } from '../ui/blockmesh.js';
-import { showCanvasView } from './view.js';
 import { toolbox as toolboxDef } from '../toolbox.js';
 
 // Blockly v13 moved variable methods off the workspace onto VariableMap/Variables.
@@ -2302,11 +2301,13 @@ export function createBlocklyWorkspace() {
       callback: (scope) => {
         const block = scope.block;
         if (!block) return;
-        showCanvasView();
-        import('../ui/gizmos.js').then(({ viewMeshWithCamera }) => {
-          window.currentBlock = block;
-          viewMeshWithCamera(block);
-        });
+        Promise.all([import('./view.js'), import('../ui/gizmos.js')]).then(
+          ([{ showCanvasView }, { viewMeshWithCamera }]) => {
+            showCanvasView();
+            window.currentBlock = block;
+            viewMeshWithCamera(block);
+          }
+        );
       },
       scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
     });
@@ -2947,8 +2948,11 @@ export function createBlocklyWorkspace() {
       if (!toolbarBlock || viewBtn.style.display === 'none') return;
       const block = toolbarBlock;
       hideBlockToolbar();
+      const [{ showCanvasView }, { viewMeshWithCamera }] = await Promise.all([
+        import('./view.js'),
+        import('../ui/gizmos.js'),
+      ]);
       showCanvasView();
-      const { viewMeshWithCamera } = await import('../ui/gizmos.js');
       window.currentBlock = block;
       viewMeshWithCamera(block);
     });
