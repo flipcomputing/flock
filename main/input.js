@@ -79,7 +79,8 @@ export function setupInput() {
       const bottomBar = document.getElementById('bottomBar');
       const inNarrowMode = bottomBar && getComputedStyle(bottomBar).display !== 'none';
       const codePanel = document.getElementById('codePanel');
-      const inCodeMode = inNarrowMode && codePanel && getComputedStyle(codePanel).display !== 'none';
+      const inCodeMode =
+        inNarrowMode && codePanel && getComputedStyle(codePanel).display !== 'none';
       if (inNarrowMode && !inCodeMode) {
         ['#canvasToggleBtn', '#codeToggleBtn'].forEach((sel) =>
           pushUnique(document.querySelector(sel))
@@ -148,6 +149,30 @@ export function setupInput() {
       });
       document.querySelectorAll('textarea.blocklyCommentText').forEach(pushUnique);
 
+      // 6b) Trashcan + its flyout. The bin icon is ALWAYS a stop (Enter opens it when
+      // closed, closes it when open). When the flyout is open, add its contents JUST
+      // BEFORE the icon, so shift+tab off the icon drops into the code blocks and
+      // tabbing forward into this region lands on the blocks, then the icon.
+      // NOTE: intentionally unlike Blockly, which makes the icon the stop and only
+      // lets you Tab into the flyout afterwards. Don't "fix" this back toward Blockly.
+      const trashFlyout = Array.from(
+        document.querySelectorAll('svg.blocklyFlyout:not(.blocklyToolboxFlyout)')
+      ).find((svg) => {
+        const r = svg.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      });
+      if (trashFlyout) {
+        const ws = trashFlyout.querySelector('g.blocklyWorkspace') || trashFlyout;
+        if (!ws.hasAttribute('tabindex') || ws.tabIndex < 0) ws.setAttribute('tabindex', '0');
+        ws.setAttribute('role', 'group');
+        if (!ws.getAttribute('aria-label')) ws.setAttribute('aria-label', 'Trash contents');
+        pushUnique(ws);
+      }
+      const trashEl = document.querySelector('g.blocklyTrash');
+      if (trashEl) {
+        trashEl.setAttribute('tabindex', '0'); // focus manager may have set it to -1
+        pushUnique(trashEl);
+      }
       // 6c) Shortcuts panel (when visible), then undo/redo/zoom
 
       const shortcutsPanel = document.getElementById('shortcutsPanel');

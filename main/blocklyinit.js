@@ -1679,17 +1679,34 @@ export function createBlocklyWorkspace() {
         if (Date.now() < suppressOpenUntil) return;
         originalOpenFlyout();
       };
-      trashIcon.addEventListener(
-        'pointerdown',
-        (e) => {
-          if (!trashcan.contentsIsOpen()) return;
-          e.preventDefault();
-          e.stopPropagation();
-          suppressOpenUntil = Date.now() + 400;
+      // Move keyboard focus into the flyout the instant its blocks render. openFlyout()
+      // renders on a deferred timeout and fires TRASHCAN_OPEN before the blocks exist,
+      // so instead of polling, hook show() — the call that builds the blocks. Right
+      // after it, getTopBlocks() is populated.
+      const originalFlyoutShow = trashcanFlyout.show.bind(trashcanFlyout);
+      trashcanFlyout.show = function (contents) {
+        originalFlyoutShow(contents);
+        const fw = trashcanFlyout.getWorkspace?.();
+        const first = fw?.getTopBlocks?.(false)?.[0];
+        if (fw && first) {
+          Blockly.getFocusManager().focusTree(fw);
+          fw.getCursor?.()?.setCurNode?.(first);
+        }
+      };
+      const returnFocusToWorkspace = () => {
+        Blockly.getFocusManager?.()?.focusTree?.(workspace);
+      };
+      trashIcon.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (trashcan.contentsIsOpen()) {
           trashcan.closeFlyout();
-        },
-        true
-      );
+          returnFocusToWorkspace();
+        } else {
+          trashcan.performAction(); // gated open; no-op on an empty bin
+        }
+      });
 
       workspace.addChangeListener((e) => {
         // Dragging a block out of the trash restores it (BLOCK_CREATE); close the
