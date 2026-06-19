@@ -108,5 +108,50 @@ export function runXRExportTests(flock) {
         .filter((mesh) => shouldExportNode(mesh));
       expect(exportedDescendants.length).to.be.greaterThan(0);
     });
+
+    it("exports 3MF using Babylon serializer and downloads file", async function () {
+      const treeId = flock.createObject({
+        modelName: "tree.glb",
+        modelId: `tree.glb__3mf_export_${Date.now()}`,
+        position: { x: 1, y: 0, z: 0 },
+      });
+      const treeMesh = await waitForModel(flock, treeId);
+
+      const originalSerializer = flock.EXPORT.ThreeMfSerializer;
+      const originalSerializeToMemoryAsync = flock.EXPORT.ThreeMf.SerializeToMemoryAsync;
+      const originalDownload = flock.download;
+
+      let serializerInstance;
+      let serializeMeshes;
+      let downloadedFile = null;
+
+      flock.EXPORT.ThreeMfSerializer = function MockThreeMfSerializer() {
+        serializerInstance = this;
+      };
+      flock.EXPORT.ThreeMf.SerializeToMemoryAsync = async (serializer, ...meshes) => {
+        serializeMeshes = meshes;
+        expect(serializer).to.equal(serializerInstance);
+        return new Uint8Array([1, 2, 3]);
+      };
+      flock.download = (filename, data, mimeType) => {
+        downloadedFile = { filename, data, mimeType };
+      };
+
+      try {
+        await flock.exportMesh(treeId, "3MF");
+      } finally {
+        flock.EXPORT.ThreeMfSerializer = originalSerializer;
+        flock.EXPORT.ThreeMf.SerializeToMemoryAsync = originalSerializeToMemoryAsync;
+        flock.download = originalDownload;
+      }
+
+      expect(serializeMeshes).to.be.an("array");
+      expect(serializeMeshes.length).to.be.greaterThan(0);
+      expect(serializeMeshes[0]).to.equal(treeMesh);
+      expect(downloadedFile).to.not.equal(null);
+      expect(downloadedFile.filename).to.equal(`${treeMesh.name}.3mf`);
+      expect(downloadedFile.mimeType).to.equal("model/3mf");
+      expect(downloadedFile.data).to.be.instanceof(Uint8Array);
+    });
   });
 }

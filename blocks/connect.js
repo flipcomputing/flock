@@ -314,6 +314,7 @@ export function defineConnectBlocks() {
               ["STL", "STL"],
               ["OBJ", "OBJ"],
               ["GLB", "GLB"],
+              ["3MF", "3MF"],
             ],
           },
         ],

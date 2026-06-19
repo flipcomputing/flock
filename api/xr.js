@@ -1,4 +1,5 @@
 import { translate } from "../main/translation.js";
+import * as fflate from "fflate";
 
 let flock;
 
@@ -176,6 +177,27 @@ export const flockXR = {
           );
         } else if (format === "OBJ") {
           flock.EXPORT.OBJExport.OBJ(mesh);
+        } else if (format === "3MF") {
+          try {
+            if (!globalThis.fflate) {
+              globalThis.fflate = fflate;
+            }
+            const serializer = new flock.EXPORT.ThreeMfSerializer();
+            const data = await flock.EXPORT.ThreeMf.SerializeToMemoryAsync(
+              serializer,
+              ...meshList,
+            );
+            if (data?.length) {
+              flock.download(`${mesh.name}.3mf`, data, "model/3mf");
+            } else {
+              console.error(
+                "3MF export did not produce output data for mesh:",
+                mesh.name,
+              );
+            }
+          } catch (error) {
+            console.error("3MF export failed:", error);
+          }
         } else if (format === "GLB") {
           const ghostMat = new flock.BABYLON.PBRMaterial(
             "_tmpExportWrapperGhost",
