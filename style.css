@@ -2080,6 +2080,8 @@ kbd {
 
 svg.blocklyTrashcanFlyout {
   background: gray;
+  border-radius: 15px;
+  border: 3px solid gray;
 }
 
 /* ---- Touch confirm dialog ---- */

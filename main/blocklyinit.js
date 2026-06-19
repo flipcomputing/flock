@@ -1692,6 +1692,12 @@ export function createBlocklyWorkspace() {
       );
 
       workspace.addChangeListener((e) => {
+        // Dragging a block out of the trash restores it (BLOCK_CREATE); close the
+        // flyout so it doesn't linger over the workspace.
+        if (e.type === Blockly.Events.BLOCK_CREATE) {
+          if (trashcan.contentsIsOpen()) trashcan.closeFlyout();
+          return;
+        }
         if (e.type !== Blockly.Events.TRASHCAN_OPEN) return;
         if (e.isOpen) {
           if (trashIcon.parentNode !== iconOverlay) iconOverlay.appendChild(trashIcon);
