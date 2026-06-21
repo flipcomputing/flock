@@ -58,6 +58,7 @@ export default {
   palette_pastel: 'Pastell',
   palette_neon: 'Neon',
   palette_sunset: 'Solnedgång',
+  palette_okabeito: 'Okabe-Ito',
 
   // Color names
   color_red: 'Röd',
@@ -121,6 +122,10 @@ export default {
   color_dim_gray: 'Mörk grå',
   color_saddle_brown: 'Sadelbrun',
   color_light_coral: 'Ljus korall',
+  color_bluish_green: 'Blågrön',
+  color_vermillion: 'Cinnober',
+  color_reddish_purple: 'Rödaktig lila',
+  color_gray: 'Grå',
 
   // Custom block translations - Scene blocks
   set_sky_color: 'himmel %1',

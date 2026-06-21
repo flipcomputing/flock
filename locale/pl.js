@@ -58,6 +58,7 @@ export default {
   palette_pastel: 'Pastelowy',
   palette_neon: 'Neonowy',
   palette_sunset: 'Zachód słońca',
+  palette_okabeito: 'Okabe-Ito',
 
   // Color names
   color_red: 'Czerwony',
@@ -121,6 +122,10 @@ export default {
   color_dim_gray: 'Ciemnoszary',
   color_saddle_brown: 'Brązowy siodłowy',
   color_light_coral: 'Jasny koralowy',
+  color_bluish_green: 'Zielononiebieski',
+  color_vermillion: 'Cynober',
+  color_reddish_purple: 'Czerwonawy fiolet',
+  color_gray: 'Szary',
 
   // Custom block translations - Scene blocks
   set_sky_color: 'niebo %1',

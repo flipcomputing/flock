@@ -59,6 +59,7 @@ export default {
   palette_pastel: 'Pastel',
   palette_neon: 'Néon',
   palette_sunset: 'Coucher de soleil',
+  palette_okabeito: 'Okabe-Ito',
 
   // Color names
   color_red: 'Rouge',
@@ -122,6 +123,10 @@ export default {
   color_dim_gray: 'Gris sombre',
   color_saddle_brown: 'Brun selle',
   color_light_coral: 'Corail clair',
+  color_bluish_green: 'Vert bleuté',
+  color_vermillion: 'Vermillon',
+  color_reddish_purple: 'Pourpre rougeâtre',
+  color_gray: 'Gris',
 
   // Custom block translations - Scene blocks
   set_sky_color: 'ciel %1',

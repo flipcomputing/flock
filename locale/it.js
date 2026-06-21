@@ -58,6 +58,7 @@ export default {
   palette_pastel: 'Pastello',
   palette_neon: 'Neon',
   palette_sunset: 'Tramonto',
+  palette_okabeito: 'Okabe-Ito',
 
   // Color names
   color_red: 'Rosso',
@@ -121,6 +122,10 @@ export default {
   color_dim_gray: 'Grigio scuro',
   color_saddle_brown: 'Marrone cuoio',
   color_light_coral: 'Corallo chiaro',
+  color_bluish_green: 'Verde bluastro',
+  color_vermillion: 'Vermiglio',
+  color_reddish_purple: 'Viola rossastro',
+  color_gray: 'Grigio',
 
   // Color block translations
   colour_rgb: 'rosso %1 verde %2 blu %3',

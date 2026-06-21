@@ -74,6 +74,21 @@ const COLOR_PALETTES = {
     { hex: "#000000", name: "color_black" },
     { hex: "#FFFFFF", name: "color_white" },
   ],
+  OkabeIto: [
+    { hex: "#E69F00", name: "color_orange" },
+    { hex: "#56B4E9", name: "color_sky_blue" },
+    { hex: "#009E73", name: "color_bluish_green" },
+    { hex: "#F0E442", name: "color_yellow" },
+    { hex: "#0072B2", name: "color_blue" },
+    { hex: "#D55E00", name: "color_vermillion" },
+    { hex: "#CC79A7", name: "color_reddish_purple" },
+    // Greyscale ramp, black→white evenly spaced (0/64/128/191/255)
+    { hex: "#000000", name: "color_black" },
+    { hex: "#404040", name: "color_dim_gray" },
+    { hex: "#808080", name: "color_gray" },
+    { hex: "#BFBFBF", name: "color_light_gray" },
+    { hex: "#FFFFFF", name: "color_white" },
+  ],
 };
 
 // Keep visible color; avoid pure black/white

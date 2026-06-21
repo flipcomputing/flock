@@ -58,6 +58,7 @@ export default {
   palette_pastel: 'Pastel',
   palette_neon: 'Neon',
   palette_sunset: 'Pôr do sol',
+  palette_okabeito: 'Okabe-Ito',
 
   // Color names
   color_red: 'Vermelho',
@@ -121,6 +122,10 @@ export default {
   color_dim_gray: 'Cinza escuro',
   color_saddle_brown: 'Marrom sela',
   color_light_coral: 'Coral claro',
+  color_bluish_green: 'Verde azulado',
+  color_vermillion: 'Vermelhão',
+  color_reddish_purple: 'Púrpura avermelhado',
+  color_gray: 'Cinza',
 
   // Custom block translations - Scene blocks
   set_sky_color: 'céu %1',

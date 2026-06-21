@@ -58,6 +58,7 @@ export default {
   palette_pastel: 'Pastell',
   palette_neon: 'Neon',
   palette_sunset: 'Sonnenuntergang',
+  palette_okabeito: 'Okabe-Ito',
 
   // Color names
   color_red: 'Rot',
@@ -121,6 +122,10 @@ export default {
   color_dim_gray: 'Dunkelgrau',
   color_saddle_brown: 'Sattelbraun',
   color_light_coral: 'Hellkoralle',
+  color_bluish_green: 'Blaugrün',
+  color_vermillion: 'Zinnoberrot',
+  color_reddish_purple: 'Rötliches Violett',
+  color_gray: 'Grau',
 
   colour_rgb: 'rot %1 grün %2 blau %3',
   colour_random: 'Zufallsfarbe',
