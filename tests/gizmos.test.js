@@ -9,6 +9,7 @@ import {
   configurePositionGizmo,
   configureRotationGizmo,
   configureScaleGizmo,
+  viewMeshWithCamera,
 } from '../ui/gizmos.js';
 
 export function runGizmoTests(flock) {
@@ -248,6 +249,115 @@ export function runGizmoTests(flock) {
         mgr.positionGizmoEnabled = true;
         exitGizmoState();
         expect(mgr.positionGizmoEnabled).to.be.false;
+      });
+    });
+
+    // ─── viewMeshWithCamera: orbit view ──────────────────────────────────────
+
+    describe('viewMeshWithCamera (orbit view)', function () {
+      let freeCamera;
+      let prevActiveCamera;
+      let prevSavedCamera;
+      let prevCurrentBlock;
+
+      beforeEach(function () {
+        prevActiveCamera = flock.scene.activeCamera;
+        prevSavedCamera = flock.savedCamera;
+        // viewMeshWithCamera falls back to window.currentBlock when nothing is
+        // selected; clear it so the "no selection" case is deterministic.
+        prevCurrentBlock = window.currentBlock;
+        window.currentBlock = null;
+
+        // A free camera (no metadata.following) selects the orbit-view branch.
+        freeCamera = new BABYLON.FreeCamera(
+          'orbitTestFreeCamera',
+          new BABYLON.Vector3(0, 5, -10),
+          flock.scene
+        );
+        flock.scene.activeCamera = freeCamera;
+      });
+
+      afterEach(function () {
+        // If a test left orbit-view active, detaching the mesh runs the normal
+        // disconnect path (restores the free camera, disposes the orbit camera).
+        if (flock.scene.activeCamera?.metadata?.orbitView) {
+          mgr.attachToMesh(null);
+        }
+        flock.scene.activeCamera = prevActiveCamera;
+        flock.savedCamera = prevSavedCamera;
+        window.currentBlock = prevCurrentBlock;
+        if (freeCamera && !freeCamera.isDisposed()) freeCamera.dispose();
+        freeCamera = null;
+      });
+
+      // Select a box and press V (orbit-view on).
+      function orbitBox(name = 'orbitBox') {
+        const box = makeBox(name);
+        mgr.attachToMesh(box);
+        viewMeshWithCamera();
+        return box;
+      }
+
+      it('attaches an ArcRotateCamera tagged orbitView and frames the mesh', function () {
+        orbitBox();
+        const cam = flock.scene.activeCamera;
+        expect(cam).to.be.an.instanceof(BABYLON.ArcRotateCamera);
+        expect(cam.metadata?.orbitView).to.be.true;
+        // Unit box at the origin: radius clamps to the 4 minimum, target centred.
+        expect(cam.radius).to.equal(4);
+        expect(cam.target.x).to.be.closeTo(0, 1e-6);
+        expect(cam.target.y).to.be.closeTo(0, 1e-6);
+        expect(cam.target.z).to.be.closeTo(0, 1e-6);
+        // Beta is unconstrained so the user can orbit fully.
+        expect(cam.lowerBetaLimit).to.be.null;
+        expect(cam.upperBetaLimit).to.be.null;
+      });
+
+      it('disables pointer-to-attach while orbiting (drag no longer disconnects)', function () {
+        mgr.usePointerToAttachGizmos = true;
+        orbitBox();
+        expect(mgr.usePointerToAttachGizmos).to.be.false;
+      });
+
+      it('V again toggles back to the free camera and restores pointer-to-attach', function () {
+        mgr.usePointerToAttachGizmos = true;
+        orbitBox();
+        viewMeshWithCamera(); // toggle off
+        expect(flock.scene.activeCamera).to.equal(freeCamera);
+        expect(mgr.usePointerToAttachGizmos).to.be.true;
+      });
+
+      it('deselecting the mesh returns to the free camera', function () {
+        orbitBox();
+        expect(flock.scene.activeCamera).to.not.equal(freeCamera);
+        mgr.attachToMesh(null);
+        expect(flock.scene.activeCamera).to.equal(freeCamera);
+      });
+
+      it('selecting a different mesh returns to the free camera', function () {
+        orbitBox();
+        const other = makeBox('orbitOtherBox');
+        mgr.attachToMesh(other);
+        expect(flock.scene.activeCamera).to.equal(freeCamera);
+      });
+
+      it('does nothing when no mesh is selected', function () {
+        mgr.attachToMesh(null);
+        viewMeshWithCamera();
+        expect(flock.scene.activeCamera).to.equal(freeCamera);
+        expect(flock.scene.activeCamera.metadata?.orbitView).to.not.equal(true);
+      });
+
+      it('leaves the play camera (flock.savedCamera) untouched while orbiting', function () {
+        const playCamera = new BABYLON.FreeCamera(
+          'orbitTestPlayCamera',
+          new BABYLON.Vector3(0, 0, 0),
+          flock.scene
+        );
+        flock.savedCamera = playCamera;
+        orbitBox();
+        expect(flock.savedCamera).to.equal(playCamera);
+        playCamera.dispose();
       });
     });
 

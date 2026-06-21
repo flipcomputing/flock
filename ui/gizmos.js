@@ -68,6 +68,8 @@ let activeDuplicatePickHandler = null; // [Clone mesh?]
 let stopAxisKeyboard = null; // Axis keyboard active?
 let duplicateModeActive = false;
 let duplicateRafId = null;
+let orbitSavedCamera = null; // Free camera stashed while orbit-view is active
+let orbitViewObserver = null; // Observer handle for orbit-view selection tracking
 
 // Keep track of things to clean up
 const cleanupFns = [];
@@ -469,7 +471,12 @@ export function viewMeshWithCamera(block) {
   const camera = flock.scene.activeCamera;
 
   if (!camera?.metadata?.following) {
-    if (mesh) focusCameraOnMesh(mesh);
+    // Already orbiting? V toggles back to the free camera.
+    if (camera?.metadata?.orbitView) {
+      disconnectOrbitView();
+      return;
+    }
+    if (mesh) attachOrbitView(mesh);
     return;
   }
 
@@ -595,6 +602,103 @@ export function viewMeshWithCamera(block) {
 
   // Behind player relative to the direction the player is facing toward the mesh.
   camera.alpha = -chosenYaw - Math.PI / 2;
+}
+
+// Attach an ArcRotateCamera that orbits the given mesh (free-camera mode only).
+function attachOrbitView(mesh) {
+  const BABYLON = flock.BABYLON;
+  const scene = flock.scene;
+  const freeCamera = scene.activeCamera;
+  if (!freeCamera) return;
+
+  // Make sure the mesh is the selected one so the selection-tracking
+  // observable below is meaningful (deselect/delete/select-other -> exit).
+  applyMeshSelection(mesh);
+  const selectedMesh = gizmoManager.attachedMesh ?? mesh;
+
+  mesh.computeWorldMatrix(true);
+  const { min, max } = mesh.getHierarchyBoundingVectors(true);
+  const target = BABYLON.Vector3.Center(min, max);
+  const size = max.subtract(min);
+  const extent = Math.max(size.x, size.y, size.z);
+  const radius = Math.max(extent * 2, 4);
+
+  const orbitCamera = new BABYLON.ArcRotateCamera(
+    'orbitViewCamera',
+    -Math.PI / 2, // alpha: front framing
+    Math.PI / 2.5, // beta: slightly above
+    radius,
+    target,
+    scene
+  );
+  // Unconstrained beta; no chase/zoom constraints.
+  orbitCamera.lowerBetaLimit = null;
+  orbitCamera.upperBetaLimit = null;
+  orbitCamera.allowUpsideDown = true;
+  orbitCamera.lowerRadiusLimit = null;
+  orbitCamera.upperRadiusLimit = null;
+  orbitCamera.minZ = 0.1;
+  orbitCamera.wheelDeltaPercentage = 0.01;
+  // Tag so the V toggle, the camera button and disconnect logic recognise it.
+  // Stop pointer drags from re-attaching the gizmo (which would trip the
+  // selection-change exit below); restore the prior setting on disconnect.
+  orbitCamera.metadata = {
+    orbitView: true,
+    prevPointerAttach: gizmoManager.usePointerToAttachGizmos,
+  };
+  gizmoManager.usePointerToAttachGizmos = false;
+
+  orbitSavedCamera = freeCamera;
+  freeCamera.detachControl();
+  scene.activeCamera = orbitCamera;
+  const canvas = scene.getEngine().getRenderingCanvas();
+  if (canvas) {
+    orbitCamera.attachControl(canvas, false);
+    canvas.focus();
+  }
+
+  // Exit when the selection ends or changes to a different mesh.
+  orbitViewObserver = gizmoManager.onAttachedToMeshObservable.add((attached) => {
+    if (attached !== selectedMesh) disconnectOrbitView();
+  });
+}
+
+// Restore the stashed free camera, disposing the orbit camera. Does not
+// attach control to the restored camera (caller decides).
+function restoreFreeCameraFromOrbit() {
+  const scene = flock.scene;
+  const orbitCamera = scene.activeCamera;
+  if (!orbitCamera?.metadata?.orbitView) return;
+
+  const freeCamera = orbitSavedCamera;
+  // Without a valid camera to fall back to, disposing the orbit camera would
+  // leave scene.activeCamera pointing at a disposed camera. Stay put instead.
+  if (!freeCamera || freeCamera.isDisposed()) return;
+
+  if (orbitViewObserver) {
+    gizmoManager.onAttachedToMeshObservable.remove(orbitViewObserver);
+    orbitViewObserver = null;
+  }
+
+  // Restore pointer-to-attach to whatever it was before orbit-view.
+  gizmoManager.usePointerToAttachGizmos = orbitCamera.metadata.prevPointerAttach ?? true;
+
+  orbitSavedCamera = null;
+  orbitCamera.detachControl();
+  scene.activeCamera = freeCamera;
+  orbitCamera.dispose();
+}
+
+// Standard orbit-view exit (V toggle, deselect, delete, select-other):
+// return to the free camera and give it canvas control.
+function disconnectOrbitView() {
+  if (!flock.scene.activeCamera?.metadata?.orbitView) return;
+  restoreFreeCameraFromOrbit();
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  if (canvas) {
+    flock.scene.activeCamera?.attachControl(canvas, false);
+    canvas.focus();
+  }
 }
 
 function getScaledSize(mesh) {
@@ -1868,6 +1972,21 @@ function handleDeleteGizmo() {
 
 // Camera: Toggle between play and fly camera modes
 function handleCameraGizmo() {
+  // If orbit-view is active, drop back to the free camera first so the
+  // play/fly swap below operates on the normal camera pair. If there is no
+  // saved play camera to swap to, just stay on the restored free camera.
+  if (flock.scene.activeCamera?.metadata?.orbitView) {
+    restoreFreeCameraFromOrbit();
+    if (!flock.savedCamera) {
+      const canvas = flock.scene.getEngine().getRenderingCanvas();
+      if (canvas) {
+        flock.scene.activeCamera?.attachControl(canvas, false);
+        canvas.focus();
+      }
+      return;
+    }
+  }
+
   const cameraButton = document.getElementById('cameraButton');
 
   if (cameraMode === 'play') {
