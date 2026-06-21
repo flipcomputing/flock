@@ -33,14 +33,17 @@ const colorFields = {
   TSHIRT_COLOR: "#FF8F60", // T-Shirt: light orange
 };
 
-export function createBlockWithShadows(shapeType, position, colour) {
+export function createBlockWithShadows(shapeType, position, colour, decimals = 1) {
   const workspace = Blockly.getMainWorkspace();
   const spec = __CREATE_SPEC[shapeType];
   if (!spec) return null;
 
-  const posX = position?.x !== undefined ? roundPositionValue(position.x) : 0;
-  const posY = position?.y !== undefined ? roundPositionValue(position.y) : 0;
-  const posZ = position?.z !== undefined ? roundPositionValue(position.z) : 0;
+  const posX =
+    position?.x !== undefined ? roundPositionValue(position.x, decimals) : 0;
+  const posY =
+    position?.y !== undefined ? roundPositionValue(position.y, decimals) : 0;
+  const posZ =
+    position?.z !== undefined ? roundPositionValue(position.z, decimals) : 0;
 
   const defaults = {
     ...spec.defaults({ c: colour }),
@@ -153,7 +156,18 @@ function __metaFor(name) {
     : { type: "math_number", field: "NUM" };
 }
 
-function addShapeToWorkspace(shapeType, position) {
+// Matches the ground detection used elsewhere (see api/scene.js).
+function isGroundMesh(mesh) {
+  if (!mesh) return false;
+  const name = mesh?.name?.toLowerCase?.() ?? "";
+  return (
+    name === "ground" ||
+    name.includes("ground") ||
+    mesh?.metadata?.blockKey === "ground"
+  );
+}
+
+function addShapeToWorkspace(shapeType, position, decimals = 1) {
   const workspace = Blockly.getMainWorkspace();
 
   const existingGroup = Blockly.Events.getGroup();
@@ -170,6 +184,7 @@ function addShapeToWorkspace(shapeType, position) {
       shapeType,
       position,
       flock.randomColour(),
+      decimals,
     );
     if (!block) {
       console.error(`Failed to create block of type: ${shapeType}`);
@@ -177,7 +192,7 @@ function addShapeToWorkspace(shapeType, position) {
     }
 
     try {
-      setPositionValues(block, position, shapeType);
+      setPositionValues(block, position, shapeType, decimals);
     } catch (e) {
       console.error("Error setting position values:", e);
     }
@@ -321,7 +336,30 @@ function selectShape(shapeType) {
       (mesh) => mesh.isPickable,
     );
     if (pickResult && pickResult.hit) {
-      addShapeToWorkspace(shapeType, pickResult.pickedPoint);
+      // A plane dropped onto another object's surface ends up coplanar with
+      // the hit face and z-fights with it. Only in that case do we nudge the
+      // plane clear along the surface normal. Planes placed on the ground (or
+      // any non-plane shape) keep their exact picked position.
+      if (shapeType === "create_plane" && !isGroundMesh(pickResult.pickedMesh)) {
+        const normal = pickResult.getNormal?.(true);
+        if (normal) {
+          // Keep X/Z on the usual 0.1 grid, then add the small offset along
+          // the normal. Storing at 2-decimal precision lets the 0.02 nudge
+          // survive rounding — only the offset axis shows the extra decimal.
+          const p = pickResult.pickedPoint;
+          const base = new flock.BABYLON.Vector3(
+            roundPositionValue(p.x),
+            roundPositionValue(p.y),
+            roundPositionValue(p.z),
+          );
+          const position = base.add(normal.scale(0.02));
+          addShapeToWorkspace(shapeType, position, 2);
+        } else {
+          addShapeToWorkspace(shapeType, pickResult.pickedPoint);
+        }
+      } else {
+        addShapeToWorkspace(shapeType, pickResult.pickedPoint);
+      }
     }
 
     cleanupPlacementMode();

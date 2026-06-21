@@ -157,7 +157,7 @@ export function scrollToBlockTopParentLeft(workspace, blockId) {
 }
 
 // Updated setPositionValues function with rounding behavior
-export function setPositionValues(block, position, blockType) {
+export function setPositionValues(block, position, blockType, decimals = 1) {
   // Helper function to set position values on blocks
   if (block && position) {
     try {
@@ -166,8 +166,9 @@ export function setPositionValues(block, position, blockType) {
         const input = block.getInput(inputName);
         if (!input) return;
 
-        // Round the value to 1 decimal place
-        const roundedValue = Math.round(value * 10) / 10;
+        // Round the value to the requested number of decimal places
+        const factor = 10 ** decimals;
+        const roundedValue = Math.round(value * factor) / factor;
 
         let targetBlock = input.connection.targetBlock();
         if (!targetBlock) {

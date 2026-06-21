@@ -1,7 +1,8 @@
 import { objectColours } from "../config.js";
 
-export function roundPositionValue(value) {
-  return Math.round(value * 10) / 10; // 1 decimal place
+export function roundPositionValue(value, decimals = 1) {
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
 }
 
 export function addNumberShadow(spec, inputName, value) {
