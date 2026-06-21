@@ -31,6 +31,20 @@ export function runInteractIndicatorTests(flock) {
       return mesh;
     }
 
+    // Registers an actionManager with a real pick trigger — the actual
+    // precondition for the interact indicator. A bare actionManager (e.g. the
+    // one onIntersect attaches for collision triggers) is NOT interactable.
+    function makeInteractable(mesh) {
+      mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+      mesh.actionManager.registerAction(
+        new flock.BABYLON.ExecuteCodeAction(
+          flock.BABYLON.ActionManager.OnPickTrigger,
+          () => {},
+        ),
+      );
+      return mesh;
+    }
+
     // Moves camera to (0,0,-3) looking along +Z, returns a restore function.
     function aimCameraAtOrigin() {
       const cam = flock.scene.activeCamera;
@@ -93,7 +107,7 @@ export function runInteractIndicatorTests(flock) {
       fireFrame();
 
       // Attach actionManager and spy after the frame, so the mesh was not the target
-      mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+      makeInteractable(mesh);
       const triggered = [];
       const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
       mesh.actionManager.processTrigger = (trigger, evt) => {
@@ -120,7 +134,7 @@ export function runInteractIndicatorTests(flock) {
 
       it("icon is visible and near the only interactable mesh", function () {
         const mesh = makeMesh("_test_single", [0, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         fireFrame();
 
@@ -133,10 +147,28 @@ export function runInteractIndicatorTests(flock) {
         expect(dist).to.be.lessThan(2);
       });
 
+      it("mesh with only an intersection-trigger actionManager is not targeted", function () {
+        // onIntersect attaches an actionManager with no pick trigger — clicking
+        // it does nothing, so the indicator must not flag it. Regression for a
+        // spurious indicator appearing over non-clickable collision meshes.
+        const mesh = makeMesh("_test_intersect_only", [0, 0, 0]);
+        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        mesh.actionManager.registerAction(
+          new flock.BABYLON.ExecuteCodeAction(
+            flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
+            () => {},
+          ),
+        );
+
+        fireFrame();
+
+        expect(getIcon().isVisible).to.be.false;
+      });
+
       it("ray hits an interactable: that mesh becomes the target", function () {
         // Mesh at origin, camera at (0,0,-3) looking along +Z — ray hits mesh.
         const mesh = makeMesh("_test_ray_hit", [0, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         fireFrame();
 
@@ -154,7 +186,7 @@ export function runInteractIndicatorTests(flock) {
         // Camera at (0,0,-3): a mesh at (0.05, 0, 0) is off the ray but within a small angle.
         // Angle ≈ atan(0.05/3) ≈ 0.95° — well inside 10°.
         const mesh = makeMesh("_test_fallback", [0.05, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         fireFrame();
 
@@ -171,7 +203,7 @@ export function runInteractIndicatorTests(flock) {
         // Mesh far to the side — beyond 45° of camera forward.
         // Camera at (0,0,-3), mesh at (4, 0, 0). Angle from +Z ≈ atan(4/3) ≈ 53°.
         const mesh = makeMesh("_test_wide", [4, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         fireFrame();
 
@@ -184,7 +216,7 @@ export function runInteractIndicatorTests(flock) {
         flock.scene.activeCamera.metadata = { following: player };
 
         const mesh = makeMesh("_test_far", [0, 0, 5]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         fireFrame();
 
@@ -194,7 +226,7 @@ export function runInteractIndicatorTests(flock) {
       it("player mesh with actionManager is never targeted", function () {
         const player = makeMesh("_test_pawn", [0, 0, 0]);
         flock.scene.activeCamera.metadata = { following: player };
-        player.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(player);
 
         // No other interactable — should have no target.
         fireFrame();
@@ -208,7 +240,7 @@ export function runInteractIndicatorTests(flock) {
 
         const child = makeMesh("_test_child", [0, 0, 0]);
         child.parent = player;
-        child.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(child);
 
         fireFrame();
 
@@ -222,7 +254,7 @@ export function runInteractIndicatorTests(flock) {
         flock.scene.activeCamera.metadata = { following: player };
 
         const interactable = makeMesh("_test_behind", [0, 0, 0]);
-        interactable.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(interactable);
 
         fireFrame();
 
@@ -241,7 +273,7 @@ export function runInteractIndicatorTests(flock) {
         // Without player: out of camera range → icon hidden.
         // With player: within player range → icon visible (range anchors on the player).
         const interactable = makeMesh("_test_range_i", [0, 0, 20]);
-        interactable.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(interactable);
 
         // First verify: no player → out of camera range, icon hidden.
         fireFrame();
@@ -262,7 +294,7 @@ export function runInteractIndicatorTests(flock) {
         // range, so the icon stays hidden. (Within-range free-camera targeting
         // is covered by the single-mesh tests above.)
         const mesh = makeMesh("_test_cam_anchor", [0, 0, 20]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         fireFrame();
 
@@ -271,7 +303,7 @@ export function runInteractIndicatorTests(flock) {
 
       it("BUTTON2 fires OnPickTrigger on the target mesh", function () {
         const mesh = makeMesh("_test_btn2_pick", [0, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         const triggered = [];
         const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
@@ -288,7 +320,7 @@ export function runInteractIndicatorTests(flock) {
 
       it("BUTTON2 fires OnLeftPickTrigger on the target mesh", function () {
         const mesh = makeMesh("_test_btn2_leftpick", [0, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         const triggered = [];
         const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
@@ -305,7 +337,7 @@ export function runInteractIndicatorTests(flock) {
 
       it("when_clicked handler on target mesh runs when BUTTON2 fires", function () {
         const mesh = makeMesh("_test_btn2_handler", [0, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         let clicked = 0;
         mesh.actionManager.registerAction(
@@ -323,7 +355,7 @@ export function runInteractIndicatorTests(flock) {
 
       it("after detachInteractIndicator BUTTON2 does not trigger the mesh", function () {
         const mesh = makeMesh("_test_btn2_detach", [0, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         const triggered = [];
         const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
@@ -341,7 +373,7 @@ export function runInteractIndicatorTests(flock) {
 
       it("after setActionKey on BUTTON2, icon is hidden and bound key does not invoke processTrigger", function () {
         const mesh = makeMesh("_test_override", [0, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         const triggered = [];
         const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
@@ -361,7 +393,7 @@ export function runInteractIndicatorTests(flock) {
 
       it("after resetActionKeys, icon reappears and BUTTON2 fires the click", function () {
         const mesh = makeMesh("_test_reset", [0, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         const triggered = [];
         const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
@@ -384,7 +416,7 @@ export function runInteractIndicatorTests(flock) {
 
       it("when disabled, the icon stays hidden for an aimed-at interactable", function () {
         const mesh = makeMesh("_test_disabled", [0, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         // Enabled by default → visible.
         fireFrame();
@@ -399,7 +431,7 @@ export function runInteractIndicatorTests(flock) {
 
       it("re-enabling restores the icon for an aimed-at interactable", function () {
         const mesh = makeMesh("_test_reenable", [0, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         setInteractIndicatorEnabled(false);
         fireFrame();
@@ -412,7 +444,7 @@ export function runInteractIndicatorTests(flock) {
 
       it("when disabled, BUTTON2 does not trigger the mesh", function () {
         const mesh = makeMesh("_test_disabled_btn2", [0, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         const triggered = [];
         const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
@@ -435,7 +467,7 @@ export function runInteractIndicatorTests(flock) {
         attachInteractIndicator(flock.scene, flock.inputManager);
 
         const mesh = makeMesh("_test_attach_reset", [0, 0, 0]);
-        mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+        makeInteractable(mesh);
 
         fireFrame();
         expect(getIcon().isVisible).to.be.true;

@@ -152,7 +152,10 @@ export function attachInteractIndicator(scene, inputManager) {
   _candidates = [];
   _playerMesh = null;
   _predicate = (m) => {
-    if (m === _icon || !m.actionManager) return false;
+    // An actionManager alone doesn't make a mesh interactable — onIntersect
+    // attaches one purely for intersection triggers. Require a real pick trigger
+    // (matching the OnPickTrigger/OnLeftPickTrigger the BUTTON2 handler fires).
+    if (m === _icon || !m.actionManager?.hasPickTriggers) return false;
     if (!m.isVisible || !m.isEnabled?.()) return false;
     if (_playerMesh && (m === _playerMesh || _isDescendantOf(m, _playerMesh))) return false;
     return true;
