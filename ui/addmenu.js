@@ -167,7 +167,103 @@ function isGroundMesh(mesh) {
   );
 }
 
-function addShapeToWorkspace(shapeType, position, decimals = 1) {
+// Rotation (in degrees) that makes a default plane — whose normal faces
+// world +Z — lie flat against a surface with the given world-space normal.
+// Returns null when no rotation is needed (normal already faces +Z).
+function planeRotationForNormal(normal) {
+  const BABYLON = flock.BABYLON;
+  const from = new BABYLON.Vector3(0, 0, 1);
+  const to = normal.clone();
+  to.normalize();
+
+  const rawDot = BABYLON.Vector3.Dot(from, to);
+  if (!Number.isFinite(rawDot)) return null; // bad/degenerate normal
+  const dot = Math.max(-1, Math.min(1, rawDot));
+
+  let quat;
+  if (dot > 0.999999) {
+    return null; // already aligned with +Z
+  } else if (dot < -0.999999) {
+    // Opposite direction: 180° about the world up axis.
+    quat = BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 1, 0), Math.PI);
+  } else {
+    const axis = BABYLON.Vector3.Cross(from, to);
+    axis.normalize();
+    quat = BABYLON.Quaternion.RotationAxis(axis, Math.acos(dot));
+  }
+
+  const euler = quat.toEulerAngles();
+  const toDeg = (r) => Math.round(BABYLON.Tools.ToDegrees(r) * 10) / 10;
+  return { x: toDeg(euler.x), y: toDeg(euler.y), z: toDeg(euler.z) };
+}
+
+// Nest a rotate_to block inside a create block's DO section, mirroring the
+// rotate gizmo (see findOrCreateRotateBlock in ui/gizmos.js). The rotate_to
+// references the create block's own mesh variable (ID_VAR) and is given the
+// supplied {x, y, z} rotation in degrees.
+// Apply a flat-lying rotation to the live preview mesh. The preview mesh is
+// created from the block on a later tick (Blockly fires create events
+// asynchronously) and whenModelReady cannot wait for a mesh that does not yet
+// exist unless callbackMode is on. So poll for the mesh, then rotate it
+// directly (with physics) the way the rotate gizmo does.
+function applyLiveRotationWhenReady(blockId, rotation, attempts = 0) {
+  if (!rotation) return;
+  // createPlane strips the "<name>__<blockId>" suffix off the mesh name and
+  // stores the block id in metadata.blockKey, so look the mesh up by that
+  // rather than by name.
+  const mesh = (flock.scene?.meshes || []).find(
+    (m) => m.metadata?.blockKey === blockId,
+  );
+  if (mesh) {
+    flock.rotateTo(mesh.name, rotation);
+    return;
+  }
+  if (attempts < 60) {
+    requestAnimationFrame(() =>
+      applyLiveRotationWhenReady(blockId, rotation, attempts + 1),
+    );
+  }
+}
+
+function addRotationToCreateBlock(block, rotation) {
+  const workspace = Blockly.getMainWorkspace();
+  const modelVariable = block.getFieldValue("ID_VAR");
+
+  if (!block.getInput("DO")) {
+    block.appendStatementInput("DO").setCheck(null).appendField("");
+  }
+
+  const rotateBlock = workspace.newBlock("rotate_to");
+  rotateBlock.setFieldValue(modelVariable, "MODEL");
+  rotateBlock.initSvg();
+  rotateBlock.render();
+
+  const axisValues = { X: rotation.x, Y: rotation.y, Z: rotation.z };
+  for (const axis of ["X", "Y", "Z"]) {
+    const input = rotateBlock.getInput(axis);
+    const shadow = workspace.newBlock("math_number");
+    shadow.setFieldValue(String(axisValues[axis]), "NUM");
+    shadow.setShadow(true);
+    shadow.initSvg();
+    shadow.render();
+    input.connection.connect(shadow.outputConnection);
+  }
+  rotateBlock.render();
+
+  const doConnection = block.getInput("DO").connection;
+  const firstBlock = doConnection.targetBlock();
+  if (firstBlock) {
+    let tail = firstBlock;
+    while (tail.getNextBlock()) tail = tail.getNextBlock();
+    tail.nextConnection.connect(rotateBlock.previousConnection);
+  } else {
+    doConnection.connect(rotateBlock.previousConnection);
+  }
+
+  return rotateBlock;
+}
+
+function addShapeToWorkspace(shapeType, position, decimals = 1, rotation = null) {
   const workspace = Blockly.getMainWorkspace();
 
   const existingGroup = Blockly.Events.getGroup();
@@ -219,6 +315,18 @@ function addShapeToWorkspace(shapeType, position, decimals = 1) {
         connection.connect(block.previousConnection);
       } catch (e) {
         console.error("Error connecting to start block:", e);
+      }
+    }
+
+    // For a plane placed flat against a surface, nest a rotate_to block
+    // inside the create block's DO section — the same shape the rotate gizmo
+    // produces — so the orientation lives with the plane and is captured in
+    // the program.
+    if (rotation) {
+      try {
+        addRotationToCreateBlock(block, rotation);
+      } catch (e) {
+        console.error("Error adding rotation block:", e);
       }
     }
 
@@ -341,11 +449,17 @@ function selectShape(shapeType) {
       // plane clear along the surface normal. Planes placed on the ground (or
       // any non-plane shape) keep their exact picked position.
       if (shapeType === "create_plane" && !isGroundMesh(pickResult.pickedMesh)) {
-        const normal = pickResult.getNormal?.(true);
+        // Use the geometric face normal (useVerticesNormals = false) in world
+        // space, so the plane lies flat against the actual clicked face rather
+        // than an interpolated/averaged vertex normal.
+        const normal = pickResult.getNormal?.(true, false);
         if (normal) {
-          // Keep X/Z on the usual 0.1 grid, then add the small offset along
-          // the normal. Storing at 2-decimal precision lets the 0.02 nudge
+          // Lie the plane flat against the clicked face: rotate so its normal
+          // matches the surface, then keep X/Z on the usual 0.1 grid and add
+          // the small offset along the normal so it sits just clear of the
+          // surface. Storing at 2-decimal precision lets the 0.02 nudge
           // survive rounding — only the offset axis shows the extra decimal.
+          const rotation = planeRotationForNormal(normal);
           const p = pickResult.pickedPoint;
           const base = new flock.BABYLON.Vector3(
             roundPositionValue(p.x),
@@ -353,7 +467,30 @@ function selectShape(shapeType) {
             roundPositionValue(p.z),
           );
           const position = base.add(normal.scale(0.02));
-          addShapeToWorkspace(shapeType, position, 2);
+
+          // Compensate for flock's "base rule": when the plane is created it is
+          // still upright (height 2), and the base rule places the unrotated
+          // bottom at position.y — shifting the centre up by half the height.
+          // rotate_to then flattens the plane around that centre, so without
+          // this it would float ~1 unit above the surface. Subtract that shift
+          // (height/2 of the default plane) so the flat plane lands on the
+          // clicked surface. See applyPositionWithCurrentBaseRule in
+          // api/transform.js.
+          const DEFAULT_PLANE_HALF_HEIGHT = 1; // create_plane default HEIGHT (2) / 2
+          position.y -= DEFAULT_PLANE_HALF_HEIGHT;
+
+          const planeBlock = addShapeToWorkspace(shapeType, position, 2, rotation);
+
+          // The rotate_to block captures the orientation in the program, but
+          // the block-driven live-sync does not rotate a programmatically added
+          // rotate_to, so the live preview mesh stays upright. Rotate it
+          // directly — the same thing the rotate gizmo does. The preview mesh
+          // is created from the block on a later tick (Blockly fires create
+          // events asynchronously), so poll until it exists before rotating.
+          // The preview mesh is named plane__<blockId> (see ui/addmeshes.js).
+          if (rotation && planeBlock) {
+            applyLiveRotationWhenReady(planeBlock.id, rotation);
+          }
         } else {
           addShapeToWorkspace(shapeType, pickResult.pickedPoint);
         }
