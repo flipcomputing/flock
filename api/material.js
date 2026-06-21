@@ -221,6 +221,9 @@ export const flockMaterial = {
   },
   glowMesh(mesh, glowColor = null) {
     const applyGlow = (m) => {
+      // Don't glow the say plane.
+      if (m.name === 'textPlane' || m.metadata?.isTextPlane) return;
+
       m.metadata = m.metadata || {};
       m.metadata.glow = true;
 
@@ -232,7 +235,7 @@ export const flockMaterial = {
           ? flock.getColorFromString(baseColor[0])
           : baseColor
             ? flock.getColorFromString(baseColor)
-            : "#ffffff";
+            : '#ffffff';
 
       if (params) {
         const materialParams = {
@@ -245,7 +248,7 @@ export const flockMaterial = {
         };
         flock.setMaterialWithCleanup(m, materialParams);
       }
-    };
+    };;
 
     applyGlow(mesh);
     mesh.getChildMeshes().forEach(applyGlow);
