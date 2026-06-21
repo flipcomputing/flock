@@ -1029,6 +1029,7 @@ export default {
 
   run_code_button_ui: "Run your code",
   stop_code_button_ui: "Stop your code",
+  canvas_overlay_play_ui: "Press Play to start",
   open_button_ui: "Open a project from a file on your computer",
   open_file_input_label_ui: "Select project file to open",
   export_code_button_ui: "Save this project to a file on your computer.",

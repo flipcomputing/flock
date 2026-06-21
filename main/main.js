@@ -777,6 +777,13 @@ function initializeApp() {
   }
   runCodeButton.addEventListener('click', executeCode);
   stopCodeButton.addEventListener('click', stopCode);
+  // Clicking anywhere on the stopped overlay (not just the play button) starts
+  // the scene — matches the pointer cursor shown across the whole overlay. The
+  // inner button's click bubbles up here, and executeCode's isExecuting guard
+  // makes the resulting second call a no-op.
+  document
+    .getElementById('canvasStoppedOverlay')
+    ?.addEventListener('click', executeCode);
   exportCodeButton.addEventListener('click', () => exportCode(workspace));
 
   // Add toolbar buttons

@@ -1,9 +1,9 @@
-import { flock } from "../flock.js";
-import { currentView, isNarrowScreen, showCanvasView } from "./view.js";
-import { handleError } from "../ui/notifications.js";
-import { setGizmoManager, disposeGizmoManager } from "../ui/gizmos.js";
-import { javascriptGenerator } from "blockly/javascript";
-import { workspace } from "./blocklyinit.js";
+import { flock } from '../flock.js';
+import { currentView, isNarrowScreen, showCanvasView } from './view.js';
+import { handleError } from '../ui/notifications.js';
+import { setGizmoManager, disposeGizmoManager } from '../ui/gizmos.js';
+import { javascriptGenerator } from 'blockly/javascript';
+import { workspace } from './blocklyinit.js';
 
 let isExecuting = false;
 
@@ -15,6 +15,9 @@ export async function executeCode(options = {}) {
 
   // Set the flag to indicate the function is running
   isExecuting = true;
+
+  // Remove the "press play" overlay now that the scene is starting
+  hideStoppedOverlay();
 
   // Abort any still-running previous Compartment and stop its audio immediately.
   // runCode also aborts, but only after initializeNewScene's async delays — without
@@ -34,7 +37,7 @@ export async function executeCode(options = {}) {
   //console.log("Engine ready");
 
   // If on a narrow screen and currently showing code, switch to canvas
-  if (isNarrowScreen() && currentView === "code") {
+  if (isNarrowScreen() && currentView === 'code') {
     showCanvasView();
   }
 
@@ -54,7 +57,7 @@ export async function executeCode(options = {}) {
     await flock.runCode(code, options);
   } catch (error) {
     isExecuting = false; // Reset the flag if there's an error
-    handleError(error, { source: "project-run", fatal: false });
+    handleError(error, { source: 'project-run', fatal: false });
     return; // Exit after handling the error
   }
 
@@ -67,7 +70,7 @@ export async function executeCode(options = {}) {
         enablePopup: false,
       });
     } catch (error) {
-      console.error("Error showing debug layer:", error);
+      console.error('Error showing debug layer:', error);
     }
   }
 
@@ -78,6 +81,54 @@ export async function executeCode(options = {}) {
   isExecuting = false;
 }
 
+function getStoppedOverlay() {
+  return document.getElementById('canvasStoppedOverlay');
+}
+
+let overlayResizeHandler = null;
+
+// Size the overlay to the rendered canvas box so it covers only the Babylon
+// canvas, not the surrounding canvas area or the (hidden) gizmo buttons.
+function positionStoppedOverlay() {
+  const overlay = getStoppedOverlay();
+  const canvas = document.getElementById('renderCanvas');
+  if (!overlay || !canvas) return;
+  overlay.style.left = `${canvas.offsetLeft}px`;
+  overlay.style.top = `${canvas.offsetTop}px`;
+  overlay.style.width = `${canvas.offsetWidth}px`;
+  overlay.style.height = `${canvas.offsetHeight}px`;
+}
+
+function showStoppedOverlay() {
+  const overlay = getStoppedOverlay();
+  if (!overlay) return;
+  // Hides the gizmo buttons (via CSS) and covers the canvas; the canvas is made
+  // inert below so screen reader and keyboard users skip the frozen scene.
+  document.getElementById('canvasArea')?.classList.add('is-stopped');
+  const canvas = document.getElementById('renderCanvas');
+  if (canvas) canvas.inert = true;
+  positionStoppedOverlay();
+  overlay.hidden = false;
+  // Move keyboard focus to the play button so it can be triggered immediately
+  overlay.querySelector('#overlayPlayButton')?.focus({ preventScroll: true });
+  if (!overlayResizeHandler) {
+    overlayResizeHandler = () => positionStoppedOverlay();
+    window.addEventListener('resize', overlayResizeHandler);
+  }
+}
+
+function hideStoppedOverlay() {
+  const overlay = getStoppedOverlay();
+  if (overlay) overlay.hidden = true;
+  document.getElementById('canvasArea')?.classList.remove('is-stopped');
+  const canvas = document.getElementById('renderCanvas');
+  if (canvas) canvas.inert = false;
+  if (overlayResizeHandler) {
+    window.removeEventListener('resize', overlayResizeHandler);
+    overlayResizeHandler = null;
+  }
+}
+
 export function stopCode() {
   flock.abortController?.abort();
   flock.stopAllSounds();
@@ -86,11 +137,14 @@ export function stopCode() {
   flock.engine.stopRenderLoop();
   //console.log("Render loop stopped.");
 
+  // Show the "press play" overlay over the (now frozen) canvas
+  showStoppedOverlay();
+
   // Remove event listeners
   flock.removeEventListeners();
 
   // If on a narrow screen and currently showing code, switch to canvas
-  if (isNarrowScreen() && currentView === "code") {
+  if (isNarrowScreen() && currentView === 'code') {
     showCanvasView();
   }
 

@@ -960,6 +960,31 @@
             <div id="fullscreen-desc" class="sr-only">
               Toggle between fullscreen and windowed view of the application
             </div>
+            <div
+              id="canvasStoppedOverlay"
+              class="canvas-stopped-overlay"
+              hidden
+            >
+              <button
+                type="button"
+                class="canvas-stopped-overlay__play"
+                id="overlayPlayButton"
+                data-i18n="canvas_overlay_play"
+                data-i18n-attrs="aria-label,title"
+                aria-label="Press Play to start"
+                title="Press Play to start"
+              >
+                <span class="icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                    <path
+                      fill="currentColor"
+                      d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
+                    />
+                  </svg>
+                </span>
+              </button>
+            </div>
             <aside
               class="gizmo-buttons"
               id="gizmoButtons"

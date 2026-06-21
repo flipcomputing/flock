@@ -1014,6 +1014,7 @@ export default {
 
   run_code_button_ui: "Exécuter votre code",
   stop_code_button_ui: "Arrêter votre code",
+  canvas_overlay_play_ui: "Appuyez sur Lecture pour démarrer", // ai
   open_button_ui: "Ouvrir un projet depuis un fichier sur votre ordinateur",
   open_file_input_label_ui: "Sélectionnez le fichier projet à ouvrir",
   export_code_button_ui:

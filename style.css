@@ -508,6 +508,61 @@ button {
   outline: none;
 }
 
+/* Stopped overlay — covers only the Babylon canvas, leaves gizmos clickable */
+.canvas-stopped-overlay {
+  position: absolute;
+  /* Geometry is set in JS to match the #renderCanvas box exactly */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+.canvas-stopped-overlay[hidden] {
+  display: none;
+}
+
+/* Hide the design-tool gizmos while stopped — they can't be used then.
+   Using a class (not inline style) preserves view.js's own display logic. */
+#canvasArea.is-stopped #gizmoButtons {
+  display: none !important;
+}
+
+.canvas-stopped-overlay__play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  transition: transform 0.12s ease, color 0.12s ease;
+}
+
+.canvas-stopped-overlay__play .icon,
+.canvas-stopped-overlay__play svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.canvas-stopped-overlay__play:hover,
+.canvas-stopped-overlay__play:focus-visible {
+  transform: scale(1.08);
+  color: #ffffff;
+}
+
+.canvas-stopped-overlay__play:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 4px;
+}
+
 /* Layout Styles */
 #maincontent {
   width: 100vw;

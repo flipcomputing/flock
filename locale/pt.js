@@ -1022,6 +1022,7 @@ export default {
 
   run_code_button_ui: "Executar o teu código",
   stop_code_button_ui: "Parar o teu código",
+  canvas_overlay_play_ui: "Pressiona Play para começar", // ai
   open_button_ui: "Abrir um projeto a partir de um ficheiro no teu computador",
   open_file_input_label_ui: "Selecione o arquivo de projeto para abrir",
   export_code_button_ui: "Guardar este projeto num ficheiro no teu computador.",

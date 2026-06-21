@@ -1001,6 +1001,7 @@ export default {
 
   run_code_button_ui: "Kör din kod",
   stop_code_button_ui: "Stoppa din kod",
+  canvas_overlay_play_ui: "Tryck på Spela för att börja", // ai
   open_button_ui: "Öppna ett projekt från en fil på din dator",
   open_file_input_label_ui: "Välj projektfil att öppna",
   export_code_button_ui: "Spara detta projekt till en fil på din dator.",

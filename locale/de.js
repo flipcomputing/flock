@@ -1023,6 +1023,7 @@ export default {
   contrast_theme_ui: "Kontrast",
   run_code_button_ui: "Code ausführen",
   stop_code_button_ui: "Code stoppen",
+  canvas_overlay_play_ui: "Zum Starten auf Play drücken", // ai
   open_button_ui: "Projekt von Datei öffnen",
   open_file_input_label_ui: "Projektdatei zum Öffnen auswählen",
   export_code_button_ui: "Projekt speichern",
