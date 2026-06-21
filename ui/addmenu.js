@@ -599,17 +599,20 @@ function scrollRowWithWrap(row, direction, step = 68) {
 
   const max = Math.max(0, row.scrollWidth - row.clientWidth);
   const current = row.scrollLeft;
-  const next = current + direction * step;
 
-  // Wrap when next move would go out of bounds
-  if (direction > 0 && next >= max - 1) {
-    row.scrollTo({ left: 0, behavior: "smooth" });
-    return;
-  }
-  if (direction < 0 && next <= 1) {
-    row.scrollTo({ left: max, behavior: "smooth" });
-    return;
-  }
+  // Work in whole-icon steps so every resting position lands on the icon
+  // grid. Clamp to the last grid position at or before `max` — `max` itself
+  // sits in the trailing ::after spacer, so scrolling to it leaves the icons
+  // out of alignment. Flooring keeps us on a grid line and stops at the end
+  // instead of wrapping back to the start.
+  const maxStep = Math.floor(max / step);
+  const nextStep = Math.max(
+    0,
+    Math.min(maxStep, Math.round(current / step) + direction),
+  );
+  const next = nextStep * step;
+
+  if (Math.abs(next - current) < 1) return; // already at this position
 
   row.scrollTo({ left: next, behavior: "smooth" });
 }
