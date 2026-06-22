@@ -19,7 +19,8 @@ It enables educators, students, and families to build interactive 3D experiences
 - Create worlds using visual gizmos and block-based coding  
 - Teach coding, game design, and digital storytelling through hands-on projects  
 - Run engaging learning activities without installing software
-- Use games engine concepts such as aniamtions, particle effects and physics. 
+- Use games engine concepts such as aniamtions, particle effects and physics
+- Create [spatial computing](https://www.techagekids.com/2026/06/spatial-computing-skills-children.html) projects that link the digital and physical worlds
 
 Flock XR has been designed to start with younger children aged 7+, often using tablets. Then take them through upper primary, middle school and high school right through to professional 3D tools, such as Babylon JS, UEFN, Unity and Godot. 
 
