@@ -929,6 +929,7 @@ export const flock = {
       setCameraBackground: this.setCameraBackground?.bind(this),
       setXRMode: this.setXRMode?.bind(this),
       applyForce: this.applyForce?.bind(this),
+      setSpeed: this.setSpeed?.bind(this),
       moveByVector: this.moveByVector?.bind(this),
       glideTo: this.glideTo?.bind(this),
       glideToObject: this.glideToObject?.bind(this),

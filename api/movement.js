@@ -12,38 +12,16 @@ function ensureDynamicForMovement(mesh) {
 }
 
 export const flockMovement = {
-  moveForward(modelName, speed) {
-    if (speed === 0) return;
-    const model = flock.scene.getMeshByName(modelName);
-    if (!model) return;
-    ensureDynamicForMovement(model);
-    if (!model.physics) return;
-    flock.ensureVerticalConstraint(model);
-
-    // --- Tunables ---
-    let cap = model.metadata?.physicsCapsule;
-    if (!cap) return;
-    if (typeof cap.radius !== 'number' || typeof cap.height !== 'number') {
-      model.computeWorldMatrix(true);
-      const bb = model.getBoundingInfo().boundingBox;
-      const localMin = bb.minimum;
-      const localMax = bb.maximum;
-      const height = Math.max(0.001, localMax.y - localMin.y);
-      const width = Math.max(0.001, localMax.x - localMin.x);
-      const depth = Math.max(0.001, localMax.z - localMin.z);
-      const radius = Math.min(width, depth) / 2;
-      const localCenter = new flock.BABYLON.Vector3(
-        (localMin.x + localMax.x) / 2,
-        (localMin.y + localMax.y) / 2,
-        (localMin.z + localMax.z) / 2
-      );
-      const adjustedHeight = Math.max(0, height - 0.01);
-      cap = { radius, height: adjustedHeight, localCenter };
-      model.metadata = model.metadata || {};
-      model.metadata.physicsCapsule = cap;
-    }
+  // Shared character-movement core. Given a desired *world-space horizontal*
+  // velocity, applies ground-aware movement (capsule ground check, coyote time,
+  // step-up over ledges, vertical clamp) and sets the body's velocity. Used by
+  // moveForward (camera-relative) and setSpeed (object/world-relative) so both
+  // move identically. Returns true if a step-up boost was applied (caller should
+  // do no further work this frame). Requires model.metadata.physicsCapsule.
+  applyGroundedMovement(model, desiredHorizontalVelocity) {
+    if (!model?.physics || !model.metadata?.physicsCapsule) return false;
+    const cap = flock.ensurePhysicsCapsule(model);
     const capsuleRadius = cap.radius;
-
     const capsuleHeightBottomOffset = Math.max(0.001, cap.height * 0.5 - capsuleRadius);
 
     const maxSlopeAngleDeg = 45;
@@ -58,7 +36,7 @@ export const flockMovement = {
     const B = flock.BABYLON;
     const scene = flock.scene;
     const physicsEngine = scene.getPhysicsEngine();
-    if (!physicsEngine) return;
+    if (!physicsEngine) return false;
     const havokPlugin = physicsEngine.getPhysicsPlugin();
 
     // One-time per-mesh cache — keeps this hot path allocation-free.
@@ -84,8 +62,6 @@ export const flockMovement = {
         groundQuery: makeQuery(),
         stepLowQuery: makeQuery(),
         stepHighQuery: makeQuery(),
-        forwardLocal: B.Vector3.Forward(),
-        cameraForward: new B.Vector3(),
         horizontalForward: new B.Vector3(),
         desiredHorizontalVelocity: new B.Vector3(),
         currentVelocity: new B.Vector3(),
@@ -93,13 +69,7 @@ export const flockMovement = {
         appliedHorizontalVelocity: new B.Vector3(),
         finalVelocity: new B.Vector3(),
         boostedVelocity: new B.Vector3(),
-        facingDirection: new B.Vector3(),
         normalScratch: new B.Vector3(),
-        angularVelocity: new B.Vector3(),
-        deltaEuler: new B.Vector3(),
-        targetRotation: new B.Quaternion(),
-        currentRotationConjugate: new B.Quaternion(),
-        deltaRotation: new B.Quaternion(),
       };
       c.groundQuery.ignoredBodies.push(model.physics);
       c.stepLowQuery.ignoredBodies.push(model.physics);
@@ -129,11 +99,14 @@ export const flockMovement = {
       });
     }
 
-    // Camera forward direction — no alloc.
-    scene.activeCamera.getDirectionToRef(c.forwardLocal, c.cameraForward);
-    c.horizontalForward.set(c.cameraForward.x, 0, c.cameraForward.z);
-    c.horizontalForward.normalize();
-    c.horizontalForward.scaleToRef(speed, c.desiredHorizontalVelocity);
+    // Desired horizontal velocity comes from the caller; derive the normalised
+    // forward direction (for the step probe) from it.
+    c.desiredHorizontalVelocity.copyFrom(desiredHorizontalVelocity);
+    c.desiredHorizontalVelocity.y = 0;
+    c.horizontalForward.copyFrom(c.desiredHorizontalVelocity);
+    const hLen = c.horizontalForward.length();
+    if (hLen > 1e-6) c.horizontalForward.scaleInPlace(1 / hLen);
+    else c.horizontalForward.set(0, 0, 0);
 
     // --- Grounded check via capsule shapeCast ---
     const gq = c.groundQuery;
@@ -231,7 +204,7 @@ export const flockMovement = {
             model._lastStepBoost = nowMs;
             c.boostedVelocity.set(ahv.x, Math.max(cv.y, 2.5), ahv.z);
             model.physics.setLinearVelocity(c.boostedVelocity);
-            return;
+            return true;
           }
         }
       }
@@ -242,24 +215,64 @@ export const flockMovement = {
     c.finalVelocity.set(ahv.x, clampedVertical, ahv.z);
     model.physics.setLinearVelocity(c.finalVelocity);
 
+    model.isGrounded = grounded;
+    return false;
+  },
+  moveForward(modelName, speed) {
+    if (speed === 0) return;
+    const model = flock.scene.getMeshByName(modelName);
+    if (!model) return;
+    ensureDynamicForMovement(model);
+    if (!model.physics) return;
+    flock.ensureVerticalConstraint(model);
+
+    // Only drive designated capsule characters.
+    if (!model.metadata?.physicsCapsule) return;
+
+    const B = flock.BABYLON;
+    const scene = flock.scene;
+    if (!scene.activeCamera) return;
+
+    // Camera forward → desired world horizontal velocity (reused scratch).
+    model._mfForwardLocal ??= B.Vector3.Forward();
+    model._mfCameraForward ??= new B.Vector3();
+    model._mfDesiredHorizontal ??= new B.Vector3();
+    scene.activeCamera.getDirectionToRef(model._mfForwardLocal, model._mfCameraForward);
+    model._mfDesiredHorizontal.set(model._mfCameraForward.x, 0, model._mfCameraForward.z);
+    model._mfDesiredHorizontal.normalize();
+    model._mfDesiredHorizontal.scaleInPlace(speed);
+
+    const boosted = flock.applyGroundedMovement(model, model._mfDesiredHorizontal);
+    if (boosted) return;
+
+    const c = model._moveForwardCache;
+    if (!c) return; // applyGroundedMovement exited early (e.g. no physics engine)
+    const ahv = c.appliedHorizontalVelocity;
+
     // --- Face movement direction if there is meaningful horizontal speed ---
+    model._mfFacing ??= new B.Vector3();
+    model._mfTargetRotation ??= new B.Quaternion();
+    model._mfConjugate ??= new B.Quaternion();
+    model._mfDeltaRotation ??= new B.Quaternion();
+    model._mfDeltaEuler ??= new B.Vector3();
+    model._mfAngularVelocity ??= new B.Vector3();
     if (ahv.lengthSquared() > 1e-6) {
-      ahv.normalizeToRef(c.facingDirection);
+      ahv.normalizeToRef(model._mfFacing);
       B.Quaternion.FromLookDirectionLHToRef(
-        c.facingDirection,
+        model._mfFacing,
         B.Vector3.UpReadOnly,
-        c.targetRotation
+        model._mfTargetRotation
       );
       if (model.rotationQuaternion) {
-        c.currentRotationConjugate.copyFrom(model.rotationQuaternion);
+        model._mfConjugate.copyFrom(model.rotationQuaternion);
       } else {
-        c.currentRotationConjugate.copyFromFloats(0, 0, 0, 1);
+        model._mfConjugate.copyFromFloats(0, 0, 0, 1);
       }
-      c.currentRotationConjugate.conjugateInPlace();
-      c.targetRotation.multiplyToRef(c.currentRotationConjugate, c.deltaRotation);
-      c.deltaRotation.toEulerAnglesToRef(c.deltaEuler);
-      c.angularVelocity.set(0, c.deltaEuler.y * 5, 0);
-      model.physics.setAngularVelocity(c.angularVelocity);
+      model._mfConjugate.conjugateInPlace();
+      model._mfTargetRotation.multiplyToRef(model._mfConjugate, model._mfDeltaRotation);
+      model._mfDeltaRotation.toEulerAnglesToRef(model._mfDeltaEuler);
+      model._mfAngularVelocity.set(0, model._mfDeltaEuler.y * 5, 0);
+      model.physics.setAngularVelocity(model._mfAngularVelocity);
     }
 
     if (!model.rotationQuaternion) {
@@ -272,8 +285,6 @@ export const flockMovement = {
     model.rotationQuaternion.x = 0;
     model.rotationQuaternion.z = 0;
     model.rotationQuaternion.normalize();
-
-    model.isGrounded = grounded;
   },
   moveSideways(modelName, speed) {
     if (speed === 0) return;

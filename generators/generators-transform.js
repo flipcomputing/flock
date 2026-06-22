@@ -289,6 +289,20 @@ export function registerTransformGenerators(javascriptGenerator) {
     return `applyForce(${mesh}, { forceX: ${forceX}, forceY: ${forceY}, forceZ: ${forceZ} });\n`;
   };
 
+  // Set the speed an object travels at in a direction (forward/sideways/up or
+  // world x/y/z). Maintained until changed; 'all' to 0 stops it.
+  javascriptGenerator.forBlock["set_speed"] = function (block) {
+    const mesh = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue("MESH_VAR"),
+      Blockly.Names.NameType.VARIABLE,
+    );
+    const direction = block.getFieldValue("DIRECTION") || "forward";
+    const speed =
+      javascriptGenerator.valueToCode(block, "SPEED", javascriptGenerator.ORDER_ATOMIC) || "0";
+
+    return `setSpeed(${mesh}, '${direction}', ${speed});\n`;
+  };
+
   // Show physics shapes
   javascriptGenerator.forBlock["show_physics"] = function (block) {
     const show = block.getFieldValue("SHOW") === "TRUE";

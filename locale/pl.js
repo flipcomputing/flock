@@ -243,6 +243,9 @@ export default {
   add_physics: 'dodaj fizykę do %1 typ: %2',
   add_physics_shape: 'dodaj kształt fizyczny do %1 typ: %2',
   apply_force: 'zastosuj siłę do %1 x: %2 y: %3 z: %4',
+  set_speed: 'ustaw prędkość %1 %2 na %3', // ai
+  set_speed_tooltip:
+    'Utrzymuje ruch obiektu z ustaloną prędkością w danym kierunku. Porusza się tak jak postać gracza przy "ruszaj" — wjeżdża na zbocza, pokonuje małe stopnie, zatrzymuje się na ścianach i pozostaje w pionie — ale względem obiektu lub świata, a nie kamery. Utrzymuje tę prędkość, dopóki jej nie zmienisz. Wybierz kierunek względem obiektu (do przodu, bokiem, w górę) lub oś świata (x, y, z); użyj "patrz na", aby wycelować, a potem jedź do przodu. Wybierz "wszystkie" i 0, aby zatrzymać.\nSłowo kluczowe: speed', // ai
   show_physics: 'pokaż kształt fizyczne %1',
 
   // Custom block translations - Sensing blocks
@@ -687,6 +690,7 @@ export default {
   BACK_option: 'tył',
   forward_option: 'do przodu',
   sideways_option: 'bokiem',
+  up_option: 'w górę', // ai
   strafe_option: 'strafe',
   MIN_option: 'min',
   MAX_option: 'maks',
@@ -807,6 +811,10 @@ export default {
   SIZE_X_option: 'rozmiar x',
   SIZE_Y_option: 'rozmiar y',
   SIZE_Z_option: 'rozmiar z',
+  SPEED_X_option: 'prędkość x', // ai
+  SPEED_Y_option: 'prędkość y', // ai
+  SPEED_Z_option: 'prędkość z', // ai
+  SPEED_option: 'prędkość', // ai
   VISIBLE_option: 'widoczny',
   ALPHA_option: 'alpha',
   COLOUR_option: 'kolor',

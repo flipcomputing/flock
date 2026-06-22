@@ -242,6 +242,9 @@ export default {
   add_physics: 'adicionar física %1 tipo %2',
   add_physics_shape: 'adicionar forma física %1 tipo %2',
   apply_force: 'aplicar força em %1 x: %2 y: %3 z: %4',
+  set_speed: 'definir velocidade de %1 %2 para %3', // ai
+  set_speed_tooltip:
+    'Mantém um objeto a mover-se a uma velocidade definida numa direção. Move-se tal como uma personagem com "mover" — sobe rampas, transpõe pequenos degraus, para nas paredes e mantém-se direito — mas em relação ao objeto ou ao mundo, em vez da câmara. Mantém essa velocidade até a alterares. Escolhe uma direção em relação ao objeto (frente, lateral, cima) ou um eixo do mundo (x, y, z); usa "olhar para" para apontar e depois segue em frente. Escolhe "todos" e 0 para parar.\nPalavra-chave: speed', // ai
   show_physics: 'mostrar formas físicas %1',
 
   // Custom block translations - Sensing blocks
@@ -703,6 +706,7 @@ export default {
   BACK_option: 'trás',
   forward_option: 'frente',
   sideways_option: 'lateral',
+  up_option: 'cima', // ai
   strafe_option: 'deslocamento lateral',
   MIN_option: 'mínimo',
   MAX_option: 'máximo',
@@ -823,6 +827,10 @@ export default {
   SIZE_X_option: 'tamanho x',
   SIZE_Y_option: 'tamanho y',
   SIZE_Z_option: 'tamanho z',
+  SPEED_X_option: 'velocidade x', // ai
+  SPEED_Y_option: 'velocidade y', // ai
+  SPEED_Z_option: 'velocidade z', // ai
+  SPEED_option: 'velocidade', // ai
   VISIBLE_option: 'visível',
   ALPHA_option: 'alpha',
   COLOUR_option: 'cor',

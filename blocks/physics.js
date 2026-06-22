@@ -107,6 +107,47 @@ export function definePhysicsBlocks() {
     },
   };
 
+  Blockly.Blocks["set_speed"] = {
+    init: function () {
+      this.jsonInit({
+        type: "set_speed",
+        message0: translate("set_speed"),
+        args0: [
+          {
+            type: "field_variable",
+            name: "MESH_VAR",
+            variable: window.currentMesh,
+          },
+          {
+            type: "field_dropdown",
+            name: "DIRECTION",
+            options: [
+              getDropdownOption("forward"),
+              getDropdownOption("sideways"),
+              getDropdownOption("up"),
+              getDropdownOption("x_coordinate"),
+              getDropdownOption("y_coordinate"),
+              getDropdownOption("z_coordinate"),
+              getDropdownOption("all"),
+            ],
+          },
+          {
+            type: "input_value",
+            name: "SPEED",
+            check: "Number",
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Transform"],
+        tooltip: getTooltip("set_speed"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("transform_blocks");
+    },
+  };
+
   Blockly.Blocks["show_physics"] = {
     init: function () {
       this.jsonInit({

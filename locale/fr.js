@@ -242,6 +242,9 @@ export default {
   add_physics: 'ajouter physique %1 type %2',
   add_physics_shape: 'ajouter forme physique %1 type %2',
   apply_force: 'appliquer force à %1 x: %2 y: %3 z: %4',
+  set_speed: 'définir la vitesse de %1 %2 à %3', // ai
+  set_speed_tooltip:
+    'Fait avancer un objet à une vitesse définie dans une direction. Il se déplace comme un personnage avec "déplacer" — il monte les pentes, franchit les petites marches, s\'arrête contre les murs et reste droit — mais par rapport à l\'objet ou au monde plutôt qu\'à la caméra. Il garde cette vitesse jusqu\'à ce que tu la changes. Choisis une direction par rapport à l\'objet (avant, latéral, haut) ou un axe du monde (x, y, z) ; utilise "regarder" pour viser, puis avance. Choisis "tous" et 0 pour arrêter.\nMot-clé : speed', // ai
   show_physics: 'afficher les formes physiques %1',
 
   // Custom block translations - Sensing blocks
@@ -693,6 +696,7 @@ export default {
   BACK_option: 'arrière',
   forward_option: 'avant',
   sideways_option: 'latéral',
+  up_option: 'haut', // ai
   strafe_option: 'déplacement latéral',
   MIN_option: 'min',
   MAX_option: 'max',
@@ -813,6 +817,10 @@ export default {
   SIZE_X_option: 'taille x',
   SIZE_Y_option: 'taille y',
   SIZE_Z_option: 'taille z',
+  SPEED_X_option: 'vitesse x', // ai
+  SPEED_Y_option: 'vitesse y', // ai
+  SPEED_Z_option: 'vitesse z', // ai
+  SPEED_option: 'vitesse', // ai
   VISIBLE_option: 'visible',
   ALPHA_option: 'alpha',
   COLOUR_option: 'couleur',

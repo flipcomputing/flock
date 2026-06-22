@@ -431,6 +431,244 @@ export function runPhysicsTests(flock) {
     });
   });
 
+  describe("setSpeed method @physics", function () {
+    const boxIds = [];
+
+    beforeEach(async function () {
+      flock.scene ??= {};
+    });
+
+    afterEach(function () {
+      boxIds.forEach((boxId) => {
+        flock.dispose(boxId);
+      });
+      boxIds.length = 0;
+    });
+
+    // Create a static ground plus a dynamic box resting on it, ready to drive.
+    async function makeGroundAndBox(groundId, boxId) {
+      await flock.createBox(groundId, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
+      await flock.setPhysics(groundId, "STATIC");
+      boxIds.push(groundId);
+      await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
+      await flock.setPhysics(boxId, "DYNAMIC");
+      boxIds.push(boxId);
+      // Let it settle so the ground check sees it as grounded.
+      await new Promise((r) => setTimeout(r, 200));
+      return flock.scene.getMeshByName(boxId);
+    }
+
+    it("drives along the object's local direction when grounded", async function () {
+      this.timeout(8000);
+      const mesh = await makeGroundAndBox("velGndA", "boxSetVelocity");
+      // Unrotated box: local "forward" is -Z (the glide-direction convention).
+      flock.setSpeed("boxSetVelocity", "forward", 5);
+      await new Promise((r) => setTimeout(r, 200));
+
+      const v = mesh.physics.getLinearVelocity();
+      expect(v.x).to.be.closeTo(0, 0.3);
+      expect(v.z).to.be.closeTo(-5, 0.5);
+    });
+
+    it("combines forward and sideways into one heading", async function () {
+      this.timeout(8000);
+      const mesh = await makeGroundAndBox("velGndB", "boxSetVelocityCombine");
+      // forward -> -Z, sideways -> -X for an unrotated box.
+      flock.setSpeed("boxSetVelocityCombine", "forward", 5);
+      flock.setSpeed("boxSetVelocityCombine", "sideways", 3);
+      await new Promise((r) => setTimeout(r, 200));
+
+      const v = mesh.physics.getLinearVelocity();
+      expect(v.x).to.be.closeTo(-3, 0.5);
+      expect(v.z).to.be.closeTo(-5, 0.5);
+    });
+
+    it("moves the object across the ground", async function () {
+      this.timeout(8000);
+      const mesh = await makeGroundAndBox("velGndC", "boxSetVelocityMoves");
+      const start = mesh.position.clone();
+
+      flock.setSpeed("boxSetVelocityMoves", "forward", 8);
+      await new Promise((r) => setTimeout(r, 400));
+
+      expect(flock.BABYLON.Vector3.Distance(mesh.position, start)).to.be.greaterThan(1);
+    });
+
+    it("maintains the speed on a ground instead of friction stopping it", async function () {
+      this.timeout(10000);
+      const ground = "velGround";
+      await flock.createBox(ground, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
+      await flock.setPhysics(ground, "STATIC");
+      boxIds.push(ground);
+
+      const id = "velDriver";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      flock.setSpeed(id, "forward", 5);
+
+      // After well over a second on the ground, a one-shot would have stopped.
+      // The maintained speed should still be moving at ~5 (forward = -Z).
+      await new Promise((r) => setTimeout(r, 1500));
+      expect(mesh.physics.getLinearVelocity().z).to.be.closeTo(-5, 0.5);
+
+      // Setting it to 0 stops it.
+      flock.setSpeed(id, "forward", 0);
+      await new Promise((r) => setTimeout(r, 600));
+      expect(mesh.physics.getLinearVelocity().z).to.be.closeTo(0, 0.5);
+    });
+
+    it("maintains a world axis (x) on a ground", async function () {
+      this.timeout(10000);
+      const ground = "velGroundX";
+      await flock.createBox(ground, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
+      await flock.setPhysics(ground, "STATIC");
+      boxIds.push(ground);
+
+      const id = "velDriverX";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      flock.setSpeed(id, "x_coordinate", 5); // world +X
+
+      await new Promise((r) => setTimeout(r, 1500));
+      expect(mesh.physics.getLinearVelocity().x).to.be.closeTo(5, 0.5);
+    });
+
+    it("keeps a driven object upright (like move forward)", async function () {
+      this.timeout(10000);
+      const ground = "velGroundUp";
+      await flock.createBox(ground, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
+      await flock.setPhysics(ground, "STATIC");
+      boxIds.push(ground);
+
+      const id = "velUpright";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      const B = flock.BABYLON;
+      flock.setSpeed(id, "forward", 5);
+
+      // Try to tip it over (pitch + roll, plus a tumbling spin).
+      mesh.rotationQuaternion = B.Quaternion.RotationAxis(B.Axis.X, 0.9);
+      mesh.physics.setAngularVelocity(new B.Vector3(6, 0, 6));
+
+      await new Promise((r) => setTimeout(r, 800));
+
+      // The drive should have snapped it back upright (no pitch/roll).
+      const q = mesh.rotationQuaternion;
+      expect(Math.abs(q.x)).to.be.lessThan(0.05);
+      expect(Math.abs(q.z)).to.be.lessThan(0.05);
+    });
+
+    it("clamps vertical speed so a slope can't launch it", async function () {
+      this.timeout(10000);
+      const ground = "velGroundClamp";
+      await flock.createBox(ground, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
+      await flock.setPhysics(ground, "STATIC");
+      boxIds.push(ground);
+
+      const id = "velClamp";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      flock.setSpeed(id, "forward", 5); // horizontal drive, no vertical set
+
+      // Simulate a ramp kicking it sharply upward.
+      mesh.physics.setLinearVelocity(new flock.BABYLON.Vector3(0, 12, -5));
+      await new Promise((r) => setTimeout(r, 300));
+
+      // The drive should have capped the upward speed (~3), not let it launch.
+      expect(mesh.physics.getLinearVelocity().y).to.be.at.most(3.1);
+    });
+
+    it("does not clamp an explicit vertical (up) drive", async function () {
+      this.timeout(8000);
+      const id = "velUpDrive";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 5, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      flock.setSpeed(id, "up", 10); // explicit vertical drive
+
+      await new Promise((r) => setTimeout(r, 300));
+      // Explicitly driven vertical is respected, not capped at 3.
+      expect(mesh.physics.getLinearVelocity().y).to.be.greaterThan(8);
+    });
+
+    it("assigns a physics capsule like move forward", async function () {
+      const id = "velCapsule";
+      // 2 x 4 x 6 box: capsule radius = min(2,6)/2 = 1, height = 4 - 0.01.
+      await flock.createBox(id, { width: 2, height: 4, depth: 6, position: [0, 2, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(mesh.metadata.physicsCapsule).to.be.undefined; // none yet
+
+      flock.setSpeed(id, "forward", 5);
+
+      const cap = mesh.metadata.physicsCapsule;
+      expect(cap).to.exist;
+      expect(cap.radius).to.be.closeTo(1, 0.01);
+      expect(cap.height).to.be.closeTo(3.99, 0.01);
+      expect(cap.localCenter).to.exist;
+    });
+
+    it("'all' to 0 is a full stop that lets physics resume", async function () {
+      this.timeout(8000);
+      const ground = "velGroundAll";
+      await flock.createBox(ground, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
+      await flock.setPhysics(ground, "STATIC");
+      boxIds.push(ground);
+
+      const id = "boxSetVelocityAll";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      flock.setSpeed(id, "forward", 6);
+
+      // 'all' to 0 stops it; resting on the ground it then stays put.
+      flock.setSpeed(id, "all", 0);
+      const start = mesh.position.clone();
+      await new Promise((r) => setTimeout(r, 500));
+
+      expect(flock.BABYLON.Vector3.Distance(mesh.position, start)).to.be.lessThan(0.3);
+      // The maintained drive is cleared, so the body is free again.
+      expect(mesh.metadata.velocityDrive).to.be.undefined;
+    });
+
+    it("should handle missing physics gracefully", async function () {
+      const id = "boxSetVelocityNoPhysics";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      mesh.physics.dispose();
+      mesh.physics = null;
+
+      let errorLogged = false;
+      const originalConsoleError = console.error;
+      console.error = () => { errorLogged = true; };
+
+      flock.setSpeed(id, "forward", 1);
+
+      console.error = originalConsoleError;
+      expect(errorLogged).to.be.true;
+    });
+  });
+
   describe("meshExists @physics", function () {
     const boxIds = [];
 

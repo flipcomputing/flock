@@ -2,6 +2,106 @@ let flock;
 
 export const isBodyAlive = (body) => !!body?._pluginData?.hpBodyId;
 
+// Returns the mesh's normalised local basis vectors in world space, so velocity
+// magnitudes stay correct regardless of mesh scale.
+const localBasis = (mesh) => {
+  mesh.computeWorldMatrix(true);
+  const m = mesh.getWorldMatrix();
+  const right = flock.BABYLON.Vector3.TransformNormal(
+    new flock.BABYLON.Vector3(1, 0, 0), m).normalize();
+  const up = flock.BABYLON.Vector3.TransformNormal(
+    new flock.BABYLON.Vector3(0, 1, 0), m).normalize();
+  const forward = flock.BABYLON.Vector3.TransformNormal(
+    new flock.BABYLON.Vector3(0, 0, 1), m).normalize();
+  return { right, up, forward };
+};
+
+// Keep a driven object upright, like the move-forward character controller:
+// no tipping or spinning, but still free to yaw (e.g. steered with 'look at').
+const keepUpright = (mesh) => {
+  if (!isBodyAlive(mesh.physics)) return;
+  mesh.physics.setAngularVelocity(new flock.BABYLON.Vector3(0, 0, 0));
+  const q = mesh.rotationQuaternion;
+  if (q) {
+    q.x = 0; // no pitch
+    q.z = 0; // no roll
+    q.normalize();
+  }
+};
+
+// Re-assert the maintained speed (mesh.metadata.velocityDrive) each step. The
+// horizontal directions (forward/sideways relative to the object, x/z world) go
+// through move-forward's shared ground-aware engine, so a driven object moves
+// exactly like a player — riding slopes, hopping small steps, not launching off
+// ramps. The vertical (up / y) is a direct lift on top. Object stays upright.
+const applyVelocityDrive = (mesh) => {
+  const drive = mesh.metadata?.velocityDrive;
+  if (!drive || !isBodyAlive(mesh.physics)) return;
+  const B = flock.BABYLON;
+
+  const hasHorizontal =
+    drive.forward !== undefined ||
+    drive.sideways !== undefined ||
+    drive.x !== undefined ||
+    drive.z !== undefined;
+
+  if (hasHorizontal) {
+    const desired = (mesh._setSpeedDesiredH ??= new B.Vector3());
+    desired.set(0, 0, 0);
+    if (drive.forward !== undefined || drive.sideways !== undefined) {
+      const { right, forward } = localBasis(mesh);
+      if (drive.forward !== undefined) {
+        // flock "forward" = -localForward, projected onto the horizontal plane.
+        const fx = -forward.x;
+        const fz = -forward.z;
+        const l = Math.hypot(fx, fz) || 1;
+        desired.x += (fx / l) * drive.forward;
+        desired.z += (fz / l) * drive.forward;
+      }
+      if (drive.sideways !== undefined) {
+        const sx = -right.x;
+        const sz = -right.z;
+        const l = Math.hypot(sx, sz) || 1;
+        desired.x += (sx / l) * drive.sideways;
+        desired.z += (sz / l) * drive.sideways;
+      }
+    }
+    if (drive.x !== undefined) desired.x += drive.x;
+    if (drive.z !== undefined) desired.z += drive.z;
+
+    // Step-up boost handled this frame -> done.
+    if (flock.applyGroundedMovement(mesh, desired)) return;
+  }
+
+  // Explicit vertical lift (up / y) overrides the gravity-driven vertical.
+  const vertical = drive.up !== undefined ? drive.up : drive.y;
+  if (vertical !== undefined) {
+    const v = mesh.physics.getLinearVelocity();
+    v.y = vertical;
+    mesh.physics.setLinearVelocity(v);
+  }
+
+  keepUpright(mesh);
+};
+
+// Register a single per-step observer that keeps the velocity applied until
+// it's changed. Self-removes once the mesh is disposed.
+const ensureVelocityDrive = (mesh) => {
+  if (mesh.metadata._velocityDriveObserver) return;
+  const scene = flock.scene;
+  if (!scene?.onAfterPhysicsObservable) return;
+  // After the step (like the upright stabiliser) so the held velocity isn't
+  // left with a step's worth of gravity in it.
+  const observer = scene.onAfterPhysicsObservable.add(() => {
+    if (!mesh || mesh.isDisposed?.()) {
+      scene.onAfterPhysicsObservable.remove(observer);
+      return;
+    }
+    applyVelocityDrive(mesh);
+  });
+  mesh.metadata._velocityDriveObserver = observer;
+};
+
 const getShapeTypeFromPhysics = (physics) => {
   if (!physics?.shape) return null;
   const shape = physics.shape;
@@ -267,6 +367,70 @@ export const flockPhysics = {
     } else {
       console.error(`Model '${meshName}' not loaded or missing physics (applyForce)`);
     }
+  },
+  // Ensure mesh.metadata.physicsCapsule is set, computing it from the bounding
+  // box if missing — the exact assignment move-forward uses, so driven objects
+  // get a consistent capsule for either block.
+  ensurePhysicsCapsule(mesh) {
+    if (!mesh) return null;
+    let cap = mesh.metadata?.physicsCapsule;
+    if (cap && typeof cap.radius === 'number' && typeof cap.height === 'number') {
+      return cap;
+    }
+    mesh.computeWorldMatrix(true);
+    const bb = mesh.getBoundingInfo().boundingBox;
+    const localMin = bb.minimum;
+    const localMax = bb.maximum;
+    const height = Math.max(0.001, localMax.y - localMin.y);
+    const width = Math.max(0.001, localMax.x - localMin.x);
+    const depth = Math.max(0.001, localMax.z - localMin.z);
+    const radius = Math.min(width, depth) / 2;
+    const localCenter = new flock.BABYLON.Vector3(
+      (localMin.x + localMax.x) / 2,
+      (localMin.y + localMax.y) / 2,
+      (localMin.z + localMax.z) / 2
+    );
+    const adjustedHeight = Math.max(0, height - 0.01);
+    cap = { radius, height: adjustedHeight, localCenter };
+    mesh.metadata = mesh.metadata || {};
+    mesh.metadata.physicsCapsule = cap;
+    return cap;
+  },
+  // Set the speed an object travels at in one of its directions. Choose a local
+  // direction (forward/sideways/up, relative to the object's facing) or a world
+  // axis (x/y/z). The speed is *maintained* — re-applied every physics step — so
+  // it holds until you change it. Directions you haven't set are left to physics,
+  // so gravity still pulls it down and it can ride slopes and hit barriers. Local
+  // directions follow the move-forward / glide convention (forward =
+  // mesh.forward.negate()). 'all' to 0 is a full stop: it clears every maintained
+  // direction and zeroes the velocity, so the object behaves normally afterwards.
+  setSpeed(meshName, direction, speed = 0) {
+    const mesh = flock.scene.getMeshByName(meshName);
+    if (!(mesh && isBodyAlive(mesh.physics))) {
+      console.error(`Model '${meshName}' not loaded or missing physics (setSpeed)`);
+      return;
+    }
+    mesh.metadata = mesh.metadata || {};
+    // Assign a physics capsule the same way move-forward does, for consistency.
+    flock.ensurePhysicsCapsule(mesh);
+
+    if (direction === 'all') {
+      if (speed === 0) {
+        // Full stop: drop all maintained motion and kill current velocity, so
+        // physics (gravity, slopes) takes over normally and driving can resume.
+        delete mesh.metadata.velocityDrive;
+        mesh.physics.setLinearVelocity(new flock.BABYLON.Vector3(0, 0, 0));
+        return;
+      }
+      mesh.metadata.velocityDrive = { x: speed, y: speed, z: speed };
+    } else {
+      const worldAxis = { x_coordinate: 'x', y_coordinate: 'y', z_coordinate: 'z' }[direction];
+      mesh.metadata.velocityDrive = mesh.metadata.velocityDrive || {};
+      mesh.metadata.velocityDrive[worldAxis || direction] = speed;
+    }
+
+    ensureVelocityDrive(mesh);
+    applyVelocityDrive(mesh); // take effect immediately, not next frame
   },
   setPhysicsForMesh(mesh, physicsType) {
     if (!mesh) return mesh;

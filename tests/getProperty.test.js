@@ -333,5 +333,45 @@ export function runGetPropertyTests(flock) {
         "updated description",
       );
     });
+
+    it("reports velocity components and speed", function () {
+      // This suite runs on a no-op mock physics engine, so stub a live body
+      // with a known velocity to exercise getProperty's velocity mapping.
+      const meshId = flock.createBox("getProperty-velocity", {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      createdIds.push(meshId);
+
+      const mesh = flock.scene.getMeshByName(meshId);
+      mesh.physics = {
+        _pluginData: { hpBodyId: 1 },
+        getLinearVelocity: () => new flock.BABYLON.Vector3(3, 0, 4),
+      };
+
+      expect(flock.getProperty(meshId, "SPEED_X")).to.be.closeTo(3, 0.01);
+      expect(flock.getProperty(meshId, "SPEED_Z")).to.be.closeTo(4, 0.01);
+      // speed = magnitude of (3, 0, 4) = 5
+      expect(flock.getProperty(meshId, "SPEED")).to.be.closeTo(5, 0.01);
+    });
+
+    it("reports zero velocity for a mesh without a physics body", function () {
+      const meshId = flock.createBox("getProperty-velocity-nophysics", {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      createdIds.push(meshId);
+
+      const mesh = flock.scene.getMeshByName(meshId);
+      mesh.physics?.dispose();
+      mesh.physics = null;
+
+      expect(flock.getProperty(meshId, "SPEED_Y")).to.equal(0);
+      expect(flock.getProperty(meshId, "SPEED")).to.equal(0);
+    });
   });
 }

@@ -241,6 +241,9 @@ export default {
   add_physics: 'lägg till fysik %1 typ %2',
   add_physics_shape: 'lägg till fysikform %1 typ %2',
   apply_force: 'tillämpa kraft på %1 x: %2 y: %3 z: %4',
+  set_speed: 'ställ in hastighet för %1 %2 till %3', // ai
+  set_speed_tooltip:
+    'Håller ett objekt i rörelse med en bestämd hastighet i en riktning. Det rör sig precis som en spelfigur med "flytta" — kör uppför sluttningar, kliver över små kanter, stannar vid väggar och håller sig upprätt — men relativt objektet eller världen i stället för kameran. Det behåller hastigheten tills du ändrar den. Välj en riktning relativt objektet (framåt, åt sidan, upp) eller en världsaxel (x, y, z); använd "titta på" för att sikta och kör sedan framåt. Välj "alla" och 0 för att stanna.\nNyckelord: speed', // ai
   show_physics: 'visa fysikformer %1',
 
   // Custom block translations - Sensing blocks
@@ -682,6 +685,7 @@ export default {
   BACK_option: 'bak',
   forward_option: 'framåt',
   sideways_option: 'åt sidan',
+  up_option: 'upp', // ai
   strafe_option: 'sidled',
   MIN_option: 'min',
   MAX_option: 'max',
@@ -802,6 +806,10 @@ export default {
   SIZE_X_option: 'storlek x',
   SIZE_Y_option: 'storlek y',
   SIZE_Z_option: 'storlek z',
+  SPEED_X_option: 'hastighet x', // ai
+  SPEED_Y_option: 'hastighet y', // ai
+  SPEED_Z_option: 'hastighet z', // ai
+  SPEED_option: 'hastighet', // ai
   VISIBLE_option: 'synlig',
   ALPHA_option: 'alfa',
   COLOUR_option: 'färg',

@@ -145,6 +145,30 @@ export const flockSensing = {
         break;
       }
 
+      // Speed per world axis, and overall speed. 0 with no live physics body.
+      case "SPEED_X":
+      case "SPEED_Y":
+      case "SPEED_Z":
+      case "SPEED": {
+        const body = mesh.physics;
+        const v =
+          body && body._pluginData?.hpBodyId
+            ? body.getLinearVelocity()
+            : null;
+        if (!v) {
+          propertyValue = 0;
+        } else if (propertyName === "SPEED_X") {
+          propertyValue = parseFloat(v.x.toFixed(2));
+        } else if (propertyName === "SPEED_Y") {
+          propertyValue = parseFloat(v.y.toFixed(2));
+        } else if (propertyName === "SPEED_Z") {
+          propertyValue = parseFloat(v.z.toFixed(2));
+        } else {
+          propertyValue = parseFloat(v.length().toFixed(2));
+        }
+        break;
+      }
+
       // MIN/MAX: return consistent world AABB extents.
       // (Origin-specific adjustments previously mixed local/world spaces and manual scaling.)
       case "MIN_X": {

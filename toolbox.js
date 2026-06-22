@@ -1179,6 +1179,21 @@ const toolboxTransformPhysics = {
     },
     {
       kind: "block",
+      type: "set_speed",
+      keyword: "speed",
+      inputs: {
+        SPEED: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 5,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: "block",
       type: "show_physics",
       keyword: "colliders",
     },

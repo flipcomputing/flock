@@ -242,6 +242,9 @@ export default {
   add_physics: 'añadir física a %1 tipo %2', // human
   add_physics_shape: 'añadir física forma  %1 tipo %2', // human
   apply_force: 'aplicar fuerza a %1 x: %2 y: %3 z: %4', // human
+  set_speed: 'establecer velocidad de %1 %2 a %3', // ai
+  set_speed_tooltip:
+    'Mantiene un objeto moviéndose a una velocidad establecida en una dirección. Se mueve igual que un personaje con "mover" — sube rampas, salva pequeños escalones, se detiene en las paredes y se mantiene erguido — pero relativo al objeto o al mundo en lugar de a la cámara. Mantiene esa velocidad hasta que la cambies. Elige una dirección relativa al objeto (adelante, al lado, arriba) o un eje del mundo (x, y, z); usa "mirar a" para apuntar y luego avanza. Elige "todos" y 0 para detener.\nPalabra clave: speed', // ai
   show_physics: 'mostrar formas físicas %1', // human
 
   // Custom block translations - Sensing blocks
@@ -706,6 +709,7 @@ export default {
   BACK_option: 'atras', // human
   forward_option: 'adelante', // human
   sideways_option: 'al lado', // human
+  up_option: 'arriba', // ai
   strafe_option: 'strafear', // human
   MIN_option: 'mín', // human
   MAX_option: 'máx', // human
@@ -826,6 +830,10 @@ export default {
   SIZE_X_option: 'tamaño x', // human
   SIZE_Y_option: 'tamaño y', // human
   SIZE_Z_option: 'tamaño z', // human
+  SPEED_X_option: 'velocidad x', // ai
+  SPEED_Y_option: 'velocidad y', // ai
+  SPEED_Z_option: 'velocidad z', // ai
+  SPEED_option: 'velocidad', // ai
   VISIBLE_option: 'visible', // human
   ALPHA_option: 'alfa', // human
   COLOUR_option: 'color', // human
