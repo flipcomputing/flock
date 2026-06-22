@@ -290,6 +290,34 @@ export function defineMaterialsBlocks() {
     },
   };
 
+  Blockly.Blocks["set_shadow"] = {
+    init: function () {
+      this.jsonInit({
+        type: "set_shadow",
+        message0: translate("set_shadow"),
+        args0: [
+          {
+            type: "field_variable",
+            name: "MESH",
+            variable: window.currentMesh,
+          },
+          {
+            type: "field_checkbox",
+            name: "CAST",
+            checked: true,
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Materials"],
+        tooltip: getTooltip("set_shadow"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("materials_blocks");
+    },
+  };
+
   Blockly.Blocks["tint"] = {
     init: function () {
       this.jsonInit({

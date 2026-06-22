@@ -29,6 +29,63 @@ export const flockEffects = {
   getMainLight() {
     return "__main_light__";
   },
+  enableShadows({ enabled = true } = {}) {
+    if (!flock.shadowLight) {
+      console.warn(
+        "Shadow light is not defined. Please ensure flock.shadowLight exists.",
+      );
+      return;
+    }
+    if (enabled) {
+      if (!flock.shadowGenerator) {
+        // Cartoony shadows: a small blur kernel softens the 512-map edges
+        // just enough to kill the pixelation while staying cheap.
+        const sg = new flock.BABYLON.ShadowGenerator(512, flock.shadowLight);
+        sg.useBlurExponentialShadowMap = true;
+        sg.blurKernel = 8;
+        flock.shadowGenerator = sg;
+      }
+      // Turn the "sun" on so it both shades surfaces and casts shadows.
+      flock.shadowLight.intensity = 0.4;
+      if (flock.ground) flock.ground.receiveShadows = true;
+      // Register any meshes already marked as casters (order-independent).
+      flock.shadowCasters.forEach((m) => {
+        if (!m.isDisposed()) flock.shadowGenerator.addShadowCaster(m);
+      });
+    } else {
+      // Turn the directional light back off so the scene returns to its
+      // flat hemispheric look (no shading, no cast shadows). Marked casters
+      // are remembered so re-enabling restores them.
+      flock.shadowLight.intensity = 0;
+      if (flock.shadowGenerator) {
+        flock.shadowGenerator.dispose();
+        flock.shadowGenerator = null;
+      }
+    }
+  },
+  setShadow(meshName, { cast = true } = {}) {
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, (mesh) => {
+        const meshes = [mesh, ...mesh.getDescendants()].filter(
+          (m) =>
+            m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0,
+        );
+        // Marking a caster does NOT turn shadows on — enableShadows is the
+        // master switch. Track the intent and apply it live if a generator
+        // already exists.
+        meshes.forEach((m) => {
+          if (cast) {
+            flock.shadowCasters.add(m);
+            flock.shadowGenerator?.addShadowCaster(m);
+          } else {
+            flock.shadowCasters.delete(m);
+            flock.shadowGenerator?.removeShadowCaster(m);
+          }
+        });
+        resolve();
+      });
+    });
+  },
   createParticleEffect(
     name,
     {

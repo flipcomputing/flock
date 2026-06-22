@@ -121,6 +121,9 @@ export const flock = {
   highlighter: null,
   glowLayer: null,
   mainLight: null,
+  shadowLight: null,
+  shadowGenerator: null,
+  shadowCasters: new Set(),
   hk: null,
   havokInstance: null,
   initialClearColor: null,
@@ -920,6 +923,8 @@ export const flock = {
       setSky: this.setSky?.bind(this),
       lightIntensity: this.lightIntensity?.bind(this),
       lightColor: this.lightColor?.bind(this),
+      enableShadows: this.enableShadows?.bind(this),
+      setShadow: this.setShadow?.bind(this),
       buttonControls: this.buttonControls?.bind(this),
       onScreenControls: this.onScreenControls?.bind(this),
       createJoystickControls: this.createJoystickControls?.bind(this),
@@ -1045,6 +1050,8 @@ export const flock = {
       'setCameraBackground',
       'lightIntensity',
       'lightColor',
+      'enableShadows',
+      'setShadow',
       'create3DText',
       'createModel',
       'createBox',
@@ -2041,6 +2048,25 @@ export const flock = {
     hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5);
 
     flock.mainLight = hemisphericLight;
+
+    // Directional light that drives the ShadowGenerator. A shadow is the
+    // absence of this light's contribution where it's blocked, so it must
+    // actually illuminate. It starts at intensity 0 (no effect, flat
+    // hemispheric look by default); enableShadows() raises it so the "sun"
+    // shading and cast shadows only appear while shadows are turned on.
+    const shadowLight = new flock.BABYLON.DirectionalLight(
+      'shadowLight',
+      // Near-overhead angle keeps shadows small and tucked under objects for
+      // a cartoony look (a shallower angle stretches them out). A slight
+      // offset is kept so vertical faces still get some directional shading.
+      new flock.BABYLON.Vector3(-0.15, -1, -0.15),
+      flock.scene
+    );
+    shadowLight.position = new flock.BABYLON.Vector3(20, 40, 20);
+    shadowLight.intensity = 0;
+    flock.shadowLight = shadowLight;
+    flock.shadowGenerator = null;
+    flock.shadowCasters.clear();
 
     // Enable collisions
     flock.scene.collisionsEnabled = true;

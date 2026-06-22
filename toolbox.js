@@ -722,6 +722,11 @@ const toolboxSceneLights = {
     },
     {
       kind: "block",
+      type: "enable_shadows",
+      keyword: "shadows",
+    },
+    {
+      kind: "block",
       type: "create_particle_effect",
       keyword: "particle",
       inputs: {
@@ -3119,6 +3124,11 @@ const toolboxMaterials = {
       kind: "block",
       type: "glow",
       keyword: "glow",
+    },
+    {
+      kind: "block",
+      type: "set_shadow",
+      keyword: "shadow",
     },
     {
       kind: "block",

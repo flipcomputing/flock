@@ -230,6 +230,8 @@ export default {
     'decal on %1 from x: %2 y: %3 z: %4 \nangle x: %5 y: %6 z: %7\nsize x: %8 y: %9 z: %10 material: %11',
   highlight: 'highlight %1 %2',
   glow: 'glow %1',
+  set_shadow: 'cast shadow from %1 %2',
+  enable_shadows: 'enable shadows %1',
   tint: 'tint %1 %2',
   set_alpha: 'set alpha of %1 to %2',
   clear_effects: 'clear effects %1',
@@ -482,6 +484,9 @@ export default {
   decal_tooltip: 'Create a decal on an object with position, normal, size, and material.',
   highlight_tooltip: 'Highlight the selected object.\nKeyword: highlight',
   glow_tooltip: 'Adds a glow effect to the selected object.\nKeyword: glow',
+  set_shadow_tooltip:
+    'Toggle whether an object casts a shadow.\nKeyword: shadow',
+  enable_shadows_tooltip: 'Turn scene shadows on or off.\nKeyword: shadows',
   tint_tooltip: 'Add color tint effect.\nKeyword: tint',
   set_alpha_tooltip:
     'Set the alpha (transparency) of the material(s) on a specified object. Values should be 0 to 1.\nKeyword:alpha',

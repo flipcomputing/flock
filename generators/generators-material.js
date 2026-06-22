@@ -32,6 +32,16 @@ export function registerMaterialGenerators(javascriptGenerator) {
     return `await setAlpha(${modelName}, { value: ${alphaValue} });\n`;
   };
 
+  // Set shadow casting of object -------------------------------
+  javascriptGenerator.forBlock["set_shadow"] = function (block) {
+    const modelName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue("MESH"),
+      Blockly.Names.NameType.VARIABLE,
+    );
+    const cast = block.getFieldValue("CAST") === "TRUE";
+    return `await setShadow(${modelName}, { cast: ${cast} });\n`;
+  };
+
   // Tint object ------------------------------------------------
   javascriptGenerator.forBlock["tint"] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(

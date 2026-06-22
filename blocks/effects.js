@@ -90,6 +90,29 @@ export function defineEffectsBlocks() {
     },
   };
 
+  Blockly.Blocks["enable_shadows"] = {
+    init: function () {
+      this.jsonInit({
+        type: "enable_shadows",
+        message0: translate("enable_shadows"),
+        args0: [
+          {
+            type: "field_checkbox",
+            name: "ENABLED",
+            checked: true,
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Scene"],
+        tooltip: getTooltip("enable_shadows"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("scene_blocks");
+    },
+  };
+
   Blockly.Blocks["get_light"] = {
     init: function () {
       this.jsonInit({

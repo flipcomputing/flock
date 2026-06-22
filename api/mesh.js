@@ -299,6 +299,9 @@ export const flockMesh = {
     mesh.isVisible = true;
     mesh.setEnabled(true);
 
+    // Receive shadows by default; harmless until a ShadowGenerator exists.
+    mesh.receiveShadows = true;
+
     if (alpha > 0 && mesh.material) {
       mesh.material.needDepthPrePass = true;
     }

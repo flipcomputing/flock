@@ -407,6 +407,12 @@ export function registerSceneGenerators(javascriptGenerator) {
     return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor});\n`;
   };
 
+  // Enable shadows -------------------------------------------------
+  javascriptGenerator.forBlock["enable_shadows"] = function (block) {
+    const enabled = block.getFieldValue("ENABLED") === "TRUE";
+    return `enableShadows({ enabled: ${enabled} });\n`;
+  };
+
   // Get light as --------------------------------------------------
   javascriptGenerator.forBlock["get_light"] = function (block) {
     const variableName = javascriptGenerator.nameDB_.getName(
