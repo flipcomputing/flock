@@ -77,7 +77,7 @@ const cleanupFns = [];
 // Track DO sections and their associated blocks for cleanup
 const gizmoCreatedBlocks = new Map(); // blockId -> { parentId, createdDoSection, timestamp }
 
-function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast, mode, showUniform, stepLabels, onHudHide, onAxisChange, stepLabelsByAxis }) {
+function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast, mode, showUniform, stepLabels, onHudHide, onAxisChange, stepLabelsByAxis, initialKeyboardAxis = null, initialHudAxis = null }) {
   let hud = null;
   let keyboard = null;
 
@@ -86,8 +86,10 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
     onAxisChange?.(axis);
   }
 
-  hud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange, stepLabelsByAxis });
-  keyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast, onAxisChange: onKbAxisChange });
+  hud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange, stepLabelsByAxis, initialAxis: initialHudAxis ?? initialKeyboardAxis });
+  keyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast, onAxisChange: onKbAxisChange, initialAxis: initialKeyboardAxis });
+  const startAxis = initialKeyboardAxis ?? initialHudAxis;
+  if (startAxis) onAxisChange?.(startAxis);
   flock.canvas?.focus();
 
   function stop() {
@@ -99,6 +101,7 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
     if (axis) hud?.setAxis(axis);
     onAxisChange?.(axis);
   };
+  stop.getAxis = () => keyboard?.getAxis?.() ?? null;
   return stop;
 }
 
@@ -720,7 +723,8 @@ export function exitGizmoState() {
 }
 
 // Start the keyboard handler for moving a mesh
-function startMoveKeyboardHandler(mesh) {
+function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = null) {
+  const initialKeyboardAxis = stopAxisKeyboard?.getAxis?.() ?? null;
   document.body.style.cursor = 'default';
   cleanupScenePick();
   stopAxisKeyboard?.();
@@ -756,13 +760,16 @@ function startMoveKeyboardHandler(mesh) {
     stepFast: FAST_CURSOR,
     mode: 'arrows',
     stepLabelsByAxis: { x: ['◁', '▷'], y: ['▽', '△'], z: ['▽', '△'], all: ['◁', '▷'] },
-    onAxisChange: (axis) => highlightGizmoAxis(gizmoManager.gizmos?.positionGizmo, axis),
+    onAxisChange: (axis) => { onHudAxisSaved?.(axis); highlightGizmoAxis(gizmoManager.gizmos?.positionGizmo, axis); },
     onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.positionGizmo, null),
+    initialKeyboardAxis,
+    initialHudAxis: savedHudAxis,
   });
 }
 
 // Rotate a mesh using the keyboard
-function startRotateKeyboardHandler(mesh) {
+function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = null) {
+  const initialKeyboardAxis = stopAxisKeyboard?.getAxis?.() ?? null;
   document.body.style.cursor = 'default';
   cleanupScenePick();
   stopAxisKeyboard?.();
@@ -814,12 +821,15 @@ function startRotateKeyboardHandler(mesh) {
     stepFast: FAST_ROTATION,
     mode: 'slider',
     onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.rotationGizmo, null),
-    onAxisChange: (axis) => highlightGizmoAxis(gizmoManager.gizmos?.rotationGizmo, axis),
+    onAxisChange: (axis) => { onHudAxisSaved?.(axis); highlightGizmoAxis(gizmoManager.gizmos?.rotationGizmo, axis); },
+    initialKeyboardAxis,
+    initialHudAxis: savedHudAxis,
   });
 }
 
 // Scale a mesh using the keyboard
-function startScaleKeyboardHandler(mesh) {
+function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = null) {
+  const initialKeyboardAxis = stopAxisKeyboard?.getAxis?.() ?? null;
   document.body.style.cursor = 'default';
   cleanupScenePick();
   stopAxisKeyboard?.();
@@ -873,8 +883,10 @@ function startScaleKeyboardHandler(mesh) {
     mode: 'arrows',
     showUniform: true,
     stepLabels: ['-', '+'],
-    onAxisChange: (axis) => highlightGizmoAxis(gizmoManager.gizmos?.scaleGizmo, axis),
+    onAxisChange: (axis) => { onHudAxisSaved?.(axis); highlightGizmoAxis(gizmoManager.gizmos?.scaleGizmo, axis); },
     onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.scaleGizmo, null),
+    initialKeyboardAxis,
+    initialHudAxis: savedHudAxis,
   });
 }
 
@@ -1513,9 +1525,10 @@ function handleScaleGizmo() {
   const scaleButton = document.getElementById('scaleButton');
   scaleButton.classList.add('active');
 
+  let savedHudAxis = null;
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
-    startScaleKeyboardHandler(mesh);
+    startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => { savedHudAxis = axis; });
   } else {
     pickMeshFromScene((pickedMesh) => {
       if (!pickedMesh || pickedMesh.name === 'ground') {
@@ -1536,7 +1549,7 @@ function handleScaleGizmo() {
     }
 
     lastScaledMesh = mesh;
-    startScaleKeyboardHandler(mesh);
+    startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => { savedHudAxis = axis; });
   });
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(scaleObs));
@@ -1666,9 +1679,10 @@ function handleRotationGizmo() {
   const rotationButton = document.getElementById('rotationButton');
   rotationButton.classList.add('active');
 
+  let savedHudAxis = null;
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
-    startRotateKeyboardHandler(mesh);
+    startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => { savedHudAxis = axis; });
   } else {
     pickMeshFromScene((pickedMesh) => {
       if (!pickedMesh || pickedMesh.name === 'ground') {
@@ -1691,7 +1705,7 @@ function handleRotationGizmo() {
 
     lastRotatedMesh = mesh;
 
-    startRotateKeyboardHandler(mesh);
+    startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => { savedHudAxis = axis; });
   });
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(rotateObs));
@@ -1745,6 +1759,7 @@ function handlePositionGizmo() {
   positionButton.classList.add('active');
 
   let keyboardAttachedMesh = null;
+  let savedHudAxis = null;
   const activatePositionKeyboardForMesh = (mesh) => {
     if (!mesh) {
       exitGizmoState();
@@ -1754,7 +1769,7 @@ function handlePositionGizmo() {
     if (keyboardAttachedMesh === mesh) return;
     keyboardAttachedMesh = mesh;
 
-    startMoveKeyboardHandler(mesh);
+    startMoveKeyboardHandler(mesh, savedHudAxis, (axis) => { savedHudAxis = axis; });
 
     const blockKey = mesh?.metadata?.blockKey;
     const blockId = blockKey ? meshMap[blockKey] : null;

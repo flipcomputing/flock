@@ -11,6 +11,7 @@ export function createGizmoMobileHud({
   stepLabels = ['◁', '▷'],
   onAxisChange = null,
   stepLabelsByAxis = null,
+  initialAxis = null,
 }) {
   if (!flock.scene || !flock.canvas || !flock.GUI) return null;
 
@@ -28,14 +29,14 @@ export function createGizmoMobileHud({
   );
 
   // ── Axis state ────────────────────────────────────────────────────────────
-  let axis = 'x';
-
   const AXIS_DEFS = [
     { key: 'x', label: 'X', color: '#0072B2' },
     { key: 'y', label: 'Y', color: '#009E73' },
     { key: 'z', label: 'Z', color: '#D55E00' },
     ...(showUniform ? [{ key: 'all', label: '★', color: '#aaaaaa' }] : []),
   ];
+  const firstAxis = AXIS_DEFS[0]?.key ?? 'x';
+  let axis = (initialAxis && AXIS_DEFS.find(d => d.key === initialAxis)) ? initialAxis : firstAxis;
   const numAxes = AXIS_DEFS.length;
 
   // ── Layout ────────────────────────────────────────────────────────────────

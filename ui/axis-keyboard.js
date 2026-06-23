@@ -11,8 +11,9 @@ export function createAxisKeyboardHandler({
   stepNormal = 0.1,
   stepFast = 1,
   onAxisChange,
+  initialAxis = null,
 }) {
-  let axis = null;
+  let axis = initialAxis;
 
   function handler(event) {
     const t = event.target;
@@ -153,6 +154,7 @@ export function createAxisKeyboardHandler({
     axis = null;
     KeyboardDispatcher.popMode();
   }
+  stop.getAxis = () => axis;
 
   return stop;
 }
