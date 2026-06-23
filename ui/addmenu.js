@@ -454,18 +454,36 @@ function selectShape(shapeType) {
         // than an interpolated/averaged vertex normal.
         const normal = pickResult.getNormal?.(true, false);
         if (normal) {
-          // Lie the plane flat against the clicked face: rotate so its normal
-          // matches the surface, then keep X/Z on the usual 0.1 grid and add
-          // the small offset along the normal so it sits just clear of the
-          // surface. Storing at 2-decimal precision lets the 0.02 nudge
-          // survive rounding — only the offset axis shows the extra decimal.
-          const rotation = planeRotationForNormal(normal);
+          // getNormal returns the geometric face normal with an unreliable sign
+          // (winding/scaling can flip it). Normalise it to point OUT of the
+          // surface, toward the camera — the side the click came from. The pick
+          // ray travels into the surface, so a positive dot means the normal
+          // points inward; flip it in that case.
+          if (flock.BABYLON.Vector3.Dot(normal, pickRay.direction) > 0) {
+            normal.negateInPlace();
+          }
+          // `normal` now points outward (toward the viewer). The plane's
+          // readable face is its -Z side (a default flock plane is double-sided
+          // and text reads correctly on -Z), so to face the readable side at
+          // the viewer we align the plane's +Z with the INWARD direction — the
+          // opposite of the outward normal. planeRotationForNormal aligns +Z
+          // with whatever vector it is given, so pass the negated normal.
+          const rotation = planeRotationForNormal(normal.scale(-1));
           const p = pickResult.pickedPoint;
+          // Round to 2 decimals (0.01 grid), matching the precision the block
+          // is stored at below. The default roundPositionValue precision is a
+          // 0.1 grid, which moves the pick point up to 0.05 off the true
+          // surface — enough that the small normal nudge below either leaves a
+          // visible gap (rounded outward) or fails to clear the face and
+          // z-fights (rounded inward). The finer grid keeps the point within
+          // 0.005 of the surface so the nudge is reliable.
           const base = new flock.BABYLON.Vector3(
-            roundPositionValue(p.x),
-            roundPositionValue(p.y),
-            roundPositionValue(p.z),
+            roundPositionValue(p.x, 2),
+            roundPositionValue(p.y, 2),
+            roundPositionValue(p.z, 2)
           );
+          // Nudge along the outward normal so the plane sits just clear of the
+          // surface (toward the viewer) and does not z-fight the clicked face.
           const position = base.add(normal.scale(0.02));
 
           // Compensate for flock's "base rule": when the plane is created it is
@@ -481,13 +499,6 @@ function selectShape(shapeType) {
 
           const planeBlock = addShapeToWorkspace(shapeType, position, 2, rotation);
 
-          // The rotate_to block captures the orientation in the program, but
-          // the block-driven live-sync does not rotate a programmatically added
-          // rotate_to, so the live preview mesh stays upright. Rotate it
-          // directly — the same thing the rotate gizmo does. The preview mesh
-          // is created from the block on a later tick (Blockly fires create
-          // events asynchronously), so poll until it exists before rotating.
-          // The preview mesh is named plane__<blockId> (see ui/addmeshes.js).
           if (rotation && planeBlock) {
             applyLiveRotationWhenReady(planeBlock.id, rotation);
           }
