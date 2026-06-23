@@ -649,9 +649,7 @@ export function initContextMenus(workspace) {
     let toolbarShowTimer = null;
     let lastSelectionWasPointer = false;
 
-    const injectionDiv = workspace.getInjectionDiv();
-
-    injectionDiv.addEventListener(
+    document.addEventListener(
       'pointerdown',
       () => {
         lastSelectionWasPointer = true;
@@ -766,7 +764,7 @@ export function initContextMenus(workspace) {
     });
 
     // Toggle toolbar on click of the selected block
-    injectionDiv.addEventListener(
+    document.addEventListener(
       'pointerdown',
       (e) => {
         if (!selectedBlock) return;
@@ -868,7 +866,7 @@ export function initContextMenus(workspace) {
           hideBlockToolbar();
           if (block.isDisposed?.()) return;
           block.checkAndDelete();
-          Blockly.Toast.show(workspace, {
+          Blockly.Toast?.show?.(workspace, {
             message: translate('DELETE_UNDO_HINT'),
             id: 'delete-undo-tip',
             oncePerSession: true,
