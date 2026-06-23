@@ -461,10 +461,14 @@ export function viewMeshWithCamera(block) {
   const camera = flock.scene.activeCamera;
 
   if (!camera?.metadata?.following) {
-    // Already orbiting? V toggles back to the free camera.
     if (camera?.metadata?.orbitView) {
-      disconnectOrbitView();
-      return;
+      // Toggle off if: V key (no block), or eye button on the already-orbited mesh.
+      // Switch if: eye button on a different mesh.
+      if (!block || mesh === gizmoManager.attachedMesh) {
+        disconnectOrbitView();
+        return;
+      }
+      disconnectOrbitView(); // switch target — disconnect first, then fall through
     }
     if (mesh) attachOrbitView(mesh);
     return;
@@ -651,6 +655,8 @@ function attachOrbitView(mesh) {
   orbitViewObserver = gizmoManager.onAttachedToMeshObservable.add((attached) => {
     if (attached !== selectedMesh) disconnectOrbitView();
   });
+  window.orbitViewActive = true;
+  window.orbitBlock = window.currentBlock ?? null;
 }
 
 // Restore the stashed free camera, disposing the orbit camera. Does not
@@ -684,6 +690,8 @@ function restoreFreeCameraFromOrbit() {
 function disconnectOrbitView() {
   if (!flock.scene.activeCamera?.metadata?.orbitView) return;
   restoreFreeCameraFromOrbit();
+  window.orbitViewActive = false;
+  window.orbitBlock = null;
   const canvas = flock.scene.getEngine().getRenderingCanvas();
   if (canvas) {
     flock.scene.activeCamera?.attachControl(canvas, false);

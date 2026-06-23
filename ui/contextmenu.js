@@ -573,6 +573,8 @@ export function initContextMenus(workspace) {
     blockToolbar.setAttribute('role', 'toolbar');
     document.body.appendChild(blockToolbar);
 
+    // Icon paths: Font Awesome Free 6.7.2 by @fontawesome — https://fontawesome.com
+    // License: https://fontawesome.com/license/free  Copyright 2025 Fonticons, Inc.
     const mkFaSvg = (path, vw = '0 0 448 512') =>
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vw}" width="20" height="20" fill="currentColor">${path}</svg>`;
 
@@ -615,14 +617,20 @@ export function initContextMenus(workspace) {
     );
     commentBtn.innerHTML = commentAddSvg;
 
+    const viewEnterSvg = mkFaSvg(
+      '<path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"/>',
+      '0 0 576 512'
+    );
+    const viewExitSvg = mkFaSvg(
+      '<path d="M45.6 32C20.4 32 0 52.4 0 77.6L0 434.4C0 459.6 20.4 480 45.6 480c5.1 0 10-.8 14.7-2.4C74.6 472.8 177.6 440 320 440s245.4 32.8 259.6 37.6c4.7 1.6 9.7 2.4 14.7 2.4c25.2 0 45.6-20.4 45.6-45.6l0-356.7C640 52.4 619.6 32 594.4 32c-5 0-10 .8-14.7 2.4C565.4 39.2 462.4 72 320 72S74.6 39.2 60.4 34.4C55.6 32.8 50.7 32 45.6 32zM96 160a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm272 0c7.9 0 15.4 3.9 19.8 10.5L512.3 353c5.4 8 5.6 18.4 .4 26.5s-14.7 12.3-24.2 10.7C442.7 382.4 385.2 376 320 376c-65.6 0-123.4 6.5-169.3 14.4c-9.8 1.7-19.7-2.9-24.7-11.5s-4.3-19.4 1.9-27.2L197.3 265c4.6-5.7 11.4-9 18.7-9s14.2 3.3 18.7 9l26.4 33.1 87-127.6c4.5-6.6 11.9-10.5 19.8-10.5z"/>',
+      '0 0 640 512'
+    );
+
     const viewBtn = document.createElement('button');
     viewBtn.type = 'button';
     viewBtn.className = 'fc-block-toolbar-btn';
     viewBtn.setAttribute('aria-label', 'View in canvas');
-    viewBtn.innerHTML = mkFaSvg(
-      '<path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"/>',
-      '0 0 576 512'
-    );
+    viewBtn.innerHTML = viewEnterSvg;
 
     blockToolbar.append(duplicateBtn, detachBtn, commentBtn, viewBtn, deleteBtn);
 
@@ -680,6 +688,9 @@ export function initContextMenus(workspace) {
         /* scene not ready */
       }
       viewBtn.style.display = !mesh || mesh.name === 'ground' ? 'none' : '';
+      const exitMode = !!window.orbitViewActive && window.orbitBlock === block;
+      viewBtn.innerHTML = exitMode ? viewExitSvg : viewEnterSvg;
+      viewBtn.setAttribute('aria-label', exitMode ? 'Exit canvas view' : 'View in canvas');
       positionBlockToolbar();
       blockToolbar.classList.add('visible');
     }
@@ -800,6 +811,7 @@ export function initContextMenus(workspace) {
       showCanvasView();
       window.currentBlock = block;
       viewMeshWithCamera(block);
+      window.orbitBlock = window.orbitViewActive ? block : null;
     });
 
     deleteBtn.addEventListener('pointerdown', (e) => {
