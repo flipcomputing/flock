@@ -893,4 +893,13 @@ export const flockUI = {
       console.warn("Unable to print text:", error);
     }
   },
+
+  clearText() {
+    if (!flock.stackPanel) return;
+    const toRemove = flock.stackPanel.children.filter(c => c.name === "textBackground");
+    for (const bg of toRemove) {
+      flock.stackPanel.removeControl(bg);
+      bg.dispose();
+    }
+  },
 };

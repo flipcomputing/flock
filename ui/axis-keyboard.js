@@ -38,7 +38,7 @@ export function createAxisKeyboardHandler({
       case "X":
         axis = axis === "x" ? null : "x";
         flock.printText({
-          text: axis ? translate("axis_x") : translate("axis_free"),
+          text: axis ? `🔒 ${translate("axis_x")}` : translate("axis_free"),
           duration: 10,
           color: "black",
         });
@@ -50,7 +50,7 @@ export function createAxisKeyboardHandler({
       case "Y":
         axis = axis === "y" ? null : "y";
         flock.printText({
-          text: axis ? translate("axis_y") : translate("axis_free"),
+          text: axis ? `🔒 ${translate("axis_y")}` : translate("axis_free"),
           duration: 10,
           color: "black",
         });
@@ -62,7 +62,7 @@ export function createAxisKeyboardHandler({
       case "Z":
         axis = axis === "z" ? null : "z";
         flock.printText({
-          text: axis ? translate("axis_z") : translate("axis_free"),
+          text: axis ? `🔒 ${translate("axis_z")}` : translate("axis_free"),
           duration: 10,
           color: "black",
         });
@@ -74,7 +74,7 @@ export function createAxisKeyboardHandler({
       case "U":
         axis = axis === "all" ? null : "all";
         flock.printText({
-          text: axis ? `★ ${translate("axis_all")}` : translate("axis_free"),
+          text: axis ? `🔒 ★ ${translate("axis_all")}` : translate("axis_free"),
           duration: 10,
           color: "black",
         });
@@ -152,6 +152,7 @@ export function createAxisKeyboardHandler({
     if (stopped) return;
     stopped = true;
     axis = null;
+    flock.clearText?.();
     KeyboardDispatcher.popMode();
   }
   stop.getAxis = () => axis;
