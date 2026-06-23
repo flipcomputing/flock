@@ -81,9 +81,13 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
   let hud = null;
   let keyboard = null;
 
+  let lastReportedAxis = initialKeyboardAxis ?? null;
   function onKbAxisChange(axis) {
     if (axis) hud?.setAxis(axis);
-    onAxisChange?.(axis);
+    if (axis !== lastReportedAxis) {
+      lastReportedAxis = axis;
+      onAxisChange?.(axis);
+    }
   }
 
   function onHudAxisChange(axis) {
@@ -1536,7 +1540,7 @@ function handleScaleGizmo() {
   let savedHudAxis = null;
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
-    startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => { savedHudAxis = axis; });
+    startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => { if (axis) savedHudAxis = axis; });
   } else {
     pickMeshFromScene((pickedMesh) => {
       if (!pickedMesh || pickedMesh.name === 'ground') {
@@ -1557,7 +1561,7 @@ function handleScaleGizmo() {
     }
 
     lastScaledMesh = mesh;
-    startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => { savedHudAxis = axis; });
+    startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => { if (axis) savedHudAxis = axis; });
   });
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(scaleObs));
@@ -1690,7 +1694,7 @@ function handleRotationGizmo() {
   let savedHudAxis = null;
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
-    startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => { savedHudAxis = axis; });
+    startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => { if (axis) savedHudAxis = axis; });
   } else {
     pickMeshFromScene((pickedMesh) => {
       if (!pickedMesh || pickedMesh.name === 'ground') {
@@ -1713,7 +1717,7 @@ function handleRotationGizmo() {
 
     lastRotatedMesh = mesh;
 
-    startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => { savedHudAxis = axis; });
+    startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => { if (axis) savedHudAxis = axis; });
   });
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(rotateObs));
@@ -1777,7 +1781,7 @@ function handlePositionGizmo() {
     if (keyboardAttachedMesh === mesh) return;
     keyboardAttachedMesh = mesh;
 
-    startMoveKeyboardHandler(mesh, savedHudAxis, (axis) => { savedHudAxis = axis; });
+    startMoveKeyboardHandler(mesh, savedHudAxis, (axis) => { if (axis) savedHudAxis = axis; });
 
     const blockKey = mesh?.metadata?.blockKey;
     const blockId = blockKey ? meshMap[blockKey] : null;
