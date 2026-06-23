@@ -29,6 +29,8 @@ export function createAxisKeyboardHandler({
 
     const step = event.shiftKey ? stepNormal : stepFast;
 
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+
     switch (event.key) {
       case "x":
       case "X":
