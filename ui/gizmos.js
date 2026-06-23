@@ -95,6 +95,7 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
       flock.printText({ text: translate('axis_free'), duration: 10, color: 'black' });
     }
     keyboard?.setAxis?.(null);
+    lastReportedAxis = axis;
     onAxisChange?.(axis);
   }
 
@@ -111,6 +112,7 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
   }
   stop.setAxis = (axis) => {
     if (axis) hud?.setAxis(axis);
+    lastReportedAxis = axis;
     onAxisChange?.(axis);
   };
   stop.getAxis = () => keyboard?.getAxis?.() ?? null;
