@@ -291,6 +291,7 @@ export default {
     'instrument %1 våg: %2\nvolym: %3 effekt: %4 hastighet: %5 djup: %6\nattack: %7 förfall: %8 sustain: %9 release: %10',
   instrument: 'instrument %1',
   speak: 'tala %1 %2 röst: %3 språk: %4\nhastighet: %5 tonhöjd: %6 volym: %7 läge: %8',
+  enable_subtitles: 'aktivera undertexter %1', // ai
 
   // Custom block translations - Text blocks
   comment: '// %1',
@@ -546,6 +547,8 @@ export default {
   instrument_tooltip: 'Välj ett instrument att använda för att spela noter.',
   speak_tooltip:
     'Konvertera text till tal med hjälp av Web Speech API och valfri 3D-positionering.\nKeyword: speak',
+  enable_subtitles_tooltip:
+    'Visa undertexter på skärmen för talad text.\nKeyword: subtitles', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'En kommentarsrad för att hjälpa andra att förstå din kod.',

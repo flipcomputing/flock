@@ -902,4 +902,97 @@ export const flockUI = {
       bg.dispose();
     }
   },
+
+  enableSubtitles({ enabled = true } = {}) {
+    flock.subtitlesEnabled = !!enabled;
+    // Turning subtitles off should also clear anything currently on screen.
+    if (!enabled) flock.clearSubtitle();
+  },
+
+  showSubtitle(text) {
+    if (!flock.scene || !flock.advancedTexture) return;
+    if (!text || !String(text).trim()) return;
+
+    // Only ever one subtitle on screen at a time.
+    flock.clearSubtitle();
+
+    try {
+      const bg = new flock.GUI.Rectangle("subtitleBackground");
+      bg.background = "rgba(0, 0, 0, 0.6)";
+      bg.adaptHeightToChildren = true;
+      bg.cornerRadius = 4;
+      bg.thickness = 0;
+      bg.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+      bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+
+      // Measure against the subtitle's own ADT so the units match the px sizes
+      // used here and by the controls.
+      const screenWidth = flock.advancedTexture.getSize?.().width ?? 0;
+      // Cap the caption to a comfortable subtitle reading length (~40 chars at
+      // this font size); on wide screens an 80%-width line is far too long.
+      const maxWidth = 480 * flock.displayScale;
+      // Default: 80% of the screen, but never wider than the readable max.
+      let captionWidth =
+        screenWidth > 0 ? Math.min(0.8 * screenWidth, maxWidth) : maxWidth;
+      bg.left = "0px";
+
+      // Position relative to the on-screen touch controls when they're visible.
+      // They sit in the bottom corners: arrows/joystick (~240px) bottom-left and
+      // action buttons (~160px) bottom-right, scaled by displayScale. If the gap
+      // between them is at least a third of the screen width, drop the caption
+      // into that gap along the bottom; otherwise there isn't room, so lift it
+      // clear above the whole control band.
+      let bottomMargin = 20 * flock.displayScale;
+      if (flock.controlsTexture) {
+        const leftReserve = 240 * flock.displayScale; // arrows / joystick
+        const rightReserve = 160 * flock.displayScale; // action buttons
+        const gap = screenWidth - leftReserve - rightReserve;
+        if (screenWidth > 0 && gap >= screenWidth / 3) {
+          // Fit the gap, still capped to the readable width, and centred within
+          // the gap (shift toward the narrower right side).
+          captionWidth = Math.min(gap, maxWidth);
+          bg.left = `${Math.round((leftReserve - rightReserve) / 2)}px`;
+        } else {
+          bottomMargin = 180 * flock.displayScale;
+        }
+      }
+      bg.width = `${Math.round(captionWidth)}px`;
+      bg.top = `-${bottomMargin}px`;
+
+      const textBlock = new flock.GUI.TextBlock("subtitleText", String(text));
+      textBlock.color = "white";
+      textBlock.fontSize = Math.round(20 * flock.displayScale);
+      textBlock.fontFamily = fontFamily;
+      textBlock.paddingLeft = "12px";
+      textBlock.paddingRight = "12px";
+      textBlock.paddingTop = "6px";
+      textBlock.paddingBottom = "6px";
+      textBlock.textHorizontalAlignment =
+        flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+      textBlock.textVerticalAlignment =
+        flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+      textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
+      textBlock.resizeToFit = true;
+
+      bg.addControl(textBlock);
+      flock.advancedTexture.addControl(bg);
+      flock._subtitleControl = bg;
+
+      // Clear on run abort so a stale caption never lingers between runs.
+      flock.abortController?.signal.addEventListener(
+        "abort",
+        () => flock.clearSubtitle(),
+        { once: true },
+      );
+    } catch (error) {
+      console.warn("Unable to show subtitle:", error);
+    }
+  },
+
+  clearSubtitle() {
+    if (!flock._subtitleControl) return;
+    flock.advancedTexture?.removeControl(flock._subtitleControl);
+    flock._subtitleControl.dispose();
+    flock._subtitleControl = null;
+  },
 };

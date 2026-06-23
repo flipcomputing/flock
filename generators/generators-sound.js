@@ -322,4 +322,9 @@ export function registerSoundGenerators(javascriptGenerator) {
 
     return `${asyncWrapper}speak(${meshVariable}, ${text}, { voice: "${voice}", rate: ${rate}, pitch: ${pitch}, volume: ${volume}, language: "${language}", mode: "${safeAsyncMode.toLowerCase()}" });\n`;
   };
+
+  javascriptGenerator.forBlock["enable_subtitles"] = function (block) {
+    const enabled = block.getFieldValue("ENABLED") === "TRUE";
+    return `enableSubtitles({ enabled: ${enabled} });\n`;
+  };
 }

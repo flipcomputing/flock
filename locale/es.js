@@ -294,6 +294,7 @@ export default {
     'instrumento %1 onda: %2\nvolumen: %3 efecto: %4 velocidad: %5 profundidad: %6\nataque: %7 decaimiento: %8 sostenido: %9 liberación: %10', // human
   instrument: 'instrumento %1', // human
   speak: 'hablar %1 %2 voz: %3 idioma: %4\nvelocidad: %5 tono: %6 volumen: %7 modo: %8', // human
+  enable_subtitles: 'activar subtítulos %1', // ai
 
   // Custom block translations - Text blocks
   comment: '// %1', // human
@@ -571,6 +572,8 @@ export default {
   instrument_tooltip: 'Selecciona un instrumento para reproducir notas.', // human
   speak_tooltip:
     'Convierte texto en voz usando el Web Speech API (API de voz web) con posicionamiento 3D opcional.\nPalabra clave: hablar', // human
+  enable_subtitles_tooltip:
+    'Muestra subtítulos en pantalla para el texto hablado.\nPalabra clave: subtitles', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'Una línea de comentario para ayudar la comprensión de tu código.', // human

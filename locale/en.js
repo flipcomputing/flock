@@ -300,6 +300,7 @@ export default {
     'instrument %1 wave: %2\nvolume: %3 effect: %4 rate: %5 depth: %6\nattack: %7 decay: %8 sustain: %9 release: %10',
   instrument: 'instrument %1',
   speak: 'speak %1 %2 voice: %3 language: %4\nrate: %5 pitch: %6 volume: %7 mode: %8',
+  enable_subtitles: 'enable subtitles %1',
 
   // Custom block translations - Text blocks
   comment: '// %1',
@@ -572,6 +573,8 @@ export default {
   instrument_tooltip: 'Select an instrument to use for playing notes.',
   speak_tooltip:
     'Convert text to speech using the Web Speech API with optional 3D positioning.\nKeyword: speak',
+  enable_subtitles_tooltip:
+    'Show on-screen subtitles for spoken text.\nKeyword: subtitles',
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'A comment line to help people understand your code.',

@@ -296,6 +296,7 @@ export default {
     'Instrument %1 Welle: %2\nLautstärke: %3 Effekt: %4 Rate: %5 Tiefe: %6\nAttacke: %7 Decay: %8 Sustain: %9 Release: %10',
   instrument: 'Instrument %1',
   speak: 'Sprechen %1 %2 Stimme: %3 Sprache: %4\nTempo: %5 Tonhöhe: %6 Lautstärke: %7 Modus: %8',
+  enable_subtitles: 'Untertitel aktivieren %1', // ai
 
   // Text blocks
   comment: '// %1',
@@ -703,6 +704,8 @@ export default {
   instrument_tooltip: 'Wähle ein Instrument, das für das Abspielen von Noten verwendet wird.',
   speak_tooltip:
     'Wandle Text in Sprache mit der Web Speech API um, optional mit 3D-Positionierung.\nSchlüsselwort: speak',
+  enable_subtitles_tooltip:
+    'Zeigt Untertitel auf dem Bildschirm für gesprochenen Text.\nSchlüsselwort: subtitles', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'Ein Kommentar, um den Code verständlicher zu machen.',

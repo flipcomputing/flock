@@ -1378,4 +1378,27 @@ export function defineSoundBlocks() {
       this.setStyle("sound_blocks");
     },
   };
+
+  Blockly.Blocks["enable_subtitles"] = {
+    init: function () {
+      this.jsonInit({
+        type: "enable_subtitles",
+        message0: translate("enable_subtitles"),
+        args0: [
+          {
+            type: "field_checkbox",
+            name: "ENABLED",
+            checked: true,
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Sound"],
+        tooltip: getTooltip("enable_subtitles"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("sound_blocks");
+    },
+  };
 }

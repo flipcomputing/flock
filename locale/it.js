@@ -298,6 +298,7 @@ export default {
     'strumento %1 onda: %2\nvolume: %3 effetto: %4 velocità: %5 profondità: %6\nattacco: %7 decadimento: %8 sustain: %9 rilascio: %10',
   instrument: 'strumento %1',
   speak: 'parla %1 %2 voce: %3 lingua: %4\nvelocità: %5 intonazione: %6 volume: %7 modalità: %8',
+  enable_subtitles: 'attiva sottotitoli %1', // ai
 
   // Custom block translations - Text blocks
   comment: '// %1',
@@ -567,6 +568,8 @@ export default {
   instrument_tooltip: 'Seleziona uno strumento per riprodurre le note.',
   speak_tooltip:
     'Converte testo in voce usando la Web Speech API con posizionamento 3D opzionale.\nParola chiave: speak',
+  enable_subtitles_tooltip:
+    'Mostra i sottotitoli sullo schermo per il testo parlato.\nParola chiave: subtitles', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'Una riga di commento per aiutare a capire il codice.',

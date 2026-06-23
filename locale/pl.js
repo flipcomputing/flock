@@ -293,6 +293,7 @@ export default {
     'instrument %1 fala: %2\ngłośność: %3 efekt: %4 tempo: %5 głębokość: %6\natak: %7 zanikanie: %8 podtrzymanie: %9 uwolnienie: %10',
   instrument: 'instrument %1',
   speak: 'powiedz %1 %2 głos: %3 język: %4\ntempo: %5 wysokość: %6 głośność: %7 tryb: %8',
+  enable_subtitles: 'włącz napisy %1', // ai
 
   // Custom block translations - Text blocks
   comment: '// %1',
@@ -556,6 +557,8 @@ export default {
   instrument_tooltip: 'Wybierz instrument do grania nut.',
   speak_tooltip:
     'Konwertuj tekst na mowę za pomocą Web Speech API, z opcjonalnym pozycjonowaniem 3D.\nSłowo kluczowe: speak',
+  enable_subtitles_tooltip:
+    'Pokazuje napisy na ekranie dla wypowiadanego tekstu.\nSłowo kluczowe: subtitles', // ai
 
   __fonts_FreeSans_Bold_json_option: 'Free Sans',
 

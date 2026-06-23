@@ -3555,6 +3555,11 @@ const toolboxSound = {
         },
       },
     },
+    {
+      kind: "block",
+      type: "enable_subtitles",
+      keyword: "subtitles",
+    },
   ],
 };
 
