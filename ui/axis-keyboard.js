@@ -10,8 +10,10 @@ export function createAxisKeyboardHandler({
   onCancel,
   stepNormal = 0.1,
   stepFast = 1,
+  onAxisChange,
+  initialAxis = null,
 }) {
-  let axis = null;
+  let axis = initialAxis;
 
   function handler(event) {
     const t = event.target;
@@ -29,15 +31,18 @@ export function createAxisKeyboardHandler({
 
     const step = event.shiftKey ? stepNormal : stepFast;
 
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+
     switch (event.key) {
       case "x":
       case "X":
         axis = axis === "x" ? null : "x";
         flock.printText({
-          text: axis ? translate("axis_x") : translate("axis_free"),
+          text: axis ? `🔒 ${translate("axis_x")}` : translate("axis_free"),
           duration: 10,
           color: "black",
         });
+        onAxisChange?.(axis);
         event.preventDefault();
         break;
 
@@ -45,10 +50,11 @@ export function createAxisKeyboardHandler({
       case "Y":
         axis = axis === "y" ? null : "y";
         flock.printText({
-          text: axis ? translate("axis_y") : translate("axis_free"),
+          text: axis ? `🔒 ${translate("axis_y")}` : translate("axis_free"),
           duration: 10,
           color: "black",
         });
+        onAxisChange?.(axis);
         event.preventDefault();
         break;
 
@@ -56,10 +62,11 @@ export function createAxisKeyboardHandler({
       case "Z":
         axis = axis === "z" ? null : "z";
         flock.printText({
-          text: axis ? translate("axis_z") : translate("axis_free"),
+          text: axis ? `🔒 ${translate("axis_z")}` : translate("axis_free"),
           duration: 10,
           color: "black",
         });
+        onAxisChange?.(axis);
         event.preventDefault();
         break;
 
@@ -67,10 +74,11 @@ export function createAxisKeyboardHandler({
       case "U":
         axis = axis === "all" ? null : "all";
         flock.printText({
-          text: axis ? translate("axis_all") : translate("axis_free"),
+          text: axis ? `🔒 ★ ${translate("axis_all")}` : translate("axis_free"),
           duration: 10,
           color: "black",
         });
+        onAxisChange?.(axis);
         event.preventDefault();
         break;
 
@@ -91,10 +99,10 @@ export function createAxisKeyboardHandler({
             axis === "z" ? step * sign : 0,
           );
         } else {
-          if (event.key === "ArrowRight") onMove(step, 0, 0);
-          else if (event.key === "ArrowLeft") onMove(-step, 0, 0);
-          else if (event.key === "ArrowUp") onMove(0, 0, step);
-          else if (event.key === "ArrowDown") onMove(0, 0, -step);
+          if (event.key === "ArrowRight") { onMove(step, 0, 0); onAxisChange?.("x"); }
+          else if (event.key === "ArrowLeft") { onMove(-step, 0, 0); onAxisChange?.("x"); }
+          else if (event.key === "ArrowUp") { onMove(0, 0, step); onAxisChange?.("z"); }
+          else if (event.key === "ArrowDown") { onMove(0, 0, -step); onAxisChange?.("z"); }
         }
         break;
       }
@@ -103,14 +111,14 @@ export function createAxisKeyboardHandler({
         event.preventDefault();
         event.stopPropagation();
         if (axis === "all") onMove(step, step, step);
-        else if (!axis) onMove(0, step, 0);
+        else if (!axis) { onMove(0, step, 0); onAxisChange?.("y"); }
         break;
 
       case "PageDown":
         event.preventDefault();
         event.stopPropagation();
         if (axis === "all") onMove(-step, -step, -step);
-        else if (!axis) onMove(0, -step, 0);
+        else if (!axis) { onMove(0, -step, 0); onAxisChange?.("y"); }
         break;
 
       case "Enter":
@@ -144,8 +152,11 @@ export function createAxisKeyboardHandler({
     if (stopped) return;
     stopped = true;
     axis = null;
+    flock.clearText?.();
     KeyboardDispatcher.popMode();
   }
+  stop.getAxis = () => axis;
+  stop.setAxis = (newAxis) => { axis = newAxis; };
 
   return stop;
 }

@@ -1,5 +1,4 @@
 import { flock } from '../flock.js';
-import { translate } from '../main/translation.js';
 
 const fontFamily = 'Atkinson Hyperlegible Next';
 
@@ -12,6 +11,7 @@ export function createGizmoMobileHud({
   stepLabels = ['◁', '▷'],
   onAxisChange = null,
   stepLabelsByAxis = null,
+  initialAxis = null,
 }) {
   if (!flock.scene || !flock.canvas || !flock.GUI) return null;
 
@@ -29,14 +29,14 @@ export function createGizmoMobileHud({
   );
 
   // ── Axis state ────────────────────────────────────────────────────────────
-  let axis = 'x';
-
   const AXIS_DEFS = [
     { key: 'x', label: 'X', color: '#0072B2' },
     { key: 'y', label: 'Y', color: '#009E73' },
     { key: 'z', label: 'Z', color: '#D55E00' },
-    ...(showUniform ? [{ key: 'all', label: '*', color: '#aaaaaa' }] : []),
+    ...(showUniform ? [{ key: 'all', label: '★', color: '#aaaaaa' }] : []),
   ];
+  const firstAxis = AXIS_DEFS[0]?.key ?? 'x';
+  let axis = (initialAxis && AXIS_DEFS.find(d => d.key === initialAxis)) ? initialAxis : firstAxis;
   const numAxes = AXIS_DEFS.length;
 
   // ── Layout ────────────────────────────────────────────────────────────────
@@ -83,7 +83,7 @@ export function createGizmoMobileHud({
   let arrowNegBtn = null;
   let arrowPosBtn = null;
 
-  function updateAxisButtons() {
+  function refreshAxisVisuals() {
     for (const { key, color } of AXIS_DEFS) {
       const selected = axis === key || axis === 'all';
       axisButtons[key].background = color;
@@ -94,19 +94,17 @@ export function createGizmoMobileHud({
       arrowNegBtn.textBlock.text = labels[0];
       arrowPosBtn.textBlock.text = labels[1];
     }
+  }
+  function updateAxisButtons() {
+    refreshAxisVisuals();
     onAxisChange?.(axis);
   }
-  updateAxisButtons();
+  refreshAxisVisuals();
 
   AXIS_DEFS.forEach(({ key }) => {
     axisButtons[key].onPointerUpObservable.add(() => {
       if (axis !== key) {
         axis = key;
-        flock.printText({
-          text: translate(key === 'all' ? 'axis_all' : `axis_${key}`),
-          duration: 10,
-          color: 'black',
-        });
         updateAxisButtons();
       }
     });
@@ -182,7 +180,7 @@ export function createGizmoMobileHud({
 
     arrowNegBtn = makeArrowButton(stepLabels[0], -1, 0);
     arrowPosBtn = makeArrowButton(stepLabels[1], +1, 1);
-    updateAxisButtons();
+    refreshAxisVisuals();
   } else {
     // ── Slider (delta-drag) ───────────────────────────────────────────────
     const THUMB_R = Math.floor(BTN_SIZE / 2) - 2 * s;
@@ -320,12 +318,18 @@ export function createGizmoMobileHud({
 
   // ── Stop / cleanup ────────────────────────────────────────────────────────
   let stopped = false;
-  return function stop() {
+  function stop() {
     if (stopped) return;
     stopped = true;
     cleanups.forEach((fn) => fn());
     hudTexture.dispose();
     if (savedControls) savedControls.rootContainer.isVisible = true;
     if (flock._joystickSource) flock._joystickSource.resume();
+  }
+  stop.setAxis = (newAxis) => {
+    if (stopped) return;
+    const def = AXIS_DEFS.find(d => d.key === newAxis);
+    if (def) { axis = newAxis; refreshAxisVisuals(); }
   };
+  return stop;
 }

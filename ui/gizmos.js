@@ -77,56 +77,46 @@ const cleanupFns = [];
 // Track DO sections and their associated blocks for cleanup
 const gizmoCreatedBlocks = new Map(); // blockId -> { parentId, createdDoSection, timestamp }
 
-const AXIS_SWITCH_KEYS = new Set([
-  "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
-  "PageUp", "PageDown",
-  "x", "X", "y", "Y", "z", "Z", "u", "U",
-]);
+function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast, mode, showUniform, stepLabels, onHudHide, onAxisChange, stepLabelsByAxis, initialKeyboardAxis = null, initialHudAxis = null }) {
+  let hud = null;
+  let keyboard = null;
 
-function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast, mode, showUniform, stepLabels, onHudShow, onHudHide, onAxisChange, stepLabelsByAxis }) {
-  let stopHud = null;
-  let stopKeyboard = null;
-  const canvas = flock.canvas;
-
-  function switchToTouch() {
-    if (stopKeyboard) { stopKeyboard(); stopKeyboard = null; }
-    if (!stopHud) {
-      stopHud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange, stepLabelsByAxis });
-      onHudShow?.();
+  let lastReportedAxis = initialKeyboardAxis ?? null;
+  function onKbAxisChange(axis) {
+    if (axis) hud?.setAxis(axis);
+    if (axis !== lastReportedAxis) {
+      lastReportedAxis = axis;
+      onAxisChange?.(axis);
     }
   }
 
-  function switchToKeyboard() {
-    if (stopHud) {
-      stopHud(); stopHud = null;
-      onHudHide?.();
+  function onHudAxisChange(axis) {
+    if (keyboard?.getAxis?.()) {
+      flock.printText({ text: translate('axis_free'), duration: 10, color: 'black' });
     }
-    if (!stopKeyboard) {
-      stopKeyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast });
-    }
+    keyboard?.setAxis?.(null);
+    lastReportedAxis = axis;
+    onAxisChange?.(axis);
   }
 
-  function onCanvasPointer(e) {
-    if (e.pointerType === "touch") switchToTouch();
+  hud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange: onHudAxisChange, stepLabelsByAxis, initialAxis: initialHudAxis ?? initialKeyboardAxis });
+  keyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast, onAxisChange: onKbAxisChange, initialAxis: initialKeyboardAxis });
+  const startAxis = initialKeyboardAxis ?? initialHudAxis;
+  if (startAxis) onAxisChange?.(startAxis);
+  flock.canvas?.focus();
+
+  function stop() {
+    onHudHide?.();
+    hud?.();
+    keyboard?.();
   }
-
-  function onRawKey(e) {
-    if (e.cancelBubble) return;
-    if (e.target?.closest?.("#shapes-dropdown, .custom-color-picker")) return;
-    if (AXIS_SWITCH_KEYS.has(e.key)) switchToKeyboard();
-  }
-
-  canvas.addEventListener("pointerdown", onCanvasPointer);
-  const rawKeyObserver = flock.inputManager.onRawKeyDownObservable.add(onRawKey);
-
-  if (navigator.maxTouchPoints > 0) switchToTouch();
-
-  return function stop() {
-    canvas.removeEventListener("pointerdown", onCanvasPointer);
-    flock.inputManager.onRawKeyDownObservable.remove(rawKeyObserver);
-    if (stopHud) { onHudHide?.(); stopHud(); stopHud = null; }
-    if (stopKeyboard) { stopKeyboard(); stopKeyboard = null; }
+  stop.setAxis = (axis) => {
+    if (axis) hud?.setAxis(axis);
+    lastReportedAxis = axis;
+    onAxisChange?.(axis);
   };
+  stop.getAxis = () => keyboard?.getAxis?.() ?? null;
+  return stop;
 }
 
 // Register input handlers for gizmo actions
@@ -747,8 +737,10 @@ export function exitGizmoState() {
 }
 
 // Start the keyboard handler for moving a mesh
-function startMoveKeyboardHandler(mesh) {
+function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = null) {
+  const initialKeyboardAxis = stopAxisKeyboard?.getAxis?.() ?? null;
   document.body.style.cursor = 'default';
+  cleanupScenePick();
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
 
@@ -782,14 +774,18 @@ function startMoveKeyboardHandler(mesh) {
     stepFast: FAST_CURSOR,
     mode: 'arrows',
     stepLabelsByAxis: { x: ['◁', '▷'], y: ['▽', '△'], z: ['▽', '△'], all: ['◁', '▷'] },
-    onAxisChange: (axis) => highlightGizmoAxis(gizmoManager.gizmos?.positionGizmo, axis),
+    onAxisChange: (axis) => { onHudAxisSaved?.(axis); highlightGizmoAxis(gizmoManager.gizmos?.positionGizmo, axis); },
     onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.positionGizmo, null),
+    initialKeyboardAxis,
+    initialHudAxis: savedHudAxis,
   });
 }
 
 // Rotate a mesh using the keyboard
-function startRotateKeyboardHandler(mesh) {
+function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = null) {
+  const initialKeyboardAxis = stopAxisKeyboard?.getAxis?.() ?? null;
   document.body.style.cursor = 'default';
+  cleanupScenePick();
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
 
@@ -838,36 +834,18 @@ function startRotateKeyboardHandler(mesh) {
     stepNormal: DEFAULT_ROTATION,
     stepFast: FAST_ROTATION,
     mode: 'slider',
-    onHudShow: () => {
-      const rg = gizmoManager.gizmos?.rotationGizmo;
-      if (!rg) return;
-      rg.updateGizmoRotationToMatchAttachedMesh = true;
-      // Override validateDrag to block rotation while keeping dragBehavior enabled
-      // (disabling it causes Babylon.js to permanently grey out the arcs)
-      [rg.xGizmo, rg.yGizmo, rg.zGizmo].forEach((g) => {
-        if (!g?.dragBehavior) return;
-        g.dragBehavior._savedValidateDrag = g.dragBehavior.validateDrag;
-        g.dragBehavior.validateDrag = () => false;
-      });
-    },
-    onHudHide: () => {
-      const rg = gizmoManager.gizmos?.rotationGizmo;
-      if (!rg) return;
-      rg.updateGizmoRotationToMatchAttachedMesh = false;
-      [rg.xGizmo, rg.yGizmo, rg.zGizmo].forEach((g) => {
-        if (!g?.dragBehavior) return;
-        g.dragBehavior.validateDrag = g.dragBehavior._savedValidateDrag ?? (() => true);
-        delete g.dragBehavior._savedValidateDrag;
-      });
-      highlightGizmoAxis(rg, null);
-    },
-    onAxisChange: (axis) => highlightGizmoAxis(gizmoManager.gizmos?.rotationGizmo, axis),
+    onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.rotationGizmo, null),
+    onAxisChange: (axis) => { onHudAxisSaved?.(axis); highlightGizmoAxis(gizmoManager.gizmos?.rotationGizmo, axis); },
+    initialKeyboardAxis,
+    initialHudAxis: savedHudAxis,
   });
 }
 
 // Scale a mesh using the keyboard
-function startScaleKeyboardHandler(mesh) {
+function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = null) {
+  const initialKeyboardAxis = stopAxisKeyboard?.getAxis?.() ?? null;
   document.body.style.cursor = 'default';
+  cleanupScenePick();
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
 
@@ -919,8 +897,10 @@ function startScaleKeyboardHandler(mesh) {
     mode: 'arrows',
     showUniform: true,
     stepLabels: ['-', '+'],
-    onAxisChange: (axis) => highlightGizmoAxis(gizmoManager.gizmos?.scaleGizmo, axis),
+    onAxisChange: (axis) => { onHudAxisSaved?.(axis); highlightGizmoAxis(gizmoManager.gizmos?.scaleGizmo, axis); },
     onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.scaleGizmo, null),
+    initialKeyboardAxis,
+    initialHudAxis: savedHudAxis,
   });
 }
 
@@ -1530,6 +1510,18 @@ export function toggleGizmo(gizmoType) {
 // Scale: Allow the user to scale the mesh by dragging it
 function handleScaleGizmo() {
   configureScaleGizmo(gizmoManager);
+  observeDragAxis(gizmoManager.gizmos.scaleGizmo);
+  {
+    const usg = gizmoManager.gizmos.scaleGizmo.uniformScaleGizmo;
+    if (usg?.dragBehavior) {
+      const startObs = usg.dragBehavior.onDragStartObservable.add(() => stopAxisKeyboard?.setAxis('all'));
+      const endObs = usg.dragBehavior.onDragEndObservable.add(() => stopAxisKeyboard?.setAxis(null));
+      onExit(() => {
+        usg.dragBehavior.onDragStartObservable.remove(startObs);
+        usg.dragBehavior.onDragEndObservable.remove(endObs);
+      });
+    }
+  }
   {
     const sg = gizmoManager.gizmos.scaleGizmo;
     if (!sg._textAxisObserversRegistered) {
@@ -1547,9 +1539,10 @@ function handleScaleGizmo() {
   const scaleButton = document.getElementById('scaleButton');
   scaleButton.classList.add('active');
 
+  let savedHudAxis = null;
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
-    startScaleKeyboardHandler(mesh);
+    startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => { if (axis) savedHudAxis = axis; });
   } else {
     pickMeshFromScene((pickedMesh) => {
       if (!pickedMesh || pickedMesh.name === 'ground') {
@@ -1570,7 +1563,7 @@ function handleScaleGizmo() {
     }
 
     lastScaledMesh = mesh;
-    startScaleKeyboardHandler(mesh);
+    startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => { if (axis) savedHudAxis = axis; });
   });
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(scaleObs));
@@ -1677,17 +1670,33 @@ function highlightGizmoAxis(gizmo, axis) {
   });
 }
 
+// Highlight the HUD and gizmo handles while a drag handle is active.
+function observeDragAxis(gizmo) {
+  for (const axisKey of ['x', 'y', 'z']) {
+    const g = gizmo?.[`${axisKey}Gizmo`];
+    if (!g?.dragBehavior) continue;
+    const startObs = g.dragBehavior.onDragStartObservable.add(() => stopAxisKeyboard?.setAxis(axisKey));
+    const endObs = g.dragBehavior.onDragEndObservable.add(() => stopAxisKeyboard?.setAxis(null));
+    onExit(() => {
+      g.dragBehavior.onDragStartObservable.remove(startObs);
+      g.dragBehavior.onDragEndObservable.remove(endObs);
+    });
+  }
+}
+
 // Rotation: Allow the user to rotate the mesh by dragging it
 function handleRotationGizmo() {
   configureRotationGizmo(gizmoManager);
+  observeDragAxis(gizmoManager.gizmos.rotationGizmo);
 
   // Show that rotation is active
   const rotationButton = document.getElementById('rotationButton');
   rotationButton.classList.add('active');
 
+  let savedHudAxis = null;
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
-    startRotateKeyboardHandler(mesh);
+    startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => { if (axis) savedHudAxis = axis; });
   } else {
     pickMeshFromScene((pickedMesh) => {
       if (!pickedMesh || pickedMesh.name === 'ground') {
@@ -1710,7 +1719,7 @@ function handleRotationGizmo() {
 
     lastRotatedMesh = mesh;
 
-    startRotateKeyboardHandler(mesh);
+    startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => { if (axis) savedHudAxis = axis; });
   });
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(rotateObs));
@@ -1757,12 +1766,14 @@ function handleRotationGizmo() {
 // Position: Allow the user to move the mesh by dragging it
 function handlePositionGizmo() {
   configurePositionGizmo(gizmoManager);
+  observeDragAxis(gizmoManager.gizmos.positionGizmo);
 
   // Highlight the move button
   const positionButton = document.getElementById('positionButton');
   positionButton.classList.add('active');
 
   let keyboardAttachedMesh = null;
+  let savedHudAxis = null;
   const activatePositionKeyboardForMesh = (mesh) => {
     if (!mesh) {
       exitGizmoState();
@@ -1772,7 +1783,7 @@ function handlePositionGizmo() {
     if (keyboardAttachedMesh === mesh) return;
     keyboardAttachedMesh = mesh;
 
-    startMoveKeyboardHandler(mesh);
+    startMoveKeyboardHandler(mesh, savedHudAxis, (axis) => { if (axis) savedHudAxis = axis; });
 
     const blockKey = mesh?.metadata?.blockKey;
     const blockId = blockKey ? meshMap[blockKey] : null;
