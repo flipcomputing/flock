@@ -155,6 +155,7 @@ export function createAxisKeyboardHandler({
     KeyboardDispatcher.popMode();
   }
   stop.getAxis = () => axis;
+  stop.setAxis = (newAxis) => { axis = newAxis; };
 
   return stop;
 }

@@ -86,7 +86,15 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
     onAxisChange?.(axis);
   }
 
-  hud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange, stepLabelsByAxis, initialAxis: initialHudAxis ?? initialKeyboardAxis });
+  function onHudAxisChange(axis) {
+    if (keyboard?.getAxis?.()) {
+      flock.printText({ text: translate('axis_free'), duration: 10, color: 'black' });
+    }
+    keyboard?.setAxis?.(null);
+    onAxisChange?.(axis);
+  }
+
+  hud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange: onHudAxisChange, stepLabelsByAxis, initialAxis: initialHudAxis ?? initialKeyboardAxis });
   keyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast, onAxisChange: onKbAxisChange, initialAxis: initialKeyboardAxis });
   const startAxis = initialKeyboardAxis ?? initialHudAxis;
   if (startAxis) onAxisChange?.(startAxis);

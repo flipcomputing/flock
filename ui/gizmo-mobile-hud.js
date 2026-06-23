@@ -83,7 +83,7 @@ export function createGizmoMobileHud({
   let arrowNegBtn = null;
   let arrowPosBtn = null;
 
-  function updateAxisButtons() {
+  function refreshAxisVisuals() {
     for (const { key, color } of AXIS_DEFS) {
       const selected = axis === key || axis === 'all';
       axisButtons[key].background = color;
@@ -94,9 +94,12 @@ export function createGizmoMobileHud({
       arrowNegBtn.textBlock.text = labels[0];
       arrowPosBtn.textBlock.text = labels[1];
     }
+  }
+  function updateAxisButtons() {
+    refreshAxisVisuals();
     onAxisChange?.(axis);
   }
-  updateAxisButtons();
+  refreshAxisVisuals();
 
   AXIS_DEFS.forEach(({ key }) => {
     axisButtons[key].onPointerUpObservable.add(() => {
@@ -177,7 +180,7 @@ export function createGizmoMobileHud({
 
     arrowNegBtn = makeArrowButton(stepLabels[0], -1, 0);
     arrowPosBtn = makeArrowButton(stepLabels[1], +1, 1);
-    updateAxisButtons();
+    refreshAxisVisuals();
   } else {
     // ── Slider (delta-drag) ───────────────────────────────────────────────
     const THUMB_R = Math.floor(BTN_SIZE / 2) - 2 * s;
@@ -326,7 +329,7 @@ export function createGizmoMobileHud({
   stop.setAxis = (newAxis) => {
     if (stopped) return;
     const def = AXIS_DEFS.find(d => d.key === newAxis);
-    if (def) { axis = newAxis; updateAxisButtons(); }
+    if (def) { axis = newAxis; refreshAxisVisuals(); }
   };
   return stop;
 }
