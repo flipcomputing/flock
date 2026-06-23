@@ -839,6 +839,7 @@ export function initContextMenus(workspace) {
         Blockly.dialog.confirm(msg, (ok) => {
           if (!ok) return;
           hideBlockToolbar();
+          if (block.isDisposed?.()) return;
           block.checkAndDelete();
           Blockly.Toast.show(workspace, {
             message: translate('DELETE_UNDO_HINT'),
