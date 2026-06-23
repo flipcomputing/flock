@@ -10,6 +10,7 @@ export function createAxisKeyboardHandler({
   onCancel,
   stepNormal = 0.1,
   stepFast = 1,
+  onAxisChange,
 }) {
   let axis = null;
 
@@ -40,6 +41,7 @@ export function createAxisKeyboardHandler({
           duration: 10,
           color: "black",
         });
+        onAxisChange?.(axis);
         event.preventDefault();
         break;
 
@@ -51,6 +53,7 @@ export function createAxisKeyboardHandler({
           duration: 10,
           color: "black",
         });
+        onAxisChange?.(axis);
         event.preventDefault();
         break;
 
@@ -62,6 +65,7 @@ export function createAxisKeyboardHandler({
           duration: 10,
           color: "black",
         });
+        onAxisChange?.(axis);
         event.preventDefault();
         break;
 
@@ -73,6 +77,7 @@ export function createAxisKeyboardHandler({
           duration: 10,
           color: "black",
         });
+        onAxisChange?.(axis);
         event.preventDefault();
         break;
 
@@ -93,10 +98,10 @@ export function createAxisKeyboardHandler({
             axis === "z" ? step * sign : 0,
           );
         } else {
-          if (event.key === "ArrowRight") onMove(step, 0, 0);
-          else if (event.key === "ArrowLeft") onMove(-step, 0, 0);
-          else if (event.key === "ArrowUp") onMove(0, 0, step);
-          else if (event.key === "ArrowDown") onMove(0, 0, -step);
+          if (event.key === "ArrowRight") { onMove(step, 0, 0); onAxisChange?.("x"); }
+          else if (event.key === "ArrowLeft") { onMove(-step, 0, 0); onAxisChange?.("x"); }
+          else if (event.key === "ArrowUp") { onMove(0, 0, step); onAxisChange?.("z"); }
+          else if (event.key === "ArrowDown") { onMove(0, 0, -step); onAxisChange?.("z"); }
         }
         break;
       }
@@ -105,14 +110,14 @@ export function createAxisKeyboardHandler({
         event.preventDefault();
         event.stopPropagation();
         if (axis === "all") onMove(step, step, step);
-        else if (!axis) onMove(0, step, 0);
+        else if (!axis) { onMove(0, step, 0); onAxisChange?.("y"); }
         break;
 
       case "PageDown":
         event.preventDefault();
         event.stopPropagation();
         if (axis === "all") onMove(-step, -step, -step);
-        else if (!axis) onMove(0, -step, 0);
+        else if (!axis) { onMove(0, -step, 0); onAxisChange?.("y"); }
         break;
 
       case "Enter":

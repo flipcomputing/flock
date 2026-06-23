@@ -320,12 +320,18 @@ export function createGizmoMobileHud({
 
   // ── Stop / cleanup ────────────────────────────────────────────────────────
   let stopped = false;
-  return function stop() {
+  function stop() {
     if (stopped) return;
     stopped = true;
     cleanups.forEach((fn) => fn());
     hudTexture.dispose();
     if (savedControls) savedControls.rootContainer.isVisible = true;
     if (flock._joystickSource) flock._joystickSource.resume();
+  }
+  stop.setAxis = (newAxis) => {
+    if (stopped) return;
+    const def = AXIS_DEFS.find(d => d.key === newAxis);
+    if (def) { axis = newAxis; updateAxisButtons(); }
   };
+  return stop;
 }
