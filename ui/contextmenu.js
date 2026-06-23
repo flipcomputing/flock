@@ -566,8 +566,8 @@ export function initContextMenus(workspace) {
     { capture: true }
   );
 
-  // ---- Tablet floating block toolbar ----
-  if (navigator.maxTouchPoints > 0) {
+  // ---- Floating block toolbar (all devices, pointer-driven only) ----
+  {
     const blockToolbar = document.createElement('div');
     blockToolbar.className = 'fc-block-toolbar';
     blockToolbar.setAttribute('role', 'toolbar');
@@ -626,8 +626,17 @@ export function initContextMenus(workspace) {
 
     blockToolbar.append(duplicateBtn, detachBtn, commentBtn, viewBtn, deleteBtn);
 
-    let toolbarBlock = null;
+    let toolbarBlock = null;  // block the toolbar is currently visible for
+    let selectedBlock = null; // block currently selected (regardless of toolbar visibility)
+    let toolbarDismissed = false; // user closed toolbar for the current selection
     let toolbarShowTimer = null;
+    let lastSelectionWasPointer = false;
+
+    const injectionDiv = workspace.getInjectionDiv();
+
+    injectionDiv.addEventListener('pointerdown', () => {
+      lastSelectionWasPointer = true;
+    }, { capture: true });
 
     const isDetachable = (block) =>
       !!block?.getParent() ||
@@ -659,6 +668,7 @@ export function initContextMenus(workspace) {
 
     function showBlockToolbar(block) {
       toolbarBlock = block;
+      toolbarDismissed = false;
       detachBtn.style.display = isDetachable(block) ? '' : 'none';
       const hasComment = block.getCommentText() !== null;
       commentBtn.setAttribute('aria-label', hasComment ? 'Delete comment' : 'Add comment');
@@ -687,14 +697,28 @@ export function initContextMenus(workspace) {
       if (e.type === Blockly.Events.SELECTED) {
         clearTimeout(toolbarShowTimer);
         toolbarShowTimer = null;
+
         if (e.newElementId) {
           const block = workspace.getBlockById(e.newElementId);
+          // Consume the pointer flag only here, on actual selection, not on deselect.
+          // Blockly may fire SELECTED(null) before SELECTED(blockId) on a click, so
+          // consuming it on deselect would clear it before we can use it.
+          const wasPointer = lastSelectionWasPointer;
+          lastSelectionWasPointer = false;
           if (isToolbarBlock(block)) {
-            toolbarShowTimer = setTimeout(() => showBlockToolbar(block), 400);
+            selectedBlock = block;
+            toolbarDismissed = false;
+            if (wasPointer) {
+              toolbarShowTimer = setTimeout(() => showBlockToolbar(block), 400);
+            } else {
+              hideBlockToolbar();
+            }
           } else {
+            selectedBlock = null;
             hideBlockToolbar();
           }
         } else {
+          selectedBlock = null;
           hideBlockToolbar();
         }
       } else if (
@@ -706,6 +730,22 @@ export function initContextMenus(workspace) {
         hideBlockToolbar();
       }
     });
+
+    // Toggle toolbar on click of the selected block
+    injectionDiv.addEventListener('pointerdown', (e) => {
+      if (!selectedBlock) return;
+      const svgRoot = selectedBlock.getSvgRoot?.();
+      if (!svgRoot || !svgRoot.contains(e.target)) return;
+      if (toolbarBlock) {
+        // Toolbar visible → hide it; prevent SELECTED from re-showing
+        toolbarDismissed = true;
+        hideBlockToolbar();
+        lastSelectionWasPointer = false;
+      } else if (toolbarDismissed) {
+        // Toolbar dismissed → re-show it
+        showBlockToolbar(selectedBlock);
+      }
+    }, { capture: true });
 
     duplicateBtn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
