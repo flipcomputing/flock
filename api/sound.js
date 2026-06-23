@@ -999,27 +999,23 @@ export const flockSound = {
     // the first utterance. A duration-based backstop clears the caption even if
     // onend is likewise dropped; onend/onerror clear it sooner when they fire.
     const subtitlesOn = !!(flock.subtitlesEnabled && flock.showSubtitle);
-    let subtitleTimer = null;
+    let subtitleToken = null;
     const showSubtitle = () => {
       if (!subtitlesOn) return;
-      flock.showSubtitle(text);
-      flock._subtitleOwner = utterance;
-      // ~14 chars/sec at rate 1; floor of 2s, plus a 1s buffer.
+      // Pass an estimated speaking time as the duration so the caption clears
+      // even if onend is dropped (~14 chars/sec at rate 1, floor 2s, +1s buffer).
+      // Use utterance.rate (already clamped to 0.1–10) so the estimate matches
+      // the rate actually spoken.
       const seconds =
-        Math.max(2, String(text).length / 14) / Math.max(0.1, rate) + 1;
-      subtitleTimer = setTimeout(() => {
-        if (flock._subtitleOwner === utterance) flock.clearSubtitle();
-      }, seconds * 1000);
+        Math.max(2, String(text).length / 14) / utterance.rate + 1;
+      flock.showSubtitle(text, seconds);
+      subtitleToken = flock._subtitleToken;
     };
     const clearSubtitle = () => {
       if (!subtitlesOn) return;
-      if (subtitleTimer) {
-        clearTimeout(subtitleTimer);
-        subtitleTimer = null;
-      }
       // Only clear if this utterance still owns the caption — a late onend from
       // a cancelled utterance must not wipe a newer one's subtitle.
-      if (flock._subtitleOwner === utterance) flock.clearSubtitle();
+      if (flock._subtitleToken === subtitleToken) flock.clearSubtitle();
     };
 
     if (mode === "await") {

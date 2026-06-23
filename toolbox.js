@@ -2463,6 +2463,29 @@ const toolboxText = {
     },
     {
       kind: "block",
+      type: "subtitle",
+      keyword: "subtitle",
+      inputs: {
+        TEXT: {
+          shadow: {
+            type: "text",
+            fields: {
+              TEXT: "Hello",
+            },
+          },
+        },
+        DURATION: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: "block",
       type: "say",
       keyword: "say",
       inputs: {

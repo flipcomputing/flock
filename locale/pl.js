@@ -298,6 +298,7 @@ export default {
   // Custom block translations - Text blocks
   comment: '// %1',
   print_text: 'drukuj %1 przez %2 sekund %3',
+  subtitle: 'napis %1 przez %2 sekund', // ai
   say: 'powiedz %1 przez %2 s %3\ntekst: %4 na %5 przezroczystość: %6 rozmiar: %7 %8 %9',
   ui_text: 'tekst UI %1 %2 w x: %3 y: %4\nrozmiar: %5 przez %6 s kolor: %7',
   ui_button:
@@ -565,6 +566,7 @@ export default {
   // Tooltip translations - Text blocks
   comment_tooltip: 'Linia komentarza, by pomóc zrozumieć kod.',
   print_text_tooltip: 'Wyświetl tekst na panelu wyjścia.\nSłowo kluczowe: print',
+  subtitle_tooltip: 'Pokazuje tekst jako napis na ekranie. 0 sekund pozostaje do następnego.\nSłowo kluczowe: subtitle', // ai
   say_tooltip: 'Pokaż tekst w dymku mówionym nad obiektem.\nSłowo kluczowe: say',
   describe_tooltip:
     'Ustaw nazwę wyświetlaną obiekty. Aktualizuje metadane dla dostępności.\nSłowo kluczowe: describe',

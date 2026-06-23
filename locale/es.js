@@ -299,6 +299,7 @@ export default {
   // Custom block translations - Text blocks
   comment: '// %1', // human
   print_text: 'imprimir %1 por %2 segundos %3', // human
+  subtitle: 'subtítulo %1 por %2 segundos', // ai
   say: 'decir %1 por %2 s %3 \ntexto %4 en %5 alfa %6 tamaño %7 %8 %9', // human
   ui_text: 'UI texto %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7', // human
   ui_button: 'UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8', // human
@@ -578,6 +579,7 @@ export default {
   // Tooltip translations - Text blocks
   comment_tooltip: 'Una línea de comentario para ayudar la comprensión de tu código.', // human
   print_text_tooltip: 'Texto en el panel de salida.\nPalabra clave: imprimir', // human
+  subtitle_tooltip: 'Muestra el texto como subtítulo en pantalla. 0 segundos permanece hasta el siguiente.\nPalabra clave: subtitle', // ai
   say_tooltip: 'Muestra un texto como burbuja de diálogo en un objeto.\nPalabra clave: di', // human
   describe_tooltip:
     'Establece el nombre visible de un objeto. Actualiza los metadatos para accesibilidad.\nPalabra clave: describe', // human

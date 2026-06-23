@@ -296,6 +296,7 @@ export default {
   // Custom block translations - Text blocks
   comment: '// %1',
   print_text: 'skriv ut %1 för %2 sekunder %3',
+  subtitle: 'undertext %1 i %2 sekunder', // ai
   say: 'säg %1 för %2 s %3 \ntext %4 på %5 alfa %6 storlek %7 %8 %9',
   ui_text: 'ui text %1 %2 vid x: %3 y: %4\nstorlek: %5 för %6 sekunder färg: %7',
   ui_button: 'ui knapp %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 background: %8',
@@ -553,6 +554,7 @@ export default {
   // Tooltip translations - Text blocks
   comment_tooltip: 'En kommentarsrad för att hjälpa andra att förstå din kod.',
   print_text_tooltip: 'Skriv ut text till utmatningspanelen.\nKeyword: print',
+  subtitle_tooltip: 'Visa text som undertext på skärmen. 0 sekunder stannar tills nästa.\nKeyword: subtitle', // ai
   say_tooltip: 'Visa en textruta som ett pratmoln på ett objekt.\nKeyword: say',
   describe_tooltip:
     'Ange visningsnamnet för ett objekt. Uppdaterar metadata för tillgänglighet.\nNyckelord: describe',

@@ -301,6 +301,7 @@ export default {
   // Text blocks
   comment: '// %1',
   print_text: 'drucke %1 für %2 Sekunden %3',
+  subtitle: 'Untertitel %1 für %2 Sekunden', // ai
   say: 'sage %1 für %2 s %3\nText: %4 auf %5 Alpha: %6 Größe: %7 %8 %9',
   ui_text: 'UI-Text %1 %2 bei x: %3 y: %4\nGröße: %5 für %6 Sekunden Farbe: %7',
   ui_button: 'UI‑Button %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 text: %7 background: %8',
@@ -710,6 +711,7 @@ export default {
   // Tooltip translations - Text blocks
   comment_tooltip: 'Ein Kommentar, um den Code verständlicher zu machen.',
   print_text_tooltip: 'Gibt Text im Ausgabebereich aus.\nSchlüsselwort: print',
+  subtitle_tooltip: 'Zeigt Text als Untertitel auf dem Bildschirm. 0 Sekunden bleibt bis zum nächsten.\nSchlüsselwort: subtitle', // ai
   say_tooltip: 'Zeigt einen Text als Sprechblase auf einem Objekt an.\nSchlüsselwort: say',
   describe_tooltip:
     'Setzt den Anzeigenamen eines Objekts. Aktualisiert die Metadaten für Barrierefreiheit.\nSchlüsselwort: describe',

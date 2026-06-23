@@ -33,6 +33,26 @@ export function registerTextGenerators(javascriptGenerator) {
     return `printText({ text: ${safeTextArg}, duration: ${durationCode}, color: ${color} });\n`;
   };
 
+  // Subtitle -----------------------------------------------
+  javascriptGenerator.forBlock["subtitle"] = function (block) {
+    const textCode =
+      javascriptGenerator.valueToCode(
+        block,
+        "TEXT",
+        javascriptGenerator.ORDER_NONE,
+      ) || "''";
+    const durationCode =
+      javascriptGenerator.valueToCode(
+        block,
+        "DURATION",
+        javascriptGenerator.ORDER_NONE,
+      ) || "0";
+
+    const safeTextArg = emitSafeTextArg(textCode);
+
+    return `showSubtitle(${safeTextArg}, ${durationCode});\n`;
+  };
+
   // Say ----------------------------------------------------
   javascriptGenerator.forBlock["say"] = function (block) {
     const textCode =

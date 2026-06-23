@@ -298,6 +298,7 @@ export default {
   // Custom block translations - Text blocks
   comment: '// %1',
   print_text: 'imprimir %1 por %2 segundos %3',
+  subtitle: 'legenda %1 por %2 segundos', // ai
   say: 'dizer %1 por %2 s %3 \ntexto %4 em %5 opacidade %6 tamanho %7 %8 %9',
   ui_text: 'texto UI %1 %2 em x: %3 y: %4\ntamanho: %5 por %6 segundos cor: %7',
   ui_button:
@@ -572,6 +573,7 @@ export default {
   // Tooltip translations - Text blocks
   comment_tooltip: 'Uma linha de comentário para ajudar a entender seu código.',
   print_text_tooltip: 'Mostra um texto no painel de saída.\nPalavra-chave: imprimir',
+  subtitle_tooltip: 'Mostra o texto como legenda na tela. 0 segundos permanece até a próxima.\nPalavra-chave: subtitle', // ai
   say_tooltip: 'Exibe um texto como balão de fala em um objeto.\nPalavra-chave: dizer',
   describe_tooltip:
     'Define o nome de exibição de um objeto. Atualiza os metadados para acessibilidade.\nPalavra-chave: describe',

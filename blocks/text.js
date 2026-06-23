@@ -74,6 +74,36 @@ export function defineTextBlocks() {
     },
   };
 
+  Blockly.Blocks["subtitle"] = {
+    init: function () {
+      this.jsonInit({
+        type: "subtitle",
+        message0: translate("subtitle"),
+        args0: [
+          {
+            type: "input_value",
+            name: "TEXT",
+            check: ["String", "Number", "Array"],
+          },
+          {
+            type: "input_value",
+            name: "DURATION",
+            check: "Number",
+          },
+        ],
+        // Label each input explicitly so the message words read well.
+        ariaLabels: { TEXT: "text", DURATION: "seconds" },
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: 160,
+        tooltip: getTooltip("subtitle"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("text_blocks");
+    },
+  };
+
   Blockly.Blocks["say"] = {
     init: function () {
       this.jsonInit({

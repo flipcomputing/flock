@@ -1006,6 +1006,7 @@ export const flock = {
       randomInteger: this.randomInteger?.bind(this),
       printText: this.printText?.bind(this),
       enableSubtitles: this.enableSubtitles?.bind(this),
+      showSubtitle: this.showSubtitle?.bind(this),
       UIText: this.UIText?.bind(this),
       UIButton: this.UIButton?.bind(this),
       UIInput: this.UIInput?.bind(this),
@@ -1021,6 +1022,7 @@ export const flock = {
     const SIDE_EFFECT_APIS = [
       'printText',
       'enableSubtitles',
+      'showSubtitle',
       'UIText',
       'UIButton',
       'UIInput',
@@ -1974,6 +1976,8 @@ export const flock = {
     // Subtitles default off each run; the enable_subtitles block opts in.
     flock.subtitlesEnabled = false;
     flock._subtitleControl = null;
+    flock._subtitleToken = 0;
+    flock._subtitleTimer = null;
 
     // Enable physics
     if (!flock.havokInstance) {
