@@ -88,6 +88,7 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
 
   hud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange, stepLabelsByAxis });
   keyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast, onAxisChange: onKbAxisChange });
+  flock.canvas?.focus();
 
   function stop() {
     onHudHide?.();
@@ -721,6 +722,7 @@ export function exitGizmoState() {
 // Start the keyboard handler for moving a mesh
 function startMoveKeyboardHandler(mesh) {
   document.body.style.cursor = 'default';
+  cleanupScenePick();
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
 
@@ -762,6 +764,7 @@ function startMoveKeyboardHandler(mesh) {
 // Rotate a mesh using the keyboard
 function startRotateKeyboardHandler(mesh) {
   document.body.style.cursor = 'default';
+  cleanupScenePick();
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
 
@@ -818,6 +821,7 @@ function startRotateKeyboardHandler(mesh) {
 // Scale a mesh using the keyboard
 function startScaleKeyboardHandler(mesh) {
   document.body.style.cursor = 'default';
+  cleanupScenePick();
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
 
