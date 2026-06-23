@@ -73,7 +73,7 @@ export function createAxisKeyboardHandler({
       case "U":
         axis = axis === "all" ? null : "all";
         flock.printText({
-          text: axis ? translate("axis_all") : translate("axis_free"),
+          text: axis ? `★ ${translate("axis_all")}` : translate("axis_free"),
           duration: 10,
           color: "black",
         });

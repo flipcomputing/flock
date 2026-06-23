@@ -1,5 +1,4 @@
 import { flock } from '../flock.js';
-import { translate } from '../main/translation.js';
 
 const fontFamily = 'Atkinson Hyperlegible Next';
 
@@ -35,7 +34,7 @@ export function createGizmoMobileHud({
     { key: 'x', label: 'X', color: '#0072B2' },
     { key: 'y', label: 'Y', color: '#009E73' },
     { key: 'z', label: 'Z', color: '#D55E00' },
-    ...(showUniform ? [{ key: 'all', label: '*', color: '#aaaaaa' }] : []),
+    ...(showUniform ? [{ key: 'all', label: '★', color: '#aaaaaa' }] : []),
   ];
   const numAxes = AXIS_DEFS.length;
 
@@ -102,11 +101,6 @@ export function createGizmoMobileHud({
     axisButtons[key].onPointerUpObservable.add(() => {
       if (axis !== key) {
         axis = key;
-        flock.printText({
-          text: translate(key === 'all' ? 'axis_all' : `axis_${key}`),
-          duration: 10,
-          color: 'black',
-        });
         updateAxisButtons();
       }
     });
