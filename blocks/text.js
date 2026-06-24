@@ -12,6 +12,28 @@ import {
   getTooltip,
   getDropdownOption,
 } from "../main/translation.js";
+import { attachShadowContainerOnChange } from "./scene.js";
+
+// print_text keeps a text_join in its TEXT input as a "shadow container": it is
+// promoted to a real block on the canvas (so blocks can be dropped into its
+// items) and respawned when dragged out. See attachShadowContainerOnChange.
+const PRINT_TEXT_LIST_OPTS = {
+  inputName: "TEXT",
+  containerType: "text_join",
+  cacheKey: "_cachedTextListState",
+  makeDefault: (ws) => {
+    const list = ws.newBlock("text_join");
+    if (list.loadExtraState) list.loadExtraState({ itemCount: 1 });
+    list.setInputsInline(true);
+    const item = ws.newBlock("text");
+    item.setShadow(true);
+    item.setFieldValue("Hello 🌈", "TEXT");
+    if (typeof item.initSvg === "function") item.initSvg();
+    const add0 = list.getInput("ADD0");
+    if (add0?.connection) add0.connection.connect(item.outputConnection);
+    return list;
+  },
+};
 
 export function defineTextBlocks() {
   Blockly.Blocks["comment"] = {
@@ -71,6 +93,7 @@ export function defineTextBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("text_blocks");
+      attachShadowContainerOnChange(this, PRINT_TEXT_LIST_OPTS);
     },
   };
 

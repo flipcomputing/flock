@@ -2436,10 +2436,22 @@ const toolboxText = {
       keyword: "print",
       inputs: {
         TEXT: {
+          // Shadow text_join: print_text's onChange promotes it to a real
+          // block on the canvas (so you can drop variables/blocks into the
+          // items) and respawns it when dragged out, like set_material.
           shadow: {
-            type: "text",
-            fields: {
-              TEXT: "🌈 Hello",
+            type: "text_join",
+            extraState: { itemCount: 1 },
+            inline: true,
+            inputs: {
+              ADD0: {
+                shadow: {
+                  type: "text",
+                  fields: {
+                    TEXT: "Hello 🌈",
+                  },
+                },
+              },
             },
           },
         },
@@ -2874,6 +2886,12 @@ const toolboxText = {
           kind: "block",
           type: "text_join",
           keyword: "jointext",
+          extraState: { itemCount: 2 },
+          inline: true,
+          inputs: {
+            ADD0: { shadow: { type: "text" } },
+            ADD1: { shadow: { type: "text" } },
+          },
         },
         {
           kind: "block",
