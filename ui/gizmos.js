@@ -707,6 +707,22 @@ function getScaledSize(mesh) {
   };
 }
 
+// During a live scale-gizmo drag a primitive's geometry stays at its creation
+// size while mesh.scaling stretches it, which stretches the texture. Re-run the
+// size-based UV mapping with the current scaling folded in (plus the scaled
+// world dimensions) so the tile size stays constant in world units — matching
+// what the mesh looks like after the block updates and the program re-runs.
+// Delegates to flock.retilePrimitiveUVs so the gizmo and resize() stay in sync.
+function retilePrimitiveUVsForScale(mesh) {
+  if (!mesh) return;
+  const size = getScaledSize(mesh); // world dimensions = local size * scaling
+  flock.retilePrimitiveUVs(
+    mesh,
+    { width: size.x, height: size.y, depth: size.z },
+    mesh.scaling
+  );
+}
+
 // Clean up gizmo state if aborted
 export function exitGizmoState() {
   duplicateModeActive = false;
@@ -1608,6 +1624,21 @@ function handleScaleGizmo() {
           }
           break;
       }
+    }
+
+    // Re-tile textures live so materials don't stretch while dragging.
+    if (block && MODEL_BLOCK_TYPES.has(block.type)) {
+      // Models use uScale/vScale tiling; the formula matches
+      // flock.resize()'s maintainTextureScale so the look stays consistent.
+      const size = getScaledSize(mesh);
+      flock.applyTextureScaleToMesh(mesh, size.x, size.y, size.z);
+    } else {
+      // Primitives use size-based per-vertex UVs (set at creation / on block
+      // edit via TILE_SIZE = 4). Re-run that mapping with the live scaling
+      // folded in so the tile size stays constant in world units instead of
+      // stretching with the geometry. Passing the scaled (world) size plus the
+      // scale makes the live result match a re-baked mesh / program re-run.
+      retilePrimitiveUVsForScale(mesh);
     }
   });
 
