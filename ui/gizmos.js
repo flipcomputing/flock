@@ -949,7 +949,7 @@ function setBlockAxisValue(block, inputName, value) {
 }
 
 // Find an existing rotate_to block in mesh's DO section without creating one.
-function findExistingRotateBlock(mesh) {
+function _findExistingRotateBlock(mesh) {
   const block = meshMap[mesh?.metadata?.blockKey];
   if (!block) return null;
   const modelVariable = block.getFieldValue('ID_VAR');
@@ -1531,7 +1531,7 @@ export function toggleGizmo(gizmoType) {
       gizmoManager.boundingBoxGizmoEnabled = true;
       break;
     case "bounds":
-      handleBoundsGizmo();
+      _handleBoundsGizmo();
       break;
     */
     case 'focus':
@@ -1900,7 +1900,7 @@ function handlePositionGizmo() {
 
 // Bounds: Allow the user to move the mesh
 // Legacy?
-function handleBoundsGizmo() {
+function _handleBoundsGizmo() {
   gizmoManager.boundingBoxGizmoEnabled = true;
   gizmoManager.boundingBoxDragBehavior.onDragStartObservable.add(function () {
     const mesh = gizmoManager.attachedMesh;
