@@ -91,8 +91,18 @@ export function registerControlGenerators(javascriptGenerator) {
     if (until) {
       argument0 = "!" + argument0;
     }
+    // Yield a real render frame per iteration (not setTimeout, which spins many
+    // times per frame): guarantees exactly one physics/render step before the
+    // condition is re-checked, so physics-dependent conditions (e.g. touching)
+    // advance reliably without the user adding a manual wait. Still stoppable —
+    // rAF yields to the event loop just like a timer.
     return (
-      "while (" + argument0 + ") {\n" + branch + `\nawait wait(0);\n` + "}\n"
+      "while (" +
+      argument0 +
+      ") {\n" +
+      branch +
+      `\nawait new Promise(resolve => requestAnimationFrame(resolve));\n` +
+      "}\n"
     );
   };
 

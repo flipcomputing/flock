@@ -359,7 +359,7 @@ export const flockShapes = {
     const newSphere = new flock.BABYLON.Mesh(sphereId, flock.scene);
     vertexData.applyToMesh(newSphere);
 
-    flock.setSphereUVs(newSphere, diameterX, diameterY, diameterZ, 1);
+    flock.setSphereUVs(newSphere, diameterX, 4);
     newSphere.bakeCurrentTransformIntoVertices();
 
     // Reset scaling to (1,1,1) since the transformation is now baked
@@ -520,7 +520,7 @@ export const flockShapes = {
     // Initialise the mesh with position, color, and other properties
     flock.initializeMesh(newCapsule, position, color, 'Capsule', alpha);
 
-    flock.setCapsuleUVs(newCapsule, radius, height, 1); // Adjust texturePhysicalSize as needed
+    flock.setCapsuleUVs(newCapsule, radius, height, 4); // Adjust texturePhysicalSize as needed
 
     newCapsule.metadata = newCapsule.metadata || {};
     newCapsule.metadata.blockKey = blockKey;

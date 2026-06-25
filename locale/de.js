@@ -296,10 +296,12 @@ export default {
     'Instrument %1 Welle: %2\nLautstärke: %3 Effekt: %4 Rate: %5 Tiefe: %6\nAttacke: %7 Decay: %8 Sustain: %9 Release: %10',
   instrument: 'Instrument %1',
   speak: 'Sprechen %1 %2 Stimme: %3 Sprache: %4\nTempo: %5 Tonhöhe: %6 Lautstärke: %7 Modus: %8',
+  enable_subtitles: 'Untertitel aktivieren %1', // ai
 
   // Text blocks
   comment: '// %1',
   print_text: 'drucke %1 für %2 Sekunden %3',
+  subtitle: 'Untertitel %1 für %2 Sekunden', // ai
   say: 'sage %1 für %2 s %3\nText: %4 auf %5 Alpha: %6 Größe: %7 %8 %9',
   ui_text: 'UI-Text %1 %2 bei x: %3 y: %4\nGröße: %5 für %6 Sekunden Farbe: %7',
   ui_button: 'UI‑Button %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 text: %7 background: %8',
@@ -703,10 +705,13 @@ export default {
   instrument_tooltip: 'Wähle ein Instrument, das für das Abspielen von Noten verwendet wird.',
   speak_tooltip:
     'Wandle Text in Sprache mit der Web Speech API um, optional mit 3D-Positionierung.\nSchlüsselwort: speak',
+  enable_subtitles_tooltip:
+    'Zeigt Untertitel auf dem Bildschirm für gesprochenen Text.\nSchlüsselwort: subtitles', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'Ein Kommentar, um den Code verständlicher zu machen.',
   print_text_tooltip: 'Gibt Text im Ausgabebereich aus.\nSchlüsselwort: print',
+  subtitle_tooltip: 'Zeigt Text als Untertitel auf dem Bildschirm. 0 Sekunden bleibt bis zum nächsten.\nSchlüsselwort: subtitle', // ai
   say_tooltip: 'Zeigt einen Text als Sprechblase auf einem Objekt an.\nSchlüsselwort: say',
   describe_tooltip:
     'Setzt den Anzeigenamen eines Objekts. Aktualisiert die Metadaten für Barrierefreiheit.\nSchlüsselwort: describe',

@@ -1,6 +1,7 @@
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import "@blockly/block-plus-minus";
+import "../blocks/text_join_shadow.js";
 import { clearMeshMaps } from "./mesh-state.js";
 
 // Import the generator registration functions for different categories of blocks

@@ -1057,7 +1057,7 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           .connection.targetBlock()
           .getFieldValue("NUM");
 
-        setAbsoluteSize(mesh, d, h, d);
+        updateCapsuleGeometry(mesh, d, h);
         applyPrimitiveUVTiling("Capsule", { radius: d / 2, height: h });
         repositionPrimitiveFromBlock();
       }
@@ -1616,6 +1616,76 @@ function updateCylinderGeometry(
   mesh.position = currentPosition;
   mesh.rotationQuaternion = currentRotationQuaternion;
   mesh.scaling = flock.BABYLON.Vector3.One();
+
+  // Ensure the world matrix is updated
+  mesh.computeWorldMatrix(true);
+}
+
+// Rebuild a capsule at a new size. Unlike setAbsoluteSize (scale + bake), this
+// regenerates the geometry so the hemispherical caps stay spherical instead of
+// being squashed into ellipsoids by non-uniform scaling. Mirrors
+// updateCylinderGeometry, with a matching physics-shape rebuild.
+function updateCapsuleGeometry(mesh, diameter, height) {
+  const radius = diameter / 2;
+
+  // Store the current world matrix and decompose it
+  const worldMatrix = mesh.computeWorldMatrix(true);
+  const currentScale = new flock.BABYLON.Vector3();
+  const currentRotationQuaternion = new flock.BABYLON.Quaternion();
+  const currentPosition = new flock.BABYLON.Vector3();
+  worldMatrix.decompose(
+    currentScale,
+    currentRotationQuaternion,
+    currentPosition,
+  );
+
+  // If the mesh has geometry, dispose of it before updating
+  if (mesh.geometry) {
+    mesh.geometry.dispose();
+  }
+
+  // Temporarily reset mesh transform
+  mesh = moveMeshToOrigin(mesh);
+  mesh.scaling = flock.BABYLON.Vector3.One();
+
+  // Create a temporary capsule with the requested (world-space) dimensions
+  const tempMesh = flock.BABYLON.MeshBuilder.CreateCapsule(
+    "",
+    {
+      radius: radius,
+      height: height,
+      tessellation: 24,
+      updatable: true,
+    },
+    mesh.getScene(),
+  );
+
+  // Extract vertex data and rebuild the mesh's geometry
+  const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(tempMesh);
+  const newGeometry = new flock.BABYLON.Geometry(
+    mesh.name + "_geometry",
+    mesh.getScene(),
+    vertexData,
+    true,
+    mesh,
+  );
+  newGeometry.applyToMesh(mesh);
+  mesh.makeGeometryUnique();
+  tempMesh.dispose();
+
+  // Restore position and rotation only, keep scale at 1,1,1
+  mesh.position = currentPosition;
+  mesh.rotationQuaternion = currentRotationQuaternion;
+  mesh.scaling = flock.BABYLON.Vector3.One();
+
+  // Rebuild the physics shape to match the new capsule
+  if (mesh.physics && mesh.metadata?.shapeType === "Capsule") {
+    const newShape = flock.createCapsuleFromBoundingBox(mesh, mesh.getScene());
+    if (newShape) {
+      mesh.physics.shape?.dispose?.();
+      mesh.physics.shape = newShape;
+    }
+  }
 
   // Ensure the world matrix is updated
   mesh.computeWorldMatrix(true);

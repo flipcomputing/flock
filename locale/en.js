@@ -300,10 +300,12 @@ export default {
     'instrument %1 wave: %2\nvolume: %3 effect: %4 rate: %5 depth: %6\nattack: %7 decay: %8 sustain: %9 release: %10',
   instrument: 'instrument %1',
   speak: 'speak %1 %2 voice: %3 language: %4\nrate: %5 pitch: %6 volume: %7 mode: %8',
+  enable_subtitles: 'enable subtitles %1',
 
   // Custom block translations - Text blocks
   comment: '// %1',
   print_text: 'print %1 for %2 seconds %3',
+  subtitle: 'subtitle %1 for %2 seconds',
   say: 'say %1 for %2 s %3 \ntext: %4 on %5 alpha: %6 size: %7 %8 %9',
   ui_text: 'ui text %1 %2 at x: %3 y: %4\nsize: %5 for %6 seconds color: %7',
   ui_button: 'ui button %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 background: %8',
@@ -572,10 +574,13 @@ export default {
   instrument_tooltip: 'Select an instrument to use for playing notes.',
   speak_tooltip:
     'Convert text to speech using the Web Speech API with optional 3D positioning.\nKeyword: speak',
+  enable_subtitles_tooltip:
+    'Show on-screen subtitles for spoken text.\nKeyword: subtitles',
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'A comment line to help people understand your code.',
   print_text_tooltip: 'A text to the output panel.\nKeyword: print',
+  subtitle_tooltip: 'Show text as an on-screen subtitle. 0 seconds stays until replaced.\nKeyword: subtitle',
   say_tooltip: 'Display a piece of text as a speech bubble on an object.\nKeyword: say',
   describe_tooltip:
     'Set the display name for an object. This updates the object metadata for accessibility.\nKeyword: describe',

@@ -159,23 +159,34 @@ function initSceneColourLikeBlock(block, cfg) {
   }
 }
 
-export function cacheMaterialState(mapBlock) {
-  const mat = mapBlock.getInputTargetBlock("MATERIAL");
-  if (!mat || mat.type !== "material") return;
-  if (mat.isShadow?.()) return;
+// ---------------------------------------------------------------------------
+// Shadow-container machinery
+//
+// A "shadow container" input keeps a shadow block (e.g. a `material` or a
+// `text_join`) as its default. To let users drag blocks *into* that container
+// it is promoted to a real block on the canvas (a shadow cannot hold non-shadow
+// children); to leave a placeholder behind when the container is dragged out it
+// is respawned. State is cached so edits survive the respawn. These generic
+// helpers are parameterised by `opts`:
+//   { inputName, containerType, cacheKey, makeDefault(ws) -> Block }
+// ---------------------------------------------------------------------------
 
-  mapBlock._cachedMaterialState = Blockly.serialization.blocks.save(mat);
+export function cacheContainerState(block, opts) {
+  const c = block.getInputTargetBlock(opts.inputName);
+  if (!c || c.type !== opts.containerType) return;
+  if (c.isShadow?.()) return;
+
+  block[opts.cacheKey] = Blockly.serialization.blocks.save(c);
 }
 
-function refillMaterialFromCache(mapBlock) {
-  const ws = mapBlock.workspace;
+function refillContainerFromCache(block, opts) {
+  const ws = block.workspace;
   if (!ws || ws.isFlyout) return false;
 
-  const input = mapBlock.getInput("MATERIAL");
-  const conn = input?.connection;
+  const conn = block.getInput(opts.inputName)?.connection;
   if (!conn || conn.isConnected()) return false;
 
-  const state = mapBlock._cachedMaterialState;
+  const state = block[opts.cacheKey];
   if (!state) return false;
 
   const clone = Blockly.serialization.blocks.append(state, ws);
@@ -185,22 +196,21 @@ function refillMaterialFromCache(mapBlock) {
   return true;
 }
 
-export function replaceShadowMaterialWithCache(mapBlock) {
-  const ws = mapBlock.workspace;
+export function replaceShadowContainerWithCache(block, opts) {
+  const ws = block.workspace;
   if (!ws || ws.isFlyout) return false;
 
-  const state = mapBlock._cachedMaterialState;
+  const state = block[opts.cacheKey];
   if (!state) return false;
 
-  const mat = mapBlock.getInputTargetBlock("MATERIAL");
-  if (!mat || mat.type !== "material") return false;
-  if (!mat.isShadow?.()) return false;
+  const c = block.getInputTargetBlock(opts.inputName);
+  if (!c || c.type !== opts.containerType) return false;
+  if (!c.isShadow?.()) return false;
 
-  const input = mapBlock.getInput("MATERIAL");
-  const conn = input?.connection;
+  const conn = block.getInput(opts.inputName)?.connection;
   if (!conn) return false;
 
-  mat.dispose(false);
+  c.dispose(false);
 
   const clone = Blockly.serialization.blocks.append(state, ws);
   if (!clone?.outputConnection) return false;
@@ -209,31 +219,30 @@ export function replaceShadowMaterialWithCache(mapBlock) {
   return true;
 }
 
-export function promoteMaterialContainerFromShadow(mapBlock) {
-  const ws = mapBlock.workspace;
+export function promoteContainerFromShadow(block, opts) {
+  const ws = block.workspace;
   if (!ws || ws.isFlyout) return;
 
-  const mat = mapBlock.getInputTargetBlock("MATERIAL");
-  if (!mat || mat.type !== "material") return;
+  const c = block.getInputTargetBlock(opts.inputName);
+  if (!c || c.type !== opts.containerType) return;
 
-  if (!mat.isShadow?.()) return;
+  if (!c.isShadow?.()) return;
 
   // setShadow(false) alone doesn't re-initialise the field DOM, so the
   // blocklyDropdownRect is never created and keyboard-focus styling is lost.
   // Instead, dispose the shadow and recreate as a real block so the field
   // initialises with isShadow()===false and gets its border rect.
-  const state = Blockly.serialization.blocks.save(mat);
+  const state = Blockly.serialization.blocks.save(c);
   if (!state) {
-    mat.setShadow(false);
+    c.setShadow(false);
     return;
   }
   delete state.shadow;
 
-  const input = mapBlock.getInput("MATERIAL");
-  const conn = input?.connection;
+  const conn = block.getInput(opts.inputName)?.connection;
   if (!conn) return;
 
-  mat.dispose(false);
+  c.dispose(false);
 
   const clone = Blockly.serialization.blocks.append(state, ws);
   if (!clone?.outputConnection) return;
@@ -241,24 +250,85 @@ export function promoteMaterialContainerFromShadow(mapBlock) {
   clone.outputConnection.connect(conn);
 }
 
-export function respawnMaterialShadow(mapBlock) {
-  const ws = mapBlock.workspace;
+export function respawnContainer(block, opts) {
+  const ws = block.workspace;
   if (!ws || ws.isFlyout) return;
 
-  const input = mapBlock.getInput("MATERIAL");
-  const conn = input?.connection;
+  const conn = block.getInput(opts.inputName)?.connection;
   if (!conn || conn.isConnected()) return;
 
-  const restored = refillMaterialFromCache(mapBlock);
-  if (restored) return;
+  if (refillContainerFromCache(block, opts)) return;
 
-  const block = ws.newBlock("material");
-  if (typeof block.initSvg === "function") block.initSvg();
-  if (typeof block.render === "function") block.render();
+  const fresh = opts.makeDefault(ws);
+  if (typeof fresh.initSvg === "function") fresh.initSvg();
+  if (typeof fresh.render === "function") fresh.render();
 
-  if (block?.outputConnection) {
-    block.outputConnection.connect(conn);
+  if (fresh?.outputConnection) {
+    fresh.outputConnection.connect(conn);
   }
+}
+
+// Wires the full shadow-container lifecycle to a block's onChange handler.
+export function attachShadowContainerOnChange(block, opts) {
+  const ws = block.workspace;
+  const touches = makeTouchesInputSubtree(block, ws, opts.inputName);
+
+  block.setOnChange((changeEvent) => {
+    const eventTypes = [
+      Blockly.Events.BLOCK_CREATE,
+      Blockly.Events.BLOCK_CHANGE,
+      Blockly.Events.BLOCK_MOVE,
+      Blockly.Events.BLOCK_DELETE,
+      Blockly.Events.UI,
+    ];
+    if (!eventTypes.includes(changeEvent.type)) return;
+
+    const relevant =
+      wasBlockDeleted(changeEvent, block.id) ||
+      changeEventHitsTouches(changeEvent, touches) ||
+      (changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+        changeEvent.blockId === block.id) ||
+      (changeEvent.type === Blockly.Events.BLOCK_MOVE &&
+        changeEvent.oldParentId === block.id &&
+        changeEvent.oldInputName === opts.inputName);
+
+    if (!relevant) return;
+
+    if (replaceShadowContainerWithCache(block, opts)) return;
+
+    promoteContainerFromShadow(block, opts);
+
+    if (!block.getInputTargetBlock(opts.inputName)) {
+      respawnContainer(block, opts);
+      return;
+    }
+
+    cacheContainerState(block, opts);
+  });
+}
+
+// Material-specific wrappers (preserve the original API used by materials.js).
+const MATERIAL_OPTS = {
+  inputName: "MATERIAL",
+  containerType: "material",
+  cacheKey: "_cachedMaterialState",
+  makeDefault: (ws) => ws.newBlock("material"),
+};
+
+export function cacheMaterialState(mapBlock) {
+  return cacheContainerState(mapBlock, MATERIAL_OPTS);
+}
+
+export function replaceShadowMaterialWithCache(mapBlock) {
+  return replaceShadowContainerWithCache(mapBlock, MATERIAL_OPTS);
+}
+
+export function promoteMaterialContainerFromShadow(mapBlock) {
+  return promoteContainerFromShadow(mapBlock, MATERIAL_OPTS);
+}
+
+export function respawnMaterialShadow(mapBlock) {
+  return respawnContainer(mapBlock, MATERIAL_OPTS);
 }
 
 function attachCreateMapOnChange(block) {

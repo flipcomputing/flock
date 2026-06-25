@@ -293,10 +293,12 @@ export default {
     'instrumento %1 onda: %2\nvolume: %3 efeito: %4 taxa: %5 profundidade: %6\nataque: %7 decaimento: %8 sustentação: %9 liberação: %10',
   instrument: 'instrumento %1',
   speak: 'falar %1 %2 voz: %3 idioma: %4\nvelocidade: %5 tom: %6 volume: %7 modo: %8',
+  enable_subtitles: 'ativar legendas %1', // ai
 
   // Custom block translations - Text blocks
   comment: '// %1',
   print_text: 'imprimir %1 por %2 segundos %3',
+  subtitle: 'legenda %1 por %2 segundos', // ai
   say: 'dizer %1 por %2 s %3 \ntexto %4 em %5 opacidade %6 tamanho %7 %8 %9',
   ui_text: 'texto UI %1 %2 em x: %3 y: %4\ntamanho: %5 por %6 segundos cor: %7',
   ui_button:
@@ -565,10 +567,13 @@ export default {
   instrument_tooltip: 'Seleciona um instrumento para tocar notas.',
   speak_tooltip:
     'Converte texto em fala usando a API Web Speech com posicionamento 3D opcional.\nPalavra-chave: falar',
+  enable_subtitles_tooltip:
+    'Mostra legendas na tela para o texto falado.\nPalavra-chave: subtitles', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'Uma linha de comentário para ajudar a entender seu código.',
   print_text_tooltip: 'Mostra um texto no painel de saída.\nPalavra-chave: imprimir',
+  subtitle_tooltip: 'Mostra o texto como legenda na tela. 0 segundos permanece até a próxima.\nPalavra-chave: subtitle', // ai
   say_tooltip: 'Exibe um texto como balão de fala em um objeto.\nPalavra-chave: dizer',
   describe_tooltip:
     'Define o nome de exibição de um objeto. Atualiza os metadados para acessibilidade.\nPalavra-chave: describe',

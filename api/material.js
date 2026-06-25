@@ -496,36 +496,7 @@ export const flockMaterial = {
       return;
     }
 
-    const CHARACTER_PART_ALIASES = {
-      hair: "hair",
-      skin: "skin",
-      eyes: "eyes",
-      shorts: "shorts",
-      tshirt: "tshirt",
-      "t-shirt": "tshirt",
-      tee: "tshirt",
-      sleeves: "sleeves",
-      sleeve: "sleeves",
-      detail: "sleeves",
-      shoes: "sleeves",
-    };
-
-    const canonicalizePartName = (name = "") => {
-      const s = String(name).toLowerCase();
-      for (const key of Object.keys(CHARACTER_PART_ALIASES)) {
-        if (s === key || s.includes(key)) return CHARACTER_PART_ALIASES[key];
-      }
-      return null;
-    };
-
-    const getPartNameFromMesh = (node) => {
-      const metaName = node?.metadata?.materialPartName;
-      return (
-        canonicalizePartName(metaName) ||
-        canonicalizePartName(node?.material?.name) ||
-        canonicalizePartName(node?.name)
-      );
-    };
+    const getPartNameFromMesh = flock.getCanonicalPartName;
 
     const getRootMesh = (node) => {
       let current = node;
@@ -703,7 +674,10 @@ export const flockMaterial = {
       flock.glowMesh(mesh);
     }
   },
-  applyColorToMaterial(part, materialName, color) {
+  // Map a raw name (mesh/material/metadata) onto one of the canonical
+  // character part names (hair, skin, eyes, tshirt, shorts, sleeves), or null
+  // if it isn't a recognised character part.
+  canonicalizePartName(name = "") {
     const CHARACTER_PART_ALIASES = {
       hair: "hair",
       skin: "skin",
@@ -718,25 +692,22 @@ export const flockMaterial = {
       shoes: "sleeves",
     };
 
-    const canonicalizePartName = (name = "") => {
-      const s = String(name).toLowerCase();
-      for (const key of Object.keys(CHARACTER_PART_ALIASES)) {
-        if (s === key || s.includes(key)) return CHARACTER_PART_ALIASES[key];
-      }
-      return null;
-    };
-
-    const getPartNameFromMesh = (mesh) => {
-      const metaName = mesh?.metadata?.materialPartName;
-      return (
-        canonicalizePartName(metaName) ||
-        canonicalizePartName(mesh?.material?.name) ||
-        canonicalizePartName(mesh?.name)
-      );
-    };
-
-    const targetPart = canonicalizePartName(materialName);
-    const partName = getPartNameFromMesh(part);
+    const s = String(name).toLowerCase();
+    for (const key of Object.keys(CHARACTER_PART_ALIASES)) {
+      if (s === key || s.includes(key)) return CHARACTER_PART_ALIASES[key];
+    }
+    return null;
+  },
+  getCanonicalPartName(node) {
+    return (
+      flock.canonicalizePartName(node?.metadata?.materialPartName) ||
+      flock.canonicalizePartName(node?.material?.name) ||
+      flock.canonicalizePartName(node?.name)
+    );
+  },
+  applyColorToMaterial(part, materialName, color) {
+    const targetPart = flock.canonicalizePartName(materialName);
+    const partName = flock.getCanonicalPartName(part);
 
     if (part.material && targetPart && partName === targetPart) {
       part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(
@@ -1677,10 +1648,34 @@ export const flockMaterial = {
       const flat = colorInput.flat();
       if (!flat.length) return rootMesh;
 
-      targets.forEach((m, i) => {
-        const v = flat[i % flat.length];
-        applyOne(m, v, i);
-      });
+      // Character models split a single logical part (e.g. the shorts) across
+      // several sub-meshes. Group those by canonical part name so the whole
+      // part draws one entry from the list, mirroring how the colour list is
+      // distributed; otherwise the top and bottom of the shorts would land on
+      // adjacent indices and get different materials. Meshes with no recognised
+      // part name fall back to one slot each, preserving the per-mesh ordering
+      // used by ordinary multi-mesh objects.
+      const isCharacterLike = targets.some((m) =>
+        flock.getCanonicalPartName(m),
+      );
+
+      if (isCharacterLike) {
+        const groupIndexByKey = new Map();
+        targets.forEach((m) => {
+          const key = flock.getCanonicalPartName(m) || `mesh:${m.uniqueId}`;
+          let index = groupIndexByKey.get(key);
+          if (index === undefined) {
+            index = groupIndexByKey.size;
+            groupIndexByKey.set(key, index);
+          }
+          applyOne(m, flat[index % flat.length], index);
+        });
+      } else {
+        targets.forEach((m, i) => {
+          const v = flat[i % flat.length];
+          applyOne(m, v, i);
+        });
+      }
     } else {
       targets.forEach((m) => applyOne(m, colorInput));
     }

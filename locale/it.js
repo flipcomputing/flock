@@ -298,10 +298,12 @@ export default {
     'strumento %1 onda: %2\nvolume: %3 effetto: %4 velocità: %5 profondità: %6\nattacco: %7 decadimento: %8 sustain: %9 rilascio: %10',
   instrument: 'strumento %1',
   speak: 'parla %1 %2 voce: %3 lingua: %4\nvelocità: %5 intonazione: %6 volume: %7 modalità: %8',
+  enable_subtitles: 'attiva sottotitoli %1', // ai
 
   // Custom block translations - Text blocks
   comment: '// %1',
   print_text: 'stampa %1 per %2 secondi %3',
+  subtitle: 'sottotitolo %1 per %2 secondi', // ai
   say: 'dici %1 per %2 s %3 \ntesto %4 su %5 alpha %6 dimensione %7 %8 %9',
   ui_text: 'testo UI %1 %2 a x: %3 y: %4\nmisura: %5 per %6 secondi colore: %7',
   ui_button: 'pulsante UI %1 %2 a x: %3 y: %4\nmisura: %5 dim. testo: %6 text: %7 background: %8',
@@ -567,10 +569,13 @@ export default {
   instrument_tooltip: 'Seleziona uno strumento per riprodurre le note.',
   speak_tooltip:
     'Converte testo in voce usando la Web Speech API con posizionamento 3D opzionale.\nParola chiave: speak',
+  enable_subtitles_tooltip:
+    'Mostra i sottotitoli sullo schermo per il testo parlato.\nParola chiave: subtitles', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'Una riga di commento per aiutare a capire il codice.',
   print_text_tooltip: 'Testo verso il pannello di output.\nParola chiave: print',
+  subtitle_tooltip: 'Mostra il testo come sottotitolo sullo schermo. 0 secondi resta fino al successivo.\nParola chiave: subtitle', // ai
   say_tooltip: 'Mostra un fumetto di testo su un oggetto.\nParola chiave: say',
   describe_tooltip:
     "Imposta il nome visualizzato di un oggetto. Aggiorna i metadati per l'accessibilità.\nParola chiave: describe",

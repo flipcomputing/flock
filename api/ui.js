@@ -13,6 +13,33 @@ let flock;
 //let fontFamily = "Asap";
 let fontFamily = "Atkinson Hyperlegible Next";
 
+// On-screen UI font sizing for canvas-painted GUI text (printText, subtitles).
+//
+// Babylon renders GUI text into the WebGL canvas, so the browser's font
+// preferences (default size, *minimum* size) never apply to it the way they do
+// for DOM text — and the minimum-font-size setting isn't exposed by any API.
+// We approximate "respect the user's font size" by reading the root font-size
+// (the browser's "Default font size" preference) and scaling captions in
+// proportion: a user who raises their default to 20px gets larger captions.
+//
+// `baseCssPx` is the intended on-screen size at the standard 16px root (so 16
+// ≈ 1em). The dpr factor keeps text crisp at native resolution without changing
+// apparent size (the engine renders at devicePixelRatio via setHardwareScalingLevel).
+function uiFontSizePx(baseCssPx = 16) {
+  const dpr = (typeof window !== "undefined" && window.devicePixelRatio) || 1;
+  let rootPx = 16;
+  try {
+    const px = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    if (Number.isFinite(px) && px > 0) rootPx = px;
+  } catch {
+    /* non-DOM env (e.g. tests) — fall back to the 16px default */
+  }
+  // Floor at 1× so we never render below the bumped 16px baseline; cap at 2× so
+  // an extreme preference can't blow out the caption layout.
+  const prefScale = Math.min(2, Math.max(1, rootPx / 16));
+  return Math.round(baseCssPx * prefScale * dpr);
+}
+
 export function setFlockReference(ref) {
   flock = ref;
 }
@@ -829,10 +856,11 @@ export const flockUI = {
       bg.top = "5px";
 
       const textBlock = new flock.GUI.TextBlock("textBlock", text);
+      const fontSize = uiFontSizePx(16);
       textBlock.color = color;
-      textBlock.fontSize = Math.round(20 * flock.displayScale);
+      textBlock.fontSize = fontSize;
       textBlock.fontFamily = fontFamily;
-      textBlock.height = "25px";
+      textBlock.height = `${Math.round(fontSize * 1.6)}px`;
       textBlock.paddingLeft = "10px";
       textBlock.paddingRight = "10px";
       textBlock.paddingTop = "2px";
@@ -901,5 +929,162 @@ export const flockUI = {
       flock.stackPanel.removeControl(bg);
       bg.dispose();
     }
+  },
+
+  enableSubtitles({ enabled = true } = {}) {
+    flock.subtitlesEnabled = !!enabled;
+    // Turning subtitles off should also clear anything currently on screen.
+    if (!enabled) flock.clearSubtitle();
+  },
+
+  // duration: seconds before the caption auto-clears; 0 keeps it until the next
+  // subtitle replaces it (or the run ends), like printText.
+  showSubtitle(text, duration = 0) {
+    if (!flock.scene || !flock.advancedTexture) return;
+    if (!text || !String(text).trim()) return;
+
+    // Only ever one subtitle on screen at a time.
+    flock.clearSubtitle();
+
+    try {
+      const fontSize = uiFontSizePx(16);
+      const hPad = 24; // per-line box: paddingLeft + paddingRight on the text
+
+      // Width budget for the caption block, measured against the subtitle's own
+      // ADT so units match the px sizes used here and by the controls.
+      const screenWidth = flock.advancedTexture.getSize?.().width ?? 0;
+      // Cap to a comfortable subtitle reading length (~32 chars at this font);
+      // on wide screens an 80%-width line is far too long.
+      const maxWidth = 320 * flock.displayScale;
+      let captionWidth =
+        screenWidth > 0 ? Math.min(0.8 * screenWidth, maxWidth) : maxWidth;
+
+      // Position relative to the on-screen touch controls when they're visible.
+      // They sit in the bottom corners: arrows/joystick (~240px) bottom-left and
+      // action buttons (~160px) bottom-right, scaled by displayScale. If the gap
+      // between them is at least a third of the screen width, drop the caption
+      // into that gap; otherwise lift it clear above the whole control band.
+      let leftOffset = 0;
+      let bottomMargin = 20 * flock.displayScale;
+      if (flock.controlsTexture) {
+        const leftReserve = 240 * flock.displayScale; // arrows / joystick
+        const rightReserve = 160 * flock.displayScale; // action buttons
+        const gap = screenWidth - leftReserve - rightReserve;
+        if (screenWidth > 0 && gap >= screenWidth / 3) {
+          captionWidth = Math.min(gap, maxWidth);
+          // Centre the block within the gap (shift toward the narrower right).
+          leftOffset = Math.round((leftReserve - rightReserve) / 2);
+        } else {
+          bottomMargin = 180 * flock.displayScale;
+        }
+      }
+
+      // Measure with the ADT's own 2D context (the canvas Babylon renders text
+      // into, where the subtitle font is active) so wrapping matches the GUI.
+      const measureCtx = flock.advancedTexture.getContext?.();
+      const measure = (s) => {
+        if (!measureCtx) return s.length * fontSize * 0.6;
+        measureCtx.font = `${fontSize}px ${fontFamily}`;
+        return measureCtx.measureText(s).width;
+      };
+
+      // Greedy word-wrap into lines that fit the caption width.
+      const maxTextWidth = Math.max(40, captionWidth - hPad);
+      const words = String(text).split(/\s+/).filter(Boolean);
+      const lines = [];
+      let current = "";
+      for (const word of words) {
+        const trial = current ? `${current} ${word}` : word;
+        if (!current || measure(trial) <= maxTextWidth) {
+          current = trial;
+        } else {
+          lines.push(current);
+          current = word;
+        }
+      }
+      if (current) lines.push(current);
+      if (lines.length === 0) return;
+
+      // One hugging background box per line (YouTube-style), stacked and
+      // left-aligned within a bottom-anchored panel that is centred in the gap.
+      let blockWidth = 0;
+      const lineWidths = lines.map((line) => {
+        const w = Math.min(Math.round(measure(line) + hPad), Math.round(captionWidth));
+        if (w > blockWidth) blockWidth = w;
+        return w;
+      });
+
+      const panel = new flock.GUI.StackPanel("subtitlePanel");
+      panel.isVertical = true;
+      panel.width = `${blockWidth}px`;
+      panel.spacing = 0; // lines abut so the boxes read as one continuous block
+      panel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+      panel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+      panel.left = `${leftOffset}px`;
+      panel.top = `-${bottomMargin}px`;
+
+      lines.forEach((line, i) => {
+        const box = new flock.GUI.Rectangle("subtitleLine");
+        box.background = "rgba(0, 0, 0, 0.6)";
+        box.adaptWidthToChildren = true;
+        box.adaptHeightToChildren = true;
+        // Square corners so stacked line boxes merge with no seam/notch gap.
+        box.cornerRadius = 0;
+        box.thickness = 0;
+        // Left-align each line box to share a common left edge.
+        box.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+
+        const tb = new flock.GUI.TextBlock("subtitleLineText", line);
+        tb.color = "white";
+        tb.fontSize = fontSize;
+        tb.fontFamily = fontFamily;
+        tb.paddingLeft = "12px";
+        tb.paddingRight = "12px";
+        tb.paddingTop = "4px";
+        tb.paddingBottom = "4px";
+        tb.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        tb.resizeToFit = true;
+        tb.width = `${lineWidths[i]}px`;
+
+        box.addControl(tb);
+        panel.addControl(box);
+      });
+
+      flock.advancedTexture.addControl(panel);
+      flock._subtitleControl = panel;
+
+      // Token identifies this particular caption so a delayed clear (duration
+      // timer, speech end, abort) only removes the subtitle it was scheduled
+      // for — never a newer one that has since replaced it.
+      const token = (flock._subtitleToken || 0) + 1;
+      flock._subtitleToken = token;
+
+      const seconds = Number(duration);
+      if (isFinite(seconds) && seconds > 0) {
+        flock._subtitleTimer = setTimeout(() => {
+          if (flock._subtitleToken === token) flock.clearSubtitle();
+        }, seconds * 1000);
+      }
+
+      // Clear on run abort so a stale caption never lingers between runs.
+      flock.abortController?.signal.addEventListener(
+        "abort",
+        () => flock.clearSubtitle(),
+        { once: true },
+      );
+    } catch (error) {
+      console.warn("Unable to show subtitle:", error);
+    }
+  },
+
+  clearSubtitle() {
+    if (flock._subtitleTimer) {
+      clearTimeout(flock._subtitleTimer);
+      flock._subtitleTimer = null;
+    }
+    if (!flock._subtitleControl) return;
+    flock.advancedTexture?.removeControl(flock._subtitleControl);
+    flock._subtitleControl.dispose();
+    flock._subtitleControl = null;
   },
 };

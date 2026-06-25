@@ -993,9 +993,35 @@ export const flockSound = {
       }
     }
 
+    // Show the spoken text as a subtitle (if enabled). Display it synchronously
+    // rather than from utterance.onstart — onstart fires unreliably in Chrome
+    // after speechSynthesis.cancel() (called above), so it would only show for
+    // the first utterance. A duration-based backstop clears the caption even if
+    // onend is likewise dropped; onend/onerror clear it sooner when they fire.
+    const subtitlesOn = !!(flock.subtitlesEnabled && flock.showSubtitle);
+    let subtitleToken = null;
+    const showSubtitle = () => {
+      if (!subtitlesOn) return;
+      // Pass an estimated speaking time as the duration so the caption clears
+      // even if onend is dropped (~14 chars/sec at rate 1, floor 2s, +1s buffer).
+      // Use utterance.rate (already clamped to 0.1–10) so the estimate matches
+      // the rate actually spoken.
+      const seconds =
+        Math.max(2, String(text).length / 14) / utterance.rate + 1;
+      flock.showSubtitle(text, seconds);
+      subtitleToken = flock._subtitleToken;
+    };
+    const clearSubtitle = () => {
+      if (!subtitlesOn) return;
+      // Only clear if this utterance still owns the caption — a late onend from
+      // a cancelled utterance must not wipe a newer one's subtitle.
+      if (flock._subtitleToken === subtitleToken) flock.clearSubtitle();
+    };
+
     if (mode === "await") {
       return new Promise((resolve) => {
         utterance.onend = () => {
+          clearSubtitle();
           if (spatialAudioSetup) {
             spatialAudioSetup.cleanup();
           }
@@ -1003,28 +1029,33 @@ export const flockSound = {
         };
         utterance.onerror = (event) => {
           console.warn("Speech synthesis error:", event.error);
+          clearSubtitle();
           if (spatialAudioSetup) {
             spatialAudioSetup.cleanup();
           }
           resolve(); // Resolve instead of reject to prevent blocking
         };
 
+        showSubtitle();
         window.speechSynthesis.speak(utterance);
       });
     } else {
       // Fire and forget mode
       utterance.onend = () => {
+        clearSubtitle();
         if (spatialAudioSetup) {
           spatialAudioSetup.cleanup();
         }
       };
       utterance.onerror = (event) => {
         console.warn("Speech synthesis error:", event.error);
+        clearSubtitle();
         if (spatialAudioSetup) {
           spatialAudioSetup.cleanup();
         }
       };
 
+      showSubtitle();
       window.speechSynthesis.speak(utterance);
       return undefined;
     }
