@@ -100,7 +100,7 @@ function createAdaptiveInput({ onMove, onConfirm, onCancel, stepNormal, stepFast
   }
 
   hud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange: onHudAxisChange, stepLabelsByAxis, initialAxis: initialHudAxis ?? initialKeyboardAxis });
-  keyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast, onAxisChange: onKbAxisChange, initialAxis: initialKeyboardAxis });
+  keyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast, onAxisChange: onKbAxisChange, initialAxis: initialKeyboardAxis, allowUniform: showUniform });
   const startAxis = initialKeyboardAxis ?? initialHudAxis;
   if (startAxis) onAxisChange?.(startAxis);
   flock.canvas?.focus();
@@ -814,23 +814,42 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     if (creationBlock) highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
   }
 
+  // Track the rotation as Euler degrees (the block's own representation) rather
+  // than composing increments onto the quaternion and reading Euler back. A
+  // single-axis drag then changes only that axis's value, and the mesh is
+  // rebuilt with RotationYawPitchRoll — identical to what rotate_to applies — so
+  // the live view always matches the block. This also makes each axis a
+  // WORLD-axis rotation, like the drag arcs: rotating "Y" yaws a tilted mesh
+  // about the vertical, instead of spinning it about its own (local) axis, which
+  // on a shape symmetric about that axis (e.g. a capsule) looked like no change
+  // and smeared every Euler component across all three block values.
+  const working = (() => {
+    const e = getMeshRotationInDegrees(mesh);
+    return { x: e.x, y: e.y, z: e.z };
+  })();
+  const axisInput = { x: 'X', y: 'Y', z: 'Z' };
   const onMove = (dx, dy, dz) => {
-    if (!mesh.rotationQuaternion) {
-      mesh.rotationQuaternion = flock.BABYLON.Quaternion.FromEulerAngles(
-        mesh.rotation.x,
-        mesh.rotation.y,
-        mesh.rotation.z
-      );
+    const deltas = { x: dx, y: dy, z: dz };
+    const changedAxes = [];
+    for (const axisKey of ['x', 'y', 'z']) {
+      if (deltas[axisKey]) {
+        working[axisKey] += flock.BABYLON.Tools.ToDegrees(deltas[axisKey]);
+        changedAxes.push(axisKey);
+      }
     }
-    const delta = flock.BABYLON.Quaternion.RotationYawPitchRoll(dy, dx, dz);
-    mesh.rotationQuaternion.multiplyInPlace(delta).normalize();
+    mesh.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+      flock.BABYLON.Tools.ToRadians(working.y),
+      flock.BABYLON.Tools.ToRadians(working.x),
+      flock.BABYLON.Tools.ToRadians(working.z)
+    );
     if (isBodyAlive(mesh.physics)) {
       mesh.physics.disablePreStep = false;
       mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
     }
     if (rotateBlock && !rotateBlock.disposed) {
-      const rot = getMeshRotationInDegrees(mesh);
-      setBlockXYZ(rotateBlock, rot.x, rot.y, rot.z);
+      for (const axisKey of changedAxes) {
+        setBlockAxisValue(rotateBlock, axisInput[axisKey], working[axisKey]);
+      }
     }
   };
   const onConfirm = () => {
@@ -930,7 +949,7 @@ function setBlockAxisValue(block, inputName, value) {
 }
 
 // Find an existing rotate_to block in mesh's DO section without creating one.
-function findExistingRotateBlock(mesh) {
+function _findExistingRotateBlock(mesh) {
   const block = meshMap[mesh?.metadata?.blockKey];
   if (!block) return null;
   const modelVariable = block.getFieldValue('ID_VAR');
@@ -1512,7 +1531,7 @@ export function toggleGizmo(gizmoType) {
       gizmoManager.boundingBoxGizmoEnabled = true;
       break;
     case "bounds":
-      handleBoundsGizmo();
+      _handleBoundsGizmo();
       break;
     */
     case 'focus':
@@ -1881,7 +1900,7 @@ function handlePositionGizmo() {
 
 // Bounds: Allow the user to move the mesh
 // Legacy?
-function handleBoundsGizmo() {
+function _handleBoundsGizmo() {
   gizmoManager.boundingBoxGizmoEnabled = true;
   gizmoManager.boundingBoxDragBehavior.onDragStartObservable.add(function () {
     const mesh = gizmoManager.attachedMesh;
