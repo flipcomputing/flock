@@ -12,6 +12,7 @@ export function createAxisKeyboardHandler({
   stepFast = 1,
   onAxisChange,
   initialAxis = null,
+  allowUniform = false,
 }) {
   let axis = initialAxis;
 
@@ -72,6 +73,8 @@ export function createAxisKeyboardHandler({
 
       case "u":
       case "U":
+        // Uniform (all-axes) only applies to scale; ignore on move/rotate.
+        if (!allowUniform) break;
         axis = axis === "all" ? null : "all";
         flock.printText({
           text: axis ? `🔒 ★ ${translate("axis_all")}` : translate("axis_free"),
