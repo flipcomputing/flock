@@ -72,5 +72,7 @@ Flock XR is based on Blockly, the Babylon JS library and the Havok physics engin
 - Mocha & Chai - Unit testing framework
 - Playwright - End-to-end testing framework
 
+This project is tested with BrowserStack.
+
 **📚 Documentation:**
 - [Getting Started](docs/GETTING_STARTED.md) - Quick start for improving API quality
