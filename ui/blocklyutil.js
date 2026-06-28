@@ -9,6 +9,114 @@ import {
 } from "./blocklyshadowutil.js";
 let lastAddMenuHighlighted = null;
 
+// Whether a block has been locked (non-editable / non-movable / non-deletable).
+export function isBlockLocked(block) {
+  return !!block?.locked;
+}
+
+// Recursively remove lock-related serialized attributes from a block-save JSON
+// node and its inputs/next, so a pasted/duplicated copy is created unlocked.
+export function stripLockState(node) {
+  if (!node || typeof node !== "object") return;
+  delete node.movable;
+  delete node.editable;
+  delete node.deletable;
+  if (node.inputs) {
+    for (const name of Object.keys(node.inputs)) {
+      stripLockState(node.inputs[name]?.block);
+      stripLockState(node.inputs[name]?.shadow);
+    }
+  }
+  if (node.next) {
+    stripLockState(node.next.block);
+    stripLockState(node.next.shadow);
+  }
+}
+
+// Lock or unlock a block and all of its descendants (including connected shadow
+// blocks, so nested X/Y/Z, size and colour fields can't be edited either). Only
+// the top block carries the persisted `locked` flag; descendants are re-cascaded
+// on load by the flockLock serializer.
+// Collect the block plus everything nested *inside* it: blocks plugged into its
+// value/statement inputs (recursively), including the full statement stack of a
+// DO-style input. Blocks connected after the root via its next connection are
+// siblings, not nested, so they are deliberately excluded.
+function getLockTargets(rootBlock) {
+  const targets = [];
+  const visit = (b, isRoot) => {
+    targets.push(b);
+    for (const input of b.inputList || []) {
+      const child = input.connection?.targetBlock?.();
+      if (child) visit(child, false);
+    }
+    // Follow the next chain only below the root: a statement stack inside a DO
+    // is nested and should be locked; the root's own next block is a sibling.
+    if (!isRoot) {
+      const next = b.getNextBlock?.();
+      if (next) visit(next, false);
+    }
+  };
+  visit(rootBlock, true);
+  return targets;
+}
+
+// A drag strategy that reports the block as movable (so Blockly treats a press
+// as a block drag rather than falling back to panning the workspace) but does
+// nothing — a locked block neither moves nor drags the canvas.
+function makeNoopDragStrategy(block) {
+  return {
+    isMovable: () => true,
+    startDrag: () => block,
+    drag: () => {},
+    endDrag: () => {},
+    revertDrag: () => {},
+  };
+}
+
+// Apply (or clear) the locked state on a single block. Does not cascade.
+export function applyBlockLockState(b, locked) {
+  if (!b) return;
+  b.locked = locked;
+  if (typeof b.setEditable === "function") b.setEditable(!locked);
+  // Shadow blocks are inherently non-movable/non-deletable; toggling those on
+  // them would wrongly make them draggable/removable when unlocked.
+  if (!b.isShadow?.()) {
+    if (typeof b.setDeletable === "function") b.setDeletable(!locked);
+    if (typeof b.setMovable === "function") b.setMovable(!locked);
+    // Swap in a no-op drag strategy while locked. setMovable(false) alone
+    // makes Blockly pan the workspace when you try to drag the block; a
+    // movable-but-no-op strategy consumes the drag gesture instead.
+    if (typeof b.setDragStrategy === "function") {
+      if (locked) {
+        if (!b._origDragStrategy) b._origDragStrategy = b.getDragStrategy?.();
+        b.setDragStrategy(makeNoopDragStrategy(b));
+      } else if (b._origDragStrategy) {
+        b.setDragStrategy(b._origDragStrategy);
+        delete b._origDragStrategy;
+      }
+    }
+  }
+  // Tag each locked block individually so the "no entry" cursor applies to the
+  // locked subtree only, not to sibling blocks nested below it in the SVG DOM.
+  b.getSvgRoot?.()?.classList.toggle("blockly-locked", locked);
+}
+
+// Colour-swatch blocks carry only a colour field. They stay editable even
+// inside a locked block so the colour can still be changed while every other
+// input stays frozen.
+const COLOUR_BLOCK_TYPES = new Set(["colour", "skin_colour", "colour_picker"]);
+function isColourBlock(b) {
+  return COLOUR_BLOCK_TYPES.has(b?.type);
+}
+
+export function setBlockLocked(block, locked) {
+  if (!block) return;
+  for (const b of getLockTargets(block)) {
+    // When locking, leave colour swatches editable; unlocking clears them all.
+    applyBlockLockState(b, locked && !isColourBlock(b));
+  }
+}
+
 function trackBlockHighlight(workspace, blockId) {
   lastAddMenuHighlighted = { workspace, blockId };
   const block = workspace.getBlockById(blockId);
@@ -386,6 +494,9 @@ export function duplicateBlockAndInsert(
     delete blockJson.next;
   }
 
+  // A copy of a locked block must come out unlocked/movable.
+  stripLockState(blockJson);
+
   const duplicateBlock = Blockly.serialization.blocks.append(
     blockJson,
     workspace,
@@ -492,3 +603,4 @@ export function getNumberInput(block, inputName) {
   const n = Number(target.getFieldValue("NUM"));
   return Number.isFinite(n) ? n : NaN;
 }
+

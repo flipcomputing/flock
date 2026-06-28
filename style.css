@@ -2286,3 +2286,11 @@ svg.blocklyTrashcanFlyout {
 [data-theme='dark-contrast'] .fc-block-toolbar-btn--delete {
   color: #e57373;
 }
+
+/* The "no entry" cursor is the lock indicator (no outline — a dashed outline
+   reads as Blockly keyboard-navigation passive focus). Target each locked
+   block's own path via ">" so the cursor doesn't inherit onto sibling blocks
+   nested below it in the SVG DOM. */
+.blockly-locked > .blocklyPath {
+  cursor: not-allowed !important;
+}

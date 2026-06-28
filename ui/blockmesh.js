@@ -46,6 +46,16 @@ function ensureMeshIndex() {
     });
     _meshAddedHandle = scene.onNewMeshAddedObservable?.add(() => {
       _meshIndexDirty = true;
+      // A mesh is added to the scene by its constructor, but the shape/model APIs
+      // set metadata.blockKey *after* that. If anything rebuilds the index in
+      // that window (e.g. another observer, or the second event of a duplicate),
+      // the still-keyless mesh is skipped and the dirty flag is cleared — leaving
+      // the mesh permanently unindexed. Re-assert dirty once the current
+      // synchronous work (including the key assignment) has finished, so the next
+      // lookup rebuilds with the key present.
+      queueMicrotask(() => {
+        _meshIndexDirty = true;
+      });
     });
   }
 

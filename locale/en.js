@@ -1124,6 +1124,8 @@ export default {
   context_copy_option: 'Copy',
   context_paste_option: 'Paste',
   context_cut_option: 'Cut',
+  lock_block_option: 'Lock',
+  unlock_block_option: 'Unlock',
   canvas_focus_navigation: '3D canvas focused. Use arrow keys or WASD to navigate.',
   design_tool_label: 'Design tool',
   focused_element_suffix: '{name} focused',

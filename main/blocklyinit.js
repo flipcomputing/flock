@@ -37,7 +37,35 @@ import { defineGenerators } from '../generators/generators.js';
 import { registerCustomCommentIcon } from './customCommentIcon.js';
 import { getMeshFromBlock } from '../ui/blockmesh.js';
 import { initContextMenus } from '../ui/contextmenu.js';
+import { applyBlockLockState, stripLockState } from '../ui/blocklyutil.js';
 import { toolbox as toolboxDef } from '../toolbox.js';
+
+// Persist locked blocks as part of the workspace serialization. Lower priority
+// than the built-in 'blocks' serializer (20) so the target blocks already exist
+// when we re-apply the lock on load.
+if (!Blockly.serialization.registry.getClass?.('flockLock')) {
+  Blockly.serialization.registry.register('flockLock', {
+    priority: 0,
+    save(ws) {
+      const ids = ws
+        .getAllBlocks(false)
+        .filter((b) => b.locked && !b.isShadow())
+        .map((b) => b.id);
+      return ids.length ? ids : undefined;
+    },
+    load(state, ws) {
+      // Apply lock state per saved block (every locked block was recorded), not
+      // by re-cascading from a root — the tree may have gained blocks (e.g. a
+      // duplicate connected after a locked block) since it was locked, and those
+      // must not be swept into the lock on reload.
+      for (const id of state || []) {
+        const b = ws.getBlockById(id);
+        if (b) applyBlockLockState(b, true);
+      }
+    },
+    clear() {},
+  });
+}
 
 // Blockly v13 moved variable methods off the workspace onto VariableMap/Variables.
 // @blockly/block-plus-minus still calls them as workspace methods, so shim them back.
@@ -1507,17 +1535,51 @@ function installShadowNavigationPatch(ws) {
     }
   );
 
+  // Shared duplicate: copy the block and paste it, stripping lock state so a
+  // copy of a locked block comes out editable/movable. Always returns true so
+  // dispatch stops here (a falsy return would let another D-bound shortcut fire
+  // and paste a second time).
+  const duplicateViaClipboard = (ws, block) => {
+    const copyData = block?.toCopyData?.();
+    if (!copyData) return false;
+    if (copyData.blockState) stripLockState(copyData.blockState);
+    Blockly.clipboard.paste(copyData, ws);
+    return true;
+  };
+
   registerSkippableFieldShortcut(
     'duplicate_from_skippable_field',
     Blockly.utils.KeyCodes.D,
     (ws, block) => !ws.isFlyout && !block.isShadow?.() && !!block.isDuplicatable?.(),
-    (ws, _event, block) => {
-      const copyData = block.toCopyData?.();
-      if (!copyData) return false;
-      Blockly.clipboard.paste(copyData, ws);
-      return true;
-    }
+    (ws, _event, block) => duplicateViaClipboard(ws, block)
   );
+
+  // Override Blockly's native block "duplicate" (D, fires when the block itself
+  // is focused) so its copy is also lock-stripped. Returns true to stop dispatch.
+  {
+    const builtinDuplicate = shortcutRegistry.getRegistry?.()?.['duplicate'];
+    if (builtinDuplicate) {
+      shortcutRegistry.register(
+        {
+          name: 'duplicate',
+          preconditionFn: (ws, scope) => {
+            const node = scope?.focusedNode;
+            return (
+              !!node &&
+              typeof node.toCopyData === 'function' &&
+              !node.isShadow?.() &&
+              !!node.isDuplicatable?.() &&
+              !ws.isDragging?.() &&
+              !ws.isReadOnly?.()
+            );
+          },
+          callback: (ws, _event, _shortcut, scope) =>
+            duplicateViaClipboard(ws, scope?.focusedNode),
+        },
+        /* allowOverrides= */ true
+      );
+    }
+  }
 
   // Delete key is safe to bind here — Del doesn't conflict with text editing
   // (users use Backspace for that). Backspace is intentionally excluded.

@@ -3,6 +3,7 @@
 import * as Blockly from 'blockly';
 import { translate } from '../main/translation.js';
 import { getMeshFromBlock } from './blockmesh.js';
+import { setBlockLocked, isBlockLocked, stripLockState } from './blocklyutil.js';
 
 export function initContextMenus(workspace) {
   // ------- Pointer tracking for "paste at pointer" -------
@@ -132,6 +133,40 @@ export function initContextMenus(workspace) {
     });
   })();
 
+  // Add a context menu item to lock/unlock a block (and its descendants) so it
+  // can't be edited, moved or deleted. Appears directly after "Disable".
+  (function registerLockContextMenuItem() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const id = 'blockLock';
+    if (registry.getItem && registry.getItem(id)) return;
+
+    registry.register({
+      id,
+      weight: 16,
+      displayText: (scope) => {
+        const locked = isBlockLocked(scope.block);
+        const key = locked ? 'unlock_block_option' : 'lock_block_option';
+        const text = translate(key);
+        return text === key ? (locked ? 'Unlock' : 'Lock') : text;
+      },
+      preconditionFn: (scope) => {
+        const block = scope.block;
+        if (!block || block.isInFlyout) return 'hidden';
+        // Stay enabled even when locked, so "Unlock" is reachable.
+        return 'enabled';
+      },
+      callback: (scope) => {
+        const block = scope.block;
+        if (!block) return;
+        const prevGroup = Blockly.Events.getGroup();
+        Blockly.Events.setGroup('contextmenu_lock');
+        setBlockLocked(block, !isBlockLocked(block));
+        Blockly.Events.setGroup(prevGroup || null);
+      },
+      scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+    });
+  })();
+
   // Reorder block context menu items for better grouping.
   // Cut/copy/paste are registered at weights 1/2/3; push everything else above that.
   (function adjustBlockContextMenuWeights() {
@@ -145,12 +180,36 @@ export function initContextMenus(workspace) {
       blockInline: 13,
       blockCollapseExpand: 14,
       blockDisable: 15,
+      blockLock: 16,
       blockDelete: 20,
       blockHelp: 999,
     };
     for (const [id, weight] of Object.entries(weights)) {
       const item = registry.getItem?.(id);
       if (item) item.weight = weight;
+    }
+  })();
+
+  // Disable context-menu items that would edit a locked block (comment, inline
+  // inputs, disable, detach). Delete is already disabled via setDeletable(false),
+  // and "Lock/Unlock" stays enabled so the block can be unlocked.
+  (function disableMutatingItemsWhenLocked() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const ids = [
+      'blockComment',
+      'blockInline',
+      'blockDisable',
+      'detachBlockWithShortcut',
+    ];
+    for (const id of ids) {
+      const item = registry.getItem?.(id);
+      if (!item || item.__lockWrapped) continue;
+      const orig = item.preconditionFn?.bind(item);
+      item.preconditionFn = (scope) => {
+        if (isBlockLocked(scope.block)) return 'disabled';
+        return orig ? orig(scope) : 'enabled';
+      };
+      item.__lockWrapped = true;
     }
   })();
 
@@ -252,7 +311,8 @@ export function initContextMenus(workspace) {
       id: 'blockCut',
       weight: 1,
       displayText: () => Blockly.Msg['CUT_SHORTCUT'] || 'Cut',
-      preconditionFn: notInFlyout,
+      preconditionFn: (scope) =>
+        isBlockLocked(scope.block) ? 'disabled' : notInFlyout(scope),
       callback: (scope) => {
         const block = scope.block;
         if (!block) return;
@@ -282,6 +342,7 @@ export function initContextMenus(workspace) {
       displayText: () => Blockly.Msg['PASTE_SHORTCUT'] || 'Paste',
       preconditionFn: (scope) => {
         if (scope.block?.isInFlyout) return 'hidden';
+        if (isBlockLocked(scope.block)) return 'disabled';
         return hasCopiedData() ? 'enabled' : 'disabled';
       },
       callback: (scope) => {
@@ -459,6 +520,9 @@ export function initContextMenus(workspace) {
 
   function pasteAsChildOrHere(targetBlock /* may be null */, ws, data) {
     if (!data) return;
+    // A pasted copy of a locked block must be editable; the copied state carries
+    // movable/editable/deletable=false, so strip it from the clipboard data.
+    if (data.blockState) stripLockState(data.blockState);
     const at = screenToWs(ws, lastCM);
     const pasted = Blockly.clipboard.paste(data, ws, at);
     const pb = /** @type {Blockly.BlockSvg} */ (pasted);
@@ -688,7 +752,12 @@ export function initContextMenus(workspace) {
     function showBlockToolbar(block) {
       toolbarBlock = block;
       toolbarDismissed = false;
-      detachBtn.style.display = isDetachable(block) ? '' : 'none';
+      // Locked blocks can't be edited: hide the mutating buttons (detach,
+      // comment, delete), leaving duplicate and view-in-canvas available.
+      const locked = isBlockLocked(block);
+      detachBtn.style.display = !locked && isDetachable(block) ? '' : 'none';
+      commentBtn.style.display = locked ? 'none' : '';
+      deleteBtn.style.display = locked ? 'none' : '';
       const hasComment = block.getCommentText() !== null;
       commentBtn.setAttribute(
         'aria-label',
@@ -791,6 +860,10 @@ export function initContextMenus(workspace) {
       Blockly.Events.setGroup('toolbar_duplicate');
       const json = Blockly.serialization.blocks.save(block, { includeShadows: true });
       delete json.next;
+      // A copy of a locked block must itself be unlocked. Locking serializes
+      // movable/editable/deletable=false into the state, so strip those before
+      // appending; otherwise the copy is created frozen.
+      stripLockState(json);
       const copy = Blockly.serialization.blocks.append(json, workspace);
       const orig = block.getRelativeToSurfaceXY();
       copy.moveTo(new Blockly.utils.Coordinate(orig.x + 30, orig.y + 30));

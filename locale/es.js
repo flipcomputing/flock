@@ -1122,6 +1122,8 @@ export default {
   context_copy_option: 'Copiar', // human
   context_paste_option: 'Pegar', // human
   context_cut_option: 'Cortar', // human
+  lock_block_option: 'Bloquear',
+  unlock_block_option: 'Desbloquear',
   canvas_focus_navigation: 'Lienzo 3D enfocado. Usa las flechas o WASD para navegar.', // human
   design_tool_label: 'Herramienta de diseño', // human
   focused_element_suffix: '{nombre} enfocado', // human

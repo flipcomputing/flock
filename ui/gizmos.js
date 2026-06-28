@@ -17,6 +17,7 @@ import {
   findParentWithBlockId,
   setNumberInputs,
   getNumberInput,
+  isBlockLocked,
 } from './blocklyutil.js';
 import { getMeshRotationInDegrees, roundVectorToFixed, pickLeafFromRay } from './meshhelpers.js';
 import {
@@ -288,8 +289,19 @@ function applyColorAtPosition(canvasX, canvasY) {
 
   const pickedMesh = pickLeafFromRay(pickRay, scene);
 
-  if (pickedMesh) {
-    updateBlockColorAndHighlight(pickedMesh, window.selectedColor);
+  let target = pickedMesh;
+  // If the topmost mesh is locked, fall through to the nearest non-locked mesh
+  // at the same point (the visible/operable one); refuse only if all are locked.
+  if (target && isMeshLocked(target)) {
+    target = nearestUnlockedMesh(canvasX, canvasY);
+    if (!target) {
+      showNotAllowedCursor();
+      return;
+    }
+  }
+
+  if (target) {
+    updateBlockColorAndHighlight(target, window.selectedColor);
   } else {
     flock.setSky(window.selectedColor);
     updateBlockColorAndHighlight(meshMap?.['sky'], window.selectedColor);
@@ -320,6 +332,60 @@ function resetAttachedMeshIfMeshAttached() {
   if (gizmoManager?.attachedMesh) {
     resetAttachedMesh();
   }
+}
+
+// True when the mesh (or its root) belongs to a locked block.
+function isMeshLocked(mesh) {
+  if (!mesh) return false;
+  const root = mesh.parent ? getRootMesh(mesh.parent) : mesh;
+  return isBlockLocked(root && meshMap[root.metadata?.blockKey]);
+}
+
+// Nearest pickable, non-locked mesh under the given screen point. Used so a
+// gizmo attaches to the visible/operable mesh (e.g. an unlocked duplicate)
+// rather than a locked one coincident with it. Returns null if all hits are
+// locked (so the caller can refuse).
+function nearestUnlockedMesh(x, y) {
+  const hits = flock.scene.multiPick(x, y, (m) => m.isPickable && m.name !== 'ground');
+  if (!hits?.length) return null;
+  hits.sort((a, b) => a.distance - b.distance);
+  for (const h of hits) {
+    if (h.pickedMesh && !isMeshLocked(h.pickedMesh)) return h.pickedMesh;
+  }
+  return null;
+}
+
+// Force the "no entry" cursor. Babylon re-applies its scene cursors on pointer
+// move, so set those as well as the DOM cursor.
+function showNotAllowedCursor() {
+  const canvas = flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
+  if (flock.scene) {
+    flock.scene.defaultCursor = 'not-allowed';
+    flock.scene.hoverCursor = 'not-allowed';
+  }
+  document.body.style.cursor = 'not-allowed';
+  if (canvas) canvas.style.cursor = 'not-allowed';
+}
+
+// Tools that mutate a mesh and must be refused on locked objects (transform,
+// colour, delete). Select / view / duplicate stay allowed.
+function blockedToolActive() {
+  return ['positionButton', 'rotationButton', 'scaleButton', 'colorPickerButton', 'deleteButton'].some(
+    (id) => document.getElementById(id)?.classList.contains('active')
+  );
+}
+
+// If the currently attached mesh is locked, detach it (so a transform gizmo
+// can't operate on it) and flag the no-entry cursor. The caller then falls
+// through to its pick path so another mesh can still be chosen.
+function detachIfAttachedMeshLocked() {
+  const mesh = gizmoManager?.attachedMesh;
+  if (mesh && isMeshLocked(mesh)) {
+    showNotAllowedCursor();
+    gizmoManager.attachToMesh(null);
+    return true;
+  }
+  return false;
 }
 
 function attachMeshForActiveTool(pickedMesh) {
@@ -356,6 +422,12 @@ function eventIsOutOfCanvasBounds(event, canvasRect) {
 function deleteBlockWithUndo(blockId) {
   const workspace = Blockly.getMainWorkspace();
   const block = workspace.getBlockById(blockId);
+
+  // Refuse to delete a mesh whose block is locked.
+  if (block && isBlockLocked(block)) {
+    showNotAllowedCursor();
+    return;
+  }
 
   if (block) {
     Blockly.Events.setGroup(true);
@@ -1109,13 +1181,22 @@ function pickMeshFromScene(onPicked, persistent = false) {
   resetAttachedMesh();
   let hasPicked = false;
 
-  const handlePicked = (pickedMesh, pickedPoint) => {
+  const handlePicked = (pickedMesh, pickedPoint, x, y) => {
     if (!persistent) {
       if (hasPicked) return;
       hasPicked = true;
       cleanupScenePick();
     }
-    onPicked(pickedMesh, pickedPoint);
+    let mesh = pickedMesh;
+    // For tools that can't act on a locked mesh (transform/colour/delete), if
+    // the topmost hit is locked, fall through to the nearest non-locked mesh at
+    // the same point — i.e. the visible/operable one (e.g. an unlocked
+    // duplicate coincident with a locked original).
+    if (mesh && blockedToolActive() && isMeshLocked(mesh)) {
+      const alt = nearestUnlockedMesh(x ?? flock.scene.pointerX, y ?? flock.scene.pointerY);
+      if (alt) mesh = alt;
+    }
+    onPicked(mesh, pickedPoint);
   };
 
   const pointerObservable = flock.scene.onPointerObservable;
@@ -1131,7 +1212,7 @@ function pickMeshFromScene(onPicked, persistent = false) {
     startCanvasKeyboardMode(
       (x, y) => {
         const pick = flock.scene.pick(x, y);
-        handlePicked(pick?.pickedMesh, pick?.pickedPoint);
+        handlePicked(pick?.pickedMesh, pick?.pickedPoint, x, y);
       },
       false,
       (x, y) => !!flock.scene.pick(x, y, (m) => m.isPickable && m.name !== 'ground')?.hit
@@ -1583,6 +1664,8 @@ export function toggleGizmo(gizmoType) {
 
 // Scale: Allow the user to scale the mesh by dragging it
 function handleScaleGizmo() {
+  // A locked mesh may already be attached from Select; don't let scale use it.
+  detachIfAttachedMeshLocked();
   configureScaleGizmo(gizmoManager);
   observeDragAxis(gizmoManager.gizmos.scaleGizmo);
   {
@@ -1785,6 +1868,8 @@ function observeDragAxis(gizmo) {
 
 // Rotation: Allow the user to rotate the mesh by dragging it
 function handleRotationGizmo() {
+  // A locked mesh may already be attached from Select; don't let rotation use it.
+  detachIfAttachedMeshLocked();
   configureRotationGizmo(gizmoManager);
   observeDragAxis(gizmoManager.gizmos.rotationGizmo);
 
@@ -1868,6 +1953,8 @@ function handleRotationGizmo() {
 
 // Position: Allow the user to move the mesh by dragging it
 function handlePositionGizmo() {
+  // A locked mesh may already be attached from Select; don't let move use it.
+  detachIfAttachedMeshLocked();
   configurePositionGizmo(gizmoManager);
   observeDragAxis(gizmoManager.gizmos.positionGizmo);
 
@@ -2305,6 +2392,31 @@ export function setGizmoManager(value) {
       mesh = getRootMesh(mesh.parent);
     }
 
+    // Refuse to attach a transform gizmo to a locked mesh (select / duplicate /
+    // view still attach so those tools keep working). Show a "no entry" cursor
+    // and leave any current selection untouched.
+    const transformActive =
+      gizmoManager.positionGizmoEnabled ||
+      gizmoManager.rotationGizmoEnabled ||
+      gizmoManager.scaleGizmoEnabled;
+    if (mesh) {
+      const k = mesh.metadata?.blockKey;
+      const b = meshMap[k];
+      // TEMP lock debug — remove after diagnosis.
+      console.log('[lock-debug] attachToMesh', {
+        meshName: mesh.name,
+        blockKey: k,
+        resolvedBlockType: b?.type,
+        blockLocked: !!b?.locked,
+        isMeshLocked: isMeshLocked(mesh),
+        transformActive,
+      });
+    }
+    if (transformActive && isMeshLocked(mesh)) {
+      showNotAllowedCursor();
+      return;
+    }
+
     if (mesh && mesh === gizmoManager.attachedMesh) return;
 
     clearAttachedMeshDisposeObserver();
@@ -2343,6 +2455,53 @@ export function setGizmoManager(value) {
       });
     }
   };
+
+  // Show a "no entry" cursor when hovering a locked mesh while picking/gizmo
+  // editing. Babylon re-applies scene.defaultCursor/hoverCursor on every pointer
+  // move, so we drive those (not just canvas.style.cursor) and restore them when
+  // leaving the locked mesh. Gated to pick/gizmo modes so we only pay for the
+  // per-move scene.pick while editing.
+  if (flock.scene && !flock.scene.__lockHoverObserver) {
+    let saved = null; // { defaultCursor, hoverCursor, body, canvas }
+    flock.scene.__lockHoverObserver = flock.scene.onPointerObservable.add((pi) => {
+      if (pi.type !== flock.BABYLON.PointerEventTypes.POINTERMOVE) return;
+      // Only a blocked tool (transform / colour / delete) should show the
+      // no-entry cursor over a locked mesh; select / view / duplicate are fine.
+      const active = blockedToolActive();
+      const canvas = flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
+
+      let locked = false;
+      if (active) {
+        const pick = flock.scene.pick(
+          flock.scene.pointerX,
+          flock.scene.pointerY,
+          (m) => m.isPickable && m.name !== 'ground'
+        );
+        const root = pick?.hit ? getRootMesh(pick.pickedMesh) : null;
+        const blk = root && meshMap[root.metadata?.blockKey];
+        locked = !!(blk && isBlockLocked(blk));
+      }
+
+      if (locked && !saved) {
+        saved = {
+          defaultCursor: flock.scene.defaultCursor,
+          hoverCursor: flock.scene.hoverCursor,
+          body: document.body.style.cursor,
+          canvas: canvas?.style.cursor,
+        };
+        flock.scene.defaultCursor = 'not-allowed';
+        flock.scene.hoverCursor = 'not-allowed';
+        document.body.style.cursor = 'not-allowed';
+        if (canvas) canvas.style.cursor = 'not-allowed';
+      } else if (!locked && saved) {
+        flock.scene.defaultCursor = saved.defaultCursor;
+        flock.scene.hoverCursor = saved.hoverCursor;
+        document.body.style.cursor = saved.body;
+        if (canvas) canvas.style.cursor = saved.canvas ?? '';
+        saved = null;
+      }
+    });
+  }
 }
 
 export function disposeGizmoManager() {

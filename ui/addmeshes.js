@@ -11,9 +11,18 @@ export function createMeshOnCanvas(block) {
     return;
   }
 
-  const mesh = getMeshFromBlock(block);
+  // Bail if this block already has a mesh, so one block never spawns two meshes.
+  // We can't rely solely on getMeshFromBlock here: its block→mesh index is built
+  // from each mesh's metadata.blockKey, which the shape/model APIs set *after* the
+  // mesh is added to the scene. A duplicate emits two BLOCK_CREATE/MOVE events in
+  // quick succession, and on the second one the just-created mesh may not be in
+  // the index yet (so getMeshFromBlock returns null) — which previously let the
+  // pipeline create a second, orphaned copy. Fall back to a direct scene scan by
+  // blockKey (== block.id for create_*/load_* shapes) which is always current.
+  const mesh =
+    getMeshFromBlock(block) ||
+    flock?.scene?.meshes?.find((m) => m?.metadata?.blockKey === block.id);
   if (mesh) {
-    console.warn("Mesh already exists for block", block.id);
     return;
   }
 
