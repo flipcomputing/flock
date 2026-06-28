@@ -8,11 +8,17 @@ const localBasis = (mesh) => {
   mesh.computeWorldMatrix(true);
   const m = mesh.getWorldMatrix();
   const right = flock.BABYLON.Vector3.TransformNormal(
-    new flock.BABYLON.Vector3(1, 0, 0), m).normalize();
+    new flock.BABYLON.Vector3(1, 0, 0),
+    m
+  ).normalize();
   const up = flock.BABYLON.Vector3.TransformNormal(
-    new flock.BABYLON.Vector3(0, 1, 0), m).normalize();
+    new flock.BABYLON.Vector3(0, 1, 0),
+    m
+  ).normalize();
   const forward = flock.BABYLON.Vector3.TransformNormal(
-    new flock.BABYLON.Vector3(0, 0, 1), m).normalize();
+    new flock.BABYLON.Vector3(0, 0, 1),
+    m
+  ).normalize();
   return { right, up, forward };
 };
 
@@ -796,7 +802,11 @@ export const flockPhysics = {
       });
     });
   },
-  onIntersect(meshName, otherMeshName, { trigger, callback, applyToGroupOther = false, applyToGroupSelf = false } = {}) {
+  onIntersect(
+    meshName,
+    otherMeshName,
+    { trigger, callback, applyToGroupOther = false, applyToGroupSelf = false } = {}
+  ) {
     const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
     const resolveCanonicalGroupName = (rawName) => {
       const scene = flock.scene;
@@ -844,7 +854,7 @@ export const flockPhysics = {
                   trigger,
                   callback,
                   applyToGroupOther: false,
-                }),
+                })
               );
             }
           }
@@ -954,42 +964,48 @@ export const flockPhysics = {
     }
   },
   checkIfOnSurface(mesh) {
+    const B = flock.BABYLON;
+    const scene = flock.scene;
+    const plugin = scene.getPhysicsEngine()?.getPhysicsPlugin();
+    if (!plugin || !mesh.physics) return false;
+
+    // --- Velocity gate: if rising, you are NOT grounded, full stop. ---
+    const v = mesh.physics.getLinearVelocity();
+    if (v && v.y > 0.5) return false; // launching / ascending → never "on surface"
+
     mesh.computeWorldMatrix(true);
-    const boundingInfo = mesh.getBoundingInfo();
+    const bb = mesh.getBoundingInfo().boundingBox;
 
-    const minY = boundingInfo.boundingBox.minimumWorld.y;
+    // Small probe, NOT the full collider width (a wide sphere clips nearby keys/walls).
+    const radius = 0.12;
+    mesh._surfaceProbe ??= new B.PhysicsShapeSphere(B.Vector3.Zero(), radius, scene);
 
-    const rayOrigin = new flock.BABYLON.Vector3(
-      boundingInfo.boundingBox.centerWorld.x,
-      minY + 0.01,
-      boundingInfo.boundingBox.centerWorld.z
+    const start = bb.centerWorld.clone();
+    start.y = bb.minimumWorld.y + radius + 0.02;
+    const end = start.clone();
+    end.y -= 0.12; // short sweep: ~12cm below feet, not 25
+
+    const castResult = new B.ShapeCastResult();
+    const hitResult = new B.ShapeCastResult();
+    plugin.shapeCast(
+      {
+        shape: mesh._surfaceProbe,
+        rotation: B.Quaternion.Identity(),
+        startPosition: start,
+        endPosition: end,
+        shouldHitTriggers: false,
+        ignoredBodies: [mesh.physics],
+      },
+      castResult,
+      hitResult
     );
 
-    const ray = new flock.BABYLON.Ray(rayOrigin, new flock.BABYLON.Vector3(0, -1, 0), 0.2);
+    if (!castResult.hasHit) return false;
 
-    let parentPickable = false;
-    if (mesh.isPickable) {
-      parentPickable = true;
-      mesh.isPickable = false;
-    }
-
-    const descendants = mesh.getChildMeshes(false);
-    descendants.forEach((childMesh) => {
-      if (childMesh.getTotalVertices() > 0) {
-        childMesh.isPickable = false;
-      }
-    });
-    const hit = flock.scene.pickWithRay(ray);
-    descendants.forEach((childMesh) => {
-      if (childMesh.getTotalVertices() > 0) {
-        childMesh.isPickable = true;
-      }
-    });
-
-    if (parentPickable) mesh.ispickable = true;
-
-    //if(hit.hit) {console.log(hit.pickedMesh.name, hit.distance);}
-    return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.06;
+    const n = castResult.hitNormalWorld;
+    if (!n) return true;
+    const dot = Math.min(Math.max(B.Vector3.Dot(n.normalizeToNew(), B.Vector3.UpReadOnly), -1), 1);
+    return (Math.acos(dot) * 180) / Math.PI <= 50; // near-horizontal ground only
   },
   meshExists(name) {
     return !!(flock.scene && flock.scene.getMeshByName(name));
