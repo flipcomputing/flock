@@ -484,12 +484,21 @@ export const flockPhysics = {
     mesh.computeWorldMatrix?.(true);
     mesh.refreshBoundingInfo?.();
 
-    await waitForSceneTransformFlush(flock.scene);
+    // The settle-a-frame wait (#637) only matters when the mesh's world
+    // transform depends on hierarchy/scene propagation that hasn't flushed
+    // yet — i.e. parented meshes. For a freshly created, unparented mesh the
+    // synchronous computeWorldMatrix(true) above already makes the transform
+    // correct, so the per-body frame wait is pure latency. Skipping it here
+    // is what makes loops that spawn many physics objects fast (N bodies no
+    // longer cost N frames).
+    if (mesh.parent) {
+      await waitForSceneTransformFlush(flock.scene);
 
-    if (flock.abortController?.signal?.aborted || mesh.isDisposed?.()) return mesh;
+      if (flock.abortController?.signal?.aborted || mesh.isDisposed?.()) return mesh;
 
-    mesh.computeWorldMatrix?.(true);
-    mesh.refreshBoundingInfo?.();
+      mesh.computeWorldMatrix?.(true);
+      mesh.refreshBoundingInfo?.();
+    }
 
     return flock.setPhysicsForMesh(mesh, physicsType);
   },
