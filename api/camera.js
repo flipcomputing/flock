@@ -175,7 +175,8 @@ export const flockCamera = {
         scene,
       );
       body.shape = shape;
-      body.setMassProperties({ mass: 1, restitution: 0.5 });
+      body.setMassProperties({ mass: 1 });
+      flock.applyBounciness(body, constraintBox);
       constraintBox.physics = body;
 
       // cache it for reuse
@@ -196,7 +197,8 @@ export const flockCamera = {
           scene,
         );
         body.shape = shape;
-        body.setMassProperties({ mass: 1, restitution: 0.5 });
+        body.setMassProperties({ mass: 1 });
+        flock.applyBounciness(body, constraintBox);
         constraintBox.physics = body;
       } else if (!constraintBox.physics.shape) {
         constraintBox.physics.shape = new flock.BABYLON.PhysicsShapeBox(

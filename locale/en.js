@@ -249,6 +249,7 @@ export default {
   add_physics_shape: 'add physics shape %1 type %2',
   apply_force: 'apply force to %1 x: %2 y: %3 z: %4',
   set_speed: 'set speed of %1 %2 to %3',
+  set_bounciness: 'set bounciness of %1 to %2',
   show_physics: 'show physics shapes %1',
 
   // Custom block translations - Sensing blocks
@@ -509,6 +510,8 @@ export default {
   apply_force_tooltip: 'Apply a force to an object in XYZ directions.\nKeyword: force',
   set_speed_tooltip:
     'Keep an object moving at a set speed in a direction. It moves just like a player does with "move" — riding up slopes, stepping over small ledges and stopping at walls, staying upright — but relative to the object or the world instead of the camera. It holds that speed until you change it. Pick a direction relative to the object (forward, sideways, up) or a world axis (x, y, z); use "look at" to aim, then drive forward. Choose "all" and 0 to stop.\nKeyword: speed',
+  set_bounciness_tooltip:
+    'Set how bouncy an object is. 0 means no bounce, 1 means very bouncy. The object needs physics first.\nKeyword: bouncy restitution',
   show_physics_tooltip:
     'Show or hide physics colliders for debugging. Check to show, uncheck to hide.\nKeyword: debug physics collider',
 

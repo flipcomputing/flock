@@ -1199,6 +1199,21 @@ const toolboxTransformPhysics = {
     },
     {
       kind: "block",
+      type: "set_bounciness",
+      keyword: "bouncy",
+      inputs: {
+        BOUNCINESS: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 0.7,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: "block",
       type: "show_physics",
       keyword: "colliders",
     },

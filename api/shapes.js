@@ -621,9 +621,9 @@ export const flockShapes = {
     planeBody.shape = planeShape;
     planeBody.setMassProperties({
       mass: 0,
-      restitution: 0.5,
       inertia: flock.BABYLON.Vector3.ZeroReadOnly,
     });
+    flock.applyBounciness(planeBody, newPlane);
     newPlane.physics = planeBody;
 
     flock.setMaterialWithCleanup(newPlane, {

@@ -669,6 +669,124 @@ export function runPhysicsTests(flock) {
     });
   });
 
+  describe("setBounciness method @physics", function () {
+    const boxIds = [];
+
+    beforeEach(async function () {
+      flock.scene ??= {};
+    });
+
+    afterEach(function () {
+      boxIds.forEach((boxId) => {
+        flock.dispose(boxId);
+      });
+      boxIds.length = 0;
+    });
+
+    it("sets restitution on the body's shape material", async function () {
+      const id = "boxBounciness";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      flock.setBounciness(id, 0.9);
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(mesh.physics.shape.material.restitution).to.be.closeTo(0.9, 1e-6);
+      expect(mesh.metadata.bounciness).to.be.closeTo(0.9, 1e-6);
+    });
+
+    it("preserves the existing friction when changing bounciness", async function () {
+      const id = "boxBouncinessFriction";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      mesh.physics.shape.material = { ...mesh.physics.shape.material, friction: 0.42 };
+
+      flock.setBounciness(id, 0.3);
+
+      expect(mesh.physics.shape.material.restitution).to.be.closeTo(0.3, 1e-6);
+      expect(mesh.physics.shape.material.friction).to.be.closeTo(0.42, 1e-6);
+    });
+
+    it("clamps the value to the 0..1 range", async function () {
+      const id = "boxBouncinessClamp";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+
+      flock.setBounciness(id, 5);
+      expect(mesh.physics.shape.material.restitution).to.equal(1);
+
+      flock.setBounciness(id, -2);
+      expect(mesh.physics.shape.material.restitution).to.equal(0);
+    });
+
+    it("defaults a fresh body to no bounce (restitution 0)", async function () {
+      const id = "boxBouncinessDefault";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(mesh.physics.shape.material.restitution).to.equal(0);
+    });
+
+    it("keeps bounciness through a physics shape (capsule) swap", async function () {
+      const id = "boxBouncinessCapsule";
+      await flock.createBox(id, { width: 1, height: 2, depth: 1, position: [0, 1, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      flock.setBounciness(id, 0.6);
+      await flock.setPhysicsShape(id, "CAPSULE");
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(mesh.metadata.physicsShapeType).to.equal("CAPSULE");
+      expect(mesh.physics.shape.material.restitution).to.be.closeTo(0.6, 1e-6);
+    });
+
+    it("re-applies the stored bounciness after a physics rebuild", async function () {
+      const id = "boxBouncinessRebuild";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      flock.setBounciness(id, 0.8);
+
+      // Drop physics and re-add it — the new shape starts with the default
+      // material, so without re-application the bounciness would be lost.
+      await flock.setPhysics(id, "NONE");
+      await flock.setPhysics(id, "DYNAMIC");
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(mesh.physics.shape.material.restitution).to.be.closeTo(0.8, 1e-6);
+    });
+
+    it("should handle missing physics gracefully", async function () {
+      const id = "boxBouncinessNoPhysics";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      boxIds.push(id);
+
+      const mesh = flock.scene.getMeshByName(id);
+      mesh.physics.dispose();
+      mesh.physics = null;
+
+      let errorLogged = false;
+      const originalConsoleError = console.error;
+      console.error = () => { errorLogged = true; };
+
+      flock.setBounciness(id, 0.5);
+
+      console.error = originalConsoleError;
+      expect(errorLogged).to.be.true;
+    });
+  });
+
   describe("meshExists @physics", function () {
     const boxIds = [];
 

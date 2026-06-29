@@ -303,6 +303,18 @@ export function registerTransformGenerators(javascriptGenerator) {
     return `setSpeed(${mesh}, '${direction}', ${speed});\n`;
   };
 
+  // Set how bouncy an object is (restitution, 0..1)
+  javascriptGenerator.forBlock["set_bounciness"] = function (block) {
+    const mesh = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue("MESH_VAR"),
+      Blockly.Names.NameType.VARIABLE,
+    );
+    const bounciness =
+      javascriptGenerator.valueToCode(block, "BOUNCINESS", javascriptGenerator.ORDER_ATOMIC) || "0.5";
+
+    return `setBounciness(${mesh}, ${bounciness});\n`;
+  };
+
   // Show physics shapes
   javascriptGenerator.forBlock["show_physics"] = function (block) {
     const show = block.getFieldValue("SHOW") === "TRUE";

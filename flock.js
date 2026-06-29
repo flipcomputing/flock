@@ -935,6 +935,7 @@ export const flock = {
       setXRMode: this.setXRMode?.bind(this),
       applyForce: this.applyForce?.bind(this),
       setSpeed: this.setSpeed?.bind(this),
+      setBounciness: this.setBounciness?.bind(this),
       moveByVector: this.moveByVector?.bind(this),
       glideTo: this.glideTo?.bind(this),
       glideToObject: this.glideToObject?.bind(this),
