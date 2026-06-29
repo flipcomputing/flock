@@ -292,6 +292,14 @@ export const flockAnimate = {
       if (!mesh) return;
 
       if (mesh.metadata?._activeGlide) {
+        // A reverse (there-and-back) glide is meant to finish where it started. If it's
+        // still running when re-triggered (e.g. a fire-and-forget glide fired again by an
+        // event before the key has landed), leave it alone and ignore the new trigger.
+        // Stopping it mid-flight would capture a mid-air startPosition below and the key
+        // would climb away instead of returning home.
+        if (mesh.metadata._glideReverse) {
+          return;
+        }
         mesh.metadata._activeGlide.stop();
         flock.scene.onAfterAnimationsObservable.remove(mesh.metadata._glideObserver);
       }
@@ -379,6 +387,10 @@ export const flockAnimate = {
       mesh.metadata = mesh.metadata || {};
       mesh.metadata._activeGlide = animatable;
       mesh.metadata._glideObserver = syncObserver;
+      // Mark a reverse (there-and-back) glide so a re-trigger while it's still in flight
+      // is ignored rather than interrupting it mid-air (which would strand the mesh up
+      // high). Cleared when the glide finishes.
+      mesh.metadata._glideReverse = reverse;
 
       return new Promise((resolve) => {
         animatable.onAnimationEndObservable.add(() => {
@@ -386,8 +398,12 @@ export const flockAnimate = {
           if (mesh.metadata._activeGlide === animatable) {
             mesh.metadata._activeGlide = null;
             mesh.metadata._glideObserver = null;
+            mesh.metadata._glideReverse = null;
           }
-          if (!reverse && !loop) mesh.position = endPosition.clone();
+          // Snap exactly onto the intended resting position so float drift (or an
+          // interrupted final frame) can't leave the mesh slightly off: the target for a
+          // one-way glide, or back at the start for a reverse (there-and-back) glide.
+          if (!loop) mesh.position = (reverse ? startPosition : endPosition).clone();
           if (isPhysicsActive && originalMotionType !== null && !loop && !reverse && isBodyAlive(mesh.physics)) {
             mesh.physics.setMotionType(originalMotionType);
           }

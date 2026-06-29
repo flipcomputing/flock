@@ -90,6 +90,53 @@ export function runGlideToTests(flock) {
       }, 4500); // Wait for 4.5 seconds to be safe
     });
 
+    it("reverse glide ends exactly back at its start position @slow", async function () {
+      this.timeout(5000);
+
+      const box = flock.scene.getMeshByName(box1);
+      const start = box.position.clone();
+
+      // Up and back down. Should finish precisely where it started.
+      await flock.glideTo(box1, {
+        x: 0,
+        y: 5,
+        z: 0,
+        duration: 1,
+        reverse: true,
+      });
+
+      expect(box.position.x).to.equal(start.x);
+      expect(box.position.y).to.equal(start.y);
+      expect(box.position.z).to.equal(start.z);
+    });
+
+    it("ignores a re-trigger mid-flight and still returns to start (no fly-up) @slow", async function () {
+      this.timeout(8000);
+
+      const box = flock.scene.getMeshByName(box1);
+      const start = box.position.clone();
+
+      // Fire-and-forget reverse glide up and back (mimics an event-triggered key).
+      flock.glideTo(box1, { x: 0, y: 5, z: 0, duration: 1, reverse: true });
+
+      // Re-trigger while the box is still airborne, part way through the glide.
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      expect(
+        box.position.y,
+        "box should be airborne mid-glide for the test to be meaningful",
+      ).to.be.greaterThan(start.y + 1);
+      flock.glideTo(box1, { x: 0, y: 5, z: 0, duration: 1, reverse: true });
+
+      // Let the original glide run to completion.
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // The re-trigger must be ignored, not interrupt mid-air: the box returns home
+      // rather than climbing away from where it was stopped.
+      expect(box.position.x).to.be.closeTo(start.x, 0.01);
+      expect(box.position.y).to.be.closeTo(start.y, 0.01);
+      expect(box.position.z).to.be.closeTo(start.z, 0.01);
+    });
+
     it("should handle looping", function (done) {
       this.timeout(10000); // Increase the timeout for this test
 
