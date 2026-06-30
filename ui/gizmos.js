@@ -1627,7 +1627,7 @@ export function toggleGizmo(gizmoType) {
   }
 
   exitGizmoState(); // Clean up any existing gizmo state
-  resetAttachedMeshIfMeshAttached();
+  if (gizmoType !== 'camera' && gizmoType !== 'eye') resetAttachedMeshIfMeshAttached();
 
   document.body.style.cursor = 'default';
 
@@ -2190,15 +2190,8 @@ function handleCameraGizmo() {
   // play/fly swap below operates on the normal camera pair. If there is no
   // saved play camera to swap to, just stay on the restored free camera.
   if (flock.scene.activeCamera?.metadata?.orbitView) {
-    restoreFreeCameraFromOrbit();
-    if (!flock.savedCamera) {
-      const canvas = flock.scene.getEngine().getRenderingCanvas();
-      if (canvas) {
-        flock.scene.activeCamera?.attachControl(canvas, false);
-        canvas.focus();
-      }
-      return;
-    }
+    disconnectOrbitView();
+    if (!flock.savedCamera) return;
   }
 
   const cameraButton = document.getElementById('cameraButton');
