@@ -241,9 +241,10 @@ export function createGizmoMobileHud({
     let activePointer = null;
     let activeScale = 1;
 
-    // Normalize any degree value into [-180, 180)
+    // Normalize any degree value into (-180, 180]
     function normalizeDeg(deg) {
-      return (((deg % 360) + 540) % 360) - 180;
+      const n = (((deg % 360) + 540) % 360) - 180;
+      return n === -180 ? 180 : n;
     }
     function degToGUI(deg) {
       return Math.max(
@@ -389,6 +390,7 @@ export function createGizmoMobileHud({
     if (def) {
       axis = newAxis;
       refreshAxisVisuals();
+      refreshThumb?.();
     }
   };
   return stop;
