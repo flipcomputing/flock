@@ -11,6 +11,7 @@ export function createGizmoMobileHud({
   stepLabels = ['◁', '▷'],
   onAxisChange = null,
   stepLabelsByAxis = null,
+  getValues = null,
   initialAxis = null,
 }) {
   if (!flock.scene || !flock.canvas || !flock.GUI) return null;
@@ -36,7 +37,7 @@ export function createGizmoMobileHud({
     ...(showUniform ? [{ key: 'all', label: '★', color: '#aaaaaa' }] : []),
   ];
   const firstAxis = AXIS_DEFS[0]?.key ?? 'x';
-  let axis = (initialAxis && AXIS_DEFS.find(d => d.key === initialAxis)) ? initialAxis : firstAxis;
+  let axis = initialAxis && AXIS_DEFS.find((d) => d.key === initialAxis) ? initialAxis : firstAxis;
   const numAxes = AXIS_DEFS.length;
 
   // ── Layout ────────────────────────────────────────────────────────────────
@@ -82,6 +83,7 @@ export function createGizmoMobileHud({
 
   let arrowNegBtn = null;
   let arrowPosBtn = null;
+  let refreshThumb = null;
 
   function refreshAxisVisuals() {
     for (const { key, color } of AXIS_DEFS) {
@@ -98,6 +100,7 @@ export function createGizmoMobileHud({
   function updateAxisButtons() {
     refreshAxisVisuals();
     onAxisChange?.(axis);
+    refreshThumb?.();
   }
   refreshAxisVisuals();
 
@@ -182,12 +185,12 @@ export function createGizmoMobileHud({
     arrowPosBtn = makeArrowButton(stepLabels[1], +1, 1);
     refreshAxisVisuals();
   } else {
-    // ── Slider (delta-drag) ───────────────────────────────────────────────
+    // ── Slider (absolute -180…+180) ───────────────────────────────────────
     const THUMB_R = Math.floor(BTN_SIZE / 2) - 2 * s;
     const TRACK_H = 8 * s;
     const SLIDER_MARGIN = THUMB_R + GAP;
     const MAX_OFFSET_GUI = HALF / 2 - SLIDER_MARGIN;
-    const SPEED_FACTOR = stepFast / 10;
+    const MAX_DEG = 180;
     const TRACK_CENTER_Y = TOTAL_H / 2;
 
     const track = new flock.GUI.Rectangle('gizmoTrack');
@@ -202,16 +205,24 @@ export function createGizmoMobileHud({
     track.top = `${TRACK_CENTER_Y - TRACK_H / 2}px`;
     container.addControl(track);
 
-    const centerMark = new flock.GUI.Rectangle('gizmoCenterMark');
-    centerMark.width = `${4 * s}px`;
-    centerMark.height = `${TRACK_H + 10 * s}px`;
-    centerMark.background = 'rgba(255,255,255,0.55)';
-    centerMark.thickness = 0;
-    centerMark.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    centerMark.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-    centerMark.left = `${HALF / 2 - 2 * s}px`;
-    centerMark.top = `${TRACK_CENTER_Y - (TRACK_H + 10 * s) / 2}px`;
-    container.addControl(centerMark);
+    const SNAP_DEGS = [-180, -90, 0, 90, 180];
+    const SNAP_THRESHOLD_GUI = (8 / MAX_DEG) * MAX_OFFSET_GUI;
+
+    const tickW = 4 * s;
+    const tickH = TRACK_H + 10 * s;
+    for (const deg of SNAP_DEGS) {
+      const guiOffset = (deg / MAX_DEG) * MAX_OFFSET_GUI;
+      const tick = new flock.GUI.Rectangle(`gizmoTick${deg}`);
+      tick.width = `${tickW}px`;
+      tick.height = `${tickH}px`;
+      tick.background = 'rgba(255,255,255,0.55)';
+      tick.thickness = 0;
+      tick.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+      tick.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+      tick.left = `${HALF / 2 + guiOffset - tickW / 2}px`;
+      tick.top = `${TRACK_CENTER_Y - tickH / 2}px`;
+      container.addControl(tick);
+    }
 
     const thumb = new flock.GUI.Ellipse('gizmoThumb');
     thumb.width = `${THUMB_R * 2}px`;
@@ -221,14 +232,53 @@ export function createGizmoMobileHud({
     thumb.thickness = 0;
     thumb.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     thumb.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-    thumb.left = `${HALF / 2 - THUMB_R}px`;
     thumb.top = `${TRACK_CENTER_Y - THUMB_R}px`;
     container.addControl(thumb);
 
-    let thumbOffsetGUI = 0;
+    let rawOffsetGUI = 0; // follows finger exactly
+    let thumbOffsetGUI = 0; // snapped display position
     let lastClientX = 0;
     let activePointer = null;
     let activeScale = 1;
+
+    // Normalize any degree value into (-180, 180]
+    function normalizeDeg(deg) {
+      const n = (((deg % 360) + 540) % 360) - 180;
+      return n === -180 ? 180 : n;
+    }
+    function degToGUI(deg) {
+      return Math.max(
+        -MAX_OFFSET_GUI,
+        Math.min(MAX_OFFSET_GUI, (normalizeDeg(deg) / MAX_DEG) * MAX_OFFSET_GUI)
+      );
+    }
+    function getAxisDeg() {
+      if (!getValues) return 0;
+      const vals = getValues();
+      return axis === 'all' ? 0 : (vals[axis] ?? 0);
+    }
+    function snapGUI(offsetGUI) {
+      for (const deg of SNAP_DEGS) {
+        const sp = (deg / MAX_DEG) * MAX_OFFSET_GUI;
+        if (Math.abs(offsetGUI - sp) <= SNAP_THRESHOLD_GUI) return sp;
+      }
+      return offsetGUI;
+    }
+    function applyMove(prevGUI, newGUI) {
+      const deltaDeg = ((newGUI - prevGUI) / MAX_OFFSET_GUI) * MAX_DEG;
+      const delta = flock.BABYLON.Tools.ToRadians(deltaDeg);
+      if (axis === 'all') onMove(delta, delta, delta);
+      else if (axis === 'x') onMove(delta, 0, 0);
+      else if (axis === 'y') onMove(0, delta, 0);
+      else if (axis === 'z') onMove(0, 0, delta);
+    }
+
+    refreshThumb = () => {
+      rawOffsetGUI = degToGUI(getAxisDeg());
+      thumbOffsetGUI = snapGUI(rawOffsetGUI);
+      thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
+    };
+    refreshThumb();
 
     function sliderBounds() {
       const rect = canvas.getBoundingClientRect();
@@ -253,7 +303,18 @@ export function createGizmoMobileHud({
       activeScale = b.scale;
       lastClientX = e.clientX;
       const clampedCSS = Math.max(-b.maxOffsetCSS, Math.min(b.maxOffsetCSS, e.clientX - b.centerX));
-      thumbOffsetGUI = clampedCSS / b.scale;
+      rawOffsetGUI = clampedCSS / b.scale;
+      const newThumbOffsetGUI = snapGUI(rawOffsetGUI);
+      const targetDeg = (newThumbOffsetGUI / MAX_OFFSET_GUI) * MAX_DEG;
+      const deltaDeg = targetDeg - getAxisDeg();
+      if (deltaDeg !== 0) {
+        const delta = flock.BABYLON.Tools.ToRadians(deltaDeg);
+        if (axis === 'all') onMove(delta, delta, delta);
+        else if (axis === 'x') onMove(delta, 0, 0);
+        else if (axis === 'y') onMove(0, delta, 0);
+        else if (axis === 'z') onMove(0, 0, delta);
+      }
+      thumbOffsetGUI = newThumbOffsetGUI;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
       thumb.background = 'rgba(255,220,50,0.95)';
     }
@@ -262,17 +323,14 @@ export function createGizmoMobileHud({
       if (e.pointerId !== activePointer) return;
       const deltaCSS = e.clientX - lastClientX;
       lastClientX = e.clientX;
-
-      const delta = deltaCSS * SPEED_FACTOR;
-      if (axis === 'all') onMove(delta, delta, delta);
-      else if (axis === 'x') onMove(delta, 0, 0);
-      else if (axis === 'y') onMove(0, delta, 0);
-      else if (axis === 'z') onMove(0, 0, delta);
-
-      thumbOffsetGUI = Math.max(
+      if (deltaCSS === 0) return;
+      rawOffsetGUI = Math.max(
         -MAX_OFFSET_GUI,
-        Math.min(MAX_OFFSET_GUI, thumbOffsetGUI + deltaCSS / activeScale)
+        Math.min(MAX_OFFSET_GUI, rawOffsetGUI + deltaCSS / activeScale)
       );
+      const newThumbOffsetGUI = snapGUI(rawOffsetGUI);
+      applyMove(thumbOffsetGUI, newThumbOffsetGUI);
+      thumbOffsetGUI = newThumbOffsetGUI;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
     }
 
@@ -328,8 +386,12 @@ export function createGizmoMobileHud({
   }
   stop.setAxis = (newAxis) => {
     if (stopped) return;
-    const def = AXIS_DEFS.find(d => d.key === newAxis);
-    if (def) { axis = newAxis; refreshAxisVisuals(); }
+    const def = AXIS_DEFS.find((d) => d.key === newAxis);
+    if (def) {
+      axis = newAxis;
+      refreshAxisVisuals();
+      refreshThumb?.();
+    }
   };
   return stop;
 }
