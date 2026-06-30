@@ -1604,12 +1604,21 @@ function installShadowNavigationPatch(ws) {
   // and focusing it when none exists); 'Shift+K' deletes the comment. (N — the
   // natural mnemonic for "note" — is already Blockly's next_stack nav key.)
   // Comment has no built-in Blockly shortcut, so unlike X/D/Delete these must
-  // resolve the target themselves — from the focused block (scope.focusedNode)
-  // or, when focus is on a skippable field, that field's source block.
+  // resolve the target themselves — from the focused block (scope.focusedNode),
+  // or a focused field's source block, falling back to the skippable-field
+  // resolver.
   {
     const commentTargetBlock = (scope) => {
       const node = scope?.focusedNode;
-      if (node && typeof node.getCommentText === 'function') return node;
+      // A focused block exposes getCommentText; a focused field exposes
+      // getSourceBlock and unwraps to the block that owns it.
+      if (node) {
+        if (typeof node.getCommentText === 'function') return node;
+        if (typeof node.getSourceBlock === 'function') {
+          const block = node.getSourceBlock();
+          if (block) return block;
+        }
+      }
       return skippableFieldBlock();
     };
     const commentEditable = (ws, block) =>

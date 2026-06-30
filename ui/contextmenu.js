@@ -776,10 +776,27 @@ export function initContextMenus(workspace) {
       badgeOverlay.classList.add('visible');
     }
 
+    // Track the input modality that drives selection. A pointer gesture can fire
+    // several SELECTED events (notably a drag fires one at start and one at end),
+    // so this is a persistent mode — set by the input device, not consumed on
+    // selection — rather than a one-shot flag.
     document.addEventListener(
       'pointerdown',
       () => {
         lastSelectionWasPointer = true;
+      },
+      { capture: true }
+    );
+    document.addEventListener(
+      'keydown',
+      (e) => {
+        // Only genuine block navigation flips to keyboard mode. Ignore typing,
+        // app-level combos (Ctrl/Cmd/Alt+…), and bare modifiers — the last so a
+        // Shift held during a mouse drag doesn't switch the toolbar to keyboard.
+        if (isTypingInInput()) return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (e.key === 'Shift') return;
+        lastSelectionWasPointer = false;
       },
       { capture: true }
     );
@@ -880,11 +897,10 @@ export function initContextMenus(workspace) {
           clearTimeout(toolbarShowTimer);
           toolbarShowTimer = null;
           const block = workspace.getBlockById(e.newElementId);
-          // Consume the pointer flag only here, on actual selection, not on deselect.
-          // Blockly may fire SELECTED(null) before SELECTED(blockId) on a click, so
-          // consuming it on deselect would clear it before we can use it.
+          // Read (don't consume) the current input modality; it persists until
+          // the next pointer/keyboard input, so a drag's start/end SELECTED pair
+          // are both treated as pointer-driven.
           const wasPointer = lastSelectionWasPointer;
-          lastSelectionWasPointer = false;
           const wasDismissed = block === dismissedBlock;
           dismissedBlock = null;
           if (isToolbarBlock(block)) {
