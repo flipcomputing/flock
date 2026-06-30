@@ -90,6 +90,7 @@ function createAdaptiveInput({
   onHudHide,
   onAxisChange,
   stepLabelsByAxis,
+  getValues = null,
   initialKeyboardAxis = null,
   initialHudAxis = null,
 }) {
@@ -114,7 +115,7 @@ function createAdaptiveInput({
     onAxisChange?.(axis);
   }
 
-  hud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange: onHudAxisChange, stepLabelsByAxis, initialAxis: initialHudAxis ?? initialKeyboardAxis });
+  hud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange: onHudAxisChange, stepLabelsByAxis, getValues, initialAxis: initialHudAxis ?? initialKeyboardAxis });
   keyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast, onAxisChange: onKbAxisChange, initialAxis: initialKeyboardAxis, allowUniform: showUniform });
   const startAxis = initialKeyboardAxis ?? initialHudAxis;
   if (startAxis) onAxisChange?.(startAxis);
@@ -967,6 +968,7 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     document.getElementById('rotationButton')?.focus();
   };
 
+  const getValues = () => ({ ...working });
   stopAxisKeyboard = createAdaptiveInput({
     onMove,
     onConfirm,
@@ -974,6 +976,7 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     stepNormal: DEFAULT_ROTATION,
     stepFast: FAST_ROTATION,
     mode: 'slider',
+    getValues,
     onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.rotationGizmo, null),
     onAxisChange: (axis) => {
       onHudAxisSaved?.(axis);
