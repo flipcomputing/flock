@@ -11,6 +11,7 @@ export function createGizmoMobileHud({
   stepLabels = ['◁', '▷'],
   onAxisChange = null,
   stepLabelsByAxis = null,
+  getValues = null,
   initialAxis = null,
 }) {
   if (!flock.scene || !flock.canvas || !flock.GUI) return null;
@@ -82,6 +83,7 @@ export function createGizmoMobileHud({
 
   let arrowNegBtn = null;
   let arrowPosBtn = null;
+  let refreshThumb = null;
 
   function refreshAxisVisuals() {
     for (const { key, color } of AXIS_DEFS) {
@@ -98,6 +100,7 @@ export function createGizmoMobileHud({
   function updateAxisButtons() {
     refreshAxisVisuals();
     onAxisChange?.(axis);
+    refreshThumb?.();
   }
   refreshAxisVisuals();
 
@@ -182,12 +185,12 @@ export function createGizmoMobileHud({
     arrowPosBtn = makeArrowButton(stepLabels[1], +1, 1);
     refreshAxisVisuals();
   } else {
-    // ── Slider (delta-drag) ───────────────────────────────────────────────
+    // ── Slider (absolute -180…+180) ───────────────────────────────────────
     const THUMB_R = Math.floor(BTN_SIZE / 2) - 2 * s;
     const TRACK_H = 8 * s;
     const SLIDER_MARGIN = THUMB_R + GAP;
     const MAX_OFFSET_GUI = HALF / 2 - SLIDER_MARGIN;
-    const SPEED_FACTOR = stepFast / 10;
+    const MAX_DEG = 180;
     const TRACK_CENTER_Y = TOTAL_H / 2;
 
     const track = new flock.GUI.Rectangle('gizmoTrack');
@@ -221,7 +224,6 @@ export function createGizmoMobileHud({
     thumb.thickness = 0;
     thumb.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     thumb.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-    thumb.left = `${HALF / 2 - THUMB_R}px`;
     thumb.top = `${TRACK_CENTER_Y - THUMB_R}px`;
     container.addControl(thumb);
 
@@ -229,6 +231,33 @@ export function createGizmoMobileHud({
     let lastClientX = 0;
     let activePointer = null;
     let activeScale = 1;
+
+    // Normalize any degree value into [-180, 180)
+    function normalizeDeg(deg) {
+      return ((deg % 360) + 540) % 360 - 180;
+    }
+    function degToGUI(deg) {
+      return Math.max(-MAX_OFFSET_GUI, Math.min(MAX_OFFSET_GUI, (normalizeDeg(deg) / MAX_DEG) * MAX_OFFSET_GUI));
+    }
+    function getAxisDeg() {
+      if (!getValues) return 0;
+      const vals = getValues();
+      return axis === 'all' ? 0 : (vals[axis] ?? 0);
+    }
+    function applyMove(prevGUI, newGUI) {
+      const deltaDeg = ((newGUI - prevGUI) / MAX_OFFSET_GUI) * MAX_DEG;
+      const delta = flock.BABYLON.Tools.ToRadians(deltaDeg);
+      if (axis === 'all') onMove(delta, delta, delta);
+      else if (axis === 'x') onMove(delta, 0, 0);
+      else if (axis === 'y') onMove(0, delta, 0);
+      else if (axis === 'z') onMove(0, 0, delta);
+    }
+
+    refreshThumb = () => {
+      thumbOffsetGUI = degToGUI(getAxisDeg());
+      thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
+    };
+    refreshThumb();
 
     function sliderBounds() {
       const rect = canvas.getBoundingClientRect();
@@ -253,31 +282,21 @@ export function createGizmoMobileHud({
       activeScale = b.scale;
       lastClientX = e.clientX;
       const clampedCSS = Math.max(-b.maxOffsetCSS, Math.min(b.maxOffsetCSS, e.clientX - b.centerX));
-      thumbOffsetGUI = clampedCSS / b.scale;
+      const newThumbOffsetGUI = clampedCSS / b.scale;
+      applyMove(thumbOffsetGUI, newThumbOffsetGUI);
+      thumbOffsetGUI = newThumbOffsetGUI;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
       thumb.background = 'rgba(255,220,50,0.95)';
-      const delta = clampedCSS * SPEED_FACTOR;
-      if (axis === 'all') onMove(delta, delta, delta);
-      else if (axis === 'x') onMove(delta, 0, 0);
-      else if (axis === 'y') onMove(0, delta, 0);
-      else if (axis === 'z') onMove(0, 0, delta);
     }
 
     function onPointerMove(e) {
       if (e.pointerId !== activePointer) return;
       const deltaCSS = e.clientX - lastClientX;
       lastClientX = e.clientX;
-
-      const delta = deltaCSS * SPEED_FACTOR;
-      if (axis === 'all') onMove(delta, delta, delta);
-      else if (axis === 'x') onMove(delta, 0, 0);
-      else if (axis === 'y') onMove(0, delta, 0);
-      else if (axis === 'z') onMove(0, 0, delta);
-
-      thumbOffsetGUI = Math.max(
-        -MAX_OFFSET_GUI,
-        Math.min(MAX_OFFSET_GUI, thumbOffsetGUI + deltaCSS / activeScale)
-      );
+      if (deltaCSS === 0) return;
+      const newThumbOffsetGUI = Math.max(-MAX_OFFSET_GUI, Math.min(MAX_OFFSET_GUI, thumbOffsetGUI + deltaCSS / activeScale));
+      applyMove(thumbOffsetGUI, newThumbOffsetGUI);
+      thumbOffsetGUI = newThumbOffsetGUI;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
     }
 
