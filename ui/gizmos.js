@@ -71,6 +71,7 @@ let duplicateModeActive = false;
 let duplicateRafId = null;
 let orbitSavedCamera = null; // Free camera stashed while orbit-view is active
 let orbitViewObserver = null; // Observer handle for orbit-view selection tracking
+let orbitPreviousGizmoType = null; // Gizmo active before entering orbit, restored on exit
 
 // Keep track of things to clean up
 const cleanupFns = [];
@@ -145,7 +146,7 @@ function registerBindings() {
   KeyboardDispatcher.on(
     'GIZMO',
     'KeyV',
-    noMod(() => viewMeshWithCamera())
+    noMod(() => toggleGizmo('eye'))
   );
   // Delete selected mesh with Del key
   KeyboardDispatcher.on('GIZMO', 'Delete', (e) => {
@@ -785,16 +786,27 @@ function restoreFreeCameraFromOrbit() {
 // Standard orbit-view exit (V toggle, deselect, delete, select-other):
 // return to the free camera and give it canvas control.
 function disconnectOrbitView() {
+  const prevMesh = window.orbitMesh;
   window.orbitViewActive = false;
   window.orbitBlock = null;
   window.orbitMesh = null;
   document.getElementById('eyeButton')?.classList.remove('active');
   if (!flock.scene?.activeCamera?.metadata?.orbitView) return;
   restoreFreeCameraFromOrbit();
+  // BabylonJS may clear gizmoManager.attachedMesh when the orbit camera is
+  // disposed or usePointerToAttachGizmos is restored. Re-attach so the mesh
+  // stays selected and V can re-enter orbit without a pick prompt.
+  if (prevMesh && !prevMesh.isDisposed?.()) {
+    gizmoManager.attachToMesh(prevMesh);
+    enableBoundingBox(prevMesh);
+  }
   const canvas = flock.scene.getEngine().getRenderingCanvas();
   if (canvas) {
     flock.scene.activeCamera?.attachControl(canvas, false);
-    canvas.focus();
+    // canvas.focus() is intentionally omitted here — callers that need to
+    // hand focus back to the canvas (e.g. eye toggle-off) do so explicitly,
+    // so that focusin doesn't fire while no gizmo button is active and
+    // accidentally close the gizmo overlay.
   }
 }
 
@@ -1613,11 +1625,28 @@ export function toggleGizmo(gizmoType) {
   const button = document.getElementById(`${gizmoType}Button`);
   if (button?.classList.contains('active')) {
     if (gizmoType === 'camera') handleCameraGizmo();
+    if (gizmoType === 'eye') {
+      disconnectOrbitView();
+      // Restore whichever tool was active before orbit so the GIZMO keyboard
+      // context stays valid (context requires at least one .gizmo-button.active).
+      if (orbitPreviousGizmoType) {
+        document.getElementById(`${orbitPreviousGizmoType}Button`)?.classList.add('active');
+        orbitPreviousGizmoType = null;
+      }
+      // Focus canvas after restoring the previous button so focusin fires
+      // with a .gizmo-button.active present (GIZMO context, not CAMERA).
+      flock.scene?.getEngine()?.getRenderingCanvas()?.focus();
+      return;
+    }
     exitGizmoState();
     return;
   }
 
   // No buttons should be highlighted
+  if (gizmoType === 'eye') {
+    const activeBtn = document.querySelector('.gizmo-button.active');
+    orbitPreviousGizmoType = activeBtn?.id.replace('Button', '') ?? null;
+  }
   document.querySelectorAll('.gizmo-button').forEach((btn) => btn.classList.remove('active'));
 
   // If they abandoned a duplicate half way, remove listener
