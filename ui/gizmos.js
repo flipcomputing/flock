@@ -148,6 +148,18 @@ function registerBindings() {
     'KeyV',
     noMod(() => toggleGizmo('eye'))
   );
+  KeyboardDispatcher.on(
+    'EDITOR',
+    'KeyV',
+    noMod(() => {
+      const block = Blockly.common?.getSelected?.();
+      if (!block) return;
+      const mesh = getMeshFromBlock(block);
+      if (!mesh || mesh.name === 'ground') return;
+      attachMeshForActiveTool(mesh);
+      toggleGizmo('eye');
+    })
+  );
   // Delete selected mesh with Del key
   KeyboardDispatcher.on('GIZMO', 'Delete', (e) => {
     if (!gizmoManager?.attachedMesh) return;
