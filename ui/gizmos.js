@@ -785,12 +785,12 @@ function restoreFreeCameraFromOrbit() {
 // Standard orbit-view exit (V toggle, deselect, delete, select-other):
 // return to the free camera and give it canvas control.
 function disconnectOrbitView() {
-  if (!flock.scene?.activeCamera?.metadata?.orbitView) return;
-  restoreFreeCameraFromOrbit();
   window.orbitViewActive = false;
   window.orbitBlock = null;
   window.orbitMesh = null;
   document.getElementById('eyeButton')?.classList.remove('active');
+  if (!flock.scene?.activeCamera?.metadata?.orbitView) return;
+  restoreFreeCameraFromOrbit();
   const canvas = flock.scene.getEngine().getRenderingCanvas();
   if (canvas) {
     flock.scene.activeCamera?.attachControl(canvas, false);
