@@ -823,6 +823,7 @@ export function initContextMenus(workspace) {
             clearTimeout(toolbarShowTimer);
             toolbarShowTimer = null;
             selectedBlock = null;
+            dismissedBlock = null;
             hideBlockToolbar();
           }
         }
@@ -851,7 +852,7 @@ export function initContextMenus(workspace) {
         } else {
           // Toolbar not visible (dismissed or hidden e.g. after returning from gizmo/canvas).
           // Blockly won't fire SELECTED again for an already-selected block, so show directly.
-    
+          dismissedBlock = null;
           showBlockToolbar(selectedBlock);
         }
       },
