@@ -117,6 +117,52 @@ export function setBlockLocked(block, locked) {
   }
 }
 
+// Toggle a comment on a block: remove it if present, otherwise add an empty one
+// and open its bubble for editing. Used by the floating block toolbar's comment
+// button (which is an add/remove affordance).
+export function toggleBlockComment(block) {
+  if (!block) return;
+  if (block.getCommentText() !== null) {
+    block.setCommentText(null);
+  } else {
+    block.setCommentText("");
+    getCommentIcon(block)?.setBubbleVisible(true);
+  }
+}
+
+function getCommentIcon(block) {
+  return (
+    block?.getIcons?.().find((i) => typeof i.setBubbleVisible === "function") ??
+    null
+  );
+}
+
+// Toggle the comment bubble open/closed, creating the comment if the block
+// doesn't have one yet. When opening, move keyboard focus into the comment
+// editor so the user can type straight away. Used by the 'K' shortcut; never
+// deletes (use deleteBlockComment for that). Async because Blockly's
+// setBubbleVisible resolves once the bubble has been (re)rendered.
+export async function toggleCommentBubble(block) {
+  if (!block) return;
+  if (block.getCommentText() === null) block.setCommentText("");
+  const icon = getCommentIcon(block);
+  if (!icon) return;
+  if (icon.bubbleIsVisible?.()) {
+    await icon.setBubbleVisible(false);
+    return;
+  }
+  await icon.setBubbleVisible(true);
+  // performAction() is the comment bubble's documented keyboard-navigation
+  // entry point: it focuses the editor's text area.
+  icon.getBubble?.()?.performAction?.();
+}
+
+// Remove a block's comment entirely (icon and text), if it has one.
+export function deleteBlockComment(block) {
+  if (!block) return;
+  if (block.getCommentText() !== null) block.setCommentText(null);
+}
+
 function trackBlockHighlight(workspace, blockId) {
   lastAddMenuHighlighted = { workspace, blockId };
   const block = workspace.getBlockById(blockId);

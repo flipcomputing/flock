@@ -486,6 +486,16 @@ function getShortcuts() {
       category: translate('shortcut_category_editor'),
     },
     {
+      label: translate('shortcut_comment_block'),
+      keys: `K`,
+      category: translate('shortcut_category_editor'),
+    },
+    {
+      label: translate('shortcut_delete_comment'),
+      keys: `Shift + K`,
+      category: translate('shortcut_category_editor'),
+    },
+    {
       label: translate('shortcut_start_move_block'),
       keys: `M`,
       category: translate('shortcut_category_editor'),

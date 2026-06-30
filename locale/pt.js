@@ -1250,6 +1250,8 @@ export default {
   shortcut_context_menu: 'Abrir menu de contexto',
   shortcut_duplicate_block: 'Duplicar bloco',
   shortcut_detach_block: 'Desconectar bloco',
+  shortcut_comment_block: 'Mostrar/ocultar comentário',
+  shortcut_delete_comment: 'Excluir comentário',
   shortcut_start_move_block: 'Mover bloco',
   shortcut_move_arrows: 'Mover: para ligação',
   shortcut_move_anywhere: 'Mover: para qualquer lugar',

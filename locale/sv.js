@@ -1228,6 +1228,8 @@ export default {
   shortcut_context_menu: 'Öppna snabbmeny',
   shortcut_duplicate_block: 'Duplicera block',
   shortcut_detach_block: 'Koppla loss block',
+  shortcut_comment_block: 'Visa/dölj kommentar',
+  shortcut_delete_comment: 'Ta bort kommentar',
   shortcut_start_move_block: 'Flytta block',
   shortcut_move_arrows: 'Flytta: till anslutning',
   shortcut_move_anywhere: 'Flytta: var som helst',
