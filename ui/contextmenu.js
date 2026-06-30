@@ -195,12 +195,7 @@ export function initContextMenus(workspace) {
   // and "Lock/Unlock" stays enabled so the block can be unlocked.
   (function disableMutatingItemsWhenLocked() {
     const registry = Blockly.ContextMenuRegistry.registry;
-    const ids = [
-      'blockComment',
-      'blockInline',
-      'blockDisable',
-      'detachBlockWithShortcut',
-    ];
+    const ids = ['blockComment', 'blockInline', 'blockDisable', 'detachBlockWithShortcut'];
     for (const id of ids) {
       const item = registry.getItem?.(id);
       if (!item || item.__lockWrapped) continue;
@@ -311,8 +306,7 @@ export function initContextMenus(workspace) {
       id: 'blockCut',
       weight: 1,
       displayText: () => Blockly.Msg['CUT_SHORTCUT'] || 'Cut',
-      preconditionFn: (scope) =>
-        isBlockLocked(scope.block) ? 'disabled' : notInFlyout(scope),
+      preconditionFn: (scope) => (isBlockLocked(scope.block) ? 'disabled' : notInFlyout(scope)),
       callback: (scope) => {
         const block = scope.block;
         if (!block) return;
@@ -709,9 +703,9 @@ export function initContextMenus(workspace) {
 
     let toolbarBlock = null; // block the toolbar is currently visible for
     let selectedBlock = null; // block currently selected (regardless of toolbar visibility)
-    let toolbarDismissed = false; // user closed toolbar for the current selection
     let toolbarShowTimer = null;
     let lastSelectionWasPointer = false;
+    let dismissedBlock = null; // block whose toolbar was just dismissed via toggle; suppress re-show for it only
 
     document.addEventListener(
       'pointerdown',
@@ -751,7 +745,7 @@ export function initContextMenus(workspace) {
 
     function showBlockToolbar(block) {
       toolbarBlock = block;
-      toolbarDismissed = false;
+
       // Locked blocks can't be edited: hide the mutating buttons (detach,
       // comment, delete), leaving duplicate and view-in-canvas available.
       const locked = isBlockLocked(block);
@@ -796,20 +790,21 @@ export function initContextMenus(workspace) {
 
     workspace.addChangeListener((e) => {
       if (e.type === Blockly.Events.SELECTED) {
-        clearTimeout(toolbarShowTimer);
-        toolbarShowTimer = null;
-
         if (e.newElementId) {
+          clearTimeout(toolbarShowTimer);
+          toolbarShowTimer = null;
           const block = workspace.getBlockById(e.newElementId);
           // Consume the pointer flag only here, on actual selection, not on deselect.
           // Blockly may fire SELECTED(null) before SELECTED(blockId) on a click, so
           // consuming it on deselect would clear it before we can use it.
           const wasPointer = lastSelectionWasPointer;
           lastSelectionWasPointer = false;
+          const wasDismissed = block === dismissedBlock;
+          dismissedBlock = null;
           if (isToolbarBlock(block)) {
             selectedBlock = block;
-            toolbarDismissed = false;
-            if (wasPointer) {
+      
+            if (wasPointer && !wasDismissed) {
               toolbarShowTimer = setTimeout(() => showBlockToolbar(block), 400);
             } else {
               hideBlockToolbar();
@@ -819,8 +814,18 @@ export function initContextMenus(workspace) {
             hideBlockToolbar();
           }
         } else {
-          selectedBlock = null;
-          hideBlockToolbar();
+          // SELECTED(null) fires when non-block selectables (icons, bubbles) are deselected,
+          // even while the block itself remains selected. Check Blockly's actual state.
+          const actualSelected = Blockly.common?.getSelected?.();
+          if (actualSelected && actualSelected === selectedBlock) {
+            // Block is still selected in Blockly — this null event is for something else; ignore it.
+          } else {
+            clearTimeout(toolbarShowTimer);
+            toolbarShowTimer = null;
+            selectedBlock = null;
+            dismissedBlock = null;
+            hideBlockToolbar();
+          }
         }
       } else if (
         (e.type === Blockly.Events.BLOCK_MOVE || e.type === Blockly.Events.VIEWPORT_CHANGE) &&
@@ -840,12 +845,14 @@ export function initContextMenus(workspace) {
         const svgRoot = selectedBlock.getSvgRoot?.();
         if (!svgRoot || !svgRoot.contains(e.target)) return;
         if (toolbarBlock) {
-          // Toolbar visible → hide it; prevent SELECTED from re-showing
-          toolbarDismissed = true;
+          // Toolbar visible → hide it; prevent SELECTED from re-showing for this specific block.
+
+          dismissedBlock = selectedBlock;
           hideBlockToolbar();
-          lastSelectionWasPointer = false;
-        } else if (toolbarDismissed) {
-          // Toolbar dismissed → re-show it
+        } else {
+          // Toolbar not visible (dismissed or hidden e.g. after returning from gizmo/canvas).
+          // Blockly won't fire SELECTED again for an already-selected block, so show directly.
+          dismissedBlock = null;
           showBlockToolbar(selectedBlock);
         }
       },
