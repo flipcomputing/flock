@@ -202,10 +202,14 @@ export function initContextMenus(workspace) {
     item.callback = function (scope, ...rest) {
       const block = scope?.block;
       if (block && block.getCommentText?.() == null) {
-        // Adding: create the comment, open its bubble and focus the editor.
+        // Adding: create the comment, open its bubble and focus the editor. The
+        // undoable create runs synchronously inside toggleCommentBubble (before
+        // it awaits) so it lands in this group; the async bubble open/focus is
+        // UI state. Preserve/restore the outer group like the other items here.
+        const prevGroup = Blockly.Events.getGroup();
         Blockly.Events.setGroup('contextmenu_comment');
         toggleCommentBubble(block);
-        Blockly.Events.setGroup(false);
+        Blockly.Events.setGroup(prevGroup || null);
         return;
       }
       return origCallback?.call(this, scope, ...rest);
