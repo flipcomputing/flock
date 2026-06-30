@@ -751,6 +751,7 @@ function attachOrbitView(mesh) {
   });
   window.orbitViewActive = true;
   window.orbitBlock = window.currentBlock ?? null;
+  window.orbitMesh = selectedMesh;
   document.getElementById('eyeButton')?.classList.add('active');
 }
 
@@ -787,6 +788,7 @@ function disconnectOrbitView() {
   restoreFreeCameraFromOrbit();
   window.orbitViewActive = false;
   window.orbitBlock = null;
+  window.orbitMesh = null;
   document.getElementById('eyeButton')?.classList.remove('active');
   const canvas = flock.scene.getEngine().getRenderingCanvas();
   if (canvas) {

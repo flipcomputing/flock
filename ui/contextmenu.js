@@ -767,7 +767,9 @@ export function initContextMenus(workspace) {
         /* scene not ready */
       }
       viewBtn.style.display = !mesh || mesh.name === 'ground' ? 'none' : '';
-      const exitMode = !!window.orbitViewActive && window.orbitBlock === block;
+      let meshRoot = mesh;
+      while (meshRoot?.parent) meshRoot = meshRoot.parent;
+      const exitMode = !!window.orbitViewActive && (window.orbitBlock === block || (meshRoot && window.orbitMesh === meshRoot));
       viewBtn.innerHTML = exitMode ? viewExitSvg : viewEnterSvg;
       viewBtn.setAttribute(
         'aria-label',
