@@ -528,7 +528,7 @@ function getShortcuts() {
     },
     {
       label: translate('shortcut_select_gizmo'),
-      keys: `1-9`,
+      keys: `0-9`,
       category: translate('shortcut_category_gizmos'),
     },
     {

@@ -779,7 +779,7 @@ function restoreFreeCameraFromOrbit() {
   const freeCamera = orbitSavedCamera;
   // Without a valid camera to fall back to, disposing the orbit camera would
   // leave scene.activeCamera pointing at a disposed camera. Stay put instead.
-  if (!freeCamera || freeCamera.isDisposed()) return;
+  if (!freeCamera || freeCamera.isDisposed()) return false;
 
   if (orbitViewObserver) {
     gizmoManager.onAttachedToMeshObservable.remove(orbitViewObserver);
@@ -793,18 +793,31 @@ function restoreFreeCameraFromOrbit() {
   orbitCamera.detachControl();
   scene.activeCamera = freeCamera;
   orbitCamera.dispose();
+  return true;
 }
 
 // Standard orbit-view exit (V toggle, deselect, delete, select-other):
 // return to the free camera and give it canvas control.
 function disconnectOrbitView() {
   const prevMesh = window.orbitMesh;
+  // Scene gone (disposal path): wipe all orbit globals so stale state never
+  // persists across a scene reset, even though no camera restore is possible.
+  if (!flock.scene?.activeCamera?.metadata?.orbitView) {
+    window.orbitViewActive = false;
+    window.orbitBlock = null;
+    window.orbitMesh = null;
+    document.getElementById('eyeButton')?.classList.remove('active');
+    return;
+  }
+  // Orbit camera is active — attempt a real restore. If orbitSavedCamera is
+  // missing or disposed restoreFreeCameraFromOrbit returns false; in that case
+  // leave all state intact so the caller can see the system is still "stuck"
+  // in orbit rather than silently desynchronising flags from camera state.
+  if (!restoreFreeCameraFromOrbit()) return;
   window.orbitViewActive = false;
   window.orbitBlock = null;
   window.orbitMesh = null;
   document.getElementById('eyeButton')?.classList.remove('active');
-  if (!flock.scene?.activeCamera?.metadata?.orbitView) return;
-  restoreFreeCameraFromOrbit();
   // BabylonJS may clear gizmoManager.attachedMesh when the orbit camera is
   // disposed or usePointerToAttachGizmos is restored. Re-attach so the mesh
   // stays selected and V can re-enter orbit without a pick prompt.
@@ -1639,15 +1652,16 @@ export function toggleGizmo(gizmoType) {
     if (gizmoType === 'camera') handleCameraGizmo();
     if (gizmoType === 'eye') {
       disconnectOrbitView();
-      // Restore whichever tool was active before orbit so the GIZMO keyboard
-      // context stays valid (context requires at least one .gizmo-button.active).
-      if (orbitPreviousGizmoType) {
-        document.getElementById(`${orbitPreviousGizmoType}Button`)?.classList.add('active');
-        orbitPreviousGizmoType = null;
+      const prevType = orbitPreviousGizmoType;
+      orbitPreviousGizmoType = null;
+      if (prevType) {
+        // Re-run the full activation flow for the previous tool so its
+        // handlers (pick observer, drag handles, etc.) are live again —
+        // not just its button class.
+        toggleGizmo(prevType);
+      } else {
+        flock.scene?.getEngine()?.getRenderingCanvas()?.focus();
       }
-      // Focus canvas after restoring the previous button so focusin fires
-      // with a .gizmo-button.active present (GIZMO context, not CAMERA).
-      flock.scene?.getEngine()?.getRenderingCanvas()?.focus();
       return;
     }
     exitGizmoState();
