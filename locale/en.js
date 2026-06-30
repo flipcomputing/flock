@@ -1079,6 +1079,7 @@ export default {
   duplicate_button_ui: "Duplicate selected object",
   delete_button_ui: "Delete selected object",
   camera_button_ui: "Camera controls",
+  eye_button_ui: "Orbit around selected object",
 
   info_panel_link_ui: "Visit Flock XR website (opens in new tab)",
 
@@ -1179,6 +1180,7 @@ export default {
   fly_camera_instructions: 'ℹ️ Fly camera, use arrow keys and page up/down',
   select_mesh_delete_prompt: 'ℹ️ Click an object to delete it.',
   select_mesh_duplicate_prompt: 'ℹ️ Select an object to duplicate, then click to place copies.',
+  select_mesh_eye_prompt: 'ℹ️ Click an object to orbit around it.',
   place_object_prompt: 'ℹ️ Click on a surface to place the object.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:

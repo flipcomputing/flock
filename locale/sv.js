@@ -1046,6 +1046,7 @@ export default {
   duplicate_button_ui: "Duplicera valt objekt",
   delete_button_ui: "Radera valt objekt",
   camera_button_ui: "Kamerakontroller",
+  eye_button_ui: "Kretsa runt valt objekt",
 
   info_panel_link_ui: "Besök Flock XR:s webbplats (öppnas i ny flik)",
 
@@ -1138,6 +1139,7 @@ export default {
   select_mesh_delete_prompt: 'ℹ️ Klicka på ett objekt för att ta bort det.',
   select_mesh_duplicate_prompt:
     'ℹ️ Välj ett objekt att duplicera och klicka sedan för att placera kopior.',
+  select_mesh_eye_prompt: 'ℹ️ Klicka på ett objekt för att kretsa runt det.',
   place_object_prompt: 'ℹ️ Klicka på en yta för att placera objektet.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:

@@ -71,6 +71,7 @@ let duplicateModeActive = false;
 let duplicateRafId = null;
 let orbitSavedCamera = null; // Free camera stashed while orbit-view is active
 let orbitViewObserver = null; // Observer handle for orbit-view selection tracking
+let orbitPreviousGizmoType = null; // Gizmo active before entering orbit, restored on exit
 
 // Keep track of things to clean up
 const cleanupFns = [];
@@ -145,7 +146,19 @@ function registerBindings() {
   KeyboardDispatcher.on(
     'GIZMO',
     'KeyV',
-    noMod(() => viewMeshWithCamera())
+    noMod(() => toggleGizmo('eye'))
+  );
+  KeyboardDispatcher.on(
+    'EDITOR',
+    'KeyV',
+    noMod(() => {
+      const block = Blockly.common?.getSelected?.();
+      if (!block) return;
+      const mesh = getMeshFromBlock(block);
+      if (!mesh || mesh.name === 'ground') return;
+      attachMeshForActiveTool(mesh);
+      toggleGizmo('eye');
+    })
   );
   // Delete selected mesh with Del key
   KeyboardDispatcher.on('GIZMO', 'Delete', (e) => {
@@ -752,6 +765,8 @@ function attachOrbitView(mesh) {
   });
   window.orbitViewActive = true;
   window.orbitBlock = window.currentBlock ?? null;
+  window.orbitMesh = selectedMesh;
+  document.getElementById('eyeButton')?.classList.add('active');
 }
 
 // Restore the stashed free camera, disposing the orbit camera. Does not
@@ -764,7 +779,7 @@ function restoreFreeCameraFromOrbit() {
   const freeCamera = orbitSavedCamera;
   // Without a valid camera to fall back to, disposing the orbit camera would
   // leave scene.activeCamera pointing at a disposed camera. Stay put instead.
-  if (!freeCamera || freeCamera.isDisposed()) return;
+  if (!freeCamera || freeCamera.isDisposed()) return false;
 
   if (orbitViewObserver) {
     gizmoManager.onAttachedToMeshObservable.remove(orbitViewObserver);
@@ -778,19 +793,45 @@ function restoreFreeCameraFromOrbit() {
   orbitCamera.detachControl();
   scene.activeCamera = freeCamera;
   orbitCamera.dispose();
+  return true;
 }
 
 // Standard orbit-view exit (V toggle, deselect, delete, select-other):
 // return to the free camera and give it canvas control.
 function disconnectOrbitView() {
-  if (!flock.scene.activeCamera?.metadata?.orbitView) return;
-  restoreFreeCameraFromOrbit();
+  const prevMesh = window.orbitMesh;
+  // Scene gone (disposal path): wipe all orbit globals so stale state never
+  // persists across a scene reset, even though no camera restore is possible.
+  if (!flock.scene?.activeCamera?.metadata?.orbitView) {
+    window.orbitViewActive = false;
+    window.orbitBlock = null;
+    window.orbitMesh = null;
+    document.getElementById('eyeButton')?.classList.remove('active');
+    return;
+  }
+  // Orbit camera is active — attempt a real restore. If orbitSavedCamera is
+  // missing or disposed restoreFreeCameraFromOrbit returns false; in that case
+  // leave all state intact so the caller can see the system is still "stuck"
+  // in orbit rather than silently desynchronising flags from camera state.
+  if (!restoreFreeCameraFromOrbit()) return;
   window.orbitViewActive = false;
   window.orbitBlock = null;
+  window.orbitMesh = null;
+  document.getElementById('eyeButton')?.classList.remove('active');
+  // BabylonJS may clear gizmoManager.attachedMesh when the orbit camera is
+  // disposed or usePointerToAttachGizmos is restored. Re-attach so the mesh
+  // stays selected and V can re-enter orbit without a pick prompt.
+  if (prevMesh && !prevMesh.isDisposed?.()) {
+    gizmoManager.attachToMesh(prevMesh);
+    enableBoundingBox(prevMesh);
+  }
   const canvas = flock.scene.getEngine().getRenderingCanvas();
   if (canvas) {
     flock.scene.activeCamera?.attachControl(canvas, false);
-    canvas.focus();
+    // canvas.focus() is intentionally omitted here — callers that need to
+    // hand focus back to the canvas (e.g. eye toggle-off) do so explicitly,
+    // so that focusin doesn't fire while no gizmo button is active and
+    // accidentally close the gizmo overlay.
   }
 }
 
@@ -828,6 +869,7 @@ function retilePrimitiveUVsForScale(mesh) {
 
 // Clean up gizmo state if aborted
 export function exitGizmoState() {
+  disconnectOrbitView();
   duplicateModeActive = false;
   if (duplicateRafId !== null) {
     cancelAnimationFrame(duplicateRafId);
@@ -1608,11 +1650,29 @@ export function toggleGizmo(gizmoType) {
   const button = document.getElementById(`${gizmoType}Button`);
   if (button?.classList.contains('active')) {
     if (gizmoType === 'camera') handleCameraGizmo();
+    if (gizmoType === 'eye') {
+      disconnectOrbitView();
+      const prevType = orbitPreviousGizmoType;
+      orbitPreviousGizmoType = null;
+      if (prevType) {
+        // Re-run the full activation flow for the previous tool so its
+        // handlers (pick observer, drag handles, etc.) are live again —
+        // not just its button class.
+        toggleGizmo(prevType);
+      } else {
+        flock.scene?.getEngine()?.getRenderingCanvas()?.focus();
+      }
+      return;
+    }
     exitGizmoState();
     return;
   }
 
   // No buttons should be highlighted
+  if (gizmoType === 'eye') {
+    const activeBtn = document.querySelector('.gizmo-button.active');
+    orbitPreviousGizmoType = activeBtn?.id.replace('Button', '') ?? null;
+  }
   document.querySelectorAll('.gizmo-button').forEach((btn) => btn.classList.remove('active'));
 
   // If they abandoned a duplicate half way, remove listener
@@ -1622,7 +1682,7 @@ export function toggleGizmo(gizmoType) {
   }
 
   exitGizmoState(); // Clean up any existing gizmo state
-  resetAttachedMeshIfMeshAttached();
+  if (gizmoType !== 'camera' && gizmoType !== 'eye') resetAttachedMeshIfMeshAttached();
 
   document.body.style.cursor = 'default';
 
@@ -1648,6 +1708,9 @@ export function toggleGizmo(gizmoType) {
       break;
     case 'scale':
       handleScaleGizmo();
+      break;
+    case 'eye':
+      handleEyeGizmo();
       break;
     /*
     case "boundingBox":
@@ -2182,15 +2245,8 @@ function handleCameraGizmo() {
   // play/fly swap below operates on the normal camera pair. If there is no
   // saved play camera to swap to, just stay on the restored free camera.
   if (flock.scene.activeCamera?.metadata?.orbitView) {
-    restoreFreeCameraFromOrbit();
-    if (!flock.savedCamera) {
-      const canvas = flock.scene.getEngine().getRenderingCanvas();
-      if (canvas) {
-        flock.scene.activeCamera?.attachControl(canvas, false);
-        canvas.focus();
-      }
-      return;
-    }
+    disconnectOrbitView();
+    if (!flock.savedCamera) return;
   }
 
   const cameraButton = document.getElementById('cameraButton');
@@ -2288,6 +2344,31 @@ function addUndoHandler() {
   });
 }
 
+// Eye: Orbit camera around selected or picked mesh
+function handleEyeGizmo() {
+  document.getElementById('eyeButton')?.classList.add('active');
+
+  const mesh = gizmoManager.attachedMesh;
+  if (mesh && mesh.name !== 'ground') {
+    attachOrbitView(mesh);
+    return;
+  }
+
+  flock.printText({
+    text: translate('select_mesh_eye_prompt'),
+    duration: 30,
+    color: 'black',
+  });
+  pickMeshFromScene((pickedMesh) => {
+    if (!pickedMesh || pickedMesh.name === 'ground') {
+      exitGizmoState();
+      return;
+    }
+    attachMeshForActiveTool(pickedMesh);
+    attachOrbitView(pickedMesh);
+  });
+}
+
 export function enableGizmos() {
   // Initialize undo handler for DO section cleanup
   addUndoHandler();
@@ -2299,6 +2380,7 @@ export function enableGizmos() {
   const duplicateButton = document.getElementById('duplicateButton');
   const deleteButton = document.getElementById('deleteButton');
   const cameraButton = document.getElementById('cameraButton');
+  const eyeButton = document.getElementById('eyeButton');
   const showShapesButton = document.getElementById('showShapesButton');
   const colorPickerButton = document.getElementById('colorPickerButton');
   const aboutButton = document.getElementById('logo');
@@ -2320,6 +2402,7 @@ export function enableGizmos() {
     duplicateButton,
     deleteButton,
     cameraButton,
+    eyeButton,
     showShapesButton,
     colorPickerButton,
     aboutButton,
@@ -2356,6 +2439,7 @@ export function enableGizmos() {
   scaleButton.addEventListener('click', () => toggleGizmo('scale'));
   selectButton.addEventListener('click', () => toggleGizmo('select'));
   cameraButton.addEventListener('click', () => toggleGizmo('camera'));
+  eyeButton.addEventListener('click', () => toggleGizmo('eye'));
   duplicateButton.addEventListener('click', () => toggleGizmo('duplicate'));
   deleteButton.addEventListener('click', () => toggleGizmo('delete'));
   showShapesButton.addEventListener('click', () => {
