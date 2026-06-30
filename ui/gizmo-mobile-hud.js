@@ -304,7 +304,15 @@ export function createGizmoMobileHud({
       const clampedCSS = Math.max(-b.maxOffsetCSS, Math.min(b.maxOffsetCSS, e.clientX - b.centerX));
       rawOffsetGUI = clampedCSS / b.scale;
       const newThumbOffsetGUI = snapGUI(rawOffsetGUI);
-      applyMove(thumbOffsetGUI, newThumbOffsetGUI);
+      const targetDeg = (newThumbOffsetGUI / MAX_OFFSET_GUI) * MAX_DEG;
+      const deltaDeg = targetDeg - getAxisDeg();
+      if (deltaDeg !== 0) {
+        const delta = flock.BABYLON.Tools.ToRadians(deltaDeg);
+        if (axis === 'all') onMove(delta, delta, delta);
+        else if (axis === 'x') onMove(delta, 0, 0);
+        else if (axis === 'y') onMove(0, delta, 0);
+        else if (axis === 'z') onMove(0, 0, delta);
+      }
       thumbOffsetGUI = newThumbOffsetGUI;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
       thumb.background = 'rgba(255,220,50,0.95)';
