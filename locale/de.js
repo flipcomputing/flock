@@ -1066,6 +1066,7 @@ export default {
   duplicate_button_ui: "Duplizieren",
   delete_button_ui: "Löschen",
   camera_button_ui: "Kamera-Steuerung",
+  eye_button_ui: "Um ausgewähltes Objekt kreisen",
   info_panel_link_ui: "Flock XR Webseite (neuer Tab)",
   project_name_ui: "Projektname",
   keyboard_controls_ui: "Tastatursteuerung [Ctrl + /]",

@@ -1046,6 +1046,7 @@ export default {
   duplicate_button_ui: "Duplicera valt objekt",
   delete_button_ui: "Radera valt objekt",
   camera_button_ui: "Kamerakontroller",
+  eye_button_ui: "Kretsa runt valt objekt",
 
   info_panel_link_ui: "Besök Flock XR:s webbplats (öppnas i ny flik)",
 

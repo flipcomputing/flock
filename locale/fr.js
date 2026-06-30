@@ -1060,6 +1060,7 @@ export default {
   duplicate_button_ui: "Dupliquer l'objet sélectionné",
   delete_button_ui: "Supprimer l'objet sélectionné",
   camera_button_ui: 'Contrôles de la caméra',
+  eye_button_ui: "Orbiter autour de l'objet sélectionné",
 
   info_panel_link_ui: 'Visiter le site web de Flock XR (ouvre dans un nouvel onglet)',
 
