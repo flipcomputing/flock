@@ -256,6 +256,11 @@ export function createGizmoMobileHud({
       thumbOffsetGUI = clampedCSS / b.scale;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
       thumb.background = 'rgba(255,220,50,0.95)';
+      const delta = clampedCSS * SPEED_FACTOR;
+      if (axis === 'all') onMove(delta, delta, delta);
+      else if (axis === 'x') onMove(delta, 0, 0);
+      else if (axis === 'y') onMove(0, delta, 0);
+      else if (axis === 'z') onMove(0, 0, delta);
     }
 
     function onPointerMove(e) {
