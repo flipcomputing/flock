@@ -759,7 +759,8 @@ export function initContextMenus(workspace) {
       badgeOverlay.classList.remove('visible');
     }
 
-    // Place a badge centred just above each currently-visible button.
+    // Place a badge below each currently-visible button, slightly overlapping
+    // it — same offset as the gizmo-menu badges.
     function renderBadges() {
       badgeOverlay.replaceChildren();
       for (const [btn, labelSpec] of buttonShortcuts) {
@@ -769,7 +770,7 @@ export function initContextMenus(workspace) {
         badge.className = 'fc-toolbar-key-badge';
         badge.textContent = typeof labelSpec === 'function' ? labelSpec() : labelSpec;
         badge.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
-        badge.style.top = `${Math.round(rect.top - 6)}px`;
+        badge.style.top = `${Math.round(rect.top + rect.height + 8)}px`;
         badgeOverlay.appendChild(badge);
       }
       badgeOverlay.classList.add('visible');

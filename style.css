@@ -2270,7 +2270,7 @@ svg.blocklyTrashcanFlyout {
 
 .fc-toolbar-key-badge {
   position: absolute;
-  transform: translate(-50%, -100%); /* sit above the anchor point */
+  transform: translate(-50%, -50%); /* centre on the anchor point, below the icon */
   background: #fff;
   color: #000;
   border: 1px solid #aaa;
