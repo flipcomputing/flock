@@ -1248,6 +1248,7 @@ export default {
   shortcut_context_menu: 'Apri menu contestuale',
   shortcut_duplicate_block: 'Duplica blocco',
   shortcut_detach_block: 'Stacca blocco',
+  shortcut_comment_block: 'Aggiungi/rimuovi commento',
   shortcut_start_move_block: 'Sposta blocco',
   shortcut_move_arrows: 'Sposta: alla connessione',
   shortcut_move_anywhere: 'Sposta: ovunque',

@@ -3,7 +3,28 @@
 import * as Blockly from 'blockly';
 import { translate } from '../main/translation.js';
 import { getMeshFromBlock } from './blockmesh.js';
-import { setBlockLocked, isBlockLocked, stripLockState } from './blocklyutil.js';
+import {
+  setBlockLocked,
+  isBlockLocked,
+  stripLockState,
+  toggleBlockComment,
+} from './blocklyutil.js';
+
+// Render a context-menu row as "Label                 Shortcut", with the
+// shortcut hint dimmed on the right. Shared by the detach (X), view (V) and
+// comment (K) items.
+function renderShortcut(label, shortcut) {
+  const wrapper = document.createElement('span');
+  wrapper.style.cssText =
+    'display:flex;align-items:center;justify-content:space-between;gap:1.5em;width:100%';
+  const labelEl = document.createElement('span');
+  labelEl.textContent = label;
+  const shortcutEl = document.createElement('span');
+  shortcutEl.textContent = shortcut;
+  shortcutEl.style.color = 'var(--blockly-text-disabled, #aaa)';
+  wrapper.append(labelEl, shortcutEl);
+  return wrapper;
+}
 
 export function initContextMenus(workspace) {
   // ------- Pointer tracking for "paste at pointer" -------
@@ -27,25 +48,6 @@ export function initContextMenus(workspace) {
     const registry = Blockly.ContextMenuRegistry.registry;
     const id = 'detachBlockWithShortcut';
     if (registry.getItem && registry.getItem(id)) return;
-
-    function renderShortcut(label, shortcut) {
-      const wrapper = document.createElement('span');
-      wrapper.style.display = 'flex';
-      wrapper.style.alignItems = 'center';
-      wrapper.style.justifyContent = 'space-between';
-      wrapper.style.gap = '1.5em';
-      wrapper.style.width = '100%';
-
-      const labelEl = document.createElement('span');
-      labelEl.textContent = label;
-
-      const shortcutEl = document.createElement('span');
-      shortcutEl.textContent = shortcut;
-      shortcutEl.style.color = 'var(--blockly-text-disabled, #aaa)';
-
-      wrapper.append(labelEl, shortcutEl);
-      return wrapper;
-    }
 
     registry.register({
       id,
@@ -86,19 +88,6 @@ export function initContextMenus(workspace) {
     const registry = Blockly.ContextMenuRegistry.registry;
     const id = 'viewBlockInCanvas';
     if (registry.getItem && registry.getItem(id)) return;
-
-    function renderShortcut(label, shortcut) {
-      const wrapper = document.createElement('span');
-      wrapper.style.cssText =
-        'display:flex;align-items:center;justify-content:space-between;gap:1.5em;width:100%';
-      const labelEl = document.createElement('span');
-      labelEl.textContent = label;
-      const shortcutEl = document.createElement('span');
-      shortcutEl.textContent = shortcut;
-      shortcutEl.style.color = 'var(--blockly-text-disabled, #aaa)';
-      wrapper.append(labelEl, shortcutEl);
-      return wrapper;
-    }
 
     registry.register({
       id,
@@ -188,6 +177,22 @@ export function initContextMenus(workspace) {
       const item = registry.getItem?.(id);
       if (item) item.weight = weight;
     }
+  })();
+
+  // Show the "K" shortcut hint next to the built-in comment item, the same way
+  // detach shows "X" and view shows "V". The item's label is dynamic (Add /
+  // Remove Comment), so wrap the original displayText rather than replacing it.
+  (function addCommentShortcutHint() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const item = registry.getItem?.('blockComment');
+    if (!item || item.__shortcutWrapped) return;
+    const origDisplayText = item.displayText;
+    item.displayText = (scope) => {
+      const text =
+        typeof origDisplayText === 'function' ? origDisplayText(scope) : origDisplayText;
+      return renderShortcut(text, 'K');
+    };
+    item.__shortcutWrapped = true;
   })();
 
   // Disable context-menu items that would edit a locked block (comment, inline
@@ -627,12 +632,19 @@ export function initContextMenus(workspace) {
     { capture: true }
   );
 
-  // ---- Floating block toolbar (all devices, pointer-driven only) ----
+  // ---- Floating block toolbar ----
+  // Pointer selection shows it after a short hover; keyboard navigation shows it
+  // immediately with a shortcut-letter overlay (D/X/K/V/Del) above each button.
   {
     const blockToolbar = document.createElement('div');
     blockToolbar.className = 'fc-block-toolbar';
     blockToolbar.setAttribute('role', 'toolbar');
     document.body.appendChild(blockToolbar);
+
+    // Keyboard-only overlay of shortcut-letter badges, one per visible button.
+    const badgeOverlay = document.createElement('div');
+    badgeOverlay.className = 'fc-toolbar-badges';
+    document.body.appendChild(badgeOverlay);
 
     // Icon paths: Font Awesome Free 6.7.2 by @fontawesome — https://fontawesome.com
     // License: https://fontawesome.com/license/free  Copyright 2025 Fonticons, Inc.
@@ -701,11 +713,45 @@ export function initContextMenus(workspace) {
 
     blockToolbar.append(duplicateBtn, detachBtn, commentBtn, viewBtn, deleteBtn);
 
+    // The keyboard shortcut that each toolbar button mirrors. The overlay shows
+    // these as a passive legend — the keys themselves are bound elsewhere
+    // (blocklyinit.js for D/X/K/Del, gizmos.js for V) and already fire on the
+    // keyboard-selected block, so the badges only need to display them.
+    const buttonShortcuts = [
+      [duplicateBtn, 'D'],
+      [detachBtn, 'X'],
+      [commentBtn, 'K'],
+      [viewBtn, 'V'],
+      [deleteBtn, 'Del'],
+    ];
+
     let toolbarBlock = null; // block the toolbar is currently visible for
     let selectedBlock = null; // block currently selected (regardless of toolbar visibility)
     let toolbarShowTimer = null;
     let lastSelectionWasPointer = false;
     let dismissedBlock = null; // block whose toolbar was just dismissed via toggle; suppress re-show for it only
+    let toolbarKeyboardMode = false; // toolbar was opened via keyboard → show badge overlay
+
+    function clearBadges() {
+      badgeOverlay.replaceChildren();
+      badgeOverlay.classList.remove('visible');
+    }
+
+    // Place a badge centred just above each currently-visible button.
+    function renderBadges() {
+      badgeOverlay.replaceChildren();
+      for (const [btn, label] of buttonShortcuts) {
+        if (btn.style.display === 'none' || btn.offsetParent === null) continue;
+        const rect = btn.getBoundingClientRect();
+        const badge = document.createElement('div');
+        badge.className = 'fc-toolbar-key-badge';
+        badge.textContent = label;
+        badge.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
+        badge.style.top = `${Math.round(rect.top - 6)}px`;
+        badgeOverlay.appendChild(badge);
+      }
+      badgeOverlay.classList.add('visible');
+    }
 
     document.addEventListener(
       'pointerdown',
@@ -741,10 +787,13 @@ export function initContextMenus(workspace) {
         blockToolbar.style.left = `${blockCenterX + adj}px`;
         blockToolbar.style.setProperty('--caret-shift', `${-adj}px`);
       }
+      // Badges are positioned off the buttons, so they must follow the toolbar.
+      if (toolbarKeyboardMode) renderBadges();
     }
 
-    function showBlockToolbar(block) {
+    function showBlockToolbar(block, { keyboard = false } = {}) {
       toolbarBlock = block;
+      toolbarKeyboardMode = keyboard;
 
       // Locked blocks can't be edited: hide the mutating buttons (detach,
       // comment, delete), leaving duplicate and view-in-canvas available.
@@ -777,15 +826,21 @@ export function initContextMenus(workspace) {
           ? getToolbarLabel('exit_canvas_view', 'Exit canvas view')
           : getToolbarLabel('view_in_canvas', 'View in canvas')
       );
-      positionBlockToolbar();
       blockToolbar.classList.add('visible');
+      // Clear any stale badges from a previous keyboard selection; in keyboard
+      // mode positionBlockToolbar() draws fresh ones (it also re-runs on block
+      // move / viewport change to keep them aligned with the buttons).
+      if (!keyboard) clearBadges();
+      positionBlockToolbar();
     }
 
     function hideBlockToolbar() {
       clearTimeout(toolbarShowTimer);
       toolbarShowTimer = null;
       toolbarBlock = null;
+      toolbarKeyboardMode = false;
       blockToolbar.classList.remove('visible');
+      clearBadges();
     }
 
     const isToolbarBlock = (block) => block && !block.isInFlyout && !block.isShadow();
@@ -805,11 +860,17 @@ export function initContextMenus(workspace) {
           dismissedBlock = null;
           if (isToolbarBlock(block)) {
             selectedBlock = block;
-      
-            if (wasPointer && !wasDismissed) {
-              toolbarShowTimer = setTimeout(() => showBlockToolbar(block), 400);
+
+            if (wasPointer) {
+              // Pointer selection: reveal after a short hover, no badges.
+              if (!wasDismissed) {
+                toolbarShowTimer = setTimeout(() => showBlockToolbar(block), 400);
+              } else {
+                hideBlockToolbar();
+              }
             } else {
-              hideBlockToolbar();
+              // Keyboard navigation: show immediately with the shortcut overlay.
+              showBlockToolbar(block, { keyboard: true });
             }
           } else {
             selectedBlock = null;
@@ -894,14 +955,7 @@ export function initContextMenus(workspace) {
       e.preventDefault();
       e.stopPropagation();
       if (!toolbarBlock) return;
-      const block = toolbarBlock;
-      if (block.getCommentText() !== null) {
-        block.setCommentText(null);
-      } else {
-        block.setCommentText('');
-        const icon = block.getIcons?.().find((i) => typeof i.setBubbleVisible === 'function');
-        icon?.setBubbleVisible(true);
-      }
+      toggleBlockComment(toolbarBlock);
       hideBlockToolbar();
     });
 

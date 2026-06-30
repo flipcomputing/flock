@@ -1271,6 +1271,7 @@ export default {
   shortcut_context_menu: 'Abrir menú contextual',
   shortcut_duplicate_block: 'Duplicar bloque',
   shortcut_detach_block: 'Desconectar bloque',
+  shortcut_comment_block: 'Añadir/quitar comentario',
   shortcut_start_move_block: 'Mover bloque',
   shortcut_move_arrows: 'Mover: a conexión',
   shortcut_move_anywhere: 'Mover: a cualquier lugar',

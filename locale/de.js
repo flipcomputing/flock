@@ -1240,6 +1240,7 @@ export default {
   shortcut_context_menu: 'Kontextmenü öffnen',
   shortcut_duplicate_block: 'Block duplizieren',
   shortcut_detach_block: 'Block trennen',
+  shortcut_comment_block: 'Kommentar hinzufügen/entfernen',
   shortcut_start_move_block: 'Block verschieben',
   shortcut_move_arrows: 'Verschieben: zur Verbindung',
   shortcut_move_anywhere: 'Verschieben: überall',

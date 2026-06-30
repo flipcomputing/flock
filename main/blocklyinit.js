@@ -37,7 +37,12 @@ import { defineGenerators } from '../generators/generators.js';
 import { registerCustomCommentIcon } from './customCommentIcon.js';
 import { getMeshFromBlock } from '../ui/blockmesh.js';
 import { initContextMenus } from '../ui/contextmenu.js';
-import { applyBlockLockState, stripLockState } from '../ui/blocklyutil.js';
+import {
+  applyBlockLockState,
+  stripLockState,
+  isBlockLocked,
+  toggleBlockComment,
+} from '../ui/blocklyutil.js';
 import { toolbox as toolboxDef } from '../toolbox.js';
 
 // Persist locked blocks as part of the workspace serialization. Lower priority
@@ -1593,6 +1598,42 @@ function installShadowNavigationPatch(ws) {
       return true;
     }
   );
+
+  // 'K' toggles a comment on the focused block. (N — the natural mnemonic for
+  // "note" — is already Blockly's next_stack navigation key, so K is used.)
+  // Comment has no built-in Blockly shortcut, so unlike X/D/Delete this single
+  // registration must resolve the target itself — from the focused block
+  // (scope.focusedNode) or, when focus is on a skippable field, that field's
+  // source block.
+  {
+    const commentTargetBlock = (scope) => {
+      const node = scope?.focusedNode;
+      if (node && typeof node.getCommentText === 'function') return node;
+      return skippableFieldBlock();
+    };
+    shortcutRegistry.register({
+      name: 'comment_block',
+      keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.K)],
+      preconditionFn: (ws, scope) => {
+        const block = commentTargetBlock(scope);
+        return (
+          !!block &&
+          !ws.isDragging?.() &&
+          !ws.isReadOnly?.() &&
+          !block.isShadow?.() &&
+          !isBlockLocked(block)
+        );
+      },
+      callback: (_ws, _event, _shortcut, scope) => {
+        const block = commentTargetBlock(scope);
+        if (!block || block.isShadow?.() || isBlockLocked(block)) return false;
+        Blockly.Events.setGroup('comment_shortcut');
+        toggleBlockComment(block);
+        Blockly.Events.setGroup(false);
+        return true;
+      },
+    });
+  }
 }
 
 export function createBlocklyWorkspace() {

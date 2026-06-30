@@ -1317,6 +1317,7 @@ export default {
   shortcut_context_menu: 'Open context menu',
   shortcut_duplicate_block: 'Duplicate block',
   shortcut_detach_block: 'Detach block',
+  shortcut_comment_block: 'Add/remove comment',
   shortcut_start_move_block: 'Move block',
   shortcut_move_arrows: 'Move: to connection',
   shortcut_move_anywhere: 'Move: anywhere',

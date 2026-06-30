@@ -117,6 +117,22 @@ export function setBlockLocked(block, locked) {
   }
 }
 
+// Toggle a comment on a block: remove it if present, otherwise add an empty one
+// and open its bubble for editing. Shared by the 'N' keyboard shortcut and the
+// floating block toolbar's comment button.
+export function toggleBlockComment(block) {
+  if (!block) return;
+  if (block.getCommentText() !== null) {
+    block.setCommentText(null);
+  } else {
+    block.setCommentText("");
+    const icon = block
+      .getIcons?.()
+      .find((i) => typeof i.setBubbleVisible === "function");
+    icon?.setBubbleVisible(true);
+  }
+}
+
 function trackBlockHighlight(workspace, blockId) {
   lastAddMenuHighlighted = { workspace, blockId };
   const block = workspace.getBlockById(blockId);
