@@ -8,6 +8,7 @@ import {
   isBlockLocked,
   stripLockState,
   toggleBlockComment,
+  toggleCommentBubble,
 } from './blocklyutil.js';
 
 // Render a context-menu row as "Label                 Shortcut", with the
@@ -179,20 +180,38 @@ export function initContextMenus(workspace) {
     }
   })();
 
-  // Show the "K" shortcut hint next to the built-in comment item, the same way
-  // detach shows "X" and view shows "V". The item's label is dynamic (Add /
-  // Remove Comment), so wrap the original displayText rather than replacing it.
-  (function addCommentShortcutHint() {
+  // Customize the built-in comment item. (1) Show the shortcut hint, the same
+  // way detach shows "X" and view shows "V"; the item is dynamic — "Add Comment"
+  // adds (K), "Remove Comment" deletes (Shift+K) — so match the hint to whichever
+  // it will do. (2) Make "Add Comment" open and focus the bubble (Blockly's
+  // default leaves it closed), matching the K shortcut.
+  (function customizeCommentContextMenuItem() {
     const registry = Blockly.ContextMenuRegistry.registry;
     const item = registry.getItem?.('blockComment');
-    if (!item || item.__shortcutWrapped) return;
+    if (!item || item.__commentItemWrapped) return;
+
     const origDisplayText = item.displayText;
     item.displayText = (scope) => {
       const text =
         typeof origDisplayText === 'function' ? origDisplayText(scope) : origDisplayText;
-      return renderShortcut(text, 'K');
+      const hasComment = scope?.block?.getCommentText?.() != null;
+      return renderShortcut(text, hasComment ? 'Shift+K' : 'K');
     };
-    item.__shortcutWrapped = true;
+
+    const origCallback = item.callback;
+    item.callback = function (scope, ...rest) {
+      const block = scope?.block;
+      if (block && block.getCommentText?.() == null) {
+        // Adding: create the comment, open its bubble and focus the editor.
+        Blockly.Events.setGroup('contextmenu_comment');
+        toggleCommentBubble(block);
+        Blockly.Events.setGroup(false);
+        return;
+      }
+      return origCallback?.call(this, scope, ...rest);
+    };
+
+    item.__commentItemWrapped = true;
   })();
 
   // Disable context-menu items that would edit a locked block (comment, inline
@@ -716,11 +735,14 @@ export function initContextMenus(workspace) {
     // The keyboard shortcut that each toolbar button mirrors. The overlay shows
     // these as a passive legend — the keys themselves are bound elsewhere
     // (blocklyinit.js for D/X/K/Del, gizmos.js for V) and already fire on the
-    // keyboard-selected block, so the badges only need to display them.
+    // keyboard-selected block, so the badges only need to display them. A label
+    // may be a function for state-dependent buttons.
     const buttonShortcuts = [
       [duplicateBtn, 'D'],
       [detachBtn, 'X'],
-      [commentBtn, 'K'],
+      // Match the comment button's icon: '⇧K' (Shift+K, delete) when the block
+      // already has a comment, 'K' (show/hide) when it doesn't.
+      [commentBtn, () => (toolbarBlock?.getCommentText?.() != null ? '⇧K' : 'K')],
       [viewBtn, 'V'],
       [deleteBtn, 'Del'],
     ];
@@ -740,12 +762,12 @@ export function initContextMenus(workspace) {
     // Place a badge centred just above each currently-visible button.
     function renderBadges() {
       badgeOverlay.replaceChildren();
-      for (const [btn, label] of buttonShortcuts) {
+      for (const [btn, labelSpec] of buttonShortcuts) {
         if (btn.style.display === 'none' || btn.offsetParent === null) continue;
         const rect = btn.getBoundingClientRect();
         const badge = document.createElement('div');
         badge.className = 'fc-toolbar-key-badge';
-        badge.textContent = label;
+        badge.textContent = typeof labelSpec === 'function' ? labelSpec() : labelSpec;
         badge.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
         badge.style.top = `${Math.round(rect.top - 6)}px`;
         badgeOverlay.appendChild(badge);
@@ -791,6 +813,19 @@ export function initContextMenus(workspace) {
       if (toolbarKeyboardMode) renderBadges();
     }
 
+    // Sync the comment button's icon + label to whether the block has a comment:
+    // crossed-out "delete" icon when it does, plain "add" icon when it doesn't.
+    function updateCommentButton(block) {
+      const hasComment = block.getCommentText() !== null;
+      commentBtn.setAttribute(
+        'aria-label',
+        hasComment
+          ? getToolbarLabel('delete_comment', 'Delete comment')
+          : getToolbarLabel('add_comment', 'Add comment')
+      );
+      commentBtn.innerHTML = hasComment ? commentDeleteSvg : commentAddSvg;
+    }
+
     function showBlockToolbar(block, { keyboard = false } = {}) {
       toolbarBlock = block;
       toolbarKeyboardMode = keyboard;
@@ -801,14 +836,7 @@ export function initContextMenus(workspace) {
       detachBtn.style.display = !locked && isDetachable(block) ? '' : 'none';
       commentBtn.style.display = locked ? 'none' : '';
       deleteBtn.style.display = locked ? 'none' : '';
-      const hasComment = block.getCommentText() !== null;
-      commentBtn.setAttribute(
-        'aria-label',
-        hasComment
-          ? getToolbarLabel('delete_comment', 'Delete comment')
-          : getToolbarLabel('add_comment', 'Add comment')
-      );
-      commentBtn.innerHTML = hasComment ? commentDeleteSvg : commentAddSvg;
+      updateCommentButton(block);
       let mesh = null;
       try {
         mesh = getMeshFromBlock(block);
@@ -895,6 +923,16 @@ export function initContextMenus(workspace) {
         toolbarBlock
       ) {
         positionBlockToolbar();
+      } else if (
+        e.type === Blockly.Events.BLOCK_CHANGE &&
+        e.element === 'comment' &&
+        toolbarBlock &&
+        e.blockId === toolbarBlock.id
+      ) {
+        // Comment added/removed (e.g. via Shift+K) while the toolbar is up:
+        // refresh the button icon and, in keyboard mode, its badge (K ⇄ ⇧K).
+        updateCommentButton(toolbarBlock);
+        if (toolbarKeyboardMode) renderBadges();
       } else if (e.type === Blockly.Events.BLOCK_DRAG && e.isStart) {
         hideBlockToolbar();
       }

@@ -41,7 +41,8 @@ import {
   applyBlockLockState,
   stripLockState,
   isBlockLocked,
-  toggleBlockComment,
+  toggleCommentBubble,
+  deleteBlockComment,
 } from '../ui/blocklyutil.js';
 import { toolbox as toolboxDef } from '../toolbox.js';
 
@@ -1599,36 +1600,61 @@ function installShadowNavigationPatch(ws) {
     }
   );
 
-  // 'K' toggles a comment on the focused block. (N — the natural mnemonic for
-  // "note" — is already Blockly's next_stack navigation key, so K is used.)
-  // Comment has no built-in Blockly shortcut, so unlike X/D/Delete this single
-  // registration must resolve the target itself — from the focused block
-  // (scope.focusedNode) or, when focus is on a skippable field, that field's
-  // source block.
+  // Comment shortcuts. 'K' toggles the comment bubble open/closed (creating one
+  // and focusing it when none exists); 'Shift+K' deletes the comment. (N — the
+  // natural mnemonic for "note" — is already Blockly's next_stack nav key.)
+  // Comment has no built-in Blockly shortcut, so unlike X/D/Delete these must
+  // resolve the target themselves — from the focused block (scope.focusedNode)
+  // or, when focus is on a skippable field, that field's source block.
   {
     const commentTargetBlock = (scope) => {
       const node = scope?.focusedNode;
       if (node && typeof node.getCommentText === 'function') return node;
       return skippableFieldBlock();
     };
+    const commentEditable = (ws, block) =>
+      !!block &&
+      !ws.isDragging?.() &&
+      !ws.isReadOnly?.() &&
+      !block.isShadow?.() &&
+      !isBlockLocked(block);
+
     shortcutRegistry.register({
       name: 'comment_block',
       keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.K)],
+      preconditionFn: (ws, scope) => commentEditable(ws, commentTargetBlock(scope)),
+      callback: (_ws, event, _shortcut, scope) => {
+        const block = commentTargetBlock(scope);
+        if (!block || block.isShadow?.() || isBlockLocked(block)) return false;
+        // Cancel the keystroke's default text input; otherwise the 'k' that
+        // triggered this lands in the comment editor we're about to focus.
+        event?.preventDefault?.();
+        Blockly.Events.setGroup('comment_shortcut');
+        // The undoable create runs synchronously inside toggleCommentBubble
+        // before it awaits, so it lands in this group; the bubble open/focus
+        // that follows is UI state and needn't be grouped.
+        toggleCommentBubble(block);
+        Blockly.Events.setGroup(false);
+        return true;
+      },
+    });
+
+    shortcutRegistry.register({
+      name: 'delete_comment_block',
+      keyCodes: [
+        shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.K, [
+          Blockly.utils.KeyCodes.SHIFT,
+        ]),
+      ],
       preconditionFn: (ws, scope) => {
         const block = commentTargetBlock(scope);
-        return (
-          !!block &&
-          !ws.isDragging?.() &&
-          !ws.isReadOnly?.() &&
-          !block.isShadow?.() &&
-          !isBlockLocked(block)
-        );
+        return commentEditable(ws, block) && block.getCommentText?.() !== null;
       },
       callback: (_ws, _event, _shortcut, scope) => {
         const block = commentTargetBlock(scope);
-        if (!block || block.isShadow?.() || isBlockLocked(block)) return false;
-        Blockly.Events.setGroup('comment_shortcut');
-        toggleBlockComment(block);
+        if (!block || block.getCommentText?.() === null || isBlockLocked(block)) return false;
+        Blockly.Events.setGroup('delete_comment_shortcut');
+        deleteBlockComment(block);
         Blockly.Events.setGroup(false);
         return true;
       },
