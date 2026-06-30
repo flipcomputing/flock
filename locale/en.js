@@ -1179,6 +1179,7 @@ export default {
   fly_camera_instructions: 'ℹ️ Fly camera, use arrow keys and page up/down',
   select_mesh_delete_prompt: 'ℹ️ Click an object to delete it.',
   select_mesh_duplicate_prompt: 'ℹ️ Select an object to duplicate, then click to place copies.',
+  select_mesh_eye_prompt: 'ℹ️ Click an object to orbit around it.',
   place_object_prompt: 'ℹ️ Click on a surface to place the object.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:

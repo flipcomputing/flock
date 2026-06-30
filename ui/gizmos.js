@@ -751,6 +751,7 @@ function attachOrbitView(mesh) {
   });
   window.orbitViewActive = true;
   window.orbitBlock = window.currentBlock ?? null;
+  document.getElementById('eyeButton')?.classList.add('active');
 }
 
 // Restore the stashed free camera, disposing the orbit camera. Does not
@@ -782,10 +783,11 @@ function restoreFreeCameraFromOrbit() {
 // Standard orbit-view exit (V toggle, deselect, delete, select-other):
 // return to the free camera and give it canvas control.
 function disconnectOrbitView() {
-  if (!flock.scene.activeCamera?.metadata?.orbitView) return;
+  if (!flock.scene?.activeCamera?.metadata?.orbitView) return;
   restoreFreeCameraFromOrbit();
   window.orbitViewActive = false;
   window.orbitBlock = null;
+  document.getElementById('eyeButton')?.classList.remove('active');
   const canvas = flock.scene.getEngine().getRenderingCanvas();
   if (canvas) {
     flock.scene.activeCamera?.attachControl(canvas, false);
@@ -827,6 +829,7 @@ function retilePrimitiveUVsForScale(mesh) {
 
 // Clean up gizmo state if aborted
 export function exitGizmoState() {
+  disconnectOrbitView();
   duplicateModeActive = false;
   if (duplicateRafId !== null) {
     cancelAnimationFrame(duplicateRafId);
@@ -1646,6 +1649,9 @@ export function toggleGizmo(gizmoType) {
     case 'scale':
       handleScaleGizmo();
       break;
+    case 'eye':
+      handleEyeGizmo();
+      break;
     /*
     case "boundingBox":
       gizmoManager.boundingBoxGizmoEnabled = true;
@@ -2285,6 +2291,31 @@ function addUndoHandler() {
   });
 }
 
+// Eye: Orbit camera around selected or picked mesh
+function handleEyeGizmo() {
+  document.getElementById('eyeButton')?.classList.add('active');
+
+  const mesh = gizmoManager.attachedMesh;
+  if (mesh && mesh.name !== 'ground') {
+    attachOrbitView(mesh);
+    return;
+  }
+
+  flock.printText({
+    text: translate('select_mesh_eye_prompt'),
+    duration: 30,
+    color: 'black',
+  });
+  pickMeshFromScene((pickedMesh) => {
+    if (!pickedMesh || pickedMesh.name === 'ground') {
+      exitGizmoState();
+      return;
+    }
+    attachMeshForActiveTool(pickedMesh);
+    attachOrbitView(pickedMesh);
+  });
+}
+
 export function enableGizmos() {
   // Initialize undo handler for DO section cleanup
   addUndoHandler();
@@ -2296,6 +2327,7 @@ export function enableGizmos() {
   const duplicateButton = document.getElementById('duplicateButton');
   const deleteButton = document.getElementById('deleteButton');
   const cameraButton = document.getElementById('cameraButton');
+  const eyeButton = document.getElementById('eyeButton');
   const showShapesButton = document.getElementById('showShapesButton');
   const colorPickerButton = document.getElementById('colorPickerButton');
   const aboutButton = document.getElementById('logo');
@@ -2317,6 +2349,7 @@ export function enableGizmos() {
     duplicateButton,
     deleteButton,
     cameraButton,
+    eyeButton,
     showShapesButton,
     colorPickerButton,
     aboutButton,
@@ -2353,6 +2386,7 @@ export function enableGizmos() {
   scaleButton.addEventListener('click', () => toggleGizmo('scale'));
   selectButton.addEventListener('click', () => toggleGizmo('select'));
   cameraButton.addEventListener('click', () => toggleGizmo('camera'));
+  eyeButton.addEventListener('click', () => toggleGizmo('eye'));
   duplicateButton.addEventListener('click', () => toggleGizmo('duplicate'));
   deleteButton.addEventListener('click', () => toggleGizmo('delete'));
   showShapesButton.addEventListener('click', () => {

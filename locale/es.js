@@ -1180,6 +1180,7 @@ export default {
   select_mesh_delete_prompt: 'ℹ️ Haz clic en un objeto para eliminarlo.', // Google translate
   select_mesh_duplicate_prompt:
     'ℹ️ Selecciona un objeto para duplicar, luego haz clic para colocar las copias.', // Google (had to update it)
+  select_mesh_eye_prompt: 'ℹ️ Haz clic en un objeto para orbitar alrededor de él.',
   place_object_prompt: 'ℹ️ Haz clic en una superficie para colocar el objeto.', // ai
   position_readout: 'Posición: {Posición}', // human
   eyedropper_not_supported_alert:

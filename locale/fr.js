@@ -1154,6 +1154,7 @@ export default {
   select_mesh_delete_prompt: 'ℹ️ Cliquez sur un objet pour le supprimer.',
   select_mesh_duplicate_prompt:
     'ℹ️ Sélectionnez un objet à dupliquer, puis cliquez pour placer les copies.',
+  select_mesh_eye_prompt: "ℹ️ Cliquez sur un objet pour l'orbiter.",
   place_object_prompt: "ℹ️ Cliquez sur une surface pour placer l'objet.",
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:

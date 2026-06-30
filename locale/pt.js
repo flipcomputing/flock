@@ -1160,6 +1160,7 @@ export default {
   select_mesh_delete_prompt: 'ℹ️ Clique em um objeto para excluí-lo.',
   select_mesh_duplicate_prompt:
     'ℹ️ Selecione um objeto para duplicar, depois clique para posicionar as cópias.',
+  select_mesh_eye_prompt: 'ℹ️ Clique em um objeto para orbitar ao redor dele.',
   place_object_prompt: 'ℹ️ Clique em uma superfície para posicionar o objeto.',
   position_readout: 'Posição: {position}',
   eyedropper_not_supported_alert:
