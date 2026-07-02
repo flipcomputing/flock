@@ -1187,11 +1187,14 @@ export function runPhysicsTests(flock) {
         return mesh.physics.getLinearVelocity().clone();
       };
 
-      const coarse = runSteps(1, 300); // one 0.3s frame
-      const fine = runSteps(30, 10); // thirty 0.01s frames
+      // Both cover the same 0.3s of simulated time, and both per-step dts stay
+      // within applyGroundedMovement's [1/240, 1/15] clamp so neither run is
+      // truncated — otherwise the coarse run would be clamped and never converge.
+      const coarse = runSteps(6, 50); // 6 x 50ms = 0.3s (50ms < 1/15s ≈ 66.7ms)
+      const fine = runSteps(30, 10); // 30 x 10ms = 0.3s
 
-      expect(fine.x).to.be.closeTo(coarse.x, 0.6);
-      expect(fine.z).to.be.closeTo(coarse.z, 0.6);
+      expect(fine.x).to.be.closeTo(coarse.x, 0.4);
+      expect(fine.z).to.be.closeTo(coarse.z, 0.4);
     });
 
     it("does nothing when the mesh does not exist", function () {
