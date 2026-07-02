@@ -81,7 +81,7 @@ export function runScaleTests(flock) {
       expect(Math.abs(newBottom - originalBottom)).to.be.lessThan(0.001);
     });
 
-    it("should handle zero scaling gracefully", async function () {
+    it("should clamp zero scaling to the minimum floor", async function () {
       const boxId = flock.createBox("test-box-zero", {
         color: testColors[3],
         width: 1,
@@ -93,8 +93,9 @@ export function runScaleTests(flock) {
 
       await flock.scale(boxId, { x: 1, y: 0, z: 1 });
 
+      // Scaling is floored at 0.01 to avoid degenerate geometry/colliders.
       const mesh = flock.scene.getMeshByID(boxId);
-      expect(mesh.scaling.y).to.equal(0);
+      expect(mesh.scaling.y).to.equal(0.01);
     });
 
     it("should use default values when parameters are omitted", async function () {
@@ -264,7 +265,8 @@ export function runScaleTests(flock) {
       let bounds = flock.scene.getMeshByID(boxId).getBoundingInfo();
       let actualWidth =
         bounds.boundingBox.maximumWorld.x - bounds.boundingBox.minimumWorld.x;
-      expect(Math.abs(actualWidth - 0.001)).to.be.lessThan(0.0001);
+      // Dimensions below the 0.01 scaling floor are clamped up to it.
+      expect(Math.abs(actualWidth - 0.01)).to.be.lessThan(0.0001);
 
       // Test very large
       await flock.resize(boxId, {
