@@ -289,6 +289,23 @@ export function registerTransformGenerators(javascriptGenerator) {
     return `applyForce(${mesh}, { forceX: ${forceX}, forceY: ${forceY}, forceZ: ${forceZ} });\n`;
   };
 
+  // Make a character jump to a target height, keeping current horizontal speed
+  // for momentum. A direct, height-based replacement for a vertical force.
+  javascriptGenerator.forBlock["jump"] = function (block) {
+    const mesh = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue("MODEL_VAR"),
+      Blockly.Names.NameType.VARIABLE,
+    );
+    const jumpHeight =
+      javascriptGenerator.valueToCode(
+        block,
+        "JUMP_HEIGHT",
+        javascriptGenerator.ORDER_ATOMIC,
+      ) || "1.5";
+
+    return `jump(${mesh}, { jumpHeight: ${jumpHeight} });\n`;
+  };
+
   // Set the speed an object travels at in a direction (forward/sideways/up or
   // world x/y/z). Maintained until changed; 'all' to 0 stops it.
   javascriptGenerator.forBlock["set_speed"] = function (block) {

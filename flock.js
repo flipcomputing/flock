@@ -988,6 +988,7 @@ export const flock = {
       moveForward: this.moveForward?.bind(this),
       moveSideways: this.moveSideways?.bind(this),
       strafe: this.strafe?.bind(this),
+      jump: this.jump?.bind(this),
       attachCamera: this.attachCamera?.bind(this),
       canvasControls: this.canvasControls?.bind(this),
       interactIndicator: this.interactIndicator?.bind(this),

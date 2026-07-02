@@ -107,6 +107,34 @@ export function definePhysicsBlocks() {
     },
   };
 
+  Blockly.Blocks["jump"] = {
+    init: function () {
+      this.jsonInit({
+        type: "jump",
+        message0: translate("jump"),
+        args0: [
+          {
+            type: "field_variable",
+            name: "MODEL_VAR",
+            variable: window.currentMesh,
+          },
+          {
+            type: "input_value",
+            name: "JUMP_HEIGHT",
+            check: "Number",
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Transform"],
+        tooltip: getTooltip("jump"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("transform_blocks");
+    },
+  };
+
   Blockly.Blocks["set_speed"] = {
     init: function () {
       this.jsonInit({

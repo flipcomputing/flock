@@ -242,6 +242,7 @@ export default {
   add_physics: 'añadir física a %1 tipo %2', // human
   add_physics_shape: 'añadir física forma  %1 tipo %2', // human
   apply_force: 'aplicar fuerza a %1 x: %2 y: %3 z: %4', // human
+  jump: 'saltar %1 altura %2', // ai
   set_speed: 'establecer velocidad de %1 %2 a %3', // ai
   set_speed_tooltip:
     'Mantiene un objeto moviéndose a una velocidad establecida en una dirección. Se mueve igual que un personaje con "mover" — sube rampas, salva pequeños escalones, se detiene en las paredes y se mantiene erguido — pero relativo al objeto o al mundo en lugar de a la cámara. Mantiene esa velocidad hasta que la cambies. Elige una dirección relativa al objeto (adelante, al lado, arriba) o un eje del mundo (x, y, z); usa "mirar a" para apuntar y luego avanza. Elige "todos" y 0 para detener.\nPalabra clave: speed', // ai
@@ -508,6 +509,8 @@ export default {
   add_physics_shape_tooltip:
     'Añade una forma física al objeto. Opciones: objeto o cápsula.\nPalabra clave: física', // human
   apply_force_tooltip: 'Aplica una fuerza a un objeto en direcciones XYZ.\nPalabra clave: fuerza', // human
+  jump_tooltip:
+    'Hace que un personaje salte a una altura (en bloques). Mantiene tu velocidad de carrera actual, así que saltas hacia adelante con impulso como en los juegos de plataformas. Necesita física.\nPalabra clave: saltar brincar', // ai
   show_physics_tooltip:
     'Mostrar u ocultar colisionadores físicos para depuración. Marque para mostrar, desmarque para ocultar.\nPalabra clave: depuración de coliionador de física', // human
 

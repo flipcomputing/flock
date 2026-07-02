@@ -1184,6 +1184,21 @@ const toolboxTransformPhysics = {
     },
     {
       kind: "block",
+      type: "jump",
+      keyword: "jump",
+      inputs: {
+        JUMP_HEIGHT: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 1.5,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: "block",
       type: "set_speed",
       keyword: "speed",
       inputs: {

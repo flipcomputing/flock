@@ -138,7 +138,7 @@
                     "type": "text",
                     "id": "s!+h0,7{3zc_SFGNam2#",
                     "fields": {
-                      "TEXT": "🌈 Find and collect 3 gems"
+                      "TEXT": "\ud83c\udf08 Find and collect 3 gems"
                     }
                   }
                 },
@@ -1625,38 +1625,19 @@
                     },
                     "DO": {
                       "block": {
-                        "type": "apply_force",
+                        "type": "jump",
                         "id": "PNqZ`K5MMKoteAJh}ZmV",
                         "fields": {
-                          "MESH_VAR": {
+                          "MODEL_VAR": {
                             "id": "`_|:Og`.3AQ90Q18ur0@"
                           }
                         },
                         "inputs": {
-                          "X": {
+                          "JUMP_HEIGHT": {
                             "shadow": {
                               "type": "math_number",
-                              "id": "pNWk4TYXN$IDb1H_XG08",
                               "fields": {
-                                "NUM": 0
-                              }
-                            }
-                          },
-                          "Y": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": "T`E?t];Rv?-H7C-ARg8T",
-                              "fields": {
-                                "NUM": 5
-                              }
-                            }
-                          },
-                          "Z": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": "B`;_6k8lQe2E4/$335HM",
-                              "fields": {
-                                "NUM": 0
+                                "NUM": 1.5
                               }
                             }
                           }
@@ -2293,7 +2274,7 @@
                                 "type": "text",
                                 "id": "y$pDk,CgX0J]2h;)/*xt",
                                 "fields": {
-                                  "TEXT": "🌈 Hello"
+                                  "TEXT": "\ud83c\udf08 Hello"
                                 }
                               },
                               "block": {
@@ -2513,7 +2494,7 @@
                                 "type": "text",
                                 "id": "y$pDk,CgX0J]2h;)/*xt",
                                 "fields": {
-                                  "TEXT": "🌈 Hello"
+                                  "TEXT": "\ud83c\udf08 Hello"
                                 }
                               },
                               "block": {
@@ -2733,7 +2714,7 @@
                                 "type": "text",
                                 "id": "y$pDk,CgX0J]2h;)/*xt",
                                 "fields": {
-                                  "TEXT": "🌈 Hello"
+                                  "TEXT": "\ud83c\udf08 Hello"
                                 }
                               },
                               "block": {

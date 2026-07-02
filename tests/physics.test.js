@@ -1087,4 +1087,115 @@ export function runPhysicsTests(flock) {
       expect(() => flock.showPhysics(false)).to.not.throw();
     });
   });
+
+  describe("jump method @physics", function () {
+    const ids = [];
+    const V3 = (x, y, z) => new flock.BABYLON.Vector3(x, y, z);
+    const G = 9.81;
+
+    beforeEach(function () {
+      flock.scene ??= {};
+    });
+
+    afterEach(function () {
+      ids.forEach((id) => flock.dispose(id));
+      ids.length = 0;
+    });
+
+    // Static ground + a dynamic 1x1x1 character resting on it, settled so the
+    // ground check reports it grounded.
+    async function makeGroundAndChar(groundId, charId, pos = [0, 0.5, 0]) {
+      await flock.createBox(groundId, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
+      await flock.setPhysics(groundId, "STATIC");
+      ids.push(groundId);
+      await flock.createBox(charId, { width: 1, height: 1, depth: 1, position: pos });
+      await flock.setPhysics(charId, "DYNAMIC");
+      ids.push(charId);
+      await new Promise((r) => setTimeout(r, 250));
+      return flock.scene.getMeshByName(charId);
+    }
+
+    it("sets an upward takeoff velocity for the requested height (v = sqrt(2gh))", async function () {
+      this.timeout(8000);
+      const mesh = await makeGroundAndChar("jGndHeight", "jCharHeight");
+      flock.jump("jCharHeight", { jumpHeight: 1.5 });
+      // Sample immediately — the takeoff velocity is what we assert, not the arc.
+      const v = mesh.physics.getLinearVelocity();
+      expect(v.y).to.be.closeTo(Math.sqrt(2 * G * 1.5), 0.4);
+    });
+
+    it("preserves horizontal velocity (carries run speed as momentum)", async function () {
+      this.timeout(8000);
+      const mesh = await makeGroundAndChar("jGndMom", "jCharMom");
+      mesh.physics.setLinearVelocity(V3(4, 0, -2));
+      flock.jump("jCharMom", { jumpHeight: 1.5 });
+      const v = mesh.physics.getLinearVelocity();
+      expect(v.x).to.be.closeTo(4, 0.05);
+      expect(v.z).to.be.closeTo(-2, 0.05);
+      expect(v.y).to.be.greaterThan(4);
+    });
+
+    it("carries movement momentum into the jump", async function () {
+      this.timeout(10000);
+      const mesh = await makeGroundAndChar("jGndMove", "jCharMove");
+      // Drive it horizontally through the shared movement core (same path the
+      // move blocks use), so the body has real movement velocity.
+      flock.setSpeed("jCharMove", "x_coordinate", 5); // world +X
+      await new Promise((r) => setTimeout(r, 800));
+      const vBefore = mesh.physics.getLinearVelocity();
+      expect(vBefore.x).to.be.closeTo(5, 1); // actually moving
+
+      flock.jump("jCharMove", { jumpHeight: 1.5 });
+      const vAfter = mesh.physics.getLinearVelocity();
+      expect(vAfter.x).to.be.closeTo(vBefore.x, 0.6); // horizontal momentum carried
+      expect(vAfter.y).to.be.greaterThan(4); // and it took off
+    });
+
+    it("jump velocity survives a following movement update (clamp exemption)", async function () {
+      this.timeout(8000);
+      const mesh = await makeGroundAndChar("jGndClamp", "jCharClamp");
+      flock.jump("jCharClamp", { jumpHeight: 2.0 }); // v ~ 6.26, above the 3 m/s clamp
+      const vJump = mesh.physics.getLinearVelocity().y;
+      expect(vJump).to.be.greaterThan(3.5);
+      // A normal movement frame clamps vertical to <= 3 to stop ramp-launching;
+      // the in-progress jump must be exempt so the takeoff survives.
+      flock.applyGroundedMovement(mesh, V3(3, 0, 0));
+      expect(mesh.physics.getLinearVelocity().y).to.be.greaterThan(3.5);
+    });
+
+    it("air control converges the same amount regardless of frame rate", async function () {
+      this.timeout(8000);
+      const mesh = await makeGroundAndChar("jGndFps", "jCharFps");
+
+      // Drive the airborne air-control path at two frame granularities over the
+      // same total simulated time; the dt-normalised formulas should converge to
+      // (nearly) the same horizontal velocity. Fake "airborne" by lifting the
+      // mesh above the ground and expiring coyote time; no physics steps run
+      // between the synchronous calls, so only our math changes the velocity.
+      const runSteps = (steps, dtMs) => {
+        mesh.position.y = 20; // ground check misses -> airborne branch
+        mesh._lastGroundedAt = 0; // expire coyote
+        mesh._jumpUntilGrounded = false;
+        mesh.physics.setLinearVelocity(V3(5, 0, 0)); // initial momentum along +x
+        for (let i = 0; i < steps; i++) {
+          // Pretend the previous movement frame was dtMs ago.
+          mesh._lastMoveForwardMs = (typeof performance !== "undefined" && performance.now
+            ? performance.now()
+            : Date.now()) - dtMs;
+          flock.applyGroundedMovement(mesh, V3(0, 0, 5)); // steer toward +z
+        }
+        return mesh.physics.getLinearVelocity().clone();
+      };
+
+      const coarse = runSteps(1, 300); // one 0.3s frame
+      const fine = runSteps(30, 10); // thirty 0.01s frames
+
+      expect(fine.x).to.be.closeTo(coarse.x, 0.6);
+      expect(fine.z).to.be.closeTo(coarse.z, 0.6);
+    });
+
+    it("does nothing when the mesh does not exist", function () {
+      expect(() => flock.jump("nonExistentJumpMesh", { jumpHeight: 1 })).to.not.throw();
+    });
+  });
 }

@@ -11,70 +11,111 @@ function ensureDynamicForMovement(mesh) {
   }
 }
 
+// --- Shared movement/jump tuning ---------------------------------------------
+// These are shared by the grounded-movement core, the ground check and the
+// jump so behaviour is consistent. Kept module-scoped so they are defined once.
+const MAX_SLOPE_ANGLE_DEG = 45; // steeper than this counts as a wall, not ground
+const GROUND_CHECK_DISTANCE = 0.3; // downward capsule probe length
+const COYOTE_TIME_MS = 120; // grace window to still count as grounded after a ledge
+const MAX_VERTICAL_VELOCITY = 3.0; // clamp for normal movement (anti ramp-launch)
+const STEP_HEIGHT = 0.3;
+const STEP_PROBE_DISTANCE = 0.6;
+const DEFAULT_GRAVITY = 9.81;
+
+// Airborne horizontal handling. Both are expressed per-second and converted to
+// the current frame's dt so they behave identically on slow and fast devices.
+//   AIR_DRAG_PER_SECOND: fraction of horizontal speed retained after one second
+//     of airtime (closer to 1 = more momentum preserved). 0.8 keeps most run
+//     speed through a normal jump arc, giving the familiar platformer carry.
+//   AIR_CONTROL_RATE: exponential approach rate (per second) toward the input
+//     direction while a direction is held — lets the player nudge the arc
+//     without erasing momentum. Only applied when there is input.
+const AIR_DRAG_PER_SECOND = 0.8;
+const AIR_CONTROL_RATE = 2.0;
+
+// Read the scene's gravity magnitude (falls back to 9.81 for headless tests).
+function sceneGravityMagnitude() {
+  const g = flock.scene?.getPhysicsEngine?.()?.gravity?.y;
+  return typeof g === 'number' && g !== 0 ? Math.abs(g) : DEFAULT_GRAVITY;
+}
+
+function nowMs() {
+  return typeof performance !== 'undefined' && performance.now
+    ? performance.now()
+    : Date.now();
+}
+
 export const flockMovement = {
-  // Shared character-movement core. Given a desired *world-space horizontal*
-  // velocity, applies ground-aware movement (capsule ground check, coyote time,
-  // step-up over ledges, vertical clamp) and sets the body's velocity. Used by
-  // moveForward (camera-relative) and setSpeed (object/world-relative) so both
-  // move identically. Returns true if a step-up boost was applied (caller should
-  // do no further work this frame). Requires model.metadata.physicsCapsule.
-  applyGroundedMovement(model, desiredHorizontalVelocity) {
+  // Lazily build the per-mesh movement scratch cache (query descriptors,
+  // shapecast result buffers and reusable vectors). Allocates once per mesh so
+  // the movement/jump hot paths stay allocation-free. Shared by
+  // applyGroundedMovement, checkGrounded and jump.
+  ensureMovementCache(model) {
+    let c = model._moveForwardCache;
+    if (c) return c;
+    const B = flock.BABYLON;
+    const makeQuery = () => ({
+      shape: null,
+      rotation: new B.Quaternion(0, 0, 0, 1),
+      startPosition: new B.Vector3(),
+      endPosition: new B.Vector3(),
+      shouldHitTriggers: false,
+      ignoredBodies: [],
+      collisionFilterGroup: -1,
+      collisionFilterMask: -1,
+    });
+    c = model._moveForwardCache = {
+      groundCastResult: new B.ShapeCastResult(),
+      groundHitResult: new B.ShapeCastResult(),
+      stepLowResult: new B.ShapeCastResult(),
+      stepLowHitResult: new B.ShapeCastResult(),
+      stepHighResult: new B.ShapeCastResult(),
+      stepHighHitResult: new B.ShapeCastResult(),
+      groundQuery: makeQuery(),
+      stepLowQuery: makeQuery(),
+      stepHighQuery: makeQuery(),
+      horizontalForward: new B.Vector3(),
+      desiredHorizontalVelocity: new B.Vector3(),
+      currentVelocity: new B.Vector3(),
+      currentHorizontalVelocity: new B.Vector3(),
+      appliedHorizontalVelocity: new B.Vector3(),
+      finalVelocity: new B.Vector3(),
+      boostedVelocity: new B.Vector3(),
+      normalScratch: new B.Vector3(),
+      airSteerScratch: new B.Vector3(),
+    };
+    c.groundQuery.ignoredBodies.push(model.physics);
+    c.stepLowQuery.ignoredBodies.push(model.physics);
+    c.stepHighQuery.ignoredBodies.push(model.physics);
+    if (!model._queryShapeCleanupRegistered) {
+      model._queryShapeCleanupRegistered = true;
+      model.onDisposeObservable.add(() => {
+        model._groundQueryShape?.dispose();
+        model._groundQueryShape = null;
+        model._stepProbeShape?.dispose();
+        model._stepProbeShape = null;
+      });
+    }
+    return c;
+  },
+
+  // Capsule shapeCast straight down to decide if the mesh is standing on ground
+  // within the slope tolerance. Refreshes model._lastGroundedAt (for coyote
+  // time) and maintains the airborne latch used by jump: model._wasAirborne is
+  // set the moment the mesh leaves the ground and, on the airborne→grounded
+  // landing transition, jump budget/clamp exemption are reset. Returns boolean.
+  checkGrounded(model) {
     if (!model?.physics || !model.metadata?.physicsCapsule) return false;
-    const cap = flock.ensurePhysicsCapsule(model);
-    const capsuleRadius = cap.radius;
-    const capsuleHeightBottomOffset = Math.max(0.001, cap.height * 0.5 - capsuleRadius);
-
-    const maxSlopeAngleDeg = 45;
-    const groundCheckDistance = 0.3;
-    const coyoteTimeMs = 120;
-    const airControlFactor = 0.0;
-    const airDragPerSecond = Math.pow(0.9, 60);
-    const stepHeight = 0.3;
-    const stepProbeDistance = 0.6;
-    const maxVerticalVelocity = 3.0;
-
     const B = flock.BABYLON;
     const scene = flock.scene;
-    const physicsEngine = scene.getPhysicsEngine();
+    const physicsEngine = scene?.getPhysicsEngine?.();
     if (!physicsEngine) return false;
     const havokPlugin = physicsEngine.getPhysicsPlugin();
 
-    // One-time per-mesh cache — keeps this hot path allocation-free.
-    let c = model._moveForwardCache;
-    if (!c) {
-      const makeQuery = () => ({
-        shape: null,
-        rotation: new B.Quaternion(0, 0, 0, 1),
-        startPosition: new B.Vector3(),
-        endPosition: new B.Vector3(),
-        shouldHitTriggers: false,
-        ignoredBodies: [],
-        collisionFilterGroup: -1,
-        collisionFilterMask: -1,
-      });
-      c = model._moveForwardCache = {
-        groundCastResult: new B.ShapeCastResult(),
-        groundHitResult: new B.ShapeCastResult(),
-        stepLowResult: new B.ShapeCastResult(),
-        stepLowHitResult: new B.ShapeCastResult(),
-        stepHighResult: new B.ShapeCastResult(),
-        stepHighHitResult: new B.ShapeCastResult(),
-        groundQuery: makeQuery(),
-        stepLowQuery: makeQuery(),
-        stepHighQuery: makeQuery(),
-        horizontalForward: new B.Vector3(),
-        desiredHorizontalVelocity: new B.Vector3(),
-        currentVelocity: new B.Vector3(),
-        currentHorizontalVelocity: new B.Vector3(),
-        appliedHorizontalVelocity: new B.Vector3(),
-        finalVelocity: new B.Vector3(),
-        boostedVelocity: new B.Vector3(),
-        normalScratch: new B.Vector3(),
-      };
-      c.groundQuery.ignoredBodies.push(model.physics);
-      c.stepLowQuery.ignoredBodies.push(model.physics);
-      c.stepHighQuery.ignoredBodies.push(model.physics);
-    }
+    const cap = flock.ensurePhysicsCapsule(model);
+    const capsuleRadius = cap.radius;
+    const capsuleHeightBottomOffset = Math.max(0.001, cap.height * 0.5 - capsuleRadius);
+    const c = flock.ensureMovementCache(model);
 
     // Ground query shape — cached, recreated only when dimensions change.
     const groundShapeKey = `${capsuleHeightBottomOffset}_${capsuleRadius}`;
@@ -89,31 +130,12 @@ export const flockMovement = {
       );
       model._groundQueryShapeKey = groundShapeKey;
     }
-    if (!model._queryShapeCleanupRegistered) {
-      model._queryShapeCleanupRegistered = true;
-      model.onDisposeObservable.add(() => {
-        model._groundQueryShape?.dispose();
-        model._groundQueryShape = null;
-        model._stepProbeShape?.dispose();
-        model._stepProbeShape = null;
-      });
-    }
 
-    // Desired horizontal velocity comes from the caller; derive the normalised
-    // forward direction (for the step probe) from it.
-    c.desiredHorizontalVelocity.copyFrom(desiredHorizontalVelocity);
-    c.desiredHorizontalVelocity.y = 0;
-    c.horizontalForward.copyFrom(c.desiredHorizontalVelocity);
-    const hLen = c.horizontalForward.length();
-    if (hLen > 1e-6) c.horizontalForward.scaleInPlace(1 / hLen);
-    else c.horizontalForward.set(0, 0, 0);
-
-    // --- Grounded check via capsule shapeCast ---
     const gq = c.groundQuery;
     gq.shape = model._groundQueryShape;
     gq.startPosition.copyFrom(model.position);
     gq.endPosition.copyFrom(model.position);
-    gq.endPosition.y -= groundCheckDistance;
+    gq.endPosition.y -= GROUND_CHECK_DISTANCE;
     if (model.rotationQuaternion) {
       gq.rotation.copyFrom(model.rotationQuaternion);
     } else {
@@ -131,22 +153,63 @@ export const flockMovement = {
         const dot = B.Vector3.Dot(c.normalScratch, B.Vector3.UpReadOnly);
         const clampedDot = Math.min(Math.max(dot, -1), 1);
         const angleDeg = (Math.acos(clampedDot) * 180) / Math.PI;
-        grounded = angleDeg <= maxSlopeAngleDeg;
+        grounded = angleDeg <= MAX_SLOPE_ANGLE_DEG;
       } else {
         grounded = true;
       }
     }
 
-    // --- Coyote time window ---
-    const nowMs =
-      typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
-    if (grounded) model._lastGroundedAt = nowMs;
+    if (grounded) {
+      model._lastGroundedAt = nowMs();
+      // Clear the jump clamp exemption once the character has *settled* on the
+      // ground — i.e. it is not still rising from a fresh jump. During the
+      // takeoff frames the capsule is still within GROUND_CHECK_DISTANCE but the
+      // velocity is rising, so this correctly waits until it has landed.
+      model.physics.getLinearVelocityToRef(c.currentVelocity);
+      if (c.currentVelocity.y <= 0.1) {
+        model._jumpUntilGrounded = false;
+      }
+    }
+
+    return grounded;
+  },
+
+  // Shared character-movement core. Given a desired *world-space horizontal*
+  // velocity, applies ground-aware movement (capsule ground check, coyote time,
+  // step-up over ledges, vertical clamp) and sets the body's velocity. Used by
+  // moveForward (camera-relative) and setSpeed (object/world-relative) so both
+  // move identically. Returns true if a step-up boost was applied (caller should
+  // do no further work this frame). Requires model.metadata.physicsCapsule.
+  applyGroundedMovement(model, desiredHorizontalVelocity) {
+    if (!model?.physics || !model.metadata?.physicsCapsule) return false;
+    const cap = flock.ensurePhysicsCapsule(model);
+    const capsuleRadius = cap.radius;
+
+    const B = flock.BABYLON;
+    const scene = flock.scene;
+    const physicsEngine = scene.getPhysicsEngine();
+    if (!physicsEngine) return false;
+    const havokPlugin = physicsEngine.getPhysicsPlugin();
+
+    const c = flock.ensureMovementCache(model);
+
+    // Desired horizontal velocity comes from the caller; derive the normalised
+    // forward direction (for the step probe) from it.
+    c.desiredHorizontalVelocity.copyFrom(desiredHorizontalVelocity);
+    c.desiredHorizontalVelocity.y = 0;
+    c.horizontalForward.copyFrom(c.desiredHorizontalVelocity);
+    const hLen = c.horizontalForward.length();
+    if (hLen > 1e-6) c.horizontalForward.scaleInPlace(1 / hLen);
+    else c.horizontalForward.set(0, 0, 0);
+
+    // --- Grounded check + coyote time (shared with jump) ---
+    const grounded = flock.checkGrounded(model);
+    const now = nowMs();
     const withinCoyoteTime = model._lastGroundedAt
-      ? nowMs - model._lastGroundedAt <= coyoteTimeMs
+      ? now - model._lastGroundedAt <= COYOTE_TIME_MS
       : false;
 
     // --- Horizontal control policy ---
-    const now = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
     const prev = model._lastMoveForwardMs !== undefined ? model._lastMoveForwardMs : now;
     model._lastMoveForwardMs = now;
 
@@ -158,12 +221,19 @@ export const flockMovement = {
     if (grounded || withinCoyoteTime) {
       ahv.copyFrom(c.desiredHorizontalVelocity);
     } else {
+      // Airborne: preserve momentum (dt-normalised drag) and allow limited air
+      // control toward held input (dt-normalised exponential approach), so the
+      // feel is identical on slow and fast devices.
       const rawDt = (now - prev) / 1000;
       const dtSeconds = Math.min(Math.max(rawDt, 1 / 240), 1 / 15);
-      const dragFactor = Math.pow(airDragPerSecond, dtSeconds);
+      const dragFactor = Math.pow(AIR_DRAG_PER_SECOND, dtSeconds);
       c.currentHorizontalVelocity.scaleToRef(dragFactor, ahv);
-      if (airControlFactor > 0) {
-        c.desiredHorizontalVelocity.scaleAndAddToRef(airControlFactor, ahv);
+      if (AIR_CONTROL_RATE > 0 && c.desiredHorizontalVelocity.lengthSquared() > 1e-6) {
+        const blend = 1 - Math.exp(-AIR_CONTROL_RATE * dtSeconds);
+        // ahv += (desired - ahv) * blend
+        c.desiredHorizontalVelocity.subtractToRef(ahv, c.airSteerScratch);
+        c.airSteerScratch.scaleInPlace(blend);
+        ahv.addInPlace(c.airSteerScratch);
       }
     }
 
@@ -184,14 +254,14 @@ export const flockMovement = {
       lq.shape = model._stepProbeShape;
       lq.startPosition.copyFrom(model.position);
       lq.startPosition.y += 0.05;
-      c.horizontalForward.scaleToRef(stepProbeDistance, lq.endPosition);
+      c.horizontalForward.scaleToRef(STEP_PROBE_DISTANCE, lq.endPosition);
       lq.endPosition.addInPlace(lq.startPosition);
 
       const hq = c.stepHighQuery;
       hq.shape = model._stepProbeShape;
       hq.startPosition.copyFrom(lq.startPosition);
-      hq.startPosition.y += stepHeight + 0.1;
-      c.horizontalForward.scaleToRef(stepProbeDistance, hq.endPosition);
+      hq.startPosition.y += STEP_HEIGHT + 0.1;
+      c.horizontalForward.scaleToRef(STEP_PROBE_DISTANCE, hq.endPosition);
       hq.endPosition.addInPlace(hq.startPosition);
 
       havokPlugin.shapeCast(lq, c.stepLowResult, c.stepLowHitResult);
@@ -200,8 +270,8 @@ export const flockMovement = {
         havokPlugin.shapeCast(hq, c.stepHighResult, c.stepHighHitResult);
         if (!c.stepHighResult.hasHit) {
           const lastStepBoost = model._lastStepBoost || 0;
-          if (nowMs - lastStepBoost > 400) {
-            model._lastStepBoost = nowMs;
+          if (now - lastStepBoost > 400) {
+            model._lastStepBoost = now;
             c.boostedVelocity.set(ahv.x, Math.max(cv.y, 2.5), ahv.z);
             model.physics.setLinearVelocity(c.boostedVelocity);
             return true;
@@ -210,13 +280,44 @@ export const flockMovement = {
       }
     }
 
-    // --- Vertical: let gravity act; just clamp extremes ---
-    const clampedVertical = Math.min(Math.max(cv.y, -maxVerticalVelocity), maxVerticalVelocity);
+    // --- Vertical: let gravity act; clamp extremes to stop ramp-launching,
+    // except while a deliberate jump is in progress (see jump()), so the jump's
+    // takeoff velocity survives this per-frame reset until the mesh lands. ---
+    const clampedVertical = model._jumpUntilGrounded
+      ? cv.y
+      : Math.min(Math.max(cv.y, -MAX_VERTICAL_VELOCITY), MAX_VERTICAL_VELOCITY);
     c.finalVelocity.set(ahv.x, clampedVertical, ahv.z);
     model.physics.setLinearVelocity(c.finalVelocity);
 
     model.isGrounded = grounded;
     return false;
+  },
+
+  // Make a character jump — a direct replacement for a vertical force impulse,
+  // but height-based and momentum-preserving. Sets the upward takeoff velocity
+  // from a target height (v = sqrt(2*g*h)) so the height is predictable and
+  // mass-independent, and leaves the horizontal velocity untouched so any run
+  // speed carries into the arc (momentum). Whether/when a character may jump
+  // (grounded checks, one-per-press, etc.) is left to the caller's own logic,
+  // exactly as it was with the force block.
+  jump(modelName, { jumpHeight = 1.5 } = {}) {
+    const model = flock.scene.getMeshByName(modelName);
+    if (!model) return;
+    ensureDynamicForMovement(model);
+    if (!model.physics) return;
+    flock.ensureVerticalConstraint(model);
+
+    const B = flock.BABYLON;
+    const g = sceneGravityMagnitude();
+    const vJump = Math.sqrt(2 * g * Math.max(0, jumpHeight));
+
+    const v = (model._jumpVelScratch ??= new B.Vector3());
+    model.physics.getLinearVelocityToRef(v);
+    v.y = vJump; // preserve x/z (momentum)
+    model.physics.setLinearVelocity(v);
+
+    model._jumpUntilGrounded = true; // survive the movement vertical clamp until landing
+    model.isGrounded = false;
   },
   moveForward(modelName, speed) {
     if (speed === 0) return;
@@ -322,9 +423,16 @@ export const flockMovement = {
     c.cameraRight.normalize();
     c.cameraRight.scaleToRef(speed, c.moveDirection);
 
-    model.physics.getLinearVelocityToRef(c.currentVelocity);
-    c.finalVelocity.set(c.moveDirection.x, c.currentVelocity.y, c.moveDirection.z);
-    model.physics.setLinearVelocity(c.finalVelocity);
+    // Capsule characters go through the air-aware core so momentum is preserved
+    // in the air (matching moveForward); other dynamic meshes keep the direct
+    // horizontal drive.
+    if (model.metadata?.physicsCapsule) {
+      if (flock.applyGroundedMovement(model, c.moveDirection)) return;
+    } else {
+      model.physics.getLinearVelocityToRef(c.currentVelocity);
+      c.finalVelocity.set(c.moveDirection.x, c.currentVelocity.y, c.moveDirection.z);
+      model.physics.setLinearVelocity(c.finalVelocity);
+    }
 
     // Face the direction of travel: positive speed = right, negative speed = left
     const sign = speed > 0 ? 1 : -1;
@@ -385,8 +493,14 @@ export const flockMovement = {
     c.cameraRight.normalize();
     c.cameraRight.scaleToRef(speed, c.moveDirection);
 
-    model.physics.getLinearVelocityToRef(c.currentVelocity);
-    c.finalVelocity.set(c.moveDirection.x, c.currentVelocity.y, c.moveDirection.z);
-    model.physics.setLinearVelocity(c.finalVelocity);
+    // Capsule characters use the air-aware core (momentum preserved airborne);
+    // other dynamic meshes keep the direct horizontal drive.
+    if (model.metadata?.physicsCapsule) {
+      if (flock.applyGroundedMovement(model, c.moveDirection)) return;
+    } else {
+      model.physics.getLinearVelocityToRef(c.currentVelocity);
+      c.finalVelocity.set(c.moveDirection.x, c.currentVelocity.y, c.moveDirection.z);
+      model.physics.setLinearVelocity(c.finalVelocity);
+    }
   },
 };

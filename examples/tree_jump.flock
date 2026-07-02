@@ -267,38 +267,19 @@
                     },
                     "DO": {
                       "block": {
-                        "type": "apply_force",
+                        "type": "jump",
                         "id": "/16X7gajx#K]svapIx^n",
                         "fields": {
-                          "MESH_VAR": {
+                          "MODEL_VAR": {
                             "id": "f=8($HYZoE:IjT|U8x8J"
                           }
                         },
                         "inputs": {
-                          "X": {
+                          "JUMP_HEIGHT": {
                             "shadow": {
                               "type": "math_number",
-                              "id": "nl]/?kEp@MPb01;9a0ux",
                               "fields": {
-                                "NUM": 0
-                              }
-                            }
-                          },
-                          "Y": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": "z`WDHm.[q=.9~^[.Wy40",
-                              "fields": {
-                                "NUM": 5
-                              }
-                            }
-                          },
-                          "Z": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": "0_)[yKpuWaqph-g7-*`6",
-                              "fields": {
-                                "NUM": 2
+                                "NUM": 1.5
                               }
                             }
                           }
