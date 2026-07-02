@@ -696,6 +696,20 @@ export function runPhysicsTests(flock) {
       expect(mesh.metadata.bounciness).to.be.closeTo(0.9, 1e-6);
     });
 
+    it("forces MAXIMUM restitution combine so the bounciest surface wins", async function () {
+      const id = "boxBouncinessCombine";
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.setPhysics(id, "DYNAMIC");
+      boxIds.push(id);
+
+      flock.setBounciness(id, 0.5);
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(mesh.physics.shape.material.restitutionCombine).to.equal(
+        flock.BABYLON.PhysicsMaterialCombineMode.MAXIMUM,
+      );
+    });
+
     it("preserves the existing friction when changing bounciness", async function () {
       const id = "boxBouncinessFriction";
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });

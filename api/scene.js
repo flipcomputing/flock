@@ -317,6 +317,9 @@ export const flockScene = {
         textureTileSize: mapTexturePhysicalSize,
         heightMapImage: 'NONE',
       };
+      // Same helper as the heightmap ground below, so both behave identically.
+      // Defaults to 0; set ground.metadata.bounciness first to give it a bounce.
+      flock.applyBounciness(ground.physics.body, ground);
       ground.receiveShadows = true;
       if (shouldScaleUVs) scaleGroundUVs(ground);
       applyMaterialToGround(ground, material);
@@ -361,6 +364,7 @@ export const flockScene = {
               flock.scene
             );
             body.shape = new flock.BABYLON.PhysicsShapeMesh(gm, flock.scene);
+            flock.applyBounciness(body, gm);
             gm.physics = body;
             gm.physicsShape = body.shape;
             body.disablePreStep = false;

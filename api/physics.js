@@ -2,16 +2,19 @@ let flock;
 
 export const isBodyAlive = (body) => !!body?._pluginData?.hpBodyId;
 
-// Restitution (bounciness) lives on the physics shape's material, not on mass
-// properties — passing `restitution` to setMassProperties is silently ignored.
-// Bodies default to 0 (no bounce). A mesh whose bounciness was set via
-// setBounciness keeps its value across every shape/body rebuild because it is
-// stored on metadata.bounciness and re-applied here. Call this right after the
-// body's shape has been assigned.
+// Restitution lives on the shape material, not mass properties. Reads
+// metadata.bounciness (default 0), so it survives shape/body rebuilds. Combine
+// is MAXIMUM (bounciest surface wins) and must match on every material — objects
+// and grounds — or a zeroing combine lets a ground at 0 cancel a bouncy object.
+// Call after the body's shape is assigned.
 export const applyBounciness = (physicsBody, mesh) => {
   if (!physicsBody?.shape) return;
   const restitution = mesh?.metadata?.bounciness ?? 0;
-  physicsBody.shape.material = { ...physicsBody.shape.material, restitution };
+  physicsBody.shape.material = {
+    ...physicsBody.shape.material,
+    restitution,
+    restitutionCombine: flock.BABYLON.PhysicsMaterialCombineMode.MAXIMUM,
+  };
 };
 
 // Returns the mesh's normalised local basis vectors in world space, so velocity
@@ -379,11 +382,8 @@ export const flockPhysics = {
       console.log('Model not loaded (up):', meshName);
     }
   },
-  // Set how bouncy an object is (restitution: 0 = no bounce, 1 = very bouncy).
-  // Restitution lives on the physics shape's material, not its mass properties,
-  // so this updates shape.material directly. The friction already on the
-  // material is preserved. The value is stashed in metadata so that a later
-  // physics rebuild (add physics / add physics shape) can re-apply it.
+  // Set how bouncy an object is (0 = no bounce, 1 = very bouncy). Stored in
+  // metadata so it survives physics rebuilds; see applyBounciness.
   applyBounciness,
   setBounciness(meshName, bounciness = 0.5) {
     const mesh = flock.scene.getMeshByName(meshName);
