@@ -976,7 +976,28 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     return { x: e.x, y: e.y, z: e.z };
   })();
   const axisInput = { x: 'X', y: 'Y', z: 'Z' };
+  // The slider/keyboard treat `working` as their source of truth, but the mouse
+  // rotation gizmo (active at the same time) rotates the mesh without touching
+  // `working`. Left alone, the next slider touch would rebuild the mesh from the
+  // now-stale `working` and jump it off the mouse-dragged orientation. Re-seed
+  // `working` from the mesh whenever the two have actually diverged (a no-op
+  // during a continuous slider drag, where the mesh already equals `working`).
+  const syncWorkingToMesh = () => {
+    if (!mesh.rotationQuaternion) return;
+    const q = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+      flock.BABYLON.Tools.ToRadians(working.y),
+      flock.BABYLON.Tools.ToRadians(working.x),
+      flock.BABYLON.Tools.ToRadians(working.z)
+    );
+    if (Math.abs(flock.BABYLON.Quaternion.Dot(q, mesh.rotationQuaternion)) < 0.99999) {
+      const e = getMeshRotationInDegrees(mesh);
+      working.x = e.x;
+      working.y = e.y;
+      working.z = e.z;
+    }
+  };
   const onMove = (dx, dy, dz) => {
+    syncWorkingToMesh();
     const deltas = { x: dx, y: dy, z: dz };
     const changedAxes = [];
     for (const axisKey of ['x', 'y', 'z']) {
@@ -1010,7 +1031,10 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     document.getElementById('rotationButton')?.focus();
   };
 
-  const getValues = () => ({ ...working });
+  const getValues = () => {
+    syncWorkingToMesh();
+    return { ...working };
+  };
   stopAxisKeyboard = createAdaptiveInput({
     onMove,
     onConfirm,
@@ -1979,7 +2003,7 @@ function handleRotationGizmo() {
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(rotateObs));
 
   const rotDragStart = gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(() => {
-    let mesh = gizmoManager.attachedMesh;
+    const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
 
     const rotateBlock = findOrCreateRotateBlock(mesh);
@@ -2011,6 +2035,11 @@ function handleRotationGizmo() {
       mesh.physics.setMotionType(mesh.savedMotionType);
     }
 
+    // Write all three Euler values so the block faithfully describes the mesh's
+    // actual orientation. A single gizmo ring rotates about a world axis, which
+    // in general cannot be represented by changing only one YawPitchRoll value
+    // (unless the object is otherwise unrotated), so writing just one axis makes
+    // the block disagree with the mesh and the object jumps when the block runs.
     updateRotationBlock(mesh);
   });
 

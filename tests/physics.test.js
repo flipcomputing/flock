@@ -496,17 +496,8 @@ export function runPhysicsTests(flock) {
 
     it("maintains the speed on a ground instead of friction stopping it", async function () {
       this.timeout(10000);
-      const ground = "velGround";
-      await flock.createBox(ground, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
-      await flock.setPhysics(ground, "STATIC");
-      boxIds.push(ground);
-
       const id = "velDriver";
-      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
-      boxIds.push(id);
-
-      const mesh = flock.scene.getMeshByName(id);
+      const mesh = await makeGroundAndBox("velGround", id);
       flock.setSpeed(id, "forward", 5);
 
       // After well over a second on the ground, a one-shot would have stopped.
@@ -522,17 +513,8 @@ export function runPhysicsTests(flock) {
 
     it("maintains a world axis (x) on a ground", async function () {
       this.timeout(10000);
-      const ground = "velGroundX";
-      await flock.createBox(ground, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
-      await flock.setPhysics(ground, "STATIC");
-      boxIds.push(ground);
-
       const id = "velDriverX";
-      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
-      boxIds.push(id);
-
-      const mesh = flock.scene.getMeshByName(id);
+      const mesh = await makeGroundAndBox("velGroundX", id);
       flock.setSpeed(id, "x_coordinate", 5); // world +X
 
       await new Promise((r) => setTimeout(r, 1500));
@@ -541,17 +523,8 @@ export function runPhysicsTests(flock) {
 
     it("keeps a driven object upright (like move forward)", async function () {
       this.timeout(10000);
-      const ground = "velGroundUp";
-      await flock.createBox(ground, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
-      await flock.setPhysics(ground, "STATIC");
-      boxIds.push(ground);
-
       const id = "velUpright";
-      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
-      boxIds.push(id);
-
-      const mesh = flock.scene.getMeshByName(id);
+      const mesh = await makeGroundAndBox("velGroundUp", id);
       const B = flock.BABYLON;
       flock.setSpeed(id, "forward", 5);
 
@@ -569,17 +542,8 @@ export function runPhysicsTests(flock) {
 
     it("clamps vertical speed so a slope can't launch it", async function () {
       this.timeout(10000);
-      const ground = "velGroundClamp";
-      await flock.createBox(ground, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
-      await flock.setPhysics(ground, "STATIC");
-      boxIds.push(ground);
-
       const id = "velClamp";
-      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
-      boxIds.push(id);
-
-      const mesh = flock.scene.getMeshByName(id);
+      const mesh = await makeGroundAndBox("velGroundClamp", id);
       flock.setSpeed(id, "forward", 5); // horizontal drive, no vertical set
 
       // Simulate a ramp kicking it sharply upward.
@@ -626,17 +590,8 @@ export function runPhysicsTests(flock) {
 
     it("'all' to 0 is a full stop that lets physics resume", async function () {
       this.timeout(8000);
-      const ground = "velGroundAll";
-      await flock.createBox(ground, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
-      await flock.setPhysics(ground, "STATIC");
-      boxIds.push(ground);
-
       const id = "boxSetVelocityAll";
-      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
-      boxIds.push(id);
-
-      const mesh = flock.scene.getMeshByName(id);
+      const mesh = await makeGroundAndBox("velGroundAll", id);
       flock.setSpeed(id, "forward", 6);
 
       // 'all' to 0 stops it; resting on the ground it then stays put.
