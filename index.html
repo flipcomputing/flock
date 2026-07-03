@@ -54,6 +54,23 @@
       }
     </script>
 
+    <script>
+      // Old browser polyfill — Blockly's icon visibility check calls
+      // Element.checkVisibility(), unsupported before Safari 18/Firefox 125.
+      if (!Element.prototype.checkVisibility) {
+        Element.prototype.checkVisibility = function () {
+          if (!this.isConnected) return false;
+          const style = window.getComputedStyle(this);
+          return (
+            style.display !== "none" &&
+            style.visibility !== "hidden" &&
+            style.visibility !== "collapse" &&
+            parseFloat(style.opacity) !== 0
+          );
+        };
+      }
+    </script>
+
     <!-- Duplicate CSS to prevent flash of unstyled content on load, rest of styles in style.css -->
     <link rel="stylesheet" href="style.css" />
     <style>
