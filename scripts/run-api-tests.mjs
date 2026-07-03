@@ -144,6 +144,11 @@ const AVAILABLE_SUITES = [
     name: "Gizmo Tests",
     pattern: "@gizmos",
   },
+  {
+    id: "microbit",
+    name: "micro:bit Tests",
+    pattern: "@microbit",
+  },
 ];
 
 const args = process.argv.slice(2);

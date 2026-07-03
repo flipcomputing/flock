@@ -33,6 +33,9 @@ export default {
         { src: "examples/*.flock", dest: "examples" },
         { src: "textures/*.png", dest: "textures" },
         { src: "fonts/*.{json,woff2,ttf}", dest: "fonts" },
+        // Flock micro:bit firmware (universal hex built in MakeCode).
+        // Precached so first-use flashing works in the offline PWA.
+        { src: "util/microbit-flockusb.hex", dest: "util" },
         { src: "node_modules/manifold-3d/manifold.wasm", dest: "wasm" },
         { src: "node_modules/blockly/media/*", dest: "blockly/media" },
         { src: "images/dropdown-arrow.svg", dest: "blockly/media" },
@@ -130,6 +133,7 @@ export default {
           "fonts/**/*",
           "blockly/media/**/*",
           "wasm/**/*",
+          "util/microbit-flockusb.hex",
         ],
         modifyURLPrefix: isProduction ? { "": BASE_URL } : {},
 
@@ -270,7 +274,7 @@ export default {
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: geolocation=(), payment=(), usb=(), gamepad=(self)
+  Permissions-Policy: geolocation=(), payment=(), usb=(self), gamepad=(self)
 `;
         writeFileSync(resolve(outDir, "_headers"), headersContent);
       },
@@ -284,9 +288,10 @@ export default {
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "SAMEORIGIN",
       "Referrer-Policy": "strict-origin-when-cross-origin",
-      // usb=() blocks WebUSB API only — gamepad=(self) explicitly permits the Gamepad API for controllers
+      // usb=(self) permits WebUSB for the micro:bit connect flow (same origin
+      // only) — gamepad=(self) explicitly permits the Gamepad API for controllers
       "Permissions-Policy":
-        "geolocation=(), payment=(), usb=(), gamepad=(self)",
+        "geolocation=(), payment=(), usb=(self), gamepad=(self)",
     },
     fs: { allow: ["../.."] },
     allowedHosts: [
@@ -302,9 +307,10 @@ export default {
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "SAMEORIGIN",
       "Referrer-Policy": "strict-origin-when-cross-origin",
-      // usb=() blocks WebUSB API only — gamepad=(self) explicitly permits the Gamepad API for controllers
+      // usb=(self) permits WebUSB for the micro:bit connect flow (same origin
+      // only) — gamepad=(self) explicitly permits the Gamepad API for controllers
       "Permissions-Policy":
-        "geolocation=(), payment=(), usb=(), gamepad=(self)",
+        "geolocation=(), payment=(), usb=(self), gamepad=(self)",
     },
   },
 

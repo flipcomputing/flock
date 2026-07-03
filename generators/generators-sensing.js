@@ -6,47 +6,47 @@ export function registerSensingGenerators(javascriptGenerator) {
   // SENSING
   // -------------------------------
   // Movement or action control
-  javascriptGenerator.forBlock["action_pressed"] = function (block) {
-    const action = block.getFieldValue("ACTION");
+  javascriptGenerator.forBlock['action_pressed'] = function (block) {
+    const action = block.getFieldValue('ACTION');
     return [`actionPressed("${action}")`, javascriptGenerator.ORDER_NONE];
   };
 
   // Set % key to %
-  javascriptGenerator.forBlock["set_action_key"] = function (block) {
-    const action = block.getFieldValue("ACTION");
-    const key = block.getFieldValue("KEY");
+  javascriptGenerator.forBlock['set_action_key'] = function (block) {
+    const action = block.getFieldValue('ACTION');
+    const key = block.getFieldValue('KEY');
     return `setActionKey("${action}", ${JSON.stringify(key)});\n`;
   };
 
   // Object exists?
-  javascriptGenerator.forBlock["mesh_exists"] = function (block) {
+  javascriptGenerator.forBlock['mesh_exists'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     return [`meshExists(${modelName})`, javascriptGenerator.ORDER_NONE];
   };
 
   // Is object touching surface
-  javascriptGenerator.forBlock["touching_surface"] = function (block) {
+  javascriptGenerator.forBlock['touching_surface'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     return [`isTouchingSurface(${modelName})`, javascriptGenerator.ORDER_NONE];
   };
 
   // Object touching object
-  javascriptGenerator.forBlock["meshes_touching"] = function (block) {
+  javascriptGenerator.forBlock['meshes_touching'] = function (block) {
     const mesh1VarName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH1"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MESH1'),
+      Blockly.Names.NameType.VARIABLE
     );
     const mesh2VarName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH2"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MESH2'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     const code = `checkMeshesTouching(${mesh1VarName}, ${mesh2VarName})`;
@@ -54,27 +54,27 @@ export function registerSensingGenerators(javascriptGenerator) {
   };
 
   // Get property of object
-  javascriptGenerator.forBlock["get_property"] = function (block) {
+  javascriptGenerator.forBlock['get_property'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
-    const propertyName = block.getFieldValue("PROPERTY");
+    const propertyName = block.getFieldValue('PROPERTY');
 
     const code = `getProperty(${modelName}, '${propertyName}')`;
     return [code, javascriptGenerator.ORDER_NONE];
   };
 
   // Distance from object to object
-  javascriptGenerator.forBlock["distance_to"] = function (block) {
+  javascriptGenerator.forBlock['distance_to'] = function (block) {
     const meshName1 = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL1"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL1'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     const meshName2 = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL2"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL2'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     const code = `distanceTo(${meshName1}, ${meshName2})`;
@@ -82,52 +82,81 @@ export function registerSensingGenerators(javascriptGenerator) {
   };
 
   // Ground level
-  javascriptGenerator.forBlock["ground_level"] = function () {
-    const code = "-999999";
+  javascriptGenerator.forBlock['ground_level'] = function () {
+    const code = '-999999';
     return [code, javascriptGenerator.ORDER_NONE];
   };
 
   // Time in seconds
-  javascriptGenerator.forBlock["time"] = function (block) {
-    const unit = block.getFieldValue("UNIT") || "seconds";
+  javascriptGenerator.forBlock['time'] = function (block) {
+    const unit = block.getFieldValue('UNIT') || 'seconds';
     const code = `getTime("${unit}")`;
     return [code, javascriptGenerator.ORDER_NONE];
   };
 
   // Canvas controls
-  javascriptGenerator.forBlock["canvas_controls"] = function (block) {
-    const controls = block.getFieldValue("CONTROLS") == "TRUE";
+  javascriptGenerator.forBlock['canvas_controls'] = function (block) {
+    const controls = block.getFieldValue('CONTROLS') == 'TRUE';
     return `canvasControls(${controls});\n`;
   };
 
   // Interact indicator
-  javascriptGenerator.forBlock["interact_indicator"] = function (block) {
-    const enabled = block.getFieldValue("ENABLED") == "TRUE";
+  javascriptGenerator.forBlock['interact_indicator'] = function (block) {
+    const enabled = block.getFieldValue('ENABLED') == 'TRUE';
     return `interactIndicator(${enabled});\n`;
   };
 
   // Button controls
-  javascriptGenerator.forBlock["button_controls"] = function (block) {
-    const color = getFieldValue(block, "COLOR", '"#ffffff"');
-    const control = block.getFieldValue("CONTROL");
-    const mode = block.getFieldValue("ENABLED");
+  javascriptGenerator.forBlock['button_controls'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#ffffff"');
+    const control = block.getFieldValue('CONTROL');
+    const mode = block.getFieldValue('ENABLED');
     return `buttonControls("${control}", "${mode}", ${color});\n`;
   };
 
   // On-screen controls
-  javascriptGenerator.forBlock["on_screen_controls"] = function (block) {
-    const color = getFieldValue(block, "COLOR", '"#ffffff"');
-    const movement = block.getFieldValue("MOVEMENT");
-    const actions = block.getFieldValue("ACTIONS");
-    const mode = block.getFieldValue("ENABLED");
+  javascriptGenerator.forBlock['on_screen_controls'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#ffffff"');
+    const movement = block.getFieldValue('MOVEMENT');
+    const actions = block.getFieldValue('ACTIONS');
+    const mode = block.getFieldValue('ENABLED');
     return `onScreenControls("${movement}", "${actions}", "${mode}", ${color});\n`;
   };
 
-  // When micro:bit event occurs
-  javascriptGenerator.forBlock["microbit_input"] = function (block) {
-    const event = block.getFieldValue("EVENT");
-    const statements_do = javascriptGenerator.statementToCode(block, "DO");
+  // Add a micro:bit and set its radio channel
+  javascriptGenerator.forBlock['add_microbit'] = function (block) {
+    const variable = block.workspace
+      .getVariableMap()
+      .getVariableById(block.getFieldValue('MICROBIT_VAR'));
+    const name = variable ? variable.name : '';
+    const channel =
+      javascriptGenerator.valueToCode(block, 'CHANNEL', javascriptGenerator.ORDER_NONE) || '1';
+    return `addMicrobit(${JSON.stringify(name)}, ${channel});\n`;
+  };
 
-    return `whenKeyEvent("${event}", async () => {${statements_do}});\n`;
+  function getMicrobitDeviceName(block) {
+    const device = block.getFieldValue('DEVICE');
+    if (!device || device === '__any__') return null;
+    const variableMap = block.workspace?.getVariableMap();
+    const variableById = variableMap?.getVariableById(device);
+    if (variableById) return variableById.name;
+    const variableByName = variableMap
+      ?.getAllVariables()
+      .find((variable) => variable.name === device);
+    return variableByName?.name ?? device;
+  }
+
+  // When micro:bit event occurs
+  javascriptGenerator.forBlock['microbit_input'] = function (block) {
+    const event = block.getFieldValue('EVENT');
+    const deviceName = getMicrobitDeviceName(block);
+    const statements_do = javascriptGenerator.statementToCode(block, 'DO');
+
+    // "any" (and legacy XML, which has no DEVICE field) keeps the original
+    // key-event behaviour; micro:bit events also pulse the key pipeline.
+    if (!deviceName) {
+      return `whenKeyEvent("${event}", async () => {${statements_do}});\n`;
+    }
+    return `onMicrobitEvent(${JSON.stringify(deviceName)}, "${event}", async () => {${statements_do}});\n`;
   };
 }

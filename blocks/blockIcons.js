@@ -470,3 +470,47 @@ function getWorkspaceAndFlyoutBlocks(workspace) {
   }
   return blocks;
 }
+
+// ---------------------------------------------------------------------------
+// micro:bit status icons (add_microbit block). A coloured disc with a white
+// glyph: grey = no board bound (click to connect), amber = connecting or
+// flashing, green + plug = tethered over USB, green + waves = heard over
+// radio. Font Awesome Free v7.2.0 glyph paths (see licence comment above).
+
+const MICROBIT_GLYPHS = {
+  plug: {
+    width: 384,
+    height: 512,
+    d: "M96 0C78.3 0 64 14.3 64 32l0 96 64 0 0-96c0-17.7-14.3-32-32-32zM288 0c-17.7 0-32 14.3-32 32l0 96 64 0 0-96c0-17.7-14.3-32-32-32zM32 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l0 32c0 77.4 55 142 128 156.8l0 67.2c0 17.7 14.3 32 32 32s32-14.3 32-32l0-67.2C297 398 352 333.4 352 256l0-32c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 160z",
+  },
+  waves: {
+    width: 640,
+    height: 512,
+    d: "M54.2 202.9C123.2 136.7 216.8 96 320 96s196.8 40.7 265.8 106.9c12.8 12.2 33 11.8 45.2-.9s11.8-33-.9-45.2C549.7 79.5 440.4 32 320 32S90.3 79.5 9.8 156.7C-2.9 169-3.3 189.2 8.9 202s32.5 13.2 45.2 .9zM320 256c56.8 0 108.6 21.1 148.2 56c13.3 11.7 33.5 10.4 45.2-2.8s10.4-33.5-2.8-45.2C459.8 219.2 393 192 320 192s-139.8 27.2-190.5 72c-13.3 11.7-14.5 32-2.8 45.2s32 14.5 45.2 2.8c39.5-34.9 91.3-56 148.2-56zm64 160a64 64 0 1 0 -128 0 64 64 0 1 0 128 0z",
+  },
+  hourglass: {
+    width: 384,
+    height: 512,
+    d: "M32 0C14.3 0 0 14.3 0 32S14.3 64 32 64l0 11c0 42.4 16.9 83.1 46.9 113.1L146.7 256 78.9 323.9C48.9 353.9 32 394.6 32 437l0 11c-17.7 0-32 14.3-32 32s14.3 32 32 32l32 0 256 0 32 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l0-11c0-42.4-16.9-83.1-46.9-113.1L237.3 256l67.9-67.9c30-30 46.9-70.7 46.9-113.1l0-11c17.7 0 32-14.3 32-32s-14.3-32-32-32L320 0 64 0 32 0zM96 75l0-11 192 0 0 11c0 25.5-10.1 49.9-28.1 67.9L192 210.7l-67.9-67.9C106.1 124.9 96 100.5 96 75z",
+  },
+};
+
+const MICROBIT_STATUS_SPECS = {
+  unbound: { color: "#757575", glyph: "plug" },
+  busy: { color: "#e6a817", glyph: "hourglass" },
+  tethered: { color: "#2e8b57", glyph: "plug" },
+  radio: { color: "#2e8b57", glyph: "waves" },
+};
+
+export function makeMicrobitStatusIcon(status) {
+  const spec = MICROBIT_STATUS_SPECS[status] ?? MICROBIT_STATUS_SPECS.unbound;
+  const glyph = MICROBIT_GLYPHS[spec.glyph];
+  const scale = 280 / Math.max(glyph.width, glyph.height);
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">` +
+    `<circle cx="256" cy="256" r="256" fill="${spec.color}"/>` +
+    `<g transform="translate(256 256) scale(${scale.toFixed(3)}) ` +
+    `translate(${-glyph.width / 2} ${-glyph.height / 2})">` +
+    `<path fill="white" d="${glyph.d}"/></g></svg>`;
+  return buildSvgDataUri(svg);
+}

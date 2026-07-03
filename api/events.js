@@ -1,3 +1,4 @@
+import { getMicrobitManager } from "../microbit/manager.js";
 
 let flock;
 
@@ -126,6 +127,21 @@ export const flockEvents = {
         { once: true },
       );
     }
+  },
+  onMicrobitEvent(variableName, eventChar, callback) {
+    if (typeof callback !== "function") {
+      console.warn("onMicrobitEvent: callback must be a function");
+      return;
+    }
+    const signal = flock.abortController?.signal;
+    if (signal?.aborted) return;
+
+    // All micro:bit events are momentary edges — no repeat semantics.
+    // Registering against a variable with no bound board is valid and silent.
+    const unsubscribe = getMicrobitManager().subscribe(variableName, (char) => {
+      if (char === eventChar) callback();
+    });
+    signal?.addEventListener("abort", unsubscribe, { once: true });
   },
   start(action) {
     flock.scene.onBeforeRenderObservable.addOnce(action);

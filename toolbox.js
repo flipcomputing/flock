@@ -2447,6 +2447,21 @@ const toolboxSensing = {
     },
     {
       kind: "block",
+      type: "add_microbit",
+      keyword: "microbit",
+      inputs: {
+        CHANNEL: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 1,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: "block",
       type: "microbit_input",
       keyword: "microbit",
     },

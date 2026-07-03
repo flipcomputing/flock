@@ -52,6 +52,8 @@ import { flockScene, setFlockReference as setFlockScene } from './api/scene';
 import { flockMesh, setFlockReference as setFlockMesh } from './api/mesh';
 import { flockCamera, setFlockReference as setFlockCamera } from './api/camera';
 import { flockEvents, setFlockReference as setFlockEvents } from './api/events';
+import { flockMicrobit, setFlockReference as setFlockMicrobit } from './api/microbit';
+import { getMicrobitManager, setFlockReference as setFlockMicrobitManager } from './microbit/manager.js';
 import { flockMath, setFlockReference as setFlockMath } from './api/math';
 import { flockSensing, setFlockReference as setFlockSensing } from './api/sensing';
 import { translate } from './main/translation.js';
@@ -150,6 +152,9 @@ export const flock = {
   materialCache: {},
   physicsShapeCache: {},
   flockNotReady: true,
+  // Diagnostic flag like memoryDebug: logs raw micro:bit serial lines and
+  // WebUSB status chatter to the console (debug level) while true.
+  microbitDebug: false,
   lastFrameTime: 0,
   savedCamera: null,
   ...flockCSG,
@@ -169,6 +174,7 @@ export const flock = {
   ...flockXR,
   ...flockControl,
   ...flockEvents,
+  ...flockMicrobit,
   ...flockSensing,
   ...flockMath,
   // Enhanced error reporting with block context
@@ -1001,6 +1007,8 @@ export const flock = {
       onTrigger: this.onTrigger?.bind(this),
       onEvent: this.onEvent?.bind(this),
       broadcastEvent: this.broadcastEvent?.bind(this),
+      addMicrobit: this.addMicrobit?.bind(this),
+      onMicrobitEvent: this.onMicrobitEvent?.bind(this),
       start: this.start?.bind(this),
       forever: this.forever?.bind(this),
       whenActionEvent: this.whenActionEvent?.bind(this),
@@ -1041,6 +1049,8 @@ export const flock = {
       'speak',
       'broadcastEvent',
       'onEvent',
+      'addMicrobit',
+      'onMicrobitEvent',
       'onTrigger',
       'start',
       'forever',
@@ -1196,6 +1206,22 @@ export const flock = {
     flock.engineReady = false;
     flock.inputManager = new InputManager();
     flock._onScreenSource = new OnScreenSource(flock.inputManager, { target: flock.canvas });
+
+    // micro:bit events also pulse the key pipeline as a momentary edge, so
+    // "any"-device micro:bit blocks (and legacy projects, which generate
+    // whenKeyEvent) respond to boards connected over WebUSB.
+    if (!flock._microbitKeySinkAttached) {
+      flock._microbitKeySinkAttached = true;
+      setFlockMicrobitManager(flock); // lets the manager read flock.microbitDebug
+      const microbitManager = getMicrobitManager();
+      microbitManager.onAnyEvent((char) => {
+        flock.inputManager?._setKey(char, true);
+        flock.inputManager?._setKey(char, false);
+      });
+      // Silently reconnect known boards (navigator.usb.getDevices) and watch
+      // for replugs. No-op where WebUSB is unavailable.
+      microbitManager.init();
+    }
     const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
     flock.displayScale = displayScale;
     flock.BABYLON.Database.IDBStorageEnabled = true;
@@ -2005,6 +2031,7 @@ export const flock = {
     setFlockMath(flock);
     setFlockControl(flock);
     setFlockEvents(flock);
+    setFlockMicrobit(flock);
     setFlockSensing(flock);
 
     // Add highlight layer

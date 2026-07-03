@@ -271,6 +271,21 @@ export default {
   button_controls: 'button controls %1 enabled: %2 color: %3',
   on_screen_controls: 'on screen controls  movement: %1  actions: %2  enabled: %3  color: %4',
   microbit_input: 'when micro:bit event %1',
+  add_microbit: 'add micro:bit %1 radio channel %2',
+  microbit_any_option: 'any',
+  microbit_duplicate_warning:
+    'Another "add micro:bit" block already uses this variable. The first block wins.',
+  microbit_no_listener_warning:
+    'No plugged-in micro:bit is listening on channel %1. Plug in a micro:bit using this channel to relay radio events.',
+  microbit_status_unbound: 'no micro:bit connected — click to connect one',
+  microbit_status_busy: 'connecting to micro:bit…',
+  microbit_status_tethered: 'micro:bit connected by USB',
+  microbit_status_radio: 'micro:bit heard over radio',
+  microbit_channel_retether_tip:
+    'micro:bit heard over radio. To change its channel, plug it in again over USB.',
+  microbit_connect_failed: 'Could not connect to the micro:bit: %1',
+  microbit_usb_unsupported:
+    'This browser does not support WebUSB. Try Chrome or Edge to connect a micro:bit.',
   ui_slider: 'ui slider %1 from %2 to %3 default %4 at x: %5 y: %6\ncolor: %7 background: %8 %9',
 
   // Custom block translations - Shapes blocks
@@ -540,6 +555,8 @@ export default {
   on_screen_controls_tooltip: 'Configure on-screen controls.\nKeyword: onscreen',
   microbit_input_tooltip:
     'Executes the blocks inside when a specified micro:bit event is triggered.',
+  add_microbit_tooltip:
+    'Connect a micro:bit and refer to it by this variable. Click the status icon to connect a micro:bit over USB. Unplugged micro:bits send events by radio through any plugged-in micro:bit on the same channel.',
   ui_slider_tooltip: 'Add a 2D slider UI control and store its reference in a variable.',
 
   // Tooltip translations - Shapes blocks

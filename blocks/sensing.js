@@ -17,6 +17,215 @@ import {
   getDropdownOption,
 } from "../main/translation.js";
 import { ACTIONS } from "../input/bindings.js";
+import { makeMicrobitStatusIcon } from './blockIcons.js';
+import { getMicrobitManager, VariableStatus } from '../microbit/manager.js';
+import { showBanner } from '../ui/notifications.js';
+
+const MICROBIT_STATUS_FIELD = 'STATUS';
+const MICROBIT_ANY_DEVICE = '__any__';
+
+function microbitVariable(block) {
+  const variableId = block.getFieldValue('MICROBIT_VAR');
+  return block.workspace?.getVariableMap().getVariableById(variableId) ?? null;
+}
+
+function microbitVariableName(block) {
+  return microbitVariable(block)?.name ?? null;
+}
+
+function microbitDeviceDropdownOptions(workspace, selectedVariableId) {
+  const options = [[translate('microbit_any_option'), MICROBIT_ANY_DEVICE]];
+  if (!workspace) return options;
+  const seenVariableIds = new Set();
+  for (const block of workspace.getBlocksByType('add_microbit', true)) {
+    if (block.isInFlyout) continue;
+    const variable = microbitVariable(block);
+    if (!variable || seenVariableIds.has(variable.getId())) continue;
+    seenVariableIds.add(variable.getId());
+    options.push([variable.name, variable.getId()]);
+  }
+  // Keep the current selection listed while its variable still exists, even
+  // when its add_microbit block is gone or hasn't loaded yet — the menu is
+  // derived from add_microbit blocks, but the selection's validity is not.
+  if (selectedVariableId && !seenVariableIds.has(selectedVariableId)) {
+    const variable = workspace
+      .getVariableMap()
+      .getVariableById(selectedVariableId);
+    if (variable) options.push([variable.name, variable.getId()]);
+  }
+  return options;
+}
+
+// The menu lists devices from add_microbit blocks, but the field must accept
+// (and keep rendering) any existing variable regardless of menu state: on
+// project load this field can be set before its add_microbit block exists,
+// and a selection should survive its add_microbit block being deleted.
+class MicrobitDeviceDropdown extends Blockly.FieldDropdown {
+  constructor() {
+    super(function () {
+      const workspace = this.sourceBlock_?.workspace;
+      return microbitDeviceDropdownOptions(
+        workspace,
+        this._candidateValue ?? this.getValue(),
+      );
+    });
+    this._candidateValue = null;
+  }
+
+  doClassValidation_(newValue) {
+    if (newValue && newValue !== MICROBIT_ANY_DEVICE) {
+      const variableMap = this.sourceBlock_?.workspace?.getVariableMap();
+      const variable =
+        variableMap?.getVariableById(newValue) ??
+        // Legacy saves stored the variable name rather than its id.
+        variableMap
+          ?.getAllVariables()
+          .find((candidate) => candidate.name === newValue) ??
+        null;
+      if (variable) {
+        // Refresh the cached options with the accepted value so the label
+        // resolves even when no add_microbit block lists it.
+        this._candidateValue = variable.getId();
+        this.getOptions(false);
+        this._candidateValue = null;
+        return variable.getId();
+      }
+    }
+    return super.doClassValidation_(newValue);
+  }
+}
+
+function syncMicrobitDeviceField(block) {
+  const field = block.getField('DEVICE');
+  if (!field) return;
+  const currentValue = field.getValue();
+  if (!currentValue || currentValue === MICROBIT_ANY_DEVICE) return;
+  const variableMap = block.workspace?.getVariableMap();
+  if (!variableMap) return;
+  if (variableMap.getVariableById(currentValue)) return;
+  const matchingVariable = variableMap
+    .getAllVariables()
+    .find((variable) => variable.name === currentValue);
+  if (matchingVariable) {
+    field.setValue(matchingVariable.getId());
+  } else {
+    // The selected variable was deleted: fall back to "any" rather than
+    // holding a dangling id.
+    field.setValue(MICROBIT_ANY_DEVICE);
+  }
+}
+
+// Channel as typed on the block, or null when a non-literal expression is
+// plugged in (then only the runtime addMicrobit call knows the value).
+function microbitChannel(block) {
+  const target = block.getInput('CHANNEL')?.connection?.targetBlock();
+  const value = Number(target?.getFieldValue?.('NUM'));
+  return Number.isFinite(value) ? value : null;
+}
+
+function microbitStatusAlt(state) {
+  return translate(`microbit_status_${state}`);
+}
+
+function handleMicrobitStatusClick(field) {
+  const block = field.getSourceBlock();
+  if (!block || block.isInFlyout) return; // inert in the flyout
+  const variableName = microbitVariableName(block);
+  if (!variableName) return;
+  const manager = getMicrobitManager();
+  const status = manager.getStatusForVariable(variableName);
+  if (status.state !== VariableStatus.UNBOUND) return;
+  // Called directly from the click (a user gesture), as requestDevice needs.
+  manager.bindFromPicker(variableName).catch((error) => {
+    console.warn('micro:bit connect failed:', error);
+    // Cancelling the picker isn't an error worth announcing.
+    if (error?.code === 'no-device-selected') return;
+    const message = /NOT_SUPPORTED/.test(error?.message ?? '')
+      ? translate('microbit_usb_unsupported')
+      : translate('microbit_connect_failed').replace('%1', error?.message ?? String(error));
+    showBanner('microbit-connect', { message });
+  });
+}
+
+let refreshingMicrobitBlocks = false;
+
+// Recompute status icons, warnings, and editor-side channel registration for
+// every add_microbit block. Runs on workspace changes and on manager status
+// changes (connect progress, heartbeat expiry, ...).
+export function refreshMicrobitBlocks(workspace) {
+  if (refreshingMicrobitBlocks) return;
+  if (!workspace || typeof workspace.getBlocksByType !== 'function') return;
+  refreshingMicrobitBlocks = true;
+  try {
+    const manager = getMicrobitManager();
+    const seenVariables = new Set();
+    for (const block of workspace.getBlocksByType('add_microbit', true)) {
+      if (block.isInFlyout) continue;
+      const variableName = microbitVariableName(block);
+      const channel = microbitChannel(block);
+      let warning = null;
+
+      if (variableName) {
+        if (seenVariables.has(variableName)) {
+          // Duplicate add_microbit for the same variable: the first block wins.
+          warning = translate('microbit_duplicate_warning');
+        } else {
+          seenVariables.add(variableName);
+          if (channel !== null) {
+            manager.setVariableChannel(variableName, channel);
+          }
+          const effectiveChannel = manager.getVariableChannel(variableName);
+          if (
+            manager.isVariableOnRadio(variableName) &&
+            !manager.hasTetheredOnChannel(effectiveChannel)
+          ) {
+            warning = translate('microbit_no_listener_warning').replace(
+              '%1',
+              String(effectiveChannel)
+            );
+          }
+        }
+        const status = manager.getStatusForVariable(variableName);
+        const field = block.getField(MICROBIT_STATUS_FIELD);
+        if (field) {
+          field.setValue(makeMicrobitStatusIcon(status.state));
+          field.setAlt?.(microbitStatusAlt(status.state));
+          field.setTooltip?.(
+            status.state === VariableStatus.RADIO
+              ? translate('microbit_channel_retether_tip')
+              : microbitStatusAlt(status.state)
+          );
+        }
+      }
+      block.setWarningText(warning);
+    }
+  } finally {
+    refreshingMicrobitBlocks = false;
+  }
+}
+
+let microbitManagerWired = false;
+
+function wireMicrobitManager() {
+  if (microbitManagerWired) return;
+  microbitManagerWired = true;
+  const manager = getMicrobitManager();
+  manager.variableExists = (name) => {
+    const workspace = Blockly.getMainWorkspace?.();
+    return !!workspace?.getVariableMap().getVariable(name);
+  };
+  manager.confirmFlash = (message) =>
+    new Promise((resolve) => {
+      if (Blockly.dialog?.confirm) {
+        Blockly.dialog.confirm(message, resolve);
+      } else {
+        resolve(globalThis.confirm ? globalThis.confirm(message) : false);
+      }
+    });
+  manager.onStatusChange(() => {
+    refreshMicrobitBlocks(Blockly.getMainWorkspace?.());
+  });
+}
 
 export function defineSensingBlocks() {
   Blockly.Blocks["key_pressed"] = {
@@ -465,6 +674,69 @@ export function defineSensingBlocks() {
     },
   };
 
+  wireMicrobitManager();
+
+  Blockly.Blocks['add_microbit'] = {
+    init: function () {
+      const variableNamePrefix = 'microbit';
+      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      this.jsonInit({
+        type: 'add_microbit',
+        message0: translate('add_microbit'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'MICROBIT_VAR',
+            variable: nextVariableName,
+          },
+          {
+            type: 'input_value',
+            name: 'CHANNEL',
+            check: 'Number',
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Sensing'],
+        tooltip: getTooltip('add_microbit'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('sensing_blocks');
+
+      // Clickable status icon: grey → opens the connect flow, otherwise it
+      // just reflects the board's state. Inert in the flyout.
+      this.inputList[0].insertFieldAt(
+        0,
+        new Blockly.FieldImage(
+          makeMicrobitStatusIcon(VariableStatus.UNBOUND),
+          24,
+          24,
+          microbitStatusAlt(VariableStatus.UNBOUND),
+          handleMicrobitStatusClick
+        ),
+        MICROBIT_STATUS_FIELD
+      );
+
+      registerBlockHandler(this, (changeEvent) => {
+        handleBlockCreateEvent(
+          this,
+          changeEvent,
+          variableNamePrefix,
+          nextVariableIndexes,
+          'MICROBIT_VAR'
+        );
+        if (
+          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+          changeEvent.type === Blockly.Events.BLOCK_CHANGE ||
+          changeEvent.type === Blockly.Events.BLOCK_DELETE
+        ) {
+          refreshMicrobitBlocks(this.workspace);
+        }
+      });
+    },
+  };
+
   Blockly.Blocks["microbit_input"] = {
     init: function () {
       this.jsonInit({
@@ -508,6 +780,21 @@ export function defineSensingBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("sensing_blocks");
+
+      // Device dropdown (dynamic_mesh_dropdown style): "any" plus the
+      // micro:bit variables defined via add_microbit blocks. Appended outside
+      // message0 so legacy XML — which has no DEVICE field — loads unchanged
+      // and defaults to "any".
+      this.inputList[0].appendField(new MicrobitDeviceDropdown(), "DEVICE");
+      syncMicrobitDeviceField(this);
+      this.setOnChange((changeEvent) => {
+        if (
+          changeEvent.type === Blockly.Events.VAR_RENAME ||
+          changeEvent.type === Blockly.Events.VAR_DELETE
+        ) {
+          syncMicrobitDeviceField(this);
+        }
+      });
 
       addToggleButton(this);
     },

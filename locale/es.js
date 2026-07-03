@@ -267,6 +267,21 @@ export default {
   on_screen_controls:
     'controles en pantalla  movimiento: %1  acciones: %2  habilitado: %3  color: %4', // ai
   microbit_input: 'cuando evento micro:bit %1', // human
+  add_microbit: 'añadir micro:bit %1 canal de radio %2', // ai
+  microbit_any_option: 'cualquiera', // ai
+  microbit_duplicate_warning:
+    'Otro bloque "añadir micro:bit" ya usa esta variable. El primer bloque tiene prioridad.', // ai
+  microbit_no_listener_warning:
+    'Ningún micro:bit conectado por USB está escuchando en el canal %1. Conecta un micro:bit con este canal para retransmitir los eventos de radio.', // ai
+  microbit_status_unbound: 'ningún micro:bit conectado — haz clic para conectar uno', // ai
+  microbit_status_busy: 'conectando con el micro:bit…', // ai
+  microbit_status_tethered: 'micro:bit conectado por USB', // ai
+  microbit_status_radio: 'micro:bit recibido por radio', // ai
+  microbit_channel_retether_tip:
+    'micro:bit recibido por radio. Para cambiar su canal, conéctalo de nuevo por USB.', // ai
+  microbit_connect_failed: 'No se pudo conectar con el micro:bit: %1', // ai
+  microbit_usb_unsupported:
+    'Este navegador no es compatible con WebUSB. Prueba Chrome o Edge para conectar un micro:bit.', // ai
   ui_slider:
     'control deslizante UI %1 de %2 a %3 por defecto %4 en x: %5 y: %6\ncolor: %7 fondo: %8 %9', // human
 
@@ -540,6 +555,8 @@ export default {
   on_screen_controls_tooltip: 'Configura los controles en pantalla.\nPalabra clave: onscreen', // ai
   microbit_input_tooltip:
     'Ejecuta los bloques dentro cuando se desencadena un evento micro:bit especificado.', // human
+  add_microbit_tooltip:
+    'Conecta un micro:bit y haz referencia a él con esta variable. Haz clic en el icono de estado para conectar un micro:bit por USB. Los micro:bit desenchufados envían eventos por radio a través de cualquier micro:bit enchufado en el mismo canal.', // ai
   ui_slider_tooltip:
     'Añade un control deslizante 2D en la UI y almacena su referencia en una variable.', // human
 

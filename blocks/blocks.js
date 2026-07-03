@@ -1367,6 +1367,7 @@ export function initializeVariableIndexes() {
     instrument: 1,
     animation: 1,
     clone: 1,
+    microbit: 1,
     uitext: 1,
     button: 1,
     input: 1,
