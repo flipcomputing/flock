@@ -79,6 +79,24 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
   };
 }
 
+// v13.1.0: FieldGridDropdown.recomputeAriaContext (FieldColour's base class)
+// calls getFocusableElement() unconditionally, which throws "This field
+// currently has no representative DOM element" if the field hasn't rendered
+// yet (no fieldGroup_). Blockly's shadow-block respawn (setShadow, used when
+// loading a saved workspace) and our own refreshReporterAriaLabels both call
+// recomputeAriaContext on fields that may not be rendered yet. Guard the same
+// way applyColour() already does upstream.
+const flockAriaPatchKey = Symbol.for("flock.fieldColourAriaPatch");
+if (!fieldColourPrototype[flockAriaPatchKey]) {
+  const originalRecomputeAriaContext =
+    fieldColourPrototype.recomputeAriaContext;
+  fieldColourPrototype.recomputeAriaContext = function () {
+    if (!this.fieldGroup_) return true;
+    return originalRecomputeAriaContext.call(this);
+  };
+  fieldColourPrototype[flockAriaPatchKey] = true;
+}
+
 // When the colour picker is open, sniff pointerdown (fires before the picker's
 // capture-phase click handler) to check whether the pointer landed on a colour
 // field's SVG click target.  The result is stored as a flag on the picker so

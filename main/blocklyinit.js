@@ -165,8 +165,12 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
         if (inTree && slot) {
           const el = this.getFocusableElement?.();
           const current = el?.getAttribute?.('aria-label');
-          if (el && current) {
-            el.setAttribute('aria-label', `${slot}, ${current}`);
+          const prefix = `${slot}, `;
+          // v13.1.0 added native full-block field label prefixing, which can
+          // already have set this prefix before we get here — guard so we
+          // don't double it up ("hair, hair, color: Red").
+          if (el && current && !current.startsWith(prefix)) {
+            el.setAttribute('aria-label', `${prefix}${current}`);
           }
         }
         return inTree;
