@@ -22,7 +22,7 @@ import { getMicrobitManager, VariableStatus } from '../microbit/manager.js';
 import { showBanner } from '../ui/notifications.js';
 
 const MICROBIT_STATUS_FIELD = 'STATUS';
-const MICROBIT_ANY_DEVICE = '__any__';
+export const MICROBIT_ANY_DEVICE = '__any__';
 
 function microbitVariable(block) {
   const variableId = block.getFieldValue('MICROBIT_VAR');
@@ -60,7 +60,7 @@ function microbitDeviceDropdownOptions(workspace, selectedVariableId) {
 // (and keep rendering) any existing variable regardless of menu state: on
 // project load this field can be set before its add_microbit block exists,
 // and a selection should survive its add_microbit block being deleted.
-class MicrobitDeviceDropdown extends Blockly.FieldDropdown {
+export class MicrobitDeviceDropdown extends Blockly.FieldDropdown {
   constructor() {
     super(function () {
       const workspace = this.sourceBlock_?.workspace;
@@ -70,6 +70,10 @@ class MicrobitDeviceDropdown extends Blockly.FieldDropdown {
       );
     });
     this._candidateValue = null;
+  }
+
+  static fromJson() {
+    return new MicrobitDeviceDropdown();
   }
 
   doClassValidation_(newValue) {
@@ -95,7 +99,11 @@ class MicrobitDeviceDropdown extends Blockly.FieldDropdown {
   }
 }
 
-function syncMicrobitDeviceField(block) {
+// Registered so blocks outside this module (microbit_show_image in xr.js)
+// can declare the device menu straight from jsonInit.
+Blockly.fieldRegistry.register('field_microbit_device', MicrobitDeviceDropdown);
+
+export function syncMicrobitDeviceField(block) {
   const field = block.getField('DEVICE');
   if (!field) return;
   const currentValue = field.getValue();
@@ -145,6 +153,26 @@ function handleMicrobitStatusClick(field) {
       : translate('microbit_connect_failed').replace('%1', error?.message ?? String(error));
     showBanner('microbit-connect', { message });
   });
+}
+
+// Fields whose edits can change micro:bit warnings or status icons: device
+// selections, the add_microbit variable, and (shadow) channel numbers. Other
+// field edits — notably the IMAGE field, which fires one BLOCK_CHANGE per
+// cell during a paint drag — must not trigger a workspace rescan.
+const MICROBIT_REFRESH_FIELDS = new Set(['DEVICE', 'MICROBIT_VAR', 'NUM']);
+
+export function isMicrobitRefreshEvent(changeEvent) {
+  if (
+    changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+    changeEvent.type === Blockly.Events.BLOCK_DELETE
+  ) {
+    return true;
+  }
+  if (changeEvent.type !== Blockly.Events.BLOCK_CHANGE) return false;
+  return (
+    changeEvent.element !== 'field' ||
+    MICROBIT_REFRESH_FIELDS.has(changeEvent.name)
+  );
 }
 
 let refreshingMicrobitBlocks = false;
@@ -198,6 +226,27 @@ export function refreshMicrobitBlocks(workspace) {
         }
       }
       block.setWarningText(warning);
+    }
+
+    // Images can only be pushed over USB, so a show-image block whose device
+    // is not tethered (or "any" with nothing tethered) is a runtime no-op —
+    // warn so learners know why nothing appears.
+    for (const block of workspace.getBlocksByType('microbit_show_image', true)) {
+      if (block.isInFlyout) continue;
+      const device = block.getFieldValue('DEVICE');
+      let tethered;
+      if (!device || device === MICROBIT_ANY_DEVICE) {
+        tethered = manager.hasTetheredBoard();
+      } else {
+        const variable = workspace.getVariableMap().getVariableById(device);
+        tethered =
+          !!variable &&
+          manager.getStatusForVariable(variable.name).state ===
+            VariableStatus.TETHERED;
+      }
+      block.setWarningText(
+        tethered ? null : translate('microbit_show_image_untethered_warning')
+      );
     }
   } finally {
     refreshingMicrobitBlocks = false;
@@ -726,11 +775,7 @@ export function defineSensingBlocks() {
           nextVariableIndexes,
           'MICROBIT_VAR'
         );
-        if (
-          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE ||
-          changeEvent.type === Blockly.Events.BLOCK_DELETE
-        ) {
+        if (isMicrobitRefreshEvent(changeEvent)) {
           refreshMicrobitBlocks(this.workspace);
         }
       });

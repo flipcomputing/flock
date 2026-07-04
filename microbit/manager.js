@@ -18,7 +18,8 @@ import {
   serialiseProbe,
   serialiseChannel,
   serialiseScrollText,
-} from "./protocol.js";
+  serialiseImageRows,
+} from './protocol.js';
 
 export const BoardState = Object.freeze({
   DISCONNECTED: "disconnected",
@@ -141,9 +142,7 @@ export class MicrobitManager {
       confirmFlash ??
       ((message) =>
         Promise.resolve(
-          typeof globalThis.confirm === "function"
-            ? globalThis.confirm(message)
-            : false,
+          typeof globalThis.confirm === 'function' ? globalThis.confirm(message) : false
         ));
     this.variableExists = variableExists ?? (() => true);
 
@@ -168,7 +167,7 @@ export class MicrobitManager {
       if (!raw) return;
       const data = JSON.parse(raw);
       for (const [deviceId, entry] of Object.entries(data)) {
-        if (entry && typeof entry.variable === "string") {
+        if (entry && typeof entry.variable === 'string') {
           this._bindings.set(deviceId, {
             variable: entry.variable,
             usbSerialNumber: entry.usbSerialNumber,
@@ -182,10 +181,7 @@ export class MicrobitManager {
 
   _saveBindings() {
     try {
-      this._storage?.setItem(
-        STORAGE_KEY,
-        JSON.stringify(Object.fromEntries(this._bindings)),
-      );
+      this._storage?.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(this._bindings)));
     } catch {
       // Storage full/unavailable — bindings just won't survive a reload.
     }
@@ -219,12 +215,44 @@ export class MicrobitManager {
     if (forcePush || previous !== next) {
       const session = this._tetheredSessionFor(variableName);
       if (session) {
-        session.transport
-          .writeLine(serialiseChannel(next))
-          .catch(() => this._dropSession(session));
+        session.transport.writeLine(serialiseChannel(next)).catch(() => this._dropSession(session));
       }
     }
     if (previous !== next) this._notifyStatus();
+  }
+
+  /** Write the image's five row lines to one session in order. Sequential
+   * (awaited) writes give the firmware a few ms to drain each short line
+   * before the next arrives — its receive buffer holds under 20 bytes. */
+  async _writeImageRows(session, lines) {
+    try {
+      for (const line of lines) {
+        debugLog('write:', line.trimEnd());
+        await session.transport.writeLine(line);
+      }
+    } catch (error) {
+      debugLog('image write failed:', error);
+      this._dropSession(session);
+    }
+  }
+
+  /**
+   * Show an LED image on a tethered board. `variableName` null means "any":
+   * the image goes to every tethered board. An untethered (or unknown)
+   * device is a silent no-op — images can only be pushed over USB.
+   */
+  showImage(variableName, pattern) {
+    const lines = serialiseImageRows(pattern);
+    if (variableName === null) {
+      for (const session of [...this._sessions]) {
+        if (session.state !== BoardState.CONNECTED) continue;
+        this._writeImageRows(session, lines);
+      }
+      return;
+    }
+    const session = this._tetheredSessionFor(variableName);
+    if (!session) return;
+    this._writeImageRows(session, lines);
   }
 
   // ------------------------------------------------------------ subscription
@@ -258,7 +286,7 @@ export class MicrobitManager {
       try {
         listener();
       } catch (error) {
-        console.warn("micro:bit status listener failed:", error);
+        console.warn('micro:bit status listener failed:', error);
       }
     }
   }
@@ -268,7 +296,7 @@ export class MicrobitManager {
       try {
         listener(char);
       } catch (error) {
-        console.warn("micro:bit event listener failed:", error);
+        console.warn('micro:bit event listener failed:', error);
       }
     }
     if (!variableName || !this.variableExists(variableName)) return;
@@ -278,7 +306,7 @@ export class MicrobitManager {
       try {
         callback(char);
       } catch (error) {
-        console.warn("micro:bit event handler failed:", error);
+        console.warn('micro:bit event handler failed:', error);
       }
     }
   }
@@ -321,14 +349,19 @@ export class MicrobitManager {
     const deviceId = this.boundDeviceId(variableName);
     if (deviceId !== null) {
       const lastSeen = this._radioLastSeen.get(deviceId);
-      if (
-        lastSeen !== undefined &&
-        this._now() - lastSeen < this._heartbeatTimeoutMs
-      ) {
+      if (lastSeen !== undefined && this._now() - lastSeen < this._heartbeatTimeoutMs) {
         return { state: VariableStatus.RADIO };
       }
     }
     return { state: VariableStatus.UNBOUND };
+  }
+
+  /** True if any board at all is tethered over USB. */
+  hasTetheredBoard() {
+    for (const session of this._sessions) {
+      if (session.state === BoardState.CONNECTED) return true;
+    }
+    return false;
   }
 
   /** True if any tethered board is listening (relaying) on this channel. */
@@ -401,7 +434,7 @@ export class MicrobitManager {
         hello = await this._flashAndReprobe(session);
         if (!hello) {
           await this._dropSession(session, { disconnect: true });
-          throw new Error("micro:bit did not respond after flashing");
+          throw new Error('micro:bit did not respond after flashing');
         }
       }
 
@@ -448,7 +481,7 @@ export class MicrobitManager {
   async init() {
     const usb = this._usb;
     if (!usb) return;
-    usb.addEventListener?.("connect", (event) => {
+    usb.addEventListener?.('connect', (event) => {
       this._maybeSilentReconnect(event.device);
     });
     let devices = [];
@@ -490,15 +523,11 @@ export class MicrobitManager {
       session.transport = await this._createTransport({ silent: true });
       this._wireTransport(session);
       await session.transport.connect();
-      session.usbSerialNumber =
-        session.transport.usbSerialNumber ?? expectedSerialNumber;
+      session.usbSerialNumber = session.transport.usbSerialNumber ?? expectedSerialNumber;
       // The silent connection mode claims "any allowed device": if it grabbed
       // a board another session already owns, back off.
       for (const other of this._sessions) {
-        if (
-          other !== session &&
-          other.usbSerialNumber === session.usbSerialNumber
-        ) {
+        if (other !== session && other.usbSerialNumber === session.usbSerialNumber) {
           await this._dropSession(session, { disconnect: true });
           return;
         }
@@ -557,11 +586,7 @@ export class MicrobitManager {
     for (let attempt = 0; attempt < attempts; attempt++) {
       // A spontaneous HELLO (the board announces itself on boot) counts as a
       // probe response when it arrived after `helloSince`.
-      if (
-        helloSince !== null &&
-        session.lastHello &&
-        session.lastHello.at >= helloSince
-      ) {
+      if (helloSince !== null && session.lastHello && session.lastHello.at >= helloSince) {
         return session.lastHello.hello;
       }
       // Register the waiter before writing so a reply can't slip between the
@@ -634,9 +659,7 @@ export class MicrobitManager {
         .catch(() => {});
       if (bindTo) {
         // The board scrolls its variable name so learners can tell boards apart.
-        session.transport
-          .writeLine(serialiseScrollText(variable))
-          .catch(() => {});
+        session.transport.writeLine(serialiseScrollText(variable)).catch(() => {});
       }
     }
     this._notifyStatus();
@@ -659,11 +682,11 @@ export class MicrobitManager {
   // ------------------------------------------------------------------- lines
 
   _handleLine(session, line) {
-    debugLog("line:", line);
+    debugLog('line:', line);
     const message = parseLine(line);
     if (!message) return; // unknown lines are ignored
 
-    if (message.type === "hello") {
+    if (message.type === 'hello') {
       // Kept even when nobody is waiting: the post-flash probe accepts the
       // spontaneous boot-time HELLO via session.lastHello.
       session.lastHello = { hello: message, at: this._now() };
@@ -673,7 +696,7 @@ export class MicrobitManager {
 
     if (session.state !== BoardState.CONNECTED) return;
 
-    if (message.type === "event") {
+    if (message.type === 'event') {
       this._deliver(this._sessionVariable(session), message.char);
       return;
     }
@@ -681,7 +704,7 @@ export class MicrobitManager {
     // Relayed radio packet. Any packet (heartbeat or event) proves the remote
     // board is alive; multiple tethered relays are deduplicated on
     // (deviceId, seq).
-    if (message.type === "relay") {
+    if (message.type === 'relay') {
       if (!this._deduper.isNew(message.deviceId, message.seq)) return;
       this._markRadioSeen(message.deviceId);
       if (message.heartbeat) return;
@@ -693,8 +716,7 @@ export class MicrobitManager {
   _markRadioSeen(deviceId) {
     const wasLive =
       this._radioLastSeen.get(deviceId) !== undefined &&
-      this._now() - this._radioLastSeen.get(deviceId) <
-        this._heartbeatTimeoutMs;
+      this._now() - this._radioLastSeen.get(deviceId) < this._heartbeatTimeoutMs;
     this._radioLastSeen.set(deviceId, this._now());
     const existing = this._heartbeatTimers.get(deviceId);
     if (existing !== undefined) this._clearTimeout(existing);
@@ -704,7 +726,7 @@ export class MicrobitManager {
       this._setTimeout(() => {
         this._heartbeatTimers.delete(deviceId);
         this._notifyStatus();
-      }, this._heartbeatTimeoutMs),
+      }, this._heartbeatTimeoutMs)
     );
     if (!wasLive) this._notifyStatus();
   }

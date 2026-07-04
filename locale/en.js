@@ -286,6 +286,18 @@ export default {
   microbit_connect_failed: 'Could not connect to the micro:bit: %1',
   microbit_usb_unsupported:
     'This browser does not support WebUSB. Try Chrome or Edge to connect a micro:bit.',
+  microbit_show_image: 'micro:bit %1 show %2',
+  microbit_show_image_untethered_warning:
+    'This micro:bit is not plugged in over USB, so the image cannot be shown. Plug the micro:bit in to show images.',
+  microbit_image_field_label: 'LED image — click to edit',
+  microbit_image_grid_label: 'LED grid: arrow keys move, space toggles',
+  microbit_image_cell_label: 'row %1, column %2, %3',
+  microbit_image_cell_on: 'on',
+  microbit_image_cell_off: 'off',
+  microbit_image_preset_clear: 'clear',
+  microbit_image_preset_full: 'full',
+  microbit_image_preset_sun: 'sun',
+  microbit_image_picture_menu: 'pictures',
   ui_slider: 'ui slider %1 from %2 to %3 default %4 at x: %5 y: %6\ncolor: %7 background: %8 %9',
 
   // Custom block translations - Shapes blocks
@@ -557,6 +569,8 @@ export default {
     'Executes the blocks inside when a specified micro:bit event is triggered.',
   add_microbit_tooltip:
     'Connect a micro:bit and refer to it by this variable. Click the status icon to connect a micro:bit over USB. Unplugged micro:bits send events by radio through any plugged-in micro:bit on the same channel.',
+  microbit_show_image_tooltip:
+    "Show an image on a plugged-in micro:bit's LED display. Click the image to edit it.\nKeyword: leds",
   ui_slider_tooltip: 'Add a 2D slider UI control and store its reference in a variable.',
 
   // Tooltip translations - Shapes blocks

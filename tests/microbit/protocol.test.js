@@ -10,7 +10,10 @@ import {
   serialiseProbe,
   serialiseChannel,
   serialiseScrollText,
+  serialiseImageRows,
+  normaliseImagePattern,
   MAX_SCROLL_TEXT_LENGTH,
+  MICROBIT_IMAGE_LENGTH,
 } from "../../microbit/protocol.js";
 
 // Build a valid Intel-hex record from bytes (test-side, so the patcher's
@@ -107,7 +110,7 @@ export function runMicrobitProtocolTests() {
           deviceId: "987654321",
           channel: null,
         });
-        expect(PROTOCOL_VERSION).to.equal(1);
+        expect(PROTOCOL_VERSION).to.equal(3);
       });
 
       it("parses HELLO with the board's channel appended", function () {
@@ -216,6 +219,50 @@ export function runMicrobitProtocolTests() {
           serialiseScrollText("a".repeat(MAX_SCROLL_TEXT_LENGTH + 10)),
         ).to.equal(`S:${"a".repeat(MAX_SCROLL_TEXT_LENGTH)}\n`);
         expect(serialiseScrollText("héllo\nworld")).to.equal("S:hlloworld\n");
+      });
+
+      it("serialises an image as five short row lines", function () {
+        const pattern = "9090909990999990999090909";
+        expect(pattern.length).to.equal(MICROBIT_IMAGE_LENGTH);
+        expect(serialiseImageRows(pattern)).to.deep.equal([
+          "I:090909\n",
+          "I:109990\n",
+          "I:299999\n",
+          "I:309990\n",
+          "I:490909\n",
+        ]);
+        // Every line must fit the firmware's <20-byte receive buffer.
+        for (const line of serialiseImageRows(pattern)) {
+          expect(line.length).to.be.at.most(19);
+        }
+      });
+
+      it("normalises image patterns: pad, truncate, non-digits, non-strings", function () {
+        expect(normaliseImagePattern("999")).to.equal(
+          "999" + "0".repeat(MICROBIT_IMAGE_LENGTH - 3),
+        );
+        expect(normaliseImagePattern("9".repeat(30))).to.equal(
+          "9".repeat(MICROBIT_IMAGE_LENGTH),
+        );
+        expect(normaliseImagePattern("9x9.9-9 9")).to.equal(
+          "909090909" + "0".repeat(MICROBIT_IMAGE_LENGTH - 9),
+        );
+        expect(normaliseImagePattern(null)).to.equal(
+          "0".repeat(MICROBIT_IMAGE_LENGTH),
+        );
+        expect(normaliseImagePattern(undefined)).to.equal(
+          "0".repeat(MICROBIT_IMAGE_LENGTH),
+        );
+        expect(normaliseImagePattern(42)).to.equal(
+          "42" + "0".repeat(MICROBIT_IMAGE_LENGTH - 2),
+        );
+        expect(serialiseImageRows("abc")).to.deep.equal([
+          "I:000000\n",
+          "I:100000\n",
+          "I:200000\n",
+          "I:300000\n",
+          "I:400000\n",
+        ]);
       });
     });
 

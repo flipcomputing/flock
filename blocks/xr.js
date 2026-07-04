@@ -6,8 +6,56 @@ import {
   getTooltip,
   getDropdownOption,
 } from "../main/translation.js";
+import {
+  syncMicrobitDeviceField,
+  refreshMicrobitBlocks,
+  isMicrobitRefreshEvent,
+} from "./sensing.js";
+import "./fieldMicrobitImage.js"; // registers field_microbit_image
 
 export function defineXRBlocks() {
+  Blockly.Blocks["microbit_show_image"] = {
+    init: function () {
+      this.jsonInit({
+        type: "microbit_show_image",
+        message0: translate("microbit_show_image"),
+        args0: [
+          {
+            // Same device menu as microbit_input: "any" plus the variables
+            // defined by add_microbit blocks.
+            type: "field_microbit_device",
+            name: "DEVICE",
+          },
+          {
+            type: "field_microbit_image",
+            name: "IMAGE",
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Scene"],
+        tooltip: getTooltip("microbit_show_image"),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("scene_blocks");
+
+      syncMicrobitDeviceField(this);
+      this.setOnChange((changeEvent) => {
+        if (
+          changeEvent.type === Blockly.Events.VAR_RENAME ||
+          changeEvent.type === Blockly.Events.VAR_DELETE
+        ) {
+          syncMicrobitDeviceField(this);
+        }
+        if (isMicrobitRefreshEvent(changeEvent)) {
+          // Keeps the untethered-device warning current; the manager's
+          // status listener covers connect/disconnect transitions.
+          refreshMicrobitBlocks(this.workspace);
+        }
+      });
+    },
+  };
+
   Blockly.Blocks["device_camera_background"] = {
     init: function () {
       this.jsonInit({

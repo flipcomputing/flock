@@ -3,7 +3,9 @@ import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { initializeVariableIndexes } from "../../blocks/blocks.js";
 import { defineSensingBlocks } from "../../blocks/sensing.js";
+import { defineXRBlocks } from "../../blocks/xr.js";
 import { registerSensingGenerators } from "../../generators/generators-sensing.js";
+import { MICROBIT_IMAGE_PRESETS } from "../../blocks/microbitImagePattern.js";
 
 export function runMicrobitGeneratorTests() {
   describe("micro:bit generators @microbit", function () {
@@ -15,6 +17,9 @@ export function runMicrobitGeneratorTests() {
       initializeVariableIndexes();
       if (!Blockly.Blocks["add_microbit"]) {
         defineSensingBlocks();
+      }
+      if (!Blockly.Blocks["microbit_show_image"]) {
+        defineXRBlocks();
       }
       registerSensingGenerators(javascriptGenerator);
     });
@@ -159,6 +164,49 @@ export function runMicrobitGeneratorTests() {
       expect(optionValues).to.include(variable.getId());
       expect(generate(block)).to.equal(
         'onMicrobitEvent("microbit1", "i", async () => {});\n',
+      );
+    });
+
+    it("microbit_show_image with a device variable generates microbitShowImage", function () {
+      const variable = workspace
+        .getVariableMap()
+        .createVariable("microbit1", "");
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: "microbit_show_image",
+          fields: {
+            DEVICE: variable.getId(),
+            IMAGE: MICROBIT_IMAGE_PRESETS.sun,
+          },
+        },
+        workspace,
+      );
+      expect(generate(block)).to.equal(
+        `microbitShowImage("microbit1", "${MICROBIT_IMAGE_PRESETS.sun}");\n`,
+      );
+    });
+
+    it('microbit_show_image defaults to "any" (empty device) and an all-off image', function () {
+      const block = Blockly.serialization.blocks.append(
+        { type: "microbit_show_image" },
+        workspace,
+      );
+      expect(block.getFieldValue("DEVICE")).to.equal("__any__");
+      expect(generate(block)).to.equal(
+        `microbitShowImage("", "${"0".repeat(25)}");\n`,
+      );
+    });
+
+    it("microbit_show_image normalises a corrupt saved image value", function () {
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: "microbit_show_image",
+          fields: { IMAGE: "9x9" },
+        },
+        workspace,
+      );
+      expect(generate(block)).to.equal(
+        `microbitShowImage("", "909${"0".repeat(22)}");\n`,
       );
     });
 

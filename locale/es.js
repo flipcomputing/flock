@@ -282,6 +282,18 @@ export default {
   microbit_connect_failed: 'No se pudo conectar con el micro:bit: %1', // ai
   microbit_usb_unsupported:
     'Este navegador no es compatible con WebUSB. Prueba Chrome o Edge para conectar un micro:bit.', // ai
+  microbit_show_image: 'micro:bit %1 mostrar %2', // ai
+  microbit_show_image_untethered_warning:
+    'Este micro:bit no está conectado por USB, así que la imagen no se puede mostrar. Conecta el micro:bit para mostrar imágenes.', // ai
+  microbit_image_field_label: 'imagen LED — haz clic para editar', // ai
+  microbit_image_grid_label: 'cuadrícula LED: las flechas mueven, espacio alterna', // ai
+  microbit_image_cell_label: 'fila %1, columna %2, %3', // ai
+  microbit_image_cell_on: 'encendido', // ai
+  microbit_image_cell_off: 'apagado', // ai
+  microbit_image_preset_clear: 'borrar', // ai
+  microbit_image_preset_full: 'todo encendido', // ai
+  microbit_image_preset_sun: 'sol', // ai
+  microbit_image_picture_menu: 'dibujos', // ai
   ui_slider:
     'control deslizante UI %1 de %2 a %3 por defecto %4 en x: %5 y: %6\ncolor: %7 fondo: %8 %9', // human
 
@@ -557,6 +569,8 @@ export default {
     'Ejecuta los bloques dentro cuando se desencadena un evento micro:bit especificado.', // human
   add_microbit_tooltip:
     'Conecta un micro:bit y haz referencia a él con esta variable. Haz clic en el icono de estado para conectar un micro:bit por USB. Los micro:bit desenchufados envían eventos por radio a través de cualquier micro:bit enchufado en el mismo canal.', // ai
+  microbit_show_image_tooltip:
+    'Muestra una imagen en la pantalla LED de un micro:bit conectado por USB. Haz clic en la imagen para editarla.\nPalabra clave: leds', // ai
   ui_slider_tooltip:
     'Añade un control deslizante 2D en la UI y almacena su referencia en una variable.', // human
 

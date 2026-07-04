@@ -39,4 +39,25 @@ export const flockMicrobit = {
       forcePush: true,
     });
   },
+
+  /**
+   * Show a 5×5 LED image on a micro:bit. Emitted by the microbit_show_image
+   * block. `deviceName` "" means every tethered board; the pattern is 25
+   * brightness digits (0–9), row-major from the top-left. Untethered devices
+   * are a silent no-op — images can only be sent over USB.
+   */
+  microbitShowImage(deviceName, pattern) {
+    if (typeof deviceName !== "string") {
+      console.warn("microbitShowImage: deviceName must be a string");
+      return;
+    }
+    if (typeof pattern !== "string") {
+      console.warn("microbitShowImage: pattern must be a string");
+      return;
+    }
+    getMicrobitManager().showImage(
+      deviceName === "" ? null : deviceName,
+      pattern,
+    );
+  },
 };

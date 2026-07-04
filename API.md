@@ -610,6 +610,37 @@ Broadcasts a custom event.
 
 Sets up collision/trigger detection for a mesh.
 
+### micro:bit
+
+#### `addMicrobit(variableName, channel)`
+
+Registers a micro:bit variable and sets its radio channel.
+
+**Parameters:**
+
+- `variableName` (string): Name that identifies this micro:bit in the project
+- `channel` (number, default: 1): Radio channel, an integer from 0 to 255
+
+#### `onMicrobitEvent(variableName, eventChar, callback)`
+
+Registers a handler for a micro:bit input event (buttons, pins, gestures) from the named device.
+
+#### `microbitShowImage(deviceName, pattern)`
+
+Shows a 5×5 image on a micro:bit's LED display. The micro:bit must be connected over USB — sending to an unplugged device does nothing.
+
+**Parameters:**
+
+- `deviceName` (string): The micro:bit variable to send to, or `""` for every USB-connected micro:bit
+- `pattern` (string): 25 brightness digits (`0`–`9`), one per LED, row-major from the top-left. The show-image block sends only `0` (off) and `9` (on)
+
+**Example:**
+
+```javascript
+// A sun on every plugged-in micro:bit
+microbitShowImage("", "9090909990999990999090909");
+```
+
 ## Examples
 
 For a complete working example, see [example.html](example.html) in the repository, which demonstrates a full Flock XR application with character movement, physics, and camera controls.

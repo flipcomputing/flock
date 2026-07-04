@@ -5,6 +5,7 @@ import {
   BoardState,
   setMicrobitManagerForTests,
 } from "../../microbit/manager.js";
+import { PROTOCOL_VERSION } from '../../microbit/protocol.js';
 import { flockMicrobit } from "../../api/microbit.js";
 
 // A fake usbTransport.js: the test drives serial lines in and records lines
@@ -77,7 +78,7 @@ function respondingTransport(deviceId, options = {}) {
   return new FakeTransport({
     ...options,
     onWrite: (line, transport) => {
-      if (line === "P\n") transport.emitLine(`HELLO flock 1 ${deviceId}`);
+      if (line === 'P\n') transport.emitLine(`HELLO flock ${PROTOCOL_VERSION} ${deviceId}`);
     },
   });
 }
@@ -199,7 +200,7 @@ export function runMicrobitManagerTests() {
         const transport = new FakeTransport({
           onWrite: (line, t) => {
             if (line === "P\n" && t.flashed.length > 0) {
-              t.emitLine("HELLO flock 1 222");
+              t.emitLine(`HELLO flock ${PROTOCOL_VERSION} 222`);
             }
           },
         });
@@ -223,7 +224,7 @@ export function runMicrobitManagerTests() {
         transport.flash = async function (hexText, onProgress) {
           this.flashed.push(hexText);
           onProgress?.(100);
-          this.emitLine("HELLO flock 1 222"); // boot announcement
+          this.emitLine(`HELLO flock ${PROTOCOL_VERSION} 222`); // boot announcement
         };
         const manager = makeManager({ transports: [transport] });
         manager.confirmFlash = () => Promise.resolve(true);
@@ -243,7 +244,7 @@ export function runMicrobitManagerTests() {
         const transport = new FakeTransport({
           onWrite: (line, t) => {
             if (line !== "P\n" || bootedAt === null) return;
-            if (Date.now() >= bootedAt) t.emitLine("HELLO flock 1 222");
+            if (Date.now() >= bootedAt) t.emitLine(`HELLO flock ${PROTOCOL_VERSION} 222`);
           },
         });
         transport.flash = async function (hexText) {
@@ -268,7 +269,7 @@ export function runMicrobitManagerTests() {
         const transport = new FakeTransport({
           onWrite: (line, t) => {
             if (line === "P\n" && t.flashed.length > 0) {
-              t.emitLine("HELLO flock 1 222");
+              t.emitLine(`HELLO flock ${PROTOCOL_VERSION} 222`);
             }
           },
         });
@@ -289,7 +290,9 @@ export function runMicrobitManagerTests() {
           onWrite: (line, t) => {
             if (line !== "P\n") return;
             t.emitLine(
-              t.flashed.length > 0 ? "HELLO flock 1 222" : "HELLO flock 0 222",
+              t.flashed.length > 0
+                ? `HELLO flock ${PROTOCOL_VERSION} 222`
+                : `HELLO flock ${PROTOCOL_VERSION - 1} 222`
             );
           },
         });
@@ -524,6 +527,128 @@ export function runMicrobitManagerTests() {
         await manager.bindFromPicker("microbit1");
         expect(manager.hasTetheredOnChannel(7)).to.equal(true);
         expect(manager.hasTetheredOnChannel(8)).to.equal(false);
+      });
+    });
+
+    describe('showImage', function () {
+      const SUN = '9090909990999990999090909';
+      // One short line per LED row — a single 25-digit line overflows the
+      // firmware's <20-byte serial receive buffer.
+      const SUN_LINES = [
+        'I:090909\n',
+        'I:109990\n',
+        'I:299999\n',
+        'I:309990\n',
+        'I:490909\n',
+      ];
+
+      it("writes the five row lines to the named variable's tethered session", async function () {
+        const transport = respondingTransport('111');
+        const manager = makeManager({ transports: [transport] });
+        await manager.bindFromPicker('microbit1');
+        transport.written.length = 0;
+
+        manager.showImage('microbit1', SUN);
+        await sleep(0); // rows are written sequentially (awaited)
+        expect(transport.written).to.deep.equal(SUN_LINES);
+      });
+
+      it('logs each outgoing row line when microbitDebug is enabled', async function () {
+        const transport = respondingTransport('111');
+        const manager = makeManager({ transports: [transport] });
+        await manager.bindFromPicker('microbit1');
+        transport.written.length = 0;
+
+        const debugCalls = [];
+        const originalDebug = console.debug;
+        globalThis.__microbitDebug = true;
+        console.debug = (...args) => debugCalls.push(args);
+        try {
+          manager.showImage('microbit1', SUN);
+          await sleep(0);
+          expect(transport.written).to.deep.equal(SUN_LINES);
+          for (const line of SUN_LINES) {
+            expect(debugCalls).to.deep.include([
+              'micro:bit:',
+              'write:',
+              line.trimEnd(),
+            ]);
+          }
+        } finally {
+          console.debug = originalDebug;
+          delete globalThis.__microbitDebug;
+        }
+      });
+
+      it('"any" fans out to every tethered board', async function () {
+        const t1 = respondingTransport('111');
+        const t2 = respondingTransport('333');
+        const manager = makeManager({ transports: [t1, t2] });
+        await manager.bindFromPicker('microbit1');
+        await manager.bindFromPicker('microbit2');
+        t1.written.length = 0;
+        t2.written.length = 0;
+
+        manager.showImage(null, SUN);
+        await sleep(0);
+        expect(t1.written).to.deep.equal(SUN_LINES);
+        expect(t2.written).to.deep.equal(SUN_LINES);
+      });
+
+      it('is a silent no-op for an untethered device', async function () {
+        const transport = respondingTransport('111');
+        const manager = makeManager({ transports: [transport] });
+        await manager.bindFromPicker('microbit1');
+        transport.written.length = 0;
+
+        manager.showImage('microbit9', SUN); // no such tethered variable
+        manager.showImage('microbit1', SUN);
+        await sleep(0);
+        expect(transport.written).to.deep.equal(SUN_LINES);
+      });
+
+      it('drops the session and stops writing when a row write fails', async function () {
+        const transport = respondingTransport('111');
+        const manager = makeManager({ transports: [transport] });
+        await manager.bindFromPicker('microbit1');
+        let writes = 0;
+        transport.writeLine = async () => {
+          writes++;
+          throw new Error('gone');
+        };
+
+        manager.showImage('microbit1', SUN);
+        await sleep(0); // the drop happens in the write's rejection handler
+        expect(writes).to.equal(1); // remaining rows are not attempted
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.UNBOUND);
+      });
+
+      it('microbitShowImage validates its arguments', async function () {
+        const transport = respondingTransport('111');
+        const manager = makeManager({ transports: [transport] });
+        setMicrobitManagerForTests(manager);
+        await manager.bindFromPicker('microbit1');
+        transport.written.length = 0;
+
+        const warnings = [];
+        const originalWarn = console.warn;
+        console.warn = (message) => warnings.push(message);
+        try {
+          flockMicrobit.microbitShowImage(42, SUN);
+          flockMicrobit.microbitShowImage('microbit1', 42);
+          await sleep(0);
+          expect(transport.written).to.deep.equal([]);
+          expect(warnings).to.deep.equal([
+            'microbitShowImage: deviceName must be a string',
+            'microbitShowImage: pattern must be a string',
+          ]);
+
+          flockMicrobit.microbitShowImage('', SUN); // "" = any
+          await sleep(0);
+          expect(transport.written).to.deep.equal(SUN_LINES);
+        } finally {
+          console.warn = originalWarn;
+        }
       });
     });
 

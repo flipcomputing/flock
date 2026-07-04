@@ -607,6 +607,11 @@ const toolboxSceneXR = {
       type: "export_mesh",
       keyword: "export",
     },
+    {
+      kind: "block",
+      type: "microbit_show_image",
+      keyword: "leds",
+    },
     /*{
                         kind: "block",
                         type: "play_rumble_pattern",
@@ -2461,9 +2466,11 @@ const toolboxSensing = {
       },
     },
     {
+      // Keyword lookup is exact-match, first-wins, so this must not reuse
+      // add_microbit's "microbit".
       kind: "block",
       type: "microbit_input",
-      keyword: "microbit",
+      keyword: "microbitinput",
     },
   ],
 };

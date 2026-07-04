@@ -159,4 +159,11 @@ export function registerSensingGenerators(javascriptGenerator) {
     }
     return `onMicrobitEvent(${JSON.stringify(deviceName)}, "${event}", async () => {${statements_do}});\n`;
   };
+
+  // Show an image on a micro:bit's LED display ("" = every tethered board)
+  javascriptGenerator.forBlock['microbit_show_image'] = function (block) {
+    const deviceName = getMicrobitDeviceName(block);
+    const pattern = block.getFieldValue('IMAGE') ?? '';
+    return `microbitShowImage(${JSON.stringify(deviceName ?? '')}, ${JSON.stringify(pattern)});\n`;
+  };
 }

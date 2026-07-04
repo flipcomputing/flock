@@ -6,8 +6,18 @@
 // ignored in both directions):
 //   → board    P               probe; board replies HELLO and becomes tethered
 //   → board    G:<n>           set radio channel (persisted on the board)
-//   → board    S:<text>        scroll text on the LEDs (≤ 20 ASCII chars)
-//   → browser  HELLO flock 1 <deviceId>   on boot and on probe
+//   → board    S:<text>        scroll text on the LEDs (≤ 16 ASCII chars)
+//   → board    I:<r><5 digits> show one LED image row: row index (0–4, top
+//                              first) then one brightness digit (0–9) per
+//                              LED, left to right. A full image is 5 lines.
+//   → browser  HELLO flock 3 <deviceId>   on boot and on probe
+//
+// Every browser→board line must fit the firmware's serial receive buffer,
+// measured at 19 bytes on real hardware (the stock ~20-byte ring; MakeCode's
+// setRxBufferSize did not take effect). An overlong line loses its newline
+// and wedges the buffer until the board is power-cycled. That is why images
+// travel as five short row lines and scroll text is capped at 16 characters
+// ("S:" + 16 + newline = 19).
 //   → browser  E:<code>        the tethered board's own event
 //   → browser  R:<deviceId>:<seq>:<code>  relayed radio event (HB = heartbeat)
 //
@@ -15,9 +25,10 @@
 // event ids the microbit_input block has always used, so block XML and
 // generated code are unchanged.
 
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 3;
 export const HEARTBEAT_CODE = "HB";
-export const MAX_SCROLL_TEXT_LENGTH = 20;
+export const MAX_SCROLL_TEXT_LENGTH = 16;
+export const MICROBIT_IMAGE_LENGTH = 25;
 
 // Wire code → microbit_input event char.
 export const EVENT_CODE_TO_CHAR = Object.freeze({
@@ -134,8 +145,8 @@ export function serialiseChannel(channel) {
 
 /**
  * Browser→board scroll-text line. Non-ASCII characters are dropped and the
- * text is truncated to MAX_SCROLL_TEXT_LENGTH so it always fits the firmware's
- * receive buffer.
+ * text is truncated to MAX_SCROLL_TEXT_LENGTH so the line (with its "S:"
+ * prefix and newline) always fits the firmware's 19-byte receive buffer.
  */
 export function serialiseScrollText(text) {
   const ascii = String(text)
@@ -143,6 +154,33 @@ export function serialiseScrollText(text) {
     .replace(/[^\x20-\x7e]/g, "")
     .slice(0, MAX_SCROLL_TEXT_LENGTH);
   return `S:${ascii}\n`;
+}
+
+/**
+ * Normalise an LED image pattern to exactly MICROBIT_IMAGE_LENGTH brightness
+ * digits, row-major from the top-left: non-digit characters become 0, short
+ * input is padded with 0 and long input is truncated. Defensive against any
+ * input, same style as serialiseScrollText.
+ */
+export function normaliseImagePattern(pattern) {
+  return [...String(pattern ?? "")]
+    .map((char) => (char >= "0" && char <= "9" ? char : "0"))
+    .join("")
+    .padEnd(MICROBIT_IMAGE_LENGTH, "0")
+    .slice(0, MICROBIT_IMAGE_LENGTH);
+}
+
+/**
+ * Browser→board image lines: one 9-byte line per LED row (5 lines per
+ * image), each short enough for the firmware's receive buffer.
+ */
+export function serialiseImageRows(pattern) {
+  const digits = normaliseImagePattern(pattern);
+  const lines = [];
+  for (let row = 0; row < 5; row++) {
+    lines.push(`I:${row}${digits.slice(row * 5, row * 5 + 5)}\n`);
+  }
+  return lines;
 }
 
 // The firmware embeds "FLKCH:<3 digits>;" and reads its boot radio channel
