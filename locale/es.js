@@ -285,6 +285,9 @@ export default {
   microbit_show_image: 'micro:bit %1 mostrar %2', // ai
   microbit_show_image_untethered_warning:
     'Este micro:bit no está conectado por USB, así que la imagen no se puede mostrar. Conecta el micro:bit para mostrar imágenes.', // ai
+  microbit_scroll_text: 'micro:bit %1 desplazar texto %2', // ai
+  microbit_scroll_text_untethered_warning:
+    'Este micro:bit no está conectado por USB, así que el texto no se puede desplazar. Conecta el micro:bit para desplazar texto.', // ai
   microbit_image_field_label: 'imagen LED — haz clic para editar', // ai
   microbit_image_grid_label: 'cuadrícula LED: las flechas mueven, espacio alterna', // ai
   microbit_image_cell_label: 'fila %1, columna %2, %3', // ai
@@ -571,6 +574,8 @@ export default {
     'Conecta un micro:bit y haz referencia a él con esta variable. Haz clic en el icono de estado para conectar un micro:bit por USB. Los micro:bit desenchufados envían eventos por radio a través de cualquier micro:bit enchufado en el mismo canal.', // ai
   microbit_show_image_tooltip:
     'Muestra una imagen en la pantalla LED de un micro:bit conectado por USB. Haz clic en la imagen para editarla.\nPalabra clave: leds', // ai
+  microbit_scroll_text_tooltip:
+    'Desplaza un texto por la pantalla LED de un micro:bit conectado por USB. Los textos largos se recortan a 16 caracteres.\nPalabra clave: scroll', // ai
   ui_slider_tooltip:
     'Añade un control deslizante 2D en la UI y almacena su referencia en una variable.', // human
 

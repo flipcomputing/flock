@@ -612,6 +612,21 @@ const toolboxSceneXR = {
       type: "microbit_show_image",
       keyword: "leds",
     },
+    {
+      kind: "block",
+      type: "microbit_scroll_text",
+      keyword: "scroll",
+      inputs: {
+        TEXT: {
+          shadow: {
+            type: "text",
+            fields: {
+              TEXT: "Hello",
+            },
+          },
+        },
+      },
+    },
     /*{
                         kind: "block",
                         type: "play_rumble_pattern",

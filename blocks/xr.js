@@ -13,6 +13,26 @@ import {
 } from "./sensing.js";
 import "./fieldMicrobitImage.js"; // registers field_microbit_image
 
+// Shared by the micro:bit display blocks (show image / scroll text): keep
+// the device menu in sync with variable renames/deletes and the
+// untethered-device warning current.
+function wireMicrobitDeviceBlock(block) {
+  syncMicrobitDeviceField(block);
+  block.setOnChange((changeEvent) => {
+    if (
+      changeEvent.type === Blockly.Events.VAR_RENAME ||
+      changeEvent.type === Blockly.Events.VAR_DELETE
+    ) {
+      syncMicrobitDeviceField(block);
+    }
+    if (isMicrobitRefreshEvent(changeEvent)) {
+      // Keeps the untethered-device warning current; the manager's
+      // status listener covers connect/disconnect transitions.
+      refreshMicrobitBlocks(block.workspace);
+    }
+  });
+}
+
 export function defineXRBlocks() {
   Blockly.Blocks["microbit_show_image"] = {
     init: function () {
@@ -38,21 +58,35 @@ export function defineXRBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle("scene_blocks");
+      wireMicrobitDeviceBlock(this);
+    },
+  };
 
-      syncMicrobitDeviceField(this);
-      this.setOnChange((changeEvent) => {
-        if (
-          changeEvent.type === Blockly.Events.VAR_RENAME ||
-          changeEvent.type === Blockly.Events.VAR_DELETE
-        ) {
-          syncMicrobitDeviceField(this);
-        }
-        if (isMicrobitRefreshEvent(changeEvent)) {
-          // Keeps the untethered-device warning current; the manager's
-          // status listener covers connect/disconnect transitions.
-          refreshMicrobitBlocks(this.workspace);
-        }
+  Blockly.Blocks["microbit_scroll_text"] = {
+    init: function () {
+      this.jsonInit({
+        type: "microbit_scroll_text",
+        message0: translate("microbit_scroll_text"),
+        args0: [
+          {
+            type: "field_microbit_device",
+            name: "DEVICE",
+          },
+          {
+            type: "input_value",
+            name: "TEXT",
+            check: "String",
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Scene"],
+        tooltip: getTooltip("microbit_scroll_text"),
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle("scene_blocks");
+      wireMicrobitDeviceBlock(this);
     },
   };
 

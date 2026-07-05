@@ -166,4 +166,12 @@ export function registerSensingGenerators(javascriptGenerator) {
     const pattern = block.getFieldValue('IMAGE') ?? '';
     return `microbitShowImage(${JSON.stringify(deviceName ?? '')}, ${JSON.stringify(pattern)});\n`;
   };
+
+  // Scroll text across a micro:bit's LED display ("" = every tethered board)
+  javascriptGenerator.forBlock['microbit_scroll_text'] = function (block) {
+    const deviceName = getMicrobitDeviceName(block);
+    const text =
+      javascriptGenerator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_NONE) || "''";
+    return `microbitScrollText(${JSON.stringify(deviceName ?? '')}, ${text});\n`;
+  };
 }

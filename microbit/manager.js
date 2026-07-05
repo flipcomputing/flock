@@ -215,44 +215,61 @@ export class MicrobitManager {
     if (forcePush || previous !== next) {
       const session = this._tetheredSessionFor(variableName);
       if (session) {
-        session.transport.writeLine(serialiseChannel(next)).catch(() => this._dropSession(session));
+        this._writeLines(session, [serialiseChannel(next)]);
       }
     }
     if (previous !== next) this._notifyStatus();
   }
 
-  /** Write the image's five row lines to one session in order. Sequential
-   * (awaited) writes give the firmware a few ms to drain each short line
-   * before the next arrives — its receive buffer holds under 20 bytes. */
-  async _writeImageRows(session, lines) {
-    try {
-      for (const line of lines) {
-        debugLog('write:', line.trimEnd());
-        await session.transport.writeLine(line);
-      }
-    } catch (error) {
-      debugLog('image write failed:', error);
-      this._dropSession(session);
-    }
+  /** Queue lines onto one session's write chain — the single write path for
+   * a connected session (display, channel, name scroll; only the awaited
+   * pre-connect probe writes directly). Writes are sequential (awaited) so
+   * the firmware can drain each short line before the next arrives — its
+   * receive buffer holds under 20 bytes — and the per-session chain keeps
+   * concurrent calls (e.g. two images) from interleaving their lines on the
+   * wire. A failed write drops the session and abandons that call's
+   * remaining lines. */
+  _writeLines(session, lines) {
+    session.writeChain = session.writeChain
+      .then(async () => {
+        for (const line of lines) {
+          debugLog('write:', line.trimEnd());
+          await session.transport.writeLine(line);
+        }
+      })
+      .catch((error) => {
+        debugLog('display write failed:', error);
+        this._dropSession(session);
+      });
+    return session.writeChain;
   }
 
-  /**
-   * Show an LED image on a tethered board. `variableName` null means "any":
-   * the image goes to every tethered board. An untethered (or unknown)
-   * device is a silent no-op — images can only be pushed over USB.
-   */
-  showImage(variableName, pattern) {
-    const lines = serialiseImageRows(pattern);
+  /** Send display lines to the named variable's tethered board, or to every
+   * tethered board when `variableName` is null ("any"). An untethered (or
+   * unknown) device is a silent no-op — display output only goes over USB. */
+  _sendDisplayLines(variableName, lines) {
     if (variableName === null) {
       for (const session of [...this._sessions]) {
         if (session.state !== BoardState.CONNECTED) continue;
-        this._writeImageRows(session, lines);
+        this._writeLines(session, lines);
       }
       return;
     }
     const session = this._tetheredSessionFor(variableName);
     if (!session) return;
-    this._writeImageRows(session, lines);
+    this._writeLines(session, lines);
+  }
+
+  /** Show an LED image on a tethered board (see _sendDisplayLines for the
+   * targeting rules). */
+  showImage(variableName, pattern) {
+    this._sendDisplayLines(variableName, serialiseImageRows(pattern));
+  }
+
+  /** Scroll text across a tethered board's display (see _sendDisplayLines
+   * for the targeting rules). */
+  scrollText(variableName, text) {
+    this._sendDisplayLines(variableName, [serialiseScrollText(text)]);
   }
 
   // ------------------------------------------------------------ subscription
@@ -409,6 +426,7 @@ export class MicrobitManager {
       flashProgress: undefined,
       helloWaiters: [],
       lastHello: null,
+      writeChain: Promise.resolve(),
     };
     this._sessions.add(session);
     this._notifyStatus();
@@ -438,7 +456,7 @@ export class MicrobitManager {
         }
       }
 
-      this._finishTethered(session, hello, { bindTo: variableName });
+      await this._finishTethered(session, hello, { bindTo: variableName });
     } catch (error) {
       await this._dropSession(session, { disconnect: true });
       throw error;
@@ -517,6 +535,7 @@ export class MicrobitManager {
       flashProgress: undefined,
       helloWaiters: [],
       lastHello: null,
+      writeChain: Promise.resolve(),
     };
     this._sessions.add(session);
     try {
@@ -539,7 +558,7 @@ export class MicrobitManager {
         await this._dropSession(session, { disconnect: true });
         return;
       }
-      this._finishTethered(session, hello, { bindTo: null });
+      await this._finishTethered(session, hello, { bindTo: null });
     } catch {
       await this._dropSession(session, { disconnect: true });
     }
@@ -653,16 +672,18 @@ export class MicrobitManager {
     session.state = BoardState.CONNECTED;
 
     const variable = this._sessionVariable(session);
+    let setupWrites = Promise.resolve();
     if (variable !== null && this.variableExists(variable)) {
-      session.transport
-        .writeLine(serialiseChannel(this.getVariableChannel(variable)))
-        .catch(() => {});
-      if (bindTo) {
-        // The board scrolls its variable name so learners can tell boards apart.
-        session.transport.writeLine(serialiseScrollText(variable)).catch(() => {});
-      }
+      const lines = [serialiseChannel(this.getVariableChannel(variable))];
+      // The board scrolls its variable name so learners can tell boards apart.
+      if (bindTo) lines.push(serialiseScrollText(variable));
+      setupWrites = this._writeLines(session, lines);
     }
     this._notifyStatus();
+    // Resolves once the setup lines are on the wire (never rejects — a
+    // failed write drops the session inside the chain), so binding does not
+    // report done before them.
+    return setupWrites;
   }
 
   async _dropSession(session, { disconnect = false } = {}) {

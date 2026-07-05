@@ -210,6 +210,34 @@ export function runMicrobitGeneratorTests() {
       );
     });
 
+    it("microbit_scroll_text with a device variable generates microbitScrollText", function () {
+      const variable = workspace
+        .getVariableMap()
+        .createVariable("microbit1", "");
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: "microbit_scroll_text",
+          fields: { DEVICE: variable.getId() },
+          inputs: {
+            TEXT: { shadow: { type: "text", fields: { TEXT: "Hello" } } },
+          },
+        },
+        workspace,
+      );
+      expect(generate(block)).to.equal(
+        `microbitScrollText("microbit1", 'Hello');\n`,
+      );
+    });
+
+    it('microbit_scroll_text defaults to "any" (empty device) and empty text', function () {
+      const block = Blockly.serialization.blocks.append(
+        { type: "microbit_scroll_text" },
+        workspace,
+      );
+      expect(block.getFieldValue("DEVICE")).to.equal("__any__");
+      expect(generate(block)).to.equal(`microbitScrollText("", '');\n`);
+    });
+
     it("legacy XML (no DEVICE field) loads as \"any\" with unchanged output", function () {
       const xml =
         '<xml xmlns="https://developers.google.com/blockly/xml">' +

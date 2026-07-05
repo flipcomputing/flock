@@ -60,4 +60,26 @@ export const flockMicrobit = {
       pattern,
     );
   },
+
+  /**
+   * Scroll text across a micro:bit's LED display. Emitted by the
+   * microbit_scroll_text block. `deviceName` "" means every tethered board;
+   * numbers (e.g. from maths blocks) are stringified, and the protocol layer
+   * drops non-ASCII characters and truncates long text. Untethered devices
+   * are a silent no-op — text can only be sent over USB.
+   */
+  microbitScrollText(deviceName, text) {
+    if (typeof deviceName !== "string") {
+      console.warn("microbitScrollText: deviceName must be a string");
+      return;
+    }
+    if (typeof text !== "string" && typeof text !== "number") {
+      console.warn("microbitScrollText: text must be a string");
+      return;
+    }
+    getMicrobitManager().scrollText(
+      deviceName === "" ? null : deviceName,
+      String(text),
+    );
+  },
 };

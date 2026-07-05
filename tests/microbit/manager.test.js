@@ -502,12 +502,15 @@ export function runMicrobitManagerTests() {
         transport.written.length = 0;
 
         manager.setVariableChannel("microbit1", 5);
+        await sleep(0); // channel pushes go through the session write queue
         expect(transport.written).to.deep.equal(["G:5\n"]);
 
         manager.setVariableChannel("microbit1", 5);
+        await sleep(0);
         expect(transport.written).to.deep.equal(["G:5\n"]);
 
         manager.setVariableChannel("microbit1", 5, { forcePush: true });
+        await sleep(0);
         expect(transport.written).to.deep.equal(["G:5\n", "G:5\n"]);
       });
 
@@ -607,6 +610,23 @@ export function runMicrobitManagerTests() {
         expect(transport.written).to.deep.equal(SUN_LINES);
       });
 
+      it('queues concurrent display writes so their lines do not interleave', async function () {
+        const transport = respondingTransport('111');
+        const manager = makeManager({ transports: [transport] });
+        await manager.bindFromPicker('microbit1');
+        transport.written.length = 0;
+
+        manager.showImage('microbit1', SUN);
+        manager.scrollText('microbit1', 'Hi');
+        manager.showImage('microbit1', SUN);
+        await sleep(0);
+        expect(transport.written).to.deep.equal([
+          ...SUN_LINES,
+          'S:Hi\n',
+          ...SUN_LINES,
+        ]);
+      });
+
       it('drops the session and stops writing when a row write fails', async function () {
         const transport = respondingTransport('111');
         const manager = makeManager({ transports: [transport] });
@@ -646,6 +666,74 @@ export function runMicrobitManagerTests() {
           flockMicrobit.microbitShowImage('', SUN); // "" = any
           await sleep(0);
           expect(transport.written).to.deep.equal(SUN_LINES);
+        } finally {
+          console.warn = originalWarn;
+        }
+      });
+    });
+
+    describe('scrollText', function () {
+      it("writes the S: line to the named variable's tethered session", async function () {
+        const transport = respondingTransport('111');
+        const manager = makeManager({ transports: [transport] });
+        await manager.bindFromPicker('microbit1');
+        transport.written.length = 0;
+
+        manager.scrollText('microbit1', 'Hello');
+        await sleep(0);
+        expect(transport.written).to.deep.equal(['S:Hello\n']);
+      });
+
+      it('"any" fans out to every tethered board', async function () {
+        const t1 = respondingTransport('111');
+        const t2 = respondingTransport('333');
+        const manager = makeManager({ transports: [t1, t2] });
+        await manager.bindFromPicker('microbit1');
+        await manager.bindFromPicker('microbit2');
+        t1.written.length = 0;
+        t2.written.length = 0;
+
+        manager.scrollText(null, 'hi');
+        await sleep(0);
+        expect(t1.written).to.deep.equal(['S:hi\n']);
+        expect(t2.written).to.deep.equal(['S:hi\n']);
+      });
+
+      it('is a silent no-op for an untethered device', async function () {
+        const transport = respondingTransport('111');
+        const manager = makeManager({ transports: [transport] });
+        await manager.bindFromPicker('microbit1');
+        transport.written.length = 0;
+
+        manager.scrollText('microbit9', 'Hello'); // no such tethered variable
+        manager.scrollText('microbit1', 'Hello');
+        await sleep(0);
+        expect(transport.written).to.deep.equal(['S:Hello\n']);
+      });
+
+      it('microbitScrollText validates its arguments and stringifies numbers', async function () {
+        const transport = respondingTransport('111');
+        const manager = makeManager({ transports: [transport] });
+        setMicrobitManagerForTests(manager);
+        await manager.bindFromPicker('microbit1');
+        transport.written.length = 0;
+
+        const warnings = [];
+        const originalWarn = console.warn;
+        console.warn = (message) => warnings.push(message);
+        try {
+          flockMicrobit.microbitScrollText(42, 'Hello');
+          flockMicrobit.microbitScrollText('microbit1', { text: 'Hello' });
+          await sleep(0);
+          expect(transport.written).to.deep.equal([]);
+          expect(warnings).to.deep.equal([
+            'microbitScrollText: deviceName must be a string',
+            'microbitScrollText: text must be a string',
+          ]);
+
+          flockMicrobit.microbitScrollText('', 42); // "" = any, number ok
+          await sleep(0);
+          expect(transport.written).to.deep.equal(['S:42\n']);
         } finally {
           console.warn = originalWarn;
         }
