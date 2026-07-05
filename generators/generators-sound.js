@@ -12,7 +12,7 @@ export function registerSoundGenerators(javascriptGenerator) {
     );
 
     const meshNameField = block.getFieldValue("MESH_NAME");
-    const meshName = `"${meshNameField}"`;
+    const meshName = JSON.stringify(meshNameField ?? "__everywhere__");
 
     const themeName = block.getFieldValue("THEME_NAME");
 
@@ -46,7 +46,7 @@ export function registerSoundGenerators(javascriptGenerator) {
     );
 
     const meshNameField = block.getFieldValue("MESH_NAME");
-    const meshName = `"${meshNameField}"`; // Always quoted
+    const meshName = JSON.stringify(meshNameField ?? "__everywhere__");
 
     const soundName = block.getFieldValue("SOUND_NAME");
 
@@ -118,7 +118,7 @@ export function registerSoundGenerators(javascriptGenerator) {
   // Play music --------------------------------------------------
   javascriptGenerator.forBlock["play_tune_notes"] = function (block) {
     const meshNameField = block.getFieldValue("MESH_NAME");
-    const meshName = `"${meshNameField}"`;
+    const meshName = JSON.stringify(meshNameField ?? "__everywhere__");
 
     const notes =
       javascriptGenerator.valueToCode(
@@ -140,7 +140,7 @@ export function registerSoundGenerators(javascriptGenerator) {
   // Set music speed ---------------------------------------------
   javascriptGenerator.forBlock["set_music_speed"] = function (block) {
     const meshNameField = block.getFieldValue("MESH_NAME");
-    const meshName = `"${meshNameField}"`;
+    const meshName = JSON.stringify(meshNameField ?? "__everywhere__");
 
     const speed =
       javascriptGenerator.valueToCode(
@@ -314,7 +314,7 @@ export function registerSoundGenerators(javascriptGenerator) {
       ? meshDropdownField.getValue()
       : "__everywhere__";
 
-    const meshVariable = `"${meshValue}"`;
+    const meshVariable = JSON.stringify(meshValue ?? "__everywhere__");
 
     // Safely handle asyncMode - ensure it's not null
     const safeAsyncMode = asyncMode || "START";

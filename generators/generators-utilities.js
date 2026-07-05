@@ -105,7 +105,7 @@ export function createMesh(block, meshType, params) {
 
   const options = [...params];
 
-  return `${variableName} = create${meshType}("${meshId}", { ${options.join(", ")} });\n${doCode}`;
+  return `${variableName} = create${meshType}(${JSON.stringify(meshId)}, { ${options.join(", ")} });\n${doCode}`;
 }
 
 export function emitSafeIdentifierLiteral(code) {

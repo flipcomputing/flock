@@ -277,7 +277,7 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
 
   javascriptGenerator.forBlock["set_mesh_bpm"] = function (block) {
     const meshNameField = block.getFieldValue("MESH") || "__everywhere__";
-    const meshName = `"${meshNameField}"`; // Always quoted
+    const meshName = JSON.stringify(meshNameField);
 
     const bpm =
       javascriptGenerator.valueToCode(

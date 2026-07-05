@@ -511,7 +511,7 @@ export function registerTransformGenerators(javascriptGenerator) {
         javascriptGenerator.ORDER_ATOMIC,
       ) || "0";
     // Establish the attach action with bone name and offset
-    return `await attach(${meshToAttach}, ${targetMesh}, { boneName: "${boneName}", x: ${xOffset}, y: ${yOffset}, z: ${zOffset} });
+    return `await attach(${meshToAttach}, ${targetMesh}, { boneName: ${JSON.stringify(boneName ?? "")}, x: ${xOffset}, y: ${yOffset}, z: ${zOffset} });
         `;
   };
 
@@ -550,7 +550,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     meshBlockIdMap[meshId] = block.id;
 
     // Use helper function to merge the meshes
-    return `${resultVar} = await mergeMeshes("${meshId}", ${meshList});\n`;
+    return `${resultVar} = await mergeMeshes(${JSON.stringify(meshId)}, ${meshList});\n`;
   };
 
   // Add subtracted as object subtract list
@@ -576,7 +576,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     meshBlockIdMap[meshId] = block.id;
 
     // Use helper function to subtract meshes from the base mesh
-    return `${resultVar} = await subtractMeshes("${meshId}", ${baseMesh}, ${meshList});\n`;
+    return `${resultVar} = await subtractMeshes(${JSON.stringify(meshId)}, ${baseMesh}, ${meshList});\n`;
   };
 
   // Add intersection as intersect list
@@ -598,7 +598,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     meshBlockIdMap[meshId] = block.id;
 
     // Use helper function to intersect the meshes
-    return `${resultVar} = await intersectMeshes("${meshId}", ${meshList});\n`;
+    return `${resultVar} = await intersectMeshes(${JSON.stringify(meshId)}, ${meshList});\n`;
   };
 
   // Add hull as hull list
@@ -620,7 +620,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     meshBlockIdMap[meshId] = block.id;
 
     // Use helper function to create the hull
-    return `${resultVar} = await createHull("${meshId}", ${meshList});\n`;
+    return `${resultVar} = await createHull(${JSON.stringify(meshId)}, ${meshList});\n`;
   };
 
   // Used as an input inside set_pivot

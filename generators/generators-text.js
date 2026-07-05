@@ -421,7 +421,7 @@ export function registerTextGenerators(javascriptGenerator) {
             size: ${size},
             depth: ${depth},
             position: { x: ${x}, y: ${y}, z: ${z} },
-            modelId: '${meshId}'${doCode ? `,\n  callback: ${doCode}` : ""}
+            modelId: ${JSON.stringify(meshId)}${doCode ? `,\n  callback: ${doCode}` : ""}
           });\n`;
   };
 

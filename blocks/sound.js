@@ -136,6 +136,10 @@ class FieldAbcInput extends Blockly.FieldTextInput {
 // ABC notation parser and block generator for play_tune
 // ---------------------------------------------------------------------------
 
+// Cap pasted ABC size — every note becomes several workspace blocks, so an
+// oversized paste would freeze the tab creating them.
+const ABC_MAX_INPUT_LENGTH = 20000;
+
 const ABC_BASE_MIDI = { C: 60, D: 62, E: 64, F: 65, G: 67, A: 69, B: 71 };
 
 const ABC_KEY_ACCIDENTALS = {
@@ -185,7 +189,10 @@ function parseAbc(abcText) {
         const qm = v.match(/(\d+)$/);
         if (qm) bpm = parseInt(qm[1]);
       } else if (key === "K") {
-        keyAcc = ABC_KEY_ACCIDENTALS[v.split(" ")[0]] || {};
+        const keyName = v.split(" ")[0];
+        keyAcc = Object.hasOwn(ABC_KEY_ACCIDENTALS, keyName)
+          ? ABC_KEY_ACCIDENTALS[keyName]
+          : {};
       }
     } else {
       musicLines.push(t);
@@ -1290,6 +1297,11 @@ export function defineSoundBlocks() {
     },
 
     importAbc: function (abcText) {
+      if (abcText.length > ABC_MAX_INPUT_LENGTH) {
+        console.warn("[play_tune] ABC input too long, not importing:", abcText.length);
+        announceToScreenReader("tune too long to import");
+        return;
+      }
       const parsed = parseAbc(abcText);
       console.log("[play_tune] importing:", parsed.title, "sections:", parsed.sections.length, "bpm:", parsed.bpm);
 

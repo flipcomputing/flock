@@ -126,7 +126,7 @@ export function registerSceneGenerators(javascriptGenerator) {
 
     return `${variableName} = createModel({
                         modelName: '${modelName}',
-                        modelId: '${meshId}',
+                        modelId: ${JSON.stringify(meshId)},
                         scale: ${scale},
                         position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ""}
                 });\n`;
@@ -164,7 +164,7 @@ export function registerSceneGenerators(javascriptGenerator) {
 
     return `${variableName} = createCharacter({
                   modelName: '${modelName}',
-                  modelId: '${meshId}',
+                  modelId: ${JSON.stringify(meshId)},
                   scale: ${scale},
                   position: { x: ${x}, y: ${y}, z: ${z} },
                   colors: {
@@ -207,7 +207,7 @@ export function registerSceneGenerators(javascriptGenerator) {
 
     return `${variableName} = createObject({
                           modelName: '${modelName}',
-                          modelId: '${meshId}',
+                          modelId: ${JSON.stringify(meshId)},
                           color: ${color},
                           scale: ${scale},
                           position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ""}
@@ -241,7 +241,7 @@ export function registerSceneGenerators(javascriptGenerator) {
 
     return `${variableName} = createObject({
                         modelName: '${modelName}',
-                        modelId: '${meshId}',
+                        modelId: ${JSON.stringify(meshId)},
                         color: ${color},
                         scale: ${scale},
                         position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ""}
@@ -540,7 +540,7 @@ export function registerSceneGenerators(javascriptGenerator) {
 
     const options = `
             {
-                  emitterMesh: "${emitterMeshName}",
+                  emitterMesh: ${JSON.stringify(emitterMeshName)},
                   emitRate: ${emitRate},
                   colors: {
                     start: ${startColor},

@@ -40,7 +40,7 @@ export function registerAnimateGenerators(javascriptGenerator) {
   // Animation name
   javascriptGenerator.forBlock["animation_name"] = function (block) {
     const animationName = block.getFieldValue("ANIMATION_NAME");
-    return [`"${animationName}"`, javascriptGenerator.ORDER_ATOMIC];
+    return [JSON.stringify(animationName ?? ""), javascriptGenerator.ORDER_ATOMIC];
   };
 
   // Glide to coordinates
