@@ -21,6 +21,10 @@ import { makeMicrobitStatusIcon } from './blockIcons.js';
 import { getMicrobitManager, VariableStatus } from '../microbit/manager.js';
 import { showBanner } from '../ui/notifications.js';
 
+// Gamepad-only accessibility actions have no keyboard equivalent, so they're
+// excluded from the keyboard-facing action dropdowns below.
+const KEYBOARD_ACTIONS = ACTIONS.filter((a) => !a.startsWith("A11Y_"));
+
 const MICROBIT_STATUS_FIELD = 'STATUS';
 export const MICROBIT_ANY_DEVICE = '__any__';
 
@@ -322,7 +326,7 @@ export function defineSensingBlocks() {
           {
             type: "field_dropdown",
             name: "ACTION",
-            options: ACTIONS.map((a) => [getOption(`ACTION_${a}`), a]),
+            options: KEYBOARD_ACTIONS.map((a) => [getOption(`ACTION_${a}`), a]),
           },
         ],
         output: "Boolean",
@@ -343,7 +347,7 @@ export function defineSensingBlocks() {
           {
             type: "field_dropdown",
             name: "ACTION",
-            options: ACTIONS.map((a) => [getOption(`ACTION_${a}`), a]),
+            options: KEYBOARD_ACTIONS.map((a) => [getOption(`ACTION_${a}`), a]),
           },
           {
             type: "field_grid_dropdown",
