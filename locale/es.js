@@ -298,7 +298,7 @@ export default {
   microbit_image_preset_sun: 'sol', // ai
   microbit_image_picture_menu: 'dibujos', // ai
   ui_slider:
-    'control deslizante UI %1 de %2 a %3 por defecto %4 en x: %5 y: %6\ncolor: %7 fondo: %8 %9', // human
+    'control deslizante UI %1 de %2 a %3 por defecto %4 en x: %5 y: %6\ncolor: %7 en: %8 %9', // human
 
   // Custom block translations - Shapes blocks
   create_particle_effect:
@@ -331,10 +331,10 @@ export default {
   comment: '// %1', // human
   print_text: 'imprimir %1 por %2 segundos %3', // human
   subtitle: 'subtítulo %1 por %2 segundos', // ai
-  say: 'decir %1 por %2 s %3 \ntexto %4 en %5 alfa %6 tamaño %7 %8 %9', // human
-  ui_text: 'UI texto %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7', // human
-  ui_button: 'UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8', // human
-  ui_input: 'UI aporte %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8', // human
+  say: 'decir %1 por %2 s %3 \ntexto %4 en: %5 alfa %6 tamaño %7 %8 %9', // human
+  ui_text: 'UI texto %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7 en: %8 alfa %9', // human
+  ui_button: 'UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
+  ui_input: 'UI aporte %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
   describe: 'describir %1 como %2', // human
   create_3d_text:
     'añadir %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9', // human

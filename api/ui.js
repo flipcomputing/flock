@@ -45,7 +45,17 @@ export function setFlockReference(ref) {
 }
 
 export const flockUI = {
-  UIText({ text, x, y, fontSize, color, duration, id = null } = {}) {
+  UIText({
+    text,
+    x,
+    y,
+    fontSize,
+    color,
+    backgroundColor = '#ffffff',
+    alpha = 1,
+    duration,
+    id = null,
+  } = {}) {
     if (!flock.scene || !flock.GUI) return;
 
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
@@ -56,26 +66,49 @@ export const flockUI = {
     );
 
     const textBlockId = id || `textBlock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const bgId = `${textBlockId}_bg`;
 
     const resolvedX = Number(x || 0);
     const resolvedY = Number(y || 0);
+    const resolvedAlpha = isFinite(Number(alpha)) ? Math.min(Math.max(Number(alpha), 0), 1) : 1;
+    const paddingH = 12 * flock.displayScale;
+    const paddingV = 6 * flock.displayScale;
 
+    let bg = flock.scene.UITexture.getControlByName(bgId);
     let textBlock = flock.scene.UITexture.getControlByName(textBlockId);
 
-    if (!textBlock) {
+    if (!bg) {
+      bg = new flock.GUI.Rectangle(bgId);
+      bg.thickness = 0;
+      bg.cornerRadius = 4;
+      bg.adaptWidthToChildren = true;
+      bg.adaptHeightToChildren = true;
+      bg.isPointerBlocker = false;
+      flock.scene.UITexture.addControl(bg);
+
       textBlock = new flock.GUI.TextBlock(textBlockId);
       textBlock.name = textBlockId;
       textBlock.resizeToFit = true;
       textBlock.forceResizeWidth = true;
-      textBlock.paddingLeft = '0px';
-      textBlock.paddingRight = '0px';
-      flock.scene.UITexture.addControl(textBlock);
+      textBlock.paddingLeft = `${paddingH}px`;
+      textBlock.paddingRight = `${paddingH}px`;
+      textBlock.paddingTop = `${paddingV}px`;
+      textBlock.paddingBottom = `${paddingV}px`;
+      bg.addControl(textBlock);
 
       textBlock.textWrapping = false;
       textBlock.isPointerBlocker = false;
       textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
       textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+
+      // Hiding/showing the text block (e.g. via flock.hide/flock.show, which
+      // look up the control by textBlockId) should hide/show its background too.
+      textBlock.onIsVisibleChangedObservable.add((visible) => {
+        bg.isVisible = visible;
+      });
     }
+
+    bg.background = flock.hexToRgba(backgroundColor || '#ffffff', resolvedAlpha);
 
     textBlock.text = text;
     textBlock.color = color || 'white';
@@ -85,17 +118,17 @@ export const flockUI = {
     textBlock.fontSize = px;
     const linePx = Math.max(1, Math.round(px * 1.2));
     textBlock.lineHeight = `${linePx}px`;
-    textBlock.height = `${Math.max(linePx, px + 4)}px`;
+    textBlock.height = `${Math.max(linePx, px + 4) + paddingV * 2}px`;
 
-    textBlock.left = `${resolvedX}px`;
-    textBlock.top = `${resolvedY}px`;
+    bg.left = `${resolvedX}px`;
+    bg.top = `${resolvedY}px`;
 
-    textBlock.horizontalAlignment =
+    bg.horizontalAlignment =
       resolvedX < 0
         ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
         : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 
-    textBlock.verticalAlignment =
+    bg.verticalAlignment =
       resolvedY < 0
         ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
         : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
@@ -103,27 +136,27 @@ export const flockUI = {
     textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 
     if (document.fonts && document.fonts.status !== 'loaded') {
-      textBlock.alpha = 0;
+      bg.alpha = 0;
       document.fonts.ready.then(() => {
-        if (!textBlock.isDisposed) {
-          textBlock._markAsDirty();
-          textBlock.alpha = 1;
+        if (!bg.isDisposed) {
+          bg._markAsDirty();
+          bg.alpha = 1;
         }
       });
     } else {
-      Promise.resolve().then(() => textBlock._markAsDirty());
+      Promise.resolve().then(() => bg._markAsDirty());
     }
 
     registerUIText(textBlockId, textBlock.text, {
       x: resolvedX,
       y: resolvedY,
       w: 200,
-      h: Math.max(linePx, px + 4),
+      h: Math.max(linePx, px + 4) + paddingV * 2,
     });
 
     if (duration > 0) {
       setTimeout(() => {
-        const ctl = flock.scene.UITexture.getControlByName(textBlockId);
+        const ctl = flock.scene.UITexture.getControlByName(bgId);
         if (ctl) {
           ctl.dispose();
         }

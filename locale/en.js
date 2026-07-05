@@ -301,7 +301,7 @@ export default {
   microbit_image_preset_full: 'full',
   microbit_image_preset_sun: 'sun',
   microbit_image_picture_menu: 'pictures',
-  ui_slider: 'ui slider %1 from %2 to %3 default %4 at x: %5 y: %6\ncolor: %7 background: %8 %9',
+  ui_slider: 'ui slider %1 from %2 to %3 default %4 at x: %5 y: %6\ncolor: %7 on: %8 %9',
 
   // Custom block translations - Shapes blocks
   create_particle_effect:
@@ -338,10 +338,10 @@ export default {
   comment: '// %1',
   print_text: 'print %1 for %2 seconds %3',
   subtitle: 'subtitle %1 for %2 seconds',
-  say: 'say %1 for %2 s %3 \ntext: %4 on %5 alpha: %6 size: %7 %8 %9',
-  ui_text: 'ui text %1 %2 at x: %3 y: %4\nsize: %5 for %6 seconds color: %7',
-  ui_button: 'ui button %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 background: %8',
-  ui_input: 'ui input %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 background: %8',
+  say: 'say %1 for %2 s %3 \ntext: %4 on: %5 alpha: %6 size: %7 %8 %9',
+  ui_text: 'ui text %1 %2 at x: %3 y: %4\nsize: %5 for %6 seconds color: %7 on: %8 alpha: %9',
+  ui_button: 'ui button %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 on: %8',
+  ui_input: 'ui input %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 on: %8',
   describe: 'describe %1 as %2',
   create_3d_text: 'add %1 3D text: %2 font: %3 size: %4 color: %5\ndepth: %6 x: %7 y: %8 z: %9 ',
 

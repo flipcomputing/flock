@@ -33,14 +33,34 @@ export function runUITests(flock) {
           id: "myText",
         });
         const textBlock = flock.scene.UITexture.getControlByName(textId);
+        const bg = flock.scene.UITexture.getControlByName(`${textId}_bg`);
 
         expect(textBlock).to.exist;
         expect(textBlock.text).to.equal("Hello, World!");
         expect(textBlock.color).to.equal("red");
         expect(textBlock.fontSize).to.equal(`${24 * flock.displayScale}px`);
-        expect(textBlock.left).to.equal("100px");
-        expect(textBlock.top).to.equal("100px");
         expect(textBlock.isVisible).to.be.true;
+
+        expect(bg).to.exist;
+        expect(bg.left).to.equal("100px");
+        expect(bg.top).to.equal("100px");
+        // Defaults to an opaque white background.
+        expect(bg.background).to.equal("rgba(255, 255, 255, 1)");
+      });
+
+      it("should apply a custom background color and alpha", function () {
+        const textId = flock.UIText({
+          text: "Hello, World!",
+          x: 100,
+          y: 100,
+          duration: 0,
+          backgroundColor: "#0000ff",
+          alpha: 0.5,
+          id: "myText",
+        });
+        const bg = flock.scene.UITexture.getControlByName(`${textId}_bg`);
+
+        expect(bg.background).to.equal("rgba(0, 0, 255, 0.5)");
       });
 
       it("should reuse and update an existing text block", function () {
@@ -64,12 +84,13 @@ export function runUITests(flock) {
           id: "myText",
         });
         const textBlock = flock.scene.UITexture.getControlByName("myText");
+        const bg = flock.scene.UITexture.getControlByName("myText_bg");
 
         expect(textBlock.text).to.equal("Updated Text!");
         expect(textBlock.color).to.equal("blue");
         expect(textBlock.fontSize).to.equal(`${30 * flock.displayScale}px`);
-        expect(textBlock.left).to.equal("200px");
-        expect(textBlock.top).to.equal("200px");
+        expect(bg.left).to.equal("200px");
+        expect(bg.top).to.equal("200px");
         expect(textBlock.isVisible).to.be.true;
       });
 
@@ -150,13 +171,14 @@ export function runUITests(flock) {
         }
 
         const textBlock = flock.scene.UITexture.getControlByName(textId);
+        const bg = flock.scene.UITexture.getControlByName(`${textId}_bg`);
 
         expect(textBlock).to.exist;
         expect(textBlock.text).to.equal(lastText);
         expect(textBlock.color).to.equal(lastColor);
         expect(textBlock.fontSize).to.equal(`${lastFontSize * flock.displayScale}px`);
-        expect(textBlock.left).to.equal(`${lastX}px`);
-        expect(textBlock.top).to.equal(`${lastY}px`);
+        expect(bg.left).to.equal(`${lastX}px`);
+        expect(bg.top).to.equal(`${lastY}px`);
         expect(textBlock.isVisible).to.be.true;
       });
     });

@@ -3279,6 +3279,24 @@
                                 "COLOR": "#ffffff"
                               }
                             }
+                          },
+                          "BACKGROUND_COLOR": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "35S8!U/f#Ij0h.DOOyAh",
+                              "fields": {
+                                "COLOR": "#ffffff"
+                              }
+                            }
+                          },
+                          "ALPHA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "$m/Spzy]N*.ZHH/.I8N@",
+                              "fields": {
+                                "NUM": 0
+                              }
+                            }
                           }
                         },
                         "next": {

@@ -2674,6 +2674,22 @@ const toolboxText = {
             },
           },
         },
+        BACKGROUND_COLOR: {
+          shadow: {
+            type: "colour",
+            fields: {
+              COLOR: "#ffffff",
+            },
+          },
+        },
+        ALPHA: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 1,
+            },
+          },
+        },
       },
     },
     {

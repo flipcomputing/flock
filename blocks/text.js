@@ -237,6 +237,17 @@ export function defineTextBlocks() {
             name: "COLOR",
             check: "Colour",
           },
+          {
+            type: "input_value",
+            name: "BACKGROUND_COLOR",
+            colour: "#ffffff",
+            check: "Colour",
+          },
+          {
+            type: "input_value",
+            name: "ALPHA",
+            check: "Number",
+          },
         ],
         inputsInline: true,
         previousStatement: null,
