@@ -10,6 +10,8 @@ import {
   configureRotationGizmo,
   configureScaleGizmo,
   viewMeshWithCamera,
+  toggleGizmo,
+  enableGizmos,
 } from '../ui/gizmos.js';
 
 export function runGizmoTests(flock) {
@@ -252,6 +254,64 @@ export function runGizmoTests(flock) {
       });
     });
 
+    // ─── toggleGizmo ─────────────────────────────────────────────────────────
+
+    describe('toggleGizmo', function () {
+      let buttons;
+
+      function addButton(id, { active = false } = {}) {
+        const btn = document.createElement('button');
+        btn.id = id;
+        btn.className = active ? 'gizmo-button active' : 'gizmo-button';
+        document.body.appendChild(btn);
+        buttons.push(btn);
+        return btn;
+      }
+
+      beforeEach(function () {
+        buttons = [];
+      });
+
+      afterEach(function () {
+        buttons.forEach((b) => b.remove());
+        buttons = [];
+      });
+
+      it('activates the position gizmo and highlights its button', function () {
+        addButton('positionButton');
+        toggleGizmo('position');
+        expect(document.getElementById('positionButton').classList.contains('active')).to.be.true;
+        expect(mgr.positionGizmoEnabled).to.be.true;
+      });
+
+      it('pressing the same gizmo again toggles it off', function () {
+        addButton('positionButton');
+        toggleGizmo('position');
+        toggleGizmo('position');
+        expect(document.getElementById('positionButton').classList.contains('active')).to.be.false;
+        expect(mgr.positionGizmoEnabled).to.be.false;
+      });
+
+      it('switching to a different gizmo un-highlights the previous button', function () {
+        addButton('positionButton');
+        addButton('rotationButton');
+        toggleGizmo('position');
+        toggleGizmo('rotation');
+        expect(document.getElementById('positionButton').classList.contains('active')).to.be.false;
+        expect(document.getElementById('rotationButton').classList.contains('active')).to.be.true;
+      });
+
+      it('turning a gizmo off disables every gizmo flag, not just its own', function () {
+        addButton('positionButton');
+        toggleGizmo('position');
+        expect(mgr.positionGizmoEnabled).to.be.true;
+        toggleGizmo('position');
+        expect(mgr.positionGizmoEnabled).to.be.false;
+        expect(mgr.rotationGizmoEnabled).to.be.false;
+        expect(mgr.scaleGizmoEnabled).to.be.false;
+      });
+    });
+
     // ─── viewMeshWithCamera: orbit view ──────────────────────────────────────
 
     describe('viewMeshWithCamera (orbit view)', function () {
@@ -358,6 +418,120 @@ export function runGizmoTests(flock) {
         orbitBox();
         expect(flock.savedCamera).to.equal(playCamera);
         playCamera.dispose();
+      });
+    });
+
+    // ─── enableGizmos ────────────────────────────────────────────────────────
+
+    describe('enableGizmos', function () {
+      const REQUIRED_IDS = [
+        'positionButton',
+        'rotationButton',
+        'scaleButton',
+        'selectButton',
+        'duplicateButton',
+        'deleteButton',
+        'cameraButton',
+        'showShapesButton',
+        'scrollModelsLeftButton',
+        'scrollModelsRightButton',
+        'scrollObjectsLeftButton',
+        'scrollObjectsRightButton',
+        'scrollCharactersLeftButton',
+        'scrollCharactersRightButton',
+      ];
+      // eyeButton isn't in the "required" guard list, but enableGizmos reads it
+      // unconditionally (no optional chaining) once past that guard, so it must
+      // exist too or enableGizmos throws.
+      const EXTRA_IDS = ['eyeButton'];
+
+      let created;
+
+      beforeEach(function () {
+        created = [];
+      });
+
+      afterEach(function () {
+        created.forEach((el) => el.remove());
+        created = [];
+      });
+
+      function addButton(id, { disabled = true } = {}) {
+        const btn = document.createElement('button');
+        btn.id = id;
+        if (disabled) btn.setAttribute('disabled', '');
+        document.body.appendChild(btn);
+        created.push(btn);
+        return btn;
+      }
+
+      it('does nothing when a required button is missing from the DOM', function () {
+        REQUIRED_IDS.slice(1).forEach((id) => addButton(id));
+        EXTRA_IDS.forEach((id) => addButton(id));
+        expect(() => enableGizmos()).to.not.throw();
+        expect(document.getElementById(REQUIRED_IDS[1]).hasAttribute('disabled')).to.be.true;
+      });
+
+      it('removes the disabled attribute from every button once all required ones exist', function () {
+        REQUIRED_IDS.forEach((id) => addButton(id));
+        EXTRA_IDS.forEach((id) => addButton(id));
+        enableGizmos();
+        REQUIRED_IDS.forEach((id) => {
+          expect(document.getElementById(id).hasAttribute('disabled'), id).to.be.false;
+        });
+      });
+
+      it('wires the position button click through to toggleGizmo', function () {
+        REQUIRED_IDS.forEach((id) => addButton(id));
+        EXTRA_IDS.forEach((id) => addButton(id));
+        enableGizmos();
+        document.getElementById('positionButton').click();
+        expect(document.getElementById('positionButton').classList.contains('active')).to.be.true;
+        expect(mgr.positionGizmoEnabled).to.be.true;
+      });
+
+      it('wires the "show shapes" button to exitGizmoState + window.showShapes', function () {
+        REQUIRED_IDS.forEach((id) => addButton(id));
+        EXTRA_IDS.forEach((id) => addButton(id));
+        mgr.positionGizmoEnabled = true;
+        let called = false;
+        const saved = window.showShapes;
+        window.showShapes = () => (called = true);
+        try {
+          enableGizmos();
+          document.getElementById('showShapesButton').click();
+          expect(called).to.be.true;
+          expect(mgr.positionGizmoEnabled).to.be.false;
+        } finally {
+          window.showShapes = saved;
+        }
+      });
+
+      it('wires the scroll buttons to window.scrollModels/scrollObjects/scrollCharacters', function () {
+        REQUIRED_IDS.forEach((id) => addButton(id));
+        EXTRA_IDS.forEach((id) => addButton(id));
+        const calls = [];
+        const saved = {
+          scrollModels: window.scrollModels,
+          scrollObjects: window.scrollObjects,
+          scrollCharacters: window.scrollCharacters,
+        };
+        window.scrollModels = (dir) => calls.push(['models', dir]);
+        window.scrollObjects = (dir) => calls.push(['objects', dir]);
+        window.scrollCharacters = (dir) => calls.push(['characters', dir]);
+        try {
+          enableGizmos();
+          document.getElementById('scrollModelsLeftButton').click();
+          document.getElementById('scrollObjectsRightButton').click();
+          document.getElementById('scrollCharactersLeftButton').click();
+          expect(calls).to.deep.equal([
+            ['models', -1],
+            ['objects', 1],
+            ['characters', -1],
+          ]);
+        } finally {
+          Object.assign(window, saved);
+        }
       });
     });
 
