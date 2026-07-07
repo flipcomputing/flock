@@ -210,6 +210,9 @@ const AreaManager = {
 /* Overlay for gizmo buttons */
 const GizmoMenuManager = {
   overlay: null,
+  // Other menus (e.g. the add-shape dropdown) that should close themselves
+  // when the gizmo overlay opens, so they don't sit on top of the gizmos.
+  _closeHooks: [],
   buttons: [
     { id: 'showShapesButton', label: '1' },
     { id: 'colorPickerButton', label: '2' },
@@ -241,9 +244,20 @@ const GizmoMenuManager = {
     return !this.overlay.classList.contains('hidden');
   },
 
+  registerCloseHook(fn) {
+    this._closeHooks.push(fn);
+  },
+
   toggle(show) {
     if (!this.overlay) return;
     if (show) {
+      this._closeHooks.forEach((fn) => {
+        try {
+          fn();
+        } catch (e) {
+          console.error('GizmoMenuManager close hook failed:', e);
+        }
+      });
       this.renderBadges();
 
       if (this._watchFocus) {
