@@ -134,6 +134,16 @@ function resizeCanvas() {
     areaHeight -= 60; //Gizmos visible
   }
 
+  // The bottom bar is position:fixed and #canvasArea is sized to the viewport,
+  // so the bar overlaps canvasArea's lower edge rather than pushing it up. On
+  // short viewports that overlap eats into the gizmo strip, hiding the buttons.
+  // Subtract however much the bar intrudes so the canvas + gizmos sit above it.
+  const bottomBar = document.getElementById('bottomBar');
+  if (bottomBar && getComputedStyle(bottomBar).display !== 'none') {
+    const overlap = areaRect.bottom - bottomBar.getBoundingClientRect().top;
+    if (overlap > 0) areaHeight = Math.max(1, areaHeight - Math.round(overlap));
+  }
+
   const aspectRatio = 16 / 9;
 
   let newWidth, newHeight;
