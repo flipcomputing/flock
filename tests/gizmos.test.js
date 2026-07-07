@@ -432,6 +432,7 @@ export function runGizmoTests(flock) {
         'duplicateButton',
         'deleteButton',
         'cameraButton',
+        'eyeButton',
         'showShapesButton',
         'scrollModelsLeftButton',
         'scrollModelsRightButton',
@@ -440,10 +441,7 @@ export function runGizmoTests(flock) {
         'scrollCharactersLeftButton',
         'scrollCharactersRightButton',
       ];
-      // eyeButton isn't in the "required" guard list, but enableGizmos reads it
-      // unconditionally (no optional chaining) once past that guard, so it must
-      // exist too or enableGizmos throws.
-      const EXTRA_IDS = ['eyeButton'];
+      const EXTRA_IDS = [];
 
       let created;
 
@@ -470,6 +468,15 @@ export function runGizmoTests(flock) {
         EXTRA_IDS.forEach((id) => addButton(id));
         expect(() => enableGizmos()).to.not.throw();
         expect(document.getElementById(REQUIRED_IDS[1]).hasAttribute('disabled')).to.be.true;
+      });
+
+      it('does nothing (and does not throw) when only eyeButton is missing', function () {
+        // Regression test: eyeButton used to be absent from the required-button
+        // guard but was still accessed unconditionally further down, so a
+        // missing eyeButton alone used to pass the guard and then throw.
+        REQUIRED_IDS.filter((id) => id !== 'eyeButton').forEach((id) => addButton(id));
+        expect(() => enableGizmos()).to.not.throw();
+        expect(document.getElementById('positionButton').hasAttribute('disabled')).to.be.true;
       });
 
       it('removes the disabled attribute from every button once all required ones exist', function () {
