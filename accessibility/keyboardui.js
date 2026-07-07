@@ -251,7 +251,13 @@ const GizmoMenuManager = {
   toggle(show) {
     if (!this.overlay) return;
     if (show) {
-      this._closeHooks.forEach((fn) => fn());
+      this._closeHooks.forEach((fn) => {
+        try {
+          fn();
+        } catch (e) {
+          console.error('GizmoMenuManager close hook failed:', e);
+        }
+      });
       this.renderBadges();
 
       if (this._watchFocus) {
