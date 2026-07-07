@@ -1030,6 +1030,15 @@ button {
     filter: brightness(0) invert(1);
   }
 
+  /* <a> isn't covered by the global button/input focus rule, so it'd fall back
+     to the browser default (reads white on the bar) — match the app's yellow. */
+  .bottombar-flocklink:focus,
+  .bottombar-flocklink:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
   #blocklyDiv {
     height: calc(100% - 85px - max(0px, env(safe-area-inset-bottom, 0px))) !important;
   }

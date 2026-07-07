@@ -37,12 +37,24 @@ const AreaManager = {
 
   get effectiveAreas() {
     const reloadBtn = document.getElementById('reload-btn');
-    if (reloadBtn?.isConnected) {
-      return this.areas.map((a) =>
-        a.label === '9' ? { selector: '#reload-btn', label: '9', name: 'Reload' } : a
-      );
-    }
-    return this.areas;
+    const reloadConnected = reloadBtn?.isConnected;
+    const narrow = isNarrowLayout();
+    return this.areas.map((a) => {
+      // Narrow mode hides the info panel, so hand area 5 to the pill toggle —
+      // a direct jump to the Canvas/Code switch instead of a dead target.
+      if (narrow && a.label === '5') {
+        return {
+          selector: '#viewToggle',
+          label: '5',
+          name: 'View switch',
+          focusSelector: '#canvasToggleBtn',
+        };
+      }
+      if (reloadConnected && a.label === '9') {
+        return { selector: '#reload-btn', label: '9', name: 'Reload' };
+      }
+      return a;
+    });
   },
 
   init() {
