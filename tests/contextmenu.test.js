@@ -5,7 +5,7 @@ import { setBlockLocked, isBlockLocked } from '../ui/blocklyutil.js';
 import { defineControlBlocks } from '../blocks/control.js';
 import { translate } from '../main/translation.js';
 
-export function runContextMenuTests(flock) {
+export function runContextMenuTests(_flock) {
   describe('ui/contextmenu @contextmenu', function () {
     this.timeout(10000);
 
