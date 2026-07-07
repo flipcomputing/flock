@@ -963,4 +963,4 @@ if (document.getElementById('info-panel-tabs')) {
   ShortcutsPanel.init();
 }
 
-export { InfoPanel, ShortcutsPanel, GizmoMenuManager };
+export { InfoPanel, ShortcutsPanel, GizmoMenuManager, AreaManager };
