@@ -81,6 +81,7 @@ export function runGizmoTests(flock) {
       it('detaches when passed null', function () {
         const box = makeBox();
         mgr.attachToMesh(box);
+        expect(gizmoManager.attachedMesh).to.equal(box);
         mgr.attachToMesh(null);
         expect(gizmoManager.attachedMesh).to.be.null;
       });
@@ -287,6 +288,8 @@ export function runGizmoTests(flock) {
       it('pressing the same gizmo again toggles it off', function () {
         addButton('positionButton');
         toggleGizmo('position');
+        expect(document.getElementById('positionButton').classList.contains('active')).to.be.true;
+        expect(mgr.positionGizmoEnabled).to.be.true;
         toggleGizmo('position');
         expect(document.getElementById('positionButton').classList.contains('active')).to.be.false;
         expect(mgr.positionGizmoEnabled).to.be.false;
@@ -296,6 +299,8 @@ export function runGizmoTests(flock) {
         addButton('positionButton');
         addButton('rotationButton');
         toggleGizmo('position');
+        expect(document.getElementById('positionButton').classList.contains('active')).to.be.true;
+        expect(document.getElementById('rotationButton').classList.contains('active')).to.be.false;
         toggleGizmo('rotation');
         expect(document.getElementById('positionButton').classList.contains('active')).to.be.false;
         expect(document.getElementById('rotationButton').classList.contains('active')).to.be.true;
@@ -305,6 +310,11 @@ export function runGizmoTests(flock) {
         addButton('positionButton');
         toggleGizmo('position');
         expect(mgr.positionGizmoEnabled).to.be.true;
+        // Force the other flags on first, so asserting they're off afterward
+        // actually demonstrates the toggle-off reset them, rather than
+        // trivially passing because they were already false.
+        mgr.rotationGizmoEnabled = true;
+        mgr.scaleGizmoEnabled = true;
         toggleGizmo('position');
         expect(mgr.positionGizmoEnabled).to.be.false;
         expect(mgr.rotationGizmoEnabled).to.be.false;

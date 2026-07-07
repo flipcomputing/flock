@@ -120,7 +120,6 @@ export function runBlocklyShadowUtilTests() {
       });
 
       it("builds a lists_create_with spec sized to the object's colour list", function () {
-        // "cat" isn't in objectColours, so this exercises the 3-colour fallback.
         const listSpec = buildColorsListShadowSpec('__unknown_object__');
         expect(listSpec.type).to.equal('lists_create_with');
         expect(listSpec.extraState.itemCount).to.equal(3);
