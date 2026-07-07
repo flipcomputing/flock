@@ -441,7 +441,6 @@ export function runGizmoTests(flock) {
         'scrollCharactersLeftButton',
         'scrollCharactersRightButton',
       ];
-      const EXTRA_IDS = [];
 
       let created;
 
@@ -465,15 +464,13 @@ export function runGizmoTests(flock) {
 
       it('does nothing when a required button is missing from the DOM', function () {
         REQUIRED_IDS.slice(1).forEach((id) => addButton(id));
-        EXTRA_IDS.forEach((id) => addButton(id));
         expect(() => enableGizmos()).to.not.throw();
         expect(document.getElementById(REQUIRED_IDS[1]).hasAttribute('disabled')).to.be.true;
       });
 
       it('does nothing (and does not throw) when only eyeButton is missing', function () {
-        // Regression test: eyeButton used to be absent from the required-button
-        // guard but was still accessed unconditionally further down, so a
-        // missing eyeButton alone used to pass the guard and then throw.
+        // eyeButton is accessed unconditionally later in this function, so it
+        // must be part of the required-button guard.
         REQUIRED_IDS.filter((id) => id !== 'eyeButton').forEach((id) => addButton(id));
         expect(() => enableGizmos()).to.not.throw();
         expect(document.getElementById('positionButton').hasAttribute('disabled')).to.be.true;
@@ -481,7 +478,6 @@ export function runGizmoTests(flock) {
 
       it('removes the disabled attribute from every button once all required ones exist', function () {
         REQUIRED_IDS.forEach((id) => addButton(id));
-        EXTRA_IDS.forEach((id) => addButton(id));
         enableGizmos();
         REQUIRED_IDS.forEach((id) => {
           expect(document.getElementById(id).hasAttribute('disabled'), id).to.be.false;
@@ -490,7 +486,6 @@ export function runGizmoTests(flock) {
 
       it('wires the position button click through to toggleGizmo', function () {
         REQUIRED_IDS.forEach((id) => addButton(id));
-        EXTRA_IDS.forEach((id) => addButton(id));
         enableGizmos();
         document.getElementById('positionButton').click();
         expect(document.getElementById('positionButton').classList.contains('active')).to.be.true;
@@ -499,7 +494,6 @@ export function runGizmoTests(flock) {
 
       it('wires the "show shapes" button to exitGizmoState + window.showShapes', function () {
         REQUIRED_IDS.forEach((id) => addButton(id));
-        EXTRA_IDS.forEach((id) => addButton(id));
         mgr.positionGizmoEnabled = true;
         let called = false;
         const saved = window.showShapes;
@@ -516,7 +510,6 @@ export function runGizmoTests(flock) {
 
       it('wires the scroll buttons to window.scrollModels/scrollObjects/scrollCharacters', function () {
         REQUIRED_IDS.forEach((id) => addButton(id));
-        EXTRA_IDS.forEach((id) => addButton(id));
         const calls = [];
         const saved = {
           scrollModels: window.scrollModels,

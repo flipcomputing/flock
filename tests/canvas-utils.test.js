@@ -11,28 +11,14 @@ import {
   setDefaultCursor,
 } from '../ui/canvas-utils.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
-
-function topHandler() {
-  const top = KeyboardDispatcher._modeStack[KeyboardDispatcher._modeStack.length - 1];
-  return top?.handler;
-}
-
-function dispatchKeyup(key) {
-  document.dispatchEvent(new KeyboardEvent('keyup', { key, bubbles: true }));
-}
-
-function keyEvent(overrides = {}) {
-  return {
-    target: document.body,
-    key: '',
-    shiftKey: false,
-    preventDefault() {},
-    stopPropagation() {},
-    ...overrides,
-  };
-}
+import {
+  topHandler,
+  makeKeyEvent as keyEvent,
+  dispatchKeyup,
+} from './utils/keyboardDispatcherTestUtils.js';
 
 export function runCanvasUtilsTests(flock) {
+  /* Do NOT assume that the CanvasCircle is in any particular place - set it at the start of each test */
   describe('ui/canvas-utils @canvasutils', function () {
     afterEach(function () {
       // These are module-level singletons shared across the whole test
@@ -114,12 +100,25 @@ export function runCanvasUtilsTests(flock) {
     });
 
     describe('clickCanvasCircle', function () {
-      it('invokes the callback with the current position when a circle exists', function () {
+      it('invokes the callback with the actual current circle position', function () {
         createCanvasCircle();
-        moveCanvasCircle(0, 0);
-        let received = null;
-        clickCanvasCircle((x, y) => (received = [x, y]));
-        expect(received).to.be.an('array').with.lengthOf(2);
+        // canvasCirclePosition is a module-level singleton that persists across
+        // tests, so anchor to a known-safe interior position first — otherwise
+        // leftover position from an earlier clamping test could sit right at
+        // a boundary and silently absorb this test's delta.
+        moveCanvasCircle(100000, 100000);
+        moveCanvasCircle(-310, -175);
+
+        let before = null;
+        clickCanvasCircle((x, y) => (before = [x, y]));
+
+        moveCanvasCircle(15, -7);
+
+        let after = null;
+        clickCanvasCircle((x, y) => (after = [x, y]));
+
+        expect(after[0] - before[0]).to.be.closeTo(15, 0.01);
+        expect(after[1] - before[1]).to.be.closeTo(-7, 0.01);
       });
 
       it('does not invoke the callback when no circle exists', function () {
