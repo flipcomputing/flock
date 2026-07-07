@@ -326,23 +326,28 @@ async function startServer() {
     const outputBuffer = [];
     const errorBuffer = [];
 
-    // Pass the command as a single string with `shell: true` and no args
-    // array. On Windows, `npm` is a .cmd launcher: spawning "npm" directly
-    // (no shell) throws ENOENT, and spawning "npm.cmd" directly (no shell)
+    // On Windows, `npm` is a .cmd launcher: spawning "npm" directly (no
+    // shell) throws ENOENT, and spawning "npm.cmd" directly (no shell)
     // throws EINVAL — recent Node versions require shell:true to launch
-    // .cmd/.bat files at all. Using a single command string (rather than
-    // shell:true with an args array) avoids the Node DEP0190 deprecation.
+    // .cmd/.bat files at all. That's Windows-only; on POSIX, `npm` resolves
+    // and execs directly from PATH, so keep the original argv-array spawn
+    // there rather than routing everything through `sh -c` unconditionally.
+    // Using a single command string with shell:true (rather than shell:true
+    // with an args array) avoids the Node DEP0190 deprecation.
     // `detached: true` puts npm and its child vite/esbuild processes in their
     // own process group so cleanup() can kill the whole group. Without this,
     // server.kill() only signals npm, leaving an orphaned vite holding port
     // 5173 that the next run wrongly "reuses".
-    server = spawn("npm run dev", {
+    const spawnOptions = {
       cwd: path.resolve(__dirname, ".."),
       stdio: "pipe",
       detached: true,
-      shell: true,
       env: { ...process.env },
-    });
+    };
+    server =
+      process.platform === "win32"
+        ? spawn("npm run dev", { ...spawnOptions, shell: true })
+        : spawn("npm", ["run", "dev"], spawnOptions);
 
     server.stdout.on("data", (data) => {
       const output = data.toString();
