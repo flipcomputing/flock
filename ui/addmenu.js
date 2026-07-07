@@ -925,6 +925,16 @@ function cancelPlacement() {
   cleanupPlacementMode();
 }
 
+// Close the add-shape dropdown when the gizmo overlay opens (e.g. Ctrl+G),
+// so it doesn't sit on top of the gizmo buttons it's meant to reveal.
+GizmoMenuManager.registerCloseHook(() => {
+  const dropdown = document.getElementById("shapes-dropdown");
+  if (!dropdown || dropdown.style.display === "none") return;
+  dropdown.style.display = "none";
+  removeKeyboardNavigation();
+  cancelPlacement();
+});
+
 // --- Keyboard Navigation ---
 
 let currentFocusedElement = null;
