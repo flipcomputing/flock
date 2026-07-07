@@ -82,7 +82,7 @@ export function setupInput() {
       const inCodeMode =
         inNarrowMode && codePanel && getComputedStyle(codePanel).display !== 'none';
       if (inNarrowMode && !inCodeMode) {
-        ['#canvasToggleBtn', '#codeToggleBtn'].forEach((sel) =>
+        ['#canvasToggleBtn', '#codeToggleBtn', '#bottombar-flocklink'].forEach((sel) =>
           pushUnique(document.querySelector(sel))
         );
       }
@@ -187,7 +187,7 @@ export function setupInput() {
 
       // View toggle in code mode — right after zoomInBtn
       if (inCodeMode) {
-        ['#canvasToggleBtn', '#codeToggleBtn'].forEach((sel) =>
+        ['#canvasToggleBtn', '#codeToggleBtn', '#bottombar-flocklink'].forEach((sel) =>
           pushUnique(document.querySelector(sel))
         );
       }
