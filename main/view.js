@@ -604,7 +604,9 @@ export function toggleDesignMode() {
     switchView('both');
     flock.scene.debugLayer.hide();
     flockLink.style.display = 'block';
-    infoPanel.style.display = 'flex';
+    // Defer to the stylesheet (flex on wide, hidden in narrow mode) rather than
+    // forcing inline flex, which would re-show the panel behind the pill bar.
+    infoPanel.style.display = '';
   } else {
     blocklyArea.style.display = 'none';
     codeMode = 'none';

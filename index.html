@@ -1460,6 +1460,20 @@
           <button id="canvasToggleBtn" class="view-toggle-btn" aria-pressed="true">Canvas</button>
           <button id="codeToggleBtn" class="view-toggle-btn" aria-pressed="false">Code</button>
         </div>
+        <!-- Narrow-mode home for the flock link: #info-panel (which normally
+             hosts it) is hidden here, and #bottomBar is hidden on wide screens,
+             so exactly one copy of the link is ever visible/in the a11y tree. -->
+        <a
+          href="https://flockxr.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          id="bottombar-flocklink"
+          class="bottombar-flocklink"
+          aria-label="Visit Flock XR website (opens in new tab)"
+          title="Visit Flock XR website"
+        >
+          <img src="./images/inline-flock-xr.svg" alt="" />
+        </a>
         <div id="switch-desc" class="sr-only">
           Toggle between coding view and 3D scene view
         </div>

@@ -1001,8 +1001,33 @@ button {
     height: 100% !important;
   }
 
-  #info-panel-tabs {
-    margin-bottom: calc(35px + max(0px, env(safe-area-inset-bottom, 0px)));
+  /* In narrow mode the info panel has no room to dock its shortcuts panel, so
+     it's hidden entirely: shortcuts open as a modal (.shortcuts-modal), the
+     flock link moves into the bottom bar, and Ctrl+B "area 5" drops out on its
+     own (renderHighlights skips 0-size nodes). Selector is `aside#info-panel`
+     (not just `#info-panel`) so it out-specifies the base `#info-panel` rule,
+     which is declared later in the file and would otherwise win the cascade. */
+  aside#info-panel {
+    display: none;
+  }
+
+  .bottombar-flocklink {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+  }
+
+  .bottombar-flocklink img {
+    height: 18px;
+    display: block;
+    /* The logo SVG is purple, which disappears on the purple bar — recolour
+       the rendered image to white (brightness(0) → black, invert → white).
+       Scoped to this copy only; the info-panel logo stays purple. */
+    filter: brightness(0) invert(1);
   }
 
   #blocklyDiv {
@@ -1021,8 +1046,11 @@ button {
 }
 
 @media only screen and (orientation: portrait) and (max-width: 1024px) {
-  #info-panel {
-    display: flex;
+  /* Info panel stays hidden in narrow mode (shortcuts open as a modal); this
+     rule previously forced it visible in portrait, which would override the
+     narrow-mode hide above. `aside#info-panel` for the same specificity reason. */
+  aside#info-panel {
+    display: none;
   }
 
   .resizer {
@@ -2009,6 +2037,38 @@ kbd {
 .info-tab-panel:focus {
   outline: 2px solid var(--color-focus);
   outline-offset: -2px;
+}
+
+/* Shortcuts presented as a modal in narrow layouts, where the info panel has
+   no room to dock it. The .shortcuts-modal class is added by ShortcutsPanel
+   only in narrow mode, and the panel is reparented to <body> so it escapes the
+   info panel's clipping. */
+.shortcuts-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg-overlay);
+  z-index: 1100;
+}
+
+.info-tab-panel.shortcuts-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(600px, calc(100vw - 24px));
+  max-height: 85vh;
+  overflow-y: auto;
+  z-index: 1101;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px var(--color-shadow-medium);
+  box-sizing: border-box;
+}
+
+.shortcuts-modal-close {
+  font-weight: bold;
+  margin-left: 12px;
 }
 
 /* Shortcuts tab content */

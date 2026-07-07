@@ -4,6 +4,10 @@ import { translate } from '../main/translation.js';
 import { SHORTCUTS_HELP_URL } from '../config.js';
 import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 
+// Matches the CSS `max-width: 1024px` breakpoint where the info panel is hidden
+// and its shortcuts panel must be shown as a modal instead of docked.
+const isNarrowLayout = () => window.matchMedia('(max-width: 1024px)').matches;
+
 // Area menu accessed with Ctrl + B to quickly skip to
 // different areas on the interface
 
@@ -688,6 +692,14 @@ const ShortcutsPanel = {
     this.createPanel();
     this.setupListeners();
     window.flockShortcutsPanel = this;
+
+    // If the viewport crosses the breakpoint while the panel is open, switch it
+    // between docked and modal so it never ends up docked in a hidden panel.
+    window.addEventListener('resize', () => {
+      if (this.panel.classList.contains('hidden')) return;
+      if (isNarrowLayout() && !this._modalActive) this.enterModal();
+      else if (!isNarrowLayout() && this._modalActive) this.exitModal();
+    });
   },
 
   adjustFontSize(delta) {
@@ -762,6 +774,7 @@ const ShortcutsPanel = {
     this.previousFocus = document.activeElement;
     InfoPanel.activate('shortcuts');
     document.getElementById('shortcutsBtn')?.classList.add('active');
+    if (isNarrowLayout()) this.enterModal();
   },
 
   refreshTranslations() {
@@ -769,6 +782,7 @@ const ShortcutsPanel = {
   },
 
   hide() {
+    this.exitModal();
     this.previousFocus?.focus();
     this.previousFocus = null;
     InfoPanel.deactivate('shortcuts');
@@ -777,6 +791,117 @@ const ShortcutsPanel = {
 
   toggle() {
     this.panel.classList.contains('hidden') ? this.show() : this.hide();
+  },
+
+  // --- Modal presentation (narrow layouts where the docked panel has no room) ---
+
+  // Reparent the panel to <body>, mark it a dialog, inert the rest of the page
+  // and trap focus. Reparenting is required so it escapes the info panel (which
+  // is display:none in narrow mode) and the canvas area's overflow clipping.
+  enterModal() {
+    if (this._modalActive) return;
+    this._modalActive = true;
+    const panel = this.panel;
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'shortcuts-modal-backdrop';
+    backdrop.addEventListener('pointerdown', () => this.hide());
+    document.body.appendChild(backdrop);
+    this._backdrop = backdrop;
+
+    // Remember the docked location so we can put it back on close.
+    this._panelHome = panel.parentNode;
+    this._panelNextSibling = panel.nextSibling;
+    document.body.appendChild(panel);
+
+    panel.classList.add('shortcuts-modal');
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    panel.setAttribute('aria-labelledby', 'shortcuts-panel-title');
+
+    // Visible close control — there's no tab to click shut in modal mode, and
+    // Escape/backdrop aren't discoverable (and Escape isn't available on touch).
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'bigbutton shortcuts-modal-close';
+    closeBtn.setAttribute('aria-label', translate('shortcut_panel_close'));
+    closeBtn.setAttribute('title', translate('shortcut_panel_close'));
+    closeBtn.innerHTML = '<span aria-hidden="true">X</span>';
+    closeBtn.addEventListener('click', () => this.hide());
+    panel.querySelector('.shortcuts-panel-controls')?.appendChild(closeBtn);
+    this._closeBtn = closeBtn;
+
+    // Make everything else inert so SR/keyboard focus can't leave the dialog.
+    this._inertStates = new Map();
+    document.querySelectorAll('body > *').forEach((el) => {
+      if (el === panel || el === backdrop) return;
+      this._inertStates.set(el, el.inert);
+      el.inert = true;
+    });
+
+    this._trapHandler = (e) => this.trapFocus(e);
+    panel.addEventListener('keydown', this._trapHandler);
+
+    requestAnimationFrame(() => panel.focus());
+  },
+
+  exitModal() {
+    if (!this._modalActive) return;
+    this._modalActive = false;
+    const panel = this.panel;
+
+    panel.removeEventListener('keydown', this._trapHandler);
+    this._trapHandler = null;
+
+    this._inertStates?.forEach((wasInert, el) => (el.inert = wasInert));
+    this._inertStates = null;
+
+    panel.classList.remove('shortcuts-modal');
+    panel.setAttribute('role', 'tabpanel');
+    panel.removeAttribute('aria-modal');
+
+    this._closeBtn?.remove();
+    this._closeBtn = null;
+
+    // Dock the panel back where it came from.
+    if (this._panelHome) {
+      this._panelHome.insertBefore(panel, this._panelNextSibling);
+      this._panelHome = null;
+      this._panelNextSibling = null;
+    }
+
+    this._backdrop?.remove();
+    this._backdrop = null;
+  },
+
+  focusableElements() {
+    return [
+      ...this.panel.querySelectorAll(
+        'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      ),
+    ].filter((el) => el.offsetWidth > 0 || el.offsetHeight > 0);
+  },
+
+  trapFocus(e) {
+    if (e.key !== 'Tab') return;
+    // Keep the app-level Tab manager (input.js) out of the dialog.
+    e.stopPropagation();
+    const focusables = this.focusableElements();
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    if (!first) {
+      e.preventDefault();
+      this.panel.focus();
+      return;
+    }
+    if (e.shiftKey && (active === first || active === this.panel)) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
   },
 
   setupListeners() {
@@ -794,7 +919,10 @@ const ShortcutsPanel = {
         e.preventDefault();
         e.stopPropagation();
         this.hide();
-        document.getElementById('info-tab-btn-shortcuts')?.focus();
+        // In narrow mode the tab button is hidden, so hide()'s previous-focus
+        // restore is what returns focus; only grab the tab button when visible.
+        const tabBtn = document.getElementById('info-tab-btn-shortcuts');
+        if (tabBtn?.offsetParent) tabBtn.focus();
       }
     });
   },
