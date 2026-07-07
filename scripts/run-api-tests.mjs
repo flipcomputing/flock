@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { chromium } from "playwright";
-import { spawn } from "child_process";
+import { spawn, execFileSync } from "child_process";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -326,20 +326,21 @@ async function startServer() {
     const outputBuffer = [];
     const errorBuffer = [];
 
-    // Run npm directly without a shell. This avoids Node DEP0190
-    // (deprecation of `shell: true` with an args array). On macOS/Linux/CI,
-    // `npm` resolves from PATH; on Windows the launcher is `npm.cmd`.
-    // Alternative if you need shell features (e.g. on Windows): pass the
-    // command as a single string with `shell: true` and no args array, e.g.
-    //   spawn("npm run dev", { cwd: ..., stdio: "pipe", shell: true, env: ... })
+    // Pass the command as a single string with `shell: true` and no args
+    // array. On Windows, `npm` is a .cmd launcher: spawning "npm" directly
+    // (no shell) throws ENOENT, and spawning "npm.cmd" directly (no shell)
+    // throws EINVAL — recent Node versions require shell:true to launch
+    // .cmd/.bat files at all. Using a single command string (rather than
+    // shell:true with an args array) avoids the Node DEP0190 deprecation.
     // `detached: true` puts npm and its child vite/esbuild processes in their
     // own process group so cleanup() can kill the whole group. Without this,
     // server.kill() only signals npm, leaving an orphaned vite holding port
     // 5173 that the next run wrongly "reuses".
-    server = spawn("npm", ["run", "dev"], {
+    server = spawn("npm run dev", {
       cwd: path.resolve(__dirname, ".."),
       stdio: "pipe",
       detached: true,
+      shell: true,
       env: { ...process.env },
     });
 
@@ -1039,16 +1040,23 @@ async function runTests(suiteId = "all") {
 function cleanup() {
   if (server) {
     console.log("\n🛑 Stopping development server...");
-    // Kill the whole process group (npm + child vite/esbuild). server.kill()
-    // alone only signals npm and leaves vite orphaned on port 5173.
+    // Kill the whole tree (npm + child vite/esbuild). server.kill() alone
+    // only signals the immediate child and leaves vite orphaned on port 5173.
+    // On Windows, negative-pid process-group kill is a no-op (Windows PIDs
+    // are never negative) and TerminateProcess doesn't cascade to children,
+    // so `taskkill /T` is used instead to walk the whole descendant tree.
     try {
-      if (server.pid) {
+      if (server.pid && process.platform === "win32") {
+        execFileSync("taskkill", ["/pid", String(server.pid), "/T", "/F"], {
+          stdio: "ignore",
+        });
+      } else if (server.pid) {
         process.kill(-server.pid, "SIGTERM");
       } else {
         server.kill("SIGTERM");
       }
     } catch {
-      // Group may already be gone, or platform lacks process groups; fall back.
+      // Group/tree may already be gone; fall back to signalling the child.
       server.kill("SIGTERM");
     }
   }
