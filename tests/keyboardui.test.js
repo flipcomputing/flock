@@ -112,11 +112,17 @@ export function runKeyboardUiTests(flock) {
       });
 
       it('activateButton does not click a disabled button', function () {
-        let clicked = false;
+        // A real disabled <button> already suppresses the "click" *event* at
+        // the browser level regardless of what the JS does, so listening for
+        // the event can't tell whether activateButton's own `!el.disabled`
+        // guard is doing anything. Spy on the `.click()` *method call*
+        // itself instead, which isolates the JS guard from that native
+        // behaviour.
+        let clickCalled = false;
         const btn = addButton('positionButton', { disabled: true });
-        btn.addEventListener('click', () => (clicked = true));
+        btn.click = () => (clickCalled = true);
         GizmoMenuManager.activateButton({ id: 'positionButton', label: '3' });
-        expect(clicked).to.equal(false);
+        expect(clickCalled).to.equal(false);
       });
 
       it('activateButton is a safe no-op when the button does not exist', function () {

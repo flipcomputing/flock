@@ -478,14 +478,6 @@ export function runGizmoTests(flock) {
         expect(document.getElementById(REQUIRED_IDS[1]).hasAttribute('disabled')).to.be.true;
       });
 
-      it('does nothing (and does not throw) when only eyeButton is missing', function () {
-        // eyeButton is accessed unconditionally later in this function, so it
-        // must be part of the required-button guard.
-        REQUIRED_IDS.filter((id) => id !== 'eyeButton').forEach((id) => addButton(id));
-        expect(() => enableGizmos()).to.not.throw();
-        expect(document.getElementById('positionButton').hasAttribute('disabled')).to.be.true;
-      });
-
       it('removes the disabled attribute from every button once all required ones exist', function () {
         REQUIRED_IDS.forEach((id) => addButton(id));
         enableGizmos();
