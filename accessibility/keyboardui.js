@@ -871,6 +871,7 @@ const ShortcutsPanel = {
     panel.classList.remove('shortcuts-modal');
     panel.setAttribute('role', 'tabpanel');
     panel.removeAttribute('aria-modal');
+    panel.setAttribute('aria-labelledby', 'info-tab-btn-shortcuts');
 
     this._closeBtn?.remove();
     this._closeBtn = null;
