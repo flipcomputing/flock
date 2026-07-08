@@ -4,25 +4,9 @@
       "height": 88.57144165039062,
       "width": 325.7142333984375,
       "id": "FGlCawyE+Ic[N`H}_o;,",
-      "x": 650.9486607142856,
-      "y": 61.428571428571274,
+      "x": 674.0792410714284,
+      "y": 34.78236607142841,
       "text": "Open the comments to find instructions."
-    },
-    {
-      "height": 85.18524169921875,
-      "width": 343.28057861328125,
-      "id": "|wx1KclDG#jm`;9A,*SO",
-      "x": 421.1385672876378,
-      "y": 830.7044165475028,
-      "text": "The Flock bird has the animations: Idle, Walk, Wave, Fly. More coming soon!"
-    },
-    {
-      "height": 85.18524169921875,
-      "width": 343.28057861328125,
-      "id": "gC.4Jbs$j4?`dJ/{S2Hy",
-      "x": 570.7151576894234,
-      "y": 451.1806215558733,
-      "text": "The Flock bird has the animations: Idle, Walk, Wave, Fly. More coming soon!"
     }
   ],
   "blocks": {
@@ -40,7 +24,7 @@
               "id": "(lLJX6y3Px6`3t8]%V7S",
               "icons": {
                 "comment": {
-                  "text": "Try changing the sky colour",
+                  "text": "Try changing the sky colours",
                   "pinned": false,
                   "height": 42.857147216796875,
                   "width": 235
@@ -53,6 +37,34 @@
                     "id": "rF{|#Q~2RR)Y}Ev+Q$Xj",
                     "fields": {
                       "COLOR": "#6495ed"
+                    }
+                  },
+                  "block": {
+                    "type": "lists_create_with",
+                    "id": "LB2s70ahv*h:tF]MdU#1",
+                    "inline": true,
+                    "extraState": {
+                      "itemCount": 2
+                    },
+                    "inputs": {
+                      "ADD0": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "Vf?fioumLYXchGsAJAv8",
+                          "fields": {
+                            "COLOR": "#333399"
+                          }
+                        }
+                      },
+                      "ADD1": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "K7/Z7,b5I99pg27,asY]",
+                          "fields": {
+                            "COLOR": "#9999ff"
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -70,7 +82,7 @@
                     }
                   },
                   "fields": {
-                    "MAP_NAME": "NONE"
+                    "MAP_NAME": "circular_depression.png"
                   },
                   "inputs": {
                     "MATERIAL": {
@@ -105,7 +117,7 @@
                         "type": "material",
                         "id": "#:_FAEEOH~TCal%fB5Lz",
                         "fields": {
-                          "TEXTURE_SET": "none.png"
+                          "TEXTURE_SET": "hedge.png"
                         },
                         "inputs": {
                           "BASE_COLOR": {
@@ -113,7 +125,7 @@
                               "type": "colour",
                               "id": ",[xAyg,QYE|Ubcaw*(KQ",
                               "fields": {
-                                "COLOR": "#71bc78"
+                                "COLOR": "#66ff99"
                               }
                             }
                           },
@@ -140,175 +152,194 @@
         "type": "start",
         "id": ",]8VC|jPoC}m].M=g5I9",
         "x": 10,
-        "y": 262,
+        "y": 254,
         "inputs": {
           "DO": {
             "block": {
-              "type": "print_text",
-              "id": "Ter;xPMe(c)`FrQZ$G$^",
-              "inputs": {
-                "TEXT": {
-                  "shadow": {
-                    "type": "text",
-                    "id": "a:Q}6ex~E=:Pf[K1)*oS",
-                    "fields": {
-                      "TEXT": "Welcome 👋🏿👋🏾👋🏽👋🏼👋🏻"
-                    }
-                  }
+              "type": "load_character",
+              "id": "!W~,2${D~PY72%:|%#,6",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "XI]GXbm7K+P+,^lRbX`9"
                 },
-                "DURATION": {
+                "MODELS": "Block2.glb"
+              },
+              "inputs": {
+                "SCALE": {
                   "shadow": {
                     "type": "math_number",
-                    "id": "HtPl(_IUt4ra1{(EzSoR",
+                    "id": "!1|BYYt-Eo?,ilL)^xpk",
                     "fields": {
-                      "NUM": 20
+                      "NUM": 2
                     }
                   }
                 },
-                "COLOR": {
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": ":Rz|NOFVOcT$Asb(e4rw",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "LCBO[!kKi`tdc%BY(?Om",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "7Xojn=h*(CaAD8#]5GR]",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "HAIR_COLOR": {
                   "shadow": {
                     "type": "colour",
-                    "id": "n9l|Ibv.Ai=N[K8Tg1ED",
+                    "id": "J]C5Cyc2~beo67x!=5F9",
                     "fields": {
-                      "COLOR": "#000080"
+                      "COLOR": "#cc33cc"
+                    }
+                  }
+                },
+                "SKIN_COLOR": {
+                  "shadow": {
+                    "type": "skin_colour",
+                    "id": "_F@q:=7=AmS~[x|;6qcj",
+                    "fields": {
+                      "COLOR": "#a15c33"
+                    }
+                  }
+                },
+                "EYES_COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "i=[)qyT{6*iV1mU[8nX=",
+                    "fields": {
+                      "COLOR": "#000000"
+                    }
+                  }
+                },
+                "TSHIRT_COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": ":8MGSN|3Xh@x^U8.pWl}",
+                    "fields": {
+                      "COLOR": "#6600cc"
+                    }
+                  }
+                },
+                "SHORTS_COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "AwKL}.xd.+]`q6GMJ-_4",
+                    "fields": {
+                      "COLOR": "#000099"
+                    }
+                  }
+                },
+                "SLEEVES_COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "/R_rA0PD_Tk@.N|R@Z+b",
+                    "fields": {
+                      "COLOR": "#ff99ff"
                     }
                   }
                 }
               },
               "next": {
                 "block": {
-                  "type": "load_model",
-                  "id": "~aO2[IhdTIbEG9SySbrj",
-                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                  "type": "switch_animation",
+                  "id": "`G=qS45)N^ID`y3QVZkJ",
                   "fields": {
-                    "ID_VAR": {
-                      "id": "0RmT2k.r._y^$F2e)J_x"
-                    },
-                    "MODELS": "Flock.glb"
+                    "MODEL": {
+                      "id": "XI]GXbm7K+P+,^lRbX`9"
+                    }
                   },
                   "inputs": {
-                    "SCALE": {
+                    "ANIMATION_NAME": {
                       "shadow": {
-                        "type": "math_number",
-                        "id": "Op@o9ACYgOAF7l_0bt%6",
+                        "type": "animation_name",
+                        "id": "jxHBUf^/i,hC`3:zbxqO",
                         "fields": {
-                          "NUM": 2.5
-                        }
-                      }
-                    },
-                    "X": {
-                      "shadow": {
-                        "type": "math_number",
-                        "id": "PI#4fGa]`g$/$*zHjSDQ",
-                        "fields": {
-                          "NUM": 0
-                        }
-                      }
-                    },
-                    "Y": {
-                      "shadow": {
-                        "type": "math_number",
-                        "id": "$@`i{+9?+kYI#237@w87",
-                        "fields": {
-                          "NUM": 0
-                        }
-                      }
-                    },
-                    "Z": {
-                      "shadow": {
-                        "type": "math_number",
-                        "id": "0S3^x]4*1BL?*Z~6Au29",
-                        "fields": {
-                          "NUM": 0
+                          "ANIMATION_NAME": "Idle"
                         }
                       }
                     }
                   },
                   "next": {
                     "block": {
-                      "type": "switch_animation",
-                      "id": "`G=qS45)N^ID`y3QVZkJ",
+                      "type": "say",
+                      "id": "=%bgfwN@|32R#c%H.?4O",
                       "fields": {
-                        "MODEL": {
-                          "id": "0RmT2k.r._y^$F2e)J_x"
-                        }
+                        "MESH_VAR": {
+                          "id": "XI]GXbm7K+P+,^lRbX`9"
+                        },
+                        "MODE": "REPLACE",
+                        "ASYNC": "START"
                       },
                       "inputs": {
-                        "ANIMATION_NAME": {
+                        "TEXT": {
                           "shadow": {
-                            "type": "animation_name",
-                            "id": "jxHBUf^/i,hC`3:zbxqO",
+                            "type": "text",
+                            "id": "2y9=Rf82MSELo_E~s9DJ",
                             "fields": {
-                              "ANIMATION_NAME": "Idle"
+                              "TEXT": "Click or tap me! "
                             }
                           }
-                        }
-                      },
-                      "next": {
-                        "block": {
-                          "type": "say",
-                          "id": "=%bgfwN@|32R#c%H.?4O",
-                          "fields": {
-                            "MESH_VAR": {
-                              "id": "0RmT2k.r._y^$F2e)J_x"
-                            },
-                            "MODE": "REPLACE",
-                            "ASYNC": "START"
-                          },
-                          "inputs": {
-                            "TEXT": {
-                              "shadow": {
-                                "type": "text",
-                                "id": "2y9=Rf82MSELo_E~s9DJ",
-                                "fields": {
-                                  "TEXT": "👆🏾 Click or tap me!"
-                                }
-                              }
-                            },
-                            "DURATION": {
-                              "shadow": {
-                                "type": "math_number",
-                                "id": "Kh4$y)~nZt,ah$m%gSoS",
-                                "fields": {
-                                  "NUM": 0
-                                }
-                              }
-                            },
-                            "TEXT_COLOR": {
-                              "shadow": {
-                                "type": "colour",
-                                "id": "+[CJ]vuEqE}=2U%TJc66",
-                                "fields": {
-                                  "COLOR": "#993399"
-                                }
-                              }
-                            },
-                            "BACKGROUND_COLOR": {
-                              "shadow": {
-                                "type": "colour",
-                                "id": "7DDR@6wr1/El6,u[_@R{",
-                                "fields": {
-                                  "COLOR": "#ffffff"
-                                }
-                              }
-                            },
-                            "ALPHA": {
-                              "shadow": {
-                                "type": "math_number",
-                                "id": "_sK4R:gh[FSQP2owX4wE",
-                                "fields": {
-                                  "NUM": 1
-                                }
-                              }
-                            },
-                            "SIZE": {
-                              "shadow": {
-                                "type": "math_number",
-                                "id": "stdC@VZxae=Pix3oQ%9j",
-                                "fields": {
-                                  "NUM": 20
-                                }
-                              }
+                        },
+                        "DURATION": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "Kh4$y)~nZt,ah$m%gSoS",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        },
+                        "TEXT_COLOR": {
+                          "shadow": {
+                            "type": "colour",
+                            "id": "+[CJ]vuEqE}=2U%TJc66",
+                            "fields": {
+                              "COLOR": "#993399"
+                            }
+                          }
+                        },
+                        "BACKGROUND_COLOR": {
+                          "shadow": {
+                            "type": "colour",
+                            "id": "7DDR@6wr1/El6,u[_@R{",
+                            "fields": {
+                              "COLOR": "#ffffff"
+                            }
+                          }
+                        },
+                        "ALPHA": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "_sK4R:gh[FSQP2owX4wE",
+                            "fields": {
+                              "NUM": 0.8
+                            }
+                          }
+                        },
+                        "SIZE": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "stdC@VZxae=Pix3oQ%9j",
+                            "fields": {
+                              "NUM": 18
                             }
                           }
                         }
@@ -325,11 +356,11 @@
         "type": "when_clicked",
         "id": "_wn!!0hZacLgTFS!^zPo",
         "x": 10,
-        "y": 666,
+        "y": 914,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
-            "id": "0RmT2k.r._y^$F2e)J_x"
+            "id": "XI]GXbm7K+P+,^lRbX`9"
           },
           "TRIGGER": "OnPickTrigger"
         },
@@ -340,7 +371,7 @@
               "id": "v4c#p4F?9snY7,~`35t=",
               "icons": {
                 "comment": {
-                  "text": "Change what the bird says. Try the different options.",
+                  "text": "Change what the character says. Try the different options.",
                   "pinned": false,
                   "height": 42.14288330078125,
                   "width": 419.28570556640625
@@ -348,7 +379,7 @@
               },
               "fields": {
                 "MESH_VAR": {
-                  "id": "0RmT2k.r._y^$F2e)J_x"
+                  "id": "XI]GXbm7K+P+,^lRbX`9"
                 },
                 "MODE": "REPLACE",
                 "ASYNC": "START"
@@ -395,7 +426,7 @@
                     "type": "math_number",
                     "id": "pvy$^x/Xg%U;MP+2Wmt:",
                     "fields": {
-                      "NUM": 1
+                      "NUM": 0.8
                     }
                   }
                 },
@@ -404,7 +435,7 @@
                     "type": "math_number",
                     "id": "$3Wfe:yI+S2pfl[!JT)3",
                     "fields": {
-                      "NUM": 20
+                      "NUM": 18
                     }
                   }
                 }
@@ -423,7 +454,7 @@
                   },
                   "fields": {
                     "MODEL": {
-                      "id": "0RmT2k.r._y^$F2e)J_x"
+                      "id": "XI]GXbm7K+P+,^lRbX`9"
                     }
                   },
                   "inputs": {
@@ -451,7 +482,7 @@
                       },
                       "fields": {
                         "MODEL": {
-                          "id": "0RmT2k.r._y^$F2e)J_x"
+                          "id": "XI]GXbm7K+P+,^lRbX`9"
                         }
                       },
                       "inputs": {
@@ -477,30 +508,120 @@
         "type": "start",
         "id": "28`@Ba/5n[J65c$rg7W!",
         "x": 10,
-        "y": 988,
+        "y": 1231,
         "inputs": {
           "DO": {
             "block": {
-              "type": "canvas_controls",
-              "id": "*B]qDtlT!KB;/-IE#(a`",
+              "type": "button_controls",
+              "id": "%TM,T~2U34p49dy9pF|w",
               "fields": {
-                "CONTROLS": false
+                "CONTROL": "BOTH",
+                "ENABLED": "AUTO"
               },
-              "next": {
-                "block": {
-                  "type": "button_controls",
-                  "id": "%TM,T~2U34p49dy9pF|w",
-                  "fields": {
-                    "CONTROL": "BOTH",
-                    "ENABLED": "AUTO"
-                  },
-                  "inputs": {
-                    "COLOR": {
-                      "shadow": {
-                        "type": "colour",
-                        "id": "W?aAT%|!hy|._B0HL-u~",
-                        "fields": {
-                          "COLOR": "#ffffff"
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "W?aAT%|!hy|._B0HL-u~",
+                    "fields": {
+                      "COLOR": "#ffffff"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "MsN2FDg{emzkk4D*G+sC",
+        "x": 10,
+        "y": 637,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "load_model",
+              "id": "H)_7SsN_3Rqr.KuC=X#C",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"true\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "0RmT2k.r._y^$F2e)J_x"
+                },
+                "MODELS": "Flock.glb"
+              },
+              "inputs": {
+                "SCALE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "Fx)}%|yUm;~JN^AZ$h*.",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "Z)6oYe+Q0c{w`JcxW}S_",
+                    "fields": {
+                      "NUM": 2
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "eFla+=y$a}E9to(vxqb/",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "pdCkhO*r2fm$W3u{ad;z",
+                    "fields": {
+                      "NUM": -1
+                    }
+                  }
+                },
+                "DO": {
+                  "block": {
+                    "type": "rotate_to",
+                    "id": "8_gq^UpG+YD82I(aix_2",
+                    "fields": {
+                      "MODEL": {
+                        "id": "0RmT2k.r._y^$F2e)J_x"
+                      }
+                    },
+                    "inputs": {
+                      "X": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "]yGd3CQubPXwX{jLPH?Q",
+                          "fields": {
+                            "NUM": 0
+                          }
+                        }
+                      },
+                      "Y": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": ":!W]7`H3|zG+D-5sS]C5",
+                          "fields": {
+                            "NUM": 10
+                          }
+                        }
+                      },
+                      "Z": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "pJ(Hm.U%fzxUkUM~F@nE",
+                          "fields": {
+                            "NUM": 0
+                          }
                         }
                       }
                     }
@@ -517,6 +638,10 @@
     {
       "name": "bird",
       "id": "0RmT2k.r._y^$F2e)J_x"
+    },
+    {
+      "name": "character",
+      "id": "XI]GXbm7K+P+,^lRbX`9"
     }
   ]
 }
