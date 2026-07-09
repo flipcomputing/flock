@@ -767,6 +767,8 @@ export function initContextMenus(workspace) {
     let selectedBlock = null; // block currently selected (regardless of toolbar visibility)
     let toolbarShowTimer = null;
     let lastSelectionWasPointer = false;
+    let pointerIsDown = false; // a pointer button is currently held — the hover-reveal timer must not fire while true
+    let pendingHoverBlock = null; // block whose hover-reveal was deferred because the pointer was still down when the timer fired
     let dismissedBlock = null; // block whose toolbar was just dismissed via toggle; suppress re-show for it only
     let toolbarKeyboardMode = false; // toolbar was opened via keyboard → show badge overlay
     // Block whose toolbar we hid because a keyboard move (M) just started on
@@ -805,6 +807,30 @@ export function initContextMenus(workspace) {
       'pointerdown',
       () => {
         lastSelectionWasPointer = true;
+        pointerIsDown = true;
+      },
+      { capture: true }
+    );
+    document.addEventListener(
+      'pointerup',
+      () => {
+        pointerIsDown = false;
+        // The hover timer bailed (still held, no drag recognized) rather than
+        // showing — now that the button's up with no drag having intervened,
+        // it's a plain click: reveal now instead of leaving it stuck hidden.
+        if (pendingHoverBlock) {
+          const block = pendingHoverBlock;
+          pendingHoverBlock = null;
+          if (block === selectedBlock && !toolbarBlock) showBlockToolbar(block);
+        }
+      },
+      { capture: true }
+    );
+    document.addEventListener(
+      'pointercancel',
+      () => {
+        pointerIsDown = false;
+        pendingHoverBlock = null;
       },
       { capture: true }
     );
@@ -952,6 +978,7 @@ export function initContextMenus(workspace) {
     function hideBlockToolbar() {
       clearTimeout(toolbarShowTimer);
       toolbarShowTimer = null;
+      pendingHoverBlock = null;
       toolbarBlock = null;
       toolbarKeyboardMode = false;
       blockToolbar.classList.remove('visible');
@@ -980,7 +1007,18 @@ export function initContextMenus(workspace) {
             if (wasPointer) {
               // Pointer selection: reveal after a short hover, no badges.
               if (!wasDismissed) {
-                toolbarShowTimer = setTimeout(() => showBlockToolbar(block), 400);
+                toolbarShowTimer = setTimeout(() => {
+                  toolbarShowTimer = null;
+                  if (pointerIsDown) {
+                    // Button still held with no drag recognized yet — a real
+                    // drag would already have cancelled this timer via
+                    // hideBlockToolbar(). Defer to the pointerup handler
+                    // above: reveal once released, unless a drag starts first.
+                    pendingHoverBlock = block;
+                    return;
+                  }
+                  showBlockToolbar(block);
+                }, 400);
               } else {
                 hideBlockToolbar();
               }
