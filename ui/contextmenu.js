@@ -769,6 +769,11 @@ export function initContextMenus(workspace) {
     let lastSelectionWasPointer = false;
     let dismissedBlock = null; // block whose toolbar was just dismissed via toggle; suppress re-show for it only
     let toolbarKeyboardMode = false; // toolbar was opened via keyboard → show badge overlay
+    // Block whose toolbar we hid because a keyboard move (M) just started on
+    // it. Starting a move fires a deselect+reselect SELECTED pair for that
+    // same block (Blockly refocusing it), which would otherwise immediately
+    // reshow the toolbar we just hid; this suppresses exactly that one echo.
+    let suppressReshowBlock = null;
 
     function clearBadges() {
       badgeOverlay.replaceChildren();
@@ -847,18 +852,19 @@ export function initContextMenus(workspace) {
       if (toolbarKeyboardMode) renderBadges();
     }
 
-    // The move hint only appears when the toolbar was opened via keyboard
-    // navigation and the block is loose (unattached), movable and not locked —
-    // i.e. exactly when pressing M is the way to put it somewhere.
-    function updateMoveHint() {
+    // A block that is loose (unattached), movable and not locked is "in
+    // transit" — duplicate/comment don't apply until it's placed somewhere, so
+    // the toolbar simplifies down to just Move (as a keyboard-only hint) and
+    // Delete.
+    const isLooseAndMovable = (block) =>
+      !!block && !isBlockLocked(block) && !isDetachable(block) && !!block.isMovable?.();
+
+    function updateSimplifiedToolbar() {
       const block = toolbarBlock;
-      const show =
-        toolbarKeyboardMode &&
-        !!block &&
-        !isBlockLocked(block) &&
-        !isDetachable(block) &&
-        block.isMovable?.();
-      moveHint.style.display = show ? '' : 'none';
+      const simplified = isLooseAndMovable(block);
+      duplicateBtn.style.display = simplified ? 'none' : '';
+      commentBtn.style.display = isBlockLocked(block) || simplified ? 'none' : '';
+      moveHint.style.display = toolbarKeyboardMode && simplified ? '' : 'none';
     }
 
     // Sync the comment button's icon + label to whether the block has a comment:
@@ -882,9 +888,8 @@ export function initContextMenus(workspace) {
       // comment, delete), leaving duplicate and view-in-canvas available.
       const locked = isBlockLocked(block);
       detachBtn.style.display = !locked && isDetachable(block) ? '' : 'none';
-      updateMoveHint();
-      commentBtn.style.display = locked ? 'none' : '';
       deleteBtn.style.display = locked ? 'none' : '';
+      updateSimplifiedToolbar();
       updateCommentButton(block);
       let mesh = null;
       try {
@@ -934,6 +939,8 @@ export function initContextMenus(workspace) {
           const wasPointer = lastSelectionWasPointer;
           const wasDismissed = block === dismissedBlock;
           dismissedBlock = null;
+          const wasSuppressed = block === suppressReshowBlock;
+          suppressReshowBlock = null;
           if (isToolbarBlock(block)) {
             selectedBlock = block;
 
@@ -944,8 +951,11 @@ export function initContextMenus(workspace) {
               } else {
                 hideBlockToolbar();
               }
-            } else {
+            } else if (!wasSuppressed) {
               // Keyboard navigation: show immediately with the shortcut overlay.
+              // (Suppressed case: this is the reselect echo from starting a
+              // keyboard move — stay hidden so the block is visible while
+              // it's being dragged.)
               showBlockToolbar(block, { keyboard: true });
             }
           } else {
@@ -971,8 +981,9 @@ export function initContextMenus(workspace) {
         toolbarBlock
       ) {
         // A move can attach/detach the block (e.g. X detaches it while the
-        // toolbar is up), so refresh the M hint before re-rendering badges.
-        if (e.type === Blockly.Events.BLOCK_MOVE) updateMoveHint();
+        // toolbar is up), so refresh the simplified-toolbar state before
+        // re-rendering badges.
+        if (e.type === Blockly.Events.BLOCK_MOVE) updateSimplifiedToolbar();
         positionBlockToolbar();
       } else if (
         e.type === Blockly.Events.BLOCK_CHANGE &&
@@ -985,6 +996,12 @@ export function initContextMenus(workspace) {
         updateCommentButton(toolbarBlock);
         if (toolbarKeyboardMode) renderBadges();
       } else if (e.type === Blockly.Events.BLOCK_DRAG && e.isStart) {
+        // A keyboard-initiated move (M) fires this the same as a pointer
+        // drag; flag the block so the SELECTED handler above ignores the
+        // reselect echo that follows and doesn't immediately undo this hide.
+        if (toolbarBlock && toolbarKeyboardMode) {
+          suppressReshowBlock = toolbarBlock;
+        }
         hideBlockToolbar();
       }
     });
