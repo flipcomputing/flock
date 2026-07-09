@@ -552,6 +552,12 @@ button {
   display: block;
 }
 
+/* Override the generic .icon brand colour so this icon stays white,
+   matching the button's own colour, on the dark translucent backdrop. */
+.canvas-stopped-overlay__play .icon {
+  color: inherit;
+}
+
 .canvas-stopped-overlay__play:hover,
 .canvas-stopped-overlay__play:focus-visible {
   transform: scale(1.08);

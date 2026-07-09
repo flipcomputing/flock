@@ -827,8 +827,10 @@ function initializeApp() {
     exportCode(workspace);
   });
   KeyboardDispatcher.on('*', 'Mod+KeyP', (e) => {
+    // Documented in the Shortcuts panel as Play (accessibility/keyboardui.js);
+    // match the visible Play button exactly, including restarting a running scene.
     e.preventDefault();
-    document.getElementById('renderCanvas')?.focus({ preventScroll: true });
+    void executeCode();
   });
   KeyboardDispatcher.on('*', 'Mod+Slash', (e) => {
     e.preventDefault();
