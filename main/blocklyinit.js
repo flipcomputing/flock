@@ -774,7 +774,8 @@ export function initializeWorkspace() {
     const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
     const isMobileResults = () => window.matchMedia('(max-width: 480px)').matches;
 
-    // Get the toolbox search category to reuse its trigram blockSearcher
+    // Get the toolbox search category (used to override matchBlocks and to
+    // build Flock's rich search index on demand via searchBlocks).
     let searchCategory = workspace
       .getToolbox()
       ?.getToolboxItems?.()
@@ -840,33 +841,53 @@ export function initializeWorkspace() {
       );
     };
 
+    // Shared matcher for both the desktop flyout and the mobile overlay:
+    // substring-match against Flock's rich index (workspace.flockSearchIndexedBlocks
+    // — keyword synonyms, block labels, dropdown alt text, shadow defaults),
+    // then relevance-sort and de-duplicate by type. Substring matching narrows
+    // monotonically as you type, avoiding the trigram flicker on 1–2 char
+    // queries. Returns an array of toolbox block definitions (block.full).
+    const searchBlocks = (rawQuery) => {
+      const q = (rawQuery || '').toLowerCase().trim();
+      if (!q) return [];
+      let index = workspace.flockSearchIndexedBlocks;
+      if (!Array.isArray(index)) {
+        // Build the rich index on demand if it hasn't been built yet.
+        try {
+          searchCategory?.blockSearcher?.indexBlocks?.();
+        } catch {
+          /* index not ready yet */
+        }
+        index = workspace.flockSearchIndexedBlocks;
+      }
+      if (!Array.isArray(index)) return [];
+
+      const scoreItem = (def) => {
+        if (!def?.type) return 4;
+        const label = getBlockLabel(def).toLowerCase();
+        const type = def.type.toLowerCase();
+        if (label.startsWith(q)) return 0;
+        if (label.includes(q)) return 1;
+        if (type.includes(q)) return 2;
+        return 3;
+      };
+
+      const seenTypes = new Set();
+      return index
+        .filter((b) => b.text && b.text.includes(q))
+        .map((b) => b.full)
+        .filter((def) => def?.type && !seenTypes.has(def.type) && seenTypes.add(def.type))
+        .sort((a, b) => scoreItem(a) - scoreItem(b));
+    };
+
     const applyMatchBlocksOverride = (sc) => {
       if (!sc) return;
       sc.matchBlocks = function () {
-        const query = this.searchField?.value?.trim() || '';
-        let items = query ? this.blockSearcher.blockTypesMatching(query) : [];
-        if (items.length === 0) {
-          this.flyoutItems_ = [{ kind: 'label', text: translate('search_no_matching') }];
-        } else {
-          const q = query.toLowerCase();
-          const scoreItem = (blockDef) => {
-            if (!blockDef.type) return 4;
-            const label = getBlockLabel(blockDef).toLowerCase();
-            const type = blockDef.type.toLowerCase();
-            if (label.startsWith(q)) return 0;
-            if (label.includes(q)) return 1;
-            if (type.includes(q)) return 2;
-            return 3;
-          };
-          const seenTypes = new Set();
-          this.flyoutItems_ = items
-            .filter((b) => {
-              if (!b.type || seenTypes.has(b.type)) return false;
-              seenTypes.add(b.type);
-              return true;
-            })
-            .sort((a, b) => scoreItem(a) - scoreItem(b));
-        }
+        const items = searchBlocks(this.searchField?.value);
+        this.flyoutItems_ =
+          items.length === 0
+            ? [{ kind: 'label', text: translate('search_no_matching') }]
+            : items;
         this.parentToolbox_.refreshSelection();
       };
     };
@@ -927,31 +948,12 @@ export function initializeWorkspace() {
         return;
       }
 
-      const matches = searchCategory?.blockSearcher?.blockTypesMatching(query) ?? [];
+      const filtered = searchBlocks(query);
 
-      if (matches.length === 0) {
+      if (filtered.length === 0) {
         resultsPanel.innerHTML = `<div class="mobile-search-empty">${translate('search_no_matching')}</div>`;
         return;
       }
-
-      const q = query.toLowerCase();
-      const getLabel = (blockDef) => getBlockLabel(blockDef).toLowerCase();
-      const score = (blockDef) => {
-        const label = getLabel(blockDef);
-        const type = blockDef.type.toLowerCase();
-        if (label.startsWith(q)) return 0;
-        if (label.includes(q)) return 1;
-        if (type.includes(q)) return 2;
-        return 3;
-      };
-      matches.sort((a, b) => score(a) - score(b));
-
-      const seenTypes = new Set();
-      const filtered = matches.filter((blockDef) => {
-        if (seenTypes.has(blockDef.type)) return false;
-        seenTypes.add(blockDef.type);
-        return true;
-      });
 
       resultsPanel.innerHTML = '';
       filtered.slice(0, 60).forEach((blockDef) => {
@@ -1103,7 +1105,16 @@ export function initializeWorkspace() {
       }
 
       input.addEventListener('input', () => {
-        if (resultsPanel.isConnected) updateResults();
+        if (resultsPanel.isConnected) {
+          updateResults();
+        } else {
+          // The toolbox-search plugin runs matchBlocks() from the field's
+          // keydown handler, which fires before the pressed key reaches
+          // input.value — so the flyout query always lagged one character
+          // behind (typing "map" searched "ma" and showed nothing until a
+          // further edit). Re-run the search here, when the value is current.
+          searchCategory?.matchBlocks?.();
+        }
       });
       input.addEventListener('keyup', () => {
         if (resultsPanel.isConnected) updateResults();
@@ -2537,14 +2548,13 @@ export function overrideSearchPlugin(workspace) {
     return;
   }
 
-  const originalInitBlockSearcher = SearchCategory.prototype.initBlockSearcher;
-
   SearchCategory.prototype.initBlockSearcher = function () {
-    // Let the official plugin initialize its own behaviour first.
-    if (typeof originalInitBlockSearcher === 'function') {
-      originalInitBlockSearcher.call(this);
-    }
-
+    // Deliberately skip the plugin's default trigram indexing here: Flock
+    // searches its own rich index (workspace.flockSearchIndexedBlocks, built by
+    // buildSearchIndex) for both the desktop flyout and the mobile overlay,
+    // which also covers author keyword synonyms the trigram index lacks. Not
+    // building the trigram index avoids instantiating every block twice at
+    // startup. this.blockSearcher is already created by the plugin constructor.
     const blockSearcher = this.blockSearcher;
 
     const rebuildSearchIndex = () => {
