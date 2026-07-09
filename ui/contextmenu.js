@@ -827,11 +827,36 @@ export function initContextMenus(workspace) {
       !!block?.previousConnection?.targetConnection ||
       !!block?.outputConnection?.targetConnection;
 
+    // A block's own SVG group nests any blocks connected below it (via next
+    // connection), so getBoundingClientRect() on it spans the whole stack —
+    // for a hat block with a long stack underneath, that puts the toolbar way
+    // off to the right of the (narrow) hat itself. getBoundingRectangleWithoutChildren()
+    // returns just this block's own extent, in workspace units; convert that
+    // to screen pixels instead.
+    function getOwnBlockScreenRect(block) {
+      if (!block.getBoundingRectangleWithoutChildren) return null;
+      const wsRect = block.getBoundingRectangleWithoutChildren();
+      const topLeft = Blockly.utils.svgMath.wsToScreenCoordinates(
+        workspace,
+        new Blockly.utils.Coordinate(wsRect.left, wsRect.top)
+      );
+      const bottomRight = Blockly.utils.svgMath.wsToScreenCoordinates(
+        workspace,
+        new Blockly.utils.Coordinate(wsRect.right, wsRect.bottom)
+      );
+      return {
+        left: topLeft.x,
+        top: topLeft.y,
+        width: bottomRight.x - topLeft.x,
+        height: bottomRight.y - topLeft.y,
+      };
+    }
+
     function positionBlockToolbar() {
       if (!toolbarBlock) return;
       const svgRoot = toolbarBlock.getSvgRoot?.();
       if (!svgRoot) return;
-      const rect = svgRoot.getBoundingClientRect();
+      const rect = getOwnBlockScreenRect(toolbarBlock) ?? svgRoot.getBoundingClientRect();
       const blockCenterX = Math.round(rect.left + rect.width / 2);
       blockToolbar.style.left = `${blockCenterX}px`;
       blockToolbar.style.top = `${Math.round(rect.top)}px`;
