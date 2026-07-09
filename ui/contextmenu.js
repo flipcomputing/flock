@@ -657,7 +657,7 @@ export function initContextMenus(workspace) {
 
   // ---- Floating block toolbar ----
   // Pointer selection shows it after a short hover; keyboard navigation shows it
-  // immediately with a shortcut-letter overlay (D/X/K/V/Del) above each button.
+  // immediately with a shortcut-letter overlay (D/X/M/K/V/Del) above each button.
   {
     const blockToolbar = document.createElement('div');
     blockToolbar.className = 'fc-block-toolbar';
@@ -705,6 +705,17 @@ export function initContextMenus(workspace) {
       '0 0 640 512'
     );
 
+    // Passive "press M to move" hint. Looks like a toolbar button but is inert
+    // (pointer-events: none): it exists purely so keyboard users see the move
+    // icon with an M badge when they land on a loose block.
+    const moveHint = document.createElement('span');
+    moveHint.className = 'fc-block-toolbar-btn fc-block-toolbar-hint';
+    moveHint.setAttribute('aria-hidden', 'true');
+    moveHint.innerHTML = mkFaSvg(
+      '<path d="M278.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-64 64c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8l32 0 0 96-96 0 0-32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9l-64 64c-12.5 12.5-12.5 32.8 0 45.3l64 64c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6l0-32 96 0 0 96-32 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l64 64c12.5 12.5 32.8 12.5 45.3 0l64-64c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8l-32 0 0-96 96 0 0 32c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l64-64c12.5-12.5 12.5-32.8 0-45.3l-64-64c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 32-96 0 0-96 32 0c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-64-64z"/>',
+      '0 0 512 512'
+    );
+
     const commentBtn = document.createElement('button');
     commentBtn.type = 'button';
     commentBtn.className = 'fc-block-toolbar-btn';
@@ -734,7 +745,7 @@ export function initContextMenus(workspace) {
     viewBtn.setAttribute('aria-label', getToolbarLabel('view_in_canvas', 'View in canvas'));
     viewBtn.innerHTML = viewEnterSvg;
 
-    blockToolbar.append(duplicateBtn, detachBtn, commentBtn, viewBtn, deleteBtn);
+    blockToolbar.append(duplicateBtn, detachBtn, moveHint, commentBtn, viewBtn, deleteBtn);
 
     // The keyboard shortcut that each toolbar button mirrors. The overlay shows
     // these as a passive legend — the keys themselves are bound elsewhere
@@ -744,6 +755,7 @@ export function initContextMenus(workspace) {
     const buttonShortcuts = [
       [duplicateBtn, 'D'],
       [detachBtn, 'X'],
+      [moveHint, 'M'],
       // Match the comment button's icon: '⇧K' (Shift+K, delete) when the block
       // already has a comment, 'K' (show/hide) when it doesn't.
       [commentBtn, () => (toolbarBlock?.getCommentText?.() != null ? '⇧K' : 'K')],
@@ -835,6 +847,20 @@ export function initContextMenus(workspace) {
       if (toolbarKeyboardMode) renderBadges();
     }
 
+    // The move hint only appears when the toolbar was opened via keyboard
+    // navigation and the block is loose (unattached), movable and not locked —
+    // i.e. exactly when pressing M is the way to put it somewhere.
+    function updateMoveHint() {
+      const block = toolbarBlock;
+      const show =
+        toolbarKeyboardMode &&
+        !!block &&
+        !isBlockLocked(block) &&
+        !isDetachable(block) &&
+        block.isMovable?.();
+      moveHint.style.display = show ? '' : 'none';
+    }
+
     // Sync the comment button's icon + label to whether the block has a comment:
     // crossed-out "delete" icon when it does, plain "add" icon when it doesn't.
     function updateCommentButton(block) {
@@ -856,6 +882,7 @@ export function initContextMenus(workspace) {
       // comment, delete), leaving duplicate and view-in-canvas available.
       const locked = isBlockLocked(block);
       detachBtn.style.display = !locked && isDetachable(block) ? '' : 'none';
+      updateMoveHint();
       commentBtn.style.display = locked ? 'none' : '';
       deleteBtn.style.display = locked ? 'none' : '';
       updateCommentButton(block);
@@ -943,6 +970,9 @@ export function initContextMenus(workspace) {
         (e.type === Blockly.Events.BLOCK_MOVE || e.type === Blockly.Events.VIEWPORT_CHANGE) &&
         toolbarBlock
       ) {
+        // A move can attach/detach the block (e.g. X detaches it while the
+        // toolbar is up), so refresh the M hint before re-rendering badges.
+        if (e.type === Blockly.Events.BLOCK_MOVE) updateMoveHint();
         positionBlockToolbar();
       } else if (
         e.type === Blockly.Events.BLOCK_CHANGE &&
