@@ -1028,6 +1028,38 @@ export function initContextMenus(workspace) {
       { capture: true }
     );
 
+    // Keyboard equivalent of the click-to-toggle above: Enter toggles the
+    // toolbar for the currently selected block. Bare Enter is free while a
+    // canvas block is focused — it's only otherwise bound inside the toolbox
+    // flyout ("add block") and the search box/results, both of which are
+    // excluded here since focus sits on an <input> at that point. The
+    // containment check guards against `selectedBlock` being a stale
+    // reference while focus has actually moved elsewhere (e.g. the toolbox).
+    document.addEventListener(
+      'keydown',
+      (e) => {
+        if (e.key !== 'Enter') return;
+        if (isTypingInInput()) return;
+        if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+        if (!selectedBlock) return;
+        const svgRoot = selectedBlock.getSvgRoot?.();
+        if (!svgRoot || !svgRoot.contains(document.activeElement)) return;
+        // Stop this from also reaching Blockly's own Enter handling, which
+        // otherwise treats it as "activate" on a block with nothing to
+        // activate and shows a "use arrow keys to navigate inside" hint.
+        e.preventDefault();
+        e.stopPropagation();
+        if (toolbarBlock) {
+          dismissedBlock = selectedBlock;
+          hideBlockToolbar();
+        } else {
+          dismissedBlock = null;
+          showBlockToolbar(selectedBlock, { keyboard: true });
+        }
+      },
+      { capture: true }
+    );
+
     duplicateBtn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       e.stopPropagation();
