@@ -4,9 +4,12 @@ import { translate } from '../main/translation.js';
 import { SHORTCUTS_HELP_URL } from '../config.js';
 import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 
-// Matches the CSS `max-width: 1024px` breakpoint where the info panel is hidden
-// and its shortcuts panel must be shown as a modal instead of docked.
-const isNarrowLayout = () => window.matchMedia('(max-width: 1024px)').matches;
+// Matches the CSS `(max-width: 1024px) and (orientation: landscape)` breakpoint
+// where the info panel is hidden and its shortcuts panel must be shown as a
+// modal instead of docked (see style.css). Portrait phones are narrow too but
+// tall enough for the docked panel to still fit, so landscape is required.
+const isNarrowLayout = () =>
+  window.matchMedia('(max-width: 1024px) and (orientation: landscape)').matches;
 
 // Area menu accessed with Ctrl + B to quickly skip to
 // different areas on the interface
