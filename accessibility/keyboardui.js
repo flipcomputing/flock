@@ -41,11 +41,13 @@ const AreaManager = {
   get effectiveAreas() {
     const reloadBtn = document.getElementById('reload-btn');
     const reloadConnected = reloadBtn?.isConnected;
-    const narrow = isNarrowLayout();
+    const infoPanelTabs = document.getElementById('info-panel-tabs');
+    const infoPanelTabsHidden = !infoPanelTabs || infoPanelTabs.offsetWidth === 0;
     return this.areas.map((a) => {
-      // Narrow mode hides the info panel, so hand area 5 to the pill toggle —
-      // a direct jump to the Canvas/Code switch instead of a dead target.
-      if (narrow && a.label === '5') {
+      // #info-panel-tabs is a dead target whenever it's not actually on screen
+      // (hidden by the landscape-narrow CSS, or display:none via canvasArea in
+      // narrow Code view) — hand area 5 to the pill toggle instead.
+      if (infoPanelTabsHidden && a.label === '5') {
         return {
           selector: '#viewToggle',
           label: '5',
@@ -727,7 +729,13 @@ const ShortcutsPanel = {
     window.addEventListener('resize', () => {
       if (this.panel.classList.contains('hidden')) return;
       if (isNarrowLayout() && !this._modalActive) this.enterModal();
-      else if (!isNarrowLayout() && this._modalActive) this.exitModal();
+      else if (!isNarrowLayout() && this._modalActive) {
+        // exitModal() itself doesn't restore focus (unlike hide(), which calls
+        // it and then does this) — without it, closing the modal this way (e.g.
+        // rotating the device) can leave focus on the just-removed close button.
+        this.exitModal();
+        this.previousFocus?.focus();
+      }
     });
   },
 

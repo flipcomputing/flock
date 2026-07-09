@@ -218,26 +218,30 @@ export function runKeyboardUiTests(flock) {
       });
 
       describe('effectiveAreas', function () {
-        it('swaps area 5 for the view-toggle pill in a narrow layout', function () {
-          const saved = window.matchMedia;
-          window.matchMedia = () => ({ matches: true });
-          try {
-            const area5 = AreaManager.effectiveAreas.find((a) => a.label === '5');
-            expect(area5.selector).to.equal('#viewToggle');
-          } finally {
-            window.matchMedia = saved;
-          }
+        afterEach(function () {
+          document.getElementById('info-panel-tabs')?.remove();
         });
 
-        it('keeps area 5 as the info panel tabs in a wide layout', function () {
-          const saved = window.matchMedia;
-          window.matchMedia = () => ({ matches: false });
-          try {
-            const area5 = AreaManager.effectiveAreas.find((a) => a.label === '5');
-            expect(area5.selector).to.equal('#info-panel-tabs');
-          } finally {
-            window.matchMedia = saved;
-          }
+        it('swaps area 5 for the view-toggle pill when #info-panel-tabs is not on screen', function () {
+          const el = document.createElement('div');
+          el.id = 'info-panel-tabs';
+          el.style.display = 'none';
+          document.body.appendChild(el);
+          const area5 = AreaManager.effectiveAreas.find((a) => a.label === '5');
+          expect(area5.selector).to.equal('#viewToggle');
+        });
+
+        it('swaps area 5 for the view-toggle pill when #info-panel-tabs does not exist', function () {
+          const area5 = AreaManager.effectiveAreas.find((a) => a.label === '5');
+          expect(area5.selector).to.equal('#viewToggle');
+        });
+
+        it('keeps area 5 as the info panel tabs when #info-panel-tabs is on screen', function () {
+          const el = document.createElement('div');
+          el.id = 'info-panel-tabs';
+          document.body.appendChild(el);
+          const area5 = AreaManager.effectiveAreas.find((a) => a.label === '5');
+          expect(area5.selector).to.equal('#info-panel-tabs');
         });
 
         it('swaps area 9 for the reload button when one is connected to the DOM', function () {
@@ -461,6 +465,50 @@ export function runKeyboardUiTests(flock) {
           expect(ShortcutsPanel.panel.classList.contains('shortcuts-modal')).to.equal(false);
           expect(ShortcutsPanel.panel.hasAttribute('aria-modal')).to.equal(false);
           expect(document.querySelector('.shortcuts-modal-backdrop')).to.not.exist;
+        });
+      });
+
+      describe('resize-triggered modal switching', function () {
+        afterEach(function () {
+          ShortcutsPanel.exitModal();
+          ShortcutsPanel.hide();
+        });
+
+        it('enters modal mode on resize when the layout becomes narrow+landscape', function () {
+          ShortcutsPanel.show();
+          expect(ShortcutsPanel._modalActive).to.not.equal(true);
+          const saved = window.matchMedia;
+          window.matchMedia = () => ({ matches: true });
+          try {
+            window.dispatchEvent(new Event('resize'));
+            expect(ShortcutsPanel._modalActive).to.equal(true);
+          } finally {
+            window.matchMedia = saved;
+          }
+        });
+
+        it('exits modal mode and restores focus on resize when the layout leaves narrow+landscape', function () {
+          const saved = window.matchMedia;
+          window.matchMedia = () => ({ matches: true });
+          try {
+            ShortcutsPanel.show();
+            window.dispatchEvent(new Event('resize'));
+          } finally {
+            window.matchMedia = saved;
+          }
+          expect(ShortcutsPanel._modalActive).to.equal(true);
+          const closeBtn = ShortcutsPanel.panel.querySelector('.shortcuts-modal-close');
+          closeBtn.focus();
+          expect(document.activeElement).to.equal(closeBtn);
+
+          window.matchMedia = () => ({ matches: false });
+          try {
+            window.dispatchEvent(new Event('resize'));
+          } finally {
+            window.matchMedia = saved;
+          }
+          expect(ShortcutsPanel._modalActive).to.equal(false);
+          expect(document.activeElement).to.equal(ShortcutsPanel.previousFocus);
         });
       });
 
