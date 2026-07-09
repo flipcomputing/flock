@@ -1007,12 +1007,48 @@ button {
     height: 100% !important;
   }
 
-  /* In narrow mode the info panel has no room to dock its shortcuts panel, so
-     it's hidden entirely: shortcuts open as a modal (.shortcuts-modal), the
-     flock link moves into the bottom bar, and Ctrl+B "area 5" drops out on its
-     own (renderHighlights skips 0-size nodes). Selector is `aside#info-panel`
-     (not just `#info-panel`) so it out-specifies the base `#info-panel` rule,
-     which is declared later in the file and would otherwise win the cascade. */
+  /* Reserves room above the fixed #bottomBar for whichever docks here — the
+     shortcuts tabs in narrow *portrait* (where the info panel is still docked,
+     see the landscape-only hide below), or otherwise just keeping tabs clear
+     of the bar. Without this the tabs/pill-toggle area render underneath the
+     fixed bar and get covered by it. */
+  #info-panel-tabs {
+    margin-bottom: calc(35px + max(0px, env(safe-area-inset-bottom, 0px)));
+  }
+
+  #blocklyDiv {
+    height: calc(100% - 85px - max(0px, env(safe-area-inset-bottom, 0px))) !important;
+  }
+}
+
+/* Hidden by default; shown only in the narrow+landscape case below. Kept as a
+   base rule (rather than solely relying on #bottomBar being display:none on
+   wide screens) so it doesn't render unstyled in narrow *portrait* layouts,
+   where the info panel still has room to host the docked copy instead. */
+.bottombar-flocklink {
+  display: none;
+}
+
+/* Narrow layouts (either orientation) have no side-by-side panels to resize,
+   so the drag handle is hidden — also keeps its tabindex out of the tab
+   order and drops it from the Ctrl+B highlight areas. */
+@media only screen and (max-width: 1024px) {
+  .resizer {
+    display: none;
+  }
+}
+
+/* Narrow AND short: landscape at low resolutions (e.g. small laptop/tablet
+   windows) where there's no room beside the canvas to dock the info panel's
+   shortcuts panel. Portrait phones are narrow too, but tall enough that the
+   docked panel still fits, so this is scoped to landscape only. In this mode:
+   shortcuts open as a modal (.shortcuts-modal), the flock link moves into the
+   bottom bar, and Ctrl+B "area 5" drops out on its own (renderHighlights skips
+   0-size nodes). Selector is `aside#info-panel` (not just `#info-panel`) so it
+   out-specifies the base `#info-panel` rule, declared later in the file, which
+   would otherwise win the cascade. Must match the JS breakpoint used by
+   `isNarrowLayout()` in accessibility/keyboardui.js. */
+@media (max-width: 1024px) and (orientation: landscape) {
   aside#info-panel {
     display: none;
   }
@@ -1028,7 +1064,7 @@ button {
   }
 
   .bottombar-flocklink img {
-    height: 18px;
+    height: 15px;
     display: block;
     /* The logo SVG is purple, which disappears on the purple bar — recolour
        the rendered image to white (brightness(0) → black, invert → white).
@@ -1043,33 +1079,6 @@ button {
     outline: 3px solid var(--color-focus);
     outline-offset: 2px;
     border-radius: 4px;
-  }
-
-  #blocklyDiv {
-    height: calc(100% - 85px - max(0px, env(safe-area-inset-bottom, 0px))) !important;
-  }
-}
-
-@media only screen and (orientation: landscape) and (max-width: 768px) {
-  #info-panel {
-    display: none;
-  }
-
-  .resizer {
-    display: none;
-  }
-}
-
-@media only screen and (orientation: portrait) and (max-width: 1024px) {
-  /* Info panel stays hidden in narrow mode (shortcuts open as a modal); this
-     rule previously forced it visible in portrait, which would override the
-     narrow-mode hide above. `aside#info-panel` for the same specificity reason. */
-  aside#info-panel {
-    display: none;
-  }
-
-  .resizer {
-    display: none;
   }
 }
 

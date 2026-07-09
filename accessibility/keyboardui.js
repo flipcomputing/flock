@@ -5,9 +5,12 @@ import { SHORTCUTS_HELP_URL } from '../config.js';
 import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 import { focusToolboxRestoringCategory } from '../main/toolboxfocus.js';
 
-// Matches the CSS `max-width: 1024px` breakpoint where the info panel is hidden
-// and its shortcuts panel must be shown as a modal instead of docked.
-const isNarrowLayout = () => window.matchMedia('(max-width: 1024px)').matches;
+// Matches the CSS `(max-width: 1024px) and (orientation: landscape)` breakpoint
+// where the info panel is hidden and its shortcuts panel must be shown as a
+// modal instead of docked (see style.css). Portrait phones are narrow too but
+// tall enough for the docked panel to still fit, so landscape is required.
+const isNarrowLayout = () =>
+  window.matchMedia('(max-width: 1024px) and (orientation: landscape)').matches;
 
 // Area menu accessed with Ctrl + B to quickly skip to
 // different areas on the interface
@@ -39,11 +42,13 @@ const AreaManager = {
   get effectiveAreas() {
     const reloadBtn = document.getElementById('reload-btn');
     const reloadConnected = reloadBtn?.isConnected;
-    const narrow = isNarrowLayout();
+    const infoPanelTabs = document.getElementById('info-panel-tabs');
+    const infoPanelTabsHidden = !infoPanelTabs || infoPanelTabs.offsetWidth === 0;
     return this.areas.map((a) => {
-      // Narrow mode hides the info panel, so hand area 5 to the pill toggle —
-      // a direct jump to the Canvas/Code switch instead of a dead target.
-      if (narrow && a.label === '5') {
+      // #info-panel-tabs is a dead target whenever it's not actually on screen
+      // (hidden by the landscape-narrow CSS, or display:none via canvasArea in
+      // narrow Code view) — hand area 5 to the pill toggle instead.
+      if (infoPanelTabsHidden && a.label === '5') {
         return {
           selector: '#viewToggle',
           label: '5',
@@ -731,7 +736,13 @@ const ShortcutsPanel = {
     window.addEventListener('resize', () => {
       if (this.panel.classList.contains('hidden')) return;
       if (isNarrowLayout() && !this._modalActive) this.enterModal();
-      else if (!isNarrowLayout() && this._modalActive) this.exitModal();
+      else if (!isNarrowLayout() && this._modalActive) {
+        // exitModal() itself doesn't restore focus (unlike hide(), which calls
+        // it and then does this) — without it, closing the modal this way (e.g.
+        // rotating the device) can leave focus on the just-removed close button.
+        this.exitModal();
+        this.previousFocus?.focus();
+      }
     });
   },
 

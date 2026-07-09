@@ -186,7 +186,8 @@ function switchView(view) {
     blocklyArea.style.display = 'block';
     canvasArea.style.display = '';
     flockLink.style.display = 'block';
-    if (resizer) resizer.style.display = 'block';
+    // Defer to the stylesheet: block on wide screens, hidden at <=1024px
+    if (resizer) resizer.style.display = '';
     blocklyArea.style.width = '0';
     canvasArea.style.width = '0';
     blocklyArea.style.flex = '2 1 0'; // 2/3 of the space
@@ -555,7 +556,7 @@ export function togglePlayMode() {
     bottomBar.style.display = '';
     flockLink.style.display = 'block';
     if (infoPanel) infoPanel.style.display = '';
-    if (resizer) resizer.style.display = 'block';
+    if (resizer) resizer.style.display = '';
     if (savedShortcutsVisible) {
       window.flockShortcutsPanel?.show();
       savedShortcutsVisible = false;
