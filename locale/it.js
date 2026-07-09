@@ -1246,6 +1246,7 @@ export default {
   shortcut_toolbox_typing: 'Vai alla categoria',
   shortcut_toolbox_typing_hint: 'Inizia a digitare il nome',
   shortcut_context_menu: 'Apri menu contestuale',
+  shortcut_toggle_block_toolbar: 'Mostra/nascondi la barra dei suggerimenti del blocco',
   shortcut_duplicate_block: 'Duplica blocco',
   shortcut_detach_block: 'Stacca blocco',
   shortcut_comment_block: 'Mostra/nascondi commento',

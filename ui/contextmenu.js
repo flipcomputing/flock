@@ -852,12 +852,20 @@ export function initContextMenus(workspace) {
       if (toolbarKeyboardMode) renderBadges();
     }
 
-    // A block that is loose (unattached), movable and not locked is "in
-    // transit" — duplicate/comment don't apply until it's placed somewhere, so
-    // the toolbar simplifies down to just Move (as a keyboard-only hint) and
-    // Delete.
+    // A block that COULD attach to something (has a previous/output
+    // connection) but currently isn't — freshly duplicated, just detached,
+    // etc. — is "in transit": duplicate/comment don't apply until it's placed
+    // somewhere, so the toolbar simplifies down to just Move (as a
+    // keyboard-only hint) and Delete. Hat/event blocks (e.g. "start") have
+    // neither connection, so they're always "unattached" without ever being
+    // in transit — exclude them, or every hat block would permanently show
+    // the simplified toolbar.
     const isLooseAndMovable = (block) =>
-      !!block && !isBlockLocked(block) && !isDetachable(block) && !!block.isMovable?.();
+      !!block &&
+      !isBlockLocked(block) &&
+      !isDetachable(block) &&
+      !!block.isMovable?.() &&
+      (!!block.previousConnection || !!block.outputConnection);
 
     function updateSimplifiedToolbar() {
       const block = toolbarBlock;
@@ -1028,25 +1036,21 @@ export function initContextMenus(workspace) {
       { capture: true }
     );
 
-    // Keyboard equivalent of the click-to-toggle above: Enter toggles the
-    // toolbar for the currently selected block. Bare Enter is free while a
-    // canvas block is focused — it's only otherwise bound inside the toolbox
-    // flyout ("add block") and the search box/results, both of which are
-    // excluded here since focus sits on an <input> at that point. The
-    // containment check guards against `selectedBlock` being a stale
-    // reference while focus has actually moved elsewhere (e.g. the toolbox).
+    // Keyboard equivalent of the click-to-toggle above: H toggles the
+    // toolbar for the currently selected block. Unbound elsewhere in this
+    // context, and unlike Enter it doesn't collide with finishing a keyboard
+    // move (M) or any other existing shortcut. The containment check guards
+    // against `selectedBlock` being a stale reference while focus has
+    // actually moved elsewhere (e.g. the toolbox).
     document.addEventListener(
       'keydown',
       (e) => {
-        if (e.key !== 'Enter') return;
+        if (e.key.toLowerCase() !== 'h') return;
         if (isTypingInInput()) return;
         if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
         if (!selectedBlock) return;
         const svgRoot = selectedBlock.getSvgRoot?.();
         if (!svgRoot || !svgRoot.contains(document.activeElement)) return;
-        // Stop this from also reaching Blockly's own Enter handling, which
-        // otherwise treats it as "activate" on a block with nothing to
-        // activate and shows a "use arrow keys to navigate inside" hint.
         e.preventDefault();
         e.stopPropagation();
         if (toolbarBlock) {

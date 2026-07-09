@@ -518,6 +518,11 @@ function getShortcuts() {
       category: translate('shortcut_category_editor'),
     },
     {
+      label: translate('shortcut_toggle_block_toolbar'),
+      keys: `H`,
+      category: translate('shortcut_category_editor'),
+    },
+    {
       label: translate('shortcut_duplicate_block'),
       keys: `D`,
       category: translate('shortcut_category_editor'),

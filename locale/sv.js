@@ -1226,6 +1226,7 @@ export default {
   shortcut_toolbox_typing: 'Hoppa till kategori',
   shortcut_toolbox_typing_hint: 'Börja skriva dess namn',
   shortcut_context_menu: 'Öppna snabbmeny',
+  shortcut_toggle_block_toolbar: 'Visa/dölj blockets tipsfält',
   shortcut_duplicate_block: 'Duplicera block',
   shortcut_detach_block: 'Koppla loss block',
   shortcut_comment_block: 'Visa/dölj kommentar',

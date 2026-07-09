@@ -1245,6 +1245,7 @@ export default {
   shortcut_toolbox_typing: 'Aller à la catégorie',
   shortcut_toolbox_typing_hint: 'Commencez à taper son nom',
   shortcut_context_menu: 'Ouvrir le menu contextuel',
+  shortcut_toggle_block_toolbar: "Afficher/masquer la barre d'astuces du bloc",
   shortcut_duplicate_block: 'Dupliquer le bloc',
   shortcut_detach_block: 'Détacher le bloc',
   shortcut_comment_block: 'Afficher/masquer le commentaire',
