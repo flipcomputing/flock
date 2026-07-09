@@ -776,6 +776,12 @@ export function initContextMenus(workspace) {
     // same block (Blockly refocusing it), which would otherwise immediately
     // reshow the toolbar we just hid; this suppresses exactly that one echo.
     let suppressReshowBlock = null;
+    // Mesh availability for a block changes with attach state (code
+    // re-executes on attach/detach, creating/destroying the mesh), but that
+    // re-execution is debounced — it may not have landed yet at the instant
+    // a BLOCK_MOVE event fires. This re-checks shortly after, so viewBtn
+    // catches up once the mesh actually appears/disappears.
+    let viewMeshRecheckTimer = null;
 
     function clearBadges() {
       badgeOverlay.replaceChildren();
@@ -920,10 +926,24 @@ export function initContextMenus(workspace) {
 
     function updateSimplifiedToolbar() {
       const block = toolbarBlock;
+      if (!block) return;
       const simplified = isLooseAndMovable(block);
       duplicateBtn.style.display = simplified ? 'none' : '';
       commentBtn.style.display = isBlockLocked(block) || simplified ? 'none' : '';
       moveHint.style.display = toolbarKeyboardMode && simplified ? '' : 'none';
+      // Loose blocks never show View, regardless of mesh state — no point
+      // waiting on a mesh check for a block that isn't placed anywhere yet.
+      if (simplified) {
+        viewBtn.style.display = 'none';
+        return;
+      }
+      let mesh = null;
+      try {
+        mesh = getMeshFromBlock(block);
+      } catch {
+        /* scene not ready */
+      }
+      viewBtn.style.display = !mesh || mesh.name === 'ground' ? 'none' : '';
     }
 
     // Sync the comment button's icon + label to whether the block has a comment:
@@ -956,7 +976,6 @@ export function initContextMenus(workspace) {
       } catch {
         /* scene not ready */
       }
-      viewBtn.style.display = !mesh || mesh.name === 'ground' ? 'none' : '';
       let meshRoot = mesh;
       while (meshRoot?.parent) meshRoot = meshRoot.parent;
       const exitMode = !!window.orbitViewActive && (window.orbitBlock === block || (meshRoot && window.orbitMesh === meshRoot));
@@ -979,6 +998,8 @@ export function initContextMenus(workspace) {
       clearTimeout(toolbarShowTimer);
       toolbarShowTimer = null;
       pendingHoverBlock = null;
+      clearTimeout(viewMeshRecheckTimer);
+      viewMeshRecheckTimer = null;
       toolbarBlock = null;
       toolbarKeyboardMode = false;
       blockToolbar.classList.remove('visible');
@@ -1054,7 +1075,22 @@ export function initContextMenus(workspace) {
         // A move can attach/detach the block (e.g. X detaches it while the
         // toolbar is up), so refresh the simplified-toolbar state before
         // re-rendering badges.
-        if (e.type === Blockly.Events.BLOCK_MOVE) updateSimplifiedToolbar();
+        if (e.type === Blockly.Events.BLOCK_MOVE) {
+          updateSimplifiedToolbar();
+          // Reattaching can create a mesh (detaching destroys one), but that
+          // happens via debounced code re-execution — it may not have landed
+          // yet. Check again shortly after so View catches up.
+          clearTimeout(viewMeshRecheckTimer);
+          const recheckBlock = toolbarBlock;
+          viewMeshRecheckTimer = setTimeout(() => {
+            viewMeshRecheckTimer = null;
+            if (toolbarBlock !== recheckBlock) return;
+            updateSimplifiedToolbar();
+            // viewBtn's visibility may have just changed; the badge overlay
+            // was last drawn against the old state, so refresh it too.
+            if (toolbarKeyboardMode) renderBadges();
+          }, 400);
+        }
         positionBlockToolbar();
       } else if (
         e.type === Blockly.Events.BLOCK_CHANGE &&
