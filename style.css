@@ -1029,17 +1029,10 @@ button {
   display: none;
 }
 
-@media only screen and (orientation: landscape) and (max-width: 768px) {
-  #info-panel {
-    display: none;
-  }
-
-  .resizer {
-    display: none;
-  }
-}
-
-@media only screen and (orientation: portrait) and (max-width: 1024px) {
+/* Narrow layouts (either orientation) have no side-by-side panels to resize,
+   so the drag handle is hidden — also keeps its tabindex out of the tab
+   order and drops it from the Ctrl+B highlight areas. */
+@media only screen and (max-width: 1024px) {
   .resizer {
     display: none;
   }
