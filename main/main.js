@@ -828,6 +828,14 @@ function initializeApp() {
   });
   KeyboardDispatcher.on('*', 'Mod+KeyP', (e) => {
     e.preventDefault();
+    const stoppedOverlay = document.getElementById('canvasStoppedOverlay');
+    if (stoppedOverlay && !stoppedOverlay.hidden) {
+      // The render canvas is inert while this overlay is showing, so focusing
+      // it would silently no-op. Start the scene instead, same as the play button;
+      // executeCode focuses the canvas itself once it's no longer inert.
+      void executeCode();
+      return;
+    }
     document.getElementById('renderCanvas')?.focus({ preventScroll: true });
   });
   KeyboardDispatcher.on('*', 'Mod+Slash', (e) => {
