@@ -775,7 +775,7 @@ export function initializeWorkspace() {
     const isMobileResults = () => window.matchMedia('(max-width: 480px)').matches;
 
     // Get the toolbox search category (used to override matchBlocks and to
-    // build Flock's rich search index on demand via searchBlocks).
+    // build Flock's rich search index on demand, and to reuse its searcher).
     let searchCategory = workspace
       .getToolbox()
       ?.getToolboxItems?.()
@@ -841,57 +841,10 @@ export function initializeWorkspace() {
       );
     };
 
-    // Shared matcher for both the desktop flyout and the mobile overlay:
-    // substring-match against Flock's rich index (workspace.flockSearchIndexedBlocks
-    // — keyword synonyms, block labels, dropdown alt text, shadow defaults),
-    // then relevance-sort and de-duplicate by type. Substring matching narrows
-    // monotonically as you type, avoiding the trigram flicker on 1–2 char
-    // queries. Returns an array of toolbox block definitions (block.full).
-    const searchBlocks = (rawQuery) => {
-      const q = (rawQuery || '').toLowerCase().trim();
-      if (!q) return [];
-      let index = workspace.flockSearchIndexedBlocks;
-      if (!Array.isArray(index)) {
-        // Build the rich index on demand if it hasn't been built yet.
-        try {
-          searchCategory?.blockSearcher?.indexBlocks?.();
-        } catch {
-          /* index not ready yet */
-        }
-        index = workspace.flockSearchIndexedBlocks;
-      }
-      if (!Array.isArray(index)) return [];
-
-      const scoreItem = (def) => {
-        if (!def?.type) return 4;
-        const label = getBlockLabel(def).toLowerCase();
-        const type = def.type.toLowerCase();
-        if (label.startsWith(q)) return 0;
-        if (label.includes(q)) return 1;
-        if (type.includes(q)) return 2;
-        return 3;
-      };
-
-      const seenTypes = new Set();
-      return index
-        .filter((b) => b.text && b.text.includes(q))
-        .map((b) => b.full)
-        .filter((def) => def?.type && !seenTypes.has(def.type) && seenTypes.add(def.type))
-        .sort((a, b) => scoreItem(a) - scoreItem(b));
-    };
-
-    const applyMatchBlocksOverride = (sc) => {
-      if (!sc) return;
-      sc.matchBlocks = function () {
-        const items = searchBlocks(this.searchField?.value);
-        this.flyoutItems_ =
-          items.length === 0
-            ? [{ kind: 'label', text: translate('search_no_matching') }]
-            : items;
-        this.parentToolbox_.refreshSelection();
-      };
-    };
-    applyMatchBlocksOverride(searchCategory);
+    // Desktop flyout search is handled by Blockly's native matchBlocks via the
+    // blockSearcher.blockTypesMatching override in overrideSearchPlugin. The
+    // mobile overlay below reuses that same searcher (blockTypesMatching) so
+    // desktop and mobile stay consistent.
 
     // Build overlay bar
     const overlay = document.createElement('div');
@@ -948,7 +901,7 @@ export function initializeWorkspace() {
         return;
       }
 
-      const filtered = searchBlocks(query);
+      const filtered = searchCategory?.blockSearcher?.blockTypesMatching(query) ?? [];
 
       if (filtered.length === 0) {
         resultsPanel.innerHTML = `<div class="mobile-search-empty">${translate('search_no_matching')}</div>`;
@@ -1157,7 +1110,6 @@ export function initializeWorkspace() {
           ?.getToolboxItems?.()
           .find((item) => item.getId?.() === 'toolbox-search-input');
         buildCategoryMap();
-        applyMatchBlocksOverride(searchCategory);
         attachInputListeners(newInput);
       }).observe(toolboxEl, { childList: true, subtree: true });
     }
@@ -2565,29 +2517,46 @@ export function overrideSearchPlugin(workspace) {
       }
 
       const newIndex = buildSearchIndex();
-      xmlCache.clear();
       workspace.flockSearchIndexedBlocks = newIndex;
       blockSearcher.indexedBlocks_ = newIndex;
-
-      const showAllBlocksAsync = () => {
-        const searchCategory = workspace.flockSearchCategory;
-        if (!searchCategory) return;
-        if (!isSearchCategorySelected(searchCategory)) return;
-        if (searchCategory.searchField?.value.toLowerCase().trim()) {
-          return;
-        }
-        searchCategory.showMatchingBlocks(newIndex);
-      };
-
-      if (typeof requestIdleCallback === 'function') {
-        requestIdleCallback(showAllBlocksAsync);
-      } else {
-        setTimeout(showAllBlocksAsync, 0);
-      }
     };
 
     this.blockSearcher.indexBlocks = rebuildSearchIndex;
     blockSearcher.indexedBlocks_ = workspace.flockSearchIndexedBlocks || null;
+
+    // Override only the search primitive: substring-match Flock's rich index
+    // (keyword synonyms, block labels, dropdown alt text, shadow defaults),
+    // relevance-sorted and de-duplicated by type. Blockly's native matchBlocks
+    // consumes this, so Blockly keeps handling flyout rendering, the screen
+    // reader announcement, and the empty / no-match labels.
+    blockSearcher.blockTypesMatching = (rawQuery) => {
+      const q = (rawQuery || '').toLowerCase().trim();
+      if (!q) return [];
+      if (!Array.isArray(blockSearcher.indexedBlocks_) && blockSearcher.indexBlocks) {
+        blockSearcher.indexBlocks();
+      }
+      const index = blockSearcher.indexedBlocks_;
+      if (!Array.isArray(index)) return [];
+
+      const labelOf = (def) =>
+        (workspace.flockBlockLabelMap?.get(def.type) || def.type.replace(/_/g, ' ')).toLowerCase();
+      const score = (def) => {
+        if (!def?.type) return 4;
+        const label = labelOf(def);
+        const type = def.type.toLowerCase();
+        if (label.startsWith(q)) return 0;
+        if (label.includes(q)) return 1;
+        if (type.includes(q)) return 2;
+        return 3;
+      };
+
+      const seenTypes = new Set();
+      return index
+        .filter((b) => b.text && b.text.includes(q))
+        .map((b) => b.full)
+        .filter((def) => def?.type && !seenTypes.has(def.type) && seenTypes.add(def.type))
+        .sort((a, b) => score(a) - score(b));
+    };
 
     if (!workspace.flockSearchIndexScheduled) {
       workspace.flockSearchIndexScheduled = true;
@@ -2612,18 +2581,6 @@ export function overrideSearchPlugin(workspace) {
   };
 
   const toolboxBlocks = getBlocksFromToolbox(workspace);
-  const isSearchCategorySelected = (category = null) => {
-    const toolbox = workspace.getToolbox?.();
-    const selectedItem = toolbox?.getSelectedItem?.();
-    const selectedDef =
-      selectedItem?.getToolboxItemDef?.() ||
-      selectedItem?.toolboxItemDef ||
-      selectedItem?.toolboxItemDef_;
-    const isSelectedSearch =
-      selectedDef?.kind?.toLowerCase?.() === 'search' || (category && selectedItem === category);
-
-    return isSelectedSearch;
-  };
 
   function getBlockMessage(blockType) {
     const definition = Blockly.Blocks?.[blockType];
@@ -2820,181 +2777,22 @@ export function overrideSearchPlugin(workspace) {
     searchToolboxItem.initBlockSearcher();
   }
 
-  function debounce(fn, delayMs) {
-    return function (...args) {
-      clearTimeout(this.flockSearchMatchTimer);
-      this.flockSearchMatchTimer = setTimeout(() => fn.apply(this, args), delayMs);
-    };
-  }
-
+  // Keep Blockly's native matchBlocks: it calls our blockSearcher.blockTypesMatching
+  // override for results and retains ownership of flyout rendering and the
+  // screen-reader announcement. Wrap it thinly only to localise the placeholder
+  // labels the plugin hard-codes in English ("Type to search for blocks" when the
+  // query is empty, "No matching blocks found" when a query matches nothing).
+  const nativeMatchBlocks = SearchCategory.prototype.matchBlocks;
   SearchCategory.prototype.matchBlocks = function () {
-    if (!this.hasInputStarted) {
-      this.hasInputStarted = true;
+    nativeMatchBlocks.call(this);
+    const label = this.flyoutItems_?.find?.((item) => item.kind === 'label');
+    if (!label) return;
+    const query = this.searchField?.value?.trim() || '';
+    const localised = query ? translate('search_no_matching') : translate('search_type_to_search');
+    if (label.text !== localised) {
+      label.text = localised;
+      this.parentToolbox_.refreshSelection();
     }
-
-    const query = this.searchField?.value.toLowerCase().trim() || '';
-
-    if (!query) {
-      const showAllBlocksAsync = () => {
-        if (!isSearchCategorySelected(this)) {
-          return;
-        }
-        if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
-          return;
-        }
-
-        if (this.searchField?.value.toLowerCase().trim()) {
-          return;
-        }
-
-        this.showMatchingBlocks(this.blockSearcher.indexedBlocks_);
-      };
-
-      const requestType = this.flockSearchAllBlocksRequest?.type;
-      const requestId = this.flockSearchAllBlocksRequest?.id;
-      if (
-        requestType === 'idle' &&
-        typeof cancelIdleCallback === 'function' &&
-        typeof requestId === 'number'
-      ) {
-        cancelIdleCallback(requestId);
-      } else if (requestType === 'timeout' && typeof requestId === 'number') {
-        clearTimeout(requestId);
-      }
-
-      if (!Array.isArray(this.blockSearcher.indexedBlocks_) && this.blockSearcher.indexBlocks) {
-        if (typeof requestIdleCallback === 'function') {
-          const idleId = requestIdleCallback(() => {
-            this.blockSearcher.indexBlocks();
-            showAllBlocksAsync();
-          });
-          this.flockSearchAllBlocksRequest = {
-            type: 'idle',
-            id: idleId,
-          };
-        } else {
-          const timeoutId = setTimeout(() => {
-            this.blockSearcher.indexBlocks();
-            showAllBlocksAsync();
-          }, 0);
-          this.flockSearchAllBlocksRequest = {
-            type: 'timeout',
-            id: timeoutId,
-          };
-        }
-      } else if (typeof requestIdleCallback === 'function') {
-        const idleId = requestIdleCallback(showAllBlocksAsync);
-        this.flockSearchAllBlocksRequest = {
-          type: 'idle',
-          id: idleId,
-        };
-      } else {
-        const timeoutId = setTimeout(showAllBlocksAsync, 0);
-        this.flockSearchAllBlocksRequest = {
-          type: 'timeout',
-          id: timeoutId,
-        };
-      }
-      return;
-    }
-
-    if (this.flockSearchAllBlocksRequest?.type === 'idle') {
-      if (typeof cancelIdleCallback === 'function') {
-        cancelIdleCallback(this.flockSearchAllBlocksRequest.id);
-      }
-    } else if (this.flockSearchAllBlocksRequest?.type === 'timeout') {
-      clearTimeout(this.flockSearchAllBlocksRequest.id);
-    }
-
-    if (!Array.isArray(this.blockSearcher.indexedBlocks_)) {
-      if (this.blockSearcher.indexBlocks) {
-        this.blockSearcher.indexBlocks();
-      }
-    }
-
-    const indexedBlocks = Array.isArray(this.blockSearcher.indexedBlocks_)
-      ? this.blockSearcher.indexedBlocks_
-      : [];
-
-    const matches = indexedBlocks.filter((block) => {
-      if (block.text) {
-        return block.text.includes(query);
-      }
-      return false;
-    });
-
-    this.showMatchingBlocks(matches);
-  };
-
-  SearchCategory.prototype.matchBlocks = debounce(SearchCategory.prototype.matchBlocks, 120);
-
-  const xmlCache = new Map();
-
-  function getCachedXml(blockFull) {
-    const key = blockFull.type;
-    if (!xmlCache.has(key)) {
-      xmlCache.set(key, createXmlFromJson(blockFull));
-    }
-    return xmlCache.get(key).cloneNode(true);
-  }
-
-  function createXmlFromJson(blockJson, isShadow = false, isTopLevel = true) {
-    const blockXml = Blockly.utils.xml.createElement(isShadow ? 'shadow' : 'block');
-    blockXml.setAttribute('type', blockJson.type);
-
-    if (isTopLevel && blockJson.type === 'lists_create_with') {
-      blockXml.setAttribute('inline', 'true');
-    }
-
-    if (blockJson.type === 'lists_create_with' && blockJson.extraState) {
-      const mutation = Blockly.utils.xml.createElement('mutation');
-      mutation.setAttribute('items', blockJson.extraState.itemCount);
-      blockXml.appendChild(mutation);
-    }
-
-    if (blockJson.inputs) {
-      Object.entries(blockJson.inputs).forEach(([name, input]) => {
-        const valueXml = Blockly.utils.xml.createElement('value');
-        valueXml.setAttribute('name', name);
-
-        if (input.block) {
-          const nestedXml = createXmlFromJson(input.block, false, false);
-          valueXml.appendChild(nestedXml);
-        }
-
-        if (input.shadow) {
-          const shadowXml = createXmlFromJson(input.shadow, true, false);
-          valueXml.appendChild(shadowXml);
-        }
-
-        blockXml.appendChild(valueXml);
-      });
-    }
-
-    if (blockJson.fields) {
-      Object.entries(blockJson.fields).forEach(([name, value]) => {
-        const fieldXml = Blockly.utils.xml.createElement('field');
-        fieldXml.setAttribute('name', name);
-        fieldXml.textContent = value;
-        blockXml.appendChild(fieldXml);
-      });
-    }
-
-    return blockXml;
-  }
-
-  SearchCategory.prototype.showMatchingBlocks = function (matches) {
-    if (!isSearchCategorySelected(this)) {
-      return;
-    }
-    const flyout = this.workspace_.getToolbox().getFlyout();
-    if (!flyout) {
-      console.error('Flyout not found!');
-      return;
-    }
-
-    const xmlList = matches.map((match) => getCachedXml(match.full));
-    flyout.show(xmlList);
   };
 
   const toolboxDef = workspace.options.languageTree;

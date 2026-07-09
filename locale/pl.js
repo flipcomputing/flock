@@ -1110,6 +1110,7 @@ export default {
   search_toolbox_focused: 'Skupiono wyszukiwanie w toolboxie',
   toolbox_search_placeholder: 'Szukaj',
   search_no_matching: 'Nie znaleziono pasujących bloków',
+  search_type_to_search: 'Wpisz, aby wyszukać bloki',
   workspace_search_placeholder: 'Znajdź w obszarze',
   close: 'Zamknij',
   code_workspace_focused: 'Skupiono przestrzeń kodu',

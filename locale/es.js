@@ -1172,6 +1172,7 @@ export default {
   workspace_search_placeholder: 'Buscar en el espacio',
   close: 'Cerrar',
   search_no_matching: 'No se encontraron bloques',
+  search_type_to_search: 'Escribe para buscar bloques',
   code_workspace_focused: 'Espacio de trabajo de código enfocado', // human
   interactive_element_label: 'Elemento interactivo', // human
   panel_resizer_focused:

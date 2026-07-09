@@ -1099,6 +1099,7 @@ export default {
   search_toolbox_focused: 'Verktygslådesökningen har fokus',
   toolbox_search_placeholder: 'Sök',
   search_no_matching: 'Inga matchande block hittades',
+  search_type_to_search: 'Skriv för att söka block',
   workspace_search_placeholder: 'Sök i arbetsytan',
   close: 'Stäng',
   code_workspace_focused: 'Kodarbetsytan har fokus',

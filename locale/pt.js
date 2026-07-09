@@ -1120,6 +1120,7 @@ export default {
   search_toolbox_focused: 'Pesquisa da caixa de ferramentas focada',
   toolbox_search_placeholder: 'Pesquisar',
   search_no_matching: 'Nenhum bloco encontrado',
+  search_type_to_search: 'Digite para pesquisar blocos',
   workspace_search_placeholder: 'Localizar no espaço',
   close: 'Fechar',
   code_workspace_focused: 'Área de trabalho de código focada',

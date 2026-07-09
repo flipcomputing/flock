@@ -1100,6 +1100,7 @@ export default {
   search_toolbox_focused: 'Toolbox-Suche fokussiert',
   toolbox_search_placeholder: 'Suchen',
   search_no_matching: 'Keine passenden Blöcke gefunden',
+  search_type_to_search: 'Tippen, um Blöcke zu suchen',
   workspace_search_placeholder: 'Im Bereich suchen',
   close: 'Schließen',
   code_workspace_focused: 'Code-Arbeitsbereich fokussiert',

@@ -487,7 +487,7 @@ function getThemeBaseStyles(themeName) {
         toolboxBackgroundColour: "#fff",
         toolboxForegroundColour: "#444",
         flyoutBackgroundColour: "#f9f9f9",
-        flyoutForegroundColour: "#ccc",
+        flyoutForegroundColour: "#444",
         flyoutOpacity: 1,
         scrollbarColour: "#797979",
         insertionMarkerColour: "#000",

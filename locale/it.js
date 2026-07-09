@@ -1121,6 +1121,7 @@ export default {
   search_toolbox_focused: 'Ricerca della toolbox focalizzata',
   toolbox_search_placeholder: 'Cerca',
   search_no_matching: 'Nessun blocco trovato',
+  search_type_to_search: 'Digita per cercare blocchi',
   workspace_search_placeholder: "Trova nell'area",
   close: 'Chiudi',
   code_workspace_focused: 'Area di lavoro del codice focalizzata',

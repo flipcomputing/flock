@@ -1177,6 +1177,7 @@ export default {
   close: 'Close',
   toolbox_search_placeholder: 'Search',
   search_no_matching: 'No matching blocks found',
+  search_type_to_search: 'Type to search for blocks',
   code_workspace_focused: 'Code workspace focused',
   interactive_element_label: 'Interactive element',
   panel_resizer_focused: 'Panel resizer focused. Use arrow keys to resize panels, Home to reset.',
