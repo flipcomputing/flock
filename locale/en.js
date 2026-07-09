@@ -1357,6 +1357,7 @@ export default {
   shortcut_toolbox_typing: 'Skip to category',
   shortcut_toolbox_typing_hint: 'Start typing its name',
   shortcut_context_menu: 'Open context menu',
+  shortcut_toggle_block_toolbar: 'Show/hide block hint toolbar',
   shortcut_duplicate_block: 'Duplicate block',
   shortcut_detach_block: 'Detach block',
   shortcut_comment_block: 'Show/hide comment',

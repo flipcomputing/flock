@@ -657,7 +657,7 @@ export function initContextMenus(workspace) {
 
   // ---- Floating block toolbar ----
   // Pointer selection shows it after a short hover; keyboard navigation shows it
-  // immediately with a shortcut-letter overlay (D/X/K/V/Del) above each button.
+  // immediately with a shortcut-letter overlay (D/X/M/K/V/Del) above each button.
   {
     const blockToolbar = document.createElement('div');
     blockToolbar.className = 'fc-block-toolbar';
@@ -705,6 +705,17 @@ export function initContextMenus(workspace) {
       '0 0 640 512'
     );
 
+    // Passive "press M to move" hint. Looks like a toolbar button but is inert
+    // (pointer-events: none): it exists purely so keyboard users see the move
+    // icon with an M badge when they land on a loose block.
+    const moveHint = document.createElement('span');
+    moveHint.className = 'fc-block-toolbar-btn fc-block-toolbar-hint';
+    moveHint.setAttribute('aria-hidden', 'true');
+    moveHint.innerHTML = mkFaSvg(
+      '<path d="M278.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-64 64c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8l32 0 0 96-96 0 0-32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9l-64 64c-12.5 12.5-12.5 32.8 0 45.3l64 64c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6l0-32 96 0 0 96-32 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l64 64c12.5 12.5 32.8 12.5 45.3 0l64-64c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8l-32 0 0-96 96 0 0 32c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l64-64c12.5-12.5 12.5-32.8 0-45.3l-64-64c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 32-96 0 0-96 32 0c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-64-64z"/>',
+      '0 0 512 512'
+    );
+
     const commentBtn = document.createElement('button');
     commentBtn.type = 'button';
     commentBtn.className = 'fc-block-toolbar-btn';
@@ -734,7 +745,7 @@ export function initContextMenus(workspace) {
     viewBtn.setAttribute('aria-label', getToolbarLabel('view_in_canvas', 'View in canvas'));
     viewBtn.innerHTML = viewEnterSvg;
 
-    blockToolbar.append(duplicateBtn, detachBtn, commentBtn, viewBtn, deleteBtn);
+    blockToolbar.append(duplicateBtn, detachBtn, moveHint, commentBtn, viewBtn, deleteBtn);
 
     // The keyboard shortcut that each toolbar button mirrors. The overlay shows
     // these as a passive legend — the keys themselves are bound elsewhere
@@ -744,6 +755,7 @@ export function initContextMenus(workspace) {
     const buttonShortcuts = [
       [duplicateBtn, 'D'],
       [detachBtn, 'X'],
+      [moveHint, 'M'],
       // Match the comment button's icon: '⇧K' (Shift+K, delete) when the block
       // already has a comment, 'K' (show/hide) when it doesn't.
       [commentBtn, () => (toolbarBlock?.getCommentText?.() != null ? '⇧K' : 'K')],
@@ -755,8 +767,21 @@ export function initContextMenus(workspace) {
     let selectedBlock = null; // block currently selected (regardless of toolbar visibility)
     let toolbarShowTimer = null;
     let lastSelectionWasPointer = false;
+    let pointerIsDown = false; // a pointer button is currently held — the hover-reveal timer must not fire while true
+    let pendingHoverBlock = null; // block whose hover-reveal was deferred because the pointer was still down when the timer fired
     let dismissedBlock = null; // block whose toolbar was just dismissed via toggle; suppress re-show for it only
     let toolbarKeyboardMode = false; // toolbar was opened via keyboard → show badge overlay
+    // Block whose toolbar we hid because a keyboard move (M) just started on
+    // it. Starting a move fires a deselect+reselect SELECTED pair for that
+    // same block (Blockly refocusing it), which would otherwise immediately
+    // reshow the toolbar we just hid; this suppresses exactly that one echo.
+    let suppressReshowBlock = null;
+    // Mesh availability for a block changes with attach state (code
+    // re-executes on attach/detach, creating/destroying the mesh), but that
+    // re-execution is debounced — it may not have landed yet at the instant
+    // a BLOCK_MOVE event fires. This re-checks shortly after, so viewBtn
+    // catches up once the mesh actually appears/disappears.
+    let viewMeshRecheckTimer = null;
 
     function clearBadges() {
       badgeOverlay.replaceChildren();
@@ -788,6 +813,30 @@ export function initContextMenus(workspace) {
       'pointerdown',
       () => {
         lastSelectionWasPointer = true;
+        pointerIsDown = true;
+      },
+      { capture: true }
+    );
+    document.addEventListener(
+      'pointerup',
+      () => {
+        pointerIsDown = false;
+        // The hover timer bailed (still held, no drag recognized) rather than
+        // showing — now that the button's up with no drag having intervened,
+        // it's a plain click: reveal now instead of leaving it stuck hidden.
+        if (pendingHoverBlock) {
+          const block = pendingHoverBlock;
+          pendingHoverBlock = null;
+          if (block === selectedBlock && !toolbarBlock) showBlockToolbar(block);
+        }
+      },
+      { capture: true }
+    );
+    document.addEventListener(
+      'pointercancel',
+      () => {
+        pointerIsDown = false;
+        pendingHoverBlock = null;
       },
       { capture: true }
     );
@@ -810,11 +859,36 @@ export function initContextMenus(workspace) {
       !!block?.previousConnection?.targetConnection ||
       !!block?.outputConnection?.targetConnection;
 
+    // A block's own SVG group nests any blocks connected below it (via next
+    // connection), so getBoundingClientRect() on it spans the whole stack —
+    // for a hat block with a long stack underneath, that puts the toolbar way
+    // off to the right of the (narrow) hat itself. getBoundingRectangleWithoutChildren()
+    // returns just this block's own extent, in workspace units; convert that
+    // to screen pixels instead.
+    function getOwnBlockScreenRect(block) {
+      if (!block.getBoundingRectangleWithoutChildren) return null;
+      const wsRect = block.getBoundingRectangleWithoutChildren();
+      const topLeft = Blockly.utils.svgMath.wsToScreenCoordinates(
+        workspace,
+        new Blockly.utils.Coordinate(wsRect.left, wsRect.top)
+      );
+      const bottomRight = Blockly.utils.svgMath.wsToScreenCoordinates(
+        workspace,
+        new Blockly.utils.Coordinate(wsRect.right, wsRect.bottom)
+      );
+      return {
+        left: topLeft.x,
+        top: topLeft.y,
+        width: bottomRight.x - topLeft.x,
+        height: bottomRight.y - topLeft.y,
+      };
+    }
+
     function positionBlockToolbar() {
       if (!toolbarBlock) return;
       const svgRoot = toolbarBlock.getSvgRoot?.();
       if (!svgRoot) return;
-      const rect = svgRoot.getBoundingClientRect();
+      const rect = getOwnBlockScreenRect(toolbarBlock) ?? svgRoot.getBoundingClientRect();
       const blockCenterX = Math.round(rect.left + rect.width / 2);
       blockToolbar.style.left = `${blockCenterX}px`;
       blockToolbar.style.top = `${Math.round(rect.top)}px`;
@@ -833,6 +907,43 @@ export function initContextMenus(workspace) {
       }
       // Badges are positioned off the buttons, so they must follow the toolbar.
       if (toolbarKeyboardMode) renderBadges();
+    }
+
+    // A block that COULD attach to something (has a previous/output
+    // connection) but currently isn't — freshly duplicated, just detached,
+    // etc. — is "in transit": duplicate/comment don't apply until it's placed
+    // somewhere, so the toolbar simplifies down to just Move (as a
+    // keyboard-only hint) and Delete. Hat/event blocks (e.g. "start") have
+    // neither connection, so they're always "unattached" without ever being
+    // in transit — exclude them, or every hat block would permanently show
+    // the simplified toolbar.
+    const isLooseAndMovable = (block) =>
+      !!block &&
+      !isBlockLocked(block) &&
+      !isDetachable(block) &&
+      !!block.isMovable?.() &&
+      (!!block.previousConnection || !!block.outputConnection);
+
+    function updateSimplifiedToolbar() {
+      const block = toolbarBlock;
+      if (!block) return;
+      const simplified = isLooseAndMovable(block);
+      duplicateBtn.style.display = simplified ? 'none' : '';
+      commentBtn.style.display = isBlockLocked(block) || simplified ? 'none' : '';
+      moveHint.style.display = toolbarKeyboardMode && simplified ? '' : 'none';
+      // Loose blocks never show View, regardless of mesh state — no point
+      // waiting on a mesh check for a block that isn't placed anywhere yet.
+      if (simplified) {
+        viewBtn.style.display = 'none';
+        return;
+      }
+      let mesh = null;
+      try {
+        mesh = getMeshFromBlock(block);
+      } catch {
+        /* scene not ready */
+      }
+      viewBtn.style.display = !mesh || mesh.name === 'ground' ? 'none' : '';
     }
 
     // Sync the comment button's icon + label to whether the block has a comment:
@@ -856,8 +967,8 @@ export function initContextMenus(workspace) {
       // comment, delete), leaving duplicate and view-in-canvas available.
       const locked = isBlockLocked(block);
       detachBtn.style.display = !locked && isDetachable(block) ? '' : 'none';
-      commentBtn.style.display = locked ? 'none' : '';
       deleteBtn.style.display = locked ? 'none' : '';
+      updateSimplifiedToolbar();
       updateCommentButton(block);
       let mesh = null;
       try {
@@ -865,7 +976,6 @@ export function initContextMenus(workspace) {
       } catch {
         /* scene not ready */
       }
-      viewBtn.style.display = !mesh || mesh.name === 'ground' ? 'none' : '';
       let meshRoot = mesh;
       while (meshRoot?.parent) meshRoot = meshRoot.parent;
       const exitMode = !!window.orbitViewActive && (window.orbitBlock === block || (meshRoot && window.orbitMesh === meshRoot));
@@ -887,6 +997,9 @@ export function initContextMenus(workspace) {
     function hideBlockToolbar() {
       clearTimeout(toolbarShowTimer);
       toolbarShowTimer = null;
+      pendingHoverBlock = null;
+      clearTimeout(viewMeshRecheckTimer);
+      viewMeshRecheckTimer = null;
       toolbarBlock = null;
       toolbarKeyboardMode = false;
       blockToolbar.classList.remove('visible');
@@ -907,18 +1020,34 @@ export function initContextMenus(workspace) {
           const wasPointer = lastSelectionWasPointer;
           const wasDismissed = block === dismissedBlock;
           dismissedBlock = null;
+          const wasSuppressed = block === suppressReshowBlock;
+          suppressReshowBlock = null;
           if (isToolbarBlock(block)) {
             selectedBlock = block;
 
             if (wasPointer) {
               // Pointer selection: reveal after a short hover, no badges.
               if (!wasDismissed) {
-                toolbarShowTimer = setTimeout(() => showBlockToolbar(block), 400);
+                toolbarShowTimer = setTimeout(() => {
+                  toolbarShowTimer = null;
+                  if (pointerIsDown) {
+                    // Button still held with no drag recognized yet — a real
+                    // drag would already have cancelled this timer via
+                    // hideBlockToolbar(). Defer to the pointerup handler
+                    // above: reveal once released, unless a drag starts first.
+                    pendingHoverBlock = block;
+                    return;
+                  }
+                  showBlockToolbar(block);
+                }, 400);
               } else {
                 hideBlockToolbar();
               }
-            } else {
+            } else if (!wasSuppressed) {
               // Keyboard navigation: show immediately with the shortcut overlay.
+              // (Suppressed case: this is the reselect echo from starting a
+              // keyboard move — stay hidden so the block is visible while
+              // it's being dragged.)
               showBlockToolbar(block, { keyboard: true });
             }
           } else {
@@ -943,6 +1072,25 @@ export function initContextMenus(workspace) {
         (e.type === Blockly.Events.BLOCK_MOVE || e.type === Blockly.Events.VIEWPORT_CHANGE) &&
         toolbarBlock
       ) {
+        // A move can attach/detach the block (e.g. X detaches it while the
+        // toolbar is up), so refresh the simplified-toolbar state before
+        // re-rendering badges.
+        if (e.type === Blockly.Events.BLOCK_MOVE) {
+          updateSimplifiedToolbar();
+          // Reattaching can create a mesh (detaching destroys one), but that
+          // happens via debounced code re-execution — it may not have landed
+          // yet. Check again shortly after so View catches up.
+          clearTimeout(viewMeshRecheckTimer);
+          const recheckBlock = toolbarBlock;
+          viewMeshRecheckTimer = setTimeout(() => {
+            viewMeshRecheckTimer = null;
+            if (toolbarBlock !== recheckBlock) return;
+            updateSimplifiedToolbar();
+            // viewBtn's visibility may have just changed; the badge overlay
+            // was last drawn against the old state, so refresh it too.
+            if (toolbarKeyboardMode) renderBadges();
+          }, 400);
+        }
         positionBlockToolbar();
       } else if (
         e.type === Blockly.Events.BLOCK_CHANGE &&
@@ -955,6 +1103,12 @@ export function initContextMenus(workspace) {
         updateCommentButton(toolbarBlock);
         if (toolbarKeyboardMode) renderBadges();
       } else if (e.type === Blockly.Events.BLOCK_DRAG && e.isStart) {
+        // A keyboard-initiated move (M) fires this the same as a pointer
+        // drag; flag the block so the SELECTED handler above ignores the
+        // reselect echo that follows and doesn't immediately undo this hide.
+        if (toolbarBlock && toolbarKeyboardMode) {
+          suppressReshowBlock = toolbarBlock;
+        }
         hideBlockToolbar();
       }
     });
@@ -976,6 +1130,34 @@ export function initContextMenus(workspace) {
           // Blockly won't fire SELECTED again for an already-selected block, so show directly.
           dismissedBlock = null;
           showBlockToolbar(selectedBlock);
+        }
+      },
+      { capture: true }
+    );
+
+    // Keyboard equivalent of the click-to-toggle above: H toggles the
+    // toolbar for the currently selected block. Unbound elsewhere in this
+    // context, and unlike Enter it doesn't collide with finishing a keyboard
+    // move (M) or any other existing shortcut. The containment check guards
+    // against `selectedBlock` being a stale reference while focus has
+    // actually moved elsewhere (e.g. the toolbox).
+    document.addEventListener(
+      'keydown',
+      (e) => {
+        if (e.key.toLowerCase() !== 'h') return;
+        if (isTypingInInput()) return;
+        if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+        if (!selectedBlock) return;
+        const svgRoot = selectedBlock.getSvgRoot?.();
+        if (!svgRoot || !svgRoot.contains(document.activeElement)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (toolbarBlock) {
+          dismissedBlock = selectedBlock;
+          hideBlockToolbar();
+        } else {
+          dismissedBlock = null;
+          showBlockToolbar(selectedBlock, { keyboard: true });
         }
       },
       { capture: true }

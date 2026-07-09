@@ -1238,6 +1238,7 @@ export default {
   shortcut_toolbox_typing: 'Zur Kategorie springen',
   shortcut_toolbox_typing_hint: 'Namen eintippen',
   shortcut_context_menu: 'Kontextmenü öffnen',
+  shortcut_toggle_block_toolbar: 'Block-Hinweisleiste ein-/ausblenden',
   shortcut_duplicate_block: 'Block duplizieren',
   shortcut_detach_block: 'Block trennen',
   shortcut_comment_block: 'Kommentar ein-/ausblenden',

@@ -2394,6 +2394,13 @@ svg.blocklyTrashcanFlyout {
   opacity: 0.3;
 }
 
+/* Passive keyboard hint in the block toolbar (the "press M to move" icon).
+   Styled like a button so it lines up with its badge, but inert. */
+.fc-block-toolbar-hint {
+  pointer-events: none;
+  cursor: default;
+}
+
 .fc-block-toolbar-btn--delete {
   color: #c0392b;
 }

@@ -1238,6 +1238,7 @@ export default {
   shortcut_toolbox_typing: 'Przejdź do kategorii',
   shortcut_toolbox_typing_hint: 'Zacznij wpisywać jej nazwę',
   shortcut_context_menu: 'Otwórz menu kontekstowe',
+  shortcut_toggle_block_toolbar: 'Pokaż/ukryj pasek podpowiedzi bloku',
   shortcut_duplicate_block: 'Duplikuj blok',
   shortcut_detach_block: 'Odłącz blok',
   shortcut_comment_block: 'Pokaż/ukryj komentarz',
