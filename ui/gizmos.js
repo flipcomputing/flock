@@ -66,6 +66,7 @@ let textOrigScaleZ = 1;
 let cameraMode = 'play';
 let activePick = null; // [Select mesh?]
 let activeDuplicatePickHandler = null; // [Clone mesh?]
+let activeDuplicatePickTimer = null; // Deferred-listener timer for the above
 let stopAxisKeyboard = null; // Axis keyboard active?
 let duplicateModeActive = false;
 let duplicateRafId = null;
@@ -274,6 +275,7 @@ function pickMeshFromCanvas() {
 
   // Register cleanup so Escape during painting mode also tears down correctly
   onExit(() => {
+    clearTimeout(listenerTimer);
     window.removeEventListener('click', onPickMesh);
     stopCanvasKeyboardMode();
     document.body.style.cursor = 'default';
@@ -284,7 +286,7 @@ function pickMeshFromCanvas() {
   document.body.style.cursor = 'crosshair';
   flock.scene.defaultCursor = 'crosshair';
 
-  setTimeout(() => {
+  const listenerTimer = setTimeout(() => {
     window.addEventListener('click', onPickMesh);
   }, 200);
 }
@@ -877,6 +879,10 @@ export function exitGizmoState() {
   cleanupScenePick(); // Stop picking
 
   // Properly clean up if duplicating
+  if (activeDuplicatePickTimer !== null) {
+    clearTimeout(activeDuplicatePickTimer);
+    activeDuplicatePickTimer = null;
+  }
   if (activeDuplicatePickHandler) {
     window.removeEventListener('click', activeDuplicatePickHandler);
     activeDuplicatePickHandler = null;
@@ -1602,7 +1608,8 @@ function startDuplicatePlacement() {
   activeDuplicatePickHandler = onPickMesh;
 
   // Use setTimeout to defer listener setup
-  setTimeout(() => {
+  activeDuplicatePickTimer = setTimeout(() => {
+    activeDuplicatePickTimer = null;
     window.addEventListener('click', onPickMesh);
   }, 50);
 
