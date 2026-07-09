@@ -3,6 +3,7 @@ import { ContextManager } from '../main/context.js';
 import { translate } from '../main/translation.js';
 import { SHORTCUTS_HELP_URL } from '../config.js';
 import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
+import { focusToolboxRestoringCategory } from '../main/toolboxfocus.js';
 
 // Matches the CSS `max-width: 1024px` breakpoint where the info panel is hidden
 // and its shortcuts panel must be shown as a modal instead of docked.
@@ -155,6 +156,12 @@ const AreaManager = {
   // Set the focus to this area and close overlay
   activateArea(area) {
     this.toggle(false); // Close the menu
+    if (area.selector === '.blocklyToolbox') {
+      // Restores the remembered category; the generic child lookup below
+      // would land on the toolbox search input and wipe that memory.
+      focusToolboxRestoringCategory();
+      return;
+    }
     const el = document.querySelector(area.selector);
     const childFocusable =
       el?.querySelector(

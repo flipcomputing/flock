@@ -1,5 +1,6 @@
 import * as Blockly from 'blockly';
 import { translate } from './translation.js';
+import { focusToolboxRestoringCategory } from './toolboxfocus.js';
 
 export function setupInput() {
   // Get the canvas element
@@ -89,12 +90,10 @@ export function setupInput() {
 
       pushUnique(document.querySelector('#resizer'));
 
-      // 5) Search inputs (toolbox flyout etc.)
-      document
-        .querySelectorAll(
-          '.blocklySearchInput, .blocklyTreeSearch input, input[placeholder*="Search"]'
-        )
-        .forEach(pushUnique);
+      // 5) Toolbox — the tree ROOT, so Blockly's FocusManager can restore the
+      // remembered category. The search input inside it must NOT be a tab stop:
+      // focusing it selects the search category, which wipes that memory.
+      pushUnique(document.querySelector('.blocklyToolbox'));
 
       // Find the *visible* search flyout
       const flyout = Array.from(document.querySelectorAll('svg.blocklyToolboxFlyout')).find(
@@ -289,7 +288,11 @@ export function setupInput() {
       if (nextElement) {
         // Ensure element is still focusable before focusing
         if (!nextElement.disabled && isElementVisible(nextElement)) {
-          nextElement.focus();
+          if (nextElement.classList?.contains('blocklyToolbox')) {
+            focusToolboxRestoringCategory();
+          } else {
+            nextElement.focus();
+          }
 
           // Announce for screen readers
           if (nextElement.id === 'renderCanvas') {
@@ -301,11 +304,6 @@ export function setupInput() {
               translate('design_tool_label');
             const focusedMessage = translate('focused_element_suffix').replace('{name}', label);
             announceToScreenReader(focusedMessage);
-          } else if (
-            nextElement.classList?.contains('blocklySearchInput') ||
-            nextElement.type === 'search'
-          ) {
-            announceToScreenReader(translate('search_toolbox_focused'));
           } else if (nextElement.getAttribute('aria-label') === 'Blocks workspace') {
             announceToScreenReader(translate('code_workspace_focused'));
           } else if (nextElement.tagName === 'BUTTON' || nextElement.tagName === 'LABEL') {
