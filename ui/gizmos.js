@@ -2451,6 +2451,7 @@ export function enableGizmos() {
     duplicateButton,
     deleteButton,
     cameraButton,
+    eyeButton,
     showShapesButton,
     scrollModelsLeftButton,
     scrollModelsRightButton,
