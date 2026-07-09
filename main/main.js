@@ -827,16 +827,10 @@ function initializeApp() {
     exportCode(workspace);
   });
   KeyboardDispatcher.on('*', 'Mod+KeyP', (e) => {
+    // Documented in the Shortcuts panel as Play (accessibility/keyboardui.js);
+    // match the visible Play button exactly, including restarting a running scene.
     e.preventDefault();
-    const stoppedOverlay = document.getElementById('canvasStoppedOverlay');
-    if (stoppedOverlay && !stoppedOverlay.hidden) {
-      // The render canvas is inert while this overlay is showing, so focusing
-      // it would silently no-op. Start the scene instead, same as the play button;
-      // executeCode focuses the canvas itself once it's no longer inert.
-      void executeCode();
-      return;
-    }
-    document.getElementById('renderCanvas')?.focus({ preventScroll: true });
+    void executeCode();
   });
   KeyboardDispatcher.on('*', 'Mod+Slash', (e) => {
     e.preventDefault();
