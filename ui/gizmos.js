@@ -66,6 +66,7 @@ let textOrigScaleZ = 1;
 let cameraMode = 'play';
 let activePick = null; // [Select mesh?]
 let activeDuplicatePickHandler = null; // [Clone mesh?]
+let activeDuplicatePickTimer = null; // Deferred-listener timer for the above
 let stopAxisKeyboard = null; // Axis keyboard active?
 let duplicateModeActive = false;
 let duplicateRafId = null;
@@ -142,7 +143,7 @@ function registerBindings() {
     if (!e.ctrlKey && !e.altKey && !e.metaKey) fn(e);
   };
   // Focus on mesh with V or F key
-  KeyboardDispatcher.on('GIZMO', 'KeyF', noMod(focusCameraOnMesh));
+  KeyboardDispatcher.on('GIZMO', 'KeyF', noMod(() => focusCameraOnMesh()));
   KeyboardDispatcher.on(
     'GIZMO',
     'KeyV',
@@ -274,6 +275,7 @@ function pickMeshFromCanvas() {
 
   // Register cleanup so Escape during painting mode also tears down correctly
   onExit(() => {
+    clearTimeout(listenerTimer);
     window.removeEventListener('click', onPickMesh);
     stopCanvasKeyboardMode();
     document.body.style.cursor = 'default';
@@ -284,7 +286,7 @@ function pickMeshFromCanvas() {
   document.body.style.cursor = 'crosshair';
   flock.scene.defaultCursor = 'crosshair';
 
-  setTimeout(() => {
+  const listenerTimer = setTimeout(() => {
     window.addEventListener('click', onPickMesh);
   }, 200);
 }
@@ -443,52 +445,50 @@ function deleteBlockWithUndo(blockId) {
     return;
   }
 
-  if (block) {
-    Blockly.Events.setGroup(true);
-    try {
-      const parentBlock = block.getParent();
+  if (!block) return;
 
-      // Store reference to parent block before deletion
-      let shouldCheckStartBlock = false;
-      let startBlock = null;
-      if (parentBlock && parentBlock.type === 'start') {
-        startBlock = parentBlock;
-        shouldCheckStartBlock = true;
-      }
+  Blockly.Events.setGroup(true);
+  try {
+    const parentBlock = block.getParent();
 
-      // Delete the selected block
-      block.dispose(true);
-
-      // After deletion, check if the start block is now empty
-      if (shouldCheckStartBlock && startBlock) {
-        let remainingChildren = 0;
-
-        // Count remaining input-connected blocks
-        startBlock.inputList.forEach((input) => {
-          if (input.connection && input.connection.targetBlock()) {
-            remainingChildren++;
-          }
-        });
-
-        // Check if the start block still has a next block
-        if (startBlock.nextConnection && startBlock.nextConnection.targetBlock()) {
-          remainingChildren++;
-        }
-
-        // If no children remain, delete the start block
-        if (remainingChildren === 0) {
-          startBlock.dispose(true);
-        }
-      }
-    } finally {
-      Blockly.Events.setGroup(false);
+    // Store reference to parent block before deletion
+    let shouldCheckStartBlock = false;
+    let startBlock = null;
+    if (parentBlock && parentBlock.type === 'start') {
+      startBlock = parentBlock;
+      shouldCheckStartBlock = true;
     }
 
-    gizmoManager.attachToMesh(null);
-    turnOffAllGizmos();
-  } else {
-    console.log(`Block with ID ${blockId} not found.`);
+    // Delete the selected block
+    block.dispose(true);
+
+    // After deletion, check if the start block is now empty
+    if (shouldCheckStartBlock && startBlock) {
+      let remainingChildren = 0;
+
+      // Count remaining input-connected blocks
+      startBlock.inputList.forEach((input) => {
+        if (input.connection && input.connection.targetBlock()) {
+          remainingChildren++;
+        }
+      });
+
+      // Check if the start block still has a next block
+      if (startBlock.nextConnection && startBlock.nextConnection.targetBlock()) {
+        remainingChildren++;
+      }
+
+      // If no children remain, delete the start block
+      if (remainingChildren === 0) {
+        startBlock.dispose(true);
+      }
+    }
+  } finally {
+    Blockly.Events.setGroup(false);
   }
+
+  gizmoManager.attachToMesh(null);
+  turnOffAllGizmos();
 }
 
 function focusCameraOnMesh(overrideMesh) {
@@ -879,6 +879,10 @@ export function exitGizmoState() {
   cleanupScenePick(); // Stop picking
 
   // Properly clean up if duplicating
+  if (activeDuplicatePickTimer !== null) {
+    clearTimeout(activeDuplicatePickTimer);
+    activeDuplicatePickTimer = null;
+  }
   if (activeDuplicatePickHandler) {
     window.removeEventListener('click', activeDuplicatePickHandler);
     activeDuplicatePickHandler = null;
@@ -1604,7 +1608,8 @@ function startDuplicatePlacement() {
   activeDuplicatePickHandler = onPickMesh;
 
   // Use setTimeout to defer listener setup
-  setTimeout(() => {
+  activeDuplicatePickTimer = setTimeout(() => {
+    activeDuplicatePickTimer = null;
     window.addEventListener('click', onPickMesh);
   }, 50);
 
@@ -2516,19 +2521,6 @@ export function setGizmoManager(value) {
       gizmoManager.positionGizmoEnabled ||
       gizmoManager.rotationGizmoEnabled ||
       gizmoManager.scaleGizmoEnabled;
-    if (mesh) {
-      const k = mesh.metadata?.blockKey;
-      const b = meshMap[k];
-      // TEMP lock debug — remove after diagnosis.
-      console.log('[lock-debug] attachToMesh', {
-        meshName: mesh.name,
-        blockKey: k,
-        resolvedBlockType: b?.type,
-        blockLocked: !!b?.locked,
-        isMeshLocked: isMeshLocked(mesh),
-        transformActive,
-      });
-    }
     if (transformActive && isMeshLocked(mesh)) {
       showNotAllowedCursor();
       return;
