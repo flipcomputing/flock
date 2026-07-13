@@ -915,9 +915,19 @@ function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = nu
     mesh.position.z += dz;
     mesh.computeWorldMatrix(true);
     const block = meshMap[mesh?.metadata?.blockKey];
-    if (block && !block.disposed) {
-      const pos = flock.getBlockPositionFromMesh(mesh);
-      setBlockXYZ(block, pos.x, pos.y, pos.z);
+
+    // One event group per nudge so the moved mesh's block and any parented
+    // children's blocks revert together as a single undo.
+    const groupId = Blockly.utils.idGenerator.genUid();
+    Blockly.Events.setGroup(groupId);
+    try {
+      if (block && !block.disposed) {
+        const pos = flock.getBlockPositionFromMesh(mesh);
+        setBlockXYZ(block, pos.x, pos.y, pos.z);
+      }
+      updateChildBlockPositions(mesh);
+    } finally {
+      Blockly.Events.setGroup(false);
     }
   };
   const onConfirm = () => {
@@ -1495,6 +1505,43 @@ function updateScaleBlock(mesh, originalBottomY = null) {
   } catch (e) {
     console.error('Error updating block values:', e);
   }
+}
+
+// When a mesh is moved, its parented child objects move with it in world space.
+// Write each child's new position into its own block so re-running the project
+// reproduces what's on screen. To read the position we briefly unparent the
+// child so its transform is in world space, use the same getBlockPositionFromMesh
+// path as any root object, then restore the parent (a no-op in the common case
+// where nothing has moved from its start position). Writing the block fires
+// updateMeshFromBlock, which applies the change back to the child on a deferred
+// microtask (unparent/move/reparent); because the child is already at this
+// position, that apply is a no-op. The caller wraps this (with the parent's own
+// block update) in a single Blockly event group so the whole move is one undo.
+function updateChildBlockPositions(mesh) {
+  const rootKey = mesh?.metadata?.blockKey;
+  const children = mesh?.getChildMeshes?.(false) || [];
+  const seenKeys = new Set();
+
+  children.forEach((child) => {
+    const key = child?.metadata?.blockKey;
+    if (!key || key === rootKey || seenKeys.has(key)) return;
+
+    const childBlock = meshMap[key];
+    if (!childBlock || childBlock.disposed) return;
+
+    seenKeys.add(key);
+
+    const childParent = child.parent;
+    child.setParent(null);
+    let pos;
+    try {
+      pos = flock.getBlockPositionFromMesh(child);
+    } finally {
+      child.setParent(childParent);
+    }
+
+    setBlockXYZ(childBlock, pos.x, pos.y, pos.z);
+  });
 }
 
 function startDuplicatePlacement() {
@@ -2131,9 +2178,18 @@ function handlePositionGizmo() {
 
     const block = meshMap[mesh?.metadata?.blockKey];
 
-    if (block && !block.disposed) {
-      const blockPosition = flock.getBlockPositionFromMesh(mesh);
-      setBlockXYZ(block, blockPosition.x, blockPosition.y, blockPosition.z);
+    // One event group so the whole move — the moved mesh's block plus any
+    // parented children's blocks — is a single undo.
+    const groupId = Blockly.utils.idGenerator.genUid();
+    Blockly.Events.setGroup(groupId);
+    try {
+      if (block && !block.disposed) {
+        const blockPosition = flock.getBlockPositionFromMesh(mesh);
+        setBlockXYZ(block, blockPosition.x, blockPosition.y, blockPosition.z);
+      }
+      updateChildBlockPositions(mesh);
+    } finally {
+      Blockly.Events.setGroup(false);
     }
   });
 

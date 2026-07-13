@@ -1182,6 +1182,54 @@ function getXYZFromBlock(block) {
   };
 }
 
+// Pending deferred position applies for parented child objects: mesh -> block.
+const _pendingChildPositionApply = new Map();
+
+// A child object's position block holds a WORLD position, but the child follows
+// its parent, so applying it inline is order-dependent: during a grouped
+// parent-move undo/redo the child's block reverts while the parent is still
+// mid-revert, and applying then (followed by the parent settling) lands the
+// child a move-distance away. Deferring the apply to a microtask sidesteps this
+// — by the time it runs the whole event batch has processed and the parent has
+// settled (the child has followed it), so applying the block position is a true
+// no-op for a parent move/undo/redo, and a genuine move for a direct edit.
+function scheduleChildPositionApply(mesh, block) {
+  const alreadyPending = _pendingChildPositionApply.has(mesh);
+  _pendingChildPositionApply.set(mesh, block);
+  if (alreadyPending) return;
+
+  queueMicrotask(() => {
+    const pendingBlock = _pendingChildPositionApply.get(mesh);
+    _pendingChildPositionApply.delete(mesh);
+    applyChildBlockPosition(mesh, pendingBlock);
+  });
+}
+
+function applyChildBlockPosition(mesh, block) {
+  if (!mesh || mesh.isDisposed?.() || !mesh.parent) return;
+  if (!block || block.disposed) return;
+
+  // Unparent so the block's world position applies in world space, apply it,
+  // then restore the parent — the child moves to the block position while
+  // staying in the hierarchy. The finally guarantees the parent is restored
+  // even if reading or applying the position throws.
+  const childParent = mesh.parent;
+  mesh.setParent(null);
+  try {
+    const position = getXYZFromBlock(block);
+    const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
+    flock.setBlockPositionOnMesh(mesh, {
+      x: num(position.x, mesh.position.x),
+      y: num(position.y, mesh.position.y),
+      z: num(position.z, mesh.position.z),
+      useY: true,
+    });
+  } finally {
+    mesh.setParent(childParent);
+  }
+  flock.updatePhysics?.(mesh);
+}
+
 export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   if (flock.meshDebug) {
     console.log("=== UPDATE MESH FROM BLOCK ===");
@@ -1458,9 +1506,15 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
 
     const position = getXYZFromBlock(block);
     if (flock.meshDebug) console.log("Position", position, block.type);
-    meshes.forEach((mesh) =>
-      flock.positionAt(mesh.name, { ...position, useY: true }),
-    );
+    meshes.forEach((mesh) => {
+      // Child object (parented mesh): defer the apply so the parent has settled
+      // first (see scheduleChildPositionApply) — then unparent/move/reparent.
+      if (mesh.parent) {
+        scheduleChildPositionApply(mesh, block);
+        return;
+      }
+      flock.positionAt(mesh.name, { ...position, useY: true });
+    });
   }
 
   meshes.forEach((mesh) => flock.updatePhysics(mesh));
