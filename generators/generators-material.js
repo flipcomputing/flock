@@ -105,7 +105,7 @@ export function registerMaterialGenerators(javascriptGenerator) {
     const colourValue = isBareHex
       ? `#${rawColourValue}`
       : rawColourValue || "#000000";
-    return [`"${colourValue}"`, javascriptGenerator.ORDER_ATOMIC];
+    return [JSON.stringify(colourValue), javascriptGenerator.ORDER_ATOMIC];
   };
 
   // Set material of object -------------------------------------
