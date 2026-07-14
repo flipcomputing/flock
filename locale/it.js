@@ -1178,7 +1178,6 @@ export default {
   export_JSON_snippet: 'Esporta blocco come frammento JSON',
   import_snippet: 'Importa frammento',
   export_PNG_snippet: 'Esporta come PNG',
-  export_SVG_snippet: 'Esporta come SVG',
 
   // New variable option
   new_variable_decision: 'Nuova variabile...',

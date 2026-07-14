@@ -120,6 +120,7 @@ body.color-picker-open #blocklyDiv * {
   background: linear-gradient(to bottom, #ffffff 0%, #808080 50%, #000000 100%);
   background-size: 100% 100%;
   background-repeat: no-repeat;
+  touch-action: none;
 }
 
 .lightness-slider:focus {
@@ -160,6 +161,7 @@ body.color-picker-open #blocklyDiv * {
   cursor: crosshair;
   width: 120px;
   height: 120px;
+  touch-action: none;
 }
 
 .current-color-strip {
@@ -383,6 +385,7 @@ body.color-picker-open #blocklyDiv * {
   height: 20px;
   padding: 8px 0;
   margin: 4px 0;
+  touch-action: none;
 }
 
 .hue-slider-canvas {
@@ -394,6 +397,7 @@ body.color-picker-open #blocklyDiv * {
   position: absolute;
   top: 8px;
   left: 0;
+  touch-action: none;
 }
 .hue-slider-handle {
   position: absolute;
@@ -406,6 +410,7 @@ body.color-picker-open #blocklyDiv * {
   cursor: grab;
   pointer-events: auto;
   transition: box-shadow 0.2s ease;
+  touch-action: none;
 }
 
 .hue-slider-handle:active {

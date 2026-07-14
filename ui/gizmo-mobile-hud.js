@@ -240,6 +240,7 @@ export function createGizmoMobileHud({
     let lastClientX = 0;
     let activePointer = null;
     let activeScale = 1;
+    let lastSnappedGUI = null; // GUI offset of the snap tick currently locked into, or null
 
     // Normalize any degree value into (-180, 180]
     function normalizeDeg(deg) {
@@ -273,6 +274,24 @@ export function createGizmoMobileHud({
       else if (axis === 'z') onMove(0, 0, delta);
     }
 
+    // Snapping is only obvious as a position change; the thumb is large relative
+    // to the track on mobile, so make the held colour itself reflect snap state
+    // (white on a tick, yellow while dragging off one) plus a haptic tick the
+    // instant a drag locks onto a new one.
+    function isSnapPoint(gui) {
+      return SNAP_DEGS.some((deg) => Math.abs(gui - (deg / MAX_DEG) * MAX_OFFSET_GUI) < 0.01);
+    }
+    function updateThumbHeldColour(newGUI) {
+      if (isSnapPoint(newGUI)) {
+        if (lastSnappedGUI !== newGUI) navigator.vibrate?.(20);
+        lastSnappedGUI = newGUI;
+        thumb.background = 'rgba(255,255,255,0.95)';
+      } else {
+        lastSnappedGUI = null;
+        thumb.background = 'rgba(255,220,50,0.95)';
+      }
+    }
+
     refreshThumb = () => {
       rawOffsetGUI = degToGUI(getAxisDeg());
       thumbOffsetGUI = snapGUI(rawOffsetGUI);
@@ -302,6 +321,7 @@ export function createGizmoMobileHud({
       activePointer = e.pointerId;
       activeScale = b.scale;
       lastClientX = e.clientX;
+      canvas.setPointerCapture(e.pointerId);
       const clampedCSS = Math.max(-b.maxOffsetCSS, Math.min(b.maxOffsetCSS, e.clientX - b.centerX));
       rawOffsetGUI = clampedCSS / b.scale;
       const newThumbOffsetGUI = snapGUI(rawOffsetGUI);
@@ -316,7 +336,7 @@ export function createGizmoMobileHud({
       }
       thumbOffsetGUI = newThumbOffsetGUI;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
-      thumb.background = 'rgba(255,220,50,0.95)';
+      updateThumbHeldColour(newThumbOffsetGUI);
     }
 
     function onPointerMove(e) {
@@ -332,11 +352,13 @@ export function createGizmoMobileHud({
       applyMove(thumbOffsetGUI, newThumbOffsetGUI);
       thumbOffsetGUI = newThumbOffsetGUI;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
+      updateThumbHeldColour(newThumbOffsetGUI);
     }
 
     function onPointerUp(e) {
       if (e.pointerId !== activePointer) return;
       activePointer = null;
+      lastSnappedGUI = null;
       thumb.background = 'rgba(255,255,255,0.85)';
     }
 

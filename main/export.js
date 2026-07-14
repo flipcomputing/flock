@@ -66,7 +66,6 @@ async function exportBlockSnippet(block) {
 export function addExportContextMenuOptions() {
   addExportContextMenuOption();
   addImportContextMenuOption();
-  //addExportSVGContextMenuOption();
   addExportPNGContextMenuOption();
 }
 
@@ -127,68 +126,6 @@ function addExportPNGContextMenuOption() {
     scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
     checkbox: false,
   });
-}
-
-// eslint-disable-next-line no-unused-vars
-function addExportSVGContextMenuOption() {
-  Blockly.ContextMenuRegistry.registry.register({
-    id: "exportSVG",
-    weight: 101,
-    displayText: function () {
-      return getSnippetOption("export_SVG");
-    },
-    preconditionFn: function (_scope) {
-      return "enabled";
-    },
-    callback: function (scope) {
-      if (scope.block) {
-        // Export selected block or stack as SVG
-        exportBlockAsSVG(scope.block);
-      } else if (scope.workspace) {
-        // Export the entire workspace as SVG
-        exportWorkspaceAsSVG(scope.workspace);
-      }
-    },
-    scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-    checkbox: false,
-  });
-}
-
-async function exportWorkspaceAsSVG(workspace) {
-  // Get the SVG element representing the entire workspace
-  const svg = workspace.getParentSvg().cloneNode(true);
-
-  // Adjust the dimensions to fit the content
-  const bbox = svg.getBBox();
-  svg.setAttribute("width", bbox.width);
-  svg.setAttribute("height", bbox.height);
-  svg.setAttribute(
-    "viewBox",
-    `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`,
-  );
-
-  const axisExportColors = { X: "#1A9EE0", Y: "#00CC96", Z: "#F07020" };
-  for (const [axis, color] of Object.entries(axisExportColors)) {
-    svgBlock
-      .querySelectorAll(`:scope >[data-axis="${axis}"] .blocklyPath`)
-      .forEach((path) => {
-        path.setAttribute("stroke", color);
-        path.setAttribute("stroke-width", "2");
-      });
-  }
-
-  // Convert the SVG to a data URL
-  const serializer = new XMLSerializer();
-  const svgString = serializer.serializeToString(svg);
-  const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-
-  // Create a download link
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "workspace.svg";
-  link.click();
-  document.body.appendChild(link);
-  document.body.removeChild(link);
 }
 
 async function urlToDataURL(url) {
@@ -395,18 +332,6 @@ async function generateSVG(block) {
   const finalSVG = `${svgDeclaration}${svgString}`;
 
   return finalSVG;
-}
-
-async function exportBlockAsSVG(block) {
-  const finalSVG = await generateSVG(block);
-
-  // Create and download the SVG blob
-  const blob = new Blob([finalSVG], { type: "image/svg+xml" });
-  const link = document.createElement("a");
-  link.download = `${block.type}.svg`;
-  link.href = URL.createObjectURL(blob);
-  document.body.appendChild(link);
-  document.body.removeChild(link);
 }
 
 import { addMetadata } from "meta-png";

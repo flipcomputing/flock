@@ -1169,7 +1169,6 @@ export default {
   export_JSON_snippet: 'Exporter le bloc comme extrait JSON',
   import_snippet: 'Importer un extrait',
   export_PNG_snippet: 'Exporter en PNG',
-  export_SVG_snippet: 'Exporter en SVG',
 
   // New variable option
   new_variable_decision: 'Nouvelle variable...',

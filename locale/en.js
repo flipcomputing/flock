@@ -1290,7 +1290,6 @@ export default {
   export_JSON_snippet: 'Export block as snippet',
   import_snippet: 'Import snippet',
   export_PNG_snippet: 'Export as PNG',
-  export_SVG_snippet: 'Export as SVG',
 
   // New variable option
   new_variable_decision: 'New variable...',
