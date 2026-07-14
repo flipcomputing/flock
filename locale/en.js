@@ -239,6 +239,7 @@ export default {
   skin_colour: '%1',
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
+  colour_from_string_invalid: 'Not a valid CSS color value.',
   random_colour: 'random color',
   material: 'material %1 %2 alpha %3',
   gradient_material: 'material %1 alpha %2',

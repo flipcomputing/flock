@@ -233,6 +233,7 @@ export default {
   skin_colour: '%1',
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
+  colour_from_string_invalid: 'Valor de cor CSS inválido.', // ai
   random_colour: 'cor aleatória',
   material: 'material %1 %2 opacidade %3',
   gradient_material: 'material %1 opacidade %2',

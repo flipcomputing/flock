@@ -181,6 +181,14 @@ export function runMaterialsTests(flock) {
       );
     });
 
+    it("should expand 3-digit hex to 6-digit in getColorFromString", async function () {
+      expect(flock.getColorFromString("f0c")).to.equal("#ff00cc");
+      expect(flock.getColorFromString("#f0c")).to.equal("#ff00cc");
+      expect(flock.getColorFromString("fff")).to.equal("#ffffff");
+      expect(flock.getColorFromString("800080")).to.equal("#800080");
+      expect(flock.getColorFromString("#800080")).to.equal("#800080");
+    });
+
     it("should apply tint with CSS color names", async function () {
       const id = "boxTintColorName";
       await createBoxWithColorAndPosition(id);
