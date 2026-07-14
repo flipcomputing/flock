@@ -2246,7 +2246,6 @@ function _handleBoundsGizmo() {
 
 // Select: Allow the user to select a mesh by clicking on it
 function handleSelectGizmo() {
-  gizmoManager.selectGizmoEnabled = true;
   setGizmoButtonActive(document.getElementById('selectButton'), true);
 
   function applySelection(pickedMesh, pickedPoint) {
