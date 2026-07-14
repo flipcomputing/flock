@@ -884,6 +884,30 @@ function cleanupPlacementMode() {
   document.getElementById("showShapesButton")?.classList.remove("active");
 }
 
+// On phones the popup opens below the toolbar into the space beneath it.
+// That space can be shorter than the full menu, which then runs off the
+// bottom of the canvas. Cap the menu's height to the gap between its top and
+// the bottom view-toggle bar (mirroring the colour picker) and scroll inside,
+// so the whole menu is always reachable. No-op on wider layouts.
+function fitShapesDropdownToViewport(dropdown) {
+  if (window.innerWidth > 600) {
+    dropdown.style.maxHeight = "";
+    dropdown.style.overflow = "";
+    return;
+  }
+  const top = dropdown.getBoundingClientRect().top;
+  const bottomBar = document.getElementById("bottomBar");
+  const limit = bottomBar
+    ? bottomBar.getBoundingClientRect().top
+    : window.innerHeight;
+  // Stop the menu just above the bar. No lower floor here: a floor taller than
+  // the available space would push the menu's bottom down over the bar, which
+  // is exactly the overlap we're avoiding. When space is tight it scrolls.
+  const available = Math.max(0, limit - top - 8);
+  dropdown.style.maxHeight = `${available}px`;
+  dropdown.style.overflow = "hidden auto"; // clip x, scroll y when needed
+}
+
 function showShapes() {
   cancelPlacement(); // Always remove all placement modes when menu is opened/closed
 
@@ -896,6 +920,7 @@ function showShapes() {
     removeKeyboardNavigation();
   } else {
     dropdown.style.display = "block";
+    fitShapesDropdownToViewport(dropdown);
     loadObjectImages();
     loadMultiImages();
     loadCharacterImages();
@@ -1048,7 +1073,12 @@ function handleShapeMenuKeydown(event) {
 function startPlacementKeyboardMode() {
   const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
   if (!flock.scene || !canvas) return;
-  GizmoMenuManager.toggle(true);
+  // The gizmo overlay shows number-key badges as a keyboard-placement aid.
+  // In the narrow/mobile view there's no keyboard and it would just cover the
+  // 2-row toolbar, so only open it on the wide desktop layout.
+  if (window.innerWidth > 1024) {
+    GizmoMenuManager.toggle(true);
+  }
   const isValidHit = (x, y) =>
     !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit;
 
