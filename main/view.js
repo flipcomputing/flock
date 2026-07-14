@@ -17,10 +17,7 @@ export function onResize(mode) {
   // First handle canvas and engine
   resizeCanvas();
   if (flock.engine) flock.engine.resize();
-  // Single choke point for every layout change that can resize the canvas
-  // (window resize, orientation change, the desktop panel resizer drag, view
-  // switches) — anything that lays out from canvas.width/height should listen
-  // for this rather than raw window 'resize', which the panel resizer never fires.
+  // Notify listeners that layout needs updating for the new canvas size.
   window.dispatchEvent(new Event('flock:canvas-resize'));
 
   requestAnimationFrame(() => {

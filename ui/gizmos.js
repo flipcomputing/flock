@@ -136,12 +136,8 @@ function createAdaptiveInput({
   if (startAxis) onAxisChange?.(startAxis);
   flock.canvas?.focus();
 
-  // The HUD's layout is baked from canvas.width/height once at creation time, so
-  // any layout change that resizes the canvas leaves it stale — rebuild it from
-  // scratch (restoring the current axis) rather than reflowing in place. Listen
-  // for the app's 'flock:canvas-resize' event (dispatched from view.js's onResize)
-  // rather than raw window 'resize': the desktop panel-resizer drag changes canvas
-  // size without ever firing a native window resize event.
+  // The HUD's layout is computed once at creation time from canvas.width/height,
+  // so it must be rebuilt whenever the canvas resizes.
   let resizeTimer = null;
   const handleCanvasResize = () => {
     clearTimeout(resizeTimer);
