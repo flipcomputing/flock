@@ -41,12 +41,12 @@ const blueColor = flock.BABYLON.Color3.FromHexString('#0072B2'); // Colour for X
 const greenColor = flock.BABYLON.Color3.FromHexString('#009E73'); // Colour for Y-axis
 const orangeColor = flock.BABYLON.Color3.FromHexString('#D55E00'); // Colour for Z-axis
 
-const FAST_CURSOR = 1; // Step for moving KB cursor quickly
-const DEFAULT_CURSOR = 0.1; // Step for moving KB cursor slowly (default)
-const FAST_ROTATION = 0.5;
-const DEFAULT_ROTATION = 0.05;
-const FAST_SCALE = 0.5;
-const DEFAULT_SCALE = 0.05;
+const DEFAULT_CURSOR = 1; // Step for moving KB cursor with no modifier held
+const FINE_CURSOR = 0.1; // Step for moving KB cursor precisely (Shift held)
+const DEFAULT_ROTATION = 0.5;
+const FINE_ROTATION = 0.05;
+const DEFAULT_SCALE = 0.5;
+const FINE_SCALE = 0.05;
 
 const MODEL_BLOCK_TYPES = new Set([
   'load_model',
@@ -954,8 +954,8 @@ function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = nu
     onMove,
     onConfirm,
     onCancel,
-    stepNormal: DEFAULT_CURSOR,
-    stepFast: FAST_CURSOR,
+    stepNormal: FINE_CURSOR,
+    stepFast: DEFAULT_CURSOR,
     mode: 'arrows',
     stepLabelsByAxis: { x: ['◁', '▷'], y: ['▽', '△'], z: ['▽', '△'], all: ['◁', '▷'] },
     onAxisChange: (axis) => {
@@ -1062,8 +1062,8 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     onMove,
     onConfirm,
     onCancel,
-    stepNormal: DEFAULT_ROTATION,
-    stepFast: FAST_ROTATION,
+    stepNormal: FINE_ROTATION,
+    stepFast: DEFAULT_ROTATION,
     mode: 'slider',
     getValues,
     onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.rotationGizmo, null),
@@ -1127,8 +1127,8 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
     onMove,
     onConfirm,
     onCancel,
-    stepNormal: DEFAULT_SCALE,
-    stepFast: FAST_SCALE,
+    stepNormal: FINE_SCALE,
+    stepFast: DEFAULT_SCALE,
     mode: 'arrows',
     showUniform: true,
     stepLabels: ['-', '+'],
