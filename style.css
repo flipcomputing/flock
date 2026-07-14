@@ -692,11 +692,19 @@ button {
 /* Gizmo Buttons */
 .gizmo-buttons {
   font-family: 'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif;
+  padding: 5px 5px 25px 0px;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+/* Separate from #gizmoButtons's own display (toggled directly via inline
+   style in view.js for show/hide) so the mobile layout below can safely
+   switch this to a grid without an inline style winning the cascade. */
+.gizmo-buttons-inner {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  padding: 5px 5px 25px 0px;
-  margin: 0;
+  width: 100%;
   box-sizing: border-box;
 }
 
@@ -723,6 +731,26 @@ button {
 
 .gizmo-button.active {
   background-color: var(--color-focus);
+}
+
+/* On phone widths the toolbar no longer fits on one line. Force a
+   deliberate 5-per-row grid (2 tidy rows for the current 10 buttons)
+   rather than letting flex-wrap overflow unevenly. Columns are sized to
+   content (not 1fr) and the group is centred, so the buttons stay packed
+   together instead of spreading across the full width. Tablets (up to
+   1024px) still fit one row, so this is scoped to phones only. */
+@media (max-width: 600px) {
+  .gizmo-buttons-inner {
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+    justify-content: center;
+    gap: 5px;
+  }
+  /* Neutralise the shape button's desktop left margin, which would
+     otherwise nudge the first column out of line with the row below. */
+  .gizmo-buttons-inner #shape-menu {
+    margin-left: 0;
+  }
 }
 
 .bigbutton.active {
