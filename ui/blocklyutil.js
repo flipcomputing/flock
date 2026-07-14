@@ -239,8 +239,13 @@ export function restoreBlockFocus(workspace, blockId) {
 export function highlightBlockById(workspace, block) {
   if (!workspace || !block || block.workspace !== workspace) return;
 
-  // Select and scroll only when the code view is visible
-  if (window.codeMode === "both") {
+  // Select and scroll only when the code view is actually visible. `window.codeMode`
+  // only tracks the wide-screen split-view toggle (switchView) — the narrow-screen
+  // canvas/code tab toggle (showCanvasView/showCodeView) hides #codePanel via
+  // style.display without ever updating codeMode, so check the DOM directly.
+  const codePanel = document.getElementById("codePanel");
+  const codeVisible = !codePanel || codePanel.style.display !== "none";
+  if (codeVisible) {
     ensureAddMenuSelectionCleanup(workspace);
 
     clearAddMenuHighlight(workspace, block.id);

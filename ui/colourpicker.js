@@ -1,5 +1,5 @@
 import { translate } from "../main/translation.js";
-import { exitGizmoState } from "./gizmos.js";
+import { exitGizmoState, setGizmoButtonActive } from "./gizmos.js";
 import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
 import { ContextManager } from "../main/context.js";
 
@@ -1636,36 +1636,51 @@ class CustomColorPicker {
     const handle = this.container.querySelector(".hue-slider-handle");
     const container = this.container.querySelector(".hue-slider-container");
     let isDragging = false;
+    let rafId = null;
+
+    const updateFromClientX = (clientX) => {
+      const rect = this.hueCanvas.getBoundingClientRect();
+      const sliderWidth = this.hueCanvas.width;
+      const x = Math.max(0, Math.min(sliderWidth, clientX - rect.left));
+      this.handleHueSliderClick(x);
+    };
 
     const startDrag = (e) => {
       isDragging = true;
       e.preventDefault();
-      document.addEventListener("mousemove", handleDrag);
-      document.addEventListener("mouseup", endDrag);
+      container.setPointerCapture?.(e.pointerId);
     };
 
     const handleDrag = (e) => {
       if (!isDragging) return;
       e.preventDefault();
-      const rect = this.hueCanvas.getBoundingClientRect();
-      const sliderWidth = this.hueCanvas.width;
-      const x = Math.max(0, Math.min(sliderWidth, e.clientX - rect.left));
-      this.handleHueSliderClick(x);
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        updateFromClientX(e.clientX);
+      });
     };
 
-    const endDrag = () => {
+    const endDrag = (e) => {
       isDragging = false;
-      document.removeEventListener("mousemove", handleDrag);
-      document.removeEventListener("mouseup", endDrag);
+      try {
+        container.releasePointerCapture?.(e.pointerId);
+      } catch (error) {
+        console.warn("Suppressed non-critical error:", error);
+      }
     };
 
-    handle.addEventListener("mousedown", startDrag);
-    container.addEventListener("mousedown", (e) => {
-      const rect = this.hueCanvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      this.handleHueSliderClick(x);
+    // Starting the drag exactly on the handle doesn't jump the value first;
+    // starting elsewhere on the track jumps to that position immediately.
+    handle.addEventListener("pointerdown", startDrag);
+    container.addEventListener("pointerdown", (e) => {
+      if (e.target === handle) return;
+      updateFromClientX(e.clientX);
       startDrag(e);
     });
+    container.addEventListener("pointermove", handleDrag);
+    container.addEventListener("pointerup", endDrag);
+    container.addEventListener("pointercancel", endDrag);
   }
 
   generateRandomColor() {
@@ -1879,7 +1894,7 @@ class CustomColorPicker {
     this.container.style.pointerEvents = "auto";
     this.isOpen = true;
     document.body.classList.add("color-picker-open");
-    document.getElementById("colorPickerButton")?.classList.add("active");
+    setGizmoButtonActive(document.getElementById("colorPickerButton"), true);
 
     // Add C shortcut to pick current colour
     KeyboardDispatcher.on("*", "KeyC", (e) => {
@@ -2099,7 +2114,7 @@ class CustomColorPicker {
     this.container.style.display = "none";
     this.isOpen = false;
     document.body.classList.remove("color-picker-open");
-    document.getElementById("colorPickerButton")?.classList.remove("active");
+    setGizmoButtonActive(document.getElementById("colorPickerButton"), false);
     document.removeEventListener("click", this.outsideClickHandler, true);
     window.removeEventListener("keydown", this.globalEscapeHandler, true);
     KeyboardDispatcher.off("*", "KeyC");
