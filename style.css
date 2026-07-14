@@ -692,11 +692,19 @@ button {
 /* Gizmo Buttons */
 .gizmo-buttons {
   font-family: 'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif;
+  padding: 5px 5px 25px 0px;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+/* Separate from #gizmoButtons's own display (toggled directly via inline
+   style in view.js for show/hide) so the mobile layout below can safely
+   switch this to a grid without an inline style winning the cascade. */
+.gizmo-buttons-inner {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  padding: 5px 5px 25px 0px;
-  margin: 0;
+  width: 100%;
   box-sizing: border-box;
 }
 
@@ -723,6 +731,26 @@ button {
 
 .gizmo-button.active {
   background-color: var(--color-focus);
+}
+
+/* On phone widths the toolbar no longer fits on one line. Force a
+   deliberate 5-per-row grid (2 tidy rows for the current 10 buttons)
+   rather than letting flex-wrap overflow unevenly. Columns are sized to
+   content (not 1fr) and the group is centred, so the buttons stay packed
+   together instead of spreading across the full width. Tablets (up to
+   1024px) still fit one row, so this is scoped to phones only. */
+@media (max-width: 600px) {
+  .gizmo-buttons-inner {
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+    justify-content: center;
+    gap: 5px;
+  }
+  /* Neutralise the shape button's desktop left margin, which would
+     otherwise nudge the first column out of line with the row below. */
+  .gizmo-buttons-inner #shape-menu {
+    margin-left: 0;
+  }
 }
 
 .bigbutton.active {
@@ -1842,6 +1870,68 @@ body.color-picker-open #renderCanvas {
   gap: 8px;
   overflow: visible !important; /* override old scrollbar-hiding rule */
   list-style: none;
+}
+
+/* On phones the shape button is centred in the 2-row gizmo grid, so the
+   popup's old anchor (bottom-left of that button) ran partway off the right
+   edge. Instead anchor it to the whole gizmo bar and span full width,
+   dropping straight down into the space below the toolbar (its height is
+   capped to that space with an internal scroll in addmenu.js). The rows are
+   stretched to fill the full width so there's no empty grey band on the
+   right, and the tiles are shrunk to suit the smaller screen. Placed after
+   the desktop rules above so these overrides win on source order. */
+@media (max-width: 600px) {
+  #gizmoButtons {
+    position: relative;
+  }
+  #shape-menu {
+    position: static; /* let the popup resolve against #gizmoButtons */
+  }
+  #shapes-dropdown {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%; /* directly below the toolbar */
+    bottom: auto;
+    /* top:100% lands below the toolbar's 25px bottom padding, leaving a wide
+       gap; pull the menu back up to sit just under the buttons. */
+    margin-top: -20px;
+    width: auto;
+    max-width: 100%;
+    padding: 10px; /* symmetric so the grey side gaps match */
+    z-index: 80;
+    box-sizing: border-box;
+  }
+  /* Smaller tiles for the smaller screen. */
+  #shapes-dropdown ul li img {
+    width: 40px;
+    height: 40px;
+  }
+  /* Size every row to show exactly 5 tiles, then centre it, so a matching
+     grey margin is left on both sides rather than a single band on the
+     right. 5 * (40px img + 10px li padding) + 4 * 8px gap = 282px. */
+  #shapes-dropdown > ul {
+    grid-template-columns: repeat(5, 1fr);
+    justify-items: center;
+    width: 282px;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .scrollable-container {
+    width: 282px;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* Nudge the chevrons out past the tiles into the grey side margins so they
+     no longer overlap the first/last tile (30px button + 4px gap). */
+  .scrollable-container .scroll-button.left {
+    left: -34px;
+  }
+  .scrollable-container .scroll-button.right {
+    right: -34px;
+  }
 }
 
 /* Style for the yellow circle to place/select using kb controls */
