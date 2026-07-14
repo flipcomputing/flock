@@ -180,6 +180,7 @@ export function createGizmoMobileHud({
       }
 
       function startRepeat() {
+        if (timeoutId !== null) return;
         pressTime = Date.now();
         step();
         timeoutId = setTimeout(() => {
