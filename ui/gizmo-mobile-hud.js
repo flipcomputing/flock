@@ -302,6 +302,7 @@ export function createGizmoMobileHud({
       activePointer = e.pointerId;
       activeScale = b.scale;
       lastClientX = e.clientX;
+      canvas.setPointerCapture(e.pointerId);
       const clampedCSS = Math.max(-b.maxOffsetCSS, Math.min(b.maxOffsetCSS, e.clientX - b.centerX));
       rawOffsetGUI = clampedCSS / b.scale;
       const newThumbOffsetGUI = snapGUI(rawOffsetGUI);
