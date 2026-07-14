@@ -1,5 +1,5 @@
 import { translate } from "../main/translation.js";
-import { exitGizmoState } from "./gizmos.js";
+import { exitGizmoState, setGizmoButtonActive } from "./gizmos.js";
 import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
 import { ContextManager } from "../main/context.js";
 
@@ -1879,7 +1879,7 @@ class CustomColorPicker {
     this.container.style.pointerEvents = "auto";
     this.isOpen = true;
     document.body.classList.add("color-picker-open");
-    document.getElementById("colorPickerButton")?.classList.add("active");
+    setGizmoButtonActive(document.getElementById("colorPickerButton"), true);
 
     // Add C shortcut to pick current colour
     KeyboardDispatcher.on("*", "KeyC", (e) => {
@@ -2099,7 +2099,7 @@ class CustomColorPicker {
     this.container.style.display = "none";
     this.isOpen = false;
     document.body.classList.remove("color-picker-open");
-    document.getElementById("colorPickerButton")?.classList.remove("active");
+    setGizmoButtonActive(document.getElementById("colorPickerButton"), false);
     document.removeEventListener("click", this.outsideClickHandler, true);
     window.removeEventListener("keydown", this.globalEscapeHandler, true);
     KeyboardDispatcher.off("*", "KeyC");
