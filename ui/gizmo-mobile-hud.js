@@ -126,7 +126,7 @@ export function createGizmoMobileHud({
       const btn = flock.GUI.Button.CreateSimpleButton(`gizmo-arrow-${sign}`, label);
       btn.width = `${BTN_SIZE}px`;
       btn.height = `${BTN_SIZE}px`;
-      btn.fontSize = `${Math.min(40 * s, Math.floor(BTN_SIZE * 0.55))}px`;
+      btn.fontSize = `${Math.min(56 * s, Math.floor(BTN_SIZE * 0.75))}px`;
       btn.fontFamily = fontFamily;
       btn.cornerRadius = 8 * s;
       btn.background = 'transparent';
@@ -138,6 +138,9 @@ export function createGizmoMobileHud({
       btn.left = `${leftPos}px`;
       btn.top = `${GAP}px`;
       container.addControl(btn);
+      // The +/- glyphs sit low within their line-box in this font; nudge up to
+      // visually re-centre them in the button.
+      btn.textBlock.top = `${-Math.round(BTN_SIZE * 0.08)}px`;
 
       let timeoutId = null;
       let intervalId = null;

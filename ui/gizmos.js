@@ -981,7 +981,7 @@ function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = nu
     stepNormal: DEFAULT_CURSOR,
     stepFast: FAST_CURSOR,
     mode: 'arrows',
-    stepLabelsByAxis: { x: ['◁', '▷'], y: ['▽', '△'], z: ['▽', '△'], all: ['◁', '▷'] },
+    stepLabels: ['-', '+'],
     onAxisChange: (axis) => {
       onHudAxisSaved?.(axis);
       highlightGizmoAxis(gizmoManager.gizmos?.positionGizmo, axis);
