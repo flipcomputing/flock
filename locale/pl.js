@@ -1165,7 +1165,6 @@ export default {
   export_JSON_snippet: 'Eksportuj blok jako fragment JSON',
   import_snippet: 'Importuj fragment',
   export_PNG_snippet: 'Eksportuj jako PNG',
-  export_SVG_snippet: 'Eksportuj jako SVG',
 
   // New variable option
   new_variable_decision: 'Nowa zmienna…',

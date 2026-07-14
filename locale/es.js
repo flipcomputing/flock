@@ -1234,7 +1234,6 @@ export default {
   export_JSON_snippet: 'Exportar bloque como fragmento JSON', // human
   import_snippet: 'Importar fragmento', // human
   export_PNG_snippet: 'Exportar como PNG', // human
-  export_SVG_snippet: 'Exportar como SVG', // human
 
   // New variable option
   new_variable_decision: 'Nueva variable...', // human
