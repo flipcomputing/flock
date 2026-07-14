@@ -117,13 +117,36 @@ function createAdaptiveInput({
     onAxisChange?.(axis);
   }
 
-  hud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange: onHudAxisChange, stepLabelsByAxis, getValues, initialAxis: initialHudAxis ?? initialKeyboardAxis });
+  function buildHud(initialAxis) {
+    return createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange: onHudAxisChange, stepLabelsByAxis, getValues, initialAxis });
+  }
+
+  hud = buildHud(initialHudAxis ?? initialKeyboardAxis);
   keyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast, onAxisChange: onKbAxisChange, initialAxis: initialKeyboardAxis, allowUniform: showUniform });
   const startAxis = initialKeyboardAxis ?? initialHudAxis;
   if (startAxis) onAxisChange?.(startAxis);
   flock.canvas?.focus();
 
+  // The HUD's layout is baked from canvas.width/height once at creation time,
+  // so rotating the device or resizing the window leaves it stale — rebuild it
+  // from scratch (restoring the current axis) rather than reflowing in place.
+  let resizeTimer = null;
+  const onResize = () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      resizeTimer = null;
+      if (!hud) return;
+      hud();
+      hud = buildHud(lastReportedAxis);
+    }, 200);
+  };
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', onResize);
+
   function stop() {
+    clearTimeout(resizeTimer);
+    window.removeEventListener('resize', onResize);
+    window.removeEventListener('orientationchange', onResize);
     onHudHide?.();
     hud?.();
     keyboard?.();
