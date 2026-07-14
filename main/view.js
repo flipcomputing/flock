@@ -17,6 +17,8 @@ export function onResize(mode) {
   // First handle canvas and engine
   resizeCanvas();
   if (flock.engine) flock.engine.resize();
+  // Notify listeners that layout needs updating for the new canvas size.
+  window.dispatchEvent(new Event('flock:canvas-resize'));
 
   requestAnimationFrame(() => {
     let scrollX = workspace?.scrollX || 0;

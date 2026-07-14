@@ -121,12 +121,29 @@ export function createGizmoMobileHud({
     const arrowTotalW = 2 * BTN_SIZE + 3 * GAP;
     const arrowOffsetX = (HALF - arrowTotalW) / 2;
 
+    // Shift means "fine control" — holding it should keep the step at
+    // stepNormal for the whole press, not let the hold-to-accelerate ramp
+    // override it.
+    let shiftHeld = false;
+    const onShiftKeyDown = (e) => {
+      if (e.key === 'Shift') shiftHeld = true;
+    };
+    const onShiftKeyUp = (e) => {
+      if (e.key === 'Shift') shiftHeld = false;
+    };
+    document.addEventListener('keydown', onShiftKeyDown);
+    document.addEventListener('keyup', onShiftKeyUp);
+    cleanups.push(() => {
+      document.removeEventListener('keydown', onShiftKeyDown);
+      document.removeEventListener('keyup', onShiftKeyUp);
+    });
+
     function makeArrowButton(label, sign, idx) {
       const leftPos = arrowOffsetX + GAP + idx * (BTN_SIZE + GAP);
       const btn = flock.GUI.Button.CreateSimpleButton(`gizmo-arrow-${sign}`, label);
       btn.width = `${BTN_SIZE}px`;
       btn.height = `${BTN_SIZE}px`;
-      btn.fontSize = `${Math.min(40 * s, Math.floor(BTN_SIZE * 0.55))}px`;
+      btn.fontSize = `${Math.min(56 * s, Math.floor(BTN_SIZE * 0.75))}px`;
       btn.fontFamily = fontFamily;
       btn.cornerRadius = 8 * s;
       btn.background = 'transparent';
@@ -138,12 +155,16 @@ export function createGizmoMobileHud({
       btn.left = `${leftPos}px`;
       btn.top = `${GAP}px`;
       container.addControl(btn);
+      // The +/- glyphs sit low within their line-box in this font; nudge up to
+      // visually re-centre them in the button.
+      btn.textBlock.top = `${-Math.round(BTN_SIZE * 0.08)}px`;
 
       let timeoutId = null;
       let intervalId = null;
       let pressTime = 0;
 
       function currentStep() {
+        if (shiftHeld) return stepNormal;
         const elapsed = Date.now() - pressTime;
         if (elapsed < 1000) return stepNormal;
         if (elapsed < 2000) return stepNormal * 5;
@@ -159,6 +180,7 @@ export function createGizmoMobileHud({
       }
 
       function startRepeat() {
+        if (timeoutId !== null) return;
         pressTime = Date.now();
         step();
         timeoutId = setTimeout(() => {

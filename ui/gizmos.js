@@ -126,13 +126,33 @@ function createAdaptiveInput({
     onAxisChange?.(axis);
   }
 
-  hud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange: onHudAxisChange, stepLabelsByAxis, getValues, initialAxis: initialHudAxis ?? initialKeyboardAxis });
+  function buildHud(initialAxis) {
+    return createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange: onHudAxisChange, stepLabelsByAxis, getValues, initialAxis });
+  }
+
+  hud = buildHud(initialHudAxis ?? initialKeyboardAxis);
   keyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast, onAxisChange: onKbAxisChange, initialAxis: initialKeyboardAxis, allowUniform: showUniform });
   const startAxis = initialKeyboardAxis ?? initialHudAxis;
   if (startAxis) onAxisChange?.(startAxis);
   flock.canvas?.focus();
 
+  // The HUD's layout is computed once at creation time from canvas.width/height,
+  // so it must be rebuilt whenever the canvas resizes.
+  let resizeTimer = null;
+  const handleCanvasResize = () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      resizeTimer = null;
+      if (!hud) return;
+      hud();
+      hud = buildHud(lastReportedAxis);
+    }, 200);
+  };
+  window.addEventListener('flock:canvas-resize', handleCanvasResize);
+
   function stop() {
+    clearTimeout(resizeTimer);
+    window.removeEventListener('flock:canvas-resize', handleCanvasResize);
     onHudHide?.();
     hud?.();
     keyboard?.();
@@ -957,7 +977,7 @@ function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = nu
     stepNormal: DEFAULT_CURSOR,
     stepFast: FAST_CURSOR,
     mode: 'arrows',
-    stepLabelsByAxis: { x: ['◁', '▷'], y: ['▽', '△'], z: ['▽', '△'], all: ['◁', '▷'] },
+    stepLabels: ['-', '+'],
     onAxisChange: (axis) => {
       onHudAxisSaved?.(axis);
       highlightGizmoAxis(gizmoManager.gizmos?.positionGizmo, axis);
