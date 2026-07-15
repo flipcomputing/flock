@@ -41,6 +41,7 @@ const TESTED_TEXT_FIELDS = [
   "procedures_defnoreturn.NAME",
   "procedures_defreturn.NAME",
   "text_prompt.TEXT",
+  "play_tune.ABC_TEXT",
 ];
 
 const payload = "\"; alert(1); //"
@@ -111,14 +112,14 @@ export function runTextFieldValidationTests() {
       expect(generate(block)).to.equal("window.prompt('" + JSON.stringify(payload) + "')");
     });
 
-    it("play tune block", function () {
+    it("the play tune block generates an empty string", function () {
       const block = Blockly.serialization.blocks.append(
       {
         type: "play_tune",
       },
       workspace,
       );
-      expect(generate(block)).to.equal("window.prompt('" + JSON.stringify(payload) + "')");
+      expect(generate(block)).to.equal("");
     });
   });
 }
