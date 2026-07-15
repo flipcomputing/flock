@@ -51,30 +51,30 @@ export function runColorValidationTests() {
       },
       workspace,
       );
-      expect(generate(block)).to.equal('"#F00"');
+      expect(generate(block)).to.equal('"#ff0000"');
     });
 
     it("doesn't generate a hash-prefixed colour string from a bare hex value that is an invalid length", function () {
       let block = Blockly.serialization.blocks.append({ type: "colour_from_string",
         fields: { COLOR: "F000F0F" },
       },workspace,);
-      expect(() => generate(block)).to.throw();
+      expect(generate(block)).to.equal('"#000000"');
       block = Blockly.serialization.blocks.append({ type: "colour_from_string",
         fields: { COLOR: "F" },
       },workspace,);
-      expect(() => generate(block)).to.throw();
+      expect(generate(block)).to.equal('"#000000"');
       block = Blockly.serialization.blocks.append({ type: "colour_from_string",
         fields: { COLOR: "F0" },
       },workspace,);
-      expect(() => generate(block)).to.throw();
+      expect(generate(block)).to.equal('"#000000"');
       block = Blockly.serialization.blocks.append({ type: "colour_from_string",
         fields: { COLOR: "F000" },
       },workspace,);
-      expect(() => generate(block)).to.throw();
+      expect(generate(block)).to.equal('"#000000"');
       block = Blockly.serialization.blocks.append({ type: "colour_from_string",
         fields: { COLOR: "F000F" },
       },workspace,);
-      expect(() => generate(block)).to.throw();
+      expect(generate(block)).to.equal('"#000000"');
     });
 
     it("doesn't generate a hash-prefixed colour string from a bare hex value that is too short", function () {
@@ -85,7 +85,7 @@ export function runColorValidationTests() {
       },
       workspace,
       );
-      expect(() => generate(block)).to.throw();
+      expect(generate(block)).to.equal('"#000000"');
     });
 
 
@@ -122,7 +122,7 @@ export function runColorValidationTests() {
       },
       workspace,
       );
-      expect(() => generate(block)).to.throw();
+      expect(generate(block)).to.equal('"#000000"');
     });
 
 
@@ -131,55 +131,55 @@ export function runColorValidationTests() {
       const block = Blockly.serialization.blocks.append(
       {
         type: "colour_from_string",
-        fields: { COLOR: "red" + "" },
+        fields: { COLOR: "red\" + \"" },
       },
       workspace,
       );
-      expect(() => generate(block)).to.throw();
+      expect(generate(block)).to.equal('"#000000"');
     });
 
     it("doesn't generate a colour string from input that requires evaluating code", function () {
       const block = Blockly.serialization.blocks.append(
       {
         type: "colour_from_string",
-        fields: { COLOR: "#0000" + (255).toString(16) + "" },
+        fields: { COLOR: "#0000\" + (255).toString(16) + \"" },
       },
       workspace,
       );
-      expect(() => generate(block)).to.throw();
+      expect(generate(block)).to.equal('"#000000"');
     });
 
     it("doesn't generate a colour string from input that requires invoking a Flock function", function () {
       const block = Blockly.serialization.blocks.append(
       {
         type: "colour_from_string",
-        fields: { COLOR: "" + randomColour() + "" },
+        fields: { COLOR: "\" + randomColour() + \"" },
       },
       workspace,
       );
-      expect(() => generate(block)).to.throw();
+      expect(generate(block)).to.equal('"#000000"');
     });
 
     it("doesn't generate a colour string from input that requires invoking a Flock function later", function () {
       const block = Blockly.serialization.blocks.append(
       {
         type: "colour_from_string",
-        fields: { COLOR: "000000" + changeColor(capsule1, { color: randomColour() }) + "" },
+        fields: { COLOR: "000000\" + changeColor(capsule1, { color: randomColour() }) + \"" },
       },
       workspace,
       );
-      expect(() => generate(block)).to.throw();
+      expect(generate(block)).to.equal('"#000000"');
     });
 
     it("doesn't generate a colour string from input that requires calling a disallowed function", function () {
       const block = Blockly.serialization.blocks.append(
       {
         type: "colour_from_string",
-        fields: { COLOR: "" + eval("1") + "" },
+        fields: { COLOR: "\" + eval(\"1\") + \"" },
       },
       workspace,
       );
-      expect(() => generate(block)).to.throw();
+      expect(generate(block)).to.equal('"#000000"');
     });
   });
 }
