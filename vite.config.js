@@ -26,93 +26,91 @@ export default {
     cssInjectedByJsPlugin(),
     viteStaticCopy({
       targets: [
-        { src: "models/*.{glb,gltf}", dest: "models" },
-        { src: "animations/*.{glb,gltf}", dest: "animations" },
-        { src: "sounds/*.{ogg,mp3,aac,wav}", dest: "sounds" },
-        { src: "images/*.*", dest: "images" },
-        { src: "examples/*.flock", dest: "examples" },
-        { src: "textures/*.png", dest: "textures" },
-        { src: "fonts/*.{json,woff2,ttf}", dest: "fonts" },
+        { src: 'models/*.{glb,gltf}', dest: 'models' },
+        { src: 'animations/*.{glb,gltf}', dest: 'animations' },
+        { src: 'sounds/*.{mp3,aac,wav}', dest: 'sounds' },
+        { src: 'images/*.*', dest: 'images' },
+        { src: 'examples/*.flock', dest: 'examples' },
+        { src: 'textures/*.png', dest: 'textures' },
+        { src: 'fonts/*.{json,woff2,ttf}', dest: 'fonts' },
         // Flock micro:bit firmware (universal hex built in MakeCode).
         // Precached so first-use flashing works in the offline PWA.
-        { src: "util/microbit-flockusb.hex", dest: "util" },
-        { src: "node_modules/manifold-3d/manifold.wasm", dest: "wasm" },
-        { src: "node_modules/blockly/media/*", dest: "blockly/media" },
-        { src: "images/dropdown-arrow.svg", dest: "blockly/media" },
+        { src: 'util/microbit-flockusb.hex', dest: 'util' },
+        { src: 'node_modules/manifold-3d/manifold.wasm', dest: 'wasm' },
+        { src: 'node_modules/blockly/media/*', dest: 'blockly/media' },
+        { src: 'images/dropdown-arrow.svg', dest: 'blockly/media' },
         {
-          src: "node_modules/ses/dist/lockdown.umd.min.js",
-          dest: "vendor/ses", // => served at /vendor/ses/lockdown.umd.min.js
+          src: 'node_modules/ses/dist/lockdown.umd.min.js',
+          dest: 'vendor/ses', // => served at /vendor/ses/lockdown.umd.min.js
         },
         // Copy the Draco decoder files from Babylon's package
         {
-          src: "node_modules/@babylonjs/core/assets/Draco/*",
-          dest: "draco", // will be served from /draco/
+          src: 'node_modules/@babylonjs/core/assets/Draco/*',
+          dest: 'draco', // will be served from /draco/
         },
       ],
     }),
     VitePWA({
       base: BASE_URL,
-      registerType: "autoUpdate",
+      registerType: 'autoUpdate',
       devOptions: { enabled: false },
 
       assetsInclude: [
-        "**/*.glb",
-        "**/*.gltf",
-        "**/*.ogg",
-        "**/*.aac",
-        "**/*.mp3",
-        "**/*.json",
-        "**/*.flock",
-        "**/*.png",
-        "**/*.woff",
-        "**/*.woff2",
-        "**/*.css",
-        "**/*.svg",
-        "**/*.wasm",
+        '**/*.glb',
+        '**/*.gltf',
+        '**/*.aac',
+        '**/*.mp3',
+        '**/*.json',
+        '**/*.flock',
+        '**/*.png',
+        '**/*.woff',
+        '**/*.woff2',
+        '**/*.css',
+        '**/*.svg',
+        '**/*.wasm',
       ],
       includeAssets: [
-        "**/*.glb",
-        "**/*.gltf",
-        "**/*.ogg",
-        "**/*.aac",
-        "**/*.mp3",
-        "**/*.json",
-        "**/*.flock",
-        "**/*.png",
-        "**/*.woff",
-        "**/*.woff2",
-        "**/*.css",
-        "**/*.svg",
-        "**/*.wasm",
+        '**/*.glb',
+        '**/*.gltf',
+        '**/*.aac',
+        '**/*.mp3',
+        '**/*.json',
+        '**/*.flock',
+        '**/*.png',
+        '**/*.woff',
+        '**/*.woff2',
+        '**/*.css',
+        '**/*.svg',
+        '**/*.wasm',
       ],
 
       manifest: {
-        name: "Flock XR - Creative coding in 3D",
-        short_name: "Flock XR",
-        description: "Create 3D apps with code blocks",
-        theme_color: "#511d91",
-        background_color: "#ffffff",
-        display: "standalone",
+        name: 'Flock XR - Creative coding in 3D',
+        short_name: 'Flock XR',
+        description: 'Create 3D apps with code blocks',
+        theme_color: '#511d91',
+        background_color: '#ffffff',
+        display: 'standalone',
 
         // Keep start route simple and within scope
         start_url: BASE_URL,
         id: BASE_URL,
         scope: BASE_URL,
 
-        orientation: "any",
-        categories: ["education", "games"],
+        orientation: 'any',
+        categories: ['education', 'games'],
         icons: [
           {
-            src: "images/icon_192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "any maskable",
+            src: 'images/icon_192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any maskable',
           },
           {
-            src: "images/icon_512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "any maskable",
+            src: 'images/icon_512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
           },
         ],
       },
@@ -123,51 +121,43 @@ export default {
         // so it is cached on first use by the runtime script cache instead of
         // being precached. toggleDesignMode() shows a banner if the chunk
         // can't be fetched offline.
-        globIgnores: ["**/babylon.inspector.bundle-*.js"],
+        globIgnores: ['**/babylon.inspector.bundle-*.js'],
         navigateFallback: `${BASE_URL}index.html`,
-        navigateFallbackAllowlist: [
-          new RegExp(`^${BASE_URL.replace(/\/$/, "")}/(?!api|assets/)`),
-        ],
+        navigateFallbackAllowlist: [new RegExp(`^${BASE_URL.replace(/\/$/, '')}/(?!api|assets/)`)],
         globPatterns: [
-          "**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,mp3,aac,wasm,json,woff,woff2}",
-          "models/**/*",
-          "sounds/**/*",
-          "images/**/*",
-          "examples/**/*",
-          "textures/**/*",
-          "fonts/**/*",
-          "blockly/media/**/*",
-          "wasm/**/*",
-          "util/microbit-flockusb.hex",
+          '**/*.{js,css,html,ico,png,svg,glb,gltf,mp3,aac,wasm,json,woff,woff2}',
+          'models/**/*',
+          'sounds/**/*.{mp3,aac,wav}',
+          'images/**/*',
+          'examples/**/*',
+          'textures/**/*',
+          'fonts/**/*',
+          'blockly/media/**/*',
+          'wasm/**/*',
+          'util/microbit-flockusb.hex',
         ],
-        modifyURLPrefix: isProduction ? { "": BASE_URL } : {},
+        modifyURLPrefix: isProduction ? { '': BASE_URL } : {},
 
         // Safe runtime caching: NetworkFirst for navigations; CacheFirst for real static assets
         runtimeCaching: [
           {
             // HTML shell (navigations)
-            urlPattern: ({ request }) => request.mode === "navigate",
-            handler: "NetworkFirst",
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
             options: {
-              cacheName: "pages",
+              cacheName: 'pages',
               networkTimeoutSeconds: 5,
             },
           },
           {
             // Static assets by destination
             urlPattern: ({ request }) =>
-              [
-                "script",
-                "style",
-                "image",
-                "font",
-                "audio",
-                "video",
-                "worker",
-              ].includes(request.destination),
-            handler: "CacheFirst",
+              ['script', 'style', 'image', 'font', 'audio', 'video', 'worker'].includes(
+                request.destination
+              ),
+            handler: 'CacheFirst',
             options: {
-              cacheName: "static-assets",
+              cacheName: 'static-assets',
               expiration: {
                 maxEntries: 1000,
                 maxAgeSeconds: 365 * 24 * 60 * 60,
@@ -177,9 +167,9 @@ export default {
           // Optional: keep your fine-grained caches
           {
             urlPattern: /\/models\/.*/,
-            handler: "CacheFirst",
+            handler: 'CacheFirst',
             options: {
-              cacheName: "models-cache",
+              cacheName: 'models-cache',
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 365 * 24 * 60 * 60,
@@ -188,9 +178,9 @@ export default {
           },
           {
             urlPattern: /\/sounds\/.*/,
-            handler: "CacheFirst",
+            handler: 'CacheFirst',
             options: {
-              cacheName: "sounds-cache",
+              cacheName: 'sounds-cache',
               rangeRequests: true,
               expiration: {
                 maxEntries: 100,
@@ -200,9 +190,9 @@ export default {
           },
           {
             urlPattern: /\/textures\/.*/,
-            handler: "CacheFirst",
+            handler: 'CacheFirst',
             options: {
-              cacheName: "textures-cache",
+              cacheName: 'textures-cache',
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 365 * 24 * 60 * 60,
@@ -211,17 +201,17 @@ export default {
           },
           {
             urlPattern: /\/examples\/.*/,
-            handler: "CacheFirst",
+            handler: 'CacheFirst',
             options: {
-              cacheName: "examples-cache",
+              cacheName: 'examples-cache',
               expiration: { maxEntries: 50, maxAgeSeconds: 365 * 24 * 60 * 60 },
             },
           },
           {
             urlPattern: /\/blockly\/media\/.*/,
-            handler: "CacheFirst",
+            handler: 'CacheFirst',
             options: {
-              cacheName: "blockly-media",
+              cacheName: 'blockly-media',
               expiration: { maxEntries: 50, maxAgeSeconds: 365 * 24 * 60 * 60 },
             },
           },
@@ -233,21 +223,18 @@ export default {
 
     // Build-time proxy that generates a stable 'flock.js' re-export
     {
-      name: "create-flock-proxy",
+      name: 'create-flock-proxy',
       writeBundle(options, bundle) {
         let hashedFileName;
         for (const fileName in bundle) {
-          if (
-            fileName.startsWith("assets/index-") &&
-            fileName.endsWith(".js")
-          ) {
+          if (fileName.startsWith('assets/index-') && fileName.endsWith('.js')) {
             hashedFileName = fileName;
             break;
           }
         }
         if (hashedFileName) {
           const proxyContent = `export * from './${hashedFileName}';\n`;
-          const proxyPath = resolve(options.dir, "flock.js");
+          const proxyPath = resolve(options.dir, 'flock.js');
           try {
             writeFileSync(proxyPath, proxyContent);
             console.log(`Generated proxy file: flock.js -> ${hashedFileName}`);
@@ -255,21 +242,18 @@ export default {
             console.error(`Failed to create proxy file: ${error.message}`);
           }
         } else {
-          console.error("No hashed flock file found in the bundle.");
+          console.error('No hashed flock file found in the bundle.');
         }
       },
     },
 
     // Copy demo files and generate Cloudflare Pages _headers
     {
-      name: "copy-library-files",
+      name: 'copy-library-files',
       writeBundle(options) {
-        const outDir = options.dir ?? "dist";
-        copyFileSync("cubeart.html", resolve(outDir, "cubeart.html"));
-        copyFileSync(
-          "embed-example.html",
-          resolve(outDir, "embed-example.html"),
-        );
+        const outDir = options.dir ?? 'dist';
+        copyFileSync('cubeart.html', resolve(outDir, 'cubeart.html'));
+        copyFileSync('embed-example.html', resolve(outDir, 'embed-example.html'));
         // Generate _headers for Cloudflare Pages (and any static host that supports it).
         // The Vite dev/preview server sets these headers directly; the _headers file
         // ensures the same headers are served in production.
@@ -281,51 +265,49 @@ export default {
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), payment=(), usb=(self), gamepad=(self)
 `;
-        writeFileSync(resolve(outDir, "_headers"), headersContent);
+        writeFileSync(resolve(outDir, '_headers'), headersContent);
       },
     },
   ],
 
   server: {
-    host: "0.0.0.0",
+    host: '0.0.0.0',
     headers: {
-      "Content-Security-Policy": CSP_DEV_POLICY,
-      "X-Content-Type-Options": "nosniff",
-      "X-Frame-Options": "SAMEORIGIN",
-      "Referrer-Policy": "strict-origin-when-cross-origin",
+      'Content-Security-Policy': CSP_DEV_POLICY,
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
       // usb=(self) permits WebUSB for the micro:bit connect flow (same origin
       // only) — gamepad=(self) explicitly permits the Gamepad API for controllers
-      "Permissions-Policy":
-        "geolocation=(), payment=(), usb=(self), gamepad=(self)",
+      'Permissions-Policy': 'geolocation=(), payment=(), usb=(self), gamepad=(self)',
     },
-    fs: { allow: ["../.."] },
+    fs: { allow: ['../..'] },
     allowedHosts: [
-      "27c4c3b0-9860-47aa-a95d-03ca8acd6af0-00-2qj22wjmgrujn.picard.replit.dev",
-      "1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev",
-      ".app.github.dev",
+      '27c4c3b0-9860-47aa-a95d-03ca8acd6af0-00-2qj22wjmgrujn.picard.replit.dev',
+      '1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev',
+      '.app.github.dev',
     ],
   },
 
   preview: {
     headers: {
-      "Content-Security-Policy": CSP_HEADER_POLICY,
-      "X-Content-Type-Options": "nosniff",
-      "X-Frame-Options": "SAMEORIGIN",
-      "Referrer-Policy": "strict-origin-when-cross-origin",
+      'Content-Security-Policy': CSP_HEADER_POLICY,
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
       // usb=(self) permits WebUSB for the micro:bit connect flow (same origin
       // only) — gamepad=(self) explicitly permits the Gamepad API for controllers
-      "Permissions-Policy":
-        "geolocation=(), payment=(), usb=(self), gamepad=(self)",
+      'Permissions-Policy': 'geolocation=(), payment=(), usb=(self), gamepad=(self)',
     },
   },
 
   optimizeDeps: {
-    exclude: ["@babylonjs/havok", "manifold-3d"],
+    exclude: ['@babylonjs/havok', 'manifold-3d'],
   },
 
   build: {
     assetsInlineLimit: 100000, // include font files inline if needed
     cssCodeSplit: false, // inline CSS into JS
-    rollupOptions: { input: "index.html" },
+    rollupOptions: { input: 'index.html' },
   },
 };
