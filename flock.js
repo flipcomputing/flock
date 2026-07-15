@@ -6,7 +6,7 @@ import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import HavokPhysics from '@babylonjs/havok';
 import * as BABYLON from '@babylonjs/core';
-import * as BABYLON_GUI from '@babylonjs/gui';
+import * as BABYLON_GUI from '@babylonjs/gui/2D/index.js';
 import * as BABYLON_LOADER from '@babylonjs/loaders';
 import { GradientMaterial } from '@babylonjs/materials';
 import * as BABYLON_EXPORT from '@babylonjs/serializers';

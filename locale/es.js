@@ -1215,6 +1215,8 @@ export default {
   error_webgl_lost: 'La vista 3D dejó de funcionar. Intenta recargar la página.', // human
   error_physics_oom:
     'Tu proyecto se quedó sin memoria. Recarga la página e intenta usar menos bloques.', // human
+  error_design_mode_offline:
+    'El modo diseño necesita conexión a internet la primera vez que lo usas. Conéctate e inténtalo de nuevo.', // ai
   banner_reload: 'Recargar', // human
   banner_dismiss: 'Cerrar', // human
   xr_mode_message: '¡Modo XR!', // human

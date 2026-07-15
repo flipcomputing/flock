@@ -2,6 +2,8 @@ import * as Blockly from 'blockly';
 import { workspace } from './blocklyinit.js';
 import { flock } from '../flock.js';
 import { restoreBlockFocus, getLastHighlightedBlockId } from '../ui/blocklyutil.js';
+import { showBanner } from '../ui/notifications.js';
+import { translate } from './translation.js';
 
 export const isNarrowScreen = () => {
   return window.innerWidth <= 1024;
@@ -589,8 +591,20 @@ function prepareCanvasForRecording() {
   }
 }
 
-export function toggleDesignMode() {
+export async function toggleDesignMode() {
   if (!flock.scene) return;
+
+  // The inspector chunk is excluded from the service worker precache and
+  // cached on first use instead, so loading it can fail offline.
+  try {
+    await import('@babylonjs/inspector');
+  } catch (error) {
+    console.error('[flock] design mode inspector load failed:', error);
+    showBanner('design-mode-offline', {
+      message: translate('error_design_mode_offline'),
+    });
+    return;
+  }
 
   const blocklyArea = document.getElementById('codePanel');
   const canvasArea = document.getElementById('canvasArea');

@@ -1140,6 +1140,8 @@ export default {
   runtime_error_message: 'Fehler: {message}',
   error_audio:
     'Sound ist auf diesem Gerät nicht verfügbar. Dein Projekt wird ohne Audio ausgeführt.', // Google translate
+  error_design_mode_offline:
+    'Der Design-Modus benötigt bei der ersten Nutzung eine Internetverbindung. Stelle eine Verbindung her und versuche es erneut.', // ai
   xr_mode_message: 'XR-Modus!',
   fly_camera_instructions: 'ℹ️ Flugkamera, nutze Pfeiltasten und Bild auf/ab',
   select_mesh_delete_prompt: 'ℹ️ Klicke auf ein Objekt, um es zu löschen.',

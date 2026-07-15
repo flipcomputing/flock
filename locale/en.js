@@ -1218,6 +1218,8 @@ export default {
   error_webgl_lost: 'The 3D view stopped working. Try reloading the page.',
   error_physics_oom:
     'Your project ran out of memory. Try reloading the page and using fewer blocks.',
+  error_design_mode_offline:
+    'Design mode needs an internet connection the first time you use it. Connect and try again.',
   banner_reload: 'Reload',
   banner_dismiss: 'Dismiss',
   xr_mode_message: 'XR Mode!',

@@ -4,7 +4,6 @@
 
 import * as Blockly from 'blockly';
 import '@babylonjs/core/Debug/debugLayer';
-import '@babylonjs/inspector';
 import { flock } from '../flock.js';
 import { initializeVariableIndexes } from '../blocks/blocks';
 import { enableGizmos } from '../ui/gizmos.js';

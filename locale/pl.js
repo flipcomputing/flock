@@ -1148,6 +1148,8 @@ export default {
     'Silnik fizyczny zabrakło pamięci. Spróbuj zmniejszyć liczbę obiektów fizycznych lub ponownie wczytać projekt.', // AI-generated; needs validation
   runtime_error_message: 'Błąd: {message}',
   error_audio: 'Dźwięk nie jest dostępny na tym urządzeniu. Twój projekt uruchomi się bez dźwięku.', // Google translate
+  error_design_mode_offline:
+    'Tryb projektowania wymaga połączenia z internetem przy pierwszym użyciu. Połącz się z internetem i spróbuj ponownie.', // ai
   xr_mode_message: 'Tryb XR!',
   fly_camera_instructions: 'ℹ️ Kamera lotu, użyj klawiszy strzałek i Page Up/Down',
   select_mesh_delete_prompt: 'ℹ️ Kliknij obiekt, aby go usunąć.',

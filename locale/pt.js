@@ -1158,6 +1158,8 @@ export default {
   runtime_error_message: 'Erro: {message}',
   error_audio:
     'O som não está disponível neste dispositivo. O seu projeto será executado sem áudio.', // Google translate
+  error_design_mode_offline:
+    'O modo de design precisa de uma ligação à internet na primeira utilização. Ligue-se à internet e tente novamente.', // ai
   xr_mode_message: 'Modo XR!',
   fly_camera_instructions: 'ℹ️ Câmera de voo, use as setas e Page Up/Down',
   select_mesh_delete_prompt: 'ℹ️ Clique em um objeto para excluí-lo.',

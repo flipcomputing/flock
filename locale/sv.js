@@ -1136,6 +1136,8 @@ export default {
     'Fysikmotorn fick slut på minne. Försök minska antalet fysikobjekt eller ladda om projektet.', // AI-generated; needs validation
   runtime_error_message: 'Fel: {message}',
   error_audio: 'Ljud är inte tillgängligt på den här enheten. Ditt projekt körs utan ljud.', // Google translate
+  error_design_mode_offline:
+    'Designläget behöver en internetanslutning första gången du använder det. Anslut till internet och försök igen.', // ai
   xr_mode_message: 'XR-läge!',
   fly_camera_instructions: 'ℹ️ Flygkamera, använd piltangenterna och Page Up/Down',
   select_mesh_delete_prompt: 'ℹ️ Klicka på ett objekt för att ta bort det.',

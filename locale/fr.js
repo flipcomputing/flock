@@ -1152,6 +1152,8 @@ export default {
     "Le moteur physique n'a plus de mémoire. Réduisez le nombre d'objets physiques ou rechargez votre projet.", // AI-generated; needs validation
   runtime_error_message: 'Erreur: {message}',
   error_audio: "Le son n'est pas disponible sur cet appareil. Votre projet s'exécutera sans audio.", // Google translate
+  error_design_mode_offline:
+    'Le mode conception nécessite une connexion Internet lors de la première utilisation. Connectez-vous à Internet et réessayez.', // ai
   xr_mode_message: 'Mode XR !',
   fly_camera_instructions: 'ℹ️ Caméra en vol, utilisez les flèches et Page haut/bas',
   select_mesh_delete_prompt: 'ℹ️ Cliquez sur un objet pour le supprimer.',

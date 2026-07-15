@@ -119,6 +119,11 @@ export default {
 
       workbox: {
         maximumFileSizeToCacheInBytes: 25_000_000,
+        // The Babylon inspector (design mode) is used by a minority of users,
+        // so it is cached on first use by the runtime script cache instead of
+        // being precached. toggleDesignMode() shows a banner if the chunk
+        // can't be fetched offline.
+        globIgnores: ["**/babylon.inspector.bundle-*.js"],
         navigateFallback: `${BASE_URL}index.html`,
         navigateFallbackAllowlist: [
           new RegExp(`^${BASE_URL.replace(/\/$/, "")}/(?!api|assets/)`),

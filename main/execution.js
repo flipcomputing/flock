@@ -64,6 +64,7 @@ export async function executeCode(options = {}) {
   // Check if the debug layer is visible and show it if necessary
   if (showDebug) {
     try {
+      await import('@babylonjs/inspector');
       await flock.scene.debugLayer.show({
         embedMode: true,
         enableClose: false,
