@@ -499,6 +499,13 @@
           importFn: "runMicrobitTests",
           pattern: "@microbit",
         },
+        {
+          id: "security",
+          name: "Security Tests",
+          importPath: "./security/index.test.js",
+          importFn: "runSecurityTests",
+          pattern: "@security",
+        },
       ];
 
       import * as flockmodule from "../flock.js";
