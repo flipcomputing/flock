@@ -232,6 +232,7 @@ export default {
   skin_colour: '%1',
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
+  colour_from_string_invalid: 'Ogiltigt CSS-färgvärde.', // ai
   random_colour: 'slumpmässig färg',
   material: 'material %1 %2 alfa %3',
   gradient_material: 'material %1 alfa %2',
@@ -1153,7 +1154,6 @@ export default {
   export_JSON_snippet: 'Exportera block som JSON-utdrag',
   import_snippet: 'Importera utdrag',
   export_PNG_snippet: 'Exportera som PNG',
-  export_SVG_snippet: 'Exportera som SVG',
 
   // New variable option
   new_variable_decision: 'Ny variabel...',

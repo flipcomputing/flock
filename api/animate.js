@@ -962,8 +962,16 @@ export const flockAnimate = {
       return mesh.position[axis] + halfSize;
     }
   },
+  _isUnsafePropertyPath(parts) {
+    // Guard against prototype pollution via crafted property paths
+    // (e.g. "__proto__.polluted" or "constructor.prototype.polluted").
+    return parts.some(
+      (part) => part === '__proto__' || part === 'constructor' || part === 'prototype'
+    );
+  },
   _getCurrentPropertyValue(mesh, property, propertyToAnimate) {
     const parts = propertyToAnimate.split('.');
+    if (flock._isUnsafePropertyPath(parts)) return undefined;
     let obj = mesh;
     for (const part of parts) {
       if (obj == null) return undefined;
@@ -973,6 +981,7 @@ export const flockAnimate = {
   },
   _setPropertyValue(mesh, propertyToAnimate, value) {
     const parts = propertyToAnimate.split('.');
+    if (flock._isUnsafePropertyPath(parts)) return;
     let obj = mesh;
     for (let i = 0; i < parts.length - 1; i++) {
       if (obj == null) return;

@@ -239,6 +239,7 @@ export default {
   skin_colour: '%1',
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
+  colour_from_string_invalid: 'Not a valid CSS color value.',
   random_colour: 'random color',
   material: 'material %1 %2 alpha %3',
   gradient_material: 'material %1 alpha %2',
@@ -1290,7 +1291,6 @@ export default {
   export_JSON_snippet: 'Export block as snippet',
   import_snippet: 'Import snippet',
   export_PNG_snippet: 'Export as PNG',
-  export_SVG_snippet: 'Export as SVG',
 
   // New variable option
   new_variable_decision: 'New variable...',

@@ -755,11 +755,11 @@ export function defineSensingBlocks() {
         inputsInline: true,
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours['Sensing'],
+        colour: categoryColours['Scene'],
         tooltip: getTooltip('add_microbit'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('sensing_blocks');
+      this.setStyle('scene_blocks');
 
       // Clickable status icon: grey → opens the connect flow, otherwise it
       // just reflects the board's state. Inert in the flyout.

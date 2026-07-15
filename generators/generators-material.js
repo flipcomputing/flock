@@ -1,5 +1,6 @@
 import * as Blockly from "blockly";
 import { getFieldValue } from "./generators-utilities.js";
+import { isValidColourInput } from "../blocks/colourvalidation.js";
 
 export function registerMaterialGenerators(javascriptGenerator) {
   // -------------------------------
@@ -101,10 +102,22 @@ export function registerMaterialGenerators(javascriptGenerator) {
   // Hex colour -------------------------------------------------
   javascriptGenerator.forBlock["colour_from_string"] = function (block) {
     const rawColourValue = (block.getFieldValue("COLOR") || "").trim();
-    const isBareHex = /^([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(rawColourValue);
-    const colourValue = isBareHex
-      ? `#${rawColourValue}`
-      : rawColourValue || "#000000";
+    if (!isValidColourInput(rawColourValue)) {
+      return [JSON.stringify("#000000"), javascriptGenerator.ORDER_ATOMIC];
+    }
+    const hexBody = rawColourValue.replace(/^#/, "");
+    let colourValue;
+    if (/^[0-9a-fA-F]{3}$/.test(hexBody)) {
+      colourValue = `#${hexBody
+        .split("")
+        .map((component) => component + component)
+        .join("")
+        .toLowerCase()}`;
+    } else if (/^[0-9a-fA-F]{6}$/.test(hexBody)) {
+      colourValue = `#${hexBody}`;
+    } else {
+      colourValue = rawColourValue;
+    }
     return [JSON.stringify(colourValue), javascriptGenerator.ORDER_ATOMIC];
   };
 

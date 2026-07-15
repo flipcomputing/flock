@@ -237,6 +237,7 @@ export default {
   skin_colour: '%1',
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
+  colour_from_string_invalid: 'Kein gültiger CSS-Farbwert.', // ai
   random_colour: 'Zufallsfarbe',
   material: 'Material %1 %2 Alpha %3',
   gradient_material: 'Material %1 Alpha %2',
@@ -1156,7 +1157,6 @@ export default {
   export_JSON_snippet: 'Block als Snippet exportieren',
   import_snippet: 'Snippet importieren',
   export_PNG_snippet: 'Als PNG exportieren',
-  export_SVG_snippet: 'Als SVG exportieren',
 
   update_available_ui: 'Eine neue Version von Flock ist verfügbar.',
   reload_button_ui: 'Neu laden',

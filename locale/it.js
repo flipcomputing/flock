@@ -238,6 +238,7 @@ export default {
   skin_colour: '%1',
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
+  colour_from_string_invalid: 'Valore colore CSS non valido.', // ai
   random_colour: 'colore casuale',
   material: 'materiale %1 %2 alpha %3',
   gradient_material: 'materiale %1 alpha %2',
@@ -1178,7 +1179,6 @@ export default {
   export_JSON_snippet: 'Esporta blocco come frammento JSON',
   import_snippet: 'Importa frammento',
   export_PNG_snippet: 'Esporta come PNG',
-  export_SVG_snippet: 'Esporta come SVG',
 
   // New variable option
   new_variable_decision: 'Nuova variabile...',

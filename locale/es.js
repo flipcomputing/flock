@@ -233,6 +233,7 @@ export default {
   skin_colour: '%1', // human
   greyscale_colour: '%1', // human
   colour_from_string: '- %1 -', // human
+  colour_from_string_invalid: 'No es un valor de color CSS válido.', // ai
   random_colour: 'color aleatorio', // human
   material: 'material %1 %2 alfa %3', // human
   gradient_material: 'material %1 alfa %2', // human
@@ -1234,7 +1235,6 @@ export default {
   export_JSON_snippet: 'Exportar bloque como fragmento JSON', // human
   import_snippet: 'Importar fragmento', // human
   export_PNG_snippet: 'Exportar como PNG', // human
-  export_SVG_snippet: 'Exportar como SVG', // human
 
   // New variable option
   new_variable_decision: 'Nueva variable...', // human

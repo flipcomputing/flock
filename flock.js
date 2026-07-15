@@ -857,39 +857,9 @@ export const flock = {
       throw error;
     }
   },
-  createWhitelist({ win, signal, guard } = {}) {
-    // --- Bind realm-scoped primitives (fallback to parent if win missing) ---
-    const raf = win?.requestAnimationFrame?.bind(win) ?? window.requestAnimationFrame.bind(window);
-    const caf = win?.cancelAnimationFrame?.bind(win) ?? window.cancelAnimationFrame.bind(window);
-
-    // RAF-based nextTick tied to the iframe realm
-    const nextFrame = () =>
-      new Promise((resolve, reject) => {
-        if (signal?.aborted) {
-          return reject(new DOMException('Aborted', 'AbortError'));
-        }
-        const id = raf(() => resolve());
-        const onAbort = () => {
-          try {
-            caf(id);
-          } catch {
-            /* ignore animation cancel errors */
-          }
-          reject(new DOMException('Aborted', 'AbortError'));
-        };
-        signal?.addEventListener?.('abort', onAbort, {
-          once: true,
-        });
-      });
-
+  createWhitelist({ guard } = {}) {
     const api = {
-      // Per-run helpers
-      nextFrame,
-      isAborted: () => !!signal?.aborted,
-
       // Flock API methods — bound to host `this`
-      initialize: this.initialize?.bind(this),
-      createEngine: this.createEngine?.bind(this),
       playAnimation: this.playAnimation?.bind(this),
       playSound: guard(this.playSound?.bind(this)),
       stopAllSounds: this.stopAllSounds?.bind(this),
@@ -933,7 +903,6 @@ export const flock = {
       setShadow: this.setShadow?.bind(this),
       buttonControls: this.buttonControls?.bind(this),
       onScreenControls: this.onScreenControls?.bind(this),
-      createJoystickControls: this.createJoystickControls?.bind(this),
       getCamera: this.getCamera?.bind(this),
       getMainLight: this.getMainLight?.bind(this),
       cameraControl: this.cameraControl?.bind(this),
@@ -967,7 +936,6 @@ export const flock = {
       positionAt: this.positionAt?.bind(this),
       positionAtSingleCoordinate: this.positionAtSingleCoordinate?.bind(this),
       distanceTo: this.distanceTo?.bind(this),
-      safeLoop: this.safeLoop?.bind(this),
       waitUntil: this.waitUntil?.bind(this),
       show: this.show?.bind(this),
       hide: this.hide?.bind(this),
@@ -987,10 +955,8 @@ export const flock = {
       scale: this.scale?.bind(this),
       resize: this.resize?.bind(this),
       changeColor: this.changeColor?.bind(this),
-      changeColorMesh: this.changeColorMesh?.bind(this),
       changeMaterial: this.changeMaterial?.bind(this),
       setMaterial: this.setMaterial?.bind(this),
-      createMaterial: this.createMaterial?.bind(this),
       moveForward: this.moveForward?.bind(this),
       moveSideways: this.moveSideways?.bind(this),
       strafe: this.strafe?.bind(this),

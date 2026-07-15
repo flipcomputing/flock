@@ -80,6 +80,15 @@ const cleanupFns = [];
 // Track DO sections and their associated blocks for cleanup
 const gizmoCreatedBlocks = new Map(); // blockId -> { parentId, createdDoSection, timestamp }
 
+// Keep the visual "active" state and its ARIA equivalent in sync — used at
+// every gizmo-button activation/deactivation site instead of touching
+// classList and aria-pressed separately.
+export function setGizmoButtonActive(btn, active) {
+  if (!btn) return;
+  btn.classList.toggle('active', active);
+  btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+}
+
 function createAdaptiveInput({
   onMove,
   onConfirm,
@@ -117,13 +126,33 @@ function createAdaptiveInput({
     onAxisChange?.(axis);
   }
 
-  hud = createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange: onHudAxisChange, stepLabelsByAxis, getValues, initialAxis: initialHudAxis ?? initialKeyboardAxis });
+  function buildHud(initialAxis) {
+    return createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange: onHudAxisChange, stepLabelsByAxis, getValues, initialAxis });
+  }
+
+  hud = buildHud(initialHudAxis ?? initialKeyboardAxis);
   keyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast, onAxisChange: onKbAxisChange, initialAxis: initialKeyboardAxis, allowUniform: showUniform });
   const startAxis = initialKeyboardAxis ?? initialHudAxis;
   if (startAxis) onAxisChange?.(startAxis);
   flock.canvas?.focus();
 
+  // The HUD's layout is computed once at creation time from canvas.width/height,
+  // so it must be rebuilt whenever the canvas resizes.
+  let resizeTimer = null;
+  const handleCanvasResize = () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      resizeTimer = null;
+      if (!hud) return;
+      hud();
+      hud = buildHud(lastReportedAxis);
+    }, 200);
+  };
+  window.addEventListener('flock:canvas-resize', handleCanvasResize);
+
   function stop() {
+    clearTimeout(resizeTimer);
+    window.removeEventListener('flock:canvas-resize', handleCanvasResize);
     onHudHide?.();
     hud?.();
     keyboard?.();
@@ -206,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
       },
       onClose: () => {
         // Re-activate button: painting mode is still a gizmo action
-        document.getElementById('colorPickerButton')?.classList.add('active');
+        setGizmoButtonActive(document.getElementById('colorPickerButton'), true);
         pickMeshFromCanvas();
       },
       excludeFromClose: (target) => {
@@ -766,7 +795,7 @@ function attachOrbitView(mesh) {
   window.orbitViewActive = true;
   window.orbitBlock = window.currentBlock ?? null;
   window.orbitMesh = selectedMesh;
-  document.getElementById('eyeButton')?.classList.add('active');
+  setGizmoButtonActive(document.getElementById('eyeButton'), true);
 }
 
 // Restore the stashed free camera, disposing the orbit camera. Does not
@@ -806,7 +835,7 @@ function disconnectOrbitView() {
     window.orbitViewActive = false;
     window.orbitBlock = null;
     window.orbitMesh = null;
-    document.getElementById('eyeButton')?.classList.remove('active');
+    setGizmoButtonActive(document.getElementById('eyeButton'), false);
     return;
   }
   // Orbit camera is active — attempt a real restore. If orbitSavedCamera is
@@ -817,7 +846,7 @@ function disconnectOrbitView() {
   window.orbitViewActive = false;
   window.orbitBlock = null;
   window.orbitMesh = null;
-  document.getElementById('eyeButton')?.classList.remove('active');
+  setGizmoButtonActive(document.getElementById('eyeButton'), false);
   // BabylonJS may clear gizmoManager.attachedMesh when the orbit camera is
   // disposed or usePointerToAttachGizmos is restored. Re-attach so the mesh
   // stays selected and V can re-enter orbit without a pick prompt.
@@ -896,7 +925,7 @@ export function exitGizmoState() {
   runCleanups();
 
   // Remove active class from all buttons
-  document.querySelectorAll('.gizmo-button').forEach((btn) => btn.classList.remove('active'));
+  document.querySelectorAll('.gizmo-button').forEach((btn) => setGizmoButtonActive(btn, false));
   disableGizmos();
   document.body.style.cursor = 'default';
 }
@@ -948,7 +977,7 @@ function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = nu
     stepNormal: DEFAULT_CURSOR,
     stepFast: FAST_CURSOR,
     mode: 'arrows',
-    stepLabelsByAxis: { x: ['◁', '▷'], y: ['▽', '△'], z: ['▽', '△'], all: ['◁', '▷'] },
+    stepLabels: ['-', '+'],
     onAxisChange: (axis) => {
       onHudAxisSaved?.(axis);
       highlightGizmoAxis(gizmoManager.gizmos?.positionGizmo, axis);
@@ -1749,7 +1778,7 @@ export function toggleGizmo(gizmoType) {
     const activeBtn = document.querySelector('.gizmo-button.active');
     orbitPreviousGizmoType = activeBtn?.id.replace('Button', '') ?? null;
   }
-  document.querySelectorAll('.gizmo-button').forEach((btn) => btn.classList.remove('active'));
+  document.querySelectorAll('.gizmo-button').forEach((btn) => setGizmoButtonActive(btn, false));
 
   // If they abandoned a duplicate half way, remove listener
   if (gizmoType === 'duplicate' && activeDuplicatePickHandler) {
@@ -1840,7 +1869,7 @@ function handleScaleGizmo() {
 
   // Highlight scale button
   const scaleButton = document.getElementById('scaleButton');
-  scaleButton.classList.add('active');
+  setGizmoButtonActive(scaleButton, true);
 
   let savedHudAxis = null;
   const mesh = gizmoManager.attachedMesh;
@@ -2017,7 +2046,7 @@ function handleRotationGizmo() {
 
   // Show that rotation is active
   const rotationButton = document.getElementById('rotationButton');
-  rotationButton.classList.add('active');
+  setGizmoButtonActive(rotationButton, true);
 
   let savedHudAxis = null;
   const mesh = gizmoManager.attachedMesh;
@@ -2107,7 +2136,7 @@ function handlePositionGizmo() {
 
   // Highlight the move button
   const positionButton = document.getElementById('positionButton');
-  positionButton.classList.add('active');
+  setGizmoButtonActive(positionButton, true);
 
   let keyboardAttachedMesh = null;
   let savedHudAxis = null;
@@ -2237,8 +2266,7 @@ function _handleBoundsGizmo() {
 
 // Select: Allow the user to select a mesh by clicking on it
 function handleSelectGizmo() {
-  gizmoManager.selectGizmoEnabled = true;
-  document.getElementById('selectButton')?.classList.add('active');
+  setGizmoButtonActive(document.getElementById('selectButton'), true);
 
   function applySelection(pickedMesh, pickedPoint) {
     if (pickedMesh && pickedMesh.name !== 'ground') {
@@ -2265,7 +2293,7 @@ function handleSelectGizmo() {
 function handleDuplicateGizmo() {
   // Set button active state
   const duplicateButton = document.getElementById('duplicateButton');
-  duplicateButton.classList.add('active');
+  setGizmoButtonActive(duplicateButton, true);
 
   // Check if mesh already selected, if not prompt to select
   if (!gizmoManager.attachedMesh) {
@@ -2292,7 +2320,7 @@ function handleDuplicateGizmo() {
 // Delete: Remove the selected mesh and its corresponding block
 function handleDeleteGizmo() {
   // Highlight the button
-  document.getElementById('deleteButton')?.classList.add('active');
+  setGizmoButtonActive(document.getElementById('deleteButton'), true);
 
   function applyDelete(pickedMesh) {
     if (!pickedMesh || pickedMesh.name === 'ground') {
@@ -2351,13 +2379,13 @@ function handleCameraGizmo() {
       duration: 15,
       color: 'white',
     });
-    cameraButton.classList.add('active');
+    setGizmoButtonActive(cameraButton, true);
   } else {
     cameraMode = 'play';
     flock._onScreenSource?.resume();
     flock._gamepadSource?.setFlyMode(false);
     flock._keyboardSource?.setFlyMode(false);
-    cameraButton.classList.remove('active');
+    setGizmoButtonActive(cameraButton, false);
   }
 
   const currentCamera = flock.scene.activeCamera;
@@ -2436,7 +2464,7 @@ function addUndoHandler() {
 
 // Eye: Orbit camera around selected or picked mesh
 function handleEyeGizmo() {
-  document.getElementById('eyeButton')?.classList.add('active');
+  setGizmoButtonActive(document.getElementById('eyeButton'), true);
 
   const mesh = gizmoManager.attachedMesh;
   if (mesh && mesh.name !== 'ground') {
@@ -2676,7 +2704,7 @@ export function disposeGizmoManager() {
     flock._onScreenSource?.resume();
     flock._gamepadSource?.setFlyMode(false);
     flock._keyboardSource?.setFlyMode(false);
-    document.getElementById('cameraButton')?.classList.remove('active');
+    setGizmoButtonActive(document.getElementById('cameraButton'), false);
   }
   if (gizmoManager) {
     gizmoManager.dispose();

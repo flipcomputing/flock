@@ -66,7 +66,6 @@ async function exportBlockSnippet(block) {
 export function addExportContextMenuOptions() {
   addExportContextMenuOption();
   addImportContextMenuOption();
-  //addExportSVGContextMenuOption();
   addExportPNGContextMenuOption();
 }
 
@@ -129,68 +128,6 @@ function addExportPNGContextMenuOption() {
   });
 }
 
-// eslint-disable-next-line no-unused-vars
-function addExportSVGContextMenuOption() {
-  Blockly.ContextMenuRegistry.registry.register({
-    id: "exportSVG",
-    weight: 101,
-    displayText: function () {
-      return getSnippetOption("export_SVG");
-    },
-    preconditionFn: function (_scope) {
-      return "enabled";
-    },
-    callback: function (scope) {
-      if (scope.block) {
-        // Export selected block or stack as SVG
-        exportBlockAsSVG(scope.block);
-      } else if (scope.workspace) {
-        // Export the entire workspace as SVG
-        exportWorkspaceAsSVG(scope.workspace);
-      }
-    },
-    scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-    checkbox: false,
-  });
-}
-
-async function exportWorkspaceAsSVG(workspace) {
-  // Get the SVG element representing the entire workspace
-  const svg = workspace.getParentSvg().cloneNode(true);
-
-  // Adjust the dimensions to fit the content
-  const bbox = svg.getBBox();
-  svg.setAttribute("width", bbox.width);
-  svg.setAttribute("height", bbox.height);
-  svg.setAttribute(
-    "viewBox",
-    `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`,
-  );
-
-  const axisExportColors = { X: "#1A9EE0", Y: "#00CC96", Z: "#F07020" };
-  for (const [axis, color] of Object.entries(axisExportColors)) {
-    svgBlock
-      .querySelectorAll(`:scope >[data-axis="${axis}"] .blocklyPath`)
-      .forEach((path) => {
-        path.setAttribute("stroke", color);
-        path.setAttribute("stroke-width", "2");
-      });
-  }
-
-  // Convert the SVG to a data URL
-  const serializer = new XMLSerializer();
-  const svgString = serializer.serializeToString(svg);
-  const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-
-  // Create a download link
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "workspace.svg";
-  link.click();
-  document.body.appendChild(link);
-  document.body.removeChild(link);
-}
-
 async function urlToDataURL(url) {
   if (url.startsWith("data:")) return url;
   const response = await fetch(url);
@@ -247,32 +184,58 @@ async function convertFontToBase64(fontUrl) {
   });
 }
 
-async function generateSVG(block) {
+const DEFAULT_FIELD_TEXT_FONTSIZE = 11;
+
+// Oversize font, then scale glyphs back, to dodge browser minimum-font-size clamping.
+const FONT_UPSCALE_FACTOR = 20;
+
+function keepTextTrueSize(svgBlock, fontSizePt) {
+  const k = FONT_UPSCALE_FACTOR;
+  svgBlock.querySelectorAll("text.blocklyText").forEach((textEl) => {
+    textEl.style.fontSize = `${fontSizePt * k}pt`;
+
+    const x = parseFloat(textEl.getAttribute("x")) || 0;
+    const y = parseFloat(textEl.getAttribute("y")) || 0;
+    const counter = `translate(${x} ${y}) scale(${1 / k}) translate(${-x} ${-y})`;
+    const existing = textEl.getAttribute("transform");
+    textEl.setAttribute(
+      "transform",
+      existing ? `${existing} ${counter}` : counter,
+    );
+  });
+}
+
+function getFieldTextFontSizePt(block) {
+  const size = block.workspace?.getRenderer?.().getConstants?.()
+    .FIELD_TEXT_FONTSIZE;
+  return typeof size === "number" && size > 0
+    ? size
+    : DEFAULT_FIELD_TEXT_FONTSIZE;
+}
+
+async function generateSVG(block, { rasterSafe = false } = {}) {
   const svgBlock = block.getSvgRoot().cloneNode(true);
 
-  // A) Only neutralise overlays that are safe to blank
+  // Blank selection/highlight overlays so they don't cover text.
   svgBlock
     .querySelectorAll(
       ".blocklyPath.blocklyPathSelected, .blocklyHighlightedConnectionPath",
     )
     .forEach((el) => {
-      el.setAttribute("fill", "none"); // prevent covering text
-      if (!el.getAttribute("stroke")) el.setAttribute("stroke", "#999"); // optional thin outline
+      el.setAttribute("fill", "none");
+      if (!el.getAttribute("stroke")) el.setAttribute("stroke", "#999");
       el.setAttribute("stroke-width", "1");
     });
 
-  // B) Do NOT change fills on .blocklyActiveFocus (base path can have it).
-  // If you want to remove the class (purely cosmetic), do this:
   svgBlock.querySelectorAll(".blocklyActiveFocus").forEach((el) => {
     el.classList.remove("blocklyActiveFocus");
   });
 
-  // C) Safety net: in each block group, keep only the FIRST path filled
+  // Keep each block's base path filled; blank later overlay paths.
   svgBlock.querySelectorAll("g.blocklyBlock, g.start").forEach((g) => {
     const paths = g.querySelectorAll(":scope > path.blocklyPath");
     paths.forEach((p, i) => {
       if (i > 0) {
-        // later paths are overlays
         p.setAttribute("fill", "none");
         if (!p.getAttribute("stroke")) p.setAttribute("stroke", "#999");
         p.setAttribute("stroke-width", "1");
@@ -330,6 +293,10 @@ async function generateSVG(block) {
     textElement.style.stroke = "none";
     textElement.style.fontWeight = "500";
   });
+
+  if (rasterSafe) {
+    keepTextTrueSize(svgBlock, getFieldTextFontSizePt(block));
+  }
 
   await inlineSVGImages(svgBlock);
 
@@ -397,22 +364,10 @@ async function generateSVG(block) {
   return finalSVG;
 }
 
-async function exportBlockAsSVG(block) {
-  const finalSVG = await generateSVG(block);
-
-  // Create and download the SVG blob
-  const blob = new Blob([finalSVG], { type: "image/svg+xml" });
-  const link = document.createElement("a");
-  link.download = `${block.type}.svg`;
-  link.href = URL.createObjectURL(blob);
-  document.body.appendChild(link);
-  document.body.removeChild(link);
-}
-
 import { addMetadata } from "meta-png";
 
 async function exportBlockAsPNG(block) {
-  const finalSVG = await generateSVG(block);
+  const finalSVG = await generateSVG(block, { rasterSafe: true });
   const blockJson = JSON.stringify(Blockly.serialization.blocks.save(block));
   const encodedJson = encodeURIComponent(blockJson);
 

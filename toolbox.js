@@ -609,6 +609,21 @@ const toolboxSceneXR = {
     },
     {
       kind: "block",
+      type: "add_microbit",
+      keyword: "microbit",
+      inputs: {
+        CHANNEL: {
+          shadow: {
+            type: "math_number",
+            fields: {
+              NUM: 1,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: "block",
       type: "microbit_show_image",
       keyword: "leds",
     },
@@ -2460,21 +2475,6 @@ const toolboxSensing = {
             type: "colour",
             fields: {
               COLOR: "#FFFFFF",
-            },
-          },
-        },
-      },
-    },
-    {
-      kind: "block",
-      type: "add_microbit",
-      keyword: "microbit",
-      inputs: {
-        CHANNEL: {
-          shadow: {
-            type: "math_number",
-            fields: {
-              NUM: 1,
             },
           },
         },

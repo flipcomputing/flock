@@ -17,6 +17,8 @@ export function onResize(mode) {
   // First handle canvas and engine
   resizeCanvas();
   if (flock.engine) flock.engine.resize();
+  // Notify listeners that layout needs updating for the new canvas size.
+  window.dispatchEvent(new Event('flock:canvas-resize'));
 
   requestAnimationFrame(() => {
     let scrollX = workspace?.scrollX || 0;
@@ -952,22 +954,29 @@ class PanelResizer {
   }
 
   // Smallest canvas-panel width that still fits the gizmo toolbar on one line.
-  // Sums the toolbar's direct children (plus gaps and horizontal padding) so the
-  // result is the single-line row width regardless of current wrapping. Reading
-  // each child's own width avoids counting the absolutely-positioned shape-menu
+  // Sums the toolbar buttons (plus gaps and horizontal padding) so the result is
+  // the single-line row width regardless of current wrapping. Reading each
+  // button's own width avoids counting the absolutely-positioned shape-menu
   // dropdown nested inside #shape-menu, which would otherwise inflate the min.
+  // The buttons live in an inner wrapper (.gizmo-buttons-inner) that carries the
+  // flex layout + gap; #gizmoButtons itself carries the horizontal padding.
   getMinCanvasWidth() {
     const gizmo = document.getElementById('gizmoButtons');
     if (!gizmo) return this.minPanelFloor;
 
-    const style = window.getComputedStyle(gizmo);
-    const gap = parseFloat(style.columnGap || style.gap) || 0;
+    const row = gizmo.querySelector('.gizmo-buttons-inner') || gizmo;
+
+    const paddingStyle = window.getComputedStyle(gizmo);
     const paddingX =
-      (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+      (parseFloat(paddingStyle.paddingLeft) || 0) +
+      (parseFloat(paddingStyle.paddingRight) || 0);
+
+    const rowStyle = window.getComputedStyle(row);
+    const gap = parseFloat(rowStyle.columnGap || rowStyle.gap) || 0;
 
     let total = paddingX;
     let visibleChildren = 0;
-    for (const child of gizmo.children) {
+    for (const child of row.children) {
       const childStyle = window.getComputedStyle(child);
       if (childStyle.display === 'none') continue;
       // getBoundingClientRect excludes margins, so add them explicitly.

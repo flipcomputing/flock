@@ -4,6 +4,7 @@ import { getHelpUrlFor } from "./blocks.js";
 import { materialNames } from "../config.js";
 import { flock } from "../flock.js";
 import { translate, getTooltip } from "../main/translation.js";
+import { isValidColourInput } from "./colourvalidation.js";
 import {
   makeTouchesInputSubtree,
   wasBlockDeleted,
@@ -607,6 +608,15 @@ export function defineMaterialsBlocks() {
         }
       };
 
+      const updateInvalidWarning = (block, value) => {
+        if (!block || block.isInFlyout) return;
+        block.setWarningText(
+          isValidColourInput(value)
+            ? null
+            : translate("colour_from_string_invalid"),
+        );
+      };
+
       colorField.setValidator(function (newVal) {
         const normalizedInput =
           typeof newVal === "string" ? newVal.trim().replace(/^#/, "") : "";
@@ -615,6 +625,7 @@ export function defineMaterialsBlocks() {
             flock.getColorFromString(normalizedInput) || "#000000";
           this.sourceBlock_.setColour(validatedVal);
           updateHashPrefixContrast(validatedVal);
+          updateInvalidWarning(this.sourceBlock_, newVal);
           return normalizedInput;
         } catch (error) {
           console.warn("Failed to validate colour field value:", error);
@@ -630,6 +641,7 @@ export function defineMaterialsBlocks() {
         const validatedVal = flock.getColorFromString(initialVal) || "#000000";
         this.setColour(validatedVal);
         updateHashPrefixContrast(validatedVal);
+        updateInvalidWarning(this, initialVal);
       } catch (error) {
         console.warn("Failed to initialize colour block value:", error);
         this.setColour("#000000");
