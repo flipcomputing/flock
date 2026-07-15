@@ -5,7 +5,6 @@ import { initializeBlocks } from "../../main/blocklyinit.js";
 
 initializeBlocks(); // registers all Flock custom blocks + generators
 
-const allBlockTypes = Object.keys(Blockly.Blocks).sort();
 function classifyField(field) {
   if (field instanceof Blockly.FieldVariable) return "variable-name";
   if (field instanceof Blockly.FieldDropdown) return "dropdown";
@@ -53,7 +52,15 @@ export function runTextFieldValidationTests() {
 
     let workspace = new Blockly.Workspace();
 
-    // colour_from_string is a value block, so blockToCode returns
+  after(function () {
+      workspace.dispose();
+    });
+
+  afterEach(function () {
+      workspace.clear();
+    });
+
+    // all tested blocks are  value blocks, so blockToCode returns
     // [code, order] — unwrap to just the code string.
     function generate(block) {
       javascriptGenerator.init(workspace);
