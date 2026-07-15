@@ -42,6 +42,7 @@ const TESTED_TEXT_FIELDS = [
   "procedures_defreturn.NAME",
   "text_prompt.TEXT",
   "play_tune.ABC_TEXT",
+  "keyword.KEYWORD",
 ];
 
 const payload = "\"; alert(1); //"
@@ -120,6 +121,16 @@ export function runTextFieldValidationTests() {
       workspace,
       );
       expect(generate(block)).to.equal("");
+    });
+
+    it("the keyword block cannot be generated", function () {
+      const block = Blockly.serialization.blocks.append(
+      {
+        type: "keyword",
+      },
+      workspace,
+      );
+      expect(() =>  generate(block)).to.throw("JavaScript generator does not know how to generate code for block type \"keyword\"");
     });
   });
 }
