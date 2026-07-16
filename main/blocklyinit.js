@@ -35,7 +35,6 @@ import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineTextBlocks } from '../blocks/text.js';
 import { defineGenerators } from '../generators/generators.js';
 import { registerCustomCommentIcon } from './customCommentIcon.js';
-import { getMeshFromBlock } from '../ui/blockmesh.js';
 import { initContextMenus } from '../ui/contextmenu.js';
 import {
   applyBlockLockState,
@@ -919,8 +918,19 @@ export function initializeWorkspace() {
         const item = document.createElement('button');
         item.type = 'button';
         item.className = 'mobile-search-result-item';
-        const pillStyle = color ? ` style="background-color:${color}"` : '';
-        item.innerHTML = `<span class="mobile-search-result-name">${label}</span>${category ? `<span class="mobile-search-result-category"${pillStyle}>${category}</span>` : ''}`;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'mobile-search-result-name';
+        nameSpan.textContent = label;
+        item.appendChild(nameSpan);
+
+        if (category) {
+          const categorySpan = document.createElement('span');
+          categorySpan.className = 'mobile-search-result-category';
+          if (color) categorySpan.style.backgroundColor = color;
+          categorySpan.textContent = category;
+          item.appendChild(categorySpan);
+        }
 
         item.addEventListener('click', () => {
           if (overlay.isConnected) {
