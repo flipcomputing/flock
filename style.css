@@ -705,7 +705,8 @@ button {
   height: 1.4em;
   /* .gizmo-buttons has no left padding, so match #shape-menu's own inset. */
   margin: 24px 0 0 5px;
-  font-size: 13px;
+  /* The menu text inherits the root size; track it so both scale together. */
+  font-size: 1rem;
   line-height: 1.4;
   color: var(--color-text);
   white-space: nowrap;
