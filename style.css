@@ -737,9 +737,11 @@ button {
    deliberate 5-per-row grid (2 tidy rows for the current 10 buttons)
    rather than letting flex-wrap overflow unevenly. Columns are sized to
    content (not 1fr) and the group is centred, so the buttons stay packed
-   together instead of spreading across the full width. Tablets (up to
-   1024px) still fit one row, so this is scoped to phones only. */
-@media (max-width: 600px) {
+   together instead of spreading across the full width. Shared by portrait
+   phones and phones in landscape (docked beside the canvas, see below);
+   tablets still fit one row in either orientation. */
+@media (max-width: 600px),
+  (max-width: 1024px) and (orientation: landscape) and (max-height: 500px) {
   .gizmo-buttons-inner {
     display: grid;
     grid-template-columns: repeat(5, auto);
@@ -1107,6 +1109,45 @@ button {
     outline: 3px solid var(--color-focus);
     outline-offset: 2px;
     border-radius: 4px;
+  }
+}
+
+/* Phones in landscape are height-starved: the 16:9 canvas is height-bound and
+   leaves unused margin on both sides, so dock the 2-row gizmo block beside the
+   canvas and give the strip's height back. Scoped by max-height to phones;
+   tablets in landscape are tall enough not to need it. `resizeCanvas()` in
+   main/view.js matches this query and must be kept in sync. */
+@media (max-width: 1024px) and (orientation: landscape) and (max-height: 500px) {
+  /* Nothing here may centre its children. #canvasArea is sized to the viewport
+     and the fixed #bottomBar overlaps its lower edge, so the box extends under
+     the bar; resizeCanvas() accounts for that when sizing the canvas, but
+     centring would place it in the full box and push it back under the bar.
+     Everything stays anchored to the top-left instead. */
+  #canvasArea {
+    flex-direction: row;
+  }
+
+  /* Grows into all the width left over beside the canvas (the buttons
+     themselves stay content-sized at its left), so the shape popup can anchor
+     to it and still reach the grey space past the buttons. resizeCanvas()
+     therefore measures .gizmo-buttons-inner, not this — this width depends on
+     the canvas width it is being used to compute. */
+  #gizmoButtons {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 5px;
+    /* display:flex comes from an inline style in view.js */
+    align-items: flex-start;
+  }
+
+  .gizmo-buttons-inner {
+    width: auto;
+  }
+
+  /* The canvas is sized in px to already allow for the toolbar beside it, so it
+     must not be flexed away from that. */
+  #renderCanvas {
+    flex: 0 0 auto;
   }
 }
 
@@ -1932,6 +1973,59 @@ body.color-picker-open #renderCanvas {
   .scrollable-container .scroll-button.right {
     right: -34px;
   }
+}
+
+/* Landscape: open rightward from the plus button, across the rest of the
+   toolbar and the grey space beyond it, so the canvas stays clear. #shape-menu
+   goes static so the popup resolves against #gizmoButtons, whose left edge is
+   fixed relative to the buttons — the button's own position moves with the
+   canvas width, so anchoring to it would need JS. Tiles are 36px so the 5 rows
+   still clear the plus button (5 * (36 + 10) + 4 * 8 = 262px). */
+@media (max-width: 1024px) and (orientation: landscape) and (max-height: 500px) {
+  #shape-menu {
+    position: static;
+  }
+  #shapes-dropdown {
+    top: 5px; /* level with the top row of buttons */
+    /* Start one button in: the bar's 5px padding, a 34px button (7px padding
+       either side of a 20px icon), then the grid's 5px gap. */
+    left: calc(5px + 34px + 5px);
+    right: 5px;
+    bottom: auto;
+    width: auto;
+    padding: 10px;
+    z-index: 80;
+    box-sizing: border-box;
+  }
+  #shapes-dropdown ul li img {
+    width: 36px;
+    height: 36px;
+  }
+  /* Fit as many 46px tiles (36px img + 5px li padding either side) as the width
+     allows, up to the 5 that the gap beside the plus button is sized for. The
+     narrowest landscape phones leave less than that — the canvas alone fills
+     their width — so the count has to drop rather than the rows overflow, which
+     #canvasArea would clip. The scrolling rows keep their chevrons either way. */
+  #shapes-dropdown > ul {
+    grid-template-columns: repeat(auto-fill, 46px);
+    justify-content: center;
+    justify-items: center;
+    width: 100%;
+    max-width: 262px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .scrollable-container {
+    width: 100%;
+    max-width: 262px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* Chevrons stay at the desktop -15px, overlapping the first and last tile.
+     Portrait nudges them out to -34px, but there's no margin to do that here:
+     the menu is sized to the gap beside the plus button and the rows fill it,
+     so out-dented chevrons would cover the plus button on the left and be
+     clipped by #canvasArea on the right. */
 }
 
 /* Style for the yellow circle to place/select using kb controls */

@@ -884,17 +884,26 @@ function cleanupPlacementMode() {
   document.getElementById("showShapesButton")?.classList.remove("active");
 }
 
-// On phones the popup opens below the toolbar into the space beneath it.
-// That space can be shorter than the full menu, which then runs off the
-// bottom of the canvas. Cap the menu's height to the gap between its top and
-// the bottom view-toggle bar (mirroring the colour picker) and scroll inside,
-// so the whole menu is always reachable. No-op on wider layouts.
+// The two phone layouts in style.css, where the popup opens into space that can
+// be shorter than the full menu: portrait (below the toolbar) and landscape
+// (rightward from the plus button, across the docked toolbar).
+const isPhoneShapesLayout = () =>
+  window.matchMedia("(max-width: 600px)").matches ||
+  window.matchMedia(
+    "(max-width: 1024px) and (orientation: landscape) and (max-height: 500px)",
+  ).matches;
+
+// In those layouts the menu can run off the bottom of the canvas. Cap its
+// height to the gap between its top and the bottom view-toggle bar (mirroring
+// the colour picker) and scroll inside, so all of it stays reachable. No-op on
+// wider layouts.
 function fitShapesDropdownToViewport(dropdown) {
-  if (window.innerWidth > 600) {
-    dropdown.style.maxHeight = "";
-    dropdown.style.overflow = "";
-    return;
-  }
+  // Always measure unclipped: a cap left over from a previous open would hide
+  // how tall the menu actually wants to be.
+  dropdown.style.maxHeight = "";
+  dropdown.style.overflow = "";
+  if (!isPhoneShapesLayout()) return;
+
   const top = dropdown.getBoundingClientRect().top;
   const bottomBar = document.getElementById("bottomBar");
   const limit = bottomBar
@@ -904,6 +913,9 @@ function fitShapesDropdownToViewport(dropdown) {
   // the available space would push the menu's bottom down over the bar, which
   // is exactly the overlap we're avoiding. When space is tight it scrolls.
   const available = Math.max(0, limit - top - 8);
+  // Only clip when it genuinely doesn't fit: scrolling y forces x to clip too,
+  // which would cut off the row chevrons where they sit outside the menu box.
+  if (dropdown.scrollHeight <= available) return;
   dropdown.style.maxHeight = `${available}px`;
   dropdown.style.overflow = "hidden auto"; // clip x, scroll y when needed
 }
@@ -920,10 +932,12 @@ function showShapes() {
     removeKeyboardNavigation();
   } else {
     dropdown.style.display = "block";
-    fitShapesDropdownToViewport(dropdown);
     loadObjectImages();
     loadMultiImages();
     loadCharacterImages();
+    // After the rows are filled: the fit measures how tall the menu actually
+    // is, which is nothing until its tiles exist.
+    fitShapesDropdownToViewport(dropdown);
     setupKeyboardNavigation();
   }
 }

@@ -13,6 +13,13 @@ const isMobile = () => {
   return /Mobi|Android|iPad/i.test(navigator.userAgent);
 };
 
+// Phones in landscape dock the gizmo toolbar beside the canvas rather than
+// below it. Must match the media query of the same shape in style.css.
+const gizmosBesideCanvas = () =>
+  window.matchMedia(
+    '(max-width: 1024px) and (orientation: landscape) and (max-height: 500px)',
+  ).matches;
+
 let pendingScrollBlockId = null;
 
 export function onResize(mode) {
@@ -61,7 +68,7 @@ function resizeCanvas() {
   if (!canvasArea || !canvas) return;
 
   const areaRect = canvasArea.getBoundingClientRect();
-  const areaWidth = Math.max(1, Math.round(areaRect.width));
+  let areaWidth = Math.max(1, Math.round(areaRect.width));
   let areaHeight = Math.max(1, Math.round(areaRect.height));
 
   if (flock.embedMode) {
@@ -135,7 +142,20 @@ function resizeCanvas() {
 
   const gizmoButtons = document.getElementById('gizmoButtons');
   if (gizmoButtons && gizmoButtons.style.display != 'none') {
-    areaHeight -= 60; //Gizmos visible
+    if (gizmosBesideCanvas()) {
+      // Docked to the right, so it costs width and the canvas keeps the full
+      // height. Measure the buttons rather than #gizmoButtons itself, which
+      // grows to fill whatever the canvas leaves and so can't size it.
+      const row = gizmoButtons.querySelector('.gizmo-buttons-inner');
+      const barStyle = getComputedStyle(gizmoButtons);
+      const padding =
+        (parseFloat(barStyle.paddingLeft) || 0) +
+        (parseFloat(barStyle.paddingRight) || 0);
+      const buttons = row ? row.getBoundingClientRect().width : 0;
+      areaWidth = Math.max(1, areaWidth - Math.round(buttons + padding));
+    } else {
+      areaHeight -= 60; //Gizmos visible
+    }
   }
 
   // The bottom bar is position:fixed and #canvasArea is sized to the viewport,
