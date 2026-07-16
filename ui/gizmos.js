@@ -289,7 +289,6 @@ document.addEventListener('DOMContentLoaded', function () {
 function pickMeshFromCanvas() {
   const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
   if (!canvas || !flock.scene) return;
-  GizmoMenuManager.toggle(true);
 
   const onPickMesh = function (event) {
     const canvasRect = canvas.getBoundingClientRect();
