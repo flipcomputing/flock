@@ -15,14 +15,33 @@ function cancelHide() {
   }
 }
 
+function render(element, content) {
+  if (typeof content === 'string') {
+    element.textContent = content;
+    return;
+  }
+  element.replaceChildren(
+    ...content.map(({ text, borderColor }) => {
+      if (!borderColor) return document.createTextNode(text);
+      const span = document.createElement('span');
+      span.className = 'gizmo-status__pill';
+      span.textContent = text;
+      span.style.borderColor = borderColor;
+      return span;
+    })
+  );
+}
+
+// `content` is a string, or an array of { text, borderColor } segments; a
+// segment with a border renders as a pill, like a value on a block.
 // duration 0 keeps the message up until something replaces or clears it.
-export function showStatus(text, { duration = 0, owner: nextOwner = null } = {}) {
+export function showStatus(content, { duration = 0, owner: nextOwner = null } = {}) {
   const element = getElement();
   if (!element) return;
 
   cancelHide();
   owner = nextOwner;
-  element.textContent = text;
+  render(element, content);
 
   const seconds = Number(duration);
   if (Number.isFinite(seconds) && seconds > 0) {
@@ -38,5 +57,5 @@ export function clearStatus(forOwner = null) {
   cancelHide();
   owner = null;
   const element = getElement();
-  if (element) element.textContent = '';
+  if (element) element.replaceChildren();
 }

@@ -38,9 +38,13 @@ export let gizmoManager;
 // Enable debug messages
 const DEBUG = true;
 
-const blueColor = flock.BABYLON.Color3.FromHexString('#0072B2'); // Colour for X-axis
-const greenColor = flock.BABYLON.Color3.FromHexString('#009E73'); // Colour for Y-axis
-const orangeColor = flock.BABYLON.Color3.FromHexString('#D55E00'); // Colour for Z-axis
+// Shared by the 3D arrows and the position readout, so a coloured number always
+// matches the arrow it belongs to.
+const AXIS_HEX = { x: '#0072B2', y: '#009E73', z: '#D55E00' };
+
+const blueColor = flock.BABYLON.Color3.FromHexString(AXIS_HEX.x); // Colour for X-axis
+const greenColor = flock.BABYLON.Color3.FromHexString(AXIS_HEX.y); // Colour for Y-axis
+const orangeColor = flock.BABYLON.Color3.FromHexString(AXIS_HEX.z); // Colour for Z-axis
 
 const FAST_CURSOR = 1; // Step for moving KB cursor quickly
 const DEFAULT_CURSOR = 0.1; // Step for moving KB cursor slowly (default)
@@ -566,9 +570,7 @@ function applyMeshSelection(pickedMesh, pickedPoint) {
   }
 
   if (pickedMesh && pickedMesh.name === 'ground') {
-    showStatus(translate('position_readout').replace('{position}', formatPosition(pickedPoint)), {
-      duration: 10,
-    });
+    showStatus(positionStatus(pickedPoint), { duration: 10 });
   }
   if (gizmoManager.attachedMesh) {
     resetChildMeshesOfAttachedMesh();
@@ -1290,10 +1292,19 @@ function enableBoundingBox(mesh) {
   mesh.showBoundingBox = true;
 }
 
-// Vector3's own toString gives "{X: 0 Y: 2.57 Z: 0}".
-function formatPosition(vector) {
-  const p = roundVectorToFixed(vector, 2);
-  return `x ${p.x}, y ${p.y}, z ${p.z}`;
+// Readout segments: each axis letter carries its arrow's colour, so it can't be
+// a plain string. One decimal, matching roundPositionValue() — the block ends up
+// with that value, so showing more precision here would be a lie.
+function positionStatus(vector) {
+  const p = roundVectorToFixed(vector, 1);
+  // Split the translation rather than replace into it, to keep each locale's
+  // own prefix ("Posición: ") around the pills.
+  const [before = '', after = ''] = translate('position_readout').split('{position}');
+  const axes = ['x', 'y', 'z'].flatMap((axis, i) => [
+    { text: `${i ? ' ' : ''}${axis}: ` },
+    { text: String(p[axis]), borderColor: AXIS_HEX[axis] },
+  ]);
+  return [{ text: before }, ...axes, { text: after }];
 }
 
 // Pick a mesh (used by multiple gizmos). `prompt` shows for as long as the pick
@@ -2280,8 +2291,7 @@ function handleSelectGizmo() {
 
   function applySelection(pickedMesh, pickedPoint) {
     if (pickedMesh && pickedMesh.name !== 'ground') {
-      const readout = formatPosition(pickedMesh.getAbsolutePosition());
-      showStatus(translate('position_readout').replace('{position}', readout), { duration: 10 });
+      showStatus(positionStatus(pickedMesh.getAbsolutePosition()), { duration: 10 });
     }
     applyMeshSelection(pickedMesh, pickedPoint);
     setTimeout(() => {

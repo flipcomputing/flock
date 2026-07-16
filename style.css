@@ -702,7 +702,9 @@ button {
    resizeCanvas() in main/view.js subtracts it. The top margin clears the
    Ctrl+G badges, which renderBadges() floats 20px below each button. */
 .gizmo-status {
-  height: 1.4em;
+  /* Headroom for the pills' borders, which would otherwise clip against
+     overflow:hidden. resizeCanvas() measures this, so it stays in step. */
+  height: 1.6em;
   /* .gizmo-buttons has no left padding, so match #shape-menu's own inset. */
   margin: 24px 0 0 5px;
   /* The menu text inherits the root size; track it so both scale together. */
@@ -712,6 +714,19 @@ button {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* One coordinate, styled like the value field on a block. The border carries
+   the axis colour (set inline, from the same AXIS_HEX as the 3D arrows); text
+   stays theme-coloured, so contrast never depends on the axis colour. */
+.gizmo-status__pill {
+  display: inline-block;
+  padding: 0 6px;
+  border: 1px solid;
+  border-radius: 999px;
+  line-height: 1.25;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 /* Separate from #gizmoButtons's own display (toggled directly via inline
@@ -776,7 +791,7 @@ button {
    Centred to sit under the centred button grid. */
 @media (max-width: 600px) {
   .gizmo-status {
-    height: 2.8em;
+    height: 3.2em;
     white-space: normal;
     text-align: center;
   }
